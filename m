@@ -1,61 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-make-function-get_wild_bug_type-static.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:25:39 -0700
-Message-ID: <20170711192539.NanO4awr5%akpm@linux-foundation.org>
+Subject: [merged] frv-remove-wrapper-header-for-asm-deviceh.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:25:41 -0700
+Message-ID: <20170711192541.loOcAg4R5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48250 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932722AbdGKTZk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:40 -0400
+        with ESMTP id S932722AbdGKTZm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, colin.king@canonical.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org, tklauser@distanz.ch
 
 
 The patch titled
-     Subject: kasan: make get_wild_bug_type() static
+     Subject: frv: remove wrapper header for asm/device.h
 has been removed from the -mm tree.  Its filename was
-     kasan-make-function-get_wild_bug_type-static.patch
+     frv-remove-wrapper-header-for-asm-deviceh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: kasan: make get_wild_bug_type() static
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: frv: remove wrapper header for asm/device.h
 
-The helper function get_wild_bug_type() does not need to be in global
-scope, so make it static.
+frv's asm/device.h is merely including asm-generic/device.h.  Thus, the
+arch specific header can be omitted and the generic header can be used
+directly.
 
-Cleans up sparse warning:
-"symbol 'get_wild_bug_type' was not declared. Should it be static?"
-
-Link: http://lkml.kernel.org/r/20170622090049.10658-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20170517124915.26904-1-tklauser@distanz.ch
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Reviewed-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/include/asm/Kbuild   |    1 +
+ arch/frv/include/asm/device.h |    7 -------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-make-function-get_wild_bug_type-static mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-make-function-get_wild_bug_type-static
-+++ a/mm/kasan/report.c
-@@ -107,7 +107,7 @@ static const char *get_shadow_bug_type(s
- 	return bug_type;
- }
+diff -puN arch/frv/include/asm/Kbuild~frv-remove-wrapper-header-for-asm-deviceh arch/frv/include/asm/Kbuild
+--- a/arch/frv/include/asm/Kbuild~frv-remove-wrapper-header-for-asm-deviceh
++++ a/arch/frv/include/asm/Kbuild
+@@ -1,5 +1,6 @@
  
--const char *get_wild_bug_type(struct kasan_access_info *info)
-+static const char *get_wild_bug_type(struct kasan_access_info *info)
- {
- 	const char *bug_type = "unknown-crash";
- 
-_
-
-Patches currently in -mm which might be from colin.king@canonical.com are
-
-
+ generic-y += clkdev.h
++generic-y += device.h
+ generic-y += exec.h
+ generic-y += extable.h
+ generic-y += irq_work.h
+diff -puN arch/frv/include/asm/device.h~frv-remove-wrapper-header-for-asm-deviceh /dev/null
+--- a/arch/frv/include/asm/device.h
++++ /dev/null
+@@ -1,7 +0,0 @@
+-/*
+- * Arch specific extensions to struct device
+- *
+- * This file is released under the GPLv2
+- */
+-#include <asm-generic/device.h>
