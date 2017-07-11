@@ -1,259 +1,167 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:24:22 -0700
-Message-ID: <20170711192422.PKSoFf7bW%akpm@linux-foundation.org>
+ mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch removed from -mm
+ tree
+Date: Tue, 11 Jul 2017 12:24:28 -0700
+Message-ID: <20170711192428.gzpcOaZIH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47916 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933716AbdGKTYX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:23 -0400
+        with ESMTP id S933716AbdGKTY3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz
+To: bigeasy@linutronix.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, sergey.senozhatsky@gmail.com, sudipm.mukherjee@gmail.com, vbabka@suse.cz, vinmenon@codeaurora.org, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: hugetlb: add support for preferred node to alloc_huge_page_nodemask
+     Subject: mm: avoid taking zone lock in pagetypeinfo_showmixed()
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+     mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: hugetlb: add support for preferred node to alloc_huge_page_nodemask
+From: Vinayak Menon <vinmenon@codeaurora.org>
+Subject: mm: avoid taking zone lock in pagetypeinfo_showmixed()
 
-alloc_huge_page_nodemask tries to allocate from any numa node in the
-allowed node mask starting from lower numa nodes.  This might lead to
-filling up those low NUMA nodes while others are not used.  We can reduce
-this risk by introducing a concept of the preferred node similar to what
-we have in the regular page allocator.  We will start allocating from the
-preferred nid and then iterate over all allowed nodes in the zonelist
-order until we try them all.
+pagetypeinfo_showmixedcount_print is found to take a lot of time to
+complete and it does this holding the zone lock and disabling interrupts. 
+In some cases it is found to take more than a second (On a 2.4GHz,8Gb
+RAM,arm64 cpu).  Avoid taking the zone lock similar to what is done by
+read_page_owner, which means possibility of inaccurate results.
 
-This is mimicing the page allocator logic except it operates on per-node
-mempools.  dequeue_huge_page_vma already does this so distill the zonelist
-logic into a more generic dequeue_huge_page_nodemask and use it in
-alloc_huge_page_nodemask.
-
-This will allow us to use proper per numa distance fallback also for
-alloc_huge_page_node which can use alloc_huge_page_nodemask now and we can
-get rid of alloc_huge_page_node helper which doesn't have any user
-anymore.
-
-Link: http://lkml.kernel.org/r/20170622193034.28972-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1498045643-12257-1-git-send-email-vinmenon@codeaurora.org
+Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Tested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: zhongjiang <zhongjiang@huawei.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +-
- include/linux/migrate.h |    2 
- mm/hugetlb.c            |   88 +++++++++++++++++++-------------------
- 3 files changed, 48 insertions(+), 47 deletions(-)
+ mm/page_owner.c |    6 +++++-
+ mm/vmstat.c     |   24 ++++++++++++++----------
+ 2 files changed, 19 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/include/linux/hugetlb.h
-@@ -349,7 +349,8 @@ struct page *alloc_huge_page(struct vm_a
- struct page *alloc_huge_page_node(struct hstate *h, int nid);
- struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
--struct page *alloc_huge_page_nodemask(struct hstate *h, nodemask_t *nmask);
-+struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+				nodemask_t *nmask);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
+diff -puN mm/page_owner.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed mm/page_owner.c
+--- a/mm/page_owner.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed
++++ a/mm/page_owner.c
+@@ -281,7 +281,11 @@ void pagetypeinfo_showmixedcount_print(s
+ 				continue;
  
-@@ -525,7 +526,7 @@ static inline void set_huge_swap_pte_at(
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
- #define alloc_huge_page_node(h, nid) NULL
--#define alloc_huge_page_nodemask(h, nmask) NULL
-+#define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
- #define alloc_huge_page_noerr(v, a, r) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
-diff -puN include/linux/migrate.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask include/linux/migrate.h
---- a/include/linux/migrate.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/include/linux/migrate.h
-@@ -38,7 +38,7 @@ static inline struct page *new_page_node
+ 			if (PageBuddy(page)) {
+-				pfn += (1UL << page_order(page)) - 1;
++				unsigned long freepage_order;
++
++				freepage_order = page_order_unsafe(page);
++				if (freepage_order < MAX_ORDER)
++					pfn += (1UL << freepage_order) - 1;
+ 				continue;
+ 			}
  
- 	if (PageHuge(page))
- 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
--				nodemask);
-+				preferred_nid, nodemask);
- 
- 	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
- 		gfp_mask |= __GFP_HIGHMEM;
-diff -puN mm/hugetlb.c~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/mm/hugetlb.c
-@@ -887,19 +887,39 @@ static struct page *dequeue_huge_page_no
- 	return page;
- }
- 
--static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+static struct page *dequeue_huge_page_nodemask(struct hstate *h, gfp_t gfp_mask, int nid,
-+		nodemask_t *nmask)
+diff -puN mm/vmstat.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed mm/vmstat.c
+--- a/mm/vmstat.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed
++++ a/mm/vmstat.c
+@@ -1130,7 +1130,7 @@ static void frag_stop(struct seq_file *m
+  * If @assert_populated is true, only use callback for zones that are populated.
+  */
+ static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
+-		bool assert_populated,
++		bool assert_populated, bool nolock,
+ 		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
  {
--	struct page *page;
--	int node;
-+	unsigned int cpuset_mems_cookie;
-+	struct zonelist *zonelist;
-+	struct zone *zone;
-+	struct zoneref *z;
-+	int node = -1;
+ 	struct zone *zone;
+@@ -1141,9 +1141,11 @@ static void walk_zones_in_node(struct se
+ 		if (assert_populated && !populated_zone(zone))
+ 			continue;
  
--	if (nid != NUMA_NO_NODE)
--		return dequeue_huge_page_node_exact(h, nid);
-+	zonelist = node_zonelist(nid, gfp_mask);
-+
-+retry_cpuset:
-+	cpuset_mems_cookie = read_mems_allowed_begin();
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), nmask) {
-+		struct page *page;
-+
-+		if (!cpuset_zone_allowed(zone, gfp_mask))
-+			continue;
-+		/*
-+		 * no need to ask again on the same node. Pool is node rather than
-+		 * zone aware
-+		 */
-+		if (zone_to_nid(zone) == node)
-+			continue;
-+		node = zone_to_nid(zone);
- 
--	for_each_online_node(node) {
- 		page = dequeue_huge_page_node_exact(h, node);
- 		if (page)
- 			return page;
+-		spin_lock_irqsave(&zone->lock, flags);
++		if (!nolock)
++			spin_lock_irqsave(&zone->lock, flags);
+ 		print(m, pgdat, zone);
+-		spin_unlock_irqrestore(&zone->lock, flags);
++		if (!nolock)
++			spin_unlock_irqrestore(&zone->lock, flags);
  	}
-+	if (unlikely(read_mems_allowed_retry(cpuset_mems_cookie)))
-+		goto retry_cpuset;
-+
- 	return NULL;
  }
- 
-@@ -917,15 +937,11 @@ static struct page *dequeue_huge_page_vm
- 				unsigned long address, int avoid_reserve,
- 				long chg)
+ #endif
+@@ -1166,7 +1168,7 @@ static void frag_show_print(struct seq_f
+ static int frag_show(struct seq_file *m, void *arg)
  {
--	struct page *page = NULL;
-+	struct page *page;
- 	struct mempolicy *mpol;
--	nodemask_t *nodemask;
- 	gfp_t gfp_mask;
-+	nodemask_t *nodemask;
- 	int nid;
--	struct zonelist *zonelist;
--	struct zone *zone;
--	struct zoneref *z;
--	unsigned int cpuset_mems_cookie;
- 
- 	/*
- 	 * A child process with MAP_PRIVATE mappings created by their parent
-@@ -940,32 +956,15 @@ static struct page *dequeue_huge_page_vm
- 	if (avoid_reserve && h->free_huge_pages - h->resv_huge_pages == 0)
- 		goto err;
- 
--retry_cpuset:
--	cpuset_mems_cookie = read_mems_allowed_begin();
- 	gfp_mask = htlb_alloc_mask(h);
- 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
--	zonelist = node_zonelist(nid, gfp_mask);
--
--	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--						MAX_NR_ZONES - 1, nodemask) {
--		if (cpuset_zone_allowed(zone, gfp_mask)) {
--			page = dequeue_huge_page_node(h, zone_to_nid(zone));
--			if (page) {
--				if (avoid_reserve)
--					break;
--				if (!vma_has_reserves(vma, chg))
--					break;
--
--				SetPagePrivate(page);
--				h->resv_huge_pages--;
--				break;
--			}
--		}
-+	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
-+	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
-+		SetPagePrivate(page);
-+		h->resv_huge_pages--;
- 	}
- 
- 	mpol_cond_put(mpol);
--	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--		goto retry_cpuset;
- 	return page;
- 
- err:
-@@ -1633,7 +1632,7 @@ struct page *alloc_huge_page_node(struct
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0)
--		page = dequeue_huge_page_node(h, nid);
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, NULL);
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
-@@ -1642,26 +1641,27 @@ struct page *alloc_huge_page_node(struct
- 	return page;
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
+-	walk_zones_in_node(m, pgdat, true, frag_show_print);
++	walk_zones_in_node(m, pgdat, true, false, frag_show_print);
+ 	return 0;
  }
  
--struct page *alloc_huge_page_nodemask(struct hstate *h, nodemask_t *nmask)
-+
-+struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+		nodemask_t *nmask)
+@@ -1207,7 +1209,7 @@ static int pagetypeinfo_showfree(struct
+ 		seq_printf(m, "%6d ", order);
+ 	seq_putc(m, '\n');
+ 
+-	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showfree_print);
++	walk_zones_in_node(m, pgdat, true, false, pagetypeinfo_showfree_print);
+ 
+ 	return 0;
+ }
+@@ -1258,7 +1260,8 @@ static int pagetypeinfo_showblockcount(s
+ 	for (mtype = 0; mtype < MIGRATE_TYPES; mtype++)
+ 		seq_printf(m, "%12s ", migratetype_names[mtype]);
+ 	seq_putc(m, '\n');
+-	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showblockcount_print);
++	walk_zones_in_node(m, pgdat, true, false,
++		pagetypeinfo_showblockcount_print);
+ 
+ 	return 0;
+ }
+@@ -1284,7 +1287,8 @@ static void pagetypeinfo_showmixedcount(
+ 		seq_printf(m, "%12s ", migratetype_names[mtype]);
+ 	seq_putc(m, '\n');
+ 
+-	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showmixedcount_print);
++	walk_zones_in_node(m, pgdat, true, true,
++		pagetypeinfo_showmixedcount_print);
+ #endif /* CONFIG_PAGE_OWNER */
+ }
+ 
+@@ -1446,7 +1450,7 @@ static void zoneinfo_show_print(struct s
+ static int zoneinfo_show(struct seq_file *m, void *arg)
  {
- 	gfp_t gfp_mask = htlb_alloc_mask(h);
--	struct page *page = NULL;
--	int node;
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0) {
--		for_each_node_mask(node, *nmask) {
--			page = dequeue_huge_page_node_exact(h, node);
--			if (page)
--				break;
-+		struct page *page;
-+
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, preferred_nid, nmask);
-+		if (page) {
-+			spin_unlock(&hugetlb_lock);
-+			return page;
- 		}
- 	}
- 	spin_unlock(&hugetlb_lock);
--	if (page)
--		return page;
- 
- 	/* No reservations, try to overcommit */
--	return __alloc_buddy_huge_page(h, gfp_mask, NUMA_NO_NODE, nmask);
-+
-+	return __alloc_buddy_huge_page(h, gfp_mask, preferred_nid, nmask);
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
+-	walk_zones_in_node(m, pgdat, false, zoneinfo_show_print);
++	walk_zones_in_node(m, pgdat, false, false, zoneinfo_show_print);
+ 	return 0;
  }
  
- /*
+@@ -1852,7 +1856,7 @@ static int unusable_show(struct seq_file
+ 	if (!node_state(pgdat->node_id, N_MEMORY))
+ 		return 0;
+ 
+-	walk_zones_in_node(m, pgdat, true, unusable_show_print);
++	walk_zones_in_node(m, pgdat, true, false, unusable_show_print);
+ 
+ 	return 0;
+ }
+@@ -1904,7 +1908,7 @@ static int extfrag_show(struct seq_file
+ {
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
+ 
+-	walk_zones_in_node(m, pgdat, true, extfrag_show_print);
++	walk_zones_in_node(m, pgdat, true, false, extfrag_show_print);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from vinmenon@codeaurora.org are
 
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
-mips-do-not-use-__gfp_repeat-for-order-0-request.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
-xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
-mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
-drm-i915-use-__gfp_retry_mayfail.patch
-mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
+mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
 
