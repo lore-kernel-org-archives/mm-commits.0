@@ -1,125 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- oom-trace-remove-enum-evaluation-of-compaction_feedback.patch removed from
- -mm tree
-Date: Tue, 11 Jul 2017 12:23:34 -0700
-Message-ID: <20170711192334.y0lteHBlu%akpm@linux-foundation.org>
+Subject: [merged] mm-always-enable-thp-for-dax-mappings.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:23:40 -0700
+Message-ID: <20170711192340.xKABJEsEx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47686 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933694AbdGKTXf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:35 -0400
+        with ESMTP id S933694AbdGKTXl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, rostedt@goodmis.org, vbabka@suse.cz
+To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com
 
 
 The patch titled
-     Subject: oom, trace: remove ENUM evaluation of COMPACTION_FEEDBACK
+     Subject: mm: always enable thp for dax mappings
 has been removed from the -mm tree.  Its filename was
-     oom-trace-remove-enum-evaluation-of-compaction_feedback.patch
+     mm-always-enable-thp-for-dax-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Subject: oom, trace: remove ENUM evaluation of COMPACTION_FEEDBACK
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: always enable thp for dax mappings
 
-After enabling CONFIG_TRACE_ENUM_MAP_FILE (which will soon be renamed to
-CONFIG_TRACE_EVAL_MAP_FILE), I am able to examine the enums that have been
-evaluated:
+The madvise policy for transparent huge pages is meant to avoid unwanted
+allocations of transparent huge pages.  It allows a policy of disabling
+the extra memory pressure and effort to arrange for a huge page when it is
+not needed.
 
- # cat /sys/kernel/debug/tracing/enum_map
+DAX by definition never incurs this overhead since it is statically
+allocated.  The policy choice makes even less sense for device-dax which
+tries to guarantee a given tlb-fault size.  Specifically, the following
+setting:
 
-(which will soon be renamed to eval_map)
+	echo never > /sys/kernel/mm/transparent_hugepage/enabled
 
-And it showed some interesting results:
+...violates that guarantee and silently disables all device-dax instances
+with a 2M or 1G alignment.  So, let's avoid that non-obvious side effect
+by force enabling thp for dax mappings in all cases.
 
-[..]
-ZONE_MOVABLE 3 (oom)
-ZONE_NORMAL 2 (oom)
-ZONE_DMA32 1 (oom)
-ZONE_DMA 0 (oom)
-3 3 (oom)
-2 2 (oom)
-1 1 (oom)
-COMPACT_PRIO_ASYNC 2 (oom)
-COMPACT_PRIO_SYNC_LIGHT 1 (oom)
-COMPACT_PRIO_SYNC_FULL 0 (oom)
-[..]
-ZONE_DMA 0 (vmscan)
-3 3 (vmscan)
-2 2 (vmscan)
-1 1 (vmscan)
-COMPACT_PRIO_ASYNC 2 (vmscan)
-[..]
-ZONE_DMA 0 (kmem)
-3 3 (kmem)
-2 2 (kmem)
-1 1 (kmem)
-COMPACT_PRIO_ASYNC 2 (kmem)
-[..]
-ZONE_DMA 0 (compaction)
-3 3 (compaction)
-2 2 (compaction)
-1 1 (compaction)
-COMPACT_PRIO_ASYNC 2 (compaction)
-[..]
+It is worth noting that the reason this uses vma_is_dax(), and the
+resulting header include changes, is that previous attempts to add a
+VM_DAX flag were NAKd.
 
-The name within the parenthesis are the trace systems that the enum/eval
-maps are associated with.  When there's a number evaluated to another
-number, that tells me that the TRACE_DEFINE_ENUM() was used on a #define
-and not an enum.  As #defines get converted normally, they are not needed
-to be evaluated.
-
-Each of the above trace systems with the number to number evaluation
-included the file include/trace/events/mmflags.h which has:
-
- /* High-level compaction status feedback */
- #define COMPACTION_FAILED       1
- #define COMPACTION_WITHDRAWN    2
- #define COMPACTION_PROGRESS     3
-
-[..]
-
- #define COMPACTION_FEEDBACK             \
-        EM(COMPACTION_FAILED,           "failed")       \
-        EM(COMPACTION_WITHDRAWN,        "withdrawn")    \
-        EMe(COMPACTION_PROGRESS,        "progress")
-
-Which is still needed for the __print_symbolic() usage in the
-trace_event. But it is not needed to be evaluated.
-
-Removing the evaluation part removes the unnecessary evaluations of
-numbers to numbers.
-
-Link: http://lkml.kernel.org/r/20170615074944.7be9a647@gandalf.local.home
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/149739531127.20686.15813586620597484283.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/dax.h     |    5 -----
+ include/linux/fs.h      |    6 ++++++
+ include/linux/huge_mm.h |    5 +++++
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN include/trace/events/mmflags.h~oom-trace-remove-enum-evaluation-of-compaction_feedback include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~oom-trace-remove-enum-evaluation-of-compaction_feedback
-+++ a/include/trace/events/mmflags.h
-@@ -257,7 +257,7 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
+diff -puN include/linux/dax.h~mm-always-enable-thp-for-dax-mappings include/linux/dax.h
+--- a/include/linux/dax.h~mm-always-enable-thp-for-dax-mappings
++++ a/include/linux/dax.h
+@@ -154,11 +154,6 @@ static inline unsigned int dax_radix_ord
+ #endif
+ int dax_pfn_mkwrite(struct vm_fault *vmf);
  
- COMPACTION_STATUS
- COMPACTION_PRIORITY
--COMPACTION_FEEDBACK
-+/* COMPACTION_FEEDBACK are defines not enums. Not needed here. */
- ZONE_TYPE
- LRU_NAMES
+-static inline bool vma_is_dax(struct vm_area_struct *vma)
+-{
+-	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
+-}
+-
+ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+diff -puN include/linux/fs.h~mm-always-enable-thp-for-dax-mappings include/linux/fs.h
+--- a/include/linux/fs.h~mm-always-enable-thp-for-dax-mappings
++++ a/include/linux/fs.h
+@@ -18,6 +18,7 @@
+ #include <linux/bug.h>
+ #include <linux/mutex.h>
+ #include <linux/rwsem.h>
++#include <linux/mm_types.h>
+ #include <linux/capability.h>
+ #include <linux/semaphore.h>
+ #include <linux/fcntl.h>
+@@ -3127,6 +3128,11 @@ static inline bool io_is_direct(struct f
+ 	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
+ }
  
++static inline bool vma_is_dax(struct vm_area_struct *vma)
++{
++	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
++}
++
+ static inline int iocb_flags(struct file *file)
+ {
+ 	int res = 0;
+diff -puN include/linux/huge_mm.h~mm-always-enable-thp-for-dax-mappings include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-always-enable-thp-for-dax-mappings
++++ a/include/linux/huge_mm.h
+@@ -3,6 +3,8 @@
+ 
+ #include <linux/sched/coredump.h>
+ 
++#include <linux/fs.h> /* only for vma_is_dax() */
++
+ extern int do_huge_pmd_anonymous_page(struct vm_fault *vmf);
+ extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+@@ -103,6 +105,9 @@ static inline bool transparent_hugepage_
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+ 		return true;
+ 
++	if (vma_is_dax(vma))
++		return true;
++
+ 	if (transparent_hugepage_flags &
+ 				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
+ 		return !!(vma->vm_flags & VM_HUGEPAGE);
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 
