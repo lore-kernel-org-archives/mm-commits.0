@@ -1,147 +1,125 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:23:31 -0700
-Message-ID: <20170711192331.X2xQ1-5bk%akpm@linux-foundation.org>
+ oom-trace-remove-enum-evaluation-of-compaction_feedback.patch removed from
+ -mm tree
+Date: Tue, 11 Jul 2017 12:23:34 -0700
+Message-ID: <20170711192334.y0lteHBlu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47658 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933694AbdGKTXc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:32 -0400
+        with ESMTP id S933694AbdGKTXf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, Liam.Howlett@Oracle.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, zhongjiang@huawei.com
+To: hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, rostedt@goodmis.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm/hugetlb.c: warn the user when issues arise on boot due to hugepages
+     Subject: oom, trace: remove ENUM evaluation of COMPACTION_FEEDBACK
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages.patch
+     oom-trace-remove-enum-evaluation-of-compaction_feedback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/hugetlb.c: warn the user when issues arise on boot due to hugepages
+From: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Subject: oom, trace: remove ENUM evaluation of COMPACTION_FEEDBACK
 
-When the user specifies too many hugepages or an invalid
-default_hugepagesz the communication to the user is implicit in the
-allocation message.  This patch adds a warning when the desired page count
-is not allocated and prints an error when the default_hugepagesz is
-invalid on boot.
+After enabling CONFIG_TRACE_ENUM_MAP_FILE (which will soon be renamed to
+CONFIG_TRACE_EVAL_MAP_FILE), I am able to examine the enums that have been
+evaluated:
 
-During boot hugepages will allocate until there is a fraction of the
-hugepage size left.  That is, we allocate until either the request is
-satisfied or memory for the pages is exhausted.  When memory for the pages
-is exhausted, it will most likely lead to the system failing with the OOM
-manager not finding enough (or anything) to kill (unless you're using
-really big hugepages in the order of 100s of MB or in the GBs).  The user
-will most likely see the OOM messages much later in the boot sequence than
-the implicitly stated message.  Worse yet, you may even get an OOM for
-each processor which causes many pages of OOMs on modern systems. 
-Although these messages will be printed earlier than the OOM messages, at
-least giving the user errors and warnings will highlight the configuration
-as an issue.  I'm trying to point the user in the right direction by
-providing a more robust statement of what is failing.
+ # cat /sys/kernel/debug/tracing/enum_map
 
-During the sysctl or echo command, the user can check the results much
-easier than if the system hangs during boot and the scenario of having
-nothing to OOM for kernel memory is highly unlikely.
+(which will soon be renamed to eval_map)
 
-Mike said:
+And it showed some interesting results:
 
-: Before sending out this patch, I asked Liam off list why he was doing
-: it.  Was it something he just thought would be useful?  Or, was there
-: some type of user situation/need.  He said that he had been called in
-: to assist on several occasions when a system OOMed during boot.  In
-: almost all of these situations, the user had grossly misconfigured huge
-: pages.  DB users want to pre-allocate just the right amount of huge
-: pages, but sometimes they can be really off.  In such situations, the
-: huge page init code just allocates as many huge pages as it can and
-: reports the number allocated.  There is no indication that it quit
-: allocating because it ran out of memory.  Of course, a user could
-: compare the number in the message to what they requested on the command
-: line to determine if they got all the huge pages they requested.  The
-: thought was that it would be useful to at least flag this situation. 
-: That way, the user might be able to better relate the huge page
-: allocation failure to the OOM.
-: 
-: I'm not sure if the e-mail discussion made it obvious that this is
-: something he has seen on several occasions.
-: 
-: I see Michal's point that this will only flag the situation where
-: someone configures huge pages very badly.  And, a more extensive look
-: at the situation of misconfiguring huge pages might be in order.  But,
-: this has happened on several occasions which led to the creation of
-: this patch.
+[..]
+ZONE_MOVABLE 3 (oom)
+ZONE_NORMAL 2 (oom)
+ZONE_DMA32 1 (oom)
+ZONE_DMA 0 (oom)
+3 3 (oom)
+2 2 (oom)
+1 1 (oom)
+COMPACT_PRIO_ASYNC 2 (oom)
+COMPACT_PRIO_SYNC_LIGHT 1 (oom)
+COMPACT_PRIO_SYNC_FULL 0 (oom)
+[..]
+ZONE_DMA 0 (vmscan)
+3 3 (vmscan)
+2 2 (vmscan)
+1 1 (vmscan)
+COMPACT_PRIO_ASYNC 2 (vmscan)
+[..]
+ZONE_DMA 0 (kmem)
+3 3 (kmem)
+2 2 (kmem)
+1 1 (kmem)
+COMPACT_PRIO_ASYNC 2 (kmem)
+[..]
+ZONE_DMA 0 (compaction)
+3 3 (compaction)
+2 2 (compaction)
+1 1 (compaction)
+COMPACT_PRIO_ASYNC 2 (compaction)
+[..]
 
-[akpm@linux-foundation.org: reposition memfmt() to avoid forward declaration]
-Link: http://lkml.kernel.org/r/20170603005413.10380-1-Liam.Howlett@Oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: zhongjiang <zhongjiang@huawei.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+The name within the parenthesis are the trace systems that the enum/eval
+maps are associated with.  When there's a number evaluated to another
+number, that tells me that the TRACE_DEFINE_ENUM() was used on a #define
+and not an enum.  As #defines get converted normally, they are not needed
+to be evaluated.
+
+Each of the above trace systems with the number to number evaluation
+included the file include/trace/events/mmflags.h which has:
+
+ /* High-level compaction status feedback */
+ #define COMPACTION_FAILED       1
+ #define COMPACTION_WITHDRAWN    2
+ #define COMPACTION_PROGRESS     3
+
+[..]
+
+ #define COMPACTION_FEEDBACK             \
+        EM(COMPACTION_FAILED,           "failed")       \
+        EM(COMPACTION_WITHDRAWN,        "withdrawn")    \
+        EMe(COMPACTION_PROGRESS,        "progress")
+
+Which is still needed for the __print_symbolic() usage in the
+trace_event. But it is not needed to be evaluated.
+
+Removing the evaluation part removes the unnecessary evaluations of
+numbers to numbers.
+
+Link: http://lkml.kernel.org/r/20170615074944.7be9a647@gandalf.local.home
+Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ include/trace/events/mmflags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages
-+++ a/mm/hugetlb.c
-@@ -70,6 +70,17 @@ struct mutex *hugetlb_fault_mutex_table
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
+diff -puN include/trace/events/mmflags.h~oom-trace-remove-enum-evaluation-of-compaction_feedback include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~oom-trace-remove-enum-evaluation-of-compaction_feedback
++++ a/include/trace/events/mmflags.h
+@@ -257,7 +257,7 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
  
-+static char * __init memfmt(char *buf, unsigned long n)
-+{
-+	if (n >= (1UL << 30))
-+		sprintf(buf, "%lu GB", n >> 30);
-+	else if (n >= (1UL << 20))
-+		sprintf(buf, "%lu MB", n >> 20);
-+	else
-+		sprintf(buf, "%lu KB", n >> 10);
-+	return buf;
-+}
-+
- static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
- {
- 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
-@@ -2212,7 +2223,14 @@ static void __init hugetlb_hstate_alloc_
- 					 &node_states[N_MEMORY]))
- 			break;
- 	}
--	h->max_huge_pages = i;
-+	if (i < h->max_huge_pages) {
-+		char buf[32];
-+
-+		memfmt(buf, huge_page_size(h)),
-+		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
-+			h->max_huge_pages, buf, i);
-+		h->max_huge_pages = i;
-+	}
- }
+ COMPACTION_STATUS
+ COMPACTION_PRIORITY
+-COMPACTION_FEEDBACK
++/* COMPACTION_FEEDBACK are defines not enums. Not needed here. */
+ ZONE_TYPE
+ LRU_NAMES
  
- static void __init hugetlb_init_hstates(void)
-@@ -2230,17 +2248,6 @@ static void __init hugetlb_init_hstates(
- 	VM_BUG_ON(minimum_order == UINT_MAX);
- }
- 
--static char * __init memfmt(char *buf, unsigned long n)
--{
--	if (n >= (1UL << 30))
--		sprintf(buf, "%lu GB", n >> 30);
--	else if (n >= (1UL << 20))
--		sprintf(buf, "%lu MB", n >> 20);
--	else
--		sprintf(buf, "%lu KB", n >> 10);
--	return buf;
--}
+_
+
+Patches currently in -mm which might be from rostedt@goodmis.org are
+
+
