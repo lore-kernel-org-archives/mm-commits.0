@@ -1,67 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-simplify-wb_stat_sum.patch removed from
- -mm tree
-Date: Tue, 11 Jul 2017 12:24:43 -0700
-Message-ID: <20170711192443.RNqFKY1y3%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-balloon-enqueue-zero-page-to-balloon-device.patch removed from -mm tree
+Date: Tue, 11 Jul 2017 12:24:51 -0700
+Message-ID: <20170711192451.Kqn8srmmK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933703AbdGKTYo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:44 -0400
+        with ESMTP id S933703AbdGKTYw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@fb.com, jack@suse.cz, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tj@kernel.org
+To: aquini@redhat.com, gi-oh.kim@profitbricks.com, khlebnikov@yandex-team.ru, minchan@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz, zhenwei.pi@youruncloud.com
 
 
 The patch titled
-     Subject: include/linux/backing-dev.h: simplify wb_stat_sum
+     Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
 has been removed from the -mm tree.  Its filename was
-     writeback-simplify-wb_stat_sum.patch
+     mm-balloon-enqueue-zero-page-to-balloon-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nikolay Borisov <nborisov@suse.com>
-Subject: include/linux/backing-dev.h: simplify wb_stat_sum
+From: "zhenwei.pi" <zhenwei.pi@youruncloud.com>
+Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
 
-wb_stat_sum() disables interrupts and calls __wb_stat_sum() which
-eventually calls __percpu_counter_sum().  However, the percpu routine is
-already irq-safe.  Simplify the code a bit by making wb_stat_sum()
-directly call percpu_counter_sum_positive() and not disable interrupts. 
-Also remove the now-uneeded __wb_stat_sum() which was just a wrapper over
-percpu_counter_sum_positive().
+presently pages in the balloon device have random value, and these pages
+will be scanned by ksmd on the host.  They usually cannot be merged. 
+Enqueue zero pages will resolve this problem.
 
-Link: http://lkml.kernel.org/r/1498230681-29103-1-git-send-email-nborisov@suse.com
-Signed-off-by: Nikolay Borisov <nborisov@suse.com>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
+Link: http://lkml.kernel.org/r/1498698637-26389-1-git-send-email-zhenwei.pi@youruncloud.com
+Signed-off-by: zhenwei.pi <zhenwei.pi@youruncloud.com>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ mm/balloon_compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/backing-dev.h~writeback-simplify-wb_stat_sum include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~writeback-simplify-wb_stat_sum
-+++ a/include/linux/backing-dev.h
-@@ -104,22 +104,9 @@ static inline s64 wb_stat(struct bdi_wri
- 	return percpu_counter_read_positive(&wb->stat[item]);
- }
- 
--static inline s64 __wb_stat_sum(struct bdi_writeback *wb,
--				enum wb_stat_item item)
--{
--	return percpu_counter_sum_positive(&wb->stat[item]);
--}
--
- static inline s64 wb_stat_sum(struct bdi_writeback *wb, enum wb_stat_item item)
+diff -puN mm/balloon_compaction.c~mm-balloon-enqueue-zero-page-to-balloon-device mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-balloon-enqueue-zero-page-to-balloon-device
++++ a/mm/balloon_compaction.c
+@@ -24,7 +24,7 @@ struct page *balloon_page_enqueue(struct
  {
--	s64 sum;
--	unsigned long flags;
--
--	local_irq_save(flags);
--	sum = __wb_stat_sum(wb, item);
--	local_irq_restore(flags);
+ 	unsigned long flags;
+ 	struct page *page = alloc_page(balloon_mapping_gfp_mask() |
+-					__GFP_NOMEMALLOC | __GFP_NORETRY);
++				__GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_ZERO);
+ 	if (!page)
+ 		return NULL;
+ 
+_
+
+Patches currently in -mm which might be from zhenwei.pi@youruncloud.com are
+
+
