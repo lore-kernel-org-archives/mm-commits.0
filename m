@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-list_head-is-also-declaration.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:26:54 -0700
-Message-ID: <20170711192654.nGePKnCs-%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-remove-false-warning-for-commit-reference.patch removed from -mm
+ tree
+Date: Tue, 11 Jul 2017 12:26:58 -0700
+Message-ID: <20170711192658.v0vk6hnpF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755637AbdGKT0z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:55 -0400
+        with ESMTP id S1755645AbdGKT07 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, maier@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org, xypron.glpk@gmx.de
 
 
 The patch titled
-     Subject: checkpatch: [HLP]LIST_HEAD is also declaration
+     Subject: checkpatch: remove false warning for commit reference
 has been removed from the -mm tree.  Its filename was
-     checkpatch-list_head-is-also-declaration.patch
+     checkpatch-remove-false-warning-for-commit-reference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Steffen Maier <maier@linux.vnet.ibm.com>
-Subject: checkpatch: [HLP]LIST_HEAD is also declaration
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: checkpatch: remove false warning for commit reference
 
-Fixes the following false warning among others for LLIST_HEAD and
-PLIST_HEAD:
+Checkpatch warns of an incorrect commit reference style for any
+hexadecimal number of 12 digits and more.
 
-    WARNING: Missing a blank line after declarations
-    #71: FILE: drivers/s390/scsi/zfcp_fsf.c:422:
-    +	struct hlist_node *tmp;
-    +	HLIST_HEAD(remove_queue);
+Numbers of 12 digits are not necessarily commit ids.
 
-Link: http://lkml.kernel.org/r/20170614133512.89425-1-maier@linux.vnet.ibm.com
-Signed-off-by: Steffen Maier <maier@linux.vnet.ibm.com>
+For an example provoking the problem see
+https://patchwork.kernel.org/patch/9170897/
+
+Checkpatch should only warn if the number refers to an existing commit.
+
+Link: http://lkml.kernel.org/r/20170607184008.5869-1-xypron.glpk@gmx.de
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-list_head-is-also-declaration scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-list_head-is-also-declaration
+diff -puN scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference
 +++ a/scripts/checkpatch.pl
-@@ -733,7 +733,7 @@ our $FuncArg = qr{$Typecast{0,1}($LvalOr
+@@ -867,6 +867,7 @@ sub git_commit_info {
+ #		    echo "commit $(cut -c 1-12,41-)"
+ #		done
+ 	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
++		$id = undef;
+ 	} else {
+ 		$id = substr($lines[0], 0, 12);
+ 		$desc = substr($lines[0], 41);
+@@ -2606,7 +2607,8 @@ sub process {
+ 			($id, $description) = git_commit_info($orig_commit,
+ 							      $id, $orig_desc);
  
- our $declaration_macros = qr{(?x:
- 	(?:$Storage\s+)?(?:[A-Z_][A-Z0-9]*_){0,2}(?:DEFINE|DECLARE)(?:_[A-Z0-9]+){1,6}\s*\(|
--	(?:$Storage\s+)?LIST_HEAD\s*\(|
-+	(?:$Storage\s+)?[HLP]?LIST_HEAD\s*\(|
- 	(?:$Storage\s+)?${Type}\s+uninitialized_var\s*\(
- )};
- 
+-			if ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens) {
++			if (defined($id) &&
++			   ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens)) {
+ 				ERROR("GIT_COMMIT_ID",
+ 				      "Please use git commit description style 'commit <12+ chars of sha1> (\"<title line>\")' - ie: '${init_char}ommit $id (\"$description\")'\n" . $herecurr);
+ 			}
 _
 
-Patches currently in -mm which might be from maier@linux.vnet.ibm.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
 
