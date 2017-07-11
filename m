@@ -1,149 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-unify-new_node_page-and-alloc_migrate_target.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:24:00 -0700
-Message-ID: <20170711192400.-5uoLRYGI%akpm@linux-foundation.org>
+Subject: [merged] replace-memfmt-with-string_get_size.patch removed
+ from -mm tree
+Date: Tue, 11 Jul 2017 12:24:09 -0700
+Message-ID: <20170711192409.xf9X0_0Rk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47779 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47814 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933716AbdGKTYB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:01 -0400
+        with ESMTP id S933716AbdGKTYK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, zhongjiang@huawei.com
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, Liam.Howlett@Oracle.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, willy@infradead.org, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: mm: unify new_node_page and alloc_migrate_target
+     Subject: mm/hugetlb.c: replace memfmt with string_get_size
 has been removed from the -mm tree.  Its filename was
-     mm-unify-new_node_page-and-alloc_migrate_target.patch
+     replace-memfmt-with-string_get_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: unify new_node_page and alloc_migrate_target
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm/hugetlb.c: replace memfmt with string_get_size
 
-394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node
-when mem-offline") has duplicated a large part of alloc_migrate_target
-with some hotplug specific special casing.  To be more precise it tried to
-enfore the allocation from a different node than the original page.  As a
-result the two function diverged in their shared logic, e.g.  the hugetlb
-allocation strategy.  Let's unify the two and express different NUMA
-requirements by the given nodemask.  new_node_page will simply exclude the
-node it doesn't care about and alloc_migrate_target will use all the
-available nodes.  alloc_migrate_target will then learn to migrate hugetlb
-pages more sanely and use preallocated pool when possible.
+The hugetlb code has its own function to report human-readable sizes. 
+Convert it to use the shared string_get_size() function.  This will lead
+to a minor difference in user visible output (MiB/GiB instead of MB/GB),
+but some would argue that's desirable anyway.
 
-Please note that alloc_migrate_target used to call alloc_page resp. 
-alloc_pages_current so the memory policy of the current context which is
-quite strange when we consider that it is used in the context of
-alloc_contig_range which just tries to migrate pages which stand in the
-way.
-
-Link: http://lkml.kernel.org/r/20170608074553.22152-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20170606190350.GA20010@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: zhong jiang <zhongjiang@huawei.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |   16 ++++++++++++++++
- mm/memory_hotplug.c     |   11 +----------
- mm/page_isolation.c     |   18 ++----------------
- 3 files changed, 19 insertions(+), 26 deletions(-)
+ mm/hugetlb.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-unify-new_node_page-and-alloc_migrate_target include/linux/migrate.h
---- a/include/linux/migrate.h~mm-unify-new_node_page-and-alloc_migrate_target
-+++ a/include/linux/migrate.h
-@@ -4,6 +4,7 @@
- #include <linux/mm.h>
- #include <linux/mempolicy.h>
- #include <linux/migrate_mode.h>
-+#include <linux/hugetlb.h>
+diff -puN mm/hugetlb.c~replace-memfmt-with-string_get_size mm/hugetlb.c
+--- a/mm/hugetlb.c~replace-memfmt-with-string_get_size
++++ a/mm/hugetlb.c
+@@ -20,6 +20,7 @@
+ #include <linux/slab.h>
+ #include <linux/sched/signal.h>
+ #include <linux/rmap.h>
++#include <linux/string_helpers.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+ #include <linux/jhash.h>
+@@ -70,17 +71,6 @@ struct mutex *hugetlb_fault_mutex_table
+ /* Forward declaration */
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
  
- typedef struct page *new_page_t(struct page *page, unsigned long private,
- 				int **reason);
-@@ -30,6 +31,21 @@ enum migrate_reason {
- /* In mm/debug.c; also keep sync with include/trace/events/migrate.h */
- extern char *migrate_reason_names[MR_TYPES];
- 
-+static inline struct page *new_page_nodemask(struct page *page,
-+				int preferred_nid, nodemask_t *nodemask)
-+{
-+	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
-+
-+	if (PageHuge(page))
-+		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
-+				nodemask);
-+
-+	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
-+		gfp_mask |= __GFP_HIGHMEM;
-+
-+	return __alloc_pages_nodemask(gfp_mask, 0, preferred_nid, nodemask);
-+}
-+
- #ifdef CONFIG_MIGRATION
- 
- extern void putback_movable_pages(struct list_head *l);
-diff -puN mm/memory_hotplug.c~mm-unify-new_node_page-and-alloc_migrate_target mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-unify-new_node_page-and-alloc_migrate_target
-+++ a/mm/memory_hotplug.c
-@@ -1433,7 +1433,6 @@ static unsigned long scan_movable_pages(
- static struct page *new_node_page(struct page *page, unsigned long private,
- 		int **result)
+-static char * __init memfmt(char *buf, unsigned long n)
+-{
+-	if (n >= (1UL << 30))
+-		sprintf(buf, "%lu GB", n >> 30);
+-	else if (n >= (1UL << 20))
+-		sprintf(buf, "%lu MB", n >> 20);
+-	else
+-		sprintf(buf, "%lu KB", n >> 10);
+-	return buf;
+-}
+-
+ static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
  {
--	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
- 	int nid = page_to_nid(page);
- 	nodemask_t nmask = node_states[N_MEMORY];
+ 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
+@@ -2255,7 +2245,7 @@ static void __init hugetlb_hstate_alloc_
+ 	if (i < h->max_huge_pages) {
+ 		char buf[32];
  
-@@ -1446,15 +1445,7 @@ static struct page *new_node_page(struct
- 	if (nodes_empty(nmask))
- 		node_set(nid, nmask);
+-		memfmt(buf, huge_page_size(h)),
++		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+ 		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
+ 			h->max_huge_pages, buf, i);
+ 		h->max_huge_pages = i;
+@@ -2283,9 +2273,10 @@ static void __init report_hugepages(void
  
--	if (PageHuge(page))
--		return alloc_huge_page_nodemask(
--				page_hstate(compound_head(page)), &nmask);
--
--	if (PageHighMem(page)
--	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
--		gfp_mask |= __GFP_HIGHMEM;
--
--	return __alloc_pages_nodemask(gfp_mask, 0, nid, &nmask);
-+	return new_page_nodemask(page, nid, &nmask);
+ 	for_each_hstate(h) {
+ 		char buf[32];
++
++		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+ 		pr_info("HugeTLB registered %s page size, pre-allocated %ld pages\n",
+-			memfmt(buf, huge_page_size(h)),
+-			h->free_huge_pages);
++			buf, h->free_huge_pages);
+ 	}
  }
  
- #define NR_OFFLINE_AT_ONCE_PAGES	(256)
-diff -puN mm/page_isolation.c~mm-unify-new_node_page-and-alloc_migrate_target mm/page_isolation.c
---- a/mm/page_isolation.c~mm-unify-new_node_page-and-alloc_migrate_target
-+++ a/mm/page_isolation.c
-@@ -8,6 +8,7 @@
- #include <linux/memory.h>
- #include <linux/hugetlb.h>
- #include <linux/page_owner.h>
-+#include <linux/migrate.h>
- #include "internal.h"
- 
- #define CREATE_TRACE_POINTS
-@@ -294,20 +295,5 @@ int test_pages_isolated(unsigned long st
- struct page *alloc_migrate_target(struct page *page, unsigned long private,
- 				  int **resultp)
- {
--	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
--
--	/*
--	 * TODO: allocate a destination hugepage from a nearest neighbor node,
--	 * accordance with memory policy of the user process if possible. For
--	 * now as a simple work-around, we use the next node for destination.
--	 */
--	if (PageHuge(page))
--		return alloc_huge_page_node(page_hstate(compound_head(page)),
--					    next_node_in(page_to_nid(page),
--							 node_online_map));
--
--	if (PageHighMem(page))
--		gfp_mask |= __GFP_HIGHMEM;
+_
+
+Patches currently in -mm which might be from willy@infradead.org are
+
+
