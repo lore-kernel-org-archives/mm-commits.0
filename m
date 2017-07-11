@@ -1,88 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kstrtox-use-unsigned-int-more.patch removed from
- -mm tree
-Date: Tue, 11 Jul 2017 12:26:31 -0700
-Message-ID: <20170711192631.dqx1vQ6d6%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-interval_tree_test-allow-full-tree-search.patch removed from -mm tree
+Date: Tue, 11 Jul 2017 12:26:41 -0700
+Message-ID: <20170711192641.TBtrsM-9m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932973AbdGKT0c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:32 -0400
+        with ESMTP id S1752619AbdGKT0m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kstrtox.c: use "unsigned int" more
+     Subject: lib/interval_tree_test.c: allow full tree search
 has been removed from the -mm tree.  Its filename was
-     kstrtox-use-unsigned-int-more.patch
+     lib-interval_tree_test-allow-full-tree-search.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: lib/kstrtox.c: use "unsigned int" more
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/interval_tree_test.c: allow full tree search
 
-gcc does generates stupid code sign extending data back and forth.  Help
-by using "unsigned int".
+...  such that a user can specify visiting all the nodes in the tree
+(intersects with the world).  This is a nice opposite from the very basic
+default query which is a single point.
 
-	add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-61 (-61)
-	function                                     old     new   delta
-	_parse_integer                               128     123      -5
-
-It _still_ does generate useless MOVSX but I don't know how to delete it:
-
-0000000000000070 <_parse_integer>:
-			...
-  a0:   89 c2                   mov    edx,eax
-  a2:   83 e8 30                sub    eax,0x30
-  a5:   83 f8 09                cmp    eax,0x9
-  a8:   76 11                   jbe    bb <_parse_integer+0x4b>
-  aa:   83 ca 20                or     edx,0x20
-  ad:   0f be c2      ===>      movsx  eax,dl         <===
-			useless
-  b0:   8d 50 9f                lea    edx,[rax-0x61]
-  b3:   83 fa 05                cmp    edx,0x5
-
-Patch also helps on embedded archs which generally only like "int".
-On arm "and 0xff" is generated which is waste because all values used in
-comparisons are positive.
-
-Link: http://lkml.kernel.org/r/20170514194720.GB32563@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/20170518174936.20265-5-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/interval_tree_test.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN lib/kstrtox.c~kstrtox-use-unsigned-int-more lib/kstrtox.c
---- a/lib/kstrtox.c~kstrtox-use-unsigned-int-more
-+++ a/lib/kstrtox.c
-@@ -52,12 +52,14 @@ unsigned int _parse_integer(const char *
- 	res = 0;
- 	rv = 0;
- 	while (1) {
-+		unsigned int c = *s;
-+		unsigned int lc = c | 0x20; /* don't tolower() this line */
- 		unsigned int val;
+diff -puN lib/interval_tree_test.c~lib-interval_tree_test-allow-full-tree-search lib/interval_tree_test.c
+--- a/lib/interval_tree_test.c~lib-interval_tree_test-allow-full-tree-search
++++ a/lib/interval_tree_test.c
+@@ -15,6 +15,7 @@ __param(int, perf_loops, 100000, "Number
  
--		if ('0' <= *s && *s <= '9')
--			val = *s - '0';
--		else if ('a' <= _tolower(*s) && _tolower(*s) <= 'f')
--			val = _tolower(*s) - 'a' + 10;
-+		if ('0' <= c && c <= '9')
-+			val = c - '0';
-+		else if ('a' <= lc && lc <= 'f')
-+			val = lc - 'a' + 10;
- 		else
- 			break;
+ __param(int, nsearches, 100, "Number of searches to the interval tree");
+ __param(int, search_loops, 10000, "Number of iterations searching the tree");
++__param(bool, search_all, false, "Searches will iterate all nodes in the tree");
  
+ __param(uint, max_endpoint, ~0, "Largest value for the interval's endpoint");
+ 
+@@ -25,13 +26,13 @@ static u32 *queries = NULL;
+ static struct rnd_state rnd;
+ 
+ static inline unsigned long
+-search(unsigned long query, struct rb_root *root)
++search(struct rb_root *root, unsigned long start, unsigned long last)
+ {
+ 	struct interval_tree_node *node;
+ 	unsigned long results = 0;
+ 
+-	for (node = interval_tree_iter_first(root, query, query); node;
+-	     node = interval_tree_iter_next(node, query, query))
++	for (node = interval_tree_iter_first(root, start, last); node;
++	     node = interval_tree_iter_next(node, start, last))
+ 		results++;
+ 	return results;
+ }
+@@ -102,8 +103,12 @@ static int interval_tree_test_init(void)
+ 
+ 	results = 0;
+ 	for (i = 0; i < search_loops; i++)
+-		for (j = 0; j < nsearches; j++)
+-			results += search(queries[j], &root);
++		for (j = 0; j < nsearches; j++) {
++			unsigned long start = search_all ? 0 : queries[j];
++			unsigned long last = search_all ? max_endpoint : queries[j];
++
++			results += search(&root, start, last);
++		}
+ 
+ 	time2 = get_cycles();
+ 	time = time2 - time1;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-seq_file-delete-small-value-optimization.patch
+fs-kill-config_percpu_rwsem-some-more.patch
 
