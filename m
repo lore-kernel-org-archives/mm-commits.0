@@ -1,112 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch removed from -mm
+ expand_downwards-dont-require-the-gap-if-vm_prev.patch removed from -mm
  tree
-Date: Tue, 11 Jul 2017 12:25:00 -0700
-Message-ID: <20170711192500.f-il_-Jro%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:24:57 -0700
+Message-ID: <20170711192457.-FyxrkAtk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48038 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932365AbdGKTZB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:01 -0400
+        with ESMTP id S932365AbdGKTY6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apolyakov@beget.ru, jack@suse.cz, mm-commits@vger.kernel.org, stable@vger.kernel.org, stummala@codeaurora.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk
+To: hughd@google.com, lwoodman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     Subject: mm/list_lru.c: fix list_lru_count_node() to be race free
+     Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
 has been removed from the -mm tree.  Its filename was
-     mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch
+     expand_downwards-dont-require-the-gap-if-vm_prev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sahitya Tummala <stummala@codeaurora.org>
-Subject: mm/list_lru.c: fix list_lru_count_node() to be race free
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
 
-list_lru_count_node() iterates over all memcgs to get the total number of
-entries on the node but it can race with memcg_drain_all_list_lrus(),
-which migrates the entries from a dead cgroup to another.  This can return
-incorrect number of entries from list_lru_count_node().
+expand_stack(vma) fails if address < stack_guard_gap even if there is no
+vma->vm_prev.  I don't think this makes sense, and we didn't do this
+before the recent commit 1be7107fbe18 ("mm: larger stack guard gap,
+between vmas").  We do not need a gap in this case, any address is fine as
+long as security_mmap_addr() doesn't object.
 
-Fix this by keeping track of entries per node and simply return it in
-list_lru_count_node().
+This also simplifies the code, we know that address >= prev->vm_end and
+thus underflow is not possible.
 
-Link: http://lkml.kernel.org/r/1498707555-30525-1-git-send-email-stummala@codeaurora.org
-Signed-off-by: Sahitya Tummala <stummala@codeaurora.org>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Alexander Polakov <apolyakov@beget.ru>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170628175258.GA24881@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    1 +
- mm/list_lru.c            |   14 ++++++--------
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ mm/mmap.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/list_lru.h~mm-list_lruc-fix-list_lru_count_node-to-be-race-free include/linux/list_lru.h
---- a/include/linux/list_lru.h~mm-list_lruc-fix-list_lru_count_node-to-be-race-free
-+++ a/include/linux/list_lru.h
-@@ -44,6 +44,7 @@ struct list_lru_node {
- 	/* for cgroup aware lrus points to per cgroup lists, otherwise NULL */
- 	struct list_lru_memcg	*memcg_lrus;
- #endif
-+	long nr_items;
- } ____cacheline_aligned_in_smp;
- 
- struct list_lru {
-diff -puN mm/list_lru.c~mm-list_lruc-fix-list_lru_count_node-to-be-race-free mm/list_lru.c
---- a/mm/list_lru.c~mm-list_lruc-fix-list_lru_count_node-to-be-race-free
-+++ a/mm/list_lru.c
-@@ -117,6 +117,7 @@ bool list_lru_add(struct list_lru *lru,
- 		l = list_lru_from_kmem(nlru, item);
- 		list_add_tail(item, &l->list);
- 		l->nr_items++;
-+		nlru->nr_items++;
- 		spin_unlock(&nlru->lock);
- 		return true;
- 	}
-@@ -136,6 +137,7 @@ bool list_lru_del(struct list_lru *lru,
- 		l = list_lru_from_kmem(nlru, item);
- 		list_del_init(item);
- 		l->nr_items--;
-+		nlru->nr_items--;
- 		spin_unlock(&nlru->lock);
- 		return true;
- 	}
-@@ -183,15 +185,10 @@ EXPORT_SYMBOL_GPL(list_lru_count_one);
- 
- unsigned long list_lru_count_node(struct list_lru *lru, int nid)
+diff -puN mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev mm/mmap.c
+--- a/mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev
++++ a/mm/mmap.c
+@@ -2316,7 +2316,6 @@ int expand_downwards(struct vm_area_stru
  {
--	long count = 0;
--	int memcg_idx;
-+	struct list_lru_node *nlru;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *prev;
+-	unsigned long gap_addr;
+ 	int error;
  
--	count += __list_lru_count_one(lru, nid, -1);
--	if (list_lru_memcg_aware(lru)) {
--		for_each_memcg_cache_index(memcg_idx)
--			count += __list_lru_count_one(lru, nid, memcg_idx);
--	}
--	return count;
-+	nlru = &lru->node[nid];
-+	return nlru->nr_items;
- }
- EXPORT_SYMBOL_GPL(list_lru_count_node);
+ 	address &= PAGE_MASK;
+@@ -2325,15 +2324,12 @@ int expand_downwards(struct vm_area_stru
+ 		return error;
  
-@@ -226,6 +223,7 @@ restart:
- 			assert_spin_locked(&nlru->lock);
- 		case LRU_REMOVED:
- 			isolated++;
-+			nlru->nr_items--;
- 			/*
- 			 * If the lru lock has been dropped, our list
- 			 * traversal is now invalid and so we have to
+ 	/* Enforce stack_guard_gap */
+-	gap_addr = address - stack_guard_gap;
+-	if (gap_addr > address)
+-		return -ENOMEM;
+ 	prev = vma->vm_prev;
+-	if (prev && prev->vm_end > gap_addr &&
++	/* Check that both stack segments have the same anon_vma? */
++	if (prev && !(prev->vm_flags & VM_GROWSDOWN) &&
+ 			(prev->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
+-		if (!(prev->vm_flags & VM_GROWSDOWN))
++		if (address - prev->vm_end < stack_guard_gap)
+ 			return -ENOMEM;
+-		/* Check that both stack segments have the same anon_vma? */
+ 	}
+ 
+ 	/* We must make sure the anon_vma is allocated. */
 _
 
-Patches currently in -mm which might be from stummala@codeaurora.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
