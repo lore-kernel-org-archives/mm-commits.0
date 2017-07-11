@@ -1,100 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-switch-to-ida_simple_get-remove.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:25:49 -0700
-Message-ID: <20170711192549.kL0YsZHIK%akpm@linux-foundation.org>
+Subject: [merged]
+ linux-bugh-correct-formatting-of-block-comment.patch removed from -mm tree
+Date: Tue, 11 Jul 2017 12:25:54 -0700
+Message-ID: <20170711192554.bjemR32dR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48304 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932627AbdGKTZu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:50 -0400
+        with ESMTP id S932270AbdGKTZz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hkallweit1@gmail.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+To: abbotti@mev.co.uk, jakub.kicinski@netronome.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, mm-commits@vger.kernel.org, peterz@infradead.org, rostedt@goodmis.org
 
 
 The patch titled
-     Subject: fs/proc/generic.c: switch to ida_simple_get/remove
+     Subject: linux/bug.h: correct formatting of block comment
 has been removed from the -mm tree.  Its filename was
-     fs-proc-switch-to-ida_simple_get-remove.patch
+     linux-bugh-correct-formatting-of-block-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: fs/proc/generic.c: switch to ida_simple_get/remove
+From: Ian Abbott <abbotti@mev.co.uk>
+Subject: linux/bug.h: correct formatting of block comment
 
-The code can be much simplified by switching to ida_simple_get/remove.
+Correct these checkpatch.pl warnings:
 
-Link: http://lkml.kernel.org/r/8d1cc9f7-5115-c9dc-028e-c0770b6bfe1f@gmail.com
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+|WARNING: Block comments use * on subsequent lines
+|#34: FILE: include/linux/bug.h:34:
+|+/* Force a compilation error if condition is true, but also produce a
+|+   result (of value 0 and type size_t), so the expression can be used
+
+|WARNING: Block comments use a trailing */ on a separate line
+|#36: FILE: include/linux/bug.h:36:
+|+   aren't permitted). */
+
+Link: http://lkml.kernel.org/r/20170525120316.24473-3-abbotti@mev.co.uk
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   34 ++++++++--------------------------
- 1 file changed, 8 insertions(+), 26 deletions(-)
+ include/linux/bug.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/generic.c~fs-proc-switch-to-ida_simple_get-remove fs/proc/generic.c
---- a/fs/proc/generic.c~fs-proc-switch-to-ida_simple_get-remove
-+++ a/fs/proc/generic.c
-@@ -180,7 +180,6 @@ static int xlate_proc_name(const char *n
- }
+diff -puN include/linux/bug.h~linux-bugh-correct-formatting-of-block-comment include/linux/bug.h
+--- a/include/linux/bug.h~linux-bugh-correct-formatting-of-block-comment
++++ a/include/linux/bug.h
+@@ -30,10 +30,12 @@ struct pt_regs;
+ #define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
+ 	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
  
- static DEFINE_IDA(proc_inum_ida);
--static DEFINE_SPINLOCK(proc_inum_lock); /* protects the above */
+-/* Force a compilation error if condition is true, but also produce a
+-   result (of value 0 and type size_t), so the expression can be used
+-   e.g. in a structure initializer (or where-ever else comma expressions
+-   aren't permitted). */
++/*
++ * Force a compilation error if condition is true, but also produce a
++ * result (of value 0 and type size_t), so the expression can be used
++ * e.g. in a structure initializer (or where-ever else comma expressions
++ * aren't permitted).
++ */
+ #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+ #define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
  
- #define PROC_DYNAMIC_FIRST 0xF0000000U
- 
-@@ -190,37 +189,20 @@ static DEFINE_SPINLOCK(proc_inum_lock);
-  */
- int proc_alloc_inum(unsigned int *inum)
- {
--	unsigned int i;
--	int error;
-+	int i;
- 
--retry:
--	if (!ida_pre_get(&proc_inum_ida, GFP_KERNEL))
--		return -ENOMEM;
--
--	spin_lock_irq(&proc_inum_lock);
--	error = ida_get_new(&proc_inum_ida, &i);
--	spin_unlock_irq(&proc_inum_lock);
--	if (error == -EAGAIN)
--		goto retry;
--	else if (error)
--		return error;
--
--	if (i > UINT_MAX - PROC_DYNAMIC_FIRST) {
--		spin_lock_irq(&proc_inum_lock);
--		ida_remove(&proc_inum_ida, i);
--		spin_unlock_irq(&proc_inum_lock);
--		return -ENOSPC;
--	}
--	*inum = PROC_DYNAMIC_FIRST + i;
-+	i = ida_simple_get(&proc_inum_ida, 0, UINT_MAX - PROC_DYNAMIC_FIRST + 1,
-+			   GFP_KERNEL);
-+	if (i < 0)
-+		return i;
-+
-+	*inum = PROC_DYNAMIC_FIRST + (unsigned int)i;
- 	return 0;
- }
- 
- void proc_free_inum(unsigned int inum)
- {
--	unsigned long flags;
--	spin_lock_irqsave(&proc_inum_lock, flags);
--	ida_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
--	spin_unlock_irqrestore(&proc_inum_lock, flags);
-+	ida_simple_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from hkallweit1@gmail.com are
+Patches currently in -mm which might be from abbotti@mev.co.uk are
 
+kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 
