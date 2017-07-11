@@ -1,204 +1,214 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:25:19 -0700
-Message-ID: <20170711192519.7qd_Z2coh%akpm@linux-foundation.org>
+ mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch removed from -mm
+ tree
+Date: Tue, 11 Jul 2017 12:25:11 -0700
+Message-ID: <20170711192511.l6lsS11Uc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48116 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933785AbdGKTZU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:20 -0400
+        with ESMTP id S933785AbdGKTZM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmarchan@redhat.com, minchan@kernel.org, mm-commits@vger.kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky.work@gmail.com
+To: aryabinin@virtuozzo.com, dave@stgolabs.net, mhocko@suse.com, mm-commits@vger.kernel.org, peterz@infradead.org, tglx@linutronix.de, vbabka@suse.cz, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
+     Subject: mm/memory-hotplug: switch locking to a percpu rwsem
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
+     mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Jerome Marchand" <jmarchan@redhat.com>
-Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm/memory-hotplug: switch locking to a percpu rwsem
 
-40f9fb8cffc6 ("mm/zsmalloc: support allocating obj with size of
-ZS_MAX_ALLOC_SIZE") fixes a size calculation error that prevented zsmalloc
-to allocate an object of the maximal size (ZS_MAX_ALLOC_SIZE).  I think
-however the fix is unneededly complicated.
+Andrey reported a potential deadlock with the memory hotplug lock and the
+cpu hotplug lock.
 
-This patch replaces the dynamic calculation of zs_size_classes at init
-time by a compile time calculation that uses the DIV_ROUND_UP() macro
-already used in get_size_class_index().
+The reason is that memory hotplug takes the memory hotplug lock and then
+calls stop_machine() which calls get_online_cpus().  That's the reverse
+lock order to get_online_cpus(); get_online_mems(); in mm/slub_common.c
 
-[akpm@linux-foundation.org: use min_t]
-Link: http://lkml.kernel.org/r/20170630114859.1979-1-jmarchan@redhat.com
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
+The problem has been there forever.  The reason why this was never
+reported is that the cpu hotplug locking had this homebrewn recursive
+reader writer semaphore construct which due to the recursion evaded the
+full lock dep coverage.  The memory hotplug code copied that construct
+verbatim and therefor has similar issues.
+
+Three steps to fix this:
+
+1) Convert the memory hotplug locking to a per cpu rwsem so the potential
+   issues get reported proper by lockdep.
+
+2) Lock the online cpus in mem_hotplug_begin() before taking the memory
+   hotplug rwsem and use stop_machine_cpuslocked() in the page_alloc code
+   to avoid recursive locking.
+
+3) The cpu hotpluck locking in #2 causes a recursive locking of the cpu
+   hotplug lock via __offline_pages() -> lru_add_drain_all(). Solve this by
+   invoking lru_add_drain_all_cpuslocked() instead.
+
+Link: http://lkml.kernel.org/r/20170704093421.506836322@linutronix.de
+Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   52 +++++++++++++-----------------------------------
- 1 file changed, 15 insertions(+), 37 deletions(-)
+ mm/memory_hotplug.c |   89 +++++++-----------------------------------
+ mm/page_alloc.c     |    2 
+ 2 files changed, 16 insertions(+), 75 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling
-+++ a/mm/zsmalloc.c
-@@ -116,6 +116,11 @@
- #define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
- #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
+diff -puN mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
++++ a/mm/memory_hotplug.c
+@@ -52,32 +52,17 @@ static void generic_online_page(struct p
+ static online_page_callback_t online_page_callback = generic_online_page;
+ static DEFINE_MUTEX(online_page_callback_lock);
  
-+#define FULLNESS_BITS	2
-+#define CLASS_BITS	8
-+#define ISOLATED_BITS	3
-+#define MAGIC_VAL_BITS	8
-+
- #define MAX(a, b) ((a) >= (b) ? (a) : (b))
- /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
- #define ZS_MIN_ALLOC_SIZE \
-@@ -137,6 +142,8 @@
-  *  (reason above)
-  */
- #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> CLASS_BITS)
-+#define ZS_SIZE_CLASSES	(DIV_ROUND_UP(ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE, \
-+				      ZS_SIZE_CLASS_DELTA) + 1)
+-/* The same as the cpu_hotplug lock, but for memory hotplug. */
+-static struct {
+-	struct task_struct *active_writer;
+-	struct mutex lock; /* Synchronizes accesses to refcount, */
+-	/*
+-	 * Also blocks the new readers during
+-	 * an ongoing mem hotplug operation.
+-	 */
+-	int refcount;
++DEFINE_STATIC_PERCPU_RWSEM(mem_hotplug_lock);
  
- enum fullness_group {
- 	ZS_EMPTY,
-@@ -169,11 +176,6 @@ static struct vfsmount *zsmalloc_mnt;
- #endif
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	struct lockdep_map dep_map;
+-#endif
+-} mem_hotplug = {
+-	.active_writer = NULL,
+-	.lock = __MUTEX_INITIALIZER(mem_hotplug.lock),
+-	.refcount = 0,
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	.dep_map = {.name = "mem_hotplug.lock" },
+-#endif
+-};
++void get_online_mems(void)
++{
++	percpu_down_read(&mem_hotplug_lock);
++}
  
- /*
-- * number of size_classes
-- */
--static int zs_size_classes;
--
--/*
-  * We assign a page to ZS_ALMOST_EMPTY fullness group when:
-  *	n <= N / f, where
-  * n = number of allocated objects
-@@ -244,7 +246,7 @@ struct link_free {
- struct zs_pool {
- 	const char *name;
+-/* Lockdep annotations for get/put_online_mems() and mem_hotplug_begin/end() */
+-#define memhp_lock_acquire_read() lock_map_acquire_read(&mem_hotplug.dep_map)
+-#define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+-#define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
++void put_online_mems(void)
++{
++	percpu_up_read(&mem_hotplug_lock);
++}
  
--	struct size_class **size_class;
-+	struct size_class *size_class[ZS_SIZE_CLASSES];
- 	struct kmem_cache *handle_cachep;
- 	struct kmem_cache *zspage_cachep;
+ bool movable_node_enabled = false;
  
-@@ -268,11 +270,6 @@ struct zs_pool {
- #endif
- };
- 
--#define FULLNESS_BITS	2
--#define CLASS_BITS	8
--#define ISOLATED_BITS	3
--#define MAGIC_VAL_BITS	8
--
- struct zspage {
- 	struct {
- 		unsigned int fullness:FULLNESS_BITS;
-@@ -551,7 +548,7 @@ static int get_size_class_index(int size
- 		idx = DIV_ROUND_UP(size - ZS_MIN_ALLOC_SIZE,
- 				ZS_SIZE_CLASS_DELTA);
- 
--	return min(zs_size_classes - 1, idx);
-+	return min_t(int, ZS_SIZE_CLASSES - 1, idx);
+@@ -99,60 +84,16 @@ static int __init setup_memhp_default_st
  }
+ __setup("memhp_default_state=", setup_memhp_default_state);
  
- static inline void zs_stat_inc(struct size_class *class,
-@@ -610,7 +607,7 @@ static int zs_stats_size_show(struct seq
- 			"obj_allocated", "obj_used", "pages_used",
- 			"pages_per_zspage", "freeable");
- 
--	for (i = 0; i < zs_size_classes; i++) {
-+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
- 		class = pool->size_class[i];
- 
- 		if (class->index != i)
-@@ -1294,17 +1291,6 @@ static int zs_cpu_dead(unsigned int cpu)
- 	return 0;
- }
- 
--static void __init init_zs_size_classes(void)
+-void get_online_mems(void)
 -{
--	int nr;
+-	might_sleep();
+-	if (mem_hotplug.active_writer == current)
+-		return;
+-	memhp_lock_acquire_read();
+-	mutex_lock(&mem_hotplug.lock);
+-	mem_hotplug.refcount++;
+-	mutex_unlock(&mem_hotplug.lock);
 -
--	nr = (ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / ZS_SIZE_CLASS_DELTA + 1;
--	if ((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) % ZS_SIZE_CLASS_DELTA)
--		nr += 1;
--
--	zs_size_classes = nr;
 -}
 -
- static bool can_merge(struct size_class *prev, int pages_per_zspage,
- 					int objs_per_zspage)
+-void put_online_mems(void)
+-{
+-	if (mem_hotplug.active_writer == current)
+-		return;
+-	mutex_lock(&mem_hotplug.lock);
+-
+-	if (WARN_ON(!mem_hotplug.refcount))
+-		mem_hotplug.refcount++; /* try to fix things up */
+-
+-	if (!--mem_hotplug.refcount && unlikely(mem_hotplug.active_writer))
+-		wake_up_process(mem_hotplug.active_writer);
+-	mutex_unlock(&mem_hotplug.lock);
+-	memhp_lock_release();
+-
+-}
+-
+-/* Serializes write accesses to mem_hotplug.active_writer. */
+-static DEFINE_MUTEX(memory_add_remove_lock);
+-
+ void mem_hotplug_begin(void)
  {
-@@ -2145,7 +2131,7 @@ static void async_free_zspage(struct wor
- 	struct zs_pool *pool = container_of(work, struct zs_pool,
- 					free_work);
- 
--	for (i = 0; i < zs_size_classes; i++) {
-+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
- 		class = pool->size_class[i];
- 		if (class->index != i)
- 			continue;
-@@ -2263,7 +2249,7 @@ unsigned long zs_compact(struct zs_pool
- 	int i;
- 	struct size_class *class;
- 
--	for (i = zs_size_classes - 1; i >= 0; i--) {
-+	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
- 		if (!class)
- 			continue;
-@@ -2309,7 +2295,7 @@ static unsigned long zs_shrinker_count(s
- 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
- 			shrinker);
- 
--	for (i = zs_size_classes - 1; i >= 0; i--) {
-+	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
- 		if (!class)
- 			continue;
-@@ -2361,12 +2347,6 @@ struct zs_pool *zs_create_pool(const cha
- 		return NULL;
- 
- 	init_deferred_free(pool);
--	pool->size_class = kcalloc(zs_size_classes, sizeof(struct size_class *),
--			GFP_KERNEL);
--	if (!pool->size_class) {
--		kfree(pool);
--		return NULL;
+-	mutex_lock(&memory_add_remove_lock);
+-
+-	mem_hotplug.active_writer = current;
+-
+-	memhp_lock_acquire();
+-	for (;;) {
+-		mutex_lock(&mem_hotplug.lock);
+-		if (likely(!mem_hotplug.refcount))
+-			break;
+-		__set_current_state(TASK_UNINTERRUPTIBLE);
+-		mutex_unlock(&mem_hotplug.lock);
+-		schedule();
 -	}
++	cpus_read_lock();
++	percpu_down_write(&mem_hotplug_lock);
+ }
  
- 	pool->name = kstrdup(name, GFP_KERNEL);
- 	if (!pool->name)
-@@ -2379,7 +2359,7 @@ struct zs_pool *zs_create_pool(const cha
- 	 * Iterate reversely, because, size of size_class that we want to use
- 	 * for merging should be larger or equal to current size.
- 	 */
--	for (i = zs_size_classes - 1; i >= 0; i--) {
-+	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		int size;
- 		int pages_per_zspage;
- 		int objs_per_zspage;
-@@ -2453,7 +2433,7 @@ void zs_destroy_pool(struct zs_pool *poo
- 	zs_unregister_migration(pool);
- 	zs_pool_stat_destroy(pool);
+ void mem_hotplug_done(void)
+ {
+-	mem_hotplug.active_writer = NULL;
+-	mutex_unlock(&mem_hotplug.lock);
+-	memhp_lock_release();
+-	mutex_unlock(&memory_add_remove_lock);
++	percpu_up_write(&mem_hotplug_lock);
++	cpus_read_unlock();
+ }
  
--	for (i = 0; i < zs_size_classes; i++) {
-+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
- 		int fg;
- 		struct size_class *class = pool->size_class[i];
- 
-@@ -2492,8 +2472,6 @@ static int __init zs_init(void)
- 	if (ret)
- 		goto hp_setup_fail;
- 
--	init_zs_size_classes();
+ /* add this memory to iomem resource */
+@@ -1725,7 +1666,7 @@ repeat:
+ 		goto failed_removal;
+ 	ret = 0;
+ 	if (drain) {
+-		lru_add_drain_all();
++		lru_add_drain_all_cpuslocked();
+ 		cond_resched();
+ 		drain_all_pages(zone);
+ 	}
+@@ -1746,7 +1687,7 @@ repeat:
+ 		}
+ 	}
+ 	/* drain all zone's lru pagevec, this is asynchronous... */
+-	lru_add_drain_all();
++	lru_add_drain_all_cpuslocked();
+ 	yield();
+ 	/* drain pcp pages, this is synchronous. */
+ 	drain_all_pages(zone);
+diff -puN mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
++++ a/mm/page_alloc.c
+@@ -5278,7 +5278,7 @@ void __ref build_all_zonelists(pg_data_t
+ #endif
+ 		/* we have to stop all cpus to guarantee there is no user
+ 		   of zonelist */
+-		stop_machine(__build_all_zonelists, pgdat, NULL);
++		stop_machine_cpuslocked(__build_all_zonelists, pgdat, NULL);
+ 		/* cpuset refresh routine should be here */
+ 	}
+ 	vm_total_pages = nr_free_pagecache_pages();
+_
+
+Patches currently in -mm which might be from tglx@linutronix.de are
+
+
