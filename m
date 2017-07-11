@@ -1,163 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-support-movable_node-for-hotplugable-nodes.patch removed
- from -mm tree
-Date: Tue, 11 Jul 2017 12:23:51 -0700
-Message-ID: <20170711192351.rqwSLBTpC%akpm@linux-foundation.org>
+ mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:23:46 -0700
+Message-ID: <20170711192346.iW32U6Z-m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47712 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933716AbdGKTXw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:52 -0400
+        with ESMTP id S933716AbdGKTXr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, imammedo@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, steve.capper@arm.com, vbabka@suse.cz, will.deacon@arm.com
 
 
 The patch titled
-     Subject: mm, memory_hotplug: support movable_node for hotpluggable nodes
+     Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-support-movable_node-for-hotplugable-nodes.patch
+     mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@kernel.org>
-Subject: mm, memory_hotplug: support movable_node for hotpluggable nodes
+From: Will Deacon <will.deacon@arm.com>
+Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
 
-movable_node kernel parameter allows making hotpluggable NUMA nodes to put
-all the hotplugable memory into movable zone which allows more or less
-reliable memory hotremove.  At least this is the case for the NUMA nodes
-present during the boot (see find_zone_movable_pfns_for_nodes).
+When migrating a transparent hugepage, migrate_misplaced_transhuge_page
+guards itself against a concurrent fastgup of the page by checking that
+the page count is equal to 2 before and after installing the new pmd.
 
-This is not the case for the memory hotplug, though.
+If the page count changes, then the pmd is reverted back to the original
+entry, however there is a small window where the new (possibly writable)
+pmd is installed and the underlying page could be written by userspace. 
+Restoring the old pmd could therefore result in loss of data.
 
-	echo online > /sys/devices/system/memory/memoryXYZ/state
+This patch fixes the problem by freezing the page count whilst updating
+the page tables, which protects against a concurrent fastgup without the
+need to restore the old pmd in the failure case (since the page count can
+no longer change under our feet).
 
-will default to a kernel zone (usually ZONE_NORMAL) unless the particular
-memblock is already in the movable zone range which is not the case
-normally when onlining the memory from the udev rule context for a freshly
-hotadded NUMA node.  The only option currently is to have a special udev
-rule to echo online_movable to all memblocks belonging to such a node
-which is rather clumsy.  Not to mention this is inconsistent as well
-because what ended up in the movable zone during the boot will end up in a
-kernel zone after hotremove & hotadd without special care.
-
-It would be nice to reuse memblock_is_hotpluggable but the runtime hotplug
-doesn't have that information available because the boot and hotplug paths
-are not shared and it would be really non trivial to make them use the
-same code path because the runtime hotplug doesn't play with the memblock
-allocator at all.
-
-Teach move_pfn_range that MMOP_ONLINE_KEEP can use the movable zone if
-movable_node is enabled and the range doesn't overlap with the existing
-normal zone.  This should provide a reasonable default onlining strategy.
-
-Strictly speaking the semantic is not identical with the boot time
-initialization because find_zone_movable_pfns_for_nodes covers only the
-hotplugable range as described by the BIOS/FW.  From my experience this is
-usually a full node though (except for Node0 which is special and never
-goes away completely).  If this turns out to be a problem in the real life
-we can tweak the code to store hotplug flag into memblocks but let's keep
-this simple now.
-
-Link: http://lkml.kernel.org/r/20170612111227.GI7476@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1497349722-6731-4-git-send-email-will.deacon@arm.com
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: <qiuxishi@huawei.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: <slaoub@gmail.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   12 +++++++++---
- mm/memory_hotplug.c              |   19 ++++++++++++++++---
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ mm/migrate.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/memory-hotplug.txt~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes
-+++ a/Documentation/memory-hotplug.txt
-@@ -282,20 +282,26 @@ offlined it is possible to change the in
- % echo online > /sys/devices/system/memory/memoryXXX/state
+diff -puN mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages
++++ a/mm/migrate.c
+@@ -1916,7 +1916,6 @@ int migrate_misplaced_transhuge_page(str
+ 	int page_lru = page_is_file_cache(page);
+ 	unsigned long mmun_start = address & HPAGE_PMD_MASK;
+ 	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
+-	pmd_t orig_entry;
  
- This onlining will not change the ZONE type of the target memory block,
--If the memory block is in ZONE_NORMAL, you can change it to ZONE_MOVABLE:
-+If the memory block doesn't belong to any zone an appropriate kernel zone
-+(usually ZONE_NORMAL) will be used unless movable_node kernel command line
-+option is specified when ZONE_MOVABLE will be used.
-+
-+You can explicitly request to associate it with ZONE_MOVABLE by
+ 	/*
+ 	 * Rate-limit the amount of data that is being migrated to a node.
+@@ -1959,8 +1958,7 @@ int migrate_misplaced_transhuge_page(str
+ 	/* Recheck the target PMD */
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	ptl = pmd_lock(mm, pmd);
+-	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
+-fail_putback:
++	if (unlikely(!pmd_same(*pmd, entry) || !page_ref_freeze(page, 2))) {
+ 		spin_unlock(ptl);
+ 		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
  
- % echo online_movable > /sys/devices/system/memory/memoryXXX/state
- (NOTE: current limit: this memory block must be adjacent to ZONE_MOVABLE)
+@@ -1982,7 +1980,6 @@ fail_putback:
+ 		goto out_unlock;
+ 	}
  
--And if the memory block is in ZONE_MOVABLE, you can change it to ZONE_NORMAL:
-+Or you can explicitly request a kernel zone (usually ZONE_NORMAL) by:
+-	orig_entry = *pmd;
+ 	entry = mk_huge_pmd(new_page, vma->vm_page_prot);
+ 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
  
- % echo online_kernel > /sys/devices/system/memory/memoryXXX/state
- (NOTE: current limit: this memory block must be adjacent to ZONE_NORMAL)
+@@ -1999,15 +1996,7 @@ fail_putback:
+ 	set_pmd_at(mm, mmun_start, pmd, entry);
+ 	update_mmu_cache_pmd(vma, address, &entry);
  
-+An explicit zone onlining can fail (e.g. when the range is already within
-+and existing and incompatible zone already).
-+
- After this, memory block XXX's state will be 'online' and the amount of
- available memory will be increased.
- 
--Currently, newly added memory is added as ZONE_NORMAL (for powerpc, ZONE_DMA).
- This may be changed in future.
- 
- 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes
-+++ a/mm/memory_hotplug.c
-@@ -934,6 +934,19 @@ struct zone *default_zone_for_pfn(int ni
- 	return &pgdat->node_zones[ZONE_NORMAL];
- }
- 
-+static inline bool movable_pfn_range(int nid, struct zone *default_zone,
-+		unsigned long start_pfn, unsigned long nr_pages)
-+{
-+	if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
-+				MMOP_ONLINE_KERNEL))
-+		return true;
-+
-+	if (!movable_node_is_enabled())
-+		return false;
-+
-+	return !zone_intersects(default_zone, start_pfn, nr_pages);
-+}
-+
- /*
-  * Associates the given pfn range with the given node and the zone appropriate
-  * for the given online type.
-@@ -949,10 +962,10 @@ static struct zone * __meminit move_pfn_
- 		/*
- 		 * MMOP_ONLINE_KEEP defaults to MMOP_ONLINE_KERNEL but use
- 		 * movable zone if that is not possible (e.g. we are within
--		 * or past the existing movable zone)
-+		 * or past the existing movable zone). movable_node overrides
-+		 * this default and defaults to movable zone
- 		 */
--		if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
--					MMOP_ONLINE_KERNEL))
-+		if (movable_pfn_range(nid, zone, start_pfn, nr_pages))
- 			zone = movable_zone;
- 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
- 		zone = &pgdat->node_zones[ZONE_MOVABLE];
-_
-
-Patches currently in -mm which might be from mhocko@kernel.org are
-
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-3.patch
-
+-	if (page_count(page) != 2) {
+-		set_pmd_at(mm, mmun_start, pmd, orig_entry);
+-		flush_pmd_tlb_range(vma, mmun_start, mmun_end);
+-		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
+-		update_mmu_cache_pmd(vma, address, &entry);
+-		page_remove_rmap(new_page, true);
+-		goto fail_putback;
+-	}
