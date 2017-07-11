@@ -1,180 +1,147 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-make-pr_set_thp_disable-immediately-active.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:23:20 -0700
-Message-ID: <20170711192320.7ll9Fsq1W%akpm@linux-foundation.org>
+ mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:23:31 -0700
+Message-ID: <20170711192331.X2xQ1-5bk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47646 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933694AbdGKTXV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:21 -0400
+        with ESMTP id S933694AbdGKTXc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, arnd@arndb.de, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, vbabka@suse.cz, xemul@virtuozzo.com
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, Liam.Howlett@Oracle.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: mm: make PR_SET_THP_DISABLE immediately active
+     Subject: mm/hugetlb.c: warn the user when issues arise on boot due to hugepages
 has been removed from the -mm tree.  Its filename was
-     mm-make-pr_set_thp_disable-immediately-active.patch
+     mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make PR_SET_THP_DISABLE immediately active
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/hugetlb.c: warn the user when issues arise on boot due to hugepages
 
-PR_SET_THP_DISABLE has a rather subtle semantic.  It doesn't affect any
-existing mapping because it only updated mm->def_flags which is a template
-for new mappings.  The mappings created after prctl(PR_SET_THP_DISABLE)
-have VM_NOHUGEPAGE flag set.  This can be quite surprising for all those
-applications which do not do prctl(); fork() & exec() and want to control
-their own THP behavior.
+When the user specifies too many hugepages or an invalid
+default_hugepagesz the communication to the user is implicit in the
+allocation message.  This patch adds a warning when the desired page count
+is not allocated and prints an error when the default_hugepagesz is
+invalid on boot.
 
-Another usecase when the immediate semantic of the prctl might be useful
-is a combination of pre- and post-copy migration of containers with CRIU. 
-In this case CRIU populates a part of a memory region with data that was
-saved during the pre-copy stage.  Afterwards, the region is registered
-with userfaultfd and CRIU expects to get page faults for the parts of the
-region that were not yet populated.  However, khugepaged collapses the
-pages and the expected page faults do not occur.
+During boot hugepages will allocate until there is a fraction of the
+hugepage size left.  That is, we allocate until either the request is
+satisfied or memory for the pages is exhausted.  When memory for the pages
+is exhausted, it will most likely lead to the system failing with the OOM
+manager not finding enough (or anything) to kill (unless you're using
+really big hugepages in the order of 100s of MB or in the GBs).  The user
+will most likely see the OOM messages much later in the boot sequence than
+the implicitly stated message.  Worse yet, you may even get an OOM for
+each processor which causes many pages of OOMs on modern systems. 
+Although these messages will be printed earlier than the OOM messages, at
+least giving the user errors and warnings will highlight the configuration
+as an issue.  I'm trying to point the user in the right direction by
+providing a more robust statement of what is failing.
 
-In more general case, the prctl(PR_SET_THP_DISABLE) could be used as a
-temporary mechanism for enabling/disabling THP process wide.
+During the sysctl or echo command, the user can check the results much
+easier than if the system hangs during boot and the scenario of having
+nothing to OOM for kernel memory is highly unlikely.
 
-Implementation wise, a new MMF_DISABLE_THP flag is added.  This flag is
-tested when decision whether to use huge pages is taken either during page
-fault of at the time of THP collapse.
+Mike said:
 
-It should be noted, that the new implementation makes PR_SET_THP_DISABLE
-master override to any per-VMA setting, which was not the case previously.
+: Before sending out this patch, I asked Liam off list why he was doing
+: it.  Was it something he just thought would be useful?  Or, was there
+: some type of user situation/need.  He said that he had been called in
+: to assist on several occasions when a system OOMed during boot.  In
+: almost all of these situations, the user had grossly misconfigured huge
+: pages.  DB users want to pre-allocate just the right amount of huge
+: pages, but sometimes they can be really off.  In such situations, the
+: huge page init code just allocates as many huge pages as it can and
+: reports the number allocated.  There is no indication that it quit
+: allocating because it ran out of memory.  Of course, a user could
+: compare the number in the message to what they requested on the command
+: line to determine if they got all the huge pages they requested.  The
+: thought was that it would be useful to at least flag this situation. 
+: That way, the user might be able to better relate the huge page
+: allocation failure to the OOM.
+: 
+: I'm not sure if the e-mail discussion made it obvious that this is
+: something he has seen on several occasions.
+: 
+: I see Michal's point that this will only flag the situation where
+: someone configures huge pages very badly.  And, a more extensive look
+: at the situation of misconfiguring huge pages might be in order.  But,
+: this has happened on several occasions which led to the creation of
+: this patch.
 
-Fixes: a0715cc22601 ("mm, thp: add VM_INIT_DEF_MASK and PRCTL_THP_DISABLE")
-Link: http://lkml.kernel.org/r/1496415802-30944-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[akpm@linux-foundation.org: reposition memfmt() to avoid forward declaration]
+Link: http://lkml.kernel.org/r/20170603005413.10380-1-Liam.Howlett@Oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: zhongjiang <zhongjiang@huawei.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h        |    1 +
- include/linux/khugepaged.h     |    3 ++-
- include/linux/sched/coredump.h |    5 ++++-
- kernel/sys.c                   |    6 +++---
- mm/khugepaged.c                |    3 ++-
- mm/shmem.c                     |    8 +++++---
- 6 files changed, 17 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |   36 ++++++++++++++++++++++++------------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-make-pr_set_thp_disable-immediately-active include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-make-pr_set_thp_disable-immediately-active
-+++ a/include/linux/huge_mm.h
-@@ -92,6 +92,7 @@ extern bool is_vma_temporary_stack(struc
- 	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
- 	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
- 	 !((__vma)->vm_flags & VM_NOHUGEPAGE) &&			\
-+	 !test_bit(MMF_DISABLE_THP, &(__vma)->vm_mm->flags) &&		\
- 	 !is_vma_temporary_stack(__vma))
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
-diff -puN include/linux/khugepaged.h~mm-make-pr_set_thp_disable-immediately-active include/linux/khugepaged.h
---- a/include/linux/khugepaged.h~mm-make-pr_set_thp_disable-immediately-active
-+++ a/include/linux/khugepaged.h
-@@ -48,7 +48,8 @@ static inline int khugepaged_enter(struc
- 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags))
- 		if ((khugepaged_always() ||
- 		     (khugepaged_req_madv() && (vm_flags & VM_HUGEPAGE))) &&
--		    !(vm_flags & VM_NOHUGEPAGE))
-+		    !(vm_flags & VM_NOHUGEPAGE) &&
-+		    !test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
- 			if (__khugepaged_enter(vma->vm_mm))
- 				return -ENOMEM;
- 	return 0;
-diff -puN include/linux/sched/coredump.h~mm-make-pr_set_thp_disable-immediately-active include/linux/sched/coredump.h
---- a/include/linux/sched/coredump.h~mm-make-pr_set_thp_disable-immediately-active
-+++ a/include/linux/sched/coredump.h
-@@ -68,7 +68,10 @@ static inline int get_dumpable(struct mm
- #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
- #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
- #define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
-+#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
-+#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+diff -puN mm/hugetlb.c~mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages
++++ a/mm/hugetlb.c
+@@ -70,6 +70,17 @@ struct mutex *hugetlb_fault_mutex_table
+ /* Forward declaration */
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
  
--#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
-+#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
-+				 MMF_DISABLE_THP_MASK)
- 
- #endif /* _LINUX_SCHED_COREDUMP_H */
-diff -puN kernel/sys.c~mm-make-pr_set_thp_disable-immediately-active kernel/sys.c
---- a/kernel/sys.c~mm-make-pr_set_thp_disable-immediately-active
-+++ a/kernel/sys.c
-@@ -2360,7 +2360,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 	case PR_GET_THP_DISABLE:
- 		if (arg2 || arg3 || arg4 || arg5)
- 			return -EINVAL;
--		error = !!(me->mm->def_flags & VM_NOHUGEPAGE);
-+		error = !!test_bit(MMF_DISABLE_THP, &me->mm->flags);
- 		break;
- 	case PR_SET_THP_DISABLE:
- 		if (arg3 || arg4 || arg5)
-@@ -2368,9 +2368,9 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 		if (down_write_killable(&me->mm->mmap_sem))
- 			return -EINTR;
- 		if (arg2)
--			me->mm->def_flags |= VM_NOHUGEPAGE;
-+			set_bit(MMF_DISABLE_THP, &me->mm->flags);
- 		else
--			me->mm->def_flags &= ~VM_NOHUGEPAGE;
-+			clear_bit(MMF_DISABLE_THP, &me->mm->flags);
- 		up_write(&me->mm->mmap_sem);
- 		break;
- 	case PR_MPX_ENABLE_MANAGEMENT:
-diff -puN mm/khugepaged.c~mm-make-pr_set_thp_disable-immediately-active mm/khugepaged.c
---- a/mm/khugepaged.c~mm-make-pr_set_thp_disable-immediately-active
-+++ a/mm/khugepaged.c
-@@ -816,7 +816,8 @@ khugepaged_alloc_page(struct page **hpag
- static bool hugepage_vma_check(struct vm_area_struct *vma)
- {
- 	if ((!(vma->vm_flags & VM_HUGEPAGE) && !khugepaged_always()) ||
--	    (vma->vm_flags & VM_NOHUGEPAGE))
-+	    (vma->vm_flags & VM_NOHUGEPAGE) ||
-+	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
- 		return false;
- 	if (shmem_file(vma->vm_file)) {
- 		if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
-diff -puN mm/shmem.c~mm-make-pr_set_thp_disable-immediately-active mm/shmem.c
---- a/mm/shmem.c~mm-make-pr_set_thp_disable-immediately-active
-+++ a/mm/shmem.c
-@@ -1977,10 +1977,12 @@ static int shmem_fault(struct vm_fault *
- 	}
- 
- 	sgp = SGP_CACHE;
--	if (vma->vm_flags & VM_HUGEPAGE)
--		sgp = SGP_HUGE;
--	else if (vma->vm_flags & VM_NOHUGEPAGE)
++static char * __init memfmt(char *buf, unsigned long n)
++{
++	if (n >= (1UL << 30))
++		sprintf(buf, "%lu GB", n >> 30);
++	else if (n >= (1UL << 20))
++		sprintf(buf, "%lu MB", n >> 20);
++	else
++		sprintf(buf, "%lu KB", n >> 10);
++	return buf;
++}
 +
-+	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
-+	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
- 		sgp = SGP_NOHUGE;
-+	else if (vma->vm_flags & VM_HUGEPAGE)
-+		sgp = SGP_HUGE;
+ static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
+ {
+ 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
+@@ -2212,7 +2223,14 @@ static void __init hugetlb_hstate_alloc_
+ 					 &node_states[N_MEMORY]))
+ 			break;
+ 	}
+-	h->max_huge_pages = i;
++	if (i < h->max_huge_pages) {
++		char buf[32];
++
++		memfmt(buf, huge_page_size(h)),
++		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
++			h->max_huge_pages, buf, i);
++		h->max_huge_pages = i;
++	}
+ }
  
- 	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, sgp,
- 				  gfp, vma, vmf, &ret);
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
-mips-do-not-use-__gfp_repeat-for-order-0-request.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
-xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
-mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
-drm-i915-use-__gfp_retry_mayfail.patch
-mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
-
+ static void __init hugetlb_init_hstates(void)
+@@ -2230,17 +2248,6 @@ static void __init hugetlb_init_hstates(
+ 	VM_BUG_ON(minimum_order == UINT_MAX);
+ }
+ 
+-static char * __init memfmt(char *buf, unsigned long n)
+-{
+-	if (n >= (1UL << 30))
+-		sprintf(buf, "%lu GB", n >> 30);
+-	else if (n >= (1UL << 20))
+-		sprintf(buf, "%lu MB", n >> 20);
+-	else
+-		sprintf(buf, "%lu KB", n >> 10);
+-	return buf;
+-}
