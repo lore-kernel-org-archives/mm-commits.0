@@ -1,74 +1,178 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:26:43 -0700
-Message-ID: <20170711192643.3byy6hmeg%akpm@linux-foundation.org>
+ bsearch-micro-optimize-pivot-position-calculation.patch removed from -mm
+ tree
+Date: Tue, 11 Jul 2017 12:26:47 -0700
+Message-ID: <20170711192647.HVm7RZ2pw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48554 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932973AbdGKT0o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:44 -0400
+        with ESMTP id S932973AbdGKT0s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herbert@gondor.apana.org.au, mhocko@suse.com, mm-commits@vger.kernel.org, tgraf@suug.ch
+To: mm-commits@vger.kernel.org, peterz@infradead.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
+     Subject: lib/bsearch.c: micro-optimize pivot position calculation
 has been removed from the -mm tree.  Its filename was
-     lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+     bsearch-micro-optimize-pivot-position-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: lib/bsearch.c: micro-optimize pivot position calculation
 
-bucket_table_alloc() can be currently called with GFP_KERNEL or
-GFP_ATOMIC.  For the former we basically have an open coded kvzalloc()
-while the later only uses kzalloc().  Let's simplify the code a bit by the
-dropping the open coded path and replace it with kvzalloc().
+There is a slightly faster way (in terms of the number of instructions
+being used) to calculate the position of a middle element, preserving
+integer overflow safeness.
 
-Link: http://lkml.kernel.org/r/20170531155145.17111-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+./scripts/bloat-o-meter lib/bsearch.o.old lib/bsearch.o.new
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-24 (-24)
+function                                     old     new   delta
+bsearch                                      122      98     -24
+
+TEST
+
+INT array of size 100001, elements [0..100000]. gcc 7.1, Os, x86_64.
+
+a) bsearch() of existing key "100001 - 2":
+
+BASE
+====
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        619.445196      task-clock:u (msec)       #    0.999 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               133      page-faults:u             #    0.215 K/sec
+     1,949,517,279      cycles:u                  #    3.147 GHz                      (83.06%)
+       181,017,938      stalled-cycles-frontend:u #    9.29% frontend cycles idle     (83.05%)
+        82,959,265      stalled-cycles-backend:u  #    4.26% backend cycles idle      (67.02%)
+     4,355,706,383      instructions:u            #    2.23  insn per cycle
+                                                  #    0.04  stalled cycles per insn  (83.54%)
+     1,051,539,242      branches:u                # 1697.550 M/sec                    (83.54%)
+        15,263,381      branch-misses:u           #    1.45% of all branches          (83.43%)
+
+       0.620082548 seconds time elapsed
+
+PATCHED
+=======
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        475.097316      task-clock:u (msec)       #    0.999 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               135      page-faults:u             #    0.284 K/sec
+     1,487,467,717      cycles:u                  #    3.131 GHz                      (82.95%)
+       186,537,162      stalled-cycles-frontend:u #   12.54% frontend cycles idle     (82.93%)
+        28,797,869      stalled-cycles-backend:u  #    1.94% backend cycles idle      (67.10%)
+     3,807,564,203      instructions:u            #    2.56  insn per cycle
+                                                  #    0.05  stalled cycles per insn  (83.57%)
+     1,049,344,291      branches:u                # 2208.693 M/sec                    (83.60%)
+             5,485      branch-misses:u           #    0.00% of all branches          (83.58%)
+
+       0.475760235 seconds time elapsed
+
+b) bsearch() of un-existing key "100001 + 2":
+
+BASE
+====
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        499.244480      task-clock:u (msec)       #    0.999 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               132      page-faults:u             #    0.264 K/sec
+     1,571,194,855      cycles:u                  #    3.147 GHz                      (83.18%)
+        13,450,980      stalled-cycles-frontend:u #    0.86% frontend cycles idle     (83.18%)
+        21,256,072      stalled-cycles-backend:u  #    1.35% backend cycles idle      (66.78%)
+     4,171,197,909      instructions:u            #    2.65  insn per cycle
+                                                  #    0.01  stalled cycles per insn  (83.68%)
+     1,009,175,281      branches:u                # 2021.405 M/sec                    (83.79%)
+             3,122      branch-misses:u           #    0.00% of all branches          (83.37%)
+
+       0.499871144 seconds time elapsed
+
+PATCHED
+=======
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        399.023499      task-clock:u (msec)       #    0.998 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               134      page-faults:u             #    0.336 K/sec
+     1,245,793,991      cycles:u                  #    3.122 GHz                      (83.39%)
+        11,529,273      stalled-cycles-frontend:u #    0.93% frontend cycles idle     (83.46%)
+        12,116,311      stalled-cycles-backend:u  #    0.97% backend cycles idle      (66.92%)
+     3,679,710,005      instructions:u            #    2.95  insn per cycle
+                                                  #    0.00  stalled cycles per insn  (83.47%)
+     1,009,792,625      branches:u                # 2530.660 M/sec                    (83.46%)
+             2,590      branch-misses:u           #    0.00% of all branches          (83.12%)
+
+       0.399733539 seconds time elapsed
+
+Link: http://lkml.kernel.org/r/20170607150457.5905-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rhashtable.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/bsearch.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN lib/rhashtable.c~lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible lib/rhashtable.c
---- a/lib/rhashtable.c~lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible
-+++ a/lib/rhashtable.c
-@@ -211,11 +211,10 @@ static struct bucket_table *bucket_table
- 	int i;
+diff -puN lib/bsearch.c~bsearch-micro-optimize-pivot-position-calculation lib/bsearch.c
+--- a/lib/bsearch.c~bsearch-micro-optimize-pivot-position-calculation
++++ a/lib/bsearch.c
+@@ -33,19 +33,21 @@
+ void *bsearch(const void *key, const void *base, size_t num, size_t size,
+ 	      int (*cmp)(const void *key, const void *elt))
+ {
+-	size_t start = 0, end = num;
++	const char *pivot;
+ 	int result;
  
- 	size = sizeof(*tbl) + nbuckets * sizeof(tbl->buckets[0]);
--	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER) ||
--	    gfp != GFP_KERNEL)
-+	if (gfp != GFP_KERNEL)
- 		tbl = kzalloc(size, gfp | __GFP_NOWARN | __GFP_NORETRY);
--	if (tbl == NULL && gfp == GFP_KERNEL)
--		tbl = vzalloc(size);
-+	else
-+		tbl = kvzalloc(size, gfp);
+-	while (start < end) {
+-		size_t mid = start + (end - start) / 2;
++	while (num > 0) {
++		pivot = base + (num >> 1) * size;
++		result = cmp(key, pivot);
  
- 	size = nbuckets;
+-		result = cmp(key, base + mid * size);
+-		if (result < 0)
+-			end = mid;
+-		else if (result > 0)
+-			start = mid + 1;
+-		else
+-			return (void *)base + mid * size;
++		if (result == 0)
++			return (void *)pivot;
++
++		if (result > 0) {
++			base = pivot + size;
++			num--;
++		}
++		num >>= 1;
+ 	}
  
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
-mips-do-not-use-__gfp_repeat-for-order-0-request.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
-xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
-mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
-drm-i915-use-__gfp_retry_mayfail.patch
-mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
