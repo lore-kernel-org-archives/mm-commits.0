@@ -1,76 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?mm-disallow-early=5Fpfn=5Fto=5Fnid-on-configurations-which-d?=
- =?US-ASCII?Q?o-not-implement-it.patch?= removed from -mm tree
-Date: Tue, 11 Jul 2017 12:25:13 -0700
-Message-ID: <20170711192513.ZS3VjZE-4%akpm@linux-foundation.org>
+Subject: [merged] mm-kasan-use-kasan_zero_pud-for-p4d-table.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:25:22 -0700
+Message-ID: <20170711192522.ojncLy_Al%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933785AbdGKTZY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:24 -0400
+        with ESMTP id S933785AbdGKTZX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz, yang.shi@linaro.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: disallow early_pfn_to_nid on configurations which do not implement it
+     Subject: mm/kasan/kasan_init.c: use kasan_zero_pud for p4d table
 has been removed from the -mm tree.  Its filename was
-     mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
+     mm-kasan-use-kasan_zero_pud-for-p4d-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: disallow early_pfn_to_nid on configurations which do not implement it
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/kasan/kasan_init.c: use kasan_zero_pud for p4d table
 
-early_pfn_to_nid will return node 0 if both HAVE_ARCH_EARLY_PFN_TO_NID and
-HAVE_MEMBLOCK_NODE_MAP are disabled.  It seems we are safe now because all
-architectures which support NUMA define one of them (with an exception of
-alpha which however has CONFIG_NUMA marked as broken) so this works as
-expected.  It can get silently and subtly broken too easily, though.  Make
-sure we fail the compilation if NUMA is enabled and there is no proper
-implementation for this function.  If that ever happens we know that
-either the specific configuration is invalid and the fix should either
-disable NUMA or enable one of the above configs.
+There is missing optimization in zero_p4d_populate() that can save some
+memory when mapping zero shadow.  Implement it like as others.
 
-Link: http://lkml.kernel.org/r/20170704075803.15979-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Link: http://lkml.kernel.org/r/1494829255-23946-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kasan/kasan_init.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN include/linux/mmzone.h~mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it
-+++ a/include/linux/mmzone.h
-@@ -1055,6 +1055,7 @@ static inline struct zoneref *first_zone
- 	!defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
- static inline unsigned long early_pfn_to_nid(unsigned long pfn)
- {
-+	BUILD_BUG_ON(IS_ENABLED(CONFIG_NUMA));
- 	return 0;
- }
- #endif
+diff -puN mm/kasan/kasan_init.c~mm-kasan-use-kasan_zero_pud-for-p4d-table mm/kasan/kasan_init.c
+--- a/mm/kasan/kasan_init.c~mm-kasan-use-kasan_zero_pud-for-p4d-table
++++ a/mm/kasan/kasan_init.c
+@@ -118,6 +118,18 @@ static void __init zero_p4d_populate(pgd
+ 
+ 	do {
+ 		next = p4d_addr_end(addr, end);
++		if (IS_ALIGNED(addr, P4D_SIZE) && end - addr >= P4D_SIZE) {
++			pud_t *pud;
++			pmd_t *pmd;
++
++			p4d_populate(&init_mm, p4d, lm_alias(kasan_zero_pud));
++			pud = pud_offset(p4d, addr);
++			pud_populate(&init_mm, pud, lm_alias(kasan_zero_pmd));
++			pmd = pmd_offset(pud, addr);
++			pmd_populate_kernel(&init_mm, pmd,
++						lm_alias(kasan_zero_pte));
++			continue;
++		}
+ 
+ 		if (p4d_none(*p4d)) {
+ 			p4d_populate(&init_mm, p4d,
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
-mips-do-not-use-__gfp_repeat-for-order-0-request.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
-xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
-mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
-drm-i915-use-__gfp_retry_mayfail.patch
-mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
