@@ -1,262 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch removed from
+ vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify.patch removed from
  -mm tree
-Date: Tue, 11 Jul 2017 12:23:23 -0700
-Message-ID: <20170711192323.LjGfus4qa%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:23:26 -0700
+Message-ID: <20170711192326.XB0hY1k2Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47624 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933694AbdGKTXY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:24 -0400
+        with ESMTP id S932648AbdGKTX1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsingharora@gmail.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org, sean.j.christopherson@intel.com, vdavydov.dev@gmail.com
+To: guohanjun@huawei.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, xieyisheng1@huawei.com, zijun_hu@htc.com
 
 
 The patch titled
-     Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
+     Subject: vmalloc: show lazy-purged vma info in vmallocinfo
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch
+     vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sean Christopherson <sean.j.christopherson@intel.com>
-Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: vmalloc: show lazy-purged vma info in vmallocinfo
 
-Make @root exclusive in mem_cgroup_low; it is never considered low when
-looked at directly and is not checked when traversing the tree.  In
-effect, @root is handled identically to how root_mem_cgroup was previously
-handled by mem_cgroup_low.
+When ioremap a 67112960 bytes vm_area with the vmallocinfo:
+ [..]
+ 0xec79b000-0xec7fa000  389120 ftl_add_mtd+0x4d0/0x754 pages=94 vmalloc
+ 0xec800000-0xecbe1000 4067328 kbox_proc_mem_write+0x104/0x1c4 phys=8b520000 ioremap
 
-If @root is not excluded from the checks, a cgroup underneath @root will
-never be considered low during targeted reclaim of @root, e.g.  due to
-memory.current > memory.high, unless @root is misconfigured to have
-memory.low > memory.high.
+we get the result:
+ 0xf1000000-0xf5001000 67112960 devm_ioremap+0x38/0x7c phys=40000000 ioremap
 
-Excluding @root enables using memory.low to prioritize memory usage
-between cgroups within a subtree of the hierarchy that is limited by
-memory.high or memory.max, e.g.  when ROOT owns @root's controls but
-delegates the @root directory to a USER so that USER can create and
-administer children of @root.
+For the align for ioremap must be less than '1 << IOREMAP_MAX_ORDER':
+	if (flags & VM_IOREMAP)
+		align = 1ul << clamp_t(int, get_count_order_long(size),
+			PAGE_SHIFT, IOREMAP_MAX_ORDER);
 
-For example, given cgroup A with children B and C:
+So it makes idiot like me a litte puzzled why this was a jump the vm_area from
 
-    A
-   / \
-  B   C
+0xec800000-0xecbe1000 to 0xf1000000-0xf5001000, and leaving
+0xed000000-0xf1000000 as a big hole.
 
-and
+This patch is to show all of vm_area, including vmas which are freeing but
+still in the vmap_area_list, to make it more clear about why we will get
+0xf1000000-0xf5001000 in the above case.  And we will get a vmallocinfo
+like:
 
-  1. A/memory.current > A/memory.high
-  2. A/B/memory.current < A/B/memory.low
-  3. A/C/memory.current >= A/C/memory.low
+ [..]
+ 0xec79b000-0xec7fa000  389120 ftl_add_mtd+0x4d0/0x754 pages=94 vmalloc
+ 0xec800000-0xecbe1000 4067328 kbox_proc_mem_write+0x104/0x1c4 phys=8b520000 ioremap
+ [..]
+ 0xece7c000-0xece7e000    8192 unpurged vm_area
+ 0xece7e000-0xece83000   20480 vm_map_ram
+ 0xf0099000-0xf00aa000   69632 vm_map_ram
+after apply this patch.
 
-As 'A' is high, i.e.  triggers reclaim from 'A', and 'B' is low, we should
-reclaim from 'C' until 'A' is no longer high or until we can no longer
-reclaim from 'C'.  If 'A', i.e.  @root, isn't excluded by mem_cgroup_low
-when reclaming from 'A', then 'B' won't be considered low and we will
-reclaim indiscriminately from both 'B' and 'C'.
-
-Here is the test I used to confirm the bug and the patch.
-
-20:00:55@sjchrist-vm ? ~ $ cat ~/.bin/memcg_low_test
-#!/bin/bash
-
-x62mb=$((62<<20))
-x66mb=$((66<<20))
-x94mb=$((94<<20))
-x98mb=$((98<<20))
-
-setup() {
-    set -e
-
-    if [[ -n $DEBUG ]]; then
-        set -x
-    fi
-
-    trap teardown EXIT HUP INT TERM
-
-    if [[ ! -e /mnt/1gb.swap ]]; then
-        sudo fallocate -l 1G /mnt/1gb.swap > /dev/null
-        sudo mkswap /mnt/1gb.swap > /dev/null
-    fi
-    if ! swapon --show=NAME | grep -q "/mnt/1gb.swap"; then
-        sudo swapon /mnt/1gb.swap
-    fi
-
-    if [[ ! -e /cgroup/cgroup.controllers ]]; then
-        sudo mount -t cgroup2 none /cgroup
-    fi
-
-    grep -q memory /cgroup/cgroup.controllers
-
-    sudo sh -c "echo '+memory' > /cgroup/cgroup.subtree_control"
-
-    sudo mkdir /cgroup/A && sudo chown $USER:$USER /cgroup/A
-    sudo sh -c "echo '+memory' > /cgroup/A/cgroup.subtree_control"
-    sudo sh -c "echo '96m' > /cgroup/A/memory.high"
-
-    mkdir /cgroup/A/0
-    mkdir /cgroup/A/1
-
-    echo 64m > /cgroup/A/0/memory.low
-}
-
-teardown() {
-    set +e
-
-    trap - EXIT HUP INT TERM
-
-    if [[ -z $1 ]]; then
-        printf "\n"
-        printf "%0.s*" {1..35}
-        printf "\nFAILED!\n\n"
-        tail /cgroup/A/**/memory.current
-        printf "%0.s*" {1..35}
-        printf "\n\n"
-    fi
-
-    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
-
-    sleep 2
-
-    if [[ -e /cgroup/A/0 ]]; then
-        rmdir /cgroup/A/0
-    fi
-    if [[ -e /cgroup/A/1 ]]; then
-        rmdir /cgroup/A/1
-    fi
-    if [[ -e /cgroup/A ]]; then
-        sudo rmdir /cgroup/A
-    fi
-}
-
-
-stress_test() {
-    sudo sh -c "echo $$ > /cgroup/A/$1/cgroup.procs"
-    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
-
-    sudo sh -c "echo $$ > /cgroup/A/$2/cgroup.procs"
-    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
-
-    sudo sh -c "echo $$ > /cgroup/cgroup.procs"
-
-    sleep 1
-
-    # A/0 should be consuming more memory than A/1
-    [[ $(cat /cgroup/A/0/memory.current) -ge $(cat /cgroup/A/1/memory.current) ]]
-
-    # A/0 should be consuming ~64mb
-    [[ $(cat /cgroup/A/0/memory.current) -ge $x62mb ]] && [[ $(cat /cgroup/A/0/memory.current) -le $x66mb ]]
-
-    # A should cumulatively be consuming ~96mb
-    [[ $(cat /cgroup/A/memory.current) -ge $x94mb ]] && [[ $(cat /cgroup/A/memory.current) -le $x98mb ]]
-
-    # Stop the stressors
-    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
-}
-
-
-teardown 1
-setup
-
-for ((i=1;i<=$1;i++)); do
-    printf "ITERATION $i of $1 - stress_test 0 1"
-    stress_test 0 1
-    printf "\x1b[2K\r"
-
-    printf "ITERATION $i of $1 - stress_test 1 0"
-    stress_test 1 0
-    printf "\x1b[2K\r"
-
-    printf "ITERATION $i of $1 - PASSED\n"
-done
-
-teardown 1
-
-
-echo PASSED!
-
-
-20:11:26@sjchrist-vm ? ~ $ memcg_low_test 10
-
-
-Link: http://lkml.kernel.org/r/1496434412-21005-1-git-send-email-sean.j.christopherson@intel.com
-Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1496649682-20710-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: zijun_hu <zijun_hu@htc.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   50 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 32 insertions(+), 18 deletions(-)
+ mm/vmalloc.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low
-+++ a/mm/memcontrol.c
-@@ -5317,38 +5317,52 @@ struct cgroup_subsys memory_cgrp_subsys
+diff -puN mm/vmalloc.c~vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify
++++ a/mm/vmalloc.c
+@@ -325,6 +325,7 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
  
- /**
-  * mem_cgroup_low - check if memory consumption is below the normal range
-- * @root: the highest ancestor to consider
-+ * @root: the top ancestor of the sub-tree being checked
-  * @memcg: the memory cgroup to check
-  *
-  * Returns %true if memory consumption of @memcg, and that of all
-- * configurable ancestors up to @root, is below the normal range.
-+ * ancestors up to (but not including) @root, is below the normal range.
-+ *
-+ * @root is exclusive; it is never low when looked at directly and isn't
-+ * checked when traversing the hierarchy.
-+ *
-+ * Excluding @root enables using memory.low to prioritize memory usage
-+ * between cgroups within a subtree of the hierarchy that is limited by
-+ * memory.high or memory.max.
-+ *
-+ * For example, given cgroup A with children B and C:
-+ *
-+ *    A
-+ *   / \
-+ *  B   C
-+ *
-+ * and
-+ *
-+ *  1. A/memory.current > A/memory.high
-+ *  2. A/B/memory.current < A/B/memory.low
-+ *  3. A/C/memory.current >= A/C/memory.low
-+ *
-+ * As 'A' is high, i.e. triggers reclaim from 'A', and 'B' is low, we
-+ * should reclaim from 'C' until 'A' is no longer high or until we can
-+ * no longer reclaim from 'C'.  If 'A', i.e. @root, isn't excluded by
-+ * mem_cgroup_low when reclaming from 'A', then 'B' won't be considered
-+ * low and we will reclaim indiscriminately from both 'B' and 'C'.
-  */
- bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg)
- {
- 	if (mem_cgroup_disabled())
- 		return false;
+ /*** Global kva allocator ***/
  
--	/*
--	 * The toplevel group doesn't have a configurable range, so
--	 * it's never low when looked at directly, and it is not
--	 * considered an ancestor when assessing the hierarchy.
--	 */
--
--	if (memcg == root_mem_cgroup)
--		return false;
--
--	if (page_counter_read(&memcg->memory) >= memcg->low)
-+	if (!root)
-+		root = root_mem_cgroup;
-+	if (memcg == root)
- 		return false;
++#define VM_LAZY_FREE	0x02
+ #define VM_VM_AREA	0x04
  
--	while (memcg != root) {
--		memcg = parent_mem_cgroup(memcg);
--
--		if (memcg == root_mem_cgroup)
--			break;
+ static DEFINE_SPINLOCK(vmap_area_lock);
+@@ -1497,6 +1498,7 @@ struct vm_struct *remove_vm_area(const v
+ 		spin_lock(&vmap_area_lock);
+ 		va->vm = NULL;
+ 		va->flags &= ~VM_VM_AREA;
++		va->flags |= VM_LAZY_FREE;
+ 		spin_unlock(&vmap_area_lock);
+ 
+ 		vmap_debug_free_range(va->va_start, va->va_end);
+@@ -2704,8 +2706,14 @@ static int s_show(struct seq_file *m, vo
+ 	 * s_show can encounter race with remove_vm_area, !VM_VM_AREA on
+ 	 * behalf of vmap area is being tear down or vm_map_ram allocation.
+ 	 */
+-	if (!(va->flags & VM_VM_AREA))
++	if (!(va->flags & VM_VM_AREA)) {
++		seq_printf(m, "0x%pK-0x%pK %7ld %s\n",
++			(void *)va->va_start, (void *)va->va_end,
++			va->va_end - va->va_start,
++			va->flags & VM_LAZY_FREE ? "unpurged vm_area" : "vm_map_ram");
++
+ 		return 0;
++	}
+ 
+ 	v = va->vm;
+ 
+_
+
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
+
+
