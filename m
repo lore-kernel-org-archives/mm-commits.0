@@ -1,52 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-remove-unused-zone_type-variable-from-__remove_zone.patch removed from
+Subject: [merged] writeback-simplify-wb_stat_sum.patch removed from
  -mm tree
-Date: Tue, 11 Jul 2017 12:24:46 -0700
-Message-ID: <20170711192446.a76pcgdBy%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:24:43 -0700
+Message-ID: <20170711192443.RNqFKY1y3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47974 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933703AbdGKTYr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:47 -0400
+        with ESMTP id S933703AbdGKTYo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jhubbard@nvidia.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: axboe@fb.com, jack@suse.cz, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
+     Subject: include/linux/backing-dev.h: simplify wb_stat_sum
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-zone_type-variable-from-__remove_zone.patch
+     writeback-simplify-wb_stat_sum.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: include/linux/backing-dev.h: simplify wb_stat_sum
 
-__remove_zone() sets up up zone_type, but never uses it for anything. 
-This does not cause a warning, due to the (necessary) use of
--Wno-unused-but-set-variable.  However, it's noise, so just delete it.
+wb_stat_sum() disables interrupts and calls __wb_stat_sum() which
+eventually calls __percpu_counter_sum().  However, the percpu routine is
+already irq-safe.  Simplify the code a bit by making wb_stat_sum()
+directly call percpu_counter_sum_positive() and not disable interrupts. 
+Also remove the now-uneeded __wb_stat_sum() which was just a wrapper over
+percpu_counter_sum_positive().
 
-Link: http://lkml.kernel.org/r/20170624043421.24465-2-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1498230681-29103-1-git-send-email-nborisov@suse.com
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/backing-dev.h |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-remove-unused-zone_type-variable-from-__remove_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-remove-unused-zone_type-variable-from-__remove_zone
-+++ a/mm/memory_hotplug.c
-@@ -580,11 +580,8 @@ static void __remove_zone(struct zone *z
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int nr_pages = PAGES_PER_SECTION;
--	int zone_type;
- 	unsigned long flags;
+diff -puN include/linux/backing-dev.h~writeback-simplify-wb_stat_sum include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~writeback-simplify-wb_stat_sum
++++ a/include/linux/backing-dev.h
+@@ -104,22 +104,9 @@ static inline s64 wb_stat(struct bdi_wri
+ 	return percpu_counter_read_positive(&wb->stat[item]);
+ }
  
--	zone_type = zone - pgdat->node_zones;
+-static inline s64 __wb_stat_sum(struct bdi_writeback *wb,
+-				enum wb_stat_item item)
+-{
+-	return percpu_counter_sum_positive(&wb->stat[item]);
+-}
+-
+ static inline s64 wb_stat_sum(struct bdi_writeback *wb, enum wb_stat_item item)
+ {
+-	s64 sum;
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	sum = __wb_stat_sum(wb, item);
+-	local_irq_restore(flags);
