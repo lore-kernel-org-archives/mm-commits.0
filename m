@@ -1,102 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-dcachec-fix-spin-lockup-issue-on-nlru-lock.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:25:03 -0700
-Message-ID: <20170711192503.0KlOhH4v_%akpm__15185.6059943841$1499801120$gmane$org@linux-foundation.org>
+Subject: [merged] zram-constify-attribute_group-structures.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:25:16 -0700
+Message-ID: <20170711192516.KGHVFOORq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48146 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933785AbdGKTZE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:04 -0400
+        with ESMTP id S933785AbdGKTZR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apolyakov@beget.ru, jack@suse.cz, mm-commits@vger.kernel.org, stable@vger.kernel.org, stummala@codeaurora.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk
+To: arvind.yadav.cs@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com
 
 
 The patch titled
-     Subject: fs/dcache.c: fix spin lockup issue on nlru->lock
+     Subject: zram: constify attribute_group structures.
 has been removed from the -mm tree.  Its filename was
-     fs-dcachec-fix-spin-lockup-issue-on-nlru-lock.patch
+     zram-constify-attribute_group-structures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sahitya Tummala <stummala@codeaurora.org>
-Subject: fs/dcache.c: fix spin lockup issue on nlru->lock
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: zram: constify attribute_group structures.
 
-__list_lru_walk_one() acquires nlru spin lock (nlru->lock) for longer
-duration if there are more number of items in the lru list.  As per the
-current code, it can hold the spin lock for upto maximum UINT_MAX entries
-at a time.  So if there are more number of items in the lru list, then
-"BUG: spinlock lockup suspected" is observed in the below path -
+attribute_groups are not supposed to change at runtime.  All functions
+working with attribute_groups provided by <linux/sysfs.h> work with const
+attribute_group.  So mark the non-const structs as const.
 
-[<ffffff8eca0fb0bc>] spin_bug+0x90
-[<ffffff8eca0fb220>] do_raw_spin_lock+0xfc
-[<ffffff8ecafb7798>] _raw_spin_lock+0x28
-[<ffffff8eca1ae884>] list_lru_add+0x28
-[<ffffff8eca1f5dac>] dput+0x1c8
-[<ffffff8eca1eb46c>] path_put+0x20
-[<ffffff8eca1eb73c>] terminate_walk+0x3c
-[<ffffff8eca1eee58>] path_lookupat+0x100
-[<ffffff8eca1f00fc>] filename_lookup+0x6c
-[<ffffff8eca1f0264>] user_path_at_empty+0x54
-[<ffffff8eca1e066c>] SyS_faccessat+0xd0
-[<ffffff8eca084e30>] el0_svc_naked+0x24
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   8293	    841	      4	   9138	   23b2	drivers/block/zram/zram_drv.o
 
-This nlru->lock is acquired by another CPU in this path -
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+   8357	    777	      4	   9138	   23b2	drivers/block/zram/zram_drv.o
 
-[<ffffff8eca1f5fd0>] d_lru_shrink_move+0x34
-[<ffffff8eca1f6180>] dentry_lru_isolate_shrink+0x48
-[<ffffff8eca1aeafc>] __list_lru_walk_one.isra.10+0x94
-[<ffffff8eca1aec34>] list_lru_walk_node+0x40
-[<ffffff8eca1f6620>] shrink_dcache_sb+0x60
-[<ffffff8eca1e56a8>] do_remount_sb+0xbc
-[<ffffff8eca1e583c>] do_emergency_remount+0xb0
-[<ffffff8eca0ba510>] process_one_work+0x228
-[<ffffff8eca0bb158>] worker_thread+0x2e0
-[<ffffff8eca0c040c>] kthread+0xf4
-[<ffffff8eca084dd0>] ret_from_fork+0x10
-
-Fix this lockup by reducing the number of entries to be shrinked from the
-lru list to 1024 at once.  Also, add cond_resched() before processing the
-lru list again.
-
-Link: http://marc.info/?t=149722864900001&r=1&w=2
-Link: http://lkml.kernel.org/r/1498707575-2472-1-git-send-email-stummala@codeaurora.org
-Signed-off-by: Sahitya Tummala <stummala@codeaurora.org>
-Suggested-by: Jan Kara <jack@suse.cz>
-Suggested-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Alexander Polakov <apolyakov@beget.ru>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/65680c1c4d85818f7094cbfa31c91bf28185ba1b.1499061182.git.arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~fs-dcachec-fix-spin-lockup-issue-on-nlru-lock fs/dcache.c
---- a/fs/dcache.c~fs-dcachec-fix-spin-lockup-issue-on-nlru-lock
-+++ a/fs/dcache.c
-@@ -1160,11 +1160,12 @@ void shrink_dcache_sb(struct super_block
- 		LIST_HEAD(dispose);
+diff -puN drivers/block/zram/zram_drv.c~zram-constify-attribute_group-structures drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-constify-attribute_group-structures
++++ a/drivers/block/zram/zram_drv.c
+@@ -1124,7 +1124,7 @@ static struct attribute *zram_disk_attrs
+ 	NULL,
+ };
  
- 		freed = list_lru_walk(&sb->s_dentry_lru,
--			dentry_lru_isolate_shrink, &dispose, UINT_MAX);
-+			dentry_lru_isolate_shrink, &dispose, 1024);
- 
- 		this_cpu_sub(nr_dentry_unused, freed);
- 		shrink_dentry_list(&dispose);
--	} while (freed > 0);
-+		cond_resched();
-+	} while (list_lru_count(&sb->s_dentry_lru) > 0);
- }
- EXPORT_SYMBOL(shrink_dcache_sb);
+-static struct attribute_group zram_disk_attr_group = {
++static const struct attribute_group zram_disk_attr_group = {
+ 	.attrs = zram_disk_attrs,
+ };
  
 _
 
-Patches currently in -mm which might be from stummala@codeaurora.org are
+Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
 
 
