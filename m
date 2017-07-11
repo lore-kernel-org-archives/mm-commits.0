@@ -1,230 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error.patch
+Subject: [merged] mm-hwpoison-introduce-idenfity_page_state.patch
  removed from -mm tree
-Date: Tue, 11 Jul 2017 12:23:11 -0700
-Message-ID: <20170711192311._oa0HFhp8%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:23:15 -0700
+Message-ID: <20170711192315.tG-qte5ca%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933570AbdGKTXM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:12 -0400
+        with ESMTP id S933570AbdGKTXQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error
+     Subject: mm: hwpoison: introduce idenfity_page_state
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error.patch
+     mm-hwpoison-introduce-idenfity_page_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error
+Subject: mm: hwpoison: introduce idenfity_page_state
 
-Currently me_huge_page() relies on dequeue_hwpoisoned_huge_page() to keep
-the error hugepage away from the system, which is OK but not good enough
-because the hugepage still has a refcount and unpoison doesn't work on the
-error hugepage (PageHWPoison flags are cleared but pages are still
-leaked.) And there's "wasting health subpages" issue too.  This patch
-reworks on me_huge_page() to solve these issues.
+Factoring duplicate code into a function.
 
-For hugetlb file, recently we have truncating code so let's use it
-in hugetlbfs specific ->error_remove_page().
-
-For anonymous hugepage, it's helpful to dissolve the error page after
-freeing it into free hugepage list. Migration entry and PageHWPoison
-in the head page prevent the access to it.
-
-TODO: dissolve_free_huge_page() can fail but we don't considered it
-yet.  It's not critical (and at least no worse that now) because in
-such case the error hugepage just stays in free hugepage list without
-being dissolved.  By virtue of PageHWPoison in head page, it's never
-allocated to processes.
-
-[akpm@linux-foundation.org: fix unused var warnings]
-Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
-Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
-Link: http://lkml.kernel.org/r/1496305019-5493-8-git-send-email-n-horiguchi@ah.jp.nec.com
+Link: http://lkml.kernel.org/r/1496305019-5493-10-git-send-email-n-horiguchi@ah.jp.nec.com
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   11 ++++
- mm/memory-failure.c  |   93 +++++++++++++++++++++++------------------
- 2 files changed, 64 insertions(+), 40 deletions(-)
+ mm/memory-failure.c |   57 ++++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 32 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error
-+++ a/fs/hugetlbfs/inode.c
-@@ -851,6 +851,16 @@ static int hugetlbfs_migrate_page(struct
- 	return MIGRATEPAGE_SUCCESS;
- }
- 
-+static int hugetlbfs_error_remove_page(struct address_space *mapping,
-+				struct page *page)
-+{
-+	struct inode *inode = mapping->host;
-+
-+	remove_huge_page(page);
-+	hugetlb_fix_reserve_counts(inode);
-+	return 0;
-+}
-+
- static int hugetlbfs_statfs(struct dentry *dentry, struct kstatfs *buf)
- {
- 	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(dentry->d_sb);
-@@ -966,6 +976,7 @@ static const struct address_space_operat
- 	.write_end	= hugetlbfs_write_end,
- 	.set_page_dirty	= hugetlbfs_set_page_dirty,
- 	.migratepage    = hugetlbfs_migrate_page,
-+	.error_remove_page	= hugetlbfs_error_remove_page,
- };
- 
- 
-diff -puN mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error
+diff -puN mm/memory-failure.c~mm-hwpoison-introduce-idenfity_page_state mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-introduce-idenfity_page_state
 +++ a/mm/memory-failure.c
-@@ -554,6 +554,39 @@ static int delete_from_lru_cache(struct
- 	return -EIO;
+@@ -1022,9 +1022,31 @@ static bool hwpoison_user_mappings(struc
+ 	return unmap_success;
  }
  
-+static int truncate_error_page(struct page *p, unsigned long pfn,
-+				struct address_space *mapping)
-+{
-+	int ret = MF_FAILED;
+-static int memory_failure_hugetlb(unsigned long pfn, int trapno, int flags)
++static int identify_page_state(unsigned long pfn, struct page *p,
++				unsigned long page_flags)
+ {
+ 	struct page_state *ps;
 +
-+	if (mapping->a_ops->error_remove_page) {
-+		int err = mapping->a_ops->error_remove_page(mapping, p);
++	/*
++	 * The first check uses the current page flags which may not have any
++	 * relevant information. The second check with the saved page flags is
++	 * carried out only if the first check can't determine the page status.
++	 */
++	for (ps = error_states;; ps++)
++		if ((p->flags & ps->mask) == ps->res)
++			break;
 +
-+		if (err != 0) {
-+			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
-+				pfn, err);
-+		} else if (page_has_private(p) &&
-+			   !try_to_release_page(p, GFP_NOIO)) {
-+			pr_info("Memory failure: %#lx: failed to release buffers\n",
-+				pfn);
-+		} else {
-+			ret = MF_RECOVERED;
-+		}
-+	} else {
-+		/*
-+		 * If the file system doesn't support it just invalidate
-+		 * This fails on dirty or anything with private pages
-+		 */
-+		if (invalidate_inode_page(p))
-+			ret = MF_RECOVERED;
-+		else
-+			pr_info("Memory failure: %#lx: Failed to invalidate\n",
-+				pfn);
-+	}
++	page_flags |= (p->flags & (1UL << PG_dirty));
 +
-+	return ret;
++	if (!ps->mask)
++		for (ps = error_states;; ps++)
++			if ((page_flags & ps->mask) == ps->res)
++				break;
++	return page_action(ps, p, pfn);
 +}
 +
- /*
-  * Error hit kernel page.
-  * Do nothing, try to be lucky and not touch this instead. For a few cases we
-@@ -578,8 +611,6 @@ static int me_unknown(struct page *p, un
-  */
- static int me_pagecache_clean(struct page *p, unsigned long pfn)
- {
--	int err;
--	int ret = MF_FAILED;
- 	struct address_space *mapping;
- 
- 	delete_from_lru_cache(p);
-@@ -611,30 +642,7 @@ static int me_pagecache_clean(struct pag
- 	 *
- 	 * Open: to take i_mutex or not for this? Right now we don't.
- 	 */
--	if (mapping->a_ops->error_remove_page) {
--		err = mapping->a_ops->error_remove_page(mapping, p);
--		if (err != 0) {
--			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
--				pfn, err);
--		} else if (page_has_private(p) &&
--				!try_to_release_page(p, GFP_NOIO)) {
--			pr_info("Memory failure: %#lx: failed to release buffers\n",
--				pfn);
--		} else {
--			ret = MF_RECOVERED;
--		}
--	} else {
--		/*
--		 * If the file system doesn't support it just invalidate
--		 * This fails on dirty or anything with private pages
--		 */
--		if (invalidate_inode_page(p))
--			ret = MF_RECOVERED;
--		else
--			pr_info("Memory failure: %#lx: Failed to invalidate\n",
--				pfn);
--	}
--	return ret;
-+	return truncate_error_page(p, pfn, mapping);
- }
- 
- /*
-@@ -740,24 +748,29 @@ static int me_huge_page(struct page *p,
- {
- 	int res = 0;
- 	struct page *hpage = compound_head(p);
-+	struct address_space *mapping;
- 
- 	if (!PageHuge(hpage))
- 		return MF_DELAYED;
- 
--	/*
--	 * We can safely recover from error on free or reserved (i.e.
--	 * not in-use) hugepage by dequeuing it from freelist.
--	 * To check whether a hugepage is in-use or not, we can't use
--	 * page->lru because it can be used in other hugepage operations,
--	 * such as __unmap_hugepage_range() and gather_surplus_pages().
--	 * So instead we use page_mapping() and PageAnon().
--	 */
--	if (!(page_mapping(hpage) || PageAnon(hpage))) {
--		res = dequeue_hwpoisoned_huge_page(hpage);
--		if (!res)
--			return MF_RECOVERED;
-+	mapping = page_mapping(hpage);
-+	if (mapping) {
-+		res = truncate_error_page(hpage, pfn, mapping);
-+	} else {
-+		unlock_page(hpage);
-+		/*
-+		 * migration entry prevents later access on error anonymous
-+		 * hugepage, so we can free and dissolve it into buddy to
-+		 * save healthy subpages.
-+		 */
-+		if (PageAnon(hpage))
-+			put_page(hpage);
-+		dissolve_free_huge_page(p);
-+		res = MF_RECOVERED;
-+		lock_page(hpage);
++static int memory_failure_hugetlb(unsigned long pfn, int trapno, int flags)
++{
+ 	struct page *p = pfn_to_page(pfn);
+ 	struct page *head = compound_head(p);
+ 	int res;
+@@ -1074,19 +1096,7 @@ static int memory_failure_hugetlb(unsign
+ 		goto out;
  	}
--	return MF_DELAYED;
-+
-+	return res;
- }
  
- /*
-@@ -856,7 +869,7 @@ static int page_action(struct page_state
- 	count = page_count(p) - 1;
- 	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
- 		count--;
--	if (count != 0) {
-+	if (count > 0) {
- 		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
- 		       pfn, action_page_types[ps->type], count);
- 		result = MF_FAILED;
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-
+-	res = -EBUSY;
+-
+-	for (ps = error_states;; ps++)
+-		if ((p->flags & ps->mask) == ps->res)
+-			break;
+-
+-	page_flags |= (p->flags & (1UL << PG_dirty));
+-
+-	if (!ps->mask)
+-		for (ps = error_states;; ps++)
+-			if ((page_flags & ps->mask) == ps->res)
+-				break;
+-	res = page_action(ps, p, pfn);
++	res = identify_page_state(pfn, p, page_flags);
+ out:
+ 	unlock_page(head);
+ 	return res;
+@@ -1112,7 +1122,6 @@ out:
+  */
+ int memory_failure(unsigned long pfn, int trapno, int flags)
+ {
+-	struct page_state *ps;
+ 	struct page *p;
+ 	struct page *hpage;
+ 	struct page *orig_head;
+@@ -1273,23 +1282,7 @@ int memory_failure(unsigned long pfn, in
+ 	}
+ 
+ identify_page_state:
+-	res = -EBUSY;
+-	/*
+-	 * The first check uses the current page flags which may not have any
+-	 * relevant information. The second check with the saved page flagss is
+-	 * carried out only if the first check can't determine the page status.
+-	 */
+-	for (ps = error_states;; ps++)
+-		if ((p->flags & ps->mask) == ps->res)
+-			break;
+-
+-	page_flags |= (p->flags & (1UL << PG_dirty));
