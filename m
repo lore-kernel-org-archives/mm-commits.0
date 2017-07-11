@@ -1,104 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] replace-memfmt-with-string_get_size.patch removed
- from -mm tree
-Date: Tue, 11 Jul 2017 12:24:09 -0700
-Message-ID: <20170711192409.xf9X0_0Rk%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:24:14 -0700
+Message-ID: <20170711192414.lJ1claBmK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47814 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47834 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933716AbdGKTYK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:10 -0400
+        with ESMTP id S933716AbdGKTYP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, Liam.Howlett@Oracle.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, willy@infradead.org, zhongjiang@huawei.com
+To: aarcange@redhat.com, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, xemul@virtuozzo.com
 
 
 The patch titled
-     Subject: mm/hugetlb.c: replace memfmt with string_get_size
+     Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
 has been removed from the -mm tree.  Its filename was
-     replace-memfmt-with-string_get_size.patch
+     userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm/hugetlb.c: replace memfmt with string_get_size
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
 
-The hugetlb code has its own function to report human-readable sizes. 
-Convert it to use the shared string_get_size() function.  This will lead
-to a minor difference in user visible output (MiB/GiB instead of MB/GB),
-but some would argue that's desirable anyway.
+MADV_FREE is identical to MADV_DONTNEED from the point of view of uffd
+monitor.  The monitor has to stop handling #PF events in the range being
+freed.  We are reusing userfaultfd_remove callback along with the logic
+required to re-get and re-validate the VMA which may change or disappear
+because userfaultfd_remove releases mmap_sem.
 
-Link: http://lkml.kernel.org/r/20170606190350.GA20010@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: zhong jiang <zhongjiang@huawei.com>
+Link: http://lkml.kernel.org/r/1497876311-18615-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ mm/madvise.c |   42 ++++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN mm/hugetlb.c~replace-memfmt-with-string_get_size mm/hugetlb.c
---- a/mm/hugetlb.c~replace-memfmt-with-string_get_size
-+++ a/mm/hugetlb.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/sched/signal.h>
- #include <linux/rmap.h>
-+#include <linux/string_helpers.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/jhash.h>
-@@ -70,17 +71,6 @@ struct mutex *hugetlb_fault_mutex_table
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
+diff -puN mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request mm/madvise.c
+--- a/mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request
++++ a/mm/madvise.c
+@@ -451,9 +451,6 @@ static int madvise_free_single_vma(struc
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_gather tlb;
  
--static char * __init memfmt(char *buf, unsigned long n)
--{
--	if (n >= (1UL << 30))
--		sprintf(buf, "%lu GB", n >> 30);
--	else if (n >= (1UL << 20))
--		sprintf(buf, "%lu MB", n >> 20);
--	else
--		sprintf(buf, "%lu KB", n >> 10);
--	return buf;
--}
+-	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
+-		return -EINVAL;
 -
- static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
- {
- 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
-@@ -2255,7 +2245,7 @@ static void __init hugetlb_hstate_alloc_
- 	if (i < h->max_huge_pages) {
- 		char buf[32];
- 
--		memfmt(buf, huge_page_size(h)),
-+		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
- 		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
- 			h->max_huge_pages, buf, i);
- 		h->max_huge_pages = i;
-@@ -2283,9 +2273,10 @@ static void __init report_hugepages(void
- 
- 	for_each_hstate(h) {
- 		char buf[32];
-+
-+		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
- 		pr_info("HugeTLB registered %s page size, pre-allocated %ld pages\n",
--			memfmt(buf, huge_page_size(h)),
--			h->free_huge_pages);
-+			buf, h->free_huge_pages);
- 	}
+ 	/* MADV_FREE works for only anon vma at the moment */
+ 	if (!vma_is_anonymous(vma))
+ 		return -EINVAL;
+@@ -477,14 +474,6 @@ static int madvise_free_single_vma(struc
+ 	return 0;
  }
  
+-static long madvise_free(struct vm_area_struct *vma,
+-			     struct vm_area_struct **prev,
+-			     unsigned long start, unsigned long end)
+-{
+-	*prev = vma;
+-	return madvise_free_single_vma(vma, start, end);
+-}
+-
+ /*
+  * Application no longer needs these pages.  If the pages are dirty,
+  * it's OK to just throw them away.  The app will be more careful about
+@@ -504,9 +493,17 @@ static long madvise_free(struct vm_area_
+  * An interface that causes the system to free clean pages and flush
+  * dirty pages is already available as msync(MS_INVALIDATE).
+  */
+-static long madvise_dontneed(struct vm_area_struct *vma,
+-			     struct vm_area_struct **prev,
+-			     unsigned long start, unsigned long end)
++static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
++					unsigned long start, unsigned long end)
++{
++	zap_page_range(vma, start, end - start);
++	return 0;
++}
++
++static long madvise_dontneed_free(struct vm_area_struct *vma,
++				  struct vm_area_struct **prev,
++				  unsigned long start, unsigned long end,
++				  int behavior)
+ {
+ 	*prev = vma;
+ 	if (!can_madv_dontneed_vma(vma))
+@@ -526,7 +523,8 @@ static long madvise_dontneed(struct vm_a
+ 			 * is also < vma->vm_end. If start <
+ 			 * vma->vm_start it means an hole materialized
+ 			 * in the user address space within the
+-			 * virtual range passed to MADV_DONTNEED.
++			 * virtual range passed to MADV_DONTNEED
++			 * or MADV_FREE.
+ 			 */
+ 			return -ENOMEM;
+ 		}
+@@ -537,7 +535,7 @@ static long madvise_dontneed(struct vm_a
+ 			 * Don't fail if end > vma->vm_end. If the old
+ 			 * vma was splitted while the mmap_sem was
+ 			 * released the effect of the concurrent
+-			 * operation may not cause MADV_DONTNEED to
++			 * operation may not cause madvise() to
+ 			 * have an undefined result. There may be an
+ 			 * adjacent next vma that we'll walk
+ 			 * next. userfaultfd_remove() will generate an
+@@ -549,8 +547,13 @@ static long madvise_dontneed(struct vm_a
+ 		}
+ 		VM_WARN_ON(start >= end);
+ 	}
+-	zap_page_range(vma, start, end - start);
+-	return 0;
++
++	if (behavior == MADV_DONTNEED)
++		return madvise_dontneed_single_vma(vma, start, end);
++	else if (behavior == MADV_FREE)
++		return madvise_free_single_vma(vma, start, end);
++	else
++		return -EINVAL;
+ }
+ 
+ /*
+@@ -656,9 +659,8 @@ madvise_vma(struct vm_area_struct *vma,
+ 	case MADV_WILLNEED:
+ 		return madvise_willneed(vma, prev, start, end);
+ 	case MADV_FREE:
+-		return madvise_free(vma, prev, start, end);
+ 	case MADV_DONTNEED:
+-		return madvise_dontneed(vma, prev, start, end);
++		return madvise_dontneed_free(vma, prev, start, end, behavior);
+ 	default:
+ 		return madvise_behavior(vma, prev, start, end, behavior);
+ 	}
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
 
