@@ -1,94 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cma-fix-calculation-of-aligned-offset.patch
+Subject: [merged]
+ mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack.patch
  removed from -mm tree
-Date: Tue, 11 Jul 2017 12:24:48 -0700
-Message-ID: <20170711192448.ZNK8W9g-P%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:24:54 -0700
+Message-ID: <20170711192454.FdbWSSSbC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48022 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933703AbdGKTYt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:49 -0400
+        with ESMTP id S932365AbdGKTYz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: angus@angusclark.org, catalin.marinas@arm.com, gregkh@linuxfoundation.org, gregory.0xf0@gmail.com, jaewon31.kim@samsung.com, l.stach@pengutronix.de, labbott@redhat.com, mm-commits@vger.kernel.org, opendmb@gmail.com, shashim@codeaurora.org, vbabka@suse.cz
+To: ben@decadent.org.uk, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, riel@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz, w@1wt.eu
 
 
 The patch titled
-     Subject: cma: fix calculation of aligned offset
+     Subject: mm/mmap.c: do not blow on PROT_NONE MAP_FIXED holes in the stack
 has been removed from the -mm tree.  Its filename was
-     cma-fix-calculation-of-aligned-offset.patch
+     mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Doug Berger <opendmb@gmail.com>
-Subject: cma: fix calculation of aligned offset
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm/mmap.c: do not blow on PROT_NONE MAP_FIXED holes in the stack
 
-The align_offset parameter is used by bitmap_find_next_zero_area_off()
-to represent the offset of map's base from the previous alignment
-boundary; the function ensures that the returned index, plus the
-align_offset, honors the specified align_mask.
+"mm: enlarge stack guard gap" has introduced a regression in some rust and
+Java environments which are trying to implement their own stack guard
+page.  They are punching a new MAP_FIXED mapping inside the existing stack
+Vma.
 
-The logic introduced by commit b5be83e308f7 ("mm: cma: align to
-physical address, not CMA region position") has the cma driver
-calculate the offset to the *next* alignment boundary.  In most cases,
-the base alignment is greater than that specified when making
-allocations, resulting in a zero offset whether we align up or down.
-In the example given with the commit, the base alignment (8MB) was
-half the requested alignment (16MB) so the math also happened to work
-since the offset is 8MB in both directions.  However, when requesting
-allocations with an alignment greater than twice that of the base,
-the returned index would not be correctly aligned.
+This will confuse expand_{downwards,upwards} into thinking that the stack
+expansion would in fact get us too close to an existing non-stack vma
+which is a correct behavior wrt.  safety.  It is a real regression on the
+other hand.  Let's work around the problem by considering PROT_NONE
+mapping as a part of the stack.  This is a gros hack but overflowing to
+such a mapping would trap anyway an we only can hope that usespace knows
+what it is doing and handle it propely.
 
-Also, the align_order arguments of cma_bitmap_aligned_mask() and
-cma_bitmap_aligned_offset() should not be negative so the argument
-type was made unsigned.
-
-Fixes: b5be83e308f7 ("mm: cma: align to physical address, not CMA region position")
-Link: http://lkml.kernel.org/r/20170628170742.2895-1-opendmb@gmail.com
-Signed-off-by: Angus Clark <angus@angusclark.org>
-Signed-off-by: Doug Berger <opendmb@gmail.com>
-Acked-by: Gregory Fong <gregory.0xf0@gmail.com>
-Cc: Doug Berger <opendmb@gmail.com>
-Cc: Angus Clark <angus@angusclark.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lucas Stach <l.stach@pengutronix.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Shiraz Hashim <shashim@codeaurora.org>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
+Fixes: 1be7107fbe18 ("mm: larger stack guard gap, between vmas")
+Link: http://lkml.kernel.org/r/20170705182849.GA18027@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Debugged-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/mmap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/cma.c~cma-fix-calculation-of-aligned-offset mm/cma.c
---- a/mm/cma.c~cma-fix-calculation-of-aligned-offset
-+++ a/mm/cma.c
-@@ -59,7 +59,7 @@ const char *cma_get_name(const struct cm
- }
+diff -puN mm/mmap.c~mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack mm/mmap.c
+--- a/mm/mmap.c~mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack
++++ a/mm/mmap.c
+@@ -2244,7 +2244,8 @@ int expand_upwards(struct vm_area_struct
+ 		gap_addr = TASK_SIZE;
  
- static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
--					     int align_order)
-+					     unsigned int align_order)
- {
- 	if (align_order <= cma->order_per_bit)
- 		return 0;
-@@ -67,17 +67,14 @@ static unsigned long cma_bitmap_aligned_
- }
- 
- /*
-- * Find a PFN aligned to the specified order and return an offset represented in
-- * order_per_bits.
-+ * Find the offset of the base PFN from the specified align_order.
-+ * The value returned is represented in order_per_bits.
-  */
- static unsigned long cma_bitmap_aligned_offset(const struct cma *cma,
--					       int align_order)
-+					       unsigned int align_order)
- {
--	if (align_order <= cma->order_per_bit)
--		return 0;
+ 	next = vma->vm_next;
+-	if (next && next->vm_start < gap_addr) {
++	if (next && next->vm_start < gap_addr &&
++			(next->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
+ 		if (!(next->vm_flags & VM_GROWSUP))
+ 			return -ENOMEM;
+ 		/* Check that both stack segments have the same anon_vma? */
+@@ -2328,7 +2329,8 @@ int expand_downwards(struct vm_area_stru
+ 	if (gap_addr > address)
+ 		return -ENOMEM;
+ 	prev = vma->vm_prev;
+-	if (prev && prev->vm_end > gap_addr) {
++	if (prev && prev->vm_end > gap_addr &&
++			(prev->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
+ 		if (!(prev->vm_flags & VM_GROWSDOWN))
+ 			return -ENOMEM;
+ 		/* Check that both stack segments have the same anon_vma? */
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
+mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
+xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
+mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+drm-i915-use-__gfp_retry_mayfail.patch
+mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
+
