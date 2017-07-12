@@ -1,98 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/96] sysctl: fix lax sysctl_check_table() sanity
- check
-Date: Wed, 12 Jul 2017 14:33:27 -0700
-Message-ID: <20170712213327.XBMIkszA5%akpm@linux-foundation.org>
+Subject: [patch 06/96] powerpc/fadump: use the correct
+ VMCOREINFO_NOTE_SIZE for phdr
+Date: Wed, 12 Jul 2017 14:33:17 -0700
+Message-ID: <20170712213317.Hd4REZZcT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754410AbdGLVd3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:29 -0400
+        with ESMTP id S1754241AbdGLVdT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, xlpang@redhat.com
 
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: sysctl: fix lax sysctl_check_table() sanity check
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: powerpc/fadump: use the correct VMCOREINFO_NOTE_SIZE for phdr
 
-Patch series "sysctl: few fixes", v5.
+vmcoreinfo_max_size stands for the vmcoreinfo_data, the correct one we
+should use is vmcoreinfo_note whose total size is VMCOREINFO_NOTE_SIZE.
 
-I've been working on making kmod more deterministic, and as I did that I
-couldn't help but notice a few issues with sysctl.  My end goal was just
-to fix unsigned int support, which back then was completely broken. 
-Liping Zhang has sent up small atomic fixes, however it still missed yet
-one more fix and Alexey Dobriyan had also suggested to just drop array
-support given its complexity.
+Like explained in commit 77019967f06b ("kdump: fix exported size of
+vmcoreinfo note"), it should not affect the actual function, but we better
+fix it, also this change should be safe and backward compatible.
 
-I have inspected array support using Coccinelle and indeed its not that
-popular, so if in fact we can avoid it for new interfaces, I agree its
-best.
+After this, we can get rid of variable vmcoreinfo_max_size, let's use the
+corresponding macros directly, fewer variables means more safety for
+vmcoreinfo operation.
 
-I did develop a sysctl stress driver but will hold that off for another
-series.
-
-
-This patch (of 5):
-
-Commit 7c60c48f58a7 ("sysctl: Improve the sysctl sanity checks") improved
-sanity checks considerbly, however the enhancements on
-sysctl_check_table() meant adding a functional change so that only the
-last table entry's sanity error is propagated.  It also changed the way
-errors were propagated so that each new check reset the err value, this
-means only last sanity check computed is used for an error.  This has been
-in the kernel since v3.4 days.
-
-Fix this by carrying on errors from previous checks and iterations as we
-traverse the table and ensuring we keep any error from previous checks. 
-We keep iterating on the table even if an error is found so we can
-complain for all errors found in one shot.  This works as -EINVAL is
-always returned on error anyway, and the check for error is any non-zero
-value.
-
-Fixes: 7c60c48f58a7 ("sysctl: Improve the sysctl sanity checks")
-Link: http://lkml.kernel.org/r/20170519033554.18592-2-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
+[xlpang@redhat.com: fix build warning]
+  Link: http://lkml.kernel.org/r/1494830606-27736-1-git-send-email-xlpang@redhat.com
+Link: http://lkml.kernel.org/r/1493281021-20737-2-git-send-email-xlpang@redhat.com
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Reviewed-by: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Reviewed-by: Dave Young <dyoung@redhat.com>
+Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/kernel/fadump.c |    3 +--
+ include/linux/crash_core.h   |    1 -
+ kernel/crash_core.c          |    3 +--
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-fix-lax-sysctl_check_table-sanity-check fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-fix-lax-sysctl_check_table-sanity-check
-+++ a/fs/proc/proc_sysctl.c
-@@ -1066,7 +1066,7 @@ static int sysctl_check_table(const char
- 	int err = 0;
- 	for (; table->procname; table++) {
- 		if (table->child)
--			err = sysctl_err(path, table, "Not a file");
-+			err |= sysctl_err(path, table, "Not a file");
+diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr arch/powerpc/kernel/fadump.c
+--- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/arch/powerpc/kernel/fadump.c
+@@ -999,8 +999,7 @@ static int fadump_create_elfcore_headers
  
- 		if ((table->proc_handler == proc_dostring) ||
- 		    (table->proc_handler == proc_dointvec) ||
-@@ -1078,15 +1078,15 @@ static int sysctl_check_table(const char
- 		    (table->proc_handler == proc_doulongvec_minmax) ||
- 		    (table->proc_handler == proc_doulongvec_ms_jiffies_minmax)) {
- 			if (!table->data)
--				err = sysctl_err(path, table, "No data");
-+				err |= sysctl_err(path, table, "No data");
- 			if (!table->maxlen)
--				err = sysctl_err(path, table, "No maxlen");
-+				err |= sysctl_err(path, table, "No maxlen");
- 		}
- 		if (!table->proc_handler)
--			err = sysctl_err(path, table, "No proc_handler");
-+			err |= sysctl_err(path, table, "No proc_handler");
+ 	phdr->p_paddr	= fadump_relocate(paddr_vmcoreinfo_note());
+ 	phdr->p_offset	= phdr->p_paddr;
+-	phdr->p_memsz	= vmcoreinfo_max_size;
+-	phdr->p_filesz	= vmcoreinfo_max_size;
++	phdr->p_memsz	= phdr->p_filesz = VMCOREINFO_NOTE_SIZE;
  
- 		if ((table->mode & (S_IRUGO|S_IWUGO)) != table->mode)
--			err = sysctl_err(path, table, "bogus .mode 0%o",
-+			err |= sysctl_err(path, table, "bogus .mode 0%o",
- 				table->mode);
- 	}
- 	return err;
+ 	/* Increment number of program headers. */
+ 	(elf->e_phnum)++;
+diff -puN include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr include/linux/crash_core.h
+--- a/include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/include/linux/crash_core.h
+@@ -58,7 +58,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 
+ extern u32 *vmcoreinfo_note;
+ extern size_t vmcoreinfo_size;
+-extern size_t vmcoreinfo_max_size;
+ 
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len);
+diff -puN kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr kernel/crash_core.c
+--- a/kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/kernel/crash_core.c
+@@ -16,7 +16,6 @@
+ /* vmcoreinfo stuff */
+ static unsigned char *vmcoreinfo_data;
+ size_t vmcoreinfo_size;
+-size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
+ u32 *vmcoreinfo_note;
+ 
+ /*
+@@ -343,7 +342,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vscnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
+ 
+-	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
++	r = min(r, (size_t)VMCOREINFO_BYTES - vmcoreinfo_size);
+ 
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
+ 
 _
