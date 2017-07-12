@@ -1,103 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 65/96] random,stackprotect: introduce
- get_random_canary function
-Date: Wed, 12 Jul 2017 14:36:17 -0700
-Message-ID: <20170712213617.kvCnuA6E8%akpm@linux-foundation.org>
+Subject: [patch 61/96] powerpc: don't fortify prom_init
+Date: Wed, 12 Jul 2017 14:36:04 -0700
+Message-ID: <20170712213604.tBC1Zm1_M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54788 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752840AbdGLVgT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:36:19 -0400
+        with ESMTP id S1752675AbdGLVgQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:36:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org, tytso@mit.edu, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, torvalds@linux-foundation.org
 
-From: Rik van Riel <riel@redhat.com>
-Subject: random,stackprotect: introduce get_random_canary function
+From: Daniel Axtens <dja@axtens.net>
+Subject: powerpc: don't fortify prom_init
 
-Patch series "stackprotector: ascii armor the stack canary", v2.
+prom_init is a bit special; in theory it should be able to be linked
+separately to the kernel.  To keep this from getting too complex, the
+symbols that prom_init.c uses are checked.
 
-Zero out the first byte of the stack canary value on 64 bit systems,
-in order to mitigate unterminated C string overflows.
+Fortification adds symbols, and it gets quite messy as it includes things
+like panic().  So just don't fortify prom_init.c for now.
 
-The null byte both prevents C string functions from reading the
-canary, and from writing it if the canary value were guessed or
-obtained through some other means.
-    
-Reducing the entropy by 8 bits is acceptable on 64-bit systems,
-which will still have 56 bits of entropy left, but not on 32
-bit systems, so the "ascii armor" canary is only implemented on
-64-bit systems.
-
-Inspired by the "ascii armor" code in execshield and Daniel Micay's
-linux-hardened tree.
-
-Also see https://github.com/thestinger/linux-hardened/
-
-
-This patch (of 5):
-
-Introduce get_random_canary(), which provides a random unsigned long
-canary value with the first byte zeroed out on 64 bit architectures, in
-order to mitigate non-terminated C string overflows.
-
-The null byte both prevents C string functions from reading the canary,
-and from writing it if the canary value were guessed or obtained through
-some other means.
-
-Reducing the entropy by 8 bits is acceptable on 64-bit systems, which will
-still have 56 bits of entropy left, but not on 32 bit systems, so the
-"ascii armor" canary is only implemented on 64-bit systems.
-
-Inspired by the "ascii armor" code in the old execshield patches, and
-Daniel Micay's linux-hardened tree.
-
-Link: http://lkml.kernel.org/r/20170524155751.424-2-riel@redhat.com
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/1497903987-21002-6-git-send-email-keescook@chromium.org
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/random.h |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ arch/powerpc/kernel/prom_init.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/random.h~randomstackprotect-introduce-get_random_canary-function include/linux/random.h
---- a/include/linux/random.h~randomstackprotect-introduce-get_random_canary-function
-+++ a/include/linux/random.h
-@@ -57,6 +57,27 @@ static inline unsigned long get_random_l
- #endif
- }
+diff -puN arch/powerpc/kernel/prom_init.c~powerpc-dont-fortify-prom_init arch/powerpc/kernel/prom_init.c
+--- a/arch/powerpc/kernel/prom_init.c~powerpc-dont-fortify-prom_init
++++ a/arch/powerpc/kernel/prom_init.c
+@@ -15,6 +15,9 @@
  
-+/*
-+ * On 64-bit architectures, protect against non-terminated C string overflows
-+ * by zeroing out the first byte of the canary; this leaves 56 bits of entropy.
-+ */
-+#ifdef CONFIG_64BIT
-+# ifdef __LITTLE_ENDIAN
-+#  define CANARY_MASK 0xffffffffffffff00UL
-+# else /* big endian, 64 bits: */
-+#  define CANARY_MASK 0x00ffffffffffffffUL
-+# endif
-+#else /* 32 bits: */
-+# define CANARY_MASK 0xffffffffUL
-+#endif
-+
-+static inline unsigned long get_random_canary(void)
-+{
-+	unsigned long val = get_random_long();
-+
-+	return val & CANARY_MASK;
-+}
-+
- unsigned long randomize_page(unsigned long start, unsigned long range);
+ #undef DEBUG_PROM
  
- u32 prandom_u32(void);
++/* we cannot use FORTIFY as it brings in new symbols */
++#define __NO_FORTIFY
++
+ #include <stdarg.h>
+ #include <linux/kernel.h>
+ #include <linux/string.h>
 _
