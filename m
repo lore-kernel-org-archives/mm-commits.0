@@ -1,245 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 29/96] kcmp: add KCMP_EPOLL_TFD mode to compare
- epoll target files
-Date: Wed, 12 Jul 2017 14:34:28 -0700
-Message-ID: <20170712213428.6s8LHPSCb%akpm@linux-foundation.org>
+Subject: [patch 25/96] scripts/gdb: lx-dmesg: cast log_buf to void*
+ for addr fetch
+Date: Wed, 12 Jul 2017 14:34:16 -0700
+Message-ID: <20170712213416.zD7dFOVQU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53376 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751862AbdGLVea (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:30 -0400
+        with ESMTP id S1754350AbdGLVeR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avagin@openvz.org, gorcunov@gmail.com, gorcunov@openvz.org, jbaron@akamai.com, luto@amacapital.net, mm-commits@vger.kernel.org, mtk.manpages@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, xemul@virtuozzo.com
+To: akpm@linux-foundation.org, jan.kiszka@siemens.com, jason.wessel@windriver.com, kieran@ksquared.org.uk, leonard.crestez@nxp.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: kcmp: add KCMP_EPOLL_TFD mode to compare epoll target files
+From: Leonard Crestez <leonard.crestez@nxp.com>
+Subject: scripts/gdb: lx-dmesg: cast log_buf to void* for addr fetch
 
-With current epoll architecture target files are addressed with
-file_struct and file descriptor number, where the last is not unique. 
-Moreover files can be transferred from another process via unix socket,
-added into queue and closed then so we won't find this descriptor in the
-task fdinfo list.
+In some cases it is possible for the str() conversion here to throw
+encoding errors because log_buf might not point to valid ascii.  For
+example:
 
-Thus to checkpoint and restore such processes CRIU needs to find out where
-exactly the target file is present to add it into epoll queue.  For this
-sake one can use kcmp call where some particular target file from the
-queue is compared with arbitrary file passed as an argument.
+(gdb) python print str(gdb.parse_and_eval("log_buf"))
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+UnicodeEncodeError: 'ascii' codec can't encode character u'\u0303' in
+	position 24: ordinal not in range(128)
 
-Because epoll target files can have same file descriptor number but
-different file_struct a caller should explicitly specify the offset
-within.
+Avoid this by explicitly casting to (void *) inside the gdb expression.
 
-To test if some particular file is matching entry inside
-epoll one have to
-
- - fill kcmp_epoll_slot structure with epoll file descriptor,
-   target file number and target file offset (in case if only
-   one target is present then it should be 0)
-
- - call kcmp as kcmp(pid1, pid2, KCMP_EPOLL_TFD, fd, &kcmp_epoll_slot)
-    - the kernel fetch file pointer matching file descriptor @fd of pid1
-    - lookups for file struct in epoll queue of pid2 and returns traditional
-      0,1,2 result for sorting purpose
-
-Link: http://lkml.kernel.org/r/20170424154423.511592110@gmail.com
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Andrey Vagin <avagin@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Link: http://lkml.kernel.org/r/ba6f85dbb02ca980ebd0e2399b0649423399b565.1498481469.git.leonard.crestez@nxp.com
+Signed-off-by: Leonard Crestez <leonard.crestez@nxp.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Kieran Bingham <kieran@ksquared.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c            |   42 ++++++++++++++++++++++++++
- include/linux/eventpoll.h |    3 +
- include/uapi/linux/kcmp.h |   10 ++++++
- kernel/kcmp.c             |   57 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 112 insertions(+)
+ scripts/gdb/linux/dmesg.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files fs/eventpoll.c
---- a/fs/eventpoll.c~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files
-+++ a/fs/eventpoll.c
-@@ -1077,6 +1077,48 @@ static struct epitem *ep_find(struct eve
- 	return epir;
- }
+diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-lx-dmesg-cast-log_buf-to-void-for-addr-fetch scripts/gdb/linux/dmesg.py
+--- a/scripts/gdb/linux/dmesg.py~scripts-gdb-lx-dmesg-cast-log_buf-to-void-for-addr-fetch
++++ a/scripts/gdb/linux/dmesg.py
+@@ -24,7 +24,7 @@ class LxDmesg(gdb.Command):
  
-+static struct epitem *ep_find_tfd(struct eventpoll *ep, int tfd, unsigned long toff)
-+{
-+	struct rb_node *rbp;
-+	struct epitem *epi;
-+
-+	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+		epi = rb_entry(rbp, struct epitem, rbn);
-+		if (epi->ffd.fd == tfd) {
-+			if (toff == 0)
-+				return epi;
-+			else
-+				toff--;
-+		}
-+		cond_resched();
-+	}
-+
-+	return NULL;
-+}
-+
-+struct file *get_epoll_tfile_raw_ptr(struct file *file, int tfd,
-+				     unsigned long toff)
-+{
-+	struct file *file_raw;
-+	struct eventpoll *ep;
-+	struct epitem *epi;
-+
-+	if (!is_file_epoll(file))
-+		return ERR_PTR(-EINVAL);
-+
-+	ep = file->private_data;
-+
-+	mutex_lock(&ep->mtx);
-+	epi = ep_find_tfd(ep, tfd, toff);
-+	if (epi)
-+		file_raw = epi->ffd.file;
-+	else
-+		file_raw = ERR_PTR(-ENOENT);
-+	mutex_unlock(&ep->mtx);
-+
-+	return file_raw;
-+}
-+
- /*
-  * This is the callback that is passed to the wait queue wakeup
-  * mechanism. It is called by the stored file descriptors when they
-diff -puN include/linux/eventpoll.h~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files include/linux/eventpoll.h
---- a/include/linux/eventpoll.h~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files
-+++ a/include/linux/eventpoll.h
-@@ -14,6 +14,7 @@
- #define _LINUX_EVENTPOLL_H
- 
- #include <uapi/linux/eventpoll.h>
-+#include <uapi/linux/kcmp.h>
- 
- 
- /* Forward declarations to avoid compiler errors */
-@@ -22,6 +23,8 @@ struct file;
- 
- #ifdef CONFIG_EPOLL
- 
-+struct file *get_epoll_tfile_raw_ptr(struct file *file, int tfd, unsigned long toff);
-+
- /* Used to initialize the epoll bits inside the "struct file" */
- static inline void eventpoll_init_file(struct file *file)
- {
-diff -puN include/uapi/linux/kcmp.h~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files include/uapi/linux/kcmp.h
---- a/include/uapi/linux/kcmp.h~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files
-+++ a/include/uapi/linux/kcmp.h
-@@ -1,6 +1,8 @@
- #ifndef _UAPI_LINUX_KCMP_H
- #define _UAPI_LINUX_KCMP_H
- 
-+#include <linux/types.h>
-+
- /* Comparison type */
- enum kcmp_type {
- 	KCMP_FILE,
-@@ -10,8 +12,16 @@ enum kcmp_type {
- 	KCMP_SIGHAND,
- 	KCMP_IO,
- 	KCMP_SYSVSEM,
-+	KCMP_EPOLL_TFD,
- 
- 	KCMP_TYPES,
- };
- 
-+/* Slot for KCMP_EPOLL_TFD */
-+struct kcmp_epoll_slot {
-+	__u32 efd;		/* epoll file descriptor */
-+	__u32 tfd;		/* target file number */
-+	__u32 toff;		/* target offset within same numbered sequence */
-+};
-+
- #endif /* _UAPI_LINUX_KCMP_H */
-diff -puN kernel/kcmp.c~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files kernel/kcmp.c
---- a/kernel/kcmp.c~kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files
-+++ a/kernel/kcmp.c
-@@ -11,6 +11,10 @@
- #include <linux/bug.h>
- #include <linux/err.h>
- #include <linux/kcmp.h>
-+#include <linux/capability.h>
-+#include <linux/list.h>
-+#include <linux/eventpoll.h>
-+#include <linux/file.h>
- 
- #include <asm/unistd.h>
- 
-@@ -94,6 +98,56 @@ static int kcmp_lock(struct mutex *m1, s
- 	return err;
- }
- 
-+#ifdef CONFIG_EPOLL
-+static int kcmp_epoll_target(struct task_struct *task1,
-+			     struct task_struct *task2,
-+			     unsigned long idx1,
-+			     struct kcmp_epoll_slot __user *uslot)
-+{
-+	struct file *filp, *filp_epoll, *filp_tgt;
-+	struct kcmp_epoll_slot slot;
-+	struct files_struct *files;
-+
-+	if (copy_from_user(&slot, uslot, sizeof(slot)))
-+		return -EFAULT;
-+
-+	filp = get_file_raw_ptr(task1, idx1);
-+	if (!filp)
-+		return -EBADF;
-+
-+	files = get_files_struct(task2);
-+	if (!files)
-+		return -EBADF;
-+
-+	spin_lock(&files->file_lock);
-+	filp_epoll = fcheck_files(files, slot.efd);
-+	if (filp_epoll)
-+		get_file(filp_epoll);
-+	else
-+		filp_tgt = ERR_PTR(-EBADF);
-+	spin_unlock(&files->file_lock);
-+	put_files_struct(files);
-+
-+	if (filp_epoll) {
-+		filp_tgt = get_epoll_tfile_raw_ptr(filp_epoll, slot.tfd, slot.toff);
-+		fput(filp_epoll);
-+	} else
-+
-+	if (IS_ERR(filp_tgt))
-+		return PTR_ERR(filp_tgt);
-+
-+	return kcmp_ptr(filp, filp_tgt, KCMP_FILE);
-+}
-+#else
-+static int kcmp_epoll_target(struct task_struct *task1,
-+			     struct task_struct *task2,
-+			     unsigned long idx1,
-+			     struct kcmp_epoll_slot __user *uslot)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
-+
- SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t, pid2, int, type,
- 		unsigned long, idx1, unsigned long, idx2)
- {
-@@ -165,6 +219,9 @@ SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t
- 		ret = -EOPNOTSUPP;
- #endif
- 		break;
-+	case KCMP_EPOLL_TFD:
-+		ret = kcmp_epoll_target(task1, task2, idx1, (void *)idx2);
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		break;
+     def invoke(self, arg, from_tty):
+         log_buf_addr = int(str(gdb.parse_and_eval(
+-            "'printk.c'::log_buf")).split()[0], 16)
++            "(void *)'printk.c'::log_buf")).split()[0], 16)
+         log_first_idx = int(gdb.parse_and_eval("'printk.c'::log_first_idx"))
+         log_next_idx = int(gdb.parse_and_eval("'printk.c'::log_next_idx"))
+         log_buf_len = int(gdb.parse_and_eval("'printk.c'::log_buf_len"))
 _
