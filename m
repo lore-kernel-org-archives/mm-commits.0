@@ -1,97 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 12 Jul 2017 14:19:59 -0700
-Message-ID: <5966927f.PaN/ujHoWSUkitv4%akpm@linux-foundation.org>
+ include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch removed from -mm tree
+Date: Wed, 12 Jul 2017 14:21:33 -0700
+Message-ID: <596692dd.r/2sgWpsbdBucTBP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52720 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753539AbdGLVUA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:20:00 -0400
+        with ESMTP id S1752840AbdGLVVf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:21:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, npiggin@gmail.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes
+     Subject: x86: fix fortified memcpy
 has been removed from the -mm tree.  Its filename was
-     powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
+     include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
 
-This patch was dropped because it was folded into powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
+This patch was dropped because it was folded into include-linux-stringh-add-the-option-of-fortified-stringh-functions.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: x86: fix fortified memcpy
 
-WARNING: line over 80 characters
-#97: FILE: arch/powerpc/include/asm/smp.h:59:
-+extern int smp_send_nmi_ipi(int cpu, void (*fn)(struct pt_regs *), u64 delay_us);
+__memcpy3d is not available when CONFIG_FORTIFY_SOURCE is enabled,
+leading to a link error on 32-bit kernels:
 
-WARNING: line over 80 characters
-#119: FILE: arch/powerpc/kernel/exceptions-64s.S:1276:
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR) && defined(CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH)
+arch/x86/lib/memcpy_32.c: In function 'memcpy':
+arch/x86/lib/memcpy_32.c:10:9: error: implicit declaration of function '__memcpy3d'; did you mean '__memcpy'? [-Werror=implicit-function-declaration]
 
-ERROR: do not initialise statics to 0
-#317: FILE: arch/powerpc/kernel/watchdog.c:62:
-+static unsigned long __wd_smp_lock = 0;
+This uses the same #ifdef around the use of the function that
+now protects the definition.
 
-WARNING: memory barrier without comment
-#554: FILE: arch/powerpc/kernel/watchdog.c:299:
-+	smp_wmb();
-
-WARNING: Prefer pr_warn(... to pr_warning(...
-#617: FILE: arch/powerpc/kernel/watchdog.c:362:
-+		pr_warning("Watchdog could not be initialized");
-
-total: 1 errors, 4 warnings, 543 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Fixes: mmotm ("include/linux/string.h: add the option of fortified string.h functions")
+Link: http://lkml.kernel.org/r/20170627150047.660360-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/watchdog.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/lib/memcpy_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/watchdog.c~powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes arch/powerpc/kernel/watchdog.c
---- a/arch/powerpc/kernel/watchdog.c~powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes
-+++ a/arch/powerpc/kernel/watchdog.c
-@@ -59,7 +59,7 @@ static DEFINE_PER_CPU(u64, wd_timer_tb);
-  * This will work best with NMI IPIs for crash code so the stuck CPUs
-  * can be pulled out to get their backtraces.
-  */
--static unsigned long __wd_smp_lock = 0;
-+static unsigned long __wd_smp_lock;
- static cpumask_t wd_smp_cpus_pending;
- static cpumask_t wd_smp_cpus_stuck;
- static u64 wd_smp_last_reset_tb;
-@@ -357,7 +357,7 @@ static int __init powerpc_watchdog_init(
- 	err = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "powerpc/watchdog:online",
- 				start_wd_on_cpu, stop_wd_on_cpu);
- 	if (err < 0)
--		pr_warning("Watchdog could not be initialized");
-+		pr_warn("Watchdog could not be initialized");
+diff -puN arch/x86/lib/memcpy_32.c~include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix arch/x86/lib/memcpy_32.c
+--- a/arch/x86/lib/memcpy_32.c~include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix
++++ a/arch/x86/lib/memcpy_32.c
+@@ -6,7 +6,7 @@
  
- 	return 0;
- }
+ __visible void *memcpy(void *to, const void *from, size_t n)
+ {
+-#ifdef CONFIG_X86_USE_3DNOW
++#if defined(CONFIG_X86_USE_3DNOW) && !defined(CONFIG_FORTIFY_SOURCE)
+ 	return __memcpy3d(to, from, n);
+ #else
+ 	return __memcpy(to, from, n);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions.patch
 
