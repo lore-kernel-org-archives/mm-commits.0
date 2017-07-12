@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch added to -mm tree
-Date: Tue, 11 Jul 2017 14:43:11 -0700
-Message-ID: <5965466f.FfHa++93iblOmQUw%akpm@linux-foundation.org>
+Subject: + test_sysctl-add-dedicated-proc-sysctl-test-driver.patch added
+ to -mm tree
+Date: Wed, 12 Jul 2017 12:40:26 -0700
+Message-ID: <59667b2a.JHyDuxx85CpEl82l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41790 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933342AbdGKVnR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 17:43:17 -0400
+        with ESMTP id S1751161AbdGLTk1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 15:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpe@ellerman.id.au, dougmill@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mcgrof@kernel.org, ebiederm@xmission.com, keescook@chromium.org, shuah@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/atomic64_test.c: add a test that atomic64_inc_not_zero() returns an int
+     Subject: test_sysctl: add dedicated proc sysctl test driver
 has been added to the -mm tree.  Its filename is
-     lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
+     test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,240 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: lib/atomic64_test.c: add a test that atomic64_inc_not_zero() returns an int
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: test_sysctl: add dedicated proc sysctl test driver
 
-atomic64_inc_not_zero() returns a "truth value" which in C is
-traditionally an int.  That means callers are likely to expect the result
-will fit in an int.
+The existing tools/testing/selftests/sysctl/ tests include two test cases,
+but these use existing production kernel sysctl interfaces.  We want to
+expand test coverage but we can't just be looking for random safe
+production values to poke at, that's just insane!
 
-If an implementation returns a "true" value which does not fit in an int,
-then there's a possibility that callers will truncate it when they store
-it in an int.  In fact this happened in practice, see commit 966d2b04e070
-("percpu-refcount: fix reference leak during percpu-atomic transition").
+Instead just dedicate a test driver for debugging purposes and port the
+existing scripts to use it.  This will make it easier for further tests to
+be added.
 
-So add a test that the result fits in an int, even when the input doesn't.
-This catches the case where an implementation just passes the non-zero
-input value out as the result.
+Subsequent patches will extend our test coverage for sysctl.
 
-Link: http://lkml.kernel.org/r/1499775133-1231-1-git-send-email-mpe@ellerman.id.au
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Douglas Miller <dougmill@linux.vnet.ibm.com>
+The stress test driver uses a new license (GPL on Linux, copyleft-next
+outside of Linux).  Linus was fine with this [0] and later due to Ted's
+and Alans's request ironed out an "or" language clause to use [1] which is
+already present upstream.
+
+[0] https://lkml.kernel.org/r/CA+55aFyhxcvD+q7tp+-yrSFDKfR0mOHgyEAe=f_94aKLsOu0Og@mail.gmail.com
+[1] https://lkml.kernel.org/r/1495234558.7848.122.camel@linux.intel.com
+
+Link: http://lkml.kernel.org/r/20170630224431.17374-2-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/atomic64_test.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ lib/Kconfig.debug                               |   11 +
+ lib/Makefile                                    |    1 
+ lib/test_sysctl.c                               |  113 ++++++++++++++
+ tools/testing/selftests/sysctl/config           |    1 
+ tools/testing/selftests/sysctl/run_numerictests |    4 
+ tools/testing/selftests/sysctl/run_stringtests  |    4 
+ 6 files changed, 130 insertions(+), 4 deletions(-)
 
-diff -puN lib/atomic64_test.c~lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int lib/atomic64_test.c
---- a/lib/atomic64_test.c~lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int
-+++ a/lib/atomic64_test.c
-@@ -153,8 +153,10 @@ static __init void test_atomic64(void)
- 	long long v0 = 0xaaa31337c001d00dLL;
- 	long long v1 = 0xdeadbeefdeafcafeLL;
- 	long long v2 = 0xfaceabadf00df001LL;
-+	long long v3 = 0x8000000000000000LL;
- 	long long onestwos = 0x1111111122222222LL;
- 	long long one = 1LL;
-+	int r_int;
+diff -puN lib/Kconfig.debug~test_sysctl-add-dedicated-proc-sysctl-test-driver lib/Kconfig.debug
+--- a/lib/Kconfig.debug~test_sysctl-add-dedicated-proc-sysctl-test-driver
++++ a/lib/Kconfig.debug
+@@ -1785,6 +1785,17 @@ config TEST_FIRMWARE
  
- 	atomic64_t v = ATOMIC64_INIT(v0);
- 	long long r = v0;
-@@ -240,6 +242,11 @@ static __init void test_atomic64(void)
- 	BUG_ON(!atomic64_inc_not_zero(&v));
- 	r += one;
- 	BUG_ON(v.counter != r);
+ 	  If unsure, say N.
+ 
++config TEST_SYSCTL
++	tristate "sysctl test driver"
++	default n
++	depends on PROC_SYSCTL
++	help
++	  This builds the "test_sysctl" module. This driver enables to test the
++	  proc sysctl interfaces available to drivers safely without affecting
++	  production knobs which might alter system functionality.
 +
-+	/* Confirm the return value fits in an int, even if the value doesn't */
-+	INIT(v3);
-+	r_int = atomic64_inc_not_zero(&v);
-+	BUG_ON(!r_int);
- }
++	  If unsure, say N.
++
+ config TEST_UDELAY
+ 	tristate "udelay test driver"
+ 	default n
+diff -puN lib/Makefile~test_sysctl-add-dedicated-proc-sysctl-test-driver lib/Makefile
+--- a/lib/Makefile~test_sysctl-add-dedicated-proc-sysctl-test-driver
++++ a/lib/Makefile
+@@ -46,6 +46,7 @@ obj-$(CONFIG_TEST_HEXDUMP) += test_hexdu
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_BPF) += test_bpf.o
+ obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
++obj-$(CONFIG_TEST_SYSCTL) += test_sysctl.o
+ obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
+ obj-$(CONFIG_TEST_KASAN) += test_kasan.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+diff -puN /dev/null lib/test_sysctl.c
+--- /dev/null
++++ a/lib/test_sysctl.c
+@@ -0,0 +1,113 @@
++/*
++ * proc sysctl test driver
++ *
++ * Copyright (C) 2017 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the Free
++ * Software Foundation; either version 2 of the License, or at your option any
++ * later version; or, when distributed separately from the Linux kernel or
++ * when incorporated into other software packages, subject to the following
++ * license:
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++
++/*
++ * This module provides an interface to the the proc sysctl interfaces.  This
++ * driver requires CONFIG_PROC_SYSCTL. It will not normally be loaded by the
++ * system unless explicitly requested by name. You can also build this driver
++ * into your kernel.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/init.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/printk.h>
++#include <linux/fs.h>
++#include <linux/miscdevice.h>
++#include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <linux/async.h>
++#include <linux/delay.h>
++#include <linux/vmalloc.h>
++
++static int i_zero;
++static int i_one_hundred = 100;
++
++struct test_sysctl_data {
++	int int_0001;
++	char string_0001[65];
++};
++
++static struct test_sysctl_data test_data = {
++	.int_0001 = 60,
++	.string_0001 = "(none)",
++};
++
++/* These are all under /proc/sys/debug/test_sysctl/ */
++static struct ctl_table test_table[] = {
++	{
++		.procname	= "int_0001",
++		.data		= &test_data.int_0001,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &i_zero,
++		.extra2         = &i_one_hundred,
++	},
++	{
++		.procname	= "string_0001",
++		.data		= &test_data.string_0001,
++		.maxlen		= sizeof(test_data.string_0001),
++		.mode		= 0644,
++		.proc_handler	= proc_dostring,
++	},
++	{ }
++};
++
++static struct ctl_table test_sysctl_table[] = {
++	{
++		.procname	= "test_sysctl",
++		.maxlen		= 0,
++		.mode		= 0555,
++		.child		= test_table,
++	},
++	{ }
++};
++
++static struct ctl_table test_sysctl_root_table[] = {
++	{
++		.procname	= "debug",
++		.maxlen		= 0,
++		.mode		= 0555,
++		.child		= test_sysctl_table,
++	},
++	{ }
++};
++
++static struct ctl_table_header *test_sysctl_header;
++
++static int __init test_sysctl_init(void)
++{
++	test_sysctl_header = register_sysctl_table(test_sysctl_root_table);
++	if (!test_sysctl_header)
++		return -ENOMEM;
++	return 0;
++}
++late_initcall(test_sysctl_init);
++
++static void __exit test_sysctl_exit(void)
++{
++	if (test_sysctl_header)
++		unregister_sysctl_table(test_sysctl_header);
++}
++
++module_exit(test_sysctl_exit);
++
++MODULE_AUTHOR("Luis R. Rodriguez <mcgrof@kernel.org>");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null tools/testing/selftests/sysctl/config
+--- /dev/null
++++ a/tools/testing/selftests/sysctl/config
+@@ -0,0 +1 @@
++CONFIG_TEST_SYSCTL=y
+diff -puN tools/testing/selftests/sysctl/run_numerictests~test_sysctl-add-dedicated-proc-sysctl-test-driver tools/testing/selftests/sysctl/run_numerictests
+--- a/tools/testing/selftests/sysctl/run_numerictests~test_sysctl-add-dedicated-proc-sysctl-test-driver
++++ a/tools/testing/selftests/sysctl/run_numerictests
+@@ -1,7 +1,7 @@
+ #!/bin/sh
  
- static __init int test_atomics_init(void)
+-SYSCTL="/proc/sys"
+-TARGET="${SYSCTL}/vm/swappiness"
++SYSCTL="/proc/sys/debug/test_sysctl/"
++TARGET="${SYSCTL}/int_0001"
+ ORIG=$(cat "${TARGET}")
+ TEST_STR=$(( $ORIG + 1 ))
+ 
+diff -puN tools/testing/selftests/sysctl/run_stringtests~test_sysctl-add-dedicated-proc-sysctl-test-driver tools/testing/selftests/sysctl/run_stringtests
+--- a/tools/testing/selftests/sysctl/run_stringtests~test_sysctl-add-dedicated-proc-sysctl-test-driver
++++ a/tools/testing/selftests/sysctl/run_stringtests
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ 
+-SYSCTL="/proc/sys"
+-TARGET="${SYSCTL}/kernel/domainname"
++SYSCTL="/proc/sys/debug/test_sysctl/"
++TARGET="${SYSCTL}/string_0001"
+ ORIG=$(cat "${TARGET}")
+ TEST_STR="Testing sysctl"
+ 
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
+sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+sysctl-kdocify-sysctl_writes_strict.patch
+sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
+sysctl-simplify-unsigned-int-support.patch
+sysctl-add-unsigned-int-range-support.patch
+test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
+test_sysctl-add-generic-script-to-expand-on-tests.patch
+test_sysctl-test-against-page_size-for-int.patch
+test_sysctl-add-simple-proc_dointvec-case.patch
+test_sysctl-add-simple-proc_douintvec-case.patch
+test_sysctl-test-against-int-proc_dointvec-array-support.patch
+maintainers-give-kmod-some-maintainer-love.patch
+kmod-add-test-driver-to-stress-test-the-module-loader.patch
+kmod-throttle-kmod-thread-limit.patch
 
