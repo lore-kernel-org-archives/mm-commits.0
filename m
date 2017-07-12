@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 42/96] ipc/msg: avoid ipc_rcu_alloc()
-Date: Wed, 12 Jul 2017 14:35:07 -0700
-Message-ID: <20170712213507.nhLY9k2Eu%akpm@linux-foundation.org>
+Subject: [patch 44/96] ipc/sem.c: avoid ipc_rcu_putref for failed
+ ipc_addid()
+Date: Wed, 12 Jul 2017 14:35:13 -0700
+Message-ID: <20170712213513.mmj5JwlI4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53608 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbdGLVfJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:09 -0400
+        with ESMTP id S1752710AbdGLVfO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: ipc/msg: avoid ipc_rcu_alloc()
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: avoid ipc_rcu_putref for failed ipc_addid()
 
-Instead of using ipc_rcu_alloc() which only performs the refcount bump,
-open code it.  This also allows for msg_queue structure layout to be
-randomized in the future.
+Loosely based on a patch from Kees Cook <keescook@chromium.org>:
+- id and retval can be merged
+- if ipc_addid() fails, then use call_rcu() directly.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-12-manfred@colorfullife.com
-Signed-off-by: Kees Cook <keescook@chromium.org>
+The difference is that call_rcu is used for failed ipc_addid() calls, to
+continue to guaranteed an rcu delay for security_sem_free().
+
+Link: http://lkml.kernel.org/r/20170525185107.12869-14-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ ipc/sem.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN ipc/msg.c~ipc-msg-avoid-ipc_rcu_alloc ipc/msg.c
---- a/ipc/msg.c~ipc-msg-avoid-ipc_rcu_alloc
-+++ a/ipc/msg.c
-@@ -109,6 +109,19 @@ static void msg_rcu_free(struct rcu_head
- 	__msg_free(msq);
- }
- 
-+static struct msg_queue *msg_alloc(void)
-+{
-+	struct msg_queue *msq;
-+
-+	msq = kvmalloc(sizeof(*msq), GFP_KERNEL);
-+	if (unlikely(!msq))
-+		return NULL;
-+
-+	atomic_set(&msq->q_perm.refcount, 1);
-+
-+	return msq;
-+}
-+
- /**
-  * newque - Create a new msg queue
-  * @ns: namespace
-@@ -123,10 +136,7 @@ static int newque(struct ipc_namespace *
+diff -puN ipc/sem.c~ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid
++++ a/ipc/sem.c
+@@ -479,7 +479,6 @@ static struct sem_array *sem_alloc(size_
+  */
+ static int newary(struct ipc_namespace *ns, struct ipc_params *params)
+ {
+-	int id;
+ 	int retval;
+ 	struct sem_array *sma;
  	key_t key = params->key;
- 	int msgflg = params->flg;
+@@ -520,10 +519,10 @@ static int newary(struct ipc_namespace *
+ 	sma->sem_nsems = nsems;
+ 	sma->sem_ctime = get_seconds();
  
--	BUILD_BUG_ON(offsetof(struct msg_queue, q_perm) != 0);
+-	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
+-	if (id < 0) {
+-		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+-		return id;
++	retval = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
++	if (retval < 0) {
++		call_rcu(&sma->sem_perm.rcu, sem_rcu_free);
++		return retval;
+ 	}
+ 	ns->used_sems += nsems;
+ 
+_
