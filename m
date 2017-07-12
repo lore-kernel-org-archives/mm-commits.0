@@ -1,80 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch removed
- from -mm tree
-Date: Wed, 12 Jul 2017 14:14:35 -0700
-Message-ID: <5966913b.o+6Y4tEOM/D0qQQx%akpm@linux-foundation.org>
+ powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
+ removed from -mm tree
+Date: Wed, 12 Jul 2017 14:15:54 -0700
+Message-ID: <5966918a.4QTDnylrR9qRX00n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52116 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753354AbdGLVOh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:14:37 -0400
+        with ESMTP id S1753282AbdGLVPz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:15:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, abbotti@mev.co.uk, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
+To: xlpang@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: fix new warnings for container_of()
+     Subject: crash: Fix linux-next build warning
 has been removed from the -mm tree.  Its filename was
-     kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
+     powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
 
-This patch was dropped because it was folded into kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+This patch was dropped because it was folded into powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kernel.h: fix new warnings for container_of()
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: crash: Fix linux-next build warning
 
-I see new warnings with gcc-7.0.1 with the modified container_of():
+linux-next build (arm multi_v7_defconfig) produced this warning:
 
-fs/f2fs/dir.c: In function 'F2FS_I':
-fs/f2fs/f2fs.h:1122:385: note: found mismatched ssa struct pointer types: 'struct f2fs_inode_info' and 'struct inode'
+In file included from include/asm-generic/bug.h:15:0,
+                 from arch/arm/include/asm/bug.h:59,
+                 from include/linux/bug.h:4,
+                 from include/linux/elfcore.h:5,
+                 from include/linux/crash_core.h:5,
+                 from kernel/crash_core.c:9:
+kernel/crash_core.c: In function 'vmcoreinfo_append_str':
+include/linux/kernel.h:757:16: warning: comparison of distinct pointer
+types lacks a cast
+  (void) (&min1 == &min2);   \
+                ^
+include/linux/kernel.h:760:2: note: in expansion of macro '__min'
+  __min(typeof(x), typeof(y),   \
+  ^
+kernel/crash_core.c:360:6: note: in expansion of macro 'min'
+  r = min(r, VMCOREINFO_BYTES - vmcoreinfo_size);
+      ^
 
-This seems to happen for all structures that have a zero offset
-between the member and the container structure, i.e. idential
-pointers.
+This patch fixes it with an explicit "size_t" type-casting on
+VMCOREINFO_BYTES.
 
-Reverting to an intermediate pointer avoids the warning, and using
-a void pointer instead of the target type should also avoid
-regressing on the previous patch again.
+Andrew will help merge it into commit fc7d2b44367f ("powerpc/fadump:
+use the correct VMCOREINFO_NOTE_SIZE for phdr") before sending it to
+stable.
 
-Fixes: mmotm ("kernel.h: handle pointers to arrays better in container_of()")
-Link: http://lkml.kernel.org/r/20170620200940.90557-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Ian Abbott <abbotti@mev.co.uk>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/1494830606-27736-1-git-send-email-xlpang@redhat.com
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/crash_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of-fix include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of-fix
-+++ a/include/linux/kernel.h
-@@ -856,10 +856,11 @@ static inline void ftrace_dump(enum ftra
-  *
-  */
- #define container_of(ptr, type, member) ({				\
-+	void *__mptr = (void *)(ptr);					\
- 	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
- 			 !__same_type(*(ptr), void),			\
- 			 "pointer type mismatch in container_of()");	\
--	((type *)((char *)(ptr) - offsetof(type, member))); })
-+	((type *)(__mptr - offsetof(type, member))); })
+diff -puN kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix kernel/crash_core.c
+--- a/kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix
++++ a/kernel/crash_core.c
+@@ -342,7 +342,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vscnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
  
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+-	r = min(r, VMCOREINFO_BYTES - vmcoreinfo_size);
++	r = min(r, (size_t)VMCOREINFO_BYTES - vmcoreinfo_size);
+ 
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from xlpang@redhat.com are
 
-kernelh-handle-pointers-to-arrays-better-in-container_of.patch
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
-include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
+kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
+kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
 
