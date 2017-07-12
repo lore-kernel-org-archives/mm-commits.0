@@ -1,65 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 47/96] ipc: move atomic_set() to where it is needed
-Date: Wed, 12 Jul 2017 14:35:22 -0700
-Message-ID: <20170712213522.Jg7aBeXAq%akpm@linux-foundation.org>
+Subject: [patch 48/96] ipc/shm: remove special shm_alloc/free
+Date: Wed, 12 Jul 2017 14:35:25 -0700
+Message-ID: <20170712213525.hoP9DmKob%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53648 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753410AbdGLVfX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:23 -0400
+        with ESMTP id S1753252AbdGLVf0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Kees Cook <keescook@chromium.org>
-Subject: ipc: move atomic_set() to where it is needed
+Subject: ipc/shm: remove special shm_alloc/free
 
-Only after ipc_addid() has succeeded will refcounting be used, so move
-initialization into ipc_addid() and remove from open-coded *_alloc()
-routines.
+There is nothing special about the shm_alloc/free routines any more, so
+remove them to make code more readable.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-17-manfred@colorfullife.com
+[manfred@colorfullife.com: Rediff, to continue to keep rcu for free calls after a successful security_shm_alloc()]
+Link: http://lkml.kernel.org/r/20170525185107.12869-18-manfred@colorfullife.com
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    2 --
- ipc/sem.c  |    1 -
- ipc/shm.c  |    2 --
- ipc/util.c |    1 +
- 4 files changed, 1 insertion(+), 5 deletions(-)
+ ipc/shm.c |   24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
-diff -puN ipc/msg.c~ipc-move-atomic_set-to-where-it-is-needed ipc/msg.c
---- a/ipc/msg.c~ipc-move-atomic_set-to-where-it-is-needed
-+++ a/ipc/msg.c
-@@ -117,8 +117,6 @@ static struct msg_queue *msg_alloc(void)
- 	if (unlikely(!msq))
- 		return NULL;
- 
--	atomic_set(&msq->q_perm.refcount, 1);
--
- 	return msq;
- }
- 
-diff -puN ipc/sem.c~ipc-move-atomic_set-to-where-it-is-needed ipc/sem.c
---- a/ipc/sem.c~ipc-move-atomic_set-to-where-it-is-needed
-+++ a/ipc/sem.c
-@@ -465,7 +465,6 @@ static struct sem_array *sem_alloc(size_
- 		return NULL;
- 
- 	memset(sma, 0, size);
--	atomic_set(&sma->sem_perm.refcount, 1);
- 
- 	return sma;
- }
-diff -puN ipc/shm.c~ipc-move-atomic_set-to-where-it-is-needed ipc/shm.c
---- a/ipc/shm.c~ipc-move-atomic_set-to-where-it-is-needed
+diff -puN ipc/shm.c~ipc-shm-remove-special-shm_alloc-free ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-remove-special-shm_alloc-free
 +++ a/ipc/shm.c
-@@ -526,8 +526,6 @@ static struct shmid_kernel *shm_alloc(vo
- 	if (unlikely(!shp))
- 		return NULL;
+@@ -172,11 +172,6 @@ static inline void shm_lock_by_ptr(struc
+ 	ipc_lock_object(&ipcp->shm_perm);
+ }
  
--	atomic_set(&shp->shm_perm.refcount, 1);
+-static void __shm_free(struct shmid_kernel *shp)
+-{
+-	kvfree(shp);
+-}
+-
+ static void shm_rcu_free(struct rcu_head *head)
+ {
+ 	struct kern_ipc_perm *ptr = container_of(head, struct kern_ipc_perm,
+@@ -184,7 +179,7 @@ static void shm_rcu_free(struct rcu_head
+ 	struct shmid_kernel *shp = container_of(ptr, struct shmid_kernel,
+ 							shm_perm);
+ 	security_shm_free(shp);
+-	__shm_free(shp);
++	kvfree(shp);
+ }
+ 
+ static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
+@@ -518,17 +513,6 @@ static const struct vm_operations_struct
+ #endif
+ };
+ 
+-static struct shmid_kernel *shm_alloc(void)
+-{
+-	struct shmid_kernel *shp;
+-
+-	shp = kvmalloc(sizeof(*shp), GFP_KERNEL);
+-	if (unlikely(!shp))
+-		return NULL;
+-
+-	return shp;
+-}
