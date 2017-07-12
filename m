@@ -1,395 +1,402 @@
 From: akpm@linux-foundation.org
-Subject: [patch 32/96] ipc/sem.c: remove sem_base, embed struct sem
-Date: Wed, 12 Jul 2017 14:34:38 -0700
-Message-ID: <20170712213438.HAmE60hsV%akpm@linux-foundation.org>
+Subject: [patch 33/96] ipc: merge ipc_rcu and kern_ipc_perm
+Date: Wed, 12 Jul 2017 14:34:41 -0700
+Message-ID: <20170712213441.8YkkAqBqG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53476 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753304AbdGLVej (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:39 -0400
+        with ESMTP id S1753304AbdGLVem (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 1vier1@web.de, akpm@linux-foundation.org, dave@stgolabs.net, fabf@skynet.be, hch@infradead.org, keescook@chromium.org, manfred@colorfullife.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: remove sem_base, embed struct sem
+Subject: ipc: merge ipc_rcu and kern_ipc_perm
 
-sma->sem_base is initialized with
-	sma->sem_base = (struct sem *) &sma[1];
+ipc has two management structures that exist for every id:
+- struct kern_ipc_perm, it contains e.g. the permissions.
+- struct ipc_rcu, it contains the rcu head for rcu handling and
+  the refcount.
 
-The current code has four problems:
-- There is an unnecessary pointer dereference - sem_base is not needed.
-- Alignment for struct sem only works by chance.
-- The current code causes false positive for static code analysis.
-- This is a cast between different non-void types, which the future
-  randstruct GCC plugin warns on.
+The patch merges both structures.
+As a bonus, we may save one cacheline, because both structures are
+cacheline aligned.
+In addition, it reduces the number of casts, instead most codepaths can
+use container_of.
 
-And, as bonus, the code size gets smaller:
+To simplify code, the ipc_rcu_alloc initializes the allocation to 0.
 
-Before:
-  0 .text         00003770
-After:
-  0 .text         0000374e
-
-[manfred@colorfullife.com: s/[0]/[]/, per hch]
-  Link: http://lkml.kernel.org/r/20170525185107.12869-2-manfred@colorfullife.com
-Link: http://lkml.kernel.org/r/20170515171912.6298-2-manfred@colorfullife.com
+[manfred@colorfullife.com: really include the memset() into ipc_alloc_rcu()]
+  Link: http://lkml.kernel.org/r/564f8612-0601-b267-514f-a9f650ec9b32@colorfullife.com
+Link: http://lkml.kernel.org/r/20170525185107.12869-3-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: <1vier1@web.de>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |   22 ++++++++++
- ipc/sem.c           |   88 ++++++++++++++++--------------------------
- 2 files changed, 55 insertions(+), 55 deletions(-)
+ include/linux/ipc.h |    3 +++
+ ipc/msg.c           |   19 +++++++++++--------
+ ipc/sem.c           |   34 +++++++++++++++++-----------------
+ ipc/shm.c           |   18 +++++++++++-------
+ ipc/util.c          |   35 +++++++++++++++++------------------
+ ipc/util.h          |   18 +++++++-----------
+ 6 files changed, 66 insertions(+), 61 deletions(-)
 
-diff -puN include/linux/sem.h~ipc-semc-remove-sem_base-embed-struct-sem include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-remove-sem_base-embed-struct-sem
-+++ a/include/linux/sem.h
-@@ -8,11 +8,29 @@
- 
- struct task_struct;
- 
-+/* One semaphore structure for each semaphore in the system. */
-+struct sem {
-+	int	semval;		/* current value */
-+	/*
-+	 * PID of the process that last modified the semaphore. For
-+	 * Linux, specifically these are:
-+	 *  - semop
-+	 *  - semctl, via SETVAL and SETALL.
-+	 *  - at task exit when performing undo adjustments (see exit_sem).
-+	 */
-+	int	sempid;
-+	spinlock_t	lock;	/* spinlock for fine-grained semtimedop */
-+	struct list_head pending_alter; /* pending single-sop operations */
-+					/* that alter the semaphore */
-+	struct list_head pending_const; /* pending single-sop operations */
-+					/* that do not alter the semaphore*/
-+	time_t	sem_otime;	/* candidate for sem_otime */
-+} ____cacheline_aligned_in_smp;
+diff -puN include/linux/ipc.h~ipc-merge-ipc_rcu-and-kern_ipc_perm include/linux/ipc.h
+--- a/include/linux/ipc.h~ipc-merge-ipc_rcu-and-kern_ipc_perm
++++ a/include/linux/ipc.h
+@@ -20,6 +20,9 @@ struct kern_ipc_perm {
+ 	umode_t		mode;
+ 	unsigned long	seq;
+ 	void		*security;
 +
- /* One sem_array data structure for each set of semaphores in the system. */
- struct sem_array {
- 	struct kern_ipc_perm	sem_perm;	/* permissions .. see ipc.h */
- 	time_t			sem_ctime;	/* last change time */
--	struct sem		*sem_base;	/* ptr to first semaphore in array */
- 	struct list_head	pending_alter;	/* pending operations */
- 						/* that alter the array */
- 	struct list_head	pending_const;	/* pending complex operations */
-@@ -21,6 +39,8 @@ struct sem_array {
- 	int			sem_nsems;	/* no. of semaphores in array */
- 	int			complex_count;	/* pending complex operations */
- 	unsigned int		use_global_lock;/* >0: global lock required */
-+
-+	struct sem		sems[];
- };
++	struct rcu_head rcu;
++	atomic_t refcount;
+ } ____cacheline_aligned_in_smp;
  
- #ifdef CONFIG_SYSVIPC
-diff -puN ipc/sem.c~ipc-semc-remove-sem_base-embed-struct-sem ipc/sem.c
---- a/ipc/sem.c~ipc-semc-remove-sem_base-embed-struct-sem
-+++ a/ipc/sem.c
-@@ -87,24 +87,6 @@
- #include <linux/uaccess.h>
- #include "util.h"
+ #endif /* _LINUX_IPC_H */
+diff -puN ipc/msg.c~ipc-merge-ipc_rcu-and-kern_ipc_perm ipc/msg.c
+--- a/ipc/msg.c~ipc-merge-ipc_rcu-and-kern_ipc_perm
++++ a/ipc/msg.c
+@@ -97,8 +97,8 @@ static inline void msg_rmid(struct ipc_n
  
--/* One semaphore structure for each semaphore in the system. */
--struct sem {
--	int	semval;		/* current value */
--	/*
--	 * PID of the process that last modified the semaphore. For
--	 * Linux, specifically these are:
--	 *  - semop
--	 *  - semctl, via SETVAL and SETALL.
--	 *  - at task exit when performing undo adjustments (see exit_sem).
--	 */
--	int	sempid;
--	spinlock_t	lock;	/* spinlock for fine-grained semtimedop */
--	struct list_head pending_alter; /* pending single-sop operations */
--					/* that alter the semaphore */
--	struct list_head pending_const; /* pending single-sop operations */
--					/* that do not alter the semaphore*/
--	time_t	sem_otime;	/* candidate for sem_otime */
--} ____cacheline_aligned_in_smp;
- 
- /* One queue for each sleeping process in the system. */
- struct sem_queue {
-@@ -175,7 +157,7 @@ static int sysvipc_sem_proc_show(struct
-  *	sem_array.sem_undo
-  *
-  * b) global or semaphore sem_lock() for read/write:
-- *	sem_array.sem_base[i].pending_{const,alter}:
-+ *	sem_array.sems[i].pending_{const,alter}:
-  *
-  * c) special:
-  *	sem_undo_list.list_proc:
-@@ -250,7 +232,7 @@ static void unmerge_queues(struct sem_ar
- 	 */
- 	list_for_each_entry_safe(q, tq, &sma->pending_alter, list) {
- 		struct sem *curr;
--		curr = &sma->sem_base[q->sops[0].sem_num];
-+		curr = &sma->sems[q->sops[0].sem_num];
- 
- 		list_add_tail(&q->list, &curr->pending_alter);
- 	}
-@@ -270,7 +252,7 @@ static void merge_queues(struct sem_arra
+ static void msg_rcu_free(struct rcu_head *head)
  {
- 	int i;
- 	for (i = 0; i < sma->sem_nsems; i++) {
--		struct sem *sem = sma->sem_base + i;
-+		struct sem *sem = &sma->sems[i];
+-	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
+-	struct msg_queue *msq = ipc_rcu_to_struct(p);
++	struct kern_ipc_perm *p = container_of(head, struct kern_ipc_perm, rcu);
++	struct msg_queue *msq = container_of(p, struct msg_queue, q_perm);
  
- 		list_splice_init(&sem->pending_alter, &sma->pending_alter);
- 	}
-@@ -306,7 +288,7 @@ static void complexmode_enter(struct sem
- 	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 	security_msg_queue_free(msq);
+ 	ipc_rcu_free(head);
+@@ -118,7 +118,10 @@ static int newque(struct ipc_namespace *
+ 	key_t key = params->key;
+ 	int msgflg = params->flg;
  
- 	for (i = 0; i < sma->sem_nsems; i++) {
--		sem = sma->sem_base + i;
-+		sem = &sma->sems[i];
- 		spin_lock(&sem->lock);
- 		spin_unlock(&sem->lock);
- 	}
-@@ -366,7 +348,7 @@ static inline int sem_lock(struct sem_ar
- 	 *
- 	 * Both facts are tracked by use_global_mode.
- 	 */
--	sem = sma->sem_base + sops->sem_num;
-+	sem = &sma->sems[sops->sem_num];
- 
- 	/*
- 	 * Initial check for use_global_lock. Just an optimization,
-@@ -421,7 +403,7 @@ static inline void sem_unlock(struct sem
- 		complexmode_tryleave(sma);
- 		ipc_unlock_object(&sma->sem_perm);
- 	} else {
--		struct sem *sem = sma->sem_base + locknum;
-+		struct sem *sem = &sma->sems[locknum];
- 		spin_unlock(&sem->lock);
- 	}
- }
-@@ -487,7 +469,7 @@ static int newary(struct ipc_namespace *
- 	if (ns->used_sems + nsems > ns->sc_semmns)
- 		return -ENOSPC;
- 
--	size = sizeof(*sma) + nsems * sizeof(struct sem);
-+	size = sizeof(*sma) + nsems * sizeof(sma->sems[0]);
- 	sma = ipc_rcu_alloc(size);
- 	if (!sma)
+-	msq = ipc_rcu_alloc(sizeof(*msq));
++	BUILD_BUG_ON(offsetof(struct msg_queue, q_perm) != 0);
++
++	msq = container_of(ipc_rcu_alloc(sizeof(*msq)), struct msg_queue,
++				q_perm);
+ 	if (!msq)
  		return -ENOMEM;
-@@ -504,12 +486,10 @@ static int newary(struct ipc_namespace *
+ 
+@@ -128,7 +131,7 @@ static int newque(struct ipc_namespace *
+ 	msq->q_perm.security = NULL;
+ 	retval = security_msg_queue_alloc(msq);
+ 	if (retval) {
+-		ipc_rcu_putref(msq, ipc_rcu_free);
++		ipc_rcu_putref(&msq->q_perm, ipc_rcu_free);
  		return retval;
  	}
  
--	sma->sem_base = (struct sem *) &sma[1];
--
- 	for (i = 0; i < nsems; i++) {
--		INIT_LIST_HEAD(&sma->sem_base[i].pending_alter);
--		INIT_LIST_HEAD(&sma->sem_base[i].pending_const);
--		spin_lock_init(&sma->sem_base[i].lock);
-+		INIT_LIST_HEAD(&sma->sems[i].pending_alter);
-+		INIT_LIST_HEAD(&sma->sems[i].pending_const);
-+		spin_lock_init(&sma->sems[i].lock);
+@@ -144,7 +147,7 @@ static int newque(struct ipc_namespace *
+ 	/* ipc_addid() locks msq upon success. */
+ 	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
+ 	if (id < 0) {
+-		ipc_rcu_putref(msq, msg_rcu_free);
++		ipc_rcu_putref(&msq->q_perm, msg_rcu_free);
+ 		return id;
  	}
  
- 	sma->complex_count = 0;
-@@ -612,7 +592,7 @@ static int perform_atomic_semop_slow(str
- 	un = q->undo;
- 
- 	for (sop = sops; sop < sops + nsops; sop++) {
--		curr = sma->sem_base + sop->sem_num;
-+		curr = &sma->sems[sop->sem_num];
- 		sem_op = sop->sem_op;
- 		result = curr->semval;
- 
-@@ -639,7 +619,7 @@ static int perform_atomic_semop_slow(str
- 	sop--;
- 	pid = q->pid;
- 	while (sop >= sops) {
--		sma->sem_base[sop->sem_num].sempid = pid;
-+		sma->sems[sop->sem_num].sempid = pid;
- 		sop--;
+@@ -249,7 +252,7 @@ static void freeque(struct ipc_namespace
+ 		free_msg(msg);
  	}
- 
-@@ -661,7 +641,7 @@ undo:
- 	sop--;
- 	while (sop >= sops) {
- 		sem_op = sop->sem_op;
--		sma->sem_base[sop->sem_num].semval -= sem_op;
-+		sma->sems[sop->sem_num].semval -= sem_op;
- 		if (sop->sem_flg & SEM_UNDO)
- 			un->semadj[sop->sem_num] += sem_op;
- 		sop--;
-@@ -692,7 +672,7 @@ static int perform_atomic_semop(struct s
- 	 * until the operations can go through.
- 	 */
- 	for (sop = sops; sop < sops + nsops; sop++) {
--		curr = sma->sem_base + sop->sem_num;
-+		curr = &sma->sems[sop->sem_num];
- 		sem_op = sop->sem_op;
- 		result = curr->semval;
- 
-@@ -716,7 +696,7 @@ static int perform_atomic_semop(struct s
- 	}
- 
- 	for (sop = sops; sop < sops + nsops; sop++) {
--		curr = sma->sem_base + sop->sem_num;
-+		curr = &sma->sems[sop->sem_num];
- 		sem_op = sop->sem_op;
- 		result = curr->semval;
- 
-@@ -815,7 +795,7 @@ static int wake_const_ops(struct sem_arr
- 	if (semnum == -1)
- 		pending_list = &sma->pending_const;
- 	else
--		pending_list = &sma->sem_base[semnum].pending_const;
-+		pending_list = &sma->sems[semnum].pending_const;
- 
- 	list_for_each_entry_safe(q, tmp, pending_list, list) {
- 		int error = perform_atomic_semop(sma, q);
-@@ -856,7 +836,7 @@ static int do_smart_wakeup_zero(struct s
- 		for (i = 0; i < nsops; i++) {
- 			int num = sops[i].sem_num;
- 
--			if (sma->sem_base[num].semval == 0) {
-+			if (sma->sems[num].semval == 0) {
- 				got_zero = 1;
- 				semop_completed |= wake_const_ops(sma, num, wake_q);
- 			}
-@@ -867,7 +847,7 @@ static int do_smart_wakeup_zero(struct s
- 		 * Assume all were changed.
- 		 */
- 		for (i = 0; i < sma->sem_nsems; i++) {
--			if (sma->sem_base[i].semval == 0) {
-+			if (sma->sems[i].semval == 0) {
- 				got_zero = 1;
- 				semop_completed |= wake_const_ops(sma, i, wake_q);
- 			}
-@@ -909,7 +889,7 @@ static int update_queue(struct sem_array
- 	if (semnum == -1)
- 		pending_list = &sma->pending_alter;
- 	else
--		pending_list = &sma->sem_base[semnum].pending_alter;
-+		pending_list = &sma->sems[semnum].pending_alter;
- 
- again:
- 	list_for_each_entry_safe(q, tmp, pending_list, list) {
-@@ -922,7 +902,7 @@ again:
- 		 * be in the  per semaphore pending queue, and decrements
- 		 * cannot be successful if the value is already 0.
- 		 */
--		if (semnum != -1 && sma->sem_base[semnum].semval == 0)
-+		if (semnum != -1 && sma->sems[semnum].semval == 0)
- 			break;
- 
- 		error = perform_atomic_semop(sma, q);
-@@ -959,9 +939,9 @@ again:
- static void set_semotime(struct sem_array *sma, struct sembuf *sops)
- {
- 	if (sops == NULL) {
--		sma->sem_base[0].sem_otime = get_seconds();
-+		sma->sems[0].sem_otime = get_seconds();
- 	} else {
--		sma->sem_base[sops[0].sem_num].sem_otime =
-+		sma->sems[sops[0].sem_num].sem_otime =
- 							get_seconds();
- 	}
+ 	atomic_sub(msq->q_cbytes, &ns->msg_bytes);
+-	ipc_rcu_putref(msq, msg_rcu_free);
++	ipc_rcu_putref(&msq->q_perm, msg_rcu_free);
  }
-@@ -1067,9 +1047,9 @@ static int count_semcnt(struct sem_array
- 	semcnt = 0;
- 	/* First: check the simple operations. They are easy to evaluate */
- 	if (count_zero)
--		l = &sma->sem_base[semnum].pending_const;
-+		l = &sma->sems[semnum].pending_const;
- 	else
--		l = &sma->sem_base[semnum].pending_alter;
-+		l = &sma->sems[semnum].pending_alter;
  
- 	list_for_each_entry(q, l, list) {
- 		/* all task on a per-semaphore list sleep on exactly
-@@ -1124,7 +1104,7 @@ static void freeary(struct ipc_namespace
- 		wake_up_sem_queue_prepare(q, -EIDRM, &wake_q);
+ /*
+@@ -688,7 +691,7 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		/* enqueue the sender and prepare to block */
+ 		ss_add(msq, &s, msgsz);
+ 
+-		if (!ipc_rcu_getref(msq)) {
++		if (!ipc_rcu_getref(&msq->q_perm)) {
+ 			err = -EIDRM;
+ 			goto out_unlock0;
+ 		}
+@@ -700,7 +703,7 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		rcu_read_lock();
+ 		ipc_lock_object(&msq->q_perm);
+ 
+-		ipc_rcu_putref(msq, msg_rcu_free);
++		ipc_rcu_putref(&msq->q_perm, msg_rcu_free);
+ 		/* raced with RMID? */
+ 		if (!ipc_valid_object(&msq->q_perm)) {
+ 			err = -EIDRM;
+diff -puN ipc/sem.c~ipc-merge-ipc_rcu-and-kern_ipc_perm ipc/sem.c
+--- a/ipc/sem.c~ipc-merge-ipc_rcu-and-kern_ipc_perm
++++ a/ipc/sem.c
+@@ -260,8 +260,8 @@ static void merge_queues(struct sem_arra
+ 
+ static void sem_rcu_free(struct rcu_head *head)
+ {
+-	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
+-	struct sem_array *sma = ipc_rcu_to_struct(p);
++	struct kern_ipc_perm *p = container_of(head, struct kern_ipc_perm, rcu);
++	struct sem_array *sma = container_of(p, struct sem_array, sem_perm);
+ 
+ 	security_sem_free(sma);
+ 	ipc_rcu_free(head);
+@@ -438,7 +438,7 @@ static inline struct sem_array *sem_obta
+ static inline void sem_lock_and_putref(struct sem_array *sma)
+ {
+ 	sem_lock(sma, NULL, -1);
+-	ipc_rcu_putref(sma, sem_rcu_free);
++	ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ }
+ 
+ static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
+@@ -469,20 +469,20 @@ static int newary(struct ipc_namespace *
+ 	if (ns->used_sems + nsems > ns->sc_semmns)
+ 		return -ENOSPC;
+ 
++	BUILD_BUG_ON(offsetof(struct sem_array, sem_perm) != 0);
++
+ 	size = sizeof(*sma) + nsems * sizeof(sma->sems[0]);
+-	sma = ipc_rcu_alloc(size);
++	sma = container_of(ipc_rcu_alloc(size), struct sem_array, sem_perm);
+ 	if (!sma)
+ 		return -ENOMEM;
+ 
+-	memset(sma, 0, size);
+-
+ 	sma->sem_perm.mode = (semflg & S_IRWXUGO);
+ 	sma->sem_perm.key = key;
+ 
+ 	sma->sem_perm.security = NULL;
+ 	retval = security_sem_alloc(sma);
+ 	if (retval) {
+-		ipc_rcu_putref(sma, ipc_rcu_free);
++		ipc_rcu_putref(&sma->sem_perm, ipc_rcu_free);
+ 		return retval;
  	}
- 	for (i = 0; i < sma->sem_nsems; i++) {
--		struct sem *sem = sma->sem_base + i;
-+		struct sem *sem = &sma->sems[i];
- 		list_for_each_entry_safe(q, tq, &sem->pending_const, list) {
- 			unlink_queue(sma, q);
- 			wake_up_sem_queue_prepare(q, -EIDRM, &wake_q);
-@@ -1174,9 +1154,9 @@ static time_t get_semotime(struct sem_ar
- 	int i;
- 	time_t res;
  
--	res = sma->sem_base[0].sem_otime;
-+	res = sma->sems[0].sem_otime;
- 	for (i = 1; i < sma->sem_nsems; i++) {
--		time_t to = sma->sem_base[i].sem_otime;
-+		time_t to = sma->sems[i].sem_otime;
+@@ -502,7 +502,7 @@ static int newary(struct ipc_namespace *
  
- 		if (to > res)
- 			res = to;
-@@ -1325,7 +1305,7 @@ static int semctl_setval(struct ipc_name
- 		return -EIDRM;
+ 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
+ 	if (id < 0) {
+-		ipc_rcu_putref(sma, sem_rcu_free);
++		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 		return id;
  	}
+ 	ns->used_sems += nsems;
+@@ -1122,7 +1122,7 @@ static void freeary(struct ipc_namespace
  
--	curr = &sma->sem_base[semnum];
-+	curr = &sma->sems[semnum];
+ 	wake_up_q(&wake_q);
+ 	ns->used_sems -= sma->sem_nsems;
+-	ipc_rcu_putref(sma, sem_rcu_free);
++	ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ }
  
- 	ipc_assert_locked_object(&sma->sem_perm);
- 	list_for_each_entry(un, &sma->list_id, list_id)
-@@ -1402,7 +1382,7 @@ static int semctl_main(struct ipc_namesp
+ static unsigned long copy_semid_to_user(void __user *buf, struct semid64_ds *in, int version)
+@@ -1362,7 +1362,7 @@ static int semctl_main(struct ipc_namesp
+ 			goto out_unlock;
+ 		}
+ 		if (nsems > SEMMSL_FAST) {
+-			if (!ipc_rcu_getref(sma)) {
++			if (!ipc_rcu_getref(&sma->sem_perm)) {
+ 				err = -EIDRM;
+ 				goto out_unlock;
+ 			}
+@@ -1370,7 +1370,7 @@ static int semctl_main(struct ipc_namesp
+ 			rcu_read_unlock();
+ 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
+ 			if (sem_io == NULL) {
+-				ipc_rcu_putref(sma, sem_rcu_free);
++				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 				return -ENOMEM;
+ 			}
+ 
+@@ -1395,7 +1395,7 @@ static int semctl_main(struct ipc_namesp
+ 		int i;
+ 		struct sem_undo *un;
+ 
+-		if (!ipc_rcu_getref(sma)) {
++		if (!ipc_rcu_getref(&sma->sem_perm)) {
+ 			err = -EIDRM;
+ 			goto out_rcu_wakeup;
+ 		}
+@@ -1404,20 +1404,20 @@ static int semctl_main(struct ipc_namesp
+ 		if (nsems > SEMMSL_FAST) {
+ 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
+ 			if (sem_io == NULL) {
+-				ipc_rcu_putref(sma, sem_rcu_free);
++				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 				return -ENOMEM;
  			}
  		}
- 		for (i = 0; i < sma->sem_nsems; i++)
--			sem_io[i] = sma->sem_base[i].semval;
-+			sem_io[i] = sma->sems[i].semval;
- 		sem_unlock(sma, -1);
- 		rcu_read_unlock();
- 		err = 0;
-@@ -1450,8 +1430,8 @@ static int semctl_main(struct ipc_namesp
+ 
+ 		if (copy_from_user(sem_io, p, nsems*sizeof(ushort))) {
+-			ipc_rcu_putref(sma, sem_rcu_free);
++			ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 			err = -EFAULT;
+ 			goto out_free;
  		}
  
  		for (i = 0; i < nsems; i++) {
--			sma->sem_base[i].semval = sem_io[i];
--			sma->sem_base[i].sempid = task_tgid_vnr(current);
-+			sma->sems[i].semval = sem_io[i];
-+			sma->sems[i].sempid = task_tgid_vnr(current);
- 		}
- 
- 		ipc_assert_locked_object(&sma->sem_perm);
-@@ -1476,7 +1456,7 @@ static int semctl_main(struct ipc_namesp
- 		err = -EIDRM;
- 		goto out_unlock;
+ 			if (sem_io[i] > SEMVMX) {
+-				ipc_rcu_putref(sma, sem_rcu_free);
++				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 				err = -ERANGE;
+ 				goto out_free;
+ 			}
+@@ -1699,7 +1699,7 @@ static struct sem_undo *find_alloc_undo(
  	}
--	curr = &sma->sem_base[semnum];
-+	curr = &sma->sems[semnum];
  
- 	switch (cmd) {
- 	case GETVAL:
-@@ -1932,7 +1912,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	nsems = sma->sem_nsems;
+-	if (!ipc_rcu_getref(sma)) {
++	if (!ipc_rcu_getref(&sma->sem_perm)) {
+ 		rcu_read_unlock();
+ 		un = ERR_PTR(-EIDRM);
+ 		goto out;
+@@ -1709,7 +1709,7 @@ static struct sem_undo *find_alloc_undo(
+ 	/* step 2: allocate new undo structure */
+ 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
+ 	if (!new) {
+-		ipc_rcu_putref(sma, sem_rcu_free);
++		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+diff -puN ipc/shm.c~ipc-merge-ipc_rcu-and-kern_ipc_perm ipc/shm.c
+--- a/ipc/shm.c~ipc-merge-ipc_rcu-and-kern_ipc_perm
++++ a/ipc/shm.c
+@@ -174,9 +174,10 @@ static inline void shm_lock_by_ptr(struc
+ 
+ static void shm_rcu_free(struct rcu_head *head)
+ {
+-	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
+-	struct shmid_kernel *shp = ipc_rcu_to_struct(p);
+-
++	struct kern_ipc_perm *ptr = container_of(head, struct kern_ipc_perm,
++							rcu);
++	struct shmid_kernel *shp = container_of(ptr, struct shmid_kernel,
++							shm_perm);
+ 	security_shm_free(shp);
+ 	ipc_rcu_free(head);
+ }
+@@ -241,7 +242,7 @@ static void shm_destroy(struct ipc_names
+ 		user_shm_unlock(i_size_read(file_inode(shm_file)),
+ 				shp->mlock_user);
+ 	fput(shm_file);
+-	ipc_rcu_putref(shp, shm_rcu_free);
++	ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
+ }
+ 
+ /*
+@@ -542,7 +543,10 @@ static int newseg(struct ipc_namespace *
+ 			ns->shm_tot + numpages > ns->shm_ctlall)
+ 		return -ENOSPC;
+ 
+-	shp = ipc_rcu_alloc(sizeof(*shp));
++	BUILD_BUG_ON(offsetof(struct shmid_kernel, shm_perm) != 0);
++
++	shp = container_of(ipc_rcu_alloc(sizeof(*shp)), struct shmid_kernel,
++				shm_perm);
+ 	if (!shp)
+ 		return -ENOMEM;
+ 
+@@ -553,7 +557,7 @@ static int newseg(struct ipc_namespace *
+ 	shp->shm_perm.security = NULL;
+ 	error = security_shm_alloc(shp);
+ 	if (error) {
+-		ipc_rcu_putref(shp, ipc_rcu_free);
++		ipc_rcu_putref(&shp->shm_perm, ipc_rcu_free);
+ 		return error;
+ 	}
+ 
+@@ -624,7 +628,7 @@ no_id:
+ 		user_shm_unlock(size, shp->mlock_user);
+ 	fput(file);
+ no_file:
+-	ipc_rcu_putref(shp, shm_rcu_free);
++	ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
+ 	return error;
+ }
+ 
+diff -puN ipc/util.c~ipc-merge-ipc_rcu-and-kern_ipc_perm ipc/util.c
+--- a/ipc/util.c~ipc-merge-ipc_rcu-and-kern_ipc_perm
++++ a/ipc/util.c
+@@ -418,46 +418,45 @@ void ipc_free(void *ptr)
+ }
+ 
+ /**
+- * ipc_rcu_alloc - allocate ipc and rcu space
++ * ipc_rcu_alloc - allocate ipc space
+  * @size: size desired
+  *
+- * Allocate memory for the rcu header structure +  the object.
+- * Returns the pointer to the object or NULL upon failure.
++ * Allocate memory for an ipc object.
++ * The first member must be struct kern_ipc_perm.
+  */
+-void *ipc_rcu_alloc(int size)
++struct kern_ipc_perm *ipc_rcu_alloc(int size)
+ {
+ 	/*
+ 	 * We prepend the allocation with the rcu struct
  	 */
- 	if (nsops == 1) {
- 		struct sem *curr;
--		curr = &sma->sem_base[sops->sem_num];
-+		curr = &sma->sems[sops->sem_num];
+-	struct ipc_rcu *out = ipc_alloc(sizeof(struct ipc_rcu) + size);
++	struct kern_ipc_perm *out = ipc_alloc(size);
+ 	if (unlikely(!out))
+ 		return NULL;
++
++	memset(out, 0, size);
+ 	atomic_set(&out->refcount, 1);
+-	return out + 1;
++	return out;
+ }
  
- 		if (alter) {
- 			if (sma->complex_count) {
-@@ -2146,7 +2126,7 @@ void exit_sem(struct task_struct *tsk)
+-int ipc_rcu_getref(void *ptr)
++int ipc_rcu_getref(struct kern_ipc_perm *ptr)
+ {
+-	struct ipc_rcu *p = ((struct ipc_rcu *)ptr) - 1;
+-
+-	return atomic_inc_not_zero(&p->refcount);
++	return atomic_inc_not_zero(&ptr->refcount);
+ }
  
- 		/* perform adjustments registered in un */
- 		for (i = 0; i < sma->sem_nsems; i++) {
--			struct sem *semaphore = &sma->sem_base[i];
-+			struct sem *semaphore = &sma->sems[i];
- 			if (un->semadj[i]) {
- 				semaphore->semval += un->semadj[i];
- 				/*
-_
+-void ipc_rcu_putref(void *ptr, void (*func)(struct rcu_head *head))
++void ipc_rcu_putref(struct kern_ipc_perm *ptr,
++			void (*func)(struct rcu_head *head))
+ {
+-	struct ipc_rcu *p = ((struct ipc_rcu *)ptr) - 1;
+-
+-	if (!atomic_dec_and_test(&p->refcount))
++	if (!atomic_dec_and_test(&ptr->refcount))
+ 		return;
+ 
+-	call_rcu(&p->rcu, func);
++	call_rcu(&ptr->rcu, func);
+ }
+ 
+-void ipc_rcu_free(struct rcu_head *head)
++void ipc_rcu_free(struct rcu_head *h)
+ {
+-	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
++	struct kern_ipc_perm *ptr = container_of(h, struct kern_ipc_perm, rcu);
+ 
+-	kvfree(p);
++	kvfree(ptr);
+ }
+ 
+ /**
+diff -puN ipc/util.h~ipc-merge-ipc_rcu-and-kern_ipc_perm ipc/util.h
+--- a/ipc/util.h~ipc-merge-ipc_rcu-and-kern_ipc_perm
++++ a/ipc/util.h
+@@ -47,13 +47,6 @@ static inline void msg_exit_ns(struct ip
+ static inline void shm_exit_ns(struct ipc_namespace *ns) { }
+ #endif
+ 
+-struct ipc_rcu {
+-	struct rcu_head rcu;
+-	atomic_t refcount;
+-} ____cacheline_aligned_in_smp;
+-
+-#define ipc_rcu_to_struct(p)  ((void *)(p+1))
