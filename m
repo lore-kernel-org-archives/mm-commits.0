@@ -1,215 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: [patch 05/96] kexec: move vmcoreinfo out of the kernel's
- .bss section
-Date: Wed, 12 Jul 2017 14:33:14 -0700
-Message-ID: <20170712213314.x-mpN0bkP%akpm@linux-foundation.org>
+Subject: [patch 07/96] kdump: protect vmcoreinfo data under the
+ crash memory
+Date: Wed, 12 Jul 2017 14:33:21 -0700
+Message-ID: <20170712213321.wrM9wgbRJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754172AbdGLVdQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:16 -0400
+        with ESMTP id S1754096AbdGLVdW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, xlpang@redhat.com
 
 From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: move vmcoreinfo out of the kernel's .bss section
+Subject: kdump: protect vmcoreinfo data under the crash memory
 
-As Eric said,
-"what we need to do is move the variable vmcoreinfo_note out
-of the kernel's .bss section.  And modify the code to regenerate
-and keep this information in something like the control page.
+Currently vmcoreinfo data is updated at boot time subsys_initcall(), it
+has the risk of being modified by some wrong code during system is
+running.
 
-Definitely something like this needs a page all to itself, and ideally far
-away from any other kernel data structures.  I clearly was not watching
-closely the data someone decided to keep this silly thing in the kernel's
-.bss section."
+As a result, vmcore dumped may contain the wrong vmcoreinfo.  Later on,
+when using "crash", "makedumpfile", etc utility to parse this vmcore, we
+probably will get "Segmentation fault" or other unexpected errors.
 
-This patch allocates extra pages for these vmcoreinfo_XXX variables, one
-advantage is that it enhances some safety of vmcoreinfo, because
-vmcoreinfo now is kept far away from other kernel data structures.
+E.g.  1) wrong code overwrites vmcoreinfo_data; 2) further crashes the
+system; 3) trigger kdump, then we obviously will fail to recognize the
+crash context correctly due to the corrupted vmcoreinfo.
 
-Link: http://lkml.kernel.org/r/1493281021-20737-1-git-send-email-xlpang@redhat.com
+Now except for vmcoreinfo, all the crash data is well protected(including
+the cpu note which is fully updated in the crash path, thus its
+correctness is guaranteed).  Given that vmcoreinfo data is a large chunk
+prepared for kdump, we better protect it as well.
+
+To solve this, we relocate and copy vmcoreinfo_data to the crash memory
+when kdump is loading via kexec syscalls.  Because the whole crash memory
+will be protected by existing arch_kexec_protect_crashkres() mechanism, we
+naturally protect vmcoreinfo_data from write(even read) access under
+kernel direct mapping after kdump is loaded.
+
+Since kdump is usually loaded at the very early stage after boot, we can
+trust the correctness of the vmcoreinfo data copied.
+
+On the other hand, we still need to operate the vmcoreinfo safe copy when
+crash happens to generate vmcoreinfo_note again, we rely on vmap() to map
+out a new kernel virtual address and update to use this new one instead in
+the following crash_save_vmcoreinfo().
+
+BTW, we do not touch vmcoreinfo_note, because it will be fully updated
+using the protected vmcoreinfo_data after crash which is surely correct
+just like the cpu crash note.
+
+Link: http://lkml.kernel.org/r/1493281021-20737-3-git-send-email-xlpang@redhat.com
 Signed-off-by: Xunlei Pang <xlpang@redhat.com>
 Tested-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
-Suggested-by: Eric Biederman <ebiederm@xmission.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dave Young <dyoung@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Juergen Gross <jgross@suse.com>
 Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/machine_kexec.c |    5 -----
- arch/s390/kernel/machine_kexec.c |    1 +
- arch/s390/kernel/setup.c         |    6 ------
- arch/x86/kernel/crash.c          |    2 +-
- arch/x86/xen/mmu_pv.c            |    4 ++--
- include/linux/crash_core.h       |    4 ++--
- kernel/crash_core.c              |   26 ++++++++++++++++++++++----
- kernel/ksysfs.c                  |    2 +-
- 8 files changed, 29 insertions(+), 21 deletions(-)
+ include/linux/crash_core.h |    2 -
+ include/linux/kexec.h      |    2 +
+ kernel/crash_core.c        |   17 ++++++++++++++-
+ kernel/kexec.c             |    8 +++++++
+ kernel/kexec_core.c        |   39 +++++++++++++++++++++++++++++++++++
+ kernel/kexec_file.c        |    8 +++++++
+ 6 files changed, 74 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -163,8 +163,3 @@ void arch_crash_save_vmcoreinfo(void)
- #endif
- }
- 
--phys_addr_t paddr_vmcoreinfo_note(void)
--{
--	return ia64_tpa((unsigned long)(char *)&vmcoreinfo_note);
--}
--
-diff -puN arch/s390/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/s390/kernel/machine_kexec.c
---- a/arch/s390/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/s390/kernel/machine_kexec.c
-@@ -246,6 +246,7 @@ void arch_crash_save_vmcoreinfo(void)
- 	VMCOREINFO_SYMBOL(lowcore_ptr);
- 	VMCOREINFO_SYMBOL(high_memory);
- 	VMCOREINFO_LENGTH(lowcore_ptr, NR_CPUS);
-+	mem_assign_absolute(S390_lowcore.vmcore_info, paddr_vmcoreinfo_note());
- }
- 
- void machine_shutdown(void)
-diff -puN arch/s390/kernel/setup.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/s390/kernel/setup.c
-@@ -496,11 +496,6 @@ static void __init setup_memory_end(void
- 	pr_notice("The maximum memory size is %luMB\n", memory_end >> 20);
- }
- 
--static void __init setup_vmcoreinfo(void)
--{
--	mem_assign_absolute(S390_lowcore.vmcore_info, paddr_vmcoreinfo_note());
--}
--
- #ifdef CONFIG_CRASH_DUMP
- 
- /*
-@@ -939,7 +934,6 @@ void __init setup_arch(char **cmdline_p)
- #endif
- 
- 	setup_resources();
--	setup_vmcoreinfo();
- 	setup_lowcore();
- 	smp_fill_possible_mask();
- 	cpu_detect_mhz_feature();
-diff -puN arch/x86/kernel/crash.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/x86/kernel/crash.c
-@@ -457,7 +457,7 @@ static int prepare_elf64_headers(struct
- 	bufp += sizeof(Elf64_Phdr);
- 	phdr->p_type = PT_NOTE;
- 	phdr->p_offset = phdr->p_paddr = paddr_vmcoreinfo_note();
--	phdr->p_filesz = phdr->p_memsz = sizeof(vmcoreinfo_note);
-+	phdr->p_filesz = phdr->p_memsz = VMCOREINFO_NOTE_SIZE;
- 	(ehdr->e_phnum)++;
- 
- #ifdef CONFIG_X86_64
-diff -puN arch/x86/xen/mmu_pv.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/x86/xen/mmu_pv.c
---- a/arch/x86/xen/mmu_pv.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/x86/xen/mmu_pv.c
-@@ -2693,8 +2693,8 @@ EXPORT_SYMBOL_GPL(xen_destroy_contiguous
- phys_addr_t paddr_vmcoreinfo_note(void)
- {
- 	if (xen_pv_domain())
--		return virt_to_machine(&vmcoreinfo_note).maddr;
-+		return virt_to_machine(vmcoreinfo_note).maddr;
- 	else
--		return __pa_symbol(&vmcoreinfo_note);
-+		return __pa(vmcoreinfo_note);
- }
- #endif /* CONFIG_KEXEC_CORE */
-diff -puN include/linux/crash_core.h~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section include/linux/crash_core.h
---- a/include/linux/crash_core.h~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
+diff -puN include/linux/crash_core.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory include/linux/crash_core.h
+--- a/include/linux/crash_core.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory
 +++ a/include/linux/crash_core.h
-@@ -19,7 +19,7 @@
- 				     CRASH_CORE_NOTE_NAME_BYTES +	\
- 				     CRASH_CORE_NOTE_DESC_BYTES)
+@@ -28,6 +28,7 @@
  
--#define VMCOREINFO_BYTES	   (4096)
-+#define VMCOREINFO_BYTES	   PAGE_SIZE
- #define VMCOREINFO_NOTE_NAME	   "VMCOREINFO"
- #define VMCOREINFO_NOTE_NAME_BYTES ALIGN(sizeof(VMCOREINFO_NOTE_NAME), 4)
- #define VMCOREINFO_NOTE_SIZE	   ((CRASH_CORE_NOTE_HEAD_BYTES * 2) +	\
-@@ -56,7 +56,7 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- #define VMCOREINFO_CONFIG(name) \
+ typedef u32 note_buf_t[CRASH_CORE_NOTE_BYTES/4];
+ 
++void crash_update_vmcoreinfo_safecopy(void *ptr);
+ void crash_save_vmcoreinfo(void);
+ void arch_crash_save_vmcoreinfo(void);
+ __printf(1, 2)
+@@ -57,7 +58,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
  	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
  
--extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
-+extern u32 *vmcoreinfo_note;
- extern size_t vmcoreinfo_size;
- extern size_t vmcoreinfo_max_size;
+ extern u32 *vmcoreinfo_note;
+-extern size_t vmcoreinfo_size;
  
-diff -puN kernel/crash_core.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section kernel/crash_core.c
---- a/kernel/crash_core.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len);
+diff -puN include/linux/kexec.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory
++++ a/include/linux/kexec.h
+@@ -172,6 +172,7 @@ struct kimage {
+ 	unsigned long start;
+ 	struct page *control_code_page;
+ 	struct page *swap_page;
++	void *vmcoreinfo_data_copy; /* locates in the crash memory */
+ 
+ 	unsigned long nr_segments;
+ 	struct kexec_segment segment[KEXEC_SEGMENT_MAX];
+@@ -241,6 +242,7 @@ extern void crash_kexec(struct pt_regs *
+ int kexec_should_crash(struct task_struct *);
+ int kexec_crash_loaded(void);
+ void crash_save_cpu(struct pt_regs *regs, int cpu);
++extern int kimage_crash_copy_vmcoreinfo(struct kimage *image);
+ 
+ extern struct kimage *kexec_image;
+ extern struct kimage *kexec_crash_image;
+diff -puN kernel/crash_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/crash_core.c
+--- a/kernel/crash_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
 +++ a/kernel/crash_core.c
-@@ -14,10 +14,10 @@
- #include <asm/sections.h>
+@@ -15,9 +15,12 @@
  
  /* vmcoreinfo stuff */
--static unsigned char vmcoreinfo_data[VMCOREINFO_BYTES];
--u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
-+static unsigned char *vmcoreinfo_data;
- size_t vmcoreinfo_size;
--size_t vmcoreinfo_max_size = sizeof(vmcoreinfo_data);
-+size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
-+u32 *vmcoreinfo_note;
+ static unsigned char *vmcoreinfo_data;
+-size_t vmcoreinfo_size;
++static size_t vmcoreinfo_size;
+ u32 *vmcoreinfo_note;
  
++/* trusted vmcoreinfo, e.g. we can make a copy in the crash memory */
++static unsigned char *vmcoreinfo_data_safecopy;
++
  /*
   * parsing the "crashkernel" commandline
-@@ -326,6 +326,9 @@ static void update_vmcoreinfo_note(void)
+  *
+@@ -323,11 +326,23 @@ static void update_vmcoreinfo_note(void)
+ 	final_note(buf);
+ }
  
++void crash_update_vmcoreinfo_safecopy(void *ptr)
++{
++	if (ptr)
++		memcpy(ptr, vmcoreinfo_data, vmcoreinfo_size);
++
++	vmcoreinfo_data_safecopy = ptr;
++}
++
  void crash_save_vmcoreinfo(void)
  {
-+	if (!vmcoreinfo_note)
-+		return;
+ 	if (!vmcoreinfo_note)
+ 		return;
+ 
++	/* Use the safe copy to generate vmcoreinfo note if have */
++	if (vmcoreinfo_data_safecopy)
++		vmcoreinfo_data = vmcoreinfo_data_safecopy;
 +
  	vmcoreinfo_append_str("CRASHTIME=%ld\n", get_seconds());
  	update_vmcoreinfo_note();
  }
-@@ -356,11 +359,26 @@ void __weak arch_crash_save_vmcoreinfo(v
+diff -puN kernel/kexec.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec.c
+--- a/kernel/kexec.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
++++ a/kernel/kexec.c
+@@ -144,6 +144,14 @@ static int do_kexec_load(unsigned long e
+ 	if (ret)
+ 		goto out;
  
- phys_addr_t __weak paddr_vmcoreinfo_note(void)
- {
--	return __pa_symbol((unsigned long)(char *)&vmcoreinfo_note);
-+	return __pa(vmcoreinfo_note);
++	/*
++	 * Some architecture(like S390) may touch the crash memory before
++	 * machine_kexec_prepare(), we must copy vmcoreinfo data after it.
++	 */
++	ret = kimage_crash_copy_vmcoreinfo(image);
++	if (ret)
++		goto out;
++
+ 	for (i = 0; i < nr_segments; i++) {
+ 		ret = kimage_load_segment(image, &image->segment[i]);
+ 		if (ret)
+diff -puN kernel/kexec_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
++++ a/kernel/kexec_core.c
+@@ -482,6 +482,40 @@ struct page *kimage_alloc_control_pages(
+ 	return pages;
  }
  
- static int __init crash_save_vmcoreinfo_init(void)
- {
-+	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-+	if (!vmcoreinfo_data) {
-+		pr_warn("Memory allocation for vmcoreinfo_data failed\n");
++int kimage_crash_copy_vmcoreinfo(struct kimage *image)
++{
++	struct page *vmcoreinfo_page;
++	void *safecopy;
++
++	if (image->type != KEXEC_TYPE_CRASH)
++		return 0;
++
++	/*
++	 * For kdump, allocate one vmcoreinfo safe copy from the
++	 * crash memory. as we have arch_kexec_protect_crashkres()
++	 * after kexec syscall, we naturally protect it from write
++	 * (even read) access under kernel direct mapping. But on
++	 * the other hand, we still need to operate it when crash
++	 * happens to generate vmcoreinfo note, hereby we rely on
++	 * vmap for this purpose.
++	 */
++	vmcoreinfo_page = kimage_alloc_control_pages(image, 0);
++	if (!vmcoreinfo_page) {
++		pr_warn("Could not allocate vmcoreinfo buffer\n");
++		return -ENOMEM;
++	}
++	safecopy = vmap(&vmcoreinfo_page, 1, VM_MAP, PAGE_KERNEL);
++	if (!safecopy) {
++		pr_warn("Could not vmap vmcoreinfo buffer\n");
 +		return -ENOMEM;
 +	}
 +
-+	vmcoreinfo_note = alloc_pages_exact(VMCOREINFO_NOTE_SIZE,
-+						GFP_KERNEL | __GFP_ZERO);
-+	if (!vmcoreinfo_note) {
-+		free_page((unsigned long)vmcoreinfo_data);
-+		vmcoreinfo_data = NULL;
-+		pr_warn("Memory allocation for vmcoreinfo_note failed\n");
-+		return -ENOMEM;
++	image->vmcoreinfo_data_copy = safecopy;
++	crash_update_vmcoreinfo_safecopy(safecopy);
++
++	return 0;
++}
++
+ static int kimage_add_entry(struct kimage *image, kimage_entry_t entry)
+ {
+ 	if (*image->entry != 0)
+@@ -569,6 +603,11 @@ void kimage_free(struct kimage *image)
+ 	if (!image)
+ 		return;
+ 
++	if (image->vmcoreinfo_data_copy) {
++		crash_update_vmcoreinfo_safecopy(NULL);
++		vunmap(image->vmcoreinfo_data_copy);
 +	}
 +
- 	VMCOREINFO_OSRELEASE(init_uts_ns.name.release);
- 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
+ 	kimage_free_extra_pages(image);
+ 	for_each_kimage_entry(image, ptr, entry) {
+ 		if (entry & IND_INDIRECTION) {
+diff -puN kernel/kexec_file.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
++++ a/kernel/kexec_file.c
+@@ -298,6 +298,14 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
+ 	if (ret)
+ 		goto out;
  
-diff -puN kernel/ksysfs.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section kernel/ksysfs.c
---- a/kernel/ksysfs.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/kernel/ksysfs.c
-@@ -134,7 +134,7 @@ static ssize_t vmcoreinfo_show(struct ko
- {
- 	phys_addr_t vmcore_base = paddr_vmcoreinfo_note();
- 	return sprintf(buf, "%pa %x\n", &vmcore_base,
--		       (unsigned int)sizeof(vmcoreinfo_note));
-+			(unsigned int)VMCOREINFO_NOTE_SIZE);
- }
- KERNEL_ATTR_RO(vmcoreinfo);
- 
++	/*
++	 * Some architecture(like S390) may touch the crash memory before
++	 * machine_kexec_prepare(), we must copy vmcoreinfo data after it.
++	 */
++	ret = kimage_crash_copy_vmcoreinfo(image);
++	if (ret)
++		goto out;
++
+ 	ret = kexec_calculate_store_digests(image);
+ 	if (ret)
+ 		goto out;
 _
