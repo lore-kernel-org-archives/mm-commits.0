@@ -1,63 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 46/96] ipc/msg.c: avoid ipc_rcu_putref for failed
+Subject: [patch 45/96] ipc/shm.c: avoid ipc_rcu_putref for failed
  ipc_addid()
-Date: Wed, 12 Jul 2017 14:35:19 -0700
-Message-ID: <20170712213519.d5zrjhDTr%akpm@linux-foundation.org>
+Date: Wed, 12 Jul 2017 14:35:16 -0700
+Message-ID: <20170712213516.6yiaQzeaW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753369AbdGLVfU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:20 -0400
+        with ESMTP id S1752153AbdGLVfR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/msg.c: avoid ipc_rcu_putref for failed ipc_addid()
+Subject: ipc/shm.c: avoid ipc_rcu_putref for failed ipc_addid()
 
 Loosely based on a patch from Kees Cook <keescook@chromium.org>:
-- id and retval can be merged
-- if ipc_addid() fails, then use call_rcu() directly.
+- id and error can be merged
+- if operations before ipc_addid() fail, then use call_rcu() directly.
 
-The difference is that call_rcu is used for failed ipc_addid() calls, to
-continue to guaranteed an rcu delay for security_msg_queue_free().
+The difference is that call_rcu is used for failures after
+security_shm_alloc(), to continue to guaranteed an rcu delay for
+security_sem_free().
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-16-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20170525185107.12869-15-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ ipc/shm.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN ipc/msg.c~ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid ipc/msg.c
---- a/ipc/msg.c~ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid
-+++ a/ipc/msg.c
-@@ -132,7 +132,7 @@ static struct msg_queue *msg_alloc(void)
- static int newque(struct ipc_namespace *ns, struct ipc_params *params)
- {
- 	struct msg_queue *msq;
--	int id, retval;
-+	int retval;
- 	key_t key = params->key;
- 	int msgflg = params->flg;
+diff -puN ipc/shm.c~ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid ipc/shm.c
+--- a/ipc/shm.c~ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid
++++ a/ipc/shm.c
+@@ -548,7 +548,6 @@ static int newseg(struct ipc_namespace *
+ 	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	struct file *file;
+ 	char name[13];
+-	int id;
+ 	vm_flags_t acctflag = 0;
  
-@@ -160,10 +160,10 @@ static int newque(struct ipc_namespace *
- 	INIT_LIST_HEAD(&msq->q_senders);
+ 	if (size < SHMMIN || size > ns->shm_ctlmax)
+@@ -617,11 +616,9 @@ static int newseg(struct ipc_namespace *
+ 	shp->shm_file = file;
+ 	shp->shm_creator = current;
  
- 	/* ipc_addid() locks msq upon success. */
--	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
+-	id = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
 -	if (id < 0) {
--		ipc_rcu_putref(&msq->q_perm, msg_rcu_free);
--		return id;
-+	retval = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
-+	if (retval < 0) {
-+		call_rcu(&msq->q_perm.rcu, msg_rcu_free);
-+		return retval;
- 	}
+-		error = id;
++	error = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
++	if (error < 0)
+ 		goto no_id;
+-	}
  
- 	ipc_unlock_object(&msq->q_perm);
+ 	list_add(&shp->shm_clist, &current->sysvshm.shm_clist);
+ 
+@@ -643,7 +640,7 @@ no_id:
+ 		user_shm_unlock(size, shp->mlock_user);
+ 	fput(file);
+ no_file:
+-	ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
++	call_rcu(&shp->shm_perm.rcu, shm_rcu_free);
+ 	return error;
+ }
+ 
 _
