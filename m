@@ -1,52 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 86/96] m68k: coldfire: move inline before return
- type
-Date: Wed, 12 Jul 2017 14:37:22 -0700
-Message-ID: <20170712213722.eLef8eKp2%akpm@linux-foundation.org>
+Subject: [patch 80/96] ARM: KVM: move asmlinkage before type
+Date: Wed, 12 Jul 2017 14:37:05 -0700
+Message-ID: <20170712213705.BnVto4LDo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55258 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752363AbdGLVhX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:23 -0400
+        with ESMTP id S1754113AbdGLVhZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, gerg@linux-m68k.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, christoffer.dall@linaro.org, joe@perches.com, linux@armlinux.org.uk, marc.zyngier@arm.com, mm-commits@vger.kernel.org, pbonzini@redhat.com, rkrcmar@redhat.com, torvalds@linux-foundation.org
 
 From: Joe Perches <joe@perches.com>
-Subject: m68k: coldfire: move inline before return type
+Subject: ARM: KVM: move asmlinkage before type
 
-Make the code like the rest of the kernel.
+asmlinkage is either 'extern "C"' or blank.
 
-Link: http://lkml.kernel.org/r/14db9c166d5b68efa77e337cfe49bb9b29bca3f7.1499284835.git.joe@perches.com
+Move the uses of asmlinkage before the return types to be similar
+to the rest of the kernel.
+
+Link: http://lkml.kernel.org/r/005b8e120650c6a13b541e420f4e3605603fe9e6.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Radim Krcmar <rkrcmar@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/coldfire/intc-simr.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/include/asm/kvm_hyp.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/m68k/coldfire/intc-simr.c~m68k-coldfire-move-inline-before-return-type arch/m68k/coldfire/intc-simr.c
---- a/arch/m68k/coldfire/intc-simr.c~m68k-coldfire-move-inline-before-return-type
-+++ a/arch/m68k/coldfire/intc-simr.c
-@@ -35,7 +35,7 @@
- #define	EINT7	67	/* EDGE Port interrupt 7 */
+diff -puN arch/arm/include/asm/kvm_hyp.h~arm-kvm-move-asmlinkage-before-type arch/arm/include/asm/kvm_hyp.h
+--- a/arch/arm/include/asm/kvm_hyp.h~arm-kvm-move-asmlinkage-before-type
++++ a/arch/arm/include/asm/kvm_hyp.h
+@@ -110,8 +110,8 @@ void __sysreg_restore_state(struct kvm_c
+ void __vgic_v3_save_state(struct kvm_vcpu *vcpu);
+ void __vgic_v3_restore_state(struct kvm_vcpu *vcpu);
  
- static unsigned int irqebitmap[] = { 0, 1, 4, 7 };
--static unsigned int inline irq2ebit(unsigned int irq)
-+static inline unsigned int irq2ebit(unsigned int irq)
+-void asmlinkage __vfp_save_state(struct vfp_hard_struct *vfp);
+-void asmlinkage __vfp_restore_state(struct vfp_hard_struct *vfp);
++asmlinkage void __vfp_save_state(struct vfp_hard_struct *vfp);
++asmlinkage void __vfp_restore_state(struct vfp_hard_struct *vfp);
+ static inline bool __vfp_enabled(void)
  {
- 	return irqebitmap[irq - EINT0];
- }
-@@ -51,7 +51,7 @@ static unsigned int inline irq2ebit(unsi
- #define	EINT1	65	/* EDGE Port interrupt 1 */
- #define	EINT7	71	/* EDGE Port interrupt 7 */
+ 	return !(read_sysreg(HCPTR) & (HCPTR_TCP(11) | HCPTR_TCP(10)));
+@@ -120,8 +120,8 @@ static inline bool __vfp_enabled(void)
+ void __hyp_text __banked_save_state(struct kvm_cpu_context *ctxt);
+ void __hyp_text __banked_restore_state(struct kvm_cpu_context *ctxt);
  
--static unsigned int inline irq2ebit(unsigned int irq)
-+static inline unsigned int irq2ebit(unsigned int irq)
- {
- 	return irq - EINT0;
- }
+-int asmlinkage __guest_enter(struct kvm_vcpu *vcpu,
++asmlinkage int __guest_enter(struct kvm_vcpu *vcpu,
+ 			     struct kvm_cpu_context *host);
+-int asmlinkage __hyp_do_panic(const char *, int, u32);
++asmlinkage int __hyp_do_panic(const char *, int, u32);
+ 
+ #endif /* __ARM_KVM_HYP_H__ */
 _
