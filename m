@@ -1,89 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
- removed from -mm tree
-Date: Wed, 12 Jul 2017 14:19:05 -0700
-Message-ID: <59669249.orWn+rCctfADBed7%akpm@linux-foundation.org>
+ powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix.patch removed
+ from -mm tree
+Date: Wed, 12 Jul 2017 14:19:53 -0700
+Message-ID: <59669279.y0q1Zt+ZJvKmCzBv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52598 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753447AbdGLVTG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:19:06 -0400
+        with ESMTP id S1752840AbdGLVTy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:19:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, babu.moger@oracle.com, dzickus@redhat.com, khlebnikov@yandex-team.ru, mingo@kernel.org, npiggin@gmail.com, mm-commits@vger.kernel.org
+To: npiggin@gmail.com, babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog: hide unused function
+     Subject: powerpc/64s: watchdog honor watchdog disable at boot/hotplug
 has been removed from the -mm tree.  Its filename was
-     watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
+     powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix.patch
 
-This patch was dropped because it was folded into watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
+This patch was dropped because it was folded into powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kernel/watchdog: hide unused function
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: powerpc/64s: watchdog honor watchdog disable at boot/hotplug
 
-watchdog_update_cpus() is defined unconditionally, but only used when
-CONFIG_SYSCTL is defined:
+The boot/hotplug paths were not taking into account if the
+watchdog was disabled or suspended. Currently only the watchdog
+reconfiguration path is.
 
-kernel/watchdog.c:608:12: error: 'watchdog_update_cpus' defined but not used [-Werror=unused-function]
-
-This adds another #ifdef around it.
-
-Fixes: mmotm ("kernel/watchdog: provide watchdog_nmi_reconfigure() for arch watchdogs")
-Link: http://lkml.kernel.org/r/20170620204854.966601-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: http://lkml.kernel.org/r/20170621001346.5bb337c9@roar.ozlabs.ibm.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Cc: Don Zickus <dzickus@redhat.com>
 Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/powerpc/kernel/watchdog.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2 kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2
-+++ a/kernel/watchdog.c
-@@ -620,11 +620,13 @@ static void watchdog_disable_all_cpus(vo
+diff -puN arch/powerpc/kernel/watchdog.c~powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix arch/powerpc/kernel/watchdog.c
+--- a/arch/powerpc/kernel/watchdog.c~powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix
++++ a/arch/powerpc/kernel/watchdog.c
+@@ -288,6 +288,12 @@ static int start_wd_on_cpu(unsigned int
+ 		return 0;
  	}
- }
  
-+#ifdef CONFIG_SYSCTL
- static int watchdog_update_cpus(void)
- {
- 	return smpboot_update_cpumask_percpu_thread(
- 		    &watchdog_threads, &watchdog_cpumask);
- }
-+#endif
++	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
++		return 0;
++
++	if (watchdog_suspended)
++		return 0;
++
+ 	if (!cpumask_test_cpu(cpu, &watchdog_cpumask))
+ 		return 0;
  
- #else /* SOFTLOCKUP */
- static int watchdog_park_threads(void)
-@@ -645,10 +647,12 @@ static void watchdog_disable_all_cpus(vo
- {
- }
+@@ -337,12 +343,6 @@ void watchdog_nmi_reconfigure(void)
+ 	for_each_cpu(cpu, &wd_cpus_enabled)
+ 		stop_wd_on_cpu(cpu);
  
-+#ifdef CONFIG_SYSCTL
- static int watchdog_update_cpus(void)
- {
- 	return 0;
- }
-+#endif
- 
- static void set_sample_period(void)
- {
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
-include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
-
+-	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
+-		return;
+-
+-	if (watchdog_suspended)
+-		return;
