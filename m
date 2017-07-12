@@ -1,89 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix.patch removed
- from -mm tree
-Date: Wed, 12 Jul 2017 14:19:02 -0700
-Message-ID: <59669246.QIIT0igNHM8HXOKT%akpm@linux-foundation.org>
+ watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
+ removed from -mm tree
+Date: Wed, 12 Jul 2017 14:19:05 -0700
+Message-ID: <59669249.orWn+rCctfADBed7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753447AbdGLVTD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:19:03 -0400
+        with ESMTP id S1753447AbdGLVTG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:19:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@gmail.com, babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, babu.moger@oracle.com, dzickus@redhat.com, khlebnikov@yandex-team.ru, mingo@kernel.org, npiggin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix
+     Subject: kernel/watchdog: hide unused function
 has been removed from the -mm tree.  Its filename was
-     watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix.patch
+     watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
 
 This patch was dropped because it was folded into watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kernel/watchdog: hide unused function
 
-add code comments
+watchdog_update_cpus() is defined unconditionally, but only used when
+CONFIG_SYSCTL is defined:
 
-Link: http://lkml.kernel.org/r/20170617125933.774d3858@roar.ozlabs.ibm.com
-Cc: Don Zickus <dzickus@redhat.com>
+kernel/watchdog.c:608:12: error: 'watchdog_update_cpus' defined but not used [-Werror=unused-function]
+
+This adds another #ifdef around it.
+
+Fixes: mmotm ("kernel/watchdog: provide watchdog_nmi_reconfigure() for arch watchdogs")
+Link: http://lkml.kernel.org/r/20170620204854.966601-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ kernel/watchdog.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix
+diff -puN kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2 kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2
 +++ a/kernel/watchdog.c
-@@ -114,6 +114,10 @@ int __read_mostly watchdog_suspended;
- /*
-  * These functions can be overridden if an architecture implements its
-  * own hardlockup detector.
-+ *
-+ * watchdog_nmi_enable/disable can be implemented to start and stop when
-+ * softlockup watchdog threads start and stop. The arch must select the
-+ * SOFTLOCKUP_DETECTOR Kconfig.
-  */
- int __weak watchdog_nmi_enable(unsigned int cpu)
+@@ -620,11 +620,13 @@ static void watchdog_disable_all_cpus(vo
+ 	}
+ }
+ 
++#ifdef CONFIG_SYSCTL
+ static int watchdog_update_cpus(void)
  {
-@@ -123,6 +127,17 @@ void __weak watchdog_nmi_disable(unsigne
+ 	return smpboot_update_cpumask_percpu_thread(
+ 		    &watchdog_threads, &watchdog_cpumask);
+ }
++#endif
+ 
+ #else /* SOFTLOCKUP */
+ static int watchdog_park_threads(void)
+@@ -645,10 +647,12 @@ static void watchdog_disable_all_cpus(vo
  {
  }
  
-+/*
-+ * watchdog_nmi_reconfigure can be implemented to be notified after any
-+ * watchdog configuration change. The arch hardlockup watchdog should
-+ * respond to the following variables:
-+ * - nmi_watchdog_enabled
-+ * - watchdog_thresh
-+ * - watchdog_cpumask
-+ * - sysctl_hardlockup_all_cpu_backtrace
-+ * - hardlockup_panic
-+ * - watchdog_suspended
-+ */
- void __weak watchdog_nmi_reconfigure(void)
++#ifdef CONFIG_SYSCTL
+ static int watchdog_update_cpus(void)
  {
+ 	return 0;
  }
++#endif
+ 
+ static void set_sample_period(void)
+ {
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-watchdog-remove-unused-declaration.patch
-watchdog-introduce-arch_touch_nmi_watchdog.patch
-watchdog-split-up-config-options.patch
 watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
 
