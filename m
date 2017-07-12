@@ -1,88 +1,395 @@
 From: akpm@linux-foundation.org
-Subject: [patch 28/96] procfs: fdinfo: extend information about
- epoll target files
-Date: Wed, 12 Jul 2017 14:34:25 -0700
-Message-ID: <20170712213425.pMk7Ga-aQ%akpm@linux-foundation.org>
+Subject: [patch 32/96] ipc/sem.c: remove sem_base, embed struct sem
+Date: Wed, 12 Jul 2017 14:34:38 -0700
+Message-ID: <20170712213438.HAmE60hsV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53476 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751862AbdGLVeb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:31 -0400
+        with ESMTP id S1753304AbdGLVej (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avagin@virtuozzo.com, gorcunov@gmail.com, gorcunov@openvz.org, jbaron@akamai.com, luto@amacapital.net, mm-commits@vger.kernel.org, mtk.manpages@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, xemul@virtuozzo.com
+To: 1vier1@web.de, akpm@linux-foundation.org, dave@stgolabs.net, fabf@skynet.be, hch@infradead.org, keescook@chromium.org, manfred@colorfullife.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: procfs: fdinfo: extend information about epoll target files
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: remove sem_base, embed struct sem
 
-Since it is possbile to have same number in tfd field (say file added,
-closed, then nother file dup'ed to same number and added back) it is
-imposible to distinguish such target files solely by their numbers.
+sma->sem_base is initialized with
+	sma->sem_base = (struct sem *) &sma[1];
 
-Strictly speaking regular applications don't need to recognize these
-targets at all but for checkpoint/restore sake we need to collect targets
-to be able to push them back on restore stage in a proper order.
+The current code has four problems:
+- There is an unnecessary pointer dereference - sem_base is not needed.
+- Alignment for struct sem only works by chance.
+- The current code causes false positive for static code analysis.
+- This is a cast between different non-void types, which the future
+  randstruct GCC plugin warns on.
 
-Thus lets add file position, inode and device number where this target
-lays.  This three fields can be used as a primary key for sorting, and
-together with kcmp help CRIU can find out an exact file target (from the
-whole set of processes being checkpointed).
+And, as bonus, the code size gets smaller:
 
-Link: http://lkml.kernel.org/r/20170424154423.436491881@gmail.com
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Andrei Vagin <avagin@virtuozzo.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Before:
+  0 .text         00003770
+After:
+  0 .text         0000374e
+
+[manfred@colorfullife.com: s/[0]/[]/, per hch]
+  Link: http://lkml.kernel.org/r/20170525185107.12869-2-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20170515171912.6298-2-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: <1vier1@web.de>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    6 +++++-
- fs/eventpoll.c                     |    8 ++++++--
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ include/linux/sem.h |   22 ++++++++++
+ ipc/sem.c           |   88 ++++++++++++++++--------------------------
+ 2 files changed, 55 insertions(+), 55 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~procfs-fdinfo-extend-information-about-epoll-target-files Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~procfs-fdinfo-extend-information-about-epoll-target-files
-+++ a/Documentation/filesystems/proc.txt
-@@ -1786,12 +1786,16 @@ pair provide additional information part
- 	pos:	0
- 	flags:	02
- 	mnt_id:	9
--	tfd:        5 events:       1d data: ffffffffffffffff
-+	tfd:        5 events:       1d data: ffffffffffffffff pos:0 ino:61af sdev:7
+diff -puN include/linux/sem.h~ipc-semc-remove-sem_base-embed-struct-sem include/linux/sem.h
+--- a/include/linux/sem.h~ipc-semc-remove-sem_base-embed-struct-sem
++++ a/include/linux/sem.h
+@@ -8,11 +8,29 @@
  
- 	where 'tfd' is a target file descriptor number in decimal form,
- 	'events' is events mask being watched and the 'data' is data
- 	associated with a target [see epoll(7) for more details].
+ struct task_struct;
  
-+	The 'pos' is current offset of the target file in decimal form
-+	[see lseek(2)], 'ino' and 'sdev' are inode and device numbers
-+	where target file resides, all in hex format.
++/* One semaphore structure for each semaphore in the system. */
++struct sem {
++	int	semval;		/* current value */
++	/*
++	 * PID of the process that last modified the semaphore. For
++	 * Linux, specifically these are:
++	 *  - semop
++	 *  - semctl, via SETVAL and SETALL.
++	 *  - at task exit when performing undo adjustments (see exit_sem).
++	 */
++	int	sempid;
++	spinlock_t	lock;	/* spinlock for fine-grained semtimedop */
++	struct list_head pending_alter; /* pending single-sop operations */
++					/* that alter the semaphore */
++	struct list_head pending_const; /* pending single-sop operations */
++					/* that do not alter the semaphore*/
++	time_t	sem_otime;	/* candidate for sem_otime */
++} ____cacheline_aligned_in_smp;
 +
- 	Fsnotify files
- 	~~~~~~~~~~~~~~
- 	For inotify files the format is the following
-diff -puN fs/eventpoll.c~procfs-fdinfo-extend-information-about-epoll-target-files fs/eventpoll.c
---- a/fs/eventpoll.c~procfs-fdinfo-extend-information-about-epoll-target-files
-+++ a/fs/eventpoll.c
-@@ -960,10 +960,14 @@ static void ep_show_fdinfo(struct seq_fi
- 	mutex_lock(&ep->mtx);
- 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
-+		struct inode *inode = file_inode(epi->ffd.file);
+ /* One sem_array data structure for each set of semaphores in the system. */
+ struct sem_array {
+ 	struct kern_ipc_perm	sem_perm;	/* permissions .. see ipc.h */
+ 	time_t			sem_ctime;	/* last change time */
+-	struct sem		*sem_base;	/* ptr to first semaphore in array */
+ 	struct list_head	pending_alter;	/* pending operations */
+ 						/* that alter the array */
+ 	struct list_head	pending_const;	/* pending complex operations */
+@@ -21,6 +39,8 @@ struct sem_array {
+ 	int			sem_nsems;	/* no. of semaphores in array */
+ 	int			complex_count;	/* pending complex operations */
+ 	unsigned int		use_global_lock;/* >0: global lock required */
++
++	struct sem		sems[];
+ };
  
--		seq_printf(m, "tfd: %8d events: %8x data: %16llx\n",
-+		seq_printf(m, "tfd: %8d events: %8x data: %16llx "
-+			   " pos:%lli ino:%lx sdev:%x\n",
- 			   epi->ffd.fd, epi->event.events,
--			   (long long)epi->event.data);
-+			   (long long)epi->event.data,
-+			   (long long)epi->ffd.file->f_pos,
-+			   inode->i_ino, inode->i_sb->s_dev);
- 		if (seq_has_overflowed(m))
- 			break;
+ #ifdef CONFIG_SYSVIPC
+diff -puN ipc/sem.c~ipc-semc-remove-sem_base-embed-struct-sem ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-remove-sem_base-embed-struct-sem
++++ a/ipc/sem.c
+@@ -87,24 +87,6 @@
+ #include <linux/uaccess.h>
+ #include "util.h"
+ 
+-/* One semaphore structure for each semaphore in the system. */
+-struct sem {
+-	int	semval;		/* current value */
+-	/*
+-	 * PID of the process that last modified the semaphore. For
+-	 * Linux, specifically these are:
+-	 *  - semop
+-	 *  - semctl, via SETVAL and SETALL.
+-	 *  - at task exit when performing undo adjustments (see exit_sem).
+-	 */
+-	int	sempid;
+-	spinlock_t	lock;	/* spinlock for fine-grained semtimedop */
+-	struct list_head pending_alter; /* pending single-sop operations */
+-					/* that alter the semaphore */
+-	struct list_head pending_const; /* pending single-sop operations */
+-					/* that do not alter the semaphore*/
+-	time_t	sem_otime;	/* candidate for sem_otime */
+-} ____cacheline_aligned_in_smp;
+ 
+ /* One queue for each sleeping process in the system. */
+ struct sem_queue {
+@@ -175,7 +157,7 @@ static int sysvipc_sem_proc_show(struct
+  *	sem_array.sem_undo
+  *
+  * b) global or semaphore sem_lock() for read/write:
+- *	sem_array.sem_base[i].pending_{const,alter}:
++ *	sem_array.sems[i].pending_{const,alter}:
+  *
+  * c) special:
+  *	sem_undo_list.list_proc:
+@@ -250,7 +232,7 @@ static void unmerge_queues(struct sem_ar
+ 	 */
+ 	list_for_each_entry_safe(q, tq, &sma->pending_alter, list) {
+ 		struct sem *curr;
+-		curr = &sma->sem_base[q->sops[0].sem_num];
++		curr = &sma->sems[q->sops[0].sem_num];
+ 
+ 		list_add_tail(&q->list, &curr->pending_alter);
  	}
+@@ -270,7 +252,7 @@ static void merge_queues(struct sem_arra
+ {
+ 	int i;
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+-		struct sem *sem = sma->sem_base + i;
++		struct sem *sem = &sma->sems[i];
+ 
+ 		list_splice_init(&sem->pending_alter, &sma->pending_alter);
+ 	}
+@@ -306,7 +288,7 @@ static void complexmode_enter(struct sem
+ 	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+-		sem = sma->sem_base + i;
++		sem = &sma->sems[i];
+ 		spin_lock(&sem->lock);
+ 		spin_unlock(&sem->lock);
+ 	}
+@@ -366,7 +348,7 @@ static inline int sem_lock(struct sem_ar
+ 	 *
+ 	 * Both facts are tracked by use_global_mode.
+ 	 */
+-	sem = sma->sem_base + sops->sem_num;
++	sem = &sma->sems[sops->sem_num];
+ 
+ 	/*
+ 	 * Initial check for use_global_lock. Just an optimization,
+@@ -421,7 +403,7 @@ static inline void sem_unlock(struct sem
+ 		complexmode_tryleave(sma);
+ 		ipc_unlock_object(&sma->sem_perm);
+ 	} else {
+-		struct sem *sem = sma->sem_base + locknum;
++		struct sem *sem = &sma->sems[locknum];
+ 		spin_unlock(&sem->lock);
+ 	}
+ }
+@@ -487,7 +469,7 @@ static int newary(struct ipc_namespace *
+ 	if (ns->used_sems + nsems > ns->sc_semmns)
+ 		return -ENOSPC;
+ 
+-	size = sizeof(*sma) + nsems * sizeof(struct sem);
++	size = sizeof(*sma) + nsems * sizeof(sma->sems[0]);
+ 	sma = ipc_rcu_alloc(size);
+ 	if (!sma)
+ 		return -ENOMEM;
+@@ -504,12 +486,10 @@ static int newary(struct ipc_namespace *
+ 		return retval;
+ 	}
+ 
+-	sma->sem_base = (struct sem *) &sma[1];
+-
+ 	for (i = 0; i < nsems; i++) {
+-		INIT_LIST_HEAD(&sma->sem_base[i].pending_alter);
+-		INIT_LIST_HEAD(&sma->sem_base[i].pending_const);
+-		spin_lock_init(&sma->sem_base[i].lock);
++		INIT_LIST_HEAD(&sma->sems[i].pending_alter);
++		INIT_LIST_HEAD(&sma->sems[i].pending_const);
++		spin_lock_init(&sma->sems[i].lock);
+ 	}
+ 
+ 	sma->complex_count = 0;
+@@ -612,7 +592,7 @@ static int perform_atomic_semop_slow(str
+ 	un = q->undo;
+ 
+ 	for (sop = sops; sop < sops + nsops; sop++) {
+-		curr = sma->sem_base + sop->sem_num;
++		curr = &sma->sems[sop->sem_num];
+ 		sem_op = sop->sem_op;
+ 		result = curr->semval;
+ 
+@@ -639,7 +619,7 @@ static int perform_atomic_semop_slow(str
+ 	sop--;
+ 	pid = q->pid;
+ 	while (sop >= sops) {
+-		sma->sem_base[sop->sem_num].sempid = pid;
++		sma->sems[sop->sem_num].sempid = pid;
+ 		sop--;
+ 	}
+ 
+@@ -661,7 +641,7 @@ undo:
+ 	sop--;
+ 	while (sop >= sops) {
+ 		sem_op = sop->sem_op;
+-		sma->sem_base[sop->sem_num].semval -= sem_op;
++		sma->sems[sop->sem_num].semval -= sem_op;
+ 		if (sop->sem_flg & SEM_UNDO)
+ 			un->semadj[sop->sem_num] += sem_op;
+ 		sop--;
+@@ -692,7 +672,7 @@ static int perform_atomic_semop(struct s
+ 	 * until the operations can go through.
+ 	 */
+ 	for (sop = sops; sop < sops + nsops; sop++) {
+-		curr = sma->sem_base + sop->sem_num;
++		curr = &sma->sems[sop->sem_num];
+ 		sem_op = sop->sem_op;
+ 		result = curr->semval;
+ 
+@@ -716,7 +696,7 @@ static int perform_atomic_semop(struct s
+ 	}
+ 
+ 	for (sop = sops; sop < sops + nsops; sop++) {
+-		curr = sma->sem_base + sop->sem_num;
++		curr = &sma->sems[sop->sem_num];
+ 		sem_op = sop->sem_op;
+ 		result = curr->semval;
+ 
+@@ -815,7 +795,7 @@ static int wake_const_ops(struct sem_arr
+ 	if (semnum == -1)
+ 		pending_list = &sma->pending_const;
+ 	else
+-		pending_list = &sma->sem_base[semnum].pending_const;
++		pending_list = &sma->sems[semnum].pending_const;
+ 
+ 	list_for_each_entry_safe(q, tmp, pending_list, list) {
+ 		int error = perform_atomic_semop(sma, q);
+@@ -856,7 +836,7 @@ static int do_smart_wakeup_zero(struct s
+ 		for (i = 0; i < nsops; i++) {
+ 			int num = sops[i].sem_num;
+ 
+-			if (sma->sem_base[num].semval == 0) {
++			if (sma->sems[num].semval == 0) {
+ 				got_zero = 1;
+ 				semop_completed |= wake_const_ops(sma, num, wake_q);
+ 			}
+@@ -867,7 +847,7 @@ static int do_smart_wakeup_zero(struct s
+ 		 * Assume all were changed.
+ 		 */
+ 		for (i = 0; i < sma->sem_nsems; i++) {
+-			if (sma->sem_base[i].semval == 0) {
++			if (sma->sems[i].semval == 0) {
+ 				got_zero = 1;
+ 				semop_completed |= wake_const_ops(sma, i, wake_q);
+ 			}
+@@ -909,7 +889,7 @@ static int update_queue(struct sem_array
+ 	if (semnum == -1)
+ 		pending_list = &sma->pending_alter;
+ 	else
+-		pending_list = &sma->sem_base[semnum].pending_alter;
++		pending_list = &sma->sems[semnum].pending_alter;
+ 
+ again:
+ 	list_for_each_entry_safe(q, tmp, pending_list, list) {
+@@ -922,7 +902,7 @@ again:
+ 		 * be in the  per semaphore pending queue, and decrements
+ 		 * cannot be successful if the value is already 0.
+ 		 */
+-		if (semnum != -1 && sma->sem_base[semnum].semval == 0)
++		if (semnum != -1 && sma->sems[semnum].semval == 0)
+ 			break;
+ 
+ 		error = perform_atomic_semop(sma, q);
+@@ -959,9 +939,9 @@ again:
+ static void set_semotime(struct sem_array *sma, struct sembuf *sops)
+ {
+ 	if (sops == NULL) {
+-		sma->sem_base[0].sem_otime = get_seconds();
++		sma->sems[0].sem_otime = get_seconds();
+ 	} else {
+-		sma->sem_base[sops[0].sem_num].sem_otime =
++		sma->sems[sops[0].sem_num].sem_otime =
+ 							get_seconds();
+ 	}
+ }
+@@ -1067,9 +1047,9 @@ static int count_semcnt(struct sem_array
+ 	semcnt = 0;
+ 	/* First: check the simple operations. They are easy to evaluate */
+ 	if (count_zero)
+-		l = &sma->sem_base[semnum].pending_const;
++		l = &sma->sems[semnum].pending_const;
+ 	else
+-		l = &sma->sem_base[semnum].pending_alter;
++		l = &sma->sems[semnum].pending_alter;
+ 
+ 	list_for_each_entry(q, l, list) {
+ 		/* all task on a per-semaphore list sleep on exactly
+@@ -1124,7 +1104,7 @@ static void freeary(struct ipc_namespace
+ 		wake_up_sem_queue_prepare(q, -EIDRM, &wake_q);
+ 	}
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+-		struct sem *sem = sma->sem_base + i;
++		struct sem *sem = &sma->sems[i];
+ 		list_for_each_entry_safe(q, tq, &sem->pending_const, list) {
+ 			unlink_queue(sma, q);
+ 			wake_up_sem_queue_prepare(q, -EIDRM, &wake_q);
+@@ -1174,9 +1154,9 @@ static time_t get_semotime(struct sem_ar
+ 	int i;
+ 	time_t res;
+ 
+-	res = sma->sem_base[0].sem_otime;
++	res = sma->sems[0].sem_otime;
+ 	for (i = 1; i < sma->sem_nsems; i++) {
+-		time_t to = sma->sem_base[i].sem_otime;
++		time_t to = sma->sems[i].sem_otime;
+ 
+ 		if (to > res)
+ 			res = to;
+@@ -1325,7 +1305,7 @@ static int semctl_setval(struct ipc_name
+ 		return -EIDRM;
+ 	}
+ 
+-	curr = &sma->sem_base[semnum];
++	curr = &sma->sems[semnum];
+ 
+ 	ipc_assert_locked_object(&sma->sem_perm);
+ 	list_for_each_entry(un, &sma->list_id, list_id)
+@@ -1402,7 +1382,7 @@ static int semctl_main(struct ipc_namesp
+ 			}
+ 		}
+ 		for (i = 0; i < sma->sem_nsems; i++)
+-			sem_io[i] = sma->sem_base[i].semval;
++			sem_io[i] = sma->sems[i].semval;
+ 		sem_unlock(sma, -1);
+ 		rcu_read_unlock();
+ 		err = 0;
+@@ -1450,8 +1430,8 @@ static int semctl_main(struct ipc_namesp
+ 		}
+ 
+ 		for (i = 0; i < nsems; i++) {
+-			sma->sem_base[i].semval = sem_io[i];
+-			sma->sem_base[i].sempid = task_tgid_vnr(current);
++			sma->sems[i].semval = sem_io[i];
++			sma->sems[i].sempid = task_tgid_vnr(current);
+ 		}
+ 
+ 		ipc_assert_locked_object(&sma->sem_perm);
+@@ -1476,7 +1456,7 @@ static int semctl_main(struct ipc_namesp
+ 		err = -EIDRM;
+ 		goto out_unlock;
+ 	}
+-	curr = &sma->sem_base[semnum];
++	curr = &sma->sems[semnum];
+ 
+ 	switch (cmd) {
+ 	case GETVAL:
+@@ -1932,7 +1912,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	 */
+ 	if (nsops == 1) {
+ 		struct sem *curr;
+-		curr = &sma->sem_base[sops->sem_num];
++		curr = &sma->sems[sops->sem_num];
+ 
+ 		if (alter) {
+ 			if (sma->complex_count) {
+@@ -2146,7 +2126,7 @@ void exit_sem(struct task_struct *tsk)
+ 
+ 		/* perform adjustments registered in un */
+ 		for (i = 0; i < sma->sem_nsems; i++) {
+-			struct sem *semaphore = &sma->sem_base[i];
++			struct sem *semaphore = &sma->sems[i];
+ 			if (un->semadj[i]) {
+ 				semaphore->semval += un->semadj[i];
+ 				/*
 _
