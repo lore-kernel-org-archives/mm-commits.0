@@ -1,120 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 35/96] ipc: drop non-RCU allocation
-Date: Wed, 12 Jul 2017 14:34:47 -0700
-Message-ID: <20170712213447.FaBinhI2_%akpm@linux-foundation.org>
+Subject: [patch 37/96] ipc/shm: do not use ipc_rcu_free()
+Date: Wed, 12 Jul 2017 14:34:53 -0700
+Message-ID: <20170712213453.EbgR6qTnL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53518 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752726AbdGLVes (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:48 -0400
+        with ESMTP id S1752726AbdGLVey (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Kees Cook <keescook@chromium.org>
-Subject: ipc: drop non-RCU allocation
+Subject: ipc/shm: do not use ipc_rcu_free()
 
-The only users of ipc_alloc() were ipc_rcu_alloc() and the on-heap sem_io
-fall-back memory.  Better to just open-code these to make things easier to
-read.
+Avoid using ipc_rcu_free, since it just re-finds the original structure
+pointer.  For the pre-list-init failure path, there is no RCU needed,
+since it was just allocated.  It can be directly freed.
 
-[manfred@colorfullife.com: Rediff due to inclusion of memset() into ipc_rcu_alloc()]
-Link: http://lkml.kernel.org/r/20170525185107.12869-5-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20170525185107.12869-7-manfred@colorfullife.com
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c  |    8 +++++---
- ipc/util.c |   25 +------------------------
- ipc/util.h |    6 ------
- 3 files changed, 6 insertions(+), 33 deletions(-)
+ ipc/shm.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN ipc/sem.c~ipc-drop-non-rcu-allocation ipc/sem.c
---- a/ipc/sem.c~ipc-drop-non-rcu-allocation
-+++ a/ipc/sem.c
-@@ -1368,7 +1368,8 @@ static int semctl_main(struct ipc_namesp
- 			}
- 			sem_unlock(sma, -1);
- 			rcu_read_unlock();
--			sem_io = ipc_alloc(sizeof(ushort)*nsems);
-+			sem_io = kvmalloc_array(nsems, sizeof(ushort),
-+						GFP_KERNEL);
- 			if (sem_io == NULL) {
- 				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
- 				return -ENOMEM;
-@@ -1402,7 +1403,8 @@ static int semctl_main(struct ipc_namesp
- 		rcu_read_unlock();
- 
- 		if (nsems > SEMMSL_FAST) {
--			sem_io = ipc_alloc(sizeof(ushort)*nsems);
-+			sem_io = kvmalloc_array(nsems, sizeof(ushort),
-+						GFP_KERNEL);
- 			if (sem_io == NULL) {
- 				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
- 				return -ENOMEM;
-@@ -1480,7 +1482,7 @@ out_rcu_wakeup:
- 	wake_up_q(&wake_q);
- out_free:
- 	if (sem_io != fast_sem_io)
--		ipc_free(sem_io);
-+		kvfree(sem_io);
- 	return err;
+diff -puN ipc/shm.c~ipc-shm-do-not-use-ipc_rcu_free ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-do-not-use-ipc_rcu_free
++++ a/ipc/shm.c
+@@ -172,6 +172,11 @@ static inline void shm_lock_by_ptr(struc
+ 	ipc_lock_object(&ipcp->shm_perm);
  }
  
-diff -puN ipc/util.c~ipc-drop-non-rcu-allocation ipc/util.c
---- a/ipc/util.c~ipc-drop-non-rcu-allocation
-+++ a/ipc/util.c
-@@ -395,29 +395,6 @@ void ipc_rmid(struct ipc_ids *ids, struc
++static void __shm_free(struct shmid_kernel *shp)
++{
++	kvfree(shp);
++}
++
+ static void shm_rcu_free(struct rcu_head *head)
+ {
+ 	struct kern_ipc_perm *ptr = container_of(head, struct kern_ipc_perm,
+@@ -179,7 +184,7 @@ static void shm_rcu_free(struct rcu_head
+ 	struct shmid_kernel *shp = container_of(ptr, struct shmid_kernel,
+ 							shm_perm);
+ 	security_shm_free(shp);
+-	ipc_rcu_free(head);
++	__shm_free(shp);
  }
  
- /**
-- * ipc_alloc -	allocate ipc space
-- * @size: size desired
-- *
-- * Allocate memory from the appropriate pools and return a pointer to it.
-- * NULL is returned if the allocation fails
-- */
--void *ipc_alloc(int size)
--{
--	return kvmalloc(size, GFP_KERNEL);
--}
--
--/**
-- * ipc_free - free ipc space
-- * @ptr: pointer returned by ipc_alloc
-- *
-- * Free a block created with ipc_alloc().
-- */
--void ipc_free(void *ptr)
--{
--	kvfree(ptr);
--}
--
--/**
-  * ipc_rcu_alloc - allocate ipc space
-  * @size: size desired
-  *
-@@ -429,7 +406,7 @@ struct kern_ipc_perm *ipc_rcu_alloc(int
- 	/*
- 	 * We prepend the allocation with the rcu struct
- 	 */
--	struct kern_ipc_perm *out = ipc_alloc(size);
-+	struct kern_ipc_perm *out = kvmalloc(size, GFP_KERNEL);
- 	if (unlikely(!out))
- 		return NULL;
+ static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
+@@ -557,7 +562,7 @@ static int newseg(struct ipc_namespace *
+ 	shp->shm_perm.security = NULL;
+ 	error = security_shm_alloc(shp);
+ 	if (error) {
+-		ipc_rcu_putref(&shp->shm_perm, ipc_rcu_free);
++		__shm_free(shp);
+ 		return error;
+ 	}
  
-diff -puN ipc/util.h~ipc-drop-non-rcu-allocation ipc/util.h
---- a/ipc/util.h~ipc-drop-non-rcu-allocation
-+++ a/ipc/util.h
-@@ -107,12 +107,6 @@ void ipc_rmid(struct ipc_ids *, struct k
- /* must be called with ipcp locked */
- int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flg);
- 
--/* for rare, potentially huge allocations.
-- * both function can sleep
-- */
--void *ipc_alloc(int size);
--void ipc_free(void *ptr);
+_
