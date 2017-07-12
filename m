@@ -1,33 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [patch 54/96] kernel/watchdog: introduce
- arch_touch_nmi_watchdog()
-Date: Wed, 12 Jul 2017 14:35:43 -0700
-Message-ID: <20170712213543.V3eypNccN%akpm@linux-foundation.org>
+Subject: [patch 56/96] kernel/watchdog: provide
+ watchdog_nmi_reconfigure() for arch watchdogs
+Date: Wed, 12 Jul 2017 14:35:49 -0700
+Message-ID: <20170712213549.i5dbwcu04%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbdGLVft (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:49 -0400
+        with ESMTP id S1752710AbdGLVf4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, paulus@samba.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arnd@arndb.de, babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, paulus@samba.org, torvalds@linux-foundation.org
 
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: kernel/watchdog: introduce arch_touch_nmi_watchdog()
+Subject: kernel/watchdog: provide watchdog_nmi_reconfigure() for arch watchdogs
 
-For architectures that define HAVE_NMI_WATCHDOG, instead of having them
-provide the complete touch_nmi_watchdog() function, just have them provide
-arch_touch_nmi_watchdog().
+After reconfiguring watchdog sysctls etc., architecture specific watchdogs
+may not get all their parameters updated.
 
-This gives the generic code more flexibility in implementing this
-function, and arch implementations don't miss out on touching the
-softlockup watchdog or other generic details.
+watchdog_nmi_reconfigure() can be implemented to pull the new values in
+and set the arch NMI watchdog.
 
-Link: http://lkml.kernel.org/r/20170616065715.18390-3-npiggin@gmail.com
+[npiggin@gmail.com: add code comments]
+  Link: http://lkml.kernel.org/r/20170617125933.774d3858@roar.ozlabs.ibm.com
+[arnd@arndb.de: hide unused function]
+  Link: http://lkml.kernel.org/r/20170620204854.966601-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170616065715.18390-5-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Reviewed-by: Don Zickus <dzickus@redhat.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
 Tested-by: Babu Moger <babu.moger@oracle.com>	[sparc]
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
@@ -35,194 +37,116 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/nmi.h            |    2 +
- arch/blackfin/kernel/nmi.c                 |    2 -
- arch/mn10300/include/asm/nmi.h             |    2 +
- arch/mn10300/kernel/mn10300-watchdog-low.S |    8 ++---
- arch/mn10300/kernel/mn10300-watchdog.c     |    2 -
- arch/sparc/include/asm/nmi.h               |    1 
- arch/sparc/kernel/nmi.c                    |    6 +---
- include/linux/nmi.h                        |   27 +++++++++++--------
- kernel/watchdog_hld.c                      |    5 +--
- 9 files changed, 31 insertions(+), 24 deletions(-)
+ kernel/watchdog.c |   48 ++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 44 insertions(+), 4 deletions(-)
 
-diff -puN arch/blackfin/include/asm/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog arch/blackfin/include/asm/nmi.h
---- a/arch/blackfin/include/asm/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/blackfin/include/asm/nmi.h
-@@ -9,4 +9,6 @@
- 
- #include <linux/nmi.h>
- 
-+extern void arch_touch_nmi_watchdog(void);
-+
- #endif
-diff -puN arch/blackfin/kernel/nmi.c~watchdog-introduce-arch_touch_nmi_watchdog arch/blackfin/kernel/nmi.c
---- a/arch/blackfin/kernel/nmi.c~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/blackfin/kernel/nmi.c
-@@ -190,7 +190,7 @@ static int __init init_nmi_wdt(void)
- }
- device_initcall(init_nmi_wdt);
- 
--void touch_nmi_watchdog(void)
-+void arch_touch_nmi_watchdog(void)
- {
- 	atomic_set(&nmi_touched[smp_processor_id()], 1);
- }
-diff -puN arch/mn10300/include/asm/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog arch/mn10300/include/asm/nmi.h
---- a/arch/mn10300/include/asm/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/mn10300/include/asm/nmi.h
-@@ -11,4 +11,6 @@
- #ifndef _ASM_NMI_H
- #define _ASM_NMI_H
- 
-+extern void arch_touch_nmi_watchdog(void);
-+
- #endif /* _ASM_NMI_H */
-diff -puN arch/mn10300/kernel/mn10300-watchdog-low.S~watchdog-introduce-arch_touch_nmi_watchdog arch/mn10300/kernel/mn10300-watchdog-low.S
---- a/arch/mn10300/kernel/mn10300-watchdog-low.S~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/mn10300/kernel/mn10300-watchdog-low.S
-@@ -50,9 +50,9 @@ watchdog_handler:
- #   we can't inline it)
- #
- ###############################################################################
--	.globl	touch_nmi_watchdog
--	.type	touch_nmi_watchdog,@function
--touch_nmi_watchdog:
-+	.globl	arch_touch_nmi_watchdog
-+	.type	arch_touch_nmi_watchdog,@function
-+arch_touch_nmi_watchdog:
- 	clr	d0
- 	clr	d1
- 	mov	watchdog_alert_counter, a0
-@@ -63,4 +63,4 @@ touch_nmi_watchdog:
- 	lne
- 	ret	[],0
- 
--	.size	touch_nmi_watchdog,.-touch_nmi_watchdog
-+	.size	arch_touch_nmi_watchdog,.-arch_touch_nmi_watchdog
-diff -puN arch/mn10300/kernel/mn10300-watchdog.c~watchdog-introduce-arch_touch_nmi_watchdog arch/mn10300/kernel/mn10300-watchdog.c
---- a/arch/mn10300/kernel/mn10300-watchdog.c~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/mn10300/kernel/mn10300-watchdog.c
-@@ -31,7 +31,7 @@ static unsigned int watchdog;
- static unsigned int watchdog_hz = 1;
- unsigned int watchdog_alert_counter[NR_CPUS];
- 
--EXPORT_SYMBOL(touch_nmi_watchdog);
-+EXPORT_SYMBOL(arch_touch_nmi_watchdog);
- 
+diff -puN kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs
++++ a/kernel/watchdog.c
+@@ -114,6 +114,10 @@ int __read_mostly watchdog_suspended;
  /*
-  * the best way to detect whether a CPU has a 'hard lockup' problem
-diff -puN arch/sparc/include/asm/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog arch/sparc/include/asm/nmi.h
---- a/arch/sparc/include/asm/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/sparc/include/asm/nmi.h
-@@ -7,6 +7,7 @@ void nmi_adjust_hz(unsigned int new_hz);
- 
- extern atomic_t nmi_active;
- 
-+void arch_touch_nmi_watchdog(void);
- void start_nmi_watchdog(void *unused);
- void stop_nmi_watchdog(void *unused);
- 
-diff -puN arch/sparc/kernel/nmi.c~watchdog-introduce-arch_touch_nmi_watchdog arch/sparc/kernel/nmi.c
---- a/arch/sparc/kernel/nmi.c~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/arch/sparc/kernel/nmi.c
-@@ -51,7 +51,7 @@ static DEFINE_PER_CPU(unsigned int, last
- static DEFINE_PER_CPU(long, alert_counter);
- static DEFINE_PER_CPU(int, nmi_touch);
- 
--void touch_nmi_watchdog(void)
-+void arch_touch_nmi_watchdog(void)
- {
- 	if (atomic_read(&nmi_active)) {
- 		int cpu;
-@@ -61,10 +61,8 @@ void touch_nmi_watchdog(void)
- 				per_cpu(nmi_touch, cpu) = 1;
- 		}
- 	}
--
--	touch_softlockup_watchdog();
- }
--EXPORT_SYMBOL(touch_nmi_watchdog);
-+EXPORT_SYMBOL(arch_touch_nmi_watchdog);
- 
- static void die_nmi(const char *str, struct pt_regs *regs, int do_panic)
- {
-diff -puN include/linux/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog include/linux/nmi.h
---- a/include/linux/nmi.h~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/include/linux/nmi.h
-@@ -6,6 +6,9 @@
- 
- #include <linux/sched.h>
- #include <asm/irq.h>
-+#if defined(CONFIG_HAVE_NMI_WATCHDOG)
-+#include <asm/nmi.h>
-+#endif
- 
- #ifdef CONFIG_LOCKUP_DETECTOR
- extern void touch_softlockup_watchdog_sched(void);
-@@ -58,6 +61,18 @@ static inline void reset_hung_task_detec
- #define NMI_WATCHDOG_ENABLED      (1 << NMI_WATCHDOG_ENABLED_BIT)
- #define SOFT_WATCHDOG_ENABLED     (1 << SOFT_WATCHDOG_ENABLED_BIT)
- 
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR)
-+extern void hardlockup_detector_disable(void);
-+#else
-+static inline void hardlockup_detector_disable(void) {}
-+#endif
-+
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR) || defined(CONFIG_HAVE_NMI_WATCHDOG)
-+extern void arch_touch_nmi_watchdog(void);
-+#else
-+static inline void arch_touch_nmi_watchdog(void) {}
-+#endif
-+
- /**
-  * touch_nmi_watchdog - restart NMI watchdog timeout.
-  * 
-@@ -65,21 +80,11 @@ static inline void reset_hung_task_detec
-  * may be used to reset the timeout - for code which intentionally
-  * disables interrupts for a long time. This call is stateless.
+  * These functions can be overridden if an architecture implements its
+  * own hardlockup detector.
++ *
++ * watchdog_nmi_enable/disable can be implemented to start and stop when
++ * softlockup watchdog threads start and stop. The arch must select the
++ * SOFTLOCKUP_DETECTOR Kconfig.
   */
--#if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
--#include <asm/nmi.h>
--extern void touch_nmi_watchdog(void);
--#else
- static inline void touch_nmi_watchdog(void)
+ int __weak watchdog_nmi_enable(unsigned int cpu)
  {
-+	arch_touch_nmi_watchdog();
- 	touch_softlockup_watchdog();
- }
--#endif
--
--#if defined(CONFIG_HARDLOCKUP_DETECTOR)
--extern void hardlockup_detector_disable(void);
--#else
--static inline void hardlockup_detector_disable(void) {}
--#endif
- 
- /*
-  * Create trigger_all_cpu_backtrace() out of the arch-provided
-diff -puN kernel/watchdog_hld.c~watchdog-introduce-arch_touch_nmi_watchdog kernel/watchdog_hld.c
---- a/kernel/watchdog_hld.c~watchdog-introduce-arch_touch_nmi_watchdog
-+++ a/kernel/watchdog_hld.c
-@@ -56,7 +56,7 @@ static int __init hardlockup_panic_setup
- }
- __setup("nmi_watchdog=", hardlockup_panic_setup);
- 
--void touch_nmi_watchdog(void)
-+void arch_touch_nmi_watchdog(void)
+@@ -123,6 +127,22 @@ void __weak watchdog_nmi_disable(unsigne
  {
- 	/*
- 	 * Using __raw here because some code paths have
-@@ -66,9 +66,8 @@ void touch_nmi_watchdog(void)
- 	 * going off.
- 	 */
- 	raw_cpu_write(watchdog_nmi_touch, true);
--	touch_softlockup_watchdog();
  }
--EXPORT_SYMBOL(touch_nmi_watchdog);
-+EXPORT_SYMBOL(arch_touch_nmi_watchdog);
  
- static struct perf_event_attr wd_hw_attr = {
- 	.type		= PERF_TYPE_HARDWARE,
++/*
++ * watchdog_nmi_reconfigure can be implemented to be notified after any
++ * watchdog configuration change. The arch hardlockup watchdog should
++ * respond to the following variables:
++ * - nmi_watchdog_enabled
++ * - watchdog_thresh
++ * - watchdog_cpumask
++ * - sysctl_hardlockup_all_cpu_backtrace
++ * - hardlockup_panic
++ * - watchdog_suspended
++ */
++void __weak watchdog_nmi_reconfigure(void)
++{
++}
++
++
+ #ifdef CONFIG_SOFTLOCKUP_DETECTOR
+ 
+ /* Helper for online, unparked cpus. */
+@@ -600,6 +620,14 @@ static void watchdog_disable_all_cpus(vo
+ 	}
+ }
+ 
++#ifdef CONFIG_SYSCTL
++static int watchdog_update_cpus(void)
++{
++	return smpboot_update_cpumask_percpu_thread(
++		    &watchdog_threads, &watchdog_cpumask);
++}
++#endif
++
+ #else /* SOFTLOCKUP */
+ static int watchdog_park_threads(void)
+ {
+@@ -619,6 +647,13 @@ static void watchdog_disable_all_cpus(vo
+ {
+ }
+ 
++#ifdef CONFIG_SYSCTL
++static int watchdog_update_cpus(void)
++{
++	return 0;
++}
++#endif
++
+ static void set_sample_period(void)
+ {
+ }
+@@ -651,6 +686,8 @@ int lockup_detector_suspend(void)
+ 		watchdog_enabled = 0;
+ 	}
+ 
++	watchdog_nmi_reconfigure();
++
+ 	mutex_unlock(&watchdog_proc_mutex);
+ 
+ 	return ret;
+@@ -671,6 +708,8 @@ void lockup_detector_resume(void)
+ 	if (watchdog_running && !watchdog_suspended)
+ 		watchdog_unpark_threads();
+ 
++	watchdog_nmi_reconfigure();
++
+ 	mutex_unlock(&watchdog_proc_mutex);
+ 	put_online_cpus();
+ }
+@@ -696,6 +735,8 @@ static int proc_watchdog_update(void)
+ 	else
+ 		watchdog_disable_all_cpus();
+ 
++	watchdog_nmi_reconfigure();
++
+ 	return err;
+ 
+ }
+@@ -881,12 +922,11 @@ int proc_watchdog_cpumask(struct ctl_tab
+ 			 * a temporary cpumask, so we are likely not in a
+ 			 * position to do much else to make things better.
+ 			 */
+-#ifdef CONFIG_SOFTLOCKUP_DETECTOR
+-			if (smpboot_update_cpumask_percpu_thread(
+-				    &watchdog_threads, &watchdog_cpumask) != 0)
++			if (watchdog_update_cpus() != 0)
+ 				pr_err("cpumask update failed\n");
+-#endif
+ 		}
++
++		watchdog_nmi_reconfigure();
+ 	}
+ out:
+ 	mutex_unlock(&watchdog_proc_mutex);
 _
