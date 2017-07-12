@@ -1,64 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 36/96] ipc/sem: do not use ipc_rcu_free()
-Date: Wed, 12 Jul 2017 14:34:50 -0700
-Message-ID: <20170712213450.nu3q81J4r%akpm@linux-foundation.org>
+Subject: [patch 34/96] include/linux/sem.h: correctly document
+ sem_ctime
+Date: Wed, 12 Jul 2017 14:34:44 -0700
+Message-ID: <20170712213444.mQwSJu_vq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53500 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752726AbdGLVev (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:51 -0400
+        with ESMTP id S1752726AbdGLVep (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: 1vier1@web.de, akpm@linux-foundation.org, dave@stgolabs.net, fabf@skynet.be, keescook@chromium.org, manfred@colorfullife.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: ipc/sem: do not use ipc_rcu_free()
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: include/linux/sem.h: correctly document sem_ctime
 
-Avoid using ipc_rcu_free, since it just re-finds the original structure
-pointer.  For the pre-list-init failure path, there is no RCU needed,
-since it was just allocated.  It can be directly freed.
+sem_ctime is initialized to the semget() time and then updated at every
+semctl() that changes the array.
+Thus it does not represent the time of the last change.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-6-manfred@colorfullife.com
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Especially, semop() calls are only stored in sem_otime, not in sem_ctime.
+
+This is already described in ipc/sem.c, I just overlooked that there is
+a comment in include/linux/sem.h and man semctl(2) as well.
+
+So: Correct wrong comments.
+
+Link: http://lkml.kernel.org/r/20170515171912.6298-4-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: <1vier1@web.de>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/sem.h      |    2 +-
+ include/uapi/linux/sem.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/sem.c~ipc-sem-do-not-use-ipc_rcu_free ipc/sem.c
---- a/ipc/sem.c~ipc-sem-do-not-use-ipc_rcu_free
-+++ a/ipc/sem.c
-@@ -258,13 +258,18 @@ static void merge_queues(struct sem_arra
- 	}
- }
- 
-+static void __sem_free(struct sem_array *sma)
-+{
-+	kvfree(sma);
-+}
-+
- static void sem_rcu_free(struct rcu_head *head)
- {
- 	struct kern_ipc_perm *p = container_of(head, struct kern_ipc_perm, rcu);
- 	struct sem_array *sma = container_of(p, struct sem_array, sem_perm);
- 
- 	security_sem_free(sma);
--	ipc_rcu_free(head);
-+	__sem_free(sma);
- }
- 
- /*
-@@ -482,7 +487,7 @@ static int newary(struct ipc_namespace *
- 	sma->sem_perm.security = NULL;
- 	retval = security_sem_alloc(sma);
- 	if (retval) {
--		ipc_rcu_putref(&sma->sem_perm, ipc_rcu_free);
-+		__sem_free(sma);
- 		return retval;
- 	}
- 
+diff -puN include/linux/sem.h~include-linux-semh-correctly-document-sem_ctime include/linux/sem.h
+--- a/include/linux/sem.h~include-linux-semh-correctly-document-sem_ctime
++++ a/include/linux/sem.h
+@@ -30,7 +30,7 @@ struct sem {
+ /* One sem_array data structure for each set of semaphores in the system. */
+ struct sem_array {
+ 	struct kern_ipc_perm	sem_perm;	/* permissions .. see ipc.h */
+-	time_t			sem_ctime;	/* last change time */
++	time_t			sem_ctime;	/* create/last semctl() time */
+ 	struct list_head	pending_alter;	/* pending operations */
+ 						/* that alter the array */
+ 	struct list_head	pending_const;	/* pending complex operations */
+diff -puN include/uapi/linux/sem.h~include-linux-semh-correctly-document-sem_ctime include/uapi/linux/sem.h
+--- a/include/uapi/linux/sem.h~include-linux-semh-correctly-document-sem_ctime
++++ a/include/uapi/linux/sem.h
+@@ -23,7 +23,7 @@
+ struct semid_ds {
+ 	struct ipc_perm	sem_perm;		/* permissions .. see ipc.h */
+ 	__kernel_time_t	sem_otime;		/* last semop time */
+-	__kernel_time_t	sem_ctime;		/* last change time */
++	__kernel_time_t	sem_ctime;		/* create/last semctl() time */
+ 	struct sem	*sem_base;		/* ptr to first semaphore in array */
+ 	struct sem_queue *sem_pending;		/* pending operations to be processed */
+ 	struct sem_queue **sem_pending_last;	/* last pending operation */
 _
