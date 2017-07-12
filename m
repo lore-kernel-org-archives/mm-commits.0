@@ -1,86 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mark-create_huge_pmd-inline-to-prevent-build-failure.patch
- added to -mm tree
-Date: Wed, 12 Jul 2017 13:37:12 -0700
-Message-ID: <59668878.NSFOOsvnFINXMPO3%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch removed
+ from -mm tree
+Date: Wed, 12 Jul 2017 14:14:35 -0700
+Message-ID: <5966913b.o+6Y4tEOM/D0qQQx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52106 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751862AbdGLUhN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 16:37:13 -0400
+        with ESMTP id S1753354AbdGLVOh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:14:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, arnd@arndb.de, mm-commits@vger.kernel.org
+To: arnd@arndb.de, abbotti@mev.co.uk, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: mark create_huge_pmd() inline to prevent build failure
-has been added to the -mm tree.  Its filename is
-     mm-mark-create_huge_pmd-inline-to-prevent-build-failure.patch
+     Subject: kernel.h: fix new warnings for container_of()
+has been removed from the -mm tree.  Its filename was
+     kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mark-create_huge_pmd-inline-to-prevent-build-failure.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mark-create_huge_pmd-inline-to-prevent-build-failure.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: mm/memory.c: mark create_huge_pmd() inline to prevent build failure
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kernel.h: fix new warnings for container_of()
 
-With gcc 4.1.2:
+I see new warnings with gcc-7.0.1 with the modified container_of():
 
-    mm/memory.o: In function `create_huge_pmd':
-    memory.c:(.text+0x93e): undefined reference to `do_huge_pmd_anonymous_page'
+fs/f2fs/dir.c: In function 'F2FS_I':
+fs/f2fs/f2fs.h:1122:385: note: found mismatched ssa struct pointer types: 'struct f2fs_inode_info' and 'struct inode'
 
-Interestingly, create_huge_pmd() is emitted in the assembler output, but
-never called.
+This seems to happen for all structures that have a zero offset
+between the member and the container structure, i.e. idential
+pointers.
 
-Converting transparent_hugepage_enabled() from a macro to a static
-inline function reduced the ability of the compiler to remove unused
-code.
+Reverting to an intermediate pointer avoids the warning, and using
+a void pointer instead of the target type should also avoid
+regressing on the previous patch again.
 
-Fix this by marking create_huge_pmd() inline.
-
-Fixes: 16981d763501c0e0 ("mm: improve readability of transparent_hugepage_enabled()")
-Link: http://lkml.kernel.org/r/1499842660-10665-1-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: mmotm ("kernel.h: handle pointers to arrays better in container_of()")
+Link: http://lkml.kernel.org/r/20170620200940.90557-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Ian Abbott <abbotti@mev.co.uk>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-mark-create_huge_pmd-inline-to-prevent-build-failure mm/memory.c
---- a/mm/memory.c~mm-mark-create_huge_pmd-inline-to-prevent-build-failure
-+++ a/mm/memory.c
-@@ -3591,7 +3591,7 @@ out:
- 	return 0;
- }
+diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of-fix
++++ a/include/linux/kernel.h
+@@ -856,10 +856,11 @@ static inline void ftrace_dump(enum ftra
+  *
+  */
+ #define container_of(ptr, type, member) ({				\
++	void *__mptr = (void *)(ptr);					\
+ 	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
+ 			 !__same_type(*(ptr), void),			\
+ 			 "pointer type mismatch in container_of()");	\
+-	((type *)((char *)(ptr) - offsetof(type, member))); })
++	((type *)(__mptr - offsetof(type, member))); })
  
--static int create_huge_pmd(struct vm_fault *vmf)
-+static inline int create_huge_pmd(struct vm_fault *vmf)
- {
- 	if (vma_is_anonymous(vmf->vma))
- 		return do_huge_pmd_anonymous_page(vmf);
+ /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
+ #ifdef CONFIG_FTRACE_MCOUNT_RECORD
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-mark-create_huge_pmd-inline-to-prevent-build-failure.patch
+kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
 
