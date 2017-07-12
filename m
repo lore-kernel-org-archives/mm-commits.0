@@ -1,93 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/96] powerpc/fadump: use the correct
- VMCOREINFO_NOTE_SIZE for phdr
-Date: Wed, 12 Jul 2017 14:33:17 -0700
-Message-ID: <20170712213317.Hd4REZZcT%akpm@linux-foundation.org>
+Subject: [patch 10/96] sysctl: kdoc'ify sysctl_writes_strict
+Date: Wed, 12 Jul 2017 14:33:30 -0700
+Message-ID: <20170712213330.eh8K9L1nC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53180 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754241AbdGLVdT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:19 -0400
+        with ESMTP id S1754445AbdGLVdc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, xlpang@redhat.com
+To: adobriyan@gmail.com, akpm@linux-foundation.org, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: powerpc/fadump: use the correct VMCOREINFO_NOTE_SIZE for phdr
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: sysctl: kdoc'ify sysctl_writes_strict
 
-vmcoreinfo_max_size stands for the vmcoreinfo_data, the correct one we
-should use is vmcoreinfo_note whose total size is VMCOREINFO_NOTE_SIZE.
+Document the different sysctl_writes_strict modes in code.
 
-Like explained in commit 77019967f06b ("kdump: fix exported size of
-vmcoreinfo note"), it should not affect the actual function, but we better
-fix it, also this change should be safe and backward compatible.
-
-After this, we can get rid of variable vmcoreinfo_max_size, let's use the
-corresponding macros directly, fewer variables means more safety for
-vmcoreinfo operation.
-
-[xlpang@redhat.com: fix build warning]
-  Link: http://lkml.kernel.org/r/1494830606-27736-1-git-send-email-xlpang@redhat.com
-Link: http://lkml.kernel.org/r/1493281021-20737-2-git-send-email-xlpang@redhat.com
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Reviewed-by: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
-Reviewed-by: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20170519033554.18592-3-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/fadump.c |    3 +--
- include/linux/crash_core.h   |    1 -
- kernel/crash_core.c          |    3 +--
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |   29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -999,8 +999,7 @@ static int fadump_create_elfcore_headers
+diff -puN kernel/sysctl.c~sysctl-kdocify-sysctl_writes_strict kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-kdocify-sysctl_writes_strict
++++ a/kernel/sysctl.c
+@@ -174,11 +174,32 @@ extern int no_unaligned_warning;
  
- 	phdr->p_paddr	= fadump_relocate(paddr_vmcoreinfo_note());
- 	phdr->p_offset	= phdr->p_paddr;
--	phdr->p_memsz	= vmcoreinfo_max_size;
--	phdr->p_filesz	= vmcoreinfo_max_size;
-+	phdr->p_memsz	= phdr->p_filesz = VMCOREINFO_NOTE_SIZE;
+ #ifdef CONFIG_PROC_SYSCTL
  
- 	/* Increment number of program headers. */
- 	(elf->e_phnum)++;
-diff -puN include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr include/linux/crash_core.h
---- a/include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
-+++ a/include/linux/crash_core.h
-@@ -58,7 +58,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+-#define SYSCTL_WRITES_LEGACY	-1
+-#define SYSCTL_WRITES_WARN	 0
+-#define SYSCTL_WRITES_STRICT	 1
++/**
++ * enum sysctl_writes_mode - supported sysctl write modes
++ *
++ * @SYSCTL_WRITES_LEGACY: each write syscall must fully contain the sysctl value
++ * 	to be written, and multiple writes on the same sysctl file descriptor
++ * 	will rewrite the sysctl value, regardless of file position. No warning
++ * 	is issued when the initial position is not 0.
++ * @SYSCTL_WRITES_WARN: same as above but warn when the initial file position is
++ * 	not 0.
++ * @SYSCTL_WRITES_STRICT: writes to numeric sysctl entries must always be at
++ * 	file position 0 and the value must be fully contained in the buffer
++ * 	sent to the write syscall. If dealing with strings respect the file
++ * 	position, but restrict this to the max length of the buffer, anything
++ * 	passed the max lenght will be ignored. Multiple writes will append
++ * 	to the buffer.
++ *
++ * These write modes control how current file position affects the behavior of
++ * updating sysctl values through the proc interface on each write.
++ */
++enum sysctl_writes_mode {
++	SYSCTL_WRITES_LEGACY		= -1,
++	SYSCTL_WRITES_WARN		= 0,
++	SYSCTL_WRITES_STRICT		= 1,
++};
  
- extern u32 *vmcoreinfo_note;
- extern size_t vmcoreinfo_size;
--extern size_t vmcoreinfo_max_size;
+-static int sysctl_writes_strict = SYSCTL_WRITES_STRICT;
++static enum sysctl_writes_mode sysctl_writes_strict = SYSCTL_WRITES_STRICT;
  
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len);
-diff -puN kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr kernel/crash_core.c
---- a/kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
-+++ a/kernel/crash_core.c
-@@ -16,7 +16,6 @@
- /* vmcoreinfo stuff */
- static unsigned char *vmcoreinfo_data;
- size_t vmcoreinfo_size;
--size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
- u32 *vmcoreinfo_note;
- 
- /*
-@@ -343,7 +342,7 @@ void vmcoreinfo_append_str(const char *f
- 	r = vscnprintf(buf, sizeof(buf), fmt, args);
- 	va_end(args);
- 
--	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
-+	r = min(r, (size_t)VMCOREINFO_BYTES - vmcoreinfo_size);
- 
- 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
- 
+ static int proc_do_cad_pid(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos);
 _
