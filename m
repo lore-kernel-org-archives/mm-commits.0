@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
-Subject: [patch 66/96] fork,random: use get_random_canary() to set
- tsk->stack_canary
-Date: Wed, 12 Jul 2017 14:36:20 -0700
-Message-ID: <20170712213620.OI2LFcF1c%akpm@linux-foundation.org>
+Subject: [patch 69/96] sh64: ascii armor the sh64 boot init stack
+ canary
+Date: Wed, 12 Jul 2017 14:36:29 -0700
+Message-ID: <20170712213629.u5nglYMYj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54934 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752675AbdGLVgV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:36:21 -0400
+        with ESMTP id S1753280AbdGLVgb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:36:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, catalin.marinas@arm.com, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org, tytso@mit.edu, ysato@users.sourceforge.jp
 
 From: Rik van Riel <riel@redhat.com>
-Subject: fork,random: use get_random_canary() to set tsk->stack_canary
+Subject: sh64: ascii armor the sh64 boot init stack canary
 
 Use the ascii-armor canary to prevent unterminated C string overflows from
 being able to successfully overwrite the canary, even if they somehow
@@ -22,7 +22,7 @@ obtain the canary value.
 
 Inspired by execshield ascii-armor and Daniel Micay's linux-hardened tree.
 
-Link: http://lkml.kernel.org/r/20170524155751.424-3-riel@redhat.com
+Link: http://lkml.kernel.org/r/20170524123446.78510066@annuminas.surriel.com
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Daniel Micay <danielmicay@gmail.com>
@@ -35,19 +35,18 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sh/include/asm/stackprotector.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/fork.c~forkrandom-use-get_random_canary-to-set-tsk-stack_canary kernel/fork.c
---- a/kernel/fork.c~forkrandom-use-get_random_canary-to-set-tsk-stack_canary
-+++ a/kernel/fork.c
-@@ -554,7 +554,7 @@ static struct task_struct *dup_task_stru
- 	set_task_stack_end_magic(tsk);
+diff -puN arch/sh/include/asm/stackprotector.h~sh64-ascii-armor-the-sh64-boot-init-stack-canary arch/sh/include/asm/stackprotector.h
+--- a/arch/sh/include/asm/stackprotector.h~sh64-ascii-armor-the-sh64-boot-init-stack-canary
++++ a/arch/sh/include/asm/stackprotector.h
+@@ -19,6 +19,7 @@ static __always_inline void boot_init_st
+ 	/* Try to get a semi random initial value. */
+ 	get_random_bytes(&canary, sizeof(canary));
+ 	canary ^= LINUX_VERSION_CODE;
++	canary &= CANARY_MASK;
  
- #ifdef CONFIG_CC_STACKPROTECTOR
--	tsk->stack_canary = get_random_long();
-+	tsk->stack_canary = get_random_canary();
- #endif
- 
- 	/*
+ 	current->stack_canary = canary;
+ 	__stack_chk_guard = current->stack_canary;
 _
