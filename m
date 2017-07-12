@@ -1,43 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 39/96] ipc/util: drop ipc_rcu_free()
-Date: Wed, 12 Jul 2017 14:34:59 -0700
-Message-ID: <20170712213459.QSgQYJUe7%akpm@linux-foundation.org>
+Subject: [patch 40/96] ipc/sem: avoid ipc_rcu_alloc()
+Date: Wed, 12 Jul 2017 14:35:02 -0700
+Message-ID: <20170712213502.0x3yQAhOO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53570 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753452AbdGLVfA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:00 -0400
+        with ESMTP id S1753452AbdGLVfD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Kees Cook <keescook@chromium.org>
-Subject: ipc/util: drop ipc_rcu_free()
+Subject: ipc/sem: avoid ipc_rcu_alloc()
 
-There are no more callers of ipc_rcu_free(), so remove it.
+Instead of using ipc_rcu_alloc() which only performs the refcount bump,
+open code it to perform better sem-specific checks.  This also allows for
+sem_array structure layout to be randomized in the future.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-9-manfred@colorfullife.com
+[manfred@colorfullife.com: Rediff, because the memset was temporarily inside ipc_rcu_alloc()]
+Link: http://lkml.kernel.org/r/20170525185107.12869-10-manfred@colorfullife.com
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    7 -------
- ipc/util.h |    1 -
- 2 files changed, 8 deletions(-)
+ ipc/sem.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN ipc/util.c~ipc-util-drop-ipc_rcu_free ipc/util.c
---- a/ipc/util.c~ipc-util-drop-ipc_rcu_free
-+++ a/ipc/util.c
-@@ -429,13 +429,6 @@ void ipc_rcu_putref(struct kern_ipc_perm
- 	call_rcu(&ptr->rcu, func);
+diff -puN ipc/sem.c~ipc-sem-avoid-ipc_rcu_alloc ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-avoid-ipc_rcu_alloc
++++ a/ipc/sem.c
+@@ -451,6 +451,25 @@ static inline void sem_rmid(struct ipc_n
+ 	ipc_rmid(&sem_ids(ns), &s->sem_perm);
  }
  
--void ipc_rcu_free(struct rcu_head *h)
--{
--	struct kern_ipc_perm *ptr = container_of(h, struct kern_ipc_perm, rcu);
--
--	kvfree(ptr);
--}
++static struct sem_array *sem_alloc(size_t nsems)
++{
++	struct sem_array *sma;
++	size_t size;
++
++	if (nsems > (INT_MAX - sizeof(*sma)) / sizeof(sma->sems[0]))
++		return NULL;
++
++	size = sizeof(*sma) + nsems * sizeof(sma->sems[0]);
++	sma = kvmalloc(size, GFP_KERNEL);
++	if (unlikely(!sma))
++		return NULL;
++
++	memset(sma, 0, size);
++	atomic_set(&sma->sem_perm.refcount, 1);
++
++	return sma;
++}
++
+ /**
+  * newary - Create a new semaphore set
+  * @ns: namespace
+@@ -463,7 +482,6 @@ static int newary(struct ipc_namespace *
+ 	int id;
+ 	int retval;
+ 	struct sem_array *sma;
+-	int size;
+ 	key_t key = params->key;
+ 	int nsems = params->u.nsems;
+ 	int semflg = params->flg;
+@@ -474,10 +492,7 @@ static int newary(struct ipc_namespace *
+ 	if (ns->used_sems + nsems > ns->sc_semmns)
+ 		return -ENOSPC;
+ 
+-	BUILD_BUG_ON(offsetof(struct sem_array, sem_perm) != 0);
