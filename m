@@ -1,71 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] watchdog-split-up-config-options-fix.patch
- removed from -mm tree
-Date: Wed, 12 Jul 2017 14:18:31 -0700
-Message-ID: <59669227.p/6VXJUEiFDbyDeR%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix.patch removed
+ from -mm tree
+Date: Wed, 12 Jul 2017 14:19:02 -0700
+Message-ID: <59669246.QIIT0igNHM8HXOKT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52566 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752363AbdGLVSc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:18:32 -0400
+        with ESMTP id S1753447AbdGLVTD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:19:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@gmail.com, mm-commits@vger.kernel.org
+To: npiggin@gmail.com, babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog-split-up-config-options-fix
+     Subject: watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-split-up-config-options-fix.patch
+     watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix.patch
 
-This patch was dropped because it was folded into watchdog-split-up-config-options.patch
+This patch was dropped because it was folded into watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: watchdog-split-up-config-options-fix
+Subject: watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix
 
-Link: http://lkml.kernel.org/r/20170617223522.66c0ad88@roar.ozlabs.ibm.com
+add code comments
 
+Link: http://lkml.kernel.org/r/20170617125933.774d3858@roar.ozlabs.ibm.com
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Babu Moger <babu.moger@oracle.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ kernel/watchdog.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN arch/Kconfig~watchdog-split-up-config-options-fix arch/Kconfig
---- a/arch/Kconfig~watchdog-split-up-config-options-fix
-+++ a/arch/Kconfig
-@@ -198,9 +198,6 @@ config HAVE_KPROBES_ON_FTRACE
- config HAVE_NMI
- 	bool
+diff -puN kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix
++++ a/kernel/watchdog.c
+@@ -114,6 +114,10 @@ int __read_mostly watchdog_suspended;
+ /*
+  * These functions can be overridden if an architecture implements its
+  * own hardlockup detector.
++ *
++ * watchdog_nmi_enable/disable can be implemented to start and stop when
++ * softlockup watchdog threads start and stop. The arch must select the
++ * SOFTLOCKUP_DETECTOR Kconfig.
+  */
+ int __weak watchdog_nmi_enable(unsigned int cpu)
+ {
+@@ -123,6 +127,17 @@ void __weak watchdog_nmi_disable(unsigne
+ {
+ }
  
--config HAVE_NMI_WATCHDOG
--	depends on HAVE_NMI
--	bool
- #
- # An arch should select this if it provides all these things:
- #
-@@ -288,7 +285,6 @@ config HAVE_PERF_EVENTS_NMI
- 	  subsystem.  Also has support for calculating CPU cycle events
- 	  to determine how many clock cycles in a given period.
- 
--
- config HAVE_HARDLOCKUP_DETECTOR_PERF
- 	bool
- 	depends on HAVE_PERF_EVENTS_NMI
-@@ -297,6 +293,7 @@ config HAVE_HARDLOCKUP_DETECTOR_PERF
- 	  detector. Must define HAVE_PERF_EVENTS_NMI.
- 
- config HAVE_NMI_WATCHDOG
-+	depends on HAVE_NMI
- 	bool
- 	help
- 	  The arch provides a low level NMI watchdog. It provides
-@@ -310,7 +307,6 @@ config HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	  a superset of the HAVE_NMI_WATCHDOG. It also conforms to config
- 	  interfaces and parameters provided by hardlockup detector subsystem.
- 
++/*
++ * watchdog_nmi_reconfigure can be implemented to be notified after any
++ * watchdog configuration change. The arch hardlockup watchdog should
++ * respond to the following variables:
++ * - nmi_watchdog_enabled
++ * - watchdog_thresh
++ * - watchdog_cpumask
++ * - sysctl_hardlockup_all_cpu_backtrace
++ * - hardlockup_panic
++ * - watchdog_suspended
++ */
+ void __weak watchdog_nmi_reconfigure(void)
+ {
+ }
+_
+
+Patches currently in -mm which might be from npiggin@gmail.com are
+
+watchdog-remove-unused-declaration.patch
+watchdog-introduce-arch_touch_nmi_watchdog.patch
+watchdog-split-up-config-options.patch
+watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch
+
