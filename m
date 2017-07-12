@@ -1,337 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [patch 12/96] sysctl: simplify unsigned int support
-Date: Wed, 12 Jul 2017 14:33:36 -0700
-Message-ID: <20170712213336.3hKN1YyMu%akpm@linux-foundation.org>
+Subject: [patch 19/96] test_sysctl: test against int
+ proc_dointvec() array support
+Date: Wed, 12 Jul 2017 14:33:58 -0700
+Message-ID: <20170712213358.UHgGagDAQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53300 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753343AbdGLVdi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:38 -0400
+        with ESMTP id S1754085AbdGLVeE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, subashab@codeaurora.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, xypron.glpk@gmx.de, zlpnobody@gmail.com
+To: akpm@linux-foundation.org, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, shuah@kernel.org, torvalds@linux-foundation.org
 
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: sysctl: simplify unsigned int support
+Subject: test_sysctl: test against int proc_dointvec() array support
 
-Commit e7d316a02f6838 ("sysctl: handle error writing UINT_MAX to u32
-fields") added proc_douintvec() to start help adding support for unsigned
-int, this however was only half the work needed.  Two fixes have come in
-since then for the following issues:
+Add a few initial respective tests for an array:
 
-  o Printing the values shows a negative value, this happens since
-    do_proc_dointvec() and this uses proc_put_long()
+  o Echoing values separated by spaces works
+  o Echoing only first elements will set first elements
+  o Confirm PAGE_SIZE limit still applies even if an array is used
 
-This was fixed by commit 5380e5644afbba9 ("sysctl: don't print negative
-flag for proc_douintvec").
-
-  o We can easily wrap around the int values: UINT_MAX is 4294967295,
-    if we echo in 4294967295 + 1 we end up with 0, using 4294967295 + 2
-    we end up with 1.
-  o We echo negative values in and they are accepted
-
-This was fixed by commit 425fffd886bae3d1 ("sysctl: report EINVAL if value
-is larger than UINT_MAX for proc_douintvec").
-
-It still also failed to be added to sysctl_check_table()...  instead of
-adding it with the current implementation just provide a proper and
-simplified unsigned int support without any array unsigned int support
-with no negative support at all.
-
-Historically sysctl proc helpers have supported arrays, due to the
-complexity this adds though we've taken a step back to evaluate array
-users to determine if its worth upkeeping for unsigned int.  An evaluation
-using Coccinelle has been done to perform a grammatical search to ask
-ourselves:
-
-  o How many sysctl proc_dointvec() (int) users exist which likely
-    should be moved over to proc_douintvec() (unsigned int) ?
-	Answer: about 8
-	- Of these how many are array users ?
-		Answer: Probably only 1
-  o How many sysctl array users exist ?
-	Answer: about 12
-
-This last question gives us an idea just how popular arrays: they are not.
-Array support should probably just be kept for strings.
-
-The identified uint ports are:
-
-drivers/infiniband/core/ucma.c - max_backlog
-drivers/infiniband/core/iwcm.c - default_backlog
-net/core/sysctl_net_core.c - rps_sock_flow_sysctl()
-net/netfilter/nf_conntrack_timestamp.c - nf_conntrack_timestamp -- bool
-net/netfilter/nf_conntrack_acct.c nf_conntrack_acct -- bool
-net/netfilter/nf_conntrack_ecache.c - nf_conntrack_events -- bool
-net/netfilter/nf_conntrack_helper.c - nf_conntrack_helper -- bool
-net/phonet/sysctl.c proc_local_port_range()
-
-The only possible array users is proc_local_port_range() but it does not
-seem worth it to add array support just for this given the range support
-works just as well.  Unsigned int support should be desirable more for
-when you *need* more than INT_MAX or using int min/max support then does
-not suffice for your ranges.
-
-If you forget and by mistake happen to register an unsigned int proc entry
-with an array, the driver will fail and you will get something as follows:
-
-sysctl table check failed: debug/test_sysctl//uint_0002 array now allowed
-CPU: 2 PID: 1342 Comm: modprobe Tainted: G        W   E <etc>
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS <etc>
-Call Trace:
- dump_stack+0x63/0x81
- __register_sysctl_table+0x350/0x650
- ? kmem_cache_alloc_trace+0x107/0x240
- __register_sysctl_paths+0x1b3/0x1e0
- ? 0xffffffffc005f000
- register_sysctl_table+0x1f/0x30
- test_sysctl_init+0x10/0x1000 [test_sysctl]
- do_one_initcall+0x52/0x1a0
- ? kmem_cache_alloc_trace+0x107/0x240
- do_init_module+0x5f/0x200
- load_module+0x1867/0x1bd0
- ? __symbol_put+0x60/0x60
- SYSC_finit_module+0xdf/0x110
- SyS_finit_module+0xe/0x10
- entry_SYSCALL_64_fastpath+0x1e/0xad
-RIP: 0033:0x7f042b22d119
-<etc>
-
-Fixes: e7d316a02f68 ("sysctl: handle error writing UINT_MAX to u32 fields")
-Link: http://lkml.kernel.org/r/20170519033554.18592-5-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20170630224431.17374-7-mcgrof@kernel.org
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Liping Zhang <zlpnobody@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   14 +++
- kernel/sysctl.c       |  153 ++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 160 insertions(+), 7 deletions(-)
+ lib/test_sysctl.c                        |   13 +++
+ tools/testing/selftests/sysctl/sysctl.sh |   89 +++++++++++++++++++++
+ 2 files changed, 102 insertions(+)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-simplify-unsigned-int-support fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-simplify-unsigned-int-support
-+++ a/fs/proc/proc_sysctl.c
-@@ -1061,6 +1061,18 @@ static int sysctl_err(const char *path,
- 	return -EINVAL;
- }
+diff -puN lib/test_sysctl.c~test_sysctl-test-against-int-proc_dointvec-array-support lib/test_sysctl.c
+--- a/lib/test_sysctl.c~test_sysctl-test-against-int-proc_dointvec-array-support
++++ a/lib/test_sysctl.c
+@@ -42,6 +42,7 @@ static int i_one_hundred = 100;
+ struct test_sysctl_data {
+ 	int int_0001;
+ 	int int_0002;
++	int int_0003[4];
  
-+static int sysctl_check_table_array(const char *path, struct ctl_table *table)
-+{
-+	int err = 0;
+ 	unsigned int uint_0001;
+ 
+@@ -52,6 +53,11 @@ static struct test_sysctl_data test_data
+ 	.int_0001 = 60,
+ 	.int_0002 = 1,
+ 
++	.int_0003[0] = 0,
++	.int_0003[1] = 1,
++	.int_0003[2] = 2,
++	.int_0003[3] = 3,
 +
-+	if (table->proc_handler == proc_douintvec) {
-+		if (table->maxlen != sizeof(unsigned int))
-+			err |= sysctl_err(path, table, "array now allowed");
-+	}
-+
-+	return err;
-+}
-+
- static int sysctl_check_table(const char *path, struct ctl_table *table)
+ 	.uint_0001 = 314,
+ 
+ 	.string_0001 = "(none)",
+@@ -75,6 +81,13 @@ static struct ctl_table test_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++	{
++		.procname	= "int_0003",
++		.data		= &test_data.int_0003,
++		.maxlen		= sizeof(test_data.int_0003),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
+ 	{
+ 		.procname	= "uint_0001",
+ 		.data		= &test_data.uint_0001,
+diff -puN tools/testing/selftests/sysctl/sysctl.sh~test_sysctl-test-against-int-proc_dointvec-array-support tools/testing/selftests/sysctl/sysctl.sh
+--- a/tools/testing/selftests/sysctl/sysctl.sh~test_sysctl-test-against-int-proc_dointvec-array-support
++++ a/tools/testing/selftests/sysctl/sysctl.sh
+@@ -33,6 +33,7 @@ ALL_TESTS="0001:1:1"
+ ALL_TESTS="$ALL_TESTS 0002:1:1"
+ ALL_TESTS="$ALL_TESTS 0003:1:1"
+ ALL_TESTS="$ALL_TESTS 0004:1:1"
++ALL_TESTS="$ALL_TESTS 0005:3:1"
+ 
+ test_modprobe()
  {
- 	int err = 0;
-@@ -1081,6 +1093,8 @@ static int sysctl_check_table(const char
- 				err |= sysctl_err(path, table, "No data");
- 			if (!table->maxlen)
- 				err |= sysctl_err(path, table, "No maxlen");
-+			else
-+				err |= sysctl_check_table_array(path, table);
- 		}
- 		if (!table->proc_handler)
- 			err |= sysctl_err(path, table, "No proc_handler");
-diff -puN kernel/sysctl.c~sysctl-simplify-unsigned-int-support kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-simplify-unsigned-int-support
-+++ a/kernel/sysctl.c
-@@ -2175,19 +2175,18 @@ static int do_proc_dointvec_conv(bool *n
- 	return 0;
+@@ -108,6 +109,10 @@ test_reqs()
+ 		echo "$0: You need getconf installed"
+ 		exit 1
+ 	fi
++	if ! which diff 2> /dev/null > /dev/null; then
++		echo "$0: You need diff installed"
++		exit 1
++	fi
  }
  
--static int do_proc_douintvec_conv(bool *negp, unsigned long *lvalp,
--				 int *valp,
--				 int write, void *data)
-+static int do_proc_douintvec_conv(unsigned long *lvalp,
-+				  unsigned int *valp,
-+				  int write, void *data)
+ function load_req_mod()
+@@ -167,6 +172,12 @@ verify()
+ 	return 0
+ }
+ 
++verify_diff_w()
++{
++	echo "$TEST_STR" | diff -q -w -u - $1
++	return $?
++}
++
+ test_rc()
  {
- 	if (write) {
--		if (*negp)
-+		if (*lvalp > UINT_MAX)
- 			return -EINVAL;
- 		if (*lvalp > UINT_MAX)
- 			return -EINVAL;
- 		*valp = *lvalp;
- 	} else {
- 		unsigned int val = *valp;
--		*negp = false;
- 		*lvalp = (unsigned long)val;
- 	}
- 	return 0;
-@@ -2287,6 +2286,146 @@ static int do_proc_dointvec(struct ctl_t
- 			buffer, lenp, ppos, conv, data);
+ 	if [[ $rc != 0 ]]; then
+@@ -352,6 +363,74 @@ run_limit_digit_int()
+ 	test_rc
  }
  
-+static int do_proc_douintvec_w(unsigned int *tbl_data,
-+			       struct ctl_table *table,
-+			       void __user *buffer,
-+			       size_t *lenp, loff_t *ppos,
-+			       int (*conv)(unsigned long *lvalp,
-+					   unsigned int *valp,
-+					   int write, void *data),
-+			       void *data)
++# You used an int array
++run_limit_digit_int_array()
 +{
-+	unsigned long lval;
-+	int err = 0;
-+	size_t left;
-+	bool neg;
-+	char *kbuf = NULL, *p;
++	echo -n "Testing array works as expected ... "
++	TEST_STR="4 3 2 1"
++	echo -n $TEST_STR > $TARGET
 +
-+	left = *lenp;
++	if ! verify_diff_w "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++	test_rc
 +
-+	if (proc_first_pos_non_zero_ignore(ppos, table))
-+		goto bail_early;
++	echo -n "Testing skipping trailing array elements works ... "
++	# Do not reset_vals, carry on the values from the last test.
++	# If we only echo in two digits the last two are left intact
++	TEST_STR="100 101"
++	echo -n $TEST_STR > $TARGET
++	# After we echo in, to help diff we need to set on TEST_STR what
++	# we expect the result to be.
++	TEST_STR="100 101 2 1"
 +
-+	if (left > PAGE_SIZE - 1)
-+		left = PAGE_SIZE - 1;
++	if ! verify_diff_w "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++	test_rc
 +
-+	p = kbuf = memdup_user_nul(buffer, left);
-+	if (IS_ERR(kbuf))
-+		return -EINVAL;
++	echo -n "Testing PAGE_SIZE limit on array works ... "
++	# Do not reset_vals, carry on the values from the last test.
++	# Even if you use an int array, you are still restricted to
++	# MAX_DIGITS, this is a known limitation. Test limit works.
++	LIMIT=$((MAX_DIGITS -1))
++	TEST_STR="9"
++	(perl -e 'print " " x '$LIMIT';'; echo "${TEST_STR}") | \
++		dd of="${TARGET}" 2>/dev/null
 +
-+	left -= proc_skip_spaces(&p);
-+	if (!left) {
-+		err = -EINVAL;
-+		goto out_free;
-+	}
++	TEST_STR="9 101 2 1"
++	if ! verify_diff_w "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++	test_rc
 +
-+	err = proc_get_long(&p, &left, &lval, &neg,
-+			     proc_wspace_sep,
-+			     sizeof(proc_wspace_sep), NULL);
-+	if (err || neg) {
-+		err = -EINVAL;
-+		goto out_free;
-+	}
++	echo -n "Testing exceeding PAGE_SIZE limit fails as expected ... "
++	# Do not reset_vals, carry on the values from the last test.
++	# Now go over limit.
++	LIMIT=$((MAX_DIGITS))
++	TEST_STR="7"
++	(perl -e 'print " " x '$LIMIT';'; echo "${TEST_STR}") | \
++		dd of="${TARGET}" 2>/dev/null
 +
-+	if (conv(&lval, tbl_data, 1, data)) {
-+		err = -EINVAL;
-+		goto out_free;
-+	}
-+
-+	if (!err && left)
-+		left -= proc_skip_spaces(&p);
-+
-+out_free:
-+	kfree(kbuf);
-+	if (err)
-+		return -EINVAL;
-+
-+	return 0;
-+
-+	/* This is in keeping with old __do_proc_dointvec() */
-+bail_early:
-+	*ppos += *lenp;
-+	return err;
++	TEST_STR="7 101 2 1"
++	if verify_diff_w "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++	test_rc
 +}
 +
-+static int do_proc_douintvec_r(unsigned int *tbl_data, void __user *buffer,
-+			       size_t *lenp, loff_t *ppos,
-+			       int (*conv)(unsigned long *lvalp,
-+					   unsigned int *valp,
-+					   int write, void *data),
-+			       void *data)
-+{
-+	unsigned long lval;
-+	int err = 0;
-+	size_t left;
-+
-+	left = *lenp;
-+
-+	if (conv(&lval, tbl_data, 0, data)) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	err = proc_put_long(&buffer, &left, lval, false);
-+	if (err || !left)
-+		goto out;
-+
-+	err = proc_put_char(&buffer, &left, '\n');
-+
-+out:
-+	*lenp -= left;
-+	*ppos += *lenp;
-+
-+	return err;
-+}
-+
-+static int __do_proc_douintvec(void *tbl_data, struct ctl_table *table,
-+			       int write, void __user *buffer,
-+			       size_t *lenp, loff_t *ppos,
-+			       int (*conv)(unsigned long *lvalp,
-+					   unsigned int *valp,
-+					   int write, void *data),
-+			       void *data)
-+{
-+	unsigned int *i, vleft;
-+
-+	if (!tbl_data || !table->maxlen || !*lenp || (*ppos && !write)) {
-+		*lenp = 0;
-+		return 0;
-+	}
-+
-+	i = (unsigned int *) tbl_data;
-+	vleft = table->maxlen / sizeof(*i);
-+
-+	/*
-+	 * Arrays are not supported, keep this simple. *Do not* add
-+	 * support for them.
-+	 */
-+	if (vleft != 1) {
-+		*lenp = 0;
-+		return -EINVAL;
-+	}
-+
-+	if (!conv)
-+		conv = do_proc_douintvec_conv;
-+
-+	if (write)
-+		return do_proc_douintvec_w(i, table, buffer, lenp, ppos,
-+					   conv, data);
-+	return do_proc_douintvec_r(i, buffer, lenp, ppos, conv, data);
-+}
-+
-+static int do_proc_douintvec(struct ctl_table *table, int write,
-+			     void __user *buffer, size_t *lenp, loff_t *ppos,
-+			     int (*conv)(unsigned long *lvalp,
-+					 unsigned int *valp,
-+					 int write, void *data),
-+			     void *data)
-+{
-+	return __do_proc_douintvec(table->data, table, write,
-+				   buffer, lenp, ppos, conv, data);
-+}
-+
- /**
-  * proc_dointvec - read a vector of integers
-  * @table: the sysctl table
-@@ -2322,8 +2461,8 @@ int proc_dointvec(struct ctl_table *tabl
- int proc_douintvec(struct ctl_table *table, int write,
- 		     void __user *buffer, size_t *lenp, loff_t *ppos)
+ # You are using an unsigned int
+ run_limit_digit_uint()
  {
--	return do_proc_dointvec(table, write, buffer, lenp, ppos,
--				do_proc_douintvec_conv, NULL);
-+	return do_proc_douintvec(table, write, buffer, lenp, ppos,
-+				 do_proc_douintvec_conv, NULL);
+@@ -512,6 +591,15 @@ sysctl_test_0004()
+ 	run_limit_digit_uint
  }
  
- /*
++sysctl_test_0005()
++{
++	TARGET="${SYSCTL}/int_0003"
++	reset_vals
++	ORIG=$(cat "${TARGET}")
++
++	run_limit_digit_int_array
++}
++
+ list_tests()
+ {
+ 	echo "Test ID list:"
+@@ -524,6 +612,7 @@ list_tests()
+ 	echo "0002 x $(get_test_count 0002) - tests proc_dostring()"
+ 	echo "0003 x $(get_test_count 0003) - tests proc_dointvec()"
+ 	echo "0004 x $(get_test_count 0004) - tests proc_douintvec()"
++	echo "0005 x $(get_test_count 0005) - tests proc_douintvec() array"
+ }
+ 
+ test_reqs
 _
