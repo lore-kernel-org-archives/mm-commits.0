@@ -1,75 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [patch 78/96] mm, migration: do not trigger OOM killer
- when migrating memory
-Date: Wed, 12 Jul 2017 14:36:58 -0700
-Message-ID: <20170712213658.1dmOOS0vB%akpm@linux-foundation.org>
+Subject: [patch 75/96] xfs: map KM_MAYFAIL to __GFP_RETRY_MAYFAIL
+Date: Wed, 12 Jul 2017 14:36:49 -0700
+Message-ID: <20170712213649.VCfwYD_ME%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55110 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753182AbdGLVhB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:01 -0400
+        with ESMTP id S1752710AbdGLVgu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:36:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex.belits@cavium.com, chris@chris-wilson.co.uk, darrick.wong@oracle.com, david.daney@cavium.com, hannes@cmpxchg.org, hch@infradead.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.com, ralf@linux-mips.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, migration: do not trigger OOM killer when migrating memory
+Subject: xfs: map KM_MAYFAIL to __GFP_RETRY_MAYFAIL
 
-Page migration (for memory hotplug, soft_offline_page or mbind) needs to
-allocate a new memory.  This can trigger an oom killer if the target
-memory is depleated.  Although quite unlikely, still possible, especially
-for the memory hotplug (offlining of memoery).  Up to now we didn't really
-have reasonable means to back off.  __GFP_NORETRY can fail just too easily
-and __GFP_THISNODE sticks to a single node and that is not suitable for
-all callers.
+KM_MAYFAIL didn't have any suitable GFP_FOO counterpart until recently so
+it relied on the default page allocator behavior for the given set of
+flags.  This means that small allocations actually never failed.
 
-But now that we have __GFP_RETRY_MAYFAIL we should use it.  It is
-preferable to fail the migration than disrupt the system by killing some
-processes.
+Now that we have __GFP_RETRY_MAYFAIL flag which works independently on the
+allocation request size we can map KM_MAYFAIL to it.  The allocator will
+try as hard as it can to fulfill the request but fails eventually if the
+progress cannot be made.  It does so without triggering the OOM killer
+which can be seen as an improvement because KM_MAYFAIL users should be
+able to deal with allocation failures.
 
-Link: http://lkml.kernel.org/r/20170623085345.11304-7-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170623085345.11304-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Alex Belits <alex.belits@cavium.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: David Daney <david.daney@cavium.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: NeilBrown <neilb@suse.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 +-
- mm/mempolicy.c          |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/xfs/kmem.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/migrate.h~mm-migration-do-not-trigger-oom-killer-when-migrating-memory include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migration-do-not-trigger-oom-killer-when-migrating-memory
-+++ a/include/linux/migrate.h
-@@ -34,7 +34,7 @@ extern char *migrate_reason_names[MR_TYP
- static inline struct page *new_page_nodemask(struct page *page,
- 				int preferred_nid, nodemask_t *nodemask)
- {
--	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
-+	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
+diff -puN fs/xfs/kmem.h~xfs-map-km_mayfail-to-__gfp_retry_mayfail fs/xfs/kmem.h
+--- a/fs/xfs/kmem.h~xfs-map-km_mayfail-to-__gfp_retry_mayfail
++++ a/fs/xfs/kmem.h
+@@ -54,6 +54,16 @@ kmem_flags_convert(xfs_km_flags_t flags)
+ 			lflags &= ~__GFP_FS;
+ 	}
  
- 	if (PageHuge(page))
- 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
-diff -puN mm/mempolicy.c~mm-migration-do-not-trigger-oom-killer-when-migrating-memory mm/mempolicy.c
---- a/mm/mempolicy.c~mm-migration-do-not-trigger-oom-killer-when-migrating-memory
-+++ a/mm/mempolicy.c
-@@ -1078,7 +1078,8 @@ static struct page *new_page(struct page
- 	/*
- 	 * if !vma, alloc_page_vma() will use task or system default policy
- 	 */
--	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-+	return alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_RETRY_MAYFAIL,
-+			vma, address);
- }
- #else
++	/*
++	 * Default page/slab allocator behavior is to retry for ever
++	 * for small allocations. We can override this behavior by using
++	 * __GFP_RETRY_MAYFAIL which will tell the allocator to retry as long
++	 * as it is feasible but rather fail than retry forever for all
++	 * request sizes.
++	 */
++	if (flags & KM_MAYFAIL)
++		lflags |= __GFP_RETRY_MAYFAIL;
++
+ 	if (flags & KM_ZERO)
+ 		lflags |= __GFP_ZERO;
  
 _
