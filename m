@@ -1,53 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [patch 89/96] x86/efi: move asmlinkage before return type
-Date: Wed, 12 Jul 2017 14:37:31 -0700
-Message-ID: <20170712213731.skw-2cv7U%akpm@linux-foundation.org>
+Subject: [patch 87/96] MIPS: SMP: move asmlinkage before return
+ type
+Date: Wed, 12 Jul 2017 14:37:25 -0700
+Message-ID: <20170712213725.82NZIltjW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:55266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752363AbdGLVhc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:32 -0400
+        with ESMTP id S1752363AbdGLVhb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ard.biesheuvel@linaro.org, hpa@zytor.com, joe@perches.com, matt@codeblueprint.co.uk, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, ralf@linux-mips.org, torvalds@linux-foundation.org
 
 From: Joe Perches <joe@perches.com>
-Subject: x86/efi: move asmlinkage before return type
+Subject: MIPS: SMP: move asmlinkage before return type
 
 Make the code like the rest of the kernel.
 
-Link: http://lkml.kernel.org/r/1cd3d401626e51ea0e2333a860e76e80bc560a4c.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/756d3fb543e981b9284e756fa27616725a354b28.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>	
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/efi.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/smp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/efi.h~x86-efi-move-asmlinkage-before-return-type arch/x86/include/asm/efi.h
---- a/arch/x86/include/asm/efi.h~x86-efi-move-asmlinkage-before-return-type
-+++ a/arch/x86/include/asm/efi.h
-@@ -33,7 +33,7 @@
+diff -puN arch/mips/include/asm/smp.h~mips-smp-move-asmlinkage-before-return-type arch/mips/include/asm/smp.h
+--- a/arch/mips/include/asm/smp.h~mips-smp-move-asmlinkage-before-return-type
++++ a/arch/mips/include/asm/smp.h
+@@ -47,7 +47,7 @@ extern int __cpu_logical_map[NR_CPUS];
+ /* Mask of CPUs which are currently definitely operating coherently */
+ extern cpumask_t cpu_coherent_mask;
  
- #ifdef CONFIG_X86_32
+-extern void asmlinkage smp_bootstrap(void);
++extern asmlinkage void smp_bootstrap(void);
  
--extern unsigned long asmlinkage efi_call_phys(void *, ...);
-+extern asmlinkage unsigned long efi_call_phys(void *, ...);
- 
- #define arch_efi_call_virt_setup()	kernel_fpu_begin()
- #define arch_efi_call_virt_teardown()	kernel_fpu_end()
-@@ -52,7 +52,7 @@ extern unsigned long asmlinkage efi_call
- 
- #define EFI_LOADER_SIGNATURE	"EL64"
- 
--extern u64 asmlinkage efi_call(void *fp, ...);
-+extern asmlinkage u64 efi_call(void *fp, ...);
- 
- #define efi_call_phys(f, args...)		efi_call((f), args)
+ extern void calculate_cpu_foreign_map(void);
  
 _
