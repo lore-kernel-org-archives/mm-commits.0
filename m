@@ -1,29 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [patch 76/96] mm: kvmalloc support __GFP_RETRY_MAYFAIL for
- all sizes
-Date: Wed, 12 Jul 2017 14:36:52 -0700
-Message-ID: <20170712213652.w-caLK1JU%akpm@linux-foundation.org>
+Subject: [patch 78/96] mm, migration: do not trigger OOM killer
+ when migrating memory
+Date: Wed, 12 Jul 2017 14:36:58 -0700
+Message-ID: <20170712213658.1dmOOS0vB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55184 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbdGLVgx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:36:53 -0400
+        with ESMTP id S1753182AbdGLVhB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex.belits@cavium.com, chris@chris-wilson.co.uk, darrick.wong@oracle.com, david.daney@cavium.com, hannes@cmpxchg.org, hch@infradead.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.com, ralf@linux-mips.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: kvmalloc support __GFP_RETRY_MAYFAIL for all sizes
+Subject: mm, migration: do not trigger OOM killer when migrating memory
 
-Now that __GFP_RETRY_MAYFAIL has a reasonable semantic regardless of the
-request size we can drop the hackish implementation for !costly orders. 
-__GFP_RETRY_MAYFAIL retries as long as the reclaim makes a forward
-progress and backs of when we are out of memory for the requested size. 
-Therefore we do not need to enforce__GFP_NORETRY for !costly orders just
-to silent the oom killer anymore.
+Page migration (for memory hotplug, soft_offline_page or mbind) needs to
+allocate a new memory.  This can trigger an oom killer if the target
+memory is depleated.  Although quite unlikely, still possible, especially
+for the memory hotplug (offlining of memoery).  Up to now we didn't really
+have reasonable means to back off.  __GFP_NORETRY can fail just too easily
+and __GFP_THISNODE sticks to a single node and that is not suitable for
+all callers.
 
-Link: http://lkml.kernel.org/r/20170623085345.11304-5-mhocko@kernel.org
+But now that we have __GFP_RETRY_MAYFAIL we should use it.  It is
+preferable to fail the migration than disrupt the system by killing some
+processes.
+
+Link: http://lkml.kernel.org/r/20170623085345.11304-7-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alex Belits <alex.belits@cavium.com>
@@ -38,38 +43,33 @@ Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ include/linux/migrate.h |    2 +-
+ mm/mempolicy.c          |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/util.c~mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes mm/util.c
---- a/mm/util.c~mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes
-+++ a/mm/util.c
-@@ -339,9 +339,9 @@ EXPORT_SYMBOL(vm_mmap);
-  * Uses kmalloc to get the memory but if the allocation fails then falls back
-  * to the vmalloc allocator. Use kvfree for freeing the memory.
-  *
-- * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported. __GFP_RETRY_MAYFAIL
-- * is supported only for large (>32kB) allocations, and it should be used only if
-- * kmalloc is preferable to the vmalloc fallback, due to visible performance drawbacks.
-+ * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported.
-+ * __GFP_RETRY_MAYFAIL is supported, and it should be used only if kmalloc is
-+ * preferable to the vmalloc fallback, due to visible performance drawbacks.
-  *
-  * Any use of gfp flags outside of GFP_KERNEL should be consulted with mm people.
-  */
-@@ -366,13 +366,7 @@ void *kvmalloc_node(size_t size, gfp_t f
- 	if (size > PAGE_SIZE) {
- 		kmalloc_flags |= __GFP_NOWARN;
+diff -puN include/linux/migrate.h~mm-migration-do-not-trigger-oom-killer-when-migrating-memory include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migration-do-not-trigger-oom-killer-when-migrating-memory
++++ a/include/linux/migrate.h
+@@ -34,7 +34,7 @@ extern char *migrate_reason_names[MR_TYP
+ static inline struct page *new_page_nodemask(struct page *page,
+ 				int preferred_nid, nodemask_t *nodemask)
+ {
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
++	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
  
--		/*
--		 * We have to override __GFP_RETRY_MAYFAIL by __GFP_NORETRY for !costly
--		 * requests because there is no other way to tell the allocator
--		 * that we want to fail rather than retry endlessly.
--		 */
--		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL) ||
--				(size <= PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
-+		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL))
- 			kmalloc_flags |= __GFP_NORETRY;
- 	}
+ 	if (PageHuge(page))
+ 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
+diff -puN mm/mempolicy.c~mm-migration-do-not-trigger-oom-killer-when-migrating-memory mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-migration-do-not-trigger-oom-killer-when-migrating-memory
++++ a/mm/mempolicy.c
+@@ -1078,7 +1078,8 @@ static struct page *new_page(struct page
+ 	/*
+ 	 * if !vma, alloc_page_vma() will use task or system default policy
+ 	 */
+-	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
++	return alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_RETRY_MAYFAIL,
++			vma, address);
+ }
+ #else
  
 _
