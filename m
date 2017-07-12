@@ -1,52 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [patch 93/96] video: fbdev: intelfb: move inline before
- return type
-Date: Wed, 12 Jul 2017 14:37:43 -0700
-Message-ID: <20170712213743.v1CSmetC1%akpm@linux-foundation.org>
+Subject: [patch 96/96] writeback: rework wb_[dec|inc]_stat family
+ of functions
+Date: Wed, 12 Jul 2017 14:37:51 -0700
+Message-ID: <20170712213751.yTGVGs6dO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55356 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752363AbdGLVho (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:44 -0400
+        with ESMTP id S1752363AbdGLVhx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:37:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, b.zolnierkie@samsung.com, joe@perches.com, mbroemme@libmpq.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, jack@suse.cz, jbacik@fb.com, jlayton@redhat.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, nborisov@suse.com, tj@kernel.org, torvalds@linux-foundation.org
 
-From: Joe Perches <joe@perches.com>
-Subject: video: fbdev: intelfb: move inline before return type
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: writeback: rework wb_[dec|inc]_stat family of functions
 
-Make the code like the rest of the kernel.
+Currently the writeback statistics code uses a percpu counters to hold
+various statistics.  Furthermore we have 2 families of functions - those
+which disable local irq and those which doesn't and whose names begin with
+double underscore.  However, they both end up calling __add_wb_stats which
+in turn calls percpu_counter_add_batch which is already irq-safe.
 
-But there is an oddity here because the inline should probably be removed.
+Exploiting this fact allows to eliminated the __wb_* functions since they
+don't add any further protection than we already have.  Furthermore,
+refactor the wb_* function to call __add_wb_stat directly without the
+irq-disabling dance.  This will likely result in better runtime of code
+which deals with modifying the stat counters.
 
-It's an extern function in intelfb.h and it is used in intelfbdrv.c and
-intelfbhw.c.
+While at it also document why percpu_counter_add_batch is in fact preempt
+and irq-safe since at least 3 people got confused.
 
-The inline is kept here as I suppose it's possible for some compiler to
-make the uses inline in intelfbdrv and and also create an external
-function for intelfbhw.
-
-Link: http://lkml.kernel.org/r/8ba151a1fdc84e42cbf4aafc798513c0158edee1.1499284835.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Maik Broemme <mbroemme@libmpq.org>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Link: http://lkml.kernel.org/r/1498029937-27293-1-git-send-email-nborisov@suse.com
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/intelfb/intelfbdrv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c           |    8 ++++----
+ include/linux/backing-dev.h |   24 ++----------------------
+ lib/percpu_counter.c        |    7 +++++++
+ mm/page-writeback.c         |   10 +++++-----
+ 4 files changed, 18 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/fbdev/intelfb/intelfbdrv.c~video-fbdev-intelfb-move-inline-before-return-type drivers/video/fbdev/intelfb/intelfbdrv.c
---- a/drivers/video/fbdev/intelfb/intelfbdrv.c~video-fbdev-intelfb-move-inline-before-return-type
-+++ a/drivers/video/fbdev/intelfb/intelfbdrv.c
-@@ -907,7 +907,7 @@ static void intelfb_pci_unregister(struc
-  *                       helper functions                      *
-  ***************************************************************/
+diff -puN fs/fs-writeback.c~writeback-rework-wb__stat-family-of-functions fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-rework-wb__stat-family-of-functions
++++ a/fs/fs-writeback.c
+@@ -380,8 +380,8 @@ static void inode_switch_wbs_work_fn(str
+ 		struct page *page = radix_tree_deref_slot_protected(slot,
+ 							&mapping->tree_lock);
+ 		if (likely(page) && PageDirty(page)) {
+-			__dec_wb_stat(old_wb, WB_RECLAIMABLE);
+-			__inc_wb_stat(new_wb, WB_RECLAIMABLE);
++			dec_wb_stat(old_wb, WB_RECLAIMABLE);
++			inc_wb_stat(new_wb, WB_RECLAIMABLE);
+ 		}
+ 	}
  
--int __inline__ intelfb_var_to_depth(const struct fb_var_screeninfo *var)
-+__inline__ int intelfb_var_to_depth(const struct fb_var_screeninfo *var)
+@@ -391,8 +391,8 @@ static void inode_switch_wbs_work_fn(str
+ 							&mapping->tree_lock);
+ 		if (likely(page)) {
+ 			WARN_ON_ONCE(!PageWriteback(page));
+-			__dec_wb_stat(old_wb, WB_WRITEBACK);
+-			__inc_wb_stat(new_wb, WB_WRITEBACK);
++			dec_wb_stat(old_wb, WB_WRITEBACK);
++			inc_wb_stat(new_wb, WB_WRITEBACK);
+ 		}
+ 	}
+ 
+diff -puN include/linux/backing-dev.h~writeback-rework-wb__stat-family-of-functions include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~writeback-rework-wb__stat-family-of-functions
++++ a/include/linux/backing-dev.h
+@@ -69,34 +69,14 @@ static inline void __add_wb_stat(struct
+ 	percpu_counter_add_batch(&wb->stat[item], amount, WB_STAT_BATCH);
+ }
+ 
+-static inline void __inc_wb_stat(struct bdi_writeback *wb,
+-				 enum wb_stat_item item)
+-{
+-	__add_wb_stat(wb, item, 1);
+-}
+-
+ static inline void inc_wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
  {
- 	DBG_MSG("intelfb_var_to_depth: bpp: %d, green.length is %d\n",
- 		var->bits_per_pixel, var->green.length);
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__inc_wb_stat(wb, item);
+-	local_irq_restore(flags);
+-}
+-
+-static inline void __dec_wb_stat(struct bdi_writeback *wb,
+-				 enum wb_stat_item item)
+-{
+-	__add_wb_stat(wb, item, -1);
++	__add_wb_stat(wb, item, 1);
+ }
+ 
+ static inline void dec_wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
+ {
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__dec_wb_stat(wb, item);
+-	local_irq_restore(flags);
++	__add_wb_stat(wb, item, -1);
+ }
+ 
+ static inline s64 wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
+diff -puN lib/percpu_counter.c~writeback-rework-wb__stat-family-of-functions lib/percpu_counter.c
+--- a/lib/percpu_counter.c~writeback-rework-wb__stat-family-of-functions
++++ a/lib/percpu_counter.c
+@@ -72,6 +72,13 @@ void percpu_counter_set(struct percpu_co
+ }
+ EXPORT_SYMBOL(percpu_counter_set);
+ 
++/**
++ * This function is both preempt and irq safe. The former is due to explicit
++ * preemption disable. The latter is guaranteed by the fact that the slow path
++ * is explicitly protected by an irq-safe spinlock whereas the fast patch uses
++ * this_cpu_add which is irq-safe by definition. Hence there is no need muck
++ * with irq state before calling this one
++ */
+ void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, s32 batch)
+ {
+ 	s64 count;
+diff -puN mm/page-writeback.c~writeback-rework-wb__stat-family-of-functions mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-rework-wb__stat-family-of-functions
++++ a/mm/page-writeback.c
+@@ -601,7 +601,7 @@ static inline void __wb_writeout_inc(str
+ {
+ 	struct wb_domain *cgdom;
+ 
+-	__inc_wb_stat(wb, WB_WRITTEN);
++	inc_wb_stat(wb, WB_WRITTEN);
+ 	wb_domain_writeout_inc(&global_wb_domain, &wb->completions,
+ 			       wb->bdi->max_prop_frac);
+ 
+@@ -2435,8 +2435,8 @@ void account_page_dirtied(struct page *p
+ 		__inc_lruvec_page_state(page, NR_FILE_DIRTY);
+ 		__inc_zone_page_state(page, NR_ZONE_WRITE_PENDING);
+ 		__inc_node_page_state(page, NR_DIRTIED);
+-		__inc_wb_stat(wb, WB_RECLAIMABLE);
+-		__inc_wb_stat(wb, WB_DIRTIED);
++		inc_wb_stat(wb, WB_RECLAIMABLE);
++		inc_wb_stat(wb, WB_DIRTIED);
+ 		task_io_account_write(PAGE_SIZE);
+ 		current->nr_dirtied++;
+ 		this_cpu_inc(bdp_ratelimits);
+@@ -2741,7 +2741,7 @@ int test_clear_page_writeback(struct pag
+ 			if (bdi_cap_account_writeback(bdi)) {
+ 				struct bdi_writeback *wb = inode_to_wb(inode);
+ 
+-				__dec_wb_stat(wb, WB_WRITEBACK);
++				dec_wb_stat(wb, WB_WRITEBACK);
+ 				__wb_writeout_inc(wb);
+ 			}
+ 		}
+@@ -2786,7 +2786,7 @@ int __test_set_page_writeback(struct pag
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
+ 			if (bdi_cap_account_writeback(bdi))
+-				__inc_wb_stat(inode_to_wb(inode), WB_WRITEBACK);
++				inc_wb_stat(inode_to_wb(inode), WB_WRITEBACK);
+ 
+ 			/*
+ 			 * We can come through here when swapping anonymous
 _
