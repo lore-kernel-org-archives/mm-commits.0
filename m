@@ -1,56 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [patch 20/96] kernel/sysctl_binary.c: check name array
- length in deprecated_sysctl_warning()
-Date: Wed, 12 Jul 2017 14:34:01 -0700
-Message-ID: <20170712213401._E1gHH7jc%akpm@linux-foundation.org>
+Subject: [patch 16/96] test_sysctl: test against PAGE_SIZE for int
+Date: Wed, 12 Jul 2017 14:33:49 -0700
+Message-ID: <20170712213349.i1CSi4Nbp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53270 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754544AbdGLVeH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:07 -0400
+        with ESMTP id S1753489AbdGLVdz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:33:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, glider@google.com, keescook@chromium.org, mjurczyk@google.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, tedheadster@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, shuah@kernel.org, torvalds@linux-foundation.org
 
-From: Mateusz Jurczyk <mjurczyk@google.com>
-Subject: kernel/sysctl_binary.c: check name array length in deprecated_sysctl_warning()
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: test_sysctl: test against PAGE_SIZE for int
 
-Prevent use of uninitialized memory (originating from the stack frame of
-do_sysctl()) by verifying that the name array is filled with sufficient
-input data before comparing its specific entries with integer constants.
+Add the following tests to ensure we do not regress:
 
-Through timing measurement or analyzing the kernel debug logs, a user-mode
-program could potentially infer the results of comparisons against the
-uninitialized memory, and acquire some (very limited) information about
-the state of the kernel stack.  The change also eliminates possible future
-warnings by tools such as KMSAN and other code checkers /
-instrumentations.
+  o Test using a buffer full of space (PAGE_SIZE-1) followed by a
+    single digit works
 
-Link: http://lkml.kernel.org/r/20170524122139.21333-1-mjurczyk@google.com
-Signed-off-by: Mateusz Jurczyk <mjurczyk@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Matthew Whitehead <tedheadster@gmail.com>
+  o Test using a buffer full of spaces (PAGE_SIZE or over) will fail
+
+As tests increase instead of unloading the module and reloading it
+we can just do a shell reset_vals() with a reset to values we know
+are set at init on the driver.
+
+Link: http://lkml.kernel.org/r/20170630224431.17374-4-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Alexander Potapenko <glider@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_binary.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/sysctl/sysctl.sh |   66 +++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN kernel/sysctl_binary.c~sysctl-check-name-array-length-in-deprecated_sysctl_warning kernel/sysctl_binary.c
---- a/kernel/sysctl_binary.c~sysctl-check-name-array-length-in-deprecated_sysctl_warning
-+++ a/kernel/sysctl_binary.c
-@@ -1346,7 +1346,7 @@ static void deprecated_sysctl_warning(co
- 	 * CTL_KERN/KERN_VERSION is used by older glibc and cannot
- 	 * ever go away.
- 	 */
--	if (name[0] == CTL_KERN && name[1] == KERN_VERSION)
-+	if (nlen >= 2 && name[0] == CTL_KERN && name[1] == KERN_VERSION)
- 		return;
+diff -puN tools/testing/selftests/sysctl/sysctl.sh~test_sysctl-test-against-page_size-for-int tools/testing/selftests/sysctl/sysctl.sh
+--- a/tools/testing/selftests/sysctl/sysctl.sh~test_sysctl-test-against-page_size-for-int
++++ a/tools/testing/selftests/sysctl/sysctl.sh
+@@ -75,6 +75,13 @@ function check_production_sysctl_writes_
+ 			echo "1" > ${WRITES_STRICT}
+ 		fi
+ 	fi
++
++	if [ -z $PAGE_SIZE ]; then
++		PAGE_SIZE=$(getconf PAGESIZE)
++	fi
++	if [ -z $MAX_DIGITS ]; then
++		MAX_DIGITS=$(($PAGE_SIZE/8))
++	fi
+ }
  
- 	if (printk_ratelimit()) {
+ test_reqs()
+@@ -89,6 +96,10 @@ test_reqs()
+ 		echo "$0: You need perl installed"
+ 		exit 1
+ 	fi
++	if ! which getconf 2> /dev/null > /dev/null; then
++		echo "$0: You need getconf installed"
++		exit 1
++	fi
+ }
+ 
+ function load_req_mod()
+@@ -103,6 +114,23 @@ function load_req_mod()
+ 	fi
+ }
+ 
++reset_vals()
++{
++	VAL=""
++	TRIGGER=$(basename ${TARGET})
++	case "$TRIGGER" in
++		int_0001)
++			VAL="60"
++			;;
++		string_0001)
++			VAL="(none)"
++			;;
++		*)
++			;;
++	esac
++	echo -n $VAL > $TARGET
++}
++
+ set_orig()
+ {
+ 	if [ ! -z $TARGET ]; then
+@@ -229,7 +257,42 @@ run_numerictests()
+ 	else
+ 		echo "ok"
+ 	fi
++	test_rc
++}
++
++# Your test must accept digits 3 and 4 to use this
++run_limit_digit()
++{
++	echo -n "Checking ignoring spaces up to PAGE_SIZE works on write ..."
++	reset_vals
+ 
++	LIMIT=$((MAX_DIGITS -1))
++	TEST_STR="3"
++	(perl -e 'print " " x '$LIMIT';'; echo "${TEST_STR}") | \
++		dd of="${TARGET}" 2>/dev/null
++
++	if ! verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++	test_rc
++
++	echo -n "Checking passing PAGE_SIZE of spaces fails on write ..."
++	reset_vals
++
++	LIMIT=$((MAX_DIGITS))
++	TEST_STR="4"
++	(perl -e 'print " " x '$LIMIT';'; echo "${TEST_STR}") | \
++		dd of="${TARGET}" 2>/dev/null
++
++	if verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
+ 	test_rc
+ }
+ 
+@@ -305,15 +368,18 @@ run_stringtests()
+ sysctl_test_0001()
+ {
+ 	TARGET="${SYSCTL}/int_0001"
++	reset_vals
+ 	ORIG=$(cat "${TARGET}")
+ 	TEST_STR=$(( $ORIG + 1 ))
+ 
+ 	run_numerictests
++	run_limit_digit
+ }
+ 
+ sysctl_test_0002()
+ {
+ 	TARGET="${SYSCTL}/string_0001"
++	reset_vals
+ 	ORIG=$(cat "${TARGET}")
+ 	TEST_STR="Testing sysctl"
+ 	# Only string sysctls support seeking/appending.
 _
