@@ -1,69 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [patch 34/96] include/linux/sem.h: correctly document
- sem_ctime
-Date: Wed, 12 Jul 2017 14:34:44 -0700
-Message-ID: <20170712213444.mQwSJu_vq%akpm@linux-foundation.org>
+Subject: [patch 35/96] ipc: drop non-RCU allocation
+Date: Wed, 12 Jul 2017 14:34:47 -0700
+Message-ID: <20170712213447.FaBinhI2_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752726AbdGLVep (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:45 -0400
+        with ESMTP id S1752726AbdGLVes (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 1vier1@web.de, akpm@linux-foundation.org, dave@stgolabs.net, fabf@skynet.be, keescook@chromium.org, manfred@colorfullife.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: include/linux/sem.h: correctly document sem_ctime
+From: Kees Cook <keescook@chromium.org>
+Subject: ipc: drop non-RCU allocation
 
-sem_ctime is initialized to the semget() time and then updated at every
-semctl() that changes the array.
-Thus it does not represent the time of the last change.
+The only users of ipc_alloc() were ipc_rcu_alloc() and the on-heap sem_io
+fall-back memory.  Better to just open-code these to make things easier to
+read.
 
-Especially, semop() calls are only stored in sem_otime, not in sem_ctime.
-
-This is already described in ipc/sem.c, I just overlooked that there is
-a comment in include/linux/sem.h and man semctl(2) as well.
-
-So: Correct wrong comments.
-
-Link: http://lkml.kernel.org/r/20170515171912.6298-4-manfred@colorfullife.com
+[manfred@colorfullife.com: Rediff due to inclusion of memset() into ipc_rcu_alloc()]
+Link: http://lkml.kernel.org/r/20170525185107.12869-5-manfred@colorfullife.com
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: <1vier1@web.de>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h      |    2 +-
- include/uapi/linux/sem.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ ipc/sem.c  |    8 +++++---
+ ipc/util.c |   25 +------------------------
+ ipc/util.h |    6 ------
+ 3 files changed, 6 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/sem.h~include-linux-semh-correctly-document-sem_ctime include/linux/sem.h
---- a/include/linux/sem.h~include-linux-semh-correctly-document-sem_ctime
-+++ a/include/linux/sem.h
-@@ -30,7 +30,7 @@ struct sem {
- /* One sem_array data structure for each set of semaphores in the system. */
- struct sem_array {
- 	struct kern_ipc_perm	sem_perm;	/* permissions .. see ipc.h */
--	time_t			sem_ctime;	/* last change time */
-+	time_t			sem_ctime;	/* create/last semctl() time */
- 	struct list_head	pending_alter;	/* pending operations */
- 						/* that alter the array */
- 	struct list_head	pending_const;	/* pending complex operations */
-diff -puN include/uapi/linux/sem.h~include-linux-semh-correctly-document-sem_ctime include/uapi/linux/sem.h
---- a/include/uapi/linux/sem.h~include-linux-semh-correctly-document-sem_ctime
-+++ a/include/uapi/linux/sem.h
-@@ -23,7 +23,7 @@
- struct semid_ds {
- 	struct ipc_perm	sem_perm;		/* permissions .. see ipc.h */
- 	__kernel_time_t	sem_otime;		/* last semop time */
--	__kernel_time_t	sem_ctime;		/* last change time */
-+	__kernel_time_t	sem_ctime;		/* create/last semctl() time */
- 	struct sem	*sem_base;		/* ptr to first semaphore in array */
- 	struct sem_queue *sem_pending;		/* pending operations to be processed */
- 	struct sem_queue **sem_pending_last;	/* last pending operation */
-_
+diff -puN ipc/sem.c~ipc-drop-non-rcu-allocation ipc/sem.c
+--- a/ipc/sem.c~ipc-drop-non-rcu-allocation
++++ a/ipc/sem.c
+@@ -1368,7 +1368,8 @@ static int semctl_main(struct ipc_namesp
+ 			}
+ 			sem_unlock(sma, -1);
+ 			rcu_read_unlock();
+-			sem_io = ipc_alloc(sizeof(ushort)*nsems);
++			sem_io = kvmalloc_array(nsems, sizeof(ushort),
++						GFP_KERNEL);
+ 			if (sem_io == NULL) {
+ 				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 				return -ENOMEM;
+@@ -1402,7 +1403,8 @@ static int semctl_main(struct ipc_namesp
+ 		rcu_read_unlock();
+ 
+ 		if (nsems > SEMMSL_FAST) {
+-			sem_io = ipc_alloc(sizeof(ushort)*nsems);
++			sem_io = kvmalloc_array(nsems, sizeof(ushort),
++						GFP_KERNEL);
+ 			if (sem_io == NULL) {
+ 				ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 				return -ENOMEM;
+@@ -1480,7 +1482,7 @@ out_rcu_wakeup:
+ 	wake_up_q(&wake_q);
+ out_free:
+ 	if (sem_io != fast_sem_io)
+-		ipc_free(sem_io);
++		kvfree(sem_io);
+ 	return err;
+ }
+ 
+diff -puN ipc/util.c~ipc-drop-non-rcu-allocation ipc/util.c
+--- a/ipc/util.c~ipc-drop-non-rcu-allocation
++++ a/ipc/util.c
+@@ -395,29 +395,6 @@ void ipc_rmid(struct ipc_ids *ids, struc
+ }
+ 
+ /**
+- * ipc_alloc -	allocate ipc space
+- * @size: size desired
+- *
+- * Allocate memory from the appropriate pools and return a pointer to it.
+- * NULL is returned if the allocation fails
+- */
+-void *ipc_alloc(int size)
+-{
+-	return kvmalloc(size, GFP_KERNEL);
+-}
+-
+-/**
+- * ipc_free - free ipc space
+- * @ptr: pointer returned by ipc_alloc
+- *
+- * Free a block created with ipc_alloc().
+- */
+-void ipc_free(void *ptr)
+-{
+-	kvfree(ptr);
+-}
+-
+-/**
+  * ipc_rcu_alloc - allocate ipc space
+  * @size: size desired
+  *
+@@ -429,7 +406,7 @@ struct kern_ipc_perm *ipc_rcu_alloc(int
+ 	/*
+ 	 * We prepend the allocation with the rcu struct
+ 	 */
+-	struct kern_ipc_perm *out = ipc_alloc(size);
++	struct kern_ipc_perm *out = kvmalloc(size, GFP_KERNEL);
+ 	if (unlikely(!out))
+ 		return NULL;
+ 
+diff -puN ipc/util.h~ipc-drop-non-rcu-allocation ipc/util.h
+--- a/ipc/util.h~ipc-drop-non-rcu-allocation
++++ a/ipc/util.h
+@@ -107,12 +107,6 @@ void ipc_rmid(struct ipc_ids *, struct k
+ /* must be called with ipcp locked */
+ int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flg);
+ 
+-/* for rare, potentially huge allocations.
+- * both function can sleep
+- */
+-void *ipc_alloc(int size);
+-void ipc_free(void *ptr);
