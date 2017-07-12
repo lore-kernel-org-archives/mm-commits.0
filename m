@@ -1,66 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ipc-merge-ipc_rcu-and-kern_ipc_perm-fix.patch
+Subject: [folded-merged] watchdog-split-up-config-options-fix.patch
  removed from -mm tree
-Date: Wed, 12 Jul 2017 14:17:43 -0700
-Message-ID: <596691f7.7Xiny6wwDoXRMekf%akpm@linux-foundation.org>
+Date: Wed, 12 Jul 2017 14:18:31 -0700
+Message-ID: <59669227.p/6VXJUEiFDbyDeR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52560 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752363AbdGLVRo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:17:44 -0400
+        with ESMTP id S1752363AbdGLVSc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2017 17:18:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, dave@stgolabs.net, keescook@chromium.org, mm-commits@vger.kernel.org
+To: npiggin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-merge-ipc_rcu-and-kern_ipc_perm-fix
+     Subject: watchdog-split-up-config-options-fix
 has been removed from the -mm tree.  Its filename was
-     ipc-merge-ipc_rcu-and-kern_ipc_perm-fix.patch
+     watchdog-split-up-config-options-fix.patch
 
-This patch was dropped because it was folded into ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
+This patch was dropped because it was folded into watchdog-split-up-config-options.patch
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc-merge-ipc_rcu-and-kern_ipc_perm-fix
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: watchdog-split-up-config-options-fix
 
-V2: Really include the memset() into ipc_alloc_rcu().
+Link: http://lkml.kernel.org/r/20170617223522.66c0ad88@roar.ozlabs.ibm.com
 
-Link: http://lkml.kernel.org/r/564f8612-0601-b267-514f-a9f650ec9b32@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/Kconfig |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN ipc/util.c~ipc-merge-ipc_rcu-and-kern_ipc_perm-fix ipc/util.c
---- a/ipc/util.c~ipc-merge-ipc_rcu-and-kern_ipc_perm-fix
-+++ a/ipc/util.c
-@@ -432,6 +432,8 @@ struct kern_ipc_perm *ipc_rcu_alloc(int
- 	struct kern_ipc_perm *out = ipc_alloc(size);
- 	if (unlikely(!out))
- 		return NULL;
-+
-+	memset(out, 0, size);
- 	atomic_set(&out->refcount, 1);
- 	return out;
- }
-_
-
-Patches currently in -mm which might be from manfred@colorfullife.com are
-
-ipc-semc-remove-sem_base-embed-struct-sem.patch
-ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
-include-linux-semh-correctly-document-sem_ctime.patch
-ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
-
+diff -puN arch/Kconfig~watchdog-split-up-config-options-fix arch/Kconfig
+--- a/arch/Kconfig~watchdog-split-up-config-options-fix
++++ a/arch/Kconfig
+@@ -198,9 +198,6 @@ config HAVE_KPROBES_ON_FTRACE
+ config HAVE_NMI
+ 	bool
+ 
+-config HAVE_NMI_WATCHDOG
+-	depends on HAVE_NMI
+-	bool
+ #
+ # An arch should select this if it provides all these things:
+ #
+@@ -288,7 +285,6 @@ config HAVE_PERF_EVENTS_NMI
+ 	  subsystem.  Also has support for calculating CPU cycle events
+ 	  to determine how many clock cycles in a given period.
+ 
+-
+ config HAVE_HARDLOCKUP_DETECTOR_PERF
+ 	bool
+ 	depends on HAVE_PERF_EVENTS_NMI
+@@ -297,6 +293,7 @@ config HAVE_HARDLOCKUP_DETECTOR_PERF
+ 	  detector. Must define HAVE_PERF_EVENTS_NMI.
+ 
+ config HAVE_NMI_WATCHDOG
++	depends on HAVE_NMI
+ 	bool
+ 	help
+ 	  The arch provides a low level NMI watchdog. It provides
+@@ -310,7 +307,6 @@ config HAVE_HARDLOCKUP_DETECTOR_ARCH
+ 	  a superset of the HAVE_NMI_WATCHDOG. It also conforms to config
+ 	  interfaces and parameters provided by hardlockup detector subsystem.
+ 
