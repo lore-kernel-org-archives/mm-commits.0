@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-dont-fortify-prom_init.patch removed from
- -mm tree
-Date: Thu, 13 Jul 2017 13:42:20 -0700
-Message-ID: <20170713204220.R4TmBW949%akpm@linux-foundation.org>
+Subject: [merged]
+ sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch removed from -mm
+ tree
+Date: Thu, 13 Jul 2017 13:42:42 -0700
+Message-ID: <20170713204242.xibmp7X0D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59640 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbdGMUmV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:21 -0400
+        with ESMTP id S1752905AbdGMUmn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au
+To: catalin.marinas@arm.com, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tytso@mit.edu, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: powerpc: don't fortify prom_init
+     Subject: sh64: ascii armor the sh64 boot init stack canary
 has been removed from the -mm tree.  Its filename was
-     powerpc-dont-fortify-prom_init.patch
+     sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Axtens <dja@axtens.net>
-Subject: powerpc: don't fortify prom_init
+From: Rik van Riel <riel@redhat.com>
+Subject: sh64: ascii armor the sh64 boot init stack canary
 
-prom_init is a bit special; in theory it should be able to be linked
-separately to the kernel.  To keep this from getting too complex, the
-symbols that prom_init.c uses are checked.
+Use the ascii-armor canary to prevent unterminated C string overflows from
+being able to successfully overwrite the canary, even if they somehow
+obtain the canary value.
 
-Fortification adds symbols, and it gets quite messy as it includes things
-like panic().  So just don't fortify prom_init.c for now.
+Inspired by execshield ascii-armor and Daniel Micay's linux-hardened tree.
 
-Link: http://lkml.kernel.org/r/1497903987-21002-6-git-send-email-keescook@chromium.org
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/20170524123446.78510066@annuminas.surriel.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/prom_init.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/sh/include/asm/stackprotector.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/kernel/prom_init.c~powerpc-dont-fortify-prom_init arch/powerpc/kernel/prom_init.c
---- a/arch/powerpc/kernel/prom_init.c~powerpc-dont-fortify-prom_init
-+++ a/arch/powerpc/kernel/prom_init.c
-@@ -15,6 +15,9 @@
+diff -puN arch/sh/include/asm/stackprotector.h~sh64-ascii-armor-the-sh64-boot-init-stack-canary arch/sh/include/asm/stackprotector.h
+--- a/arch/sh/include/asm/stackprotector.h~sh64-ascii-armor-the-sh64-boot-init-stack-canary
++++ a/arch/sh/include/asm/stackprotector.h
+@@ -19,6 +19,7 @@ static __always_inline void boot_init_st
+ 	/* Try to get a semi random initial value. */
+ 	get_random_bytes(&canary, sizeof(canary));
+ 	canary ^= LINUX_VERSION_CODE;
++	canary &= CANARY_MASK;
  
- #undef DEBUG_PROM
- 
-+/* we cannot use FORTIFY as it brings in new symbols */
-+#define __NO_FORTIFY
-+
- #include <stdarg.h>
- #include <linux/kernel.h>
- #include <linux/string.h>
+ 	current->stack_canary = canary;
+ 	__stack_chk_guard = current->stack_canary;
 _
 
-Patches currently in -mm which might be from dja@axtens.net are
+Patches currently in -mm which might be from riel@redhat.com are
 
 
