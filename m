@@ -1,64 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch removed from -mm
- tree
-Date: Thu, 13 Jul 2017 13:42:36 -0700
-Message-ID: <20170713204236.VtH5QsYmC%akpm@linux-foundation.org>
+ x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+ removed from -mm tree
+Date: Thu, 13 Jul 2017 13:42:45 -0700
+Message-ID: <20170713204245.sngRU9Owz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59656 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752905AbdGMUmh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:37 -0400
+        with ESMTP id S1752905AbdGMUmq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tytso@mit.edu, ysato@users.sourceforge.jp
+To: benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hughd@google.com, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, will.deacon@arm.com
 
 
 The patch titled
-     Subject: x86: ascii armor the x86_64 boot init stack canary
+     Subject: x86/mmap: properly account for stack randomization in mmap_base
 has been removed from the -mm tree.  Its filename was
-     x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
+     x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: x86: ascii armor the x86_64 boot init stack canary
+Subject: x86/mmap: properly account for stack randomization in mmap_base
 
-Use the ascii-armor canary to prevent unterminated C string overflows from
-being able to successfully overwrite the canary, even if they somehow
-obtain the canary value.
+When RLIMIT_STACK is, for example, 256MB, the current code results in a
+gap between the top of the task and mmap_base of 256MB, failing to take
+into account the amount by which the stack address was randomized.  In
+other words, the stack gets less than RLIMIT_STACK space.
 
-Inspired by execshield ascii-armor and Daniel Micay's linux-hardened tree.
+Ensure that the gap between the stack and mmap_base always takes stack
+randomization and the stack guard gap into account.
 
-Link: http://lkml.kernel.org/r/20170524155751.424-4-riel@redhat.com
+Obtained from Daniel Micay's linux-hardened tree.
+
+Link: http://lkml.kernel.org/r/20170622200033.25714-2-riel@redhat.com
+Signed-off-by: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+Reported-by: Florian Weimer <fweimer@redhat.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
 Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/stackprotector.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/mm/mmap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/stackprotector.h~x86-ascii-armor-the-x86_64-boot-init-stack-canary arch/x86/include/asm/stackprotector.h
---- a/arch/x86/include/asm/stackprotector.h~x86-ascii-armor-the-x86_64-boot-init-stack-canary
-+++ a/arch/x86/include/asm/stackprotector.h
-@@ -74,6 +74,7 @@ static __always_inline void boot_init_st
- 	get_random_bytes(&canary, sizeof(canary));
- 	tsc = rdtsc();
- 	canary += tsc + (tsc << 32UL);
-+	canary &= CANARY_MASK;
+diff -puN arch/x86/mm/mmap.c~x86-mmap-properly-account-for-stack-randomization-in-mmap_base arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~x86-mmap-properly-account-for-stack-randomization-in-mmap_base
++++ a/arch/x86/mm/mmap.c
+@@ -92,13 +92,18 @@ unsigned long arch_mmap_rnd(void)
+ static unsigned long mmap_base(unsigned long rnd, unsigned long task_size)
+ {
+ 	unsigned long gap = rlimit(RLIMIT_STACK);
++	unsigned long pad = stack_maxrandom_size(task_size) + stack_guard_gap;
+ 	unsigned long gap_min, gap_max;
  
- 	current->stack_canary = canary;
- #ifdef CONFIG_X86_64
++	/* Values close to RLIM_INFINITY can overflow. */
++	if (gap + pad > gap)
++		gap += pad;
++
+ 	/*
+ 	 * Top of mmap area (just below the process stack).
+ 	 * Leave an at least ~128 MB hole with possible stack randomization.
+ 	 */
+-	gap_min = SIZE_128M + stack_maxrandom_size(task_size);
++	gap_min = SIZE_128M;
+ 	gap_max = (task_size / 6) * 5;
+ 
+ 	if (gap < gap_min)
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
