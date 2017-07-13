@@ -1,56 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- usb-serial-safe_serial-move-__inline__-before-return-type.patch removed
- from -mm tree
-Date: Thu, 13 Jul 2017 13:43:38 -0700
-Message-ID: <20170713204338.HfpLYfIPx%akpm@linux-foundation.org>
+ video-fbdev-omap-move-inline-before-return-type.patch removed from -mm tree
+Date: Thu, 13 Jul 2017 13:43:42 -0700
+Message-ID: <20170713204342.aTbkUvfa8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdGMUnj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:39 -0400
+        with ESMTP id S1752847AbdGMUnn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregkh@linuxfoundation.org, joe@perches.com, johan@kernel.org, mm-commits@vger.kernel.org
+To: b.zolnierkie@samsung.com, joe@perches.com, mm-commits@vger.kernel.org, tomi.valkeinen@ti.com
 
 
 The patch titled
-     Subject: USB: serial: safe_serial: move __inline__ before return type
+     Subject: video: fbdev: omap: move inline before return type
 has been removed from the -mm tree.  Its filename was
-     usb-serial-safe_serial-move-__inline__-before-return-type.patch
+     video-fbdev-omap-move-inline-before-return-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: USB: serial: safe_serial: move __inline__ before return type
+Subject: video: fbdev: omap: move inline before return type
 
 Make the code like the rest of the kernel.
-Also use inline instead of __inline__.
 
-Link: http://lkml.kernel.org/r/a5072b74b6c293e6ec93c4900482e9d3267f15b2.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/bc5927726abc70d7c066df7ab4cb7cfce4a7b577.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Johan Hovold <johan@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/safe_serial.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/fbdev/omap/lcdc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/serial/safe_serial.c~usb-serial-safe_serial-move-__inline__-before-return-type drivers/usb/serial/safe_serial.c
---- a/drivers/usb/serial/safe_serial.c~usb-serial-safe_serial-move-__inline__-before-return-type
-+++ a/drivers/usb/serial/safe_serial.c
-@@ -180,7 +180,7 @@ static const __u16 crc10_table[256] = {
-  * Perform a memcpy and calculate fcs using ppp 10bit CRC algorithm. Return
-  * new 10 bit FCS.
-  */
--static __u16 __inline__ fcs_compute10(unsigned char *sp, int len, __u16 fcs)
-+static inline __u16 fcs_compute10(unsigned char *sp, int len, __u16 fcs)
+diff -puN drivers/video/fbdev/omap/lcdc.c~video-fbdev-omap-move-inline-before-return-type drivers/video/fbdev/omap/lcdc.c
+--- a/drivers/video/fbdev/omap/lcdc.c~video-fbdev-omap-move-inline-before-return-type
++++ a/drivers/video/fbdev/omap/lcdc.c
+@@ -79,12 +79,12 @@ static struct omap_lcd_controller {
+ 	unsigned long		vram_size;
+ } lcdc;
+ 
+-static void inline enable_irqs(int mask)
++static inline void enable_irqs(int mask)
  {
- 	for (; len-- > 0; fcs = CRC10_FCS(fcs, *sp++));
- 	return fcs;
+ 	lcdc.irq_mask |= mask;
+ }
+ 
+-static void inline disable_irqs(int mask)
++static inline void disable_irqs(int mask)
+ {
+ 	lcdc.irq_mask &= ~mask;
+ }
+@@ -466,7 +466,7 @@ static void calc_ck_div(int is_tft, int
+ 	}
+ }
+ 
+-static void inline setup_regs(void)
++static inline void setup_regs(void)
+ {
+ 	u32 l;
+ 	struct lcd_panel *panel = lcdc.fbdev->panel;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
