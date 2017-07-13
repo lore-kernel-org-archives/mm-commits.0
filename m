@@ -1,70 +1,53 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-s390-move-static-and-inline-before-return-type.patch removed from
- -mm tree
-Date: Thu, 13 Jul 2017 13:43:33 -0700
-Message-ID: <20170713204333.EpAx5rzF7%akpm@linux-foundation.org>
+ arm-samsung-usb-ohci-move-inline-before-return-type.patch removed from -mm
+ tree
+Date: Thu, 13 Jul 2017 13:43:45 -0700
+Message-ID: <20170713204345.KCg9hGZjR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59956 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdGMUne (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:34 -0400
+        with ESMTP id S1753097AbdGMUnq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, joe@perches.com, jwi@linux.vnet.ibm.com, mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, ubraun@linux.vnet.ibm.com
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers: s390: move static and inline before return type
+     Subject: ARM: samsung: usb-ohci: move inline before return type
 has been removed from the -mm tree.  Its filename was
-     drivers-s390-move-static-and-inline-before-return-type.patch
+     arm-samsung-usb-ohci-move-inline-before-return-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: drivers: s390: move static and inline before return type
+Subject: ARM: samsung: usb-ohci: move inline before return type
 
 Make the code like the rest of the kernel.
 
-Link: http://lkml.kernel.org/r/3f980cd89084ae09716353aba3171e4b3815e690.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/667a515b8d0f10f2465d519f8595edd91552fc5e.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julian Wiedmann <jwi@linux.vnet.ibm.com>
-Cc: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/ctcm_main.c    |    2 +-
- drivers/s390/net/qeth_l3_main.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/platform_data/usb-ohci-s3c2410.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/net/ctcm_main.c~drivers-s390-move-static-and-inline-before-return-type drivers/s390/net/ctcm_main.c
---- a/drivers/s390/net/ctcm_main.c~drivers-s390-move-static-and-inline-before-return-type
-+++ a/drivers/s390/net/ctcm_main.c
-@@ -1115,7 +1115,7 @@ static const struct net_device_ops ctcm_
- 	.ndo_start_xmit		= ctcmpc_tx,
+diff -puN include/linux/platform_data/usb-ohci-s3c2410.h~arm-samsung-usb-ohci-move-inline-before-return-type include/linux/platform_data/usb-ohci-s3c2410.h
+--- a/include/linux/platform_data/usb-ohci-s3c2410.h~arm-samsung-usb-ohci-move-inline-before-return-type
++++ a/include/linux/platform_data/usb-ohci-s3c2410.h
+@@ -31,7 +31,7 @@ struct s3c2410_hcd_info {
+ 	void		(*report_oc)(struct s3c2410_hcd_info *, int ports);
  };
  
--void static ctcm_dev_setup(struct net_device *dev)
-+static void ctcm_dev_setup(struct net_device *dev)
+-static void inline s3c2410_usb_report_oc(struct s3c2410_hcd_info *info, int ports)
++static inline void s3c2410_usb_report_oc(struct s3c2410_hcd_info *info, int ports)
  {
- 	dev->type = ARPHRD_SLIP;
- 	dev->tx_queue_len = 100;
-diff -puN drivers/s390/net/qeth_l3_main.c~drivers-s390-move-static-and-inline-before-return-type drivers/s390/net/qeth_l3_main.c
---- a/drivers/s390/net/qeth_l3_main.c~drivers-s390-move-static-and-inline-before-return-type
-+++ a/drivers/s390/net/qeth_l3_main.c
-@@ -2408,7 +2408,7 @@ static int qeth_l3_do_ioctl(struct net_d
- 	return rc;
- }
- 
--int inline qeth_l3_get_cast_type(struct qeth_card *card, struct sk_buff *skb)
-+inline int qeth_l3_get_cast_type(struct qeth_card *card, struct sk_buff *skb)
- {
- 	int cast_type = RTN_UNSPEC;
- 	struct neighbour *n = NULL;
+ 	if (info->report_oc != NULL) {
+ 		(info->report_oc)(info, ports);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
