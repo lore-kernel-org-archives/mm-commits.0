@@ -1,259 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch removed from -mm
+ virtually-mapped-stacks-do-not-disable-interrupts.patch removed from -mm
  tree
-Date: Thu, 13 Jul 2017 13:40:08 -0700
-Message-ID: <20170713204008.hrtHJrBpx%akpm@linux-foundation.org>
+Date: Thu, 13 Jul 2017 13:40:00 -0700
+Message-ID: <20170713204000.z82a_F_fw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58774 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753227AbdGMUkO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:14 -0400
+        with ESMTP id S1753181AbdGMUkG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, xlpang@redhat.com
+To: cl@linux.com, luto@amacapital.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: protect vmcoreinfo data under the crash memory
+     Subject: kernel/fork.c: virtually mapped stacks: do not disable interrupts
 has been removed from the -mm tree.  Its filename was
-     kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+     virtually-mapped-stacks-do-not-disable-interrupts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kdump: protect vmcoreinfo data under the crash memory
+From: Christoph Lameter <cl@linux.com>
+Subject: kernel/fork.c: virtually mapped stacks: do not disable interrupts
 
-Currently vmcoreinfo data is updated at boot time subsys_initcall(), it
-has the risk of being modified by some wrong code during system is
-running.
+The reason to disable interrupts seems to be to avoid switching to a
+different processor while handling per cpu data using individual loads and
+stores.  If we use per cpu RMV primitives we will not have to disable
+interrupts.
 
-As a result, vmcore dumped may contain the wrong vmcoreinfo.  Later on,
-when using "crash", "makedumpfile", etc utility to parse this vmcore, we
-probably will get "Segmentation fault" or other unexpected errors.
-
-E.g.  1) wrong code overwrites vmcoreinfo_data; 2) further crashes the
-system; 3) trigger kdump, then we obviously will fail to recognize the
-crash context correctly due to the corrupted vmcoreinfo.
-
-Now except for vmcoreinfo, all the crash data is well protected(including
-the cpu note which is fully updated in the crash path, thus its
-correctness is guaranteed).  Given that vmcoreinfo data is a large chunk
-prepared for kdump, we better protect it as well.
-
-To solve this, we relocate and copy vmcoreinfo_data to the crash memory
-when kdump is loading via kexec syscalls.  Because the whole crash memory
-will be protected by existing arch_kexec_protect_crashkres() mechanism, we
-naturally protect vmcoreinfo_data from write(even read) access under
-kernel direct mapping after kdump is loaded.
-
-Since kdump is usually loaded at the very early stage after boot, we can
-trust the correctness of the vmcoreinfo data copied.
-
-On the other hand, we still need to operate the vmcoreinfo safe copy when
-crash happens to generate vmcoreinfo_note again, we rely on vmap() to map
-out a new kernel virtual address and update to use this new one instead in
-the following crash_save_vmcoreinfo().
-
-BTW, we do not touch vmcoreinfo_note, because it will be fully updated
-using the protected vmcoreinfo_data after crash which is surely correct
-just like the cpu crash note.
-
-Link: http://lkml.kernel.org/r/1493281021-20737-3-git-send-email-xlpang@redhat.com
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Tested-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.20.1705171055130.5898@east.gentwo.org
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_core.h |    2 -
- include/linux/kexec.h      |    2 +
- kernel/crash_core.c        |   17 ++++++++++++++-
- kernel/kexec.c             |    8 +++++++
- kernel/kexec_core.c        |   39 +++++++++++++++++++++++++++++++++++
- kernel/kexec_file.c        |    8 +++++++
- 6 files changed, 74 insertions(+), 2 deletions(-)
+ kernel/fork.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/crash_core.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory include/linux/crash_core.h
---- a/include/linux/crash_core.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/include/linux/crash_core.h
-@@ -28,6 +28,7 @@
+diff -puN kernel/fork.c~virtually-mapped-stacks-do-not-disable-interrupts kernel/fork.c
+--- a/kernel/fork.c~virtually-mapped-stacks-do-not-disable-interrupts
++++ a/kernel/fork.c
+@@ -205,19 +205,17 @@ static unsigned long *alloc_thread_stack
+ 	void *stack;
+ 	int i;
  
- typedef u32 note_buf_t[CRASH_CORE_NOTE_BYTES/4];
- 
-+void crash_update_vmcoreinfo_safecopy(void *ptr);
- void crash_save_vmcoreinfo(void);
- void arch_crash_save_vmcoreinfo(void);
- __printf(1, 2)
-@@ -57,7 +58,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
- 
- extern u32 *vmcoreinfo_note;
--extern size_t vmcoreinfo_size;
- 
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len);
-diff -puN include/linux/kexec.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/include/linux/kexec.h
-@@ -172,6 +172,7 @@ struct kimage {
- 	unsigned long start;
- 	struct page *control_code_page;
- 	struct page *swap_page;
-+	void *vmcoreinfo_data_copy; /* locates in the crash memory */
- 
- 	unsigned long nr_segments;
- 	struct kexec_segment segment[KEXEC_SEGMENT_MAX];
-@@ -241,6 +242,7 @@ extern void crash_kexec(struct pt_regs *
- int kexec_should_crash(struct task_struct *);
- int kexec_crash_loaded(void);
- void crash_save_cpu(struct pt_regs *regs, int cpu);
-+extern int kimage_crash_copy_vmcoreinfo(struct kimage *image);
- 
- extern struct kimage *kexec_image;
- extern struct kimage *kexec_crash_image;
-diff -puN kernel/crash_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/crash_core.c
---- a/kernel/crash_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/crash_core.c
-@@ -15,9 +15,12 @@
- 
- /* vmcoreinfo stuff */
- static unsigned char *vmcoreinfo_data;
--size_t vmcoreinfo_size;
-+static size_t vmcoreinfo_size;
- u32 *vmcoreinfo_note;
- 
-+/* trusted vmcoreinfo, e.g. we can make a copy in the crash memory */
-+static unsigned char *vmcoreinfo_data_safecopy;
+-	local_irq_disable();
+ 	for (i = 0; i < NR_CACHED_STACKS; i++) {
+-		struct vm_struct *s = this_cpu_read(cached_stacks[i]);
++		struct vm_struct *s;
 +
- /*
-  * parsing the "crashkernel" commandline
-  *
-@@ -323,11 +326,23 @@ static void update_vmcoreinfo_note(void)
- 	final_note(buf);
- }
++		s = this_cpu_xchg(cached_stacks[i], NULL);
  
-+void crash_update_vmcoreinfo_safecopy(void *ptr)
-+{
-+	if (ptr)
-+		memcpy(ptr, vmcoreinfo_data, vmcoreinfo_size);
-+
-+	vmcoreinfo_data_safecopy = ptr;
-+}
-+
- void crash_save_vmcoreinfo(void)
+ 		if (!s)
+ 			continue;
+-		this_cpu_write(cached_stacks[i], NULL);
+ 
+ 		tsk->stack_vm_area = s;
+-		local_irq_enable();
+ 		return s->addr;
+ 	}
+-	local_irq_enable();
+ 
+ 	stack = __vmalloc_node_range(THREAD_SIZE, THREAD_SIZE,
+ 				     VMALLOC_START, VMALLOC_END,
+@@ -245,19 +243,15 @@ static inline void free_thread_stack(str
  {
- 	if (!vmcoreinfo_note)
+ #ifdef CONFIG_VMAP_STACK
+ 	if (task_stack_vm_area(tsk)) {
+-		unsigned long flags;
+ 		int i;
+ 
+-		local_irq_save(flags);
+ 		for (i = 0; i < NR_CACHED_STACKS; i++) {
+-			if (this_cpu_read(cached_stacks[i]))
++			if (this_cpu_cmpxchg(cached_stacks[i],
++					NULL, tsk->stack_vm_area) != NULL)
+ 				continue;
+ 
+-			this_cpu_write(cached_stacks[i], tsk->stack_vm_area);
+-			local_irq_restore(flags);
+ 			return;
+ 		}
+-		local_irq_restore(flags);
+ 
+ 		vfree_atomic(tsk->stack);
  		return;
- 
-+	/* Use the safe copy to generate vmcoreinfo note if have */
-+	if (vmcoreinfo_data_safecopy)
-+		vmcoreinfo_data = vmcoreinfo_data_safecopy;
-+
- 	vmcoreinfo_append_str("CRASHTIME=%ld\n", get_seconds());
- 	update_vmcoreinfo_note();
- }
-diff -puN kernel/kexec.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec.c
---- a/kernel/kexec.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/kexec.c
-@@ -144,6 +144,14 @@ static int do_kexec_load(unsigned long e
- 	if (ret)
- 		goto out;
- 
-+	/*
-+	 * Some architecture(like S390) may touch the crash memory before
-+	 * machine_kexec_prepare(), we must copy vmcoreinfo data after it.
-+	 */
-+	ret = kimage_crash_copy_vmcoreinfo(image);
-+	if (ret)
-+		goto out;
-+
- 	for (i = 0; i < nr_segments; i++) {
- 		ret = kimage_load_segment(image, &image->segment[i]);
- 		if (ret)
-diff -puN kernel/kexec_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec_core.c
---- a/kernel/kexec_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/kexec_core.c
-@@ -482,6 +482,40 @@ struct page *kimage_alloc_control_pages(
- 	return pages;
- }
- 
-+int kimage_crash_copy_vmcoreinfo(struct kimage *image)
-+{
-+	struct page *vmcoreinfo_page;
-+	void *safecopy;
-+
-+	if (image->type != KEXEC_TYPE_CRASH)
-+		return 0;
-+
-+	/*
-+	 * For kdump, allocate one vmcoreinfo safe copy from the
-+	 * crash memory. as we have arch_kexec_protect_crashkres()
-+	 * after kexec syscall, we naturally protect it from write
-+	 * (even read) access under kernel direct mapping. But on
-+	 * the other hand, we still need to operate it when crash
-+	 * happens to generate vmcoreinfo note, hereby we rely on
-+	 * vmap for this purpose.
-+	 */
-+	vmcoreinfo_page = kimage_alloc_control_pages(image, 0);
-+	if (!vmcoreinfo_page) {
-+		pr_warn("Could not allocate vmcoreinfo buffer\n");
-+		return -ENOMEM;
-+	}
-+	safecopy = vmap(&vmcoreinfo_page, 1, VM_MAP, PAGE_KERNEL);
-+	if (!safecopy) {
-+		pr_warn("Could not vmap vmcoreinfo buffer\n");
-+		return -ENOMEM;
-+	}
-+
-+	image->vmcoreinfo_data_copy = safecopy;
-+	crash_update_vmcoreinfo_safecopy(safecopy);
-+
-+	return 0;
-+}
-+
- static int kimage_add_entry(struct kimage *image, kimage_entry_t entry)
- {
- 	if (*image->entry != 0)
-@@ -569,6 +603,11 @@ void kimage_free(struct kimage *image)
- 	if (!image)
- 		return;
- 
-+	if (image->vmcoreinfo_data_copy) {
-+		crash_update_vmcoreinfo_safecopy(NULL);
-+		vunmap(image->vmcoreinfo_data_copy);
-+	}
-+
- 	kimage_free_extra_pages(image);
- 	for_each_kimage_entry(image, ptr, entry) {
- 		if (entry & IND_INDIRECTION) {
-diff -puN kernel/kexec_file.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec_file.c
---- a/kernel/kexec_file.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/kexec_file.c
-@@ -298,6 +298,14 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 	if (ret)
- 		goto out;
- 
-+	/*
-+	 * Some architecture(like S390) may touch the crash memory before
-+	 * machine_kexec_prepare(), we must copy vmcoreinfo data after it.
-+	 */
-+	ret = kimage_crash_copy_vmcoreinfo(image);
-+	if (ret)
-+		goto out;
-+
- 	ret = kexec_calculate_store_digests(image);
- 	if (ret)
- 		goto out;
 _
 
-Patches currently in -mm which might be from xlpang@redhat.com are
+Patches currently in -mm which might be from cl@linux.com are
 
 
