@@ -1,108 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-shm-remove-special-shm_alloc-free.patch
- removed from -mm tree
-Date: Thu, 13 Jul 2017 13:41:47 -0700
-Message-ID: <20170713204147.4kRe5L8P9%akpm@linux-foundation.org>
+Subject: [merged]
+ ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch removed
+ from -mm tree
+Date: Thu, 13 Jul 2017 13:41:53 -0700
+Message-ID: <20170713204153.m7AHkcBdm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59366 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753092AbdGMUls (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:41:48 -0400
+        with ESMTP id S1753092AbdGMUly (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:41:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, keescook@chromium.org, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm: remove special shm_alloc/free
+     Subject: ipc/util.h: update documentation for ipc_getref() and ipc_putref()
 has been removed from the -mm tree.  Its filename was
-     ipc-shm-remove-special-shm_alloc-free.patch
+     ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ipc/shm: remove special shm_alloc/free
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/util.h: update documentation for ipc_getref() and ipc_putref()
 
-There is nothing special about the shm_alloc/free routines any more, so
-remove them to make code more readable.
+Now that ipc_rcu_alloc() and ipc_rcu_free() are removed,
+document when it is valid to use ipc_getref() and ipc_putref().
 
-[manfred@colorfullife.com: Rediff, to continue to keep rcu for free calls after a successful security_shm_alloc()]
-Link: http://lkml.kernel.org/r/20170525185107.12869-18-manfred@colorfullife.com
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20170525185107.12869-21-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   24 ++++--------------------
- 1 file changed, 4 insertions(+), 20 deletions(-)
+ ipc/util.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN ipc/shm.c~ipc-shm-remove-special-shm_alloc-free ipc/shm.c
---- a/ipc/shm.c~ipc-shm-remove-special-shm_alloc-free
-+++ a/ipc/shm.c
-@@ -172,11 +172,6 @@ static inline void shm_lock_by_ptr(struc
- 	ipc_lock_object(&ipcp->shm_perm);
- }
- 
--static void __shm_free(struct shmid_kernel *shp)
--{
--	kvfree(shp);
--}
--
- static void shm_rcu_free(struct rcu_head *head)
- {
- 	struct kern_ipc_perm *ptr = container_of(head, struct kern_ipc_perm,
-@@ -184,7 +179,7 @@ static void shm_rcu_free(struct rcu_head
- 	struct shmid_kernel *shp = container_of(ptr, struct shmid_kernel,
- 							shm_perm);
- 	security_shm_free(shp);
--	__shm_free(shp);
-+	kvfree(shp);
- }
- 
- static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
-@@ -518,17 +513,6 @@ static const struct vm_operations_struct
- #endif
- };
- 
--static struct shmid_kernel *shm_alloc(void)
--{
--	struct shmid_kernel *shp;
--
--	shp = kvmalloc(sizeof(*shp), GFP_KERNEL);
--	if (unlikely(!shp))
--		return NULL;
--
--	return shp;
--}
--
- /**
-  * newseg - Create a new shared memory segment
-  * @ns: namespace
-@@ -558,8 +542,8 @@ static int newseg(struct ipc_namespace *
- 			ns->shm_tot + numpages > ns->shm_ctlall)
- 		return -ENOSPC;
- 
--	shp = shm_alloc();
--	if (!shp)
-+	shp = kvmalloc(sizeof(*shp), GFP_KERNEL);
-+	if (unlikely(!shp))
- 		return -ENOMEM;
- 
- 	shp->shm_perm.key = key;
-@@ -569,7 +553,7 @@ static int newseg(struct ipc_namespace *
- 	shp->shm_perm.security = NULL;
- 	error = security_shm_alloc(shp);
- 	if (error) {
--		__shm_free(shp);
-+		kvfree(shp);
- 		return error;
- 	}
- 
+diff -puN ipc/util.h~ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref ipc/util.h
+--- a/ipc/util.h~ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref
++++ a/ipc/util.h
+@@ -112,6 +112,9 @@ int ipcperms(struct ipc_namespace *ns, s
+  * Objects are reference counted, they start with reference count 1.
+  * getref increases the refcount, the putref call that reduces the recount
+  * to 0 schedules the rcu destruction. Caller must guarantee locking.
++ *
++ * refcount is initialized by ipc_addid(), before that point call_rcu()
++ * must be used.
+  */
+ int ipc_rcu_getref(struct kern_ipc_perm *ptr);
+ void ipc_rcu_putref(struct kern_ipc_perm *ptr,
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 
