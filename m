@@ -1,65 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-efi-move-asmlinkage-before-return-type.patch
- removed from -mm tree
-Date: Thu, 13 Jul 2017 13:43:30 -0700
-Message-ID: <20170713204330.N6zVWWvkq%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-tty-serial-move-inline-before-return-type.patch removed from -mm
+ tree
+Date: Thu, 13 Jul 2017 13:43:35 -0700
+Message-ID: <20170713204335.cthx0jqWa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59904 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59922 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdGMUnb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:31 -0400
+        with ESMTP id S1752962AbdGMUng (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, hpa@zytor.com, joe@perches.com, matt@codeblueprint.co.uk, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: gregkh@linuxfoundation.org, joe@perches.com, jslaby@suse.com, mm-commits@vger.kernel.org, pfg@sgi.com
 
 
 The patch titled
-     Subject: x86/efi: move asmlinkage before return type
+     Subject: drivers: tty: serial: move inline before return type
 has been removed from the -mm tree.  Its filename was
-     x86-efi-move-asmlinkage-before-return-type.patch
+     drivers-tty-serial-move-inline-before-return-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: x86/efi: move asmlinkage before return type
+Subject: drivers: tty: serial: move inline before return type
 
 Make the code like the rest of the kernel.
 
-Link: http://lkml.kernel.org/r/1cd3d401626e51ea0e2333a860e76e80bc560a4c.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/55d3e89d50bb03d603bfb28019fab07f48bdc714.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Pat Gefre <pfg@sgi.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/efi.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/tty/serial/ioc3_serial.c |    4 ++--
+ drivers/tty/serial/ioc4_serial.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/efi.h~x86-efi-move-asmlinkage-before-return-type arch/x86/include/asm/efi.h
---- a/arch/x86/include/asm/efi.h~x86-efi-move-asmlinkage-before-return-type
-+++ a/arch/x86/include/asm/efi.h
-@@ -33,7 +33,7 @@
+diff -puN drivers/tty/serial/ioc3_serial.c~drivers-tty-serial-move-inline-before-return-type drivers/tty/serial/ioc3_serial.c
+--- a/drivers/tty/serial/ioc3_serial.c~drivers-tty-serial-move-inline-before-return-type
++++ a/drivers/tty/serial/ioc3_serial.c
+@@ -377,7 +377,7 @@ static struct ioc3_port *get_ioc3_port(s
+  *			called per port from attach...
+  * @port: port to initialize
+  */
+-static int inline port_init(struct ioc3_port *port)
++static inline int port_init(struct ioc3_port *port)
+ {
+ 	uint32_t sio_cr;
+ 	struct port_hooks *hooks = port->ip_hooks;
+@@ -1430,7 +1430,7 @@ static int receive_chars(struct uart_por
+  * @pending: interrupts to handle
+  */
  
- #ifdef CONFIG_X86_32
- 
--extern unsigned long asmlinkage efi_call_phys(void *, ...);
-+extern asmlinkage unsigned long efi_call_phys(void *, ...);
- 
- #define arch_efi_call_virt_setup()	kernel_fpu_begin()
- #define arch_efi_call_virt_teardown()	kernel_fpu_end()
-@@ -52,7 +52,7 @@ extern unsigned long asmlinkage efi_call
- 
- #define EFI_LOADER_SIGNATURE	"EL64"
- 
--extern u64 asmlinkage efi_call(void *fp, ...);
-+extern asmlinkage u64 efi_call(void *fp, ...);
- 
- #define efi_call_phys(f, args...)		efi_call((f), args)
- 
+-static int inline
++static inline int
+ ioc3uart_intr_one(struct ioc3_submodule *is,
+ 			struct ioc3_driver_data *idd,
+ 			unsigned int pending)
+diff -puN drivers/tty/serial/ioc4_serial.c~drivers-tty-serial-move-inline-before-return-type drivers/tty/serial/ioc4_serial.c
+--- a/drivers/tty/serial/ioc4_serial.c~drivers-tty-serial-move-inline-before-return-type
++++ a/drivers/tty/serial/ioc4_serial.c
+@@ -824,7 +824,7 @@ pending_intrs(struct ioc4_soft *soft, in
+  *			called per port from attach...
+  * @port: port to initialize
+  */
+-static int inline port_init(struct ioc4_port *port)
++static inline int port_init(struct ioc4_port *port)
+ {
+ 	uint32_t sio_cr;
+ 	struct hooks *hooks = port->ip_hooks;
+@@ -1048,7 +1048,7 @@ static irqreturn_t ioc4_intr(int irq, vo
+  *			IOC4 with serial ports in the system.
+  * @idd: Master module data for this IOC4
+  */
+-static int inline ioc4_attach_local(struct ioc4_driver_data *idd)
++static inline int ioc4_attach_local(struct ioc4_driver_data *idd)
+ {
+ 	struct ioc4_port *port;
+ 	struct ioc4_port *ports[IOC4_NUM_SERIAL_PORTS];
 _
 
 Patches currently in -mm which might be from joe@perches.com are
