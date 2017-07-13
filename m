@@ -1,246 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- test_sysctl-add-dedicated-proc-sysctl-test-driver.patch removed from -mm
- tree
-Date: Thu, 13 Jul 2017 13:40:29 -0700
-Message-ID: <20170713204029.A1S7wJvmZ%akpm@linux-foundation.org>
+Subject: [merged] sysctl-add-unsigned-int-range-support.patch
+ removed from -mm tree
+Date: Thu, 13 Jul 2017 13:40:26 -0700
+Message-ID: <20170713204026._LsppzYF7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58946 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58928 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753247AbdGMUka (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:30 -0400
+        with ESMTP id S1753247AbdGMUkc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, shuah@kernel.org
+To: adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, subashab@codeaurora.org, viro@zeniv.linux.org.uk, xypron.glpk@gmx.de
 
 
 The patch titled
-     Subject: test_sysctl: add dedicated proc sysctl test driver
+     Subject: sysctl: add unsigned int range support
 has been removed from the -mm tree.  Its filename was
-     test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
+     sysctl-add-unsigned-int-range-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: test_sysctl: add dedicated proc sysctl test driver
+Subject: sysctl: add unsigned int range support
 
-The existing tools/testing/selftests/sysctl/ tests include two test cases,
-but these use existing production kernel sysctl interfaces.  We want to
-expand test coverage but we can't just be looking for random safe
-production values to poke at, that's just insane!
+To keep parity with regular int interfaces provide the an unsigned int
+proc_douintvec_minmax() which allows you to specify a range of allowed
+valid numbers.
 
-Instead just dedicate a test driver for debugging purposes and port the
-existing scripts to use it.  This will make it easier for further tests to
-be added.
+Adding proc_douintvec_minmax_sysadmin() is easy but we can wait for an
+actual user for that.
 
-Subsequent patches will extend our test coverage for sysctl.
-
-The stress test driver uses a new license (GPL on Linux, copyleft-next
-outside of Linux).  Linus was fine with this [0] and later due to Ted's
-and Alans's request ironed out an "or" language clause to use [1] which is
-already present upstream.
-
-[0] https://lkml.kernel.org/r/CA+55aFyhxcvD+q7tp+-yrSFDKfR0mOHgyEAe=f_94aKLsOu0Og@mail.gmail.com
-[1] https://lkml.kernel.org/r/1495234558.7848.122.camel@linux.intel.com
-
-Link: http://lkml.kernel.org/r/20170630224431.17374-2-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20170519033554.18592-6-mcgrof@kernel.org
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug                               |   11 +
- lib/Makefile                                    |    1 
- lib/test_sysctl.c                               |  113 ++++++++++++++
- tools/testing/selftests/sysctl/config           |    1 
- tools/testing/selftests/sysctl/run_numerictests |    4 
- tools/testing/selftests/sysctl/run_stringtests  |    4 
- 6 files changed, 130 insertions(+), 4 deletions(-)
+ fs/proc/proc_sysctl.c  |    4 +-
+ include/linux/sysctl.h |    3 +
+ kernel/sysctl.c        |   66 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 72 insertions(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~test_sysctl-add-dedicated-proc-sysctl-test-driver lib/Kconfig.debug
---- a/lib/Kconfig.debug~test_sysctl-add-dedicated-proc-sysctl-test-driver
-+++ a/lib/Kconfig.debug
-@@ -1785,6 +1785,17 @@ config TEST_FIRMWARE
+diff -puN fs/proc/proc_sysctl.c~sysctl-add-unsigned-int-range-support fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-add-unsigned-int-range-support
++++ a/fs/proc/proc_sysctl.c
+@@ -1065,7 +1065,8 @@ static int sysctl_check_table_array(cons
+ {
+ 	int err = 0;
  
- 	  If unsure, say N.
+-	if (table->proc_handler == proc_douintvec) {
++	if ((table->proc_handler == proc_douintvec) ||
++	    (table->proc_handler == proc_douintvec_minmax)) {
+ 		if (table->maxlen != sizeof(unsigned int))
+ 			err |= sysctl_err(path, table, "array now allowed");
+ 	}
+@@ -1083,6 +1084,7 @@ static int sysctl_check_table(const char
+ 		if ((table->proc_handler == proc_dostring) ||
+ 		    (table->proc_handler == proc_dointvec) ||
+ 		    (table->proc_handler == proc_douintvec) ||
++		    (table->proc_handler == proc_douintvec_minmax) ||
+ 		    (table->proc_handler == proc_dointvec_minmax) ||
+ 		    (table->proc_handler == proc_dointvec_jiffies) ||
+ 		    (table->proc_handler == proc_dointvec_userhz_jiffies) ||
+diff -puN include/linux/sysctl.h~sysctl-add-unsigned-int-range-support include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-add-unsigned-int-range-support
++++ a/include/linux/sysctl.h
+@@ -47,6 +47,9 @@ extern int proc_douintvec(struct ctl_tab
+ 			 void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_minmax(struct ctl_table *, int,
+ 				void __user *, size_t *, loff_t *);
++extern int proc_douintvec_minmax(struct ctl_table *table, int write,
++				 void __user *buffer, size_t *lenp,
++				 loff_t *ppos);
+ extern int proc_dointvec_jiffies(struct ctl_table *, int,
+ 				 void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
+diff -puN kernel/sysctl.c~sysctl-add-unsigned-int-range-support kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-add-unsigned-int-range-support
++++ a/kernel/sysctl.c
+@@ -2567,6 +2567,65 @@ int proc_dointvec_minmax(struct ctl_tabl
+ 				do_proc_dointvec_minmax_conv, &param);
+ }
  
-+config TEST_SYSCTL
-+	tristate "sysctl test driver"
-+	default n
-+	depends on PROC_SYSCTL
-+	help
-+	  This builds the "test_sysctl" module. This driver enables to test the
-+	  proc sysctl interfaces available to drivers safely without affecting
-+	  production knobs which might alter system functionality.
-+
-+	  If unsure, say N.
-+
- config TEST_UDELAY
- 	tristate "udelay test driver"
- 	default n
-diff -puN lib/Makefile~test_sysctl-add-dedicated-proc-sysctl-test-driver lib/Makefile
---- a/lib/Makefile~test_sysctl-add-dedicated-proc-sysctl-test-driver
-+++ a/lib/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_TEST_HEXDUMP) += test_hexdu
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_BPF) += test_bpf.o
- obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
-+obj-$(CONFIG_TEST_SYSCTL) += test_sysctl.o
- obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
- obj-$(CONFIG_TEST_KASAN) += test_kasan.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
-diff -puN /dev/null lib/test_sysctl.c
---- /dev/null
-+++ a/lib/test_sysctl.c
-@@ -0,0 +1,113 @@
-+/*
-+ * proc sysctl test driver
-+ *
-+ * Copyright (C) 2017 Luis R. Rodriguez <mcgrof@kernel.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the Free
-+ * Software Foundation; either version 2 of the License, or at your option any
-+ * later version; or, when distributed separately from the Linux kernel or
-+ * when incorporated into other software packages, subject to the following
-+ * license:
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of copyleft-next (version 0.3.1 or later) as published
-+ * at http://copyleft-next.org/.
-+ */
-+
-+/*
-+ * This module provides an interface to the the proc sysctl interfaces.  This
-+ * driver requires CONFIG_PROC_SYSCTL. It will not normally be loaded by the
-+ * system unless explicitly requested by name. You can also build this driver
-+ * into your kernel.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/fs.h>
-+#include <linux/miscdevice.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+#include <linux/async.h>
-+#include <linux/delay.h>
-+#include <linux/vmalloc.h>
-+
-+static int i_zero;
-+static int i_one_hundred = 100;
-+
-+struct test_sysctl_data {
-+	int int_0001;
-+	char string_0001[65];
++struct do_proc_douintvec_minmax_conv_param {
++	unsigned int *min;
++	unsigned int *max;
 +};
 +
-+static struct test_sysctl_data test_data = {
-+	.int_0001 = 60,
-+	.string_0001 = "(none)",
-+};
-+
-+/* These are all under /proc/sys/debug/test_sysctl/ */
-+static struct ctl_table test_table[] = {
-+	{
-+		.procname	= "int_0001",
-+		.data		= &test_data.int_0001,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &i_zero,
-+		.extra2         = &i_one_hundred,
-+	},
-+	{
-+		.procname	= "string_0001",
-+		.data		= &test_data.string_0001,
-+		.maxlen		= sizeof(test_data.string_0001),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dostring,
-+	},
-+	{ }
-+};
-+
-+static struct ctl_table test_sysctl_table[] = {
-+	{
-+		.procname	= "test_sysctl",
-+		.maxlen		= 0,
-+		.mode		= 0555,
-+		.child		= test_table,
-+	},
-+	{ }
-+};
-+
-+static struct ctl_table test_sysctl_root_table[] = {
-+	{
-+		.procname	= "debug",
-+		.maxlen		= 0,
-+		.mode		= 0555,
-+		.child		= test_sysctl_table,
-+	},
-+	{ }
-+};
-+
-+static struct ctl_table_header *test_sysctl_header;
-+
-+static int __init test_sysctl_init(void)
++static int do_proc_douintvec_minmax_conv(unsigned long *lvalp,
++					 unsigned int *valp,
++					 int write, void *data)
 +{
-+	test_sysctl_header = register_sysctl_table(test_sysctl_root_table);
-+	if (!test_sysctl_header)
-+		return -ENOMEM;
++	struct do_proc_douintvec_minmax_conv_param *param = data;
++
++	if (write) {
++		unsigned int val = *lvalp;
++
++		if ((param->min && *param->min > val) ||
++		    (param->max && *param->max < val))
++			return -ERANGE;
++
++		if (*lvalp > UINT_MAX)
++			return -EINVAL;
++		*valp = val;
++	} else {
++		unsigned int val = *valp;
++		*lvalp = (unsigned long) val;
++	}
++
 +	return 0;
 +}
-+late_initcall(test_sysctl_init);
 +
-+static void __exit test_sysctl_exit(void)
++/**
++ * proc_douintvec_minmax - read a vector of unsigned ints with min/max values
++ * @table: the sysctl table
++ * @write: %TRUE if this is a write to the sysctl file
++ * @buffer: the user buffer
++ * @lenp: the size of the user buffer
++ * @ppos: file position
++ *
++ * Reads/writes up to table->maxlen/sizeof(unsigned int) unsigned integer
++ * values from/to the user buffer, treated as an ASCII string. Negative
++ * strings are not allowed.
++ *
++ * This routine will ensure the values are within the range specified by
++ * table->extra1 (min) and table->extra2 (max). There is a final sanity
++ * check for UINT_MAX to avoid having to support wrap around uses from
++ * userspace.
++ *
++ * Returns 0 on success.
++ */
++int proc_douintvec_minmax(struct ctl_table *table, int write,
++			  void __user *buffer, size_t *lenp, loff_t *ppos)
 +{
-+	if (test_sysctl_header)
-+		unregister_sysctl_table(test_sysctl_header);
++	struct do_proc_douintvec_minmax_conv_param param = {
++		.min = (unsigned int *) table->extra1,
++		.max = (unsigned int *) table->extra2,
++	};
++	return do_proc_douintvec(table, write, buffer, lenp, ppos,
++				 do_proc_douintvec_minmax_conv, &param);
 +}
 +
-+module_exit(test_sysctl_exit);
+ static void validate_coredump_safety(void)
+ {
+ #ifdef CONFIG_COREDUMP
+@@ -3066,6 +3125,12 @@ int proc_dointvec_minmax(struct ctl_tabl
+ 	return -ENOSYS;
+ }
+ 
++int proc_douintvec_minmax(struct ctl_table *table, int write,
++			  void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	return -ENOSYS;
++}
 +
-+MODULE_AUTHOR("Luis R. Rodriguez <mcgrof@kernel.org>");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null tools/testing/selftests/sysctl/config
---- /dev/null
-+++ a/tools/testing/selftests/sysctl/config
-@@ -0,0 +1 @@
-+CONFIG_TEST_SYSCTL=y
-diff -puN tools/testing/selftests/sysctl/run_numerictests~test_sysctl-add-dedicated-proc-sysctl-test-driver tools/testing/selftests/sysctl/run_numerictests
---- a/tools/testing/selftests/sysctl/run_numerictests~test_sysctl-add-dedicated-proc-sysctl-test-driver
-+++ a/tools/testing/selftests/sysctl/run_numerictests
-@@ -1,7 +1,7 @@
- #!/bin/sh
- 
--SYSCTL="/proc/sys"
--TARGET="${SYSCTL}/vm/swappiness"
-+SYSCTL="/proc/sys/debug/test_sysctl/"
-+TARGET="${SYSCTL}/int_0001"
- ORIG=$(cat "${TARGET}")
- TEST_STR=$(( $ORIG + 1 ))
- 
-diff -puN tools/testing/selftests/sysctl/run_stringtests~test_sysctl-add-dedicated-proc-sysctl-test-driver tools/testing/selftests/sysctl/run_stringtests
---- a/tools/testing/selftests/sysctl/run_stringtests~test_sysctl-add-dedicated-proc-sysctl-test-driver
-+++ a/tools/testing/selftests/sysctl/run_stringtests
-@@ -1,7 +1,7 @@
- #!/bin/sh
- 
--SYSCTL="/proc/sys"
--TARGET="${SYSCTL}/kernel/domainname"
-+SYSCTL="/proc/sys/debug/test_sysctl/"
-+TARGET="${SYSCTL}/string_0001"
- ORIG=$(cat "${TARGET}")
- TEST_STR="Testing sysctl"
- 
+ int proc_dointvec_jiffies(struct ctl_table *table, int write,
+ 		    void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -3108,6 +3173,7 @@ EXPORT_SYMBOL(proc_dointvec);
+ EXPORT_SYMBOL(proc_douintvec);
+ EXPORT_SYMBOL(proc_dointvec_jiffies);
+ EXPORT_SYMBOL(proc_dointvec_minmax);
++EXPORT_SYMBOL_GPL(proc_douintvec_minmax);
+ EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
+ EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
+ EXPORT_SYMBOL(proc_dostring);
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
