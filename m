@@ -1,349 +1,817 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-simplify-unsigned-int-support.patch
- removed from -mm tree
-Date: Thu, 13 Jul 2017 13:40:23 -0700
-Message-ID: <20170713204023.mGNBpWHjt%akpm@linux-foundation.org>
+Subject: [merged]
+ test_sysctl-add-generic-script-to-expand-on-tests.patch removed from -mm
+ tree
+Date: Thu, 13 Jul 2017 13:40:31 -0700
+Message-ID: <20170713204031.078_-jNwz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753247AbdGMUkY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:24 -0400
+        with ESMTP id S1753446AbdGMUkh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, subashab@codeaurora.org, viro@zeniv.linux.org.uk, xypron.glpk@gmx.de, zlpnobody@gmail.com
+To: ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, shuah@kernel.org
 
 
 The patch titled
-     Subject: sysctl: simplify unsigned int support
+     Subject: test_sysctl: add generic script to expand on tests
 has been removed from the -mm tree.  Its filename was
-     sysctl-simplify-unsigned-int-support.patch
+     test_sysctl-add-generic-script-to-expand-on-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: sysctl: simplify unsigned int support
+Subject: test_sysctl: add generic script to expand on tests
 
-Commit e7d316a02f6838 ("sysctl: handle error writing UINT_MAX to u32
-fields") added proc_douintvec() to start help adding support for unsigned
-int, this however was only half the work needed.  Two fixes have come in
-since then for the following issues:
+This adds a generic script to let us more easily add more tests cases.
+Since we really have only two types of tests cases just fold them into the
+one file.  Each test unit is now identified into its separate function:
 
-  o Printing the values shows a negative value, this happens since
-    do_proc_dointvec() and this uses proc_put_long()
+  # ./sysctl.sh -l
+Test ID list:
 
-This was fixed by commit 5380e5644afbba9 ("sysctl: don't print negative
-flag for proc_douintvec").
+TEST_ID x NUM_TEST
+TEST_ID:   Test ID
+NUM_TESTS: Number of recommended times to run the test
 
-  o We can easily wrap around the int values: UINT_MAX is 4294967295,
-    if we echo in 4294967295 + 1 we end up with 0, using 4294967295 + 2
-    we end up with 1.
-  o We echo negative values in and they are accepted
+0001 x 1 - tests proc_dointvec_minmax()
+0002 x 1 - tests proc_dostring()
 
-This was fixed by commit 425fffd886bae3d1 ("sysctl: report EINVAL if value
-is larger than UINT_MAX for proc_douintvec").
+For now we start off with what we had before, and run only each test once.
+We can now watch a test case until it fails:
 
-It still also failed to be added to sysctl_check_table()...  instead of
-adding it with the current implementation just provide a proper and
-simplified unsigned int support without any array unsigned int support
-with no negative support at all.
+./sysctl.sh -w 0002
 
-Historically sysctl proc helpers have supported arrays, due to the
-complexity this adds though we've taken a step back to evaluate array
-users to determine if its worth upkeeping for unsigned int.  An evaluation
-using Coccinelle has been done to perform a grammatical search to ask
-ourselves:
+We can also run a test case x number of times, say we want to run
+a test case 100 times:
 
-  o How many sysctl proc_dointvec() (int) users exist which likely
-    should be moved over to proc_douintvec() (unsigned int) ?
-	Answer: about 8
-	- Of these how many are array users ?
-		Answer: Probably only 1
-  o How many sysctl array users exist ?
-	Answer: about 12
+./sysctl.sh -c 0001 100
 
-This last question gives us an idea just how popular arrays: they are not.
-Array support should probably just be kept for strings.
+To run a test case only once, for example:
 
-The identified uint ports are:
+./sysctl.sh -s 0002
 
-drivers/infiniband/core/ucma.c - max_backlog
-drivers/infiniband/core/iwcm.c - default_backlog
-net/core/sysctl_net_core.c - rps_sock_flow_sysctl()
-net/netfilter/nf_conntrack_timestamp.c - nf_conntrack_timestamp -- bool
-net/netfilter/nf_conntrack_acct.c nf_conntrack_acct -- bool
-net/netfilter/nf_conntrack_ecache.c - nf_conntrack_events -- bool
-net/netfilter/nf_conntrack_helper.c - nf_conntrack_helper -- bool
-net/phonet/sysctl.c proc_local_port_range()
+The default settings are specified at the top of sysctl.sh.
 
-The only possible array users is proc_local_port_range() but it does not
-seem worth it to add array support just for this given the range support
-works just as well.  Unsigned int support should be desirable more for
-when you *need* more than INT_MAX or using int min/max support then does
-not suffice for your ranges.
-
-If you forget and by mistake happen to register an unsigned int proc entry
-with an array, the driver will fail and you will get something as follows:
-
-sysctl table check failed: debug/test_sysctl//uint_0002 array now allowed
-CPU: 2 PID: 1342 Comm: modprobe Tainted: G        W   E <etc>
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS <etc>
-Call Trace:
- dump_stack+0x63/0x81
- __register_sysctl_table+0x350/0x650
- ? kmem_cache_alloc_trace+0x107/0x240
- __register_sysctl_paths+0x1b3/0x1e0
- ? 0xffffffffc005f000
- register_sysctl_table+0x1f/0x30
- test_sysctl_init+0x10/0x1000 [test_sysctl]
- do_one_initcall+0x52/0x1a0
- ? kmem_cache_alloc_trace+0x107/0x240
- do_init_module+0x5f/0x200
- load_module+0x1867/0x1bd0
- ? __symbol_put+0x60/0x60
- SYSC_finit_module+0xdf/0x110
- SyS_finit_module+0xe/0x10
- entry_SYSCALL_64_fastpath+0x1e/0xad
-RIP: 0033:0x7f042b22d119
-<etc>
-
-Fixes: e7d316a02f68 ("sysctl: handle error writing UINT_MAX to u32 fields")
-Link: http://lkml.kernel.org/r/20170519033554.18592-5-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20170630224431.17374-3-mcgrof@kernel.org
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Liping Zhang <zlpnobody@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   14 +++
- kernel/sysctl.c       |  153 ++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 160 insertions(+), 7 deletions(-)
+ tools/testing/selftests/sysctl/Makefile         |    3 
+ tools/testing/selftests/sysctl/common_tests     |  131 ---
+ tools/testing/selftests/sysctl/run_numerictests |   10 
+ tools/testing/selftests/sysctl/run_stringtests  |   77 --
+ tools/testing/selftests/sysctl/sysctl.sh        |  494 ++++++++++++++
+ 5 files changed, 495 insertions(+), 220 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-simplify-unsigned-int-support fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-simplify-unsigned-int-support
-+++ a/fs/proc/proc_sysctl.c
-@@ -1061,6 +1061,18 @@ static int sysctl_err(const char *path,
- 	return -EINVAL;
- }
+diff -puN tools/testing/selftests/sysctl/Makefile~test_sysctl-add-generic-script-to-expand-on-tests tools/testing/selftests/sysctl/Makefile
+--- a/tools/testing/selftests/sysctl/Makefile~test_sysctl-add-generic-script-to-expand-on-tests
++++ a/tools/testing/selftests/sysctl/Makefile
+@@ -4,8 +4,7 @@
+ # No binaries, but make sure arg-less "make" doesn't trigger "run_tests".
+ all:
  
-+static int sysctl_check_table_array(const char *path, struct ctl_table *table)
-+{
-+	int err = 0;
-+
-+	if (table->proc_handler == proc_douintvec) {
-+		if (table->maxlen != sizeof(unsigned int))
-+			err |= sysctl_err(path, table, "array now allowed");
-+	}
-+
-+	return err;
-+}
-+
- static int sysctl_check_table(const char *path, struct ctl_table *table)
- {
- 	int err = 0;
-@@ -1081,6 +1093,8 @@ static int sysctl_check_table(const char
- 				err |= sysctl_err(path, table, "No data");
- 			if (!table->maxlen)
- 				err |= sysctl_err(path, table, "No maxlen");
-+			else
-+				err |= sysctl_check_table_array(path, table);
- 		}
- 		if (!table->proc_handler)
- 			err |= sysctl_err(path, table, "No proc_handler");
-diff -puN kernel/sysctl.c~sysctl-simplify-unsigned-int-support kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-simplify-unsigned-int-support
-+++ a/kernel/sysctl.c
-@@ -2175,19 +2175,18 @@ static int do_proc_dointvec_conv(bool *n
- 	return 0;
- }
+-TEST_PROGS := run_numerictests run_stringtests
+-TEST_FILES := common_tests
++TEST_PROGS := sysctl.sh
  
--static int do_proc_douintvec_conv(bool *negp, unsigned long *lvalp,
--				 int *valp,
--				 int write, void *data)
-+static int do_proc_douintvec_conv(unsigned long *lvalp,
-+				  unsigned int *valp,
-+				  int write, void *data)
- {
- 	if (write) {
--		if (*negp)
-+		if (*lvalp > UINT_MAX)
- 			return -EINVAL;
- 		if (*lvalp > UINT_MAX)
- 			return -EINVAL;
- 		*valp = *lvalp;
- 	} else {
- 		unsigned int val = *valp;
--		*negp = false;
- 		*lvalp = (unsigned long)val;
- 	}
- 	return 0;
-@@ -2287,6 +2286,146 @@ static int do_proc_dointvec(struct ctl_t
- 			buffer, lenp, ppos, conv, data);
- }
+ include ../lib.mk
  
-+static int do_proc_douintvec_w(unsigned int *tbl_data,
-+			       struct ctl_table *table,
-+			       void __user *buffer,
-+			       size_t *lenp, loff_t *ppos,
-+			       int (*conv)(unsigned long *lvalp,
-+					   unsigned int *valp,
-+					   int write, void *data),
-+			       void *data)
+diff -puN tools/testing/selftests/sysctl/common_tests~test_sysctl-add-generic-script-to-expand-on-tests /dev/null
+--- a/tools/testing/selftests/sysctl/common_tests
++++ /dev/null
+@@ -1,131 +0,0 @@
+-#!/bin/sh
+-
+-TEST_FILE=$(mktemp)
+-
+-echo "== Testing sysctl behavior against ${TARGET} =="
+-
+-set_orig()
+-{
+-	echo "${ORIG}" > "${TARGET}"
+-}
+-
+-set_test()
+-{
+-	echo "${TEST_STR}" > "${TARGET}"
+-}
+-
+-verify()
+-{
+-	local seen
+-	seen=$(cat "$1")
+-	if [ "${seen}" != "${TEST_STR}" ]; then
+-		return 1
+-	fi
+-	return 0
+-}
+-
+-exit_test()
+-{
+-	if [ ! -z ${old_strict} ]; then
+-		echo ${old_strict} > ${WRITES_STRICT}
+-	fi
+-	exit $rc
+-}
+-
+-trap 'set_orig; rm -f "${TEST_FILE}"' EXIT
+-
+-rc=0
+-
+-echo -n "Writing test file ... "
+-echo "${TEST_STR}" > "${TEST_FILE}"
+-if ! verify "${TEST_FILE}"; then
+-	echo "FAIL" >&2
+-	exit 1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Checking sysctl is not set to test value ... "
+-if verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	exit 1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Writing sysctl from shell ... "
+-set_test
+-if ! verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	exit 1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Resetting sysctl to original value ... "
+-set_orig
+-if verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	exit 1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Checking write strict setting ... "
+-WRITES_STRICT="${SYSCTL}/kernel/sysctl_writes_strict"
+-if [ ! -e ${WRITES_STRICT} ]; then
+-	echo "FAIL, but skip in case of old kernel" >&2
+-else
+-	old_strict=$(cat ${WRITES_STRICT})
+-	if [ "$old_strict" = "1" ]; then
+-		echo "ok"
+-	else
+-		echo "FAIL, strict value is 0 but force to 1 to continue" >&2
+-		echo "1" > ${WRITES_STRICT}
+-	fi
+-fi
+-
+-# Now that we've validated the sanity of "set_test" and "set_orig",
+-# we can use those functions to set starting states before running
+-# specific behavioral tests.
+-
+-echo -n "Writing entire sysctl in single write ... "
+-set_orig
+-dd if="${TEST_FILE}" of="${TARGET}" bs=4096 2>/dev/null
+-if ! verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Writing middle of sysctl after synchronized seek ... "
+-set_test
+-dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 skip=1 2>/dev/null
+-if ! verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Writing beyond end of sysctl ... "
+-set_orig
+-dd if="${TEST_FILE}" of="${TARGET}" bs=20 seek=2 2>/dev/null
+-if verify "${TARGET}"; then
+-        echo "FAIL" >&2
+-        rc=1
+-else
+-        echo "ok"
+-fi
+-
+-echo -n "Writing sysctl with multiple long writes ... "
+-set_orig
+-(perl -e 'print "A" x 50;'; echo "${TEST_STR}") | \
+-	dd of="${TARGET}" bs=50 2>/dev/null
+-if verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+diff -puN tools/testing/selftests/sysctl/run_numerictests~test_sysctl-add-generic-script-to-expand-on-tests /dev/null
+--- a/tools/testing/selftests/sysctl/run_numerictests
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#!/bin/sh
+-
+-SYSCTL="/proc/sys/debug/test_sysctl/"
+-TARGET="${SYSCTL}/int_0001"
+-ORIG=$(cat "${TARGET}")
+-TEST_STR=$(( $ORIG + 1 ))
+-
+-. ./common_tests
+-
+-exit_test
+diff -puN tools/testing/selftests/sysctl/run_stringtests~test_sysctl-add-generic-script-to-expand-on-tests /dev/null
+--- a/tools/testing/selftests/sysctl/run_stringtests
++++ /dev/null
+@@ -1,77 +0,0 @@
+-#!/bin/sh
+-
+-SYSCTL="/proc/sys/debug/test_sysctl/"
+-TARGET="${SYSCTL}/string_0001"
+-ORIG=$(cat "${TARGET}")
+-TEST_STR="Testing sysctl"
+-
+-. ./common_tests
+-
+-# Only string sysctls support seeking/appending.
+-MAXLEN=65
+-
+-echo -n "Writing entire sysctl in short writes ... "
+-set_orig
+-dd if="${TEST_FILE}" of="${TARGET}" bs=1 2>/dev/null
+-if ! verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Writing middle of sysctl after unsynchronized seek ... "
+-set_test
+-dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 2>/dev/null
+-if verify "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Checking sysctl maxlen is at least $MAXLEN ... "
+-set_orig
+-perl -e 'print "A" x ('"${MAXLEN}"'-2), "B";' | \
+-	dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
+-if ! grep -q B "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Checking sysctl keeps original string on overflow append ... "
+-set_orig
+-perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
+-	dd of="${TARGET}" bs=$(( MAXLEN - 1 )) 2>/dev/null
+-if grep -q B "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Checking sysctl stays NULL terminated on write ... "
+-set_orig
+-perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
+-	dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
+-if grep -q B "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-echo -n "Checking sysctl stays NULL terminated on overwrite ... "
+-set_orig
+-perl -e 'print "A" x ('"${MAXLEN}"'-1), "BB";' | \
+-	dd of="${TARGET}" bs=$(( $MAXLEN + 1 )) 2>/dev/null
+-if grep -q B "${TARGET}"; then
+-	echo "FAIL" >&2
+-	rc=1
+-else
+-	echo "ok"
+-fi
+-
+-exit_test
+diff -puN /dev/null tools/testing/selftests/sysctl/sysctl.sh
+--- /dev/null
++++ a/tools/testing/selftests/sysctl/sysctl.sh
+@@ -0,0 +1,494 @@
++#!/bin/bash
++# Copyright (C) 2017 Luis R. Rodriguez <mcgrof@kernel.org>
++#
++# This program is free software; you can redistribute it and/or modify it
++# under the terms of the GNU General Public License as published by the Free
++# Software Foundation; either version 2 of the License, or at your option any
++# later version; or, when distributed separately from the Linux kernel or
++# when incorporated into other software packages, subject to the following
++# license:
++#
++# This program is free software; you can redistribute it and/or modify it
++# under the terms of copyleft-next (version 0.3.1 or later) as published
++# at http://copyleft-next.org/.
++
++# This performs a series tests against the proc sysctl interface.
++
++TEST_NAME="sysctl"
++TEST_DRIVER="test_${TEST_NAME}"
++TEST_DIR=$(dirname $0)
++TEST_FILE=$(mktemp)
++
++# This represents
++#
++# TEST_ID:TEST_COUNT:ENABLED
++#
++# TEST_ID: is the test id number
++# TEST_COUNT: number of times we should run the test
++# ENABLED: 1 if enabled, 0 otherwise
++#
++# Once these are enabled please leave them as-is. Write your own test,
++# we have tons of space.
++ALL_TESTS="0001:1:1"
++ALL_TESTS="$ALL_TESTS 0002:1:1"
++
++test_modprobe()
 +{
-+	unsigned long lval;
-+	int err = 0;
-+	size_t left;
-+	bool neg;
-+	char *kbuf = NULL, *p;
-+
-+	left = *lenp;
-+
-+	if (proc_first_pos_non_zero_ignore(ppos, table))
-+		goto bail_early;
-+
-+	if (left > PAGE_SIZE - 1)
-+		left = PAGE_SIZE - 1;
-+
-+	p = kbuf = memdup_user_nul(buffer, left);
-+	if (IS_ERR(kbuf))
-+		return -EINVAL;
-+
-+	left -= proc_skip_spaces(&p);
-+	if (!left) {
-+		err = -EINVAL;
-+		goto out_free;
-+	}
-+
-+	err = proc_get_long(&p, &left, &lval, &neg,
-+			     proc_wspace_sep,
-+			     sizeof(proc_wspace_sep), NULL);
-+	if (err || neg) {
-+		err = -EINVAL;
-+		goto out_free;
-+	}
-+
-+	if (conv(&lval, tbl_data, 1, data)) {
-+		err = -EINVAL;
-+		goto out_free;
-+	}
-+
-+	if (!err && left)
-+		left -= proc_skip_spaces(&p);
-+
-+out_free:
-+	kfree(kbuf);
-+	if (err)
-+		return -EINVAL;
-+
-+	return 0;
-+
-+	/* This is in keeping with old __do_proc_dointvec() */
-+bail_early:
-+	*ppos += *lenp;
-+	return err;
++       if [ ! -d $DIR ]; then
++               echo "$0: $DIR not present" >&2
++               echo "You must have the following enabled in your kernel:" >&2
++               cat $TEST_DIR/config >&2
++               exit 1
++       fi
 +}
 +
-+static int do_proc_douintvec_r(unsigned int *tbl_data, void __user *buffer,
-+			       size_t *lenp, loff_t *ppos,
-+			       int (*conv)(unsigned long *lvalp,
-+					   unsigned int *valp,
-+					   int write, void *data),
-+			       void *data)
++function allow_user_defaults()
 +{
-+	unsigned long lval;
-+	int err = 0;
-+	size_t left;
-+
-+	left = *lenp;
-+
-+	if (conv(&lval, tbl_data, 0, data)) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	err = proc_put_long(&buffer, &left, lval, false);
-+	if (err || !left)
-+		goto out;
-+
-+	err = proc_put_char(&buffer, &left, '\n');
-+
-+out:
-+	*lenp -= left;
-+	*ppos += *lenp;
-+
-+	return err;
++	if [ -z $DIR ]; then
++		DIR="/sys/module/test_sysctl/"
++	fi
++	if [ -z $DEFAULT_NUM_TESTS ]; then
++		DEFAULT_NUM_TESTS=50
++	fi
++	if [ -z $SYSCTL ]; then
++		SYSCTL="/proc/sys/debug/test_sysctl"
++	fi
++	if [ -z $PROD_SYSCTL ]; then
++		PROD_SYSCTL="/proc/sys"
++	fi
++	if [ -z $WRITES_STRICT ]; then
++		WRITES_STRICT="${PROD_SYSCTL}/kernel/sysctl_writes_strict"
++	fi
 +}
 +
-+static int __do_proc_douintvec(void *tbl_data, struct ctl_table *table,
-+			       int write, void __user *buffer,
-+			       size_t *lenp, loff_t *ppos,
-+			       int (*conv)(unsigned long *lvalp,
-+					   unsigned int *valp,
-+					   int write, void *data),
-+			       void *data)
++function check_production_sysctl_writes_strict()
 +{
-+	unsigned int *i, vleft;
-+
-+	if (!tbl_data || !table->maxlen || !*lenp || (*ppos && !write)) {
-+		*lenp = 0;
-+		return 0;
-+	}
-+
-+	i = (unsigned int *) tbl_data;
-+	vleft = table->maxlen / sizeof(*i);
-+
-+	/*
-+	 * Arrays are not supported, keep this simple. *Do not* add
-+	 * support for them.
-+	 */
-+	if (vleft != 1) {
-+		*lenp = 0;
-+		return -EINVAL;
-+	}
-+
-+	if (!conv)
-+		conv = do_proc_douintvec_conv;
-+
-+	if (write)
-+		return do_proc_douintvec_w(i, table, buffer, lenp, ppos,
-+					   conv, data);
-+	return do_proc_douintvec_r(i, buffer, lenp, ppos, conv, data);
++	echo -n "Checking production write strict setting ... "
++	if [ ! -e ${WRITES_STRICT} ]; then
++		echo "FAIL, but skip in case of old kernel" >&2
++	else
++		old_strict=$(cat ${WRITES_STRICT})
++		if [ "$old_strict" = "1" ]; then
++			echo "ok"
++		else
++			echo "FAIL, strict value is 0 but force to 1 to continue" >&2
++			echo "1" > ${WRITES_STRICT}
++		fi
++	fi
 +}
 +
-+static int do_proc_douintvec(struct ctl_table *table, int write,
-+			     void __user *buffer, size_t *lenp, loff_t *ppos,
-+			     int (*conv)(unsigned long *lvalp,
-+					 unsigned int *valp,
-+					 int write, void *data),
-+			     void *data)
++test_reqs()
 +{
-+	return __do_proc_douintvec(table->data, table, write,
-+				   buffer, lenp, ppos, conv, data);
++	uid=$(id -u)
++	if [ $uid -ne 0 ]; then
++		echo $msg must be run as root >&2
++		exit 0
++	fi
++
++	if ! which perl 2> /dev/null > /dev/null; then
++		echo "$0: You need perl installed"
++		exit 1
++	fi
 +}
 +
- /**
-  * proc_dointvec - read a vector of integers
-  * @table: the sysctl table
-@@ -2322,8 +2461,8 @@ int proc_dointvec(struct ctl_table *tabl
- int proc_douintvec(struct ctl_table *table, int write,
- 		     void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--	return do_proc_dointvec(table, write, buffer, lenp, ppos,
--				do_proc_douintvec_conv, NULL);
-+	return do_proc_douintvec(table, write, buffer, lenp, ppos,
-+				 do_proc_douintvec_conv, NULL);
- }
- 
- /*
++function load_req_mod()
++{
++	trap "test_modprobe" EXIT
++
++	if [ ! -d $DIR ]; then
++		modprobe $TEST_DRIVER
++		if [ $? -ne 0 ]; then
++			exit
++		fi
++	fi
++}
++
++set_orig()
++{
++	if [ ! -z $TARGET ]; then
++		echo "${ORIG}" > "${TARGET}"
++	fi
++}
++
++set_test()
++{
++	echo "${TEST_STR}" > "${TARGET}"
++}
++
++verify()
++{
++	local seen
++	seen=$(cat "$1")
++	if [ "${seen}" != "${TEST_STR}" ]; then
++		return 1
++	fi
++	return 0
++}
++
++test_rc()
++{
++	if [[ $rc != 0 ]]; then
++		echo "Failed test, return value: $rc" >&2
++		exit $rc
++	fi
++}
++
++test_finish()
++{
++	set_orig
++	rm -f "${TEST_FILE}"
++
++	if [ ! -z ${old_strict} ]; then
++		echo ${old_strict} > ${WRITES_STRICT}
++	fi
++	exit $rc
++}
++
++run_numerictests()
++{
++	echo "== Testing sysctl behavior against ${TARGET} =="
++
++	rc=0
++
++	echo -n "Writing test file ... "
++	echo "${TEST_STR}" > "${TEST_FILE}"
++	if ! verify "${TEST_FILE}"; then
++		echo "FAIL" >&2
++		exit 1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Checking sysctl is not set to test value ... "
++	if verify "${TARGET}"; then
++		echo "FAIL" >&2
++		exit 1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Writing sysctl from shell ... "
++	set_test
++	if ! verify "${TARGET}"; then
++		echo "FAIL" >&2
++		exit 1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Resetting sysctl to original value ... "
++	set_orig
++	if verify "${TARGET}"; then
++		echo "FAIL" >&2
++		exit 1
++	else
++		echo "ok"
++	fi
++
++	# Now that we've validated the sanity of "set_test" and "set_orig",
++	# we can use those functions to set starting states before running
++	# specific behavioral tests.
++
++	echo -n "Writing entire sysctl in single write ... "
++	set_orig
++	dd if="${TEST_FILE}" of="${TARGET}" bs=4096 2>/dev/null
++	if ! verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Writing middle of sysctl after synchronized seek ... "
++	set_test
++	dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 skip=1 2>/dev/null
++	if ! verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Writing beyond end of sysctl ... "
++	set_orig
++	dd if="${TEST_FILE}" of="${TARGET}" bs=20 seek=2 2>/dev/null
++	if verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Writing sysctl with multiple long writes ... "
++	set_orig
++	(perl -e 'print "A" x 50;'; echo "${TEST_STR}") | \
++		dd of="${TARGET}" bs=50 2>/dev/null
++	if verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	test_rc
++}
++
++run_stringtests()
++{
++	echo -n "Writing entire sysctl in short writes ... "
++	set_orig
++	dd if="${TEST_FILE}" of="${TARGET}" bs=1 2>/dev/null
++	if ! verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Writing middle of sysctl after unsynchronized seek ... "
++	set_test
++	dd if="${TEST_FILE}" of="${TARGET}" bs=1 seek=1 2>/dev/null
++	if verify "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Checking sysctl maxlen is at least $MAXLEN ... "
++	set_orig
++	perl -e 'print "A" x ('"${MAXLEN}"'-2), "B";' | \
++		dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
++	if ! grep -q B "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Checking sysctl keeps original string on overflow append ... "
++	set_orig
++	perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
++		dd of="${TARGET}" bs=$(( MAXLEN - 1 )) 2>/dev/null
++	if grep -q B "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Checking sysctl stays NULL terminated on write ... "
++	set_orig
++	perl -e 'print "A" x ('"${MAXLEN}"'-1), "B";' | \
++		dd of="${TARGET}" bs="${MAXLEN}" 2>/dev/null
++	if grep -q B "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	echo -n "Checking sysctl stays NULL terminated on overwrite ... "
++	set_orig
++	perl -e 'print "A" x ('"${MAXLEN}"'-1), "BB";' | \
++		dd of="${TARGET}" bs=$(( $MAXLEN + 1 )) 2>/dev/null
++	if grep -q B "${TARGET}"; then
++		echo "FAIL" >&2
++		rc=1
++	else
++		echo "ok"
++	fi
++
++	test_rc
++}
++
++sysctl_test_0001()
++{
++	TARGET="${SYSCTL}/int_0001"
++	ORIG=$(cat "${TARGET}")
++	TEST_STR=$(( $ORIG + 1 ))
++
++	run_numerictests
++}
++
++sysctl_test_0002()
++{
++	TARGET="${SYSCTL}/string_0001"
++	ORIG=$(cat "${TARGET}")
++	TEST_STR="Testing sysctl"
++	# Only string sysctls support seeking/appending.
++	MAXLEN=65
++
++	run_numerictests
++	run_stringtests
++}
++
++list_tests()
++{
++	echo "Test ID list:"
++	echo
++	echo "TEST_ID x NUM_TEST"
++	echo "TEST_ID:   Test ID"
++	echo "NUM_TESTS: Number of recommended times to run the test"
++	echo
++	echo "0001 x $(get_test_count 0001) - tests proc_dointvec_minmax()"
++	echo "0002 x $(get_test_count 0002) - tests proc_dostring()"
++}
++
++test_reqs
++
++usage()
++{
++	NUM_TESTS=$(grep -o ' ' <<<"$ALL_TESTS" | grep -c .)
++	let NUM_TESTS=$NUM_TESTS+1
++	MAX_TEST=$(printf "%04d\n" $NUM_TESTS)
++	echo "Usage: $0 [ -t <4-number-digit> ] | [ -w <4-number-digit> ] |"
++	echo "		 [ -s <4-number-digit> ] | [ -c <4-number-digit> <test- count>"
++	echo "           [ all ] [ -h | --help ] [ -l ]"
++	echo ""
++	echo "Valid tests: 0001-$MAX_TEST"
++	echo ""
++	echo "    all     Runs all tests (default)"
++	echo "    -t      Run test ID the number amount of times is recommended"
++	echo "    -w      Watch test ID run until it runs into an error"
++	echo "    -c      Run test ID once"
++	echo "    -s      Run test ID x test-count number of times"
++	echo "    -l      List all test ID list"
++	echo " -h|--help  Help"
++	echo
++	echo "If an error every occurs execution will immediately terminate."
++	echo "If you are adding a new test try using -w <test-ID> first to"
++	echo "make sure the test passes a series of tests."
++	echo
++	echo Example uses:
++	echo
++	echo "$TEST_NAME.sh            -- executes all tests"
++	echo "$TEST_NAME.sh -t 0002    -- Executes test ID 0002 number of times is recomended"
++	echo "$TEST_NAME.sh -w 0002    -- Watch test ID 0002 run until an error occurs"
++	echo "$TEST_NAME.sh -s 0002    -- Run test ID 0002 once"
++	echo "$TEST_NAME.sh -c 0002 3  -- Run test ID 0002 three times"
++	echo
++	list_tests
++	exit 1
++}
++
++function test_num()
++{
++	re='^[0-9]+$'
++	if ! [[ $1 =~ $re ]]; then
++		usage
++	fi
++}
++
++function get_test_count()
++{
++	test_num $1
++	TEST_DATA=$(echo $ALL_TESTS | awk '{print $'$1'}')
++	LAST_TWO=${TEST_DATA#*:*}
++	echo ${LAST_TWO%:*}
++}
++
++function get_test_enabled()
++{
++	test_num $1
++	TEST_DATA=$(echo $ALL_TESTS | awk '{print $'$1'}')
++	echo ${TEST_DATA#*:*:}
++}
++
++function run_all_tests()
++{
++	for i in $ALL_TESTS ; do
++		TEST_ID=${i%:*:*}
++		ENABLED=$(get_test_enabled $TEST_ID)
++		TEST_COUNT=$(get_test_count $TEST_ID)
++		if [[ $ENABLED -eq "1" ]]; then
++			test_case $TEST_ID $TEST_COUNT
++		fi
++	done
++}
++
++function watch_log()
++{
++	if [ $# -ne 3 ]; then
++		clear
++	fi
++	date
++	echo "Running test: $2 - run #$1"
++}
++
++function watch_case()
++{
++	i=0
++	while [ 1 ]; do
++
++		if [ $# -eq 1 ]; then
++			test_num $1
++			watch_log $i ${TEST_NAME}_test_$1
++			${TEST_NAME}_test_$1
++		else
++			watch_log $i all
++			run_all_tests
++		fi
++		let i=$i+1
++	done
++}
++
++function test_case()
++{
++	NUM_TESTS=$DEFAULT_NUM_TESTS
++	if [ $# -eq 2 ]; then
++		NUM_TESTS=$2
++	fi
++
++	i=0
++	while [ $i -lt $NUM_TESTS ]; do
++		test_num $1
++		watch_log $i ${TEST_NAME}_test_$1 noclear
++		RUN_TEST=${TEST_NAME}_test_$1
++		$RUN_TEST
++		let i=$i+1
++	done
++}
++
++function parse_args()
++{
++	if [ $# -eq 0 ]; then
++		run_all_tests
++	else
++		if [[ "$1" = "all" ]]; then
++			run_all_tests
++		elif [[ "$1" = "-w" ]]; then
++			shift
++			watch_case $@
++		elif [[ "$1" = "-t" ]]; then
++			shift
++			test_num $1
++			test_case $1 $(get_test_count $1)
++		elif [[ "$1" = "-c" ]]; then
++			shift
++			test_num $1
++			test_num $2
++			test_case $1 $2
++		elif [[ "$1" = "-s" ]]; then
++			shift
++			test_case $1 1
++		elif [[ "$1" = "-l" ]]; then
++			list_tests
++		elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
++			usage
++		else
++			usage
++		fi
++	fi
++}
++
++test_reqs
++allow_user_defaults
++check_production_sysctl_writes_strict
++load_req_mod
++
++trap "test_finish" EXIT
++
++parse_args $@
++
++exit 0
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
