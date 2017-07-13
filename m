@@ -1,76 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-sn-pci-move-inline-before-type.patch removed
- from -mm tree
-Date: Thu, 13 Jul 2017 13:43:22 -0700
-Message-ID: <20170713204322.3p4ihl2MS%akpm@linux-foundation.org>
+Subject: [merged]
+ m68k-coldfire-move-inline-before-return-type.patch removed from -mm tree
+Date: Thu, 13 Jul 2017 13:43:24 -0700
+Message-ID: <20170713204324.b8UrcMXJc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59866 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdGMUnX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:23 -0400
+        with ESMTP id S1752962AbdGMUnZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fenghua.yu@intel.com, joe@perches.com, mm-commits@vger.kernel.org, tony.luck@intel.com
+To: geert@linux-m68k.org, gerg@linux-m68k.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: sn: pci: move inline before type
+     Subject: m68k: coldfire: move inline before return type
 has been removed from the -mm tree.  Its filename was
-     ia64-sn-pci-move-inline-before-type.patch
+     m68k-coldfire-move-inline-before-return-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: ia64: sn: pci: move inline before type
+Subject: m68k: coldfire: move inline before return type
 
-Make the use of inline like the rest of the kernel.
+Make the code like the rest of the kernel.
 
-Link: http://lkml.kernel.org/r/f42b2202bd0d4e7ccf79ce5348bb255a035e67bb.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/14db9c166d5b68efa77e337cfe49bb9b29bca3f7.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Acked-by: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/pci/pcibr/pcibr_ate.c |    2 +-
- arch/ia64/sn/pci/tioce_provider.c  |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/m68k/coldfire/intc-simr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/sn/pci/pcibr/pcibr_ate.c~ia64-sn-pci-move-inline-before-type arch/ia64/sn/pci/pcibr/pcibr_ate.c
---- a/arch/ia64/sn/pci/pcibr/pcibr_ate.c~ia64-sn-pci-move-inline-before-type
-+++ a/arch/ia64/sn/pci/pcibr/pcibr_ate.c
-@@ -140,7 +140,7 @@ static inline u64 __iomem *pcibr_ate_add
- /*
-  * Update the ate.
-  */
--void inline
-+inline void
- ate_write(struct pcibus_info *pcibus_info, int ate_index, int count,
- 	  volatile u64 ate)
- {
-diff -puN arch/ia64/sn/pci/tioce_provider.c~ia64-sn-pci-move-inline-before-type arch/ia64/sn/pci/tioce_provider.c
---- a/arch/ia64/sn/pci/tioce_provider.c~ia64-sn-pci-move-inline-before-type
-+++ a/arch/ia64/sn/pci/tioce_provider.c
-@@ -52,7 +52,7 @@
-  * All registers defined in struct tioce will meet that criteria.
-  */
+diff -puN arch/m68k/coldfire/intc-simr.c~m68k-coldfire-move-inline-before-return-type arch/m68k/coldfire/intc-simr.c
+--- a/arch/m68k/coldfire/intc-simr.c~m68k-coldfire-move-inline-before-return-type
++++ a/arch/m68k/coldfire/intc-simr.c
+@@ -35,7 +35,7 @@
+ #define	EINT7	67	/* EDGE Port interrupt 7 */
  
--static void inline
-+static inline void
- tioce_mmr_war_pre(struct tioce_kernel *kern, void __iomem *mmr_addr)
+ static unsigned int irqebitmap[] = { 0, 1, 4, 7 };
+-static unsigned int inline irq2ebit(unsigned int irq)
++static inline unsigned int irq2ebit(unsigned int irq)
  {
- 	u64 mmr_base;
-@@ -78,7 +78,7 @@ tioce_mmr_war_pre(struct tioce_kernel *k
- 	}
+ 	return irqebitmap[irq - EINT0];
  }
+@@ -51,7 +51,7 @@ static unsigned int inline irq2ebit(unsi
+ #define	EINT1	65	/* EDGE Port interrupt 1 */
+ #define	EINT7	71	/* EDGE Port interrupt 7 */
  
--static void inline
-+static inline void
- tioce_mmr_war_post(struct tioce_kernel *kern, void __iomem *mmr_addr)
+-static unsigned int inline irq2ebit(unsigned int irq)
++static inline unsigned int irq2ebit(unsigned int irq)
  {
- 	u64 mmr_base;
+ 	return irq - EINT0;
+ }
 _
 
 Patches currently in -mm which might be from joe@perches.com are
