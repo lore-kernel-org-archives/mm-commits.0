@@ -1,87 +1,138 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kexec-kdump-minor-documentation-updates-for-arm64-and-image.patch removed
- from -mm tree
-Date: Thu, 13 Jul 2017 13:40:11 -0700
-Message-ID: <20170713204011.cLkuLi94A%akpm@linux-foundation.org>
+ sysctl-fold-sysctl_writes_strict-checks-into-helper.patch removed from -mm
+ tree
+Date: Thu, 13 Jul 2017 13:40:20 -0700
+Message-ID: <20170713204020.6miT7uuSD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753098AbdGMUkM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:12 -0400
+        with ESMTP id S1753247AbdGMUkV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Bharat.Bhushan@nxp.com, bhe@redhat.com, corbet@lwn.net, dyoung@redhat.com, mm-commits@vger.kernel.org, panand@redhat.com, takahiro.akashi@linaro.org, vgoyal@redhat.com
+To: adobriyan@gmail.com, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kexec/kdump: minor Documentation updates for arm64 and Image
+     Subject: sysctl: fold sysctl_writes_strict checks into helper
 has been removed from the -mm tree.  Its filename was
-     kexec-kdump-minor-documentation-updates-for-arm64-and-image.patch
+     sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bharat Bhushan <Bharat.Bhushan@nxp.com>
-Subject: kexec/kdump: minor Documentation updates for arm64 and Image
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: sysctl: fold sysctl_writes_strict checks into helper
 
-Minor updates in Documentation for arm64 as relocatable kernel.  Also this
-patch updates documentation for using uncompressed image "Image" which is
-used for ARM64.
+The mode sysctl_writes_strict positional checks keep being copy and pasted
+as we add new proc handlers.  Just add a helper to avoid code duplication.
 
-Link: http://lkml.kernel.org/r/1495104793-6563-1-git-send-email-Bharat.Bhushan@nxp.com
-Signed-off-by: Bharat Bhushan <Bharat.Bhushan@nxp.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
-Cc: Pratyush Anand <panand@redhat.com>
+Link: http://lkml.kernel.org/r/20170519033554.18592-4-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Suggested-by: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ kernel/sysctl.c |   56 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~kexec-kdump-minor-documentation-updates-for-arm64-and-image Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~kexec-kdump-minor-documentation-updates-for-arm64-and-image
-+++ a/Documentation/kdump/kdump.txt
-@@ -112,8 +112,8 @@ There are two possible methods of using
- 2) Or use the system kernel binary itself as dump-capture kernel and there is
-    no need to build a separate dump-capture kernel. This is possible
-    only with the architectures which support a relocatable kernel. As
--   of today, i386, x86_64, ppc64, ia64 and arm architectures support relocatable
--   kernel.
-+   of today, i386, x86_64, ppc64, ia64, arm and arm64 architectures support
-+   relocatable kernel.
+diff -puN kernel/sysctl.c~sysctl-fold-sysctl_writes_strict-checks-into-helper kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-fold-sysctl_writes_strict-checks-into-helper
++++ a/kernel/sysctl.c
+@@ -1971,6 +1971,32 @@ static void warn_sysctl_write(struct ctl
+ }
  
- Building a relocatable kernel is advantageous from the point of view that
- one does not have to build a second kernel for capturing the dump. But
-@@ -339,7 +339,7 @@ For arm:
- For arm64:
- 	- Use vmlinux or Image
- 
--If you are using a uncompressed vmlinux image then use following command
-+If you are using an uncompressed vmlinux image then use following command
- to load dump-capture kernel.
- 
-    kexec -p <dump-capture-kernel-vmlinux-image> \
-@@ -361,6 +361,12 @@ to load dump-capture kernel.
-    --dtb=<dtb-for-dump-capture-kernel> \
-    --append="root=<root-dev> <arch-specific-options>"
- 
-+If you are using an uncompressed Image, then use following command
-+to load dump-capture kernel.
+ /**
++ * proc_first_pos_non_zero_ignore - check if firs position is allowed
++ * @ppos: file position
++ * @table: the sysctl table
++ *
++ * Returns true if the first position is non-zero and the sysctl_writes_strict
++ * mode indicates this is not allowed for numeric input types. String proc
++ * hadlers can ignore the return value.
++ */
++static bool proc_first_pos_non_zero_ignore(loff_t *ppos,
++					   struct ctl_table *table)
++{
++	if (!*ppos)
++		return false;
 +
-+   kexec -p <dump-capture-kernel-Image> \
-+   --initrd=<initrd-for-dump-capture-kernel> \
-+   --append="root=<root-dev> <arch-specific-options>"
++	switch (sysctl_writes_strict) {
++	case SYSCTL_WRITES_STRICT:
++		return true;
++	case SYSCTL_WRITES_WARN:
++		warn_sysctl_write(table);
++		return false;
++	default:
++		return false;
++	}
++}
++
++/**
+  * proc_dostring - read a string sysctl
+  * @table: the sysctl table
+  * @write: %TRUE if this is a write to the sysctl file
+@@ -1990,8 +2016,8 @@ static void warn_sysctl_write(struct ctl
+ int proc_dostring(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	if (write && *ppos && sysctl_writes_strict == SYSCTL_WRITES_WARN)
+-		warn_sysctl_write(table);
++	if (write)
++		proc_first_pos_non_zero_ignore(ppos, table);
  
- Please note, that --args-linux does not need to be specified for ia64.
- It is planned to make this a no-op on that architecture, but for now
+ 	return _proc_do_string((char *)(table->data), table->maxlen, write,
+ 			       (char __user *)buffer, lenp, ppos);
+@@ -2193,17 +2219,8 @@ static int __do_proc_dointvec(void *tbl_
+ 		conv = do_proc_dointvec_conv;
+ 
+ 	if (write) {
+-		if (*ppos) {
+-			switch (sysctl_writes_strict) {
+-			case SYSCTL_WRITES_STRICT:
+-				goto out;
+-			case SYSCTL_WRITES_WARN:
+-				warn_sysctl_write(table);
+-				break;
+-			default:
+-				break;
+-			}
+-		}
++		if (proc_first_pos_non_zero_ignore(ppos, table))
++			goto out;
+ 
+ 		if (left > PAGE_SIZE - 1)
+ 			left = PAGE_SIZE - 1;
+@@ -2468,17 +2485,8 @@ static int __do_proc_doulongvec_minmax(v
+ 	left = *lenp;
+ 
+ 	if (write) {
+-		if (*ppos) {
+-			switch (sysctl_writes_strict) {
+-			case SYSCTL_WRITES_STRICT:
+-				goto out;
+-			case SYSCTL_WRITES_WARN:
+-				warn_sysctl_write(table);
+-				break;
+-			default:
+-				break;
+-			}
+-		}
++		if (proc_first_pos_non_zero_ignore(ppos, table))
++			goto out;
+ 
+ 		if (left > PAGE_SIZE - 1)
+ 			left = PAGE_SIZE - 1;
 _
 
-Patches currently in -mm which might be from Bharat.Bhushan@nxp.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
+maintainers-give-kmod-some-maintainer-love.patch
+kmod-add-test-driver-to-stress-test-the-module-loader.patch
+kmod-throttle-kmod-thread-limit.patch
 
