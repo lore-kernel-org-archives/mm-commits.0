@@ -1,166 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch removed from
- -mm tree
-Date: Thu, 13 Jul 2017 13:42:06 -0700
-Message-ID: <20170713204206.kd_kwdV0n%akpm@linux-foundation.org>
+ ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch removed from -mm tree
+Date: Thu, 13 Jul 2017 13:42:17 -0700
+Message-ID: <20170713204217.2lzNIfuD2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753092AbdGMUmM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:12 -0400
+        with ESMTP id S1753137AbdGMUmS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, paulus@samba.org
+To: danielmicay@gmail.com, dledford@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org, monis@mellanox.com, sean.hefty@intel.com
 
 
 The patch titled
-     Subject: kernel/watchdog: provide watchdog_nmi_reconfigure() for arch watchdogs
+     Subject: IB/rxe: do not copy extra stack memory to skb
 has been removed from the -mm tree.  Its filename was
-     watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
+     ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: kernel/watchdog: provide watchdog_nmi_reconfigure() for arch watchdogs
+From: Kees Cook <keescook@chromium.org>
+Subject: IB/rxe: do not copy extra stack memory to skb
 
-After reconfiguring watchdog sysctls etc., architecture specific watchdogs
-may not get all their parameters updated.
+This fixes a over-read condition detected by FORTIFY_SOURCE for this line:
 
-watchdog_nmi_reconfigure() can be implemented to pull the new values in
-and set the arch NMI watchdog.
+	memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(skb->cb));
 
-[npiggin@gmail.com: add code comments]
-  Link: http://lkml.kernel.org/r/20170617125933.774d3858@roar.ozlabs.ibm.com
-[arnd@arndb.de: hide unused function]
-  Link: http://lkml.kernel.org/r/20170620204854.966601-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/20170616065715.18390-5-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Don Zickus <dzickus@redhat.com>
-Tested-by: Babu Moger <babu.moger@oracle.com>	[sparc]
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+The error was:
+
+In file included from ./include/linux/bitmap.h:8:0,
+                 from ./include/linux/cpumask.h:11,
+                 from ./include/linux/mm_types_task.h:13,
+                 from ./include/linux/mm_types.h:4,
+                 from ./include/linux/kmemcheck.h:4,
+                 from ./include/linux/skbuff.h:18,
+                 from drivers/infiniband/sw/rxe/rxe_resp.c:34:
+In function 'memcpy',
+    inlined from 'send_atomic_ack.constprop' at drivers/infiniband/sw/rxe/rxe_resp.c:998:2,
+    inlined from 'acknowledge' at drivers/infiniband/sw/rxe/rxe_resp.c:1026:3,
+    inlined from 'rxe_responder' at drivers/infiniband/sw/rxe/rxe_resp.c:1286:10:
+./include/linux/string.h:309:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
+    __read_overflow2();
+
+Daniel Micay noted that struct rxe_pkt_info is 32 bytes on 32-bit
+architectures, but skb->cb is still 64. The memcpy() over-reads 32
+bytes. This fixes it by zeroing the unused bytes in skb->cb.
+
+Link: http://lkml.kernel.org/r/1497903987-21002-5-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Moni Shoua <monis@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   48 ++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 44 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_resp.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-provide-watchdog_reconfigure-for-arch-watchdogs
-+++ a/kernel/watchdog.c
-@@ -114,6 +114,10 @@ int __read_mostly watchdog_suspended;
- /*
-  * These functions can be overridden if an architecture implements its
-  * own hardlockup detector.
-+ *
-+ * watchdog_nmi_enable/disable can be implemented to start and stop when
-+ * softlockup watchdog threads start and stop. The arch must select the
-+ * SOFTLOCKUP_DETECTOR Kconfig.
-  */
- int __weak watchdog_nmi_enable(unsigned int cpu)
- {
-@@ -123,6 +127,22 @@ void __weak watchdog_nmi_disable(unsigne
- {
- }
+diff -puN drivers/infiniband/sw/rxe/rxe_resp.c~ib-rxe-do-not-copy-extra-stack-memory-to-skb drivers/infiniband/sw/rxe/rxe_resp.c
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c~ib-rxe-do-not-copy-extra-stack-memory-to-skb
++++ a/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -995,7 +995,9 @@ static int send_atomic_ack(struct rxe_qp
+ 	free_rd_atomic_resource(qp, res);
+ 	rxe_advance_resp_resource(qp);
  
-+/*
-+ * watchdog_nmi_reconfigure can be implemented to be notified after any
-+ * watchdog configuration change. The arch hardlockup watchdog should
-+ * respond to the following variables:
-+ * - nmi_watchdog_enabled
-+ * - watchdog_thresh
-+ * - watchdog_cpumask
-+ * - sysctl_hardlockup_all_cpu_backtrace
-+ * - hardlockup_panic
-+ * - watchdog_suspended
-+ */
-+void __weak watchdog_nmi_reconfigure(void)
-+{
-+}
-+
-+
- #ifdef CONFIG_SOFTLOCKUP_DETECTOR
+-	memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(skb->cb));
++	memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(ack_pkt));
++	memset((unsigned char *)SKB_TO_PKT(skb) + sizeof(ack_pkt), 0,
++	       sizeof(skb->cb) - sizeof(ack_pkt));
  
- /* Helper for online, unparked cpus. */
-@@ -600,6 +620,14 @@ static void watchdog_disable_all_cpus(vo
- 	}
- }
- 
-+#ifdef CONFIG_SYSCTL
-+static int watchdog_update_cpus(void)
-+{
-+	return smpboot_update_cpumask_percpu_thread(
-+		    &watchdog_threads, &watchdog_cpumask);
-+}
-+#endif
-+
- #else /* SOFTLOCKUP */
- static int watchdog_park_threads(void)
- {
-@@ -619,6 +647,13 @@ static void watchdog_disable_all_cpus(vo
- {
- }
- 
-+#ifdef CONFIG_SYSCTL
-+static int watchdog_update_cpus(void)
-+{
-+	return 0;
-+}
-+#endif
-+
- static void set_sample_period(void)
- {
- }
-@@ -651,6 +686,8 @@ int lockup_detector_suspend(void)
- 		watchdog_enabled = 0;
- 	}
- 
-+	watchdog_nmi_reconfigure();
-+
- 	mutex_unlock(&watchdog_proc_mutex);
- 
- 	return ret;
-@@ -671,6 +708,8 @@ void lockup_detector_resume(void)
- 	if (watchdog_running && !watchdog_suspended)
- 		watchdog_unpark_threads();
- 
-+	watchdog_nmi_reconfigure();
-+
- 	mutex_unlock(&watchdog_proc_mutex);
- 	put_online_cpus();
- }
-@@ -696,6 +735,8 @@ static int proc_watchdog_update(void)
- 	else
- 		watchdog_disable_all_cpus();
- 
-+	watchdog_nmi_reconfigure();
-+
- 	return err;
- 
- }
-@@ -881,12 +922,11 @@ int proc_watchdog_cpumask(struct ctl_tab
- 			 * a temporary cpumask, so we are likely not in a
- 			 * position to do much else to make things better.
- 			 */
--#ifdef CONFIG_SOFTLOCKUP_DETECTOR
--			if (smpboot_update_cpumask_percpu_thread(
--				    &watchdog_threads, &watchdog_cpumask) != 0)
-+			if (watchdog_update_cpus() != 0)
- 				pr_err("cpumask update failed\n");
--#endif
- 		}
-+
-+		watchdog_nmi_reconfigure();
- 	}
- out:
- 	mutex_unlock(&watchdog_proc_mutex);
+ 	res->type = RXE_ATOMIC_MASK;
+ 	res->atomic.skb = skb;
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
