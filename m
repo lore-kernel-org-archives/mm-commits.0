@@ -1,95 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- virtually-mapped-stacks-do-not-disable-interrupts.patch removed from -mm
- tree
-Date: Thu, 13 Jul 2017 13:40:00 -0700
-Message-ID: <20170713204000.z82a_F_fw%akpm@linux-foundation.org>
+ powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch removed
+ from -mm tree
+Date: Thu, 13 Jul 2017 13:40:05 -0700
+Message-ID: <20170713204005.b2NjnY2xU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58838 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753181AbdGMUkG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:06 -0400
+        with ESMTP id S1753181AbdGMUkL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, luto@amacapital.net, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, xlpang@redhat.com
 
 
 The patch titled
-     Subject: kernel/fork.c: virtually mapped stacks: do not disable interrupts
+     Subject: powerpc/fadump: use the correct VMCOREINFO_NOTE_SIZE for phdr
 has been removed from the -mm tree.  Its filename was
-     virtually-mapped-stacks-do-not-disable-interrupts.patch
+     powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: kernel/fork.c: virtually mapped stacks: do not disable interrupts
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: powerpc/fadump: use the correct VMCOREINFO_NOTE_SIZE for phdr
 
-The reason to disable interrupts seems to be to avoid switching to a
-different processor while handling per cpu data using individual loads and
-stores.  If we use per cpu RMV primitives we will not have to disable
-interrupts.
+vmcoreinfo_max_size stands for the vmcoreinfo_data, the correct one we
+should use is vmcoreinfo_note whose total size is VMCOREINFO_NOTE_SIZE.
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.20.1705171055130.5898@east.gentwo.org
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Like explained in commit 77019967f06b ("kdump: fix exported size of
+vmcoreinfo note"), it should not affect the actual function, but we better
+fix it, also this change should be safe and backward compatible.
+
+After this, we can get rid of variable vmcoreinfo_max_size, let's use the
+corresponding macros directly, fewer variables means more safety for
+vmcoreinfo operation.
+
+[xlpang@redhat.com: fix build warning]
+  Link: http://lkml.kernel.org/r/1494830606-27736-1-git-send-email-xlpang@redhat.com
+Link: http://lkml.kernel.org/r/1493281021-20737-2-git-send-email-xlpang@redhat.com
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Reviewed-by: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Reviewed-by: Dave Young <dyoung@redhat.com>
+Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ arch/powerpc/kernel/fadump.c |    3 +--
+ include/linux/crash_core.h   |    1 -
+ kernel/crash_core.c          |    3 +--
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN kernel/fork.c~virtually-mapped-stacks-do-not-disable-interrupts kernel/fork.c
---- a/kernel/fork.c~virtually-mapped-stacks-do-not-disable-interrupts
-+++ a/kernel/fork.c
-@@ -205,19 +205,17 @@ static unsigned long *alloc_thread_stack
- 	void *stack;
- 	int i;
+diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr arch/powerpc/kernel/fadump.c
+--- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/arch/powerpc/kernel/fadump.c
+@@ -999,8 +999,7 @@ static int fadump_create_elfcore_headers
  
--	local_irq_disable();
- 	for (i = 0; i < NR_CACHED_STACKS; i++) {
--		struct vm_struct *s = this_cpu_read(cached_stacks[i]);
-+		struct vm_struct *s;
-+
-+		s = this_cpu_xchg(cached_stacks[i], NULL);
+ 	phdr->p_paddr	= fadump_relocate(paddr_vmcoreinfo_note());
+ 	phdr->p_offset	= phdr->p_paddr;
+-	phdr->p_memsz	= vmcoreinfo_max_size;
+-	phdr->p_filesz	= vmcoreinfo_max_size;
++	phdr->p_memsz	= phdr->p_filesz = VMCOREINFO_NOTE_SIZE;
  
- 		if (!s)
- 			continue;
--		this_cpu_write(cached_stacks[i], NULL);
+ 	/* Increment number of program headers. */
+ 	(elf->e_phnum)++;
+diff -puN include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr include/linux/crash_core.h
+--- a/include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/include/linux/crash_core.h
+@@ -58,7 +58,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
  
- 		tsk->stack_vm_area = s;
--		local_irq_enable();
- 		return s->addr;
- 	}
--	local_irq_enable();
+ extern u32 *vmcoreinfo_note;
+ extern size_t vmcoreinfo_size;
+-extern size_t vmcoreinfo_max_size;
  
- 	stack = __vmalloc_node_range(THREAD_SIZE, THREAD_SIZE,
- 				     VMALLOC_START, VMALLOC_END,
-@@ -245,19 +243,15 @@ static inline void free_thread_stack(str
- {
- #ifdef CONFIG_VMAP_STACK
- 	if (task_stack_vm_area(tsk)) {
--		unsigned long flags;
- 		int i;
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len);
+diff -puN kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr kernel/crash_core.c
+--- a/kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/kernel/crash_core.c
+@@ -16,7 +16,6 @@
+ /* vmcoreinfo stuff */
+ static unsigned char *vmcoreinfo_data;
+ size_t vmcoreinfo_size;
+-size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
+ u32 *vmcoreinfo_note;
  
--		local_irq_save(flags);
- 		for (i = 0; i < NR_CACHED_STACKS; i++) {
--			if (this_cpu_read(cached_stacks[i]))
-+			if (this_cpu_cmpxchg(cached_stacks[i],
-+					NULL, tsk->stack_vm_area) != NULL)
- 				continue;
+ /*
+@@ -343,7 +342,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vscnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
  
--			this_cpu_write(cached_stacks[i], tsk->stack_vm_area);
--			local_irq_restore(flags);
- 			return;
- 		}
--		local_irq_restore(flags);
+-	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
++	r = min(r, (size_t)VMCOREINFO_BYTES - vmcoreinfo_size);
  
- 		vfree_atomic(tsk->stack);
- 		return;
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
+ 
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from xlpang@redhat.com are
 
 
