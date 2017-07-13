@@ -1,143 +1,229 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernelh-handle-pointers-to-arrays-better-in-container_of.patch removed from
- -mm tree
-Date: Thu, 13 Jul 2017 13:39:55 -0700
-Message-ID: <20170713203955.z7dcO48Ck%akpm@linux-foundation.org>
+ kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch removed from -mm
+ tree
+Date: Thu, 13 Jul 2017 13:40:02 -0700
+Message-ID: <20170713204002.lbD5Zg_yJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58828 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753183AbdGMUj5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:39:57 -0400
+        with ESMTP id S1753193AbdGMUkD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, arnd@arndb.de, bp@suse.de, glider@google.com, hidehiro.kawai.ez@hitachi.com, johannes.berg@intel.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, mm-commits@vger.kernel.org, peterz@infradead.org
+To: benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, xlpang@redhat.com
 
 
 The patch titled
-     Subject: kernel.h: handle pointers to arrays better in container_of()
+     Subject: kexec: move vmcoreinfo out of the kernel's .bss section
 has been removed from the -mm tree.  Its filename was
-     kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+     kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ian Abbott <abbotti@mev.co.uk>
-Subject: kernel.h: handle pointers to arrays better in container_of()
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: kexec: move vmcoreinfo out of the kernel's .bss section
 
-If the first parameter of container_of() is a pointer to a
-non-const-qualified array type (and the third parameter names a
-non-const-qualified array member), the local variable __mptr will be
-defined with a const-qualified array type.  In ISO C, these types are
-incompatible.  They work as expected in GNU C, but some versions will
-issue warnings.  For example, GCC 4.9 produces the warning "initialization
-from incompatible pointer type".
+As Eric said,
+"what we need to do is move the variable vmcoreinfo_note out
+of the kernel's .bss section.  And modify the code to regenerate
+and keep this information in something like the control page.
 
-Here is an example of where the problem occurs:
+Definitely something like this needs a page all to itself, and ideally far
+away from any other kernel data structures.  I clearly was not watching
+closely the data someone decided to keep this silly thing in the kernel's
+.bss section."
 
--------------------------------------------------------
- #include <linux/kernel.h>
- #include <linux/module.h>
+This patch allocates extra pages for these vmcoreinfo_XXX variables, one
+advantage is that it enhances some safety of vmcoreinfo, because
+vmcoreinfo now is kept far away from other kernel data structures.
 
-MODULE_LICENSE("GPL");
-
-struct st {
-	int a;
-	char b[16];
-};
-
-static int __init example_init(void) {
-	struct st t = { .a = 101, .b = "hello" };
-	char (*p)[16] = &t.b;
-	struct st *x = container_of(p, struct st, b);
-	printk(KERN_DEBUG "%p %p\n", (void *)&t, (void *)x);
-	return 0;
-}
-
-static void __exit example_exit(void) {
-}
-
-module_init(example_init);
-module_exit(example_exit);
--------------------------------------------------------
-
-Building the module with gcc-4.9 results in these warnings (where '{m}'
-is the module source and '{k}' is the kernel source):
-
--------------------------------------------------------
-In file included from {m}/example.c:1:0:
-{m}/example.c: In function `example_init':
-{k}/include/linux/kernel.h:854:48: warning: initialization from
-incompatible pointer type
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
-{k}/include/linux/kernel.h:854:48: warning: (near initialization for
-`x')
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
--------------------------------------------------------
-
-Replace the type checking performed by the macro to avoid these warnings. 
-Make sure `*(ptr)` either has type compatible with the member, or has type
-compatible with `void`, ignoring qualifiers.  Raise compiler errors if
-this is not true.  This is stronger than the previous behaviour, which
-only resulted in compiler warnings for a type mismatch.
-
-[arnd@arndb.de: fix new warnings for container_of()]
-  Link: http://lkml.kernel.org/r/20170620200940.90557-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/20170525120316.24473-7-abbotti@mev.co.uk
-Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/1493281021-20737-1-git-send-email-xlpang@redhat.com
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Tested-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Reviewed-by: Juergen Gross <jgross@suse.com>
+Suggested-by: Eric Biederman <ebiederm@xmission.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/machine_kexec.c |    5 -----
+ arch/s390/kernel/machine_kexec.c |    1 +
+ arch/s390/kernel/setup.c         |    6 ------
+ arch/x86/kernel/crash.c          |    2 +-
+ arch/x86/xen/mmu_pv.c            |    4 ++--
+ include/linux/crash_core.h       |    4 ++--
+ kernel/crash_core.c              |   26 ++++++++++++++++++++++----
+ kernel/ksysfs.c                  |    2 +-
+ 8 files changed, 29 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of
-+++ a/include/linux/kernel.h
-@@ -11,6 +11,7 @@
- #include <linux/log2.h>
- #include <linux/typecheck.h>
- #include <linux/printk.h>
-+#include <linux/build_bug.h>
- #include <asm/byteorder.h>
- #include <uapi/linux/kernel.h>
+diff -puN arch/ia64/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -163,8 +163,3 @@ void arch_crash_save_vmcoreinfo(void)
+ #endif
+ }
  
-@@ -854,9 +855,12 @@ static inline void ftrace_dump(enum ftra
-  * @member:	the name of the member within the struct.
-  *
-  */
--#define container_of(ptr, type, member) ({			\
--	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
--	(type *)( (char *)__mptr - offsetof(type,member) );})
-+#define container_of(ptr, type, member) ({				\
-+	void *__mptr = (void *)(ptr);					\
-+	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
-+			 !__same_type(*(ptr), void),			\
-+			 "pointer type mismatch in container_of()");	\
-+	((type *)(__mptr - offsetof(type, member))); })
+-phys_addr_t paddr_vmcoreinfo_note(void)
+-{
+-	return ia64_tpa((unsigned long)(char *)&vmcoreinfo_note);
+-}
+-
+diff -puN arch/s390/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/s390/kernel/machine_kexec.c
+--- a/arch/s390/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/arch/s390/kernel/machine_kexec.c
+@@ -246,6 +246,7 @@ void arch_crash_save_vmcoreinfo(void)
+ 	VMCOREINFO_SYMBOL(lowcore_ptr);
+ 	VMCOREINFO_SYMBOL(high_memory);
+ 	VMCOREINFO_LENGTH(lowcore_ptr, NR_CPUS);
++	mem_assign_absolute(S390_lowcore.vmcore_info, paddr_vmcoreinfo_note());
+ }
  
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ void machine_shutdown(void)
+diff -puN arch/s390/kernel/setup.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/s390/kernel/setup.c
+--- a/arch/s390/kernel/setup.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/arch/s390/kernel/setup.c
+@@ -496,11 +496,6 @@ static void __init setup_memory_end(void
+ 	pr_notice("The maximum memory size is %luMB\n", memory_end >> 20);
+ }
+ 
+-static void __init setup_vmcoreinfo(void)
+-{
+-	mem_assign_absolute(S390_lowcore.vmcore_info, paddr_vmcoreinfo_note());
+-}
+-
+ #ifdef CONFIG_CRASH_DUMP
+ 
+ /*
+@@ -939,7 +934,6 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ 
+ 	setup_resources();
+-	setup_vmcoreinfo();
+ 	setup_lowcore();
+ 	smp_fill_possible_mask();
+ 	cpu_detect_mhz_feature();
+diff -puN arch/x86/kernel/crash.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/x86/kernel/crash.c
+--- a/arch/x86/kernel/crash.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/arch/x86/kernel/crash.c
+@@ -457,7 +457,7 @@ static int prepare_elf64_headers(struct
+ 	bufp += sizeof(Elf64_Phdr);
+ 	phdr->p_type = PT_NOTE;
+ 	phdr->p_offset = phdr->p_paddr = paddr_vmcoreinfo_note();
+-	phdr->p_filesz = phdr->p_memsz = sizeof(vmcoreinfo_note);
++	phdr->p_filesz = phdr->p_memsz = VMCOREINFO_NOTE_SIZE;
+ 	(ehdr->e_phnum)++;
+ 
+ #ifdef CONFIG_X86_64
+diff -puN arch/x86/xen/mmu_pv.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/x86/xen/mmu_pv.c
+--- a/arch/x86/xen/mmu_pv.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/arch/x86/xen/mmu_pv.c
+@@ -2693,8 +2693,8 @@ EXPORT_SYMBOL_GPL(xen_destroy_contiguous
+ phys_addr_t paddr_vmcoreinfo_note(void)
+ {
+ 	if (xen_pv_domain())
+-		return virt_to_machine(&vmcoreinfo_note).maddr;
++		return virt_to_machine(vmcoreinfo_note).maddr;
+ 	else
+-		return __pa_symbol(&vmcoreinfo_note);
++		return __pa(vmcoreinfo_note);
+ }
+ #endif /* CONFIG_KEXEC_CORE */
+diff -puN include/linux/crash_core.h~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section include/linux/crash_core.h
+--- a/include/linux/crash_core.h~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/include/linux/crash_core.h
+@@ -19,7 +19,7 @@
+ 				     CRASH_CORE_NOTE_NAME_BYTES +	\
+ 				     CRASH_CORE_NOTE_DESC_BYTES)
+ 
+-#define VMCOREINFO_BYTES	   (4096)
++#define VMCOREINFO_BYTES	   PAGE_SIZE
+ #define VMCOREINFO_NOTE_NAME	   "VMCOREINFO"
+ #define VMCOREINFO_NOTE_NAME_BYTES ALIGN(sizeof(VMCOREINFO_NOTE_NAME), 4)
+ #define VMCOREINFO_NOTE_SIZE	   ((CRASH_CORE_NOTE_HEAD_BYTES * 2) +	\
+@@ -56,7 +56,7 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ #define VMCOREINFO_CONFIG(name) \
+ 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
+ 
+-extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
++extern u32 *vmcoreinfo_note;
+ extern size_t vmcoreinfo_size;
+ extern size_t vmcoreinfo_max_size;
+ 
+diff -puN kernel/crash_core.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section kernel/crash_core.c
+--- a/kernel/crash_core.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/kernel/crash_core.c
+@@ -14,10 +14,10 @@
+ #include <asm/sections.h>
+ 
+ /* vmcoreinfo stuff */
+-static unsigned char vmcoreinfo_data[VMCOREINFO_BYTES];
+-u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
++static unsigned char *vmcoreinfo_data;
+ size_t vmcoreinfo_size;
+-size_t vmcoreinfo_max_size = sizeof(vmcoreinfo_data);
++size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
++u32 *vmcoreinfo_note;
+ 
+ /*
+  * parsing the "crashkernel" commandline
+@@ -326,6 +326,9 @@ static void update_vmcoreinfo_note(void)
+ 
+ void crash_save_vmcoreinfo(void)
+ {
++	if (!vmcoreinfo_note)
++		return;
++
+ 	vmcoreinfo_append_str("CRASHTIME=%ld\n", get_seconds());
+ 	update_vmcoreinfo_note();
+ }
+@@ -356,11 +359,26 @@ void __weak arch_crash_save_vmcoreinfo(v
+ 
+ phys_addr_t __weak paddr_vmcoreinfo_note(void)
+ {
+-	return __pa_symbol((unsigned long)(char *)&vmcoreinfo_note);
++	return __pa(vmcoreinfo_note);
+ }
+ 
+ static int __init crash_save_vmcoreinfo_init(void)
+ {
++	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
++	if (!vmcoreinfo_data) {
++		pr_warn("Memory allocation for vmcoreinfo_data failed\n");
++		return -ENOMEM;
++	}
++
++	vmcoreinfo_note = alloc_pages_exact(VMCOREINFO_NOTE_SIZE,
++						GFP_KERNEL | __GFP_ZERO);
++	if (!vmcoreinfo_note) {
++		free_page((unsigned long)vmcoreinfo_data);
++		vmcoreinfo_data = NULL;
++		pr_warn("Memory allocation for vmcoreinfo_note failed\n");
++		return -ENOMEM;
++	}
++
+ 	VMCOREINFO_OSRELEASE(init_uts_ns.name.release);
+ 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
+ 
+diff -puN kernel/ksysfs.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
++++ a/kernel/ksysfs.c
+@@ -134,7 +134,7 @@ static ssize_t vmcoreinfo_show(struct ko
+ {
+ 	phys_addr_t vmcore_base = paddr_vmcoreinfo_note();
+ 	return sprintf(buf, "%pa %x\n", &vmcore_base,
+-		       (unsigned int)sizeof(vmcoreinfo_note));
++			(unsigned int)VMCOREINFO_NOTE_SIZE);
+ }
+ KERNEL_ATTR_RO(vmcoreinfo);
+ 
 _
 
-Patches currently in -mm which might be from abbotti@mev.co.uk are
+Patches currently in -mm which might be from xlpang@redhat.com are
 
 
