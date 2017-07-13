@@ -1,357 +1,117 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- powerpc-make-feature-fixup-tests-fortify-safe.patch removed from -mm tree
-Date: Thu, 13 Jul 2017 13:42:22 -0700
-Message-ID: <20170713204222.WMTF-pMvH%akpm@linux-foundation.org>
+ randomstackprotect-introduce-get_random_canary-function.patch removed from
+ -mm tree
+Date: Thu, 13 Jul 2017 13:42:30 -0700
+Message-ID: <20170713204230.bczD1dDj0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59560 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbdGMUmX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:23 -0400
+        with ESMTP id S1752905AbdGMUmb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrew.donnellan@au1.ibm.com, danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au
+To: catalin.marinas@arm.com, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tytso@mit.edu, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: powerpc: make feature-fixup tests fortify-safe
+     Subject: random,stackprotect: introduce get_random_canary function
 has been removed from the -mm tree.  Its filename was
-     powerpc-make-feature-fixup-tests-fortify-safe.patch
+     randomstackprotect-introduce-get_random_canary-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Axtens <dja@axtens.net>
-Subject: powerpc: make feature-fixup tests fortify-safe
+From: Rik van Riel <riel@redhat.com>
+Subject: random,stackprotect: introduce get_random_canary function
 
-Testing the fortified string functions[1] would cause a kernel panic on
-boot in test_feature_fixups() due to a buffer overflow in memcmp.
+Patch series "stackprotector: ascii armor the stack canary", v2.
 
-This boils down to things like this:
+Zero out the first byte of the stack canary value on 64 bit systems,
+in order to mitigate unterminated C string overflows.
 
-  extern unsigned int ftr_fixup_test1;
-  extern unsigned int ftr_fixup_test1_orig;
+The null byte both prevents C string functions from reading the
+canary, and from writing it if the canary value were guessed or
+obtained through some other means.
+    
+Reducing the entropy by 8 bits is acceptable on 64-bit systems,
+which will still have 56 bits of entropy left, but not on 32
+bit systems, so the "ascii armor" canary is only implemented on
+64-bit systems.
 
-  check(memcmp(&ftr_fixup_test1, &ftr_fixup_test1_orig, size) == 0);
+Inspired by the "ascii armor" code in execshield and Daniel Micay's
+linux-hardened tree.
 
-We know that these are asm labels so it is safe to read up to 'size' bytes
-at those addresses.
+Also see https://github.com/thestinger/linux-hardened/
 
-However, because we have passed the address of a single unsigned int to
-memcmp, the compiler believes the underlying object is in fact a single
-unsigned int.  So if size > sizeof(unsigned int), there will be a panic at
-runtime.
 
-We can fix this by changing the types: instead of calling the asm labels
-unsigned ints, call them unsigned int[]s.  Therefore the size isn't
-incorrectly determined at compile time and we get a regular unsafe memcmp
-and no panic.
+This patch (of 5):
 
-[1] http://openwall.com/lists/kernel-hardening/2017/05/09/2
+Introduce get_random_canary(), which provides a random unsigned long
+canary value with the first byte zeroed out on 64 bit architectures, in
+order to mitigate non-terminated C string overflows.
 
-Link: http://lkml.kernel.org/r/1497903987-21002-7-git-send-email-keescook@chromium.org
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Michael Ellerman <mpe@ellerman.id.au>
-Tested-by: Andrew Donnellan <andrew.donnellan@au1.ibm.com>
-Reviewed-by: Andrew Donnellan <andrew.donnellan@au1.ibm.com>
-Cc: Kees Cook <keescook@chromium.org>
+The null byte both prevents C string functions from reading the canary,
+and from writing it if the canary value were guessed or obtained through
+some other means.
+
+Reducing the entropy by 8 bits is acceptable on 64-bit systems, which will
+still have 56 bits of entropy left, but not on 32 bit systems, so the
+"ascii armor" canary is only implemented on 64-bit systems.
+
+Inspired by the "ascii armor" code in the old execshield patches, and
+Daniel Micay's linux-hardened tree.
+
+Link: http://lkml.kernel.org/r/20170524155751.424-2-riel@redhat.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/lib/feature-fixups.c |  180 ++++++++++++++--------------
- 1 file changed, 90 insertions(+), 90 deletions(-)
+ include/linux/random.h |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN arch/powerpc/lib/feature-fixups.c~powerpc-make-feature-fixup-tests-fortify-safe arch/powerpc/lib/feature-fixups.c
---- a/arch/powerpc/lib/feature-fixups.c~powerpc-make-feature-fixup-tests-fortify-safe
-+++ a/arch/powerpc/lib/feature-fixups.c
-@@ -233,192 +233,192 @@ static long calc_offset(struct fixup_ent
- 
- static void test_basic_patching(void)
- {
--	extern unsigned int ftr_fixup_test1;
--	extern unsigned int end_ftr_fixup_test1;
--	extern unsigned int ftr_fixup_test1_orig;
--	extern unsigned int ftr_fixup_test1_expected;
--	int size = &end_ftr_fixup_test1 - &ftr_fixup_test1;
-+	extern unsigned int ftr_fixup_test1[];
-+	extern unsigned int end_ftr_fixup_test1[];
-+	extern unsigned int ftr_fixup_test1_orig[];
-+	extern unsigned int ftr_fixup_test1_expected[];
-+	int size = end_ftr_fixup_test1 - ftr_fixup_test1;
- 
- 	fixup.value = fixup.mask = 8;
--	fixup.start_off = calc_offset(&fixup, &ftr_fixup_test1 + 1);
--	fixup.end_off = calc_offset(&fixup, &ftr_fixup_test1 + 2);
-+	fixup.start_off = calc_offset(&fixup, ftr_fixup_test1 + 1);
-+	fixup.end_off = calc_offset(&fixup, ftr_fixup_test1 + 2);
- 	fixup.alt_start_off = fixup.alt_end_off = 0;
- 
- 	/* Sanity check */
--	check(memcmp(&ftr_fixup_test1, &ftr_fixup_test1_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test1, ftr_fixup_test1_orig, size) == 0);
- 
- 	/* Check we don't patch if the value matches */
- 	patch_feature_section(8, &fixup);
--	check(memcmp(&ftr_fixup_test1, &ftr_fixup_test1_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test1, ftr_fixup_test1_orig, size) == 0);
- 
- 	/* Check we do patch if the value doesn't match */
- 	patch_feature_section(0, &fixup);
--	check(memcmp(&ftr_fixup_test1, &ftr_fixup_test1_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test1, ftr_fixup_test1_expected, size) == 0);
- 
- 	/* Check we do patch if the mask doesn't match */
--	memcpy(&ftr_fixup_test1, &ftr_fixup_test1_orig, size);
--	check(memcmp(&ftr_fixup_test1, &ftr_fixup_test1_orig, size) == 0);
-+	memcpy(ftr_fixup_test1, ftr_fixup_test1_orig, size);
-+	check(memcmp(ftr_fixup_test1, ftr_fixup_test1_orig, size) == 0);
- 	patch_feature_section(~8, &fixup);
--	check(memcmp(&ftr_fixup_test1, &ftr_fixup_test1_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test1, ftr_fixup_test1_expected, size) == 0);
- }
- 
- static void test_alternative_patching(void)
- {
--	extern unsigned int ftr_fixup_test2;
--	extern unsigned int end_ftr_fixup_test2;
--	extern unsigned int ftr_fixup_test2_orig;
--	extern unsigned int ftr_fixup_test2_alt;
--	extern unsigned int ftr_fixup_test2_expected;
--	int size = &end_ftr_fixup_test2 - &ftr_fixup_test2;
-+	extern unsigned int ftr_fixup_test2[];
-+	extern unsigned int end_ftr_fixup_test2[];
-+	extern unsigned int ftr_fixup_test2_orig[];
-+	extern unsigned int ftr_fixup_test2_alt[];
-+	extern unsigned int ftr_fixup_test2_expected[];
-+	int size = end_ftr_fixup_test2 - ftr_fixup_test2;
- 
- 	fixup.value = fixup.mask = 0xF;
--	fixup.start_off = calc_offset(&fixup, &ftr_fixup_test2 + 1);
--	fixup.end_off = calc_offset(&fixup, &ftr_fixup_test2 + 2);
--	fixup.alt_start_off = calc_offset(&fixup, &ftr_fixup_test2_alt);
--	fixup.alt_end_off = calc_offset(&fixup, &ftr_fixup_test2_alt + 1);
-+	fixup.start_off = calc_offset(&fixup, ftr_fixup_test2 + 1);
-+	fixup.end_off = calc_offset(&fixup, ftr_fixup_test2 + 2);
-+	fixup.alt_start_off = calc_offset(&fixup, ftr_fixup_test2_alt);
-+	fixup.alt_end_off = calc_offset(&fixup, ftr_fixup_test2_alt + 1);
- 
- 	/* Sanity check */
--	check(memcmp(&ftr_fixup_test2, &ftr_fixup_test2_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test2, ftr_fixup_test2_orig, size) == 0);
- 
- 	/* Check we don't patch if the value matches */
- 	patch_feature_section(0xF, &fixup);
--	check(memcmp(&ftr_fixup_test2, &ftr_fixup_test2_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test2, ftr_fixup_test2_orig, size) == 0);
- 
- 	/* Check we do patch if the value doesn't match */
- 	patch_feature_section(0, &fixup);
--	check(memcmp(&ftr_fixup_test2, &ftr_fixup_test2_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test2, ftr_fixup_test2_expected, size) == 0);
- 
- 	/* Check we do patch if the mask doesn't match */
--	memcpy(&ftr_fixup_test2, &ftr_fixup_test2_orig, size);
--	check(memcmp(&ftr_fixup_test2, &ftr_fixup_test2_orig, size) == 0);
-+	memcpy(ftr_fixup_test2, ftr_fixup_test2_orig, size);
-+	check(memcmp(ftr_fixup_test2, ftr_fixup_test2_orig, size) == 0);
- 	patch_feature_section(~0xF, &fixup);
--	check(memcmp(&ftr_fixup_test2, &ftr_fixup_test2_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test2, ftr_fixup_test2_expected, size) == 0);
- }
- 
- static void test_alternative_case_too_big(void)
- {
--	extern unsigned int ftr_fixup_test3;
--	extern unsigned int end_ftr_fixup_test3;
--	extern unsigned int ftr_fixup_test3_orig;
--	extern unsigned int ftr_fixup_test3_alt;
--	int size = &end_ftr_fixup_test3 - &ftr_fixup_test3;
-+	extern unsigned int ftr_fixup_test3[];
-+	extern unsigned int end_ftr_fixup_test3[];
-+	extern unsigned int ftr_fixup_test3_orig[];
-+	extern unsigned int ftr_fixup_test3_alt[];
-+	int size = end_ftr_fixup_test3 - ftr_fixup_test3;
- 
- 	fixup.value = fixup.mask = 0xC;
--	fixup.start_off = calc_offset(&fixup, &ftr_fixup_test3 + 1);
--	fixup.end_off = calc_offset(&fixup, &ftr_fixup_test3 + 2);
--	fixup.alt_start_off = calc_offset(&fixup, &ftr_fixup_test3_alt);
--	fixup.alt_end_off = calc_offset(&fixup, &ftr_fixup_test3_alt + 2);
-+	fixup.start_off = calc_offset(&fixup, ftr_fixup_test3 + 1);
-+	fixup.end_off = calc_offset(&fixup, ftr_fixup_test3 + 2);
-+	fixup.alt_start_off = calc_offset(&fixup, ftr_fixup_test3_alt);
-+	fixup.alt_end_off = calc_offset(&fixup, ftr_fixup_test3_alt + 2);
- 
- 	/* Sanity check */
--	check(memcmp(&ftr_fixup_test3, &ftr_fixup_test3_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test3, ftr_fixup_test3_orig, size) == 0);
- 
- 	/* Expect nothing to be patched, and the error returned to us */
- 	check(patch_feature_section(0xF, &fixup) == 1);
--	check(memcmp(&ftr_fixup_test3, &ftr_fixup_test3_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test3, ftr_fixup_test3_orig, size) == 0);
- 	check(patch_feature_section(0, &fixup) == 1);
--	check(memcmp(&ftr_fixup_test3, &ftr_fixup_test3_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test3, ftr_fixup_test3_orig, size) == 0);
- 	check(patch_feature_section(~0xF, &fixup) == 1);
--	check(memcmp(&ftr_fixup_test3, &ftr_fixup_test3_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test3, ftr_fixup_test3_orig, size) == 0);
- }
- 
- static void test_alternative_case_too_small(void)
- {
--	extern unsigned int ftr_fixup_test4;
--	extern unsigned int end_ftr_fixup_test4;
--	extern unsigned int ftr_fixup_test4_orig;
--	extern unsigned int ftr_fixup_test4_alt;
--	extern unsigned int ftr_fixup_test4_expected;
--	int size = &end_ftr_fixup_test4 - &ftr_fixup_test4;
-+	extern unsigned int ftr_fixup_test4[];
-+	extern unsigned int end_ftr_fixup_test4[];
-+	extern unsigned int ftr_fixup_test4_orig[];
-+	extern unsigned int ftr_fixup_test4_alt[];
-+	extern unsigned int ftr_fixup_test4_expected[];
-+	int size = end_ftr_fixup_test4 - ftr_fixup_test4;
- 	unsigned long flag;
- 
- 	/* Check a high-bit flag */
- 	flag = 1UL << ((sizeof(unsigned long) - 1) * 8);
- 	fixup.value = fixup.mask = flag;
--	fixup.start_off = calc_offset(&fixup, &ftr_fixup_test4 + 1);
--	fixup.end_off = calc_offset(&fixup, &ftr_fixup_test4 + 5);
--	fixup.alt_start_off = calc_offset(&fixup, &ftr_fixup_test4_alt);
--	fixup.alt_end_off = calc_offset(&fixup, &ftr_fixup_test4_alt + 2);
-+	fixup.start_off = calc_offset(&fixup, ftr_fixup_test4 + 1);
-+	fixup.end_off = calc_offset(&fixup, ftr_fixup_test4 + 5);
-+	fixup.alt_start_off = calc_offset(&fixup, ftr_fixup_test4_alt);
-+	fixup.alt_end_off = calc_offset(&fixup, ftr_fixup_test4_alt + 2);
- 
- 	/* Sanity check */
--	check(memcmp(&ftr_fixup_test4, &ftr_fixup_test4_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test4, ftr_fixup_test4_orig, size) == 0);
- 
- 	/* Check we don't patch if the value matches */
- 	patch_feature_section(flag, &fixup);
--	check(memcmp(&ftr_fixup_test4, &ftr_fixup_test4_orig, size) == 0);
-+	check(memcmp(ftr_fixup_test4, ftr_fixup_test4_orig, size) == 0);
- 
- 	/* Check we do patch if the value doesn't match */
- 	patch_feature_section(0, &fixup);
--	check(memcmp(&ftr_fixup_test4, &ftr_fixup_test4_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test4, ftr_fixup_test4_expected, size) == 0);
- 
- 	/* Check we do patch if the mask doesn't match */
--	memcpy(&ftr_fixup_test4, &ftr_fixup_test4_orig, size);
--	check(memcmp(&ftr_fixup_test4, &ftr_fixup_test4_orig, size) == 0);
-+	memcpy(ftr_fixup_test4, ftr_fixup_test4_orig, size);
-+	check(memcmp(ftr_fixup_test4, ftr_fixup_test4_orig, size) == 0);
- 	patch_feature_section(~flag, &fixup);
--	check(memcmp(&ftr_fixup_test4, &ftr_fixup_test4_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test4, ftr_fixup_test4_expected, size) == 0);
- }
- 
- static void test_alternative_case_with_branch(void)
- {
--	extern unsigned int ftr_fixup_test5;
--	extern unsigned int end_ftr_fixup_test5;
--	extern unsigned int ftr_fixup_test5_expected;
--	int size = &end_ftr_fixup_test5 - &ftr_fixup_test5;
-+	extern unsigned int ftr_fixup_test5[];
-+	extern unsigned int end_ftr_fixup_test5[];
-+	extern unsigned int ftr_fixup_test5_expected[];
-+	int size = end_ftr_fixup_test5 - ftr_fixup_test5;
- 
--	check(memcmp(&ftr_fixup_test5, &ftr_fixup_test5_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test5, ftr_fixup_test5_expected, size) == 0);
- }
- 
- static void test_alternative_case_with_external_branch(void)
- {
--	extern unsigned int ftr_fixup_test6;
--	extern unsigned int end_ftr_fixup_test6;
--	extern unsigned int ftr_fixup_test6_expected;
--	int size = &end_ftr_fixup_test6 - &ftr_fixup_test6;
-+	extern unsigned int ftr_fixup_test6[];
-+	extern unsigned int end_ftr_fixup_test6[];
-+	extern unsigned int ftr_fixup_test6_expected[];
-+	int size = end_ftr_fixup_test6 - ftr_fixup_test6;
- 
--	check(memcmp(&ftr_fixup_test6, &ftr_fixup_test6_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test6, ftr_fixup_test6_expected, size) == 0);
- }
- 
- static void test_cpu_macros(void)
- {
--	extern u8 ftr_fixup_test_FTR_macros;
--	extern u8 ftr_fixup_test_FTR_macros_expected;
--	unsigned long size = &ftr_fixup_test_FTR_macros_expected -
--			     &ftr_fixup_test_FTR_macros;
-+	extern u8 ftr_fixup_test_FTR_macros[];
-+	extern u8 ftr_fixup_test_FTR_macros_expected[];
-+	unsigned long size = ftr_fixup_test_FTR_macros_expected -
-+			     ftr_fixup_test_FTR_macros;
- 
- 	/* The fixups have already been done for us during boot */
--	check(memcmp(&ftr_fixup_test_FTR_macros,
--		     &ftr_fixup_test_FTR_macros_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test_FTR_macros,
-+		     ftr_fixup_test_FTR_macros_expected, size) == 0);
- }
- 
- static void test_fw_macros(void)
- {
- #ifdef CONFIG_PPC64
--	extern u8 ftr_fixup_test_FW_FTR_macros;
--	extern u8 ftr_fixup_test_FW_FTR_macros_expected;
--	unsigned long size = &ftr_fixup_test_FW_FTR_macros_expected -
--			     &ftr_fixup_test_FW_FTR_macros;
-+	extern u8 ftr_fixup_test_FW_FTR_macros[];
-+	extern u8 ftr_fixup_test_FW_FTR_macros_expected[];
-+	unsigned long size = ftr_fixup_test_FW_FTR_macros_expected -
-+			     ftr_fixup_test_FW_FTR_macros;
- 
- 	/* The fixups have already been done for us during boot */
--	check(memcmp(&ftr_fixup_test_FW_FTR_macros,
--		     &ftr_fixup_test_FW_FTR_macros_expected, size) == 0);
-+	check(memcmp(ftr_fixup_test_FW_FTR_macros,
-+		     ftr_fixup_test_FW_FTR_macros_expected, size) == 0);
+diff -puN include/linux/random.h~randomstackprotect-introduce-get_random_canary-function include/linux/random.h
+--- a/include/linux/random.h~randomstackprotect-introduce-get_random_canary-function
++++ a/include/linux/random.h
+@@ -57,6 +57,27 @@ static inline unsigned long get_random_l
  #endif
  }
  
- static void test_lwsync_macros(void)
- {
--	extern u8 lwsync_fixup_test;
--	extern u8 end_lwsync_fixup_test;
--	extern u8 lwsync_fixup_test_expected_LWSYNC;
--	extern u8 lwsync_fixup_test_expected_SYNC;
--	unsigned long size = &end_lwsync_fixup_test -
--			     &lwsync_fixup_test;
-+	extern u8 lwsync_fixup_test[];
-+	extern u8 end_lwsync_fixup_test[];
-+	extern u8 lwsync_fixup_test_expected_LWSYNC[];
-+	extern u8 lwsync_fixup_test_expected_SYNC[];
-+	unsigned long size = end_lwsync_fixup_test -
-+			     lwsync_fixup_test;
++/*
++ * On 64-bit architectures, protect against non-terminated C string overflows
++ * by zeroing out the first byte of the canary; this leaves 56 bits of entropy.
++ */
++#ifdef CONFIG_64BIT
++# ifdef __LITTLE_ENDIAN
++#  define CANARY_MASK 0xffffffffffffff00UL
++# else /* big endian, 64 bits: */
++#  define CANARY_MASK 0x00ffffffffffffffUL
++# endif
++#else /* 32 bits: */
++# define CANARY_MASK 0xffffffffUL
++#endif
++
++static inline unsigned long get_random_canary(void)
++{
++	unsigned long val = get_random_long();
++
++	return val & CANARY_MASK;
++}
++
+ unsigned long randomize_page(unsigned long start, unsigned long range);
  
- 	/* The fixups have already been done for us during boot */
- 	if (cur_cpu_spec->cpu_features & CPU_FTR_LWSYNC) {
--		check(memcmp(&lwsync_fixup_test,
--			     &lwsync_fixup_test_expected_LWSYNC, size) == 0);
-+		check(memcmp(lwsync_fixup_test,
-+			     lwsync_fixup_test_expected_LWSYNC, size) == 0);
- 	} else {
--		check(memcmp(&lwsync_fixup_test,
--			     &lwsync_fixup_test_expected_SYNC, size) == 0);
-+		check(memcmp(lwsync_fixup_test,
-+			     lwsync_fixup_test_expected_SYNC, size) == 0);
- 	}
- }
- 
+ u32 prandom_u32(void);
 _
 
-Patches currently in -mm which might be from dja@axtens.net are
+Patches currently in -mm which might be from riel@redhat.com are
 
 
