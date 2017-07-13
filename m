@@ -1,73 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kfifo-cleanup-example-to-not-use-page_link.patch
+Subject: [merged]
+ scripts-gdb-lx-dmesg-use-explicit-encoding=utf8-errors=replace.patch
  removed from -mm tree
-Date: Thu, 13 Jul 2017 13:41:01 -0700
-Message-ID: <20170713204101.m-dide6H5%akpm@linux-foundation.org>
+Date: Thu, 13 Jul 2017 13:40:58 -0700
+Message-ID: <20170713204058.RRTLeUzJH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59062 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753095AbdGMUlC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:41:02 -0400
+        with ESMTP id S1753095AbdGMUk7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: greg@kroah.com, logang@deltatee.com, mm-commits@vger.kernel.org, sbates@raithlin.com, stefani@seibold.net
+To: jan.kiszka@siemens.com, jason.wessel@windriver.com, kieran@ksquared.org.uk, leonard.crestez@nxp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfifo: clean up example to not use page_link
+     Subject: scripts/gdb: lx-dmesg: use explicit encoding=utf8 errors=replace
 has been removed from the -mm tree.  Its filename was
-     kfifo-cleanup-example-to-not-use-page_link.patch
+     scripts-gdb-lx-dmesg-use-explicit-encoding=utf8-errors=replace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: kfifo: clean up example to not use page_link
+From: Leonard Crestez <leonard.crestez@nxp.com>
+Subject: scripts/gdb: lx-dmesg: use explicit encoding=utf8 errors=replace
 
-This is a layering violation so we replace the uses with calls to
-sg_page().  This is a prep patch for replacing page_link and this is one
-of the very few uses outside of scatterlist.h.
+Use errors=replace because it is never desirable for lx-dmesg to fail on
+string decoding errors, not even if the log buffer is corrupt and we show
+incorrect info.
 
-Link: http://lkml.kernel.org/r/1495663199-22234-1-git-send-email-logang@deltatee.com
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Acked-by: Stefani Seibold <stefani@seibold.net>
-Cc: Stefani Seibold <stefani@seibold.net>
-Cc: Greg KH <greg@kroah.com>
+The kernel will sometimes print utf8, for example the copyright symbol
+from jffs2.  In order to make this work specify 'utf8' everywhere because
+python2 otherwise defaults to 'ascii'.
+
+In theory the second errors='replace' is not be required because
+everything that can be decoded as utf8 should also be encodable back to
+utf8.  But it's better to be extra safe here.  It's worth noting that this
+is definitely not true for encoding='ascii', unknown characters are
+replaced with U+FFFD REPLACEMENT CHARACTER and they fail to encode back to
+ascii.
+
+Link: http://lkml.kernel.org/r/acee067f3345954ed41efb77b80eebdc038619c6.1498481469.git.leonard.crestez@nxp.com
+Signed-off-by: Leonard Crestez <leonard.crestez@nxp.com>
+Acked-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Kieran Bingham <kieran@ksquared.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kfifo/dma-example.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/gdb/linux/dmesg.py |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN samples/kfifo/dma-example.c~kfifo-cleanup-example-to-not-use-page_link samples/kfifo/dma-example.c
---- a/samples/kfifo/dma-example.c~kfifo-cleanup-example-to-not-use-page_link
-+++ a/samples/kfifo/dma-example.c
-@@ -75,8 +75,8 @@ static int __init example_init(void)
- 	for (i = 0; i < nents; i++) {
- 		printk(KERN_INFO
- 		"sg[%d] -> "
--		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
--			i, sg[i].page_link, sg[i].offset, sg[i].length);
-+		"page %p offset 0x%.8x length 0x%.8x\n",
-+			i, sg_page(&sg[i]), sg[i].offset, sg[i].length);
+diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-lx-dmesg-use-explicit-encoding=utf8-errors=replace scripts/gdb/linux/dmesg.py
+--- a/scripts/gdb/linux/dmesg.py~scripts-gdb-lx-dmesg-use-explicit-encoding=utf8-errors=replace
++++ a/scripts/gdb/linux/dmesg.py
+@@ -12,6 +12,7 @@
+ #
  
- 		if (sg_is_last(&sg[i]))
- 			break;
-@@ -104,8 +104,8 @@ static int __init example_init(void)
- 	for (i = 0; i < nents; i++) {
- 		printk(KERN_INFO
- 		"sg[%d] -> "
--		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
--			i, sg[i].page_link, sg[i].offset, sg[i].length);
-+		"page %p offset 0x%.8x length 0x%.8x\n",
-+			i, sg_page(&sg[i]), sg[i].offset, sg[i].length);
+ import gdb
++import sys
  
- 		if (sg_is_last(&sg[i]))
- 			break;
+ from linux import utils
+ 
+@@ -52,13 +53,19 @@ class LxDmesg(gdb.Command):
+                 continue
+ 
+             text_len = utils.read_u16(log_buf[pos + 10:pos + 12])
+-            text = log_buf[pos + 16:pos + 16 + text_len].decode()
++            text = log_buf[pos + 16:pos + 16 + text_len].decode(
++                encoding='utf8', errors='replace')
+             time_stamp = utils.read_u64(log_buf[pos:pos + 8])
+ 
+             for line in text.splitlines():
+-                gdb.write("[{time:12.6f}] {line}\n".format(
++                msg = u"[{time:12.6f}] {line}\n".format(
+                     time=time_stamp / 1000000000.0,
+-                    line=line))
++                    line=line)
++                # With python2 gdb.write will attempt to convert unicode to
++                # ascii and might fail so pass an utf8-encoded str instead.
++                if sys.hexversion < 0x03000000:
++                    msg = msg.encode(encoding='utf8', errors='replace')
++                gdb.write(msg)
+ 
+             pos += length
+ 
 _
 
-Patches currently in -mm which might be from logang@deltatee.com are
+Patches currently in -mm which might be from leonard.crestez@nxp.com are
 
 
