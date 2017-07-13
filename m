@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-watchdog-use-better-pr_fmt-prefix.patch added to -mm
+Subject: + maintainers-move-the-befs-tree-to-kernelorg.patch added to -mm
  tree
-Date: Thu, 13 Jul 2017 12:24:18 -0700
-Message-ID: <5967c8e2.IAOtTiTecWiEopuz%akpm@linux-foundation.org>
+Date: Thu, 13 Jul 2017 12:24:57 -0700
+Message-ID: <5967c909.M0eAefKcmu2F0uul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49326 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752735AbdGMTYY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 15:24:24 -0400
+        with ESMTP id S1752545AbdGMTY6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 15:24:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangkefeng.wang@huawei.com, babu.moger@oracle.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: luisbg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: use better pr_fmt prefix
+     Subject: MAINTAINERS: move the befs tree to kernel.org
 has been added to the -mm tree.  Its filename is
-     kernel-watchdog-use-better-pr_fmt-prefix.patch
+     maintainers-move-the-befs-tree-to-kernelorg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-use-better-pr_fmt-prefix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-move-the-befs-tree-to-kernelorg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-use-better-pr_fmt-prefix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-move-the-befs-tree-to-kernelorg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: kernel/watchdog.c: use better pr_fmt prefix
+From: Luis de Bethencourt <luisbg@kernel.org>
+Subject: MAINTAINERS: move the befs tree to kernel.org
 
-After 73ce0511c436 ("kernel/watchdog.c: move hardlockup detector to
-separate file"), 'NMI watchdog' is inappropriate in kernel/watchdog.c,
-using 'watchdog' only.
+Update the location of the befs git tree and my email address.
 
-Link: http://lkml.kernel.org/r/1499928642-48983-1-git-send-email-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: http://lkml.kernel.org/r/20170709110012.2991-1-luisbg@kernel.org
+Signed-off-by: Luis de Bethencourt <luisbg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdog-use-better-pr_fmt-prefix kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdog-use-better-pr_fmt-prefix
-+++ a/kernel/watchdog.c
-@@ -9,7 +9,7 @@
-  * to those contributors as well.
-  */
+diff -puN MAINTAINERS~maintainers-move-the-befs-tree-to-kernelorg MAINTAINERS
+--- a/MAINTAINERS~maintainers-move-the-befs-tree-to-kernelorg
++++ a/MAINTAINERS
+@@ -2516,10 +2516,10 @@ S:	Supported
+ F:	drivers/media/platform/sti/delta
  
--#define pr_fmt(fmt) "NMI watchdog: " fmt
-+#define pr_fmt(fmt) "watchdog: " fmt
+ BEFS FILE SYSTEM
+-M:	Luis de Bethencourt <luisbg@osg.samsung.com>
++M:	Luis de Bethencourt <luisbg@kernel.org>
+ M:	Salah Triki <salah.triki@gmail.com>
+ S:	Maintained
+-T:	git git://github.com/luisbg/linux-befs.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/luisbg/linux-befs.git
+ F:	Documentation/filesystems/befs.txt
+ F:	fs/befs/
  
- #include <linux/mm.h>
- #include <linux/cpu.h>
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from luisbg@kernel.org are
 
-kernel-watchdog-use-better-pr_fmt-prefix.patch
+maintainers-move-the-befs-tree-to-kernelorg.patch
 
