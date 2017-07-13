@@ -1,70 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] watchdog-remove-unused-declaration.patch removed
- from -mm tree
-Date: Thu, 13 Jul 2017 13:41:57 -0700
-Message-ID: <20170713204157.ZEycT8ZpW%akpm@linux-foundation.org>
+Subject: [merged] efi-avoid-fortify-checks-in-efi-stub.patch
+ removed from -mm tree
+Date: Thu, 13 Jul 2017 13:42:12 -0700
+Message-ID: <20170713204212.vrY7eOikR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59386 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59468 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753092AbdGMUl6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:41:58 -0400
+        with ESMTP id S1753286AbdGMUmN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2017 16:42:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: babu.moger@oracle.com, benh@kernel.crashing.org, dzickus@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, paulus@samba.org
+To: ard.biesheuvel@linaro.org, danielmicay@gmail.com, keescook@chromium.org, mark.rutland@arm.com, matt@codeblueprint.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog: remove unused declaration
+     Subject: efi: avoid fortify checks in EFI stub
 has been removed from the -mm tree.  Its filename was
-     watchdog-remove-unused-declaration.patch
+     efi-avoid-fortify-checks-in-efi-stub.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: kernel/watchdog: remove unused declaration
+From: Kees Cook <keescook@chromium.org>
+Subject: efi: avoid fortify checks in EFI stub
 
-Patch series "Improve watchdog config for arch watchdogs", v4.
+This avoids CONFIG_FORTIFY_SOURCE from being enabled during the EFI stub
+build, as adding a panic() implementation may not work well.  This can be
+adjusted in the future.
 
-A series to make the hardlockup watchdog more easily replaceable by arch
-code.  The last patch provides some justification for why we want to do
-this (existing sparc watchdog is another that could benefit).
-
-
-This patch (of 5):
-
-Remove unused declaration.
-
-Link: http://lkml.kernel.org/r/20170616065715.18390-2-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reviewed-by: Don Zickus <dzickus@redhat.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
-Tested-by: Babu Moger <babu.moger@oracle.com>	[sparc]
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/1497903987-21002-2-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Daniel Micay <danielmicay@gmail.com>
+Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/firmware/efi/libstub/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/nmi.h~watchdog-remove-unused-declaration include/linux/nmi.h
---- a/include/linux/nmi.h~watchdog-remove-unused-declaration
-+++ a/include/linux/nmi.h
-@@ -12,9 +12,6 @@ extern void touch_softlockup_watchdog_sc
- extern void touch_softlockup_watchdog(void);
- extern void touch_softlockup_watchdog_sync(void);
- extern void touch_all_softlockup_watchdogs(void);
--extern int proc_dowatchdog_thresh(struct ctl_table *table, int write,
--				  void __user *buffer,
--				  size_t *lenp, loff_t *ppos);
- extern unsigned int  softlockup_panic;
- extern unsigned int  hardlockup_panic;
- void lockup_detector_init(void);
+diff -puN drivers/firmware/efi/libstub/Makefile~efi-avoid-fortify-checks-in-efi-stub drivers/firmware/efi/libstub/Makefile
+--- a/drivers/firmware/efi/libstub/Makefile~efi-avoid-fortify-checks-in-efi-stub
++++ a/drivers/firmware/efi/libstub/Makefile
+@@ -17,6 +17,7 @@ cflags-$(CONFIG_ARM)		:= $(subst -pg,,$(
+ cflags-$(CONFIG_EFI_ARMSTUB)	+= -I$(srctree)/scripts/dtc/libfdt
+ 
+ KBUILD_CFLAGS			:= $(cflags-y) -DDISABLE_BRANCH_PROFILING \
++				   -D__NO_FORTIFY \
+ 				   $(call cc-option,-ffreestanding) \
+ 				   $(call cc-option,-fno-stack-protector)
+ 
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
