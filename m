@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch removed
- from -mm tree
-Date: Fri, 14 Jul 2017 14:03:26 -0700
-Message-ID: <5969319e.iIQo6IroCjUvHlBU%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ fault-inject-simplify-access-check-for-fail-nth-fix.patch removed from -mm
+ tree
+Date: Fri, 14 Jul 2017 14:40:53 -0700
+Message-ID: <59693a65.xIxWPG2B3ZBRjWoO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54606 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750917AbdGNVD1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jul 2017 17:03:27 -0400
+        with ESMTP id S1751012AbdGNVky (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jul 2017 17:40:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sendfile: do not update file offset of non-lseek()able objects.
+     Subject: fault-inject: don't convert unsigned type value as signed int
 has been removed from the -mm tree.  Its filename was
-     sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch
+     fault-inject-simplify-access-check-for-fail-nth-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into fault-inject-simplify-access-check-for-fail-nth.patch
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: sendfile: do not update file offset of non-lseek()able objects.
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fault-inject: don't convert unsigned type value as signed int
 
-I tried to sendfile() a file which is larger than 4GB to a pipe (which is
-the stdout of Apache's CGI program), and noticed that sendfile() fails
-with EFBIG after 2GB is copied to stdout pipe.  This is because sendfile()
-is updating file offset of the file descriptor of the pipe.
+This fixes fault-inject-simplify-access-check-for-fail-nth.patch in -mm
+tree which by mistake partially reverts the change by fault-inject-
+parse-as-natural-1-based-value-for-fail-nth-write-interface.patch.
 
-sendfile() should not update file offset if the file descriptor refers to
-an non-lseek()able object.
-
-Link: http://lkml.kernel.org/r/1497262469-7536-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1492444483-9239-1-git-send-email-akinobu.mita@gmail.com
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/read_write.c~sendfile-do-not-update-file-offset-of-non-lseekable-objects fs/read_write.c
---- a/fs/read_write.c~sendfile-do-not-update-file-offset-of-non-lseekable-objects
-+++ a/fs/read_write.c
-@@ -1417,7 +1417,8 @@ static ssize_t do_sendfile(int out_fd, i
- 		add_wchar(current, retval);
- 		fsnotify_access(in.file);
- 		fsnotify_modify(out.file);
--		out.file->f_pos = out_pos;
-+		if (out.file->f_op->llseek != no_llseek)
-+			out.file->f_pos = out_pos;
- 		if (ppos)
- 			*ppos = pos;
- 		else
+diff -puN fs/proc/base.c~fault-inject-simplify-access-check-for-fail-nth-fix fs/proc/base.c
+--- a/fs/proc/base.c~fault-inject-simplify-access-check-for-fail-nth-fix
++++ a/fs/proc/base.c
+@@ -1363,7 +1363,7 @@ static ssize_t proc_fail_nth_write(struc
+ 	int err;
+ 	unsigned int n;
+ 
+-	err = kstrtoint_from_user(buf, count, 0, &n);
++	err = kstrtouint_from_user(buf, count, 0, &n);
+ 	if (err)
+ 		return err;
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
+fault-inject-automatically-detect-the-number-base-for-fail-nth-write-interface.patch
+fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
+fault-inject-make-fail-nth-read-write-interface-symmetric.patch
+fault-inject-simplify-access-check-for-fail-nth.patch
+fault-inject-simplify-access-check-for-fail-nth-fix-2.patch
+fault-inject-add-proc-pid-fail-nth.patch
 
