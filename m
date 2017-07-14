@@ -1,58 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/13] mm: fix overflow check in expand_upwards()
-Date: Fri, 14 Jul 2017 14:49:38 -0700
-Message-ID: <59693c72.eKWYyvnqqdzX2aP4%akpm@linux-foundation.org>
+Subject: [patch 02/13] lib/atomic64_test.c: add a test that
+ atomic64_inc_not_zero() returns an int
+Date: Fri, 14 Jul 2017 14:49:41 -0700
+Message-ID: <59693c75.63ABeNMc0HxizS/m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55726 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55728 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751012AbdGNVtj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jul 2017 17:49:39 -0400
+        with ESMTP id S1751130AbdGNVtn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jul 2017 17:49:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, deller@gmx.de, hughd@google.com, joern@purestorage.com, oleg@redhat.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mpe@ellerman.id.au, dougmill@linux.vnet.ibm.com
 
-From: Helge Deller <deller@gmx.de>
-Subject: mm: fix overflow check in expand_upwards()
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: lib/atomic64_test.c: add a test that atomic64_inc_not_zero() returns an int
 
-Jörn Engel noticed that the expand_upwards() function might not return
--ENOMEM in case the requested address is (unsigned long)-PAGE_SIZE and if
-the architecture didn't defined TASK_SIZE as multiple of PAGE_SIZE.
+atomic64_inc_not_zero() returns a "truth value" which in C is
+traditionally an int.  That means callers are likely to expect the result
+will fit in an int.
 
-Affected architectures are arm, frv, m68k, blackfin, h8300 and xtensa
-which all define TASK_SIZE as 0xffffffff, but since none of those have an
-upwards-growing stack we currently have no actual issue.
+If an implementation returns a "true" value which does not fit in an int,
+then there's a possibility that callers will truncate it when they store
+it in an int.  In fact this happened in practice, see commit 966d2b04e070
+("percpu-refcount: fix reference leak during percpu-atomic transition").
 
-Nevertheless let's fix this just in case any of the architectures with an
-upward-growing stack (currently parisc, metag and partly ia64) define
-TASK_SIZE similar.
+So add a test that the result fits in an int, even when the input doesn't.
+This catches the case where an implementation just passes the non-zero
+input value out as the result.
 
-Link: http://lkml.kernel.org/r/20170702192452.GA11868@p100.box
-Fixes: bd726c90b6b8 ("Allow stack to grow up to address space limit")
-Signed-off-by: Helge Deller <deller@gmx.de>
-Reported-by: Jörn Engel <joern@purestorage.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1499775133-1231-1-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Douglas Miller <dougmill@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/atomic64_test.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/mmap.c~mm-fix-overflow-check-in-expand_upwards mm/mmap.c
---- a/mm/mmap.c~mm-fix-overflow-check-in-expand_upwards
-+++ a/mm/mmap.c
-@@ -2231,7 +2231,7 @@ int expand_upwards(struct vm_area_struct
+diff -puN lib/atomic64_test.c~lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int lib/atomic64_test.c
+--- a/lib/atomic64_test.c~lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int
++++ a/lib/atomic64_test.c
+@@ -153,8 +153,10 @@ static __init void test_atomic64(void)
+ 	long long v0 = 0xaaa31337c001d00dLL;
+ 	long long v1 = 0xdeadbeefdeafcafeLL;
+ 	long long v2 = 0xfaceabadf00df001LL;
++	long long v3 = 0x8000000000000000LL;
+ 	long long onestwos = 0x1111111122222222LL;
+ 	long long one = 1LL;
++	int r_int;
  
- 	/* Guard against exceeding limits of the address space. */
- 	address &= PAGE_MASK;
--	if (address >= TASK_SIZE)
-+	if (address >= (TASK_SIZE & PAGE_MASK))
- 		return -ENOMEM;
- 	address += PAGE_SIZE;
+ 	atomic64_t v = ATOMIC64_INIT(v0);
+ 	long long r = v0;
+@@ -240,6 +242,11 @@ static __init void test_atomic64(void)
+ 	BUG_ON(!atomic64_inc_not_zero(&v));
+ 	r += one;
+ 	BUG_ON(v.counter != r);
++
++	/* Confirm the return value fits in an int, even if the value doesn't */
++	INIT(v3);
++	r_int = atomic64_inc_not_zero(&v);
++	BUG_ON(!r_int);
+ }
  
+ static __init int test_atomics_init(void)
 _
