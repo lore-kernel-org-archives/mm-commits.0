@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-introduce-config_arch_enable_thp_migration.patch added
- to -mm tree
-Date: Tue, 18 Jul 2017 15:27:08 -0700
-Message-ID: <596e8b3c.H20DA/AlIsQs13kW%akpm@linux-foundation.org>
+Subject: + mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
+ added to -mm tree
+Date: Tue, 18 Jul 2017 15:27:03 -0700
+Message-ID: <596e8b37.ZjSTZTgIB17EiI20%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49808 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752115AbdGRW1J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2017 18:27:09 -0400
+        with ESMTP id S1752546AbdGRW1E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2017 18:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, minchan@kernel.org, mingo@elte.hu, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: introduce CONFIG_ARCH_ENABLE_THP_MIGRATION
+     Subject: mm: x86: move _PAGE_SWP_SOFT_DIRTY from bit 7 to bit 1
 has been added to the -mm tree.  Its filename is
-     mm-thp-introduce-config_arch_enable_thp_migration.patch
+     mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-introduce-config_arch_enable_thp_migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-introduce-config_arch_enable_thp_migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: thp: introduce CONFIG_ARCH_ENABLE_THP_MIGRATION
+Subject: mm: x86: move _PAGE_SWP_SOFT_DIRTY from bit 7 to bit 1
 
-Introduce CONFIG_ARCH_ENABLE_THP_MIGRATION to limit thp migration
-functionality to x86_64, which should be safer at the first step.
+_PAGE_PSE is used to distinguish between a truly non-present
+(_PAGE_PRESENT=0) PMD, and a PMD which is undergoing a THP split and
+should be treated as present.
 
-Link: http://lkml.kernel.org/r/20170717193955.20207-5-zi.yan@sent.com
+But _PAGE_SWP_SOFT_DIRTY currently uses the _PAGE_PSE bit, which would
+cause confusion between one of those PMDs undergoing a THP split, and a
+soft-dirty PMD.  Dropping _PAGE_PSE check in pmd_present() does not work
+well, because it can hurt optimization of tlb handling in thp split.
+
+Thus, we need to move the bit.
+
+In the current kernel, bits 1-4 are not used in non-present format since
+commit 00839ee3b299 ("x86/mm: Move swap offset/type up in PTE to work
+around erratum").  So let's move _PAGE_SWP_SOFT_DIRTY to bit 1.  Bit 7 is
+used as reserved (always clear), so please don't use it for other purpose.
+
+Link: http://lkml.kernel.org/r/20170717193955.20207-3-zi.yan@sent.com
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: David Nellans <dnellans@nvidia.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -62,65 +75,62 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig        |    4 ++++
- include/linux/huge_mm.h |   10 ++++++++++
- mm/Kconfig              |    3 +++
- 3 files changed, 17 insertions(+)
+ arch/x86/include/asm/pgtable_64.h    |   12 +++++++++---
+ arch/x86/include/asm/pgtable_types.h |   10 +++++-----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration
-+++ a/arch/x86/Kconfig
-@@ -2291,6 +2291,10 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	def_bool y
- 	depends on X86_64 && HUGETLB_PAGE && MIGRATION
- 
-+config ARCH_ENABLE_THP_MIGRATION
-+	def_bool y
-+	depends on X86_64 && TRANSPARENT_HUGEPAGE
-+
- menu "Power management and ACPI options"
- 
- config ARCH_HIBERNATION_HEADER
-diff -puN include/linux/huge_mm.h~mm-thp-introduce-config_arch_enable_thp_migration include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-introduce-config_arch_enable_thp_migration
-+++ a/include/linux/huge_mm.h
-@@ -233,6 +233,11 @@ void mm_put_huge_zero_page(struct mm_str
- 
- #define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
- 
-+static inline bool thp_migration_supported(void)
-+{
-+	return IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION);
-+}
-+
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
-@@ -336,6 +341,11 @@ static inline struct page *follow_devmap
- {
- 	return NULL;
- }
-+
-+static inline bool thp_migration_supported(void)
-+{
-+	return false;
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #endif /* _LINUX_HUGE_MM_H */
-diff -puN mm/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration mm/Kconfig
---- a/mm/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration
-+++ a/mm/Kconfig
-@@ -262,6 +262,9 @@ config MIGRATION
- config ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	bool
- 
-+config ARCH_ENABLE_THP_MIGRATION
-+	bool
-+
- config PHYS_ADDR_T_64BIT
- 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
- 
+diff -puN arch/x86/include/asm/pgtable_64.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1 arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -180,15 +180,21 @@ static inline int pgd_large(pgd_t pgd) {
+ /*
+  * Encode and de-code a swap entry
+  *
+- * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2|1|0| <- bit number
+- * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U|W|P| <- bit names
+- * | OFFSET (14->63) | TYPE (9-13)  |0|X|X|X| X| X|X|X|0| <- swp entry
++ * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2| 1|0| <- bit number
++ * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U| W|P| <- bit names
++ * | OFFSET (14->63) | TYPE (9-13)  |0|0|X|X| X| X|X|SD|0| <- swp entry
+  *
+  * G (8) is aliased and used as a PROT_NONE indicator for
+  * !present ptes.  We need to start storing swap entries above
+  * there.  We also need to avoid using A and D because of an
+  * erratum where they can be incorrectly set by hardware on
+  * non-present PTEs.
++ *
++ * SD (1) in swp entry is used to store soft dirty bit, which helps us
++ * remember soft dirty over page migration
++ *
++ * Bit 7 in swp entry should be 0 because pmd_present checks not only P,
++ * but also L and G.
+  */
+ #define SWP_TYPE_FIRST_BIT (_PAGE_BIT_PROTNONE + 1)
+ #define SWP_TYPE_BITS 5
+diff -puN arch/x86/include/asm/pgtable_types.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1 arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -97,15 +97,15 @@
+ /*
+  * Tracking soft dirty bit when a page goes to a swap is tricky.
+  * We need a bit which can be stored in pte _and_ not conflict
+- * with swap entry format. On x86 bits 6 and 7 are *not* involved
+- * into swap entry computation, but bit 6 is used for nonlinear
+- * file mapping, so we borrow bit 7 for soft dirty tracking.
++ * with swap entry format. On x86 bits 1-4 are *not* involved
++ * into swap entry computation, but bit 7 is used for thp migration,
++ * so we borrow bit 1 for soft dirty tracking.
+  *
+  * Please note that this bit must be treated as swap dirty page
+- * mark if and only if the PTE has present bit clear!
++ * mark if and only if the PTE/PMD has present bit clear!
+  */
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-#define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
++#define _PAGE_SWP_SOFT_DIRTY	_PAGE_RW
+ #else
+ #define _PAGE_SWP_SOFT_DIRTY	(_AT(pteval_t, 0))
+ #endif
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
