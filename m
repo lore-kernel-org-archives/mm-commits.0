@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch added to -mm tree
-Date: Tue, 18 Jul 2017 16:23:04 -0700
-Message-ID: <596e9858.eGfu7UB/l1rxCYEO%akpm@linux-foundation.org>
+ userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch added to -mm tree
+Date: Tue, 18 Jul 2017 16:52:27 -0700
+Message-ID: <596e9f3b.UFfOGa76LteyPKYD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34028 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751969AbdGRXXF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2017 19:23:05 -0400
+        with ESMTP id S1752447AbdGRXw2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2017 19:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, stable@vger.kernel.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix
+     Subject: userfaultfd: non-cooperative: notify about unmap of destination during mremap
 has been added to the -mm tree.  Its filename is
-     mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+     userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +39,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: notify about unmap of destination during mremap
 
-fix spello
+When mremap is called with MREMAP_FIXED it unmaps memory at the
+destination address without notifying userfaultfd monitor.  If the
+destination were registered with userfaultfd, the monitor has no way to
+distinguish between the old and new ranges and to properly relate the page
+faults that would occur in the destination region.
 
-Cc: Mel Gorman <mgorman@suse.de>
+Fixes: 897ab3e0c49e ("userfaultfd: non-cooperative: add event for memory unmaps")
+Link: http://lkml.kernel.org/r/1500276876-3350-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Acked-by: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix mm/rmap.c
---- a/mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix
-+++ a/mm/rmap.c
-@@ -646,7 +646,7 @@ static bool should_defer_flush(struct mm
-  * the page and flushing the page. If this race occurs, it potentially allows
-  * access to data via a stale TLB entry. Tracking all mm's that have TLB
-  * batching in flight would be expensive during reclaim so instead track
-- * whether TLB batching occured in the past and if so then do a flush here
-+ * whether TLB batching occurred in the past and if so then do a flush here
-  * if required. This will cost one additional flush per reclaim cycle paid
-  * by the first operation at risk such as mprotect and mumap.
-  *
+diff -puN mm/mremap.c~userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap mm/mremap.c
+--- a/mm/mremap.c~userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap
++++ a/mm/mremap.c
+@@ -429,6 +429,7 @@ static struct vm_area_struct *vma_to_res
+ static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
+ 		unsigned long new_addr, unsigned long new_len, bool *locked,
+ 		struct vm_userfaultfd_ctx *uf,
++		struct list_head *uf_unmap_early,
+ 		struct list_head *uf_unmap)
+ {
+ 	struct mm_struct *mm = current->mm;
+@@ -447,7 +448,7 @@ static unsigned long mremap_to(unsigned
+ 	if (addr + old_len > new_addr && new_addr + new_len > addr)
+ 		goto out;
+ 
+-	ret = do_munmap(mm, new_addr, new_len, NULL);
++	ret = do_munmap(mm, new_addr, new_len, uf_unmap_early);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -515,6 +516,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	unsigned long charged = 0;
+ 	bool locked = false;
+ 	struct vm_userfaultfd_ctx uf = NULL_VM_UFFD_CTX;
++	LIST_HEAD(uf_unmap_early);
+ 	LIST_HEAD(uf_unmap);
+ 
+ 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
+@@ -542,7 +544,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 
+ 	if (flags & MREMAP_FIXED) {
+ 		ret = mremap_to(addr, old_len, new_addr, new_len,
+-				&locked, &uf, &uf_unmap);
++				&locked, &uf, &uf_unmap_early, &uf_unmap);
+ 		goto out;
+ 	}
+ 
+@@ -622,6 +624,7 @@ out:
+ 	up_write(&current->mm->mmap_sem);
+ 	if (locked && new_len > old_len)
+ 		mm_populate(new_addr + old_len, new_len - old_len);
++	userfaultfd_unmap_complete(mm, &uf_unmap_early);
+ 	mremap_userfaultfd_complete(&uf, addr, new_addr, old_len);
+ 	userfaultfd_unmap_complete(mm, &uf_unmap);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
 
