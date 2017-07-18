@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-add-queue_pages_required.patch added to -mm tree
-Date: Tue, 18 Jul 2017 15:27:01 -0700
-Message-ID: <596e8b35.gspsrMzsCKKKquqJ%akpm@linux-foundation.org>
+Subject: + mm-thp-introduce-config_arch_enable_thp_migration.patch added
+ to -mm tree
+Date: Tue, 18 Jul 2017 15:27:08 -0700
+Message-ID: <596e8b3c.H20DA/AlIsQs13kW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49858 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752546AbdGRW1D (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2017 18:27:03 -0400
+        with ESMTP id S1752115AbdGRW1J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2017 18:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, minchan@kernel.org, mingo@elte.hu, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mempolicy: add queue_pages_required()
+     Subject: mm: thp: introduce CONFIG_ARCH_ENABLE_THP_MIGRATION
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-add-queue_pages_required.patch
+     mm-thp-introduce-config_arch_enable_thp_migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-add-queue_pages_required.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-introduce-config_arch_enable_thp_migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-add-queue_pages_required.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-introduce-config_arch_enable_thp_migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,131 +40,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: mempolicy: add queue_pages_required()
+Subject: mm: thp: introduce CONFIG_ARCH_ENABLE_THP_MIGRATION
 
-Patch series "mm: page migration enhancement for thp", v9.
+Introduce CONFIG_ARCH_ENABLE_THP_MIGRATION to limit thp migration
+functionality to x86_64, which should be safer at the first step.
 
-Motivations
-===========================================
-
-1. THP migration becomes important in the upcoming heterogeneous
-   memory systems.  As David Nellans from NVIDIA pointed out from other
-   threads
-   (http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1349227.html),
-   future GPUs or other accelerators will have their memory managed by
-   operating systems.  Moving data into and out of these memory nodes
-   efficiently is critical to applications that use GPUs or other
-   accelerators.  Existing page migration only supports base pages, which
-   has a very low memory bandwidth utilization.  My experiments (see
-   below) show THP migration can migrate pages more efficiently.
-
-2. Base page migration vs THP migration throughput.
-
-Here are cross-socket page migration results from calling move_pages()
-syscall:
-
-In x86_64, a Intel two-socket E5-2640v3 box,
-single 4KB base page migration takes 62.47 us, using 0.06 GB/s BW,
-single 2MB THP migration takes 658.54 us, using 2.97 GB/s BW,
-512 4KB base page migration takes 1987.38 us, using 0.98 GB/s BW.
-
-In ppc64, a two-socket Power8 box,
-single 64KB base page migration takes 49.3 us, using 1.24 GB/s BW,
-single 16MB THP migration takes 2202.17 us, using 7.10 GB/s BW,
-256 64KB base page migration takes 2543.65 us, using 6.14 GB/s BW.
-
-THP migration can give us 3x and 1.15x throughput over base page migration
-in x86_64 and ppc64 respectivley.
-
-You can test it out by using the code here:
-https://github.com/x-y-z/thp-migration-bench
-
-3. Existing page migration splits THP before migration and cannot
-   guarantee the migrated pages are still contiguous.  Contiguity is
-   always what GPUs and accelerators look for.  Without THP migration,
-   khugepaged needs to do extra work to reassemble the migrated pages back
-   to THPs.
-
-
-
-This patch (of 10):
-
-Introduce a separate check routine related to MPOL_MF_INVERT flag.  This
-patch just does cleanup, no behavioral change.
-
-Link: http://lkml.kernel.org/r/20170717193955.20207-2-zi.yan@sent.com
+Link: http://lkml.kernel.org/r/20170717193955.20207-5-zi.yan@sent.com
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ arch/x86/Kconfig        |    4 ++++
+ include/linux/huge_mm.h |   10 ++++++++++
+ mm/Kconfig              |    3 +++
+ 3 files changed, 17 insertions(+)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-add-queue_pages_required mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-add-queue_pages_required
-+++ a/mm/mempolicy.c
-@@ -412,6 +412,21 @@ struct queue_pages {
- };
+diff -puN arch/x86/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration
++++ a/arch/x86/Kconfig
+@@ -2291,6 +2291,10 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	def_bool y
+ 	depends on X86_64 && HUGETLB_PAGE && MIGRATION
  
- /*
-+ * Check if the page's nid is in qp->nmask.
-+ *
-+ * If MPOL_MF_INVERT is set in qp->flags, check if the nid is
-+ * in the invert of qp->nmask.
-+ */
-+static inline bool queue_pages_required(struct page *page,
-+					struct queue_pages *qp)
-+{
-+	int nid = page_to_nid(page);
-+	unsigned long flags = qp->flags;
++config ARCH_ENABLE_THP_MIGRATION
++	def_bool y
++	depends on X86_64 && TRANSPARENT_HUGEPAGE
 +
-+	return node_isset(nid, *qp->nmask) == !(flags & MPOL_MF_INVERT);
+ menu "Power management and ACPI options"
+ 
+ config ARCH_HIBERNATION_HEADER
+diff -puN include/linux/huge_mm.h~mm-thp-introduce-config_arch_enable_thp_migration include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-introduce-config_arch_enable_thp_migration
++++ a/include/linux/huge_mm.h
+@@ -233,6 +233,11 @@ void mm_put_huge_zero_page(struct mm_str
+ 
+ #define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
+ 
++static inline bool thp_migration_supported(void)
++{
++	return IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION);
 +}
 +
-+/*
-  * Scan through pages checking if pages follow certain conditions,
-  * and move them to the pagelist if they do.
-  */
-@@ -464,8 +479,7 @@ retry:
- 		 */
- 		if (PageReserved(page))
- 			continue;
--		nid = page_to_nid(page);
--		if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
-+		if (!queue_pages_required(page, qp))
- 			continue;
- 		if (PageTransCompound(page)) {
- 			get_page(page);
-@@ -497,7 +511,6 @@ static int queue_pages_hugetlb(pte_t *pt
- #ifdef CONFIG_HUGETLB_PAGE
- 	struct queue_pages *qp = walk->private;
- 	unsigned long flags = qp->flags;
--	int nid;
- 	struct page *page;
- 	spinlock_t *ptl;
- 	pte_t entry;
-@@ -507,8 +520,7 @@ static int queue_pages_hugetlb(pte_t *pt
- 	if (!pte_present(entry))
- 		goto unlock;
- 	page = pte_page(entry);
--	nid = page_to_nid(page);
--	if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
-+	if (!queue_pages_required(page, qp))
- 		goto unlock;
- 	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
- 	if (flags & (MPOL_MF_MOVE_ALL) ||
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
+ #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
+@@ -336,6 +341,11 @@ static inline struct page *follow_devmap
+ {
+ 	return NULL;
+ }
++
++static inline bool thp_migration_supported(void)
++{
++	return false;
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #endif /* _LINUX_HUGE_MM_H */
+diff -puN mm/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration mm/Kconfig
+--- a/mm/Kconfig~mm-thp-introduce-config_arch_enable_thp_migration
++++ a/mm/Kconfig
+@@ -262,6 +262,9 @@ config MIGRATION
+ config ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	bool
+ 
++config ARCH_ENABLE_THP_MIGRATION
++	bool
++
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
+ 
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
