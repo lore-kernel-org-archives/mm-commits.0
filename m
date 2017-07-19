@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
- added to -mm tree
-Date: Wed, 19 Jul 2017 14:43:01 -0700
-Message-ID: <596fd265.5K1TuHpqt+bgQm5W%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-remove-zone-restrictions.patch added to -mm
+ tree
+Date: Wed, 19 Jul 2017 14:43:04 -0700
+Message-ID: <596fd268.f/EJI6fFv2tBHdAH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33762 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753361AbdGSVnC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 17:43:02 -0400
+        with ESMTP id S1753361AbdGSVnF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 17:43:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, iamjoonsoo.kim@lge.com, imammedo@redhat.com, mgorman@suse.de, qiuxishi@huawei.com, richard.weiyang@gmail.com, slaoub@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, aarcange@redhat.com, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, iamjoonsoo.kim@lge.com, imammedo@redhat.com, linux-api@vger.kernel.org, mgorman@suse.de, qiuxishi@huawei.com, richard.weiyang@gmail.com, slaoub@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: display allowed zones in the preferred ordering
+     Subject: mm, memory_hotplug: remove zone restrictions
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+     mm-memory_hotplug-remove-zone-restrictions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-zone-restrictions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-zone-restrictions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,38 +40,118 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: display allowed zones in the preferred ordering
+Subject: mm, memory_hotplug: remove zone restrictions
 
-Prior to "mm, memory_hotplug: do not associate hotadded memory to zones
-until online" we used to allow to change the valid zone types of a memory
-block if it is adjacent to a different zone type.  This fact was reflected
-in memoryNN/valid_zones by the ordering of printed zones.  The first one
-was default (echo online > memoryNN/state) and the other one could be
-onlined explicitly by online_{movable,kernel}.  This behavior was removed
-by the said patch and as such the ordering was not all that important.  In
-most cases a kernel zone would be default anyway.  The only exception is
-movable_node handled by "mm, memory_hotplug: support movable_node for
-hotpluggable nodes".
+Historically we have enforced that any kernel zone (e.g ZONE_NORMAL) has
+to precede the Movable zone in the physical memory range.  The purpose of
+the movable zone is, however, not bound to any physical memory
+restriction.  It merely defines a class of migrateable and reclaimable
+memory.
 
-Let's reintroduce this behavior again because later patch will remove the
-zone overlap restriction and so user will be allowed to online kernel
-resp.  movable block regardless of its placement.  Original behavior will
-then become significant again because it would be non-trivial for users to
-see what is the default zone to online into.
+There are users (e.g.  CMA) who might want to reserve specific physical
+memory ranges for their own purpose.  Moreover our pfn walkers have to be
+prepared for zones overlapping in the physical range already because we do
+support interleaving NUMA nodes and therefore zones can interleave as
+well.  This means we can allow each memory block to be associated with a
+different zone.
 
-Implementation is really simple.  Pull out zone selection out of
-move_pfn_range into zone_for_pfn_range helper and use it in
-show_valid_zones to display the zone for default onlining and then both
-kernel and movable if they are allowed.  Default online zone is not
-duplicated.
+Loosen the current onlining semantic and allow explicit onlining type on
+any memblock.  That means that online_{kernel,movable} will be allowed
+regardless of the physical address of the memblock as long as it is
+offline of course.  This might result in moveble zone overlapping with
+other kernel zones.  Default onlining then becomes a bit tricky but still
+sensible.  echo online > memoryXY/state will online the given block to
 
-Link: http://lkml.kernel.org/r/20170714121233.16861-2-mhocko@kernel.org
+	1) the default zone if the given range is outside of any zone
+	2) the enclosing zone if such a zone doesn't interleave with
+	   any other zone
+        3) the default zone if more zones interleave for this range
+
+where default zone is movable zone only if movable_node is enabled
+otherwise it is a kernel zone.
+
+Here is an example of the semantic with (movable_node is not present but
+it work in an analogous way). We start with following memblocks, all of
+them offline
+memory34/valid_zones:Normal Movable
+memory35/valid_zones:Normal Movable
+memory36/valid_zones:Normal Movable
+memory37/valid_zones:Normal Movable
+memory38/valid_zones:Normal Movable
+memory39/valid_zones:Normal Movable
+memory40/valid_zones:Normal Movable
+memory41/valid_zones:Normal Movable
+
+Now, we online block 34 in default mode and block 37 as movable
+root@test1:/sys/devices/system/node/node1# echo online > memory34/state
+root@test1:/sys/devices/system/node/node1# echo online_movable > memory37/state
+memory34/valid_zones:Normal
+memory35/valid_zones:Normal Movable
+memory36/valid_zones:Normal Movable
+memory37/valid_zones:Movable
+memory38/valid_zones:Normal Movable
+memory39/valid_zones:Normal Movable
+memory40/valid_zones:Normal Movable
+memory41/valid_zones:Normal Movable
+
+As we can see all other blocks can still be onlined both into Normal and
+Movable zones and the Normal is default because the Movable zone spans
+only block37 now.
+root@test1:/sys/devices/system/node/node1# echo online_movable > memory41/state
+memory34/valid_zones:Normal
+memory35/valid_zones:Normal Movable
+memory36/valid_zones:Normal Movable
+memory37/valid_zones:Movable
+memory38/valid_zones:Movable Normal
+memory39/valid_zones:Movable Normal
+memory40/valid_zones:Movable Normal
+memory41/valid_zones:Movable
+
+Now the default zone for blocks 37-41 has changed because movable zone
+spans that range.
+root@test1:/sys/devices/system/node/node1# echo online_kernel > memory39/state
+memory34/valid_zones:Normal
+memory35/valid_zones:Normal Movable
+memory36/valid_zones:Normal Movable
+memory37/valid_zones:Movable
+memory38/valid_zones:Normal Movable
+memory39/valid_zones:Normal
+memory40/valid_zones:Movable Normal
+memory41/valid_zones:Movable
+
+Note that the block 39 now belongs to the zone Normal and so block38
+falls into Normal by default as well.
+
+For completness
+root@test1:/sys/devices/system/node/node1# for i in memory[34]?
+do
+	echo online > $i/state 2>/dev/null
+done
+
+memory34/valid_zones:Normal
+memory35/valid_zones:Normal
+memory36/valid_zones:Normal
+memory37/valid_zones:Movable
+memory38/valid_zones:Normal
+memory39/valid_zones:Normal
+memory40/valid_zones:Movable
+memory41/valid_zones:Movable
+
+Implementation wise the change is quite straightforward.  We can get rid
+of allow_online_pfn_range altogether.  online_pages allows only offline
+nodes already.  The original default_zone_for_pfn will become
+default_kernel_zone_for_pfn.  New default_zone_for_pfn implements the
+above semantic.  zone_for_pfn_range is slightly reorganized to implement
+kernel and movable online type explicitly and MMOP_ONLINE_KEEP becomes a
+catch all default behavior.
+
+Link: http://lkml.kernel.org/r/20170714121233.16861-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
 Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: Kani Toshimitsu <toshi.kani@hpe.com>
@@ -81,103 +160,65 @@ Cc: Daniel Kiper <daniel.kiper@oracle.com>
 Cc: Igor Mammedov <imammedo@redhat.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   33 +++++++++-----
- include/linux/memory_hotplug.h |    2 
- mm/memory_hotplug.c            |   73 +++++++++++++++++--------------
- 3 files changed, 65 insertions(+), 43 deletions(-)
+ drivers/base/memory.c |    3 -
+ mm/memory_hotplug.c   |   74 ++++++++++++----------------------------
+ 2 files changed, 23 insertions(+), 54 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering
+diff -puN drivers/base/memory.c~mm-memory_hotplug-remove-zone-restrictions drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-memory_hotplug-remove-zone-restrictions
 +++ a/drivers/base/memory.c
-@@ -388,6 +388,22 @@ static ssize_t show_phys_device(struct d
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+static void print_allowed_zone(char *buf, int nid, unsigned long start_pfn,
-+		unsigned long nr_pages, int online_type,
-+		struct zone *default_zone)
-+{
-+	struct zone *zone;
-+
-+	if (!allow_online_pfn_range(nid, start_pfn, nr_pages, online_type))
-+		return;
-+
-+	zone = zone_for_pfn_range(online_type, nid, start_pfn, nr_pages);
-+	if (zone != default_zone) {
-+		strcat(buf, " ");
-+		strcat(buf, zone->name);
-+	}
-+}
-+
- static ssize_t show_valid_zones(struct device *dev,
- 				struct device_attribute *attr, char *buf)
+@@ -394,9 +394,6 @@ static void print_allowed_zone(char *buf
  {
-@@ -395,7 +411,7 @@ static ssize_t show_valid_zones(struct d
- 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	unsigned long valid_start_pfn, valid_end_pfn;
--	bool append = false;
-+	struct zone *default_zone;
- 	int nid;
+ 	struct zone *zone;
  
- 	/*
-@@ -418,16 +434,13 @@ static ssize_t show_valid_zones(struct d
- 	}
- 
- 	nid = pfn_to_nid(start_pfn);
--	if (allow_online_pfn_range(nid, start_pfn, nr_pages, MMOP_ONLINE_KERNEL)) {
--		strcat(buf, default_zone_for_pfn(nid, start_pfn, nr_pages)->name);
--		append = true;
--	}
-+	default_zone = zone_for_pfn_range(MMOP_ONLINE_KEEP, nid, start_pfn, nr_pages);
-+	strcat(buf, default_zone->name);
- 
--	if (allow_online_pfn_range(nid, start_pfn, nr_pages, MMOP_ONLINE_MOVABLE)) {
--		if (append)
--			strcat(buf, " ");
--		strcat(buf, NODE_DATA(nid)->node_zones[ZONE_MOVABLE].name);
--	}
-+	print_allowed_zone(buf, nid, start_pfn, nr_pages, MMOP_ONLINE_KERNEL,
-+			default_zone);
-+	print_allowed_zone(buf, nid, start_pfn, nr_pages, MMOP_ONLINE_MOVABLE,
-+			default_zone);
- out:
- 	strcat(buf, "\n");
- 
-diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering
-+++ a/include/linux/memory_hotplug.h
-@@ -319,6 +319,6 @@ extern struct page *sparse_decode_mem_ma
- 					  unsigned long pnum);
- extern bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned long nr_pages,
- 		int online_type);
--extern struct zone *default_zone_for_pfn(int nid, unsigned long pfn,
-+extern struct zone *zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
- 		unsigned long nr_pages);
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering
+-	if (!allow_online_pfn_range(nid, start_pfn, nr_pages, online_type))
+-		return;
+-
+ 	zone = zone_for_pfn_range(online_type, nid, start_pfn, nr_pages);
+ 	if (zone != default_zone) {
+ 		strcat(buf, " ");
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-zone-restrictions mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-zone-restrictions
 +++ a/mm/memory_hotplug.c
-@@ -777,31 +777,6 @@ static void node_states_set_node(int nod
- 	node_set_state(node, N_MEMORY);
+@@ -835,7 +835,7 @@ void __ref move_pfn_range_to_zone(struct
+  * If no kernel zone covers this pfn range it will automatically go
+  * to the ZONE_NORMAL.
+  */
+-static struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
++static struct zone *default_kernel_zone_for_pfn(int nid, unsigned long start_pfn,
+ 		unsigned long nr_pages)
+ {
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+@@ -851,65 +851,40 @@ static struct zone *default_zone_for_pfn
+ 	return &pgdat->node_zones[ZONE_NORMAL];
  }
  
 -bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned long nr_pages, int online_type)
--{
++static inline struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
++		unsigned long nr_pages)
+ {
 -	struct pglist_data *pgdat = NODE_DATA(nid);
 -	struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
 -	struct zone *default_zone = default_zone_for_pfn(nid, pfn, nr_pages);
--
--	/*
++	struct zone *kernel_zone = default_kernel_zone_for_pfn(nid, start_pfn,
++			nr_pages);
++	struct zone *movable_zone = &NODE_DATA(nid)->node_zones[ZONE_MOVABLE];
++	bool in_kernel = zone_intersects(kernel_zone, start_pfn, nr_pages);
++	bool in_movable = zone_intersects(movable_zone, start_pfn, nr_pages);
+ 
+ 	/*
 -	 * TODO there shouldn't be any inherent reason to have ZONE_NORMAL
 -	 * physically before ZONE_MOVABLE. All we need is they do not
 -	 * overlap. Historically we didn't allow ZONE_NORMAL after ZONE_MOVABLE
 -	 * though so let's stick with it for simplicity for now.
 -	 * TODO make sure we do not overlap with ZONE_DEVICE
--	 */
++	 * We inherit the existing zone in a simple case where zones do not
++	 * overlap in the given range
+ 	 */
 -	if (online_type == MMOP_ONLINE_KERNEL) {
 -		if (zone_is_empty(movable_zone))
 -			return true;
@@ -190,89 +231,59 @@ diff -puN mm/memory_hotplug.c~mm-memory_hotplug-display-allowed-zones-in-the-pre
 -	return online_type == MMOP_ONLINE_KEEP;
 -}
 -
- static void __meminit resize_zone_range(struct zone *zone, unsigned long start_pfn,
- 		unsigned long nr_pages)
- {
-@@ -860,7 +835,7 @@ void __ref move_pfn_range_to_zone(struct
-  * If no kernel zone covers this pfn range it will automatically go
-  * to the ZONE_NORMAL.
-  */
--struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
-+static struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
- 		unsigned long nr_pages)
- {
- 	struct pglist_data *pgdat = NODE_DATA(nid);
-@@ -876,6 +851,31 @@ struct zone *default_zone_for_pfn(int ni
- 	return &pgdat->node_zones[ZONE_NORMAL];
- }
- 
-+bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned long nr_pages, int online_type)
-+{
-+	struct pglist_data *pgdat = NODE_DATA(nid);
-+	struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
-+	struct zone *default_zone = default_zone_for_pfn(nid, pfn, nr_pages);
-+
-+	/*
-+	 * TODO there shouldn't be any inherent reason to have ZONE_NORMAL
-+	 * physically before ZONE_MOVABLE. All we need is they do not
-+	 * overlap. Historically we didn't allow ZONE_NORMAL after ZONE_MOVABLE
-+	 * though so let's stick with it for simplicity for now.
-+	 * TODO make sure we do not overlap with ZONE_DEVICE
-+	 */
-+	if (online_type == MMOP_ONLINE_KERNEL) {
-+		if (zone_is_empty(movable_zone))
-+			return true;
-+		return movable_zone->zone_start_pfn >= pfn + nr_pages;
-+	} else if (online_type == MMOP_ONLINE_MOVABLE) {
-+		return zone_end_pfn(default_zone) <= pfn;
-+	}
-+
-+	/* MMOP_ONLINE_KEEP will always succeed and inherits the current zone */
-+	return online_type == MMOP_ONLINE_KEEP;
-+}
-+
- static inline bool movable_pfn_range(int nid, struct zone *default_zone,
- 		unsigned long start_pfn, unsigned long nr_pages)
- {
-@@ -889,12 +889,8 @@ static inline bool movable_pfn_range(int
- 	return !zone_intersects(default_zone, start_pfn, nr_pages);
- }
- 
--/*
-- * Associates the given pfn range with the given node and the zone appropriate
-- * for the given online type.
-- */
--static struct zone * __meminit move_pfn_range(int online_type, int nid,
+-static inline bool movable_pfn_range(int nid, struct zone *default_zone,
 -		unsigned long start_pfn, unsigned long nr_pages)
-+struct zone * zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
-+		unsigned long nr_pages)
- {
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 	struct zone *zone = default_zone_for_pfn(nid, start_pfn, nr_pages);
-@@ -913,6 +909,19 @@ static struct zone * __meminit move_pfn_
- 		zone = &pgdat->node_zones[ZONE_MOVABLE];
- 	}
+-{
+-	if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
+-				MMOP_ONLINE_KERNEL))
+-		return true;
++	if (in_kernel ^ in_movable)
++		return (in_kernel) ? kernel_zone : movable_zone;
  
-+	return zone;
-+}
-+
-+/*
-+ * Associates the given pfn range with the given node and the zone appropriate
-+ * for the given online type.
-+ */
-+static struct zone * __meminit move_pfn_range(int online_type, int nid,
-+		unsigned long start_pfn, unsigned long nr_pages)
-+{
-+	struct zone *zone;
-+
-+	zone = zone_for_pfn_range(online_type, nid, start_pfn, nr_pages);
- 	move_pfn_range_to_zone(zone, start_pfn, nr_pages);
- 	return zone;
+-	if (!movable_node_is_enabled())
+-		return false;
+-
+-	return !zone_intersects(default_zone, start_pfn, nr_pages);
++	/*
++	 * If the range doesn't belong to any zone or two zones overlap in the
++	 * given range then we use movable zone only if movable_node is
++	 * enabled because we always online to a kernel zone by default.
++	 */
++	return movable_node_enabled ? movable_zone : kernel_zone;
  }
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
-mm-memory_hotplug-remove-zone-restrictions.patch
-
+ 
+ struct zone * zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
+ 		unsigned long nr_pages)
+ {
+-	struct pglist_data *pgdat = NODE_DATA(nid);
+-	struct zone *zone = default_zone_for_pfn(nid, start_pfn, nr_pages);
++	if (online_type == MMOP_ONLINE_KERNEL)
++		return default_kernel_zone_for_pfn(nid, start_pfn, nr_pages);
+ 
+-	if (online_type == MMOP_ONLINE_KEEP) {
+-		struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
+-		/*
+-		 * MMOP_ONLINE_KEEP defaults to MMOP_ONLINE_KERNEL but use
+-		 * movable zone if that is not possible (e.g. we are within
+-		 * or past the existing movable zone). movable_node overrides
+-		 * this default and defaults to movable zone
+-		 */
+-		if (movable_pfn_range(nid, zone, start_pfn, nr_pages))
+-			zone = movable_zone;
+-	} else if (online_type == MMOP_ONLINE_MOVABLE) {
+-		zone = &pgdat->node_zones[ZONE_MOVABLE];
+-	}
++	if (online_type == MMOP_ONLINE_MOVABLE)
++		return &NODE_DATA(nid)->node_zones[ZONE_MOVABLE];
+ 
+-	return zone;
++	return default_zone_for_pfn(nid, start_pfn, nr_pages);
+ }
+ 
+ /*
+@@ -938,9 +913,6 @@ int __ref online_pages(unsigned long pfn
+ 	struct memory_notify arg;
+ 
+ 	nid = pfn_to_nid(pfn);
+-	if (!allow_online_pfn_range(nid, pfn, nr_pages, online_type))
+-		return -EINVAL;
