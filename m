@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch added to -mm tree
-Date: Wed, 19 Jul 2017 16:08:09 -0700
-Message-ID: <596fe659.wAzLuO6AAmq1AAq8%akpm@linux-foundation.org>
+Subject: + zram-identify-asynchronous-ios-return-value.patch added to -mm
+ tree
+Date: Wed, 19 Jul 2017 16:08:19 -0700
+Message-ID: <596fe663.ZteP6umPlk7bwVLV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39000 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933472AbdGSXIK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 19:08:10 -0400
+        with ESMTP id S933482AbdGSXIU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 19:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, juno.choi@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: clean up duplicated codes in __zram_bvec_write
+     Subject: zram: identify asynchronous IO's return value
 has been added to the -mm tree.  Its filename is
-     zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+     zram-identify-asynchronous-ios-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-identify-asynchronous-ios-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-identify-asynchronous-ios-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,133 +40,120 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: clean up duplicated codes in __zram_bvec_write
+Subject: zram: identify asynchronous IO's return value
 
-Patch series "writeback incompressible pages to storage", v1.
+For upcoming asynchronous IO like writeback, zram_rw_page should be aware
+of that whether requested IO was completed or submitted successfully,
+otherwise error.
 
-zRam is useful for memory saving with compressible pages but sometime,
-workload can be changed and system has lots of incompressible pages which
-is very harmful for zram.
+For the goal, zram_bvec_rw has three return values.
 
-This patch supports writeback feature of zram so admin can set up a block
-device and with it, zram can save the memory via writing out the
-incompressile pages once it found it's incompressible pages (1/4 comp
-ratio) instead of keeping the page in memory.
+-errno: returns error number
+     0: IO request is done synchronously
+     1: IO request is issued successfully.
 
-[1-3] is just clean up and [4-8] is step by step feature enablement.
-[4-8] is logically not bisectable(ie, logical unit separation)
-although I tried to compiled out without breaking but I think it would
-be better to review.
-
-
-This patch (of 9):
-
-__zram_bvec_write has some of duplicated logic for zram meta data handling
-of same_page|compressed_page.  This patch aims to clean it up without
-behavior change.
-
-Link: http://lkml.kernel.org/r/1496019048-27016-1-git-send-email-minchan@kernel.org
-Link: http://lkml.kernel.org/r/1498459987-24562-2-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1498459987-24562-7-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Juneho Choi <juno.choi@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   55 ++++++++++++--------------------
- 1 file changed, 22 insertions(+), 33 deletions(-)
+ drivers/block/zram/zram_drv.c |   32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write
+diff -puN drivers/block/zram/zram_drv.c~zram-identify-asynchronous-ios-return-value drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-identify-asynchronous-ios-return-value
 +++ a/drivers/block/zram/zram_drv.c
-@@ -453,30 +453,6 @@ static bool zram_same_page_read(struct z
- 	return false;
- }
+@@ -772,7 +772,7 @@ out:
  
--static bool zram_same_page_write(struct zram *zram, u32 index,
--					struct page *page)
--{
--	unsigned long element;
--	void *mem = kmap_atomic(page);
--
--	if (page_same_filled(mem, &element)) {
--		kunmap_atomic(mem);
--		/* Free memory associated with this sector now. */
--		zram_slot_lock(zram, index);
--		zram_free_page(zram, index);
--		zram_set_flag(zram, index, ZRAM_SAME);
--		zram_set_element(zram, index, element);
--		zram_slot_unlock(zram, index);
--
--		atomic64_inc(&zram->stats.same_pages);
--		atomic64_inc(&zram->stats.pages_stored);
--		return true;
--	}
--	kunmap_atomic(mem);
--
--	return false;
--}
--
- static void zram_meta_free(struct zram *zram, u64 disksize)
- {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -685,14 +661,23 @@ compress_again:
  static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
  {
- 	int ret;
--	unsigned long handle;
--	unsigned int comp_len;
--	void *src, *dst;
-+	unsigned long handle = 0;
-+	unsigned int comp_len = 0;
-+	void *src, *dst, *mem;
- 	struct zcomp_strm *zstrm;
- 	struct page *page = bvec->bv_page;
-+	unsigned long element = 0;
-+	enum zram_pageflags flags = 0;
- 
--	if (zram_same_page_write(zram, index, page))
--		return 0;
-+	mem = kmap_atomic(page);
-+	if (page_same_filled(mem, &element)) {
-+		kunmap_atomic(mem);
-+		/* Free memory associated with this sector now */
-+		atomic64_inc(&zram->stats.same_pages);
-+		flags = ZRAM_SAME;
-+		goto out;
-+	}
-+	kunmap_atomic(mem);
- 
- 	zstrm = zcomp_stream_get(zram->comp);
- 	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
-@@ -712,19 +697,23 @@ static int __zram_bvec_write(struct zram
- 
- 	zcomp_stream_put(zram->comp);
- 	zs_unmap_object(zram->mem_pool, handle);
--
-+out:
- 	/*
- 	 * Free memory associated with this sector
- 	 * before overwriting unused sectors.
- 	 */
- 	zram_slot_lock(zram, index);
- 	zram_free_page(zram, index);
--	zram_set_handle(zram, index, handle);
--	zram_set_obj_size(zram, index, comp_len);
-+	if (flags == ZRAM_SAME) {
-+		zram_set_flag(zram, index, ZRAM_SAME);
-+		zram_set_element(zram, index, element);
-+	} else {
-+		zram_set_handle(zram, index, handle);
-+		zram_set_obj_size(zram, index, comp_len);
-+	}
- 	zram_slot_unlock(zram, index);
+-	int ret;
++	int ret = 0;
+ 	unsigned long alloced_pages;
+ 	unsigned long handle = 0;
+ 	unsigned int comp_len = 0;
+@@ -876,7 +876,7 @@ out:
  
  	/* Update stats */
--	atomic64_add(comp_len, &zram->stats.compr_data_size);
  	atomic64_inc(&zram->stats.pages_stored);
- 	return 0;
+-	return 0;
++	return ret;
  }
+ 
+ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
+@@ -958,6 +958,11 @@ static void zram_bio_discard(struct zram
+ 	}
+ }
+ 
++/*
++ * Returns errno if it has some problem. Otherwise return 0 or 1.
++ * Returns 0 if IO request was done synchronously
++ * Returns 1 if IO request was successfully submitted.
++ */
+ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
+ 			int offset, bool is_write)
+ {
+@@ -979,7 +984,7 @@ static int zram_bvec_rw(struct zram *zra
+ 
+ 	generic_end_io_acct(rw_acct, &zram->disk->part0, start_time);
+ 
+-	if (unlikely(ret)) {
++	if (unlikely(ret < 0)) {
+ 		if (!is_write)
+ 			atomic64_inc(&zram->stats.failed_reads);
+ 		else
+@@ -1072,7 +1077,7 @@ static void zram_slot_free_notify(struct
+ static int zram_rw_page(struct block_device *bdev, sector_t sector,
+ 		       struct page *page, bool is_write)
+ {
+-	int offset, err = -EIO;
++	int offset, ret;
+ 	u32 index;
+ 	struct zram *zram;
+ 	struct bio_vec bv;
+@@ -1081,7 +1086,7 @@ static int zram_rw_page(struct block_dev
+ 
+ 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
+ 		atomic64_inc(&zram->stats.invalid_io);
+-		err = -EINVAL;
++		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+@@ -1092,7 +1097,7 @@ static int zram_rw_page(struct block_dev
+ 	bv.bv_len = PAGE_SIZE;
+ 	bv.bv_offset = 0;
+ 
+-	err = zram_bvec_rw(zram, &bv, index, offset, is_write);
++	ret = zram_bvec_rw(zram, &bv, index, offset, is_write);
+ out:
+ 	/*
+ 	 * If I/O fails, just return error(ie, non-zero) without
+@@ -1102,9 +1107,20 @@ out:
+ 	 * bio->bi_end_io does things to handle the error
+ 	 * (e.g., SetPageError, set_page_dirty and extra works).
+ 	 */
+-	if (err == 0)
++	if (unlikely(ret < 0))
++		return ret;
++
++	switch (ret) {
++	case 0:
+ 		page_endio(page, is_write, 0);
+-	return err;
++		break;
++	case 1:
++		ret = 0;
++		break;
++	default:
++		WARN_ON(1);
++	}
++	return ret;
+ }
+ 
+ static void zram_reset_device(struct zram *zram)
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
