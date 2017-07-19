@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + usbvision-i2c-fix-format-overflow-warning.patch added to -mm
+Subject: + hwmon-applesmc-fix-format-string-overflow.patch added to -mm
  tree
-Date: Wed, 19 Jul 2017 14:50:26 -0700
-Message-ID: <596fd422.frz9uduuYCT33e5y%akpm@linux-foundation.org>
+Date: Wed, 19 Jul 2017 14:50:28 -0700
+Message-ID: <596fd424.4WaDaDp8+x5WN+SE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34130 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755092AbdGSVu1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 17:50:27 -0400
+        with ESMTP id S1755102AbdGSVu3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 17:50:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/media/usb/usbvision/usbvision-i2c.c: fix format overflow warning
+     Subject: hwmon: applesmc: fix format string overflow
 has been added to the -mm tree.  Its filename is
-     usbvision-i2c-fix-format-overflow-warning.patch
+     hwmon-applesmc-fix-format-string-overflow.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/usbvision-i2c-fix-format-overflow-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hwmon-applesmc-fix-format-string-overflow.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/usbvision-i2c-fix-format-overflow-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hwmon-applesmc-fix-format-string-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/media/usb/usbvision/usbvision-i2c.c: fix format overflow warning
+Subject: hwmon: applesmc: fix format string overflow
 
-gcc-7 notices that we copy a fixed length string into another
-string of the same size, with additional characters:
+gcc-7 warns that the key might exceed five bytes for lage index
+values:
 
-drivers/media/usb/usbvision/usbvision-i2c.c: In function 'usbvision_i2c_register':
-drivers/media/usb/usbvision/usbvision-i2c.c:190:36: error: '%d' directive writing between 1 and 11 bytes into a region of size between 0 and 47 [-Werror=format-overflow=]
-  sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
-                                    ^~~~~~~~~~
-drivers/media/usb/usbvision/usbvision-i2c.c:190:2: note: 'sprintf' output between 4 and 76 bytes into a destination of size 48
+drivers/hwmon/applesmc.c: In function 'applesmc_show_fan_position':
+drivers/hwmon/applesmc.c:906:18: error: '%d' directive writing between 1 and 5 bytes into a region of size 4 [-Werror=format-overflow=]
+sprintf(newkey, FAN_ID_FMT, to_index(attr));
+                ^~~~~~~
+drivers/hwmon/applesmc.c:906:18: note: directive argument in the range [0, 65535]
+drivers/hwmon/applesmc.c:906:2: note: 'sprintf' output between 5 and 9 bytes into a destination of size 5
 
-We know this is fine as the template name is always "usbvision", so
-we can easily avoid the warning by using this as the format string
-directly.
+As the key is required to be four characters plus trailing zero,
+we know that the index has to be small here. I'm using snprintf()
+to avoid the warning. This would truncate the string instead of
+overflowing.
 
-Link: http://lkml.kernel.org/r/20170714120720.906842-15-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170714120720.906842-16-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/usb/usbvision/usbvision-i2c.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/applesmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/usb/usbvision/usbvision-i2c.c~usbvision-i2c-fix-format-overflow-warning drivers/media/usb/usbvision/usbvision-i2c.c
---- a/drivers/media/usb/usbvision/usbvision-i2c.c~usbvision-i2c-fix-format-overflow-warning
-+++ a/drivers/media/usb/usbvision/usbvision-i2c.c
-@@ -187,8 +187,8 @@ int usbvision_i2c_register(struct usb_us
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-fix-format-string-overflow drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-fix-format-string-overflow
++++ a/drivers/hwmon/applesmc.c
+@@ -903,7 +903,7 @@ static ssize_t applesmc_show_fan_positio
+ 	char newkey[5];
+ 	u8 buffer[17];
  
- 	usbvision->i2c_adap = i2c_adap_template;
+-	sprintf(newkey, FAN_ID_FMT, to_index(attr));
++	snprintf(newkey, sizeof(newkey), FAN_ID_FMT, to_index(attr));
  
--	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
--		usbvision->dev->bus->busnum, usbvision->dev->devpath);
-+	sprintf(usbvision->i2c_adap.name, "usbvision-%d-%s",
-+		 usbvision->dev->bus->busnum, usbvision->dev->devpath);
- 	PDEBUG(DBG_I2C, "Adaptername: %s", usbvision->i2c_adap.name);
- 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
- 
+ 	ret = applesmc_read_key(newkey, buffer, 16);
+ 	buffer[16] = 0;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
