@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-interval-tree-correct-comment-wrt-generic-flavor.patch
- added to -mm tree
-Date: Wed, 19 Jul 2017 15:53:17 -0700
-Message-ID: <596fe2dd.ANJcUZlHzQSHHHWX%akpm@linux-foundation.org>
+Subject: + fs-epoll-use-faster-rb_first_cached.patch added to -mm tree
+Date: Wed, 19 Jul 2017 15:53:22 -0700
+Message-ID: <596fe2e2.R+LjUO3avC9fbuvY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38482 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38522 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932861AbdGSWxS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 18:53:18 -0400
+        with ESMTP id S932861AbdGSWxX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 18:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, kirill.shutemov@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/interval-tree: correct comment wrt generic flavor
+     Subject: fs/epoll: use faster rb_first_cached()
 has been added to the -mm tree.  Its filename is
-     lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+     fs-epoll-use-faster-rb_first_cached.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-use-faster-rb_first_cached.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-use-faster-rb_first_cached.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/interval-tree: correct comment wrt generic flavor
+Subject: fs/epoll: use faster rb_first_cached()
 
-interval_tree.h _is_ the generic flavor.
+...  such that we can avoid the tree walks to get the node with the
+smallest key.  Semantically the same, as the previously used rb_first(),
+but O(1).  The main overhead is the extra footprint for the cached rb_node
+pointer, which should not matter for epoll.
 
-Link: http://lkml.kernel.org/r/20170629171553.2146-8-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170629171553.2146-10-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -56,21 +58,129 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interval_tree_generic.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/eventpoll.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/interval_tree_generic.h~lib-interval-tree-correct-comment-wrt-generic-flavor include/linux/interval_tree_generic.h
---- a/include/linux/interval_tree_generic.h~lib-interval-tree-correct-comment-wrt-generic-flavor
-+++ a/include/linux/interval_tree_generic.h
-@@ -33,7 +33,7 @@
-  * ITSTATIC:   'static' or empty
-  * ITPREFIX:   prefix to use for the inline tree definitions
-  *
-- * Note - before using this, please consider if non-generic version
-+ * Note - before using this, please consider if generic version
-  * (interval_tree.h) would work for you...
-  */
+diff -puN fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached fs/eventpoll.c
+--- a/fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached
++++ a/fs/eventpoll.c
+@@ -205,7 +205,7 @@ struct eventpoll {
+ 	struct list_head rdllist;
  
+ 	/* RB tree root used to store monitored fd structs */
+-	struct rb_root rbr;
++	struct rb_root_cached rbr;
+ 
+ 	/*
+ 	 * This is a single linked list that chains all the "struct epitem" that
+@@ -791,7 +791,7 @@ static int ep_remove(struct eventpoll *e
+ 	list_del_rcu(&epi->fllink);
+ 	spin_unlock(&file->f_lock);
+ 
+-	rb_erase(&epi->rbn, &ep->rbr);
++	rb_erase_cached(&epi->rbn, &ep->rbr);
+ 
+ 	spin_lock_irqsave(&ep->lock, flags);
+ 	if (ep_is_linked(&epi->rdllink))
+@@ -835,7 +835,7 @@ static void ep_free(struct eventpoll *ep
+ 	/*
+ 	 * Walks through the whole tree by unregistering poll callbacks.
+ 	 */
+-	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
++	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 
+ 		ep_unregister_pollwait(ep, epi);
+@@ -851,7 +851,7 @@ static void ep_free(struct eventpoll *ep
+ 	 * a lockdep warning.
+ 	 */
+ 	mutex_lock(&ep->mtx);
+-	while ((rbp = rb_first(&ep->rbr)) != NULL) {
++	while ((rbp = rb_first_cached(&ep->rbr)) != NULL) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		ep_remove(ep, epi);
+ 		cond_resched();
+@@ -958,7 +958,7 @@ static void ep_show_fdinfo(struct seq_fi
+ 	struct rb_node *rbp;
+ 
+ 	mutex_lock(&ep->mtx);
+-	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
++	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
+ 		struct inode *inode = file_inode(epi->ffd.file);
+ 
+@@ -1035,7 +1035,7 @@ static int ep_alloc(struct eventpoll **p
+ 	init_waitqueue_head(&ep->wq);
+ 	init_waitqueue_head(&ep->poll_wait);
+ 	INIT_LIST_HEAD(&ep->rdllist);
+-	ep->rbr = RB_ROOT;
++	ep->rbr = RB_ROOT_CACHED;
+ 	ep->ovflist = EP_UNACTIVE_PTR;
+ 	ep->user = user;
+ 
+@@ -1061,7 +1061,7 @@ static struct epitem *ep_find(struct eve
+ 	struct epoll_filefd ffd;
+ 
+ 	ep_set_ffd(&ffd, file, fd);
+-	for (rbp = ep->rbr.rb_node; rbp; ) {
++	for (rbp = ep->rbr.rb_root.rb_node; rbp; ) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		kcmp = ep_cmp_ffd(&ffd, &epi->ffd);
+ 		if (kcmp > 0)
+@@ -1083,7 +1083,7 @@ static struct epitem *ep_find_tfd(struct
+ 	struct rb_node *rbp;
+ 	struct epitem *epi;
+ 
+-	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
++	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		if (epi->ffd.fd == tfd) {
+ 			if (toff == 0)
+@@ -1263,20 +1263,22 @@ static void ep_ptable_queue_proc(struct
+ static void ep_rbtree_insert(struct eventpoll *ep, struct epitem *epi)
+ {
+ 	int kcmp;
+-	struct rb_node **p = &ep->rbr.rb_node, *parent = NULL;
++	struct rb_node **p = &ep->rbr.rb_root.rb_node, *parent = NULL;
+ 	struct epitem *epic;
++	bool leftmost = true;
+ 
+ 	while (*p) {
+ 		parent = *p;
+ 		epic = rb_entry(parent, struct epitem, rbn);
+ 		kcmp = ep_cmp_ffd(&epi->ffd, &epic->ffd);
+-		if (kcmp > 0)
++		if (kcmp > 0) {
+ 			p = &parent->rb_right;
+-		else
++			leftmost = false;
++		} else
+ 			p = &parent->rb_left;
+ 	}
+ 	rb_link_node(&epi->rbn, parent, p);
+-	rb_insert_color(&epi->rbn, &ep->rbr);
++	rb_insert_color_cached(&epi->rbn, &ep->rbr, leftmost);
+ }
+ 
+ 
+@@ -1520,7 +1522,7 @@ error_remove_epi:
+ 	list_del_rcu(&epi->fllink);
+ 	spin_unlock(&tfile->f_lock);
+ 
+-	rb_erase(&epi->rbn, &ep->rbr);
++	rb_erase_cached(&epi->rbn, &ep->rbr);
+ 
+ error_unregister:
+ 	ep_unregister_pollwait(ep, epi);
+@@ -1868,7 +1870,7 @@ static int ep_loop_check_proc(void *priv
+ 	mutex_lock_nested(&ep->mtx, call_nests + 1);
+ 	ep->visited = 1;
+ 	list_add(&ep->visited_list_link, &visited_list);
+-	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
++	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		if (unlikely(is_file_epoll(epi->ffd.file))) {
+ 			ep_tovisit = epi->ffd.file->private_data;
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
