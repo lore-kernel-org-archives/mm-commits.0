@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fnic-fix-format-string-overflow-warning.patch added to -mm tree
-Date: Wed, 19 Jul 2017 14:50:22 -0700
-Message-ID: <596fd41e.9fJdzxxgs9WCTiKd%akpm@linux-foundation.org>
+Subject: + scsi-gdth-increase-the-procfs-event-buffer-size.patch added to
+ -mm tree
+Date: Wed, 19 Jul 2017 14:50:24 -0700
+Message-ID: <596fd420.z8kOIID4OkhCnoIX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34122 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755076AbdGSVuX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 17:50:23 -0400
+        with ESMTP id S1755084AbdGSVuZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 17:50:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scsi: fnic: fix format string overflow warning
+     Subject: scsi: gdth: increase the procfs event buffer size
 has been added to the -mm tree.  Its filename is
-     scsi-fnic-fix-format-string-overflow-warning.patch
+     scsi-gdth-increase-the-procfs-event-buffer-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scsi-fnic-fix-format-string-overflow-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scsi-gdth-increase-the-procfs-event-buffer-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scsi-fnic-fix-format-string-overflow-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scsi-gdth-increase-the-procfs-event-buffer-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: scsi: fnic: fix format string overflow warning
+Subject: scsi: gdth: increase the procfs event buffer size
 
-The MSI interrupt name can require 11 bytes in addition to the device name,
-for a total of 23 bytes:
+We print a 256 byte event string into a buffer that is only 161
+bytes long, this is clearly wrong:
 
-drivers/scsi/fnic/fnic_isr.c: In function 'fnic_request_intr':
-drivers/scsi/fnic/fnic_isr.c:192:4: error: '-fcs-rq' directive writing 7 bytes into a region of size between 5 and 16 [-Werror=format-overflow=]
-    "%.11s-fcs-rq", fnic->name);
-drivers/scsi/fnic/fnic_isr.c:206:3: note: 'sprintf' output between 12 and 23 bytes into a destination of size 16
-   sprintf(fnic->msix[FNIC_MSIX_ERR_NOTIFY].devname,
-   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    "%.11s-err-notify", fnic->name);
+drivers/scsi/gdth_proc.c: In function 'gdth_show_info':
+drivers/scsi/gdth.c:3660:41: error: '%s' directive writing up to 255 bytes into a region of size between 141 and 150 [-Werror=format-overflow=]
+             sprintf(buffer,"Adapter %d: %s\n",
+                                         ^~
+/git/arm-soc/drivers/scsi/gdth.c:3660:13: note: 'sprintf' output between 13 and 277 bytes into a destination of size 161
+             sprintf(buffer,"Adapter %d: %s\n",
+             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                 dvr->eu.async.ionode,dvr->event_string);
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This extends the buffer to fit any possible value.
+gcc calculates that the worst case buffer size would be 277 bytes,
+so we can use that.
 
-Link: http://lkml.kernel.org/r/20170714120720.906842-7-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170714120720.906842-8-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fnic/fnic.h |    2 +-
+ drivers/scsi/gdth_proc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/fnic/fnic.h~scsi-fnic-fix-format-string-overflow-warning drivers/scsi/fnic/fnic.h
---- a/drivers/scsi/fnic/fnic.h~scsi-fnic-fix-format-string-overflow-warning
-+++ a/drivers/scsi/fnic/fnic.h
-@@ -180,7 +180,7 @@ enum fnic_msix_intr_index {
+diff -puN drivers/scsi/gdth_proc.c~scsi-gdth-increase-the-procfs-event-buffer-size drivers/scsi/gdth_proc.c
+--- a/drivers/scsi/gdth_proc.c~scsi-gdth-increase-the-procfs-event-buffer-size
++++ a/drivers/scsi/gdth_proc.c
+@@ -147,7 +147,7 @@ int gdth_show_info(struct seq_file *m, s
  
- struct fnic_msix_entry {
- 	int requested;
--	char devname[IFNAMSIZ];
-+	char devname[IFNAMSIZ + 11];
- 	irqreturn_t (*isr)(int, void *);
- 	void *devid;
- };
+     gdth_cmd_str *gdtcmd;
+     gdth_evt_str *estr;
+-    char hrec[161];
++    char hrec[277];
+ 
+     char *buf;
+     gdth_dskstat_str *pds;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
