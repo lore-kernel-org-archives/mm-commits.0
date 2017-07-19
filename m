@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-use-faster-rb_first_cached.patch added to -mm tree
-Date: Wed, 19 Jul 2017 15:53:19 -0700
-Message-ID: <596fe2df.L57nghZfEXPi0moZ%akpm@linux-foundation.org>
+Subject: + zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch added to -mm tree
+Date: Wed, 19 Jul 2017 16:08:09 -0700
+Message-ID: <596fe659.wAzLuO6AAmq1AAq8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933237AbdGSWxU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 18:53:20 -0400
+        with ESMTP id S933472AbdGSXIK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 19:08:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, kirill.shutemov@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, juno.choi@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: use faster rb_first_cached()
+     Subject: zram: clean up duplicated codes in __zram_bvec_write
 has been added to the -mm tree.  Its filename is
-     procfs-use-faster-rb_first_cached.patch
+     zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-use-faster-rb_first_cached.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-use-faster-rb_first_cached.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,168 +38,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: procfs: use faster rb_first_cached()
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: clean up duplicated codes in __zram_bvec_write
 
-...  such that we can avoid the tree walks to get the node with the
-smallest key.  Semantically the same, as the previously used rb_first(),
-but O(1).  The main overhead is the extra footprint for the cached rb_node
-pointer, which should not matter for procfs.
+Patch series "writeback incompressible pages to storage", v1.
 
-Link: http://lkml.kernel.org/r/20170629171553.2146-9-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+zRam is useful for memory saving with compressible pages but sometime,
+workload can be changed and system has lots of incompressible pages which
+is very harmful for zram.
+
+This patch supports writeback feature of zram so admin can set up a block
+device and with it, zram can save the memory via writing out the
+incompressile pages once it found it's incompressible pages (1/4 comp
+ratio) instead of keeping the page in memory.
+
+[1-3] is just clean up and [4-8] is step by step feature enablement.
+[4-8] is logically not bisectable(ie, logical unit separation)
+although I tried to compiled out without breaking but I think it would
+be better to review.
+
+
+This patch (of 9):
+
+__zram_bvec_write has some of duplicated logic for zram meta data handling
+of same_page|compressed_page.  This patch aims to clean it up without
+behavior change.
+
+Link: http://lkml.kernel.org/r/1496019048-27016-1-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1498459987-24562-2-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Juneho Choi <juno.choi@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   26 ++++++++++++++------------
- fs/proc/internal.h |    2 +-
- fs/proc/proc_net.c |    2 +-
- fs/proc/root.c     |    2 +-
- 4 files changed, 17 insertions(+), 15 deletions(-)
+ drivers/block/zram/zram_drv.c |   55 ++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 33 deletions(-)
 
-diff -puN fs/proc/generic.c~procfs-use-faster-rb_first_cached fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/generic.c
-@@ -40,8 +40,8 @@ static int proc_match(unsigned int len,
- 
- static struct proc_dir_entry *pde_subdir_first(struct proc_dir_entry *dir)
- {
--	return rb_entry_safe(rb_first(&dir->subdir), struct proc_dir_entry,
--			     subdir_node);
-+	return rb_entry_safe(rb_first_cached(&dir->subdir),
-+			     struct proc_dir_entry, subdir_node);
+diff -puN drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write
++++ a/drivers/block/zram/zram_drv.c
+@@ -453,30 +453,6 @@ static bool zram_same_page_read(struct z
+ 	return false;
  }
  
- static struct proc_dir_entry *pde_subdir_next(struct proc_dir_entry *dir)
-@@ -54,7 +54,7 @@ static struct proc_dir_entry *pde_subdir
- 					      const char *name,
- 					      unsigned int len)
+-static bool zram_same_page_write(struct zram *zram, u32 index,
+-					struct page *page)
+-{
+-	unsigned long element;
+-	void *mem = kmap_atomic(page);
+-
+-	if (page_same_filled(mem, &element)) {
+-		kunmap_atomic(mem);
+-		/* Free memory associated with this sector now. */
+-		zram_slot_lock(zram, index);
+-		zram_free_page(zram, index);
+-		zram_set_flag(zram, index, ZRAM_SAME);
+-		zram_set_element(zram, index, element);
+-		zram_slot_unlock(zram, index);
+-
+-		atomic64_inc(&zram->stats.same_pages);
+-		atomic64_inc(&zram->stats.pages_stored);
+-		return true;
+-	}
+-	kunmap_atomic(mem);
+-
+-	return false;
+-}
+-
+ static void zram_meta_free(struct zram *zram, u64 disksize)
  {
--	struct rb_node *node = dir->subdir.rb_node;
-+	struct rb_node *node = dir->subdir.rb_root.rb_node;
- 
- 	while (node) {
- 		struct proc_dir_entry *de = rb_entry(node,
-@@ -75,8 +75,9 @@ static struct proc_dir_entry *pde_subdir
- static bool pde_subdir_insert(struct proc_dir_entry *dir,
- 			      struct proc_dir_entry *de)
+ 	size_t num_pages = disksize >> PAGE_SHIFT;
+@@ -685,14 +661,23 @@ compress_again:
+ static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
  {
--	struct rb_root *root = &dir->subdir;
--	struct rb_node **new = &root->rb_node, *parent = NULL;
-+	struct rb_root_cached *root = &dir->subdir;
-+	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
-+	bool leftmost = true;
+ 	int ret;
+-	unsigned long handle;
+-	unsigned int comp_len;
+-	void *src, *dst;
++	unsigned long handle = 0;
++	unsigned int comp_len = 0;
++	void *src, *dst, *mem;
+ 	struct zcomp_strm *zstrm;
+ 	struct page *page = bvec->bv_page;
++	unsigned long element = 0;
++	enum zram_pageflags flags = 0;
  
- 	/* Figure out where to put new node */
- 	while (*new) {
-@@ -88,15 +89,16 @@ static bool pde_subdir_insert(struct pro
- 		parent = *new;
- 		if (result < 0)
- 			new = &(*new)->rb_left;
--		else if (result > 0)
-+		else if (result > 0) {
- 			new = &(*new)->rb_right;
--		else
-+			leftmost = false;
-+		} else
- 			return false;
- 	}
+-	if (zram_same_page_write(zram, index, page))
+-		return 0;
++	mem = kmap_atomic(page);
++	if (page_same_filled(mem, &element)) {
++		kunmap_atomic(mem);
++		/* Free memory associated with this sector now */
++		atomic64_inc(&zram->stats.same_pages);
++		flags = ZRAM_SAME;
++		goto out;
++	}
++	kunmap_atomic(mem);
  
- 	/* Add new node and rebalance tree. */
- 	rb_link_node(&de->subdir_node, parent, new);
--	rb_insert_color(&de->subdir_node, root);
-+	rb_insert_color_cached(&de->subdir_node, root, leftmost);
- 	return true;
+ 	zstrm = zcomp_stream_get(zram->comp);
+ 	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
+@@ -712,19 +697,23 @@ static int __zram_bvec_write(struct zram
+ 
+ 	zcomp_stream_put(zram->comp);
+ 	zs_unmap_object(zram->mem_pool, handle);
+-
++out:
+ 	/*
+ 	 * Free memory associated with this sector
+ 	 * before overwriting unused sectors.
+ 	 */
+ 	zram_slot_lock(zram, index);
+ 	zram_free_page(zram, index);
+-	zram_set_handle(zram, index, handle);
+-	zram_set_obj_size(zram, index, comp_len);
++	if (flags == ZRAM_SAME) {
++		zram_set_flag(zram, index, ZRAM_SAME);
++		zram_set_element(zram, index, element);
++	} else {
++		zram_set_handle(zram, index, handle);
++		zram_set_obj_size(zram, index, comp_len);
++	}
+ 	zram_slot_unlock(zram, index);
+ 
+ 	/* Update stats */
+-	atomic64_add(comp_len, &zram->stats.compr_data_size);
+ 	atomic64_inc(&zram->stats.pages_stored);
+ 	return 0;
  }
- 
-@@ -369,7 +371,7 @@ static struct proc_dir_entry *__proc_cre
- 	ent->namelen = qstr.len;
- 	ent->mode = mode;
- 	ent->nlink = nlink;
--	ent->subdir = RB_ROOT;
-+	ent->subdir = RB_ROOT_CACHED;
- 	atomic_set(&ent->count, 1);
- 	spin_lock_init(&ent->pde_unload_lock);
- 	INIT_LIST_HEAD(&ent->pde_openers);
-@@ -545,7 +547,7 @@ void remove_proc_entry(const char *name,
- 
- 	de = pde_subdir_find(parent, fn, len);
- 	if (de)
--		rb_erase(&de->subdir_node, &parent->subdir);
-+		rb_erase_cached(&de->subdir_node, &parent->subdir);
- 	write_unlock(&proc_subdir_lock);
- 	if (!de) {
- 		WARN(1, "name '%s'\n", name);
-@@ -582,13 +584,13 @@ int remove_proc_subtree(const char *name
- 		write_unlock(&proc_subdir_lock);
- 		return -ENOENT;
- 	}
--	rb_erase(&root->subdir_node, &parent->subdir);
-+	rb_erase_cached(&root->subdir_node, &parent->subdir);
- 
- 	de = root;
- 	while (1) {
- 		next = pde_subdir_first(de);
- 		if (next) {
--			rb_erase(&next->subdir_node, &de->subdir);
-+			rb_erase_cached(&next->subdir_node, &de->subdir);
- 			de = next;
- 			continue;
- 		}
-diff -puN fs/proc/internal.h~procfs-use-faster-rb_first_cached fs/proc/internal.h
---- a/fs/proc/internal.h~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/internal.h
-@@ -40,7 +40,7 @@ struct proc_dir_entry {
- 	const struct inode_operations *proc_iops;
- 	const struct file_operations *proc_fops;
- 	struct proc_dir_entry *parent;
--	struct rb_root subdir;
-+	struct rb_root_cached subdir;
- 	struct rb_node subdir_node;
- 	void *data;
- 	atomic_t count;		/* use count */
-diff -puN fs/proc/proc_net.c~procfs-use-faster-rb_first_cached fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/proc_net.c
-@@ -196,7 +196,7 @@ static __net_init int proc_net_ns_init(s
- 	if (!netd)
- 		goto out;
- 
--	netd->subdir = RB_ROOT;
-+	netd->subdir = RB_ROOT_CACHED;
- 	netd->data = net;
- 	netd->nlink = 2;
- 	netd->namelen = 3;
-diff -puN fs/proc/root.c~procfs-use-faster-rb_first_cached fs/proc/root.c
---- a/fs/proc/root.c~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/root.c
-@@ -210,7 +210,7 @@ struct proc_dir_entry proc_root = {
- 	.proc_iops	= &proc_root_inode_operations, 
- 	.proc_fops	= &proc_root_operations,
- 	.parent		= &proc_root,
--	.subdir		= RB_ROOT,
-+	.subdir		= RB_ROOT_CACHED,
- 	.name		= "/proc",
- };
- 
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-rbtree-cache-leftmost-node-internally.patch
-sched-fair-replace-cfs_rq-rb_leftmost.patch
-sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
-locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
-block-cfq-replace-cfq_rb_root-leftmost-caching.patch
-lib-interval_tree-fast-overlap-detection.patch
-lib-interval-tree-correct-comment-wrt-generic-flavor.patch
-procfs-use-faster-rb_first_cached.patch
-fs-epoll-use-faster-rb_first_cached.patch
+zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+zram-inlining-zram_compress.patch
+zram-rename-zram_decompress_page-with-__zram_bvec_read.patch
+zram-add-interface-to-specify-backing-device.patch
+zram-add-free-space-management-in-backing-device.patch
+zram-identify-asynchronous-ios-return-value.patch
+zram-write-incompressible-pages-to-backing-device.patch
+zram-read-page-from-backing-device.patch
+zram-add-config-and-doc-file-for-writeback-feature.patch
 
