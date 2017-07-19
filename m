@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-epoll-use-faster-rb_first_cached.patch added to -mm tree
-Date: Wed, 19 Jul 2017 15:53:22 -0700
-Message-ID: <596fe2e2.R+LjUO3avC9fbuvY%akpm@linux-foundation.org>
+Subject: + procfs-use-faster-rb_first_cached.patch added to -mm tree
+Date: Wed, 19 Jul 2017 15:53:19 -0700
+Message-ID: <596fe2df.L57nghZfEXPi0moZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38502 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932861AbdGSWxX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 18:53:23 -0400
+        with ESMTP id S933237AbdGSWxU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 18:53:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, kirill.shutemov@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/epoll: use faster rb_first_cached()
+     Subject: procfs: use faster rb_first_cached()
 has been added to the -mm tree.  Its filename is
-     fs-epoll-use-faster-rb_first_cached.patch
+     procfs-use-faster-rb_first_cached.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-use-faster-rb_first_cached.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-use-faster-rb_first_cached.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-use-faster-rb_first_cached.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-use-faster-rb_first_cached.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,14 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: fs/epoll: use faster rb_first_cached()
+Subject: procfs: use faster rb_first_cached()
 
 ...  such that we can avoid the tree walks to get the node with the
 smallest key.  Semantically the same, as the previously used rb_first(),
 but O(1).  The main overhead is the extra footprint for the cached rb_node
-pointer, which should not matter for epoll.
+pointer, which should not matter for procfs.
 
-Link: http://lkml.kernel.org/r/20170629171553.2146-10-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170629171553.2146-9-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -58,129 +58,137 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ fs/proc/generic.c  |   26 ++++++++++++++------------
+ fs/proc/internal.h |    2 +-
+ fs/proc/proc_net.c |    2 +-
+ fs/proc/root.c     |    2 +-
+ 4 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached fs/eventpoll.c
---- a/fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached
-+++ a/fs/eventpoll.c
-@@ -205,7 +205,7 @@ struct eventpoll {
- 	struct list_head rdllist;
+diff -puN fs/proc/generic.c~procfs-use-faster-rb_first_cached fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-use-faster-rb_first_cached
++++ a/fs/proc/generic.c
+@@ -40,8 +40,8 @@ static int proc_match(unsigned int len,
  
- 	/* RB tree root used to store monitored fd structs */
--	struct rb_root rbr;
-+	struct rb_root_cached rbr;
- 
- 	/*
- 	 * This is a single linked list that chains all the "struct epitem" that
-@@ -791,7 +791,7 @@ static int ep_remove(struct eventpoll *e
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&file->f_lock);
- 
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
- 
- 	spin_lock_irqsave(&ep->lock, flags);
- 	if (ep_is_linked(&epi->rdllink))
-@@ -835,7 +835,7 @@ static void ep_free(struct eventpoll *ep
- 	/*
- 	 * Walks through the whole tree by unregistering poll callbacks.
- 	 */
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 
- 		ep_unregister_pollwait(ep, epi);
-@@ -851,7 +851,7 @@ static void ep_free(struct eventpoll *ep
- 	 * a lockdep warning.
- 	 */
- 	mutex_lock(&ep->mtx);
--	while ((rbp = rb_first(&ep->rbr)) != NULL) {
-+	while ((rbp = rb_first_cached(&ep->rbr)) != NULL) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		ep_remove(ep, epi);
- 		cond_resched();
-@@ -958,7 +958,7 @@ static void ep_show_fdinfo(struct seq_fi
- 	struct rb_node *rbp;
- 
- 	mutex_lock(&ep->mtx);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
- 		struct inode *inode = file_inode(epi->ffd.file);
- 
-@@ -1035,7 +1035,7 @@ static int ep_alloc(struct eventpoll **p
- 	init_waitqueue_head(&ep->wq);
- 	init_waitqueue_head(&ep->poll_wait);
- 	INIT_LIST_HEAD(&ep->rdllist);
--	ep->rbr = RB_ROOT;
-+	ep->rbr = RB_ROOT_CACHED;
- 	ep->ovflist = EP_UNACTIVE_PTR;
- 	ep->user = user;
- 
-@@ -1061,7 +1061,7 @@ static struct epitem *ep_find(struct eve
- 	struct epoll_filefd ffd;
- 
- 	ep_set_ffd(&ffd, file, fd);
--	for (rbp = ep->rbr.rb_node; rbp; ) {
-+	for (rbp = ep->rbr.rb_root.rb_node; rbp; ) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&ffd, &epi->ffd);
- 		if (kcmp > 0)
-@@ -1083,7 +1083,7 @@ static struct epitem *ep_find_tfd(struct
- 	struct rb_node *rbp;
- 	struct epitem *epi;
- 
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (epi->ffd.fd == tfd) {
- 			if (toff == 0)
-@@ -1263,20 +1263,22 @@ static void ep_ptable_queue_proc(struct
- static void ep_rbtree_insert(struct eventpoll *ep, struct epitem *epi)
+ static struct proc_dir_entry *pde_subdir_first(struct proc_dir_entry *dir)
  {
- 	int kcmp;
--	struct rb_node **p = &ep->rbr.rb_node, *parent = NULL;
-+	struct rb_node **p = &ep->rbr.rb_root.rb_node, *parent = NULL;
- 	struct epitem *epic;
+-	return rb_entry_safe(rb_first(&dir->subdir), struct proc_dir_entry,
+-			     subdir_node);
++	return rb_entry_safe(rb_first_cached(&dir->subdir),
++			     struct proc_dir_entry, subdir_node);
+ }
+ 
+ static struct proc_dir_entry *pde_subdir_next(struct proc_dir_entry *dir)
+@@ -54,7 +54,7 @@ static struct proc_dir_entry *pde_subdir
+ 					      const char *name,
+ 					      unsigned int len)
+ {
+-	struct rb_node *node = dir->subdir.rb_node;
++	struct rb_node *node = dir->subdir.rb_root.rb_node;
+ 
+ 	while (node) {
+ 		struct proc_dir_entry *de = rb_entry(node,
+@@ -75,8 +75,9 @@ static struct proc_dir_entry *pde_subdir
+ static bool pde_subdir_insert(struct proc_dir_entry *dir,
+ 			      struct proc_dir_entry *de)
+ {
+-	struct rb_root *root = &dir->subdir;
+-	struct rb_node **new = &root->rb_node, *parent = NULL;
++	struct rb_root_cached *root = &dir->subdir;
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
 +	bool leftmost = true;
  
- 	while (*p) {
- 		parent = *p;
- 		epic = rb_entry(parent, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&epi->ffd, &epic->ffd);
--		if (kcmp > 0)
-+		if (kcmp > 0) {
- 			p = &parent->rb_right;
+ 	/* Figure out where to put new node */
+ 	while (*new) {
+@@ -88,15 +89,16 @@ static bool pde_subdir_insert(struct pro
+ 		parent = *new;
+ 		if (result < 0)
+ 			new = &(*new)->rb_left;
+-		else if (result > 0)
++		else if (result > 0) {
+ 			new = &(*new)->rb_right;
 -		else
 +			leftmost = false;
 +		} else
- 			p = &parent->rb_left;
+ 			return false;
  	}
- 	rb_link_node(&epi->rbn, parent, p);
--	rb_insert_color(&epi->rbn, &ep->rbr);
-+	rb_insert_color_cached(&epi->rbn, &ep->rbr, leftmost);
+ 
+ 	/* Add new node and rebalance tree. */
+ 	rb_link_node(&de->subdir_node, parent, new);
+-	rb_insert_color(&de->subdir_node, root);
++	rb_insert_color_cached(&de->subdir_node, root, leftmost);
+ 	return true;
  }
  
+@@ -369,7 +371,7 @@ static struct proc_dir_entry *__proc_cre
+ 	ent->namelen = qstr.len;
+ 	ent->mode = mode;
+ 	ent->nlink = nlink;
+-	ent->subdir = RB_ROOT;
++	ent->subdir = RB_ROOT_CACHED;
+ 	atomic_set(&ent->count, 1);
+ 	spin_lock_init(&ent->pde_unload_lock);
+ 	INIT_LIST_HEAD(&ent->pde_openers);
+@@ -545,7 +547,7 @@ void remove_proc_entry(const char *name,
  
-@@ -1520,7 +1522,7 @@ error_remove_epi:
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&tfile->f_lock);
+ 	de = pde_subdir_find(parent, fn, len);
+ 	if (de)
+-		rb_erase(&de->subdir_node, &parent->subdir);
++		rb_erase_cached(&de->subdir_node, &parent->subdir);
+ 	write_unlock(&proc_subdir_lock);
+ 	if (!de) {
+ 		WARN(1, "name '%s'\n", name);
+@@ -582,13 +584,13 @@ int remove_proc_subtree(const char *name
+ 		write_unlock(&proc_subdir_lock);
+ 		return -ENOENT;
+ 	}
+-	rb_erase(&root->subdir_node, &parent->subdir);
++	rb_erase_cached(&root->subdir_node, &parent->subdir);
  
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
+ 	de = root;
+ 	while (1) {
+ 		next = pde_subdir_first(de);
+ 		if (next) {
+-			rb_erase(&next->subdir_node, &de->subdir);
++			rb_erase_cached(&next->subdir_node, &de->subdir);
+ 			de = next;
+ 			continue;
+ 		}
+diff -puN fs/proc/internal.h~procfs-use-faster-rb_first_cached fs/proc/internal.h
+--- a/fs/proc/internal.h~procfs-use-faster-rb_first_cached
++++ a/fs/proc/internal.h
+@@ -40,7 +40,7 @@ struct proc_dir_entry {
+ 	const struct inode_operations *proc_iops;
+ 	const struct file_operations *proc_fops;
+ 	struct proc_dir_entry *parent;
+-	struct rb_root subdir;
++	struct rb_root_cached subdir;
+ 	struct rb_node subdir_node;
+ 	void *data;
+ 	atomic_t count;		/* use count */
+diff -puN fs/proc/proc_net.c~procfs-use-faster-rb_first_cached fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~procfs-use-faster-rb_first_cached
++++ a/fs/proc/proc_net.c
+@@ -196,7 +196,7 @@ static __net_init int proc_net_ns_init(s
+ 	if (!netd)
+ 		goto out;
  
- error_unregister:
- 	ep_unregister_pollwait(ep, epi);
-@@ -1868,7 +1870,7 @@ static int ep_loop_check_proc(void *priv
- 	mutex_lock_nested(&ep->mtx, call_nests + 1);
- 	ep->visited = 1;
- 	list_add(&ep->visited_list_link, &visited_list);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (unlikely(is_file_epoll(epi->ffd.file))) {
- 			ep_tovisit = epi->ffd.file->private_data;
+-	netd->subdir = RB_ROOT;
++	netd->subdir = RB_ROOT_CACHED;
+ 	netd->data = net;
+ 	netd->nlink = 2;
+ 	netd->namelen = 3;
+diff -puN fs/proc/root.c~procfs-use-faster-rb_first_cached fs/proc/root.c
+--- a/fs/proc/root.c~procfs-use-faster-rb_first_cached
++++ a/fs/proc/root.c
+@@ -210,7 +210,7 @@ struct proc_dir_entry proc_root = {
+ 	.proc_iops	= &proc_root_inode_operations, 
+ 	.proc_fops	= &proc_root_operations,
+ 	.parent		= &proc_root,
+-	.subdir		= RB_ROOT,
++	.subdir		= RB_ROOT_CACHED,
+ 	.name		= "/proc",
+ };
+ 
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
