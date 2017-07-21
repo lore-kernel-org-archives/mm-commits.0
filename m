@@ -1,80 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- platform-x86-alienware-wmi-fix-format-string-overflow-warning.patch removed from -mm tree
-Date: Fri, 21 Jul 2017 15:00:04 -0700
-Message-ID: <59727964.2il7HmVBodifQJUR%akpm@linux-foundation.org>
+Subject: + mm-thp-enable-thp-migration-in-generic-path-fix.patch added to
+ -mm tree
+Date: Fri, 21 Jul 2017 15:44:26 -0700
+Message-ID: <597283ca.inkAwF5W2+QC6CFR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39378 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752780AbdGUWAF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 18:00:05 -0400
+        with ESMTP id S1753111AbdGUWo1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 18:44:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mm-commits@vger.kernel.org
+To: zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: platform/x86: alienware-wmi: fix format string overflow warning
-has been removed from the -mm tree.  Its filename was
-     platform-x86-alienware-wmi-fix-format-string-overflow-warning.patch
+     Subject: mm-thp-enable-thp-migration-in-generic-path-fix
+has been added to the -mm tree.  Its filename is
+     mm-thp-enable-thp-migration-in-generic-path-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-enable-thp-migration-in-generic-path-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-enable-thp-migration-in-generic-path-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: platform/x86: alienware-wmi: fix format string overflow warning
+From: "Zi Yan" <zi.yan@cs.rutgers.edu>
+Subject: mm-thp-enable-thp-migration-in-generic-path-fix
 
-gcc points out a possible format string overflow for a large value of 'zone':
+fix gcc-4.9.0 -Wmissing-braces warning
 
-drivers/platform/x86/alienware-wmi.c: In function 'alienware_wmi_init':
-drivers/platform/x86/alienware-wmi.c:461:24: error: '%02X' directive writing between 2 and 8 bytes into a region of size 6 [-Werror=format-overflow=]
-   sprintf(buffer, "zone%02X", i);
-                        ^~~~
-drivers/platform/x86/alienware-wmi.c:461:19: note: directive argument in the range [0, 2147483646]
-   sprintf(buffer, "zone%02X", i);
-                   ^~~~~~~~~~
-drivers/platform/x86/alienware-wmi.c:461:3: note: 'sprintf' output between 7 and 13 bytes into a destination of size 10
+Link: http://lkml.kernel.org/r/A0ABA698-7486-46C3-B209-E95A9048B22C@cs.rutgers.edu
 
-While the zone should never be that large, it's easy to make the
-buffer a few bytes longer so gcc can prove this to be safe.
-
-Link: http://lkml.kernel.org/r/20170714120720.906842-18-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/alienware-wmi.c |    2 +-
+ include/linux/swapops.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/alienware-wmi.c~platform-x86-alienware-wmi-fix-format-string-overflow-warning drivers/platform/x86/alienware-wmi.c
---- a/drivers/platform/x86/alienware-wmi.c~platform-x86-alienware-wmi-fix-format-string-overflow-warning
-+++ a/drivers/platform/x86/alienware-wmi.c
-@@ -421,7 +421,7 @@ static DEVICE_ATTR(lighting_control_stat
- static int alienware_zone_init(struct platform_device *dev)
- {
- 	int i;
--	char buffer[10];
-+	char buffer[13];
- 	char *name;
+diff -puN include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path-fix include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path-fix
++++ a/include/linux/swapops.h
+@@ -217,7 +217,7 @@ static inline swp_entry_t pmd_to_swp_ent
  
- 	if (interface == WMAX) {
+ static inline pmd_t swp_entry_to_pmd(swp_entry_t entry)
+ {
+-	return (pmd_t){ 0 };
++	return __pmd(0);
+ }
+ 
+ static inline int is_pmd_migration_entry(pmd_t pmd)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
 
-kasan-avoid-wmaybe-uninitialized-warning.patch
-scsi-megaraid-fix-format-overflow-warning.patch
-scsi-mpt3sas-fix-format-overflow-warning.patch
-scsi-fusion-fix-string-overflow-warning.patch
-scsi-gdth-avoid-buffer-overflow-warning.patch
-scsi-fnic-fix-format-string-overflow-warning.patch
-scsi-gdth-increase-the-procfs-event-buffer-size.patch
-hwmon-applesmc-fix-format-string-overflow.patch
-block-dac960-shut-up-format-overflow-warning.patch
-fscache-fix-fscache_objlist_show-format-processing.patch
-ib-mlx4-fix-sprintf-format-warning.patch
+mm-thp-enable-thp-migration-in-generic-path.patch
+mm-thp-enable-thp-migration-in-generic-path-fix.patch
+mm-thp-check-pmd-migration-entry-in-common-path.patch
 
