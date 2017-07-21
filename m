@@ -1,133 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + zram-add-config-and-doc-file-for-writeback-feature.patch added
- to -mm tree
-Date: Wed, 19 Jul 2017 16:08:25 -0700
-Message-ID: <596fe669.usH10cwRf6+A3LhO%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ usbvision-i2c-fix-format-overflow-warning.patch removed from -mm tree
+Date: Fri, 21 Jul 2017 11:41:26 -0700
+Message-ID: <20170721184126.vnbrmH_yh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38184 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933492AbdGSXI0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2017 19:08:26 -0400
+        with ESMTP id S1753527AbdGUSl1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 14:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, juno.choi@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: add config and doc file for writeback feature
-has been added to the -mm tree.  Its filename is
-     zram-add-config-and-doc-file-for-writeback-feature.patch
+     Subject: drivers/media/usb/usbvision/usbvision-i2c.c: fix format overflow warning
+has been removed from the -mm tree.  Its filename was
+     usbvision-i2c-fix-format-overflow-warning.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-config-and-doc-file-for-writeback-feature.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-config-and-doc-file-for-writeback-feature.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: add config and doc file for writeback feature
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/media/usb/usbvision/usbvision-i2c.c: fix format overflow warning
 
-This patch adds document and kconfig for using of writeback feature.
+gcc-7 notices that we copy a fixed length string into another
+string of the same size, with additional characters:
 
-Link: http://lkml.kernel.org/r/1498459987-24562-10-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Juneho Choi <juno.choi@lge.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+drivers/media/usb/usbvision/usbvision-i2c.c: In function 'usbvision_i2c_register':
+drivers/media/usb/usbvision/usbvision-i2c.c:190:36: error: '%d' directive writing between 1 and 11 bytes into a region of size between 0 and 47 [-Werror=format-overflow=]
+  sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
+                                    ^~~~~~~~~~
+drivers/media/usb/usbvision/usbvision-i2c.c:190:2: note: 'sprintf' output between 4 and 76 bytes into a destination of size 48
+
+We know this is fine as the template name is always "usbvision", so
+we can easily avoid the warning by using this as the format string
+directly.
+
+Link: http://lkml.kernel.org/r/20170714120720.906842-15-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    8 ++++++++
- Documentation/blockdev/zram.txt            |   11 +++++++++++
- drivers/block/zram/Kconfig                 |   12 ++++++++++++
- 3 files changed, 31 insertions(+)
+ drivers/media/usb/usbvision/usbvision-i2c.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -90,3 +90,11 @@ Description:
- 		device's debugging info useful for kernel developers. Its
- 		format is not documented intentionally and may change
- 		anytime without any notice.
-+
-+What:		/sys/block/zram<id>/backing_dev
-+Date:		June 2017
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		The backing_dev file is read-write and set up backing
-+		device for zram to write incompressible pages.
-+		For using, user should enable CONFIG_ZRAM_WRITEBACK.
-diff -puN Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/Documentation/blockdev/zram.txt
-@@ -168,6 +168,7 @@ max_comp_streams  RW    the number of po
- comp_algorithm    RW    show and change the compression algorithm
- compact           WO    trigger memory compaction
- debug_stat        RO    this file is used for zram debugging purposes
-+backing_dev	  RW	set up backend storage for zram to write out
+diff -puN drivers/media/usb/usbvision/usbvision-i2c.c~usbvision-i2c-fix-format-overflow-warning drivers/media/usb/usbvision/usbvision-i2c.c
+--- a/drivers/media/usb/usbvision/usbvision-i2c.c~usbvision-i2c-fix-format-overflow-warning
++++ a/drivers/media/usb/usbvision/usbvision-i2c.c
+@@ -187,8 +187,8 @@ int usbvision_i2c_register(struct usb_us
  
+ 	usbvision->i2c_adap = i2c_adap_template;
  
- User space is advised to use the following files to read the device statistics.
-@@ -231,5 +232,15 @@ line of text and contains the following
- 	resets the disksize to zero. You must set the disksize again
- 	before reusing the device.
+-	sprintf(usbvision->i2c_adap.name, "%s-%d-%s", i2c_adap_template.name,
+-		usbvision->dev->bus->busnum, usbvision->dev->devpath);
++	sprintf(usbvision->i2c_adap.name, "usbvision-%d-%s",
++		 usbvision->dev->bus->busnum, usbvision->dev->devpath);
+ 	PDEBUG(DBG_I2C, "Adaptername: %s", usbvision->i2c_adap.name);
+ 	usbvision->i2c_adap.dev.parent = &usbvision->dev->dev;
  
-+* Optional Feature
-+
-+= writeback
-+
-+With incompressible pages, there is no memory saving with zram.
-+Instead, with CONFIG_ZRAM_WRITEBACK, zram can write incompressible page
-+to backing storage rather than keeping it in memory.
-+User should set up backing device via /sys/block/zramX/backing_dev
-+before disksize setting.
-+
- Nitin Gupta
- ngupta@vflare.org
-diff -puN drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature drivers/block/zram/Kconfig
---- a/drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/drivers/block/zram/Kconfig
-@@ -13,3 +13,15 @@ config ZRAM
- 	  disks and maybe many more.
- 
- 	  See zram.txt for more information.
-+
-+config ZRAM_WRITEBACK
-+       bool "Write back incompressible page to backing device"
-+       depends on ZRAM
-+       default n
-+       help
-+	 With incompressible page, there is no memory saving to keep it
-+	 in memory. Instead, write it out to backing device.
-+	 For this feature, admin should set up backing device via
-+	 /sys/block/zramX/backing_dev.
-+
-+	 See zram.txt for more infomration.
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
-zram-inlining-zram_compress.patch
-zram-rename-zram_decompress_page-with-__zram_bvec_read.patch
-zram-add-interface-to-specify-backing-device.patch
-zram-add-free-space-management-in-backing-device.patch
-zram-identify-asynchronous-ios-return-value.patch
-zram-write-incompressible-pages-to-backing-device.patch
-zram-read-page-from-backing-device.patch
-zram-add-config-and-doc-file-for-writeback-feature.patch
+kbuild-disable-wformat-truncation-warnings-by-default.patch
+scsi-megaraid-fix-format-overflow-warning.patch
+scsi-mpt3sas-fix-format-overflow-warning.patch
+scsi-fusion-fix-string-overflow-warning.patch
+scsi-gdth-avoid-buffer-overflow-warning.patch
+scsi-fnic-fix-format-string-overflow-warning.patch
+scsi-gdth-increase-the-procfs-event-buffer-size.patch
+hwmon-applesmc-fix-format-string-overflow.patch
+x86-intel-mid-fix-a-format-string-overflow-warning.patch
+platform-x86-alienware-wmi-fix-format-string-overflow-warning.patch
+block-dac960-shut-up-format-overflow-warning.patch
+fscache-fix-fscache_objlist_show-format-processing.patch
+ib-mlx4-fix-sprintf-format-warning.patch
 
