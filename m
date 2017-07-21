@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch added to
- -mm tree
-Date: Fri, 21 Jul 2017 12:12:17 -0700
-Message-ID: <59725211.3ElIKWzUDzKrdY1r%akpm@linux-foundation.org>
+ mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+ added to -mm tree
+Date: Fri, 21 Jul 2017 12:12:08 -0700
+Message-ID: <59725208.Cg+t13dKgA9Q6m1C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46768 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46696 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754431AbdGUTMS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 15:12:18 -0400
+        with ESMTP id S1751996AbdGUTMJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 15:12:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, shaohua.li@intel.com, tglx@linutronix.de, toshi.kani@hpe.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: remove stop_machine from build_all_zonelists
+     Subject: mm, page_alloc: do not set_cpu_numa_mem on empty nodes initialization
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+     mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,129 +41,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: remove stop_machine from build_all_zonelists
+Subject: mm, page_alloc: do not set_cpu_numa_mem on empty nodes initialization
 
-build_all_zonelists has been (ab)using stop_machine to make sure that
-zonelists do not change while somebody is looking at them.  This is is
-just a gross hack because a) it complicates the context from which we can
-call build_all_zonelists (see 3f906ba23689 ("mm/memory-hotplug: switch
-locking to a percpu rwsem")) and b) is is not really necessary especially
-after "mm, page_alloc: simplify zonelist initialization" and c) it doesn't
-really provide the protection it claims (see below).
+__build_all_zonelists reinitializes each online cpu local node for
+CONFIG_HAVE_MEMORYLESS_NODES.  This makes sense because previously memory
+less nodes could gain some memory during memory hotplug and so the local
+node should be changed for CPUs close to such a node.  It makes less sense
+to do that unconditionally for a newly creaded NUMA node which is still
+offline and without any memory.
 
-Updates of the zonelists happen very seldom, basically only when a zone
-becomes populated during memory online or when it loses all the memory
-during offline.  A racing iteration over zonelists could either miss a
-zone or try to work on one zone twice.  Both of these are something we can
-live with occasionally because there will always be at least one zone
-visible so we are not likely to fail allocation too easily for example.
+Let's also simplify the cpu loop and use for_each_online_cpu instead of an
+explicit cpu_online check for all possible cpus.
 
-Please note that the original stop_machine approach doesn't really provide
-a better exclusion because the iteration might be interrupted half way
-(unless the whole iteration is preempt disabled which is not the case in
-most cases) so the some zones could still be seen twice or a zone missed.
-
-I have run the pathological online/offline of the single memblock in the
-movable zone while stressing the same small node with some memory
-pressure.
-
-Node 1, zone      DMA
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  0
-        present  0
-        managed  0
-        protection: (0, 943, 943, 943)
-Node 1, zone    DMA32
-  pages free     227310
-        min      8294
-        low      10367
-        high     12440
-        spanned  262112
-        present  262112
-        managed  241436
-        protection: (0, 0, 0, 0)
-Node 1, zone   Normal
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  0
-        present  0
-        managed  0
-        protection: (0, 0, 0, 1024)
-Node 1, zone  Movable
-  pages free     32722
-        min      85
-        low      117
-        high     149
-        spanned  32768
-        present  32768
-        managed  32768
-        protection: (0, 0, 0, 0)
-
-root@test1:/sys/devices/system/node/node1# while true
-do
-	echo offline > memory34/state
-	echo online_movable > memory34/state
-done
-
-root@test1:/mnt/data/test/linux-3.7-rc5# numactl --preferred=1 make -j4
-
-and it survived without any unexpected behavior.  While this is not really
-a great testing coverage it should exercise the allocation path quite a
-lot.
-
-Link: http://lkml.kernel.org/r/20170721143915.14161-8-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170721143915.14161-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-stop_machine-from-build_all_zonelists mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-stop_machine-from-build_all_zonelists
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization
 +++ a/mm/page_alloc.c
-@@ -5073,8 +5073,7 @@ static DEFINE_PER_CPU(struct per_cpu_nod
-  */
- DEFINE_MUTEX(zonelists_mutex);
+@@ -5096,10 +5096,8 @@ static int __build_all_zonelists(void *d
  
--/* return values int ....just for stop_machine() */
--static int __build_all_zonelists(void *data)
-+static void __build_all_zonelists(void *data)
- {
- 	int nid;
- 	int __maybe_unused cpu;
-@@ -5110,8 +5109,6 @@ static int __build_all_zonelists(void *d
+ 			build_zonelists(pgdat);
+ 		}
+-	}
+ 
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
+-	for_each_possible_cpu(cpu) {
+ 		/*
+ 		 * We now know the "local memory node" for each node--
+ 		 * i.e., the node of the first zone in the generic zonelist.
+@@ -5108,10 +5106,10 @@ static int __build_all_zonelists(void *d
+ 		 * secondary cpus' numa_mem as they come on-line.  During
+ 		 * node/memory hotplug, we'll fixup all on-line cpus.
+ 		 */
+-		if (cpu_online(cpu))
++		for_each_online_cpu(cpu)
  			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
+-	}
  #endif
- 	}
--
--	return 0;
- }
++	}
  
- static noinline void __init
-@@ -5153,9 +5150,7 @@ void __ref build_all_zonelists(pg_data_t
- 	if (system_state == SYSTEM_BOOTING) {
- 		build_all_zonelists_init();
- 	} else {
--		/* we have to stop all cpus to guarantee there is no user
--		   of zonelist */
--		stop_machine_cpuslocked(__build_all_zonelists, pgdat, NULL);
-+		__build_all_zonelists(pgdat);
- 		/* cpuset refresh routine should be here */
- 	}
- 	vm_total_pages = nr_free_pagecache_pages();
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
