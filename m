@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
- added to -mm tree
-Date: Fri, 21 Jul 2017 12:12:10 -0700
-Message-ID: <5972520a.zvEUP/0RN7HrD+QQ%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-rip-out-zonelist_order_zone.patch added to -mm
+ tree
+Date: Fri, 21 Jul 2017 12:12:03 -0700
+Message-ID: <59725203.f98YKADOJDHcJXnT%akpm__10068.1050484583$1500664333$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46664 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753527AbdGUTML (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 15:12:11 -0400
+        with ESMTP id S1751996AbdGUTME (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 15:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, js1304@gmail.com, linux-api@vger.kernel.org, mgorman@suse.de, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: drop zone from build_all_zonelists
+     Subject: mm, page_alloc: rip out ZONELIST_ORDER_ZONE
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+     mm-page_alloc-rip-out-zonelist_order_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rip-out-zonelist_order_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rip-out-zonelist_order_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,161 +40,399 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: drop zone from build_all_zonelists
+Subject: mm, page_alloc: rip out ZONELIST_ORDER_ZONE
 
-build_all_zonelists gets a zone parameter to initialize zone's pagesets. 
-There is only a single user which gives a non-NULL zone parameter and that
-one doesn't really need the rest of the build_all_zonelists (see
-6dcd73d7011b ("memory-hotplug: allocate zone's pcp before onlining
-pages")).
+Patch series "cleanup zonelists initialization", v1.
 
-Therefore remove setup_zone_pageset from build_all_zonelists and call it
-from its only user directly.  This will also remove a pointless zonlists
-rebuilding which is always good.
+This is aimed at cleaning up the zonelists initialization code we have
+but the primary motivation was bug report [2] which got resolved but
+the usage of stop_machine is just too ugly to live. Most patches are
+straightforward but 3 of them need a special consideration.
 
-Link: http://lkml.kernel.org/r/20170721143915.14161-5-mhocko@kernel.org
+Patch 1 removes zone ordered zonelists completely. I am CCing linux-api
+because this is a user visible change. As I argue in the patch
+description I do not think we have a strong usecase for it these days.
+I have kept sysctl in place and warn into the log if somebody tries to
+configure zone lists ordering. If somebody has a real usecase for it
+we can revert this patch but I do not expect anybody will actually notice
+runtime differences. This patch is not strictly needed for the rest but
+it made patch 6 easier to implement.
+
+Patch 7 removes stop_machine from build_all_zonelists without adding any
+special synchronization between iterators and updater which I _believe_
+is acceptable as explained in the changelog. I hope I am not missing
+anything.
+
+Patch 8 then removes zonelists_mutex which is kind of ugly as well and
+not really needed AFAICS but a care should be taken when double checking
+my thinking.
+
+
+This patch (of 9):
+
+Supporting zone ordered zonelists costs us just a lot of code while the
+usefulness is arguable if existent at all.  Mel has already made node
+ordering default on 64b systems.  32b systems are still using
+ZONELIST_ORDER_ZONE because it is considered better to fallback to a
+different NUMA node rather than consume precious lowmem zones.
+
+This argument is, however, weaken by the fact that the memory reclaim has
+been reworked to be node rather than zone oriented.  This means that
+lowmem requests have to skip over all highmem pages on LRUs already and so
+zone ordering doesn't save the reclaim time much.  So the only advantage
+of the zone ordering is under a light memory pressure when highmem
+requests do not ever hit into lowmem zones and the lowmem pressure doesn't
+need to reclaim.
+
+Considering that 32b NUMA systems are rather suboptimal already and it is
+generally advisable to use 64b kernel on such a HW I believe we should
+rather care about the code maintainability and just get rid of
+ZONELIST_ORDER_ZONE altogether.  Keep systcl in place and warn if somebody
+tries to set zone ordering either from kernel command line or the sysctl.
+
+Link: http://lkml.kernel.org/r/20170721143915.14161-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- init/main.c            |    2 +-
- mm/internal.h          |    1 +
- mm/memory_hotplug.c    |   10 +++++-----
- mm/page_alloc.c        |   13 +++----------
- 5 files changed, 11 insertions(+), 17 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 
+ Documentation/sysctl/vm.txt                     |    4 
+ Documentation/vm/numa                           |    7 
+ include/linux/mmzone.h                          |    2 
+ kernel/sysctl.c                                 |    2 
+ mm/page_alloc.c                                 |  180 +-------------
+ 6 files changed, 30 insertions(+), 167 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists
+diff -puN Documentation/admin-guide/kernel-parameters.txt~mm-page_alloc-rip-out-zonelist_order_zone Documentation/admin-guide/kernel-parameters.txt
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2769,7 +2769,7 @@
+ 			Allowed values are enable and disable
+ 
+ 	numa_zonelist_order= [KNL, BOOT] Select zonelist order for NUMA.
+-			one of ['zone', 'node', 'default'] can be specified
++			'node', 'default' can be specified
+ 			This can be set from sysctl after boot.
+ 			See Documentation/sysctl/vm.txt for details.
+ 
+diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-rip-out-zonelist_order_zone Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/Documentation/sysctl/vm.txt
+@@ -572,7 +572,9 @@ See Documentation/nommu-mmap.txt for mor
+ 
+ numa_zonelist_order
+ 
+-This sysctl is only for NUMA.
++This sysctl is only for NUMA and it is deprecated. Anything but
++Node order will fail!
++
+ 'where the memory is allocated from' is controlled by zonelists.
+ (This documentation ignores ZONE_HIGHMEM/ZONE_DMA32 for simple explanation.
+  you may be able to read ZONE_DMA as ZONE_DMA32...)
+diff -puN Documentation/vm/numa~mm-page_alloc-rip-out-zonelist_order_zone Documentation/vm/numa
+--- a/Documentation/vm/numa~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/Documentation/vm/numa
+@@ -79,11 +79,8 @@ memory, Linux must decide whether to ord
+ fall back to the same zone type on a different node, or to a different zone
+ type on the same node.  This is an important consideration because some zones,
+ such as DMA or DMA32, represent relatively scarce resources.  Linux chooses
+-a default zonelist order based on the sizes of the various zone types relative
+-to the total memory of the node and the total memory of the system.  The
+-default zonelist order may be overridden using the numa_zonelist_order kernel
+-boot parameter or sysctl.  [see Documentation/admin-guide/kernel-parameters.rst and
+-Documentation/sysctl/vm.txt]
++a default Node ordered zonelist. This means it tries to fallback to other zones
++from the same node before using remote nodes which are ordered by NUMA distance.
+ 
+ By default, Linux will attempt to satisfy memory allocation requests from the
+ node to which the CPU that executes the request is assigned.  Specifically,
+diff -puN include/linux/mmzone.h~mm-page_alloc-rip-out-zonelist_order_zone include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-rip-out-zonelist_order_zone
 +++ a/include/linux/mmzone.h
-@@ -771,7 +771,7 @@ static inline bool is_dev_zone(const str
- #include <linux/memory_hotplug.h>
+@@ -895,8 +895,6 @@ int sysctl_min_slab_ratio_sysctl_handler
  
- extern struct mutex zonelists_mutex;
--void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
-+void build_all_zonelists(pg_data_t *pgdat);
- void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
- bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
- 			 int classzone_idx, unsigned int alloc_flags,
-diff -puN init/main.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists init/main.c
---- a/init/main.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists
-+++ a/init/main.c
-@@ -541,7 +541,7 @@ asmlinkage __visible void __init start_k
- 	boot_cpu_state_init();
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+ extern int numa_zonelist_order_handler(struct ctl_table *, int,
+ 			void __user *, size_t *, loff_t *);
+-extern char numa_zonelist_order[];
+-#define NUMA_ZONELIST_ORDER_LEN 16	/* string buffer size */
  
--	build_all_zonelists(NULL, NULL);
-+	build_all_zonelists(NULL);
- 	page_alloc_init();
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
  
- 	pr_notice("Kernel command line: %s\n", boot_command_line);
-diff -puN mm/internal.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists mm/internal.h
---- a/mm/internal.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists
-+++ a/mm/internal.h
-@@ -525,4 +525,5 @@ static inline bool is_migrate_highatomic
- 	return get_pageblock_migratetype(page) == MIGRATE_HIGHATOMIC;
+diff -puN kernel/sysctl.c~mm-page_alloc-rip-out-zonelist_order_zone kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/kernel/sysctl.c
+@@ -1574,8 +1574,6 @@ static struct ctl_table vm_table[] = {
+ #ifdef CONFIG_NUMA
+ 	{
+ 		.procname	= "numa_zonelist_order",
+-		.data		= &numa_zonelist_order,
+-		.maxlen		= NUMA_ZONELIST_ORDER_LEN,
+ 		.mode		= 0644,
+ 		.proc_handler	= numa_zonelist_order_handler,
+ 	},
+diff -puN mm/page_alloc.c~mm-page_alloc-rip-out-zonelist_order_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/mm/page_alloc.c
+@@ -4791,52 +4791,18 @@ static int build_zonelists_node(pg_data_
+ 	return nr_zones;
  }
  
-+void setup_zone_pageset(struct zone *zone);
- #endif	/* __MM_INTERNAL_H */
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists
-+++ a/mm/memory_hotplug.c
-@@ -933,7 +933,7 @@ int __ref online_pages(unsigned long pfn
- 	mutex_lock(&zonelists_mutex);
- 	if (!populated_zone(zone)) {
- 		need_zonelists_rebuild = 1;
--		build_all_zonelists(NULL, zone);
-+		setup_zone_pageset(zone);
- 	}
+-
+-/*
+- *  zonelist_order:
+- *  0 = automatic detection of better ordering.
+- *  1 = order by ([node] distance, -zonetype)
+- *  2 = order by (-zonetype, [node] distance)
+- *
+- *  If not NUMA, ZONELIST_ORDER_ZONE and ZONELIST_ORDER_NODE will create
+- *  the same zonelist. So only NUMA can configure this param.
+- */
+-#define ZONELIST_ORDER_DEFAULT  0
+-#define ZONELIST_ORDER_NODE     1
+-#define ZONELIST_ORDER_ZONE     2
+-
+-/* zonelist order in the kernel.
+- * set_zonelist_order() will set this to NODE or ZONE.
+- */
+-static int current_zonelist_order = ZONELIST_ORDER_DEFAULT;
+-static char zonelist_order_name[3][8] = {"Default", "Node", "Zone"};
+-
+-
+ #ifdef CONFIG_NUMA
+-/* The value user specified ....changed by config */
+-static int user_zonelist_order = ZONELIST_ORDER_DEFAULT;
+-/* string for sysctl */
+-#define NUMA_ZONELIST_ORDER_LEN	16
+-char numa_zonelist_order[16] = "default";
+-
+-/*
+- * interface for configure zonelist ordering.
+- * command line option "numa_zonelist_order"
+- *	= "[dD]efault	- default, automatic configuration.
+- *	= "[nN]ode 	- order by node locality, then by zone within node
+- *	= "[zZ]one      - order by zone, then by locality within zone
+- */
  
- 	ret = walk_system_ram_range(pfn, nr_pages, &onlined_pages,
-@@ -954,7 +954,7 @@ int __ref online_pages(unsigned long pfn
- 	if (onlined_pages) {
- 		node_states_set_node(nid, &arg);
- 		if (need_zonelists_rebuild)
--			build_all_zonelists(NULL, NULL);
-+			build_all_zonelists(NULL);
- 		else
- 			zone_pcp_update(zone);
- 	}
-@@ -1032,7 +1032,7 @@ static pg_data_t __ref *hotadd_new_pgdat
- 	 * to access not-initialized zonelist, build here.
- 	 */
- 	mutex_lock(&zonelists_mutex);
--	build_all_zonelists(pgdat, NULL);
-+	build_all_zonelists(pgdat);
- 	mutex_unlock(&zonelists_mutex);
- 
- 	/*
-@@ -1088,7 +1088,7 @@ int try_online_node(int nid)
- 
- 	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
- 		mutex_lock(&zonelists_mutex);
--		build_all_zonelists(NULL, NULL);
-+		build_all_zonelists(NULL);
- 		mutex_unlock(&zonelists_mutex);
- 	}
- 
-@@ -1710,7 +1710,7 @@ repeat:
- 	if (!populated_zone(zone)) {
- 		zone_pcp_reset(zone);
- 		mutex_lock(&zonelists_mutex);
--		build_all_zonelists(NULL, NULL);
-+		build_all_zonelists(NULL);
- 		mutex_unlock(&zonelists_mutex);
- 	} else
- 		zone_pcp_update(zone);
-diff -puN mm/page_alloc.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists
-+++ a/mm/page_alloc.c
-@@ -5065,7 +5065,6 @@ static void build_zonelists(pg_data_t *p
- static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch);
- static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
- static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
--static void setup_zone_pageset(struct zone *zone);
- 
- /*
-  * Global mutex to protect against size modification of zonelists
-@@ -5145,20 +5144,14 @@ build_all_zonelists_init(void)
-  * Called with zonelists_mutex held always
-  * unless system_state == SYSTEM_BOOTING.
-  *
-- * __ref due to (1) call of __meminit annotated setup_zone_pageset
-- * [we're only called with non-NULL zone through __meminit paths] and
-- * (2) call of __init annotated helper build_all_zonelists_init
-+ * __ref due to call of __init annotated helper build_all_zonelists_init
-  * [protected by SYSTEM_BOOTING].
-  */
--void __ref build_all_zonelists(pg_data_t *pgdat, struct zone *zone)
-+void __ref build_all_zonelists(pg_data_t *pgdat)
+ static int __parse_numa_zonelist_order(char *s)
  {
+-	if (*s == 'd' || *s == 'D') {
+-		user_zonelist_order = ZONELIST_ORDER_DEFAULT;
+-	} else if (*s == 'n' || *s == 'N') {
+-		user_zonelist_order = ZONELIST_ORDER_NODE;
+-	} else if (*s == 'z' || *s == 'Z') {
+-		user_zonelist_order = ZONELIST_ORDER_ZONE;
+-	} else {
+-		pr_warn("Ignoring invalid numa_zonelist_order value:  %s\n", s);
++	/*
++	 * We used to support different zonlists modes but they turned
++	 * out to be just not useful. Let's keep the warning in place
++	 * if somebody still use the cmd line parameter so that we do
++	 * not fail it silently
++	 */
++	if (!(*s == 'd' || *s == 'D' || *s == 'n' || *s == 'N')) {
++		pr_warn("Ignoring unsupported numa_zonelist_order value:  %s\n", s);
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+@@ -4844,16 +4810,10 @@ static int __parse_numa_zonelist_order(c
+ 
+ static __init int setup_numa_zonelist_order(char *s)
+ {
+-	int ret;
+-
+ 	if (!s)
+ 		return 0;
+ 
+-	ret = __parse_numa_zonelist_order(s);
+-	if (ret == 0)
+-		strlcpy(numa_zonelist_order, s, NUMA_ZONELIST_ORDER_LEN);
+-
+-	return ret;
++	return __parse_numa_zonelist_order(s);
+ }
+ early_param("numa_zonelist_order", setup_numa_zonelist_order);
+ 
+@@ -4864,40 +4824,22 @@ int numa_zonelist_order_handler(struct c
+ 		void __user *buffer, size_t *length,
+ 		loff_t *ppos)
+ {
+-	char saved_string[NUMA_ZONELIST_ORDER_LEN];
++	char *str;
+ 	int ret;
+-	static DEFINE_MUTEX(zl_order_mutex);
+ 
+-	mutex_lock(&zl_order_mutex);
+-	if (write) {
+-		if (strlen((char *)table->data) >= NUMA_ZONELIST_ORDER_LEN) {
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-		strcpy(saved_string, (char *)table->data);
++	if (!write) {
++		int len = sizeof("Node");
++		if (copy_to_user(buffer, "Node", len))
++			return -EFAULT;
++		return len;
+ 	}
+-	ret = proc_dostring(table, write, buffer, length, ppos);
+-	if (ret)
+-		goto out;
+-	if (write) {
+-		int oldval = user_zonelist_order;
+-
+-		ret = __parse_numa_zonelist_order((char *)table->data);
+-		if (ret) {
+-			/*
+-			 * bogus value.  restore saved string
+-			 */
+-			strncpy((char *)table->data, saved_string,
+-				NUMA_ZONELIST_ORDER_LEN);
+-			user_zonelist_order = oldval;
+-		} else if (oldval != user_zonelist_order) {
+-			mutex_lock(&zonelists_mutex);
+-			build_all_zonelists(NULL, NULL);
+-			mutex_unlock(&zonelists_mutex);
+-		}
+-	}
+-out:
+-	mutex_unlock(&zl_order_mutex);
++
++	str = memdup_user_nul(buffer, 16);
++	if (IS_ERR(str))
++		return PTR_ERR(str);
++
++	ret = __parse_numa_zonelist_order(str);
++	kfree(str);
+ 	return ret;
+ }
+ 
+@@ -5006,70 +4948,12 @@ static void build_thisnode_zonelists(pg_
+  */
+ static int node_order[MAX_NUMNODES];
+ 
+-static void build_zonelists_in_zone_order(pg_data_t *pgdat, int nr_nodes)
+-{
+-	int pos, j, node;
+-	int zone_type;		/* needs to be signed */
+-	struct zone *z;
+-	struct zonelist *zonelist;
+-
+-	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
+-	pos = 0;
+-	for (zone_type = MAX_NR_ZONES - 1; zone_type >= 0; zone_type--) {
+-		for (j = 0; j < nr_nodes; j++) {
+-			node = node_order[j];
+-			z = &NODE_DATA(node)->node_zones[zone_type];
+-			if (managed_zone(z)) {
+-				zoneref_set_zone(z,
+-					&zonelist->_zonerefs[pos++]);
+-				check_highest_zone(zone_type);
+-			}
+-		}
+-	}
+-	zonelist->_zonerefs[pos].zone = NULL;
+-	zonelist->_zonerefs[pos].zone_idx = 0;
+-}
+-
+-#if defined(CONFIG_64BIT)
+-/*
+- * Devices that require DMA32/DMA are relatively rare and do not justify a
+- * penalty to every machine in case the specialised case applies. Default
+- * to Node-ordering on 64-bit NUMA machines
+- */
+-static int default_zonelist_order(void)
+-{
+-	return ZONELIST_ORDER_NODE;
+-}
+-#else
+-/*
+- * On 32-bit, the Normal zone needs to be preserved for allocations accessible
+- * by the kernel. If processes running on node 0 deplete the low memory zone
+- * then reclaim will occur more frequency increasing stalls and potentially
+- * be easier to OOM if a large percentage of the zone is under writeback or
+- * dirty. The problem is significantly worse if CONFIG_HIGHPTE is not set.
+- * Hence, default to zone ordering on 32-bit.
+- */
+-static int default_zonelist_order(void)
+-{
+-	return ZONELIST_ORDER_ZONE;
+-}
+-#endif /* CONFIG_64BIT */
+-
+-static void set_zonelist_order(void)
+-{
+-	if (user_zonelist_order == ZONELIST_ORDER_DEFAULT)
+-		current_zonelist_order = default_zonelist_order();
+-	else
+-		current_zonelist_order = user_zonelist_order;
+-}
+-
+ static void build_zonelists(pg_data_t *pgdat)
+ {
+ 	int i, node, load;
+ 	nodemask_t used_mask;
+ 	int local_node, prev_node;
+ 	struct zonelist *zonelist;
+-	unsigned int order = current_zonelist_order;
+ 
+ 	/* initialize zonelists */
+ 	for (i = 0; i < MAX_ZONELISTS; i++) {
+@@ -5099,15 +4983,7 @@ static void build_zonelists(pg_data_t *p
+ 
+ 		prev_node = node;
+ 		load--;
+-		if (order == ZONELIST_ORDER_NODE)
+-			build_zonelists_in_node_order(pgdat, node);
+-		else
+-			node_order[i++] = node;	/* remember order */
+-	}
+-
+-	if (order == ZONELIST_ORDER_ZONE) {
+-		/* calculate node order -- i.e., DMA last! */
+-		build_zonelists_in_zone_order(pgdat, i);
++		build_zonelists_in_node_order(pgdat, node);
+ 	}
+ 
+ 	build_thisnode_zonelists(pgdat);
+@@ -5135,11 +5011,6 @@ static void setup_min_unmapped_ratio(voi
+ static void setup_min_slab_ratio(void);
+ #else	/* CONFIG_NUMA */
+ 
+-static void set_zonelist_order(void)
+-{
+-	current_zonelist_order = ZONELIST_ORDER_ZONE;
+-}
+-
+ static void build_zonelists(pg_data_t *pgdat)
+ {
+ 	int node, local_node;
+@@ -5279,8 +5150,6 @@ build_all_zonelists_init(void)
+  */
+ void __ref build_all_zonelists(pg_data_t *pgdat, struct zone *zone)
+ {
+-	set_zonelist_order();
+-
  	if (system_state == SYSTEM_BOOTING) {
  		build_all_zonelists_init();
  	} else {
--#ifdef CONFIG_MEMORY_HOTPLUG
--		if (zone)
--			setup_zone_pageset(zone);
--#endif
- 		/* we have to stop all cpus to guarantee there is no user
- 		   of zonelist */
- 		stop_machine_cpuslocked(__build_all_zonelists, pgdat, NULL);
-@@ -5432,7 +5425,7 @@ static void __meminit zone_pageset_init(
- 	pageset_set_high_and_batch(zone, pcp);
- }
+@@ -5306,9 +5175,8 @@ void __ref build_all_zonelists(pg_data_t
+ 	else
+ 		page_group_by_mobility_disabled = 0;
  
--static void __meminit setup_zone_pageset(struct zone *zone)
-+void __meminit setup_zone_pageset(struct zone *zone)
- {
- 	int cpu;
- 	zone->pageset = alloc_percpu(struct per_cpu_pageset);
+-	pr_info("Built %i zonelists in %s order, mobility grouping %s.  Total pages: %ld\n",
++	pr_info("Built %i zonelists, mobility grouping %s.  Total pages: %ld\n",
+ 		nr_online_nodes,
+-		zonelist_order_name[current_zonelist_order],
+ 		page_group_by_mobility_disabled ? "off" : "on",
+ 		vm_total_pages);
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
