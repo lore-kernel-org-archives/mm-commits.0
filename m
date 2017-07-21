@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_ext-move-page_ext_init-after-page_alloc_init_late.patch added to -mm tree
-Date: Fri, 21 Jul 2017 13:07:31 -0700
-Message-ID: <59725f03.mf5dcStJU8I7OEdC%akpm@linux-foundation.org>
+Subject: + mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
+ added to -mm tree
+Date: Fri, 21 Jul 2017 13:07:29 -0700
+Message-ID: <59725f01.c6zFTaFYPRjiFopD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54974 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752780AbdGUUHc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 16:07:32 -0400
+        with ESMTP id S1752780AbdGUUHa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 16:07:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, vinmenon@codeaurora.org, yang.shi@linaro.org, zhongjiang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_ext: move page_ext_init() after page_alloc_init_late()
+     Subject: mm, page_owner: don't grab zone->lock for init_pages_in_zone()
 has been added to the -mm tree.  Its filename is
-     mm-page_ext-move-page_ext_init-after-page_alloc_init_late.patch
+     mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ext-move-page_ext_init-after-page_alloc_init_late.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ext-move-page_ext_init-after-page_alloc_init_late.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_ext: move page_ext_init() after page_alloc_init_late()
+Subject: mm, page_owner: don't grab zone->lock for init_pages_in_zone()
 
-Commit b8f1a75d61d8 ("mm: call page_ext_init() after all struct pages are
-initialized") has avoided a a NULL pointer dereference due to
-DEFERRED_STRUCT_PAGE_INIT clashing with page_ext, by calling
-page_ext_init() only after the deferred struct page init has finished. 
-Later commit fe53ca54270a ("mm: use early_pfn_to_nid in page_ext_init")
-avoided the underlying issue differently and moved the page_ext_init()
-call back to where it was before.
+init_pages_in_zone() is run under zone->lock, which means a long lock time
+and disabled interrupts on large machines.  This is currently not an issue
+since it runs early in boot, but a later patch will change that.  However,
+like other pfn scanners, we don't actually need zone->lock even when other
+cpus are running.  The only potentially dangerous operation here is
+reading bogus buddy page owner due to race, and we already know how to
+handle that.  The worse that can happen is that we skip some early
+allocated pages, which should not affect the debugging power of page_owner
+noticeably.
 
-However, there are two problems with the current code:
-
-- on very large machines, page_ext_init() may fail to allocate the
-  page_ext structures, because deferred struct page init hasn't yet
-  started, and the pre-inited part might be too small.  This has been
-  observed with a 3TB machine with page_owner=on.  Although it was an
-  older kernel where page_owner hasn't yet been converted to stack depot,
-  thus page_ext was larger, the fundamental problem is still in mainline.
-
-- page_owner's init_pages_in_zone() is called before deferred struct
-  page init has started, so it will encounter unitialized struct pages. 
-  This currently happens to cause no harm, because the memmap array is are
-  pre-zeroed on allocation and thus the "if (page_zone(page) != zone)"
-  check is negative, but that pre-zeroing guarantee might change soon.
-
-The second problem could be also solved by limiting init_page_in_zone() by
-pgdat->first_deferred_pfn, but fixing the first issue would be more
-problematic.  So this patch again moves page_ext_init() to wait for
-deferred struct page init to finish.  This has some performance
-implications for boot time, which should be acceptable when enabling
-debugging functionality.  We however keep the benefits of parallel
-initialization (one kthread per node) so it's better than e.g.  disabling
-DEFERRED_STRUCT_PAGE_INIT completely when page_ext is being used.
-
-This effectively reverts fe53ca54270a757f ("mm: use early_pfn_to_nid in
-page_ext_init").
-
-Link: http://lkml.kernel.org/r/20170720134029.25268-5-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20170720134029.25268-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -88,45 +64,57 @@ Cc: zhong jiang <zhongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c   |    3 ++-
- mm/page_ext.c |    4 +---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ mm/page_owner.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN init/main.c~mm-page_ext-move-page_ext_init-after-page_alloc_init_late init/main.c
---- a/init/main.c~mm-page_ext-move-page_ext_init-after-page_alloc_init_late
-+++ a/init/main.c
-@@ -650,7 +650,6 @@ asmlinkage __visible void __init start_k
- 		initrd_start = 0;
- 	}
- #endif
--	page_ext_init();
- 	debug_objects_mem_init();
- 	kmemleak_init();
- 	setup_per_cpu_pageset();
-@@ -1053,6 +1052,8 @@ static noinline void __init kernel_init_
- 	sched_init_smp();
- 
- 	page_alloc_init_late();
-+	/* Initialize page ext after all struct pages are initializaed */
-+	page_ext_init();
- 
- 	do_basic_setup();
- 
-diff -puN mm/page_ext.c~mm-page_ext-move-page_ext_init-after-page_alloc_init_late mm/page_ext.c
---- a/mm/page_ext.c~mm-page_ext-move-page_ext_init-after-page_alloc_init_late
-+++ a/mm/page_ext.c
-@@ -399,10 +399,8 @@ void __init page_ext_init(void)
- 			 * We know some arch can have a nodes layout such as
- 			 * -------------pfn-------------->
- 			 * N0 | N1 | N2 | N0 | N1 | N2|....
--			 *
--			 * Take into account DEFERRED_STRUCT_PAGE_INIT.
- 			 */
--			if (early_pfn_to_nid(pfn) != nid)
-+			if (pfn_to_nid(pfn) != nid)
+diff -puN mm/page_owner.c~mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone
++++ a/mm/page_owner.c
+@@ -567,11 +567,17 @@ static void init_pages_in_zone(pg_data_t
  				continue;
- 			if (init_section_page_ext(pfn, nid))
- 				goto oom;
+ 
+ 			/*
+-			 * We are safe to check buddy flag and order, because
+-			 * this is init stage and only single thread runs.
++			 * To avoid having to grab zone->lock, be a little
++			 * careful when reading buddy page order. The only
++			 * danger is that we skip too much and potentially miss
++			 * some early allocated pages, which is better than
++			 * heavy lock contention.
+ 			 */
+ 			if (PageBuddy(page)) {
+-				pfn += (1UL << page_order(page)) - 1;
++				unsigned long order = page_order_unsafe(page);
++
++				if (order > 0 && order < MAX_ORDER)
++					pfn += (1UL << order) - 1;
+ 				continue;
+ 			}
+ 
+@@ -590,6 +596,7 @@ static void init_pages_in_zone(pg_data_t
+ 			__set_page_owner_init(page_ext, init_handle);
+ 			count++;
+ 		}
++		cond_resched();
+ 	}
+ 
+ 	pr_info("Node %d, zone %8s: page owner found early allocated %lu pages\n",
+@@ -600,15 +607,12 @@ static void init_zones_in_node(pg_data_t
+ {
+ 	struct zone *zone;
+ 	struct zone *node_zones = pgdat->node_zones;
+-	unsigned long flags;
+ 
+ 	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
+ 		if (!populated_zone(zone))
+ 			continue;
+ 
+-		spin_lock_irqsave(&zone->lock, flags);
+ 		init_pages_in_zone(pgdat, zone);
+-		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
