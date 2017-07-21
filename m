@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
- added to -mm tree
-Date: Fri, 21 Jul 2017 12:12:21 -0700
-Message-ID: <59725215.l2c7U73NwGYlqZiJ%akpm@linux-foundation.org>
+Subject: + mm-page_owner-make-init_pages_in_zone-faster.patch added to -mm tree
+Date: Fri, 21 Jul 2017 13:07:25 -0700
+Message-ID: <59725efd.ytgnmESTYJXiG4Ro%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54932 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754431AbdGUTMW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 15:12:22 -0400
+        with ESMTP id S1752780AbdGUUH0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 16:07:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, vinmenon@codeaurora.org, yang.shi@linaro.org, zhongjiang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, sparse, page_ext: drop ugly N_HIGH_MEMORY branches for allocations
+     Subject: mm, page_owner: make init_pages_in_zone() faster
 has been added to the -mm tree.  Its filename is
-     mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+     mm-page_owner-make-init_pages_in_zone-faster.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-make-init_pages_in_zone-faster.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-make-init_pages_in_zone-faster.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,107 +38,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, sparse, page_ext: drop ugly N_HIGH_MEMORY branches for allocations
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_owner: make init_pages_in_zone() faster
 
-f52407ce2dea ("memory hotplug: alloc page from other node in memory
-online") has introduced N_HIGH_MEMORY checks to only use NUMA aware
-allocations when there is some memory present because the respective node
-might not have any memory yet at the time and so it could fail or even
-OOM.  Things have changed since then though.  Zonelists are now always
-initialized before we do any allocations even for hotplug (see
-959ecc48fc75 ("mm/memory_hotplug.c: fix building of node hotplug
-zonelist")).  Therefore these checks are not really needed.  In fact
-caller of the allocator should never care about whether the node is
-populated because that might change at any time.
+In init_pages_in_zone() we currently use the generic set_page_owner()
+function to initialize page_owner info for early allocated pages.  This
+means we needlessly do lookup_page_ext() twice for each page, and more
+importantly save_stack(), which has to unwind the stack and find the
+corresponding stack depot handle.  Because the stack is always the same
+for the initialization, unwind it once in init_pages_in_zone() and reuse
+the handle.  Also avoid the repeated lookup_page_ext().
 
-Link: http://lkml.kernel.org/r/20170721143915.14161-10-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Toshi Kani <toshi.kani@hpe.com>
+This can significantly reduce boot times with page_owner=on on large
+machines, especially for kernels built without frame pointer, where the
+stack unwinding is noticeably slower.
+
+Link: http://lkml.kernel.org/r/20170720134029.25268-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: zhong jiang <zhongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c       |    5 +----
- mm/sparse-vmemmap.c |   11 +++--------
- mm/sparse.c         |   10 +++-------
- 3 files changed, 7 insertions(+), 19 deletions(-)
+ mm/page_owner.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_ext.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations mm/page_ext.c
---- a/mm/page_ext.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations
-+++ a/mm/page_ext.c
-@@ -222,10 +222,7 @@ static void *__meminit alloc_page_ext(si
- 		return addr;
+diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster
++++ a/mm/page_owner.c
+@@ -183,6 +183,20 @@ noinline void __set_page_owner(struct pa
+ 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ }
+ 
++static void __set_page_owner_init(struct page_ext *page_ext,
++					depot_stack_handle_t handle)
++{
++	struct page_owner *page_owner;
++
++	page_owner = get_page_owner(page_ext);
++	page_owner->handle = handle;
++	page_owner->order = 0;
++	page_owner->gfp_mask = 0;
++	page_owner->last_migrate_reason = -1;
++
++	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
++}
++
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
+@@ -520,10 +534,13 @@ static void init_pages_in_zone(pg_data_t
+ 	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
+ 	unsigned long end_pfn = pfn + zone->spanned_pages;
+ 	unsigned long count = 0;
++	depot_stack_handle_t init_handle;
+ 
+ 	/* Scan block by block. First and last block may be incomplete */
+ 	pfn = zone->zone_start_pfn;
+ 
++	init_handle = save_stack(0);
++
+ 	/*
+ 	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
+ 	 * a zone boundary, it will be double counted between zones. This does
+@@ -570,7 +587,7 @@ static void init_pages_in_zone(pg_data_t
+ 				continue;
+ 
+ 			/* Found early allocated page */
+-			set_page_owner(page, 0, 0);
++			__set_page_owner_init(page_ext, init_handle);
+ 			count++;
+ 		}
  	}
- 
--	if (node_state(nid, N_HIGH_MEMORY))
--		addr = vzalloc_node(size, nid);
--	else
--		addr = vzalloc(size);
-+	addr = vzalloc_node(size, nid);
- 
- 	return addr;
- }
-diff -puN mm/sparse-vmemmap.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations
-+++ a/mm/sparse-vmemmap.c
-@@ -54,14 +54,9 @@ void * __meminit vmemmap_alloc_block(uns
- 	if (slab_is_available()) {
- 		struct page *page;
- 
--		if (node_state(node, N_HIGH_MEMORY))
--			page = alloc_pages_node(
--				node, GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
--				get_order(size));
--		else
--			page = alloc_pages(
--				GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
--				get_order(size));
-+		page = alloc_pages_node(node,
-+			GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
-+			get_order(size));
- 		if (page)
- 			return page_address(page);
- 		return NULL;
-diff -puN mm/sparse.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations mm/sparse.c
---- a/mm/sparse.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations
-+++ a/mm/sparse.c
-@@ -65,14 +65,10 @@ static noinline struct mem_section __ref
- 	unsigned long array_size = SECTIONS_PER_ROOT *
- 				   sizeof(struct mem_section);
- 
--	if (slab_is_available()) {
--		if (node_state(nid, N_HIGH_MEMORY))
--			section = kzalloc_node(array_size, GFP_KERNEL, nid);
--		else
--			section = kzalloc(array_size, GFP_KERNEL);
--	} else {
-+	if (slab_is_available())
-+		section = kzalloc_node(array_size, GFP_KERNEL, nid);
-+	else
- 		section = memblock_virt_alloc_node(array_size, nid);
--	}
- 
- 	return section;
- }
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
-mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
-mm-memory_hotplug-remove-zone-restrictions.patch
-mm-page_alloc-rip-out-zonelist_order_zone.patch
-mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
-mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
-mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
-mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
-mm-page_alloc-simplify-zonelist-initialization.patch
-mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
-mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
-mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-page_owner-make-init_pages_in_zone-faster.patch
+mm-page_ext-periodically-reschedule-during-page_ext_init.patch
+mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
+mm-page_ext-move-page_ext_init-after-page_alloc_init_late.patch
 
