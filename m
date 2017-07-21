@@ -1,59 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- kbuild-disable-wformat-truncation-warnings-by-default.patch removed from
- -mm tree
-Date: Fri, 21 Jul 2017 14:57:54 -0700
-Message-ID: <597278e2.rXNN82jTNf57dpwv%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ platform-x86-alienware-wmi-fix-format-string-overflow-warning.patch removed from -mm tree
+Date: Fri, 21 Jul 2017 15:00:04 -0700
+Message-ID: <59727964.2il7HmVBodifQJUR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36226 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752811AbdGUV5y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 17:57:54 -0400
+        with ESMTP id S1752780AbdGUWAF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 18:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: disable -Wformat-truncation warnings by default
+     Subject: platform/x86: alienware-wmi: fix format string overflow warning
 has been removed from the -mm tree.  Its filename was
-     kbuild-disable-wformat-truncation-warnings-by-default.patch
+     platform-x86-alienware-wmi-fix-format-string-overflow-warning.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: kbuild: disable -Wformat-truncation warnings by default
+Subject: platform/x86: alienware-wmi: fix format string overflow warning
 
-With x86 allmodconfig, we currently get 233 -Wformat-truncation warnings,
-which makes the entire warnings rather useless.
+gcc points out a possible format string overflow for a large value of 'zone':
 
-This turns off the warning by default, unless we specify W=1 or higher
+drivers/platform/x86/alienware-wmi.c: In function 'alienware_wmi_init':
+drivers/platform/x86/alienware-wmi.c:461:24: error: '%02X' directive writing between 2 and 8 bytes into a region of size 6 [-Werror=format-overflow=]
+   sprintf(buffer, "zone%02X", i);
+                        ^~~~
+drivers/platform/x86/alienware-wmi.c:461:19: note: directive argument in the range [0, 2147483646]
+   sprintf(buffer, "zone%02X", i);
+                   ^~~~~~~~~~
+drivers/platform/x86/alienware-wmi.c:461:3: note: 'sprintf' output between 7 and 13 bytes into a destination of size 10
 
-Link: http://lkml.kernel.org/r/20170714120720.906842-2-arnd@arndb.de
+While the zone should never be that large, it's easy to make the
+buffer a few bytes longer so gcc can prove this to be safe.
+
+Link: http://lkml.kernel.org/r/20170714120720.906842-18-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.extrawarn |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/platform/x86/alienware-wmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/Makefile.extrawarn~kbuild-disable-wformat-truncation-warnings-by-default scripts/Makefile.extrawarn
---- a/scripts/Makefile.extrawarn~kbuild-disable-wformat-truncation-warnings-by-default
-+++ a/scripts/Makefile.extrawarn
-@@ -67,5 +67,8 @@ KBUILD_CFLAGS += $(call cc-disable-warni
- KBUILD_CFLAGS += $(call cc-disable-warning, sign-compare)
- KBUILD_CFLAGS += $(call cc-disable-warning, format-zero-length)
- KBUILD_CFLAGS += $(call cc-disable-warning, uninitialized)
-+else
-+# noisy gcc-7 warnings
-+KBUILD_CFLAGS += $(call cc-option,-Wformat-truncation=0)
- endif
- endif
+diff -puN drivers/platform/x86/alienware-wmi.c~platform-x86-alienware-wmi-fix-format-string-overflow-warning drivers/platform/x86/alienware-wmi.c
+--- a/drivers/platform/x86/alienware-wmi.c~platform-x86-alienware-wmi-fix-format-string-overflow-warning
++++ a/drivers/platform/x86/alienware-wmi.c
+@@ -421,7 +421,7 @@ static DEVICE_ATTR(lighting_control_stat
+ static int alienware_zone_init(struct platform_device *dev)
+ {
+ 	int i;
+-	char buffer[10];
++	char buffer[13];
+ 	char *name;
+ 
+ 	if (interface == WMAX) {
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
@@ -66,7 +74,6 @@ scsi-gdth-avoid-buffer-overflow-warning.patch
 scsi-fnic-fix-format-string-overflow-warning.patch
 scsi-gdth-increase-the-procfs-event-buffer-size.patch
 hwmon-applesmc-fix-format-string-overflow.patch
-platform-x86-alienware-wmi-fix-format-string-overflow-warning.patch
 block-dac960-shut-up-format-overflow-warning.patch
 fscache-fix-fscache_objlist_show-format-processing.patch
 ib-mlx4-fix-sprintf-format-warning.patch
