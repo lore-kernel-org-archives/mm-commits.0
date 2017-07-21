@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch added to -mm tree
-Date: Fri, 21 Jul 2017 14:43:32 -0700
-Message-ID: <59727584.diRimdfw3KQPmMM5%akpm@linux-foundation.org>
+Subject: + m32r-defconfig-cleanup-from-old-kconfig-options.patch added to
+ -mm tree
+Date: Fri, 21 Jul 2017 14:57:10 -0700
+Message-ID: <597278b6.bMPAzJo/JHejIEMH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36002 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752091AbdGUVnd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 17:43:33 -0400
+        with ESMTP id S1752780AbdGUV5L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jul 2017 17:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aarcange@redhat.com, aaron.lu@intel.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: krzk@kernel.org, sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: fail map duplication attempts for private mappings
+     Subject: m32r: defconfig: cleanup from old Kconfig options
 has been added to the -mm tree.  Its filename is
-     mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
+     m32r-defconfig-cleanup-from-old-kconfig-options.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m32r-defconfig-cleanup-from-old-kconfig-options.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-defconfig-cleanup-from-old-kconfig-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,313 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/mremap: fail map duplication attempts for private mappings
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: m32r: defconfig: cleanup from old Kconfig options
 
-mremap will attempt to create a 'duplicate' mapping if old_size == 0 is
-specified.  In the case of private mappings, mremap will actually create a
-fresh separate private mapping unrelated to the original.  This does not
-fit with the design semantics of mremap as the intention is to create a
-new mapping based on the original.
+Remove old, dead Kconfig options (in order appearing in this commit):
+ - EXPERIMENTAL is gone since v3.9;
+ - IP_NF_QUEUE: commit 3dd6664fac7e ("netfilter: remove unused "config
+   IP_NF_QUEUE"");
+ - IP_NF_TARGET_ULOG: commit d4da843e6fad ("netfilter: kill remnants of
+   ulog targets");
+ - VIDEO_OUTPUT_CONTROL: commit f167a64e9d67 ("video / output: Drop
+   display output class support");
+ - MTD_PARTITIONS: commit 6a8a98b22b10 ("mtd: kill
+   CONFIG_MTD_PARTITIONS");
+ - MTD_CHAR: commit 660685d9d1b4 ("mtd: merge mtdchar module with
+   mtdcore");
+ - MTD_CONCAT: commit f53fdebcc3e1 ("mtd: drop MTD_CONCAT from Kconfig
+   entirely");
 
-Therefore, return EINVAL in the case where an attempt is made to duplicate
-a private mapping.  Also, print a warning message (once) if such an
-attempt is made.
-
-Link: http://lkml.kernel.org/r/cb9d9f6a-7095-582f-15a5-62643d65c736@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1500527065-4575-1-git-send-email-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Acked-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/m32r/configs/m32104ut_defconfig     |    4 ----
+ arch/m32r/configs/m32700ut.smp_defconfig |    3 ---
+ arch/m32r/configs/m32700ut.up_defconfig  |    3 ---
+ arch/m32r/configs/mappi.nommu_defconfig  |    2 --
+ arch/m32r/configs/mappi.smp_defconfig    |    4 ----
+ arch/m32r/configs/mappi.up_defconfig     |    4 ----
+ arch/m32r/configs/mappi2.opsp_defconfig  |    2 --
+ arch/m32r/configs/mappi2.vdec2_defconfig |    2 --
+ arch/m32r/configs/mappi3.smp_defconfig   |    4 ----
+ arch/m32r/configs/oaks32r_defconfig      |    2 --
+ arch/m32r/configs/opsput_defconfig       |    2 --
+ arch/m32r/configs/usrv_defconfig         |    5 -----
+ 12 files changed, 37 deletions(-)
 
-diff -puN mm/mremap.c~mm-mremap-fail-map-duplication-attempts-for-private-mappings mm/mremap.c
---- a/mm/mremap.c~mm-mremap-fail-map-duplication-attempts-for-private-mappings
-+++ a/mm/mremap.c
-@@ -384,6 +384,19 @@ static struct vm_area_struct *vma_to_res
- 	if (!vma || vma->vm_start > addr)
- 		return ERR_PTR(-EFAULT);
- 
-+	/*
-+	 * !old_len is a special case where an attempt is made to 'duplicate'
-+	 * a mapping.  This makes no sense for private mappings as it will
-+	 * instead create a fresh/new mapping unrelated to the original.  This
-+	 * is contrary to the basic idea of mremap which creates new mappings
-+	 * based on the original.  There are no known use cases for this
-+	 * behavior.  As a result, fail such attempts.
-+	 */
-+	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
-+		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n", current->comm, current->pid);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	if (is_vm_hugetlb_page(vma))
- 		return ERR_PTR(-EINVAL);
- 
+diff -puN arch/m32r/configs/m32104ut_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/m32104ut_defconfig
+--- a/arch/m32r/configs/m32104ut_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/m32104ut_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -40,7 +39,6 @@ CONFIG_NETFILTER_XT_MATCH_REALM=m
+ CONFIG_NETFILTER_XT_MATCH_SCTP=m
+ CONFIG_NETFILTER_XT_MATCH_STRING=m
+ CONFIG_NETFILTER_XT_MATCH_TCPMSS=m
+-CONFIG_IP_NF_QUEUE=m
+ CONFIG_IP_NF_IPTABLES=m
+ CONFIG_IP_NF_MATCH_ADDRTYPE=m
+ CONFIG_IP_NF_MATCH_ECN=m
+@@ -48,7 +46,6 @@ CONFIG_IP_NF_MATCH_TTL=m
+ CONFIG_IP_NF_FILTER=m
+ CONFIG_IP_NF_TARGET_REJECT=m
+ CONFIG_IP_NF_TARGET_LOG=m
+-CONFIG_IP_NF_TARGET_ULOG=m
+ CONFIG_IP_NF_MANGLE=m
+ CONFIG_IP_NF_TARGET_ECN=m
+ CONFIG_IP_NF_TARGET_TTL=m
+@@ -106,7 +103,6 @@ CONFIG_SENSORS_SMSC47M1=m
+ CONFIG_SENSORS_W83781D=m
+ CONFIG_SENSORS_W83L785TS=m
+ CONFIG_SENSORS_W83627HF=m
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_POSIX_ACL=y
+diff -puN arch/m32r/configs/m32700ut.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/m32700ut.smp_defconfig
+--- a/arch/m32r/configs/m32700ut.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/m32700ut.smp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -30,7 +29,6 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_MTD_CFI=m
+@@ -63,7 +61,6 @@ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_SERIAL_M32R_PLDSIO=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_DS1302=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_S1D13XXX=y
+diff -puN arch/m32r/configs/m32700ut.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/m32700ut.up_defconfig
+--- a/arch/m32r/configs/m32700ut.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/m32700ut.up_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -29,7 +28,6 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_MTD_CFI=m
+@@ -62,7 +60,6 @@ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_SERIAL_M32R_PLDSIO=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_DS1302=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_S1D13XXX=y
+diff -puN arch/m32r/configs/mappi.nommu_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi.nommu_defconfig
+--- a/arch/m32r/configs/mappi.nommu_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi.nommu_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+ CONFIG_LOG_BUF_SHIFT=14
+@@ -39,7 +38,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_NFS_FS=y
+diff -puN arch/m32r/configs/mappi.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi.smp_defconfig
+--- a/arch/m32r/configs/mappi.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi.smp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -31,9 +30,7 @@ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ # CONFIG_STANDALONE is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+@@ -50,7 +47,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=y
+diff -puN arch/m32r/configs/mappi.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi.up_defconfig
+--- a/arch/m32r/configs/mappi.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi.up_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -29,9 +28,7 @@ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ # CONFIG_STANDALONE is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+@@ -48,7 +45,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=y
+diff -puN arch/m32r/configs/mappi2.opsp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi2.opsp_defconfig
+--- a/arch/m32r/configs/mappi2.opsp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi2.opsp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -50,7 +49,6 @@ CONFIG_SMC91X=y
+ # CONFIG_SERIO_I8042 is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+diff -puN arch/m32r/configs/mappi2.vdec2_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi2.vdec2_defconfig
+--- a/arch/m32r/configs/mappi2.vdec2_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi2.vdec2_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -49,7 +48,6 @@ CONFIG_SMC91X=y
+ # CONFIG_SERIO_I8042 is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+diff -puN arch/m32r/configs/mappi3.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi3.smp_defconfig
+--- a/arch/m32r/configs/mappi3.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi3.smp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -29,9 +28,7 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+@@ -50,7 +47,6 @@ CONFIG_SMC91X=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=y
+diff -puN arch/m32r/configs/oaks32r_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/oaks32r_defconfig
+--- a/arch/m32r/configs/oaks32r_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/oaks32r_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_LOG_BUF_SHIFT=14
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+@@ -37,7 +36,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+diff -puN arch/m32r/configs/opsput_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/opsput_defconfig
+--- a/arch/m32r/configs/opsput_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/opsput_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -46,7 +45,6 @@ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_SERIAL_M32R_PLDSIO=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_DS1302=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=m
+diff -puN arch/m32r/configs/usrv_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/usrv_defconfig
+--- a/arch/m32r/configs/usrv_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/usrv_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+ CONFIG_BSD_PROCESS_ACCT=y
+@@ -34,9 +33,6 @@ CONFIG_INET_ESP=y
+ CONFIG_INET_IPCOMP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_CONCAT=y
+-CONFIG_MTD_PARTITIONS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_MTD_CFI=y
+ CONFIG_MTD_CFI_ADV_OPTIONS=y
+@@ -62,7 +58,6 @@ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+ # CONFIG_SERIAL_M32R_SIO is not set
+ # CONFIG_HWMON is not set
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
-mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
+m32r-defconfig-cleanup-from-old-kconfig-options.patch
+mn10300-defconfig-cleanup-from-old-kconfig-options.patch
+sh-defconfig-cleanup-from-old-kconfig-options.patch
 
