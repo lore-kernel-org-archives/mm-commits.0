@@ -1,77 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- hwmon-applesmc-fix-format-string-overflow.patch removed from -mm tree
-Date: Mon, 24 Jul 2017 13:37:55 -0700
-Message-ID: <20170724203755.T9bCBny-3%akpm@linux-foundation.org>
+Subject: + kthread-fix-documentation-build-warning.patch added to -mm tree
+Date: Mon, 24 Jul 2017 15:34:48 -0700
+Message-ID: <59767608.auMOrzY0lNJLEUOB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51186 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754113AbdGXUh4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2017 16:37:56 -0400
+        with ESMTP id S1752785AbdGXWet (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2017 18:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mm-commits@vger.kernel.org
+To: corbet@lwn.net, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hwmon: applesmc: fix format string overflow
-has been removed from the -mm tree.  Its filename was
-     hwmon-applesmc-fix-format-string-overflow.patch
+     Subject: kthread: fix documentation build warning
+has been added to the -mm tree.  Its filename is
+     kthread-fix-documentation-build-warning.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kthread-fix-documentation-build-warning.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-fix-documentation-build-warning.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: hwmon: applesmc: fix format string overflow
+From: Jonathan Corbet <corbet@lwn.net>
+Subject: kthread: fix documentation build warning
 
-gcc-7 warns that the key might exceed five bytes for lage index
-values:
+The kerneldoc comment for kthread_create() had an incorrect argument name,
+leading to a warning in the docs build.  Correct it, and make one more
+small step toward a warning-free build.
 
-drivers/hwmon/applesmc.c: In function 'applesmc_show_fan_position':
-drivers/hwmon/applesmc.c:906:18: error: '%d' directive writing between 1 and 5 bytes into a region of size 4 [-Werror=format-overflow=]
-sprintf(newkey, FAN_ID_FMT, to_index(attr));
-                ^~~~~~~
-drivers/hwmon/applesmc.c:906:18: note: directive argument in the range [0, 65535]
-drivers/hwmon/applesmc.c:906:2: note: 'sprintf' output between 5 and 9 bytes into a destination of size 5
-
-As the key is required to be four characters plus trailing zero,
-we know that the index has to be small here. I'm using snprintf()
-to avoid the warning. This would truncate the string instead of
-overflowing.
-
-Link: http://lkml.kernel.org/r/20170714120720.906842-16-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/20170724135916.7f486c6f@lwn.net
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    2 +-
+ include/linux/kthread.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-fix-format-string-overflow drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-fix-format-string-overflow
-+++ a/drivers/hwmon/applesmc.c
-@@ -903,7 +903,7 @@ static ssize_t applesmc_show_fan_positio
- 	char newkey[5];
- 	u8 buffer[17];
- 
--	sprintf(newkey, FAN_ID_FMT, to_index(attr));
-+	snprintf(newkey, sizeof(newkey), FAN_ID_FMT, to_index(attr));
- 
- 	ret = applesmc_read_key(newkey, buffer, 16);
- 	buffer[16] = 0;
+diff -puN include/linux/kthread.h~kthread-fix-documentation-build-warning include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-fix-documentation-build-warning
++++ a/include/linux/kthread.h
+@@ -15,7 +15,7 @@ struct task_struct *kthread_create_on_no
+  * @threadfn: the function to run in the thread
+  * @data: data pointer for @threadfn()
+  * @namefmt: printf-style format string for the thread name
+- * @...: arguments for @namefmt.
++ * @arg...: arguments for @namefmt.
+  *
+  * This macro will create a kthread on the current node, leaving it in
+  * the stopped state.  This is just a helper for kthread_create_on_node();
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from corbet@lwn.net are
 
-kasan-avoid-wmaybe-uninitialized-warning.patch
-scsi-megaraid-fix-format-overflow-warning.patch
-scsi-mpt3sas-fix-format-overflow-warning.patch
-scsi-fusion-fix-string-overflow-warning.patch
-scsi-gdth-avoid-buffer-overflow-warning.patch
-scsi-fnic-fix-format-string-overflow-warning.patch
-scsi-gdth-increase-the-procfs-event-buffer-size.patch
-block-dac960-shut-up-format-overflow-warning.patch
-fscache-fix-fscache_objlist_show-format-processing.patch
-ib-mlx4-fix-sprintf-format-warning.patch
+kthread-fix-documentation-build-warning.patch
 
