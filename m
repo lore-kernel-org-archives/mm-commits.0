@@ -1,66 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- scsi-gdth-increase-the-procfs-event-buffer-size.patch removed from -mm tree
-Date: Tue, 25 Jul 2017 10:40:36 -0700
-Message-ID: <20170725174036.1NT8mxaCy%akpm@linux-foundation.org>
+Subject: [merged] scsi-gdth-avoid-buffer-overflow-warning.patch
+ removed from -mm tree
+Date: Tue, 25 Jul 2017 10:40:32 -0700
+Message-ID: <20170725174032.EOtBe_jwl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50532 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751755AbdGYRkh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 13:40:37 -0400
+        with ESMTP id S1751658AbdGYRkd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 13:40:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scsi: gdth: increase the procfs event buffer size
+     Subject: scsi: gdth: avoid buffer overflow warning
 has been removed from the -mm tree.  Its filename was
-     scsi-gdth-increase-the-procfs-event-buffer-size.patch
+     scsi-gdth-avoid-buffer-overflow-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: scsi: gdth: increase the procfs event buffer size
+Subject: scsi: gdth: avoid buffer overflow warning
 
-We print a 256 byte event string into a buffer that is only 161
-bytes long, this is clearly wrong:
+gcc notices that we would overflow the buffer for the
+inquiry of the product name if we have too many adapters:
 
-drivers/scsi/gdth_proc.c: In function 'gdth_show_info':
-drivers/scsi/gdth.c:3660:41: error: '%s' directive writing up to 255 bytes into a region of size between 141 and 150 [-Werror=format-overflow=]
-             sprintf(buffer,"Adapter %d: %s\n",
-                                         ^~
-/git/arm-soc/drivers/scsi/gdth.c:3660:13: note: 'sprintf' output between 13 and 277 bytes into a destination of size 161
-             sprintf(buffer,"Adapter %d: %s\n",
-             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                 dvr->eu.async.ionode,dvr->event_string);
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+drivers/scsi/gdth.c: In function 'gdth_next':
+drivers/scsi/gdth.c:2357:29: warning: 'sprintf' may write a terminating nul past the end of the destination [-Wformat-overflow=]
+         sprintf(inq.product,"Host Drive  #%02d",t);
+                             ^~~~~~~~~~~~~~~~~~~
+drivers/scsi/gdth.c:2357:9: note: 'sprintf' output between 16 and 17 bytes into a destination of size 16
+         sprintf(inq.product,"Host Drive  #%02d",t);
 
-gcc calculates that the worst case buffer size would be 277 bytes,
-so we can use that.
+This won't happen in practice, so just use snprintf to
+truncate the string.
 
-Link: http://lkml.kernel.org/r/20170714120720.906842-8-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170714120720.906842-6-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth_proc.c |    2 +-
+ drivers/scsi/gdth.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/gdth_proc.c~scsi-gdth-increase-the-procfs-event-buffer-size drivers/scsi/gdth_proc.c
---- a/drivers/scsi/gdth_proc.c~scsi-gdth-increase-the-procfs-event-buffer-size
-+++ a/drivers/scsi/gdth_proc.c
-@@ -147,7 +147,7 @@ int gdth_show_info(struct seq_file *m, s
- 
-     gdth_cmd_str *gdtcmd;
-     gdth_evt_str *estr;
--    char hrec[161];
-+    char hrec[277];
- 
-     char *buf;
-     gdth_dskstat_str *pds;
+diff -puN drivers/scsi/gdth.c~scsi-gdth-avoid-buffer-overflow-warning drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-gdth-avoid-buffer-overflow-warning
++++ a/drivers/scsi/gdth.c
+@@ -2354,7 +2354,7 @@ static int gdth_internal_cache_cmd(gdth_
+         inq.resp_aenc = 2;
+         inq.add_length= 32;
+         strcpy(inq.vendor,ha->oem_name);
+-        sprintf(inq.product,"Host Drive  #%02d",t);
++        snprintf(inq.product, sizeof(inq.product), "Host Drive  #%02d",t);
+         strcpy(inq.revision,"   ");
+         gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));
+         break;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
