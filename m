@@ -1,67 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-mpt3sas-fix-format-overflow-warning.patch
+Subject: [merged] scsi-fusion-fix-string-overflow-warning.patch
  removed from -mm tree
-Date: Tue, 25 Jul 2017 10:40:28 -0700
-Message-ID: <20170725174028.KBKT5komX%akpm@linux-foundation.org>
+Date: Tue, 25 Jul 2017 10:40:30 -0700
+Message-ID: <20170725174030.ukzwIOTjj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50526 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751534AbdGYRk3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 13:40:29 -0400
+        with ESMTP id S1751612AbdGYRkb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 13:40:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scsi: mpt3sas: fix format overflow warning
+     Subject: scsi: fusion: fix string overflow warning
 has been removed from the -mm tree.  Its filename was
-     scsi-mpt3sas-fix-format-overflow-warning.patch
+     scsi-fusion-fix-string-overflow-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: scsi: mpt3sas: fix format overflow warning
+Subject: scsi: fusion: fix string overflow warning
 
-We print the driver name into one string and then add and ID
-and copy it into a second string of the same length, at which
-point gcc complains about a possible overflow:
+gcc points out a theorerical string overflow:
 
-drivers/scsi/mpt3sas/mpt3sas_scsih.c: In function '_scsih_probe':
-drivers/scsi/mpt3sas/mpt3sas_scsih.c:8884:21: error: '_cm' directive writing 3 bytes into a region of size between 1 and 32 [-Werror=format-overflow=]
-printf(ioc->name, "%s_cm%d", ioc->driver_name, ioc->id);
-                  ^~~~~~~~~
-drivers/scsi/mpt3sas/mpt3sas_scsih.c:8884:21: note: directive argument in the range [0, 255]
-drivers/scsi/mpt3sas/mpt3sas_scsih.c:8884:2: note: 'sprintf' output between 5 and 38 bytes into a destination of size 32
-  sprintf(ioc->name, "%s_cm%d", ioc->driver_name, ioc->id);
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+drivers/message/fusion/mptbase.c: In function 'mpt_detach':
+drivers/message/fusion/mptbase.c:2103:17: error: '%s' directive writing up to 31 bytes into a region of size 28 [-Werror=format-overflow=]
+sprintf(pname, MPT_PROCFS_MPTBASEDIR "/%s/summary", ioc->name);
+               ^~~~~
+drivers/message/fusion/mptbase.c:2103:2: note: 'sprintf' output between 13 and 44 bytes into a destination of size 32
 
-Making the first string shorter is sufficient to avoid the
-warning here, as we know it can only contain either "mpt2sas"
-or "mpt3sas".
+We can simply double the size of the local buffer here to be on the
+safe side.
 
-Link: http://lkml.kernel.org/r/20170714120720.906842-4-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170714120720.906842-5-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt3sas/mpt3sas_base.h |    2 +-
+ drivers/message/fusion/mptbase.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/mpt3sas/mpt3sas_base.h~scsi-mpt3sas-fix-format-overflow-warning drivers/scsi/mpt3sas/mpt3sas_base.h
---- a/drivers/scsi/mpt3sas/mpt3sas_base.h~scsi-mpt3sas-fix-format-overflow-warning
-+++ a/drivers/scsi/mpt3sas/mpt3sas_base.h
-@@ -970,7 +970,7 @@ struct MPT3SAS_ADAPTER {
- 	u8		id;
- 	int		cpu_count;
- 	char		name[MPT_NAME_LENGTH];
--	char		driver_name[MPT_NAME_LENGTH];
-+	char		driver_name[MPT_NAME_LENGTH - 8];
- 	char		tmp_string[MPT_STRING_LENGTH];
- 	struct pci_dev	*pdev;
- 	Mpi2SystemInterfaceRegs_t __iomem *chip;
+diff -puN drivers/message/fusion/mptbase.c~scsi-fusion-fix-string-overflow-warning drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~scsi-fusion-fix-string-overflow-warning
++++ a/drivers/message/fusion/mptbase.c
+@@ -2079,7 +2079,7 @@ void
+ mpt_detach(struct pci_dev *pdev)
+ {
+ 	MPT_ADAPTER 	*ioc = pci_get_drvdata(pdev);
+-	char pname[32];
++	char pname[64];
+ 	u8 cb_idx;
+ 	unsigned long flags;
+ 	struct workqueue_struct *wq;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
