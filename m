@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-remove-dax-code-from-page_cache_tree_insert.patch added to
- -mm tree
-Date: Tue, 25 Jul 2017 15:04:40 -0700
-Message-ID: <5977c078.raWm2/5lDZA/wDhf%akpm@linux-foundation.org>
+Subject: + mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+ added to -mm tree
+Date: Tue, 25 Jul 2017 15:53:38 -0700
+Message-ID: <5977cbf2.cLYk4ulczkF0BRSr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59916 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750839AbdGYWEl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 18:04:41 -0400
+        with ESMTP id S1750896AbdGYWxj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 18:53:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, corbet@lwn.net, dan.j.williams@intel.com, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@redhat.com, rostedt@goodmis.org, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: remove DAX code from page_cache_tree_insert()
+     Subject: mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix
 has been added to the -mm tree.  Its filename is
-     dax-remove-dax-code-from-page_cache_tree_insert.patch
+     mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-remove-dax-code-from-page_cache_tree_insert.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-remove-dax-code-from-page_cache_tree_insert.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: remove DAX code from page_cache_tree_insert()
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix
 
-Now that we no longer insert struct page pointers in DAX radix trees we
-can remove the special casing for DAX in page_cache_tree_insert().  This
-also allows us to make dax_wake_mapping_entry_waiter() local to fs/dax.c,
-removing it from dax.h.
+"mm, vmscan: do not loop on too_many_isolated for ever" has added an
+interruptible sleep into shrink_inactive_list when we have isolated too
+many pages. Andrew has noticed that we used to sleep in uninterruptible
+sleep previously (in congestion_wait) and that changing that is wrong
+for at least two reasons
+	- waiting task would not participate in the load average anymore
+	- task with a pending signal will not sleep and bail out
+	  immediately
+While none of those issues are critical in any way but they are
+unnecessary. The interruptible sleep was more an oversight than a
+deliberate decision. Fix this by using msleep instead.
 
-Link: http://lkml.kernel.org/r/20170724170616.25810-5-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20170724065048.GB25221@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |    2 +-
- include/linux/dax.h |    2 --
- mm/filemap.c        |   13 ++-----------
- 3 files changed, 3 insertions(+), 14 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dax.c~dax-remove-dax-code-from-page_cache_tree_insert fs/dax.c
---- a/fs/dax.c~dax-remove-dax-code-from-page_cache_tree_insert
-+++ a/fs/dax.c
-@@ -127,7 +127,7 @@ static int wake_exceptional_entry_func(w
-  * correct waitqueue where tasks might be waiting for that old 'entry' and
-  * wake them.
-  */
--void dax_wake_mapping_entry_waiter(struct address_space *mapping,
-+static void dax_wake_mapping_entry_waiter(struct address_space *mapping,
- 		pgoff_t index, void *entry, bool wake_all)
- {
- 	struct exceptional_entry_key key;
-diff -puN include/linux/dax.h~dax-remove-dax-code-from-page_cache_tree_insert include/linux/dax.h
---- a/include/linux/dax.h~dax-remove-dax-code-from-page_cache_tree_insert
-+++ a/include/linux/dax.h
-@@ -122,8 +122,6 @@ int dax_iomap_fault(struct vm_fault *vmf
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
--void dax_wake_mapping_entry_waiter(struct address_space *mapping,
--		pgoff_t index, void *entry, bool wake_all);
+diff -puN mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix
++++ a/mm/vmscan.c
+@@ -1749,7 +1749,7 @@ shrink_inactive_list(unsigned long nr_to
+ 			return 0;
  
- #ifdef CONFIG_FS_DAX
- int __dax_zero_page_range(struct block_device *bdev,
-diff -puN mm/filemap.c~dax-remove-dax-code-from-page_cache_tree_insert mm/filemap.c
---- a/mm/filemap.c~dax-remove-dax-code-from-page_cache_tree_insert
-+++ a/mm/filemap.c
-@@ -130,17 +130,8 @@ static int page_cache_tree_insert(struct
- 			return -EEXIST;
+ 		/* wait a bit for the reclaimer. */
+-		schedule_timeout_interruptible(HZ/10);
++		msleep(100);
+ 		stalled = true;
  
- 		mapping->nrexceptional--;
--		if (!dax_mapping(mapping)) {
--			if (shadowp)
--				*shadowp = p;
--		} else {
--			/* DAX can replace empty locked entry with a hole */
--			WARN_ON_ONCE(p !=
--				dax_radix_locked_entry(0, RADIX_DAX_EMPTY));
--			/* Wakeup waiters for exceptional entry lock */
--			dax_wake_mapping_entry_waiter(mapping, page->index, p,
--						      true);
--		}
-+		if (shadowp)
-+			*shadowp = p;
- 	}
- 	__radix_tree_replace(&mapping->page_tree, node, slot, page,
- 			     workingset_update_node, mapping);
+ 		/* We are about to die and free our memory. Return now. */
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-add-vm_insert_mixed_mkwrite.patch
-dax-relocate-some-dax-functions.patch
-dax-use-common-4k-zero-page-for-dax-mmap-reads.patch
-dax-remove-dax-code-from-page_cache_tree_insert.patch
-dax-move-all-dax-radix-tree-defs-to-fs-daxc.patch
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
 
