@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch added to -mm tree
-Date: Tue, 25 Jul 2017 13:32:20 -0700
-Message-ID: <5977aad4.JsB11HCeCTF8eWHQ%akpm@linux-foundation.org>
+Subject: + linux-kernelh-move-div_round_down_ull-macro.patch added to -mm
+ tree
+Date: Tue, 25 Jul 2017 13:52:14 -0700
+Message-ID: <5977af7e.8fGIYdT/RjRFt7IA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47458 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752433AbdGYUcV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 16:32:21 -0400
+        with ESMTP id S1751730AbdGYUwP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2017 16:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhuhui@xiaomi.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, boris.brezillon@free-electrons.com, broonie@kernel.org, computersforpeace@gmail.com, cyrille.pitchen@wedev4u.fr, dwmw2@infradead.org, lgirdwood@gmail.com, marek.vasut@gmail.com, perex@perex.cz, richard@nod.at, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: zs_page_migrate: skip unnecessary loops but not return -EBUSY if zspage is not inuse
+     Subject: linux/kernel.h: move DIV_ROUND_DOWN_ULL() macro
 has been added to the -mm tree.  Its filename is
-     zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch
+     linux-kernelh-move-div_round_down_ull-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-kernelh-move-div_round_down_ull-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-kernelh-move-div_round_down_ull-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,127 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@xiaomi.com>
-Subject: zsmalloc: zs_page_migrate: skip unnecessary loops but not return -EBUSY if zspage is not inuse
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: linux/kernel.h: move DIV_ROUND_DOWN_ULL() macro
 
-Getting -EBUSY from zs_page_migrate will make migration slow (retry) or
-fail (zs_page_putback will schedule_work free_work, but it cannot ensure
-the success).
+This macro is useful to avoid link error on 32-bit systems.
 
-I noticed this issue because my Kernel patched
-(https://lkml.org/lkml/2014/5/28/113) that will remove retry in
-__alloc_contig_migrate_range.  This retry willhandle the -EBUSY because it
-will re-isolate the page and re-call migrate_pages.  Without it will make
-cma_alloc fail at once with -EBUSY.
+We have the same definition in two drivers, so move it to
+include/linux/kernel.h
 
-According to the review from Minchan Kim in
-https://lkml.org/lkml/2014/5/28/113, I update the patch to skip
-unnecessary loops but not return -EBUSY if zspage is not inuse.
+While we are here, refactor DIV_ROUND_UP_ULL() by using
+DIV_ROUND_DOWN_ULL().
 
-Following is what I got with highalloc-performance in a vbox with 2
-cpu 1G memory 512 zram as swap.  And the swappiness is set to 100.
-
-                                   ori          ne
-                                  orig         new
-Minor Faults                  50805113    50830235
-Major Faults                     43918       56530
-Swap Ins                         42087       55680
-Swap Outs                        89718      104700
-Allocation stalls                    0           0
-DMA allocs                       57787       52364
-DMA32 allocs                  47964599    48043563
-Normal allocs                        0           0
-Movable allocs                       0           0
-Direct pages scanned             45493       23167
-Kswapd pages scanned           1565222     1725078
-Kswapd pages reclaimed         1342222     1503037
-Direct pages reclaimed           45615       25186
-Kswapd efficiency                  85%         87%
-Kswapd velocity               1897.101    1949.042
-Direct efficiency                 100%        108%
-Direct velocity                 55.139      26.175
-Percentage direct scans             2%          1%
-Zone normal velocity          1952.240    1975.217
-Zone dma32 velocity              0.000       0.000
-Zone dma velocity                0.000       0.000
-Page writes by reclaim       89764.000  105233.000
-Page writes file                    46         533
-Page writes anon                 89718      104700
-Page reclaim immediate           21457        3699
-Sector Reads                   3259688     3441368
-Sector Writes                  3667252     3754836
-Page rescued immediate               0           0
-Slabs scanned                  1042872     1160855
-Direct inode steals               8042       10089
-Kswapd inode steals              54295       29170
-Kswapd skipped wait                  0           0
-THP fault alloc                    175         154
-THP collapse alloc                 226         289
-THP splits                           0           0
-THP fault fallback                  11          14
-THP collapse fail                    3           2
-Compaction stalls                  536         646
-Compaction success                 322         358
-Compaction failures                214         288
-Page migrate success            119608      111063
-Page migrate failure              2723        2593
-Compaction pages isolated       250179      232652
-Compaction migrate scanned     9131832     9942306
-Compaction free scanned        2093272     2613998
-Compaction cost                    192         189
-NUMA alloc hit                47124555    47193990
-NUMA alloc miss                      0           0
-NUMA interleave hit                  0           0
-NUMA alloc local              47124555    47193990
-NUMA base PTE updates                0           0
-NUMA huge PMD updates                0           0
-NUMA page range updates              0           0
-NUMA hint faults                     0           0
-NUMA hint local faults               0           0
-NUMA hint local percent            100         100
-NUMA pages migrated                  0           0
-AutoNUMA cost                       0%          0%
-
-
-Link: http://lkml.kernel.org/r/1500889535-19648-1-git-send-email-zhuhui@xiaomi.com
-Signed-off-by: Hui Zhu <zhuhui@xiaomi.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Link: http://lkml.kernel.org/r/1500945156-12907-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Marek Vasut <marek.vasut@gmail.com>
+Cc: Brian Norris <computersforpeace@gmail.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/mtd/nand/denali.c  |    3 ---
+ include/linux/kernel.h     |    7 +++++--
+ sound/soc/codecs/pcm512x.c |    3 ---
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse
-+++ a/mm/zsmalloc.c
-@@ -1983,8 +1983,11 @@ int zs_page_migrate(struct address_space
+diff -puN drivers/mtd/nand/denali.c~linux-kernelh-move-div_round_down_ull-macro drivers/mtd/nand/denali.c
+--- a/drivers/mtd/nand/denali.c~linux-kernelh-move-div_round_down_ull-macro
++++ a/drivers/mtd/nand/denali.c
+@@ -980,9 +980,6 @@ static int denali_erase(struct mtd_info
+ 	return irq_status & INTR__ERASE_COMP ? 0 : NAND_STATUS_FAIL;
+ }
  
- 	spin_lock(&class->lock);
- 	if (!get_zspage_inuse(zspage)) {
--		ret = -EBUSY;
--		goto unlock_class;
-+		/*
-+		 * Set "offset" to end of the page so that every loops
-+		 * skips unnecessary object scanning.
-+		 */
-+		offset = PAGE_SIZE;
- 	}
+-#define DIV_ROUND_DOWN_ULL(ll, d) \
+-	({ unsigned long long _tmp = (ll); do_div(_tmp, d); _tmp; })
+-
+ static int denali_setup_data_interface(struct mtd_info *mtd, int chipnr,
+ 				       const struct nand_data_interface *conf)
+ {
+diff -puN include/linux/kernel.h~linux-kernelh-move-div_round_down_ull-macro include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-kernelh-move-div_round_down_ull-macro
++++ a/include/linux/kernel.h
+@@ -78,8 +78,11 @@
  
- 	pos = offset;
-@@ -2052,7 +2055,7 @@ unpin_objects:
- 		}
- 	}
- 	kunmap_atomic(s_addr);
--unlock_class:
+ #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+ #define DIV_ROUND_UP __KERNEL_DIV_ROUND_UP
+-#define DIV_ROUND_UP_ULL(ll,d) \
+-	({ unsigned long long _tmp = (ll)+(d)-1; do_div(_tmp, d); _tmp; })
 +
- 	spin_unlock(&class->lock);
- 	migrate_write_unlock(zspage);
++#define DIV_ROUND_DOWN_ULL(ll, d) \
++	({ unsigned long long _tmp = (ll); do_div(_tmp, d); _tmp; })
++
++#define DIV_ROUND_UP_ULL(ll, d)		DIV_ROUND_DOWN_ULL((ll) + (d) - 1, (d))
  
-_
-
-Patches currently in -mm which might be from zhuhui@xiaomi.com are
-
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch
-
+ #if BITS_PER_LONG == 32
+ # define DIV_ROUND_UP_SECTOR_T(ll,d) DIV_ROUND_UP_ULL(ll, d)
+diff -puN sound/soc/codecs/pcm512x.c~linux-kernelh-move-div_round_down_ull-macro sound/soc/codecs/pcm512x.c
+--- a/sound/soc/codecs/pcm512x.c~linux-kernelh-move-div_round_down_ull-macro
++++ a/sound/soc/codecs/pcm512x.c
+@@ -30,9 +30,6 @@
+ 
+ #include "pcm512x.h"
+ 
+-#define DIV_ROUND_DOWN_ULL(ll, d) \
+-	({ unsigned long long _tmp = (ll); do_div(_tmp, d); _tmp; })
