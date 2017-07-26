@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-cache-leftmost-node-internally.patch added to -mm tree
-Date: Wed, 26 Jul 2017 14:13:57 -0700
-Message-ID: <59790615./RmSGquPnvZbvCZP%akpm@linux-foundation.org>
+Subject: + rbtree-optimize-root-check-during-rebalancing-loop.patch added
+ to -mm tree
+Date: Wed, 26 Jul 2017 14:14:03 -0700
+Message-ID: <5979061b.ewBTk3K1R0z+BqcK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60112 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750982AbdGZVN6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:13:58 -0400
+        with ESMTP id S1750996AbdGZVOE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, peterz@infradead.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: cache leftmost node internally
+     Subject: rbtree: optimize root-check during rebalancing loop
 has been added to the -mm tree.  Its filename is
-     rbtree-cache-leftmost-node-internally.patch
+     rbtree-optimize-root-check-during-rebalancing-loop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rbtree-cache-leftmost-node-internally.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rbtree-optimize-root-check-during-rebalancing-loop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rbtree-cache-leftmost-node-internally.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rbtree-optimize-root-check-during-rebalancing-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,313 +40,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: rbtree: cache leftmost node internally
+Subject: rbtree: optimize root-check during rebalancing loop
 
-Patch series "rbtree: Cache leftmost node internally", v4.
+The only times the nil-parent (root node) condition is true is when the
+node is the first in the tree, or after fixing rbtree rule #4 and the case
+1 rebalancing made the node the root.  Such conditions do not apply most
+of the time:
 
-A series to extending rbtrees to internally cache the leftmost node such
-that we can have fast overlap check optimization for all interval tree
-users[1].  The benefits of this series are that:
+(i) The common case in an rbtree is to have more than a single node,
+    so this is only true for the first rb_insert().
 
-(i)   Unify users that do internal leftmost node caching.
-(ii)  Optimize all interval tree users.
-(iii) Convert at least two new users (epoll and procfs) to the new interface.
+(ii) While there is a chance only one first rotation is needed, cases
+    where the node's uncle is black (cases 2,3) are more common as we can
+    have the following scenarios during the rotation looping:
 
-This patch (of 16):
+    case1 only, case1+1, case2+3, case1+2+3, case3 only, etc.
 
-Red-black tree semantics imply that nodes with smaller or greater (or
-equal for duplicates) keys always be to the left and right, respectively. 
-For the kernel this is extremely evident when considering our rb_first()
-semantics.  Enabling lookups for the smallest node in the tree in O(1) can
-save a good chunk of cycles in not having to walk down the tree each time.
-To this end there are a few core users that explicitly do this, such as
-the scheduler and rtmutexes.  There is also the desire for interval trees
-to have this optimization allowing faster overlap checking.
+This patch, therefore, adds an unlikely() optimization to this
+conditional.  When profiling with CONFIG_PROFILE_ANNOTATED_BRANCHES, a
+kernel build shows that the incorrect rate is less than 15%, and for
+workloads that involve insert mostly trees overtime tend to have less than
+2% incorrect rate.
 
-This patch introduces a new 'struct rb_root_cached' which is just the root
-with a cached pointer to the leftmost node.  The reason why the regular
-rb_root was not extended instead of adding a new structure was that this
-allows the user to have the choice between memory footprint and actual
-tree performance.  The new wrappers on top of the regular rb_root calls
-are:
-
-- rb_first_cached(cached_root) -- which is a fast replacement
-     for rb_first.
-
-- rb_insert_color_cached(node, cached_root, new)
-
-- rb_erase_cached(node, cached_root)
-
-In addition, augmented cached interfaces are also added for basic
-insertion and deletion operations; which becomes important for the
-interval tree changes.
-
-With the exception of the inserts, which adds a bool for updating the new
-leftmost, the interfaces are kept the same.  To this end, porting rb users
-to the cached version becomes really trivial, and keeping current rbtree
-semantics for users that don't care about the optimization requires zero
-overhead.
-
-Link: http://lkml.kernel.org/r/20170719014603.19029-2-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-3-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <>
 ---
 
- Documentation/rbtree.txt         |   33 ++++++++++++++++++++++++++++
- include/linux/rbtree.h           |   21 +++++++++++++++++
- include/linux/rbtree_augmented.h |   33 +++++++++++++++++++++++++---
- lib/rbtree.c                     |   34 ++++++++++++++++++++++++-----
- 4 files changed, 113 insertions(+), 8 deletions(-)
+ lib/rbtree.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/rbtree.txt~rbtree-cache-leftmost-node-internally Documentation/rbtree.txt
---- a/Documentation/rbtree.txt~rbtree-cache-leftmost-node-internally
-+++ a/Documentation/rbtree.txt
-@@ -193,6 +193,39 @@ Example::
-   for (node = rb_first(&mytree); node; node = rb_next(node))
- 	printk("key=%s\n", rb_entry(node, struct mytype, node)->keystring);
- 
-+Cached rbtrees
-+--------------
-+
-+Computing the leftmost (smallest) node is quite a common task for binary
-+search trees, such as for traversals or users relying on a the particular
-+order for their own logic. To this end, users can use 'struct rb_root_cached'
-+to optimize O(logN) rb_first() calls to a simple pointer fetch avoiding
-+potentially expensive tree iterations. This is done at negligible runtime
-+overhead for maintanence; albeit larger memory footprint.
-+
-+Similar to the rb_root structure, cached rbtrees are initialized to be
-+empty via:
-+
-+  struct rb_root_cached mytree = RB_ROOT_CACHED;
-+
-+Cached rbtree is simply a regular rb_root with an extra pointer to cache the
-+leftmost node. This allows rb_root_cached to exist wherever rb_root does,
-+which permits augmented trees to be supported as well as only a few extra
-+interfaces:
-+
-+  struct rb_node *rb_first_cached(struct rb_root_cached *tree);
-+  void rb_insert_color_cached(struct rb_node *, struct rb_root_cached *, bool);
-+  void rb_erase_cached(struct rb_node *node, struct rb_root_cached *);
-+
-+Both insert and erase calls have their respective counterpart of augmented
-+trees:
-+
-+  void rb_insert_augmented_cached(struct rb_node *node, struct rb_root_cached *,
-+				  bool, struct rb_augment_callbacks *);
-+  void rb_erase_augmented_cached(struct rb_node *, struct rb_root_cached *,
-+				 struct rb_augment_callbacks *);
-+
-+
- Support for Augmented rbtrees
- -----------------------------
- 
-diff -puN include/linux/rbtree.h~rbtree-cache-leftmost-node-internally include/linux/rbtree.h
---- a/include/linux/rbtree.h~rbtree-cache-leftmost-node-internally
-+++ a/include/linux/rbtree.h
-@@ -44,10 +44,25 @@ struct rb_root {
- 	struct rb_node *rb_node;
- };
- 
-+/*
-+ * Leftmost-cached rbtrees.
-+ *
-+ * We do not cache the rightmost node based on footprint
-+ * size vs number of potential users that could benefit
-+ * from O(1) rb_last(). Just not worth it, users that want
-+ * this feature can always implement the logic explicitly.
-+ * Furthermore, users that want to cache both pointers may
-+ * find it a bit asymmetric, but that's ok.
-+ */
-+struct rb_root_cached {
-+	struct rb_root rb_root;
-+	struct rb_node *rb_leftmost;
-+};
- 
- #define rb_parent(r)   ((struct rb_node *)((r)->__rb_parent_color & ~3))
- 
- #define RB_ROOT	(struct rb_root) { NULL, }
-+#define RB_ROOT_CACHED (struct rb_root_cached) { {NULL, }, NULL }
- #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
- 
- #define RB_EMPTY_ROOT(root)  (READ_ONCE((root)->rb_node) == NULL)
-@@ -69,6 +84,12 @@ extern struct rb_node *rb_prev(const str
- extern struct rb_node *rb_first(const struct rb_root *);
- extern struct rb_node *rb_last(const struct rb_root *);
- 
-+extern void rb_insert_color_cached(struct rb_node *,
-+				   struct rb_root_cached *, bool);
-+extern void rb_erase_cached(struct rb_node *node, struct rb_root_cached *);
-+/* Same as rb_first(), but O(1) */
-+#define rb_first_cached(root) (root)->rb_leftmost
-+
- /* Postorder iteration - always visit the parent after its children */
- extern struct rb_node *rb_first_postorder(const struct rb_root *);
- extern struct rb_node *rb_next_postorder(const struct rb_node *);
-diff -puN include/linux/rbtree_augmented.h~rbtree-cache-leftmost-node-internally include/linux/rbtree_augmented.h
---- a/include/linux/rbtree_augmented.h~rbtree-cache-leftmost-node-internally
-+++ a/include/linux/rbtree_augmented.h
-@@ -41,7 +41,9 @@ struct rb_augment_callbacks {
- 	void (*rotate)(struct rb_node *old, struct rb_node *new);
- };
- 
--extern void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
-+extern void __rb_insert_augmented(struct rb_node *node,
-+				  struct rb_root *root,
-+				  bool newleft, struct rb_node **leftmost,
- 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new));
- /*
-  * Fixup the rbtree and update the augmented information when rebalancing.
-@@ -57,7 +59,16 @@ static inline void
- rb_insert_augmented(struct rb_node *node, struct rb_root *root,
- 		    const struct rb_augment_callbacks *augment)
- {
--	__rb_insert_augmented(node, root, augment->rotate);
-+	__rb_insert_augmented(node, root, false, NULL, augment->rotate);
-+}
-+
-+static inline void
-+rb_insert_augmented_cached(struct rb_node *node,
-+			   struct rb_root_cached *root, bool newleft,
-+			   const struct rb_augment_callbacks *augment)
-+{
-+	__rb_insert_augmented(node, &root->rb_root,
-+			      newleft, &root->rb_leftmost, augment->rotate);
- }
- 
- #define RB_DECLARE_CALLBACKS(rbstatic, rbname, rbstruct, rbfield,	\
-@@ -150,6 +161,7 @@ extern void __rb_erase_color(struct rb_n
- 
- static __always_inline struct rb_node *
- __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
-+		     struct rb_node **leftmost,
- 		     const struct rb_augment_callbacks *augment)
- {
- 	struct rb_node *child = node->rb_right;
-@@ -157,6 +169,9 @@ __rb_erase_augmented(struct rb_node *nod
- 	struct rb_node *parent, *rebalance;
- 	unsigned long pc;
- 
-+	if (leftmost && node == *leftmost)
-+		*leftmost = rb_next(node);
-+
- 	if (!tmp) {
- 		/*
- 		 * Case 1: node to erase has no more than 1 child (easy!)
-@@ -256,9 +271,21 @@ static __always_inline void
- rb_erase_augmented(struct rb_node *node, struct rb_root *root,
- 		   const struct rb_augment_callbacks *augment)
- {
--	struct rb_node *rebalance = __rb_erase_augmented(node, root, augment);
-+	struct rb_node *rebalance = __rb_erase_augmented(node, root,
-+							 NULL, augment);
- 	if (rebalance)
- 		__rb_erase_color(rebalance, root, augment->rotate);
- }
- 
-+static __always_inline void
-+rb_erase_augmented_cached(struct rb_node *node, struct rb_root_cached *root,
-+			  const struct rb_augment_callbacks *augment)
-+{
-+	struct rb_node *rebalance = __rb_erase_augmented(node, &root->rb_root,
-+							 &root->rb_leftmost,
-+							 augment);
-+	if (rebalance)
-+		__rb_erase_color(rebalance, &root->rb_root, augment->rotate);
-+}
-+
- #endif	/* _LINUX_RBTREE_AUGMENTED_H */
-diff -puN lib/rbtree.c~rbtree-cache-leftmost-node-internally lib/rbtree.c
---- a/lib/rbtree.c~rbtree-cache-leftmost-node-internally
+diff -puN lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop
 +++ a/lib/rbtree.c
-@@ -95,10 +95,14 @@ __rb_rotate_set_parents(struct rb_node *
+@@ -105,16 +105,25 @@ __rb_insert(struct rb_node *node, struct
  
- static __always_inline void
- __rb_insert(struct rb_node *node, struct rb_root *root,
-+	    bool newleft, struct rb_node **leftmost,
- 	    void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
- {
- 	struct rb_node *parent = rb_red_parent(node), *gparent, *tmp;
- 
-+	if (newleft)
-+		*leftmost = node;
-+
  	while (true) {
  		/*
- 		 * Loop invariant: node is red
-@@ -434,19 +438,38 @@ static const struct rb_augment_callbacks
- 
- void rb_insert_color(struct rb_node *node, struct rb_root *root)
- {
--	__rb_insert(node, root, dummy_rotate);
-+	__rb_insert(node, root, false, NULL, dummy_rotate);
- }
- EXPORT_SYMBOL(rb_insert_color);
- 
- void rb_erase(struct rb_node *node, struct rb_root *root)
- {
- 	struct rb_node *rebalance;
--	rebalance = __rb_erase_augmented(node, root, &dummy_callbacks);
-+	rebalance = __rb_erase_augmented(node, root,
-+					 NULL, &dummy_callbacks);
- 	if (rebalance)
- 		____rb_erase_color(rebalance, root, dummy_rotate);
- }
- EXPORT_SYMBOL(rb_erase);
- 
-+void rb_insert_color_cached(struct rb_node *node,
-+			    struct rb_root_cached *root, bool leftmost)
-+{
-+	__rb_insert(node, &root->rb_root, leftmost,
-+		    &root->rb_leftmost, dummy_rotate);
-+}
-+EXPORT_SYMBOL(rb_insert_color_cached);
+-		 * Loop invariant: node is red
+-		 *
+-		 * If there is a black parent, we are done.
+-		 * Otherwise, take some corrective action as we don't
+-		 * want a red root or two consecutive red nodes.
++		 * Loop invariant: node is red.
+ 		 */
+-		if (!parent) {
++		if (unlikely(!parent)) {
++			/*
++			 * The inserted node is root. Either this is the
++			 * first node, or we recursed at Case 1 below and
++			 * are no longer violating 4).
++			 */
+ 			rb_set_parent_color(node, NULL, RB_BLACK);
+ 			break;
+-		} else if (rb_is_black(parent))
++		}
 +
-+void rb_erase_cached(struct rb_node *node, struct rb_root_cached *root)
-+{
-+	struct rb_node *rebalance;
-+	rebalance = __rb_erase_augmented(node, &root->rb_root,
-+					 &root->rb_leftmost, &dummy_callbacks);
-+	if (rebalance)
-+		____rb_erase_color(rebalance, &root->rb_root, dummy_rotate);
-+}
-+EXPORT_SYMBOL(rb_erase_cached);
-+
- /*
-  * Augmented rbtree manipulation functions.
-  *
-@@ -455,9 +478,10 @@ EXPORT_SYMBOL(rb_erase);
-  */
++		/*
++		 * If there is a black parent, we are done.
++		 * Otherwise, take some corrective action as,
++		 * per 4), we don't want a red root or two
++		 * consecutive red nodes.
++		 */
++		if(rb_is_black(parent))
+ 			break;
  
- void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
-+			   bool newleft, struct rb_node **leftmost,
- 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
- {
--	__rb_insert(node, root, augment_rotate);
-+	__rb_insert(node, root, newleft, leftmost, augment_rotate);
- }
- EXPORT_SYMBOL(__rb_insert_augmented);
- 
-@@ -502,7 +526,7 @@ struct rb_node *rb_next(const struct rb_
- 	 * as we can.
- 	 */
- 	if (node->rb_right) {
--		node = node->rb_right; 
-+		node = node->rb_right;
- 		while (node->rb_left)
- 			node=node->rb_left;
- 		return (struct rb_node *)node;
-@@ -534,7 +558,7 @@ struct rb_node *rb_prev(const struct rb_
- 	 * as we can.
- 	 */
- 	if (node->rb_left) {
--		node = node->rb_left; 
-+		node = node->rb_left;
- 		while (node->rb_right)
- 			node=node->rb_right;
- 		return (struct rb_node *)node;
+ 		gparent = rb_red_parent(parent);
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
