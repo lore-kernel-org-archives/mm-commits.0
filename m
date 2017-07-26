@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-find_get_pages_range-in-filemap_range_has_page.patch
- added to -mm tree
-Date: Wed, 26 Jul 2017 15:18:00 -0700
-Message-ID: <59791518.0CFEJ5VN0YL6J3fS%akpm@linux-foundation.org>
+Subject: +
+ hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch added to -mm tree
+Date: Wed, 26 Jul 2017 15:17:56 -0700
+Message-ID: <59791514.SeyESZwj47Mb+pA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42606 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbdGZWSB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:18:01 -0400
+        with ESMTP id S1751040AbdGZWR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:17:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: jack@suse.cz, mike.kravetz@oracle.com, nyc@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use find_get_pages_range() in filemap_range_has_page()
+     Subject: hugetlbfs: use pagevec_lookup_range() in remove_inode_hugepages()
 has been added to the -mm tree.  Its filename is
-     mm-use-find_get_pages_range-in-filemap_range_has_page.patch
+     hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-find_get_pages_range-in-filemap_range_has_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-find_get_pages_range-in-filemap_range_has_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +40,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: use find_get_pages_range() in filemap_range_has_page()
+Subject: hugetlbfs: use pagevec_lookup_range() in remove_inode_hugepages()
 
-We want only pages from given range in filemap_range_has_page(),
-furthermore we want at most a single page.  So use find_get_pages_range()
-instead of pagevec_lookup() and remove unnecessary code.
+We want only pages from given range in remove_inode_hugepages().  Use
+pagevec_lookup_range() instead of pagevec_lookup().
 
-Link: http://lkml.kernel.org/r/20170726114704.7626-10-jack@suse.cz
+Link: http://lkml.kernel.org/r/20170726114704.7626-8-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/hugetlbfs/inode.c |   18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN mm/filemap.c~mm-use-find_get_pages_range-in-filemap_range_has_page mm/filemap.c
---- a/mm/filemap.c~mm-use-find_get_pages_range-in-filemap_range_has_page
-+++ a/mm/filemap.c
-@@ -393,8 +393,7 @@ bool filemap_range_has_page(struct addre
- {
- 	pgoff_t index = start_byte >> PAGE_SHIFT;
- 	pgoff_t end = end_byte >> PAGE_SHIFT;
--	struct pagevec pvec;
--	bool ret;
-+	struct page *page;
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages
++++ a/fs/hugetlbfs/inode.c
+@@ -403,7 +403,6 @@ static void remove_inode_hugepages(struc
+ 	struct pagevec pvec;
+ 	pgoff_t next, index;
+ 	int i, freed = 0;
+-	long lookup_nr = PAGEVEC_SIZE;
+ 	bool truncate_op = (lend == LLONG_MAX);
  
- 	if (end_byte < start_byte)
- 		return false;
-@@ -402,12 +401,10 @@ bool filemap_range_has_page(struct addre
- 	if (mapping->nrpages == 0)
- 		return false;
+ 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
+@@ -412,30 +411,17 @@ static void remove_inode_hugepages(struc
+ 	next = start;
+ 	while (next < end) {
+ 		/*
+-		 * Don't grab more pages than the number left in the range.
+-		 */
+-		if (end - next < lookup_nr)
+-			lookup_nr = end - next;
+-
+-		/*
+ 		 * When no more pages are found, we are done.
+ 		 */
+-		if (!pagevec_lookup(&pvec, mapping, &next, lookup_nr))
++		if (!pagevec_lookup_range(&pvec, mapping, &next, end - 1,
++					  PAGEVEC_SIZE))
+ 			break;
  
--	pagevec_init(&pvec, 0);
--	if (!pagevec_lookup(&pvec, mapping, &index, 1))
-+	if (!find_get_pages_range(mapping, &index, end, 1, &page))
- 		return false;
--	ret = (pvec.pages[0]->index <= end);
--	pagevec_release(&pvec);
--	return ret;
-+	put_page(page);
-+	return true;
- }
- EXPORT_SYMBOL(filemap_range_has_page);
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+ 			struct page *page = pvec.pages[i];
+ 			u32 hash;
  
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-fscache-remove-unused-now_uncached-callback.patch
-mm-make-pagevec_lookup-update-index.patch
-mm-implement-find_get_pages_range.patch
-fs-fix-performance-regression-in-clean_bdev_aliases.patch
-ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
-ext4-use-pagevec_lookup_range-in-writeback-code.patch
-hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
-fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
-mm-use-find_get_pages_range-in-filemap_range_has_page.patch
-mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
-
+-			/*
+-			 * The page (index) could be beyond end.  This is
+-			 * only possible in the punch hole case as end is
+-			 * max page offset in the truncate case.
+-			 */
+ 			index = page->index;
+-			if (index >= end)
+-				break;
