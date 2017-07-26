@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-optimize-root-check-during-rebalancing-loop.patch added
- to -mm tree
-Date: Wed, 26 Jul 2017 14:14:03 -0700
-Message-ID: <5979061b.ewBTk3K1R0z+BqcK%akpm@linux-foundation.org>
+Subject: + lib-rbtree_testc-make-input-module-parameters.patch added to
+ -mm tree
+Date: Wed, 26 Jul 2017 14:14:23 -0700
+Message-ID: <5979062f.DtwYK59PWyecwU0K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750996AbdGZVOE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:04 -0400
+        with ESMTP id S1750996AbdGZVOY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: optimize root-check during rebalancing loop
+     Subject: lib/rbtree_test.c: make input module parameters
 has been added to the -mm tree.  Its filename is
-     rbtree-optimize-root-check-during-rebalancing-loop.patch
+     lib-rbtree_testc-make-input-module-parameters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rbtree-optimize-root-check-during-rebalancing-loop.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-rbtree_testc-make-input-module-parameters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rbtree-optimize-root-check-during-rebalancing-loop.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rbtree_testc-make-input-module-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,72 +40,151 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: rbtree: optimize root-check during rebalancing loop
+Subject: lib/rbtree_test.c: make input module parameters
 
-The only times the nil-parent (root node) condition is true is when the
-node is the first in the tree, or after fixing rbtree rule #4 and the case
-1 rebalancing made the node the root.  Such conditions do not apply most
-of the time:
+Allows for more flexible debugging.
 
-(i) The common case in an rbtree is to have more than a single node,
-    so this is only true for the first rb_insert().
-
-(ii) While there is a chance only one first rotation is needed, cases
-    where the node's uncle is black (cases 2,3) are more common as we can
-    have the following scenarios during the rotation looping:
-
-    case1 only, case1+1, case2+3, case1+2+3, case3 only, etc.
-
-This patch, therefore, adds an unlikely() optimization to this
-conditional.  When profiling with CONFIG_PROFILE_ANNOTATED_BRANCHES, a
-kernel build shows that the incorrect rate is less than 15%, and for
-workloads that involve insert mostly trees overtime tend to have less than
-2% incorrect rate.
-
-Link: http://lkml.kernel.org/r/20170719014603.19029-3-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-5-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Andrew Morton <>
 ---
 
- lib/rbtree.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ lib/rbtree_test.c |   55 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 34 insertions(+), 21 deletions(-)
 
-diff -puN lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop lib/rbtree.c
---- a/lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop
-+++ a/lib/rbtree.c
-@@ -105,16 +105,25 @@ __rb_insert(struct rb_node *node, struct
+diff -puN lib/rbtree_test.c~lib-rbtree_testc-make-input-module-parameters lib/rbtree_test.c
+--- a/lib/rbtree_test.c~lib-rbtree_testc-make-input-module-parameters
++++ a/lib/rbtree_test.c
+@@ -1,11 +1,18 @@
+ #include <linux/module.h>
++#include <linux/moduleparam.h>
+ #include <linux/rbtree_augmented.h>
+ #include <linux/random.h>
++#include <linux/slab.h>
+ #include <asm/timex.h>
  
- 	while (true) {
- 		/*
--		 * Loop invariant: node is red
--		 *
--		 * If there is a black parent, we are done.
--		 * Otherwise, take some corrective action as we don't
--		 * want a red root or two consecutive red nodes.
-+		 * Loop invariant: node is red.
- 		 */
--		if (!parent) {
-+		if (unlikely(!parent)) {
-+			/*
-+			 * The inserted node is root. Either this is the
-+			 * first node, or we recursed at Case 1 below and
-+			 * are no longer violating 4).
-+			 */
- 			rb_set_parent_color(node, NULL, RB_BLACK);
- 			break;
--		} else if (rb_is_black(parent))
-+		}
+-#define NODES       100
+-#define PERF_LOOPS  100000
+-#define CHECK_LOOPS 100
++#define __param(type, name, init, msg)		\
++	static type name = init;		\
++	module_param(name, type, 0444);		\
++	MODULE_PARM_DESC(name, msg);
 +
-+		/*
-+		 * If there is a black parent, we are done.
-+		 * Otherwise, take some corrective action as,
-+		 * per 4), we don't want a red root or two
-+		 * consecutive red nodes.
-+		 */
-+		if(rb_is_black(parent))
- 			break;
++__param(int, nnodes, 100, "Number of nodes in the rb-tree");
++__param(int, perf_loops, 100000, "Number of iterations modifying the rb-tree");
++__param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
  
- 		gparent = rb_red_parent(parent);
+ struct test_node {
+ 	u32 key;
+@@ -17,7 +24,7 @@ struct test_node {
+ };
+ 
+ static struct rb_root root = RB_ROOT;
+-static struct test_node nodes[NODES];
++static struct test_node *nodes = NULL;
+ 
+ static struct rnd_state rnd;
+ 
+@@ -95,7 +102,7 @@ static void erase_augmented(struct test_
+ static void init(void)
+ {
+ 	int i;
+-	for (i = 0; i < NODES; i++) {
++	for (i = 0; i < nnodes; i++) {
+ 		nodes[i].key = prandom_u32_state(&rnd);
+ 		nodes[i].val = prandom_u32_state(&rnd);
+ 	}
+@@ -177,6 +184,10 @@ static int __init rbtree_test_init(void)
+ 	int i, j;
+ 	cycles_t time1, time2, time;
+ 
++	nodes = kmalloc(nnodes * sizeof(*nodes), GFP_KERNEL);
++	if (!nodes)
++		return -ENOMEM;
++
+ 	printk(KERN_ALERT "rbtree testing");
+ 
+ 	prandom_seed_state(&rnd, 3141592653589793238ULL);
+@@ -184,27 +195,27 @@ static int __init rbtree_test_init(void)
+ 
+ 	time1 = get_cycles();
+ 
+-	for (i = 0; i < PERF_LOOPS; i++) {
+-		for (j = 0; j < NODES; j++)
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
+ 			insert(nodes + j, &root);
+-		for (j = 0; j < NODES; j++)
++		for (j = 0; j < nnodes; j++)
+ 			erase(nodes + j, &root);
+ 	}
+ 
+ 	time2 = get_cycles();
+ 	time = time2 - time1;
+ 
+-	time = div_u64(time, PERF_LOOPS);
++	time = div_u64(time, perf_loops);
+ 	printk(" -> %llu cycles\n", (unsigned long long)time);
+ 
+-	for (i = 0; i < CHECK_LOOPS; i++) {
++	for (i = 0; i < check_loops; i++) {
+ 		init();
+-		for (j = 0; j < NODES; j++) {
++		for (j = 0; j < nnodes; j++) {
+ 			check(j);
+ 			insert(nodes + j, &root);
+ 		}
+-		for (j = 0; j < NODES; j++) {
+-			check(NODES - j);
++		for (j = 0; j < nnodes; j++) {
++			check(nnodes - j);
+ 			erase(nodes + j, &root);
+ 		}
+ 		check(0);
+@@ -216,32 +227,34 @@ static int __init rbtree_test_init(void)
+ 
+ 	time1 = get_cycles();
+ 
+-	for (i = 0; i < PERF_LOOPS; i++) {
+-		for (j = 0; j < NODES; j++)
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
+ 			insert_augmented(nodes + j, &root);
+-		for (j = 0; j < NODES; j++)
++		for (j = 0; j < nnodes; j++)
+ 			erase_augmented(nodes + j, &root);
+ 	}
+ 
+ 	time2 = get_cycles();
+ 	time = time2 - time1;
+ 
+-	time = div_u64(time, PERF_LOOPS);
++	time = div_u64(time, perf_loops);
+ 	printk(" -> %llu cycles\n", (unsigned long long)time);
+ 
+-	for (i = 0; i < CHECK_LOOPS; i++) {
++	for (i = 0; i < check_loops; i++) {
+ 		init();
+-		for (j = 0; j < NODES; j++) {
++		for (j = 0; j < nnodes; j++) {
+ 			check_augmented(j);
+ 			insert_augmented(nodes + j, &root);
+ 		}
+-		for (j = 0; j < NODES; j++) {
+-			check_augmented(NODES - j);
++		for (j = 0; j < nnodes; j++) {
++			check_augmented(nnodes - j);
+ 			erase_augmented(nodes + j, &root);
+ 		}
+ 		check_augmented(0);
+ 	}
+ 
++	kfree(nodes);
++
+ 	return -EAGAIN; /* Fail will directly unload the module */
+ }
+ 
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
