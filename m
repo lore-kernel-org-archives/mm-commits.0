@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
- added to -mm tree
-Date: Wed, 26 Jul 2017 15:18:02 -0700
-Message-ID: <5979151a.qR2U7rS9KY+HHtMw%akpm@linux-foundation.org>
+Subject: +
+ mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler.patch added
+ to -mm tree
+Date: Wed, 26 Jul 2017 15:22:11 -0700
+Message-ID: <59791613.ChnFlFPnQfDUKLpr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42688 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbdGZWSD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:18:03 -0400
+        with ESMTP id S1751070AbdGZWWM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:22:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, tglx@linutronix.de, vbabka@suse.cz, wild@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove nr_pages argument from pagevec_lookup{,_range}()
+     Subject: mm: take memory hotplug lock within numa_zonelist_order_handler()
 has been added to the -mm tree.  Its filename is
-     mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+     mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,168 +40,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: remove nr_pages argument from pagevec_lookup{,_range}()
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm: take memory hotplug lock within numa_zonelist_order_handler()
 
-All users of pagevec_lookup() and pagevec_lookup_range() now pass
-PAGEVEC_SIZE as a desired number of pages.  Just drop the argument.
+Andre Wild reported the following warning:
 
-Link: http://lkml.kernel.org/r/20170726114704.7626-11-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
+WARNING: CPU: 2 PID: 1205 at kernel/cpu.c:240 lockdep_assert_cpus_held+0x4c/0x60
+Modules linked in:
+CPU: 2 PID: 1205 Comm: bash Not tainted 4.13.0-rc2-00022-gfd2b2c57ec20 #10
+Hardware name: IBM 2964 N96 702 (z/VM 6.4.0)
+task: 00000000701d8100 task.stack: 0000000073594000
+Krnl PSW : 0704f00180000000 0000000000145e24 (lockdep_assert_cpus_held+0x4c/0x60)
+...
+Call Trace:
+ lockdep_assert_cpus_held+0x42/0x60)
+ stop_machine_cpuslocked+0x62/0xf0
+ build_all_zonelists+0x92/0x150
+ numa_zonelist_order_handler+0x102/0x150
+ proc_sys_call_handler.isra.12+0xda/0x118
+ proc_sys_write+0x34/0x48
+ __vfs_write+0x3c/0x178
+ vfs_write+0xbc/0x1a0
+ SyS_write+0x66/0xc0
+ system_call+0xc4/0x2b0
+ locks held by bash/1205:
+ #0:  (sb_writers#4){.+.+.+}, at: [<000000000037b29e>] vfs_write+0xa6/0x1a0
+ #1:  (zl_order_mutex){+.+...}, at: [<00000000002c8e4c>] numa_zonelist_order_handler+0x44/0x150
+ #2:  (zonelists_mutex){+.+...}, at: [<00000000002c8efc>] numa_zonelist_order_handler+0xf4/0x150
+Last Breaking-Event-Address:
+ [<0000000000145e20>] lockdep_assert_cpus_held+0x48/0x60
+
+This can be easily triggered with e.g.
+
+ >echo n > /proc/sys/vm/numa_zonelist_order
+
+With 3f906ba23689a ("mm/memory-hotplug: switch locking to a
+percpu rwsem") memory hotplug locking was changed to fix a potential
+deadlock. This also switched the stop_machine() invocation within
+build_all_zonelists() to stop_machine_cpuslocked() which now expects
+that online cpus are locked when being called.
+
+This assumption is not true if build_all_zonelists() is being called
+from numa_zonelist_order_handler(). In order to fix this simply add a
+mem_hotplug_begin()/mem_hotplug_done() pair to numa_zonelist_order_handler().
+
+Link: http://lkml.kernel.org/r/20170726111738.38768-1-heiko.carstens@de.ibm.com
+Fixes: 3f906ba23689a ("mm/memory-hotplug: switch locking to a percpu rwsem")
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Reported-by: Andre Wild <wild@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c             |    5 ++---
- fs/ext4/file.c          |    2 +-
- fs/ext4/inode.c         |    5 ++---
- fs/fscache/page.c       |    2 +-
- fs/hugetlbfs/inode.c    |    3 +--
- fs/nilfs2/page.c        |    2 +-
- include/linux/pagevec.h |    7 +++----
- mm/swap.c               |    5 ++---
- 8 files changed, 13 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/buffer.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/buffer.c
---- a/fs/buffer.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/buffer.c
-@@ -1633,8 +1633,7 @@ void clean_bdev_aliases(struct block_dev
- 
- 	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
- 	pagevec_init(&pvec, 0);
--	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end,
--				    PAGEVEC_SIZE)) {
-+	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end)) {
- 		count = pagevec_count(&pvec);
- 		for (i = 0; i < count; i++) {
- 			struct page *page = pvec.pages[i];
-@@ -3552,7 +3551,7 @@ page_cache_seek_hole_data(struct inode *
- 		unsigned nr_pages, i;
- 
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping, &index,
--						end - 1, PAGEVEC_SIZE);
-+						end - 1);
- 		if (nr_pages == 0)
- 			break;
- 
-diff -puN fs/ext4/file.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/ext4/file.c
---- a/fs/ext4/file.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/ext4/file.c
-@@ -468,7 +468,7 @@ static int ext4_find_unwritten_pgoff(str
- 		unsigned long nr_pages;
- 
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
--					&index, end, PAGEVEC_SIZE);
-+					&index, end);
- 		if (nr_pages == 0)
- 			break;
- 
-diff -puN fs/ext4/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/ext4/inode.c
---- a/fs/ext4/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/ext4/inode.c
-@@ -1676,8 +1676,7 @@ static void mpage_release_unused_pages(s
- 
- 	pagevec_init(&pvec, 0);
- 	while (index <= end) {
--		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end,
--						PAGEVEC_SIZE);
-+		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end);
- 		if (nr_pages == 0)
- 			break;
- 		for (i = 0; i < nr_pages; i++) {
-@@ -2304,7 +2303,7 @@ static int mpage_map_and_submit_buffers(
- 	pagevec_init(&pvec, 0);
- 	while (start <= end) {
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
--						&start, end, PAGEVEC_SIZE);
-+						&start, end);
- 		if (nr_pages == 0)
- 			break;
- 		for (i = 0; i < nr_pages; i++) {
-diff -puN fs/fscache/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/fscache/page.c
---- a/fs/fscache/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/fscache/page.c
-@@ -1178,7 +1178,7 @@ void __fscache_uncache_all_inode_pages(s
- 	pagevec_init(&pvec, 0);
- 	next = 0;
- 	do {
--		if (!pagevec_lookup(&pvec, mapping, &next, PAGEVEC_SIZE))
-+		if (!pagevec_lookup(&pvec, mapping, &next))
- 			break;
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
-diff -puN fs/hugetlbfs/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/hugetlbfs/inode.c
-@@ -413,8 +413,7 @@ static void remove_inode_hugepages(struc
- 		/*
- 		 * When no more pages are found, we are done.
- 		 */
--		if (!pagevec_lookup_range(&pvec, mapping, &next, end - 1,
--					  PAGEVEC_SIZE))
-+		if (!pagevec_lookup_range(&pvec, mapping, &next, end - 1))
- 			break;
- 
- 		for (i = 0; i < pagevec_count(&pvec); ++i) {
-diff -puN fs/nilfs2/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/nilfs2/page.c
-@@ -312,7 +312,7 @@ void nilfs_copy_back_pages(struct addres
- 
- 	pagevec_init(&pvec, 0);
- repeat:
--	n = pagevec_lookup(&pvec, smap, &index, PAGEVEC_SIZE);
-+	n = pagevec_lookup(&pvec, smap, &index);
- 	if (!n)
- 		return;
- 
-diff -puN include/linux/pagevec.h~mm-remove-nr_pages-argument-from-pagevec_lookup_range include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/include/linux/pagevec.h
-@@ -29,13 +29,12 @@ unsigned pagevec_lookup_entries(struct p
- void pagevec_remove_exceptionals(struct pagevec *pvec);
- unsigned pagevec_lookup_range(struct pagevec *pvec,
- 			      struct address_space *mapping,
--			      pgoff_t *start, pgoff_t end, unsigned nr_pages);
-+			      pgoff_t *start, pgoff_t end);
- static inline unsigned pagevec_lookup(struct pagevec *pvec,
- 				      struct address_space *mapping,
--				      pgoff_t *start, unsigned nr_pages)
-+				      pgoff_t *start)
- {
--	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1,
--				    nr_pages);
-+	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1);
- }
- 
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-diff -puN mm/swap.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range mm/swap.c
---- a/mm/swap.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/mm/swap.c
-@@ -967,10 +967,9 @@ void pagevec_remove_exceptionals(struct
-  * reached.
-  */
- unsigned pagevec_lookup_range(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *start, pgoff_t end,
--		unsigned nr_pages)
-+		struct address_space *mapping, pgoff_t *start, pgoff_t end)
- {
--	pvec->nr = find_get_pages_range(mapping, start, end, nr_pages,
-+	pvec->nr = find_get_pages_range(mapping, start, end, PAGEVEC_SIZE,
- 					pvec->pages);
- 	return pagevec_count(pvec);
- }
+diff -puN mm/page_alloc.c~mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler
++++ a/mm/page_alloc.c
+@@ -4891,9 +4891,11 @@ int numa_zonelist_order_handler(struct c
+ 				NUMA_ZONELIST_ORDER_LEN);
+ 			user_zonelist_order = oldval;
+ 		} else if (oldval != user_zonelist_order) {
++			mem_hotplug_begin();
+ 			mutex_lock(&zonelists_mutex);
+ 			build_all_zonelists(NULL, NULL);
+ 			mutex_unlock(&zonelists_mutex);
++			mem_hotplug_done();
+ 		}
+ 	}
+ out:
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-fscache-remove-unused-now_uncached-callback.patch
-mm-make-pagevec_lookup-update-index.patch
-mm-implement-find_get_pages_range.patch
-fs-fix-performance-regression-in-clean_bdev_aliases.patch
-ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
-ext4-use-pagevec_lookup_range-in-writeback-code.patch
-hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
-fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
-mm-use-find_get_pages_range-in-filemap_range_has_page.patch
-mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler.patch
 
