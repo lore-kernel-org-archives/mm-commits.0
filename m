@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-use-fshort-wchar-globally.patch added to -mm tree
-Date: Wed, 26 Jul 2017 14:40:31 -0700
-Message-ID: <59790c4f.GuWU5Gpn8mYTeUrA%akpm@linux-foundation.org>
+Subject: + metag-numa-remove-the-unused-parent_node-macro.patch added to
+ -mm tree
+Date: Wed, 26 Jul 2017 14:42:01 -0700
+Message-ID: <59790ca9.sZ960ZUjUp5dXuHB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37472 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751009AbdGZVkc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:40:32 -0400
+        with ESMTP id S1751202AbdGZVmB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, jgross@suse.com, mmarek@suse.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: douly.fnst@cn.fujitsu.com, james.hogan@imgtec.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kbuild: use -fshort-wchar globally
+     Subject: metag/numa: remove the unused parent_node() macro
 has been added to the -mm tree.  Its filename is
-     kbuild-use-fshort-wchar-globally.patch
+     metag-numa-remove-the-unused-parent_node-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-use-fshort-wchar-globally.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/metag-numa-remove-the-unused-parent_node-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-use-fshort-wchar-globally.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/metag-numa-remove-the-unused-parent_node-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,60 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Kbuild: use -fshort-wchar globally
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: metag/numa: remove the unused parent_node() macro
 
-A previous patch added the --no-wchar-size-warning to the Makefile to
-avoid this harmless warning:
+Commit a7be6e5a7f8d ("mm: drop useless local parameters of
+__register_one_node()") removes the last user of parent_node().
 
-arm-linux-gnueabi-ld: warning: drivers/xen/efi.o uses 2-byte wchar_t yet the output is to use 4-byte wchar_t; use of wchar_t values across objects may fail
+The parent_node() macro in METAG architecture is unnecessary.
 
-Changing kbuild to use thin archives instead of recursive linking
-unfortunately brings the same warning back during the final link.
+Remove it for cleanup.
 
-The kernel does not use wchar_t string literals at this point, and xen
-does not use wchar_t at all (only efi_char16_t), so the flag has no
-effect, but as pointed out by Jan Beulich, adding a wchar_t string literal
-would be bad here.
-
-Since wchar_t is always defined as u16, independent of the toolchain
-default, always passing -fshort-wchar is correct and lets us remove the
-Xen specific hack along with fixing the warning.
-
-Link: http://lkml.kernel.org/r/20170726133655.2137437-1-arnd@arndb.de
-Link: https://patchwork.kernel.org/patch/9275217/
-Fixes: 971a69db7dc0 ("Xen: don't warn about 2-byte wchar_t in efi")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
+Link: http://lkml.kernel.org/r/1501076076-1974-4-git-send-email-douly.fnst@cn.fujitsu.com
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile             |    2 +-
- drivers/xen/Makefile |    3 ---
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ arch/metag/include/asm/topology.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Makefile~kbuild-use-fshort-wchar-globally Makefile
---- a/Makefile~kbuild-use-fshort-wchar-globally
-+++ a/Makefile
-@@ -396,7 +396,7 @@ LINUXINCLUDE    := \
- KBUILD_CPPFLAGS := -D__KERNEL__
+diff -puN arch/metag/include/asm/topology.h~metag-numa-remove-the-unused-parent_node-macro arch/metag/include/asm/topology.h
+--- a/arch/metag/include/asm/topology.h~metag-numa-remove-the-unused-parent_node-macro
++++ a/arch/metag/include/asm/topology.h
+@@ -4,7 +4,6 @@
+ #ifdef CONFIG_NUMA
  
- KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
--		   -fno-strict-aliasing -fno-common \
-+		   -fno-strict-aliasing -fno-common -fshort-wchar \
- 		   -Werror-implicit-function-declaration \
- 		   -Wno-format-security \
- 		   -std=gnu89 $(call cc-option,-fno-PIE)
-diff -puN drivers/xen/Makefile~kbuild-use-fshort-wchar-globally drivers/xen/Makefile
---- a/drivers/xen/Makefile~kbuild-use-fshort-wchar-globally
-+++ a/drivers/xen/Makefile
-@@ -7,9 +7,6 @@ obj-y	+= xenbus/
- nostackp := $(call cc-option, -fno-stack-protector)
- CFLAGS_features.o			:= $(nostackp)
+ #define cpu_to_node(cpu)	((void)(cpu), 0)
+-#define parent_node(node)	((void)(node), 0)
  
--CFLAGS_efi.o				+= -fshort-wchar
--LDFLAGS					+= $(call ld-option, --no-wchar-size-warning)
+ #define cpumask_of_node(node)	((void)node, cpu_online_mask)
+ 
+_
+
+Patches currently in -mm which might be from douly.fnst@cn.fujitsu.com are
+
+metag-numa-remove-the-unused-parent_node-macro.patch
+
