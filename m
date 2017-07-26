@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fair-replace-cfs_rq-rb_leftmost.patch added to -mm tree
-Date: Wed, 26 Jul 2017 14:14:38 -0700
-Message-ID: <5979063e.nYY4Mj6seSCVKdZZ%akpm@linux-foundation.org>
+Subject: + lib-rbtree_testc-support-rb_root_cached.patch added to -mm tree
+Date: Wed, 26 Jul 2017 14:14:36 -0700
+Message-ID: <5979063c.B4ycBdgHofUrIyWe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60138 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750996AbdGZVOj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:39 -0400
+        with ESMTP id S1750996AbdGZVOh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, peterz@infradead.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched/fair: replace cfs_rq->rb_leftmost
+     Subject: lib/rbtree_test.c: support rb_root_cached
 has been added to the -mm tree.  Its filename is
-     sched-fair-replace-cfs_rq-rb_leftmost.patch
+     lib-rbtree_testc-support-rb_root_cached.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-fair-replace-cfs_rq-rb_leftmost.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-rbtree_testc-support-rb_root_cached.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-fair-replace-cfs_rq-rb_leftmost.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rbtree_testc-support-rb_root_cached.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,145 +39,284 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: sched/fair: replace cfs_rq->rb_leftmost
+Subject: lib/rbtree_test.c: support rb_root_cached
 
-... with the generic rbtree flavor instead. No changes
-in semantics whatsoever.
+We can work with a single rb_root_cached root to test both cached and
+non-cached rbtrees.  In addition, also add a test to measure latencies
+between rb_first and its fast counterpart.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-8-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-7-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/debug.c |    2 +-
- kernel/sched/fair.c  |   39 +++++++++++++--------------------------
- kernel/sched/sched.h |    3 +--
- 3 files changed, 15 insertions(+), 29 deletions(-)
+ lib/rbtree_test.c |  156 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 137 insertions(+), 19 deletions(-)
 
-diff -puN kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/debug.c
---- a/kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost
-+++ a/kernel/sched/debug.c
-@@ -488,7 +488,7 @@ void print_cfs_rq(struct seq_file *m, in
- 			SPLIT_NS(cfs_rq->exec_clock));
+diff -puN lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached lib/rbtree_test.c
+--- a/lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached
++++ a/lib/rbtree_test.c
+@@ -23,14 +23,14 @@ struct test_node {
+ 	u32 augmented;
+ };
  
- 	raw_spin_lock_irqsave(&rq->lock, flags);
--	if (cfs_rq->rb_leftmost)
-+	if (rb_first_cached(&cfs_rq->tasks_timeline))
- 		MIN_vruntime = (__pick_first_entity(cfs_rq))->vruntime;
- 	last = __pick_last_entity(cfs_rq);
- 	if (last)
-diff -puN kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/fair.c
---- a/kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost
-+++ a/kernel/sched/fair.c
-@@ -513,6 +513,7 @@ static inline int entity_before(struct s
- static void update_min_vruntime(struct cfs_rq *cfs_rq)
+-static struct rb_root root = RB_ROOT;
++static struct rb_root_cached root = RB_ROOT_CACHED;
+ static struct test_node *nodes = NULL;
+ 
+ static struct rnd_state rnd;
+ 
+-static void insert(struct test_node *node, struct rb_root *root)
++static void insert(struct test_node *node, struct rb_root_cached *root)
  {
- 	struct sched_entity *curr = cfs_rq->curr;
-+	struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
+-	struct rb_node **new = &root->rb_node, *parent = NULL;
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
+ 	u32 key = node->key;
  
- 	u64 vruntime = cfs_rq->min_vruntime;
- 
-@@ -523,10 +524,9 @@ static void update_min_vruntime(struct c
- 			curr = NULL;
+ 	while (*new) {
+@@ -42,14 +42,40 @@ static void insert(struct test_node *nod
  	}
  
--	if (cfs_rq->rb_leftmost) {
--		struct sched_entity *se = rb_entry(cfs_rq->rb_leftmost,
--						   struct sched_entity,
--						   run_node);
-+	if (leftmost) { /* non-empty tree */
-+		struct sched_entity *se;
-+		se = rb_entry(leftmost, struct sched_entity, run_node);
+ 	rb_link_node(&node->rb, parent, new);
+-	rb_insert_color(&node->rb, root);
++	rb_insert_color(&node->rb, &root->rb_root);
+ }
  
- 		if (!curr)
- 			vruntime = se->vruntime;
-@@ -547,10 +547,10 @@ static void update_min_vruntime(struct c
-  */
- static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
+-static inline void erase(struct test_node *node, struct rb_root *root)
++static void insert_cached(struct test_node *node, struct rb_root_cached *root)
  {
--	struct rb_node **link = &cfs_rq->tasks_timeline.rb_node;
-+	struct rb_node **link = &cfs_rq->tasks_timeline.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct sched_entity *entry;
--	int leftmost = 1;
+-	rb_erase(&node->rb, root);
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
++	u32 key = node->key;
 +	bool leftmost = true;
- 
- 	/*
- 	 * Find the right place in the rbtree:
-@@ -566,36 +566,23 @@ static void __enqueue_entity(struct cfs_
- 			link = &parent->rb_left;
- 		} else {
- 			link = &parent->rb_right;
--			leftmost = 0;
++
++	while (*new) {
++		parent = *new;
++		if (key < rb_entry(parent, struct test_node, rb)->key)
++			new = &parent->rb_left;
++		else {
++			new = &parent->rb_right;
 +			leftmost = false;
- 		}
++		}
++	}
++
++	rb_link_node(&node->rb, parent, new);
++	rb_insert_color_cached(&node->rb, root, leftmost);
+ }
+ 
++static inline void erase(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase(&node->rb, &root->rb_root);
++}
++
++static inline void erase_cached(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase_cached(&node->rb, root);
++}
++
++
+ static inline u32 augment_recompute(struct test_node *node)
+ {
+ 	u32 max = node->val, child_augmented;
+@@ -71,9 +97,10 @@ static inline u32 augment_recompute(stru
+ RB_DECLARE_CALLBACKS(static, augment_callbacks, struct test_node, rb,
+ 		     u32, augmented, augment_recompute)
+ 
+-static void insert_augmented(struct test_node *node, struct rb_root *root)
++static void insert_augmented(struct test_node *node,
++			     struct rb_root_cached *root)
+ {
+-	struct rb_node **new = &root->rb_node, *rb_parent = NULL;
++	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
+ 	u32 key = node->key;
+ 	u32 val = node->val;
+ 	struct test_node *parent;
+@@ -91,12 +118,47 @@ static void insert_augmented(struct test
+ 
+ 	node->augmented = val;
+ 	rb_link_node(&node->rb, rb_parent, new);
+-	rb_insert_augmented(&node->rb, root, &augment_callbacks);
++	rb_insert_augmented(&node->rb, &root->rb_root, &augment_callbacks);
++}
++
++static void insert_augmented_cached(struct test_node *node,
++				    struct rb_root_cached *root)
++{
++	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
++	u32 key = node->key;
++	u32 val = node->val;
++	struct test_node *parent;
++	bool leftmost = true;
++
++	while (*new) {
++		rb_parent = *new;
++		parent = rb_entry(rb_parent, struct test_node, rb);
++		if (parent->augmented < val)
++			parent->augmented = val;
++		if (key < parent->key)
++			new = &parent->rb.rb_left;
++		else {
++			new = &parent->rb.rb_right;
++			leftmost = false;
++		}
++	}
++
++	node->augmented = val;
++	rb_link_node(&node->rb, rb_parent, new);
++	rb_insert_augmented_cached(&node->rb, root,
++				   leftmost, &augment_callbacks);
++}
++
++
++static void erase_augmented(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase_augmented(&node->rb, &root->rb_root, &augment_callbacks);
+ }
+ 
+-static void erase_augmented(struct test_node *node, struct rb_root *root)
++static void erase_augmented_cached(struct test_node *node,
++				   struct rb_root_cached *root)
+ {
+-	rb_erase_augmented(&node->rb, root, &augment_callbacks);
++	rb_erase_augmented_cached(&node->rb, root, &augment_callbacks);
+ }
+ 
+ static void init(void)
+@@ -125,7 +187,7 @@ static void check_postorder_foreach(int
+ {
+ 	struct test_node *cur, *n;
+ 	int count = 0;
+-	rbtree_postorder_for_each_entry_safe(cur, n, &root, rb)
++	rbtree_postorder_for_each_entry_safe(cur, n, &root.rb_root, rb)
+ 		count++;
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+@@ -135,7 +197,7 @@ static void check_postorder(int nr_nodes
+ {
+ 	struct rb_node *rb;
+ 	int count = 0;
+-	for (rb = rb_first_postorder(&root); rb; rb = rb_next_postorder(rb))
++	for (rb = rb_first_postorder(&root.rb_root); rb; rb = rb_next_postorder(rb))
+ 		count++;
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+@@ -147,7 +209,7 @@ static void check(int nr_nodes)
+ 	int count = 0, blacks = 0;
+ 	u32 prev_key = 0;
+ 
+-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
+ 		struct test_node *node = rb_entry(rb, struct test_node, rb);
+ 		WARN_ON_ONCE(node->key < prev_key);
+ 		WARN_ON_ONCE(is_red(rb) &&
+@@ -162,7 +224,7 @@ static void check(int nr_nodes)
  	}
  
--	/*
--	 * Maintain a cache of leftmost tree entries (it is frequently
--	 * used):
--	 */
--	if (leftmost)
--		cfs_rq->rb_leftmost = &se->run_node;
--
- 	rb_link_node(&se->run_node, parent, link);
--	rb_insert_color(&se->run_node, &cfs_rq->tasks_timeline);
-+	rb_insert_color_cached(&se->run_node,
-+			       &cfs_rq->tasks_timeline, leftmost);
- }
+ 	WARN_ON_ONCE(count != nr_nodes);
+-	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
++	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root.rb_root))) - 1);
  
- static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
- {
--	if (cfs_rq->rb_leftmost == &se->run_node) {
--		struct rb_node *next_node;
--
--		next_node = rb_next(&se->run_node);
--		cfs_rq->rb_leftmost = next_node;
--	}
--
--	rb_erase(&se->run_node, &cfs_rq->tasks_timeline);
-+	rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
- }
+ 	check_postorder(nr_nodes);
+ 	check_postorder_foreach(nr_nodes);
+@@ -173,7 +235,7 @@ static void check_augmented(int nr_nodes
+ 	struct rb_node *rb;
  
- struct sched_entity *__pick_first_entity(struct cfs_rq *cfs_rq)
- {
--	struct rb_node *left = cfs_rq->rb_leftmost;
-+	struct rb_node *left = rb_first_cached(&cfs_rq->tasks_timeline);
+ 	check(nr_nodes);
+-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
+ 		struct test_node *node = rb_entry(rb, struct test_node, rb);
+ 		WARN_ON_ONCE(node->augmented != augment_recompute(node));
+ 	}
+@@ -207,7 +269,24 @@ static int __init rbtree_test_init(void)
+ 	time = time2 - time1;
  
- 	if (!left)
- 		return NULL;
-@@ -616,7 +603,7 @@ static struct sched_entity *__pick_next_
- #ifdef CONFIG_SCHED_DEBUG
- struct sched_entity *__pick_last_entity(struct cfs_rq *cfs_rq)
- {
--	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline);
-+	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline.rb_root);
+ 	time = div_u64(time, perf_loops);
+-	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
++	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n",
++	       (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
++			insert_cached(nodes + j, &root);
++		for (j = 0; j < nnodes; j++)
++			erase_cached(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n",
++	       (unsigned long long)time);
  
- 	if (!last)
- 		return NULL;
-@@ -9171,7 +9158,7 @@ static void set_curr_task_fair(struct rq
+ 	for (i = 0; i < nnodes; i++)
+ 		insert(nodes + i, &root);
+@@ -215,7 +294,7 @@ static int __init rbtree_test_init(void)
+ 	time1 = get_cycles();
  
- void init_cfs_rq(struct cfs_rq *cfs_rq)
- {
--	cfs_rq->tasks_timeline = RB_ROOT;
-+	cfs_rq->tasks_timeline = RB_ROOT_CACHED;
- 	cfs_rq->min_vruntime = (u64)(-(1LL << 20));
- #ifndef CONFIG_64BIT
- 	cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
-diff -puN kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/sched.h
---- a/kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost
-+++ a/kernel/sched/sched.h
-@@ -426,8 +426,7 @@ struct cfs_rq {
- 	u64 min_vruntime_copy;
- #endif
+ 	for (i = 0; i < perf_loops; i++) {
+-		for (node = rb_first(&root); node; node = rb_next(node))
++		for (node = rb_first(&root.rb_root); node; node = rb_next(node))
+ 			;
+ 	}
  
--	struct rb_root tasks_timeline;
--	struct rb_node *rb_leftmost;
-+	struct rb_root_cached tasks_timeline;
+@@ -223,7 +302,31 @@ static int __init rbtree_test_init(void)
+ 	time = time2 - time1;
  
- 	/*
- 	 * 'curr' points to currently running entity on this cfs_rq.
+ 	time = div_u64(time, perf_loops);
+-	printk(" -> test 2 (latency of inorder traversal): %llu cycles\n", (unsigned long long)time);
++	printk(" -> test 3 (latency of inorder traversal): %llu cycles\n",
++	       (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++)
++		node = rb_first(&root.rb_root);
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 4 (latency to fetch first node)\n");
++	printk("        non-cached: %llu cycles\n", (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++)
++		node = rb_first_cached(&root);
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk("        cached: %llu cycles\n", (unsigned long long)time);
+ 
+ 	for (i = 0; i < nnodes; i++)
+ 		erase(nodes + i, &root);
+@@ -261,6 +364,21 @@ static int __init rbtree_test_init(void)
+ 	time = div_u64(time, perf_loops);
+ 	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
+ 
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
++			insert_augmented_cached(nodes + j, &root);
++		for (j = 0; j < nnodes; j++)
++			erase_augmented_cached(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n", (unsigned long long)time);
++
+ 	for (i = 0; i < check_loops; i++) {
+ 		init();
+ 		for (j = 0; j < nnodes; j++) {
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
