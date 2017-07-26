@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
- added to -mm tree
-Date: Wed, 26 Jul 2017 14:14:42 -0700
-Message-ID: <59790642.jv+OJAUTlbY0INLy%akpm@linux-foundation.org>
+Subject: + sched-fair-replace-cfs_rq-rb_leftmost.patch added to -mm tree
+Date: Wed, 26 Jul 2017 14:14:38 -0700
+Message-ID: <5979063e.nYY4Mj6seSCVKdZZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750996AbdGZVOn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:43 -0400
+        with ESMTP id S1750996AbdGZVOj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:14:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: locking/rtmutex: replace top-waiter and pi_waiters leftmost caching
+     Subject: sched/fair: replace cfs_rq->rb_leftmost
 has been added to the -mm tree.  Its filename is
-     locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+     sched-fair-replace-cfs_rq-rb_leftmost.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-fair-replace-cfs_rq-rb_leftmost.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-fair-replace-cfs_rq-rb_leftmost.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,131 +39,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: locking/rtmutex: replace top-waiter and pi_waiters leftmost caching
+Subject: sched/fair: replace cfs_rq->rb_leftmost
 
 ... with the generic rbtree flavor instead. No changes
 in semantics whatsoever.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-10-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-8-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h       |    5 +---
- include/linux/rtmutex.h         |   11 ++++-----
- include/linux/sched.h           |    3 --
- kernel/fork.c                   |    3 --
- kernel/locking/rtmutex-debug.c  |    2 -
- kernel/locking/rtmutex.c        |   35 +++++++++---------------------
- kernel/locking/rtmutex_common.h |   12 +++++-----
- 7 files changed, 27 insertions(+), 44 deletions(-)
+ kernel/sched/debug.c |    2 +-
+ kernel/sched/fair.c  |   39 +++++++++++++--------------------------
+ kernel/sched/sched.h |    3 +--
+ 3 files changed, 15 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/init_task.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/init_task.h
---- a/include/linux/init_task.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/init_task.h
-@@ -181,9 +181,8 @@ extern struct cred init_cred;
+diff -puN kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/debug.c
+--- a/kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/debug.c
+@@ -488,7 +488,7 @@ void print_cfs_rq(struct seq_file *m, in
+ 			SPLIT_NS(cfs_rq->exec_clock));
  
- #ifdef CONFIG_RT_MUTEXES
- # define INIT_RT_MUTEXES(tsk)						\
--	.pi_waiters = RB_ROOT,						\
--	.pi_top_task = NULL,						\
--	.pi_waiters_leftmost = NULL,
-+	.pi_waiters = RB_ROOT_CACHED,					\
-+	.pi_top_task = NULL,
- #else
- # define INIT_RT_MUTEXES(tsk)
- #endif
-diff -puN include/linux/rtmutex.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/rtmutex.h
---- a/include/linux/rtmutex.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/rtmutex.h
-@@ -22,18 +22,17 @@ extern int max_lock_depth; /* for sysctl
-  * The rt_mutex structure
-  *
-  * @wait_lock:	spinlock to protect the structure
-- * @waiters:	rbtree root to enqueue waiters in priority order
-- * @waiters_leftmost: top waiter
-+ * @waiters:	rbtree root to enqueue waiters in priority order;
-+ *              caches top-waiter (leftmost node).
-  * @owner:	the mutex owner
+ 	raw_spin_lock_irqsave(&rq->lock, flags);
+-	if (cfs_rq->rb_leftmost)
++	if (rb_first_cached(&cfs_rq->tasks_timeline))
+ 		MIN_vruntime = (__pick_first_entity(cfs_rq))->vruntime;
+ 	last = __pick_last_entity(cfs_rq);
+ 	if (last)
+diff -puN kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/fair.c
+@@ -513,6 +513,7 @@ static inline int entity_before(struct s
+ static void update_min_vruntime(struct cfs_rq *cfs_rq)
+ {
+ 	struct sched_entity *curr = cfs_rq->curr;
++	struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
+ 
+ 	u64 vruntime = cfs_rq->min_vruntime;
+ 
+@@ -523,10 +524,9 @@ static void update_min_vruntime(struct c
+ 			curr = NULL;
+ 	}
+ 
+-	if (cfs_rq->rb_leftmost) {
+-		struct sched_entity *se = rb_entry(cfs_rq->rb_leftmost,
+-						   struct sched_entity,
+-						   run_node);
++	if (leftmost) { /* non-empty tree */
++		struct sched_entity *se;
++		se = rb_entry(leftmost, struct sched_entity, run_node);
+ 
+ 		if (!curr)
+ 			vruntime = se->vruntime;
+@@ -547,10 +547,10 @@ static void update_min_vruntime(struct c
   */
- struct rt_mutex {
- 	raw_spinlock_t		wait_lock;
--	struct rb_root          waiters;
--	struct rb_node          *waiters_leftmost;
-+	struct rb_root_cached   waiters;
- 	struct task_struct	*owner;
- #ifdef CONFIG_DEBUG_RT_MUTEXES
- 	int			save_state;
--	const char 		*name, *file;
-+	const char		*name, *file;
- 	int			line;
- 	void			*magic;
- #endif
-@@ -84,7 +83,7 @@ do { \
- 
- #define __RT_MUTEX_INITIALIZER(mutexname) \
- 	{ .wait_lock = __RAW_SPIN_LOCK_UNLOCKED(mutexname.wait_lock) \
--	, .waiters = RB_ROOT \
-+	, .waiters = RB_ROOT_CACHED \
- 	, .owner = NULL \
- 	__DEBUG_RT_MUTEX_INITIALIZER(mutexname) \
- 	__DEP_MAP_RT_MUTEX_INITIALIZER(mutexname)}
-diff -puN include/linux/sched.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/sched.h
---- a/include/linux/sched.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/sched.h
-@@ -811,8 +811,7 @@ struct task_struct {
- 
- #ifdef CONFIG_RT_MUTEXES
- 	/* PI waiters blocked on a rt_mutex held by this task: */
--	struct rb_root			pi_waiters;
--	struct rb_node			*pi_waiters_leftmost;
-+	struct rb_root_cached		pi_waiters;
- 	/* Updated under owner's pi_lock and rq lock */
- 	struct task_struct		*pi_top_task;
- 	/* Deadlock detection and priority inheritance handling: */
-diff -puN kernel/fork.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/fork.c
---- a/kernel/fork.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/fork.c
-@@ -1458,8 +1458,7 @@ static void rt_mutex_init_task(struct ta
+ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
  {
- 	raw_spin_lock_init(&p->pi_lock);
- #ifdef CONFIG_RT_MUTEXES
--	p->pi_waiters = RB_ROOT;
--	p->pi_waiters_leftmost = NULL;
-+	p->pi_waiters = RB_ROOT_CACHED;
- 	p->pi_top_task = NULL;
- 	p->pi_blocked_on = NULL;
- #endif
-diff -puN kernel/locking/rtmutex-debug.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex-debug.c
---- a/kernel/locking/rtmutex-debug.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex-debug.c
-@@ -58,7 +58,7 @@ static void printk_lock(struct rt_mutex
- 
- void rt_mutex_debug_task_free(struct task_struct *task)
- {
--	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters));
-+	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters.rb_root));
- 	DEBUG_LOCKS_WARN_ON(task->pi_blocked_on);
- }
- 
-diff -puN kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex.c
---- a/kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex.c
-@@ -271,10 +271,10 @@ rt_mutex_waiter_equal(struct rt_mutex_wa
- static void
- rt_mutex_enqueue(struct rt_mutex *lock, struct rt_mutex_waiter *waiter)
- {
--	struct rb_node **link = &lock->waiters.rb_node;
-+	struct rb_node **link = &lock->waiters.rb_root.rb_node;
+-	struct rb_node **link = &cfs_rq->tasks_timeline.rb_node;
++	struct rb_node **link = &cfs_rq->tasks_timeline.rb_root.rb_node;
  	struct rb_node *parent = NULL;
- 	struct rt_mutex_waiter *entry;
+ 	struct sched_entity *entry;
 -	int leftmost = 1;
 +	bool leftmost = true;
  
- 	while (*link) {
- 		parent = *link;
-@@ -283,15 +283,12 @@ rt_mutex_enqueue(struct rt_mutex *lock,
+ 	/*
+ 	 * Find the right place in the rbtree:
+@@ -566,36 +566,23 @@ static void __enqueue_entity(struct cfs_
  			link = &parent->rb_left;
  		} else {
  			link = &parent->rb_right;
@@ -174,120 +114,70 @@ diff -puN kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_wai
  		}
  	}
  
+-	/*
+-	 * Maintain a cache of leftmost tree entries (it is frequently
+-	 * used):
+-	 */
 -	if (leftmost)
--		lock->waiters_leftmost = &waiter->tree_entry;
+-		cfs_rq->rb_leftmost = &se->run_node;
 -
- 	rb_link_node(&waiter->tree_entry, parent, link);
--	rb_insert_color(&waiter->tree_entry, &lock->waiters);
-+	rb_insert_color_cached(&waiter->tree_entry, &lock->waiters, leftmost);
+ 	rb_link_node(&se->run_node, parent, link);
+-	rb_insert_color(&se->run_node, &cfs_rq->tasks_timeline);
++	rb_insert_color_cached(&se->run_node,
++			       &cfs_rq->tasks_timeline, leftmost);
  }
  
- static void
-@@ -300,20 +297,17 @@ rt_mutex_dequeue(struct rt_mutex *lock,
- 	if (RB_EMPTY_NODE(&waiter->tree_entry))
- 		return;
- 
--	if (lock->waiters_leftmost == &waiter->tree_entry)
--		lock->waiters_leftmost = rb_next(&waiter->tree_entry);
+ static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
+ {
+-	if (cfs_rq->rb_leftmost == &se->run_node) {
+-		struct rb_node *next_node;
 -
--	rb_erase(&waiter->tree_entry, &lock->waiters);
-+	rb_erase_cached(&waiter->tree_entry, &lock->waiters);
- 	RB_CLEAR_NODE(&waiter->tree_entry);
- }
- 
- static void
- rt_mutex_enqueue_pi(struct task_struct *task, struct rt_mutex_waiter *waiter)
- {
--	struct rb_node **link = &task->pi_waiters.rb_node;
-+	struct rb_node **link = &task->pi_waiters.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct rt_mutex_waiter *entry;
--	int leftmost = 1;
-+	bool leftmost = true;
- 
- 	while (*link) {
- 		parent = *link;
-@@ -322,15 +316,12 @@ rt_mutex_enqueue_pi(struct task_struct *
- 			link = &parent->rb_left;
- 		} else {
- 			link = &parent->rb_right;
--			leftmost = 0;
-+			leftmost = false;
- 		}
- 	}
- 
--	if (leftmost)
--		task->pi_waiters_leftmost = &waiter->pi_tree_entry;
+-		next_node = rb_next(&se->run_node);
+-		cfs_rq->rb_leftmost = next_node;
+-	}
 -
- 	rb_link_node(&waiter->pi_tree_entry, parent, link);
--	rb_insert_color(&waiter->pi_tree_entry, &task->pi_waiters);
-+	rb_insert_color_cached(&waiter->pi_tree_entry, &task->pi_waiters, leftmost);
+-	rb_erase(&se->run_node, &cfs_rq->tasks_timeline);
++	rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
  }
  
- static void
-@@ -339,10 +330,7 @@ rt_mutex_dequeue_pi(struct task_struct *
- 	if (RB_EMPTY_NODE(&waiter->pi_tree_entry))
- 		return;
- 
--	if (task->pi_waiters_leftmost == &waiter->pi_tree_entry)
--		task->pi_waiters_leftmost = rb_next(&waiter->pi_tree_entry);
--
--	rb_erase(&waiter->pi_tree_entry, &task->pi_waiters);
-+	rb_erase_cached(&waiter->pi_tree_entry, &task->pi_waiters);
- 	RB_CLEAR_NODE(&waiter->pi_tree_entry);
- }
- 
-@@ -1657,8 +1645,7 @@ void __rt_mutex_init(struct rt_mutex *lo
+ struct sched_entity *__pick_first_entity(struct cfs_rq *cfs_rq)
  {
- 	lock->owner = NULL;
- 	raw_spin_lock_init(&lock->wait_lock);
--	lock->waiters = RB_ROOT;
--	lock->waiters_leftmost = NULL;
-+	lock->waiters = RB_ROOT_CACHED;
+-	struct rb_node *left = cfs_rq->rb_leftmost;
++	struct rb_node *left = rb_first_cached(&cfs_rq->tasks_timeline);
  
- 	if (name && key)
- 		debug_rt_mutex_init(lock, name, key);
-diff -puN kernel/locking/rtmutex_common.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex_common.h
---- a/kernel/locking/rtmutex_common.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex_common.h
-@@ -42,7 +42,7 @@ struct rt_mutex_waiter {
-  */
- static inline int rt_mutex_has_waiters(struct rt_mutex *lock)
+ 	if (!left)
+ 		return NULL;
+@@ -616,7 +603,7 @@ static struct sched_entity *__pick_next_
+ #ifdef CONFIG_SCHED_DEBUG
+ struct sched_entity *__pick_last_entity(struct cfs_rq *cfs_rq)
  {
--	return !RB_EMPTY_ROOT(&lock->waiters);
-+	return !RB_EMPTY_ROOT(&lock->waiters.rb_root);
- }
+-	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline);
++	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline.rb_root);
  
- static inline struct rt_mutex_waiter *
-@@ -50,8 +50,8 @@ rt_mutex_top_waiter(struct rt_mutex *loc
+ 	if (!last)
+ 		return NULL;
+@@ -9171,7 +9158,7 @@ static void set_curr_task_fair(struct rq
+ 
+ void init_cfs_rq(struct cfs_rq *cfs_rq)
  {
- 	struct rt_mutex_waiter *w;
+-	cfs_rq->tasks_timeline = RB_ROOT;
++	cfs_rq->tasks_timeline = RB_ROOT_CACHED;
+ 	cfs_rq->min_vruntime = (u64)(-(1LL << 20));
+ #ifndef CONFIG_64BIT
+ 	cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
+diff -puN kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/sched.h
+--- a/kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/sched.h
+@@ -426,8 +426,7 @@ struct cfs_rq {
+ 	u64 min_vruntime_copy;
+ #endif
  
--	w = rb_entry(lock->waiters_leftmost, struct rt_mutex_waiter,
--		     tree_entry);
-+	w = rb_entry(lock->waiters.rb_leftmost,
-+		     struct rt_mutex_waiter, tree_entry);
- 	BUG_ON(w->lock != lock);
+-	struct rb_root tasks_timeline;
+-	struct rb_node *rb_leftmost;
++	struct rb_root_cached tasks_timeline;
  
- 	return w;
-@@ -59,14 +59,14 @@ rt_mutex_top_waiter(struct rt_mutex *loc
- 
- static inline int task_has_pi_waiters(struct task_struct *p)
- {
--	return !RB_EMPTY_ROOT(&p->pi_waiters);
-+	return !RB_EMPTY_ROOT(&p->pi_waiters.rb_root);
- }
- 
- static inline struct rt_mutex_waiter *
- task_top_pi_waiter(struct task_struct *p)
- {
--	return rb_entry(p->pi_waiters_leftmost, struct rt_mutex_waiter,
--			pi_tree_entry);
-+	return rb_entry(p->pi_waiters.rb_leftmost,
-+			struct rt_mutex_waiter, pi_tree_entry);
- }
- 
- /*
+ 	/*
+ 	 * 'curr' points to currently running entity on this cfs_rq.
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
