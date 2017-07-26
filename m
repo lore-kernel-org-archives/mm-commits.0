@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch added to
+Subject: + ext4-use-pagevec_lookup_range-in-writeback-code.patch added to
  -mm tree
-Date: Wed, 26 Jul 2017 15:17:52 -0700
-Message-ID: <59791510.6tOv+Zmif0OJJTgp%akpm@linux-foundation.org>
+Date: Wed, 26 Jul 2017 15:17:54 -0700
+Message-ID: <59791512.SFANpyihMQhDNGaU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42600 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbdGZWRx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:17:53 -0400
+        with ESMTP id S1751040AbdGZWRz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:17:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: use pagevec_lookup_range() in ext4_find_unwritten_pgoff()
+     Subject: ext4: use pagevec_lookup_range() in writeback code
 has been added to the -mm tree.  Its filename is
-     ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
+     ext4-use-pagevec_lookup_range-in-writeback-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext4-use-pagevec_lookup_range-in-writeback-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-use-pagevec_lookup_range-in-writeback-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,65 +40,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ext4: use pagevec_lookup_range() in ext4_find_unwritten_pgoff()
+Subject: ext4: use pagevec_lookup_range() in writeback code
 
-Use pagevec_lookup_range() in ext4_find_unwritten_pgoff() since we are
-interested only in pages in the given range.  Simplify the logic as a
-result of not getting pages out of range and index getting automatically
-advanced.
+Both occurences of pagevec_lookup() actually want only pages from a given
+range.  Use pagevec_lookup_range() for the lookup.
 
-Link: http://lkml.kernel.org/r/20170726114704.7626-6-jack@suse.cz
+Link: http://lkml.kernel.org/r/20170726114704.7626-7-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/file.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ fs/ext4/inode.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN fs/ext4/file.c~ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff fs/ext4/file.c
---- a/fs/ext4/file.c~ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff
-+++ a/fs/ext4/file.c
-@@ -464,12 +464,11 @@ static int ext4_find_unwritten_pgoff(str
+diff -puN fs/ext4/inode.c~ext4-use-pagevec_lookup_range-in-writeback-code fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-use-pagevec_lookup_range-in-writeback-code
++++ a/fs/ext4/inode.c
+@@ -1676,13 +1676,13 @@ static void mpage_release_unused_pages(s
  
  	pagevec_init(&pvec, 0);
- 	do {
--		int i, num;
-+		int i;
- 		unsigned long nr_pages;
- 
--		num = min_t(pgoff_t, end - index, PAGEVEC_SIZE - 1) + 1;
--		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &index,
--					  (pgoff_t)num);
-+		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
-+					&index, end, PAGEVEC_SIZE);
+ 	while (index <= end) {
+-		nr_pages = pagevec_lookup(&pvec, mapping, &index, PAGEVEC_SIZE);
++		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end,
++						PAGEVEC_SIZE);
  		if (nr_pages == 0)
  			break;
+ 		for (i = 0; i < nr_pages; i++) {
+ 			struct page *page = pvec.pages[i];
+-			if (page->index > end)
+-				break;
++
+ 			BUG_ON(!PageLocked(page));
+ 			BUG_ON(PageWriteback(page));
+ 			if (invalidate) {
+@@ -2303,15 +2303,13 @@ static int mpage_map_and_submit_buffers(
  
-@@ -488,9 +487,6 @@ static int ext4_find_unwritten_pgoff(str
- 				goto out;
- 			}
+ 	pagevec_init(&pvec, 0);
+ 	while (start <= end) {
+-		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &start,
+-					  PAGEVEC_SIZE);
++		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
++						&start, end, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
+ 		for (i = 0; i < nr_pages; i++) {
+ 			struct page *page = pvec.pages[i];
  
 -			if (page->index > end)
--				goto out;
--
- 			lock_page(page);
- 
- 			if (unlikely(page->mapping != inode->i_mapping)) {
-@@ -530,12 +526,10 @@ static int ext4_find_unwritten_pgoff(str
- 			unlock_page(page);
- 		}
- 
--		/* The no. of pages is less than our desired, we are done. */
--		if (nr_pages < num)
--			break;
- 		pagevec_release(&pvec);
- 	} while (index <= end);
- 
-+	/* There are no pages upto endoff - that would be a hole in there. */
- 	if (whence == SEEK_HOLE && lastoff < endoff) {
- 		found = 1;
- 		*offset = lastoff;
+-				break;
+ 			bh = head = page_buffers(page);
+ 			do {
+ 				if (lblk < mpd->map.m_lblk)
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
