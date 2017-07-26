@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fscache-remove-unused-now_uncached-callback.patch added to -mm
- tree
-Date: Wed, 26 Jul 2017 15:17:42 -0700
-Message-ID: <59791506.xOqyVJkYU2EMrUVr%akpm@linux-foundation.org>
+Subject: + mm-make-pagevec_lookup-update-index.patch added to -mm tree
+Date: Wed, 26 Jul 2017 15:17:45 -0700
+Message-ID: <59791509.MO8V78+j4CB+F71T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42576 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbdGZWRn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:17:43 -0400
+        with ESMTP id S1751040AbdGZWRq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 18:17:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fscache: remove unused ->now_uncached callback
+     Subject: mm: make pagevec_lookup() update index
 has been added to the -mm tree.  Its filename is
-     fscache-remove-unused-now_uncached-callback.patch
+     mm-make-pagevec_lookup-update-index.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fscache-remove-unused-now_uncached-callback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-pagevec_lookup-update-index.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fscache-remove-unused-now_uncached-callback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-pagevec_lookup-update-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,329 +39,347 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: fscache: remove unused ->now_uncached callback
+Subject: mm: make pagevec_lookup() update index
 
-Patch series "Ranged pagevec lookup", v2.
+Make pagevec_lookup() (and underlying find_get_pages()) update index to
+the next page where iteration should continue.  Most callers want this and
+also pagevec_lookup_tag() already does this.
 
-In this series I make pagevec_lookup() update the index (to be consistent
-with pagevec_lookup_tag() and also as a preparation for ranged lookups),
-provide ranged variant of pagevec_lookup() and use it in places where it
-makes sense.  This not only removes some common code but is also a
-measurable performance win for some use cases (see patch 4/10) where radix
-tree is sparse and searching & grabing of a page after the end of the
-range has measurable overhead.
-
-
-This patch (of 10):
-
-The callback doesn't ever get called.  Remove it.
-
-Link: http://lkml.kernel.org/r/20170726114704.7626-2-jack@suse.cz
+Link: http://lkml.kernel.org/r/20170726114704.7626-3-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/caching/netfs-api.txt |    2 
- fs/9p/cache.c                                   |   29 ---------
- fs/afs/cache.c                                  |   43 --------------
- fs/ceph/cache.c                                 |   31 ----------
- fs/cifs/cache.c                                 |   31 ----------
- fs/nfs/fscache-index.c                          |   40 -------------
- include/linux/fscache.h                         |    9 --
- 7 files changed, 185 deletions(-)
+ fs/buffer.c             |   10 ++++------
+ fs/ext4/file.c          |    4 +---
+ fs/ext4/inode.c         |    8 ++------
+ fs/fscache/page.c       |    5 ++---
+ fs/hugetlbfs/inode.c    |   17 ++++++++---------
+ fs/nilfs2/page.c        |    3 +--
+ fs/ramfs/file-nommu.c   |    2 +-
+ include/linux/pagemap.h |    2 +-
+ include/linux/pagevec.h |    2 +-
+ mm/filemap.c            |   11 ++++++++---
+ mm/swap.c               |    5 +++--
+ 11 files changed, 32 insertions(+), 37 deletions(-)
 
-diff -puN Documentation/filesystems/caching/netfs-api.txt~fscache-remove-unused-now_uncached-callback Documentation/filesystems/caching/netfs-api.txt
---- a/Documentation/filesystems/caching/netfs-api.txt~fscache-remove-unused-now_uncached-callback
-+++ a/Documentation/filesystems/caching/netfs-api.txt
-@@ -151,8 +151,6 @@ To define an object, a structure of the
- 		void (*mark_pages_cached)(void *cookie_netfs_data,
- 					  struct address_space *mapping,
- 					  struct pagevec *cached_pvec);
--
--		void (*now_uncached)(void *cookie_netfs_data);
- 	};
+diff -puN fs/buffer.c~mm-make-pagevec_lookup-update-index fs/buffer.c
+--- a/fs/buffer.c~mm-make-pagevec_lookup-update-index
++++ a/fs/buffer.c
+@@ -1633,13 +1633,12 @@ void clean_bdev_aliases(struct block_dev
  
- This has the following fields:
-diff -puN fs/9p/cache.c~fscache-remove-unused-now_uncached-callback fs/9p/cache.c
---- a/fs/9p/cache.c~fscache-remove-unused-now_uncached-callback
-+++ a/fs/9p/cache.c
-@@ -151,34 +151,6 @@ fscache_checkaux v9fs_cache_inode_check_
- 	return FSCACHE_CHECKAUX_OKAY;
+ 	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
+ 	pagevec_init(&pvec, 0);
+-	while (index <= end && pagevec_lookup(&pvec, bd_mapping, index,
++	while (index <= end && pagevec_lookup(&pvec, bd_mapping, &index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+-			index = page->index;
+-			if (index > end)
++			if (page->index > end)
+ 				break;
+ 			if (!page_has_buffers(page))
+ 				continue;
+@@ -1670,7 +1669,6 @@ unlock_page:
+ 		}
+ 		pagevec_release(&pvec);
+ 		cond_resched();
+-		index++;
+ 	}
+ }
+ EXPORT_SYMBOL(clean_bdev_aliases);
+@@ -3552,7 +3550,8 @@ page_cache_seek_hole_data(struct inode *
+ 		unsigned want, nr_pages, i;
+ 
+ 		want = min_t(unsigned, end - index, PAGEVEC_SIZE);
+-		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, index, want);
++		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &index,
++					  want);
+ 		if (nr_pages == 0)
+ 			break;
+ 
+@@ -3594,7 +3593,6 @@ page_cache_seek_hole_data(struct inode *
+ 		if (nr_pages < want)
+ 			break;
+ 
+-		index = pvec.pages[i - 1]->index + 1;
+ 		pagevec_release(&pvec);
+ 	} while (index < end);
+ 
+diff -puN fs/ext4/file.c~mm-make-pagevec_lookup-update-index fs/ext4/file.c
+--- a/fs/ext4/file.c~mm-make-pagevec_lookup-update-index
++++ a/fs/ext4/file.c
+@@ -468,7 +468,7 @@ static int ext4_find_unwritten_pgoff(str
+ 		unsigned long nr_pages;
+ 
+ 		num = min_t(pgoff_t, end - index, PAGEVEC_SIZE - 1) + 1;
+-		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, index,
++		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &index,
+ 					  (pgoff_t)num);
+ 		if (nr_pages == 0)
+ 			break;
+@@ -533,8 +533,6 @@ static int ext4_find_unwritten_pgoff(str
+ 		/* The no. of pages is less than our desired, we are done. */
+ 		if (nr_pages < num)
+ 			break;
+-
+-		index = pvec.pages[i - 1]->index + 1;
+ 		pagevec_release(&pvec);
+ 	} while (index <= end);
+ 
+diff -puN fs/ext4/inode.c~mm-make-pagevec_lookup-update-index fs/ext4/inode.c
+--- a/fs/ext4/inode.c~mm-make-pagevec_lookup-update-index
++++ a/fs/ext4/inode.c
+@@ -1676,7 +1676,7 @@ static void mpage_release_unused_pages(s
+ 
+ 	pagevec_init(&pvec, 0);
+ 	while (index <= end) {
+-		nr_pages = pagevec_lookup(&pvec, mapping, index, PAGEVEC_SIZE);
++		nr_pages = pagevec_lookup(&pvec, mapping, &index, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
+ 		for (i = 0; i < nr_pages; i++) {
+@@ -1693,7 +1693,6 @@ static void mpage_release_unused_pages(s
+ 			}
+ 			unlock_page(page);
+ 		}
+-		index = pvec.pages[nr_pages - 1]->index + 1;
+ 		pagevec_release(&pvec);
+ 	}
+ }
+@@ -2304,7 +2303,7 @@ static int mpage_map_and_submit_buffers(
+ 
+ 	pagevec_init(&pvec, 0);
+ 	while (start <= end) {
+-		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, start,
++		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &start,
+ 					  PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
+@@ -2313,8 +2312,6 @@ static int mpage_map_and_submit_buffers(
+ 
+ 			if (page->index > end)
+ 				break;
+-			/* Up to 'end' pages must be contiguous */
+-			BUG_ON(page->index != start);
+ 			bh = head = page_buffers(page);
+ 			do {
+ 				if (lblk < mpd->map.m_lblk)
+@@ -2359,7 +2356,6 @@ static int mpage_map_and_submit_buffers(
+ 				pagevec_release(&pvec);
+ 				return err;
+ 			}
+-			start++;
+ 		}
+ 		pagevec_release(&pvec);
+ 	}
+diff -puN fs/fscache/page.c~mm-make-pagevec_lookup-update-index fs/fscache/page.c
+--- a/fs/fscache/page.c~mm-make-pagevec_lookup-update-index
++++ a/fs/fscache/page.c
+@@ -1178,11 +1178,10 @@ void __fscache_uncache_all_inode_pages(s
+ 	pagevec_init(&pvec, 0);
+ 	next = 0;
+ 	do {
+-		if (!pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE))
++		if (!pagevec_lookup(&pvec, mapping, &next, PAGEVEC_SIZE))
+ 			break;
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+-			next = page->index;
+ 			if (PageFsCache(page)) {
+ 				__fscache_wait_on_page_write(cookie, page);
+ 				__fscache_uncache_page(cookie, page);
+@@ -1190,7 +1189,7 @@ void __fscache_uncache_all_inode_pages(s
+ 		}
+ 		pagevec_release(&pvec);
+ 		cond_resched();
+-	} while (++next);
++	} while (next);
+ 
+ 	_leave("");
+ }
+diff -puN fs/hugetlbfs/inode.c~mm-make-pagevec_lookup-update-index fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-make-pagevec_lookup-update-index
++++ a/fs/hugetlbfs/inode.c
+@@ -401,7 +401,7 @@ static void remove_inode_hugepages(struc
+ 	const pgoff_t end = lend >> huge_page_shift(h);
+ 	struct vm_area_struct pseudo_vma;
+ 	struct pagevec pvec;
+-	pgoff_t next;
++	pgoff_t next, index;
+ 	int i, freed = 0;
+ 	long lookup_nr = PAGEVEC_SIZE;
+ 	bool truncate_op = (lend == LLONG_MAX);
+@@ -420,7 +420,7 @@ static void remove_inode_hugepages(struc
+ 		/*
+ 		 * When no more pages are found, we are done.
+ 		 */
+-		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr))
++		if (!pagevec_lookup(&pvec, mapping, &next, lookup_nr))
+ 			break;
+ 
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+@@ -432,13 +432,13 @@ static void remove_inode_hugepages(struc
+ 			 * only possible in the punch hole case as end is
+ 			 * max page offset in the truncate case.
+ 			 */
+-			next = page->index;
+-			if (next >= end)
++			index = page->index;
++			if (index >= end)
+ 				break;
+ 
+ 			hash = hugetlb_fault_mutex_hash(h, current->mm,
+ 							&pseudo_vma,
+-							mapping, next, 0);
++							mapping, index, 0);
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+ 			/*
+@@ -455,8 +455,8 @@ static void remove_inode_hugepages(struc
+ 
+ 				i_mmap_lock_write(mapping);
+ 				hugetlb_vmdelete_list(&mapping->i_mmap,
+-					next * pages_per_huge_page(h),
+-					(next + 1) * pages_per_huge_page(h));
++					index * pages_per_huge_page(h),
++					(index + 1) * pages_per_huge_page(h));
+ 				i_mmap_unlock_write(mapping);
+ 			}
+ 
+@@ -475,14 +475,13 @@ static void remove_inode_hugepages(struc
+ 			freed++;
+ 			if (!truncate_op) {
+ 				if (unlikely(hugetlb_unreserve_pages(inode,
+-							next, next + 1, 1)))
++							index, index + 1, 1)))
+ 					hugetlb_fix_reserve_counts(inode);
+ 			}
+ 
+ 			unlock_page(page);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 		}
+-		++next;
+ 		huge_pagevec_release(&pvec);
+ 		cond_resched();
+ 	}
+diff -puN fs/nilfs2/page.c~mm-make-pagevec_lookup-update-index fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~mm-make-pagevec_lookup-update-index
++++ a/fs/nilfs2/page.c
+@@ -312,10 +312,9 @@ void nilfs_copy_back_pages(struct addres
+ 
+ 	pagevec_init(&pvec, 0);
+ repeat:
+-	n = pagevec_lookup(&pvec, smap, index, PAGEVEC_SIZE);
++	n = pagevec_lookup(&pvec, smap, &index, PAGEVEC_SIZE);
+ 	if (!n)
+ 		return;
+-	index = pvec.pages[n - 1]->index + 1;
+ 
+ 	for (i = 0; i < pagevec_count(&pvec); i++) {
+ 		struct page *page = pvec.pages[i], *dpage;
+diff -puN fs/ramfs/file-nommu.c~mm-make-pagevec_lookup-update-index fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~mm-make-pagevec_lookup-update-index
++++ a/fs/ramfs/file-nommu.c
+@@ -228,7 +228,7 @@ static unsigned long ramfs_nommu_get_unm
+ 	if (!pages)
+ 		goto out_free;
+ 
+-	nr = find_get_pages(inode->i_mapping, pgoff, lpages, pages);
++	nr = find_get_pages(inode->i_mapping, &pgoff, lpages, pages);
+ 	if (nr != lpages)
+ 		goto out_free_pages; /* leave if some pages were missing */
+ 
+diff -puN include/linux/pagemap.h~mm-make-pagevec_lookup-update-index include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-make-pagevec_lookup-update-index
++++ a/include/linux/pagemap.h
+@@ -355,7 +355,7 @@ struct page *find_lock_entry(struct addr
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
+ 			  unsigned int nr_entries, struct page **entries,
+ 			  pgoff_t *indices);
+-unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
++unsigned find_get_pages(struct address_space *mapping, pgoff_t *start,
+ 			unsigned int nr_pages, struct page **pages);
+ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
+ 			       unsigned int nr_pages, struct page **pages);
+diff -puN include/linux/pagevec.h~mm-make-pagevec_lookup-update-index include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-make-pagevec_lookup-update-index
++++ a/include/linux/pagevec.h
+@@ -28,7 +28,7 @@ unsigned pagevec_lookup_entries(struct p
+ 				pgoff_t *indices);
+ void pagevec_remove_exceptionals(struct pagevec *pvec);
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+-		pgoff_t start, unsigned nr_pages);
++		pgoff_t *start, unsigned nr_pages);
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+ 		struct address_space *mapping, pgoff_t *index, int tag,
+ 		unsigned nr_pages);
+diff -puN mm/filemap.c~mm-make-pagevec_lookup-update-index mm/filemap.c
+--- a/mm/filemap.c~mm-make-pagevec_lookup-update-index
++++ a/mm/filemap.c
+@@ -403,7 +403,7 @@ bool filemap_range_has_page(struct addre
+ 		return false;
+ 
+ 	pagevec_init(&pvec, 0);
+-	if (!pagevec_lookup(&pvec, mapping, index, 1))
++	if (!pagevec_lookup(&pvec, mapping, &index, 1))
+ 		return false;
+ 	ret = (pvec.pages[0]->index <= end);
+ 	pagevec_release(&pvec);
+@@ -1567,10 +1567,11 @@ export:
+  *
+  * The search returns a group of mapping-contiguous pages with ascending
+  * indexes.  There may be holes in the indices due to not-present pages.
++ * We also update @start to index the next page for the traversal.
+  *
+  * find_get_pages() returns the number of pages which were found.
+  */
+-unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
++unsigned find_get_pages(struct address_space *mapping, pgoff_t *start,
+ 			    unsigned int nr_pages, struct page **pages)
+ {
+ 	struct radix_tree_iter iter;
+@@ -1581,7 +1582,7 @@ unsigned find_get_pages(struct address_s
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
++	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, *start) {
+ 		struct page *head, *page;
+ repeat:
+ 		page = radix_tree_deref_slot(slot);
+@@ -1623,6 +1624,10 @@ repeat:
+ 	}
+ 
+ 	rcu_read_unlock();
++
++	if (ret)
++		*start = pages[ret - 1]->index + 1;
++
+ 	return ret;
  }
  
--static void v9fs_cache_inode_now_uncached(void *cookie_netfs_data)
--{
--	struct v9fs_inode *v9inode = cookie_netfs_data;
--	struct pagevec pvec;
--	pgoff_t first;
--	int loop, nr_pages;
--
--	pagevec_init(&pvec, 0);
--	first = 0;
--
--	for (;;) {
--		nr_pages = pagevec_lookup(&pvec, v9inode->vfs_inode.i_mapping,
--					  first,
--					  PAGEVEC_SIZE - pagevec_count(&pvec));
--		if (!nr_pages)
--			break;
--
--		for (loop = 0; loop < nr_pages; loop++)
--			ClearPageFsCache(pvec.pages[loop]);
--
--		first = pvec.pages[nr_pages - 1]->index + 1;
--
--		pvec.nr = nr_pages;
--		pagevec_release(&pvec);
--		cond_resched();
--	}
--}
--
- const struct fscache_cookie_def v9fs_cache_inode_index_def = {
- 	.name		= "9p.inode",
- 	.type		= FSCACHE_COOKIE_TYPE_DATAFILE,
-@@ -186,7 +158,6 @@ const struct fscache_cookie_def v9fs_cac
- 	.get_attr	= v9fs_cache_inode_get_attr,
- 	.get_aux	= v9fs_cache_inode_get_aux,
- 	.check_aux	= v9fs_cache_inode_check_aux,
--	.now_uncached	= v9fs_cache_inode_now_uncached,
- };
- 
- void v9fs_cache_inode_get_cookie(struct inode *inode)
-diff -puN fs/afs/cache.c~fscache-remove-unused-now_uncached-callback fs/afs/cache.c
---- a/fs/afs/cache.c~fscache-remove-unused-now_uncached-callback
-+++ a/fs/afs/cache.c
-@@ -39,7 +39,6 @@ static uint16_t afs_vnode_cache_get_aux(
- static enum fscache_checkaux afs_vnode_cache_check_aux(void *cookie_netfs_data,
- 						       const void *buffer,
- 						       uint16_t buflen);
--static void afs_vnode_cache_now_uncached(void *cookie_netfs_data);
- 
- struct fscache_netfs afs_cache_netfs = {
- 	.name			= "afs",
-@@ -75,7 +74,6 @@ struct fscache_cookie_def afs_vnode_cach
- 	.get_attr		= afs_vnode_cache_get_attr,
- 	.get_aux		= afs_vnode_cache_get_aux,
- 	.check_aux		= afs_vnode_cache_check_aux,
--	.now_uncached		= afs_vnode_cache_now_uncached,
- };
- 
- /*
-@@ -359,44 +357,3 @@ static enum fscache_checkaux afs_vnode_c
- 	_leave(" = SUCCESS");
- 	return FSCACHE_CHECKAUX_OKAY;
- }
--
--/*
-- * indication the cookie is no longer uncached
-- * - this function is called when the backing store currently caching a cookie
-- *   is removed
-- * - the netfs should use this to clean up any markers indicating cached pages
-- * - this is mandatory for any object that may have data
-- */
--static void afs_vnode_cache_now_uncached(void *cookie_netfs_data)
--{
--	struct afs_vnode *vnode = cookie_netfs_data;
--	struct pagevec pvec;
--	pgoff_t first;
--	int loop, nr_pages;
--
--	_enter("{%x,%x,%Lx}",
--	       vnode->fid.vnode, vnode->fid.unique, vnode->status.data_version);
--
--	pagevec_init(&pvec, 0);
--	first = 0;
--
--	for (;;) {
--		/* grab a bunch of pages to clean */
--		nr_pages = pagevec_lookup(&pvec, vnode->vfs_inode.i_mapping,
--					  first,
--					  PAGEVEC_SIZE - pagevec_count(&pvec));
--		if (!nr_pages)
--			break;
--
--		for (loop = 0; loop < nr_pages; loop++)
--			ClearPageFsCache(pvec.pages[loop]);
--
--		first = pvec.pages[nr_pages - 1]->index + 1;
--
--		pvec.nr = nr_pages;
--		pagevec_release(&pvec);
--		cond_resched();
--	}
--
--	_leave("");
--}
-diff -puN fs/ceph/cache.c~fscache-remove-unused-now_uncached-callback fs/ceph/cache.c
---- a/fs/ceph/cache.c~fscache-remove-unused-now_uncached-callback
-+++ a/fs/ceph/cache.c
-@@ -194,36 +194,6 @@ static enum fscache_checkaux ceph_fscach
- 	return FSCACHE_CHECKAUX_OKAY;
- }
- 
--static void ceph_fscache_inode_now_uncached(void* cookie_netfs_data)
--{
--	struct ceph_inode_info* ci = cookie_netfs_data;
--	struct pagevec pvec;
--	pgoff_t first;
--	int loop, nr_pages;
--
--	pagevec_init(&pvec, 0);
--	first = 0;
--
--	dout("ceph inode 0x%p now uncached", ci);
--
--	while (1) {
--		nr_pages = pagevec_lookup(&pvec, ci->vfs_inode.i_mapping, first,
--					  PAGEVEC_SIZE - pagevec_count(&pvec));
--
--		if (!nr_pages)
--			break;
--
--		for (loop = 0; loop < nr_pages; loop++)
--			ClearPageFsCache(pvec.pages[loop]);
--
--		first = pvec.pages[nr_pages - 1]->index + 1;
--
--		pvec.nr = nr_pages;
--		pagevec_release(&pvec);
--		cond_resched();
--	}
--}
--
- static const struct fscache_cookie_def ceph_fscache_inode_object_def = {
- 	.name		= "CEPH.inode",
- 	.type		= FSCACHE_COOKIE_TYPE_DATAFILE,
-@@ -231,7 +201,6 @@ static const struct fscache_cookie_def c
- 	.get_attr	= ceph_fscache_inode_get_attr,
- 	.get_aux	= ceph_fscache_inode_get_aux,
- 	.check_aux	= ceph_fscache_inode_check_aux,
--	.now_uncached	= ceph_fscache_inode_now_uncached,
- };
- 
- void ceph_fscache_register_inode_cookie(struct inode *inode)
-diff -puN fs/cifs/cache.c~fscache-remove-unused-now_uncached-callback fs/cifs/cache.c
---- a/fs/cifs/cache.c~fscache-remove-unused-now_uncached-callback
-+++ a/fs/cifs/cache.c
-@@ -292,36 +292,6 @@ fscache_checkaux cifs_fscache_inode_chec
- 	return FSCACHE_CHECKAUX_OKAY;
- }
- 
--static void cifs_fscache_inode_now_uncached(void *cookie_netfs_data)
--{
--	struct cifsInodeInfo *cifsi = cookie_netfs_data;
--	struct pagevec pvec;
--	pgoff_t first;
--	int loop, nr_pages;
--
--	pagevec_init(&pvec, 0);
--	first = 0;
--
--	cifs_dbg(FYI, "%s: cifs inode 0x%p now uncached\n", __func__, cifsi);
--
--	for (;;) {
--		nr_pages = pagevec_lookup(&pvec,
--					  cifsi->vfs_inode.i_mapping, first,
--					  PAGEVEC_SIZE - pagevec_count(&pvec));
--		if (!nr_pages)
--			break;
--
--		for (loop = 0; loop < nr_pages; loop++)
--			ClearPageFsCache(pvec.pages[loop]);
--
--		first = pvec.pages[nr_pages - 1]->index + 1;
--
--		pvec.nr = nr_pages;
--		pagevec_release(&pvec);
--		cond_resched();
--	}
--}
--
- const struct fscache_cookie_def cifs_fscache_inode_object_def = {
- 	.name		= "CIFS.uniqueid",
- 	.type		= FSCACHE_COOKIE_TYPE_DATAFILE,
-@@ -329,5 +299,4 @@ const struct fscache_cookie_def cifs_fsc
- 	.get_attr	= cifs_fscache_inode_get_attr,
- 	.get_aux	= cifs_fscache_inode_get_aux,
- 	.check_aux	= cifs_fscache_inode_check_aux,
--	.now_uncached	= cifs_fscache_inode_now_uncached,
- };
-diff -puN fs/nfs/fscache-index.c~fscache-remove-unused-now_uncached-callback fs/nfs/fscache-index.c
---- a/fs/nfs/fscache-index.c~fscache-remove-unused-now_uncached-callback
-+++ a/fs/nfs/fscache-index.c
-@@ -252,45 +252,6 @@ enum fscache_checkaux nfs_fscache_inode_
- }
- 
- /*
-- * Indication from FS-Cache that the cookie is no longer cached
-- * - This function is called when the backing store currently caching a cookie
-- *   is removed
-- * - The netfs should use this to clean up any markers indicating cached pages
-- * - This is mandatory for any object that may have data
-- */
--static void nfs_fscache_inode_now_uncached(void *cookie_netfs_data)
--{
--	struct nfs_inode *nfsi = cookie_netfs_data;
--	struct pagevec pvec;
--	pgoff_t first;
--	int loop, nr_pages;
--
--	pagevec_init(&pvec, 0);
--	first = 0;
--
--	dprintk("NFS: nfs_inode_now_uncached: nfs_inode 0x%p\n", nfsi);
--
--	for (;;) {
--		/* grab a bunch of pages to unmark */
--		nr_pages = pagevec_lookup(&pvec,
--					  nfsi->vfs_inode.i_mapping,
--					  first,
--					  PAGEVEC_SIZE - pagevec_count(&pvec));
--		if (!nr_pages)
--			break;
--
--		for (loop = 0; loop < nr_pages; loop++)
--			ClearPageFsCache(pvec.pages[loop]);
--
--		first = pvec.pages[nr_pages - 1]->index + 1;
--
--		pvec.nr = nr_pages;
--		pagevec_release(&pvec);
--		cond_resched();
--	}
--}
--
--/*
-  * Get an extra reference on a read context.
-  * - This function can be absent if the completion function doesn't require a
-  *   context.
-@@ -330,7 +291,6 @@ const struct fscache_cookie_def nfs_fsca
- 	.get_attr	= nfs_fscache_inode_get_attr,
- 	.get_aux	= nfs_fscache_inode_get_aux,
- 	.check_aux	= nfs_fscache_inode_check_aux,
--	.now_uncached	= nfs_fscache_inode_now_uncached,
- 	.get_context	= nfs_fh_get_context,
- 	.put_context	= nfs_fh_put_context,
- };
-diff -puN include/linux/fscache.h~fscache-remove-unused-now_uncached-callback include/linux/fscache.h
---- a/include/linux/fscache.h~fscache-remove-unused-now_uncached-callback
-+++ a/include/linux/fscache.h
-@@ -143,15 +143,6 @@ struct fscache_cookie_def {
- 	void (*mark_page_cached)(void *cookie_netfs_data,
- 				 struct address_space *mapping,
- 				 struct page *page);
--
--	/* indicate the cookie is no longer cached
--	 * - this function is called when the backing store currently caching
--	 *   a cookie is removed
--	 * - the netfs should use this to clean up any markers indicating
--	 *   cached pages
--	 * - this is mandatory for any object that may have data
--	 */
--	void (*now_uncached)(void *cookie_netfs_data);
- };
- 
- /*
+diff -puN mm/swap.c~mm-make-pagevec_lookup-update-index mm/swap.c
+--- a/mm/swap.c~mm-make-pagevec_lookup-update-index
++++ a/mm/swap.c
+@@ -957,12 +957,13 @@ void pagevec_remove_exceptionals(struct
+  * reference against the pages in @pvec.
+  *
+  * The search returns a group of mapping-contiguous pages with ascending
+- * indexes.  There may be holes in the indices due to not-present pages.
++ * indexes.  There may be holes in the indices due to not-present pages. We
++ * also update @start to index the next page for the traversal.
+  *
+  * pagevec_lookup() returns the number of pages which were found.
+  */
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+-		pgoff_t start, unsigned nr_pages)
++		pgoff_t *start, unsigned nr_pages)
+ {
+ 	pvec->nr = find_get_pages(mapping, start, nr_pages, pvec->pages);
+ 	return pagevec_count(pvec);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
