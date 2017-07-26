@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-epoll-use-faster-rb_first_cached.patch added to -mm tree
-Date: Wed, 26 Jul 2017 14:15:01 -0700
-Message-ID: <59790655.x+QPNTd279H6e+Qq%akpm@linux-foundation.org>
+Subject: + fortify-use-warn-instead-of-bug-for-now.patch added to -mm tree
+Date: Wed, 26 Jul 2017 14:27:16 -0700
+Message-ID: <59790934.IiGEe20kfG+C6kbz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750996AbdGZVPC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:15:02 -0400
+        with ESMTP id S1751078AbdGZV1R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2017 17:27:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, peterz@infradead.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, danielmicay@gmail.com, jpoimboe@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/epoll: use faster rb_first_cached()
+     Subject: fortify: use WARN instead of BUG for now
 has been added to the -mm tree.  Its filename is
-     fs-epoll-use-faster-rb_first_cached.patch
+     fortify-use-warn-instead-of-bug-for-now.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-use-faster-rb_first_cached.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fortify-use-warn-instead-of-bug-for-now.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-use-faster-rb_first_cached.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fortify-use-warn-instead-of-bug-for-now.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,162 +38,208 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: fs/epoll: use faster rb_first_cached()
+From: Kees Cook <keescook@chromium.org>
+Subject: fortify: use WARN instead of BUG for now
 
-...  such that we can avoid the tree walks to get the node with the
-smallest key.  Semantically the same, as the previously used rb_first(),
-but O(1).  The main overhead is the extra footprint for the cached rb_node
-pointer, which should not matter for epoll.
+While CONFIG_FORTIFY_SOURCE continues to shake out, don't unconditionally
+use BUG(), opting instead for WARN().  This also renames fortify_panic()
+to fortify_overflow() which better matches what it is being called for.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-15-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20170726185219.GA57833@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ arch/x86/boot/compressed/misc.c |    2 +-
+ include/linux/string.h          |   30 +++++++++++++++---------------
+ lib/string.c                    |    7 +++----
+ tools/objtool/check.c           |    2 +-
+ 4 files changed, 20 insertions(+), 21 deletions(-)
 
-diff -puN fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached fs/eventpoll.c
---- a/fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached
-+++ a/fs/eventpoll.c
-@@ -205,7 +205,7 @@ struct eventpoll {
- 	struct list_head rdllist;
- 
- 	/* RB tree root used to store monitored fd structs */
--	struct rb_root rbr;
-+	struct rb_root_cached rbr;
- 
- 	/*
- 	 * This is a single linked list that chains all the "struct epitem" that
-@@ -791,7 +791,7 @@ static int ep_remove(struct eventpoll *e
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&file->f_lock);
- 
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
- 
- 	spin_lock_irqsave(&ep->lock, flags);
- 	if (ep_is_linked(&epi->rdllink))
-@@ -835,7 +835,7 @@ static void ep_free(struct eventpoll *ep
- 	/*
- 	 * Walks through the whole tree by unregistering poll callbacks.
- 	 */
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 
- 		ep_unregister_pollwait(ep, epi);
-@@ -851,7 +851,7 @@ static void ep_free(struct eventpoll *ep
- 	 * a lockdep warning.
- 	 */
- 	mutex_lock(&ep->mtx);
--	while ((rbp = rb_first(&ep->rbr)) != NULL) {
-+	while ((rbp = rb_first_cached(&ep->rbr)) != NULL) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		ep_remove(ep, epi);
- 		cond_resched();
-@@ -958,7 +958,7 @@ static void ep_show_fdinfo(struct seq_fi
- 	struct rb_node *rbp;
- 
- 	mutex_lock(&ep->mtx);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
- 		struct inode *inode = file_inode(epi->ffd.file);
- 
-@@ -1035,7 +1035,7 @@ static int ep_alloc(struct eventpoll **p
- 	init_waitqueue_head(&ep->wq);
- 	init_waitqueue_head(&ep->poll_wait);
- 	INIT_LIST_HEAD(&ep->rdllist);
--	ep->rbr = RB_ROOT;
-+	ep->rbr = RB_ROOT_CACHED;
- 	ep->ovflist = EP_UNACTIVE_PTR;
- 	ep->user = user;
- 
-@@ -1061,7 +1061,7 @@ static struct epitem *ep_find(struct eve
- 	struct epoll_filefd ffd;
- 
- 	ep_set_ffd(&ffd, file, fd);
--	for (rbp = ep->rbr.rb_node; rbp; ) {
-+	for (rbp = ep->rbr.rb_root.rb_node; rbp; ) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&ffd, &epi->ffd);
- 		if (kcmp > 0)
-@@ -1083,7 +1083,7 @@ static struct epitem *ep_find_tfd(struct
- 	struct rb_node *rbp;
- 	struct epitem *epi;
- 
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (epi->ffd.fd == tfd) {
- 			if (toff == 0)
-@@ -1263,20 +1263,22 @@ static void ep_ptable_queue_proc(struct
- static void ep_rbtree_insert(struct eventpoll *ep, struct epitem *epi)
- {
- 	int kcmp;
--	struct rb_node **p = &ep->rbr.rb_node, *parent = NULL;
-+	struct rb_node **p = &ep->rbr.rb_root.rb_node, *parent = NULL;
- 	struct epitem *epic;
-+	bool leftmost = true;
- 
- 	while (*p) {
- 		parent = *p;
- 		epic = rb_entry(parent, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&epi->ffd, &epic->ffd);
--		if (kcmp > 0)
-+		if (kcmp > 0) {
- 			p = &parent->rb_right;
--		else
-+			leftmost = false;
-+		} else
- 			p = &parent->rb_left;
- 	}
- 	rb_link_node(&epi->rbn, parent, p);
--	rb_insert_color(&epi->rbn, &ep->rbr);
-+	rb_insert_color_cached(&epi->rbn, &ep->rbr, leftmost);
+diff -puN arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now
++++ a/arch/x86/boot/compressed/misc.c
+@@ -412,7 +412,7 @@ asmlinkage __visible void *extract_kerne
+ 	return output;
  }
  
+-void fortify_panic(const char *name)
++void fortify_overflow(const char *name)
+ {
+ 	error("detected buffer overflow");
+ }
+diff -puN include/linux/string.h~fortify-use-warn-instead-of-bug-for-now include/linux/string.h
+--- a/include/linux/string.h~fortify-use-warn-instead-of-bug-for-now
++++ a/include/linux/string.h
+@@ -197,7 +197,7 @@ static inline const char *kbasename(cons
+ #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
+ #define __RENAME(x) __asm__(#x)
  
-@@ -1520,7 +1522,7 @@ error_remove_epi:
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&tfile->f_lock);
+-void fortify_panic(const char *name) __noreturn __cold;
++void fortify_overflow(const char *name) __cold;
+ void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
+ void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
+ void __write_overflow(void) __compiletime_error("detected write beyond size of object passed as 1st parameter");
+@@ -209,7 +209,7 @@ __FORTIFY_INLINE char *strncpy(char *p,
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_strncpy(p, q, size);
+ }
  
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
+@@ -219,7 +219,7 @@ __FORTIFY_INLINE char *strcat(char *p, c
+ 	if (p_size == (size_t)-1)
+ 		return __builtin_strcat(p, q);
+ 	if (strlcat(p, q, p_size) >= p_size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return p;
+ }
  
- error_unregister:
- 	ep_unregister_pollwait(ep, epi);
-@@ -1868,7 +1870,7 @@ static int ep_loop_check_proc(void *priv
- 	mutex_lock_nested(&ep->mtx, call_nests + 1);
- 	ep->visited = 1;
- 	list_add(&ep->visited_list_link, &visited_list);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (unlikely(is_file_epoll(epi->ffd.file))) {
- 			ep_tovisit = epi->ffd.file->private_data;
+@@ -231,7 +231,7 @@ __FORTIFY_INLINE __kernel_size_t strlen(
+ 		return __builtin_strlen(p);
+ 	ret = strnlen(p, p_size);
+ 	if (p_size <= ret)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return ret;
+ }
+ 
+@@ -241,7 +241,7 @@ __FORTIFY_INLINE __kernel_size_t strnlen
+ 	size_t p_size = __builtin_object_size(p, 0);
+ 	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
+ 	if (p_size <= ret && maxlen != ret)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return ret;
+ }
+ 
+@@ -260,7 +260,7 @@ __FORTIFY_INLINE size_t strlcpy(char *p,
+ 		if (__builtin_constant_p(len) && len >= p_size)
+ 			__write_overflow();
+ 		if (len >= p_size)
+-			fortify_panic(__func__);
++			fortify_overflow(__func__);
+ 		__builtin_memcpy(p, q, len);
+ 		p[len] = '\0';
+ 	}
+@@ -278,7 +278,7 @@ __FORTIFY_INLINE char *strncat(char *p,
+ 	p_len = strlen(p);
+ 	copy_len = strnlen(q, count);
+ 	if (p_size < p_len + copy_len + 1)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	__builtin_memcpy(p + p_len, q, copy_len);
+ 	p[p_len + copy_len] = '\0';
+ 	return p;
+@@ -290,7 +290,7 @@ __FORTIFY_INLINE void *memset(void *p, i
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memset(p, c, size);
+ }
+ 
+@@ -305,7 +305,7 @@ __FORTIFY_INLINE void *memcpy(void *p, c
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memcpy(p, q, size);
+ }
+ 
+@@ -320,7 +320,7 @@ __FORTIFY_INLINE void *memmove(void *p,
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memmove(p, q, size);
+ }
+ 
+@@ -331,7 +331,7 @@ __FORTIFY_INLINE void *memscan(void *p,
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_memscan(p, c, size);
+ }
+ 
+@@ -346,7 +346,7 @@ __FORTIFY_INLINE int memcmp(const void *
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memcmp(p, q, size);
+ }
+ 
+@@ -356,7 +356,7 @@ __FORTIFY_INLINE void *memchr(const void
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memchr(p, c, size);
+ }
+ 
+@@ -367,7 +367,7 @@ __FORTIFY_INLINE void *memchr_inv(const
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_memchr_inv(p, c, size);
+ }
+ 
+@@ -378,7 +378,7 @@ __FORTIFY_INLINE void *kmemdup(const voi
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_kmemdup(p, size, gfp);
+ }
+ 
+diff -puN lib/string.c~fortify-use-warn-instead-of-bug-for-now lib/string.c
+--- a/lib/string.c~fortify-use-warn-instead-of-bug-for-now
++++ a/lib/string.c
+@@ -979,9 +979,8 @@ char *strreplace(char *s, char old, char
+ }
+ EXPORT_SYMBOL(strreplace);
+ 
+-void fortify_panic(const char *name)
++void fortify_overflow(const char *name)
+ {
+-	pr_emerg("detected buffer overflow in %s\n", name);
+-	BUG();
++	WARN(1, "detected buffer overflow in %s\n", name);
+ }
+-EXPORT_SYMBOL(fortify_panic);
++EXPORT_SYMBOL(fortify_overflow);
+diff -puN tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now tools/objtool/check.c
+--- a/tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now
++++ a/tools/objtool/check.c
+@@ -156,7 +156,7 @@ static int __dead_end_function(struct ob
+ 		"kvm_spurious_fault",
+ 		"__reiserfs_panic",
+ 		"lbug_with_loc",
+-		"fortify_panic",
++		"fortify_overflow",
+ 	};
+ 
+ 	if (func->bind == STB_WEAK)
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-rbtree-cache-leftmost-node-internally.patch
-rbtree-optimize-root-check-during-rebalancing-loop.patch
-rbtree-add-some-additional-comments-for-rebalancing-cases.patch
-lib-rbtree_testc-make-input-module-parameters.patch
-lib-rbtree_testc-add-inorder-traversal-test.patch
-lib-rbtree_testc-support-rb_root_cached.patch
-sched-fair-replace-cfs_rq-rb_leftmost.patch
-sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
-locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
-block-cfq-replace-cfq_rb_root-leftmost-caching.patch
-lib-interval_tree-fast-overlap-detection.patch
-lib-interval-tree-correct-comment-wrt-generic-flavor.patch
-procfs-use-faster-rb_first_cached.patch
-fs-epoll-use-faster-rb_first_cached.patch
-mem-memcg-cache-rightmost-node.patch
-block-cfq-cache-rightmost-rb_node.patch
+fortify-use-warn-instead-of-bug-for-now.patch
 
