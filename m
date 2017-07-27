@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch added to
- -mm tree
-Date: Thu, 27 Jul 2017 16:37:25 -0700
-Message-ID: <597a7935.TMz3MBKQVnckUwst%akpm@linux-foundation.org>
+Subject: + memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch added
+ to -mm tree
+Date: Thu, 27 Jul 2017 16:37:27 -0700
+Message-ID: <597a7937.dqSQZOz/Qzi9RdGd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37760 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751593AbdG0Xh0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:26 -0400
+        with ESMTP id S1751622AbdG0Xh2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, THP, swap: avoid to duplicated charge THP in swap cache
+     Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
 has been added to the -mm tree.  Its filename is
-     memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+     memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,15 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: memcg, THP, swap: avoid to duplicated charge THP in swap cache
+Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
 
-For a THP (Transparent Huge Page), tail_page->mem_cgroup is NULL.  So to
-check whether the page is charged already, we need to check the head page.
-This is not an issue before because it is impossible for a THP to be in
-the swap cache before.  But after we add delaying splitting THP after
-swapped out support, it is possible now.
+This patch makes mem_cgroup_swapout() works for the transparent huge page
+(THP).  Which will move the memory cgroup charge from memory to swap for a
+THP.
 
-Link: http://lkml.kernel.org/r/20170724051840.2309-10-ying.huang@intel.com
+This will be used for the THP swap support.  Where a THP may be swapped
+out as a whole to a set of (HPAGE_PMD_NR) continuous swap slots on the
+swap device.
+
+Link: http://lkml.kernel.org/r/20170724051840.2309-11-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -66,21 +67,71 @@ Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache
+diff -puN mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp
 +++ a/mm/memcontrol.c
-@@ -5416,7 +5416,7 @@ int mem_cgroup_try_charge(struct page *p
- 		 * in turn serializes uncharging.
- 		 */
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
--		if (page->mem_cgroup)
-+		if (compound_head(page)->mem_cgroup)
- 			goto out;
+@@ -4635,8 +4635,8 @@ static enum mc_target_type get_mctgt_typ
  
- 		if (do_swap_account) {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * We don't consider swapping or file mapped pages because THP does not
+- * support them for now.
++ * We don't consider PMD mapped swapping or file mapped pages because THP does
++ * not support them for now.
+  * Caller should make sure that pmd_trans_huge(pmd) is true.
+  */
+ static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
+@@ -5899,6 +5899,7 @@ static struct mem_cgroup *mem_cgroup_id_
+ void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
+ {
+ 	struct mem_cgroup *memcg, *swap_memcg;
++	unsigned int nr_entries;
+ 	unsigned short oldid;
+ 
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+@@ -5919,19 +5920,24 @@ void mem_cgroup_swapout(struct page *pag
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	 */
+ 	swap_memcg = mem_cgroup_id_get_online(memcg);
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg), 1);
++	nr_entries = hpage_nr_pages(page);
++	/* Get references for the tail pages, too */
++	if (nr_entries > 1)
++		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg),
++				   nr_entries);
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(swap_memcg, 1);
++	mem_cgroup_swap_statistics(swap_memcg, nr_entries);
+ 
+ 	page->mem_cgroup = NULL;
+ 
+ 	if (!mem_cgroup_is_root(memcg))
+-		page_counter_uncharge(&memcg->memory, 1);
++		page_counter_uncharge(&memcg->memory, nr_entries);
+ 
+ 	if (memcg != swap_memcg) {
+ 		if (!mem_cgroup_is_root(swap_memcg))
+-			page_counter_charge(&swap_memcg->memsw, 1);
+-		page_counter_uncharge(&memcg->memsw, 1);
++			page_counter_charge(&swap_memcg->memsw, nr_entries);
++		page_counter_uncharge(&memcg->memsw, nr_entries);
+ 	}
+ 
+ 	/*
+@@ -5941,7 +5947,8 @@ void mem_cgroup_swapout(struct page *pag
+ 	 * only synchronisation we have for udpating the per-CPU variables.
+ 	 */
+ 	VM_BUG_ON(!irqs_disabled());
+-	mem_cgroup_charge_statistics(memcg, page, false, -1);
++	mem_cgroup_charge_statistics(memcg, page, PageTransHuge(page),
++				     -nr_entries);
+ 	memcg_check_events(memcg, page);
+ 
+ 	if (!mem_cgroup_is_root(memcg))
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
