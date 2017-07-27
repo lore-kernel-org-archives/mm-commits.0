@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch added to
- -mm tree
-Date: Thu, 27 Jul 2017 16:42:02 -0700
-Message-ID: <597a7a4a.q5bRkn5Vvd8inxDO%akpm@linux-foundation.org>
+ userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch added
+ to -mm tree
+Date: Thu, 27 Jul 2017 16:42:06 -0700
+Message-ID: <597a7a4e.dB51EEX2wD2xIsko%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751573AbdG0XmD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:42:03 -0400
+        with ESMTP id S1751600AbdG0XmH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:42:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: mcopy_atomic: introduce mfill_atomic_pte helper
+     Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
 has been added to the -mm tree.  Its filename is
-     userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+     userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: mcopy_atomic: introduce mfill_atomic_pte helper
+Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
 
-Shuffle the code a bit to improve readability.
+Now when shmem VMAs can be filled with zero page via userfaultfd we can
+report that UFFDIO_ZEROPAGE is available for those VMAs
 
-Link: http://lkml.kernel.org/r/1497939652-16528-5-git-send-email-rppt@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1497939652-16528-7-git-send-email-rppt@linux.vnet.ibm.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -55,63 +56,61 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   46 +++++++++++++++++++++++++++++----------------
- 1 file changed, 30 insertions(+), 16 deletions(-)
+ fs/userfaultfd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/userfaultfd.c~userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper
-+++ a/mm/userfaultfd.c
-@@ -371,6 +371,34 @@ extern ssize_t __mcopy_atomic_hugetlb(st
- 				      bool zeropage);
- #endif /* CONFIG_HUGETLB_PAGE */
+diff -puN fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas
++++ a/fs/userfaultfd.c
+@@ -1194,7 +1194,7 @@ static int userfaultfd_register(struct u
+ 	struct uffdio_register __user *user_uffdio_register;
+ 	unsigned long vm_flags, new_flags;
+ 	bool found;
+-	bool non_anon_pages;
++	bool basic_ioctls;
+ 	unsigned long start, end, vma_end;
  
-+static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
-+						pmd_t *dst_pmd,
-+						struct vm_area_struct *dst_vma,
-+						unsigned long dst_addr,
-+						unsigned long src_addr,
-+						struct page **page,
-+						bool zeropage)
-+{
-+	ssize_t err;
-+
-+	if (vma_is_anonymous(dst_vma)) {
-+		if (!zeropage)
-+			err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
-+					       dst_addr, src_addr, page);
-+		else
-+			err = mfill_zeropage_pte(dst_mm, dst_pmd,
-+						 dst_vma, dst_addr);
-+	} else {
-+		err = -EINVAL; /* if zeropage is true return -EINVAL */
-+		if (likely(!zeropage))
-+			err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
-+						     dst_vma, dst_addr,
-+						     src_addr, page);
-+	}
-+
-+	return err;
-+}
-+
- static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
- 					      unsigned long dst_start,
- 					      unsigned long src_start,
-@@ -487,22 +515,8 @@ retry:
- 		BUG_ON(pmd_none(*dst_pmd));
- 		BUG_ON(pmd_trans_huge(*dst_pmd));
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+@@ -1260,7 +1260,7 @@ static int userfaultfd_register(struct u
+ 	 * Search for not compatible vmas.
+ 	 */
+ 	found = false;
+-	non_anon_pages = false;
++	basic_ioctls = false;
+ 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
+ 		cond_resched();
  
--		if (vma_is_anonymous(dst_vma)) {
--			if (!zeropage)
--				err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
--						       dst_addr, src_addr,
--						       &page);
--			else
--				err = mfill_zeropage_pte(dst_mm, dst_pmd,
--							 dst_vma, dst_addr);
--		} else {
--			err = -EINVAL; /* if zeropage is true return -EINVAL */
--			if (likely(!zeropage))
--				err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
--							     dst_vma, dst_addr,
--							     src_addr, &page);
--		}
+@@ -1299,8 +1299,8 @@ static int userfaultfd_register(struct u
+ 		/*
+ 		 * Note vmas containing huge pages
+ 		 */
+-		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
+-			non_anon_pages = true;
++		if (is_vm_hugetlb_page(cur))
++			basic_ioctls = true;
+ 
+ 		found = true;
+ 	}
+@@ -1371,7 +1371,7 @@ out_unlock:
+ 		 * userland which ioctls methods are guaranteed to
+ 		 * succeed on this range.
+ 		 */
+-		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
++		if (put_user(basic_ioctls ? UFFD_API_RANGE_IOCTLS_BASIC :
+ 			     UFFD_API_RANGE_IOCTLS,
+ 			     &user_uffdio_register->ioctls))
+ 			ret = -EFAULT;
+_
+
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+
+userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
+userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch
+shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
+shmem-introduce-shmem_inode_acct_block.patch
+userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
+userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
+userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
+
