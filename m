@@ -1,163 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
- added to -mm tree
-Date: Thu, 27 Jul 2017 16:37:20 -0700
-Message-ID: <597a7930.A55ojTdS+KwWC570%akpm@linux-foundation.org>
+Subject: + test-code-to-write-thp-to-swap-device-as-a-whole.patch added to -mm tree
+Date: Thu, 27 Jul 2017 16:37:17 -0700
+Message-ID: <597a792d.4JzvMxhvf6w+WnEz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37698 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751693AbdG0XhV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:21 -0400
+        with ESMTP id S1751635AbdG0XhS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
-
-The patch titled
-     Subject: mm, THP, swap: support splitting THP for THP swap out
-has been added to the -mm tree.  Its filename is
-     mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
-
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: support splitting THP for THP swap out
-
-After adding swapping out support for THP (Transparent Huge Page), it is
-possible that a THP in swap cache (partly swapped out) need to be split. 
-To split such a THP, the swap cluster backing the THP need to be split
-too, that is, the CLUSTER_FLAG_HUGE flag need to be cleared for the swap
-cluster.  The patch implemented this.
-
-And because the THP swap writing needs the THP keeps as huge page during
-writing.  The PageWriteback flag is checked before splitting.
-
-Link: http://lkml.kernel.org/r/20170724051840.2309-8-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/swap.h |    9 +++++++++
- mm/huge_memory.c     |   10 +++++++++-
- mm/swapfile.c        |   15 +++++++++++++++
- 3 files changed, 33 insertions(+), 1 deletion(-)
-
-diff -puN include/linux/swap.h~mm-thp-swap-support-to-split-thp-for-thp-swapped-out include/linux/swap.h
---- a/include/linux/swap.h~mm-thp-swap-support-to-split-thp-for-thp-swapped-out
-+++ a/include/linux/swap.h
-@@ -527,6 +527,15 @@ static inline swp_entry_t get_swap_page(
- 
- #endif /* CONFIG_SWAP */
- 
-+#ifdef CONFIG_THP_SWAP
-+extern int split_swap_cluster(swp_entry_t entry);
-+#else
-+static inline int split_swap_cluster(swp_entry_t entry)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_MEMCG
- static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
-diff -puN mm/huge_memory.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out
-+++ a/mm/huge_memory.c
-@@ -2537,6 +2537,9 @@ int split_huge_page_to_list(struct page
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 
-+	if (PageWriteback(page))
-+		return -EBUSY;
-+
- 	if (PageAnon(head)) {
- 		/*
- 		 * The caller does not necessarily hold an mmap_sem that would
-@@ -2614,7 +2617,12 @@ int split_huge_page_to_list(struct page
- 			__dec_node_page_state(page, NR_SHMEM_THPS);
- 		spin_unlock(&pgdata->split_queue_lock);
- 		__split_huge_page(page, list, flags);
--		ret = 0;
-+		if (PageSwapCache(head)) {
-+			swp_entry_t entry = { .val = page_private(head) };
-+
-+			ret = split_swap_cluster(entry);
-+		} else
-+			ret = 0;
- 	} else {
- 		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
- 			pr_alert("total_mapcount: %u, page_count(): %u\n",
-diff -puN mm/swapfile.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out mm/swapfile.c
---- a/mm/swapfile.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out
-+++ a/mm/swapfile.c
-@@ -1216,6 +1216,21 @@ static void swapcache_free_cluster(swp_e
- 		}
- 	}
- }
-+
-+int split_swap_cluster(swp_entry_t entry)
-+{
-+	struct swap_info_struct *si;
-+	struct swap_cluster_info *ci;
-+	unsigned long offset = swp_offset(entry);
-+
-+	si = _swap_info_get(entry);
-+	if (!si)
-+		return -EBUSY;
-+	ci = lock_cluster(si, offset);
-+	cluster_clear_huge(ci);
-+	unlock_cluster(ci);
-+	return 0;
-+}
- #else
- static inline void swapcache_free_cluster(swp_entry_t entry)
- {
-_
-
-Patches currently in -mm which might be from ying.huang@intel.com are
-
-mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
-mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
-mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
-mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
-block-thp-make-block_device_operationsrw_page-support-thp.patch
-test-code-to-write-thp-to-swap-device-as-a-whole.patch
-mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
-memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
-memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
-memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
-mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
-mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
-
+ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbTogdGVzdCBjb2RlIHRvIHdyaXRl
+IFRIUCB0byBzd2FwIGRldmljZSBhcyBhIHdob2xlCmhhcyBiZWVuIGFkZGVkIHRvIHRoZSAt
+bW0gdHJlZS4gIEl0cyBmaWxlbmFtZSBpcwogICAgIHRlc3QtY29kZS10by13cml0ZS10aHAt
+dG8tc3dhcC1kZXZpY2UtYXMtYS13aG9sZS5wYXRjaAoKVGhpcyBwYXRjaCBzaG91bGQgc29v
+biBhcHBlYXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35ha3BtL21tb3RzL2Jyb2tlbi1v
+dXQvdGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlLnBh
+dGNoCmFuZCBsYXRlciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1vdG0vYnJv
+a2VuLW91dC90ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hv
+bGUucGF0Y2gKCkJlZm9yZSB5b3UganVzdCBnbyBhbmQgaGl0ICJyZXBseSIsIHBsZWFzZToK
+ICAgYSkgQ29uc2lkZXIgd2hvIGVsc2Ugc2hvdWxkIGJlIGNjJ2VkCiAgIGIpIFByZWZlciB0
+byBjYyBhIHN1aXRhYmxlIG1haWxpbmcgbGlzdCBhcyB3ZWxsCiAgIGMpIElkZWFsbHk6IGZp
+bmQgdGhlIG9yaWdpbmFsIHBhdGNoIG9uIHRoZSBtYWlsaW5nIGxpc3QgYW5kIGRvIGEKICAg
+ICAgcmVwbHktdG8tYWxsIHRvIHRoYXQsIGFkZGluZyBzdWl0YWJsZSBhZGRpdGlvbmFsIGNj
+J3MKCioqKiBSZW1lbWJlciB0byB1c2UgRG9jdW1lbnRhdGlvbi9TdWJtaXRDaGVja2xpc3Qg
+d2hlbiB0ZXN0aW5nIHlvdXIgY29kZSAqKioKClRoZSAtbW0gdHJlZSBpcyBpbmNsdWRlZCBp
+bnRvIGxpbnV4LW5leHQgYW5kIGlzIHVwZGF0ZWQKdGhlcmUgZXZlcnkgMy00IHdvcmtpbmcg
+ZGF5cwoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCkZyb206IEh1YW5nIFlpbmcgPHlpbmcuaHVhbmdAaW50ZWwuY29tPgpTdWJqZWN0
+OiBtbTogdGVzdCBjb2RlIHRvIHdyaXRlIFRIUCB0byBzd2FwIGRldmljZSBhcyBhIHdob2xl
+CgpUbyBzdXBwb3J0IHRvECBkZWxheSBzcGxpdHRpbmcgVEhQIChUcmFuc3BhcmVudCBIdWdl
+IFBhZ2UpIGFmdGVyCnN3YXBwZWQgb3V0LiAgV2UgbmVlZCB0byBlbmhhbmNlIHN3YXAgd3Jp
+dGluZyBjb2RlIHRvIHN1cHBvcnQgdG8gd3JpdGUKYSBUSFAgYXMgYSB3aG9sZS4gIFRoaXMg
+d2lsbCBpbXByb3ZlIHN3YXAgd3JpdGUgSU8gcGVyZm9ybWFuY2UuICBBcwpNaW5nIExlaSA8
+bWluZy5sZWlAcmVkaGF0LmNvbT4gcG9pbnRlZCBvdXQsIHRoaXMgc2hvdWxkIGJlIGJhc2Vk
+IG9uCm11bHRpcGFnZSBidmVjIHN1cHBvcnQsIHdoaWNoIGhhc24ndCBiZWVuIG1lcmdlZCB5
+ZXQuICBTbyB0aGlzIHBhdGNoCmlzIG9ubHkgZm9yIHRlc3RpbmcgdGhlIGZ1bmN0aW9uYWxp
+dHkgb2YgdGhlIG90aGVyIHBhdGNoZXMgaW4gdGhlCnNlcmllcy4gIEFuZCB3aWxsIGJlIHJl
+aW1wbGVtZW50ZWQgYWZ0ZXIgbXVsdGlwYWdlIGJ2ZWMgc3VwcG9ydCBpcwptZXJnZWQuCgpM
+aW5rOiBodHRwOi8vbGttbC5rZXJuZWwub3JnL3IvMjAxNzA3MjQwNTE4NDAuMjMwOS03LXlp
+bmcuaHVhbmdAaW50ZWwuY29tClNpZ25lZC1vZmYtYnk6ICJIdWFuZywgWWluZyIgPHlpbmcu
+aHVhbmdAaW50ZWwuY29tPgpDYzogIktpcmlsbCBBIC4gU2h1dGVtb3YiIDxraXJpbGwuc2h1
+dGVtb3ZAbGludXguaW50ZWwuY29tPgpDYzogQW5kcmVhIEFyY2FuZ2VsaSA8YWFyY2FuZ2VA
+cmVkaGF0LmNvbT4KQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29t
+PgpDYzogSHVnaCBEaWNraW5zIDxodWdoZEBnb29nbGUuY29tPgpDYzogSmVucyBBeGJvZSA8
+YXhib2VAa2VybmVsLmRrPgpDYzogSm9oYW5uZXMgV2VpbmVyIDxoYW5uZXNAY21weGNoZy5v
+cmc+CkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BrZXJuZWwub3JnPgpDYzogTWluY2hhbiBL
+aW0gPG1pbmNoYW5Aa2VybmVsLm9yZz4KQ2M6IFJpayB2YW4gUmllbCA8cmllbEByZWRoYXQu
+Y29tPgpDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAaW50ZWwuY29tPiBbZm9yIGJy
+ZC5jLCB6cmFtX2Rydi5jLCBwbWVtLmNdCkNjOiBTaGFvaHVhIExpIDxzaGxpQGtlcm5lbC5v
+cmc+CkNjOiBWaXNoYWwgTCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgpTaWdu
+ZWQtb2ZmLWJ5OiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgot
+LS0KCiBpbmNsdWRlL2xpbnV4L2Jpby5oICAgICAgICAgICB8ICAgIDggKysrKysrKysKIGlu
+Y2x1ZGUvbGludXgvcGFnZS1mbGFncy5oICAgIHwgICAgNCArKy0tCiBpbmNsdWRlL2xpbnV4
+L3ZtX2V2ZW50X2l0ZW0uaCB8ICAgIDEgKwogbW0vcGFnZV9pby5jICAgICAgICAgICAgICAg
+ICAgfCAgIDIxICsrKysrKysrKysrKysrKystLS0tLQogbW0vdm1zdGF0LmMgICAgICAgICAg
+ICAgICAgICAgfCAgICAxICsKIDUgZmlsZXMgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKSwg
+NyBkZWxldGlvbnMoLSkKCmRpZmYgLXB1TiBpbmNsdWRlL2xpbnV4L2Jpby5ofnRlc3QtY29k
+ZS10by13cml0ZS10aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9sZSBpbmNsdWRlL2xpbnV4
+L2Jpby5oCi0tLSBhL2luY2x1ZGUvbGludXgvYmlvLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRo
+cC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlCisrKyBhL2luY2x1ZGUvbGludXgvYmlvLmgK
+QEAgLTM4LDcgKzM4LDE1IEBACiAjZGVmaW5lIEJJT19CVUdfT04KICNlbmRpZgogCisjaWZk
+ZWYgQ09ORklHX1RIUF9TV0FQCisjaWYgSFBBR0VfUE1EX05SID4gMjU2CisjZGVmaW5lIEJJ
+T19NQVhfUEFHRVMJCUhQQUdFX1BNRF9OUgorI2Vsc2UKICNkZWZpbmUgQklPX01BWF9QQUdF
+UwkJMjU2CisjZW5kaWYKKyNlbHNlCisjZGVmaW5lIEJJT19NQVhfUEFHRVMJCTI1NgorI2Vu
+ZGlmCiAKICNkZWZpbmUgYmlvX3ByaW8oYmlvKQkJCShiaW8pLT5iaV9pb3ByaW8KICNkZWZp
+bmUgYmlvX3NldF9wcmlvKGJpbywgcHJpbykJCSgoYmlvKS0+YmlfaW9wcmlvID0gcHJpbykK
+ZGlmZiAtcHVOIGluY2x1ZGUvbGludXgvcGFnZS1mbGFncy5ofnRlc3QtY29kZS10by13cml0
+ZS10aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9sZSBpbmNsdWRlL2xpbnV4L3BhZ2UtZmxh
+Z3MuaAotLS0gYS9pbmNsdWRlL2xpbnV4L3BhZ2UtZmxhZ3MuaH50ZXN0LWNvZGUtdG8td3Jp
+dGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUKKysrIGEvaW5jbHVkZS9saW51eC9w
+YWdlLWZsYWdzLmgKQEAgLTMwMyw4ICszMDMsOCBAQCBQQUdFRkxBRyhPd25lclByaXYxLCBv
+d25lcl9wcml2XzEsIFBGX0FOCiAgKiBPbmx5IHRlc3QtYW5kLXNldCBleGlzdCBmb3IgUEdf
+d3JpdGViYWNrLiAgVGhlIHVuY29uZGl0aW9uYWwgb3BlcmF0b3JzIGFyZQogICogcmlza3k6
+IHRoZXkgYnlwYXNzIHBhZ2UgYWNjb3VudGluZy4KICAqLwotVEVTVFBBR0VGTEFHKFdyaXRl
+YmFjaywgd3JpdGViYWNrLCBQRl9OT19DT01QT1VORCkKLQlURVNUU0NGTEFHKFdyaXRlYmFj
+aywgd3JpdGViYWNrLCBQRl9OT19DT01QT1VORCkKK1RFU1RQQUdFRkxBRyhXcml0ZWJhY2ss
+IHdyaXRlYmFjaywgUEZfTk9fVEFJTCkKKwlURVNUU0NGTEFHKFdyaXRlYmFjaywgd3JpdGVi
+YWNrLCBQRl9OT19UQUlMKQogUEFHRUZMQUcoTWFwcGVkVG9EaXNrLCBtYXBwZWR0b2Rpc2ss
+IFBGX05PX1RBSUwpCiAKIC8qIFBHX3JlYWRhaGVhZCBpcyBvbmx5IHVzZWQgZm9yIHJlYWRz
+OyBQR19yZWNsYWltIGlzIG9ubHkgZm9yIHdyaXRlcyAqLwpkaWZmIC1wdU4gaW5jbHVkZS9s
+aW51eC92bV9ldmVudF9pdGVtLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRl
+dmljZS1hcy1hLXdob2xlIGluY2x1ZGUvbGludXgvdm1fZXZlbnRfaXRlbS5oCi0tLSBhL2lu
+Y2x1ZGUvbGludXgvdm1fZXZlbnRfaXRlbS5ofnRlc3QtY29kZS10by13cml0ZS10aHAtdG8t
+c3dhcC1kZXZpY2UtYXMtYS13aG9sZQorKysgYS9pbmNsdWRlL2xpbnV4L3ZtX2V2ZW50X2l0
+ZW0uaApAQCAtODUsNiArODUsNyBAQCBlbnVtIHZtX2V2ZW50X2l0ZW0geyBQR1BHSU4sIFBH
+UEdPVVQsIFBTCiAjZW5kaWYKIAkJVEhQX1pFUk9fUEFHRV9BTExPQywKIAkJVEhQX1pFUk9f
+UEFHRV9BTExPQ19GQUlMRUQsCisJCVRIUF9TV1BPVVQsCiAjZW5kaWYKICNpZmRlZiBDT05G
+SUdfTUVNT1JZX0JBTExPT04KIAkJQkFMTE9PTl9JTkZMQVRFLApkaWZmIC1wdU4gbW0vcGFn
+ZV9pby5jfnRlc3QtY29kZS10by13cml0ZS10aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9s
+ZSBtbS9wYWdlX2lvLmMKLS0tIGEvbW0vcGFnZV9pby5jfnRlc3QtY29kZS10by13cml0ZS10
+aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9sZQorKysgYS9tbS9wYWdlX2lvLmMKQEAgLTI4
+LDE2ICsyOCwxOCBAQAogc3RhdGljIHN0cnVjdCBiaW8gKmdldF9zd2FwX2JpbyhnZnBfdCBn
+ZnBfZmxhZ3MsCiAJCQkJc3RydWN0IHBhZ2UgKnBhZ2UsIGJpb19lbmRfaW9fdCBlbmRfaW8p
+CiB7CisJaW50IGksIG5yID0gaHBhZ2VfbnJfcGFnZXMocGFnZSk7CiAJc3RydWN0IGJpbyAq
+YmlvOwogCi0JYmlvID0gYmlvX2FsbG9jKGdmcF9mbGFncywgMSk7CisJYmlvID0gYmlvX2Fs
+bG9jKGdmcF9mbGFncywgbnIpOwogCWlmIChiaW8pIHsKIAkJYmlvLT5iaV9pdGVyLmJpX3Nl
+Y3RvciA9IG1hcF9zd2FwX3BhZ2UocGFnZSwgJmJpby0+YmlfYmRldik7CiAJCWJpby0+Ymlf
+aXRlci5iaV9zZWN0b3IgPDw9IFBBR0VfU0hJRlQgLSA5OwogCQliaW8tPmJpX2VuZF9pbyA9
+IGVuZF9pbzsKIAotCQliaW9fYWRkX3BhZ2UoYmlvLCBwYWdlLCBQQUdFX1NJWkUsIDApOwot
+CQlCVUdfT04oYmlvLT5iaV9pdGVyLmJpX3NpemUgIT0gUEFHRV9TSVpFKTsKKwkJZm9yIChp
+ID0gMDsgaSA8IG5yOyBpKyspCisJCQliaW9fYWRkX3BhZ2UoYmlvLCBwYWdlICsgaSwgUEFH
+RV9TSVpFLCAwKTsKKwkJVk1fQlVHX09OKGJpby0+YmlfaXRlci5iaV9zaXplICE9IFBBR0Vf
+U0laRSAqIG5yKTsKIAl9CiAJcmV0dXJuIGJpbzsKIH0KQEAgLTI2Miw2ICsyNjQsMTUgQEAg
+c3RhdGljIHNlY3Rvcl90IHN3YXBfcGFnZV9zZWN0b3Ioc3RydWN0CiAJcmV0dXJuIChzZWN0
+b3JfdClfX3BhZ2VfZmlsZV9pbmRleChwYWdlKSA8PCAoUEFHRV9TSElGVCAtIDkpOwogfQog
+CitzdGF0aWMgaW5saW5lIHZvaWQgY291bnRfc3dwb3V0X3ZtX2V2ZW50KHN0cnVjdCBwYWdl
+ICpwYWdlKQoreworI2lmZGVmIENPTkZJR19UUkFOU1BBUkVOVF9IVUdFUEFHRQorCWlmICh1
+bmxpa2VseShQYWdlVHJhbnNIdWdlKHBhZ2UpKSkKKwkJY291bnRfdm1fZXZlbnQoVEhQX1NX
+UE9VVCk7CisjZW5kaWYKKwljb3VudF92bV9ldmVudHMoUFNXUE9VVCwgaHBhZ2VfbnJfcGFn
+ZXMocGFnZSkpOworfQorCiBpbnQgX19zd2FwX3dyaXRlcGFnZShzdHJ1Y3QgcGFnZSAqcGFn
+ZSwgc3RydWN0IHdyaXRlYmFja19jb250cm9sICp3YmMsCiAJCWJpb19lbmRfaW9fdCBlbmRf
+d3JpdGVfZnVuYykKIHsKQEAgLTMxMyw3ICszMjQsNyBAQCBpbnQgX19zd2FwX3dyaXRlcGFn
+ZShzdHJ1Y3QgcGFnZSAqcGFnZSwKIAogCXJldCA9IGJkZXZfd3JpdGVfcGFnZShzaXMtPmJk
+ZXYsIHN3YXBfcGFnZV9zZWN0b3IocGFnZSksIHBhZ2UsIHdiYyk7CiAJaWYgKCFyZXQpIHsK
+LQkJY291bnRfdm1fZXZlbnQoUFNXUE9VVCk7CisJCWNvdW50X3N3cG91dF92bV9ldmVudChw
+YWdlKTsKIAkJcmV0dXJuIDA7CiAJfQogCkBAIC0zMjYsNyArMzM3LDcgQEAgaW50IF9fc3dh
+cF93cml0ZXBhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UsCiAJCWdvdG8gb3V0OwogCX0KIAliaW8t
+PmJpX29wZiA9IFJFUV9PUF9XUklURSB8IHdiY190b193cml0ZV9mbGFncyh3YmMpOwotCWNv
+dW50X3ZtX2V2ZW50KFBTV1BPVVQpOworCWNvdW50X3N3cG91dF92bV9ldmVudChwYWdlKTsK
+IAlzZXRfcGFnZV93cml0ZWJhY2socGFnZSk7CiAJdW5sb2NrX3BhZ2UocGFnZSk7CiAJc3Vi
+bWl0X2JpbyhiaW8pOwpkaWZmIC1wdU4gbW0vdm1zdGF0LmN+dGVzdC1jb2RlLXRvLXdyaXRl
+LXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlIG1tL3Ztc3RhdC5jCi0tLSBhL21tL3Zt
+c3RhdC5jfnRlc3QtY29kZS10by13cml0ZS10aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9s
+ZQorKysgYS9tbS92bXN0YXQuYwpAQCAtMTA3MSw2ICsxMDcxLDcgQEAgY29uc3QgY2hhciAq
+IGNvbnN0IHZtc3RhdF90ZXh0W10gPSB7CiAjZW5kaWYKIAkidGhwX3plcm9fcGFnZV9hbGxv
+YyIsCiAJInRocF96ZXJvX3BhZ2VfYWxsb2NfZmFpbGVkIiwKKwkidGhwX3N3cG91dCIsCiAj
+ZW5kaWYKICNpZmRlZiBDT05GSUdfTUVNT1JZX0JBTExPT04KIAkiYmFsbG9vbl9pbmZsYXRl
+IiwKXwoKUGF0Y2hlcyBjdXJyZW50bHkgaW4gLW1tIHdoaWNoIG1pZ2h0IGJlIGZyb20geWlu
+Zy5odWFuZ0BpbnRlbC5jb20gYXJlCgptbS10aHAtc3dhcC1zdXBwb3J0LXRvLWNsZWFyLXN3
+YXAtY2FjaGUtZmxhZy1mb3ItdGhwLXN3YXBwZWQtb3V0LnBhdGNoCm1tLXRocC1zd2FwLXN1
+cHBvcnQtdG8tcmVjbGFpbS1zd2FwLXNwYWNlLWZvci10aHAtc3dhcHBlZC1vdXQucGF0Y2gK
+bW0tdGhwLXN3YXAtbWFrZS1yZXVzZV9zd2FwX3BhZ2Utd29ya3MtZm9yLXRocC1zd2FwcGVk
+LW91dC5wYXRjaAptbS10aHAtc3dhcC1kb250LWFsbG9jYXRlLWh1Z2UtY2x1c3Rlci1mb3It
+ZmlsZS1iYWNrZWQtc3dhcC1kZXZpY2UucGF0Y2gKYmxvY2stdGhwLW1ha2UtYmxvY2tfZGV2
+aWNlX29wZXJhdGlvbnNyd19wYWdlLXN1cHBvcnQtdGhwLnBhdGNoCnRlc3QtY29kZS10by13
+cml0ZS10aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9sZS5wYXRjaAptbS10aHAtc3dhcC1z
+dXBwb3J0LXRvLXNwbGl0LXRocC1mb3ItdGhwLXN3YXBwZWQtb3V0LnBhdGNoCm1lbWNnLXRo
+cC1zd2FwLXN1cHBvcnQtbW92ZS1tZW0tY2dyb3VwLWNoYXJnZS1mb3ItdGhwLXN3YXBwZWQt
+b3V0LnBhdGNoCm1lbWNnLXRocC1zd2FwLWF2b2lkLXRvLWR1cGxpY2F0ZWQtY2hhcmdlLXRo
+cC1pbi1zd2FwLWNhY2hlLnBhdGNoCm1lbWNnLXRocC1zd2FwLW1ha2UtbWVtX2Nncm91cF9z
+d2Fwb3V0LXN1cHBvcnQtdGhwLnBhdGNoCm1tLXRocC1zd2FwLWRlbGF5LXNwbGl0dGluZy10
+aHAtYWZ0ZXItc3dhcHBlZC1vdXQucGF0Y2gKbW0tdGhwLXN3YXAtYWRkLXRocC1zd2FwcGlu
+Zy1vdXQtZmFsbGJhY2stY291bnRpbmcucGF0Y2gKCg==
