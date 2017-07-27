@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch added
+Subject: + mm-thp-swap-add-thp-swapping-out-fallback-counting.patch added
  to -mm tree
-Date: Thu, 27 Jul 2017 16:37:27 -0700
-Message-ID: <597a7937.dqSQZOz/Qzi9RdGd%akpm@linux-foundation.org>
+Date: Thu, 27 Jul 2017 16:37:32 -0700
+Message-ID: <597a793c.t4KEF2mQ8KOPXV69%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37792 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751622AbdG0Xh2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:28 -0400
+        with ESMTP id S1751622AbdG0Xhd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
+     Subject: mm, THP, swap: add THP swapping out fallback counting
 has been added to the -mm tree.  Its filename is
-     memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+     mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,98 +40,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
+Subject: mm, THP, swap: add THP swapping out fallback counting
 
-This patch makes mem_cgroup_swapout() works for the transparent huge page
-(THP).  Which will move the memory cgroup charge from memory to swap for a
-THP.
+When swapping out THP (Transparent Huge Page), instead of swapping out the
+THP as a whole, sometimes we have to fallback to split the THP into normal
+pages before swapping, because no free swap clusters are available, or
+cgroup limit is exceeded, etc.  To count the number of the fallback, a new
+VM event THP_SWPOUT_FALLBACK is added, and counted when we fallback to
+split the THP.
 
-This will be used for the THP swap support.  Where a THP may be swapped
-out as a whole to a set of (HPAGE_PMD_NR) continuous swap slots on the
-swap device.
-
-Link: http://lkml.kernel.org/r/20170724051840.2309-11-ying.huang@intel.com
+Link: http://lkml.kernel.org/r/20170724051840.2309-13-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
-Cc: Shaohua Li <shli@kernel.org>
 Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ include/linux/vm_event_item.h |    1 +
+ mm/vmscan.c                   |    3 +++
+ mm/vmstat.c                   |    1 +
+ 3 files changed, 5 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp
-+++ a/mm/memcontrol.c
-@@ -4635,8 +4635,8 @@ static enum mc_target_type get_mctgt_typ
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-- * We don't consider swapping or file mapped pages because THP does not
-- * support them for now.
-+ * We don't consider PMD mapped swapping or file mapped pages because THP does
-+ * not support them for now.
-  * Caller should make sure that pmd_trans_huge(pmd) is true.
-  */
- static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
-@@ -5899,6 +5899,7 @@ static struct mem_cgroup *mem_cgroup_id_
- void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
- {
- 	struct mem_cgroup *memcg, *swap_memcg;
-+	unsigned int nr_entries;
- 	unsigned short oldid;
- 
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
-@@ -5919,19 +5920,24 @@ void mem_cgroup_swapout(struct page *pag
- 	 * ancestor for the swap instead and transfer the memory+swap charge.
- 	 */
- 	swap_memcg = mem_cgroup_id_get_online(memcg);
--	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg), 1);
-+	nr_entries = hpage_nr_pages(page);
-+	/* Get references for the tail pages, too */
-+	if (nr_entries > 1)
-+		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
-+	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg),
-+				   nr_entries);
- 	VM_BUG_ON_PAGE(oldid, page);
--	mem_cgroup_swap_statistics(swap_memcg, 1);
-+	mem_cgroup_swap_statistics(swap_memcg, nr_entries);
- 
- 	page->mem_cgroup = NULL;
- 
- 	if (!mem_cgroup_is_root(memcg))
--		page_counter_uncharge(&memcg->memory, 1);
-+		page_counter_uncharge(&memcg->memory, nr_entries);
- 
- 	if (memcg != swap_memcg) {
- 		if (!mem_cgroup_is_root(swap_memcg))
--			page_counter_charge(&swap_memcg->memsw, 1);
--		page_counter_uncharge(&memcg->memsw, 1);
-+			page_counter_charge(&swap_memcg->memsw, nr_entries);
-+		page_counter_uncharge(&memcg->memsw, nr_entries);
- 	}
- 
- 	/*
-@@ -5941,7 +5947,8 @@ void mem_cgroup_swapout(struct page *pag
- 	 * only synchronisation we have for udpating the per-CPU variables.
- 	 */
- 	VM_BUG_ON(!irqs_disabled());
--	mem_cgroup_charge_statistics(memcg, page, false, -1);
-+	mem_cgroup_charge_statistics(memcg, page, PageTransHuge(page),
-+				     -nr_entries);
- 	memcg_check_events(memcg, page);
- 
- 	if (!mem_cgroup_is_root(memcg))
+diff -puN include/linux/vm_event_item.h~mm-thp-swap-add-thp-swapping-out-fallback-counting include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-thp-swap-add-thp-swapping-out-fallback-counting
++++ a/include/linux/vm_event_item.h
+@@ -86,6 +86,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_ZERO_PAGE_ALLOC,
+ 		THP_ZERO_PAGE_ALLOC_FAILED,
+ 		THP_SWPOUT,
++		THP_SWPOUT_FALLBACK,
+ #endif
+ #ifdef CONFIG_MEMORY_BALLOON
+ 		BALLOON_INFLATE,
+diff -puN mm/vmscan.c~mm-thp-swap-add-thp-swapping-out-fallback-counting mm/vmscan.c
+--- a/mm/vmscan.c~mm-thp-swap-add-thp-swapping-out-fallback-counting
++++ a/mm/vmscan.c
+@@ -1153,6 +1153,9 @@ static unsigned long shrink_page_list(st
+ 					if (split_huge_page_to_list(page,
+ 								    page_list))
+ 						goto activate_locked;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++					count_vm_event(THP_SWPOUT_FALLBACK);
++#endif
+ 					if (!add_to_swap(page))
+ 						goto activate_locked;
+ 				}
+diff -puN mm/vmstat.c~mm-thp-swap-add-thp-swapping-out-fallback-counting mm/vmstat.c
+--- a/mm/vmstat.c~mm-thp-swap-add-thp-swapping-out-fallback-counting
++++ a/mm/vmstat.c
+@@ -1072,6 +1072,7 @@ const char * const vmstat_text[] = {
+ 	"thp_zero_page_alloc",
+ 	"thp_zero_page_alloc_failed",
+ 	"thp_swpout",
++	"thp_swpout_fallback",
+ #endif
+ #ifdef CONFIG_MEMORY_BALLOON
+ 	"balloon_inflate",
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
