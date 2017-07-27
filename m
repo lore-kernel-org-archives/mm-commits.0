@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch added
- to -mm tree
-Date: Thu, 27 Jul 2017 16:37:06 -0700
-Message-ID: <597a7922.HhO12NsffoBCa0VP%akpm@linux-foundation.org>
+ mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch added to
+ -mm tree
+Date: Thu, 27 Jul 2017 16:37:09 -0700
+Message-ID: <597a7925.ui+/hXls3FJRFzJc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37648 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751113AbdG0XhH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:07 -0400
+        with ESMTP id S1751558AbdG0XhK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP, swap: support to reclaim swap space for THP swapped out
+     Subject: mm, THP, swap: make reuse_swap_page() works for THP swapped out
 has been added to the -mm tree.  Its filename is
-     mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+     mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,35 +41,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: support to reclaim swap space for THP swapped out
+Subject: mm, THP, swap: make reuse_swap_page() works for THP swapped out
 
-The normal swap slot reclaiming can be done when the swap count reaches
-SWAP_HAS_CACHE.  But for the swap slot which is backing a THP, all swap
-slots backing one THP must be reclaimed together, because the swap slot
-may be used again when the THP is swapped out again later.  So the swap
-slots backing one THP can be reclaimed together when the swap count for
-all swap slots for the THP reached SWAP_HAS_CACHE.  In the patch, the
-functions to check whether the swap count for all swap slots backing one
-THP reached SWAP_HAS_CACHE are implemented and used when checking whether
-a swap slot can be reclaimed.
+After supporting to delay THP (Transparent Huge Page) splitting after
+swapped out, it is possible that some page table mappings of the THP are
+turned into swap entries.  So reuse_swap_page() need to check the swap
+count in addition to the map count as before.  This patch done that.
 
-To make it easier to determine whether a swap slot is backing a THP, a new
-swap cluster flag named CLUSTER_FLAG_HUGE is added to mark a swap cluster
-which is backing a THP (Transparent Huge Page).  Because THP swap in as a
-whole isn't supported now.  After deleting the THP from the swap cache
-(for example, swapping out finished), the CLUSTER_FLAG_HUGE flag will be
-cleared.  So that, the normal pages inside THP can be swapped in
-individually.
+In the huge PMD write protect fault handler, in addition to the page map
+count, the swap count need to be checked too, so the page lock need to be
+acquired too when calling reuse_swap_page() in addition to the page table
+lock.
 
-Link: http://lkml.kernel.org/r/20170724051840.2309-3-ying.huang@intel.com
+Link: http://lkml.kernel.org/r/20170724051840.2309-4-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Shaohua Li <shli@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -78,179 +70,221 @@ Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swapfile.c        |   78 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 72 insertions(+), 7 deletions(-)
+ include/linux/swap.h |    4 -
+ mm/huge_memory.c     |   16 ++++++
+ mm/memory.c          |    6 +-
+ mm/swapfile.c        |  102 +++++++++++++++++++++++++++++++++++++----
+ 4 files changed, 113 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/swap.h~mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out include/linux/swap.h
---- a/include/linux/swap.h~mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out
+diff -puN include/linux/swap.h~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
 +++ a/include/linux/swap.h
-@@ -188,6 +188,7 @@ struct swap_cluster_info {
- };
- #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
- #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
-+#define CLUSTER_FLAG_HUGE 4 /* This cluster is backing a transparent huge page */
- 
- /*
-  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
-diff -puN mm/swapfile.c~mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out mm/swapfile.c
---- a/mm/swapfile.c~mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out
-+++ a/mm/swapfile.c
-@@ -265,6 +265,16 @@ static inline void cluster_set_null(stru
- 	info->data = 0;
+@@ -510,8 +510,8 @@ static inline int swp_swapcount(swp_entr
+ 	return 0;
  }
  
-+static inline bool cluster_is_huge(struct swap_cluster_info *info)
-+{
-+	return info->flags & CLUSTER_FLAG_HUGE;
-+}
-+
-+static inline void cluster_clear_huge(struct swap_cluster_info *info)
-+{
-+	info->flags &= ~CLUSTER_FLAG_HUGE;
-+}
-+
- static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
- 						     unsigned long offset)
+-#define reuse_swap_page(page, total_mapcount) \
+-	(page_trans_huge_mapcount(page, total_mapcount) == 1)
++#define reuse_swap_page(page, total_map_swapcount) \
++	(page_trans_huge_mapcount(page, total_map_swapcount) == 1)
+ 
+ static inline int try_to_free_swap(struct page *page)
  {
-@@ -846,7 +856,7 @@ static int swap_alloc_cluster(struct swa
- 	offset = idx * SWAPFILE_CLUSTER;
- 	ci = lock_cluster(si, offset);
- 	alloc_cluster(si, idx);
--	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, 0);
-+	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, CLUSTER_FLAG_HUGE);
- 
- 	map = si->swap_map + offset;
- 	for (i = 0; i < SWAPFILE_CLUSTER; i++)
-@@ -1176,6 +1186,7 @@ static void swapcache_free_cluster(swp_e
- 		return;
- 
- 	ci = lock_cluster(si, offset);
-+	VM_BUG_ON(!cluster_is_huge(ci));
- 	map = si->swap_map + offset;
- 	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
- 		val = map[i];
-@@ -1187,6 +1198,7 @@ static void swapcache_free_cluster(swp_e
- 		for (i = 0; i < SWAPFILE_CLUSTER; i++)
- 			map[i] &= ~SWAP_HAS_CACHE;
- 	}
-+	cluster_clear_huge(ci);
- 	unlock_cluster(ci);
- 	if (free_entries == SWAPFILE_CLUSTER) {
- 		spin_lock(&si->lock);
-@@ -1350,6 +1362,54 @@ out:
- 	return count;
- }
- 
-+#ifdef CONFIG_THP_SWAP
-+static bool swap_page_trans_huge_swapped(struct swap_info_struct *si,
-+					 swp_entry_t entry)
-+{
-+	struct swap_cluster_info *ci;
-+	unsigned char *map = si->swap_map;
-+	unsigned long roffset = swp_offset(entry);
-+	unsigned long offset = round_down(roffset, SWAPFILE_CLUSTER);
-+	int i;
-+	bool ret = false;
-+
-+	ci = lock_cluster_or_swap_info(si, offset);
-+	if (!cluster_is_huge(ci)) {
-+		if (map[roffset] != SWAP_HAS_CACHE)
-+			ret = true;
-+		goto unlock_out;
+diff -puN mm/huge_memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/mm/huge_memory.c
+@@ -1245,15 +1245,29 @@ int do_huge_pmd_wp_page(struct vm_fault
+ 	 * We can only reuse the page if nobody else maps the huge page or it's
+ 	 * part.
+ 	 */
+-	if (page_trans_huge_mapcount(page, NULL) == 1) {
++	if (!trylock_page(page)) {
++		get_page(page);
++		spin_unlock(vmf->ptl);
++		lock_page(page);
++		spin_lock(vmf->ptl);
++		if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
++			unlock_page(page);
++			put_page(page);
++			goto out_unlock;
++		}
++		put_page(page);
 +	}
-+	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
-+		if (map[offset + i] != SWAP_HAS_CACHE) {
-+			ret = true;
-+			break;
++	if (reuse_swap_page(page, NULL)) {
+ 		pmd_t entry;
+ 		entry = pmd_mkyoung(orig_pmd);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry,  1))
+ 			update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 		ret |= VM_FAULT_WRITE;
++		unlock_page(page);
+ 		goto out_unlock;
+ 	}
++	unlock_page(page);
+ 	get_page(page);
+ 	spin_unlock(vmf->ptl);
+ alloc:
+diff -puN mm/memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out mm/memory.c
+--- a/mm/memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/mm/memory.c
+@@ -2591,7 +2591,7 @@ static int do_wp_page(struct vm_fault *v
+ 	 * not dirty accountable.
+ 	 */
+ 	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
+-		int total_mapcount;
++		int total_map_swapcount;
+ 		if (!trylock_page(vmf->page)) {
+ 			get_page(vmf->page);
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+@@ -2606,8 +2606,8 @@ static int do_wp_page(struct vm_fault *v
+ 			}
+ 			put_page(vmf->page);
+ 		}
+-		if (reuse_swap_page(vmf->page, &total_mapcount)) {
+-			if (total_mapcount == 1) {
++		if (reuse_swap_page(vmf->page, &total_map_swapcount)) {
++			if (total_map_swapcount == 1) {
+ 				/*
+ 				 * The page is all ours. Move it to
+ 				 * our anon_vma so the rmap code will
+diff -puN mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/mm/swapfile.c
+@@ -1405,9 +1405,89 @@ static bool page_swapped(struct page *pa
+ 		return swap_page_trans_huge_swapped(si, entry);
+ 	return false;
+ }
++
++static int page_trans_huge_map_swapcount(struct page *page, int *total_mapcount,
++					 int *total_swapcount)
++{
++	int i, map_swapcount, _total_mapcount, _total_swapcount;
++	unsigned long offset;
++	struct swap_info_struct *si;
++	struct swap_cluster_info *ci = NULL;
++	unsigned char *map = NULL;
++	int mapcount, swapcount = 0;
++
++	/* hugetlbfs shouldn't call it */
++	VM_BUG_ON_PAGE(PageHuge(page), page);
++
++	if (likely(!PageTransCompound(page))) {
++		mapcount = atomic_read(&page->_mapcount) + 1;
++		if (total_mapcount)
++			*total_mapcount = mapcount;
++		if (PageSwapCache(page))
++			swapcount = page_swapcount(page);
++		if (total_swapcount)
++			*total_swapcount = swapcount;
++		return mapcount + swapcount;
++	}
++
++	page = compound_head(page);
++
++	_total_mapcount = _total_swapcount = map_swapcount = 0;
++	if (PageSwapCache(page)) {
++		swp_entry_t entry;
++
++		entry.val = page_private(page);
++		si = _swap_info_get(entry);
++		if (si) {
++			map = si->swap_map;
++			offset = swp_offset(entry);
 +		}
 +	}
-+unlock_out:
-+	unlock_cluster_or_swap_info(si, ci);
-+	return ret;
-+}
++	if (map)
++		ci = lock_cluster(si, offset);
++	for (i = 0; i < HPAGE_PMD_NR; i++) {
++		mapcount = atomic_read(&page[i]._mapcount) + 1;
++		_total_mapcount += mapcount;
++		if (map) {
++			swapcount = swap_count(map[offset + i]);
++			_total_swapcount += swapcount;
++		}
++		map_swapcount = max(map_swapcount, mapcount + swapcount);
++	}
++	unlock_cluster(ci);
++	if (PageDoubleMap(page)) {
++		map_swapcount -= 1;
++		_total_mapcount -= HPAGE_PMD_NR;
++	}
++	mapcount = compound_mapcount(page);
++	map_swapcount += mapcount;
++	_total_mapcount += mapcount;
++	if (total_mapcount)
++		*total_mapcount = _total_mapcount;
++	if (total_swapcount)
++		*total_swapcount = _total_swapcount;
 +
-+static bool page_swapped(struct page *page)
++	return map_swapcount;
++}
+ #else
+ #define swap_page_trans_huge_swapped(si, entry)	swap_swapcount(si, entry)
+ #define page_swapped(page)			(page_swapcount(page) != 0)
++
++static int page_trans_huge_map_swapcount(struct page *page, int *total_mapcount,
++					 int *total_swapcount)
 +{
-+	swp_entry_t entry;
-+	struct swap_info_struct *si;
++	int mapcount, swapcount = 0;
 +
-+	if (likely(!PageTransCompound(page)))
-+		return page_swapcount(page) != 0;
++	/* hugetlbfs shouldn't call it */
++	VM_BUG_ON_PAGE(PageHuge(page), page);
 +
-+	page = compound_head(page);
-+	entry.val = page_private(page);
-+	si = _swap_info_get(entry);
-+	if (si)
-+		return swap_page_trans_huge_swapped(si, entry);
-+	return false;
++	mapcount = page_trans_huge_mapcount(page, total_mapcount);
++	if (PageSwapCache(page))
++		swapcount = page_swapcount(page);
++	if (total_swapcount)
++		*total_swapcount = swapcount;
++	return mapcount + swapcount;
 +}
-+#else
-+#define swap_page_trans_huge_swapped(si, entry)	swap_swapcount(si, entry)
-+#define page_swapped(page)			(page_swapcount(page) != 0)
-+#endif
-+
+ #endif
+ 
  /*
-  * We can write to an anon page without COW if there are no other references
-  * to it.  And as a side-effect, free up its swap: because the old content
-@@ -1404,7 +1464,7 @@ int try_to_free_swap(struct page *page)
- 		return 0;
- 	if (PageWriteback(page))
- 		return 0;
--	if (page_swapcount(page))
-+	if (page_swapped(page))
- 		return 0;
+@@ -1416,23 +1496,27 @@ static bool page_swapped(struct page *pa
+  * on disk will never be read, and seeking back there to write new content
+  * later would only waste time away from clustering.
+  *
+- * NOTE: total_mapcount should not be relied upon by the caller if
++ * NOTE: total_map_swapcount should not be relied upon by the caller if
+  * reuse_swap_page() returns false, but it may be always overwritten
+  * (see the other implementation for CONFIG_SWAP=n).
+  */
+-bool reuse_swap_page(struct page *page, int *total_mapcount)
++bool reuse_swap_page(struct page *page, int *total_map_swapcount)
+ {
+-	int count;
++	int count, total_mapcount, total_swapcount;
  
- 	/*
-@@ -1425,6 +1485,7 @@ int try_to_free_swap(struct page *page)
- 	if (pm_suspended_storage())
- 		return 0;
- 
-+	page = compound_head(page);
- 	delete_from_swap_cache(page);
- 	SetPageDirty(page);
- 	return 1;
-@@ -1446,7 +1507,8 @@ int free_swap_and_cache(swp_entry_t entr
- 	p = _swap_info_get(entry);
- 	if (p) {
- 		count = __swap_entry_free(p, entry, 1);
--		if (count == SWAP_HAS_CACHE) {
-+		if (count == SWAP_HAS_CACHE &&
-+		    !swap_page_trans_huge_swapped(p, entry)) {
- 			page = find_get_page(swap_address_space(entry),
- 					     swp_offset(entry));
- 			if (page && !trylock_page(page)) {
-@@ -1463,7 +1525,8 @@ int free_swap_and_cache(swp_entry_t entr
- 		 */
- 		if (PageSwapCache(page) && !PageWriteback(page) &&
- 		    (!page_mapped(page) || mem_cgroup_swap_full(page)) &&
--		    !swap_swapcount(p, entry)) {
-+		    !swap_page_trans_huge_swapped(p, entry)) {
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	if (unlikely(PageKsm(page)))
+ 		return false;
+-	count = page_trans_huge_mapcount(page, total_mapcount);
+-	if (count <= 1 && PageSwapCache(page)) {
+-		count += page_swapcount(page);
+-		if (count != 1)
+-			goto out;
++	count = page_trans_huge_map_swapcount(page, &total_mapcount,
++					      &total_swapcount);
++	if (total_map_swapcount)
++		*total_map_swapcount = total_mapcount + total_swapcount;
++	if (count == 1 && PageSwapCache(page) &&
++	    (likely(!PageTransCompound(page)) ||
++	     /* The remaining swap count will be freed soon */
++	     total_swapcount == page_swapcount(page))) {
+ 		if (!PageWriteback(page)) {
 +			page = compound_head(page);
  			delete_from_swap_cache(page);
  			SetPageDirty(page);
+ 		} else {
+@@ -1448,7 +1532,7 @@ bool reuse_swap_page(struct page *page,
+ 			spin_unlock(&p->lock);
  		}
-@@ -2017,7 +2080,7 @@ int try_to_unuse(unsigned int type, bool
- 				.sync_mode = WB_SYNC_NONE,
- 			};
+ 	}
+-out:
++
+ 	return count <= 1;
+ }
  
--			swap_writepage(page, &wbc);
-+			swap_writepage(compound_head(page), &wbc);
- 			lock_page(page);
- 			wait_on_page_writeback(page);
- 		}
-@@ -2030,8 +2093,9 @@ int try_to_unuse(unsigned int type, bool
- 		 * delete, since it may not have been written out to swap yet.
- 		 */
- 		if (PageSwapCache(page) &&
--		    likely(page_private(page) == entry.val))
--			delete_from_swap_cache(page);
-+		    likely(page_private(page) == entry.val) &&
-+		    !page_swapped(page))
-+			delete_from_swap_cache(compound_head(page));
- 
- 		/*
- 		 * So we could skip searching mms once swap count went
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
