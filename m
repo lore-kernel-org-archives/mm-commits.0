@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-swap-delay-splitting-thp-after-swapped-out.patch added
- to -mm tree
-Date: Thu, 27 Jul 2017 16:37:29 -0700
-Message-ID: <597a7939.3OgYhE3o+c+uJuVf%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch added to -mm tree
+Date: Thu, 27 Jul 2017 16:42:00 -0700
+Message-ID: <597a7a48.XPZLo0PEKvjkerdN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37910 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751595AbdG0Xha (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:37:30 -0400
+        with ESMTP id S1751563AbdG0XmB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2017 19:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP, swap: delay splitting THP after swapped out
+     Subject: userfaultfd: shmem: add shmem_mfill_zeropage_pte for userfaultfd support
 has been added to the -mm tree.  Its filename is
-     mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+     userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,211 +39,144 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: delay splitting THP after swapped out
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: shmem: add shmem_mfill_zeropage_pte for userfaultfd support
 
-In this patch, splitting transparent huge page (THP) during swapping out
-is delayed from after adding the THP into the swap cache to after swapping
-out finishes.  After the patch, more operations for the anonymous THP
-reclaiming, such as writing the THP to the swap device, removing the THP
-from the swap cache could be batched.  So that the performance of
-anonymous THP swapping out could be improved.
+shmem_mfill_zeropage_pte is the low level routine that implements the
+userfaultfd UFFDIO_ZEROPAGE command.  Since for shmem mappings zero pages
+are always allocated and accounted, the new method is a slight extension
+of the existing shmem_mcopy_atomic_pte.
 
-This is the second step for the THP swap support.  The plan is to delay
-splitting the THP step by step and avoid splitting the THP finally.
-
-With the patchset, the swap out throughput improves 42% (from about
-5.81GB/s to about 8.25GB/s) in the vm-scalability swap-w-seq test case
-with 16 processes.  At the same time, the IPI (reflect TLB flushing)
-reduced about 78.9%.  The test is done on a Xeon E5 v3 system.  The swap
-device used is a RAM simulated PMEM (persistent memory) device.  To test
-the sequential swapping out, the test case creates 8 processes, which
-sequentially allocate and write to the anonymous pages until the RAM and
-part of the swap device is used up.
-
-Link: http://lkml.kernel.org/r/20170724051840.2309-12-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/1497939652-16528-4-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   95 +++++++++++++++++++++++++++-----------------------
- 1 file changed, 52 insertions(+), 43 deletions(-)
+ include/linux/shmem_fs.h |    6 +++
+ mm/shmem.c               |   62 ++++++++++++++++++++++++++-----------
+ 2 files changed, 51 insertions(+), 17 deletions(-)
 
-diff -puN mm/vmscan.c~mm-thp-swap-delay-splitting-thp-after-swapped-out mm/vmscan.c
---- a/mm/vmscan.c~mm-thp-swap-delay-splitting-thp-after-swapped-out
-+++ a/mm/vmscan.c
-@@ -535,7 +535,9 @@ static inline int is_page_cache_freeable
- 	 * that isolated the page, the page cache radix tree and
- 	 * optional buffer heads at page->private.
- 	 */
--	return page_count(page) - page_has_private(page) == 2;
-+	int radix_pins = PageTransHuge(page) && PageSwapCache(page) ?
-+		HPAGE_PMD_NR : 1;
-+	return page_count(page) - page_has_private(page) == 1 + radix_pins;
+diff -puN include/linux/shmem_fs.h~userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support
++++ a/include/linux/shmem_fs.h
+@@ -137,9 +137,15 @@ extern int shmem_mcopy_atomic_pte(struct
+ 				  unsigned long dst_addr,
+ 				  unsigned long src_addr,
+ 				  struct page **pagep);
++extern int shmem_mfill_zeropage_pte(struct mm_struct *dst_mm,
++				    pmd_t *dst_pmd,
++				    struct vm_area_struct *dst_vma,
++				    unsigned long dst_addr);
+ #else
+ #define shmem_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma, dst_addr, \
+ 			       src_addr, pagep)        ({ BUG(); 0; })
++#define shmem_mfill_zeropage_pte(dst_mm, dst_pmd, dst_vma, \
++				 dst_addr)      ({ BUG(); 0; })
+ #endif
+ 
+ #endif
+diff -puN mm/shmem.c~userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support
++++ a/mm/shmem.c
+@@ -2199,12 +2199,13 @@ bool shmem_mapping(struct address_space
+ 	return mapping->a_ops == &shmem_aops;
  }
  
- static int may_write_to_inode(struct inode *inode, struct scan_control *sc)
-@@ -665,6 +667,7 @@ static int __remove_mapping(struct addre
- 			    bool reclaimed)
+-int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
+-			   pmd_t *dst_pmd,
+-			   struct vm_area_struct *dst_vma,
+-			   unsigned long dst_addr,
+-			   unsigned long src_addr,
+-			   struct page **pagep)
++static int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
++				  pmd_t *dst_pmd,
++				  struct vm_area_struct *dst_vma,
++				  unsigned long dst_addr,
++				  unsigned long src_addr,
++				  bool zeropage,
++				  struct page **pagep)
  {
- 	unsigned long flags;
-+	int refcount;
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+@@ -2227,17 +2228,22 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 		if (!page)
+ 			goto out_unacct_blocks;
  
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(mapping != page_mapping(page));
-@@ -695,11 +698,15 @@ static int __remove_mapping(struct addre
- 	 * Note that if SetPageDirty is always performed via set_page_dirty,
- 	 * and thus under tree_lock, then this ordering is not required.
- 	 */
--	if (!page_ref_freeze(page, 2))
-+	if (unlikely(PageTransHuge(page)) && PageSwapCache(page))
-+		refcount = 1 + HPAGE_PMD_NR;
-+	else
-+		refcount = 2;
-+	if (!page_ref_freeze(page, refcount))
- 		goto cannot_free;
- 	/* note: atomic_cmpxchg in page_freeze_refs provides the smp_rmb */
- 	if (unlikely(PageDirty(page))) {
--		page_ref_unfreeze(page, 2);
-+		page_ref_unfreeze(page, refcount);
- 		goto cannot_free;
- 	}
- 
-@@ -1121,58 +1128,56 @@ static unsigned long shrink_page_list(st
- 		 * Try to allocate it some swap space here.
- 		 * Lazyfree page could be freed directly
- 		 */
--		if (PageAnon(page) && PageSwapBacked(page) &&
--		    !PageSwapCache(page)) {
--			if (!(sc->gfp_mask & __GFP_IO))
--				goto keep_locked;
--			if (PageTransHuge(page)) {
--				/* cannot split THP, skip it */
--				if (!can_split_huge_page(page, NULL))
--					goto activate_locked;
--				/*
--				 * Split pages without a PMD map right
--				 * away. Chances are some or all of the
--				 * tail pages can be freed without IO.
--				 */
--				if (!compound_mapcount(page) &&
--				    split_huge_page_to_list(page, page_list))
--					goto activate_locked;
--			}
--			if (!add_to_swap(page)) {
--				if (!PageTransHuge(page))
--					goto activate_locked;
--				/* Split THP and swap individual base pages */
--				if (split_huge_page_to_list(page, page_list))
--					goto activate_locked;
--				if (!add_to_swap(page))
--					goto activate_locked;
--			}
+-		page_kaddr = kmap_atomic(page);
+-		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
+-				     PAGE_SIZE);
+-		kunmap_atomic(page_kaddr);
 -
--			/* XXX: We don't support THP writes */
--			if (PageTransHuge(page) &&
--				  split_huge_page_to_list(page, page_list)) {
--				delete_from_swap_cache(page);
--				goto activate_locked;
--			}
-+		if (PageAnon(page) && PageSwapBacked(page)) {
-+			if (!PageSwapCache(page)) {
-+				if (!(sc->gfp_mask & __GFP_IO))
-+					goto keep_locked;
-+				if (PageTransHuge(page)) {
-+					/* cannot split THP, skip it */
-+					if (!can_split_huge_page(page, NULL))
-+						goto activate_locked;
-+					/*
-+					 * Split pages without a PMD map right
-+					 * away. Chances are some or all of the
-+					 * tail pages can be freed without IO.
-+					 */
-+					if (!compound_mapcount(page) &&
-+					    split_huge_page_to_list(page,
-+								    page_list))
-+						goto activate_locked;
-+				}
-+				if (!add_to_swap(page)) {
-+					if (!PageTransHuge(page))
-+						goto activate_locked;
-+					/* Fallback to swap normal pages */
-+					if (split_huge_page_to_list(page,
-+								    page_list))
-+						goto activate_locked;
-+					if (!add_to_swap(page))
-+						goto activate_locked;
-+				}
- 
--			may_enter_fs = 1;
-+				may_enter_fs = 1;
- 
--			/* Adding to swap updated mapping */
--			mapping = page_mapping(page);
-+				/* Adding to swap updated mapping */
-+				mapping = page_mapping(page);
-+			}
- 		} else if (unlikely(PageTransHuge(page))) {
- 			/* Split file THP */
- 			if (split_huge_page_to_list(page, page_list))
- 				goto keep_locked;
- 		}
- 
--		VM_BUG_ON_PAGE(PageTransHuge(page), page);
--
- 		/*
- 		 * The page is mapped into the page tables of one or more
- 		 * processes. Try to unmap it here.
- 		 */
- 		if (page_mapped(page)) {
--			if (!try_to_unmap(page, ttu_flags | TTU_BATCH_FLUSH)) {
-+			enum ttu_flags flags = ttu_flags | TTU_BATCH_FLUSH;
+-		/* fallback to copy_from_user outside mmap_sem */
+-		if (unlikely(ret)) {
+-			*pagep = page;
+-			shmem_inode_unacct_blocks(inode, 1);
+-			/* don't free the page */
+-			return -EFAULT;
++		if (!zeropage) {	/* mcopy_atomic */
++			page_kaddr = kmap_atomic(page);
++			ret = copy_from_user(page_kaddr,
++					     (const void __user *)src_addr,
++					     PAGE_SIZE);
++			kunmap_atomic(page_kaddr);
 +
-+			if (unlikely(PageTransHuge(page)))
-+				flags |= TTU_SPLIT_HUGE_PMD;
-+			if (!try_to_unmap(page, flags)) {
- 				nr_unmap_fail++;
- 				goto activate_locked;
- 			}
-@@ -1312,7 +1317,11 @@ free_it:
- 		 * Is there need to periodically free_page_list? It would
- 		 * appear not as the counts should be low
- 		 */
--		list_add(&page->lru, &free_pages);
-+		if (unlikely(PageTransHuge(page))) {
-+			mem_cgroup_uncharge(page);
-+			(*get_compound_page_dtor(page))(page);
-+		} else
-+			list_add(&page->lru, &free_pages);
- 		continue;
++			/* fallback to copy_from_user outside mmap_sem */
++			if (unlikely(ret)) {
++				*pagep = page;
++				shmem_inode_unacct_blocks(inode, 1);
++				/* don't free the page */
++				return -EFAULT;
++			}
++		} else {		/* mfill_zeropage_atomic */
++			clear_highpage(page);
+ 		}
+ 	} else {
+ 		page = *pagep;
+@@ -2303,6 +2309,28 @@ out_unacct_blocks:
+ 	goto out;
+ }
  
- activate_locked:
++int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
++			   pmd_t *dst_pmd,
++			   struct vm_area_struct *dst_vma,
++			   unsigned long dst_addr,
++			   unsigned long src_addr,
++			   struct page **pagep)
++{
++	return shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
++				      dst_addr, src_addr, false, pagep);
++}
++
++int shmem_mfill_zeropage_pte(struct mm_struct *dst_mm,
++			     pmd_t *dst_pmd,
++			     struct vm_area_struct *dst_vma,
++			     unsigned long dst_addr)
++{
++	struct page *page = NULL;
++
++	return shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
++				      dst_addr, 0, true, &page);
++}
++
+ #ifdef CONFIG_TMPFS
+ static const struct inode_operations shmem_symlink_inode_operations;
+ static const struct inode_operations shmem_short_symlink_operations;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
-mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
-mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
-mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
-block-thp-make-block_device_operationsrw_page-support-thp.patch
-test-code-to-write-thp-to-swap-device-as-a-whole.patch
-mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
-memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
-memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
-memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
-mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
-mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
+userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
+userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch
+shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
+shmem-introduce-shmem_inode_acct_block.patch
+userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
+userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
+userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
 
