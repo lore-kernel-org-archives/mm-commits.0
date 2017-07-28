@@ -1,27 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 28 Jul 2017 13:37:12 -0700
-Message-ID: <20170728203712.kRTt1eT24%akpm@linux-foundation.org>
+Subject: + pmem-remove-pmem_rw_page.patch added to -mm tree
+Date: Fri, 28 Jul 2017 14:20:57 -0700
+Message-ID: <597baab9.FH+g5LTKji0tvx32%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52916 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752056AbdG1UhO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 16:37:14 -0400
+        with ESMTP id S1752628AbdG1VU6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:20:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, jack@suse.cz, jmarchan@redhat.com, karam.lee@lge.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, vishal.l.verma@intel.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: drivers/nvdimm/pmem.c: remove pmem_rw_page()
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     pmem-remove-pmem_rw_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pmem-remove-pmem_rw_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pmem-remove-pmem_rw_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,136 +38,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: drivers/nvdimm/pmem.c: remove pmem_rw_page()
 
+The rw_page() interface doesn't provide a clear performance benefit for
+PMEM and has had a nonzero maintenance burden, so remove it.
+
+Link: http://lkml.kernel.org/r/20170728165604.10455-3-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "karam . lee" <karam.lee@lge.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Seungho Park <seungho1.park@lge.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/nvdimm/pmem.c |   22 ----------------------
+ 1 file changed, 22 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -3400,17 +3400,6 @@ static void skylake_disable_primary_plan
- 	spin_unlock_irqrestore(&dev_priv->uncore.lock, irqflags);
+diff -puN drivers/nvdimm/pmem.c~pmem-remove-pmem_rw_page drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~pmem-remove-pmem_rw_page
++++ a/drivers/nvdimm/pmem.c
+@@ -200,27 +200,6 @@ static blk_qc_t pmem_make_request(struct
+ 	return BLK_QC_T_NONE;
  }
  
--<<<<<<< HEAD
--static void intel_complete_page_flips(struct drm_i915_private *dev_priv)
+-static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+-		       struct page *page, bool is_write)
 -{
--	struct intel_crtc *crtc;
+-	struct pmem_device *pmem = bdev->bd_queue->queuedata;
+-	blk_status_t rc;
 -
--	for_each_intel_crtc(&dev_priv->drm, crtc)
--		intel_finish_page_flip_cs(dev_priv, crtc->pipe);
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- static int
- __intel_display_resume(struct drm_device *dev,
- 		       struct drm_atomic_state *state,
-@@ -3518,16 +3507,6 @@ void intel_finish_reset(struct drm_i915_
- 
- 	if (!state)
- 		goto unlock;
--<<<<<<< HEAD
+-	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
+-			  0, is_write, sector);
 -
 -	/*
--	 * Flips in the rings will be nuked by the reset,
--	 * so complete all pending flips so that user space
--	 * will get its events and not get stuck.
+-	 * The ->rw_page interface is subtle and tricky.  The core
+-	 * retries on any error, so we can only invoke page_endio() in
+-	 * the successful completion case.  Otherwise, we'll see crashes
+-	 * caused by double completion.
 -	 */
--	intel_complete_page_flips(dev_priv);
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	dev_priv->modeset_restore_state = NULL;
- 
-@@ -9030,16 +9009,7 @@ static bool haswell_get_pipe_config(stru
- 	u64 power_domain_mask;
- 	bool active;
- 
--<<<<<<< HEAD
--	if (INTEL_GEN(dev_priv) >= 9) {
--		intel_crtc_init_scalers(crtc, pipe_config);
+-	if (rc == 0)
+-		page_endio(page, is_write, 0);
 -
--		pipe_config->scaler_state.scaler_id = -1;
--		pipe_config->scaler_state.scaler_users &= ~(1 << SKL_CRTC_INDEX);
--	}
--=======
- 	intel_crtc_init_scalers(crtc, pipe_config);
-->>>>>>> linux-next/akpm-base
- 
- 	power_domain = POWER_DOMAIN_PIPE(crtc->pipe);
- 	if (!intel_display_power_get_if_enabled(dev_priv, power_domain))
-@@ -9069,8 +9039,6 @@ static bool haswell_get_pipe_config(stru
- 	pipe_config->gamma_mode =
- 		I915_READ(GAMMA_MODE(crtc->pipe)) & GAMMA_MODE_MODE_MASK;
- 
--<<<<<<< HEAD
--=======
- 	if (IS_BROADWELL(dev_priv) || dev_priv->info.gen >= 9) {
- 		u32 tmp = I915_READ(PIPEMISC(crtc->pipe));
- 		bool clrspace_yuv = tmp & PIPEMISC_OUTPUT_COLORSPACE_YUV;
-@@ -9088,7 +9056,6 @@ static bool haswell_get_pipe_config(stru
- 		}
- 	}
- 
-->>>>>>> linux-next/akpm-base
- 	power_domain = POWER_DOMAIN_PIPE_PANEL_FITTER(crtc->pipe);
- 	if (intel_display_power_get_if_enabled(dev_priv, power_domain)) {
- 		power_domain_mask |= BIT_ULL(power_domain);
-diff -puN drivers/gpu/drm/i915/intel_pm.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_pm.c
---- a/drivers/gpu/drm/i915/intel_pm.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_pm.c
-@@ -4460,13 +4460,8 @@ static int skl_compute_plane_wm(const st
- 		    (plane_bytes_per_line / 512 < 1))
- 			selected_result = method2;
- 		else if (ddb_allocation >=
--<<<<<<< HEAD
--			 fixed_16_16_to_u32_round_up(plane_blocks_per_line))
--			selected_result = min_fixed_16_16(method1, method2);
--=======
- 			 fixed16_to_u32_round_up(plane_blocks_per_line))
- 			selected_result = min_fixed16(method1, method2);
-->>>>>>> linux-next/akpm-base
- 		else if (latency >= linetime_us)
- 			selected_result = min_fixed16(method1, method2);
- 		else
-diff -puN drivers/gpu/drm/nouveau/nv50_display.c~linux-next-git-rejects drivers/gpu/drm/nouveau/nv50_display.c
---- a/drivers/gpu/drm/nouveau/nv50_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/nouveau/nv50_display.c
-@@ -4081,12 +4081,7 @@ nv50_disp_atomic_commit_tail(struct drm_
- 		if (crtc->state->event) {
- 			unsigned long flags;
- 			/* Get correct count/ts if racing with vblank irq */
--<<<<<<< HEAD
--			if (crtc->state->active)
--				drm_accurate_vblank_count(crtc);
--=======
- 			drm_crtc_accurate_vblank_count(crtc);
-->>>>>>> linux-next/akpm-base
- 			spin_lock_irqsave(&crtc->dev->event_lock, flags);
- 			drm_crtc_send_vblank_event(crtc, crtc->state->event);
- 			spin_unlock_irqrestore(&crtc->dev->event_lock, flags);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
-fortify-use-warn-instead-of-bug-for-now-fix.patch
-swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
-
+-	return blk_status_to_errno(rc);
+-}
