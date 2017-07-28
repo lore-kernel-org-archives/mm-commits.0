@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch added
- to -mm tree
-Date: Fri, 28 Jul 2017 14:45:36 -0700
-Message-ID: <597bb080.bbb+9q9LdmD02Wk7%akpm@linux-foundation.org>
+ mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch added to -mm tree
+Date: Fri, 28 Jul 2017 14:47:18 -0700
+Message-ID: <597bb0e6.QAlShWFUv+djwzK1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55056 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55082 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752660AbdG1Vph (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:45:37 -0400
+        with ESMTP id S1752628AbdG1VrT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:47:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mka@chromium.org, dianders@chromium.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes
+     Subject: mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
 has been added to the -mm tree.  Its filename is
-     treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+     mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,68 +39,133 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#4: 
-GFP_TEMPORARY was been introduced by e12ba74d8ff3 ("Group short-lived and
+also change parameter type of inc/dec/mod_memcg_page_state()
 
-ERROR: "(foo*)" should be "(foo *)"
-#588: FILE: fs/proc/base.c:1632:
-+	char *tmp = (char*)__get_free_page(GFP_KERNEL);
-
-total: 2 errors, 0 warnings, 451 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/treewide-remove-gfp_temporary-allocation-flag.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170728213442.93823-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Doug Anderson <dianders@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN fs/proc/base.c~treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes fs/proc/base.c
---- a/fs/proc/base.c~treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes
-+++ a/fs/proc/base.c
-@@ -1629,7 +1629,7 @@ out:
- 
- static int do_proc_readlink(struct path *path, char __user *buffer, int buflen)
+diff -puN include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
++++ a/include/linux/memcontrol.h
+@@ -537,14 +537,14 @@ static inline void mod_memcg_state(struc
+  * Kernel pages are an exception to this, since they'll never move.
+  */
+ static inline void __mod_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx, int val)
++					  int idx, int val)
  {
--	char *tmp = (char*)__get_free_page(GFP_KERNEL);
-+	char *tmp = (char *)__get_free_page(GFP_KERNEL);
- 	char *pathname;
- 	int len;
+ 	if (page->mem_cgroup)
+ 		__mod_memcg_state(page->mem_cgroup, idx, val);
+ }
  
+ static inline void mod_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx, int val)
++					int idx, int val)
+ {
+ 	if (page->mem_cgroup)
+ 		mod_memcg_state(page->mem_cgroup, idx, val);
+@@ -862,13 +862,13 @@ static inline void mod_memcg_state(struc
+ }
+ 
+ static inline void __mod_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx,
++					  int idx,
+ 					  int nr)
+ {
+ }
+ 
+ static inline void mod_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx,
++					int idx,
+ 					int nr)
+ {
+ }
+@@ -932,26 +932,30 @@ void count_memcg_event_mm(struct mm_stru
+ }
+ #endif /* CONFIG_MEMCG */
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __inc_memcg_state(struct mem_cgroup *memcg,
+-				     enum memcg_stat_item idx)
++				     int idx)
+ {
+ 	__mod_memcg_state(memcg, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __dec_memcg_state(struct mem_cgroup *memcg,
+-				     enum memcg_stat_item idx)
++				     int idx)
+ {
+ 	__mod_memcg_state(memcg, idx, -1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __inc_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx)
++					  int idx)
+ {
+ 	__mod_memcg_page_state(page, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __dec_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx)
++					  int idx)
+ {
+ 	__mod_memcg_page_state(page, idx, -1);
+ }
+@@ -980,26 +984,30 @@ static inline void __dec_lruvec_page_sta
+ 	__mod_lruvec_page_state(page, idx, -1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void inc_memcg_state(struct mem_cgroup *memcg,
+-				   enum memcg_stat_item idx)
++				   int idx)
+ {
+ 	mod_memcg_state(memcg, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void dec_memcg_state(struct mem_cgroup *memcg,
+-				   enum memcg_stat_item idx)
++				   int idx)
+ {
+ 	mod_memcg_state(memcg, idx, -1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void inc_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx)
++					int idx)
+ {
+ 	mod_memcg_page_state(page, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void dec_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx)
++					int idx)
+ {
+ 	mod_memcg_page_state(page, idx, -1);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mka@chromium.org are
 
-i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
-fortify-use-warn-instead-of-bug-for-now-fix.patch
-swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
+mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
 
