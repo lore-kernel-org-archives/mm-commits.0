@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch added to -mm tree
-Date: Fri, 28 Jul 2017 14:47:18 -0700
-Message-ID: <597bb0e6.QAlShWFUv+djwzK1%akpm@linux-foundation.org>
+Subject: + fs-proc-remove-priv-argument-from-is_stack.patch added to -mm
+ tree
+Date: Fri, 28 Jul 2017 14:47:53 -0700
+Message-ID: <597bb109.XAb5bl7j/eDqCvRt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55092 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752628AbdG1VrT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:47:19 -0400
+        with ESMTP id S1752860AbdG1Vrx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:47:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mka@chromium.org, dianders@chromium.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, luto@amacapital.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
+     Subject: fs, proc: remove priv argument from is_stack
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
+     fs-proc-remove-priv-argument-from-is_stack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-remove-priv-argument-from-is_stack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-remove-priv-argument-from-is_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,133 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
+From: Michal Hocko <mhocko@suse.com>
+Subject: fs, proc: remove priv argument from is_stack
 
-also change parameter type of inc/dec/mod_memcg_page_state()
+b18cb64ead40 ("fs/proc: Stop trying to report thread stacks") removed the
+priv parameter user in is_stack so the argument is redundant.  Drop it.
 
-Link: http://lkml.kernel.org/r/20170728213442.93823-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Doug Anderson <dianders@chromium.org>
+Link: http://lkml.kernel.org/r/20170728075833.7241-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   32 ++++++++++++++++++++------------
- 1 file changed, 20 insertions(+), 12 deletions(-)
+ fs/proc/task_mmu.c   |    7 +++----
+ fs/proc/task_nommu.c |    5 ++---
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
-+++ a/include/linux/memcontrol.h
-@@ -537,14 +537,14 @@ static inline void mod_memcg_state(struc
-  * Kernel pages are an exception to this, since they'll never move.
+diff -puN fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack
++++ a/fs/proc/task_mmu.c
+@@ -266,8 +266,7 @@ static int do_maps_open(struct inode *in
+  * Indicate if the VMA is a stack for the given task; for
+  * /proc/PID/maps that is the stack of the main task.
   */
- static inline void __mod_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx, int val)
-+					  int idx, int val)
+-static int is_stack(struct proc_maps_private *priv,
+-		    struct vm_area_struct *vma)
++static int is_stack(struct vm_area_struct *vma)
  {
- 	if (page->mem_cgroup)
- 		__mod_memcg_state(page->mem_cgroup, idx, val);
+ 	/*
+ 	 * We make no effort to guess what a given thread considers to be
+@@ -341,7 +340,7 @@ show_map_vma(struct seq_file *m, struct
+ 			goto done;
+ 		}
+ 
+-		if (is_stack(priv, vma))
++		if (is_stack(vma))
+ 			name = "[stack]";
+ 	}
+ 
+@@ -1685,7 +1684,7 @@ static int show_numa_map(struct seq_file
+ 		seq_file_path(m, file, "\n\t= ");
+ 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
+ 		seq_puts(m, " heap");
+-	} else if (is_stack(proc_priv, vma)) {
++	} else if (is_stack(vma)) {
+ 		seq_puts(m, " stack");
+ 	}
+ 
+diff -puN fs/proc/task_nommu.c~fs-proc-remove-priv-argument-from-is_stack fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-remove-priv-argument-from-is_stack
++++ a/fs/proc/task_nommu.c
+@@ -125,8 +125,7 @@ unsigned long task_statm(struct mm_struc
+ 	return size;
  }
  
- static inline void mod_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx, int val)
-+					int idx, int val)
+-static int is_stack(struct proc_maps_private *priv,
+-		    struct vm_area_struct *vma)
++static int is_stack(struct vm_area_struct *vma)
  {
- 	if (page->mem_cgroup)
- 		mod_memcg_state(page->mem_cgroup, idx, val);
-@@ -862,13 +862,13 @@ static inline void mod_memcg_state(struc
- }
+ 	struct mm_struct *mm = vma->vm_mm;
  
- static inline void __mod_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx,
-+					  int idx,
- 					  int nr)
- {
- }
- 
- static inline void mod_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx,
-+					int idx,
- 					int nr)
- {
- }
-@@ -932,26 +932,30 @@ void count_memcg_event_mm(struct mm_stru
- }
- #endif /* CONFIG_MEMCG */
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __inc_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx)
-+				     int idx)
- {
- 	__mod_memcg_state(memcg, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __dec_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx)
-+				     int idx)
- {
- 	__mod_memcg_state(memcg, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __inc_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	__mod_memcg_page_state(page, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __dec_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	__mod_memcg_page_state(page, idx, -1);
- }
-@@ -980,26 +984,30 @@ static inline void __dec_lruvec_page_sta
- 	__mod_lruvec_page_state(page, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void inc_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx)
-+				   int idx)
- {
- 	mod_memcg_state(memcg, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void dec_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx)
-+				   int idx)
- {
- 	mod_memcg_state(memcg, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void inc_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx)
-+					int idx)
- {
- 	mod_memcg_page_state(page, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void dec_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx)
-+					int idx)
- {
- 	mod_memcg_page_state(page, idx, -1);
- }
+@@ -178,7 +177,7 @@ static int nommu_vma_show(struct seq_fil
+ 	if (file) {
+ 		seq_pad(m, ' ');
+ 		seq_file_path(m, file, "");
+-	} else if (mm && is_stack(priv, vma)) {
++	} else if (mm && is_stack(vma)) {
+ 		seq_pad(m, ' ');
+ 		seq_printf(m, "[stack]");
+ 	}
 _
 
-Patches currently in -mm which might be from mka@chromium.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
-mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
 
