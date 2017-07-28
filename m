@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + brd-remove-brd_rw_page.patch added to -mm tree
-Date: Fri, 28 Jul 2017 14:20:59 -0700
-Message-ID: <597baabb.5P4vN5rDTojWji1s%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 28 Jul 2017 14:33:58 -0700
+Message-ID: <597badc6.V7L4g191iksiisb/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752494AbdG1VVA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:21:00 -0400
+        with ESMTP id S1752056AbdG1Vd6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2017 17:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, jack@suse.cz, jmarchan@redhat.com, karam.lee@lge.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, vishal.l.verma@intel.com, willy@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/block/brd.c: remove brd_rw_page()
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     brd-remove-brd_rw_page.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/brd-remove-brd_rw_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/brd-remove-brd_rw_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,48 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: drivers/block/brd.c: remove brd_rw_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-The rw_page() interface doesn't provide a clear performance benefit for
-BRD and has had a nonzero maintenance burden, so remove it.
-
-Link: http://lkml.kernel.org/r/20170728165604.10455-4-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: "karam . lee" <karam.lee@lge.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Seungho Park <seungho1.park@lge.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ drivers/gpu/drm/i915/i915_drv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/brd.c~brd-remove-brd_rw_page drivers/block/brd.c
---- a/drivers/block/brd.c~brd-remove-brd_rw_page
-+++ a/drivers/block/brd.c
-@@ -322,19 +322,6 @@ io_error:
- 	return BLK_QC_T_NONE;
- }
+diff -puN drivers/gpu/drm/i915/i915_drv.c~linux-next-rejects drivers/gpu/drm/i915/i915_drv.c
+--- a/drivers/gpu/drm/i915/i915_drv.c~linux-next-rejects
++++ a/drivers/gpu/drm/i915/i915_drv.c
+@@ -1957,6 +1957,7 @@ int i915_reset_engine(struct intel_engin
+ 		goto out;
+ 	}
  
--static int brd_rw_page(struct block_device *bdev, sector_t sector,
--		       struct page *page, bool is_write)
--{
--	struct brd_device *brd = bdev->bd_disk->private_data;
--	int err;
--
--	if (PageTransHuge(page))
--		return -ENOTSUPP;
--	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
--	page_endio(page, is_write, err);
--	return err;
--}
++	pr_err("Resetting %s\n", engine->name);
+ 	ret = intel_gpu_reset(engine->i915, intel_engine_flag(engine));
+ 	if (ret) {
+ 		/* If we fail here, we expect to fallback to a global reset */
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
+mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+fortify-use-warn-instead-of-bug-for-now-fix.patch
+swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-rejects.patch
+
