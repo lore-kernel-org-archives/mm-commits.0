@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+Subject: +
+ cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
  added to -mm tree
-Date: Mon, 31 Jul 2017 14:38:22 -0700
-Message-ID: <597fa34e.ukatTJqT7wqeY4TU%akpm@linux-foundation.org>
+Date: Mon, 31 Jul 2017 15:18:34 -0700
+Message-ID: <597facba.MEgvYqK0MVJnRqMb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751699AbdGaViX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:38:23 -0400
+        with ESMTP id S1751563AbdGaWSf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 18:18:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: dmitriyz@waymo.com, cl@linux.com, cspradlin@waymo.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, mgorman@techsingularity.net, penberg@kernel.org, peterz@infradead.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/hexdump.c: return -EINVAL in case of error in hex2bin()
+     Subject: cpuset: fix a deadlock due to incomplete patching of cpusets_enabled()
 has been added to the -mm tree.  Its filename is
-     lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+     cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +40,179 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/hexdump.c: return -EINVAL in case of error in hex2bin()
+From: Dima Zavin <dmitriyz@waymo.com>
+Subject: cpuset: fix a deadlock due to incomplete patching of cpusets_enabled()
 
-In some cases caller would like to use error code directly without
-shadowing.
+In codepaths that use the begin/retry interface for reading
+mems_allowed_seq with irqs disabled, there exists a race condition that
+stalls the patch process after only modifying a subset of the
+static_branch call sites.
 
--EINVAL feels a rightful code to return in case of error in hex2bin().
+This problem manifested itself as a dead lock in the slub allocator,
+inside get_any_partial.  The loop reads mems_allowed_seq value (via
+read_mems_allowed_begin), performs the defrag operation, and then verifies
+the consistency of mem_allowed via the read_mems_allowed_retry and the
+cookie returned by xxx_begin.  The issue here is that both begin and retry
+first check if cpusets are enabled via cpusets_enabled() static branch. 
+This branch can be rewritted dynamically (via cpuset_inc) if a new cpuset
+is created.  The x86 jump label code fully synchronizes across all CPUs
+for every entry it rewrites.  If it rewrites only one of the callsites
+(specifically the one in read_mems_allowed_retry) and then waits for the
+smp_call_function(do_sync_core) to complete while a CPU is inside the
+begin/retry section with IRQs off and the mems_allowed value is changed,
+we can hang.  This is because begin() will always return 0 (since it
+wasn't patched yet) while retry() will test the 0 against the actual value
+of the seq counter.
 
-Link: http://lkml.kernel.org/r/20170731135510.68023-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+The fix is to use two different static keys: one for begin
+(pre_enable_key) and one for retry (enable_key).  In cpuset_inc(), we
+first bump the pre_enable key to ensure that cpuset_mems_allowed_begin()
+always return a valid seqcount if are enabling cpusets.  Similarly, when
+disabling cpusets via cpuset_dec(), we first ensure that callers of
+cpuset_mems_allowed_retry() will start ignoring the seqcount value before
+we let cpuset_mems_allowed_begin() return 0.
+
+The relevant stack traces of the two stuck threads:
+
+  CPU: 1 PID: 1415 Comm: mkdir Tainted: G L  4.9.36-00104-g540c51286237 #4
+  Hardware name: Default string Default string/Hardware, BIOS 4.29.1-20170526215256 05/26/2017
+  task: ffff8817f9c28000 task.stack: ffffc9000ffa4000
+  RIP: smp_call_function_many+0x1f9/0x260
+  Call Trace:
+    ? setup_data_read+0xa0/0xa0
+    ? ___slab_alloc+0x28b/0x5a0
+    smp_call_function+0x3b/0x70
+    ? setup_data_read+0xa0/0xa0
+    on_each_cpu+0x2f/0x90
+    ? ___slab_alloc+0x28a/0x5a0
+    ? ___slab_alloc+0x28b/0x5a0
+    text_poke_bp+0x87/0xd0
+    ? ___slab_alloc+0x28a/0x5a0
+    arch_jump_label_transform+0x93/0x100
+    __jump_label_update+0x77/0x90
+    jump_label_update+0xaa/0xc0
+    static_key_slow_inc+0x9e/0xb0
+    cpuset_css_online+0x70/0x2e0
+    online_css+0x2c/0xa0
+    cgroup_apply_control_enable+0x27f/0x3d0
+    cgroup_mkdir+0x2b7/0x420
+    kernfs_iop_mkdir+0x5a/0x80
+    vfs_mkdir+0xf6/0x1a0
+    SyS_mkdir+0xb7/0xe0
+    entry_SYSCALL_64_fastpath+0x18/0xad
+
+  ...
+
+  CPU: 2 PID: 1 Comm: init Tainted: G L  4.9.36-00104-g540c51286237 #4
+  Hardware name: Default string Default string/Hardware, BIOS 4.29.1-20170526215256 05/26/2017
+  task: ffff8818087c0000 task.stack: ffffc90000030000
+  RIP: int3+0x39/0x70
+  Call Trace:
+    <#DB> ? ___slab_alloc+0x28b/0x5a0
+    <EOE> ? copy_process.part.40+0xf7/0x1de0
+    ? __slab_alloc.isra.80+0x54/0x90
+    ? copy_process.part.40+0xf7/0x1de0
+    ? copy_process.part.40+0xf7/0x1de0
+    ? kmem_cache_alloc_node+0x8a/0x280
+    ? copy_process.part.40+0xf7/0x1de0
+    ? _do_fork+0xe7/0x6c0
+    ? _raw_spin_unlock_irq+0x2d/0x60
+    ? trace_hardirqs_on_caller+0x136/0x1d0
+    ? entry_SYSCALL_64_fastpath+0x5/0xad
+    ? do_syscall_64+0x27/0x350
+    ? SyS_clone+0x19/0x20
+    ? do_syscall_64+0x60/0x350
+    ? entry_SYSCALL64_slow_path+0x25/0x25
+
+Link: http://lkml.kernel.org/r/20170731040113.14197-1-dmitriyz@waymo.com
+Signed-off-by: Dima Zavin <dmitriyz@waymo.com>
+Reported-by: Cliff Spradlin <cspradlin@waymo.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/cpuset.h |   19 +++++++++++++++++--
+ kernel/cgroup/cpuset.c |    1 +
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN lib/hexdump.c~lib-hexdump-return-einval-in-case-of-error-in-hex2bin lib/hexdump.c
---- a/lib/hexdump.c~lib-hexdump-return-einval-in-case-of-error-in-hex2bin
-+++ a/lib/hexdump.c
-@@ -9,6 +9,7 @@
+diff -puN include/linux/cpuset.h~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled
++++ a/include/linux/cpuset.h
+@@ -18,6 +18,19 @@
  
- #include <linux/types.h>
- #include <linux/ctype.h>
-+#include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/export.h>
- #include <asm/unaligned.h>
-@@ -42,7 +43,7 @@ EXPORT_SYMBOL(hex_to_bin);
-  * @src: ascii hexadecimal string
-  * @count: result length
-  *
-- * Return 0 on success, -1 in case of bad input.
-+ * Return 0 on success, -EINVAL in case of bad input.
-  */
- int hex2bin(u8 *dst, const char *src, size_t count)
+ #ifdef CONFIG_CPUSETS
+ 
++/*
++ * Static branch rewrites can happen in an arbitrary order for a given
++ * key. In code paths where we need to loop with read_mems_allowed_begin() and
++ * read_mems_allowed_retry() to get a consistent view of mems_allowed, we need
++ * to ensure that begin() always gets rewritten before retry() in the
++ * disabled -> enabled transition. If not, then if local irqs are disabled
++ * around the loop, we can deadlock since retry() would always be
++ * comparing the latest value of the mems_allowed seqcount against 0 as
++ * begin() still would see cpusets_enabled() as false. The enabled -> disabled
++ * transition should happen in reverse order for the same reasons (want to stop
++ * looking at real value of mems_allowed.sequence in retry() first).
++ */
++extern struct static_key_false cpusets_pre_enable_key;
+ extern struct static_key_false cpusets_enabled_key;
+ static inline bool cpusets_enabled(void)
  {
-@@ -51,7 +52,7 @@ int hex2bin(u8 *dst, const char *src, si
- 		int lo = hex_to_bin(*src++);
+@@ -32,12 +45,14 @@ static inline int nr_cpusets(void)
  
- 		if ((hi < 0) || (lo < 0))
--			return -1;
-+			return -EINVAL;
+ static inline void cpuset_inc(void)
+ {
++	static_branch_inc(&cpusets_pre_enable_key);
+ 	static_branch_inc(&cpusets_enabled_key);
+ }
  
- 		*dst++ = (hi << 4) | lo;
- 	}
+ static inline void cpuset_dec(void)
+ {
+ 	static_branch_dec(&cpusets_enabled_key);
++	static_branch_dec(&cpusets_pre_enable_key);
+ }
+ 
+ extern int cpuset_init(void);
+@@ -115,7 +130,7 @@ extern void cpuset_print_current_mems_al
+  */
+ static inline unsigned int read_mems_allowed_begin(void)
+ {
+-	if (!cpusets_enabled())
++	if (!static_branch_unlikely(&cpusets_pre_enable_key))
+ 		return 0;
+ 
+ 	return read_seqcount_begin(&current->mems_allowed_seq);
+@@ -129,7 +144,7 @@ static inline unsigned int read_mems_all
+  */
+ static inline bool read_mems_allowed_retry(unsigned int seq)
+ {
+-	if (!cpusets_enabled())
++	if (!static_branch_unlikely(&cpusets_enabled_key))
+ 		return false;
+ 
+ 	return read_seqcount_retry(&current->mems_allowed_seq, seq);
+diff -puN kernel/cgroup/cpuset.c~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled kernel/cgroup/cpuset.c
+--- a/kernel/cgroup/cpuset.c~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled
++++ a/kernel/cgroup/cpuset.c
+@@ -63,6 +63,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/wait.h>
+ 
++DEFINE_STATIC_KEY_FALSE(cpusets_pre_enable_key);
+ DEFINE_STATIC_KEY_FALSE(cpusets_enabled_key);
+ 
+ /* See "Frequency meter" comments, below. */
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from dmitriyz@waymo.com are
 
-lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
 
