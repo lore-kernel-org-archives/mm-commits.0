@@ -1,88 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- block-dac960-shut-up-format-overflow-warning.patch removed from -mm tree
-Date: Mon, 31 Jul 2017 12:18:41 -0700
-Message-ID: <20170731191841.Orztmr8RH%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+ added to -mm tree
+Date: Mon, 31 Jul 2017 14:24:58 -0700
+Message-ID: <597fa02a.Arp+3e2MK+HSNtOx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751126AbdGaTSm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 15:18:42 -0400
+        with ESMTP id S1751199AbdGaVY7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:24:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, dbueso@suse.de, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mtk.manpages@gmail.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: DAC960: shut up format-overflow warning
-has been removed from the -mm tree.  Its filename was
-     block-dac960-shut-up-format-overflow-warning.patch
+     Subject: mm: hugetlb: define system call hugetlb size encodings in single file
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: block: DAC960: shut up format-overflow warning
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm: hugetlb: define system call hugetlb size encodings in single file
 
-gcc-7 points out that a large controller number would overflow the
-string length for the procfs name and the firmware version string:
+Patch series "Consolidate system call hugetlb page size encodings".
 
-drivers/block/DAC960.c: In function 'DAC960_Probe':
-drivers/block/DAC960.c:6591:38: warning: 'sprintf' may write a terminating nul past the end of the destination [-Wformat-overflow=]
-drivers/block/DAC960.c: In function 'DAC960_V1_ReadControllerConfiguration':
-drivers/block/DAC960.c:1681:40: error: '%02d' directive writing between 2 and 3 bytes into a region of size between 2 and 5 [-Werror=format-overflow=]
-drivers/block/DAC960.c:1681:40: note: directive argument in the range [0, 255]
-drivers/block/DAC960.c:1681:3: note: 'sprintf' output between 10 and 14 bytes into a destination of size 12
+These patches are the result of discussions in
+https://lkml.org/lkml/2017/3/8/548.  The following changes are made in the
+patch set:
 
-Both of these seem appropriately sized, and using snprintf()
-instead of sprintf() improves this by ensuring that even
-incorrect data won't cause undefined behavior here.
+1) Put all the log2 encoded huge page size definitions in a common
+   header file.  The idea is have a set of definitions that can be use as
+   the basis for system call specific definitions such as MAP_HUGE_* and
+   SHM_HUGE_*.
 
-Link: http://lkml.kernel.org/r/20170714120720.906842-20-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+2) Remove MAP_HUGE_* definitions in arch specific files.  All these
+   definitions are the same.  Consolidate all definitions in the primary
+   user header file (uapi/linux/mman.h).
+
+3) Remove SHM_HUGE_* definitions intended for user space from kernel
+   header file, and add to user (uapi/linux/shm.h) header file.  Add
+   definitions for all known huge page size encodings as in mmap.
+
+
+
+This patch (of 3):
+
+If hugetlb pages are requested in mmap or shmget system calls, a huge page
+size other than default can be requested.  This is accomplished by
+encoding the log2 of the huge page size in the upper bits of the flag
+argument.  asm-generic and arch specific headers all define the same
+values for these encodings.
+
+Put common definitions in a single header file.  The primary uapi header
+files for mmap and shm will use these definitions as a basis for
+definitions specific to those system calls.
+
+Link: http://lkml.kernel.org/r/1501527386-10736-2-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/DAC960.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ include/uapi/asm-generic/hugetlb_encode.h |   34 ++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff -puN drivers/block/DAC960.c~block-dac960-shut-up-format-overflow-warning drivers/block/DAC960.c
---- a/drivers/block/DAC960.c~block-dac960-shut-up-format-overflow-warning
-+++ a/drivers/block/DAC960.c
-@@ -1678,9 +1678,12 @@ static bool DAC960_V1_ReadControllerConf
-       Enquiry2->FirmwareID.FirmwareType = '0';
-       Enquiry2->FirmwareID.TurnID = 0;
-     }
--  sprintf(Controller->FirmwareVersion, "%d.%02d-%c-%02d",
--	  Enquiry2->FirmwareID.MajorVersion, Enquiry2->FirmwareID.MinorVersion,
--	  Enquiry2->FirmwareID.FirmwareType, Enquiry2->FirmwareID.TurnID);
-+  snprintf(Controller->FirmwareVersion, sizeof(Controller->FirmwareVersion),
-+	   "%d.%02d-%c-%02d",
-+	   Enquiry2->FirmwareID.MajorVersion,
-+	   Enquiry2->FirmwareID.MinorVersion,
-+	   Enquiry2->FirmwareID.FirmwareType,
-+	   Enquiry2->FirmwareID.TurnID);
-   if (!((Controller->FirmwareVersion[0] == '5' &&
- 	 strcmp(Controller->FirmwareVersion, "5.06") >= 0) ||
- 	(Controller->FirmwareVersion[0] == '4' &&
-@@ -6588,7 +6591,8 @@ static void DAC960_CreateProcEntries(DAC
- 			    &dac960_proc_fops);
- 	}
- 
--	sprintf(Controller->ControllerName, "c%d", Controller->ControllerNumber);
-+	snprintf(Controller->ControllerName, sizeof(Controller->ControllerName),
-+		 "c%d", Controller->ControllerNumber);
- 	ControllerProcEntry = proc_mkdir(Controller->ControllerName,
- 					 DAC960_ProcDirectoryEntry);
- 	proc_create_data("initial_status", 0, ControllerProcEntry, &dac960_initial_status_proc_fops, Controller);
+diff -puN /dev/null include/uapi/asm-generic/hugetlb_encode.h
+--- /dev/null
++++ a/include/uapi/asm-generic/hugetlb_encode.h
+@@ -0,0 +1,34 @@
++#ifndef _ASM_GENERIC_HUGETLB_ENCODE_H_
++#define _ASM_GENERIC_HUGETLB_ENCODE_H_
++
++/*
++ * Several system calls take a flag to request "hugetlb" huge pages.
++ * Without further specification, these system calls will use the
++ * system's default huge page size.  If a system supports multiple
++ * huge page sizes, the desired huge page size can be specified in
++ * bits [26:31] of the flag arguments.  The value in these 6 bits
++ * will encode the log2 of the huge page size.
++ *
++ * The following definitions are associated with this huge page size
++ * encoding in flag arguments.  System call specific header files
++ * that use this encoding should include this file.  They can then
++ * provide definitions based on these with their own specific prefix.
++ * for example:
++ * #define MAP_HUGE_SHIFT HUGETLB_FLAG_ENCODE_SHIFT
++ */
++
++#define HUGETLB_FLAG_ENCODE_SHIFT	26
++#define HUGETLB_FLAG_ENCODE_MASK	0x3f
++
++#define HUGETLB_FLAG_ENCODE_64KB	(16 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_512KB	(19 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_1MB		(20 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_2MB		(21 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_8MB		(23 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16MB	(24 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_256MB	(28 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_1GB		(30 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_2GB		(31 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16GB	(34 << HUGETLB_FLAG_ENCODE_SHIFT)
++
++#endif /* _ASM_GENERIC_HUGETLB_ENCODE_H_ */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-kasan-avoid-wmaybe-uninitialized-warning-v3.patch
-fscache-fix-fscache_objlist_show-format-processing.patch
-ib-mlx4-fix-sprintf-format-warning.patch
-iopoll-avoid-wint-in-bool-context-warning.patch
-kbuild-use-fshort-wchar-globally.patch
+mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
+mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
+mm-shm-use-new-hugetlb-size-encoding-definitions.patch
 
