@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + vfat-deduplicate-hex2bin.patch added to -mm tree
-Date: Mon, 31 Jul 2017 14:27:38 -0700
-Message-ID: <597fa0ca.lBzelRyV7vmNq3Jv%akpm@linux-foundation.org>
+Subject: + mem-memcg-cache-rightmost-node-fix.patch added to -mm tree
+Date: Mon, 31 Jul 2017 14:28:38 -0700
+Message-ID: <597fa106.6ZQ+hg5IKKq2as8H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45244 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751046AbdGaV1j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:27:39 -0400
+        with ESMTP id S1751046AbdGaV2i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfat: deduplicate hex2bin()
+     Subject: mem-memcg-cache-rightmost-node-fix
 has been added to the -mm tree.  Its filename is
-     vfat-deduplicate-hex2bin.patch
+     mem-memcg-cache-rightmost-node-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vfat-deduplicate-hex2bin.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mem-memcg-cache-rightmost-node-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vfat-deduplicate-hex2bin.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mem-memcg-cache-rightmost-node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,90 +38,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: vfat: deduplicate hex2bin()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mem-memcg-cache-rightmost-node-fix
 
-We may use hex2bin() instead of custom approach.
+Brain fart #2, please fold.
 
-Link: http://lkml.kernel.org/r/87zibktpil.fsf@devron
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+index fdc25b3f9421..309f36522bdb 100644
+Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_vfat.c |   35 ++++++++++++-----------------------
- 1 file changed, 12 insertions(+), 23 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fat/namei_vfat.c~vfat-deduplicate-hex2bin fs/fat/namei_vfat.c
---- a/fs/fat/namei_vfat.c~vfat-deduplicate-hex2bin
-+++ a/fs/fat/namei_vfat.c
-@@ -19,6 +19,8 @@
- #include <linux/ctype.h>
- #include <linux/slab.h>
- #include <linux/namei.h>
-+#include <linux/kernel.h>
-+
- #include "fat.h"
+diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix
++++ a/mm/memcontrol.c
+@@ -427,7 +427,7 @@ static void __mem_cgroup_remove_exceeded
+ 		return;
  
- static inline unsigned long vfat_d_version(struct dentry *dentry)
-@@ -510,10 +512,8 @@ xlate_to_uni(const unsigned char *name,
- 	     struct nls_table *nls)
- {
- 	const unsigned char *ip;
--	unsigned char nc;
- 	unsigned char *op;
--	unsigned int ec;
--	int i, k, fill;
-+	int i, fill;
- 	int charlen;
+ 	if (&mz->tree_node == mctz->rb_rightmost)
+-		mctz->rb_rightmost = rb_next(&mz->tree_node);
++		mctz->rb_rightmost = rb_prev(&mz->tree_node);
  
- 	if (utf8) {
-@@ -530,33 +530,22 @@ xlate_to_uni(const unsigned char *name,
- 			 i < len && *outlen < FAT_LFN_LEN;
- 			 *outlen += 1) {
- 			if (escape && (*ip == ':')) {
-+				u8 uc[2];
-+
- 				if (i > len - 5)
- 					return -EINVAL;
--				ec = 0;
--				for (k = 1; k < 5; k++) {
--					nc = ip[k];
--					ec <<= 4;
--					if (nc >= '0' && nc <= '9') {
--						ec |= nc - '0';
--						continue;
--					}
--					if (nc >= 'a' && nc <= 'f') {
--						ec |= nc - ('a' - 10);
--						continue;
--					}
--					if (nc >= 'A' && nc <= 'F') {
--						ec |= nc - ('A' - 10);
--						continue;
--					}
-+
-+				if (hex2bin(uc, ip + 1, 2) < 0)
- 					return -EINVAL;
--				}
--				*op++ = ec & 0xFF;
--				*op++ = ec >> 8;
-+
-+				*(wchar_t *)op = uc[0] << 8 | uc[1];
-+
-+				op += 2;
- 				ip += 5;
- 				i += 5;
- 			} else {
- 				charlen = nls->char2uni(ip, len - i,
--									(wchar_t *)op);
-+							(wchar_t *)op);
- 				if (charlen < 0)
- 					return -EINVAL;
- 				ip += charlen;
+ 	rb_erase(&mz->tree_node, &mctz->rb_root);
+ 	mz->on_tree = false;
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-vfat-deduplicate-hex2bin.patch
+rbtree-cache-leftmost-node-internally.patch
+rbtree-optimize-root-check-during-rebalancing-loop.patch
+rbtree-add-some-additional-comments-for-rebalancing-cases.patch
+lib-rbtree_testc-make-input-module-parameters.patch
+lib-rbtree_testc-add-inorder-traversal-test.patch
+lib-rbtree_testc-support-rb_root_cached.patch
+sched-fair-replace-cfs_rq-rb_leftmost.patch
+sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
+locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+block-cfq-replace-cfq_rb_root-leftmost-caching.patch
+lib-interval_tree-fast-overlap-detection.patch
+lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+procfs-use-faster-rb_first_cached.patch
+fs-epoll-use-faster-rb_first_cached.patch
+mem-memcg-cache-rightmost-node.patch
+mem-memcg-cache-rightmost-node-fix.patch
+block-cfq-cache-rightmost-rb_node.patch
 
