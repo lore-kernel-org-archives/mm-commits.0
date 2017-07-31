@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-add-missing-container_ofs-for-randstruct.patch added to -mm tree
-Date: Mon, 31 Jul 2017 15:32:39 -0700
-Message-ID: <597fb007.DaRXukdntBCvCBy4%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-non-cooperative-flush-event_wqh-at-release-time.patch added to
+ -mm tree
+Date: Mon, 31 Jul 2017 15:33:45 -0700
+Message-ID: <597fb049.XD+HgvG3lces8zRy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48506 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751052AbdGaWck (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 18:32:40 -0400
+        with ESMTP id S1751217AbdGaWdq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 18:33:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, dave@stgolabs.net, linux@dominikbrodowski.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, stable@vger.kernel.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: add missing container_of()s for randstruct
+     Subject: userfaultfd: non-cooperative: flush event_wqh at release time
 has been added to the -mm tree.  Its filename is
-     ipc-add-missing-container_ofs-for-randstruct.patch
+     userfaultfd-non-cooperative-flush-event_wqh-at-release-time.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-add-missing-container_ofs-for-randstruct.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-flush-event_wqh-at-release-time.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-add-missing-container_ofs-for-randstruct.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-flush-event_wqh-at-release-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +40,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ipc: add missing container_of()s for randstruct
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: flush event_wqh at release time
 
-When building with the randstruct gcc plugin, the layout of the IPC
-structs will be randomized, which requires any sub-structure accesses to
-use container_of().  The proc display handlers were missing the needed
-container_of()s since the iterator is passing in the top-level struct
-kern_ipc_perm.  This would lead to crashes when running the "lsipc"
-program after the system had IPC registered (e.g.  after starting up
-Gnome):
+There may still be threads waiting on event_wqh at the time the userfault
+file descriptor is closed.  Flush the events wait-queue to prevent waiting
+threads from hanging.
 
-[  183.018415] general protection fault: 0000 [#1] PREEMPT SMP
-...
-[  183.018692] RIP: 0010:shm_add_rss_swap.isra.1+0x13/0xa0
-...
-[  183.019265] Call Trace:
-[  183.019294]  sysvipc_shm_proc_show+0x5e/0x150
-[  183.019338]  ? _raw_spin_lock+0x17/0x40
-[  183.019376]  ? sysvipc_find_ipc+0xbc/0xf0
-[  183.019416]  sysvipc_proc_show+0x1a/0x30
-[  183.019456]  seq_read+0x2e9/0x3f0
-...
-
-Link: http://lkml.kernel.org/r/20170730205950.GA55841@beast
-Fixes: 3859a271a003 ("randstruct: Mark various structs for randomization")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Link: http://lkml.kernel.org/r/1501398127-30419-1-git-send-email-rppt@linux.vnet.ibm.com
+Fixes: 9cd75c3cd4c3d ("userfaultfd: non-cooperative: add ability to report
+non-PF events from uffd descriptor")
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    3 ++-
- ipc/sem.c |    3 ++-
- ipc/shm.c |    4 +++-
- 3 files changed, 7 insertions(+), 3 deletions(-)
+ fs/userfaultfd.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN ipc/msg.c~ipc-add-missing-container_ofs-for-randstruct ipc/msg.c
---- a/ipc/msg.c~ipc-add-missing-container_ofs-for-randstruct
-+++ a/ipc/msg.c
-@@ -1034,7 +1034,8 @@ void msg_exit_ns(struct ipc_namespace *n
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it)
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
--	struct msg_queue *msq = it;
-+	struct kern_ipc_perm *ipcp = it;
-+	struct msg_queue *msq = container_of(ipcp, struct msg_queue, q_perm);
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-flush-event_wqh-at-release-time fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-flush-event_wqh-at-release-time
++++ a/fs/userfaultfd.c
+@@ -854,6 +854,9 @@ wakeup:
+ 	__wake_up_locked_key(&ctx->fault_wqh, TASK_NORMAL, &range);
+ 	spin_unlock(&ctx->fault_pending_wqh.lock);
  
- 	seq_printf(s,
- 		   "%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
-diff -puN ipc/sem.c~ipc-add-missing-container_ofs-for-randstruct ipc/sem.c
---- a/ipc/sem.c~ipc-add-missing-container_ofs-for-randstruct
-+++ a/ipc/sem.c
-@@ -2179,7 +2179,8 @@ void exit_sem(struct task_struct *tsk)
- static int sysvipc_sem_proc_show(struct seq_file *s, void *it)
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
--	struct sem_array *sma = it;
-+	struct kern_ipc_perm *ipcp = it;
-+	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
- 	time_t sem_otime;
- 
- 	/*
-diff -puN ipc/shm.c~ipc-add-missing-container_ofs-for-randstruct ipc/shm.c
---- a/ipc/shm.c~ipc-add-missing-container_ofs-for-randstruct
-+++ a/ipc/shm.c
-@@ -1380,9 +1380,11 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it)
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
--	struct shmid_kernel *shp = it;
-+	struct kern_ipc_perm *ipcp = it;
-+	struct shmid_kernel *shp;
- 	unsigned long rss = 0, swp = 0;
- 
-+	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
- 	shm_add_rss_swap(shp, &rss, &swp);
- 
- #if BITS_PER_LONG <= 32
++	/* Flush pending events that may still wait on event_wqh */
++	wake_up_all(&ctx->event_wqh);
++
+ 	wake_up_poll(&ctx->fd_wqh, POLLHUP);
+ 	userfaultfd_ctx_put(ctx);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-fortify-use-warn-instead-of-bug-for-now.patch
-ipc-add-missing-container_ofs-for-randstruct.patch
+userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
+userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch
+userfaultfd-non-cooperative-flush-event_wqh-at-release-time.patch
+shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
+shmem-introduce-shmem_inode_acct_block.patch
+userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
+userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
+userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
 
