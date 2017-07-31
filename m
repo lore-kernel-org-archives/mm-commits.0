@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-arch-consolidate-mmap-hugetlb-size-encodings.patch added to
- -mm tree
-Date: Mon, 31 Jul 2017 14:25:00 -0700
-Message-ID: <597fa02c.kTOfW91KoPyk2RNq%akpm@linux-foundation.org>
+Subject: + vfat-deduplicate-hex2bin.patch added to -mm tree
+Date: Mon, 31 Jul 2017 14:27:38 -0700
+Message-ID: <597fa0ca.lBzelRyV7vmNq3Jv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45242 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751566AbdGaVZB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:25:01 -0400
+        with ESMTP id S1751046AbdGaV1j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, dbueso@suse.de, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mtk.manpages@gmail.com, willy@infradead.org, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: arch: consolidate mmap hugetlb size encodings
+     Subject: vfat: deduplicate hex2bin()
 has been added to the -mm tree.  Its filename is
-     mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
+     vfat-deduplicate-hex2bin.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfat-deduplicate-hex2bin.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfat-deduplicate-hex2bin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,227 +38,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm: arch: consolidate mmap hugetlb size encodings
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: vfat: deduplicate hex2bin()
 
-A non-default huge page size can be encoded in the flags argument of the
-mmap system call.  The definitions for these encodings are in arch
-specific header files.  However, all architectures use the same values.
+We may use hex2bin() instead of custom approach.
 
-Consolidate all the definitions in the primary user header file
-(uapi/linux/mman.h).  Include definitions for all known huge page sizes. 
-Use the generic encoding definitions in hugetlb_encode.h as the basis for
-these definitions.
-
-Link: http://lkml.kernel.org/r/1501527386-10736-3-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/87zibktpil.fsf@devron
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/uapi/asm/mman.h     |   11 -----------
- arch/mips/include/uapi/asm/mman.h      |   11 -----------
- arch/parisc/include/uapi/asm/mman.h    |   11 -----------
- arch/powerpc/include/uapi/asm/mman.h   |   16 ----------------
- arch/x86/include/uapi/asm/mman.h       |    3 ---
- arch/xtensa/include/uapi/asm/mman.h    |   11 -----------
- include/uapi/asm-generic/mman-common.h |   11 -----------
- include/uapi/linux/mman.h              |   22 ++++++++++++++++++++++
- 8 files changed, 22 insertions(+), 74 deletions(-)
+ fs/fat/namei_vfat.c |   35 ++++++++++++-----------------------
+ 1 file changed, 12 insertions(+), 23 deletions(-)
 
-diff -puN arch/alpha/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/alpha/include/uapi/asm/mman.h
---- a/arch/alpha/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/alpha/include/uapi/asm/mman.h
-@@ -67,17 +67,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -94,17 +94,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -64,17 +64,6 @@
- #define MAP_FILE	0
- #define MAP_VARIABLE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN arch/powerpc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/powerpc/include/uapi/asm/mman.h
---- a/arch/powerpc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/powerpc/include/uapi/asm/mman.h
-@@ -29,20 +29,4 @@
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
--/*
-- * When MAP_HUGETLB is set, bits [26:31] of the flags argument to mmap(2),
-- * encode the log2 of the huge page size. A value of zero indicates that the
-- * default huge page size should be used. To use a non-default huge page size,
-- * one of these defines can be used, or the size can be encoded by hand. Note
-- * that on most systems only a subset, or possibly none, of these sizes will be
-- * available.
-- */
--#define MAP_HUGE_512KB	(19 << MAP_HUGE_SHIFT)	/* 512KB HugeTLB Page */
--#define MAP_HUGE_1MB	(20 << MAP_HUGE_SHIFT)	/* 1MB   HugeTLB Page */
--#define MAP_HUGE_2MB	(21 << MAP_HUGE_SHIFT)	/* 2MB   HugeTLB Page */
--#define MAP_HUGE_8MB	(23 << MAP_HUGE_SHIFT)	/* 8MB   HugeTLB Page */
--#define MAP_HUGE_16MB	(24 << MAP_HUGE_SHIFT)	/* 16MB  HugeTLB Page */
--#define MAP_HUGE_1GB	(30 << MAP_HUGE_SHIFT)	/* 1GB   HugeTLB Page */
--#define MAP_HUGE_16GB	(34 << MAP_HUGE_SHIFT)	/* 16GB  HugeTLB Page */
--
- #endif /* _UAPI_ASM_POWERPC_MMAN_H */
-diff -puN arch/x86/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/x86/include/uapi/asm/mman.h
---- a/arch/x86/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/x86/include/uapi/asm/mman.h
-@@ -3,9 +3,6 @@
- 
- #define MAP_32BIT	0x40		/* only give out 32bit addresses */
- 
--#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
--#define MAP_HUGE_1GB    (30 << MAP_HUGE_SHIFT)
--
- #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
- /*
-  * Take the 4 protection key bits out of the vma->vm_flags
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -106,17 +106,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN include/uapi/asm-generic/mman-common.h~mm-arch-consolidate-mmap-hugetlb-size-encodings include/uapi/asm-generic/mman-common.h
---- a/include/uapi/asm-generic/mman-common.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/include/uapi/asm-generic/mman-common.h
-@@ -61,17 +61,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN include/uapi/linux/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings include/uapi/linux/mman.h
---- a/include/uapi/linux/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/include/uapi/linux/mman.h
-@@ -2,6 +2,7 @@
- #define _UAPI_LINUX_MMAN_H
- 
- #include <asm/mman.h>
-+#include <asm-generic/hugetlb_encode.h>
- 
- #define MREMAP_MAYMOVE	1
- #define MREMAP_FIXED	2
-@@ -10,4 +11,25 @@
- #define OVERCOMMIT_ALWAYS		1
- #define OVERCOMMIT_NEVER		2
- 
-+/*
-+ * Huge page size encoding when MAP_HUGETLB is specified, and a huge page
-+ * size other than the default is desired.  See hugetlb_encode.h.
-+ * All known huge page size encodings are provided here.  It is the
-+ * responsibility of the application to know which sizes are supported on
-+ * the running system.  See mmap(2) man page for details.
-+ */
-+#define MAP_HUGE_SHIFT	HUGETLB_FLAG_ENCODE_SHIFT
-+#define MAP_HUGE_MASK	HUGETLB_FLAG_ENCODE_MASK
+diff -puN fs/fat/namei_vfat.c~vfat-deduplicate-hex2bin fs/fat/namei_vfat.c
+--- a/fs/fat/namei_vfat.c~vfat-deduplicate-hex2bin
++++ a/fs/fat/namei_vfat.c
+@@ -19,6 +19,8 @@
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+ #include <linux/namei.h>
++#include <linux/kernel.h>
 +
-+#define MAP_HUGE_64KB	HUGETLB_FLAG_ENCODE_64KB
-+#define MAP_HUGE_512KB	HUGETLB_FLAG_ENCODE_512KB
-+#define MAP_HUGE_1MB	HUGETLB_FLAG_ENCODE_1MB
-+#define MAP_HUGE_2MB	HUGETLB_FLAG_ENCODE_2MB
-+#define MAP_HUGE_8MB	HUGETLB_FLAG_ENCODE_8MB
-+#define MAP_HUGE_16MB	HUGETLB_FLAG_ENCODE_16MB
-+#define MAP_HUGE_256MB	HUGETLB_FLAG_ENCODE_256MB
-+#define MAP_HUGE_1GB	HUGETLB_FLAG_ENCODE_1GB
-+#define MAP_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
-+#define MAP_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
+ #include "fat.h"
+ 
+ static inline unsigned long vfat_d_version(struct dentry *dentry)
+@@ -510,10 +512,8 @@ xlate_to_uni(const unsigned char *name,
+ 	     struct nls_table *nls)
+ {
+ 	const unsigned char *ip;
+-	unsigned char nc;
+ 	unsigned char *op;
+-	unsigned int ec;
+-	int i, k, fill;
++	int i, fill;
+ 	int charlen;
+ 
+ 	if (utf8) {
+@@ -530,33 +530,22 @@ xlate_to_uni(const unsigned char *name,
+ 			 i < len && *outlen < FAT_LFN_LEN;
+ 			 *outlen += 1) {
+ 			if (escape && (*ip == ':')) {
++				u8 uc[2];
 +
- #endif /* _UAPI_LINUX_MMAN_H */
+ 				if (i > len - 5)
+ 					return -EINVAL;
+-				ec = 0;
+-				for (k = 1; k < 5; k++) {
+-					nc = ip[k];
+-					ec <<= 4;
+-					if (nc >= '0' && nc <= '9') {
+-						ec |= nc - '0';
+-						continue;
+-					}
+-					if (nc >= 'a' && nc <= 'f') {
+-						ec |= nc - ('a' - 10);
+-						continue;
+-					}
+-					if (nc >= 'A' && nc <= 'F') {
+-						ec |= nc - ('A' - 10);
+-						continue;
+-					}
++
++				if (hex2bin(uc, ip + 1, 2) < 0)
+ 					return -EINVAL;
+-				}
+-				*op++ = ec & 0xFF;
+-				*op++ = ec >> 8;
++
++				*(wchar_t *)op = uc[0] << 8 | uc[1];
++
++				op += 2;
+ 				ip += 5;
+ 				i += 5;
+ 			} else {
+ 				charlen = nls->char2uni(ip, len - i,
+-									(wchar_t *)op);
++							(wchar_t *)op);
+ 				if (charlen < 0)
+ 					return -EINVAL;
+ 				ip += charlen;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
-mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
-mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
-mm-shm-use-new-hugetlb-size-encoding-definitions.patch
+vfat-deduplicate-hex2bin.patch
 
