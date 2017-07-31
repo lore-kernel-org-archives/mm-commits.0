@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mem-memcg-cache-rightmost-node-fix.patch added to -mm tree
-Date: Mon, 31 Jul 2017 14:28:38 -0700
-Message-ID: <597fa106.6ZQ+hg5IKKq2as8H%akpm@linux-foundation.org>
+Subject: + block-cfq-cache-rightmost-rb_node-fix.patch added to -mm tree
+Date: Mon, 31 Jul 2017 14:29:08 -0700
+Message-ID: <597fa124.PYi3bjFHZXWFTUzO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45250 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751046AbdGaV2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:28:38 -0400
+        with ESMTP id S1751046AbdGaV3I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-memcg-cache-rightmost-node-fix
+     Subject: block-cfq-cache-rightmost-rb_node-fix
 has been added to the -mm tree.  Its filename is
-     mem-memcg-cache-rightmost-node-fix.patch
+     block-cfq-cache-rightmost-rb_node-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-memcg-cache-rightmost-node-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-cfq-cache-rightmost-rb_node-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-memcg-cache-rightmost-node-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-cfq-cache-rightmost-rb_node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mem-memcg-cache-rightmost-node-fix
+Subject: block-cfq-cache-rightmost-rb_node-fix
 
-Brain fart #2, please fold.
+Brain fart #1, please fold.
 
-index fdc25b3f9421..309f36522bdb 100644
-Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
+index 57ec45fd4590..4992e9acddad 100644
+Link: http://lkml.kernel.org/r/20170731155955.GD21328@linux-80c1.suse
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ block/cfq-iosched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix
-+++ a/mm/memcontrol.c
-@@ -427,7 +427,7 @@ static void __mem_cgroup_remove_exceeded
- 		return;
+diff -puN block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node-fix block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node-fix
++++ a/block/cfq-iosched.c
+@@ -1186,7 +1186,7 @@ static struct cfq_group *cfq_rb_first_gr
+ static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+ {
+ 	if (root->rb_rightmost == n)
+-		root->rb_rightmost = rb_next(n);
++		root->rb_rightmost = rb_prev(n);
  
- 	if (&mz->tree_node == mctz->rb_rightmost)
--		mctz->rb_rightmost = rb_next(&mz->tree_node);
-+		mctz->rb_rightmost = rb_prev(&mz->tree_node);
- 
- 	rb_erase(&mz->tree_node, &mctz->rb_root);
- 	mz->on_tree = false;
+ 	rb_erase_cached(n, &root->rb);
+ 	RB_CLEAR_NODE(n);
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
@@ -85,4 +85,5 @@ fs-epoll-use-faster-rb_first_cached.patch
 mem-memcg-cache-rightmost-node.patch
 mem-memcg-cache-rightmost-node-fix.patch
 block-cfq-cache-rightmost-rb_node.patch
+block-cfq-cache-rightmost-rb_node-fix.patch
 
