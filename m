@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
- added to -mm tree
-Date: Mon, 31 Jul 2017 14:24:58 -0700
-Message-ID: <597fa02a.Arp+3e2MK+HSNtOx%akpm@linux-foundation.org>
+Subject: + mm-shm-use-new-hugetlb-size-encoding-definitions.patch added to -mm tree
+Date: Mon, 31 Jul 2017 14:25:03 -0700
+Message-ID: <597fa02f.Y68zi0t3cPBpvfJH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45172 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751199AbdGaVY7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:24:59 -0400
+        with ESMTP id S1751571AbdGaVZE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jul 2017 17:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, dbueso@suse.de, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mtk.manpages@gmail.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: define system call hugetlb size encodings in single file
+     Subject: mm: shm: use new hugetlb size encoding definitions
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+     mm-shm-use-new-hugetlb-size-encoding-definitions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shm-use-new-hugetlb-size-encoding-definitions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shm-use-new-hugetlb-size-encoding-definitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,96 +39,110 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm: hugetlb: define system call hugetlb size encodings in single file
+Subject: mm: shm: use new hugetlb size encoding definitions
 
-Patch series "Consolidate system call hugetlb page size encodings".
+Use the common definitions from hugetlb_encode.h header file for encoding
+hugetlb size definitions in shmget system call flags.
 
-These patches are the result of discussions in
-https://lkml.org/lkml/2017/3/8/548.  The following changes are made in the
-patch set:
+In addition, move these definitions from the internal (kernel) to user
+(uapi) header file.
 
-1) Put all the log2 encoded huge page size definitions in a common
-   header file.  The idea is have a set of definitions that can be use as
-   the basis for system call specific definitions such as MAP_HUGE_* and
-   SHM_HUGE_*.
-
-2) Remove MAP_HUGE_* definitions in arch specific files.  All these
-   definitions are the same.  Consolidate all definitions in the primary
-   user header file (uapi/linux/mman.h).
-
-3) Remove SHM_HUGE_* definitions intended for user space from kernel
-   header file, and add to user (uapi/linux/shm.h) header file.  Add
-   definitions for all known huge page size encodings as in mmap.
-
-
-
-This patch (of 3):
-
-If hugetlb pages are requested in mmap or shmget system calls, a huge page
-size other than default can be requested.  This is accomplished by
-encoding the log2 of the huge page size in the upper bits of the flag
-argument.  asm-generic and arch specific headers all define the same
-values for these encodings.
-
-Put common definitions in a single header file.  The primary uapi header
-files for mmap and shm will use these definitions as a basis for
-definitions specific to those system calls.
-
-Link: http://lkml.kernel.org/r/1501527386-10736-2-git-send-email-mike.kravetz@oracle.com
+Link: http://lkml.kernel.org/r/1501527386-10736-4-git-send-email-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/asm-generic/hugetlb_encode.h |   34 ++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ include/linux/shm.h      |   17 -----------------
+ include/uapi/linux/shm.h |   31 +++++++++++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 19 deletions(-)
 
-diff -puN /dev/null include/uapi/asm-generic/hugetlb_encode.h
---- /dev/null
-+++ a/include/uapi/asm-generic/hugetlb_encode.h
-@@ -0,0 +1,34 @@
-+#ifndef _ASM_GENERIC_HUGETLB_ENCODE_H_
-+#define _ASM_GENERIC_HUGETLB_ENCODE_H_
+diff -puN include/linux/shm.h~mm-shm-use-new-hugetlb-size-encoding-definitions include/linux/shm.h
+--- a/include/linux/shm.h~mm-shm-use-new-hugetlb-size-encoding-definitions
++++ a/include/linux/shm.h
+@@ -27,23 +27,6 @@ struct shmid_kernel /* private to the ke
+ /* shm_mode upper byte flags */
+ #define	SHM_DEST	01000	/* segment will be destroyed on last detach */
+ #define SHM_LOCKED      02000   /* segment will not be swapped */
+-#define SHM_HUGETLB     04000   /* segment will use huge TLB pages */
+-#define SHM_NORESERVE   010000  /* don't check for reservations */
+-
+-/* Bits [26:31] are reserved */
+-
+-/*
+- * When SHM_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
+- * This gives us 6 bits, which is enough until someone invents 128 bit address
+- * spaces.
+- *
+- * Assume these are all power of twos.
+- * When 0 use the default page size.
+- */
+-#define SHM_HUGE_SHIFT  26
+-#define SHM_HUGE_MASK   0x3f
+-#define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
+-#define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
+ 
+ #ifdef CONFIG_SYSVIPC
+ struct sysv_shm {
+diff -puN include/uapi/linux/shm.h~mm-shm-use-new-hugetlb-size-encoding-definitions include/uapi/linux/shm.h
+--- a/include/uapi/linux/shm.h~mm-shm-use-new-hugetlb-size-encoding-definitions
++++ a/include/uapi/linux/shm.h
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/ipc.h>
+ #include <linux/errno.h>
++#include <asm-generic/hugetlb_encode.h>
+ #ifndef __KERNEL__
+ #include <unistd.h>
+ #endif
+@@ -40,11 +41,37 @@ struct shmid_ds {
+ /* Include the definition of shmid64_ds and shminfo64 */
+ #include <asm/shmbuf.h>
+ 
+-/* permission flag for shmget */
++/*
++ * shmget() shmflg values.
++ */
++/* The bottom nine bits are the same as open(2) mode flags */
+ #define SHM_R		0400	/* or S_IRUGO from <linux/stat.h> */
+ #define SHM_W		0200	/* or S_IWUGO from <linux/stat.h> */
++/* Bits 9 & 10 are IPC_CREAT and IPC_EXCL */
++#define SHM_HUGETLB	04000	/* segment will use huge TLB pages */
++#define SHM_NORESERVE	010000	/* don't check for reservations */
 +
 +/*
-+ * Several system calls take a flag to request "hugetlb" huge pages.
-+ * Without further specification, these system calls will use the
-+ * system's default huge page size.  If a system supports multiple
-+ * huge page sizes, the desired huge page size can be specified in
-+ * bits [26:31] of the flag arguments.  The value in these 6 bits
-+ * will encode the log2 of the huge page size.
-+ *
-+ * The following definitions are associated with this huge page size
-+ * encoding in flag arguments.  System call specific header files
-+ * that use this encoding should include this file.  They can then
-+ * provide definitions based on these with their own specific prefix.
-+ * for example:
-+ * #define MAP_HUGE_SHIFT HUGETLB_FLAG_ENCODE_SHIFT
++ * Huge page size encoding when SHM_HUGETLB is specified, and a huge page
++ * size other than the default is desired.  See hugetlb_encode.h
 + */
++#define SHM_HUGE_SHIFT	HUGETLB_FLAG_ENCODE_SHIFT
++#define SHM_HUGE_MASK	HUGETLB_FLAG_ENCODE_MASK
 +
-+#define HUGETLB_FLAG_ENCODE_SHIFT	26
-+#define HUGETLB_FLAG_ENCODE_MASK	0x3f
-+
-+#define HUGETLB_FLAG_ENCODE_64KB	(16 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_512KB	(19 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_1MB		(20 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_2MB		(21 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_8MB		(23 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16MB	(24 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_256MB	(28 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_1GB		(30 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_2GB		(31 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16GB	(34 << HUGETLB_FLAG_ENCODE_SHIFT)
-+
-+#endif /* _ASM_GENERIC_HUGETLB_ENCODE_H_ */
++#define SHM_HUGE_64KB	HUGETLB_FLAG_ENCODE_64KB
++#define SHM_HUGE_512KB	HUGETLB_FLAG_ENCODE_512KB
++#define SHM_HUGE_1MB	HUGETLB_FLAG_ENCODE_1MB
++#define SHM_HUGE_2MB	HUGETLB_FLAG_ENCODE_2MB
++#define SHM_HUGE_8MB	HUGETLB_FLAG_ENCODE_8MB
++#define SHM_HUGE_16MB	HUGETLB_FLAG_ENCODE_16MB
++#define SHM_HUGE_256MB	HUGETLB_FLAG_ENCODE_256MB
++#define SHM_HUGE_1GB	HUGETLB_FLAG_ENCODE_1GB
++#define SHM_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
++#define SHM_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
+ 
+-/* mode for attach */
++/*
++ * shmat() shmflg values
++ */
+ #define	SHM_RDONLY	010000	/* read-only access */
+ #define	SHM_RND		020000	/* round attach address to SHMLBA boundary */
+ #define	SHM_REMAP	040000	/* take-over region on attach */
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
