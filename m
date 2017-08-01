@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dont-clear-sgid-when-inheriting-acls.patch added to -mm
- tree
-Date: Tue, 01 Aug 2017 13:47:31 -0700
-Message-ID: <5980e8e3.H/+n7vskWmhBuShR%akpm@linux-foundation.org>
+Subject: + mm-fix-global-nr_slab_claimable-counter-reads.patch added to
+ -mm tree
+Date: Tue, 01 Aug 2017 13:55:27 -0700
+Message-ID: <5980eabf.4gdndRKrhn+w51NP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54198 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752359AbdHAUrc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 16:47:32 -0400
+        with ESMTP id S1752004AbdHAUz2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 16:55:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: don't clear SGID when inheriting ACLs
+     Subject: mm: fix global NR_SLAB_.*CLAIMABLE counter reads
 has been added to the -mm tree.  Its filename is
-     ocfs2-dont-clear-sgid-when-inheriting-acls.patch
+     mm-fix-global-nr_slab_claimable-counter-reads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dont-clear-sgid-when-inheriting-acls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-global-nr_slab_claimable-counter-reads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dont-clear-sgid-when-inheriting-acls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-global-nr_slab_claimable-counter-reads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: don't clear SGID when inheriting ACLs
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: fix global NR_SLAB_.*CLAIMABLE counter reads
 
-When new directory 'DIR1' is created in a directory 'DIR0' with SGID bit
-set, DIR1 is expected to have SGID bit set (and owning group equal to the
-owning group of 'DIR0').  However when 'DIR0' also has some default ACLs
-that 'DIR1' inherits, setting these ACLs will result in SGID bit on 'DIR1'
-to get cleared if user is not member of the owning group.
+As Tetsuo points out:
 
-Fix the problem by moving posix_acl_update_mode() out of ocfs2_set_acl()
-into ocfs2_iop_set_acl().  That way the function will not be called when
-inheriting ACLs which is what we want as it prevents SGID bit clearing and
-the mode has been properly set by posix_acl_create() anyway.  Also
-posix_acl_chmod() that is calling ocfs2_set_acl() takes care of updating
-mode itself.
+    Commit 385386cff4c6f047 ("mm: vmstat: move slab statistics from
+    zone to node counters") broke "Slab:" field of /proc/meminfo . It
+    shows nearly 0kB.
 
-Fixes: 073931017b4 ("posix_acl: Clear SGID bit when setting file permissions")
-Link: http://lkml.kernel.org/r/20170801141252.19675-3-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: <stable@vger.kernel.org>
+In addition to /proc/meminfo, this problem also affects the slab counters
+OOM/allocation failure info dumps, can cause early -ENOMEM from overcommit
+protection, and miscalculate image size requirements during
+suspend-to-disk.
+
+This is because the patch in question switched the slab counters from the
+zone level to the node level, but forgot to update the global accessor
+functions to read the aggregate node data instead of the aggregate zone
+data.
+
+Use global_node_page_state() to access the global slab counters.
+
+Fixes: 385386cff4c6 ("mm: vmstat: move slab statistics from zone to node counters")
+Link: http://lkml.kernel.org/r/20170801134256.5400-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ fs/proc/meminfo.c       |    8 ++++----
+ kernel/power/snapshot.c |    2 +-
+ mm/page_alloc.c         |    9 +++++----
+ mm/util.c               |    2 +-
+ 4 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls
-+++ a/fs/ocfs2/acl.c
-@@ -240,18 +240,6 @@ static int ocfs2_set_acl(handle_t *handl
- 	switch (type) {
- 	case ACL_TYPE_ACCESS:
- 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_ACCESS;
--		if (acl) {
--			umode_t mode;
--
--			ret = posix_acl_update_mode(inode, &mode, &acl);
--			if (ret)
--				return ret;
--
--			ret = ocfs2_acl_set_mode(inode, di_bh,
--						 handle, mode);
--			if (ret)
--				return ret;
--		}
- 		break;
- 	case ACL_TYPE_DEFAULT:
- 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT;
-@@ -289,7 +277,19 @@ int ocfs2_iop_set_acl(struct inode *inod
- 	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
- 	if (had_lock < 0)
- 		return had_lock;
-+	if (type == ACL_TYPE_ACCESS && acl) {
-+		umode_t mode;
-+
-+		status = posix_acl_update_mode(inode, &mode, &acl);
-+		if (status)
-+			goto unlock;
-+
-+		status = ocfs2_acl_set_mode(inode, bh, NULL, mode);
-+		if (status)
-+			goto unlock;
-+	}
- 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
-+unlock:
- 	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
- 	brelse(bh);
- 	return status;
+diff -puN fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/fs/proc/meminfo.c
+@@ -106,13 +106,13 @@ static int meminfo_proc_show(struct seq_
+ 		    global_node_page_state(NR_FILE_MAPPED));
+ 	show_val_kb(m, "Shmem:          ", i.sharedram);
+ 	show_val_kb(m, "Slab:           ",
+-		    global_page_state(NR_SLAB_RECLAIMABLE) +
+-		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++		    global_node_page_state(NR_SLAB_RECLAIMABLE) +
++		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
+ 
+ 	show_val_kb(m, "SReclaimable:   ",
+-		    global_page_state(NR_SLAB_RECLAIMABLE));
++		    global_node_page_state(NR_SLAB_RECLAIMABLE));
+ 	show_val_kb(m, "SUnreclaim:     ",
+-		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
+ 	seq_printf(m, "KernelStack:    %8lu kB\n",
+ 		   global_page_state(NR_KERNEL_STACK_KB));
+ 	show_val_kb(m, "PageTables:     ",
+diff -puN kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/kernel/power/snapshot.c
+@@ -1650,7 +1650,7 @@ static unsigned long minimum_image_size(
+ {
+ 	unsigned long size;
+ 
+-	size = global_page_state(NR_SLAB_RECLAIMABLE)
++	size = global_node_page_state(NR_SLAB_RECLAIMABLE)
+ 		+ global_node_page_state(NR_ACTIVE_ANON)
+ 		+ global_node_page_state(NR_INACTIVE_ANON)
+ 		+ global_node_page_state(NR_ACTIVE_FILE)
+diff -puN mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/mm/page_alloc.c
+@@ -4458,8 +4458,9 @@ long si_mem_available(void)
+ 	 * Part of the reclaimable slab consists of items that are in use,
+ 	 * and cannot be freed. Cap this estimate at the low watermark.
+ 	 */
+-	available += global_page_state(NR_SLAB_RECLAIMABLE) -
+-		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
++	available += global_node_page_state(NR_SLAB_RECLAIMABLE) -
++		     min(global_node_page_state(NR_SLAB_RECLAIMABLE) / 2,
++			 wmark_low);
+ 
+ 	if (available < 0)
+ 		available = 0;
+@@ -4602,8 +4603,8 @@ void show_free_areas(unsigned int filter
+ 		global_node_page_state(NR_FILE_DIRTY),
+ 		global_node_page_state(NR_WRITEBACK),
+ 		global_node_page_state(NR_UNSTABLE_NFS),
+-		global_page_state(NR_SLAB_RECLAIMABLE),
+-		global_page_state(NR_SLAB_UNRECLAIMABLE),
++		global_node_page_state(NR_SLAB_RECLAIMABLE),
++		global_node_page_state(NR_SLAB_UNRECLAIMABLE),
+ 		global_node_page_state(NR_FILE_MAPPED),
+ 		global_node_page_state(NR_SHMEM),
+ 		global_page_state(NR_PAGETABLE),
+diff -puN mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads mm/util.c
+--- a/mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/mm/util.c
+@@ -633,7 +633,7 @@ int __vm_enough_memory(struct mm_struct
+ 		 * which are reclaimable, under pressure.  The dentry
+ 		 * cache and most inode caches should fall into this
+ 		 */
+-		free += global_page_state(NR_SLAB_RECLAIMABLE);
++		free += global_node_page_state(NR_SLAB_RECLAIMABLE);
+ 
+ 		/*
+ 		 * Leave reserved pages. The pages are not for anonymous pages.
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-ocfs2-make-ocfs2_set_acl-static.patch
-ocfs2-dont-clear-sgid-when-inheriting-acls.patch
-fscache-remove-unused-now_uncached-callback.patch
-mm-make-pagevec_lookup-update-index.patch
-mm-implement-find_get_pages_range.patch
-fs-fix-performance-regression-in-clean_bdev_aliases.patch
-ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
-ext4-use-pagevec_lookup_range-in-writeback-code.patch
-hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
-fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
-mm-use-find_get_pages_range-in-filemap_range_has_page.patch
-mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+mm-fix-global-nr_slab_claimable-counter-reads.patch
 
