@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch added to
- -mm tree
-Date: Tue, 01 Aug 2017 14:45:43 -0700
-Message-ID: <5980f687.90Mi9peCp8ZpvPUs%akpm@linux-foundation.org>
+Subject: + nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch added to -mm tree
+Date: Tue, 01 Aug 2017 14:45:45 -0700
+Message-ID: <5980f689.hsOfObi2R3UV6+Aq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60328 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752718AbdHAVpo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:45:44 -0400
+        with ESMTP id S1752718AbdHAVpq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, dan.j.williams@intel.com, hch@infradead.org, jthumshirn@suse.de, toshi.kani@hpe.com, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, dan.j.williams@intel.com, hch@infradead.org, jthumshirn@suse.de, toshi.kani@hpe.com, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nvdimm: avoid bogus -Wmaybe-uninitialized warning
+     Subject: nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
 has been added to the -mm tree.  Its filename is
-     nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
+     nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: nvdimm: avoid bogus -Wmaybe-uninitialized warning
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
 
-Removing the btt_rw_page/pmem_rw_page functions has a surprising
-side-effect of introducing a false-positive warning in another function,
-due to changed inlining decisions in gcc:
-
-In file included from drivers/nvdimm/pmem.c:36:0:
-drivers/nvdimm/pmem.c: In function 'pmem_make_request':
-drivers/nvdimm/nd.h:407:2: error: 'start' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-drivers/nvdimm/pmem.c:174:16: note: 'start' was declared here
-In file included from drivers/nvdimm/btt.c:27:0:
-drivers/nvdimm/btt.c: In function 'btt_make_request':
-drivers/nvdimm/nd.h:407:2: error: 'start' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-drivers/nvdimm/btt.c:1202:16: note: 'start' was declared here
-
-The problem is that gcc fails to track the value of the 'do_acct' variable
-here and has to read it back from stack, but it does remember that 'start'
-may be uninitialized sometimes.
-
-This shuts up the warning by making nd_iostat_start() always initialize
-the 'start' variable.  In those cases that gcc successfully tracks the
-state of the variable, this will have no effect.
-
-Link: http://lkml.kernel.org/r/20170801114926.1171418-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/nd.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvdimm/nd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning drivers/nvdimm/nd.h
---- a/drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning
+diff -puN drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix drivers/nvdimm/nd.h
+--- a/drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
 +++ a/drivers/nvdimm/nd.h
-@@ -392,8 +392,10 @@ static inline bool nd_iostat_start(struc
- {
+@@ -393,7 +393,7 @@ static inline bool nd_iostat_start(struc
  	struct gendisk *disk = bio->bi_bdev->bd_disk;
  
--	if (!blk_queue_io_stat(disk->queue))
-+	if (!blk_queue_io_stat(disk->queue)) {
-+		*start = 0;
+ 	if (!blk_queue_io_stat(disk->queue)) {
+-		*start = 0;
++		*start = 0;	/* Suppress bogus warning */
  		return false;
-+	}
+ 	}
  
- 	*start = jiffies;
- 	generic_start_io_acct(bio_data_dir(bio),
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-avoid-wmaybe-uninitialized-warning-v3.patch
-adfs-use-unsigned-types-for-memcpy-length.patch
-nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
-fscache-fix-fscache_objlist_show-format-processing.patch
-ib-mlx4-fix-sprintf-format-warning.patch
-iopoll-avoid-wint-in-bool-context-warning.patch
-kbuild-use-fshort-wchar-globally.patch
+i-need-old-gcc.patch
+mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
+mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+fortify-use-warn-instead-of-bug-for-now-fix.patch
+swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-git-rejects.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
