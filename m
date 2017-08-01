@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch added to -mm tree
-Date: Tue, 01 Aug 2017 14:45:45 -0700
-Message-ID: <5980f689.hsOfObi2R3UV6+Aq%akpm@linux-foundation.org>
+Subject: + adfs-use-unsigned-types-for-memcpy-length.patch added to -mm
+ tree
+Date: Tue, 01 Aug 2017 14:46:30 -0700
+Message-ID: <5980f6b6.R+03xm1n1WXlaDDt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60332 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752718AbdHAVpq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:45:46 -0400
+        with ESMTP id S1751981AbdHAVqb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:46:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, dan.j.williams@intel.com, hch@infradead.org, jthumshirn@suse.de, toshi.kani@hpe.com, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, keescook@chromium.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
+     Subject: adfs: use 'unsigned' types for memcpy length
 has been added to the -mm tree.  Its filename is
-     nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+     adfs-use-unsigned-types-for-memcpy-length.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/adfs-use-unsigned-types-for-memcpy-length.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-use-unsigned-types-for-memcpy-length.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: adfs: use 'unsigned' types for memcpy length
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+After 62d1034f53e3 ("fortify: use WARN instead of BUG for now"), we get a
+warning in adfs about a possible buffer overflow:
+
+In function 'memcpy',
+    inlined from '__adfs_dir_put' at fs/adfs/dir_f.c:318:2,
+    inlined from 'adfs_f_update' at fs/adfs/dir_f.c:403:2:
+include/linux/string.h:305:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
+    __read_overflow2();
+    ^~~~~~~~~~~~~~~~~~
+
+The warning is correct in the sense that a negative 'pos' argument to the
+function would have that result.  However, this is not a bug, as we know
+the position is always positive (in fact, between 5 and 2007, inclusive)
+when the function gets called.
+
+Changing the variable to a unsigned type avoids the problem.  I decided to
+use 'unsigned int' for the position in the directory and the block number,
+as they are both counting things, but use size_t for the offset and length
+that get passed into memcpy.  This shuts up the warning.
+
+Link: http://lkml.kernel.org/r/20170801120438.1582336-2-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/nd.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/adfs/dir_f.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix drivers/nvdimm/nd.h
---- a/drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
-+++ a/drivers/nvdimm/nd.h
-@@ -393,7 +393,7 @@ static inline bool nd_iostat_start(struc
- 	struct gendisk *disk = bio->bi_bdev->bd_disk;
+diff -puN fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length fs/adfs/dir_f.c
+--- a/fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length
++++ a/fs/adfs/dir_f.c
+@@ -283,11 +283,12 @@ __adfs_dir_get(struct adfs_dir *dir, int
+ }
  
- 	if (!blk_queue_io_stat(disk->queue)) {
--		*start = 0;
-+		*start = 0;	/* Suppress bogus warning */
- 		return false;
- 	}
+ static int
+-__adfs_dir_put(struct adfs_dir *dir, int pos, struct object_info *obj)
++__adfs_dir_put(struct adfs_dir *dir, unsigned int pos, struct object_info *obj)
+ {
+ 	struct super_block *sb = dir->sb;
+ 	struct adfs_direntry de;
+-	int thissize, buffer, offset;
++	unsigned int buffer;
++	size_t thissize, offset;
+ 
+ 	buffer = pos >> sb->s_blocksize_bits;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
-fortify-use-warn-instead-of-bug-for-now-fix.patch
-swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kasan-avoid-wmaybe-uninitialized-warning-v3.patch
+adfs-use-unsigned-types-for-memcpy-length.patch
+nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
+fscache-fix-fscache_objlist_show-format-processing.patch
+ib-mlx4-fix-sprintf-format-warning.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
+kbuild-use-fshort-wchar-globally.patch
 
