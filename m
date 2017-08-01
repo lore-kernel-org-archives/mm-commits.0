@@ -1,139 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 01 Aug 2017 12:36:57 -0700
-Message-ID: <20170801193657.a3H8kin1e%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-remove-optimizations-based-on-i_size-in-mapping-writeback-waits.patch
+ removed from -mm tree
+Date: Tue, 01 Aug 2017 12:38:14 -0700
+Message-ID: <20170801193814.Lr2-XPxXx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752044AbdHATg6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 15:36:58 -0400
+        with ESMTP id S1752044AbdHATiP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 15:38:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, jlayton@redhat.com, marcelo.tosatti@cyclades.com, mm-commits@vger.kernel.org, mtosatti@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm: remove optimizations based on i_size in mapping writeback waits
+has been removed from the -mm tree.  Its filename was
+     mm-remove-optimizations-based-on-i_size-in-mapping-writeback-waits.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jeff Layton <jlayton@redhat.com>
+Subject: mm: remove optimizations based on i_size in mapping writeback waits
 
+Marcelo added this i_size based optimization with a patch in 2004 (commit
+765dad09b4ac in the linux-history tree):
+
+    commit 765dad09b4ac101a32d87af2bb793c3060497d3c
+    Author: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+    Date:   Tue Sep 7 17:51:17 2004 -0700
+
+	small wait_on_page_writeback_range() optimization
+
+	filemap_fdatawait() calls wait_on_page_writeback_range() with -1
+	as "end" parameter.  This is not needed since we know the EOF
+	from the inode.  Use that instead.
+
+There may be races here, particularly with clustered or network
+filesystems.  Block devices always have an i_size of 0 as well, which
+makes using this with a blockdev inode sort of pointless.
+
+It also seems like a bit of a layering violation since we're operating on
+an address_space here, not an inode.
+
+Finally, it's also questionable whether this optimization really helps on
+workloads that we care about.  Should we be optimizing for writeback vs. 
+truncate races in a codepath where we expect to wait anyway?  It doesn't
+seem worth the risk.
+
+Remove this optimization from the filemap_fdatawait codepaths.  This means
+that filemap_fdatawait becomes a trivial wrapper around
+filemap_fdatawait_range.
+
+Link: http://lkml.kernel.org/r/20170731152946.13976-1-jlayton@kernel.org
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/fs.h |    9 +++++++--
+ mm/filemap.c       |   30 +-----------------------------
+ 2 files changed, 8 insertions(+), 31 deletions(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -5123,15 +5123,10 @@ M:	Andrew Lunn <andrew@lunn.ch>
- M:	Florian Fainelli <f.fainelli@gmail.com>
- L:	netdev@vger.kernel.org
- S:	Maintained
--<<<<<<< HEAD
--F:	Documentation/ABI/testing/sysfs-bus-mdio
--F:	Documentation/devicetree/bindings/net/mdio*
--=======
- F:	include/linux/phy.h
- F:	include/linux/phy_fixed.h
- F:	include/linux/platform_data/mdio-bcm-unimac.h
- F:	drivers/net/phy/
-->>>>>>> linux-next/akpm-base
- F:	Documentation/networking/phy.txt
- F:	drivers/net/phy/
- F:	drivers/of/of_mdio.c
-diff -puN drivers/net/hyperv/netvsc_drv.c~linux-next-git-rejects drivers/net/hyperv/netvsc_drv.c
---- a/drivers/net/hyperv/netvsc_drv.c~linux-next-git-rejects
-+++ a/drivers/net/hyperv/netvsc_drv.c
-@@ -317,7 +317,6 @@ static u32 init_page_array(void *hdr, u3
+diff -puN include/linux/fs.h~mm-remove-optimizations-based-on-i_size-in-mapping-writeback-waits include/linux/fs.h
+--- a/include/linux/fs.h~mm-remove-optimizations-based-on-i_size-in-mapping-writeback-waits
++++ a/include/linux/fs.h
+@@ -2542,10 +2542,15 @@ extern int invalidate_inode_pages2_range
+ extern int write_inode_now(struct inode *, int);
+ extern int filemap_fdatawrite(struct address_space *);
+ extern int filemap_flush(struct address_space *);
+-extern int filemap_fdatawait(struct address_space *);
+-extern int filemap_fdatawait_keep_errors(struct address_space *mapping);
+ extern int filemap_fdatawait_range(struct address_space *, loff_t lstart,
+ 				   loff_t lend);
++extern int filemap_fdatawait_keep_errors(struct address_space *mapping);
++
++static inline int filemap_fdatawait(struct address_space *mapping)
++{
++	return filemap_fdatawait_range(mapping, 0, LLONG_MAX);
++}
++
+ extern bool filemap_range_has_page(struct address_space *, loff_t lstart,
+ 				  loff_t lend);
+ extern int __must_check file_fdatawait_range(struct file *file, loff_t lstart,
+diff -puN mm/filemap.c~mm-remove-optimizations-based-on-i_size-in-mapping-writeback-waits mm/filemap.c
+--- a/mm/filemap.c~mm-remove-optimizations-based-on-i_size-in-mapping-writeback-waits
++++ a/mm/filemap.c
+@@ -500,39 +500,11 @@ EXPORT_SYMBOL(file_fdatawait_range);
+  */
+ int filemap_fdatawait_keep_errors(struct address_space *mapping)
+ {
+-	loff_t i_size = i_size_read(mapping->host);
+-
+-	if (i_size == 0)
+-		return 0;
+-
+-	__filemap_fdatawait_range(mapping, 0, i_size - 1);
++	__filemap_fdatawait_range(mapping, 0, LLONG_MAX);
+ 	return filemap_check_and_keep_errors(mapping);
  }
+ EXPORT_SYMBOL(filemap_fdatawait_keep_errors);
  
- static int count_skb_frag_slots(struct sk_buff *skb)
--<<<<<<< HEAD
- {
- 	int i, frags = skb_shinfo(skb)->nr_frags;
- 	int pages = 0;
-@@ -336,26 +335,6 @@ static int count_skb_frag_slots(struct s
- 
- static int netvsc_get_slots(struct sk_buff *skb)
- {
--=======
+-/**
+- * filemap_fdatawait - wait for all under-writeback pages to complete
+- * @mapping: address space structure to wait for
+- *
+- * Walk the list of under-writeback pages of the given address space
+- * and wait for all of them.  Check error status of the address space
+- * and return it.
+- *
+- * Since the error status of the address space is cleared by this function,
+- * callers are responsible for checking the return value and handling and/or
+- * reporting the error.
+- */
+-int filemap_fdatawait(struct address_space *mapping)
 -{
--	int i, frags = skb_shinfo(skb)->nr_frags;
--	int pages = 0;
+-	loff_t i_size = i_size_read(mapping->host);
 -
--	for (i = 0; i < frags; i++) {
--		skb_frag_t *frag = skb_shinfo(skb)->frags + i;
--		unsigned long size = skb_frag_size(frag);
--		unsigned long offset = frag->page_offset;
+-	if (i_size == 0)
+-		return 0;
 -
--		/* Skip unused frames from start of page */
--		offset &= ~PAGE_MASK;
--		pages += PFN_UP(offset + size);
--	}
--	return pages;
+-	return filemap_fdatawait_range(mapping, 0, i_size - 1);
 -}
--
--static int netvsc_get_slots(struct sk_buff *skb)
--{
-->>>>>>> linux-next/akpm-base
- 	char *data = skb->data;
- 	unsigned int offset = offset_in_page(data);
- 	unsigned int len = skb_headlen(skb);
-diff -puN drivers/net/virtio_net.c~linux-next-git-rejects drivers/net/virtio_net.c
---- a/drivers/net/virtio_net.c~linux-next-git-rejects
-+++ a/drivers/net/virtio_net.c
-@@ -952,10 +952,7 @@ static int add_recvbuf_mergeable(struct
- 
- 	buf = (char *)page_address(alloc_frag->page) + alloc_frag->offset;
- 	buf += headroom; /* advance address leaving hole at front of pkt */
--<<<<<<< HEAD
--=======
- 	ctx = mergeable_len_to_ctx(len, headroom);
-->>>>>>> linux-next/akpm-base
- 	get_page(alloc_frag->page);
- 	alloc_frag->offset += len + headroom;
- 	hole = alloc_frag->size - alloc_frag->offset;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
-fortify-use-warn-instead-of-bug-for-now-fix.patch
-swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
-
+-EXPORT_SYMBOL(filemap_fdatawait);
