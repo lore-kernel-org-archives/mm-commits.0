@@ -1,268 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature.patch added
- to -mm tree
-Date: Tue, 01 Aug 2017 15:44:57 -0700
-Message-ID: <59810469.1MOzw7Xu8/2ItrTM%akpm@linux-foundation.org>
+Subject: mmotm 2017-08-01-16-29 uploaded
+Date: Tue, 01 Aug 2017 16:30:31 -0700
+Message-ID: <59810f17.EQGuyRdITVtX0+MS%akpm__23902.5675612085$1501630251$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41930 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52190 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751347AbdHAWo6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 18:44:58 -0400
+        with ESMTP id S1750853AbdHAXac (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 19:30:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prakash.sangappa@oracle.com, aarcange@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, shuah@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2017-08-01-16-29 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: userfaultfd: selftest: add tests for UFFD_FEATURE_SIGBUS feature
-has been added to the -mm tree.  Its filename is
-     userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Prakash Sangappa <prakash.sangappa@oracle.com>
-Subject: userfaultfd: selftest: add tests for UFFD_FEATURE_SIGBUS feature
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-Add tests for UFFD_FEATURE_SIGBUS feature.  The tests will verify signal
-delivery instead of userfault events.  Also, test use of UFFDIO_COPY to
-allocate memory and retry accessing monitored area after signal delivery.
 
-Also fix a bug in uffd_poll_thread() where 'uffd' is leaked.
 
-Link: http://lkml.kernel.org/r/1501552446-748335-3-git-send-email-prakash.sangappa@oracle.com
-Signed-off-by: Prakash Sangappa <prakash.sangappa@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- tools/testing/selftests/vm/userfaultfd.c |  127 ++++++++++++++++++++-
- 1 file changed, 124 insertions(+), 3 deletions(-)
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -66,6 +66,7 @@
- #include <sys/wait.h>
- #include <pthread.h>
- #include <linux/userfaultfd.h>
-+#include <setjmp.h>
- 
- #ifdef __NR_userfaultfd
- 
-@@ -408,6 +409,7 @@ static void *uffd_poll_thread(void *arg)
- 				userfaults++;
- 			break;
- 		case UFFD_EVENT_FORK:
-+			close(uffd);
- 			uffd = msg.arg.fork.ufd;
- 			pollfd[0].fd = uffd;
- 			break;
-@@ -572,6 +574,17 @@ static int userfaultfd_open(int features
- 	return 0;
- }
- 
-+sigjmp_buf jbuf, *sigbuf;
-+
-+static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-+{
-+	if (sig == SIGBUS) {
-+		if (sigbuf)
-+			siglongjmp(*sigbuf, 1);
-+		abort();
-+	}
-+}
-+
- /*
-  * For non-cooperative userfaultfd test we fork() a process that will
-  * generate pagefaults, will mremap the area monitored by the
-@@ -585,19 +598,59 @@ static int userfaultfd_open(int features
-  * The release of the pages currently generates event for shmem and
-  * anonymous memory (UFFD_EVENT_REMOVE), hence it is not checked
-  * for hugetlb.
-+ * For signal test(UFFD_FEATURE_SIGBUS), signal_test = 1, we register
-+ * monitored area, generate pagefaults and test that signal is delivered.
-+ * Use UFFDIO_COPY to allocate missing page and retry. For signal_test = 2
-+ * test robustness use case - we release monitored area, fork a process
-+ * that will generate pagefaults and verify signal is generated.
-+ * This also tests UFFD_FEATURE_EVENT_FORK event along with the signal
-+ * feature. Using monitor thread, verify no userfault events are generated.
-  */
--static int faulting_process(void)
-+static int faulting_process(int signal_test)
- {
- 	unsigned long nr;
- 	unsigned long long count;
- 	unsigned long split_nr_pages;
-+	unsigned long lastnr;
-+	struct sigaction act;
-+	unsigned long signalled = 0;
- 
- 	if (test_type != TEST_HUGETLB)
- 		split_nr_pages = (nr_pages + 1) / 2;
- 	else
- 		split_nr_pages = nr_pages;
- 
-+	if (signal_test) {
-+		sigbuf = &jbuf;
-+		memset(&act, 0, sizeof(act));
-+		act.sa_sigaction = sighndl;
-+		act.sa_flags = SA_SIGINFO;
-+		if (sigaction(SIGBUS, &act, 0)) {
-+			perror("sigaction");
-+			return 1;
-+		}
-+		lastnr = (unsigned long)-1;
-+	}
-+
- 	for (nr = 0; nr < split_nr_pages; nr++) {
-+		if (signal_test) {
-+			if (sigsetjmp(*sigbuf, 1) != 0) {
-+				if (nr == lastnr) {
-+					fprintf(stderr, "Signal repeated\n");
-+					return 1;
-+				}
-+
-+				lastnr = nr;
-+				if (signal_test == 1) {
-+					if (copy_page(uffd, nr * page_size))
-+						signalled++;
-+				} else {
-+					signalled++;
-+					continue;
-+				}
-+			}
-+		}
-+
- 		count = *area_count(area_dst, nr);
- 		if (count != count_verify[nr]) {
- 			fprintf(stderr,
-@@ -607,6 +660,9 @@ static int faulting_process(void)
- 		}
- 	}
- 
-+	if (signal_test)
-+		return signalled != split_nr_pages;
-+
- 	if (test_type == TEST_HUGETLB)
- 		return 0;
- 
-@@ -761,7 +817,7 @@ static int userfaultfd_events_test(void)
- 		perror("fork"), exit(1);
- 
- 	if (!pid)
--		return faulting_process();
-+		return faulting_process(0);
- 
- 	waitpid(pid, &err, 0);
- 	if (err)
-@@ -778,6 +834,70 @@ static int userfaultfd_events_test(void)
- 	return userfaults != nr_pages;
- }
- 
-+static int userfaultfd_sig_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	unsigned long expected_ioctls;
-+	unsigned long userfaults;
-+	pthread_t uffd_mon;
-+	int err, features;
-+	pid_t pid;
-+	char c;
-+
-+	printf("testing signal delivery: ");
-+	fflush(stdout);
-+
-+	if (uffd_test_ops->release_pages(area_dst))
-+		return 1;
-+
-+	features = UFFD_FEATURE_EVENT_FORK|UFFD_FEATURE_SIGBUS;
-+	if (userfaultfd_open(features) < 0)
-+		return 1;
-+	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		fprintf(stderr, "register failure\n"), exit(1);
-+
-+	expected_ioctls = uffd_test_ops->expected_ioctls;
-+	if ((uffdio_register.ioctls & expected_ioctls) !=
-+	    expected_ioctls)
-+		fprintf(stderr,
-+			"unexpected missing ioctl for anon memory\n"),
-+			exit(1);
-+
-+	if (faulting_process(1))
-+		fprintf(stderr, "faulting process failed\n"), exit(1);
-+
-+	if (uffd_test_ops->release_pages(area_dst))
-+		return 1;
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, NULL))
-+		perror("uffd_poll_thread create"), exit(1);
-+
-+	pid = fork();
-+	if (pid < 0)
-+		perror("fork"), exit(1);
-+
-+	if (!pid)
-+		exit(faulting_process(2));
-+
-+	waitpid(pid, &err, 0);
-+	if (err)
-+		fprintf(stderr, "faulting process failed\n"), exit(1);
-+
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		perror("pipe write"), exit(1);
-+	if (pthread_join(uffd_mon, (void **)&userfaults))
-+		return 1;
-+
-+	printf("done.\n");
-+	printf(" Signal test userfaults: %ld\n", userfaults);
-+	close(uffd);
-+	return userfaults != 0;
-+}
- static int userfaultfd_stress(void)
- {
- 	void *area;
-@@ -946,7 +1066,8 @@ static int userfaultfd_stress(void)
- 		return err;
- 
- 	close(uffd);
--	return userfaultfd_zeropage_test() || userfaultfd_events_test();
-+	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
-+		|| userfaultfd_events_test();
- }
- 
- /*
-_
+A git copy of this tree is available at
 
-Patches currently in -mm which might be from prakash.sangappa@oracle.com are
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
-userfaultfd-add-feature-to-request-for-a-signal-delivery.patch
-userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature.patch
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
 
+
+This mmotm tree contains the following patches against 4.13-rc3:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+  i-need-old-gcc.patch
+* mm-hugetlb-__get_user_pages-ignores-certain-follow_hugetlb_page-errors.patch
+* pid-kill-pidhash_size-in-pidhash_init.patch
+* mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries.patch
+* mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
+* mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+* userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap.patch
+* kasan-avoid-wmaybe-uninitialized-warning-v3.patch
+* kthread-fix-documentation-build-warning.patch
+* zram-do-not-free-pool-size_class.patch
+* fortify-use-warn-instead-of-bug-for-now.patch
+* fortify-use-warn-instead-of-bug-for-now-fix.patch
+* swap-fix-oops-during-block-io-poll-in-swapin-path.patch
+* swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
+* mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler.patch
+* userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch
+* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
+* cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
+* ipc-add-missing-container_ofs-for-randstruct.patch
+* userfaultfd-non-cooperative-flush-event_wqh-at-release-time.patch
+* mm-allow-page_cache_get_speculative-in-interrupt-context.patch
+* ocfs2-dont-clear-sgid-when-inheriting-acls.patch
+* mm-fix-global-nr_slab_claimable-counter-reads.patch
+* adfs-use-unsigned-types-for-memcpy-length.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* metag-numa-remove-the-unused-parent_node-macro.patch
+* mm-add-vm_insert_mixed_mkwrite.patch
+* dax-relocate-some-dax-functions.patch
+* dax-use-common-4k-zero-page-for-dax-mmap-reads.patch
+* dax-remove-dax-code-from-page_cache_tree_insert.patch
+* dax-move-all-dax-radix-tree-defs-to-fs-daxc.patch
+* ocfs2-make-ocfs2_set_acl-static.patch
+* ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+* ocfs2-move-some-definitions-to-header-file.patch
+* ocfs2-fix-some-small-problems.patch
+* ocfs2-add-kobject-for-online-file-check.patch
+* ocfs2-add-duplicative-ino-number-check.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+  mm.patch
+* slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication.patch
+* mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch
+* mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+* mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+* mm-mempolicy-add-queue_pages_required.patch
+* mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
+* mm-thp-introduce-separate-ttu-flag-for-thp-freezing.patch
+* mm-thp-introduce-config_arch_enable_thp_migration.patch
+* mm-thp-enable-thp-migration-in-generic-path.patch
+* mm-thp-enable-thp-migration-in-generic-path-fix.patch
+* mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+* mm-thp-check-pmd-migration-entry-in-common-path.patch
+* mm-soft-dirty-keep-soft-dirty-bits-over-thp-migration.patch
+* mm-mempolicy-mbind-and-migrate_pages-support-thp-migration.patch
+* mm-migrate-move_pages-supports-thp-migration.patch
+* mm-memory_hotplug-memory-hotremove-supports-thp-migration.patch
+* mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+* mm-memory_hotplug-remove-zone-restrictions.patch
+* zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+* zram-inlining-zram_compress.patch
+* zram-rename-zram_decompress_page-with-__zram_bvec_read.patch
+* zram-add-interface-to-specify-backing-device.patch
+* zram-add-free-space-management-in-backing-device.patch
+* zram-identify-asynchronous-ios-return-value.patch
+* zram-write-incompressible-pages-to-backing-device.patch
+* zram-read-page-from-backing-device.patch
+* zram-add-config-and-doc-file-for-writeback-feature.patch
+* mm-page_alloc-rip-out-zonelist_order_zone.patch
+* mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+* mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+* mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+* mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+* mm-page_alloc-simplify-zonelist-initialization.patch
+* mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+* mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+* mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+* mm-page_owner-make-init_pages_in_zone-faster.patch
+* mm-page_ext-periodically-reschedule-during-page_ext_init.patch
+* mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
+* mm-page_ext-move-page_ext_init-after-page_alloc_init_late.patch
+* mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
+* mm-gup-make-__gup_device_-require-thp.patch
+* mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour.patch
+* mm-always-flush-vma-ranges-affected-by-zap_page_range-v2.patch
+* zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch
+* zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+* mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+* mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+* fscache-remove-unused-now_uncached-callback.patch
+* mm-make-pagevec_lookup-update-index.patch
+* mm-implement-find_get_pages_range.patch
+* fs-fix-performance-regression-in-clean_bdev_aliases.patch
+* ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
+* ext4-use-pagevec_lookup_range-in-writeback-code.patch
+* hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
+* fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
+* mm-use-find_get_pages_range-in-filemap_range_has_page.patch
+* mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+* mm-memcg-reset-memorylow-during-memcg-offlining.patch
+* cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction.patch
+* mm-ksm-constify-attribute_group-structures.patch
+* mm-slub-constify-attribute_group-structures.patch
+* mm-page_idle-constify-attribute_group-structures.patch
+* mm-huge_memory-constify-attribute_group-structures.patch
+* mm-hugetlb-constify-attribute_group-structures.patch
+* mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
+* mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
+* mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+* mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+* mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
+* mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
+* mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
+* mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+* block-thp-make-block_device_operationsrw_page-support-thp.patch
+* test-code-to-write-thp-to-swap-device-as-a-whole.patch
+* mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
+* memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
+* memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+* memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+* mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+* mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
+* shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
+* shmem-introduce-shmem_inode_acct_block.patch
+* userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
+* userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+* userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
+* userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+* userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
+* fs-remove-unnecessary-null-f_mapping-check-in-sync_file_range.patch
+* fs-remove-unneeded-forward-definition-of-mm_struct-from-fsh.patch
+* nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
+* nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+* btt-remove-btt_rw_page.patch
+* pmem-remove-pmem_rw_page.patch
+* brd-remove-brd_rw_page.patch
+* treewide-remove-gfp_temporary-allocation-flag.patch
+* treewide-remove-gfp_temporary-allocation-flag-fix.patch
+* treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+* mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
+* mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
+* mm-shm-use-new-hugetlb-size-encoding-definitions.patch
+* mm-rename-global_page_state-to-global_zone_page_state.patch
+* userfaultfd-add-feature-to-request-for-a-signal-delivery.patch
+* userfaultfd-selftest-add-tests-for-uffd_feature_sigbus-feature.patch
+* mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
+* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* fs-proc-remove-priv-argument-from-is_stack.patch
+* fs-proc-remove-priv-argument-from-is_stack-fix.patch
+* linux-kernelh-move-div_round_down_ull-macro.patch
+* rbtree-cache-leftmost-node-internally.patch
+* rbtree-optimize-root-check-during-rebalancing-loop.patch
+* rbtree-add-some-additional-comments-for-rebalancing-cases.patch
+* lib-rbtree_testc-make-input-module-parameters.patch
+* lib-rbtree_testc-add-inorder-traversal-test.patch
+* lib-rbtree_testc-support-rb_root_cached.patch
+* sched-fair-replace-cfs_rq-rb_leftmost.patch
+* sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
+* locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+* block-cfq-replace-cfq_rb_root-leftmost-caching.patch
+* lib-interval_tree-fast-overlap-detection.patch
+* lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+* procfs-use-faster-rb_first_cached.patch
+* fs-epoll-use-faster-rb_first_cached.patch
+* mem-memcg-cache-rightmost-node.patch
+* mem-memcg-cache-rightmost-node-fix.patch
+* block-cfq-cache-rightmost-rb_node.patch
+* block-cfq-cache-rightmost-rb_node-fix.patch
+* lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+* vfat-deduplicate-hex2bin.patch
+* seq_file-delete-small-value-optimization.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
+* m32r-defconfig-cleanup-from-old-kconfig-options.patch
+* mn10300-defconfig-cleanup-from-old-kconfig-options.patch
+* sh-defconfig-cleanup-from-old-kconfig-options.patch
+* kernel-reboot-add-devm_register_reboot_notifier.patch
+* kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+* ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t.patch
+* ipc-convert-sem_undo_listrefcnt-from-atomic_t-to-refcount_t.patch
+* ipc-convert-kern_ipc_permrefcount-from-atomic_t-to-refcount_t.patch
+  linux-next.patch
+  linux-next-git-rejects.patch
+  linux-next-rejects.patch
+* fscache-fix-fscache_objlist_show-format-processing.patch
+* ib-mlx4-fix-sprintf-format-warning.patch
+* iopoll-avoid-wint-in-bool-context-warning.patch
+* kbuild-use-fshort-wchar-globally.patch
+* sparc64-ng4-memset-32-bits-overflow.patch
+* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  workaround-for-a-pci-restoring-bug.patch
