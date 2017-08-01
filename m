@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-use-unsigned-types-for-memcpy-length.patch added to -mm
- tree
-Date: Tue, 01 Aug 2017 14:34:47 -0700
-Message-ID: <5980f3f7.jg3WtADf3ovxNSKm%akpm@linux-foundation.org>
+Subject: + nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch added to
+ -mm tree
+Date: Tue, 01 Aug 2017 14:45:43 -0700
+Message-ID: <5980f687.90Mi9peCp8ZpvPUs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752053AbdHAVes (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:34:48 -0400
+        with ESMTP id S1752718AbdHAVpo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:45:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, keescook@chromium.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, dan.j.williams@intel.com, hch@infradead.org, jthumshirn@suse.de, toshi.kani@hpe.com, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: adfs: use 'unsigned' types for memcpy length
+     Subject: nvdimm: avoid bogus -Wmaybe-uninitialized warning
 has been added to the -mm tree.  Its filename is
-     adfs-use-unsigned-types-for-memcpy-length.patch
+     nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/adfs-use-unsigned-types-for-memcpy-length.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-use-unsigned-types-for-memcpy-length.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +40,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: adfs: use 'unsigned' types for memcpy length
+Subject: nvdimm: avoid bogus -Wmaybe-uninitialized warning
 
-After 62d1034f53e3 ("fortify: use WARN instead of BUG for now"), we get a
-warning in adfs about a possible buffer overflow:
+Removing the btt_rw_page/pmem_rw_page functions has a surprising
+side-effect of introducing a false-positive warning in another function,
+due to changed inlining decisions in gcc:
 
-In function 'memcpy',
-    inlined from '__adfs_dir_put' at fs/adfs/dir_f.c:318:2,
-    inlined from 'adfs_f_update' at fs/adfs/dir_f.c:403:2:
-include/linux/string.h:305:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
-    __read_overflow2();
-    ^~~~~~~~~~~~~~~~~~
+In file included from drivers/nvdimm/pmem.c:36:0:
+drivers/nvdimm/pmem.c: In function 'pmem_make_request':
+drivers/nvdimm/nd.h:407:2: error: 'start' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+drivers/nvdimm/pmem.c:174:16: note: 'start' was declared here
+In file included from drivers/nvdimm/btt.c:27:0:
+drivers/nvdimm/btt.c: In function 'btt_make_request':
+drivers/nvdimm/nd.h:407:2: error: 'start' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+drivers/nvdimm/btt.c:1202:16: note: 'start' was declared here
 
-The warning is correct in the sense that a negative 'pos' argument to the
-function would have that result.  However, this is not a bug, as we know
-the position is always positive (in fact, between 5 and 2007, inclusive)
-when the function gets called.
+The problem is that gcc fails to track the value of the 'do_acct' variable
+here and has to read it back from stack, but it does remember that 'start'
+may be uninitialized sometimes.
 
-Changing the variable to a unsigned type avoids the problem.  I decided to
-use 'unsigned int' for the position in the directory and the block number,
-as they are both counting things, but use size_t for the offset and length
-that get passed into memcpy.  This shuts up the warning.
+This shuts up the warning by making nd_iostat_start() always initialize
+the 'start' variable.  In those cases that gcc successfully tracks the
+state of the variable, this will have no effect.
 
-Link: http://lkml.kernel.org/r/20170801120438.1582336-2-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170801114926.1171418-1-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir_f.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/nvdimm/nd.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length fs/adfs/dir_f.c
---- a/fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length
-+++ a/fs/adfs/dir_f.c
-@@ -283,11 +283,12 @@ __adfs_dir_get(struct adfs_dir *dir, int
- }
- 
- static int
--__adfs_dir_put(struct adfs_dir *dir, int pos, struct object_info *obj)
-+__adfs_dir_put(struct adfs_dir *dir, unsigned int pos, struct object_info *obj)
+diff -puN drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning drivers/nvdimm/nd.h
+--- a/drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning
++++ a/drivers/nvdimm/nd.h
+@@ -392,8 +392,10 @@ static inline bool nd_iostat_start(struc
  {
- 	struct super_block *sb = dir->sb;
- 	struct adfs_direntry de;
--	int thissize, buffer, offset;
-+	unsigned int buffer;
-+	size_t thissize, offset;
+ 	struct gendisk *disk = bio->bi_bdev->bd_disk;
  
- 	buffer = pos >> sb->s_blocksize_bits;
+-	if (!blk_queue_io_stat(disk->queue))
++	if (!blk_queue_io_stat(disk->queue)) {
++		*start = 0;
+ 		return false;
++	}
  
+ 	*start = jiffies;
+ 	generic_start_io_acct(bio_data_dir(bio),
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
 
 kasan-avoid-wmaybe-uninitialized-warning-v3.patch
 adfs-use-unsigned-types-for-memcpy-length.patch
+nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
 fscache-fix-fscache_objlist_show-format-processing.patch
 ib-mlx4-fix-sprintf-format-warning.patch
 iopoll-avoid-wint-in-bool-context-warning.patch
