@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-global-nr_slab_claimable-counter-reads.patch added to
- -mm tree
-Date: Tue, 01 Aug 2017 13:55:27 -0700
-Message-ID: <5980eabf.4gdndRKrhn+w51NP%akpm@linux-foundation.org>
+Subject: + mm-rename-global_page_state-to-global_zone_page_state.patch
+ added to -mm tree
+Date: Tue, 01 Aug 2017 13:55:30 -0700
+Message-ID: <5980eac2.WHIoKiX4/gHuzFKk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54214 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752004AbdHAUz2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 16:55:28 -0400
+        with ESMTP id S1752045AbdHAUzb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 16:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, josef@toxicpanda.com, penguin-kernel@i-love.sakura.ne.jp, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix global NR_SLAB_.*CLAIMABLE counter reads
+     Subject: mm: rename global_page_state to global_zone_page_state
 has been added to the -mm tree.  Its filename is
-     mm-fix-global-nr_slab_claimable-counter-reads.patch
+     mm-rename-global_page_state-to-global_zone_page_state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-global-nr_slab_claimable-counter-reads.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-global_page_state-to-global_zone_page_state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-global-nr_slab_claimable-counter-reads.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-global_page_state-to-global_zone_page_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,117 +39,284 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fix global NR_SLAB_.*CLAIMABLE counter reads
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: rename global_page_state to global_zone_page_state
 
-As Tetsuo points out:
+global_page_state is error prone as a recent bug report pointed out [1]. 
+It only returns proper values for zone based counters as the enum it gets
+suggests.  We already have global_node_page_state so let's rename
+global_page_state to global_zone_page_state to be more explicit here.  All
+existing users seems to be correct:
 
-    Commit 385386cff4c6f047 ("mm: vmstat: move slab statistics from
-    zone to node counters") broke "Slab:" field of /proc/meminfo . It
-    shows nearly 0kB.
+$ git grep "global_page_state(NR_" | sed 's@.*(\(NR_[A-Z_]*\)).*@\1@' | sort | uniq -c
+      2 NR_BOUNCE
+      2 NR_FREE_CMA_PAGES
+     11 NR_FREE_PAGES
+      1 NR_KERNEL_STACK_KB
+      1 NR_MLOCK
+      2 NR_PAGETABLE
 
-In addition to /proc/meminfo, this problem also affects the slab counters
-OOM/allocation failure info dumps, can cause early -ENOMEM from overcommit
-protection, and miscalculate image size requirements during
-suspend-to-disk.
+This patch shouldn't introduce any functional change.
 
-This is because the patch in question switched the slab counters from the
-zone level to the node level, but forgot to update the global accessor
-functions to read the aggregate node data instead of the aggregate zone
-data.
+[1] http://lkml.kernel.org/r/201707260628.v6Q6SmaS030814@www262.sakura.ne.jp
 
-Use global_node_page_state() to access the global slab counters.
-
-Fixes: 385386cff4c6 ("mm: vmstat: move slab statistics from zone to node counters")
-Link: http://lkml.kernel.org/r/20170801134256.5400-1-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20170801134256.5400-2-hannes@cmpxchg.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c       |    8 ++++----
- kernel/power/snapshot.c |    2 +-
- mm/page_alloc.c         |    9 +++++----
- mm/util.c               |    2 +-
- 4 files changed, 11 insertions(+), 10 deletions(-)
+ fs/proc/meminfo.c      |   10 +++++-----
+ include/linux/swap.h   |    4 ++--
+ include/linux/vmstat.h |    4 ++--
+ mm/mmap.c              |    6 +++---
+ mm/nommu.c             |    4 ++--
+ mm/page-writeback.c    |    4 ++--
+ mm/page_alloc.c        |   12 ++++++------
+ mm/util.c              |    2 +-
+ mm/vmstat.c            |    4 ++--
+ 9 files changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads
+diff -puN fs/proc/meminfo.c~mm-rename-global_page_state-to-global_zone_page_state fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-rename-global_page_state-to-global_zone_page_state
 +++ a/fs/proc/meminfo.c
-@@ -106,13 +106,13 @@ static int meminfo_proc_show(struct seq_
- 		    global_node_page_state(NR_FILE_MAPPED));
- 	show_val_kb(m, "Shmem:          ", i.sharedram);
- 	show_val_kb(m, "Slab:           ",
--		    global_page_state(NR_SLAB_RECLAIMABLE) +
--		    global_page_state(NR_SLAB_UNRECLAIMABLE));
-+		    global_node_page_state(NR_SLAB_RECLAIMABLE) +
-+		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
+@@ -80,7 +80,7 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "Active(file):   ", pages[LRU_ACTIVE_FILE]);
+ 	show_val_kb(m, "Inactive(file): ", pages[LRU_INACTIVE_FILE]);
+ 	show_val_kb(m, "Unevictable:    ", pages[LRU_UNEVICTABLE]);
+-	show_val_kb(m, "Mlocked:        ", global_page_state(NR_MLOCK));
++	show_val_kb(m, "Mlocked:        ", global_zone_page_state(NR_MLOCK));
  
- 	show_val_kb(m, "SReclaimable:   ",
--		    global_page_state(NR_SLAB_RECLAIMABLE));
-+		    global_node_page_state(NR_SLAB_RECLAIMABLE));
+ #ifdef CONFIG_HIGHMEM
+ 	show_val_kb(m, "HighTotal:      ", i.totalhigh);
+@@ -114,9 +114,9 @@ static int meminfo_proc_show(struct seq_
  	show_val_kb(m, "SUnreclaim:     ",
--		    global_page_state(NR_SLAB_UNRECLAIMABLE));
-+		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
+ 		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
  	seq_printf(m, "KernelStack:    %8lu kB\n",
- 		   global_page_state(NR_KERNEL_STACK_KB));
+-		   global_page_state(NR_KERNEL_STACK_KB));
++		   global_zone_page_state(NR_KERNEL_STACK_KB));
  	show_val_kb(m, "PageTables:     ",
-diff -puN kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads
-+++ a/kernel/power/snapshot.c
-@@ -1650,7 +1650,7 @@ static unsigned long minimum_image_size(
+-		    global_page_state(NR_PAGETABLE));
++		    global_zone_page_state(NR_PAGETABLE));
+ #ifdef CONFIG_QUICKLIST
+ 	show_val_kb(m, "Quicklists:     ", quicklist_total_size());
+ #endif
+@@ -124,7 +124,7 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "NFS_Unstable:   ",
+ 		    global_node_page_state(NR_UNSTABLE_NFS));
+ 	show_val_kb(m, "Bounce:         ",
+-		    global_page_state(NR_BOUNCE));
++		    global_zone_page_state(NR_BOUNCE));
+ 	show_val_kb(m, "WritebackTmp:   ",
+ 		    global_node_page_state(NR_WRITEBACK_TEMP));
+ 	show_val_kb(m, "CommitLimit:    ", vm_commit_limit());
+@@ -151,7 +151,7 @@ static int meminfo_proc_show(struct seq_
+ #ifdef CONFIG_CMA
+ 	show_val_kb(m, "CmaTotal:       ", totalcma_pages);
+ 	show_val_kb(m, "CmaFree:        ",
+-		    global_page_state(NR_FREE_CMA_PAGES));
++		    global_zone_page_state(NR_FREE_CMA_PAGES));
+ #endif
+ 
+ 	hugetlb_report_meminfo(m);
+diff -puN include/linux/swap.h~mm-rename-global_page_state-to-global_zone_page_state include/linux/swap.h
+--- a/include/linux/swap.h~mm-rename-global_page_state-to-global_zone_page_state
++++ a/include/linux/swap.h
+@@ -263,8 +263,8 @@ extern unsigned long totalreserve_pages;
+ extern unsigned long nr_free_buffer_pages(void);
+ extern unsigned long nr_free_pagecache_pages(void);
+ 
+-/* Definition of global_page_state not available yet */
+-#define nr_free_pages() global_page_state(NR_FREE_PAGES)
++/* Definition of global_zone_page_state not available yet */
++#define nr_free_pages() global_zone_page_state(NR_FREE_PAGES)
+ 
+ 
+ /* linux/mm/swap.c */
+diff -puN include/linux/vmstat.h~mm-rename-global_page_state-to-global_zone_page_state include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-rename-global_page_state-to-global_zone_page_state
++++ a/include/linux/vmstat.h
+@@ -123,7 +123,7 @@ static inline void node_page_state_add(l
+ 	atomic_long_add(x, &vm_node_stat[item]);
+ }
+ 
+-static inline unsigned long global_page_state(enum zone_stat_item item)
++static inline unsigned long global_zone_page_state(enum zone_stat_item item)
  {
- 	unsigned long size;
+ 	long x = atomic_long_read(&vm_zone_stat[item]);
+ #ifdef CONFIG_SMP
+@@ -199,7 +199,7 @@ extern unsigned long sum_zone_node_page_
+ extern unsigned long node_page_state(struct pglist_data *pgdat,
+ 						enum node_stat_item item);
+ #else
+-#define sum_zone_node_page_state(node, item) global_page_state(item)
++#define sum_zone_node_page_state(node, item) global_zone_page_state(item)
+ #define node_page_state(node, item) global_node_page_state(item)
+ #endif /* CONFIG_NUMA */
  
--	size = global_page_state(NR_SLAB_RECLAIMABLE)
-+	size = global_node_page_state(NR_SLAB_RECLAIMABLE)
- 		+ global_node_page_state(NR_ACTIVE_ANON)
- 		+ global_node_page_state(NR_INACTIVE_ANON)
- 		+ global_node_page_state(NR_ACTIVE_FILE)
-diff -puN mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads
+diff -puN mm/mmap.c~mm-rename-global_page_state-to-global_zone_page_state mm/mmap.c
+--- a/mm/mmap.c~mm-rename-global_page_state-to-global_zone_page_state
++++ a/mm/mmap.c
+@@ -3514,7 +3514,7 @@ static int init_user_reserve(void)
+ {
+ 	unsigned long free_kbytes;
+ 
+-	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++	free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
+ 
+ 	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
+ 	return 0;
+@@ -3535,7 +3535,7 @@ static int init_admin_reserve(void)
+ {
+ 	unsigned long free_kbytes;
+ 
+-	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++	free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
+ 
+ 	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
+ 	return 0;
+@@ -3579,7 +3579,7 @@ static int reserve_mem_notifier(struct n
+ 
+ 		break;
+ 	case MEM_OFFLINE:
+-		free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++		free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
+ 
+ 		if (sysctl_user_reserve_kbytes > free_kbytes) {
+ 			init_user_reserve();
+diff -puN mm/nommu.c~mm-rename-global_page_state-to-global_zone_page_state mm/nommu.c
+--- a/mm/nommu.c~mm-rename-global_page_state-to-global_zone_page_state
++++ a/mm/nommu.c
+@@ -1962,7 +1962,7 @@ static int __meminit init_user_reserve(v
+ {
+ 	unsigned long free_kbytes;
+ 
+-	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++	free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
+ 
+ 	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
+ 	return 0;
+@@ -1983,7 +1983,7 @@ static int __meminit init_admin_reserve(
+ {
+ 	unsigned long free_kbytes;
+ 
+-	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++	free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
+ 
+ 	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
+ 	return 0;
+diff -puN mm/page-writeback.c~mm-rename-global_page_state-to-global_zone_page_state mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-rename-global_page_state-to-global_zone_page_state
++++ a/mm/page-writeback.c
+@@ -363,7 +363,7 @@ static unsigned long global_dirtyable_me
+ {
+ 	unsigned long x;
+ 
+-	x = global_page_state(NR_FREE_PAGES);
++	x = global_zone_page_state(NR_FREE_PAGES);
+ 	/*
+ 	 * Pages reserved for the kernel should not be considered
+ 	 * dirtyable, to prevent a situation where reclaim has to
+@@ -1405,7 +1405,7 @@ void wb_update_bandwidth(struct bdi_writ
+  * will look to see if it needs to start dirty throttling.
+  *
+  * If dirty_poll_interval is too low, big NUMA machines will call the expensive
+- * global_page_state() too often. So scale it near-sqrt to the safety margin
++ * global_zone_page_state() too often. So scale it near-sqrt to the safety margin
+  * (the number of pages we may dirty without exceeding the dirty limits).
+  */
+ static unsigned long dirty_poll_interval(unsigned long dirty,
+diff -puN mm/page_alloc.c~mm-rename-global_page_state-to-global_zone_page_state mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rename-global_page_state-to-global_zone_page_state
 +++ a/mm/page_alloc.c
-@@ -4458,8 +4458,9 @@ long si_mem_available(void)
- 	 * Part of the reclaimable slab consists of items that are in use,
- 	 * and cannot be freed. Cap this estimate at the low watermark.
+@@ -4443,7 +4443,7 @@ long si_mem_available(void)
+ 	 * Estimate the amount of memory available for userspace allocations,
+ 	 * without causing swapping.
  	 */
--	available += global_page_state(NR_SLAB_RECLAIMABLE) -
--		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
-+	available += global_node_page_state(NR_SLAB_RECLAIMABLE) -
-+		     min(global_node_page_state(NR_SLAB_RECLAIMABLE) / 2,
-+			 wmark_low);
+-	available = global_page_state(NR_FREE_PAGES) - totalreserve_pages;
++	available = global_zone_page_state(NR_FREE_PAGES) - totalreserve_pages;
  
- 	if (available < 0)
- 		available = 0;
-@@ -4602,8 +4603,8 @@ void show_free_areas(unsigned int filter
- 		global_node_page_state(NR_FILE_DIRTY),
- 		global_node_page_state(NR_WRITEBACK),
- 		global_node_page_state(NR_UNSTABLE_NFS),
--		global_page_state(NR_SLAB_RECLAIMABLE),
--		global_page_state(NR_SLAB_UNRECLAIMABLE),
-+		global_node_page_state(NR_SLAB_RECLAIMABLE),
-+		global_node_page_state(NR_SLAB_UNRECLAIMABLE),
+ 	/*
+ 	 * Not all the page cache can be freed, otherwise the system will
+@@ -4472,7 +4472,7 @@ void si_meminfo(struct sysinfo *val)
+ {
+ 	val->totalram = totalram_pages;
+ 	val->sharedram = global_node_page_state(NR_SHMEM);
+-	val->freeram = global_page_state(NR_FREE_PAGES);
++	val->freeram = global_zone_page_state(NR_FREE_PAGES);
+ 	val->bufferram = nr_blockdev_pages();
+ 	val->totalhigh = totalhigh_pages;
+ 	val->freehigh = nr_free_highpages();
+@@ -4607,11 +4607,11 @@ void show_free_areas(unsigned int filter
+ 		global_node_page_state(NR_SLAB_UNRECLAIMABLE),
  		global_node_page_state(NR_FILE_MAPPED),
  		global_node_page_state(NR_SHMEM),
- 		global_page_state(NR_PAGETABLE),
-diff -puN mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads mm/util.c
---- a/mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads
+-		global_page_state(NR_PAGETABLE),
+-		global_page_state(NR_BOUNCE),
+-		global_page_state(NR_FREE_PAGES),
++		global_zone_page_state(NR_PAGETABLE),
++		global_zone_page_state(NR_BOUNCE),
++		global_zone_page_state(NR_FREE_PAGES),
+ 		free_pcp,
+-		global_page_state(NR_FREE_CMA_PAGES));
++		global_zone_page_state(NR_FREE_CMA_PAGES));
+ 
+ 	for_each_online_pgdat(pgdat) {
+ 		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
+diff -puN mm/util.c~mm-rename-global_page_state-to-global_zone_page_state mm/util.c
+--- a/mm/util.c~mm-rename-global_page_state-to-global_zone_page_state
 +++ a/mm/util.c
-@@ -633,7 +633,7 @@ int __vm_enough_memory(struct mm_struct
- 		 * which are reclaimable, under pressure.  The dentry
- 		 * cache and most inode caches should fall into this
- 		 */
--		free += global_page_state(NR_SLAB_RECLAIMABLE);
-+		free += global_node_page_state(NR_SLAB_RECLAIMABLE);
+@@ -614,7 +614,7 @@ int __vm_enough_memory(struct mm_struct
+ 		return 0;
+ 
+ 	if (sysctl_overcommit_memory == OVERCOMMIT_GUESS) {
+-		free = global_page_state(NR_FREE_PAGES);
++		free = global_zone_page_state(NR_FREE_PAGES);
+ 		free += global_node_page_state(NR_FILE_PAGES);
  
  		/*
- 		 * Leave reserved pages. The pages are not for anonymous pages.
+diff -puN mm/vmstat.c~mm-rename-global_page_state-to-global_zone_page_state mm/vmstat.c
+--- a/mm/vmstat.c~mm-rename-global_page_state-to-global_zone_page_state
++++ a/mm/vmstat.c
+@@ -1502,7 +1502,7 @@ static void *vmstat_start(struct seq_fil
+ 	if (!v)
+ 		return ERR_PTR(-ENOMEM);
+ 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+-		v[i] = global_page_state(i);
++		v[i] = global_zone_page_state(i);
+ 	v += NR_VM_ZONE_STAT_ITEMS;
+ 
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+@@ -1591,7 +1591,7 @@ int vmstat_refresh(struct ctl_table *tab
+ 	 * which can equally be echo'ed to or cat'ted from (by root),
+ 	 * can be used to update the stats just before reading them.
+ 	 *
+-	 * Oh, and since global_page_state() etc. are so careful to hide
++	 * Oh, and since global_zone_page_state() etc. are so careful to hide
+ 	 * transiently negative values, report an error here if any of
+ 	 * the stats is negative, so we know to go looking for imbalance.
+ 	 */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-fix-global-nr_slab_claimable-counter-reads.patch
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
+mm-rename-global_page_state-to-global_zone_page_state.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
 
