@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-use-unsigned-types-for-memcpy-length.patch added to -mm
- tree
-Date: Tue, 01 Aug 2017 14:46:30 -0700
-Message-ID: <5980f6b6.R+03xm1n1WXlaDDt%akpm@linux-foundation.org>
+Subject: +
+ mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch added
+ to -mm tree
+Date: Tue, 01 Aug 2017 15:20:10 -0700
+Message-ID: <5980fe9a.IfVMlY96i07y5Bs7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39876 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751981AbdHAVqb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 17:46:31 -0400
+        with ESMTP id S1751554AbdHAWUL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2017 18:20:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, keescook@chromium.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, arnd@arndb.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: adfs: use 'unsigned' types for memcpy length
+     Subject: mm, THP, swap: Silence a compiler warning
 has been added to the -mm tree.  Its filename is
-     adfs-use-unsigned-types-for-memcpy-length.patch
+     mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/adfs-use-unsigned-types-for-memcpy-length.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-use-unsigned-types-for-memcpy-length.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +40,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: adfs: use 'unsigned' types for memcpy length
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, THP, swap: Silence a compiler warning
 
-After 62d1034f53e3 ("fortify: use WARN instead of BUG for now"), we get a
-warning in adfs about a possible buffer overflow:
+To fix the following compiler warning,
 
-In function 'memcpy',
-    inlined from '__adfs_dir_put' at fs/adfs/dir_f.c:318:2,
-    inlined from 'adfs_f_update' at fs/adfs/dir_f.c:403:2:
-include/linux/string.h:305:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
-    __read_overflow2();
-    ^~~~~~~~~~~~~~~~~~
+mm/swapfile.c: In function 'reuse_swap_page':
+mm/swapfile.c:1429:16: warning: 'offset' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  unsigned long offset;
+                ^
+This is a false positive report, but we should silence it anyway.
 
-The warning is correct in the sense that a negative 'pos' argument to the
-function would have that result.  However, this is not a bug, as we know
-the position is always positive (in fact, between 5 and 2007, inclusive)
-when the function gets called.
-
-Changing the variable to a unsigned type avoids the problem.  I decided to
-use 'unsigned int' for the position in the directory and the block number,
-as they are both counting things, but use size_t for the offset and length
-that get passed into memcpy.  This shuts up the warning.
-
-Link: http://lkml.kernel.org/r/20170801120438.1582336-2-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/87bmnzizjy.fsf@yhuang-dev.intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir_f.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length fs/adfs/dir_f.c
---- a/fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length
-+++ a/fs/adfs/dir_f.c
-@@ -283,11 +283,12 @@ __adfs_dir_get(struct adfs_dir *dir, int
- }
- 
- static int
--__adfs_dir_put(struct adfs_dir *dir, int pos, struct object_info *obj)
-+__adfs_dir_put(struct adfs_dir *dir, unsigned int pos, struct object_info *obj)
+diff -puN mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix
++++ a/mm/swapfile.c
+@@ -1410,7 +1410,7 @@ static int page_trans_huge_map_swapcount
+ 					 int *total_swapcount)
  {
- 	struct super_block *sb = dir->sb;
- 	struct adfs_direntry de;
--	int thissize, buffer, offset;
-+	unsigned int buffer;
-+	size_t thissize, offset;
- 
- 	buffer = pos >> sb->s_blocksize_bits;
- 
+ 	int i, map_swapcount, _total_mapcount, _total_swapcount;
+-	unsigned long offset;
++	unsigned long offset = 0;
+ 	struct swap_info_struct *si;
+ 	struct swap_cluster_info *ci = NULL;
+ 	unsigned char *map = NULL;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-kasan-avoid-wmaybe-uninitialized-warning-v3.patch
-adfs-use-unsigned-types-for-memcpy-length.patch
-nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
-fscache-fix-fscache_objlist_show-format-processing.patch
-ib-mlx4-fix-sprintf-format-warning.patch
-iopoll-avoid-wint-in-bool-context-warning.patch
-kbuild-use-fshort-wchar-globally.patch
+mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
+mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+block-thp-make-block_device_operationsrw_page-support-thp.patch
+test-code-to-write-thp-to-swap-device-as-a-whole.patch
+mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
+memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
+memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
 
