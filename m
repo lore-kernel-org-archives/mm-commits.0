@@ -1,88 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch removed from -mm tree
-Date: Wed, 02 Aug 2017 13:22:42 -0700
-Message-ID: <59823492.TvRbzHaCcNAE6K9Z%akpm@linux-foundation.org>
+Subject: [folded-merged] fortify-use-warn-instead-of-bug-for-now-fix.patch removed from -mm tree
+Date: Wed, 02 Aug 2017 13:23:44 -0700
+Message-ID: <598234d0.F5EO9Nm4P/f6yDy2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44888 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753197AbdHBUWn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:22:43 -0400
+        with ESMTP id S1752118AbdHBUXo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, danielmicay@gmail.com, jpoimboe@redhat.com, keescook@chromium.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix
+     Subject: fortify-use-warn-instead-of-bug-for-now-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
+     fortify-use-warn-instead-of-bug-for-now-fix.patch
 
-This patch was dropped because it was folded into mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries.patch
+This patch was dropped because it was folded into fortify-use-warn-instead-of-bug-for-now.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix
+Subject: fortify-use-warn-instead-of-bug-for-now-fix
 
-tweak comments
+remove fortify_overflow from tools/objtool/check.c:global_noreturns, per Josh
 
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ tools/objtool/check.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix mm/rmap.c
---- a/mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix
-+++ a/mm/rmap.c
-@@ -605,7 +605,7 @@ static void set_tlb_ubc_flush_pending(st
- 	tlb_ubc->flush_required = true;
+diff -puN tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now-fix tools/objtool/check.c
+--- a/tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now-fix
++++ a/tools/objtool/check.c
+@@ -156,7 +156,6 @@ static int __dead_end_function(struct ob
+ 		"kvm_spurious_fault",
+ 		"__reiserfs_panic",
+ 		"lbug_with_loc",
+-		"fortify_overflow",
+ 	};
  
- 	/*
--	 * Ensure compiler does not re-order the setting ot tlb_flush_batched
-+	 * Ensure compiler does not re-order the setting of tlb_flush_batched
- 	 * before the PTE is cleared.
- 	 */
- 	barrier();
-@@ -640,19 +640,19 @@ static bool should_defer_flush(struct mm
- }
- 
- /*
-- * Reclaim unmaps pages under the PTL but does not flush the TLB prior to
-- * releasing the PTL if TLB flushes are batched. It's possible a parallel
-+ * Reclaim unmaps pages under the PTL but do not flush the TLB prior to
-+ * releasing the PTL if TLB flushes are batched. It's possible for a parallel
-  * operation such as mprotect or munmap to race between reclaim unmapping
-- * the page and flushing the page If this race occurs, it potentially allows
-+ * the page and flushing the page. If this race occurs, it potentially allows
-  * access to data via a stale TLB entry. Tracking all mm's that have TLB
-  * batching in flight would be expensive during reclaim so instead track
-  * whether TLB batching occured in the past and if so then do a flush here
-  * if required. This will cost one additional flush per reclaim cycle paid
-  * by the first operation at risk such as mprotect and mumap.
-  *
-- * This must be called under the PTL so that accesses to tlb_flush_batched
-- * that is potentially a "reclaim vs mprotect/munmap/etc" race will
-- * synchronise via the PTL.
-+ * This must be called under the PTL so that an access to tlb_flush_batched
-+ * that is potentially a "reclaim vs mprotect/munmap/etc" race will synchronise
-+ * via the PTL.
-  */
- void flush_tlb_batched_pending(struct mm_struct *mm)
- {
+ 	if (func->bind == STB_WEAK)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
-fortify-use-warn-instead-of-bug-for-now-fix.patch
+fortify-use-warn-instead-of-bug-for-now.patch
 swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
