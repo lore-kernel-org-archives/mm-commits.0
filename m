@@ -1,90 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [patch 16/16] ocfs2: don't clear SGID when inheriting ACLs
-Date: Wed, 02 Aug 2017 13:32:30 -0700
-Message-ID: <598236de.XiPJldXnXBApmK6H%akpm@linux-foundation.org>
+Subject: + add-testcases-for-memset16-32-64-fix.patch added to -mm tree
+Date: Wed, 02 Aug 2017 13:56:57 -0700
+Message-ID: <59823c99.4otBCswHu7PmxNhN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753103AbdHBUcb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:32:31 -0400
+        with ESMTP id S1752616AbdHBU5D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:57:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, stable@vger.kernel.org
+To: akpm@linux-foundation.org, mawilcox@microsoft.com, willy@infradead.org, mm-commits@vger.kernel.org
 
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: don't clear SGID when inheriting ACLs
 
-When new directory 'DIR1' is created in a directory 'DIR0' with SGID bit
-set, DIR1 is expected to have SGID bit set (and owning group equal to the
-owning group of 'DIR0').  However when 'DIR0' also has some default ACLs
-that 'DIR1' inherits, setting these ACLs will result in SGID bit on 'DIR1'
-to get cleared if user is not member of the owning group.
+The patch titled
+     Subject: add-testcases-for-memset16-32-64-fix
+has been added to the -mm tree.  Its filename is
+     add-testcases-for-memset16-32-64-fix.patch
 
-Fix the problem by moving posix_acl_update_mode() out of ocfs2_set_acl()
-into ocfs2_iop_set_acl().  That way the function will not be called when
-inheriting ACLs which is what we want as it prevents SGID bit clearing and
-the mode has been properly set by posix_acl_create() anyway.  Also
-posix_acl_chmod() that is calling ocfs2_set_acl() takes care of updating
-mode itself.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/add-testcases-for-memset16-32-64-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-testcases-for-memset16-32-64-fix.patch
 
-Fixes: 073931017b4 ("posix_acl: Clear SGID bit when setting file permissions")
-Link: http://lkml.kernel.org/r/20170801141252.19675-3-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: <stable@vger.kernel.org>
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: add-testcases-for-memset16-32-64-fix
+
+minor tweaks
+
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ lib/string.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls
-+++ a/fs/ocfs2/acl.c
-@@ -240,18 +240,6 @@ int ocfs2_set_acl(handle_t *handle,
- 	switch (type) {
- 	case ACL_TYPE_ACCESS:
- 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_ACCESS;
--		if (acl) {
--			umode_t mode;
--
--			ret = posix_acl_update_mode(inode, &mode, &acl);
--			if (ret)
--				return ret;
--
--			ret = ocfs2_acl_set_mode(inode, di_bh,
--						 handle, mode);
--			if (ret)
--				return ret;
--		}
- 		break;
- 	case ACL_TYPE_DEFAULT:
- 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT;
-@@ -289,7 +277,19 @@ int ocfs2_iop_set_acl(struct inode *inod
- 	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
- 	if (had_lock < 0)
- 		return had_lock;
-+	if (type == ACL_TYPE_ACCESS && acl) {
-+		umode_t mode;
-+
-+		status = posix_acl_update_mode(inode, &mode, &acl);
-+		if (status)
-+			goto unlock;
-+
-+		status = ocfs2_acl_set_mode(inode, bh, NULL, mode);
-+		if (status)
-+			goto unlock;
-+	}
- 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
-+unlock:
- 	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
- 	brelse(bh);
- 	return status;
+diff -puN lib/string.c~add-testcases-for-memset16-32-64-fix lib/string.c
+--- a/lib/string.c~add-testcases-for-memset16-32-64-fix
++++ a/lib/string.c
+@@ -1149,7 +1149,6 @@ fail:
+ 	if (i < 256)
+ 		return (i << 24) | (j << 16) | k;
+ 	return 0;
+-	return 0;
+ }
+ 
+ static __init int string_selftest_init(void)
+@@ -1179,4 +1178,4 @@ fail:
+ }
+ 
+ module_init(string_selftest_init);
+-#endif
++#endif	/* CONFIG_STRING_SELFTEST */
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+add-testcases-for-memset16-32-64-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
