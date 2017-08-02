@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + test_kmod-fix-small-memory-leak-on-filesystem-tests.patch added to -mm tree
-Date: Wed, 02 Aug 2017 15:47:03 -0700
-Message-ID: <59825667.MGl6JCJmzZGVT/Rw%akpm@linux-foundation.org>
+Subject: +
+ test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing.patch
+ added to -mm tree
+Date: Wed, 02 Aug 2017 15:48:49 -0700
+Message-ID: <598256d1.r4wyn8LuvYp4mVMM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54212 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751062AbdHBWrG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:47:06 -0400
+        with ESMTP id S1751058AbdHBWsu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:48:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dan.carpenter@oracle.com, colin.king@canonical.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_kmod: fix small memory leak on filesystem tests
+     Subject: test_kmod: remove paranoid UINT_MAX check on uint range processing
 has been added to the -mm tree.  Its filename is
-     test_kmod-fix-small-memory-leak-on-filesystem-tests.patch
+     test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_kmod-fix-small-memory-leak-on-filesystem-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_kmod-fix-small-memory-leak-on-filesystem-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +41,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: test_kmod: fix small memory leak on filesystem tests
+Subject: test_kmod: remove paranoid UINT_MAX check on uint range processing
 
-The break was in the wrong place so file system tests don't work as
-intended, leaking memory at each test switch.
+The UINT_MAX comparison is not needed because "max" is already an unsigned
+int, and we expect developer C code max value input to have a sensible 0 -
+UINT_MAX range.  Note that if it so happens to be UINT_MAX + 1 it would
+lead to an issue, but we expect the developer to know this.
 
-[mcgrof@kernel.org: massaged commit subject, noted memory leak issue without the fix]
-Link: http://lkml.kernel.org/r/20170802211450.27928-6-mcgrof@kernel.org
-Fixes: 39258f448d71 ("kmod: add test driver to stress test the module loader")
+[mcgrof@kernel.org: massaged commit log]
+Link: http://lkml.kernel.org/r/20170802211707.28020-2-mcgrof@kernel.org
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Reported-by: David Binderman <dcb314@hotmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Petr Mladek <pmladek@suse.com>
+Cc: Jessica Yu <jeyu@redhat.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  lib/test_kmod.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/test_kmod.c~test_kmod-fix-small-memory-leak-on-filesystem-tests lib/test_kmod.c
---- a/lib/test_kmod.c~test_kmod-fix-small-memory-leak-on-filesystem-tests
+diff -puN lib/test_kmod.c~test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing lib/test_kmod.c
+--- a/lib/test_kmod.c~test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing
 +++ a/lib/test_kmod.c
-@@ -746,11 +746,11 @@ static int trigger_config_run_type(struc
- 						      strlen(test_str));
- 		break;
- 	case TEST_KMOD_FS_TYPE:
--		break;
- 		kfree_const(config->test_fs);
- 		config->test_driver = NULL;
- 		copied = config_copy_test_fs(config, test_str,
- 					     strlen(test_str));
-+		break;
- 	default:
- 		mutex_unlock(&test_dev->config_mutex);
+@@ -924,7 +924,7 @@ static int test_dev_config_update_uint_r
+ 	if (ret)
+ 		return ret;
+ 
+-	if (new < min || new >  max || new > UINT_MAX)
++	if (new < min || new > max)
  		return -EINVAL;
+ 
+ 	mutex_lock(&test_dev->config_mutex);
 _
 
 Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 test_kmod-fix-the-lock-in-register_test_dev_kmod.patch
 test_kmod-fix-small-memory-leak-on-filesystem-tests.patch
+test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing.patch
+test_kmod-flip-int-checks-to-be-consistent.patch
 
