@@ -1,81 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch added
- to -mm tree
-Date: Wed, 02 Aug 2017 15:27:48 -0700
-Message-ID: <598251e4.jIxB5dCX3YNuWrvs%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch removed from -mm
+ tree
+Date: Wed, 02 Aug 2017 15:28:40 -0700
+Message-ID: <59825218.HsKZ4GddkejImZPn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49278 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751727AbdHBW1t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:27:49 -0400
+        with ESMTP id S1751161AbdHBW2k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.perevalov@samsung.com, aarcange@redhat.com, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, dan.j.williams@intel.com, hch@infradead.org, jthumshirn@suse.de, toshi.kani@hpe.com, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix
-has been added to the -mm tree.  Its filename is
-     userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+     Subject: nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
+has been removed from the -mm tree.  Its filename was
+     nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix
+Subject: nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
 
-fix uffdio_zeropage(), per Mike Kravetz
-
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/nvdimm/nd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -813,13 +813,14 @@ static int uffdio_zeropage(int ufd, unsi
- 		if (uffdio_zeropage.zeropage != page_size) {
- 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
- 				uffdio_zeropage.zeropage), exit(1);
--		} else
-+		} else {
- 			if (test_uffdio_zeropage_eexist) {
- 				test_uffdio_zeropage_eexist = false;
- 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
- 						      offset);
- 			}
- 			return 1;
-+		}
- 	} else {
- 		fprintf(stderr,
- 			"UFFDIO_ZEROPAGE succeeded %Ld\n",
+diff -puN drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix drivers/nvdimm/nd.h
+--- a/drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix
++++ a/drivers/nvdimm/nd.h
+@@ -393,7 +393,7 @@ static inline bool nd_iostat_start(struc
+ 	struct gendisk *disk = bio->bi_bdev->bd_disk;
+ 
+ 	if (!blk_queue_io_stat(disk->queue)) {
+-		*start = 0;
++		*start = 0;	/* Suppress bogus warning */
+ 		return false;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,7 +66,7 @@ mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
 mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
 mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
 zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-nvdimm-avoid-bogus-wmaybe-uninitialized-warning-fix.patch
+nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
 treewide-remove-gfp_temporary-allocation-flag-fix.patch
 treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
 userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
