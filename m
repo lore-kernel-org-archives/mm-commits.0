@@ -1,223 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/16] mm, mprotect: flush TLB if potentially racing with
- a parallel reclaim leaving stale TLB entries
-Date: Wed, 02 Aug 2017 13:31:52 -0700
-Message-ID: <598236b8.OSDZXZ9FnryoKPbh%akpm@linux-foundation.org>
+Subject: [patch 08/16] fortify: use WARN instead of BUG for now
+Date: Wed, 02 Aug 2017 13:32:06 -0700
+Message-ID: <598236c6.5zsRNFUQTD9/7toc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45998 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752706AbdHBUbx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:31:53 -0400
+        with ESMTP id S1752986AbdHBUcH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:32:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@suse.de, luto@kernel.org, nadav.amit@gmail.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, danielmicay@gmail.com, jpoimboe@redhat.com
 
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm, mprotect: flush TLB if potentially racing with a parallel reclaim leaving stale TLB entries
+From: Kees Cook <keescook@chromium.org>
+Subject: fortify: use WARN instead of BUG for now
 
-Nadav Amit identified a theoritical race between page reclaim and mprotect
-due to TLB flushes being batched outside of the PTL being held.  He
-described the race as follows
+While CONFIG_FORTIFY_SOURCE continues to shake out, don't unconditionally
+use BUG(), opting instead for WARN().  This also renames fortify_panic()
+to fortify_overflow() which better matches what it is being called for.
 
-        CPU0                            CPU1
-        ----                            ----
-                                        user accesses memory using RW PTE
-                                        [PTE now cached in TLB]
-        try_to_unmap_one()
-        ==> ptep_get_and_clear()
-        ==> set_tlb_ubc_flush_pending()
-                                        mprotect(addr, PROT_READ)
-                                        ==> change_pte_range()
-                                        ==> [ PTE non-present - no flush ]
-
-                                        user writes using cached RW PTE
-        ...
-
-        try_to_unmap_flush()
-
-The same type of race exists for reads when protecting for PROT_NONE and
-also exists for operations that can leave an old TLB entry behind such as
-munmap, mremap and madvise.
-
-For some operations like mprotect, it's not necessarily a data integrity
-issue but it is a correctness issue as there is a window where an mprotect
-that limits access still allows access.  For munmap, it's potentially a
-data integrity issue although the race is massive as an munmap, mmap and
-return to userspace must all complete between the window when reclaim
-drops the PTL and flushes the TLB.  However, it's theoritically possible
-so handle this issue by flushing the mm if reclaim is potentially
-currently batching TLB flushes.
-
-Other instances where a flush is required for a present pte should be ok
-as either the page lock is held preventing parallel reclaim or a page
-reference count is elevated preventing a parallel free leading to
-corruption.  In the case of page_mkclean there isn't an obvious path that
-userspace could take advantage of without using the operations that are
-guarded by this patch.  Other users such as gup as a race with reclaim
-looks just at PTEs.  huge page variants should be ok as they don't race
-with reclaim.  mincore only looks at PTEs.  userfault also should be ok as
-if a parallel reclaim takes place, it will either fault the page back in
-or read some of the data before the flush occurs triggering a fault.
-
-Note that a variant of this patch was acked by Andy Lutomirski but this
-was for the x86 parts on top of his PCID work which didn't make the 4.13
-merge window as expected.  His ack is dropped from this version and there
-will be a follow-on patch on top of PCID that will include his ack.
-
-[akpm@linux-foundation.org: tweak comments]
-[akpm@linux-foundation.org: fix spello]
-Link: http://lkml.kernel.org/r/20170717155523.emckq2esjro6hf3z@suse.de
-Reported-by: Nadav Amit <nadav.amit@gmail.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: <stable@vger.kernel.org>	[v4.4+]
+[akpm@linux-foundation.org: remove fortify_overflow from tools/objtool/check.c:global_noreturns, per Josh]
+Link: http://lkml.kernel.org/r/20170726185219.GA57833@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    4 ++++
- mm/internal.h            |    5 ++++-
- mm/madvise.c             |    1 +
- mm/memory.c              |    1 +
- mm/mprotect.c            |    1 +
- mm/mremap.c              |    1 +
- mm/rmap.c                |   36 ++++++++++++++++++++++++++++++++++++
- 7 files changed, 48 insertions(+), 1 deletion(-)
+ arch/x86/boot/compressed/misc.c |    2 +-
+ include/linux/string.h          |   30 +++++++++++++++---------------
+ lib/string.c                    |    7 +++----
+ tools/objtool/check.c           |    1 -
+ 4 files changed, 19 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/include/linux/mm_types.h
-@@ -495,6 +495,10 @@ struct mm_struct {
- 	 */
- 	bool tlb_flush_pending;
- #endif
-+#ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
-+	/* See flush_tlb_batched_pending() */
-+	bool tlb_flush_batched;
-+#endif
- 	struct uprobes_state uprobes_state;
- #ifdef CONFIG_HUGETLB_PAGE
- 	atomic_long_t hugetlb_usage;
-diff -puN mm/internal.h~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries mm/internal.h
---- a/mm/internal.h~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/mm/internal.h
-@@ -498,6 +498,7 @@ extern struct workqueue_struct *mm_percp
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- void try_to_unmap_flush(void);
- void try_to_unmap_flush_dirty(void);
-+void flush_tlb_batched_pending(struct mm_struct *mm);
- #else
- static inline void try_to_unmap_flush(void)
- {
-@@ -505,7 +506,9 @@ static inline void try_to_unmap_flush(vo
- static inline void try_to_unmap_flush_dirty(void)
- {
+diff -puN arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now
++++ a/arch/x86/boot/compressed/misc.c
+@@ -412,7 +412,7 @@ asmlinkage __visible void *extract_kerne
+ 	return output;
  }
--
-+static inline void flush_tlb_batched_pending(struct mm_struct *mm)
-+{
-+}
- #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
  
- extern const struct trace_print_flags pageflag_names[];
-diff -puN mm/madvise.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries mm/madvise.c
---- a/mm/madvise.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/mm/madvise.c
-@@ -320,6 +320,7 @@ static int madvise_free_pte_range(pmd_t
- 
- 	tlb_remove_check_page_size_change(tlb, PAGE_SIZE);
- 	orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+	flush_tlb_batched_pending(mm);
- 	arch_enter_lazy_mmu_mode();
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		ptent = *pte;
-diff -puN mm/memory.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries mm/memory.c
---- a/mm/memory.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/mm/memory.c
-@@ -1197,6 +1197,7 @@ again:
- 	init_rss_vec(rss);
- 	start_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
- 	pte = start_pte;
-+	flush_tlb_batched_pending(mm);
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		pte_t ptent = *pte;
-diff -puN mm/mprotect.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/mm/mprotect.c
-@@ -64,6 +64,7 @@ static unsigned long change_pte_range(st
- 	    atomic_read(&vma->vm_mm->mm_users) == 1)
- 		target_node = numa_node_id();
- 
-+	flush_tlb_batched_pending(vma->vm_mm);
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		oldpte = *pte;
-diff -puN mm/mremap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries mm/mremap.c
---- a/mm/mremap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/mm/mremap.c
-@@ -152,6 +152,7 @@ static void move_ptes(struct vm_area_str
- 	new_ptl = pte_lockptr(mm, new_pmd);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-+	flush_tlb_batched_pending(vma->vm_mm);
- 	arch_enter_lazy_mmu_mode();
- 
- 	for (; old_addr < old_end; old_pte++, old_addr += PAGE_SIZE,
-diff -puN mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries mm/rmap.c
---- a/mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries
-+++ a/mm/rmap.c
-@@ -605,6 +605,13 @@ static void set_tlb_ubc_flush_pending(st
- 	tlb_ubc->flush_required = true;
- 
- 	/*
-+	 * Ensure compiler does not re-order the setting of tlb_flush_batched
-+	 * before the PTE is cleared.
-+	 */
-+	barrier();
-+	mm->tlb_flush_batched = true;
-+
-+	/*
- 	 * If the PTE was dirty then it's best to assume it's writable. The
- 	 * caller must use try_to_unmap_flush_dirty() or try_to_unmap_flush()
- 	 * before the page is queued for IO.
-@@ -631,6 +638,35 @@ static bool should_defer_flush(struct mm
- 
- 	return should_defer;
- }
-+
-+/*
-+ * Reclaim unmaps pages under the PTL but do not flush the TLB prior to
-+ * releasing the PTL if TLB flushes are batched. It's possible for a parallel
-+ * operation such as mprotect or munmap to race between reclaim unmapping
-+ * the page and flushing the page. If this race occurs, it potentially allows
-+ * access to data via a stale TLB entry. Tracking all mm's that have TLB
-+ * batching in flight would be expensive during reclaim so instead track
-+ * whether TLB batching occurred in the past and if so then do a flush here
-+ * if required. This will cost one additional flush per reclaim cycle paid
-+ * by the first operation at risk such as mprotect and mumap.
-+ *
-+ * This must be called under the PTL so that an access to tlb_flush_batched
-+ * that is potentially a "reclaim vs mprotect/munmap/etc" race will synchronise
-+ * via the PTL.
-+ */
-+void flush_tlb_batched_pending(struct mm_struct *mm)
-+{
-+	if (mm->tlb_flush_batched) {
-+		flush_tlb_mm(mm);
-+
-+		/*
-+		 * Do not allow the compiler to re-order the clearing of
-+		 * tlb_flush_batched before the tlb is flushed.
-+		 */
-+		barrier();
-+		mm->tlb_flush_batched = false;
-+	}
-+}
- #else
- static void set_tlb_ubc_flush_pending(struct mm_struct *mm, bool writable)
+-void fortify_panic(const char *name)
++void fortify_overflow(const char *name)
  {
+ 	error("detected buffer overflow");
+ }
+diff -puN include/linux/string.h~fortify-use-warn-instead-of-bug-for-now include/linux/string.h
+--- a/include/linux/string.h~fortify-use-warn-instead-of-bug-for-now
++++ a/include/linux/string.h
+@@ -197,7 +197,7 @@ static inline const char *kbasename(cons
+ #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
+ #define __RENAME(x) __asm__(#x)
+ 
+-void fortify_panic(const char *name) __noreturn __cold;
++void fortify_overflow(const char *name) __cold;
+ void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
+ void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
+ void __write_overflow(void) __compiletime_error("detected write beyond size of object passed as 1st parameter");
+@@ -209,7 +209,7 @@ __FORTIFY_INLINE char *strncpy(char *p,
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_strncpy(p, q, size);
+ }
+ 
+@@ -219,7 +219,7 @@ __FORTIFY_INLINE char *strcat(char *p, c
+ 	if (p_size == (size_t)-1)
+ 		return __builtin_strcat(p, q);
+ 	if (strlcat(p, q, p_size) >= p_size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return p;
+ }
+ 
+@@ -231,7 +231,7 @@ __FORTIFY_INLINE __kernel_size_t strlen(
+ 		return __builtin_strlen(p);
+ 	ret = strnlen(p, p_size);
+ 	if (p_size <= ret)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return ret;
+ }
+ 
+@@ -241,7 +241,7 @@ __FORTIFY_INLINE __kernel_size_t strnlen
+ 	size_t p_size = __builtin_object_size(p, 0);
+ 	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
+ 	if (p_size <= ret && maxlen != ret)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return ret;
+ }
+ 
+@@ -260,7 +260,7 @@ __FORTIFY_INLINE size_t strlcpy(char *p,
+ 		if (__builtin_constant_p(len) && len >= p_size)
+ 			__write_overflow();
+ 		if (len >= p_size)
+-			fortify_panic(__func__);
++			fortify_overflow(__func__);
+ 		__builtin_memcpy(p, q, len);
+ 		p[len] = '\0';
+ 	}
+@@ -278,7 +278,7 @@ __FORTIFY_INLINE char *strncat(char *p,
+ 	p_len = strlen(p);
+ 	copy_len = strnlen(q, count);
+ 	if (p_size < p_len + copy_len + 1)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	__builtin_memcpy(p + p_len, q, copy_len);
+ 	p[p_len + copy_len] = '\0';
+ 	return p;
+@@ -290,7 +290,7 @@ __FORTIFY_INLINE void *memset(void *p, i
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memset(p, c, size);
+ }
+ 
+@@ -305,7 +305,7 @@ __FORTIFY_INLINE void *memcpy(void *p, c
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memcpy(p, q, size);
+ }
+ 
+@@ -320,7 +320,7 @@ __FORTIFY_INLINE void *memmove(void *p,
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memmove(p, q, size);
+ }
+ 
+@@ -331,7 +331,7 @@ __FORTIFY_INLINE void *memscan(void *p,
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_memscan(p, c, size);
+ }
+ 
+@@ -346,7 +346,7 @@ __FORTIFY_INLINE int memcmp(const void *
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memcmp(p, q, size);
+ }
+ 
+@@ -356,7 +356,7 @@ __FORTIFY_INLINE void *memchr(const void
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memchr(p, c, size);
+ }
+ 
+@@ -367,7 +367,7 @@ __FORTIFY_INLINE void *memchr_inv(const
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_memchr_inv(p, c, size);
+ }
+ 
+@@ -378,7 +378,7 @@ __FORTIFY_INLINE void *kmemdup(const voi
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_kmemdup(p, size, gfp);
+ }
+ 
+diff -puN lib/string.c~fortify-use-warn-instead-of-bug-for-now lib/string.c
+--- a/lib/string.c~fortify-use-warn-instead-of-bug-for-now
++++ a/lib/string.c
+@@ -979,9 +979,8 @@ char *strreplace(char *s, char old, char
+ }
+ EXPORT_SYMBOL(strreplace);
+ 
+-void fortify_panic(const char *name)
++void fortify_overflow(const char *name)
+ {
+-	pr_emerg("detected buffer overflow in %s\n", name);
+-	BUG();
++	WARN(1, "detected buffer overflow in %s\n", name);
+ }
+-EXPORT_SYMBOL(fortify_panic);
++EXPORT_SYMBOL(fortify_overflow);
+diff -puN tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now tools/objtool/check.c
+--- a/tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now
++++ a/tools/objtool/check.c
+@@ -156,7 +156,6 @@ static int __dead_end_function(struct ob
+ 		"kvm_spurious_fault",
+ 		"__reiserfs_panic",
+ 		"lbug_with_loc",
+-		"fortify_panic",
+ 	};
+ 
+ 	if (func->bind == STB_WEAK)
 _
