@@ -1,116 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Wed, 02 Aug 2017 12:27:06 -0700
-Message-ID: <20170802192706.7XzjMYYE5%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch removed from -mm tree
+Date: Wed, 02 Aug 2017 13:22:45 -0700
+Message-ID: <59823495.oHVGiUP3/Le1E4b+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36656 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44884 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbdHBT1H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 15:27:07 -0400
+        with ESMTP id S1753197AbdHBUWq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:22:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix
 
+fix spello
+
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                     |    5 -----
- drivers/net/hyperv/netvsc_drv.c |   21 ---------------------
- drivers/net/virtio_net.c        |    3 ---
- 3 files changed, 29 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -5123,15 +5123,10 @@ M:	Andrew Lunn <andrew@lunn.ch>
- M:	Florian Fainelli <f.fainelli@gmail.com>
- L:	netdev@vger.kernel.org
- S:	Maintained
--<<<<<<< HEAD
--F:	Documentation/ABI/testing/sysfs-bus-mdio
--F:	Documentation/devicetree/bindings/net/mdio*
--=======
- F:	include/linux/phy.h
- F:	include/linux/phy_fixed.h
- F:	include/linux/platform_data/mdio-bcm-unimac.h
- F:	drivers/net/phy/
-->>>>>>> linux-next/akpm-base
- F:	Documentation/networking/phy.txt
- F:	drivers/net/phy/
- F:	drivers/of/of_mdio.c
-diff -puN drivers/net/hyperv/netvsc_drv.c~linux-next-git-rejects drivers/net/hyperv/netvsc_drv.c
---- a/drivers/net/hyperv/netvsc_drv.c~linux-next-git-rejects
-+++ a/drivers/net/hyperv/netvsc_drv.c
-@@ -317,7 +317,6 @@ static u32 init_page_array(void *hdr, u3
- }
- 
- static int count_skb_frag_slots(struct sk_buff *skb)
--<<<<<<< HEAD
- {
- 	int i, frags = skb_shinfo(skb)->nr_frags;
- 	int pages = 0;
-@@ -336,26 +335,6 @@ static int count_skb_frag_slots(struct s
- 
- static int netvsc_get_slots(struct sk_buff *skb)
- {
--=======
--{
--	int i, frags = skb_shinfo(skb)->nr_frags;
--	int pages = 0;
--
--	for (i = 0; i < frags; i++) {
--		skb_frag_t *frag = skb_shinfo(skb)->frags + i;
--		unsigned long size = skb_frag_size(frag);
--		unsigned long offset = frag->page_offset;
--
--		/* Skip unused frames from start of page */
--		offset &= ~PAGE_MASK;
--		pages += PFN_UP(offset + size);
--	}
--	return pages;
--}
--
--static int netvsc_get_slots(struct sk_buff *skb)
--{
-->>>>>>> linux-next/akpm-base
- 	char *data = skb->data;
- 	unsigned int offset = offset_in_page(data);
- 	unsigned int len = skb_headlen(skb);
-diff -puN drivers/net/virtio_net.c~linux-next-git-rejects drivers/net/virtio_net.c
---- a/drivers/net/virtio_net.c~linux-next-git-rejects
-+++ a/drivers/net/virtio_net.c
-@@ -952,10 +952,7 @@ static int add_recvbuf_mergeable(struct
- 
- 	buf = (char *)page_address(alloc_frag->page) + alloc_frag->offset;
- 	buf += headroom; /* advance address leaving hole at front of pkt */
--<<<<<<< HEAD
--=======
- 	ctx = mergeable_len_to_ctx(len, headroom);
-->>>>>>> linux-next/akpm-base
- 	get_page(alloc_frag->page);
- 	alloc_frag->offset += len + headroom;
- 	hole = alloc_frag->size - alloc_frag->offset;
+diff -puN mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix mm/rmap.c
+--- a/mm/rmap.c~mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix
++++ a/mm/rmap.c
+@@ -646,7 +646,7 @@ static bool should_defer_flush(struct mm
+  * the page and flushing the page. If this race occurs, it potentially allows
+  * access to data via a stale TLB entry. Tracking all mm's that have TLB
+  * batching in flight would be expensive during reclaim so instead track
+- * whether TLB batching occured in the past and if so then do a flush here
++ * whether TLB batching occurred in the past and if so then do a flush here
+  * if required. This will cost one additional flush per reclaim cycle paid
+  * by the first operation at risk such as mprotect and mumap.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix.patch
-mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries-fix-fix.patch
+mm-mprotect-flush-tlb-if-potentially-racing-with-a-parallel-reclaim-leaving-stale-tlb-entries.patch
 fortify-use-warn-instead-of-bug-for-now-fix.patch
 swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
