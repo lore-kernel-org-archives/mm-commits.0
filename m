@@ -1,62 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] fortify-use-warn-instead-of-bug-for-now-fix.patch removed from -mm tree
-Date: Wed, 02 Aug 2017 13:23:44 -0700
-Message-ID: <598234d0.F5EO9Nm4P/f6yDy2%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch removed from
+ -mm tree
+Date: Wed, 02 Aug 2017 13:24:17 -0700
+Message-ID: <598234f1.lq6CfihW70a3Xph6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44888 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44898 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752118AbdHBUXo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:23:44 -0400
+        with ESMTP id S1752435AbdHBUYS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, danielmicay@gmail.com, jpoimboe@redhat.com, keescook@chromium.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@fb.com, hughd@google.com, penguin-kernel@I-love.SAKURA.ne.jp, shli@fb.com, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fortify-use-warn-instead-of-bug-for-now-fix
+     Subject: swap-fix-oops-during-block-io-poll-in-swapin-path-fix
 has been removed from the -mm tree.  Its filename was
-     fortify-use-warn-instead-of-bug-for-now-fix.patch
+     swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
 
-This patch was dropped because it was folded into fortify-use-warn-instead-of-bug-for-now.patch
+This patch was dropped because it was folded into swap-fix-oops-during-block-io-poll-in-swapin-path.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fortify-use-warn-instead-of-bug-for-now-fix
+Subject: swap-fix-oops-during-block-io-poll-in-swapin-path-fix
 
-remove fortify_overflow from tools/objtool/check.c:global_noreturns, per Josh
+add comment
 
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/objtool/check.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_io.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now-fix tools/objtool/check.c
---- a/tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now-fix
-+++ a/tools/objtool/check.c
-@@ -156,7 +156,6 @@ static int __dead_end_function(struct ob
- 		"kvm_spurious_fault",
- 		"__reiserfs_panic",
- 		"lbug_with_loc",
--		"fortify_overflow",
- 	};
- 
- 	if (func->bind == STB_WEAK)
+diff -puN mm/page_io.c~swap-fix-oops-during-block-io-poll-in-swapin-path-fix mm/page_io.c
+--- a/mm/page_io.c~swap-fix-oops-during-block-io-poll-in-swapin-path-fix
++++ a/mm/page_io.c
+@@ -380,6 +380,10 @@ int swap_readpage(struct page *page, boo
+ 		goto out;
+ 	}
+ 	bdev = bio->bi_bdev;
++	/*
++	 * Keep this task valid during swap readpage because the oom killer may
++	 * attempt to access it in the page fault retry time check.
++	 */
+ 	get_task_struct(current);
+ 	bio->bi_private = current;
+ 	bio_set_op_attrs(bio, REQ_OP_READ, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-fortify-use-warn-instead-of-bug-for-now.patch
-swap-fix-oops-during-block-io-poll-in-swapin-path-fix.patch
+swap-fix-oops-during-block-io-poll-in-swapin-path.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
 ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
