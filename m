@@ -1,40 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/16] pid: kill pidhash_size in pidhash_init()
-Date: Wed, 02 Aug 2017 13:31:50 -0700
-Message-ID: <598236b6.2QWifUZvHq8UHW4+%akpm@linux-foundation.org>
+Subject: [patch 04/16] userfaultfd: non-cooperative: notify about unmap of destination during mremap
+Date: Wed, 02 Aug 2017 13:31:55 -0700
+Message-ID: <598236bb.VSsrKo0j5nb+D2RQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45956 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752706AbdHBUbu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:31:50 -0400
+        with ESMTP id S1752689AbdHBUb4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:31:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wangkefeng.wang@huawei.com, Pasha.Tatashin@Oracle.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, aarcange@redhat.com, stable@vger.kernel.org, xemul@virtuozzo.com
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: pid: kill pidhash_size in pidhash_init()
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: notify about unmap of destination during mremap
 
-After 3d375d78593c ("mm: update callers to use HASH_ZERO flag"), drop
-unused pidhash_size in pidhash_init().
+When mremap is called with MREMAP_FIXED it unmaps memory at the
+destination address without notifying userfaultfd monitor.  If the
+destination were registered with userfaultfd, the monitor has no way to
+distinguish between the old and new ranges and to properly relate the page
+faults that would occur in the destination region.
 
-Link: http://lkml.kernel.org/r/1500389267-49222-1-git-send-email-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Pavel Tatashin <Pasha.Tatashin@Oracle.com>
+Fixes: 897ab3e0c49e ("userfaultfd: non-cooperative: add event for memory unmaps")
+Link: http://lkml.kernel.org/r/1500276876-3350-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Acked-by: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/mremap.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/pid.c~pid-kill-pidhash_size-in-pidhash_init kernel/pid.c
---- a/kernel/pid.c~pid-kill-pidhash_size-in-pidhash_init
-+++ a/kernel/pid.c
-@@ -575,13 +575,10 @@ struct pid *find_ge_pid(int nr, struct p
-  */
- void __init pidhash_init(void)
+diff -puN mm/mremap.c~userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap mm/mremap.c
+--- a/mm/mremap.c~userfaultfd-non-cooperative-notify-about-unmap-of-destination-during-mremap
++++ a/mm/mremap.c
+@@ -429,6 +429,7 @@ static struct vm_area_struct *vma_to_res
+ static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
+ 		unsigned long new_addr, unsigned long new_len, bool *locked,
+ 		struct vm_userfaultfd_ctx *uf,
++		struct list_head *uf_unmap_early,
+ 		struct list_head *uf_unmap)
  {
--	unsigned int pidhash_size;
+ 	struct mm_struct *mm = current->mm;
+@@ -447,7 +448,7 @@ static unsigned long mremap_to(unsigned
+ 	if (addr + old_len > new_addr && new_addr + new_len > addr)
+ 		goto out;
+ 
+-	ret = do_munmap(mm, new_addr, new_len, NULL);
++	ret = do_munmap(mm, new_addr, new_len, uf_unmap_early);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -515,6 +516,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	unsigned long charged = 0;
+ 	bool locked = false;
+ 	struct vm_userfaultfd_ctx uf = NULL_VM_UFFD_CTX;
++	LIST_HEAD(uf_unmap_early);
+ 	LIST_HEAD(uf_unmap);
+ 
+ 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
+@@ -542,7 +544,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 
+ 	if (flags & MREMAP_FIXED) {
+ 		ret = mremap_to(addr, old_len, new_addr, new_len,
+-				&locked, &uf, &uf_unmap);
++				&locked, &uf, &uf_unmap_early, &uf_unmap);
+ 		goto out;
+ 	}
+ 
+@@ -622,6 +624,7 @@ out:
+ 	up_write(&current->mm->mmap_sem);
+ 	if (locked && new_len > old_len)
+ 		mm_populate(new_addr + old_len, new_len - old_len);
++	userfaultfd_unmap_complete(mm, &uf_unmap_early);
+ 	mremap_userfaultfd_complete(&uf, addr, new_addr, old_len);
+ 	userfaultfd_unmap_complete(mm, &uf_unmap);
+ 	return ret;
+_
