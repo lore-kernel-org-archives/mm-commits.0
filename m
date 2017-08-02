@@ -1,147 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/16] mm/page_io.c: fix oops during block io poll in
- swapin path
-Date: Wed, 02 Aug 2017 13:32:09 -0700
-Message-ID: <598236c9.CXik8wbyryq0FuaD%akpm@linux-foundation.org>
+Subject: [patch 07/16] zram: do not free pool->size_class
+Date: Wed, 02 Aug 2017 13:32:03 -0700
+Message-ID: <598236c3.ll4yCkT3URTW/ovz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45984 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752515AbdHBUcK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:32:10 -0400
+        with ESMTP id S1752986AbdHBUcE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:32:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, axboe@fb.com, hughd@google.com, shli@fb.com, tim.c.chen@intel.com, ying.huang@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, efault@gmx.de, jmarchan@redhat.com, sergey.senozhatsky@gmail.com
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm/page_io.c: fix oops during block io poll in swapin path
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: do not free pool->size_class
 
-When a thread is OOM-killed during swap_readpage() operation, an oops
-occurs because end_swap_bio_read() is calling wake_up_process() based on
-an assumption that the thread which called swap_readpage() is still alive.
+Mike reported kernel goes oops with ltp:zram03 testcase.
 
-----------
-[  167.408563] Out of memory: Kill process 525 (polkitd) score 0 or sacrifice child
-[  167.410592] Killed process 525 (polkitd) total-vm:528128kB, anon-rss:0kB, file-rss:4kB, shmem-rss:0kB
-[  167.415666] oom_reaper: reaped process 525 (polkitd), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
-[  167.460471] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC
-[  167.462303] Modules linked in: nf_conntrack_netbios_ns nf_conntrack_broadcast ip6t_rpfilter ipt_REJECT nf_reject_ipv4 ip6t_REJECT nf_reject_ipv6 xt_conntrack ip_set nfnetlink ebtable_nat ebtable_broute bridge stp llc ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_raw iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_raw ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter coretemp ppdev pcspkr vmw_balloon sg shpchp vmw_vmci parport_pc parport i2c_piix4 ip_tables xfs libcrc32c sd_mod sr_mod cdrom ata_generic pata_acpi vmwgfx ahci libahci drm_kms_helper ata_piix syscopyarea sysfillrect sysimgblt fb_sys_fops mptspi scsi_transport_spi ttm e1000 mptscsih drm mptbase i2c_core libata serio_raw
-[  167.476975] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.13.0-rc2-next-20170725 #129
-[  167.479002] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
-[  167.481523] task: ffffffffb7c16500 task.stack: ffffffffb7c00000
-[  167.483240] RIP: 0010:__lock_acquire+0x151/0x12f0
-[  167.484808] RSP: 0018:ffffa01f39e03c50 EFLAGS: 00010002
-[  167.486659] RAX: 6b6b6b6b6b6b6b6b RBX: 0000000000000000 RCX: 0000000000000000
-[  167.488996] RDX: 0000000000000001 RSI: 0000000000000000 RDI: ffffa01f350d0bb8
-[  167.491392] RBP: ffffa01f39e03d10 R08: ffffffffb709fefb R09: 0000000000000001
-[  167.493375] R10: 0000000000000000 R11: ffffffffb7c16500 R12: 0000000000000001
-[  167.495316] R13: 0000000000000000 R14: 0000000000000000 R15: ffffa01f350d0bb8
-[  167.497253] FS:  0000000000000000(0000) GS:ffffa01f39e00000(0000) knlGS:0000000000000000
-[  167.499384] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  167.501090] CR2: 00007f5ab0e3a9d0 CR3: 000000012dee5000 CR4: 00000000001606f0
-[  167.503124] Call Trace:
-[  167.504271]  <IRQ>
-[  167.505331]  ? free_debug_processing+0x25d/0x3b0
-[  167.506807]  ? __slab_free+0x9f/0x280
-[  167.508075]  ? __slab_free+0x9f/0x280
-[  167.509339]  lock_acquire+0x59/0x80
-[  167.510582]  ? lock_acquire+0x59/0x80
-[  167.511872]  ? try_to_wake_up+0x3b/0x410
-[  167.513133]  _raw_spin_lock_irqsave+0x3b/0x4f
-[  167.514449]  ? try_to_wake_up+0x3b/0x410
-[  167.515693]  try_to_wake_up+0x3b/0x410
-[  167.516857]  ? mempool_free_slab+0x12/0x20
-[  167.518068]  ? mempool_free+0x26/0x80
-[  167.519291]  wake_up_process+0x10/0x20
-[  167.520763]  end_swap_bio_read+0x6f/0xf0
-[  167.522229]  bio_endio+0x92/0xb0
-[  167.523324]  blk_update_request+0x88/0x270
-[  167.524642]  scsi_end_request+0x32/0x1c0
-[  167.525864]  scsi_io_completion+0x209/0x680
-[  167.527040]  scsi_finish_command+0xd4/0x120
-[  167.528210]  scsi_softirq_done+0x120/0x140
-[  167.529369]  __blk_mq_complete_request_remote+0xe/0x10
-[  167.530809]  flush_smp_call_function_queue+0x51/0x120
-[  167.532109]  generic_smp_call_function_single_interrupt+0xe/0x20
-[  167.533597]  smp_trace_call_function_single_interrupt+0x22/0x30
-[  167.535049]  smp_call_function_single_interrupt+0x9/0x10
-[  167.536391]  call_function_single_interrupt+0xa7/0xb0
-[  167.537821]  </IRQ>
-[  167.538670] RIP: 0010:native_safe_halt+0x6/0x10
-[  167.539895] RSP: 0018:ffffffffb7c03df8 EFLAGS: 00000202 ORIG_RAX: ffffffffffffff04
-[  167.541602] RAX: ffffffffb7c16500 RBX: ffffffffb7c16500 RCX: 0000000000000000
-[  167.543201] RDX: 0000000000000001 RSI: 0000000000000001 RDI: ffffffffb7c16500
-[  167.544894] RBP: ffffffffb7c03df8 R08: 0000000000000001 R09: 0000000000000000
-[  167.546497] R10: 0000000000000000 R11: 0000000000000000 R12: ffffffffb7e4fa20
-[  167.548023] R13: ffffffffb7c16500 R14: 0000000000000000 R15: 0000000000000000
-[  167.549561]  ? trace_hardirqs_on+0xd/0x10
-[  167.550593]  default_idle+0xe/0x20
-[  167.551521]  arch_cpu_idle+0xa/0x10
-[  167.552496]  default_idle_call+0x1e/0x30
-[  167.553783]  do_idle+0x187/0x200
-[  167.554875]  cpu_startup_entry+0x6e/0x70
-[  167.556023]  rest_init+0xd0/0xe0
-[  167.556921]  start_kernel+0x456/0x477
-[  167.557875]  ? early_idt_handler_array+0x120/0x120
-[  167.559018]  x86_64_start_reservations+0x24/0x26
-[  167.560104]  x86_64_start_kernel+0xf7/0x11a
-[  167.561131]  secondary_startup_64+0xa5/0xa5
-[  167.562169] Code: c3 49 81 3f 20 9e 0b b8 41 bc 00 00 00 00 44 0f 45 e2 83 fe 01 0f 87 62 ff ff ff 89 f0 49 8b 44 c7 08 48 85 c0 0f 84 52 ff ff ff <f0> ff 80 98 01 00 00 8b 3d 5a 49 c4 01 45 8b b3 18 0c 00 00 85
-[  167.565895] RIP: __lock_acquire+0x151/0x12f0 RSP: ffffa01f39e03c50
-[  167.567280] ---[ end trace 6c441db499169b1e ]---
-[  167.568400] Kernel panic - not syncing: Fatal exception in interrupt
-[  167.569907] Kernel Offset: 0x36000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
-[  167.572108] ---[ end Kernel panic - not syncing: Fatal exception in interrupt
-----------
+[ 1449.835161] zram: Added device: zram0
+[ 1449.929981] zram0: detected capacity change from 0 to 107374182400
+[ 1449.968583] BUG: unable to handle kernel paging request at 0000306d61727a77
+[ 1449.975550] IP: zs_map_object+0xb9/0x260
+[ 1449.979472] PGD 0
+[ 1449.979473] P4D 0
+[ 1449.981488]
+[ 1449.984997] Oops: 0000 [#1] SMP
+[ 1449.988139] Dumping ftrace buffer:
+[ 1449.991545]    (ftrace buffer empty)
+[ 1449.995120] Modules linked in: zram(E) xfs(E) libcrc32c(E) btrfs(E) xor(E) raid6_pq(E) loop(E) ebtable_filter(E) ebtables(E) ip6table_filter(E) ip6_tables(E) iptable_filter(E) ip_tables(E) x_tables(E) af_packet(E) br_netfilter(E) bridge(E) stp(E) llc(E) iscsi_ibft(E) iscsi_boot_sysfs(E) nls_iso8859_1(E) nls_cp437(E) vfat(E) fat(E) intel_powerclamp(E) coretemp(E) cdc_ether(E) kvm_intel(E) usbnet(E) mii(E) kvm(E) irqbypass(E) crct10dif_pclmul(E) crc32_pclmul(E) crc32c_intel(E) iTCO_wdt(E) ghash_clmulni_intel(E) bnx2(E) iTCO_vendor_support(E) pcbc(E) ioatdma(E) ipmi_ssif(E) aesni_intel(E) i5500_temp(E) i2c_i801(E) aes_x86_64(E) lpc_ich(E) shpchp(E) mfd_core(E) crypto_simd(E) i7core_edac(E) dca(E) glue_helper(E) cryptd(E) ipmi_si(E) button(E) acpi_cpufreq(E) ipmi_devintf(E) pcspkr(E) ipmi_m
+ sghandler(E)
+[ 1450.065731]  nfsd(E) auth_rpcgss(E) nfs_acl(E) lockd(E) grace(E) sunrpc(E) ext4(E) crc16(E) mbcache(E) jbd2(E) sd_mod(E) ata_generic(E) i2c_algo_bit(E) ata_piix(E) drm_kms_helper(E) ahci(E) syscopyarea(E) sysfillrect(E) libahci(E) sysimgblt(E) fb_sys_fops(E) uhci_hcd(E) ehci_pci(E) ttm(E) ehci_hcd(E) libata(E) drm(E) megaraid_sas(E) usbcore(E) sg(E) dm_multipath(E) dm_mod(E) scsi_dh_rdac(E) scsi_dh_emc(E) scsi_dh_alua(E) scsi_mod(E) efivarfs(E) autofs4(E) [last unloaded: zram]
+[ 1450.107900] CPU: 6 PID: 12356 Comm: swapon Tainted: G            E   4.13.0.g87b2c3f-default #194
+[ 1450.116760] Hardware name: IBM System x3550 M3 -[7944K3G]-/69Y5698     , BIOS -[D6E150AUS-1.10]- 12/15/2010
+[ 1450.126486] task: ffff880158d2c4c0 task.stack: ffffc90001680000
+[ 1450.132401] RIP: 0010:zs_map_object+0xb9/0x260
+[ 1450.136843] RSP: 0018:ffffc90001683988 EFLAGS: 00010202
+[ 1450.142063] RAX: 0000000000000000 RBX: ffff8801547a98d0 RCX: ffff8801211b78b0
+[ 1450.149190] RDX: 0000306d61727a2f RSI: 0000000000160000 RDI: ffff8801547a98f8
+[ 1450.156317] RBP: ffffc900016839c8 R08: 0000000004db4200 R09: 0000000000000008
+[ 1450.163446] R10: ffff880151329260 R11: 0000000000000000 R12: ffff880158f76000
+[ 1450.170573] R13: 0000000000000001 R14: 0000000000000000 R15: ffffea0004db4200
+[ 1450.177700] FS:  00007fe1b4e8b880(0000) GS:ffff88017f180000(0000) knlGS:0000000000000000
+[ 1450.185782] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 1450.191522] CR2: 0000306d61727a77 CR3: 0000000154415000 CR4: 00000000000006e0
+[ 1450.198649] Call Trace:
+[ 1450.201103]  zram_bvec_rw.isra.26+0xe8/0x780 [zram]
+[ 1450.205978]  zram_rw_page+0x6e/0xa0 [zram]
+[ 1450.210077]  bdev_read_page+0x81/0xb0
+[ 1450.213738]  do_mpage_readpage+0x51a/0x710
+[ 1450.217837]  ? lru_cache_add+0xe/0x10
+[ 1450.221498]  mpage_readpages+0x122/0x1a0
+[ 1450.225420]  ? I_BDEV+0x20/0x20
+[ 1450.228560]  ? I_BDEV+0x20/0x20
+[ 1450.231702]  ? alloc_pages_current+0x6a/0xb0
+[ 1450.235971]  blkdev_readpages+0x1d/0x20
+[ 1450.239805]  __do_page_cache_readahead+0x1b2/0x270
+[ 1450.244596]  ondemand_readahead+0x180/0x2c0
+[ 1450.248777]  page_cache_sync_readahead+0x31/0x50
+[ 1450.253394]  generic_file_read_iter+0x7e7/0xaf0
+[ 1450.257922]  blkdev_read_iter+0x37/0x40
+[ 1450.261756]  __vfs_read+0xce/0x140
+[ 1450.265160]  vfs_read+0x9e/0x150
+[ 1450.268389]  SyS_read+0x46/0xa0
+[ 1450.271533]  entry_SYSCALL_64_fastpath+0x1a/0xa5
+[ 1450.276149] RIP: 0033:0x7fe1b4344270
+[ 1450.279724] RSP: 002b:00007ffdb4299f48 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+[ 1450.287287] RAX: ffffffffffffffda RBX: 00007fe1b4604678 RCX: 00007fe1b4344270
+[ 1450.294414] RDX: 0000000000010000 RSI: 0000000000db2c00 RDI: 0000000000000006
+[ 1450.301541] RBP: 00007fe1b4604620 R08: 0000000000000003 R09: 00007fe1b4604678
+[ 1450.308667] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000010030
+[ 1450.315794] R13: 0000000000010000 R14: 0000000000002710 R15: 0000000000010011
+[ 1450.322920] Code: 81 e6 00 c0 3f 00 81 fe 00 00 16 00 0f 85 9f 01 00 00 0f b7 13 65 ff 05 5e 07 dc 7e 66 c1 ea 02 81 e2 ff 01 00 00 49 8b 54 d4 08 <8b> 4a 48 41 0f af ce 81 e1 ff 0f 00 00 41 89 c9 48 c7 c3 a0 70
+[ 1450.341785] RIP: zs_map_object+0xb9/0x260 RSP: ffffc90001683988
+[ 1450.347698] CR2: 0000306d61727a77
 
-Fix it by holding a reference to the thread.
+He bisected the problem is [1].
 
-[akpm@linux-foundation.org: add comment]
-Fixes: 23955622ff8d231b ("swap: add block io poll in swapin path")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reviewed-by: Shaohua Li <shli@fb.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Hugh Dickins <hughd@google.com>
+By cf8e0fedf078 ("mm/zsmalloc: simplify zs_max_alloc_size handling"), zram
+doesn't use double pointer for pool->size_class any more in zs_create_pool
+so counter function zs_destroy_pool don't need to free it, either. 
+Otherwise, it does kfree wrong address and then, kernel goes Oops.
+
+Link: http://lkml.kernel.org/r/20170725062650.GA12134@bbox
+Fixes: cf8e0fedf078 ("mm/zsmalloc: simplify zs_max_alloc_size handling")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Mike Galbraith <efault@gmx.de>
+Tested-by: Mike Galbraith <efault@gmx.de>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/zsmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_io.c~swap-fix-oops-during-block-io-poll-in-swapin-path mm/page_io.c
---- a/mm/page_io.c~swap-fix-oops-during-block-io-poll-in-swapin-path
-+++ a/mm/page_io.c
-@@ -22,6 +22,7 @@
- #include <linux/frontswap.h>
- #include <linux/blkdev.h>
- #include <linux/uio.h>
-+#include <linux/sched/task.h>
- #include <asm/pgtable.h>
- 
- static struct bio *get_swap_bio(gfp_t gfp_flags,
-@@ -136,6 +137,7 @@ out:
- 	WRITE_ONCE(bio->bi_private, NULL);
- 	bio_put(bio);
- 	wake_up_process(waiter);
-+	put_task_struct(waiter);
- }
- 
- int generic_swapfile_activate(struct swap_info_struct *sis,
-@@ -378,6 +380,11 @@ int swap_readpage(struct page *page, boo
- 		goto out;
+diff -puN mm/zsmalloc.c~zram-do-not-free-pool-size_class mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zram-do-not-free-pool-size_class
++++ a/mm/zsmalloc.c
+@@ -2453,7 +2453,6 @@ void zs_destroy_pool(struct zs_pool *poo
  	}
- 	bdev = bio->bi_bdev;
-+	/*
-+	 * Keep this task valid during swap readpage because the oom killer may
-+	 * attempt to access it in the page fault retry time check.
-+	 */
-+	get_task_struct(current);
- 	bio->bi_private = current;
- 	bio_set_op_attrs(bio, REQ_OP_READ, 0);
- 	count_vm_event(PSWPIN);
+ 
+ 	destroy_cache(pool);
+-	kfree(pool->size_class);
+ 	kfree(pool->name);
+ 	kfree(pool);
+ }
 _
