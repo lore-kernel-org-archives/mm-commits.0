@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case.patch added to -mm tree
-Date: Wed, 02 Aug 2017 14:28:31 -0700
-Message-ID: <598243ff.nYT4QVPL4uZDKTFu%akpm@linux-foundation.org>
+Subject: + userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch added to -mm tree
+Date: Wed, 02 Aug 2017 14:29:38 -0700
+Message-ID: <59824442.KnSyXWMuoCBOK3Nm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41376 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751066AbdHBV2c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 17:28:32 -0400
+        with ESMTP id S1750725AbdHBV3j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 17:29:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, a.perevalov@samsung.com, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: remove superfluous page unlock in VM_SHARED case
+     Subject: userfaultfd: selftest: exercise UFFDIO_COPY/ZEROPAGE -EEXIST
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case.patch
+     userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,72 +39,323 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: remove superfluous page unlock in VM_SHARED case
+Subject: userfaultfd: selftest: exercise UFFDIO_COPY/ZEROPAGE -EEXIST
 
-huge_add_to_page_cache->add_to_page_cache implicitly unlocks the page
-before returning in case of errors.
+This will retry the UFFDIO_COPY/ZEROPAGE to verify it returns -EEXIST at
+the first invocation and then later every 10 seconds.
 
-The error returned was -EEXIST by running UFFDIO_COPY on a non-hole offset
-of a VM_SHARED hugetlbfs mapping.  It was an userland bug that triggered
-it and the kernel must cope with it returning -EEXIST from
-ioctl(UFFDIO_COPY) as expected.
+In the filebacked MAP_SHARED case this also verifies the -EEXIST triggered
+in the filesystem pagecache insertion, if the offset in the file was not a
+hole.
 
-page dumped because: VM_BUG_ON_PAGE(!PageLocked(page))
-------------[ cut here ]------------
-kernel BUG at mm/filemap.c:964!
-invalid opcode: 0000 [#1] SMP
-CPU: 1 PID: 22582 Comm: qemu-system-x86 Not tainted 4.11.11-300.fc26.x86_64 #1
-task: ffff973131ab2600 task.stack: ffffacc0cba78000
-RIP: 0010:unlock_page+0x4a/0x50
-RSP: 0018:ffffacc0cba7bca0 EFLAGS: 00010246
-RAX: 0000000000000036 RBX: fffff99d09f38000 RCX: 0000000000000006
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff97326148e0c0
-RBP: ffffacc0cba7bca0 R08: 00000000000006be R09: 0000000000000004
-R10: 00000000000007ae R11: ffffffffb622cbed R12: 0000000000000008
-R13: ffff972f9a265240 R14: ffff972de2919740 R15: ffffffffb62da820
-FS:  00007f122efff700(0000) GS:ffff973261480000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fd52f788ea8 CR3: 000000036d022000 CR4: 00000000003426e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- hugetlb_mcopy_atomic_pte+0xc0/0x320
- mcopy_atomic+0x96f/0xbe0
- userfaultfd_ioctl+0x218/0xe90
- ? __schedule+0x23c/0x8d0
- ? hrtimer_start_range_ns+0x1bd/0x330
- do_vfs_ioctl+0xa5/0x600
- ? do_vfs_ioctl+0xa5/0x600
- SyS_ioctl+0x79/0x90
- entry_SYSCALL_64_fastpath+0x1a/0xa9
+shmem MAP_SHARED tries to index the newly allocated pagecache in the radix
+tree before checking the pagetable so it doesn't need any assistance to
+exercise that case.
 
-Link: http://lkml.kernel.org/r/20170802165145.22628-2-aarcange@redhat.com
+hugetlbfs checks the pmd to be not none before trying to index the
+hugetlbfs page in the radix tree, so it requires to run UFFDIO_COPY into
+an alias mapping (the alternative would be to use MADV_DONTNEED to only
+zap the pagetables, but that doesn't work on hugetlbfs).
+
+Link: http://lkml.kernel.org/r/20170802165145.22628-3-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Tested-by: Maxime Coquelin <maxime.coquelin@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Alexey Perevalov <a.perevalov@samsung.com>
+Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |  145 +++++++++++++++++++--
+ 1 file changed, 138 insertions(+), 7 deletions(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case
-+++ a/mm/hugetlb.c
-@@ -4062,9 +4062,9 @@ out:
- 	return ret;
- out_release_unlock:
- 	spin_unlock(ptl);
--out_release_nounlock:
- 	if (vm_shared)
- 		unlock_page(page);
-+out_release_nounlock:
- 	put_page(page);
- 	goto out;
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -67,6 +67,7 @@
+ #include <pthread.h>
+ #include <linux/userfaultfd.h>
+ #include <setjmp.h>
++#include <stdbool.h>
+ 
+ #ifdef __NR_userfaultfd
+ 
+@@ -83,11 +84,17 @@ static int bounces;
+ #define TEST_SHMEM	3
+ static int test_type;
+ 
++/* exercise the test_uffdio_*_eexist every ALARM_INTERVAL_SECS */
++#define ALARM_INTERVAL_SECS 10
++static volatile bool test_uffdio_copy_eexist = true;
++static volatile bool test_uffdio_zeropage_eexist = true;
++
++static bool map_shared;
+ static int huge_fd;
+ static char *huge_fd_off0;
+ static unsigned long long *count_verify;
+ static int uffd, uffd_flags, finished, *pipefd;
+-static char *area_src, *area_dst;
++static char *area_src, *area_src_alias, *area_dst, *area_dst_alias;
+ static char *zeropage;
+ pthread_attr_t attr;
+ 
+@@ -126,6 +133,9 @@ static void anon_allocate_area(void **al
+ 	}
  }
+ 
++static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
++{
++}
+ 
+ /* HugeTLB memory */
+ static int hugetlb_release_pages(char *rel_area)
+@@ -146,17 +156,51 @@ static int hugetlb_release_pages(char *r
+ 
+ static void hugetlb_allocate_area(void **alloc_area)
+ {
++	void *area_alias = NULL;
++	char **alloc_area_alias;
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+-				MAP_PRIVATE | MAP_HUGETLB, huge_fd,
+-				*alloc_area == area_src ? 0 :
+-				nr_pages * page_size);
++			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
++			   MAP_HUGETLB,
++			   huge_fd, *alloc_area == area_src ? 0 :
++			   nr_pages * page_size);
+ 	if (*alloc_area == MAP_FAILED) {
+ 		fprintf(stderr, "mmap of hugetlbfs file failed\n");
+ 		*alloc_area = NULL;
+ 	}
+ 
+-	if (*alloc_area == area_src)
++	if (map_shared) {
++		area_alias = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
++				  MAP_SHARED | MAP_HUGETLB,
++				  huge_fd, *alloc_area == area_src ? 0 :
++				  nr_pages * page_size);
++		if (area_alias == MAP_FAILED) {
++			if (munmap(*alloc_area, nr_pages * page_size) < 0)
++				perror("hugetlb munmap"), exit(1);
++			*alloc_area = NULL;
++			return;
++		}
++	}
++	if (*alloc_area == area_src) {
+ 		huge_fd_off0 = *alloc_area;
++		alloc_area_alias = &area_src_alias;
++	} else {
++		alloc_area_alias = &area_dst_alias;
++	}
++	if (area_alias)
++		*alloc_area_alias = area_alias;
++}
++
++static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
++{
++	if (!map_shared)
++		return;
++	/*
++	 * We can't zap just the pagetable with hugetlbfs because
++	 * MADV_DONTEED won't work. So exercise -EEXIST on a alias
++	 * mapping where the pagetables are not established initially,
++	 * this way we'll exercise the -EEXEC at the fs level.
++	 */
++	*start = (unsigned long) area_dst_alias + offset;
+ }
+ 
+ /* Shared memory */
+@@ -186,6 +230,7 @@ struct uffd_test_ops {
+ 	unsigned long expected_ioctls;
+ 	void (*allocate_area)(void **alloc_area);
+ 	int (*release_pages)(char *rel_area);
++	void (*alias_mapping)(__u64 *start, size_t len, unsigned long offset);
+ };
+ 
+ #define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
+@@ -196,18 +241,21 @@ static struct uffd_test_ops anon_uffd_te
+ 	.expected_ioctls = ANON_EXPECTED_IOCTLS,
+ 	.allocate_area	= anon_allocate_area,
+ 	.release_pages	= anon_release_pages,
++	.alias_mapping = noop_alias_mapping,
+ };
+ 
+ static struct uffd_test_ops shmem_uffd_test_ops = {
+ 	.expected_ioctls = ANON_EXPECTED_IOCTLS,
+ 	.allocate_area	= shmem_allocate_area,
+ 	.release_pages	= shmem_release_pages,
++	.alias_mapping = noop_alias_mapping,
+ };
+ 
+ static struct uffd_test_ops hugetlb_uffd_test_ops = {
+ 	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
+ 	.allocate_area	= hugetlb_allocate_area,
+ 	.release_pages	= hugetlb_release_pages,
++	.alias_mapping = hugetlb_alias_mapping,
+ };
+ 
+ static struct uffd_test_ops *uffd_test_ops;
+@@ -332,6 +380,23 @@ static void *locking_thread(void *arg)
+ 	return NULL;
+ }
+ 
++static void retry_copy_page(int ufd, struct uffdio_copy *uffdio_copy,
++			    unsigned long offset)
++{
++	uffd_test_ops->alias_mapping(&uffdio_copy->dst,
++				     uffdio_copy->len,
++				     offset);
++	if (ioctl(ufd, UFFDIO_COPY, uffdio_copy)) {
++		/* real retval in ufdio_copy.copy */
++		if (uffdio_copy->copy != -EEXIST)
++			fprintf(stderr, "UFFDIO_COPY retry error %Ld\n",
++				uffdio_copy->copy), exit(1);
++	} else {
++		fprintf(stderr,	"UFFDIO_COPY retry unexpected %Ld\n",
++			uffdio_copy->copy), exit(1);
++	}
++}
++
+ static int copy_page(int ufd, unsigned long offset)
+ {
+ 	struct uffdio_copy uffdio_copy;
+@@ -352,8 +417,13 @@ static int copy_page(int ufd, unsigned l
+ 	} else if (uffdio_copy.copy != page_size) {
+ 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
+ 			uffdio_copy.copy), exit(1);
+-	} else
++	} else {
++		if (test_uffdio_copy_eexist) {
++			test_uffdio_copy_eexist = false;
++			retry_copy_page(ufd, &uffdio_copy, offset);
++		}
+ 		return 1;
++	}
+ 	return 0;
+ }
+ 
+@@ -692,6 +762,23 @@ static int faulting_process(int signal_t
+ 	return 0;
+ }
+ 
++static void retry_uffdio_zeropage(int ufd,
++				  struct uffdio_zeropage *uffdio_zeropage,
++				  unsigned long offset)
++{
++	uffd_test_ops->alias_mapping(&uffdio_zeropage->range.start,
++				     uffdio_zeropage->range.len,
++				     offset);
++	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
++		if (uffdio_zeropage->zeropage != -EEXIST)
++			fprintf(stderr, "UFFDIO_ZEROPAGE retry error %Ld\n",
++				uffdio_zeropage->zeropage), exit(1);
++	} else {
++		fprintf(stderr, "UFFDIO_ZEROPAGE retry unexpected %Ld\n",
++			uffdio_zeropage->zeropage), exit(1);
++	}
++}
++
+ static int uffdio_zeropage(int ufd, unsigned long offset)
+ {
+ 	struct uffdio_zeropage uffdio_zeropage;
+@@ -727,6 +814,11 @@ static int uffdio_zeropage(int ufd, unsi
+ 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
+ 				uffdio_zeropage.zeropage), exit(1);
+ 		} else
++			if (test_uffdio_zeropage_eexist) {
++				test_uffdio_zeropage_eexist = false;
++				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
++						      offset);
++			}
+ 			return 1;
+ 	} else {
+ 		fprintf(stderr,
+@@ -999,6 +1091,15 @@ static int userfaultfd_stress(void)
+ 			return 1;
+ 		}
+ 
++		if (area_dst_alias) {
++			uffdio_register.range.start = (unsigned long)
++				area_dst_alias;
++			if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
++				fprintf(stderr, "register failure alias\n");
++				return 1;
++			}
++		}
++
+ 		/*
+ 		 * The madvise done previously isn't enough: some
+ 		 * uffd_thread could have read userfaults (one of
+@@ -1032,9 +1133,17 @@ static int userfaultfd_stress(void)
+ 
+ 		/* unregister */
+ 		if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range)) {
+-			fprintf(stderr, "register failure\n");
++			fprintf(stderr, "unregister failure\n");
+ 			return 1;
+ 		}
++		if (area_dst_alias) {
++			uffdio_register.range.start = (unsigned long) area_dst;
++			if (ioctl(uffd, UFFDIO_UNREGISTER,
++				  &uffdio_register.range)) {
++				fprintf(stderr, "unregister failure alias\n");
++				return 1;
++			}
++		}
+ 
+ 		/* verification */
+ 		if (bounces & BOUNCE_VERIFY) {
+@@ -1056,6 +1165,10 @@ static int userfaultfd_stress(void)
+ 		area_src = area_dst;
+ 		area_dst = tmp_area;
+ 
++		tmp_area = area_src_alias;
++		area_src_alias = area_dst_alias;
++		area_dst_alias = tmp_area;
++
+ 		printf("userfaults:");
+ 		for (cpu = 0; cpu < nr_cpus; cpu++)
+ 			printf(" %lu", userfaults[cpu]);
+@@ -1102,7 +1215,12 @@ static void set_test_type(const char *ty
+ 	} else if (!strcmp(type, "hugetlb")) {
+ 		test_type = TEST_HUGETLB;
+ 		uffd_test_ops = &hugetlb_uffd_test_ops;
++	} else if (!strcmp(type, "hugetlb_shared")) {
++		map_shared = true;
++		test_type = TEST_HUGETLB;
++		uffd_test_ops = &hugetlb_uffd_test_ops;
+ 	} else if (!strcmp(type, "shmem")) {
++		map_shared = true;
+ 		test_type = TEST_SHMEM;
+ 		uffd_test_ops = &shmem_uffd_test_ops;
+ 	} else {
+@@ -1122,12 +1240,25 @@ static void set_test_type(const char *ty
+ 		fprintf(stderr, "Impossible to run this test\n"), exit(2);
+ }
+ 
++static void sigalrm(int sig)
++{
++	if (sig != SIGALRM)
++		abort();
++	test_uffdio_copy_eexist = true;
++	test_uffdio_zeropage_eexist = true;
++	alarm(ALARM_INTERVAL_SECS);
++}
++
+ int main(int argc, char **argv)
+ {
+ 	if (argc < 4)
+ 		fprintf(stderr, "Usage: <test type> <MiB> <bounces> [hugetlbfs_file]\n"),
+ 				exit(1);
+ 
++	if (signal(SIGALRM, sigalrm) == SIG_ERR)
++		fprintf(stderr, "failed to arm SIGALRM"), exit(1);
++	alarm(ALARM_INTERVAL_SECS);
++
+ 	set_test_type(argv[1]);
+ 
+ 	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
