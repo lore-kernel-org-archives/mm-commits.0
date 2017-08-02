@@ -1,218 +1,58 @@
-From: akpm@linux-foundation.org
-Subject: + mm-fix-ksm-data-corruption.patch added to -mm tree
-Date: Wed, 02 Aug 2017 16:34:17 -0700
-Message-ID: <59826179.6WLIN8rBLOdwBQRs%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 08/16] fortify: use WARN instead of BUG for now
+Date: Wed, 2 Aug 2017 16:48:12 -0700
+Message-ID: <20170802164812.a22168351f0e7b556ba5b013@linux-foundation.org>
+References: <598236c6.5zsRNFUQTD9/7toc%akpm@linux-foundation.org>
+        <CA+55aFxnjNNYHG6HVUoL9WQ5wKcqnXxdC=Z_TkcfaCaHJSMtnw@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60782 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751761AbdHBXeS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:34:18 -0400
+        with ESMTP id S1751927AbdHBXsN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:48:13 -0400
+In-Reply-To: <CA+55aFxnjNNYHG6HVUoL9WQ5wKcqnXxdC=Z_TkcfaCaHJSMtnw@mail.gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, Kees Cook <keescook@chromium.org>, Daniel Micay <danielmicay@gmail.com>, Josh Poimboeuf <jpoimboe@redhat.com>
 
+On Wed, 2 Aug 2017 16:40:44 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-The patch titled
-     Subject: mm: fix KSM data corruption
-has been added to the -mm tree.  Its filename is
-     mm-fix-ksm-data-corruption.patch
+> On Wed, Aug 2, 2017 at 1:32 PM,  <akpm@linux-foundation.org> wrote:
+> > From: Kees Cook <keescook@chromium.org>
+> > Subject: fortify: use WARN instead of BUG for now
+> >
+> > While CONFIG_FORTIFY_SOURCE continues to shake out, don't unconditionally
+> > use BUG(), opting instead for WARN().  This also renames fortify_panic()
+> > to fortify_overflow() which better matches what it is being called for.
+> 
+> This does not build for me. I get:
+> 
+>    In file included from ./include/linux/bitmap.h:8:0,
+>                  from ./include/linux/cpumask.h:11,
+>                  from ./arch/x86/include/asm/cpumask.h:4,
+>                  from ./arch/x86/include/asm/msr.h:10,
+>                  from ./arch/x86/include/asm/processor.h:20,
+>                  from ./arch/x86/include/asm/cpufeature.h:4,
+>                  from ./arch/x86/include/asm/thread_info.h:52,
+>                  from ./include/linux/thread_info.h:37,
+>                  from ./arch/x86/include/asm/preempt.h:6,
+>                  from ./include/linux/preempt.h:80,
+>                  from ./include/linux/spinlock.h:50,
+>                  from ./include/linux/wait.h:8,
+>                  from ./include/linux/wait_bit.h:7,
+>                  from ./include/linux/fs.h:5,
+>                  from ./include/linux/buffer_head.h:11,
+>                  from fs/adfs/dir_f.c:12:
+>    In function ___memcpy___,
+>        inlined from _____adfs_dir_put___ at fs/adfs/dir_f.c:318:2,
+>        inlined from ___adfs_f_update___ at fs/adfs/dir_f.c:403:2:
+>    ./include/linux/string.h:305:4: error: call to _____read_overflow2___
+> declared with attribute error: detected read beyond size of object
+> passed as 2nd parameter
+>        __read_overflow2();
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-ksm-data-corruption.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-ksm-data-corruption.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix KSM data corruption
-
-Nadav reported KSM can corrupt the user data by the TLB batching race[1]. 
-That means data user written can be lost.
-
-Quote from Nadav Amit
-"
-For this race we need 4 CPUs:
-
-CPU0: Caches a writable and dirty PTE entry, and uses the stale value for
-write later.
-
-CPU1: Runs madvise_free on the range that includes the PTE. It would clear
-the dirty-bit. It batches TLB flushes.
-
-CPU2: Writes 4 to /proc/PID/clear_refs , clearing the PTEs soft-dirty. We
-care about the fact that it clears the PTE write-bit, and of course,
-batches TLB flushes.
-
-CPU3: Runs KSM. Our purpose is to pass the following test in
-write_protect_page():
-
-	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
-(pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)))
-
-Since it will avoid TLB flush. And we want to do it while the PTE is stale.
-Later, and before replacing the page, we would be able to change the page.
-
-Note that all the operations the CPU1-3 perform canhappen in parallel since
-they only acquire mmap_sem for read.
-
-We start with two identical pages. Everything below regards the same
-page/PTE.
-
-CPU0		CPU1		CPU2		CPU3
-----		----		----		----
-Write the same
-value on page
-
-[cache PTE as
- dirty in TLB]
-
-		MADV_FREE
-		pte_mkclean()
-
-				4 > clear_refs
-				pte_wrprotect()
-
-						write_protect_page()
-						[ success, no flush ]
-
-						pages_indentical()
-						[ ok ]
-
-Write to page
-different value
-
-[Ok, using stale
- PTE]
-
-						replace_page()
-
-Later, CPU1, CPU2 and CPU3 would flush the TLB, but that is too late. CPU0
-already wrote on the page, but KSM ignored this write, and it got lost.
-"
-
-In above scenario, MADV_FREE is fixed by changing TLB batching API
-including [set|clear]_tlb_flush_pending.  Remained thing is soft-dirty
-part.
-
-This patch changes soft-dirty uses TLB batching API instead of
-flush_tlb_mm and KSM checks pending TLB flush by using
-mm_tlb_flush_pending so that it will flush TLB to avoid data lost if there
-are other parallel threads pending TLB flush.
-
-[1] http://lkml.kernel.org/r/BD3A0EBE-ECF4-41D4-87FA-C755EA9AB6BD@gmail.com
-
-Link: http://lkml.kernel.org/r/20170802000818.4760-8-namit@vmware.com
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reported-by: Nadav Amit <namit@vmware.com>
-Tested-by: Nadav Amit <namit@vmware.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/proc/task_mmu.c |    7 +++++--
- mm/ksm.c           |    3 ++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
-
-diff -puN fs/proc/task_mmu.c~mm-fix-ksm-data-corruption fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-fix-ksm-data-corruption
-+++ a/fs/proc/task_mmu.c
-@@ -16,9 +16,10 @@
- #include <linux/mmu_notifier.h>
- #include <linux/page_idle.h>
- #include <linux/shmem_fs.h>
-+#include <linux/uaccess.h>
- 
- #include <asm/elf.h>
--#include <linux/uaccess.h>
-+#include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include "internal.h"
- 
-@@ -1008,6 +1009,7 @@ static ssize_t clear_refs_write(struct f
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
- 	enum clear_refs_types type;
-+	struct mmu_gather tlb;
- 	int itype;
- 	int rv;
- 
-@@ -1054,6 +1056,7 @@ static ssize_t clear_refs_write(struct f
- 		}
- 
- 		down_read(&mm->mmap_sem);
-+		tlb_gather_mmu(&tlb, mm, 0, -1);
- 		if (type == CLEAR_REFS_SOFT_DIRTY) {
- 			for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 				if (!(vma->vm_flags & VM_SOFTDIRTY))
-@@ -1075,7 +1078,7 @@ static ssize_t clear_refs_write(struct f
- 		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
- 		if (type == CLEAR_REFS_SOFT_DIRTY)
- 			mmu_notifier_invalidate_range_end(mm, 0, -1);
--		flush_tlb_mm(mm);
-+		tlb_finish_mmu(&tlb, 0, -1);
- 		up_read(&mm->mmap_sem);
- out_mm:
- 		mmput(mm);
-diff -puN mm/ksm.c~mm-fix-ksm-data-corruption mm/ksm.c
---- a/mm/ksm.c~mm-fix-ksm-data-corruption
-+++ a/mm/ksm.c
-@@ -1038,7 +1038,8 @@ static int write_protect_page(struct vm_
- 		goto out_unlock;
- 
- 	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
--	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte))) {
-+	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)) ||
-+						mm_tlb_flush_pending(mm)) {
- 		pte_t entry;
- 
- 		swapped = PageSwapCache(page);
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-zram-do-not-free-pool-size_class.patch
-mm-refactoring-tlb-gathering-api.patch
-mm-make-tlb_flush_pending-global.patch
-mm-fix-madv_-tlb-flush-miss-problem.patch
-mm-fix-ksm-data-corruption.patch
-zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
-zram-inlining-zram_compress.patch
-zram-rename-zram_decompress_page-with-__zram_bvec_read.patch
-zram-add-interface-to-specify-backing-device.patch
-zram-add-free-space-management-in-backing-device.patch
-zram-identify-asynchronous-ios-return-value.patch
-zram-write-incompressible-pages-to-backing-device.patch
-zram-read-page-from-backing-device.patch
-zram-add-config-and-doc-file-for-writeback-feature.patch
-
+oops.  I have an adfs fix.  Let me send...
