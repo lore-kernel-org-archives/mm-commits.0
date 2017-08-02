@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] brd-remove-brd_rw_page.patch removed from -mm tree
-Date: Wed, 02 Aug 2017 15:29:20 -0700
-Message-ID: <59825240.f0EdxxgyP4FCsRCa%akpm@linux-foundation.org>
+Subject: [withdrawn] pmem-remove-pmem_rw_page.patch removed from -mm tree
+Date: Wed, 02 Aug 2017 15:29:17 -0700
+Message-ID: <5982523d.dt5JktEwS7nWJG9Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751214AbdHBW3V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:29:21 -0400
+        with ESMTP id S1751743AbdHBW3S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:29:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, jack@suse.cz, jmarchan@redhat.com, karam.lee@lge.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, vishal.l.verma@intel.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/block/brd.c: remove brd_rw_page()
+     Subject: drivers/nvdimm/pmem.c: remove pmem_rw_page()
 has been removed from the -mm tree.  Its filename was
-     brd-remove-brd_rw_page.patch
+     pmem-remove-pmem_rw_page.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: drivers/block/brd.c: remove brd_rw_page()
+Subject: drivers/nvdimm/pmem.c: remove pmem_rw_page()
 
 The rw_page() interface doesn't provide a clear performance benefit for
-BRD and has had a nonzero maintenance burden, so remove it.
+PMEM and has had a nonzero maintenance burden, so remove it.
 
-Link: http://lkml.kernel.org/r/20170728165604.10455-4-ross.zwisler@linux.intel.com
+Link: http://lkml.kernel.org/r/20170728165604.10455-3-ross.zwisler@linux.intel.com
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Suggested-by: Christoph Hellwig <hch@infradead.org>
@@ -47,25 +47,33 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ drivers/nvdimm/pmem.c |   22 ----------------------
+ 1 file changed, 22 deletions(-)
 
-diff -puN drivers/block/brd.c~brd-remove-brd_rw_page drivers/block/brd.c
---- a/drivers/block/brd.c~brd-remove-brd_rw_page
-+++ a/drivers/block/brd.c
-@@ -322,19 +322,6 @@ io_error:
+diff -puN drivers/nvdimm/pmem.c~pmem-remove-pmem_rw_page drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~pmem-remove-pmem_rw_page
++++ a/drivers/nvdimm/pmem.c
+@@ -200,27 +200,6 @@ static blk_qc_t pmem_make_request(struct
  	return BLK_QC_T_NONE;
  }
  
--static int brd_rw_page(struct block_device *bdev, sector_t sector,
+-static int pmem_rw_page(struct block_device *bdev, sector_t sector,
 -		       struct page *page, bool is_write)
 -{
--	struct brd_device *brd = bdev->bd_disk->private_data;
--	int err;
+-	struct pmem_device *pmem = bdev->bd_queue->queuedata;
+-	blk_status_t rc;
 -
--	if (PageTransHuge(page))
--		return -ENOTSUPP;
--	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
--	page_endio(page, is_write, err);
--	return err;
+-	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
+-			  0, is_write, sector);
+-
+-	/*
+-	 * The ->rw_page interface is subtle and tricky.  The core
+-	 * retries on any error, so we can only invoke page_endio() in
+-	 * the successful completion case.  Otherwise, we'll see crashes
+-	 * caused by double completion.
+-	 */
+-	if (rc == 0)
+-		page_endio(page, is_write, 0);
+-
+-	return blk_status_to_errno(rc);
 -}
