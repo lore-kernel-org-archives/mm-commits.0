@@ -1,91 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch removed from -mm tree
-Date: Wed, 02 Aug 2017 15:29:12 -0700
-Message-ID: <59825238.DMRQiic6/zATGBws%akpm@linux-foundation.org>
+Subject: [withdrawn] btt-remove-btt_rw_page.patch removed from -mm tree
+Date: Wed, 02 Aug 2017 15:29:14 -0700
+Message-ID: <5982523a.tpJJwSoPXPCeI19U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49324 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751161AbdHBW3N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:29:13 -0400
+        with ESMTP id S1751727AbdHBW3P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, dan.j.williams@intel.com, hch@infradead.org, jthumshirn@suse.de, toshi.kani@hpe.com, vishal.l.verma@intel.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, jack@suse.cz, jmarchan@redhat.com, karam.lee@lge.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, vishal.l.verma@intel.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nvdimm: avoid bogus -Wmaybe-uninitialized warning
+     Subject: drivers/nvdimm/btt.c: remove btt_rw_page()
 has been removed from the -mm tree.  Its filename was
-     nvdimm-avoid-bogus-wmaybe-uninitialized-warning.patch
+     btt-remove-btt_rw_page.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: nvdimm: avoid bogus -Wmaybe-uninitialized warning
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: drivers/nvdimm/btt.c: remove btt_rw_page()
 
-Removing the btt_rw_page/pmem_rw_page functions has a surprising
-side-effect of introducing a false-positive warning in another function,
-due to changed inlining decisions in gcc:
+Patch series "remove rw_page() from brd, pmem and btt".
 
-In file included from drivers/nvdimm/pmem.c:36:0:
-drivers/nvdimm/pmem.c: In function 'pmem_make_request':
-drivers/nvdimm/nd.h:407:2: error: 'start' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-drivers/nvdimm/pmem.c:174:16: note: 'start' was declared here
-In file included from drivers/nvdimm/btt.c:27:0:
-drivers/nvdimm/btt.c: In function 'btt_make_request':
-drivers/nvdimm/nd.h:407:2: error: 'start' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-drivers/nvdimm/btt.c:1202:16: note: 'start' was declared here
+Dan Williams and Christoph Hellwig have recently expressed doubt about
+whether the rw_page() interface made sense for synchronous memory drivers
+[1][2].  It's unclear whether this interface has any performance benefit
+for these drivers, but as we continue to fix bugs it is clear that it does
+have a maintenance burden.  This series removes the rw_page()
+implementations in brd, pmem and btt to relieve this burden.
 
-The problem is that gcc fails to track the value of the 'do_acct' variable
-here and has to read it back from stack, but it does remember that 'start'
-may be uninitialized sometimes.
+These patches have passed ext4 and XFS xfstest regression testing with
+a memory mode pmem driver (without DAX), with pmem + btt and with brd.
 
-This shuts up the warning by making nd_iostat_start() always initialize
-the 'start' variable.  In those cases that gcc successfully tracks the
-state of the variable, this will have no effect.
 
-[akpm@linux-foundation.org: add comment]
-Link: http://lkml.kernel.org/r/20170801114926.1171418-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+This patch (of 3):
+
+The rw_page() interface doesn't provide a clear performance benefit for
+the BTT and has had a nonzero maintenance burden, so remove it.
+
+Link: http://lkml.kernel.org/r/20170728165604.10455-2-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "karam . lee" <karam.lee@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Seungho Park <seungho1.park@lge.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/nd.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvdimm/btt.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff -puN drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning drivers/nvdimm/nd.h
---- a/drivers/nvdimm/nd.h~nvdimm-avoid-bogus-wmaybe-uninitialized-warning
-+++ a/drivers/nvdimm/nd.h
-@@ -392,8 +392,10 @@ static inline bool nd_iostat_start(struc
- {
- 	struct gendisk *disk = bio->bi_bdev->bd_disk;
+diff -puN drivers/nvdimm/btt.c~btt-remove-btt_rw_page drivers/nvdimm/btt.c
+--- a/drivers/nvdimm/btt.c~btt-remove-btt_rw_page
++++ a/drivers/nvdimm/btt.c
+@@ -1236,22 +1236,6 @@ static blk_qc_t btt_make_request(struct
+ 	return BLK_QC_T_NONE;
+ }
  
--	if (!blk_queue_io_stat(disk->queue))
-+	if (!blk_queue_io_stat(disk->queue)) {
-+		*start = 0;	/* Suppress bogus warning */
- 		return false;
-+	}
- 
- 	*start = jiffies;
- 	generic_start_io_acct(bio_data_dir(bio),
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-kasan-avoid-wmaybe-uninitialized-warning-v3.patch
-adfs-use-unsigned-types-for-memcpy-length.patch
-fs-proc-remove-priv-argument-from-is_stack-fix.patch
-fscache-fix-fscache_objlist_show-format-processing.patch
-ib-mlx4-fix-sprintf-format-warning.patch
-iopoll-avoid-wint-in-bool-context-warning.patch
-kbuild-use-fshort-wchar-globally.patch
-
+-static int btt_rw_page(struct block_device *bdev, sector_t sector,
+-		struct page *page, bool is_write)
+-{
+-	struct btt *btt = bdev->bd_disk->private_data;
+-	int rc;
+-	unsigned int len;
+-
+-	len = hpage_nr_pages(page) * PAGE_SIZE;
+-	rc = btt_do_bvec(btt, NULL, page, len, 0, is_write, sector);
+-	if (rc == 0)
+-		page_endio(page, is_write, 0);
+-
+-	return rc;
+-}
+-
