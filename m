@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-refactoring-tlb-gathering-api.patch added to -mm tree
-Date: Wed, 02 Aug 2017 16:34:05 -0700
-Message-ID: <5982616d.sYAjqQKJPw9OTw+s%akpm@linux-foundation.org>
+Subject: + mm-make-tlb_flush_pending-global-fix.patch added to -mm tree
+Date: Wed, 02 Aug 2017 16:34:11 -0700
+Message-ID: <59826173.6PDp4s7Qw0pQVQa+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751727AbdHBXeH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:34:07 -0400
+        with ESMTP id S1751136AbdHBXeM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:34:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, minchan@kernel.org, namit@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: refactor TLB gathering API
+     Subject: mm-make-tlb_flush_pending-global-fix
 has been added to the -mm tree.  Its filename is
-     mm-refactoring-tlb-gathering-api.patch
+     mm-make-tlb_flush_pending-global-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-refactoring-tlb-gathering-api.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-tlb_flush_pending-global-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-refactoring-tlb-gathering-api.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-tlb_flush_pending-global-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,280 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: refactor TLB gathering API
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-tlb_flush_pending-global-fix
 
-This patch is a preparatory patch for solving race problems caused by TLB
-batch.  For that, we will increase/decrease TLB flush pending count of
-mm_struct whenever tlb_[gather|finish]_mmu is called.
+remove more ifdefs from world's ugliest printk statement
 
-Before making it simple, this patch separates architecture specific part
-and rename it to arch_tlb_[gather|finish]_mmu and generic part just calls
-it.
-
-It shouldn't change any behavior.
-
-Link: http://lkml.kernel.org/r/20170802000818.4760-5-namit@vmware.com
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nadav Amit <namit@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h  |    6 ++++--
- arch/ia64/include/asm/tlb.h |    6 ++++--
- arch/s390/include/asm/tlb.h |   12 ++++++------
- arch/sh/include/asm/tlb.h   |    6 ++++--
- arch/um/include/asm/tlb.h   |    8 +++++---
- include/asm-generic/tlb.h   |    7 ++++---
- include/linux/mm_types.h    |    6 ++++++
- mm/memory.c                 |   28 +++++++++++++++++++++-------
- 8 files changed, 54 insertions(+), 25 deletions(-)
+ mm/debug.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/arm/include/asm/tlb.h~mm-refactoring-tlb-gathering-api arch/arm/include/asm/tlb.h
---- a/arch/arm/include/asm/tlb.h~mm-refactoring-tlb-gathering-api
-+++ a/arch/arm/include/asm/tlb.h
-@@ -148,7 +148,8 @@ static inline void tlb_flush_mmu(struct
- }
+diff -puN mm/debug.c~mm-make-tlb_flush_pending-global-fix mm/debug.c
+--- a/mm/debug.c~mm-make-tlb_flush_pending-global-fix
++++ a/mm/debug.c
+@@ -124,9 +124,7 @@ void dump_mm(const struct mm_struct *mm)
+ #ifdef CONFIG_NUMA_BALANCING
+ 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
+ #endif
+-#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
+ 		"tlb_flush_pending %d\n"
+-#endif
+ 		"def_flags: %#lx(%pGv)\n",
  
- static inline void
--tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end)
-+arch_tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+			unsigned long start, unsigned long end)
- {
- 	tlb->mm = mm;
- 	tlb->fullmm = !(start | (end+1));
-@@ -166,7 +167,8 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
- }
- 
- static inline void
--tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+			unsigned long start, unsigned long end)
- {
- 	tlb_flush_mmu(tlb);
- 
-diff -puN arch/ia64/include/asm/tlb.h~mm-refactoring-tlb-gathering-api arch/ia64/include/asm/tlb.h
---- a/arch/ia64/include/asm/tlb.h~mm-refactoring-tlb-gathering-api
-+++ a/arch/ia64/include/asm/tlb.h
-@@ -168,7 +168,8 @@ static inline void __tlb_alloc_page(stru
- 
- 
- static inline void
--tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end)
-+arch_tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+			unsigned long start, unsigned long end)
- {
- 	tlb->mm = mm;
- 	tlb->max = ARRAY_SIZE(tlb->local);
-@@ -185,7 +186,8 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
-  * collected.
-  */
- static inline void
--tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+			unsigned long start, unsigned long end)
- {
- 	/*
- 	 * Note: tlb->nr may be 0 at this point, so we can't rely on tlb->start_addr and
-diff -puN arch/s390/include/asm/tlb.h~mm-refactoring-tlb-gathering-api arch/s390/include/asm/tlb.h
---- a/arch/s390/include/asm/tlb.h~mm-refactoring-tlb-gathering-api
-+++ a/arch/s390/include/asm/tlb.h
-@@ -47,10 +47,9 @@ struct mmu_table_batch {
- extern void tlb_table_flush(struct mmu_gather *tlb);
- extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
- 
--static inline void tlb_gather_mmu(struct mmu_gather *tlb,
--				  struct mm_struct *mm,
--				  unsigned long start,
--				  unsigned long end)
-+static inline void
-+arch_tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+			unsigned long start, unsigned long end)
- {
- 	tlb->mm = mm;
- 	tlb->start = start;
-@@ -76,8 +75,9 @@ static inline void tlb_flush_mmu(struct
- 	tlb_flush_mmu_free(tlb);
- }
- 
--static inline void tlb_finish_mmu(struct mmu_gather *tlb,
--				  unsigned long start, unsigned long end)
-+static inline void
-+arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+		unsigned long start, unsigned long end)
- {
- 	tlb_flush_mmu(tlb);
- }
-diff -puN arch/sh/include/asm/tlb.h~mm-refactoring-tlb-gathering-api arch/sh/include/asm/tlb.h
---- a/arch/sh/include/asm/tlb.h~mm-refactoring-tlb-gathering-api
-+++ a/arch/sh/include/asm/tlb.h
-@@ -36,7 +36,8 @@ static inline void init_tlb_gather(struc
- }
- 
- static inline void
--tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end)
-+arch_tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+		unsigned long start, unsigned long end)
- {
- 	tlb->mm = mm;
- 	tlb->start = start;
-@@ -47,7 +48,8 @@ tlb_gather_mmu(struct mmu_gather *tlb, s
- }
- 
- static inline void
--tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+		unsigned long start, unsigned long end)
- {
- 	if (tlb->fullmm)
- 		flush_tlb_mm(tlb->mm);
-diff -puN arch/um/include/asm/tlb.h~mm-refactoring-tlb-gathering-api arch/um/include/asm/tlb.h
---- a/arch/um/include/asm/tlb.h~mm-refactoring-tlb-gathering-api
-+++ a/arch/um/include/asm/tlb.h
-@@ -45,7 +45,8 @@ static inline void init_tlb_gather(struc
- }
- 
- static inline void
--tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end)
-+arch_tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+		unsigned long start, unsigned long end)
- {
- 	tlb->mm = mm;
- 	tlb->start = start;
-@@ -80,12 +81,13 @@ tlb_flush_mmu(struct mmu_gather *tlb)
- 	tlb_flush_mmu_free(tlb);
- }
- 
--/* tlb_finish_mmu
-+/* arch_tlb_finish_mmu
-  *	Called at the end of the shootdown operation to free up any resources
-  *	that were required.
-  */
- static inline void
--tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+		unsigned long start, unsigned long end)
- {
- 	tlb_flush_mmu(tlb);
- 
-diff -puN include/asm-generic/tlb.h~mm-refactoring-tlb-gathering-api include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-refactoring-tlb-gathering-api
-+++ a/include/asm-generic/tlb.h
-@@ -112,10 +112,11 @@ struct mmu_gather {
- 
- #define HAVE_GENERIC_MMU_GATHER
- 
--void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end);
-+void arch_tlb_gather_mmu(struct mmu_gather *tlb,
-+	struct mm_struct *mm, unsigned long start, unsigned long end);
- void tlb_flush_mmu(struct mmu_gather *tlb);
--void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start,
--							unsigned long end);
-+void arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+			 unsigned long start, unsigned long end);
- extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
- 				   int page_size);
- 
-diff -puN include/linux/mm_types.h~mm-refactoring-tlb-gathering-api include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-refactoring-tlb-gathering-api
-+++ a/include/linux/mm_types.h
-@@ -522,6 +522,12 @@ static inline cpumask_t *mm_cpumask(stru
- 	return mm->cpu_vm_mask_var;
- }
- 
-+struct mmu_gather;
-+extern void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+				unsigned long start, unsigned long end);
-+extern void tlb_finish_mmu(struct mmu_gather *tlb,
-+				unsigned long start, unsigned long end);
-+
- #if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- /*
-  * Memory barriers to keep this state in sync are graciously provided by
-diff -puN mm/memory.c~mm-refactoring-tlb-gathering-api mm/memory.c
---- a/mm/memory.c~mm-refactoring-tlb-gathering-api
-+++ a/mm/memory.c
-@@ -215,12 +215,8 @@ static bool tlb_next_batch(struct mmu_ga
- 	return true;
- }
- 
--/* tlb_gather_mmu
-- *	Called to initialize an (on-stack) mmu_gather structure for page-table
-- *	tear-down from @mm. The @fullmm argument is used when @mm is without
-- *	users and we're going to destroy the full address space (exit/execve).
-- */
--void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end)
-+void arch_tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+				unsigned long start, unsigned long end)
- {
- 	tlb->mm = mm;
- 
-@@ -275,7 +271,8 @@ void tlb_flush_mmu(struct mmu_gather *tl
-  *	Called at the end of the shootdown operation to free up any resources
-  *	that were required.
-  */
--void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+void arch_tlb_finish_mmu(struct mmu_gather *tlb,
-+		unsigned long start, unsigned long end)
- {
- 	struct mmu_gather_batch *batch, *next;
- 
-@@ -398,6 +395,23 @@ void tlb_remove_table(struct mmu_gather
- 
- #endif /* CONFIG_HAVE_RCU_TABLE_FREE */
- 
-+/* tlb_gather_mmu
-+ *	Called to initialize an (on-stack) mmu_gather structure for page-table
-+ *	tear-down from @mm. The @fullmm argument is used when @mm is without
-+ *	users and we're going to destroy the full address space (exit/execve).
-+ */
-+void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-+			unsigned long start, unsigned long end)
-+{
-+	arch_tlb_gather_mmu(tlb, mm, start, end);
-+}
-+
-+void tlb_finish_mmu(struct mmu_gather *tlb,
-+		unsigned long start, unsigned long end)
-+{
-+	arch_tlb_finish_mmu(tlb, start, end);
-+}
-+
- /*
-  * Note: this doesn't free the actual pages themselves. That
-  * has been handled earlier when unmapping all the memory regions.
+ 		mm, mm->mmap, mm->vmacache_seqnum, mm->task_size,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-do-not-free-pool-size_class.patch
-mm-refactoring-tlb-gathering-api.patch
-mm-make-tlb_flush_pending-global.patch
-mm-fix-madv_-tlb-flush-miss-problem.patch
-mm-fix-ksm-data-corruption.patch
-zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
-zram-inlining-zram_compress.patch
-zram-rename-zram_decompress_page-with-__zram_bvec_read.patch
-zram-add-interface-to-specify-backing-device.patch
-zram-add-free-space-management-in-backing-device.patch
-zram-identify-asynchronous-ios-return-value.patch
-zram-write-incompressible-pages-to-backing-device.patch
-zram-read-page-from-backing-device.patch
-zram-add-config-and-doc-file-for-writeback-feature.patch
+i-need-old-gcc.patch
+mm-make-tlb_flush_pending-global-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
