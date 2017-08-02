@@ -1,79 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] pmem-remove-pmem_rw_page.patch removed from -mm tree
-Date: Wed, 02 Aug 2017 15:29:17 -0700
-Message-ID: <5982523d.dt5JktEwS7nWJG9Y%akpm@linux-foundation.org>
+Subject: + test_kmod-fix-spelling-mistake-emtpy-empty.patch added to -mm
+ tree
+Date: Wed, 02 Aug 2017 15:46:57 -0700
+Message-ID: <59825661.cjzvclHoKImJA6vd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54096 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751743AbdHBW3S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:29:18 -0400
+        with ESMTP id S1751058AbdHBWq6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:46:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, jack@suse.cz, jmarchan@redhat.com, karam.lee@lge.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, vishal.l.verma@intel.com, willy@infradead.org, mm-commits@vger.kernel.org
+To: colin.king@canonical.com, dan.carpenter@oracle.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/nvdimm/pmem.c: remove pmem_rw_page()
-has been removed from the -mm tree.  Its filename was
-     pmem-remove-pmem_rw_page.patch
+     Subject: test_kmod: fix spelling mistake: "EMTPY" -> "EMPTY"
+has been added to the -mm tree.  Its filename is
+     test_kmod-fix-spelling-mistake-emtpy-empty.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/test_kmod-fix-spelling-mistake-emtpy-empty.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_kmod-fix-spelling-mistake-emtpy-empty.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: drivers/nvdimm/pmem.c: remove pmem_rw_page()
+From: Colin Ian King <colin.king@canonical.com>
+Subject: test_kmod: fix spelling mistake: "EMTPY" -> "EMPTY"
 
-The rw_page() interface doesn't provide a clear performance benefit for
-PMEM and has had a nonzero maintenance burden, so remove it.
+Trivial fix to spelling mistake in snprintf text
 
-Link: http://lkml.kernel.org/r/20170728165604.10455-3-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: "karam . lee" <karam.lee@lge.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Seungho Park <seungho1.park@lge.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+[mcgrof@kernel.org: massaged commit message]
+Link: http://lkml.kernel.org/r/20170802211450.27928-3-mcgrof@kernel.org
+Fixes: 39258f448d71 ("kmod: add test driver to stress test the module loader")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jessica Yu <jeyu@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/pmem.c |   22 ----------------------
- 1 file changed, 22 deletions(-)
+ lib/test_kmod.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/nvdimm/pmem.c~pmem-remove-pmem_rw_page drivers/nvdimm/pmem.c
---- a/drivers/nvdimm/pmem.c~pmem-remove-pmem_rw_page
-+++ a/drivers/nvdimm/pmem.c
-@@ -200,27 +200,6 @@ static blk_qc_t pmem_make_request(struct
- 	return BLK_QC_T_NONE;
- }
+diff -puN lib/test_kmod.c~test_kmod-fix-spelling-mistake-emtpy-empty lib/test_kmod.c
+--- a/lib/test_kmod.c~test_kmod-fix-spelling-mistake-emtpy-empty
++++ a/lib/test_kmod.c
+@@ -485,7 +485,7 @@ static ssize_t config_show(struct device
+ 				config->test_driver);
+ 	else
+ 		len += snprintf(buf+len, PAGE_SIZE - len,
+-				"driver:\tEMTPY\n");
++				"driver:\tEMPTY\n");
  
--static int pmem_rw_page(struct block_device *bdev, sector_t sector,
--		       struct page *page, bool is_write)
--{
--	struct pmem_device *pmem = bdev->bd_queue->queuedata;
--	blk_status_t rc;
--
--	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
--			  0, is_write, sector);
--
--	/*
--	 * The ->rw_page interface is subtle and tricky.  The core
--	 * retries on any error, so we can only invoke page_endio() in
--	 * the successful completion case.  Otherwise, we'll see crashes
--	 * caused by double completion.
--	 */
--	if (rc == 0)
--		page_endio(page, is_write, 0);
--
--	return blk_status_to_errno(rc);
--}
+ 	if (config->test_fs)
+ 		len += snprintf(buf+len, PAGE_SIZE - len,
+@@ -493,7 +493,7 @@ static ssize_t config_show(struct device
+ 				config->test_fs);
+ 	else
+ 		len += snprintf(buf+len, PAGE_SIZE - len,
+-				"fs:\tEMTPY\n");
++				"fs:\tEMPTY\n");
+ 
+ 	mutex_unlock(&test_dev->config_mutex);
+ 
+_
+
+Patches currently in -mm which might be from colin.king@canonical.com are
+
+test_kmod-fix-spelling-mistake-emtpy-empty.patch
+
