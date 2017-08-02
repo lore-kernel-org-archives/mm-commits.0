@@ -1,93 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/16] mm: take memory hotplug lock within
- numa_zonelist_order_handler()
-Date: Wed, 02 Aug 2017 13:32:12 -0700
-Message-ID: <598236cc.1PAyxKpIxTLr5AaS%akpm@linux-foundation.org>
+Subject: [patch 13/16] ipc: add missing container_of()s for randstruct
+Date: Wed, 02 Aug 2017 13:32:21 -0700
+Message-ID: <598236d5.YPxosepnMzdHEApl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46072 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753050AbdHBUcN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:32:13 -0400
+        with ESMTP id S1752116AbdHBUcW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 16:32:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, heiko.carstens@de.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, tglx@linutronix.de, vbabka@suse.cz, wild@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, dave@stgolabs.net, linux@dominikbrodowski.net, manfred@colorfullife.com
 
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: mm: take memory hotplug lock within numa_zonelist_order_handler()
+From: Kees Cook <keescook@chromium.org>
+Subject: ipc: add missing container_of()s for randstruct
 
-Andre Wild reported the following warning:
+When building with the randstruct gcc plugin, the layout of the IPC
+structs will be randomized, which requires any sub-structure accesses to
+use container_of().  The proc display handlers were missing the needed
+container_of()s since the iterator is passing in the top-level struct
+kern_ipc_perm.  This would lead to crashes when running the "lsipc"
+program after the system had IPC registered (e.g.  after starting up
+Gnome):
 
-WARNING: CPU: 2 PID: 1205 at kernel/cpu.c:240 lockdep_assert_cpus_held+0x4c/0x60
-Modules linked in:
-CPU: 2 PID: 1205 Comm: bash Not tainted 4.13.0-rc2-00022-gfd2b2c57ec20 #10
-Hardware name: IBM 2964 N96 702 (z/VM 6.4.0)
-task: 00000000701d8100 task.stack: 0000000073594000
-Krnl PSW : 0704f00180000000 0000000000145e24 (lockdep_assert_cpus_held+0x4c/0x60)
+[  183.018415] general protection fault: 0000 [#1] PREEMPT SMP
 ...
-Call Trace:
- lockdep_assert_cpus_held+0x42/0x60)
- stop_machine_cpuslocked+0x62/0xf0
- build_all_zonelists+0x92/0x150
- numa_zonelist_order_handler+0x102/0x150
- proc_sys_call_handler.isra.12+0xda/0x118
- proc_sys_write+0x34/0x48
- __vfs_write+0x3c/0x178
- vfs_write+0xbc/0x1a0
- SyS_write+0x66/0xc0
- system_call+0xc4/0x2b0
- locks held by bash/1205:
- #0:  (sb_writers#4){.+.+.+}, at: [<000000000037b29e>] vfs_write+0xa6/0x1a0
- #1:  (zl_order_mutex){+.+...}, at: [<00000000002c8e4c>] numa_zonelist_order_handler+0x44/0x150
- #2:  (zonelists_mutex){+.+...}, at: [<00000000002c8efc>] numa_zonelist_order_handler+0xf4/0x150
-Last Breaking-Event-Address:
- [<0000000000145e20>] lockdep_assert_cpus_held+0x48/0x60
+[  183.018692] RIP: 0010:shm_add_rss_swap.isra.1+0x13/0xa0
+...
+[  183.019265] Call Trace:
+[  183.019294]  sysvipc_shm_proc_show+0x5e/0x150
+[  183.019338]  ? _raw_spin_lock+0x17/0x40
+[  183.019376]  ? sysvipc_find_ipc+0xbc/0xf0
+[  183.019416]  sysvipc_proc_show+0x1a/0x30
+[  183.019456]  seq_read+0x2e9/0x3f0
+...
 
-This can be easily triggered with e.g.
-
- >echo n > /proc/sys/vm/numa_zonelist_order
-
-With 3f906ba23689a ("mm/memory-hotplug: switch locking to a
-percpu rwsem") memory hotplug locking was changed to fix a potential
-deadlock. This also switched the stop_machine() invocation within
-build_all_zonelists() to stop_machine_cpuslocked() which now expects
-that online cpus are locked when being called.
-
-This assumption is not true if build_all_zonelists() is being called
-from numa_zonelist_order_handler(). In order to fix this simply add a
-mem_hotplug_begin()/mem_hotplug_done() pair to numa_zonelist_order_handler().
-
-Link: http://lkml.kernel.org/r/20170726111738.38768-1-heiko.carstens@de.ibm.com
-Fixes: 3f906ba23689a ("mm/memory-hotplug: switch locking to a percpu rwsem")
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Reported-by: Andre Wild <wild@linux.vnet.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20170730205950.GA55841@beast
+Fixes: 3859a271a003 ("randstruct: Mark various structs for randomization")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ ipc/msg.c |    3 ++-
+ ipc/sem.c |    3 ++-
+ ipc/shm.c |    4 +++-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler mm/page_alloc.c
---- a/mm/page_alloc.c~mm-take-memory-hotplug-lock-within-numa_zonelist_order_handler
-+++ a/mm/page_alloc.c
-@@ -4891,9 +4891,11 @@ int numa_zonelist_order_handler(struct c
- 				NUMA_ZONELIST_ORDER_LEN);
- 			user_zonelist_order = oldval;
- 		} else if (oldval != user_zonelist_order) {
-+			mem_hotplug_begin();
- 			mutex_lock(&zonelists_mutex);
- 			build_all_zonelists(NULL, NULL);
- 			mutex_unlock(&zonelists_mutex);
-+			mem_hotplug_done();
- 		}
- 	}
- out:
+diff -puN ipc/msg.c~ipc-add-missing-container_ofs-for-randstruct ipc/msg.c
+--- a/ipc/msg.c~ipc-add-missing-container_ofs-for-randstruct
++++ a/ipc/msg.c
+@@ -1034,7 +1034,8 @@ void msg_exit_ns(struct ipc_namespace *n
+ static int sysvipc_msg_proc_show(struct seq_file *s, void *it)
+ {
+ 	struct user_namespace *user_ns = seq_user_ns(s);
+-	struct msg_queue *msq = it;
++	struct kern_ipc_perm *ipcp = it;
++	struct msg_queue *msq = container_of(ipcp, struct msg_queue, q_perm);
+ 
+ 	seq_printf(s,
+ 		   "%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
+diff -puN ipc/sem.c~ipc-add-missing-container_ofs-for-randstruct ipc/sem.c
+--- a/ipc/sem.c~ipc-add-missing-container_ofs-for-randstruct
++++ a/ipc/sem.c
+@@ -2179,7 +2179,8 @@ void exit_sem(struct task_struct *tsk)
+ static int sysvipc_sem_proc_show(struct seq_file *s, void *it)
+ {
+ 	struct user_namespace *user_ns = seq_user_ns(s);
+-	struct sem_array *sma = it;
++	struct kern_ipc_perm *ipcp = it;
++	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
+ 	time_t sem_otime;
+ 
+ 	/*
+diff -puN ipc/shm.c~ipc-add-missing-container_ofs-for-randstruct ipc/shm.c
+--- a/ipc/shm.c~ipc-add-missing-container_ofs-for-randstruct
++++ a/ipc/shm.c
+@@ -1380,9 +1380,11 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
+ static int sysvipc_shm_proc_show(struct seq_file *s, void *it)
+ {
+ 	struct user_namespace *user_ns = seq_user_ns(s);
+-	struct shmid_kernel *shp = it;
++	struct kern_ipc_perm *ipcp = it;
++	struct shmid_kernel *shp;
+ 	unsigned long rss = 0, swp = 0;
+ 
++	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
+ 	shm_add_rss_swap(shp, &rss, &swp);
+ 
+ #if BITS_PER_LONG <= 32
 _
