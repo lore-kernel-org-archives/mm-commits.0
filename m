@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-tlb_flush_pending-global.patch added to -mm tree
-Date: Wed, 02 Aug 2017 16:34:09 -0700
-Message-ID: <59826171.gsNTyE0gy2BMEo+3%akpm@linux-foundation.org>
+Subject: + mm-fix-ksm-data-corruption.patch added to -mm tree
+Date: Wed, 02 Aug 2017 16:34:17 -0700
+Message-ID: <59826179.6WLIN8rBLOdwBQRs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59970 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751737AbdHBXeK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:34:10 -0400
+        with ESMTP id S1751761AbdHBXeS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make tlb_flush_pending global
+     Subject: mm: fix KSM data corruption
 has been added to the -mm tree.  Its filename is
-     mm-make-tlb_flush_pending-global.patch
+     mm-fix-ksm-data-corruption.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-tlb_flush_pending-global.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-ksm-data-corruption.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-tlb_flush_pending-global.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-ksm-data-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,22 +39,94 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: make tlb_flush_pending global
+Subject: mm: fix KSM data corruption
 
-Currently, tlb_flush_pending is used only for CONFIG_[NUMA_BALANCING|
-COMPACTION] but upcoming patches to solve subtle TLB flush batching
-problem will use it regardless of compaction/NUMA so this patch doesn't
-remove the dependency.
+Nadav reported KSM can corrupt the user data by the TLB batching race[1]. 
+That means data user written can be lost.
 
-Link: http://lkml.kernel.org/r/20170802000818.4760-6-namit@vmware.com
+Quote from Nadav Amit
+"
+For this race we need 4 CPUs:
+
+CPU0: Caches a writable and dirty PTE entry, and uses the stale value for
+write later.
+
+CPU1: Runs madvise_free on the range that includes the PTE. It would clear
+the dirty-bit. It batches TLB flushes.
+
+CPU2: Writes 4 to /proc/PID/clear_refs , clearing the PTEs soft-dirty. We
+care about the fact that it clears the PTE write-bit, and of course,
+batches TLB flushes.
+
+CPU3: Runs KSM. Our purpose is to pass the following test in
+write_protect_page():
+
+	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
+(pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)))
+
+Since it will avoid TLB flush. And we want to do it while the PTE is stale.
+Later, and before replacing the page, we would be able to change the page.
+
+Note that all the operations the CPU1-3 perform canhappen in parallel since
+they only acquire mmap_sem for read.
+
+We start with two identical pages. Everything below regards the same
+page/PTE.
+
+CPU0		CPU1		CPU2		CPU3
+----		----		----		----
+Write the same
+value on page
+
+[cache PTE as
+ dirty in TLB]
+
+		MADV_FREE
+		pte_mkclean()
+
+				4 > clear_refs
+				pte_wrprotect()
+
+						write_protect_page()
+						[ success, no flush ]
+
+						pages_indentical()
+						[ ok ]
+
+Write to page
+different value
+
+[Ok, using stale
+ PTE]
+
+						replace_page()
+
+Later, CPU1, CPU2 and CPU3 would flush the TLB, but that is too late. CPU0
+already wrote on the page, but KSM ignored this write, and it got lost.
+"
+
+In above scenario, MADV_FREE is fixed by changing TLB batching API
+including [set|clear]_tlb_flush_pending.  Remained thing is soft-dirty
+part.
+
+This patch changes soft-dirty uses TLB batching API instead of
+flush_tlb_mm and KSM checks pending TLB flush by using
+mm_tlb_flush_pending so that it will flush TLB to avoid data lost if there
+are other parallel threads pending TLB flush.
+
+[1] http://lkml.kernel.org/r/BD3A0EBE-ECF4-41D4-87FA-C755EA9AB6BD@gmail.com
+
+Link: http://lkml.kernel.org/r/20170802000818.4760-8-namit@vmware.com
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Nadav Amit <namit@vmware.com>
+Tested-by: Nadav Amit <namit@vmware.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -68,74 +140,63 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   21 ---------------------
- mm/debug.c               |    2 --
- 2 files changed, 23 deletions(-)
+ fs/proc/task_mmu.c |    7 +++++--
+ mm/ksm.c           |    3 ++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-make-tlb_flush_pending-global include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-make-tlb_flush_pending-global
-+++ a/include/linux/mm_types.h
-@@ -487,14 +487,12 @@ struct mm_struct {
- 	/* numa_scan_seq prevents two threads setting pte_numa */
- 	int numa_scan_seq;
- #endif
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- 	/*
- 	 * An operation with batched TLB flushing is going on. Anything that
- 	 * can move process memory needs to flush the TLB when moving a
- 	 * PROT_NONE or PROT_NUMA mapped page.
- 	 */
- 	atomic_t tlb_flush_pending;
--#endif
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	/* See flush_tlb_batched_pending() */
- 	bool tlb_flush_batched;
-@@ -528,7 +526,6 @@ extern void tlb_gather_mmu(struct mmu_ga
- extern void tlb_finish_mmu(struct mmu_gather *tlb,
- 				unsigned long start, unsigned long end);
+diff -puN fs/proc/task_mmu.c~mm-fix-ksm-data-corruption fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-fix-ksm-data-corruption
++++ a/fs/proc/task_mmu.c
+@@ -16,9 +16,10 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/page_idle.h>
+ #include <linux/shmem_fs.h>
++#include <linux/uaccess.h>
  
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- /*
-  * Memory barriers to keep this state in sync are graciously provided by
-  * the page table locks, outside of which no page table modifications happen.
-@@ -569,24 +566,6 @@ static inline void dec_tlb_flush_pending
- 	smp_mb__before_atomic();
- 	atomic_dec(&mm->tlb_flush_pending);
- }
--#else
--static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
--{
--	return false;
--}
--
--static inline void init_tlb_flush_pending(struct mm_struct *mm)
--{
--}
--
--static inline void inc_tlb_flush_pending(struct mm_struct *mm)
--{
--}
--
--static inline void dec_tlb_flush_pending(struct mm_struct *mm)
--{
--}
--#endif
+ #include <asm/elf.h>
+-#include <linux/uaccess.h>
++#include <asm/tlb.h>
+ #include <asm/tlbflush.h>
+ #include "internal.h"
  
- struct vm_fault;
+@@ -1008,6 +1009,7 @@ static ssize_t clear_refs_write(struct f
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	enum clear_refs_types type;
++	struct mmu_gather tlb;
+ 	int itype;
+ 	int rv;
  
-diff -puN mm/debug.c~mm-make-tlb_flush_pending-global mm/debug.c
---- a/mm/debug.c~mm-make-tlb_flush_pending-global
-+++ a/mm/debug.c
-@@ -158,9 +158,7 @@ void dump_mm(const struct mm_struct *mm)
- #ifdef CONFIG_NUMA_BALANCING
- 		mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq,
- #endif
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- 		atomic_read(&mm->tlb_flush_pending),
--#endif
- 		mm->def_flags, &mm->def_flags
- 	);
- }
+@@ -1054,6 +1056,7 @@ static ssize_t clear_refs_write(struct f
+ 		}
+ 
+ 		down_read(&mm->mmap_sem);
++		tlb_gather_mmu(&tlb, mm, 0, -1);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY) {
+ 			for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 				if (!(vma->vm_flags & VM_SOFTDIRTY))
+@@ -1075,7 +1078,7 @@ static ssize_t clear_refs_write(struct f
+ 		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY)
+ 			mmu_notifier_invalidate_range_end(mm, 0, -1);
+-		flush_tlb_mm(mm);
++		tlb_finish_mmu(&tlb, 0, -1);
+ 		up_read(&mm->mmap_sem);
+ out_mm:
+ 		mmput(mm);
+diff -puN mm/ksm.c~mm-fix-ksm-data-corruption mm/ksm.c
+--- a/mm/ksm.c~mm-fix-ksm-data-corruption
++++ a/mm/ksm.c
+@@ -1038,7 +1038,8 @@ static int write_protect_page(struct vm_
+ 		goto out_unlock;
+ 
+ 	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
+-	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte))) {
++	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)) ||
++						mm_tlb_flush_pending(mm)) {
+ 		pte_t entry;
+ 
+ 		swapped = PageSwapCache(page);
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
