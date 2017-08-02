@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + test_kmod-flip-int-checks-to-be-consistent.patch added to -mm
- tree
-Date: Wed, 02 Aug 2017 15:48:51 -0700
-Message-ID: <598256d3.p+OiUrez8BKkBW8u%akpm@linux-foundation.org>
+Subject: +
+ fault-inject-fix-wrong-should_fail-decision-in-task-context.patch added to
+ -mm tree
+Date: Wed, 02 Aug 2017 16:20:38 -0700
+Message-ID: <59825e46.onxDRe4jrs+8jwOq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59290 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751136AbdHBWsw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 18:48:52 -0400
+        with ESMTP id S1751804AbdHBXUi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2017 19:20:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, colin.king@canonical.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, dvyukov@google.com, lufq.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_kmod: flip INT checks to be consistent
+     Subject: fault-inject: fix wrong should_fail() decision in task context
 has been added to the -mm tree.  Its filename is
-     test_kmod-flip-int-checks-to-be-consistent.patch
+     fault-inject-fix-wrong-should_fail-decision-in-task-context.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_kmod-flip-int-checks-to-be-consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-fix-wrong-should_fail-decision-in-task-context.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_kmod-flip-int-checks-to-be-consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-fix-wrong-should_fail-decision-in-task-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +40,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: test_kmod: flip INT checks to be consistent
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fault-inject: fix wrong should_fail() decision in task context
 
-Most checks will check for min and then max, except the int check.  Flip
-the checks to be consistent with the other code.
+Commit 1203c8e6fb0a ("fault-inject: simplify access check for fail-nth")
+unintentionally broke a conditional statement in should_fail().  Any
+faults are not injected in the task context by the change when the
+systematic fault injection is not used.
 
-[mcgrof@kernel.org: massaged commit log]
-Link: http://lkml.kernel.org/r/20170802211707.28020-3-mcgrof@kernel.org
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: David Binderman <dcb314@hotmail.com>
+This change restores to the previous correct behaviour.
+
+Link: http://lkml.kernel.org/r/1501633700-3488-1-git-send-email-akinobu.mita@gmail.com
+Fixes: 1203c8e6fb0a ("fault-inject: simplify access check for fail-nth")
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reported-by: Lu Fengqi <lufq.fnst@cn.fujitsu.com>
+Tested-by: Lu Fengqi <lufq.fnst@cn.fujitsu.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/fault-inject.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent lib/test_kmod.c
---- a/lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent
-+++ a/lib/test_kmod.c
-@@ -946,7 +946,7 @@ static int test_dev_config_update_int(st
- 	if (ret)
- 		return ret;
+diff -puN lib/fault-inject.c~fault-inject-fix-wrong-should_fail-decision-in-task-context lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-fix-wrong-should_fail-decision-in-task-context
++++ a/lib/fault-inject.c
+@@ -110,10 +110,12 @@ bool should_fail(struct fault_attr *attr
+ 	if (in_task()) {
+ 		unsigned int fail_nth = READ_ONCE(current->fail_nth);
  
--	if (new > INT_MAX || new < INT_MIN)
-+	if (new < INT_MIN || new > INT_MAX)
- 		return -EINVAL;
+-		if (fail_nth && !WRITE_ONCE(current->fail_nth, fail_nth - 1))
+-			goto fail;
++		if (fail_nth) {
++			if (!WRITE_ONCE(current->fail_nth, fail_nth - 1))
++				goto fail;
  
- 	mutex_lock(&test_dev->config_mutex);
+-		return false;
++			return false;
++		}
+ 	}
+ 
+ 	/* No need to check any other properties if the probability is 0 */
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-test_kmod-fix-the-lock-in-register_test_dev_kmod.patch
-test_kmod-fix-small-memory-leak-on-filesystem-tests.patch
-test_kmod-remove-paranoid-uint_max-check-on-uint-range-processing.patch
-test_kmod-flip-int-checks-to-be-consistent.patch
+fault-inject-fix-wrong-should_fail-decision-in-task-context.patch
 
