@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-avoid-integer-overflow-in-genmask_ull.patch added to -mm tree
-Date: Thu, 03 Aug 2017 14:50:36 -0700
-Message-ID: <59839aac.NkMm+m3V3oCXizj0%akpm@linux-foundation.org>
+Subject: + ipc-sem-drop-sem_checkid-helper.patch added to -mm tree
+Date: Thu, 03 Aug 2017 14:52:59 -0700
+Message-ID: <59839b3b.P5q13XsX+yiusfxg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46262 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751917AbdHCVuh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2017 17:50:37 -0400
+        with ESMTP id S1751754AbdHCVxA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2017 17:53:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mka@chromium.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitops: avoid integer overflow in GENMASK(_ULL)
+     Subject: ipc/sem: drop sem_checkid helper
 has been added to the -mm tree.  Its filename is
-     bitops-avoid-integer-overflow-in-genmask_ull.patch
+     ipc-sem-drop-sem_checkid-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitops-avoid-integer-overflow-in-genmask_ull.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-drop-sem_checkid-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitops-avoid-integer-overflow-in-genmask_ull.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-drop-sem_checkid-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,46 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: bitops: avoid integer overflow in GENMASK(_ULL)
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/sem: drop sem_checkid helper
 
-GENMASK(_ULL) performs a left-shift of ~0UL(L), which technically results
-in an integer overflow.  clang raises a warning if the overflow occurs in
-a preprocessor expression.  Clear the low-order bits through a
-substraction instead of the left-shift to avoid the overflow.
+... 'tis not used.
 
-(akpm: no change in .text size in my testing)
-
-Link: http://lkml.kernel.org/r/20170803212020.24939-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Link: http://lkml.kernel.org/r/20170803184136.13855-1-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ ipc/sem.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/bitops.h~bitops-avoid-integer-overflow-in-genmask_ull include/linux/bitops.h
---- a/include/linux/bitops.h~bitops-avoid-integer-overflow-in-genmask_ull
-+++ a/include/linux/bitops.h
-@@ -19,10 +19,11 @@
-  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
-  */
- #define GENMASK(h, l) \
--	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
-+	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+diff -puN ipc/sem.c~ipc-sem-drop-sem_checkid-helper ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-drop-sem_checkid-helper
++++ a/ipc/sem.c
+@@ -130,8 +130,6 @@ struct sem_undo_list {
  
- #define GENMASK_ULL(h, l) \
--	(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
-+	(((~0ULL) - (1ULL << (l)) + 1) & \
-+	 (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
+ #define sem_ids(ns)	((ns)->ids[IPC_SEM_IDS])
  
- extern unsigned int __sw_hweight8(unsigned int w);
- extern unsigned int __sw_hweight16(unsigned int w);
+-#define sem_checkid(sma, semid)	ipc_checkid(&sma->sem_perm, semid)
+-
+ static int newary(struct ipc_namespace *, struct ipc_params *);
+ static void freeary(struct ipc_namespace *, struct kern_ipc_perm *);
+ #ifdef CONFIG_PROC_FS
 _
 
-Patches currently in -mm which might be from mka@chromium.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
-mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
-bitops-avoid-integer-overflow-in-genmask_ull.patch
+rbtree-cache-leftmost-node-internally.patch
+rbtree-optimize-root-check-during-rebalancing-loop.patch
+rbtree-add-some-additional-comments-for-rebalancing-cases.patch
+lib-rbtree_testc-make-input-module-parameters.patch
+lib-rbtree_testc-add-inorder-traversal-test.patch
+lib-rbtree_testc-support-rb_root_cached.patch
+sched-fair-replace-cfs_rq-rb_leftmost.patch
+sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
+locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+block-cfq-replace-cfq_rb_root-leftmost-caching.patch
+lib-interval_tree-fast-overlap-detection.patch
+lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+procfs-use-faster-rb_first_cached.patch
+fs-epoll-use-faster-rb_first_cached.patch
+mem-memcg-cache-rightmost-node.patch
+mem-memcg-cache-rightmost-node-fix.patch
+block-cfq-cache-rightmost-rb_node.patch
+block-cfq-cache-rightmost-rb_node-fix.patch
+ipc-sem-drop-sem_checkid-helper.patch
+ipc-sem-play-nicer-with-large-nsops-allocations.patch
 
