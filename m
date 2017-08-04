@@ -1,159 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- swap-fix-oops-during-block-io-poll-in-swapin-path.patch removed from -mm
- tree
-Date: Fri, 04 Aug 2017 14:18:33 -0700
-Message-ID: <20170804211833.qvG0dqP61%akpm@linux-foundation.org>
+ userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch removed from
+ -mm tree
+Date: Fri, 04 Aug 2017 14:18:39 -0700
+Message-ID: <20170804211839.18NwAWx6X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51872 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752299AbdHDVSe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:34 -0400
+        with ESMTP id S1751891AbdHDVSk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@fb.com, hughd@google.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, shli@fb.com, tim.c.chen@intel.com, ying.huang@intel.com
+To: aarcange@redhat.com, dgilbert@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, stable@vger.kernel.org, xemul@virtuozzo.com
 
 
 The patch titled
-     Subject: mm/page_io.c: fix oops during block io poll in swapin path
+     Subject: userfaultfd_zeropage: return -ENOSPC in case mm has gone
 has been removed from the -mm tree.  Its filename was
-     swap-fix-oops-during-block-io-poll-in-swapin-path.patch
+     userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm/page_io.c: fix oops during block io poll in swapin path
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd_zeropage: return -ENOSPC in case mm has gone
 
-When a thread is OOM-killed during swap_readpage() operation, an oops
-occurs because end_swap_bio_read() is calling wake_up_process() based on
-an assumption that the thread which called swap_readpage() is still alive.
+In the non-cooperative userfaultfd case, the process exit may race with
+outstanding mcopy_atomic called by the uffd monitor.  Returning -ENOSPC
+instead of -EINVAL when mm is already gone will allow uffd monitor to
+distinguish this case from other error conditions.
 
-----------
-[  167.408563] Out of memory: Kill process 525 (polkitd) score 0 or sacrifice child
-[  167.410592] Killed process 525 (polkitd) total-vm:528128kB, anon-rss:0kB, file-rss:4kB, shmem-rss:0kB
-[  167.415666] oom_reaper: reaped process 525 (polkitd), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
-[  167.460471] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC
-[  167.462303] Modules linked in: nf_conntrack_netbios_ns nf_conntrack_broadcast ip6t_rpfilter ipt_REJECT nf_reject_ipv4 ip6t_REJECT nf_reject_ipv6 xt_conntrack ip_set nfnetlink ebtable_nat ebtable_broute bridge stp llc ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_raw iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_raw ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter coretemp ppdev pcspkr vmw_balloon sg shpchp vmw_vmci parport_pc parport i2c_piix4 ip_tables xfs libcrc32c sd_mod sr_mod cdrom ata_generic pata_acpi vmwgfx ahci libahci drm_kms_helper ata_piix syscopyarea sysfillrect sysimgblt fb_sys_fops mptspi scsi_transport_spi ttm e1000 mptscsih drm mptbase i2c_core libata serio_raw
-[  167.476975] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.13.0-rc2-next-20170725 #129
-[  167.479002] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
-[  167.481523] task: ffffffffb7c16500 task.stack: ffffffffb7c00000
-[  167.483240] RIP: 0010:__lock_acquire+0x151/0x12f0
-[  167.484808] RSP: 0018:ffffa01f39e03c50 EFLAGS: 00010002
-[  167.486659] RAX: 6b6b6b6b6b6b6b6b RBX: 0000000000000000 RCX: 0000000000000000
-[  167.488996] RDX: 0000000000000001 RSI: 0000000000000000 RDI: ffffa01f350d0bb8
-[  167.491392] RBP: ffffa01f39e03d10 R08: ffffffffb709fefb R09: 0000000000000001
-[  167.493375] R10: 0000000000000000 R11: ffffffffb7c16500 R12: 0000000000000001
-[  167.495316] R13: 0000000000000000 R14: 0000000000000000 R15: ffffa01f350d0bb8
-[  167.497253] FS:  0000000000000000(0000) GS:ffffa01f39e00000(0000) knlGS:0000000000000000
-[  167.499384] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  167.501090] CR2: 00007f5ab0e3a9d0 CR3: 000000012dee5000 CR4: 00000000001606f0
-[  167.503124] Call Trace:
-[  167.504271]  <IRQ>
-[  167.505331]  ? free_debug_processing+0x25d/0x3b0
-[  167.506807]  ? __slab_free+0x9f/0x280
-[  167.508075]  ? __slab_free+0x9f/0x280
-[  167.509339]  lock_acquire+0x59/0x80
-[  167.510582]  ? lock_acquire+0x59/0x80
-[  167.511872]  ? try_to_wake_up+0x3b/0x410
-[  167.513133]  _raw_spin_lock_irqsave+0x3b/0x4f
-[  167.514449]  ? try_to_wake_up+0x3b/0x410
-[  167.515693]  try_to_wake_up+0x3b/0x410
-[  167.516857]  ? mempool_free_slab+0x12/0x20
-[  167.518068]  ? mempool_free+0x26/0x80
-[  167.519291]  wake_up_process+0x10/0x20
-[  167.520763]  end_swap_bio_read+0x6f/0xf0
-[  167.522229]  bio_endio+0x92/0xb0
-[  167.523324]  blk_update_request+0x88/0x270
-[  167.524642]  scsi_end_request+0x32/0x1c0
-[  167.525864]  scsi_io_completion+0x209/0x680
-[  167.527040]  scsi_finish_command+0xd4/0x120
-[  167.528210]  scsi_softirq_done+0x120/0x140
-[  167.529369]  __blk_mq_complete_request_remote+0xe/0x10
-[  167.530809]  flush_smp_call_function_queue+0x51/0x120
-[  167.532109]  generic_smp_call_function_single_interrupt+0xe/0x20
-[  167.533597]  smp_trace_call_function_single_interrupt+0x22/0x30
-[  167.535049]  smp_call_function_single_interrupt+0x9/0x10
-[  167.536391]  call_function_single_interrupt+0xa7/0xb0
-[  167.537821]  </IRQ>
-[  167.538670] RIP: 0010:native_safe_halt+0x6/0x10
-[  167.539895] RSP: 0018:ffffffffb7c03df8 EFLAGS: 00000202 ORIG_RAX: ffffffffffffff04
-[  167.541602] RAX: ffffffffb7c16500 RBX: ffffffffb7c16500 RCX: 0000000000000000
-[  167.543201] RDX: 0000000000000001 RSI: 0000000000000001 RDI: ffffffffb7c16500
-[  167.544894] RBP: ffffffffb7c03df8 R08: 0000000000000001 R09: 0000000000000000
-[  167.546497] R10: 0000000000000000 R11: 0000000000000000 R12: ffffffffb7e4fa20
-[  167.548023] R13: ffffffffb7c16500 R14: 0000000000000000 R15: 0000000000000000
-[  167.549561]  ? trace_hardirqs_on+0xd/0x10
-[  167.550593]  default_idle+0xe/0x20
-[  167.551521]  arch_cpu_idle+0xa/0x10
-[  167.552496]  default_idle_call+0x1e/0x30
-[  167.553783]  do_idle+0x187/0x200
-[  167.554875]  cpu_startup_entry+0x6e/0x70
-[  167.556023]  rest_init+0xd0/0xe0
-[  167.556921]  start_kernel+0x456/0x477
-[  167.557875]  ? early_idt_handler_array+0x120/0x120
-[  167.559018]  x86_64_start_reservations+0x24/0x26
-[  167.560104]  x86_64_start_kernel+0xf7/0x11a
-[  167.561131]  secondary_startup_64+0xa5/0xa5
-[  167.562169] Code: c3 49 81 3f 20 9e 0b b8 41 bc 00 00 00 00 44 0f 45 e2 83 fe 01 0f 87 62 ff ff ff 89 f0 49 8b 44 c7 08 48 85 c0 0f 84 52 ff ff ff <f0> ff 80 98 01 00 00 8b 3d 5a 49 c4 01 45 8b b3 18 0c 00 00 85
-[  167.565895] RIP: __lock_acquire+0x151/0x12f0 RSP: ffffa01f39e03c50
-[  167.567280] ---[ end trace 6c441db499169b1e ]---
-[  167.568400] Kernel panic - not syncing: Fatal exception in interrupt
-[  167.569907] Kernel Offset: 0x36000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
-[  167.572108] ---[ end Kernel panic - not syncing: Fatal exception in interrupt
-----------
+Unfortunately I overlooked userfaultfd_zeropage when updating
+userfaultd_copy().
 
-Fix it by holding a reference to the thread.
-
-[akpm@linux-foundation.org: add comment]
-Fixes: 23955622ff8d231b ("swap: add block io poll in swapin path")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reviewed-by: Shaohua Li <shli@fb.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/1501136819-21857-1-git-send-email-rppt@linux.vnet.ibm.com
+Fixes: 96333187ab162 ("userfaultfd_copy: return -ENOSPC in case mm has gone")
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/userfaultfd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_io.c~swap-fix-oops-during-block-io-poll-in-swapin-path mm/page_io.c
---- a/mm/page_io.c~swap-fix-oops-during-block-io-poll-in-swapin-path
-+++ a/mm/page_io.c
-@@ -22,6 +22,7 @@
- #include <linux/frontswap.h>
- #include <linux/blkdev.h>
- #include <linux/uio.h>
-+#include <linux/sched/task.h>
- #include <asm/pgtable.h>
- 
- static struct bio *get_swap_bio(gfp_t gfp_flags,
-@@ -136,6 +137,7 @@ out:
- 	WRITE_ONCE(bio->bi_private, NULL);
- 	bio_put(bio);
- 	wake_up_process(waiter);
-+	put_task_struct(waiter);
- }
- 
- int generic_swapfile_activate(struct swap_info_struct *sis,
-@@ -378,6 +380,11 @@ int swap_readpage(struct page *page, boo
- 		goto out;
+diff -puN fs/userfaultfd.c~userfaultfd_zeropage-return-enospc-in-case-mm-has-gone fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd_zeropage-return-enospc-in-case-mm-has-gone
++++ a/fs/userfaultfd.c
+@@ -1643,6 +1643,8 @@ static int userfaultfd_zeropage(struct u
+ 		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
+ 				     uffdio_zeropage.range.len);
+ 		mmput(ctx->mm);
++	} else {
++		return -ENOSPC;
  	}
- 	bdev = bio->bi_bdev;
-+	/*
-+	 * Keep this task valid during swap readpage because the oom killer may
-+	 * attempt to access it in the page fault retry time check.
-+	 */
-+	get_task_struct(current);
- 	bio->bi_private = current;
- 	bio_set_op_attrs(bio, REQ_OP_READ, 0);
- 	count_vm_event(PSWPIN);
+ 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
+ 		return -EFAULT;
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-mm-oom-task_will_free_memcurrent-should-ignore-mmf_oom_skip-for-once.patch
+shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
+shmem-introduce-shmem_inode_acct_block.patch
+userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
+userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
+userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
+userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
 
