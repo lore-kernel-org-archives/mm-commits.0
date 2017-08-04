@@ -1,159 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-list-corruptions-on-shmem-shrinklist.patch added to -mm
- tree
-Date: Fri, 04 Aug 2017 16:19:14 -0700
-Message-ID: <598500f2.Sit4kK7Je/aV1NqO%akpm__35888.6975948282$1501888775$gmane$org@linux-foundation.org>
+Subject: [withdrawn]
+ mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch removed from -mm tree
+Date: Fri, 04 Aug 2017 16:19:46 -0700
+Message-ID: <59850112.y921ovvOCkUBtITZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47548 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753693AbdHDXTP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:19:15 -0400
+        with ESMTP id S1752544AbdHDXTr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:19:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, wenwei.tww@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix list corruptions on shmem shrinklist
-has been added to the -mm tree.  Its filename is
-     mm-fix-list-corruptions-on-shmem-shrinklist.patch
+     Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
+has been removed from the -mm tree.  Its filename was
+     mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: mm: fix list corruptions on shmem shrinklist
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
 
-We saw many list corruption warnings on shmem shrinklist:
+Wenwei Tao has noticed that our current assumption that the oom victim is
+dying and never doing any visible changes after it dies is not entirely
+true.  __task_will_free_mem consider a task dying when SIGNAL_GROUP_EXIT
+is set but do_group_exit sends SIGKILL to all threads _after_ the flag is
+set.  So there is a race window when some threads won't have
+fatal_signal_pending while the oom_reaper could start unmapping the
+address space.  generic_perform_write could then write zero page to the
+page cache and corrupt data.
 
- [45480.300911] ------------[ cut here ]------------
- [45480.305558] WARNING: CPU: 18 PID: 177 at lib/list_debug.c:59 __list_del_entry+0x9e/0xc0
- [45480.313622] list_del corruption. prev->next should be ffff9ae5694b82d8, but was ffff9ae5699ba960
- [45480.322435] Modules linked in: intel_rapl sb_edac edac_core x86_pkg_temp_thermal coretemp iTCO_wdt iTCO_vendor_support crct10dif_pclmul crc32_pclmul ghash_clmulni_intel raid0 dcdbas shpchp wmi hed i2c_i801 ioatdma lpc_ich i2c_smbus acpi_cpufreq tcp_diag inet_diag sch_fq_codel ipmi_si ipmi_devintf ipmi_msghandler igb ptp crc32c_intel pps_core i2c_algo_bit i2c_core dca ipv6 crc_ccitt
- [45480.357776] CPU: 18 PID: 177 Comm: kswapd1 Not tainted 4.9.34-t3.el7.twitter.x86_64 #1
- [45480.365679] Hardware name: Dell Inc. PowerEdge C6220/0W6W6G, BIOS 2.2.3 11/07/2013
- [45480.373416]  ffffb13c03ccbaf8 ffffffff9e36bc87 ffffb13c03ccbb48 0000000000000000
- [45480.380940]  ffffb13c03ccbb38 ffffffff9e08511b 0000003b7fffc000 0000000000000002
- [45480.388392]  ffff9ae5699ba960 ffffb13c03ccbbe8 ffffb13c03ccbbf8 ffff9ae5694b82d8
- [45480.395893] Call Trace:
- [45480.398214]  [<ffffffff9e36bc87>] dump_stack+0x4d/0x66
- [45480.403481]  [<ffffffff9e08511b>] __warn+0xcb/0xf0
- [45480.408322]  [<ffffffff9e08518f>] warn_slowpath_fmt+0x4f/0x60
- [45480.414095]  [<ffffffff9e38a6fe>] __list_del_entry+0x9e/0xc0
- [45480.419831]  [<ffffffff9e1a33aa>] shmem_unused_huge_shrink+0xfa/0x2e0
- [45480.426269]  [<ffffffff9e1a35b0>] shmem_unused_huge_scan+0x20/0x30
- [45480.432382]  [<ffffffff9e20a0d3>] super_cache_scan+0x193/0x1a0
- [45480.438238]  [<ffffffff9e19a9c3>] shrink_slab.part.41+0x1e3/0x3f0
- [45480.444370]  [<ffffffff9e19abf9>] shrink_slab+0x29/0x30
- [45480.449610]  [<ffffffff9e19ed39>] shrink_node+0xf9/0x2f0
- [45480.454858]  [<ffffffff9e19fbd8>] kswapd+0x2d8/0x6c0
- [45480.459896]  [<ffffffff9e19f900>] ? mem_cgroup_shrink_node+0x140/0x140
- [45480.466337]  [<ffffffff9e0a3b87>] kthread+0xd7/0xf0
- [45480.471231]  [<ffffffff9e0b519e>] ? vtime_account_idle+0xe/0x50
- [45480.477282]  [<ffffffff9e0a3ab0>] ? kthread_park+0x60/0x60
- [45480.482820]  [<ffffffff9e6d4c52>] ret_from_fork+0x22/0x30
- [45480.488234] ---[ end trace 66841eda03a967a0 ]---
- [45480.492834] ------------[ cut here ]------------
- [45480.497432] WARNING: CPU: 23 PID: 639 at lib/list_debug.c:33 __list_add+0x89/0xb0
- [45480.505020] list_add corruption. prev->next should be next (ffff9ae5699ba960), but was ffff9ae5694b82d8. (prev=ffff9ae5694b82d8).
- [45480.516716] Modules linked in: intel_rapl sb_edac edac_core x86_pkg_temp_thermal coretemp iTCO_wdt iTCO_vendor_support crct10dif_pclmul crc32_pclmul ghash_clmulni_intel raid0 dcdbas shpchp wmi hed i2c_i801 ioatdma lpc_ich i2c_smbus acpi_cpufreq tcp_diag inet_diag sch_fq_codel ipmi_si ipmi_devintf ipmi_msghandler igb ptp crc32c_intel pps_core i2c_algo_bit i2c_core dca ipv6 crc_ccitt
- [45480.551020] CPU: 23 PID: 639 Comm: systemd-udevd Tainted: G        W       4.9.34-t3.el7.twitter.x86_64 #1
- [45480.560706] Hardware name: Dell Inc. PowerEdge C6220/0W6W6G, BIOS 2.2.3 11/07/2013
- [45480.568299]  ffffb13c04913b30 ffffffff9e36bc87 ffffb13c04913b80 0000000000000000
- [45480.575628]  ffffb13c04913b70 ffffffff9e08511b 00000021699ba900 ffff9ae5694b82d8
- [45480.583080]  ffff9ae5694b82d8 ffff9ae5699ba960 ffff9ae5699ba900 0000000000000000
- [45480.590560] Call Trace:
- [45480.592937]  [<ffffffff9e36bc87>] dump_stack+0x4d/0x66
- [45480.598144]  [<ffffffff9e08511b>] __warn+0xcb/0xf0
- [45480.602978]  [<ffffffff9e08518f>] warn_slowpath_fmt+0x4f/0x60
- [45480.608718]  [<ffffffff9e38a639>] __list_add+0x89/0xb0
- [45480.613785]  [<ffffffff9e1a55d4>] shmem_setattr+0x204/0x230
- [45480.619340]  [<ffffffff9e2232ef>] notify_change+0x2ef/0x440
- [45480.624929]  [<ffffffff9e203bad>] do_truncate+0x5d/0x90
- [45480.630184]  [<ffffffff9e20393a>] ? do_dentry_open+0x27a/0x310
- [45480.635974]  [<ffffffff9e214101>] path_openat+0x331/0x1190
- [45480.641549]  [<ffffffff9e21680e>] do_filp_open+0x7e/0xe0
- [45480.646791]  [<ffffffff9e1bb3f4>] ? handle_mm_fault+0xa54/0x1340
- [45480.652888]  [<ffffffff9e1e6703>] ? kmem_cache_alloc+0xd3/0x1a0
- [45480.658778]  [<ffffffff9e215927>] ? getname_flags+0x37/0x190
- [45480.664527]  [<ffffffff9e22423f>] ? __alloc_fd+0x3f/0x170
- [45480.669918]  [<ffffffff9e205023>] do_sys_open+0x123/0x200
- [45480.675339]  [<ffffffff9e20511e>] SyS_open+0x1e/0x20
- [45480.680216]  [<ffffffff9e002aa1>] do_syscall_64+0x61/0x170
- [45480.685805]  [<ffffffff9e6d4ac6>] entry_SYSCALL64_slow_path+0x25/0x25
- [45480.692255] ---[ end trace 66841eda03a967a1 ]---
- [45480.696823] ------------[ cut here ]------------
+The race window is rather small and close to impossible to happen but it
+would be better to have it covered.
 
-The problem is that shmem_unused_huge_shrink() moves entries from the
-global sbinfo->shrinklist to its local lists and then releases the
-spinlock.  However, a parallel shmem_setattr() could access one of these
-entries directly and add it back to the global shrinklist if it is
-removed, with the spinlock held.
+Fix this by extending the existing MMF_UNSTABLE check in handle_mm_fault
+and segfault on any page fault after the oom reaper started its work. 
+This means that nobody will ever observe a potentially corrupted content. 
+Formerly we cared only about use_mm users because those can outlive the
+oom victim quite easily but having the process itself protected sounds
+like a reasonable thing to do as well.
 
-The logic itself looks solid since an entry could be either in a local
-list or the global list, otherwise it is removed from one of them by
-list_del_init().  So probably the race condition is that, one CPU is in
-the middle of INIT_LIST_HEAD() but the other CPU calls list_empty() which
-returns true too early then the following list_add_tail() sees a corrupted
-entry.
+There doesn't seem to be any real life bug report so this is merely a fix
+of a theoretical bug.
 
-list_empty_careful() is designed to fix this situation.
-
-Link: http://lkml.kernel.org/r/20170803054630.18775-1-xiyou.wangcong@gmail.com
-Fixes: 779750d20b93 ("shmem: split huge pages beyond i_size under memory pressure")
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170803135902.31977-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist mm/shmem.c
---- a/mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist
-+++ a/mm/shmem.c
-@@ -1022,7 +1022,7 @@ static int shmem_setattr(struct dentry *
- 			 */
- 			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE)) {
- 				spin_lock(&sbinfo->shrinklist_lock);
--				if (list_empty(&info->shrinklist)) {
-+				if (list_empty_careful(&info->shrinklist)) {
- 					list_add_tail(&info->shrinklist,
- 							&sbinfo->shrinklist);
- 					sbinfo->shrinklist_len++;
-@@ -1817,7 +1817,7 @@ alloc_nohuge:		page = shmem_alloc_and_ac
- 			 * to shrink under memory pressure.
- 			 */
- 			spin_lock(&sbinfo->shrinklist_lock);
--			if (list_empty(&info->shrinklist)) {
-+			if (list_empty_careful(&info->shrinklist)) {
- 				list_add_tail(&info->shrinklist,
- 						&sbinfo->shrinklist);
- 				sbinfo->shrinklist_len++;
+diff -puN mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer mm/memory.c
+--- a/mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
++++ a/mm/memory.c
+@@ -3958,13 +3958,9 @@ int handle_mm_fault(struct vm_area_struc
+ 	/*
+ 	 * This mm has been already reaped by the oom reaper and so the
+ 	 * refault cannot be trusted in general. Anonymous refaults would
+-	 * lose data and give a zero page instead e.g. This is especially
+-	 * problem for use_mm() because regular tasks will just die and
+-	 * the corrupted data will not be visible anywhere while kthread
+-	 * will outlive the oom victim and potentially propagate the date
+-	 * further.
++	 * lose data and give a zero page instead e.g.
+ 	 */
+-	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
++	if (unlikely(!(ret & VM_FAULT_ERROR)
+ 				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags)))
+ 		ret = VM_FAULT_SIGBUS;
+ 
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-fix-list-corruptions-on-shmem-shrinklist.patch
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
+mm-rename-global_page_state-to-global_zone_page_state.patch
+mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
 
