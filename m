@@ -1,110 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipc-add-missing-container_ofs-for-randstruct.patch removed from -mm tree
-Date: Fri, 04 Aug 2017 14:18:45 -0700
-Message-ID: <20170804211845.pijHRFz3H%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-dont-clear-sgid-when-inheriting-acls.patch
+ removed from -mm tree
+Date: Fri, 04 Aug 2017 14:18:54 -0700
+Message-ID: <20170804211854.6JfJO_fJl%akpm__44592.5868153155$1501881537$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51962 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752342AbdHDVSq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:46 -0400
+        with ESMTP id S1751312AbdHDVSz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, keescook@chromium.org, linux@dominikbrodowski.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: add missing container_of()s for randstruct
+     Subject: ocfs2: don't clear SGID when inheriting ACLs
 has been removed from the -mm tree.  Its filename was
-     ipc-add-missing-container_ofs-for-randstruct.patch
+     ocfs2-dont-clear-sgid-when-inheriting-acls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ipc: add missing container_of()s for randstruct
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: don't clear SGID when inheriting ACLs
 
-When building with the randstruct gcc plugin, the layout of the IPC
-structs will be randomized, which requires any sub-structure accesses to
-use container_of().  The proc display handlers were missing the needed
-container_of()s since the iterator is passing in the top-level struct
-kern_ipc_perm.  This would lead to crashes when running the "lsipc"
-program after the system had IPC registered (e.g.  after starting up
-Gnome):
+When new directory 'DIR1' is created in a directory 'DIR0' with SGID bit
+set, DIR1 is expected to have SGID bit set (and owning group equal to the
+owning group of 'DIR0').  However when 'DIR0' also has some default ACLs
+that 'DIR1' inherits, setting these ACLs will result in SGID bit on 'DIR1'
+to get cleared if user is not member of the owning group.
 
-[  183.018415] general protection fault: 0000 [#1] PREEMPT SMP
-...
-[  183.018692] RIP: 0010:shm_add_rss_swap.isra.1+0x13/0xa0
-...
-[  183.019265] Call Trace:
-[  183.019294]  sysvipc_shm_proc_show+0x5e/0x150
-[  183.019338]  ? _raw_spin_lock+0x17/0x40
-[  183.019376]  ? sysvipc_find_ipc+0xbc/0xf0
-[  183.019416]  sysvipc_proc_show+0x1a/0x30
-[  183.019456]  seq_read+0x2e9/0x3f0
-...
+Fix the problem by moving posix_acl_update_mode() out of ocfs2_set_acl()
+into ocfs2_iop_set_acl().  That way the function will not be called when
+inheriting ACLs which is what we want as it prevents SGID bit clearing and
+the mode has been properly set by posix_acl_create() anyway.  Also
+posix_acl_chmod() that is calling ocfs2_set_acl() takes care of updating
+mode itself.
 
-Link: http://lkml.kernel.org/r/20170730205950.GA55841@beast
-Fixes: 3859a271a003 ("randstruct: Mark various structs for randomization")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Manfred Spraul <manfred@colorfullife.com>
+Fixes: 073931017b4 ("posix_acl: Clear SGID bit when setting file permissions")
+Link: http://lkml.kernel.org/r/20170801141252.19675-3-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    3 ++-
- ipc/sem.c |    3 ++-
- ipc/shm.c |    4 +++-
- 3 files changed, 7 insertions(+), 3 deletions(-)
+ fs/ocfs2/acl.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN ipc/msg.c~ipc-add-missing-container_ofs-for-randstruct ipc/msg.c
---- a/ipc/msg.c~ipc-add-missing-container_ofs-for-randstruct
-+++ a/ipc/msg.c
-@@ -1034,7 +1034,8 @@ void msg_exit_ns(struct ipc_namespace *n
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it)
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
--	struct msg_queue *msq = it;
-+	struct kern_ipc_perm *ipcp = it;
-+	struct msg_queue *msq = container_of(ipcp, struct msg_queue, q_perm);
- 
- 	seq_printf(s,
- 		   "%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
-diff -puN ipc/sem.c~ipc-add-missing-container_ofs-for-randstruct ipc/sem.c
---- a/ipc/sem.c~ipc-add-missing-container_ofs-for-randstruct
-+++ a/ipc/sem.c
-@@ -2179,7 +2179,8 @@ void exit_sem(struct task_struct *tsk)
- static int sysvipc_sem_proc_show(struct seq_file *s, void *it)
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
--	struct sem_array *sma = it;
-+	struct kern_ipc_perm *ipcp = it;
-+	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
- 	time_t sem_otime;
- 
- 	/*
-diff -puN ipc/shm.c~ipc-add-missing-container_ofs-for-randstruct ipc/shm.c
---- a/ipc/shm.c~ipc-add-missing-container_ofs-for-randstruct
-+++ a/ipc/shm.c
-@@ -1380,9 +1380,11 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it)
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
--	struct shmid_kernel *shp = it;
-+	struct kern_ipc_perm *ipcp = it;
-+	struct shmid_kernel *shp;
- 	unsigned long rss = 0, swp = 0;
- 
-+	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
- 	shm_add_rss_swap(shp, &rss, &swp);
- 
- #if BITS_PER_LONG <= 32
+diff -puN fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls
++++ a/fs/ocfs2/acl.c
+@@ -240,18 +240,6 @@ int ocfs2_set_acl(handle_t *handle,
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+ 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_ACCESS;
+-		if (acl) {
+-			umode_t mode;
+-
+-			ret = posix_acl_update_mode(inode, &mode, &acl);
+-			if (ret)
+-				return ret;
+-
+-			ret = ocfs2_acl_set_mode(inode, di_bh,
+-						 handle, mode);
+-			if (ret)
+-				return ret;
+-		}
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+ 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT;
+@@ -289,7 +277,19 @@ int ocfs2_iop_set_acl(struct inode *inod
+ 	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
+ 	if (had_lock < 0)
+ 		return had_lock;
++	if (type == ACL_TYPE_ACCESS && acl) {
++		umode_t mode;
++
++		status = posix_acl_update_mode(inode, &mode, &acl);
++		if (status)
++			goto unlock;
++
++		status = ocfs2_acl_set_mode(inode, bh, NULL, mode);
++		if (status)
++			goto unlock;
++	}
+ 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
++unlock:
+ 	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 	brelse(bh);
+ 	return status;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-fortify-use-warn-instead-of-bug-for-now.patch
-mm-add-slub-free-list-pointer-obfuscation.patch
+ocfs2-make-ocfs2_set_acl-static.patch
+fscache-remove-unused-now_uncached-callback.patch
+mm-make-pagevec_lookup-update-index.patch
+mm-implement-find_get_pages_range.patch
+fs-fix-performance-regression-in-clean_bdev_aliases.patch
+ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
+ext4-use-pagevec_lookup_range-in-writeback-code.patch
+hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
+fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
+mm-use-find_get_pages_range-in-filemap_range_has_page.patch
+mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
 
