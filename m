@@ -1,111 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 04 Aug 2017 14:17:47 -0700
-Message-ID: <20170804211747.1_d6pIrBd%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?mm-hugetlb-=5F=5Fget=5Fuser=5Fpages-ignores-certain-foll?=
+ =?US-ASCII?Q?ow=5Fhugetlb=5Fpage-errors.patch?= removed from -mm tree
+Date: Fri, 04 Aug 2017 14:18:14 -0700
+Message-ID: <20170804211814.KnDUtquzM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51744 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751312AbdHDVRs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:17:48 -0400
+        with ESMTP id S1751312AbdHDVSQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, daniel.m.jordan@oracle.com, gerald.schaefer@de.ibm.com, james.morse@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, stable@vger.kernel.org, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm/hugetlb.c: __get_user_pages ignores certain follow_hugetlb_page errors
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-__get_user_pages-ignores-certain-follow_hugetlb_page-errors.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: mm/hugetlb.c: __get_user_pages ignores certain follow_hugetlb_page errors
 
+9a291a7c9428 ("mm/hugetlb: report -EHWPOISON not -EFAULT when
+FOLL_HWPOISON is specified") causes __get_user_pages to ignore certain
+errors from follow_hugetlb_page.  After such error, __get_user_pages
+subsequently calls faultin_page on the same VMA and start address that
+follow_hugetlb_page failed on instead of returning the error immediately
+as it should.
+
+In follow_hugetlb_page, when hugetlb_fault returns a value covered under
+VM_FAULT_ERROR, follow_hugetlb_page returns it without setting nr_pages to
+0 as __get_user_pages expects in this case, which causes the following to
+happen in __get_user_pages: the "while (nr_pages)" check succeeds, we skip
+the "if (!vma..." check because we got a VMA the last time around, we find
+no page with follow_page_mask, and we call faultin_page, which calls
+hugetlb_fault for the second time.
+
+This issue also slightly changes how __get_user_pages works.  Before, it
+only returned error if it had made no progress (i = 0).  But now,
+follow_hugetlb_page can clobber "i" with an error code since its new
+return path doesn't check for progress.  So if "i" is nonzero before a
+failing call to follow_hugetlb_page, that indication of progress is lost
+and __get_user_pages can return error even if some pages were successfully
+pinned.
+
+To fix this, change follow_hugetlb_page so that it updates nr_pages,
+allowing __get_user_pages to fail immediately and restoring the "error
+only if no progress" behavior to __get_user_pages.
+
+Tested that __get_user_pages returns when expected on error from
+hugetlb_fault in follow_hugetlb_page.
+
+Fixes: 9a291a7c9428 ("mm/hugetlb: report -EHWPOISON not -EFAULT when FOLL_HWPOISON is specified")
+Link: http://lkml.kernel.org/r/1500406795-58462-1-git-send-email-daniel.m.jordan@oracle.com
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Acked-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: <stable@vger.kernel.org>	[4.12.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/hugetlb.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c~linux-next-git-rejects sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c
---- a/sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c~linux-next-git-rejects
-+++ a/sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c
-@@ -355,10 +355,6 @@ static int kabylake_ssp0_hw_params(struc
+diff -puN mm/hugetlb.c~mm-hugetlb-__get_user_pages-ignores-certain-follow_hugetlb_page-errors mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-__get_user_pages-ignores-certain-follow_hugetlb_page-errors
++++ a/mm/hugetlb.c
+@@ -4078,6 +4078,7 @@ long follow_hugetlb_page(struct mm_struc
+ 	unsigned long vaddr = *position;
+ 	unsigned long remainder = *nr_pages;
+ 	struct hstate *h = hstate_vma(vma);
++	int err = -EFAULT;
  
- 			ret = snd_soc_dai_set_sysclk(codec_dai,
- 				RT5514_SCLK_S_MCLK, 24576000, SND_SOC_CLOCK_IN);
--<<<<<<< HEAD
--			if (ret < 0) {
--				dev_err(rtd->dev, "set sysclk err: %d\n", ret);
--=======
- 			if (ret < 0) {
- 				dev_err(rtd->dev, "set sysclk err: %d\n", ret);
- 				return ret;
-@@ -368,7 +364,6 @@ static int kabylake_ssp0_hw_params(struc
- 			ret = snd_soc_dai_set_tdm_slot(codec_dai, 0x30, 3, 8, 16);
- 			if (ret < 0) {
- 				dev_err(rtd->dev, "DEV0 TDM slot err:%d\n", ret);
-->>>>>>> linux-next/akpm-base
- 				return ret;
+ 	while (vaddr < vma->vm_end && remainder) {
+ 		pte_t *pte;
+@@ -4154,11 +4155,7 @@ long follow_hugetlb_page(struct mm_struc
  			}
- 		}
-diff -puN sound/soc/intel/skylake/skl.c~linux-next-git-rejects sound/soc/intel/skylake/skl.c
---- a/sound/soc/intel/skylake/skl.c~linux-next-git-rejects
-+++ a/sound/soc/intel/skylake/skl.c
-@@ -996,8 +996,6 @@ static struct sst_acpi_mach sst_glk_devd
- 		.fw_filename = "intel/dsp_fw_glk.bin",
- 	},
- 	{}
--<<<<<<< HEAD
--=======
- };
- 
- static const struct sst_acpi_mach sst_cnl_devdata[] = {
-@@ -1006,7 +1004,6 @@ static const struct sst_acpi_mach sst_cn
- 		.drv_name = "cnl_rt274",
- 		.fw_filename = "intel/dsp_fw_cnl.bin",
- 	},
-->>>>>>> linux-next/akpm-base
- };
- 
- /* PCI IDs */
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-mm-make-tlb_flush_pending-global-fix.patch
-mm-oom-task_will_free_memcurrent-should-ignore-mmf_oom_skip-for-once-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
-
+ 			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
+ 			if (ret & VM_FAULT_ERROR) {
+-				int err = vm_fault_to_errno(ret, flags);
+-
+-				if (err)
+-					return err;
