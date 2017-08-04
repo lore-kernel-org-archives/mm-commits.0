@@ -1,105 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch removed from -mm tree
-Date: Fri, 04 Aug 2017 16:19:46 -0700
-Message-ID: <59850112.y921ovvOCkUBtITZ%akpm@linux-foundation.org>
+Subject: + rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+ added to -mm tree
+Date: Fri, 04 Aug 2017 16:30:53 -0700
+Message-ID: <598503ad.tC546ZpUigalaSVu%akpm__19426.432674709$1501889464$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50090 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752544AbdHDXTr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:19:47 -0400
+        with ESMTP id S1753867AbdHDXay (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:30:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, wenwei.tww@alibaba-inc.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, Tim.Writer@amd.com, alexander.deucher@amd.com, axie@amd.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
-has been removed from the -mm tree.  Its filename was
-     mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
+     Subject: rmap: do not call mmu_notifier_invalidate_page() under ptl
+has been added to the -mm tree.  Its filename is
+     rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: rmap: do not call mmu_notifier_invalidate_page() under ptl
 
-Wenwei Tao has noticed that our current assumption that the oom victim is
-dying and never doing any visible changes after it dies is not entirely
-true.  __task_will_free_mem consider a task dying when SIGNAL_GROUP_EXIT
-is set but do_group_exit sends SIGKILL to all threads _after_ the flag is
-set.  So there is a race window when some threads won't have
-fatal_signal_pending while the oom_reaper could start unmapping the
-address space.  generic_perform_write could then write zero page to the
-page cache and corrupt data.
+MMU notifiers can sleep, but in page_mkclean_one() we call
+mmu_notifier_invalidate_page() under page table lock.
 
-The race window is rather small and close to impossible to happen but it
-would be better to have it covered.
+Let's instead use mmu_notifier_invalidate_range() outside
+page_vma_mapped_walk() loop.
 
-Fix this by extending the existing MMF_UNSTABLE check in handle_mm_fault
-and segfault on any page fault after the oom reaper started its work. 
-This means that nobody will ever observe a potentially corrupted content. 
-Formerly we cared only about use_mm users because those can outlive the
-oom victim quite easily but having the process itself protected sounds
-like a reasonable thing to do as well.
-
-There doesn't seem to be any real life bug report so this is merely a fix
-of a theoretical bug.
-
-Link: http://lkml.kernel.org/r/20170803135902.31977-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20170804134928.l4klfcnqatni7vsc@black.fi.intel.com
+Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: axie <axie@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Writer, Tim" <Tim.Writer@amd.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/rmap.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer mm/memory.c
---- a/mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
-+++ a/mm/memory.c
-@@ -3958,13 +3958,9 @@ int handle_mm_fault(struct vm_area_struc
- 	/*
- 	 * This mm has been already reaped by the oom reaper and so the
- 	 * refault cannot be trusted in general. Anonymous refaults would
--	 * lose data and give a zero page instead e.g. This is especially
--	 * problem for use_mm() because regular tasks will just die and
--	 * the corrupted data will not be visible anywhere while kthread
--	 * will outlive the oom victim and potentially propagate the date
--	 * further.
-+	 * lose data and give a zero page instead e.g.
- 	 */
--	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
-+	if (unlikely(!(ret & VM_FAULT_ERROR)
- 				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags)))
- 		ret = VM_FAULT_SIGBUS;
+diff -puN mm/rmap.c~rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl mm/rmap.c
+--- a/mm/rmap.c~rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl
++++ a/mm/rmap.c
+@@ -888,10 +888,10 @@ static bool page_mkclean_one(struct page
+ 		.flags = PVMW_SYNC,
+ 	};
+ 	int *cleaned = arg;
++	bool invalidation_needed = false;
+ 
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		int ret = 0;
+-		address = pvmw.address;
+ 		if (pvmw.pte) {
+ 			pte_t entry;
+ 			pte_t *pte = pvmw.pte;
+@@ -899,11 +899,11 @@ static bool page_mkclean_one(struct page
+ 			if (!pte_dirty(*pte) && !pte_write(*pte))
+ 				continue;
+ 
+-			flush_cache_page(vma, address, pte_pfn(*pte));
+-			entry = ptep_clear_flush(vma, address, pte);
++			flush_cache_page(vma, pvmw.address, pte_pfn(*pte));
++			entry = ptep_clear_flush(vma, pvmw.address, pte);
+ 			entry = pte_wrprotect(entry);
+ 			entry = pte_mkclean(entry);
+-			set_pte_at(vma->vm_mm, address, pte, entry);
++			set_pte_at(vma->vm_mm, pvmw.address, pte, entry);
+ 			ret = 1;
+ 		} else {
+ #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
+@@ -913,11 +913,11 @@ static bool page_mkclean_one(struct page
+ 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+ 				continue;
+ 
+-			flush_cache_page(vma, address, page_to_pfn(page));
+-			entry = pmdp_huge_clear_flush(vma, address, pmd);
++			flush_cache_page(vma, pvmw.address, page_to_pfn(page));
++			entry = pmdp_huge_clear_flush(vma, pvmw.address, pmd);
+ 			entry = pmd_wrprotect(entry);
+ 			entry = pmd_mkclean(entry);
+-			set_pmd_at(vma->vm_mm, address, pmd, entry);
++			set_pmd_at(vma->vm_mm, pvmw.address, pmd, entry);
+ 			ret = 1;
+ #else
+ 			/* unexpected pmd-mapped page? */
+@@ -926,11 +926,16 @@ static bool page_mkclean_one(struct page
+ 		}
+ 
+ 		if (ret) {
+-			mmu_notifier_invalidate_page(vma->vm_mm, address);
+ 			(*cleaned)++;
++			invalidation_needed = true;
+ 		}
+ 	}
+ 
++	if (invalidation_needed) {
++		mmu_notifier_invalidate_range(vma->vm_mm, address,
++				address + (1UL << compound_order(page)));
++	}
++
+ 	return true;
+ }
  
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
-mm-memory_hotplug-remove-zone-restrictions.patch
-mm-page_alloc-rip-out-zonelist_order_zone.patch
-mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
-mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
-mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
-mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
-mm-page_alloc-simplify-zonelist-initialization.patch
-mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
-mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
-mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
-mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
-mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
-mm-rename-global_page_state-to-global_zone_page_state.patch
-mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
-fs-proc-remove-priv-argument-from-is_stack.patch
+rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
 
