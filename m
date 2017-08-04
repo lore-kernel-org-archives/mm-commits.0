@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
- added to -mm tree
-Date: Fri, 04 Aug 2017 16:30:53 -0700
-Message-ID: <598503ad.tC546ZpUigalaSVu%akpm__19426.432674709$1501889464$gmane$org@linux-foundation.org>
+Subject: +
+ zram-rework-copy-of-compressor-name-in-comp_algorithm_store.patch added to
+ -mm tree
+Date: Fri, 04 Aug 2017 16:47:16 -0700
+Message-ID: <59850784.P5W6mcRWzodtzL1x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753867AbdHDXay (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:30:54 -0400
+        with ESMTP id S1753477AbdHDXrR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:47:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, Tim.Writer@amd.com, alexander.deucher@amd.com, axie@amd.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mka@chromium.org, dianders@chromium.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: do not call mmu_notifier_invalidate_page() under ptl
+     Subject: zram: rework copy of compressor name in comp_algorithm_store()
 has been added to the -mm tree.  Its filename is
-     rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+     zram-rework-copy-of-compressor-name-in-comp_algorithm_store.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-rework-copy-of-compressor-name-in-comp_algorithm_store.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-rework-copy-of-compressor-name-in-comp_algorithm_store.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,94 +40,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: rmap: do not call mmu_notifier_invalidate_page() under ptl
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: zram: rework copy of compressor name in comp_algorithm_store()
 
-MMU notifiers can sleep, but in page_mkclean_one() we call
-mmu_notifier_invalidate_page() under page table lock.
+comp_algorithm_store() passes the size of the source buffer to strlcpy()
+instead of the destination buffer size.  Make it explicit that the two
+buffers have the same size and use strcpy() instead of strlcpy().  The
+latter can be done safely since the function ensures that the string in
+the source buffer is terminated.
 
-Let's instead use mmu_notifier_invalidate_range() outside
-page_vma_mapped_walk() loop.
-
-Link: http://lkml.kernel.org/r/20170804134928.l4klfcnqatni7vsc@black.fi.intel.com
-Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: axie <axie@amd.com>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: "Writer, Tim" <Tim.Writer@amd.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170803163350.45245-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/rmap.c~rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl mm/rmap.c
---- a/mm/rmap.c~rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl
-+++ a/mm/rmap.c
-@@ -888,10 +888,10 @@ static bool page_mkclean_one(struct page
- 		.flags = PVMW_SYNC,
- 	};
- 	int *cleaned = arg;
-+	bool invalidation_needed = false;
+diff -puN drivers/block/zram/zram_drv.c~zram-rework-copy-of-compressor-name-in-comp_algorithm_store drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-rework-copy-of-compressor-name-in-comp_algorithm_store
++++ a/drivers/block/zram/zram_drv.c
+@@ -308,7 +308,7 @@ static ssize_t comp_algorithm_store(stru
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+ 	struct zram *zram = dev_to_zram(dev);
+-	char compressor[CRYPTO_MAX_ALG_NAME];
++	char compressor[ARRAY_SIZE(zram->compressor)];
+ 	size_t sz;
  
- 	while (page_vma_mapped_walk(&pvmw)) {
- 		int ret = 0;
--		address = pvmw.address;
- 		if (pvmw.pte) {
- 			pte_t entry;
- 			pte_t *pte = pvmw.pte;
-@@ -899,11 +899,11 @@ static bool page_mkclean_one(struct page
- 			if (!pte_dirty(*pte) && !pte_write(*pte))
- 				continue;
- 
--			flush_cache_page(vma, address, pte_pfn(*pte));
--			entry = ptep_clear_flush(vma, address, pte);
-+			flush_cache_page(vma, pvmw.address, pte_pfn(*pte));
-+			entry = ptep_clear_flush(vma, pvmw.address, pte);
- 			entry = pte_wrprotect(entry);
- 			entry = pte_mkclean(entry);
--			set_pte_at(vma->vm_mm, address, pte, entry);
-+			set_pte_at(vma->vm_mm, pvmw.address, pte, entry);
- 			ret = 1;
- 		} else {
- #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
-@@ -913,11 +913,11 @@ static bool page_mkclean_one(struct page
- 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
- 				continue;
- 
--			flush_cache_page(vma, address, page_to_pfn(page));
--			entry = pmdp_huge_clear_flush(vma, address, pmd);
-+			flush_cache_page(vma, pvmw.address, page_to_pfn(page));
-+			entry = pmdp_huge_clear_flush(vma, pvmw.address, pmd);
- 			entry = pmd_wrprotect(entry);
- 			entry = pmd_mkclean(entry);
--			set_pmd_at(vma->vm_mm, address, pmd, entry);
-+			set_pmd_at(vma->vm_mm, pvmw.address, pmd, entry);
- 			ret = 1;
- #else
- 			/* unexpected pmd-mapped page? */
-@@ -926,11 +926,16 @@ static bool page_mkclean_one(struct page
- 		}
- 
- 		if (ret) {
--			mmu_notifier_invalidate_page(vma->vm_mm, address);
- 			(*cleaned)++;
-+			invalidation_needed = true;
- 		}
+ 	strlcpy(compressor, buf, sizeof(compressor));
+@@ -327,7 +327,7 @@ static ssize_t comp_algorithm_store(stru
+ 		return -EBUSY;
  	}
  
-+	if (invalidation_needed) {
-+		mmu_notifier_invalidate_range(vma->vm_mm, address,
-+				address + (1UL << compound_order(page)));
-+	}
-+
- 	return true;
+-	strlcpy(zram->compressor, compressor, sizeof(compressor));
++	strcpy(zram->compressor, compressor);
+ 	up_write(&zram->init_lock);
+ 	return len;
  }
- 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from mka@chromium.org are
 
-rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl.patch
+zram-rework-copy-of-compressor-name-in-comp_algorithm_store.patch
+mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
+mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
+bitops-avoid-integer-overflow-in-genmask_ull.patch
 
