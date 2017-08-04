@@ -1,112 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-dont-clear-sgid-when-inheriting-acls.patch
- removed from -mm tree
-Date: Fri, 04 Aug 2017 14:18:54 -0700
-Message-ID: <20170804211854.6JfJO_fJl%akpm__44592.5868153155$1501881537$gmane$org@linux-foundation.org>
+Subject: + mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch added to
+ -mm tree
+Date: Fri, 04 Aug 2017 16:19:17 -0700
+Message-ID: <598500f5.1HcJfJhGxwW2wDTz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47480 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751312AbdHDVSz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:55 -0400
+        with ESMTP id S1753692AbdHDXTS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:19:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: don't clear SGID when inheriting ACLs
-has been removed from the -mm tree.  Its filename was
-     ocfs2-dont-clear-sgid-when-inheriting-acls.patch
+     Subject: mm-fix-list-corruptions-on-shmem-shrinklist-fix
+has been added to the -mm tree.  Its filename is
+     mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: don't clear SGID when inheriting ACLs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-list-corruptions-on-shmem-shrinklist-fix
 
-When new directory 'DIR1' is created in a directory 'DIR0' with SGID bit
-set, DIR1 is expected to have SGID bit set (and owning group equal to the
-owning group of 'DIR0').  However when 'DIR0' also has some default ACLs
-that 'DIR1' inherits, setting these ACLs will result in SGID bit on 'DIR1'
-to get cleared if user is not member of the owning group.
+add comments
 
-Fix the problem by moving posix_acl_update_mode() out of ocfs2_set_acl()
-into ocfs2_iop_set_acl().  That way the function will not be called when
-inheriting ACLs which is what we want as it prevents SGID bit clearing and
-the mode has been properly set by posix_acl_create() anyway.  Also
-posix_acl_chmod() that is calling ocfs2_set_acl() takes care of updating
-mode itself.
-
-Fixes: 073931017b4 ("posix_acl: Clear SGID bit when setting file permissions")
-Link: http://lkml.kernel.org/r/20170801141252.19675-3-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: <stable@vger.kernel.org>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/shmem.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-dont-clear-sgid-when-inheriting-acls
-+++ a/fs/ocfs2/acl.c
-@@ -240,18 +240,6 @@ int ocfs2_set_acl(handle_t *handle,
- 	switch (type) {
- 	case ACL_TYPE_ACCESS:
- 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_ACCESS;
--		if (acl) {
--			umode_t mode;
--
--			ret = posix_acl_update_mode(inode, &mode, &acl);
--			if (ret)
--				return ret;
--
--			ret = ocfs2_acl_set_mode(inode, di_bh,
--						 handle, mode);
--			if (ret)
--				return ret;
--		}
- 		break;
- 	case ACL_TYPE_DEFAULT:
- 		name_index = OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT;
-@@ -289,7 +277,19 @@ int ocfs2_iop_set_acl(struct inode *inod
- 	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
- 	if (had_lock < 0)
- 		return had_lock;
-+	if (type == ACL_TYPE_ACCESS && acl) {
-+		umode_t mode;
-+
-+		status = posix_acl_update_mode(inode, &mode, &acl);
-+		if (status)
-+			goto unlock;
-+
-+		status = ocfs2_acl_set_mode(inode, bh, NULL, mode);
-+		if (status)
-+			goto unlock;
-+	}
- 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
-+unlock:
- 	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
- 	brelse(bh);
- 	return status;
+diff -puN mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist-fix mm/shmem.c
+--- a/mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist-fix
++++ a/mm/shmem.c
+@@ -1022,6 +1022,10 @@ static int shmem_setattr(struct dentry *
+ 			 */
+ 			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE)) {
+ 				spin_lock(&sbinfo->shrinklist_lock);
++				/*
++				 * _careful to defend against unlocked access to
++				 * ->shrink_list in shmem_unused_huge_shrink()
++				 */
+ 				if (list_empty_careful(&info->shrinklist)) {
+ 					list_add_tail(&info->shrinklist,
+ 							&sbinfo->shrinklist);
+@@ -1817,6 +1821,10 @@ alloc_nohuge:		page = shmem_alloc_and_ac
+ 			 * to shrink under memory pressure.
+ 			 */
+ 			spin_lock(&sbinfo->shrinklist_lock);
++			/*
++			 * _careful to defend against unlocked access to
++			 * ->shrink_list in shmem_unused_huge_shrink()
++			 */
+ 			if (list_empty_careful(&info->shrinklist)) {
+ 				list_add_tail(&info->shrinklist,
+ 						&sbinfo->shrinklist);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-make-ocfs2_set_acl-static.patch
-fscache-remove-unused-now_uncached-callback.patch
-mm-make-pagevec_lookup-update-index.patch
-mm-implement-find_get_pages_range.patch
-fs-fix-performance-regression-in-clean_bdev_aliases.patch
-ext4-use-pagevec_lookup_range-in-ext4_find_unwritten_pgoff.patch
-ext4-use-pagevec_lookup_range-in-writeback-code.patch
-hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages.patch
-fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
-mm-use-find_get_pages_range-in-filemap_range_has_page.patch
-mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+i-need-old-gcc.patch
+mm-make-tlb_flush_pending-global-fix.patch
+mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-git-rejects.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
