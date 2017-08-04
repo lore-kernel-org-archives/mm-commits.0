@@ -1,74 +1,203 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch removed from
- -mm tree
-Date: Fri, 04 Aug 2017 14:18:39 -0700
-Message-ID: <20170804211839.18NwAWx6X%akpm@linux-foundation.org>
+ cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
+ removed from -mm tree
+Date: Fri, 04 Aug 2017 14:18:42 -0700
+Message-ID: <20170804211842.73cKSw23i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51908 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751891AbdHDVSk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:40 -0400
+        with ESMTP id S1752104AbdHDVSn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 17:18:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, stable@vger.kernel.org, xemul@virtuozzo.com
+To: cl@linux.com, cspradlin@waymo.com, dmitriyz@waymo.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, penberg@kernel.org, peterz@infradead.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: userfaultfd_zeropage: return -ENOSPC in case mm has gone
+     Subject: cpuset: fix a deadlock due to incomplete patching of cpusets_enabled()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd_zeropage-return-enospc-in-case-mm-has-gone.patch
+     cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd_zeropage: return -ENOSPC in case mm has gone
+From: Dima Zavin <dmitriyz@waymo.com>
+Subject: cpuset: fix a deadlock due to incomplete patching of cpusets_enabled()
 
-In the non-cooperative userfaultfd case, the process exit may race with
-outstanding mcopy_atomic called by the uffd monitor.  Returning -ENOSPC
-instead of -EINVAL when mm is already gone will allow uffd monitor to
-distinguish this case from other error conditions.
+In codepaths that use the begin/retry interface for reading
+mems_allowed_seq with irqs disabled, there exists a race condition that
+stalls the patch process after only modifying a subset of the
+static_branch call sites.
 
-Unfortunately I overlooked userfaultfd_zeropage when updating
-userfaultd_copy().
+This problem manifested itself as a deadlock in the slub allocator,
+inside get_any_partial.  The loop reads mems_allowed_seq value (via
+read_mems_allowed_begin), performs the defrag operation, and then
+verifies the consistency of mem_allowed via the read_mems_allowed_retry
+and the cookie returned by xxx_begin.  The issue here is that both
+begin and retry first check if cpusets are enabled via
+cpusets_enabled() static branch.  This branch can be rewritted
+dynamically (via cpuset_inc) if a new cpuset is created.  The x86 jump
+label code fully synchronizes across all CPUs for every entry it
+rewrites.  If it rewrites only one of the callsites (specifically the
+one in read_mems_allowed_retry) and then waits for the
+smp_call_function(do_sync_core) to complete while a CPU is inside the
+begin/retry section with IRQs off and the mems_allowed value is
+changed, we can hang.  This is because begin() will always return 0
+(since it wasn't patched yet) while retry() will test the 0 against the
+actual value of the seq counter.
 
-Link: http://lkml.kernel.org/r/1501136819-21857-1-git-send-email-rppt@linux.vnet.ibm.com
-Fixes: 96333187ab162 ("userfaultfd_copy: return -ENOSPC in case mm has gone")
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+The fix is to use two different static keys: one for begin
+(pre_enable_key) and one for retry (enable_key).  In cpuset_inc(), we
+first bump the pre_enable key to ensure that
+cpuset_mems_allowed_begin() always return a valid seqcount if are
+enabling cpusets.  Similarly, when disabling cpusets via cpuset_dec(),
+we first ensure that callers of cpuset_mems_allowed_retry() will start
+ignoring the seqcount value before we let cpuset_mems_allowed_begin()
+return 0.
+
+The relevant stack traces of the two stuck threads:
+
+  CPU: 1 PID: 1415 Comm: mkdir Tainted: G L  4.9.36-00104-g540c51286237 #4
+  Hardware name: Default string Default string/Hardware, BIOS 4.29.1-20170526215256 05/26/2017
+  task: ffff8817f9c28000 task.stack: ffffc9000ffa4000
+  RIP: smp_call_function_many+0x1f9/0x260
+  Call Trace:
+    ? setup_data_read+0xa0/0xa0
+    ? ___slab_alloc+0x28b/0x5a0
+    smp_call_function+0x3b/0x70
+    ? setup_data_read+0xa0/0xa0
+    on_each_cpu+0x2f/0x90
+    ? ___slab_alloc+0x28a/0x5a0
+    ? ___slab_alloc+0x28b/0x5a0
+    text_poke_bp+0x87/0xd0
+    ? ___slab_alloc+0x28a/0x5a0
+    arch_jump_label_transform+0x93/0x100
+    __jump_label_update+0x77/0x90
+    jump_label_update+0xaa/0xc0
+    static_key_slow_inc+0x9e/0xb0
+    cpuset_css_online+0x70/0x2e0
+    online_css+0x2c/0xa0
+    cgroup_apply_control_enable+0x27f/0x3d0
+    cgroup_mkdir+0x2b7/0x420
+    kernfs_iop_mkdir+0x5a/0x80
+    vfs_mkdir+0xf6/0x1a0
+    SyS_mkdir+0xb7/0xe0
+    entry_SYSCALL_64_fastpath+0x18/0xad
+
+  ...
+
+  CPU: 2 PID: 1 Comm: init Tainted: G L  4.9.36-00104-g540c51286237 #4
+  Hardware name: Default string Default string/Hardware, BIOS 4.29.1-20170526215256 05/26/2017
+  task: ffff8818087c0000 task.stack: ffffc90000030000
+  RIP: int3+0x39/0x70
+  Call Trace:
+    <#DB> ? ___slab_alloc+0x28b/0x5a0
+    <EOE> ? copy_process.part.40+0xf7/0x1de0
+    ? __slab_alloc.isra.80+0x54/0x90
+    ? copy_process.part.40+0xf7/0x1de0
+    ? copy_process.part.40+0xf7/0x1de0
+    ? kmem_cache_alloc_node+0x8a/0x280
+    ? copy_process.part.40+0xf7/0x1de0
+    ? _do_fork+0xe7/0x6c0
+    ? _raw_spin_unlock_irq+0x2d/0x60
+    ? trace_hardirqs_on_caller+0x136/0x1d0
+    ? entry_SYSCALL_64_fastpath+0x5/0xad
+    ? do_syscall_64+0x27/0x350
+    ? SyS_clone+0x19/0x20
+    ? do_syscall_64+0x60/0x350
+    ? entry_SYSCALL64_slow_path+0x25/0x25
+
+Link: http://lkml.kernel.org/r/20170731040113.14197-1-dmitriyz@waymo.com
+Fixes: 46e700abc44c ("mm, page_alloc: remove unnecessary taking of a seqlock when cpusets are disabled")
+Signed-off-by: Dima Zavin <dmitriyz@waymo.com>
+Reported-by: Cliff Spradlin <cspradlin@waymo.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/cpuset.h |   19 +++++++++++++++++--
+ kernel/cgroup/cpuset.c |    1 +
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd_zeropage-return-enospc-in-case-mm-has-gone fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd_zeropage-return-enospc-in-case-mm-has-gone
-+++ a/fs/userfaultfd.c
-@@ -1643,6 +1643,8 @@ static int userfaultfd_zeropage(struct u
- 		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
- 				     uffdio_zeropage.range.len);
- 		mmput(ctx->mm);
-+	} else {
-+		return -ENOSPC;
- 	}
- 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
- 		return -EFAULT;
+diff -puN include/linux/cpuset.h~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled
++++ a/include/linux/cpuset.h
+@@ -18,6 +18,19 @@
+ 
+ #ifdef CONFIG_CPUSETS
+ 
++/*
++ * Static branch rewrites can happen in an arbitrary order for a given
++ * key. In code paths where we need to loop with read_mems_allowed_begin() and
++ * read_mems_allowed_retry() to get a consistent view of mems_allowed, we need
++ * to ensure that begin() always gets rewritten before retry() in the
++ * disabled -> enabled transition. If not, then if local irqs are disabled
++ * around the loop, we can deadlock since retry() would always be
++ * comparing the latest value of the mems_allowed seqcount against 0 as
++ * begin() still would see cpusets_enabled() as false. The enabled -> disabled
++ * transition should happen in reverse order for the same reasons (want to stop
++ * looking at real value of mems_allowed.sequence in retry() first).
++ */
++extern struct static_key_false cpusets_pre_enable_key;
+ extern struct static_key_false cpusets_enabled_key;
+ static inline bool cpusets_enabled(void)
+ {
+@@ -32,12 +45,14 @@ static inline int nr_cpusets(void)
+ 
+ static inline void cpuset_inc(void)
+ {
++	static_branch_inc(&cpusets_pre_enable_key);
+ 	static_branch_inc(&cpusets_enabled_key);
+ }
+ 
+ static inline void cpuset_dec(void)
+ {
+ 	static_branch_dec(&cpusets_enabled_key);
++	static_branch_dec(&cpusets_pre_enable_key);
+ }
+ 
+ extern int cpuset_init(void);
+@@ -115,7 +130,7 @@ extern void cpuset_print_current_mems_al
+  */
+ static inline unsigned int read_mems_allowed_begin(void)
+ {
+-	if (!cpusets_enabled())
++	if (!static_branch_unlikely(&cpusets_pre_enable_key))
+ 		return 0;
+ 
+ 	return read_seqcount_begin(&current->mems_allowed_seq);
+@@ -129,7 +144,7 @@ static inline unsigned int read_mems_all
+  */
+ static inline bool read_mems_allowed_retry(unsigned int seq)
+ {
+-	if (!cpusets_enabled())
++	if (!static_branch_unlikely(&cpusets_enabled_key))
+ 		return false;
+ 
+ 	return read_seqcount_retry(&current->mems_allowed_seq, seq);
+diff -puN kernel/cgroup/cpuset.c~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled kernel/cgroup/cpuset.c
+--- a/kernel/cgroup/cpuset.c~cpuset-fix-a-deadlock-due-to-incomplete-patching-of-cpusets_enabled
++++ a/kernel/cgroup/cpuset.c
+@@ -63,6 +63,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/wait.h>
+ 
++DEFINE_STATIC_KEY_FALSE(cpusets_pre_enable_key);
+ DEFINE_STATIC_KEY_FALSE(cpusets_enabled_key);
+ 
+ /* See "Frequency meter" comments, below. */
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dmitriyz@waymo.com are
 
-shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
-shmem-introduce-shmem_inode_acct_block.patch
-userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
-userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
-userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
-userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
-userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
 
