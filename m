@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch added to
- -mm tree
-Date: Fri, 04 Aug 2017 16:19:17 -0700
-Message-ID: <598500f5.1HcJfJhGxwW2wDTz%akpm@linux-foundation.org>
+Subject: + mm-fix-list-corruptions-on-shmem-shrinklist.patch added to -mm
+ tree
+Date: Fri, 04 Aug 2017 16:19:14 -0700
+Message-ID: <598500f2.Sit4kK7Je/aV1NqO%akpm__35888.6975948282$1501888775$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47470 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753692AbdHDXTS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:19:18 -0400
+        with ESMTP id S1753693AbdHDXTP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2017 19:19:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-list-corruptions-on-shmem-shrinklist-fix
+     Subject: mm: fix list corruptions on shmem shrinklist
 has been added to the -mm tree.  Its filename is
-     mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+     mm-fix-list-corruptions-on-shmem-shrinklist.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-list-corruptions-on-shmem-shrinklist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-list-corruptions-on-shmem-shrinklist-fix
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: mm: fix list corruptions on shmem shrinklist
 
-add comments
+We saw many list corruption warnings on shmem shrinklist:
 
-Cc: <stable@vger.kernel.org>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
+ [45480.300911] ------------[ cut here ]------------
+ [45480.305558] WARNING: CPU: 18 PID: 177 at lib/list_debug.c:59 __list_del_entry+0x9e/0xc0
+ [45480.313622] list_del corruption. prev->next should be ffff9ae5694b82d8, but was ffff9ae5699ba960
+ [45480.322435] Modules linked in: intel_rapl sb_edac edac_core x86_pkg_temp_thermal coretemp iTCO_wdt iTCO_vendor_support crct10dif_pclmul crc32_pclmul ghash_clmulni_intel raid0 dcdbas shpchp wmi hed i2c_i801 ioatdma lpc_ich i2c_smbus acpi_cpufreq tcp_diag inet_diag sch_fq_codel ipmi_si ipmi_devintf ipmi_msghandler igb ptp crc32c_intel pps_core i2c_algo_bit i2c_core dca ipv6 crc_ccitt
+ [45480.357776] CPU: 18 PID: 177 Comm: kswapd1 Not tainted 4.9.34-t3.el7.twitter.x86_64 #1
+ [45480.365679] Hardware name: Dell Inc. PowerEdge C6220/0W6W6G, BIOS 2.2.3 11/07/2013
+ [45480.373416]  ffffb13c03ccbaf8 ffffffff9e36bc87 ffffb13c03ccbb48 0000000000000000
+ [45480.380940]  ffffb13c03ccbb38 ffffffff9e08511b 0000003b7fffc000 0000000000000002
+ [45480.388392]  ffff9ae5699ba960 ffffb13c03ccbbe8 ffffb13c03ccbbf8 ffff9ae5694b82d8
+ [45480.395893] Call Trace:
+ [45480.398214]  [<ffffffff9e36bc87>] dump_stack+0x4d/0x66
+ [45480.403481]  [<ffffffff9e08511b>] __warn+0xcb/0xf0
+ [45480.408322]  [<ffffffff9e08518f>] warn_slowpath_fmt+0x4f/0x60
+ [45480.414095]  [<ffffffff9e38a6fe>] __list_del_entry+0x9e/0xc0
+ [45480.419831]  [<ffffffff9e1a33aa>] shmem_unused_huge_shrink+0xfa/0x2e0
+ [45480.426269]  [<ffffffff9e1a35b0>] shmem_unused_huge_scan+0x20/0x30
+ [45480.432382]  [<ffffffff9e20a0d3>] super_cache_scan+0x193/0x1a0
+ [45480.438238]  [<ffffffff9e19a9c3>] shrink_slab.part.41+0x1e3/0x3f0
+ [45480.444370]  [<ffffffff9e19abf9>] shrink_slab+0x29/0x30
+ [45480.449610]  [<ffffffff9e19ed39>] shrink_node+0xf9/0x2f0
+ [45480.454858]  [<ffffffff9e19fbd8>] kswapd+0x2d8/0x6c0
+ [45480.459896]  [<ffffffff9e19f900>] ? mem_cgroup_shrink_node+0x140/0x140
+ [45480.466337]  [<ffffffff9e0a3b87>] kthread+0xd7/0xf0
+ [45480.471231]  [<ffffffff9e0b519e>] ? vtime_account_idle+0xe/0x50
+ [45480.477282]  [<ffffffff9e0a3ab0>] ? kthread_park+0x60/0x60
+ [45480.482820]  [<ffffffff9e6d4c52>] ret_from_fork+0x22/0x30
+ [45480.488234] ---[ end trace 66841eda03a967a0 ]---
+ [45480.492834] ------------[ cut here ]------------
+ [45480.497432] WARNING: CPU: 23 PID: 639 at lib/list_debug.c:33 __list_add+0x89/0xb0
+ [45480.505020] list_add corruption. prev->next should be next (ffff9ae5699ba960), but was ffff9ae5694b82d8. (prev=ffff9ae5694b82d8).
+ [45480.516716] Modules linked in: intel_rapl sb_edac edac_core x86_pkg_temp_thermal coretemp iTCO_wdt iTCO_vendor_support crct10dif_pclmul crc32_pclmul ghash_clmulni_intel raid0 dcdbas shpchp wmi hed i2c_i801 ioatdma lpc_ich i2c_smbus acpi_cpufreq tcp_diag inet_diag sch_fq_codel ipmi_si ipmi_devintf ipmi_msghandler igb ptp crc32c_intel pps_core i2c_algo_bit i2c_core dca ipv6 crc_ccitt
+ [45480.551020] CPU: 23 PID: 639 Comm: systemd-udevd Tainted: G        W       4.9.34-t3.el7.twitter.x86_64 #1
+ [45480.560706] Hardware name: Dell Inc. PowerEdge C6220/0W6W6G, BIOS 2.2.3 11/07/2013
+ [45480.568299]  ffffb13c04913b30 ffffffff9e36bc87 ffffb13c04913b80 0000000000000000
+ [45480.575628]  ffffb13c04913b70 ffffffff9e08511b 00000021699ba900 ffff9ae5694b82d8
+ [45480.583080]  ffff9ae5694b82d8 ffff9ae5699ba960 ffff9ae5699ba900 0000000000000000
+ [45480.590560] Call Trace:
+ [45480.592937]  [<ffffffff9e36bc87>] dump_stack+0x4d/0x66
+ [45480.598144]  [<ffffffff9e08511b>] __warn+0xcb/0xf0
+ [45480.602978]  [<ffffffff9e08518f>] warn_slowpath_fmt+0x4f/0x60
+ [45480.608718]  [<ffffffff9e38a639>] __list_add+0x89/0xb0
+ [45480.613785]  [<ffffffff9e1a55d4>] shmem_setattr+0x204/0x230
+ [45480.619340]  [<ffffffff9e2232ef>] notify_change+0x2ef/0x440
+ [45480.624929]  [<ffffffff9e203bad>] do_truncate+0x5d/0x90
+ [45480.630184]  [<ffffffff9e20393a>] ? do_dentry_open+0x27a/0x310
+ [45480.635974]  [<ffffffff9e214101>] path_openat+0x331/0x1190
+ [45480.641549]  [<ffffffff9e21680e>] do_filp_open+0x7e/0xe0
+ [45480.646791]  [<ffffffff9e1bb3f4>] ? handle_mm_fault+0xa54/0x1340
+ [45480.652888]  [<ffffffff9e1e6703>] ? kmem_cache_alloc+0xd3/0x1a0
+ [45480.658778]  [<ffffffff9e215927>] ? getname_flags+0x37/0x190
+ [45480.664527]  [<ffffffff9e22423f>] ? __alloc_fd+0x3f/0x170
+ [45480.669918]  [<ffffffff9e205023>] do_sys_open+0x123/0x200
+ [45480.675339]  [<ffffffff9e20511e>] SyS_open+0x1e/0x20
+ [45480.680216]  [<ffffffff9e002aa1>] do_syscall_64+0x61/0x170
+ [45480.685805]  [<ffffffff9e6d4ac6>] entry_SYSCALL64_slow_path+0x25/0x25
+ [45480.692255] ---[ end trace 66841eda03a967a1 ]---
+ [45480.696823] ------------[ cut here ]------------
+
+The problem is that shmem_unused_huge_shrink() moves entries from the
+global sbinfo->shrinklist to its local lists and then releases the
+spinlock.  However, a parallel shmem_setattr() could access one of these
+entries directly and add it back to the global shrinklist if it is
+removed, with the spinlock held.
+
+The logic itself looks solid since an entry could be either in a local
+list or the global list, otherwise it is removed from one of them by
+list_del_init().  So probably the race condition is that, one CPU is in
+the middle of INIT_LIST_HEAD() but the other CPU calls list_empty() which
+returns true too early then the following list_add_tail() sees a corrupted
+entry.
+
+list_empty_careful() is designed to fix this situation.
+
+Link: http://lkml.kernel.org/r/20170803054630.18775-1-xiyou.wangcong@gmail.com
+Fixes: 779750d20b93 ("shmem: split huge pages beyond i_size under memory pressure")
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/shmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist-fix mm/shmem.c
---- a/mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist-fix
+diff -puN mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist mm/shmem.c
+--- a/mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist
 +++ a/mm/shmem.c
-@@ -1022,6 +1022,10 @@ static int shmem_setattr(struct dentry *
+@@ -1022,7 +1022,7 @@ static int shmem_setattr(struct dentry *
  			 */
  			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE)) {
  				spin_lock(&sbinfo->shrinklist_lock);
-+				/*
-+				 * _careful to defend against unlocked access to
-+				 * ->shrink_list in shmem_unused_huge_shrink()
-+				 */
- 				if (list_empty_careful(&info->shrinklist)) {
+-				if (list_empty(&info->shrinklist)) {
++				if (list_empty_careful(&info->shrinklist)) {
  					list_add_tail(&info->shrinklist,
  							&sbinfo->shrinklist);
-@@ -1817,6 +1821,10 @@ alloc_nohuge:		page = shmem_alloc_and_ac
+ 					sbinfo->shrinklist_len++;
+@@ -1817,7 +1817,7 @@ alloc_nohuge:		page = shmem_alloc_and_ac
  			 * to shrink under memory pressure.
  			 */
  			spin_lock(&sbinfo->shrinklist_lock);
-+			/*
-+			 * _careful to defend against unlocked access to
-+			 * ->shrink_list in shmem_unused_huge_shrink()
-+			 */
- 			if (list_empty_careful(&info->shrinklist)) {
+-			if (list_empty(&info->shrinklist)) {
++			if (list_empty_careful(&info->shrinklist)) {
  				list_add_tail(&info->shrinklist,
  						&sbinfo->shrinklist);
+ 				sbinfo->shrinklist_len++;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-i-need-old-gcc.patch
-mm-make-tlb_flush_pending-global-fix.patch
-mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-fix-list-corruptions-on-shmem-shrinklist.patch
 
