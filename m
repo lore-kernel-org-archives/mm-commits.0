@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shmem-add-hugetlbfs-support-to-memfd_create.patch added to
- -mm tree
-Date: Tue, 08 Aug 2017 16:19:45 -0700
-Message-ID: <598a4711.Vr/fEQmaqJqtkJ0f%akpm@linux-foundation.org>
+Subject: + lib-add-test-for-bitmap_parselist.patch added to -mm tree
+Date: Tue, 08 Aug 2017 16:24:26 -0700
+Message-ID: <598a482a.HbT5cjl/b8U9dHhg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48692 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752137AbdHHXTq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 19:19:46 -0400
+        with ESMTP id S1752081AbdHHXY1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 19:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: ynorov@caviumnetworks.com, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, noamca@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: add hugetlbfs support to memfd_create()
+     Subject: lib/test_bitmap.c: add test for bitmap_parselist()
 has been added to the -mm tree.  Its filename is
-     mm-shmem-add-hugetlbfs-support-to-memfd_create.patch
+     lib-add-test-for-bitmap_parselist.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-add-hugetlbfs-support-to-memfd_create.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-test-for-bitmap_parselist.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-add-hugetlbfs-support-to-memfd_create.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-test-for-bitmap_parselist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,179 +38,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/shmem: add hugetlbfs support to memfd_create()
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: lib/test_bitmap.c: add test for bitmap_parselist()
 
-This patch came out of discussions in this e-mail thread:
-https://lkml.org/lkml/2017/7/6/564
+Do some basic checks for bitmap_parselist().
 
-The Oracle JVM team is developing a new garbage collection model.  This
-new model requires multiple mappings of the same anonymous memory.  One
-straightforward way to accomplish this is with memfd_create.  They can use
-the returned fd to create multiple mappings of the same memory.
-
-The JVM today has an option to use (static hugetlb) huge pages.  If this
-option is specified, they would like to use the same garbage collection
-model requiring multiple mappings to the same memory.  Using hugetlbfs, it
-is possible to explicitly mount a filesystem and specify file paths in
-order to get an fd that can be used for multiple mappings.  However, this
-introduces additional system admin work and coordination.
-
-Ideally they would like to get a hugetlbfs fd without requiring explicit
-mounting of a filesystem.  Today, mmap and shmget can make use of
-hugetlbfs without explicitly mounting a filesystem.  The patch adds this
-functionality to hugetlbfs.
-
-A new flag MFD_HUGETLB is introduced to request a hugetlbfs file.  Like
-other system calls where hugetlb can be requested, the huge page size can
-be encoded in the flags argument is the non-default huge page size is
-desired.  hugetlbfs does not support sealing operations, therefore
-specifying MFD_ALLOW_SEALING with MFD_HUGETLB will result in EINVAL.
-
-Of course, the memfd_man page would need updating if this type of
-functionality moves forward.
-
-
-Add a new flag MFD_HUGETLB to memfd_create() that will specify the file to
-be created resides in the hugetlbfs filesystem.  This is the generic
-hugetlbfs filesystem not associated with any specific mount point.  As
-with other system calls that request hugetlbfs backed pages, there is the
-ability to encode huge page size in the flag arguments.
-
-hugetlbfs does not support sealing operations, therefore specifying
-MFD_ALLOW_SEALING with MFD_HUGETLB will result in EINVAL.
-
-Link: http://lkml.kernel.org/r/1502149672-7759-2-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20170807225438.16161-2-ynorov@caviumnetworks.com
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Noam Camus <noamca@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/memfd.h |   24 ++++++++++++++++++++++
- mm/shmem.c                 |   37 +++++++++++++++++++++++++++++------
- 2 files changed, 55 insertions(+), 6 deletions(-)
+ lib/test_bitmap.c |   73 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
-diff -puN include/uapi/linux/memfd.h~mm-shmem-add-hugetlbfs-support-to-memfd_create include/uapi/linux/memfd.h
---- a/include/uapi/linux/memfd.h~mm-shmem-add-hugetlbfs-support-to-memfd_create
-+++ a/include/uapi/linux/memfd.h
-@@ -1,8 +1,32 @@
- #ifndef _UAPI_LINUX_MEMFD_H
- #define _UAPI_LINUX_MEMFD_H
+diff -puN lib/test_bitmap.c~lib-add-test-for-bitmap_parselist lib/test_bitmap.c
+--- a/lib/test_bitmap.c~lib-add-test-for-bitmap_parselist
++++ a/lib/test_bitmap.c
+@@ -165,6 +165,78 @@ static void __init test_zero_fill_copy(v
+ 	expect_eq_pbl("128-1023", bmap2, 1024);
+ }
  
-+#include <asm-generic/hugetlb_encode.h>
++#define PARSE_TIME 0x1
 +
- /* flags for memfd_create(2) (unsigned int) */
- #define MFD_CLOEXEC		0x0001U
- #define MFD_ALLOW_SEALING	0x0002U
-+#define MFD_HUGETLB		0x0004U
++struct test_bitmap_parselist{
++	const int errno;
++	const char *in;
++	const unsigned long *expected;
++	const int nbits;
++	const int flags;
++};
 +
-+/*
-+ * Huge page size encoding when MFD_HUGETLB is specified, and a huge page
-+ * size other than the default is desired.  See hugetlb_encode.h.
-+ * All known huge page size encodings are provided here.  It is the
-+ * responsibility of the application to know which sizes are supported on
-+ * the running system.  See mmap(2) man page for details.
-+ */
-+#define MFD_HUGE_SHIFT	HUGETLB_FLAG_ENCODE_SHIFT
-+#define MFD_HUGE_MASK	HUGETLB_FLAG_ENCODE_MASK
++static const unsigned long exp[] = {1, 2, 0x0000ffff, 0xffff0000, 0x55555555,
++				0xaaaaaaaa, 0x11111111, 0x22222222, 0xffffffff,
++				0xfffffffe, 0x3333333311111111, 0xffffffff77777777};
++static const unsigned long exp2[] = {0x3333333311111111, 0xffffffff77777777};
 +
-+#define MFD_HUGE_64KB	HUGETLB_FLAG_ENCODE_64KB
-+#define MFD_HUGE_512KB	HUGETLB_FLAG_ENCODE_512KB
-+#define MFD_HUGE_1MB	HUGETLB_FLAG_ENCODE_1MB
-+#define MFD_HUGE_2MB	HUGETLB_FLAG_ENCODE_2MB
-+#define MFD_HUGE_8MB	HUGETLB_FLAG_ENCODE_8MB
-+#define MFD_HUGE_16MB	HUGETLB_FLAG_ENCODE_16MB
-+#define MFD_HUGE_256MB	HUGETLB_FLAG_ENCODE_256MB
-+#define MFD_HUGE_1GB	HUGETLB_FLAG_ENCODE_1GB
-+#define MFD_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
-+#define MFD_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
- 
- #endif /* _UAPI_LINUX_MEMFD_H */
-diff -puN mm/shmem.c~mm-shmem-add-hugetlbfs-support-to-memfd_create mm/shmem.c
---- a/mm/shmem.c~mm-shmem-add-hugetlbfs-support-to-memfd_create
-+++ a/mm/shmem.c
-@@ -34,6 +34,7 @@
- #include <linux/swap.h>
- #include <linux/uio.h>
- #include <linux/khugepaged.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
- 
-@@ -3652,7 +3653,7 @@ static int shmem_show_options(struct seq
- #define MFD_NAME_PREFIX_LEN (sizeof(MFD_NAME_PREFIX) - 1)
- #define MFD_NAME_MAX_LEN (NAME_MAX - MFD_NAME_PREFIX_LEN)
- 
--#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING)
-+#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_HUGETLB)
- 
- SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
-@@ -3664,8 +3665,18 @@ SYSCALL_DEFINE2(memfd_create,
- 	char *name;
- 	long len;
- 
--	if (flags & ~(unsigned int)MFD_ALL_FLAGS)
--		return -EINVAL;
-+	if (!(flags & MFD_HUGETLB)) {
-+		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
-+			return -EINVAL;
-+	} else {
-+		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
-+		if (flags & MFD_ALLOW_SEALING)
-+			return -EINVAL;
-+		/* Allow huge page size encoding in flags. */
-+		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
-+				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
-+			return -EINVAL;
++static const struct test_bitmap_parselist parselist_tests[] __initconst = {
++	{0, "0",			&exp[0], 8, 0},
++	{0, "1",			&exp[1], 8, 0},
++	{0, "0-15",			&exp[2], 32, 0},
++	{0, "16-31",			&exp[3], 32, 0},
++	{0, "0-31:1/2",			&exp[4], 32, 0},
++	{0, "1-31:1/2",			&exp[5], 32, 0},
++	{0, "0-31:1/4",			&exp[6], 32, 0},
++	{0, "1-31:1/4",			&exp[7], 32, 0},
++	{0, "0-31:4/4",			&exp[8], 32, 0},
++	{0, "1-31:4/4",			&exp[9], 32, 0},
++	{0, "0-31:1/4,32-63:2/4",	&exp[10], 64, 0},
++	{0, "0-31:3/4,32-63:4/4",	&exp[11], 64, 0},
++
++	{0, "0-31:1/4,32-63:2/4,64-95:3/4,96-127:4/4",	exp2, 128, 0},
++
++	{0, "0-2047:128/256", NULL, 2048, PARSE_TIME},
++
++	{-EINVAL, "-1",	NULL, 8, 0},
++	{-EINVAL, "-0",	NULL, 8, 0},
++	{-EINVAL, "10-1", NULL, 8, 0},
++	{-EINVAL, "0-31:10/1", NULL, 8, 0},
++};
++
++static void __init test_bitmap_parselist(void)
++{
++	int i;
++	int err;
++	cycles_t cycles;
++	DECLARE_BITMAP(bmap, 2048);
++
++	for (i = 0; i < ARRAY_SIZE(parselist_tests); i++) {
++#define ptest parselist_tests[i]
++
++		cycles = get_cycles();
++		err = bitmap_parselist(ptest.in, bmap, ptest.nbits);
++		cycles = get_cycles() - cycles;
++
++		if (err != ptest.errno) {
++			pr_err("test %d: input is %s, errno is %d, expected %d\n",
++					i, ptest.in, err, ptest.errno);
++			continue;
++		}
++
++		if (!err && ptest.expected
++			 && !__bitmap_equal(bmap, ptest.expected, ptest.nbits)) {
++			pr_err("test %d: input is %s, result is 0x%lx, expected 0x%lx\n",
++					i, ptest.in, bmap[0], *ptest.expected);
++			continue;
++		}
++
++		if (ptest.flags & PARSE_TIME)
++			pr_err("test %d: input is '%s' OK, Time: %lu\n",
++					i, ptest.in, cycles);
 +	}
- 
- 	/* length includes terminating zero */
- 	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
-@@ -3696,16 +3707,30 @@ SYSCALL_DEFINE2(memfd_create,
- 		goto err_name;
- 	}
- 
--	file = shmem_file_setup(name, 0, VM_NORESERVE);
-+	if (flags & MFD_HUGETLB) {
-+		struct user_struct *user = NULL;
++}
 +
-+		file = hugetlb_file_setup(name, 0, VM_NORESERVE, &user,
-+					HUGETLB_ANONHUGE_INODE,
-+					(flags >> MFD_HUGE_SHIFT) &
-+					MFD_HUGE_MASK);
-+	} else
-+		file = shmem_file_setup(name, 0, VM_NORESERVE);
- 	if (IS_ERR(file)) {
- 		error = PTR_ERR(file);
- 		goto err_fd;
- 	}
--	info = SHMEM_I(file_inode(file));
- 	file->f_mode |= FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
- 	file->f_flags |= O_RDWR | O_LARGEFILE;
--	if (flags & MFD_ALLOW_SEALING)
-+
-+	if (flags & MFD_ALLOW_SEALING) {
-+		/*
-+		 * flags check at beginning of function ensures
-+		 * this is not a hugetlbfs (MFD_HUGETLB) file.
-+		 */
-+		info = SHMEM_I(file_inode(file));
- 		info->seals &= ~F_SEAL_SEAL;
-+	}
+ static void __init test_bitmap_u32_array_conversions(void)
+ {
+ 	DECLARE_BITMAP(bmap1, 1024);
+@@ -365,6 +437,7 @@ static int __init test_bitmap_init(void)
+ {
+ 	test_zero_fill_copy();
+ 	test_bitmap_u32_array_conversions();
++	test_bitmap_parselist();
+ 	test_mem_optimisations();
  
- 	fd_install(fd, file);
- 	kfree(name);
+ 	if (failed_tests == 0)
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from ynorov@caviumnetworks.com are
 
-mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
-mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
-mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
-mm-shm-use-new-hugetlb-size-encoding-definitions.patch
-mm-shmem-add-hugetlbfs-support-to-memfd_create.patch
+lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
+lib-add-test-for-bitmap_parselist.patch
 
