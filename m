@@ -1,150 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-test-module-for-config_debug_virtual.patch added to -mm tree
-Date: Tue, 08 Aug 2017 15:21:53 -0700
-Message-ID: <598a3981.AyHoXFNNrLPvDZqF%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 08 Aug 2017 15:35:10 -0700
+Message-ID: <20170808223510.9yIwfb3Pz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56704 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751965AbdHHWVy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 18:21:54 -0400
+        with ESMTP id S1752427AbdHHWfL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 18:35:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
-has been added to the -mm tree.  Its filename is
-     lib-add-test-module-for-config_debug_virtual.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-test-module-for-config_debug_virtual.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-test-module-for-config_debug_virtual.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Add a test module that allows testing that CONFIG_DEBUG_VIRTUAL works
-correctly, at least that it can catch invalid calls to virt_to_phys()
-against the non-linear kernel virtual address map.
-
-Link: http://lkml.kernel.org/r/20170808164035.26725-1-f.fainelli@gmail.com
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |   11 ++++++++
- lib/Makefile             |    1 
- lib/test_debug_virtual.c |   49 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c |    5 -----
+ sound/soc/intel/skylake/skl.c                       |    3 ---
+ 2 files changed, 8 deletions(-)
 
-diff -puN lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual
-+++ a/lib/Kconfig.debug
-@@ -1902,6 +1902,17 @@ config TEST_KMOD
+diff -puN sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c~linux-next-git-rejects sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c
+--- a/sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c~linux-next-git-rejects
++++ a/sound/soc/intel/boards/kbl_rt5663_rt5514_max98927.c
+@@ -355,10 +355,6 @@ static int kabylake_ssp0_hw_params(struc
  
- 	  If unsure, say N.
+ 			ret = snd_soc_dai_set_sysclk(codec_dai,
+ 				RT5514_SCLK_S_MCLK, 24576000, SND_SOC_CLOCK_IN);
+-<<<<<<< HEAD
+-			if (ret < 0) {
+-				dev_err(rtd->dev, "set sysclk err: %d\n", ret);
+-=======
+ 			if (ret < 0) {
+ 				dev_err(rtd->dev, "set sysclk err: %d\n", ret);
+ 				return ret;
+@@ -368,7 +364,6 @@ static int kabylake_ssp0_hw_params(struc
+ 			ret = snd_soc_dai_set_tdm_slot(codec_dai, 0x30, 3, 8, 16);
+ 			if (ret < 0) {
+ 				dev_err(rtd->dev, "DEV0 TDM slot err:%d\n", ret);
+->>>>>>> linux-next/akpm-base
+ 				return ret;
+ 			}
+ 		}
+diff -puN sound/soc/intel/skylake/skl.c~linux-next-git-rejects sound/soc/intel/skylake/skl.c
+--- a/sound/soc/intel/skylake/skl.c~linux-next-git-rejects
++++ a/sound/soc/intel/skylake/skl.c
+@@ -996,8 +996,6 @@ static struct sst_acpi_mach sst_glk_devd
+ 		.fw_filename = "intel/dsp_fw_glk.bin",
+ 	},
+ 	{}
+-<<<<<<< HEAD
+-=======
+ };
  
-+config TEST_DEBUG_VIRTUAL
-+	tristate "Test CONFIG_DEBUG_VIRTUAL feature"
-+	depends on DEBUG_VIRTUAL
-+	help
-+	  Test the kernel's ability to detect incorrect calls to
-+	  virt_to_phys() done against the non-linear part of the
-+	  kernel's virtual address map.
-+
-+	  If unsure, say N.
-+
-+
- source "samples/Kconfig"
+ static const struct sst_acpi_mach sst_cnl_devdata[] = {
+@@ -1006,7 +1004,6 @@ static const struct sst_acpi_mach sst_cn
+ 		.drv_name = "cnl_rt274",
+ 		.fw_filename = "intel/dsp_fw_cnl.bin",
+ 	},
+->>>>>>> linux-next/akpm-base
+ };
  
- source "lib/Kconfig.kgdb"
-diff -puN lib/Makefile~lib-add-test-module-for-config_debug_virtual lib/Makefile
---- a/lib/Makefile~lib-add-test-module-for-config_debug_virtual
-+++ a/lib/Makefile
-@@ -62,6 +62,7 @@ obj-$(CONFIG_TEST_BITMAP) += test_bitmap
- obj-$(CONFIG_TEST_UUID) += test_uuid.o
- obj-$(CONFIG_TEST_PARMAN) += test_parman.o
- obj-$(CONFIG_TEST_KMOD) += test_kmod.o
-+obj-$(CONFIG_TEST_DEBUG_VIRTUAL) += test_debug_virtual.o
- 
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
-diff -puN /dev/null lib/test_debug_virtual.c
---- /dev/null
-+++ a/lib/test_debug_virtual.c
-@@ -0,0 +1,49 @@
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/export.h>
-+#include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/slab.h>
-+#include <linux/sizes.h>
-+
-+#include <asm/page.h>
-+#ifdef CONFIG_MIPS
-+#include <asm/bootinfo.h>
-+#endif
-+
-+struct foo {
-+	unsigned int bar;
-+};
-+
-+struct foo *foo;
-+
-+static int __init test_debug_virtual_init(void)
-+{
-+	phys_addr_t pa;
-+	void *va;
-+
-+	va = (void *)VMALLOC_START;
-+	pa = virt_to_phys(va);
-+
-+	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
-+
-+	foo = kzalloc(sizeof(*foo), GFP_KERNEL);
-+	if (!foo)
-+		return -ENOMEM;
-+
-+	pa = virt_to_phys(foo);
-+	va = foo;
-+	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
-+
-+	return 0;
-+}
-+module_init(test_debug_virtual_init);
-+
-+static void __exit test_debug_virtual_exit(void)
-+{
-+	kfree(foo);
-+}
-+module_exit(test_debug_virtual_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Test module for CONFIG_DEBUG_VIRTUAL");
+ /* PCI IDs */
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-add-test-module-for-config_debug_virtual.patch
+i-need-old-gcc.patch
+mm-make-tlb_flush_pending-global-fix.patch
+mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
