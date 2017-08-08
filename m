@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
- added to -mm tree
-Date: Tue, 08 Aug 2017 16:24:24 -0700
-Message-ID: <598a4828.5quJeGia9PQ8hUrU%akpm@linux-foundation.org>
+Subject: + lib-interval_tree-fast-overlap-detection-fix.patch added to -mm tree
+Date: Tue, 08 Aug 2017 16:49:51 -0700
+Message-ID: <598a4e1f.KXveZTXzFPy0bHqH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57512 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752081AbdHHXYZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 19:24:25 -0400
+        with ESMTP id S1751229AbdHHXtw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 19:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ynorov@caviumnetworks.com, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, noamca@mellanox.com, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, dbueso@suse.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
+     Subject: mm/mmu_notifier: fix deadlock from typo vm_lock_anon_vma()
 has been added to the -mm tree.  Its filename is
-     lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
+     lib-interval_tree-fast-overlap-detection-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-interval_tree-fast-overlap-detection-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-interval_tree-fast-overlap-detection-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +38,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
+From: Jérôme Glisse <jglisse@redhat.com>
+Subject: mm/mmu_notifier: fix deadlock from typo vm_lock_anon_vma()
 
-Current implementation of bitmap_parselist() uses a static variable to
-save local state while setting bits in the bitmap.  It is obviously wrong
-if we assume execution in multiprocessor environment.  Fortunately, it's
-possible to rewrite this portion of code to avoid using the static
-variable.
+Fix typo introduced by 0c67e6038580e343bd ("lib/interval_tree: fast
+overlap detection") which result in deadlock when mm_take_all_locks() is
+call (only user being mmu_notifier at this time).
 
-It is also possible to set bits in the mask per-range with bitmap_set(),
-not per-bit, as it is implemented now, with set_bit(); which is way
-faster.
-
-The important side effect of this change is that setting bits in this
-function from now is not per-bit atomic and less memory-ordered.  This is
-because set_bit() guarantees the order of memory accesses, while
-bitmap_set() does not.  I think that it is the advantage of the new
-approach, because the bitmap_parselist() is intended to initialise bit
-arrays, and user should protect the whole bitmap during initialisation if
-needed.  So protecting individual bits looks expensive and useless.  Also,
-other range-oriented functions in lib/bitmap.c don't worry much about
-atomicity.
-
-With all that, setting 2k bits in map with the pattern like 0-2047:128/256
-becomes ~50 times faster after applying the patch in my testing
-environment (arm64 hosted on qemu).
-
-The second patch of the series adds the test for bitmap_parselist().  It's
-not intended to cover all tricky cases, just to make sure that I didn't
-screw up during rework.
-
-Link: http://lkml.kernel.org/r/20170807225438.16161-1-ynorov@caviumnetworks.com
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Noam Camus <noamca@mellanox.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Link: http://lkml.kernel.org/r/20170808225719.20723-1-jglisse@redhat.com
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster lib/bitmap.c
---- a/lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster
-+++ a/lib/bitmap.c
-@@ -513,7 +513,7 @@ static int __bitmap_parselist(const char
- 		int nmaskbits)
+diff -puN mm/mmap.c~lib-interval_tree-fast-overlap-detection-fix mm/mmap.c
+--- a/mm/mmap.c~lib-interval_tree-fast-overlap-detection-fix
++++ a/mm/mmap.c
+@@ -3322,7 +3322,7 @@ static DEFINE_MUTEX(mm_all_locks_mutex);
+ 
+ static void vm_lock_anon_vma(struct mm_struct *mm, struct anon_vma *anon_vma)
  {
- 	unsigned int a, b, old_a, old_b;
--	unsigned int group_size, used_size;
-+	unsigned int group_size, used_size, off;
- 	int c, old_c, totaldigits, ndigits;
- 	const char __user __force *ubuf = (const char __user __force *)buf;
- 	int at_start, in_range, in_partial_range;
-@@ -599,6 +599,8 @@ static int __bitmap_parselist(const char
- 			a = old_a;
- 			b = old_b;
- 			old_a = old_b = 0;
-+		} else {
-+			used_size = group_size = b - a + 1;
- 		}
- 		/* if no digit is after '-', it's wrong*/
- 		if (at_start && in_range)
-@@ -608,17 +610,9 @@ static int __bitmap_parselist(const char
- 		if (b >= nmaskbits)
- 			return -ERANGE;
- 		while (a <= b) {
--			if (in_partial_range) {
--				static int pos_in_group = 1;
--
--				if (pos_in_group <= used_size)
--					set_bit(a, maskp);
+-	if (!test_bit(0, (unsigned long *) &anon_vma->rb_root.rb_root.rb_node)) {
++	if (!test_bit(0, (unsigned long *) &anon_vma->root->rb_root.rb_root.rb_node)) {
+ 		/*
+ 		 * The LSB of head.next can't change from under us
+ 		 * because we hold the mm_all_locks_mutex.
+_
+
+Patches currently in -mm which might be from jglisse@redhat.com are
+
+lib-interval_tree-fast-overlap-detection-fix.patch
+
