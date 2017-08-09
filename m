@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage.patch added to -mm tree
-Date: Tue, 08 Aug 2017 17:06:16 -0700
-Message-ID: <598a51f8./AWmkwDPDBCLa3eZ%akpm@linux-foundation.org>
+Subject: + vmstat-fix-wrong-comment.patch added to -mm tree
+Date: Wed, 09 Aug 2017 12:55:39 -0700
+Message-ID: <598b68bb.P+yR8W95Vozxjq9k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751970AbdHIAGR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2017 20:06:17 -0400
+        with ESMTP id S1752138AbdHITzk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 15:55:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
+To: sj38.park@gmail.com, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: replace ENOSPC with ESRCH in case mm has gone during copy/zeropage
+     Subject: mm/vmstat.c: fix wrong comment
 has been added to the -mm tree.  Its filename is
-     userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage.patch
+     vmstat-fix-wrong-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-fix-wrong-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-fix-wrong-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +38,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: replace ENOSPC with ESRCH in case mm has gone during copy/zeropage
+From: SeongJae Park <sj38.park@gmail.com>
+Subject: mm/vmstat.c: fix wrong comment
 
-When the process exit races with outstanding mcopy_atomic, it would be
-better to return ESRCH error.  When such race occurs the process and it's
-mm are going away and returning "no such process" to the uffd monitor
-seems better fit than ENOSPC.
+Comment for pagetypeinfo_showblockcount() is mistakenly duplicated from
+pagetypeinfo_show_free()'s comment.  This commit fixes it.
 
-Link: http://lkml.kernel.org/r/1502111545-32305-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20170809185816.11244-1-sj38.park@gmail.com
+Fixes: 467c996c1e19 ("Print out statistics in relation to fragmentation avoidance to /proc/pagetypeinfo")
+Signed-off-by: SeongJae Park <sj38.park@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage
-+++ a/fs/userfaultfd.c
-@@ -1600,7 +1600,7 @@ static int userfaultfd_copy(struct userf
- 				   uffdio_copy.len);
- 		mmput(ctx->mm);
- 	} else {
--		return -ENOSPC;
-+		return -ESRCH;
- 	}
- 	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
- 		return -EFAULT;
-@@ -1647,7 +1647,7 @@ static int userfaultfd_zeropage(struct u
- 				     uffdio_zeropage.range.len);
- 		mmput(ctx->mm);
- 	} else {
--		return -ENOSPC;
-+		return -ESRCH;
- 	}
- 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
- 		return -EFAULT;
+diff -puN mm/vmstat.c~vmstat-fix-wrong-comment mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-fix-wrong-comment
++++ a/mm/vmstat.c
+@@ -1255,7 +1255,7 @@ static void pagetypeinfo_showblockcount_
+ 	seq_putc(m, '\n');
+ }
+ 
+-/* Print out the free pages at each order for each migratetype */
++/* Print out the number of pageblocks for each migratetype */
+ static int pagetypeinfo_showblockcount(struct seq_file *m, void *arg)
+ {
+ 	int mtype;
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from sj38.park@gmail.com are
 
-userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage.patch
-shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update.patch
-shmem-introduce-shmem_inode_acct_block.patch
-userfaultfd-shmem-add-shmem_mfill_zeropage_pte-for-userfaultfd-support.patch
-userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
-userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte.patch
-userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
-userfaultfd-selftest-enable-testing-of-uffdio_zeropage-for-shmem.patch
+vmstat-fix-wrong-comment.patch
 
