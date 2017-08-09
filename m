@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + parse-maintainers-add-ability-to-specify-filenames.patch added
- to -mm tree
-Date: Wed, 09 Aug 2017 13:29:46 -0700
-Message-ID: <598b70ba.vKQjDJ2KtW4Mpnhd%akpm@linux-foundation.org>
+Subject: + modpost-simplify-sec_name.patch added to -mm tree
+Date: Wed, 09 Aug 2017 13:35:57 -0700
+Message-ID: <598b722d.WBEpNbEAZt6NPuef%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40614 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750866AbdHIU3q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 16:29:46 -0400
+        with ESMTP id S1752166AbdHIUgM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 16:36:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, ard.biesheuvel@linaro.org, cmetcalf@mellanox.com, jeyu@redhat.com, keescook@chromium.org, mingo@kernel.org, npiggin@gmail.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse-maintainers: add ability to specify filenames
+     Subject: modpost: simplify sec_name()
 has been added to the -mm tree.  Its filename is
-     parse-maintainers-add-ability-to-specify-filenames.patch
+     modpost-simplify-sec_name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parse-maintainers-add-ability-to-specify-filenames.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/modpost-simplify-sec_name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parse-maintainers-add-ability-to-specify-filenames.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/modpost-simplify-sec_name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,119 +38,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: parse-maintainers: add ability to specify filenames
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: modpost: simplify sec_name()
 
-parse-maintainers.pl is convenient, but currently hard-codes the filenames
-that are used.
+There is code duplication between sec_name() and sech_name().  Simplify
+sec_name() by re-using sech_name().  Also, move them up to remove the
+forward declaration of sec_name().
 
-Allow user-specified filenames to simplify the use of the script.
-
-Miscellanea:
-
-o Change the file permissions to 755 to the script is executable
-
-Link: http://lkml.kernel.org/r/48703c068b3235223ffa3b2eb268fa0a125b25e0.1502251549.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1502248721-22009-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Jessica Yu <jeyu@redhat.com>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/parse-maintainers.pl |   52 +++++++++++++++++++++++++++++----
- 1 file changed, 47 insertions(+), 5 deletions(-)
+ scripts/mod/modpost.c |   27 +++++++++++----------------
+ 1 file changed, 11 insertions(+), 16 deletions(-)
 
-diff -puN scripts/parse-maintainers.pl~parse-maintainers-add-ability-to-specify-filenames scripts/parse-maintainers.pl
---- a/scripts/parse-maintainers.pl~parse-maintainers-add-ability-to-specify-filenames
-+++ a/scripts/parse-maintainers.pl
-@@ -1,9 +1,44 @@
- #!/usr/bin/perl -w
- 
- use strict;
-+use Getopt::Long qw(:config no_auto_abbrev);
-+
-+my $input_file = "MAINTAINERS";
-+my $output_file = "MAINTAINERS.new";
-+my $output_section = "SECTION.new";
-+my $help = 0;
- 
- my $P = $0;
- 
-+if (!GetOptions(
-+		'input=s' => \$input_file,
-+		'output=s' => \$output_file,
-+		'section=s' => \$output_section,
-+		'h|help|usage' => \$help,
-+	    )) {
-+    die "$P: invalid argument - use --help if necessary\n";
-+}
-+
-+if ($help != 0) {
-+    usage();
-+    exit 0;
-+}
-+
-+sub usage {
-+    print <<EOT;
-+usage: $P [options] <pattern matching regexes>
-+
-+  --input => MAINTAINERS file to read (default: MAINTAINERS)
-+  --output => sorted MAINTAINERS file to write (default: MAINTAINERS.new)
-+  --section => new sorted MAINTAINERS file to write to (default: SECTION.new)
-+
-+If <pattern match regexes> exist, then the sections that match the
-+regexes are not written to the output file but are written to the
-+section file.
-+
-+EOT
-+}
-+
- # sort comparison functions
- sub by_category($$) {
-     my ($a, $b) = @_;
-@@ -55,13 +90,20 @@ sub trim {
- sub alpha_output {
-     my ($hashref, $filename) = (@_);
- 
-+    return if ! scalar(keys %$hashref);
-+
-     open(my $file, '>', "$filename") or die "$P: $filename: open failed - $!\n";
-+    my $separator;
-     foreach my $key (sort by_category keys %$hashref) {
- 	if ($key eq " ") {
--	    chomp $$hashref{$key};
- 	    print $file $$hashref{$key};
- 	} else {
--	    print $file "\n" . $key . "\n";
-+	    if (! defined $separator) {
-+		$separator = "\n";
-+	    } else {
-+		print $file $separator;
-+	    }
-+	    print $file $key . "\n";
- 	    foreach my $pattern (sort by_pattern split('\n', %$hashref{$key})) {
- 		print $file ($pattern . "\n");
- 	    }
-@@ -111,7 +153,7 @@ sub file_input {
- my %hash;
- my %new_hash;
- 
--file_input(\%hash, "MAINTAINERS");
-+file_input(\%hash, $input_file);
- 
- foreach my $type (@ARGV) {
-     foreach my $key (keys %hash) {
-@@ -122,7 +164,7 @@ foreach my $type (@ARGV) {
-     }
+diff -puN scripts/mod/modpost.c~modpost-simplify-sec_name scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~modpost-simplify-sec_name
++++ a/scripts/mod/modpost.c
+@@ -261,7 +261,17 @@ static enum export export_no(const char
+ 	return export_unknown;
  }
  
--alpha_output(\%hash, "MAINTAINERS.new");
--alpha_output(\%new_hash, "SECTION.new");
-+alpha_output(\%hash, $output_file);
-+alpha_output(\%new_hash, $output_section);
+-static const char *sec_name(struct elf_info *elf, int secindex);
++static const char *sech_name(struct elf_info *elf, Elf_Shdr *sechdr)
++{
++	return (void *)elf->hdr +
++		elf->sechdrs[elf->secindex_strings].sh_offset +
++		sechdr->sh_name;
++}
++
++static const char *sec_name(struct elf_info *elf, int secindex)
++{
++	return sech_name(elf, &elf->sechdrs[secindex]);
++}
  
- exit(0);
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-parse-maintainers-add-ability-to-specify-filenames.patch
-
+ #define strstarts(str, prefix) (strncmp(str, prefix, strlen(prefix)) == 0)
+ 
+@@ -775,21 +785,6 @@ static const char *sym_name(struct elf_i
+ 		return "(unknown)";
+ }
+ 
+-static const char *sec_name(struct elf_info *elf, int secindex)
+-{
+-	Elf_Shdr *sechdrs = elf->sechdrs;
+-	return (void *)elf->hdr +
+-		elf->sechdrs[elf->secindex_strings].sh_offset +
+-		sechdrs[secindex].sh_name;
+-}
+-
+-static const char *sech_name(struct elf_info *elf, Elf_Shdr *sechdr)
+-{
+-	return (void *)elf->hdr +
+-		elf->sechdrs[elf->secindex_strings].sh_offset +
+-		sechdr->sh_name;
+-}
