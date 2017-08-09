@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-fix-wrong-comment.patch added to -mm tree
-Date: Wed, 09 Aug 2017 12:55:39 -0700
-Message-ID: <598b68bb.P+yR8W95Vozxjq9k%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback.patch
+ added to -mm tree
+Date: Wed, 09 Aug 2017 13:01:38 -0700
+Message-ID: <598b6a22.jBey0e9EmWY2trr3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54468 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752138AbdHITzk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 15:55:40 -0400
+        with ESMTP id S1751890AbdHIUBk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 16:01:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sj38.park@gmail.com, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, bradleybolen@gmail.com, jaegeuk@kernel.org, mhocko@suse.cz, stable@vger.kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat.c: fix wrong comment
+     Subject: mm: memcontrol: fix NULL pointer crash in test_clear_page_writeback()
 has been added to the -mm tree.  Its filename is
-     vmstat-fix-wrong-comment.patch
+     mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-fix-wrong-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-fix-wrong-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,38 +40,249 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj38.park@gmail.com>
-Subject: mm/vmstat.c: fix wrong comment
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix NULL pointer crash in test_clear_page_writeback()
 
-Comment for pagetypeinfo_showblockcount() is mistakenly duplicated from
-pagetypeinfo_show_free()'s comment.  This commit fixes it.
+Jaegeuk and Brad report a NULL pointer crash when writeback ending tries
+to update the memcg stats:
 
-Link: http://lkml.kernel.org/r/20170809185816.11244-1-sj38.park@gmail.com
-Fixes: 467c996c1e19 ("Print out statistics in relation to fragmentation avoidance to /proc/pagetypeinfo")
-Signed-off-by: SeongJae Park <sj38.park@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[] BUG: unable to handle kernel NULL pointer dereference at 00000000000003b0
+[] IP: test_clear_page_writeback+0x12e/0x2c0
+[...]
+[] RIP: 0010:test_clear_page_writeback+0x12e/0x2c0
+[] RSP: 0018:ffff8e3abfd03d78 EFLAGS: 00010046
+[] RAX: 0000000000000000 RBX: ffffdb59c03f8900 RCX: ffffffffffffffe8
+[] RDX: 0000000000000000 RSI: 0000000000000010 RDI: ffff8e3abffeb000
+[] RBP: ffff8e3abfd03da8 R08: 0000000000020059 R09: 00000000fffffffc
+[] R10: 0000000000000000 R11: 0000000000020048 R12: ffff8e3a8c39f668
+[] R13: 0000000000000001 R14: ffff8e3a8c39f680 R15: 0000000000000000
+[] FS:  0000000000000000(0000) GS:ffff8e3abfd00000(0000) knlGS:0000000000000000
+[] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[] CR2: 00000000000003b0 CR3: 000000002c5e1000 CR4: 00000000000406e0
+[] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[] Call Trace:
+[]  <IRQ>
+[]  end_page_writeback+0x47/0x70
+[]  f2fs_write_end_io+0x76/0x180 [f2fs]
+[]  bio_endio+0x9f/0x120
+[]  blk_update_request+0xa8/0x2f0
+[]  scsi_end_request+0x39/0x1d0
+[]  scsi_io_completion+0x211/0x690
+[]  scsi_finish_command+0xd9/0x120
+[]  scsi_softirq_done+0x127/0x150
+[]  __blk_mq_complete_request_remote+0x13/0x20
+[]  flush_smp_call_function_queue+0x56/0x110
+[]  generic_smp_call_function_single_interrupt+0x13/0x30
+[]  smp_call_function_single_interrupt+0x27/0x40
+[]  call_function_single_interrupt+0x89/0x90
+[] RIP: 0010:native_safe_halt+0x6/0x10
+
+(gdb) l *(test_clear_page_writeback+0x12e)
+0xffffffff811bae3e is in test_clear_page_writeback (./include/linux/memcontrol.h:619).
+614		mod_node_page_state(page_pgdat(page), idx, val);
+615		if (mem_cgroup_disabled() || !page->mem_cgroup)
+616			return;
+617		mod_memcg_state(page->mem_cgroup, idx, val);
+618		pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
+619		this_cpu_add(pn->lruvec_stat->count[idx], val);
+620	}
+621
+622	unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+623							gfp_t gfp_mask,
+
+The issue is that writeback doesn't hold a page reference and the page
+might get freed after PG_writeback is cleared (and the mapping is
+unlocked) in test_clear_page_writeback().  The stat functions looking up
+the page's node or zone are safe, as those attributes are static across
+allocation and free cycles.  But page->mem_cgroup is not, and it will get
+cleared if we race with truncation or migration.
+
+It appears this race window has been around for a while, but less likely
+to trigger when the memcg stats were updated first thing after
+PG_writeback is cleared.  Recent changes reshuffled this code to update
+the global node stats before the memcg ones, though, stretching the race
+window out to an extent where people can reproduce the problem.
+
+Update test_clear_page_writeback() to look up and pin page->mem_cgroup
+before clearing PG_writeback, then not use that pointer afterward.  It is
+a partial revert of 62cccb8c8e7a ("mm: simplify lock_page_memcg()") but
+leaves the pageref-holding callsites that aren't affected alone.
+
+Link: http://lkml.kernel.org/r/20170809183825.GA26387@cmpxchg.org
+Fixes: 62cccb8c8e7a ("mm: simplify lock_page_memcg()")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Jaegeuk Kim <jaegeuk@kernel.org>
+Reported-by: Bradley Bolen <bradleybolen@gmail.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>	[4.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   10 ++++++--
+ mm/memcontrol.c            |   43 +++++++++++++++++++++++++----------
+ mm/page-writeback.c        |   15 +++++++++---
+ 3 files changed, 51 insertions(+), 17 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-wrong-comment mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-wrong-comment
-+++ a/mm/vmstat.c
-@@ -1255,7 +1255,7 @@ static void pagetypeinfo_showblockcount_
- 	seq_putc(m, '\n');
+diff -puN include/linux/memcontrol.h~mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback
++++ a/include/linux/memcontrol.h
+@@ -484,7 +484,8 @@ bool mem_cgroup_oom_synchronize(bool wai
+ extern int do_swap_account;
+ #endif
+ 
+-void lock_page_memcg(struct page *page);
++struct mem_cgroup *lock_page_memcg(struct page *page);
++void __unlock_page_memcg(struct mem_cgroup *memcg);
+ void unlock_page_memcg(struct page *page);
+ 
+ static inline unsigned long memcg_page_state(struct mem_cgroup *memcg,
+@@ -809,7 +810,12 @@ mem_cgroup_print_oom_info(struct mem_cgr
+ {
  }
  
--/* Print out the free pages at each order for each migratetype */
-+/* Print out the number of pageblocks for each migratetype */
- static int pagetypeinfo_showblockcount(struct seq_file *m, void *arg)
+-static inline void lock_page_memcg(struct page *page)
++static inline struct mem_cgroup *lock_page_memcg(struct page *page)
++{
++	return NULL;
++}
++
++static inline void __unlock_page_memcg(struct mem_cgroup *memcg)
  {
- 	int mtype;
+ }
+ 
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback
++++ a/mm/memcontrol.c
+@@ -1611,9 +1611,13 @@ cleanup:
+  * @page: the page
+  *
+  * This function protects unlocked LRU pages from being moved to
+- * another cgroup and stabilizes their page->mem_cgroup binding.
++ * another cgroup.
++ *
++ * It ensures lifetime of the returned memcg. Caller is responsible
++ * for the lifetime of the page; __unlock_page_memcg() is available
++ * when @page might get freed inside the locked section.
+  */
+-void lock_page_memcg(struct page *page)
++struct mem_cgroup *lock_page_memcg(struct page *page)
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned long flags;
+@@ -1622,18 +1626,24 @@ void lock_page_memcg(struct page *page)
+ 	 * The RCU lock is held throughout the transaction.  The fast
+ 	 * path can get away without acquiring the memcg->move_lock
+ 	 * because page moving starts with an RCU grace period.
+-	 */
++	 *
++	 * The RCU lock also protects the memcg from being freed when
++	 * the page state that is going to change is the only thing
++	 * preventing the page itself from being freed. E.g. writeback
++	 * doesn't hold a page reference and relies on PG_writeback to
++	 * keep off truncation, migration and so forth.
++         */
+ 	rcu_read_lock();
+ 
+ 	if (mem_cgroup_disabled())
+-		return;
++		return NULL;
+ again:
+ 	memcg = page->mem_cgroup;
+ 	if (unlikely(!memcg))
+-		return;
++		return NULL;
+ 
+ 	if (atomic_read(&memcg->moving_account) <= 0)
+-		return;
++		return memcg;
+ 
+ 	spin_lock_irqsave(&memcg->move_lock, flags);
+ 	if (memcg != page->mem_cgroup) {
+@@ -1649,18 +1659,18 @@ again:
+ 	memcg->move_lock_task = current;
+ 	memcg->move_lock_flags = flags;
+ 
+-	return;
++	return memcg;
+ }
+ EXPORT_SYMBOL(lock_page_memcg);
+ 
+ /**
+- * unlock_page_memcg - unlock a page->mem_cgroup binding
+- * @page: the page
++ * __unlock_page_memcg - unlock and unpin a memcg
++ * @memcg: the memcg
++ *
++ * Unlock and unpin a memcg returned by lock_page_memcg().
+  */
+-void unlock_page_memcg(struct page *page)
++void __unlock_page_memcg(struct mem_cgroup *memcg)
+ {
+-	struct mem_cgroup *memcg = page->mem_cgroup;
+-
+ 	if (memcg && memcg->move_lock_task == current) {
+ 		unsigned long flags = memcg->move_lock_flags;
+ 
+@@ -1672,6 +1682,15 @@ void unlock_page_memcg(struct page *page
+ 
+ 	rcu_read_unlock();
+ }
++
++/**
++ * unlock_page_memcg - unlock a page->mem_cgroup binding
++ * @page: the page
++ */
++void unlock_page_memcg(struct page *page)
++{
++	__unlock_page_memcg(page->mem_cgroup);
++}
+ EXPORT_SYMBOL(unlock_page_memcg);
+ 
+ /*
+diff -puN mm/page-writeback.c~mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback
++++ a/mm/page-writeback.c
+@@ -2724,9 +2724,12 @@ EXPORT_SYMBOL(clear_page_dirty_for_io);
+ int test_clear_page_writeback(struct page *page)
+ {
+ 	struct address_space *mapping = page_mapping(page);
++	struct mem_cgroup *memcg;
++	struct lruvec *lruvec;
+ 	int ret;
+ 
+-	lock_page_memcg(page);
++	memcg = lock_page_memcg(page);
++	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
+ 	if (mapping && mapping_use_writeback_tags(mapping)) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+@@ -2754,12 +2757,18 @@ int test_clear_page_writeback(struct pag
+ 	} else {
+ 		ret = TestClearPageWriteback(page);
+ 	}
++	/*
++	 * NOTE: Page might be free now! Writeback doesn't hold a page
++	 * reference on its own, it relies on truncation to wait for
++	 * the clearing of PG_writeback. The below can only access
++	 * page state that is static across allocation cycles.
++	 */
+ 	if (ret) {
+-		dec_lruvec_page_state(page, NR_WRITEBACK);
++		dec_lruvec_state(lruvec, NR_WRITEBACK);
+ 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
+ 		inc_node_page_state(page, NR_WRITTEN);
+ 	}
+-	unlock_page_memcg(page);
++	__unlock_page_memcg(memcg);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from sj38.park@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-vmstat-fix-wrong-comment.patch
+mm-fix-global-nr_slab_claimable-counter-reads.patch
+mm-memcontrol-fix-null-pointer-crash-in-test_clear_page_writeback.patch
 
