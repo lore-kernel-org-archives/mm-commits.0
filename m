@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-add-swap-readahead-hit-statistics-fix.patch added to
- -mm tree
-Date: Wed, 09 Aug 2017 14:52:59 -0700
-Message-ID: <598b843b.z4XOTxyP43x5Atrg%akpm@linux-foundation.org>
+Subject: +
+ mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
+ added to -mm tree
+Date: Wed, 09 Aug 2017 14:53:08 -0700
+Message-ID: <598b8444.hWne03oqqybfBmj/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58700 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752107AbdHIVxA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 17:53:00 -0400
+        with ESMTP id S1752142AbdHIVxJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Aug 2017 17:53:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@intel.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, dave.hansen@intel.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-add-swap-readahead-hit-statistics-fix
+     Subject: mm, swap: don't use VMA based swap readahead if HDD is used as swap
 has been added to the -mm tree.  Its filename is
-     mm-swap-add-swap-readahead-hit-statistics-fix.patch
+     mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-swap-readahead-hit-statistics-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-swap-readahead-hit-statistics-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +40,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-add-swap-readahead-hit-statistics-fix
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, swap: don't use VMA based swap readahead if HDD is used as swap
 
-don't display swap stats if CONFOG_SWAP=n
+VMA based swap readahead will readahead the virtual pages that is
+continuous in the virtual address space.  While the original swap
+readahead will readahead the swap slots that is continuous in the swap
+device.  Although VMA based swap readahead is more correct for the swap
+slots to be readahead, it will trigger more small random readings, which
+may cause the performance of HDD (hard disk) to degrade heavily, and may
+finally exceed the benefit.
 
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+To avoid the issue, in this patch, if the HDD is used as swap, the VMA
+based swap readahead will be disabled, and the original swap readahead
+will be used instead.
+
+Link: http://lkml.kernel.org/r/20170807054038.1843-6-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Shaohua Li <shli@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
 Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 ++
- mm/vmstat.c                   |    3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ include/linux/swap.h |   11 ++++++-----
+ mm/swapfile.c        |    8 +++++++-
+ 2 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-swap-add-swap-readahead-hit-statistics-fix include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-swap-add-swap-readahead-hit-statistics-fix
-+++ a/include/linux/vm_event_item.h
-@@ -106,8 +106,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		VMACACHE_FIND_HITS,
- 		VMACACHE_FULL_FLUSHES,
- #endif
-+#ifdef CONFIG_SWAP
- 		SWAP_RA,
- 		SWAP_RA_HIT,
-+#endif
- 		NR_VM_EVENT_ITEMS
- };
+diff -puN include/linux/swap.h~mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap
++++ a/include/linux/swap.h
+@@ -400,16 +400,17 @@ extern struct page *do_swap_page_readahe
+ 					   struct vm_fault *vmf,
+ 					   struct vma_swap_readahead *swap_ra);
  
-diff -puN mm/vmstat.c~mm-swap-add-swap-readahead-hit-statistics-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-swap-add-swap-readahead-hit-statistics-fix
-+++ a/mm/vmstat.c
-@@ -1098,9 +1098,10 @@ const char * const vmstat_text[] = {
- 	"vmacache_find_hits",
- 	"vmacache_full_flushes",
- #endif
+-static inline bool swap_use_vma_readahead(void)
+-{
+-	return READ_ONCE(swap_vma_readahead);
+-}
 -
-+#ifdef CONFIG_SWAP
- 	"swap_ra",
- 	"swap_ra_hit",
-+#endif
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
- };
- #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA */
+ /* linux/mm/swapfile.c */
+ extern atomic_long_t nr_swap_pages;
+ extern long total_swap_pages;
++extern atomic_t nr_rotate_swap;
+ extern bool has_usable_swap(void);
+ 
++static inline bool swap_use_vma_readahead(void)
++{
++	return READ_ONCE(swap_vma_readahead) && !atomic_read(&nr_rotate_swap);
++}
++
+ /* Swap 50% full? Release swapcache more aggressively.. */
+ static inline bool vm_swap_full(void)
+ {
+diff -puN mm/swapfile.c~mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap
++++ a/mm/swapfile.c
+@@ -96,6 +96,8 @@ static DECLARE_WAIT_QUEUE_HEAD(proc_poll
+ /* Activity counter to indicate that a swapon or swapoff has occurred */
+ static atomic_t proc_poll_event = ATOMIC_INIT(0);
+ 
++atomic_t nr_rotate_swap = ATOMIC_INIT(0);
++
+ static inline unsigned char swap_count(unsigned char ent)
+ {
+ 	return ent & ~SWAP_HAS_CACHE;	/* may include SWAP_HAS_CONT flag */
+@@ -2569,6 +2571,9 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	if (p->flags & SWP_CONTINUED)
+ 		free_swap_count_continuations(p);
+ 
++	if (!p->bdev || !blk_queue_nonrot(bdev_get_queue(p->bdev)))
++		atomic_dec(&nr_rotate_swap);
++
+ 	mutex_lock(&swapon_mutex);
+ 	spin_lock(&swap_lock);
+ 	spin_lock(&p->lock);
+@@ -3145,7 +3150,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 			cluster = per_cpu_ptr(p->percpu_cluster, cpu);
+ 			cluster_set_null(&cluster->index);
+ 		}
+-	}
++	} else
++		atomic_inc(&nr_rotate_swap);
+ 
+ 	error = swap_cgroup_swapon(p->type, maxpages);
+ 	if (error)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-i-need-old-gcc.patch
-mm-make-tlb_flush_pending-global-fix.patch
-mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
+mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+block-thp-make-block_device_operationsrw_page-support-thp.patch
+test-code-to-write-thp-to-swap-device-as-a-whole.patch
+mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
+memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
+memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
+mm-swap-add-swap-readahead-hit-statistics.patch
+mm-swap-fix-swap-readahead-marking.patch
+mm-swap-vma-based-swap-readahead.patch
+mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch
+mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
 
