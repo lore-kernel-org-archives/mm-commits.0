@@ -1,42 +1,127 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Thu, 10 Aug 2017 15:23:17 -0700
-Message-ID: <20170810152317.b59dfc6bdc1249ea9762de20@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 01/21] mm: fix global NR_SLAB_.*CLAIMABLE counter reads
+Date: Thu, 10 Aug 2017 15:23:31 -0700
+Message-ID: <598cdce3.334iwXYSINUlQ4Et%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753099AbdHJWXS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:18 -0400
+        with ESMTP id S1753027AbdHJWXd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, stefan@agner.ch, vdavydov.dev@gmail.com
 
-21 fixes, based on 26273939ace935dd7553b31d279eab30b40f7b9a:
-
+From: Johannes Weiner <hannes@cmpxchg.org>
 Subject: mm: fix global NR_SLAB_.*CLAIMABLE counter reads
-Subject: mm: ratelimit PFNs busy info message
-Subject: userfaultfd: hugetlbfs: remove superfluous page unlock in VM_SHARED case
-Subject: test_kmod: fix spelling mistake: "EMTPY" -> "EMPTY"
-Subject: test_kmod: fix bug which allows negative values on two config options
-Subject: test_kmod: fix the lock in register_test_dev_kmod()
-Subject: test_kmod: fix small memory leak on filesystem tests
-Subject: fault-inject: fix wrong should_fail() decision in task context
-Subject: mm: migrate: prevent racy access to tlb_flush_pending
-Subject: mm: migrate: fix barriers around tlb_flush_pending
-Subject: Revert "mm: numa: defer TLB flush for THP migration as long as possible"
-Subject: mm: refactor TLB gathering API
-Subject: mm: make tlb_flush_pending global
-Subject: mm: fix MADV_[FREE|DONTNEED] TLB flush miss problem
-Subject: mm: fix KSM data corruption
-Subject: MAINTAINERS: copy virtio on balloon_compaction.c
-Subject: mm/balloon_compaction.c: don't zero ballooned pages
-Subject: mm: fix list corruptions on shmem shrinklist
-Subject: rmap: do not call mmu_notifier_invalidate_page() under ptl
-Subject: zram: rework copy of compressor name in comp_algorithm_store()
-Subject: userfaultfd: replace ENOSPC with ESRCH in case mm has gone during copy/zeropage
 
+As Tetsuo points out:
+
+    Commit 385386cff4c6f047 ("mm: vmstat: move slab statistics from
+    zone to node counters") broke "Slab:" field of /proc/meminfo . It
+    shows nearly 0kB.
+
+In addition to /proc/meminfo, this problem also affects the slab counters
+OOM/allocation failure info dumps, can cause early -ENOMEM from overcommit
+protection, and miscalculate image size requirements during
+suspend-to-disk.
+
+This is because the patch in question switched the slab counters from the
+zone level to the node level, but forgot to update the global accessor
+functions to read the aggregate node data instead of the aggregate zone
+data.
+
+Use global_node_page_state() to access the global slab counters.
+
+Fixes: 385386cff4c6 ("mm: vmstat: move slab statistics from zone to node counters")
+Link: http://lkml.kernel.org/r/20170801134256.5400-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Stefan Agner <stefan@agner.ch>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/meminfo.c       |    8 ++++----
+ kernel/power/snapshot.c |    2 +-
+ mm/page_alloc.c         |    9 +++++----
+ mm/util.c               |    2 +-
+ 4 files changed, 11 insertions(+), 10 deletions(-)
+
+diff -puN fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/fs/proc/meminfo.c
+@@ -106,13 +106,13 @@ static int meminfo_proc_show(struct seq_
+ 		    global_node_page_state(NR_FILE_MAPPED));
+ 	show_val_kb(m, "Shmem:          ", i.sharedram);
+ 	show_val_kb(m, "Slab:           ",
+-		    global_page_state(NR_SLAB_RECLAIMABLE) +
+-		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++		    global_node_page_state(NR_SLAB_RECLAIMABLE) +
++		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
+ 
+ 	show_val_kb(m, "SReclaimable:   ",
+-		    global_page_state(NR_SLAB_RECLAIMABLE));
++		    global_node_page_state(NR_SLAB_RECLAIMABLE));
+ 	show_val_kb(m, "SUnreclaim:     ",
+-		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
+ 	seq_printf(m, "KernelStack:    %8lu kB\n",
+ 		   global_page_state(NR_KERNEL_STACK_KB));
+ 	show_val_kb(m, "PageTables:     ",
+diff -puN kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/kernel/power/snapshot.c
+@@ -1650,7 +1650,7 @@ static unsigned long minimum_image_size(
+ {
+ 	unsigned long size;
+ 
+-	size = global_page_state(NR_SLAB_RECLAIMABLE)
++	size = global_node_page_state(NR_SLAB_RECLAIMABLE)
+ 		+ global_node_page_state(NR_ACTIVE_ANON)
+ 		+ global_node_page_state(NR_INACTIVE_ANON)
+ 		+ global_node_page_state(NR_ACTIVE_FILE)
+diff -puN mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/mm/page_alloc.c
+@@ -4458,8 +4458,9 @@ long si_mem_available(void)
+ 	 * Part of the reclaimable slab consists of items that are in use,
+ 	 * and cannot be freed. Cap this estimate at the low watermark.
+ 	 */
+-	available += global_page_state(NR_SLAB_RECLAIMABLE) -
+-		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
++	available += global_node_page_state(NR_SLAB_RECLAIMABLE) -
++		     min(global_node_page_state(NR_SLAB_RECLAIMABLE) / 2,
++			 wmark_low);
+ 
+ 	if (available < 0)
+ 		available = 0;
+@@ -4602,8 +4603,8 @@ void show_free_areas(unsigned int filter
+ 		global_node_page_state(NR_FILE_DIRTY),
+ 		global_node_page_state(NR_WRITEBACK),
+ 		global_node_page_state(NR_UNSTABLE_NFS),
+-		global_page_state(NR_SLAB_RECLAIMABLE),
+-		global_page_state(NR_SLAB_UNRECLAIMABLE),
++		global_node_page_state(NR_SLAB_RECLAIMABLE),
++		global_node_page_state(NR_SLAB_UNRECLAIMABLE),
+ 		global_node_page_state(NR_FILE_MAPPED),
+ 		global_node_page_state(NR_SHMEM),
+ 		global_page_state(NR_PAGETABLE),
+diff -puN mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads mm/util.c
+--- a/mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads
++++ a/mm/util.c
+@@ -633,7 +633,7 @@ int __vm_enough_memory(struct mm_struct
+ 		 * which are reclaimable, under pressure.  The dentry
+ 		 * cache and most inode caches should fall into this
+ 		 */
+-		free += global_page_state(NR_SLAB_RECLAIMABLE);
++		free += global_node_page_state(NR_SLAB_RECLAIMABLE);
+ 
+ 		/*
+ 		 * Leave reserved pages. The pages are not for anonymous pages.
+_
