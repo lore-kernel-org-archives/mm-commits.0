@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+Subject: +
+ kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog.patch
  added to -mm tree
-Date: Thu, 10 Aug 2017 13:53:55 -0700
-Message-ID: <598cc7e3.VC4jdq1A62jACDlx%akpm@linux-foundation.org>
+Date: Thu, 10 Aug 2017 13:55:27 -0700
+Message-ID: <598cc83f.GXQh+B5g0iXsV3Vs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40288 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752890AbdHJUx4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 16:53:56 -0400
+        with ESMTP id S1752890AbdHJUz3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 16:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
+To: npiggin@gmail.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix
+     Subject: kernel/watchdog: fix Kconfig constraints for perf hardlockup watchdog
 has been added to the -mm tree.  Its filename is
-     bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+     kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +40,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: kernel/watchdog: fix Kconfig constraints for perf hardlockup watchdog
 
-Cc: Yury Norov <ynorov@caviumnetworks.com>
+05a4a9527931 ("kernel/watchdog: split up config options") lost the
+perf-based hardlockup detector's dependency on PERF_EVENTS, which can
+result in broken builds with some powerpc configurations.
+
+Restore the dependency.  Add it in for x86 too, despite x86 always
+selecting PERF_EVENTS it seems reasonable to make the dependency explicit.
+
+Link: http://lkml.kernel.org/r/20170810114452.6673-1-npiggin@gmail.com
+Fixes: 05a4a9527931 ("kernel/watchdog: split up config options")
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Acked-by: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/Kconfig |    2 +-
+ arch/x86/Kconfig     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bitmap.h~bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix
-+++ a/include/linux/bitmap.h
-@@ -366,7 +366,7 @@ static inline int bitmap_parse(const cha
-  * Linux bitmaps are internally arrays of unsigned longs, i.e. 32-bit
-  * integers in 32-bit environment, and 64-bit integers in 64-bit one.
-  *
-- * There are four combinations of endianess and length of the word in linux
-+ * There are four combinations of endianness and length of the word in linux
-  * ABIs: LE64, BE64, LE32 and BE32.
-  *
-  * On 64-bit kernels 64-bit LE and BE numbers are naturally ordered in
+diff -puN arch/powerpc/Kconfig~kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog
++++ a/arch/powerpc/Kconfig
+@@ -199,7 +199,7 @@ config PPC
+ 	select HAVE_OPTPROBES			if PPC64
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_PERF_EVENTS_NMI		if PPC64
+-	select HAVE_HARDLOCKUP_DETECTOR_PERF	if HAVE_PERF_EVENTS_NMI && !HAVE_HARDLOCKUP_DETECTOR_ARCH
++	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !HAVE_HARDLOCKUP_DETECTOR_ARCH
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+ 	select HAVE_RCU_TABLE_FREE		if SMP
+diff -puN arch/x86/Kconfig~kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog
++++ a/arch/x86/Kconfig
+@@ -163,7 +163,7 @@ config X86
+ 	select HAVE_PCSPKR_PLATFORM
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_PERF_EVENTS_NMI
+-	select HAVE_HARDLOCKUP_DETECTOR_PERF	if HAVE_PERF_EVENTS_NMI
++	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-i-need-old-gcc.patch
-mm-make-tlb_flush_pending-global-fix.patch
-mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kernel-watchdog-fix-kconfig-constraints-for-perf-hardlockup-watchdog.patch
 
