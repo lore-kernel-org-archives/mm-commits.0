@@ -1,60 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/21] fault-inject: fix wrong should_fail() decision in
- task context
-Date: Thu, 10 Aug 2017 15:23:53 -0700
-Message-ID: <598cdcf9.U6FYnci8T1KQzTcj%akpm@linux-foundation.org>
+Subject: [patch 10/21] mm: migrate: fix barriers around tlb_flush_pending
+Date: Thu, 10 Aug 2017 15:23:59 -0700
+Message-ID: <598cdcff.YGFd0NEVDTkUVtOs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48376 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753272AbdHJWXy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:54 -0400
+        with ESMTP id S1753027AbdHJWYA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, akinobu.mita@gmail.com, dvyukov@google.com, lufq.fnst@cn.fujitsu.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, namit@vmware.com, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, minchan@kernel.org, mingo@redhat.com, nadav.amit@gmail.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
 
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: fault-inject: fix wrong should_fail() decision in task context
+From: Nadav Amit <namit@vmware.com>
+Subject: mm: migrate: fix barriers around tlb_flush_pending
 
-Commit 1203c8e6fb0a ("fault-inject: simplify access check for fail-nth")
-unintentionally broke a conditional statement in should_fail().  Any
-faults are not injected in the task context by the change when the
-systematic fault injection is not used.
+Reading tlb_flush_pending while the page-table lock is taken does not
+require a barrier, since the lock/unlock already acts as a barrier. 
+Removing the barrier in mm_tlb_flush_pending() to address this issue.
 
-This change restores to the previous correct behaviour.
+However, migrate_misplaced_transhuge_page() calls mm_tlb_flush_pending()
+while the page-table lock is already released, which may present a problem
+on architectures with weak memory model (PPC).  To deal with this case, a
+new parameter is added to mm_tlb_flush_pending() to indicate if it is read
+without the page-table lock taken, and calling smp_mb__after_unlock_lock()
+in this case.
 
-Link: http://lkml.kernel.org/r/1501633700-3488-1-git-send-email-akinobu.mita@gmail.com
-Fixes: 1203c8e6fb0a ("fault-inject: simplify access check for fail-nth")
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Reported-by: Lu Fengqi <lufq.fnst@cn.fujitsu.com>
-Tested-by: Lu Fengqi <lufq.fnst@cn.fujitsu.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20170802000818.4760-3-namit@vmware.com
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fault-inject.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/mm_types.h |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN lib/fault-inject.c~fault-inject-fix-wrong-should_fail-decision-in-task-context lib/fault-inject.c
---- a/lib/fault-inject.c~fault-inject-fix-wrong-should_fail-decision-in-task-context
-+++ a/lib/fault-inject.c
-@@ -110,10 +110,12 @@ bool should_fail(struct fault_attr *attr
- 	if (in_task()) {
- 		unsigned int fail_nth = READ_ONCE(current->fail_nth);
+diff -puN include/linux/mm_types.h~mm-migrate-fix-barriers-around-tlb_flush_pending include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-migrate-fix-barriers-around-tlb_flush_pending
++++ a/include/linux/mm_types.h
+@@ -526,12 +526,12 @@ static inline cpumask_t *mm_cpumask(stru
+ /*
+  * Memory barriers to keep this state in sync are graciously provided by
+  * the page table locks, outside of which no page table modifications happen.
+- * The barriers below prevent the compiler from re-ordering the instructions
+- * around the memory barriers that are already present in the code.
++ * The barriers are used to ensure the order between tlb_flush_pending updates,
++ * which happen while the lock is not taken, and the PTE updates, which happen
++ * while the lock is taken, are serialized.
+  */
+ static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
+ {
+-	barrier();
+ 	return atomic_read(&mm->tlb_flush_pending) > 0;
+ }
  
--		if (fail_nth && !WRITE_ONCE(current->fail_nth, fail_nth - 1))
--			goto fail;
-+		if (fail_nth) {
-+			if (!WRITE_ONCE(current->fail_nth, fail_nth - 1))
-+				goto fail;
- 
--		return false;
-+			return false;
-+		}
- 	}
- 
- 	/* No need to check any other properties if the probability is 0 */
+@@ -554,7 +554,13 @@ static inline void inc_tlb_flush_pending
+ /* Clearing is done after a TLB flush, which also provides a barrier. */
+ static inline void dec_tlb_flush_pending(struct mm_struct *mm)
+ {
+-	barrier();
++	/*
++	 * Guarantee that the tlb_flush_pending does not not leak into the
++	 * critical section, since we must order the PTE change and changes to
++	 * the pending TLB flush indication. We could have relied on TLB flush
++	 * as a memory barrier, but this behavior is not clearly documented.
++	 */
++	smp_mb__before_atomic();
+ 	atomic_dec(&mm->tlb_flush_pending);
+ }
+ #else
 _
