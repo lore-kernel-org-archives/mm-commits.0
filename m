@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/21] test_kmod: fix small memory leak on filesystem
- tests
-Date: Thu, 10 Aug 2017 15:23:50 -0700
-Message-ID: <598cdcf6.mkCwDsqv32X71qyJ%akpm@linux-foundation.org>
+Subject: [patch 08/21] fault-inject: fix wrong should_fail() decision in
+ task context
+Date: Thu, 10 Aug 2017 15:23:53 -0700
+Message-ID: <598cdcf9.U6FYnci8T1KQzTcj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48310 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753367AbdHJWXv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:51 -0400
+        with ESMTP id S1753272AbdHJWXy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.carpenter@oracle.com, colin.king@canonical.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, akinobu.mita@gmail.com, dvyukov@google.com, lufq.fnst@cn.fujitsu.com
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: test_kmod: fix small memory leak on filesystem tests
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fault-inject: fix wrong should_fail() decision in task context
 
-The break was in the wrong place so file system tests don't work as
-intended, leaking memory at each test switch.
+Commit 1203c8e6fb0a ("fault-inject: simplify access check for fail-nth")
+unintentionally broke a conditional statement in should_fail().  Any
+faults are not injected in the task context by the change when the
+systematic fault injection is not used.
 
-[mcgrof@kernel.org: massaged commit subject, noted memory leak issue without the fix]
-Link: http://lkml.kernel.org/r/20170802211450.27928-6-mcgrof@kernel.org
-Fixes: 39258f448d71 ("kmod: add test driver to stress test the module loader")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Reported-by: David Binderman <dcb314@hotmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Shuah Khan <shuah@kernel.org>
+This change restores to the previous correct behaviour.
+
+Link: http://lkml.kernel.org/r/1501633700-3488-1-git-send-email-akinobu.mita@gmail.com
+Fixes: 1203c8e6fb0a ("fault-inject: simplify access check for fail-nth")
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reported-by: Lu Fengqi <lufq.fnst@cn.fujitsu.com>
+Tested-by: Lu Fengqi <lufq.fnst@cn.fujitsu.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/fault-inject.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN lib/test_kmod.c~test_kmod-fix-small-memory-leak-on-filesystem-tests lib/test_kmod.c
---- a/lib/test_kmod.c~test_kmod-fix-small-memory-leak-on-filesystem-tests
-+++ a/lib/test_kmod.c
-@@ -746,11 +746,11 @@ static int trigger_config_run_type(struc
- 						      strlen(test_str));
- 		break;
- 	case TEST_KMOD_FS_TYPE:
--		break;
- 		kfree_const(config->test_fs);
- 		config->test_driver = NULL;
- 		copied = config_copy_test_fs(config, test_str,
- 					     strlen(test_str));
-+		break;
- 	default:
- 		mutex_unlock(&test_dev->config_mutex);
- 		return -EINVAL;
+diff -puN lib/fault-inject.c~fault-inject-fix-wrong-should_fail-decision-in-task-context lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-fix-wrong-should_fail-decision-in-task-context
++++ a/lib/fault-inject.c
+@@ -110,10 +110,12 @@ bool should_fail(struct fault_attr *attr
+ 	if (in_task()) {
+ 		unsigned int fail_nth = READ_ONCE(current->fail_nth);
+ 
+-		if (fail_nth && !WRITE_ONCE(current->fail_nth, fail_nth - 1))
+-			goto fail;
++		if (fail_nth) {
++			if (!WRITE_ONCE(current->fail_nth, fail_nth - 1))
++				goto fail;
+ 
+-		return false;
++			return false;
++		}
+ 	}
+ 
+ 	/* No need to check any other properties if the probability is 0 */
 _
