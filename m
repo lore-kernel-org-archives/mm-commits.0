@@ -1,127 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/21] mm: make tlb_flush_pending global
-Date: Thu, 10 Aug 2017 15:24:09 -0700
-Message-ID: <598cdd09.OMNEUjMfUVp3ZHaM%akpm@linux-foundation.org>
+Subject: [patch 16/21] MAINTAINERS: copy virtio on balloon_compaction.c
+Date: Thu, 10 Aug 2017 15:24:18 -0700
+Message-ID: <598cdd12.4B+9ouFNI1oF9ruv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48530 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753027AbdHJWYK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:10 -0400
+        with ESMTP id S1753099AbdHJWYT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mst@redhat.com, aquini@redhat.com, wei.w.wang@intel.com
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: make tlb_flush_pending global
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: MAINTAINERS: copy virtio on balloon_compaction.c
 
-Currently, tlb_flush_pending is used only for CONFIG_[NUMA_BALANCING|
-COMPACTION] but upcoming patches to solve subtle TLB flush batching
-problem will use it regardless of compaction/NUMA so this patch doesn't
-remove the dependency.
+Changes to mm/balloon_compaction.c can easily break virtio, and virtio is
+the only user of that interface.  Add a line to MAINTAINERS so whoever
+changes that file remembers to copy us.
 
-[akpm@linux-foundation.org: remove more ifdefs from world's ugliest printk statement]
-Link: http://lkml.kernel.org/r/20170802000818.4760-6-namit@vmware.com
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: http://lkml.kernel.org/r/1501764010-24456-1-git-send-email-mst@redhat.com
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Wei Wang <wei.w.wang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   21 ---------------------
- mm/debug.c               |    4 ----
- 2 files changed, 25 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mm_types.h~mm-make-tlb_flush_pending-global include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-make-tlb_flush_pending-global
-+++ a/include/linux/mm_types.h
-@@ -487,14 +487,12 @@ struct mm_struct {
- 	/* numa_scan_seq prevents two threads setting pte_numa */
- 	int numa_scan_seq;
- #endif
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- 	/*
- 	 * An operation with batched TLB flushing is going on. Anything that
- 	 * can move process memory needs to flush the TLB when moving a
- 	 * PROT_NONE or PROT_NUMA mapped page.
- 	 */
- 	atomic_t tlb_flush_pending;
--#endif
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	/* See flush_tlb_batched_pending() */
- 	bool tlb_flush_batched;
-@@ -528,7 +526,6 @@ extern void tlb_gather_mmu(struct mmu_ga
- extern void tlb_finish_mmu(struct mmu_gather *tlb,
- 				unsigned long start, unsigned long end);
+diff -puN MAINTAINERS~maintainers-copy-virtio-on-balloon_compactionc MAINTAINERS
+--- a/MAINTAINERS~maintainers-copy-virtio-on-balloon_compactionc
++++ a/MAINTAINERS
+@@ -14004,6 +14004,7 @@ F:	drivers/block/virtio_blk.c
+ F:	include/linux/virtio*.h
+ F:	include/uapi/linux/virtio_*.h
+ F:	drivers/crypto/virtio/
++F:	mm/balloon_compaction.c
  
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- /*
-  * Memory barriers to keep this state in sync are graciously provided by
-  * the page table locks, outside of which no page table modifications happen.
-@@ -569,24 +566,6 @@ static inline void dec_tlb_flush_pending
- 	smp_mb__before_atomic();
- 	atomic_dec(&mm->tlb_flush_pending);
- }
--#else
--static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
--{
--	return false;
--}
--
--static inline void init_tlb_flush_pending(struct mm_struct *mm)
--{
--}
--
--static inline void inc_tlb_flush_pending(struct mm_struct *mm)
--{
--}
--
--static inline void dec_tlb_flush_pending(struct mm_struct *mm)
--{
--}
--#endif
- 
- struct vm_fault;
- 
-diff -puN mm/debug.c~mm-make-tlb_flush_pending-global mm/debug.c
---- a/mm/debug.c~mm-make-tlb_flush_pending-global
-+++ a/mm/debug.c
-@@ -124,9 +124,7 @@ void dump_mm(const struct mm_struct *mm)
- #ifdef CONFIG_NUMA_BALANCING
- 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
- #endif
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- 		"tlb_flush_pending %d\n"
--#endif
- 		"def_flags: %#lx(%pGv)\n",
- 
- 		mm, mm->mmap, mm->vmacache_seqnum, mm->task_size,
-@@ -158,9 +156,7 @@ void dump_mm(const struct mm_struct *mm)
- #ifdef CONFIG_NUMA_BALANCING
- 		mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq,
- #endif
--#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
- 		atomic_read(&mm->tlb_flush_pending),
--#endif
- 		mm->def_flags, &mm->def_flags
- 	);
- }
+ VIRTIO CRYPTO DRIVER
+ M:	Gonglei <arei.gonglei@huawei.com>
 _
