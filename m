@@ -1,258 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/21] mm: fix MADV_[FREE|DONTNEED] TLB flush miss problem
-Date: Thu, 10 Aug 2017 15:24:12 -0700
-Message-ID: <598cdd0c.EKyi895USFbFTKJm%akpm@linux-foundation.org>
+Subject: [patch 15/21] mm: fix KSM data corruption
+Date: Thu, 10 Aug 2017 15:24:15 -0700
+Message-ID: <598cdd0f.gBV9+scyHKbOciz4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48520 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753027AbdHJWYN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:13 -0400
+        with ESMTP id S1751487AbdHJWYR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix MADV_[FREE|DONTNEED] TLB flush miss problem
+Subject: mm: fix KSM data corruption
 
-Nadav reported parallel MADV_DONTNEED on same range has a stale TLB
-problem and Mel fixed it[1] and found same problem on MADV_FREE[2].
+Nadav reported KSM can corrupt the user data by the TLB batching race[1]. 
+That means data user written can be lost.
 
-Quote from Mel Gorman
+Quote from Nadav Amit
+"
+For this race we need 4 CPUs:
 
-"The race in question is CPU 0 running madv_free and updating some PTEs
-while CPU 1 is also running madv_free and looking at the same PTEs.  CPU 1
-may have writable TLB entries for a page but fail the pte_dirty check
-(because CPU 0 has updated it already) and potentially fail to flush. 
-Hence, when madv_free on CPU 1 returns, there are still potentially
-writable TLB entries and the underlying PTE is still present so that a
-subsequent write does not necessarily propagate the dirty bit to the
-underlying PTE any more.  Reclaim at some unknown time at the future may
-then see that the PTE is still clean and discard the page even though a
-write has happened in the meantime.  I think this is possible but I could
-have missed some protection in madv_free that prevents it happening."
+CPU0: Caches a writable and dirty PTE entry, and uses the stale value for
+write later.
 
-This patch aims for solving both problems all at once and is ready for
-other problem with KSM, MADV_FREE and soft-dirty story[3].
+CPU1: Runs madvise_free on the range that includes the PTE. It would clear
+the dirty-bit. It batches TLB flushes.
 
-TLB batch API(tlb_[gather|finish]_mmu] uses [inc|dec]_tlb_flush_pending
-and mmu_tlb_flush_pending so that when tlb_finish_mmu is called, we can
-catch there are parallel threads going on.  In that case, forcefully,
-flush TLB to prevent for user to access memory via stale TLB entry
-although it fail to gather page table entry.
+CPU2: Writes 4 to /proc/PID/clear_refs , clearing the PTEs soft-dirty. We
+care about the fact that it clears the PTE write-bit, and of course,
+batches TLB flushes.
 
-I confirmed this patch works with [4] test program Nadav gave so this
-patch supersedes "mm: Always flush VMA ranges affected by zap_page_range
-v2" in current mmotm.
+CPU3: Runs KSM. Our purpose is to pass the following test in
+write_protect_page():
 
-NOTE:
+	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
+(pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)))
 
-This patch modifies arch-specific TLB gathering interface(x86, ia64, s390,
-sh, um).  It seems most of architecture are straightforward but s390 need
-to be careful because tlb_flush_mmu works only if mm->context.flush_mm is
-set to non-zero which happens only a pte entry really is cleared by
-ptep_get_and_clear and friends.  However, this problem never changes the
-pte entries but need to flush to prevent memory access from stale tlb.
+Since it will avoid TLB flush. And we want to do it while the PTE is stale.
+Later, and before replacing the page, we would be able to change the page.
 
-[1] http://lkml.kernel.org/r/20170725101230.5v7gvnjmcnkzzql3@techsingularity.net
-[2] http://lkml.kernel.org/r/20170725100722.2dxnmgypmwnrfawp@suse.de
-[3] http://lkml.kernel.org/r/BD3A0EBE-ECF4-41D4-87FA-C755EA9AB6BD@gmail.com
-[4] https://patchwork.kernel.org/patch/9861621/
+Note that all the operations the CPU1-3 perform canhappen in parallel since
+they only acquire mmap_sem for read.
 
-[minchan@kernel.org: decrease tlb flush pending count in tlb_finish_mmu]
-  Link: http://lkml.kernel.org/r/20170808080821.GA31730@bbox
-Link: http://lkml.kernel.org/r/20170802000818.4760-7-namit@vmware.com
+We start with two identical pages. Everything below regards the same
+page/PTE.
+
+CPU0		CPU1		CPU2		CPU3
+----		----		----		----
+Write the same
+value on page
+
+[cache PTE as
+ dirty in TLB]
+
+		MADV_FREE
+		pte_mkclean()
+
+				4 > clear_refs
+				pte_wrprotect()
+
+						write_protect_page()
+						[ success, no flush ]
+
+						pages_indentical()
+						[ ok ]
+
+Write to page
+different value
+
+[Ok, using stale
+ PTE]
+
+						replace_page()
+
+Later, CPU1, CPU2 and CPU3 would flush the TLB, but that is too late. CPU0
+already wrote on the page, but KSM ignored this write, and it got lost.
+"
+
+In above scenario, MADV_FREE is fixed by changing TLB batching API
+including [set|clear]_tlb_flush_pending.  Remained thing is soft-dirty
+part.
+
+This patch changes soft-dirty uses TLB batching API instead of
+flush_tlb_mm and KSM checks pending TLB flush by using
+mm_tlb_flush_pending so that it will flush TLB to avoid data lost if there
+are other parallel threads pending TLB flush.
+
+[1] http://lkml.kernel.org/r/BD3A0EBE-ECF4-41D4-87FA-C755EA9AB6BD@gmail.com
+
+Link: http://lkml.kernel.org/r/20170802000818.4760-8-namit@vmware.com
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Nadav Amit <namit@vmware.com>
 Reported-by: Nadav Amit <namit@vmware.com>
-Reported-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
+Tested-by: Nadav Amit <namit@vmware.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Nadav Amit <nadav.amit@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h  |    7 ++++++-
- arch/ia64/include/asm/tlb.h |    4 +++-
- arch/s390/include/asm/tlb.h |    7 ++++++-
- arch/sh/include/asm/tlb.h   |    4 ++--
- arch/um/include/asm/tlb.h   |    7 ++++++-
- include/asm-generic/tlb.h   |    2 +-
- include/linux/mm_types.h    |    8 ++++++++
- mm/memory.c                 |   18 ++++++++++++++++--
- 8 files changed, 48 insertions(+), 9 deletions(-)
+ fs/proc/task_mmu.c |    7 +++++--
+ mm/ksm.c           |    3 ++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/arm/include/asm/tlb.h
---- a/arch/arm/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/arch/arm/include/asm/tlb.h
-@@ -168,8 +168,13 @@ arch_tlb_gather_mmu(struct mmu_gather *t
+diff -puN fs/proc/task_mmu.c~mm-fix-ksm-data-corruption fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-fix-ksm-data-corruption
++++ a/fs/proc/task_mmu.c
+@@ -16,9 +16,10 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/page_idle.h>
+ #include <linux/shmem_fs.h>
++#include <linux/uaccess.h>
  
- static inline void
- arch_tlb_finish_mmu(struct mmu_gather *tlb,
--			unsigned long start, unsigned long end)
-+			unsigned long start, unsigned long end, bool force)
- {
-+	if (force) {
-+		tlb->range_start = start;
-+		tlb->range_end = end;
-+	}
-+
- 	tlb_flush_mmu(tlb);
+ #include <asm/elf.h>
+-#include <linux/uaccess.h>
++#include <asm/tlb.h>
+ #include <asm/tlbflush.h>
+ #include "internal.h"
  
- 	/* keep the page table cache within bounds */
-diff -puN arch/ia64/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/ia64/include/asm/tlb.h
---- a/arch/ia64/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/arch/ia64/include/asm/tlb.h
-@@ -187,8 +187,10 @@ arch_tlb_gather_mmu(struct mmu_gather *t
-  */
- static inline void
- arch_tlb_finish_mmu(struct mmu_gather *tlb,
--			unsigned long start, unsigned long end)
-+			unsigned long start, unsigned long end, bool force)
- {
-+	if (force)
-+		tlb->need_flush = 1;
- 	/*
- 	 * Note: tlb->nr may be 0 at this point, so we can't rely on tlb->start_addr and
- 	 * tlb->end_addr.
-diff -puN arch/s390/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/s390/include/asm/tlb.h
---- a/arch/s390/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/arch/s390/include/asm/tlb.h
-@@ -77,8 +77,13 @@ static inline void tlb_flush_mmu(struct
+@@ -1008,6 +1009,7 @@ static ssize_t clear_refs_write(struct f
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	enum clear_refs_types type;
++	struct mmu_gather tlb;
+ 	int itype;
+ 	int rv;
  
- static inline void
- arch_tlb_finish_mmu(struct mmu_gather *tlb,
--		unsigned long start, unsigned long end)
-+		unsigned long start, unsigned long end, bool force)
- {
-+	if (force) {
-+		tlb->start = start;
-+		tlb->end = end;
-+	}
-+
- 	tlb_flush_mmu(tlb);
- }
+@@ -1054,6 +1056,7 @@ static ssize_t clear_refs_write(struct f
+ 		}
  
-diff -puN arch/sh/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/sh/include/asm/tlb.h
---- a/arch/sh/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/arch/sh/include/asm/tlb.h
-@@ -49,9 +49,9 @@ arch_tlb_gather_mmu(struct mmu_gather *t
+ 		down_read(&mm->mmap_sem);
++		tlb_gather_mmu(&tlb, mm, 0, -1);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY) {
+ 			for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 				if (!(vma->vm_flags & VM_SOFTDIRTY))
+@@ -1075,7 +1078,7 @@ static ssize_t clear_refs_write(struct f
+ 		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY)
+ 			mmu_notifier_invalidate_range_end(mm, 0, -1);
+-		flush_tlb_mm(mm);
++		tlb_finish_mmu(&tlb, 0, -1);
+ 		up_read(&mm->mmap_sem);
+ out_mm:
+ 		mmput(mm);
+diff -puN mm/ksm.c~mm-fix-ksm-data-corruption mm/ksm.c
+--- a/mm/ksm.c~mm-fix-ksm-data-corruption
++++ a/mm/ksm.c
+@@ -1038,7 +1038,8 @@ static int write_protect_page(struct vm_
+ 		goto out_unlock;
  
- static inline void
- arch_tlb_finish_mmu(struct mmu_gather *tlb,
--		unsigned long start, unsigned long end)
-+		unsigned long start, unsigned long end, bool force)
- {
--	if (tlb->fullmm)
-+	if (tlb->fullmm || force)
- 		flush_tlb_mm(tlb->mm);
+ 	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
+-	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte))) {
++	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)) ||
++						mm_tlb_flush_pending(mm)) {
+ 		pte_t entry;
  
- 	/* keep the page table cache within bounds */
-diff -puN arch/um/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/um/include/asm/tlb.h
---- a/arch/um/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/arch/um/include/asm/tlb.h
-@@ -87,8 +87,13 @@ tlb_flush_mmu(struct mmu_gather *tlb)
-  */
- static inline void
- arch_tlb_finish_mmu(struct mmu_gather *tlb,
--		unsigned long start, unsigned long end)
-+		unsigned long start, unsigned long end, bool force)
- {
-+	if (force) {
-+		tlb->start = start;
-+		tlb->end = end;
-+		tlb->need_flush = 1;
-+	}
- 	tlb_flush_mmu(tlb);
- 
- 	/* keep the page table cache within bounds */
-diff -puN include/asm-generic/tlb.h~mm-fix-madv_-tlb-flush-miss-problem include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/include/asm-generic/tlb.h
-@@ -116,7 +116,7 @@ void arch_tlb_gather_mmu(struct mmu_gath
- 	struct mm_struct *mm, unsigned long start, unsigned long end);
- void tlb_flush_mmu(struct mmu_gather *tlb);
- void arch_tlb_finish_mmu(struct mmu_gather *tlb,
--			 unsigned long start, unsigned long end);
-+			 unsigned long start, unsigned long end, bool force);
- extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
- 				   int page_size);
- 
-diff -puN include/linux/mm_types.h~mm-fix-madv_-tlb-flush-miss-problem include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/include/linux/mm_types.h
-@@ -538,6 +538,14 @@ static inline bool mm_tlb_flush_pending(
- 	return atomic_read(&mm->tlb_flush_pending) > 0;
- }
- 
-+/*
-+ * Returns true if there are two above TLB batching threads in parallel.
-+ */
-+static inline bool mm_tlb_flush_nested(struct mm_struct *mm)
-+{
-+	return atomic_read(&mm->tlb_flush_pending) > 1;
-+}
-+
- static inline void init_tlb_flush_pending(struct mm_struct *mm)
- {
- 	atomic_set(&mm->tlb_flush_pending, 0);
-diff -puN mm/memory.c~mm-fix-madv_-tlb-flush-miss-problem mm/memory.c
---- a/mm/memory.c~mm-fix-madv_-tlb-flush-miss-problem
-+++ a/mm/memory.c
-@@ -272,10 +272,13 @@ void tlb_flush_mmu(struct mmu_gather *tl
-  *	that were required.
-  */
- void arch_tlb_finish_mmu(struct mmu_gather *tlb,
--		unsigned long start, unsigned long end)
-+		unsigned long start, unsigned long end, bool force)
- {
- 	struct mmu_gather_batch *batch, *next;
- 
-+	if (force)
-+		__tlb_adjust_range(tlb, start, end - start);
-+
- 	tlb_flush_mmu(tlb);
- 
- 	/* keep the page table cache within bounds */
-@@ -404,12 +407,23 @@ void tlb_gather_mmu(struct mmu_gather *t
- 			unsigned long start, unsigned long end)
- {
- 	arch_tlb_gather_mmu(tlb, mm, start, end);
-+	inc_tlb_flush_pending(tlb->mm);
- }
- 
- void tlb_finish_mmu(struct mmu_gather *tlb,
- 		unsigned long start, unsigned long end)
- {
--	arch_tlb_finish_mmu(tlb, start, end);
-+	/*
-+	 * If there are parallel threads are doing PTE changes on same range
-+	 * under non-exclusive lock(e.g., mmap_sem read-side) but defer TLB
-+	 * flush by batching, a thread has stable TLB entry can fail to flush
-+	 * the TLB by observing pte_none|!pte_dirty, for example so flush TLB
-+	 * forcefully if we detect parallel PTE batching threads.
-+	 */
-+	bool force = mm_tlb_flush_nested(tlb->mm);
-+
-+	arch_tlb_finish_mmu(tlb, start, end, force);
-+	dec_tlb_flush_pending(tlb->mm);
- }
- 
- /*
+ 		swapped = PageSwapCache(page);
 _
