@@ -1,94 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/21] Revert "mm: numa: defer TLB flush for THP migration as long as possible"
-Date: Thu, 10 Aug 2017 15:24:02 -0700
-Message-ID: <598cdd02.D9uEpuic87k4TWzH%akpm@linux-foundation.org>
+Subject: [patch 09/21] mm: migrate: prevent racy access to
+ tlb_flush_pending
+Date: Thu, 10 Aug 2017 15:23:56 -0700
+Message-ID: <598cdcfc.dcOsExUGAxBIB/kB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48338 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753027AbdHJWYE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:04 -0400
+        with ESMTP id S1753027AbdHJWX5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, namit@vmware.com, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, minchan@kernel.org, mingo@redhat.com, nadav.amit@gmail.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, nadav.amit@gmail.com, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, minchan@kernel.org, mingo@redhat.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
 
-From: Nadav Amit <namit@vmware.com>
-Subject: Revert "mm: numa: defer TLB flush for THP migration as long as possible"
+From: Nadav Amit <nadav.amit@gmail.com>
+Subject: mm: migrate: prevent racy access to tlb_flush_pending
 
-While deferring TLB flushes is a good practice, the reverted patch caused
-pending TLB flushes to be checked while the page-table lock is not taken. 
-As a result, in architectures with weak memory model (PPC), Linux may miss
-a memory-barrier, miss the fact TLB flushes are pending, and cause (in
-theory) a memory corruption.
+Patch series "fixes of TLB batching races", v6.
 
-Since the alternative of using smp_mb__after_unlock_lock() was considered
-a bit open-coded, and the performance impact is expected to be small, the
-previous patch is reverted.
+It turns out that Linux TLB batching mechanism suffers from various races.
+Races that are caused due to batching during reclamation were recently
+handled by Mel and this patch-set deals with others.  The more fundamental
+issue is that concurrent updates of the page-tables allow for TLB flushes
+to be batched on one core, while another core changes the page-tables. 
+This other core may assume a PTE change does not require a flush based on
+the updated PTE value, while it is unaware that TLB flushes are still
+pending.
 
-This reverts b0943d61b8fa4201 ("mm: numa: defer TLB flush for THP
-migration as long as possible").
+This behavior affects KSM (which may result in memory corruption) and
+MADV_FREE and MADV_DONTNEED (which may result in incorrect behavior).  A
+proof-of-concept can easily produce the wrong behavior of MADV_DONTNEED. 
+Memory corruption in KSM is harder to produce in practice, but was
+observed by hacking the kernel and adding a delay before flushing and
+replacing the KSM page.
 
-Link: http://lkml.kernel.org/r/20170802000818.4760-4-namit@vmware.com
+Finally, there is also one memory barrier missing, which may affect
+architectures with weak memory model.
+
+
+This patch (of 7):
+
+Setting and clearing mm->tlb_flush_pending can be performed by multiple
+threads, since mmap_sem may only be acquired for read in task_numa_work().
+If this happens, tlb_flush_pending might be cleared while one of the
+threads still changes PTEs and batches TLB flushes.
+
+This can lead to the same race between migration and
+change_protection_range() that led to the introduction of
+tlb_flush_pending.  The result of this race was data corruption, which
+means that this patch also addresses a theoretically possible data
+corruption.
+
+An actual data corruption was not observed, yet the race was was confirmed
+by adding assertion to check tlb_flush_pending is not set by two threads,
+adding artificial latency in change_protection_range() and using sysctl to
+reduce kernel.numa_balancing_scan_delay_ms.
+
+Link: http://lkml.kernel.org/r/20170802000818.4760-2-namit@vmware.com
+Fixes: 20841405940e ("mm: fix TLB flush race between migration, and
+change_protection_range")
 Signed-off-by: Nadav Amit <namit@vmware.com>
-Suggested-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nadav Amit <nadav.amit@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++++++
- mm/migrate.c     |    6 ------
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ include/linux/mm_types.h |   31 ++++++++++++++++++++++---------
+ kernel/fork.c            |    2 +-
+ mm/debug.c               |    2 +-
+ mm/mprotect.c            |    4 ++--
+ 4 files changed, 26 insertions(+), 13 deletions(-)
 
-diff -puN mm/huge_memory.c~revert-mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/huge_memory.c
---- a/mm/huge_memory.c~revert-mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
-+++ a/mm/huge_memory.c
-@@ -1496,6 +1496,13 @@ int do_huge_pmd_numa_page(struct vm_faul
- 	}
+diff -puN include/linux/mm_types.h~mm-migrate-prevent-racy-access-to-tlb_flush_pending include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-migrate-prevent-racy-access-to-tlb_flush_pending
++++ a/include/linux/mm_types.h
+@@ -493,7 +493,7 @@ struct mm_struct {
+ 	 * can move process memory needs to flush the TLB when moving a
+ 	 * PROT_NONE or PROT_NUMA mapped page.
+ 	 */
+-	bool tlb_flush_pending;
++	atomic_t tlb_flush_pending;
+ #endif
+ #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+ 	/* See flush_tlb_batched_pending() */
+@@ -532,33 +532,46 @@ static inline cpumask_t *mm_cpumask(stru
+ static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
+ {
+ 	barrier();
+-	return mm->tlb_flush_pending;
++	return atomic_read(&mm->tlb_flush_pending) > 0;
+ }
+-static inline void set_tlb_flush_pending(struct mm_struct *mm)
++
++static inline void init_tlb_flush_pending(struct mm_struct *mm)
+ {
+-	mm->tlb_flush_pending = true;
++	atomic_set(&mm->tlb_flush_pending, 0);
++}
++
++static inline void inc_tlb_flush_pending(struct mm_struct *mm)
++{
++	atomic_inc(&mm->tlb_flush_pending);
  
  	/*
-+	 * The page_table_lock above provides a memory barrier
-+	 * with change_protection_range.
-+	 */
-+	if (mm_tlb_flush_pending(vma->vm_mm))
-+		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
-+
-+	/*
- 	 * Migrate the THP to the requested node, returns with page unlocked
- 	 * and access rights restored.
+-	 * Guarantee that the tlb_flush_pending store does not leak into the
++	 * Guarantee that the tlb_flush_pending increase does not leak into the
+ 	 * critical section updating the page tables
  	 */
-diff -puN mm/migrate.c~revert-mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/migrate.c
---- a/mm/migrate.c~revert-mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
-+++ a/mm/migrate.c
-@@ -1937,12 +1937,6 @@ int migrate_misplaced_transhuge_page(str
- 		put_page(new_page);
- 		goto out_fail;
- 	}
--	/*
--	 * We are not sure a pending tlb flush here is for a huge page
--	 * mapping or not. Hence use the tlb range variant
--	 */
--	if (mm_tlb_flush_pending(mm))
--		flush_tlb_range(vma, mmun_start, mmun_end);
+ 	smp_mb__before_spinlock();
+ }
++
+ /* Clearing is done after a TLB flush, which also provides a barrier. */
+-static inline void clear_tlb_flush_pending(struct mm_struct *mm)
++static inline void dec_tlb_flush_pending(struct mm_struct *mm)
+ {
+ 	barrier();
+-	mm->tlb_flush_pending = false;
++	atomic_dec(&mm->tlb_flush_pending);
+ }
+ #else
+ static inline bool mm_tlb_flush_pending(struct mm_struct *mm)
+ {
+ 	return false;
+ }
+-static inline void set_tlb_flush_pending(struct mm_struct *mm)
++
++static inline void init_tlb_flush_pending(struct mm_struct *mm)
+ {
+ }
+-static inline void clear_tlb_flush_pending(struct mm_struct *mm)
++
++static inline void inc_tlb_flush_pending(struct mm_struct *mm)
++{
++}
++
++static inline void dec_tlb_flush_pending(struct mm_struct *mm)
+ {
+ }
+ #endif
+diff -puN kernel/fork.c~mm-migrate-prevent-racy-access-to-tlb_flush_pending kernel/fork.c
+--- a/kernel/fork.c~mm-migrate-prevent-racy-access-to-tlb_flush_pending
++++ a/kernel/fork.c
+@@ -807,7 +807,7 @@ static struct mm_struct *mm_init(struct
+ 	mm_init_aio(mm);
+ 	mm_init_owner(mm, p);
+ 	mmu_notifier_mm_init(mm);
+-	clear_tlb_flush_pending(mm);
++	init_tlb_flush_pending(mm);
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+ 	mm->pmd_huge_pte = NULL;
+ #endif
+diff -puN mm/debug.c~mm-migrate-prevent-racy-access-to-tlb_flush_pending mm/debug.c
+--- a/mm/debug.c~mm-migrate-prevent-racy-access-to-tlb_flush_pending
++++ a/mm/debug.c
+@@ -159,7 +159,7 @@ void dump_mm(const struct mm_struct *mm)
+ 		mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq,
+ #endif
+ #if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_COMPACTION)
+-		mm->tlb_flush_pending,
++		atomic_read(&mm->tlb_flush_pending),
+ #endif
+ 		mm->def_flags, &mm->def_flags
+ 	);
+diff -puN mm/mprotect.c~mm-migrate-prevent-racy-access-to-tlb_flush_pending mm/mprotect.c
+--- a/mm/mprotect.c~mm-migrate-prevent-racy-access-to-tlb_flush_pending
++++ a/mm/mprotect.c
+@@ -244,7 +244,7 @@ static unsigned long change_protection_r
+ 	BUG_ON(addr >= end);
+ 	pgd = pgd_offset(mm, addr);
+ 	flush_cache_range(vma, addr, end);
+-	set_tlb_flush_pending(mm);
++	inc_tlb_flush_pending(mm);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd))
+@@ -256,7 +256,7 @@ static unsigned long change_protection_r
+ 	/* Only flush the TLB if we actually modified any entries: */
+ 	if (pages)
+ 		flush_tlb_range(vma, start, end);
+-	clear_tlb_flush_pending(mm);
++	dec_tlb_flush_pending(mm);
  
- 	/* Prepare a page as a migration target */
- 	__SetPageLocked(new_page);
+ 	return pages;
+ }
 _
