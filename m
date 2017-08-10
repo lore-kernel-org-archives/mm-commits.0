@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-split-off-umh-headers-into-its-own-file.patch added to -mm tree
-Date: Thu, 10 Aug 2017 13:44:27 -0700
-Message-ID: <598cc5ab.e4yWZ8fjM9klPnqN%akpm@linux-foundation.org>
+Subject: + bitmap-introduce-bitmap_from_u64.patch added to -mm tree
+Date: Thu, 10 Aug 2017 13:48:12 -0700
+Message-ID: <598cc68c.nlz1ExTnyQdyt4+T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753169AbdHJUo2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 16:44:28 -0400
+        with ESMTP id S1752800AbdHJUsN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 16:48:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, gregkh@linuxfoundation.org, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, linux@roeck-us.net, matt.redfearn@imgtec.com, mbenes@suse.cz, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: ynorov@caviumnetworks.com, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, noamca@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: split off umh headers into its own file
+     Subject: bitmap: introduce BITMAP_FROM_U64()
 has been added to the -mm tree.  Its filename is
-     kmod-split-off-umh-headers-into-its-own-file.patch
+     bitmap-introduce-bitmap_from_u64.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-split-off-umh-headers-into-its-own-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-introduce-bitmap_from_u64.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-split-off-umh-headers-into-its-own-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-introduce-bitmap_from_u64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,207 +38,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kmod: split off umh headers into its own file
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: bitmap: introduce BITMAP_FROM_U64()
 
-In the future usermode helper users do not need to carry in all the of
-kmod headers declarations.
+The macro is the compile-time analogue of bitmap_from_u64() with the same
+purpose: convert the 64-bit number to the properly ordered pair of 32-bit
+parts, suitable for filling the bitmap in 32-bit BE environment.
 
-Since kmod.h still includes umh.h this change has no functional changes,
-each umh user can be cleaned up separately later and with time.
+Use it to make test_bitmap_parselist() correct for 32-bit BE ABIs.
 
-Link: http://lkml.kernel.org/r/20170810180618.22457-4-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Matt Redfearn <matt.redfearn@imgtec.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Daniel Mentz <danielmentz@google.com>
-Cc: David Binderman <dcb314@hotmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Tested on BE mips/qemu.
+
+Link: http://lkml.kernel.org/r/20170810172916.24144-1-ynorov@caviumnetworks.com
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Noam Camus <noamca@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS          |    1 
- include/linux/kmod.h |   60 -----------------------------------
- include/linux/umh.h  |   69 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 71 insertions(+), 59 deletions(-)
+ include/linux/bitmap.h |   32 ++++++++++++++++++++++++++
+ lib/test_bitmap.c      |   47 ++++++++++++++++++++++++++-------------
+ 2 files changed, 64 insertions(+), 15 deletions(-)
 
-diff -puN MAINTAINERS~kmod-split-off-umh-headers-into-its-own-file MAINTAINERS
---- a/MAINTAINERS~kmod-split-off-umh-headers-into-its-own-file
-+++ a/MAINTAINERS
-@@ -7385,6 +7385,7 @@ M:	"Luis R. Rodriguez" <mcgrof@kernel.or
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	kernel/umh.c
-+F:	include/linux/umh.h
+diff -puN include/linux/bitmap.h~bitmap-introduce-bitmap_from_u64 include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-introduce-bitmap_from_u64
++++ a/include/linux/bitmap.h
+@@ -361,6 +361,38 @@ static inline int bitmap_parse(const cha
+ }
  
- KERNEL VIRTUAL MACHINE (KVM)
- M:	Paolo Bonzini <pbonzini@redhat.com>
-diff -puN include/linux/kmod.h~kmod-split-off-umh-headers-into-its-own-file include/linux/kmod.h
---- a/include/linux/kmod.h~kmod-split-off-umh-headers-into-its-own-file
-+++ a/include/linux/kmod.h
-@@ -19,6 +19,7 @@
-  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+ /*
++ * BITMAP_FROM_U64() - Represent u64 value in the format suitable for bitmap.
++ *
++ * Linux bitmaps are internally the arrays on unsigned longs, i.e. 32-bit
++ * integers in 32-bit environment, and 64-bit integers in 64-bit one.
++ *
++ * There are four combinations of endianess and length of the word in linux ABIs:
++ * LE64, BE64, LE32 and BE32.
++ *
++ * On 64-bit kernels 64-bit LE and BE numbers are naturally ordered in
++ * bitmaps and therefore don't require any special handling.
++ *
++ * On 32-bit kernels 32-bit LE ABI orders lo word of 64-bit number in the memory
++ * prior to hi, and 32-bit BE orders hi word prior to lo. The bitmap in other
++ * hand is represented as the array of 32-bit words, and the position of the
++ * bit N may therefore be calculated as: word #(N/32) and bit #(N%32) in that
++ * word. For example, bit #42 is located at 10th position of 2nd word.
++ * It matches 32-bit LE ABI, and we can simply let the compiler store 64-bit
++ * value on the memory as it usually does. But for BE we therefore need to swap
++ * hi and lo words manually.
++ *
++ * With all that, the macro BITMAP_FROM_U64() does explicit reorder of hi and lo
++ * parts of u64. For LE32 it does nothing in fact, and for BE environment it
++ * swaps hi and lo words, as it expected by bitmap.
++ */
++#if __BITS_PER_LONG == 64
++#define BITMAP_FROM_U64(n) (n)
++#else
++#define BITMAP_FROM_U64(n) ((unsigned long) ((u64)(n) & ULONG_MAX)), \
++				((unsigned long) ((u64)(n) >> 32))
++#endif
++
++/*
+  * bitmap_from_u64 - Check and swap words within u64.
+  *  @mask: source bitmap
+  *  @dst:  destination bitmap
+diff -puN lib/test_bitmap.c~bitmap-introduce-bitmap_from_u64 lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-introduce-bitmap_from_u64
++++ a/lib/test_bitmap.c
+@@ -175,24 +175,41 @@ struct test_bitmap_parselist{
+ 	const int flags;
+ };
  
-+#include <linux/umh.h>
- #include <linux/gfp.h>
- #include <linux/stddef.h>
- #include <linux/errno.h>
-@@ -44,63 +45,4 @@ static inline int request_module_nowait(
- #define try_then_request_module(x, mod...) (x)
- #endif
- 
--
--struct cred;
--struct file;
--
--#define UMH_NO_WAIT	0	/* don't wait at all */
--#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
--#define UMH_WAIT_PROC	2	/* wait for the process to complete */
--#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
--
--struct subprocess_info {
--	struct work_struct work;
--	struct completion *complete;
--	const char *path;
--	char **argv;
--	char **envp;
--	int wait;
--	int retval;
--	int (*init)(struct subprocess_info *info, struct cred *new);
--	void (*cleanup)(struct subprocess_info *info);
--	void *data;
--} __randomize_layout;
--
--extern int
--call_usermodehelper(const char *path, char **argv, char **envp, int wait);
--
--extern struct subprocess_info *
--call_usermodehelper_setup(const char *path, char **argv, char **envp,
--			  gfp_t gfp_mask,
--			  int (*init)(struct subprocess_info *info, struct cred *new),
--			  void (*cleanup)(struct subprocess_info *), void *data);
--
--extern int
--call_usermodehelper_exec(struct subprocess_info *info, int wait);
--
--extern struct ctl_table usermodehelper_table[];
--
--enum umh_disable_depth {
--	UMH_ENABLED = 0,
--	UMH_FREEZING,
--	UMH_DISABLED,
--};
--
--extern int __usermodehelper_disable(enum umh_disable_depth depth);
--extern void __usermodehelper_set_disable_depth(enum umh_disable_depth depth);
--
--static inline int usermodehelper_disable(void)
--{
--	return __usermodehelper_disable(UMH_DISABLED);
--}
--
--static inline void usermodehelper_enable(void)
--{
--	__usermodehelper_set_disable_depth(UMH_ENABLED);
--}
--
--extern int usermodehelper_read_trylock(void);
--extern long usermodehelper_read_lock_wait(long timeout);
--extern void usermodehelper_read_unlock(void);
--
- #endif /* __LINUX_KMOD_H__ */
-diff -puN /dev/null include/linux/umh.h
---- /dev/null
-+++ a/include/linux/umh.h
-@@ -0,0 +1,69 @@
-+#ifndef __LINUX_UMH_H__
-+#define __LINUX_UMH_H__
-+
-+#include <linux/gfp.h>
-+#include <linux/stddef.h>
-+#include <linux/errno.h>
-+#include <linux/compiler.h>
-+#include <linux/workqueue.h>
-+#include <linux/sysctl.h>
-+
-+struct cred;
-+struct file;
-+
-+#define UMH_NO_WAIT	0	/* don't wait at all */
-+#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
-+#define UMH_WAIT_PROC	2	/* wait for the process to complete */
-+#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
-+
-+struct subprocess_info {
-+	struct work_struct work;
-+	struct completion *complete;
-+	const char *path;
-+	char **argv;
-+	char **envp;
-+	int wait;
-+	int retval;
-+	int (*init)(struct subprocess_info *info, struct cred *new);
-+	void (*cleanup)(struct subprocess_info *info);
-+	void *data;
-+} __randomize_layout;
-+
-+extern int
-+call_usermodehelper(const char *path, char **argv, char **envp, int wait);
-+
-+extern struct subprocess_info *
-+call_usermodehelper_setup(const char *path, char **argv, char **envp,
-+			  gfp_t gfp_mask,
-+			  int (*init)(struct subprocess_info *info, struct cred *new),
-+			  void (*cleanup)(struct subprocess_info *), void *data);
-+
-+extern int
-+call_usermodehelper_exec(struct subprocess_info *info, int wait);
-+
-+extern struct ctl_table usermodehelper_table[];
-+
-+enum umh_disable_depth {
-+	UMH_ENABLED = 0,
-+	UMH_FREEZING,
-+	UMH_DISABLED,
+-static const unsigned long exp[] = {1, 2, 0x0000ffff, 0xffff0000, 0x55555555,
+-				0xaaaaaaaa, 0x11111111, 0x22222222, 0xffffffff,
+-				0xfffffffe, 0x3333333311111111, 0xffffffff77777777};
+-static const unsigned long exp2[] = {0x3333333311111111, 0xffffffff77777777};
++static const unsigned long exp[] __initconst = {
++	BITMAP_FROM_U64(1),
++	BITMAP_FROM_U64(2),
++	BITMAP_FROM_U64(0x0000ffff),
++	BITMAP_FROM_U64(0xffff0000),
++	BITMAP_FROM_U64(0x55555555),
++	BITMAP_FROM_U64(0xaaaaaaaa),
++	BITMAP_FROM_U64(0x11111111),
++	BITMAP_FROM_U64(0x22222222),
++	BITMAP_FROM_U64(0xffffffff),
++	BITMAP_FROM_U64(0xfffffffe),
++	BITMAP_FROM_U64(0x3333333311111111),
++	BITMAP_FROM_U64(0xffffffff77777777)
 +};
 +
-+extern int __usermodehelper_disable(enum umh_disable_depth depth);
-+extern void __usermodehelper_set_disable_depth(enum umh_disable_depth depth);
++static const unsigned long exp2[] __initconst = {
++	BITMAP_FROM_U64(0x3333333311111111),
++	BITMAP_FROM_U64(0xffffffff77777777)
++};
+ 
+ static const struct test_bitmap_parselist parselist_tests[] __initconst = {
++#define step (sizeof(u64) / sizeof(unsigned long))
 +
-+static inline int usermodehelper_disable(void)
-+{
-+	return __usermodehelper_disable(UMH_DISABLED);
-+}
-+
-+static inline void usermodehelper_enable(void)
-+{
-+	__usermodehelper_set_disable_depth(UMH_ENABLED);
-+}
-+
-+extern int usermodehelper_read_trylock(void);
-+extern long usermodehelper_read_lock_wait(long timeout);
-+extern void usermodehelper_read_unlock(void);
-+
-+#endif /* __LINUX_UMH_H__ */
+ 	{0, "0",			&exp[0], 8, 0},
+-	{0, "1",			&exp[1], 8, 0},
+-	{0, "0-15",			&exp[2], 32, 0},
+-	{0, "16-31",			&exp[3], 32, 0},
+-	{0, "0-31:1/2",			&exp[4], 32, 0},
+-	{0, "1-31:1/2",			&exp[5], 32, 0},
+-	{0, "0-31:1/4",			&exp[6], 32, 0},
+-	{0, "1-31:1/4",			&exp[7], 32, 0},
+-	{0, "0-31:4/4",			&exp[8], 32, 0},
+-	{0, "1-31:4/4",			&exp[9], 32, 0},
+-	{0, "0-31:1/4,32-63:2/4",	&exp[10], 64, 0},
+-	{0, "0-31:3/4,32-63:4/4",	&exp[11], 64, 0},
++	{0, "1",			&exp[1 * step], 8, 0},
++	{0, "0-15",			&exp[2 * step], 32, 0},
++	{0, "16-31",			&exp[3 * step], 32, 0},
++	{0, "0-31:1/2",			&exp[4 * step], 32, 0},
++	{0, "1-31:1/2",			&exp[5 * step], 32, 0},
++	{0, "0-31:1/4",			&exp[6 * step], 32, 0},
++	{0, "1-31:1/4",			&exp[7 * step], 32, 0},
++	{0, "0-31:4/4",			&exp[8 * step], 32, 0},
++	{0, "1-31:4/4",			&exp[9 * step], 32, 0},
++	{0, "0-31:1/4,32-63:2/4",	&exp[10 * step], 64, 0},
++	{0, "0-31:3/4,32-63:4/4",	&exp[11 * step], 64, 0},
+ 
+ 	{0, "0-31:1/4,32-63:2/4,64-95:3/4,96-127:4/4",	exp2, 128, 0},
+ 
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from ynorov@caviumnetworks.com are
 
-test_kmod-fix-bug-which-allows-negative-values-on-two-config-options.patch
-kmod-split-out-umh-code-into-its-own-file.patch
-maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
-kmod-split-off-umh-headers-into-its-own-file.patch
-kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
+lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
+lib-add-test-for-bitmap_parselist.patch
+bitmap-introduce-bitmap_from_u64.patch
 
