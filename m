@@ -1,60 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 20/21] zram: rework copy of compressor name in
- comp_algorithm_store()
-Date: Thu, 10 Aug 2017 15:24:29 -0700
-Message-ID: <598cdd1d.p6kbkR6esx1STFuV%akpm@linux-foundation.org>
+Subject: [patch 21/21] userfaultfd: replace ENOSPC with ESRCH in case mm
+ has gone during copy/zeropage
+Date: Thu, 10 Aug 2017 15:24:32 -0700
+Message-ID: <598cdd20.R021p/RSHZc79v4h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48586 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753099AbdHJWYa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:30 -0400
+        with ESMTP id S1753142AbdHJWYd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mka@chromium.org, dianders@chromium.org, minchan@kernel.org, sergey.senozhatsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com, xemul@virtuozzo.com
 
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: zram: rework copy of compressor name in comp_algorithm_store()
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: replace ENOSPC with ESRCH in case mm has gone during copy/zeropage
 
-comp_algorithm_store() passes the size of the source buffer to strlcpy()
-instead of the destination buffer size.  Make it explicit that the two
-buffers have the same size and use strcpy() instead of strlcpy().  The
-latter can be done safely since the function ensures that the string in
-the source buffer is terminated.
+When the process exit races with outstanding mcopy_atomic, it would be
+better to return ESRCH error.  When such race occurs the process and it's
+mm are going away and returning "no such process" to the uffd monitor
+seems better fit than ENOSPC.
 
-Link: http://lkml.kernel.org/r/20170803163350.45245-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/1502111545-32305-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ++--
+ fs/userfaultfd.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-rework-copy-of-compressor-name-in-comp_algorithm_store drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-rework-copy-of-compressor-name-in-comp_algorithm_store
-+++ a/drivers/block/zram/zram_drv.c
-@@ -308,7 +308,7 @@ static ssize_t comp_algorithm_store(stru
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
--	char compressor[CRYPTO_MAX_ALG_NAME];
-+	char compressor[ARRAY_SIZE(zram->compressor)];
- 	size_t sz;
- 
- 	strlcpy(compressor, buf, sizeof(compressor));
-@@ -327,7 +327,7 @@ static ssize_t comp_algorithm_store(stru
- 		return -EBUSY;
+diff -puN fs/userfaultfd.c~userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-replace-enospc-with-esrch-in-case-mm-has-gone-during-copy-zeropage
++++ a/fs/userfaultfd.c
+@@ -1600,7 +1600,7 @@ static int userfaultfd_copy(struct userf
+ 				   uffdio_copy.len);
+ 		mmput(ctx->mm);
+ 	} else {
+-		return -ENOSPC;
++		return -ESRCH;
  	}
- 
--	strlcpy(zram->compressor, compressor, sizeof(compressor));
-+	strcpy(zram->compressor, compressor);
- 	up_write(&zram->init_lock);
- 	return len;
- }
+ 	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
+ 		return -EFAULT;
+@@ -1647,7 +1647,7 @@ static int userfaultfd_zeropage(struct u
+ 				     uffdio_zeropage.range.len);
+ 		mmput(ctx->mm);
+ 	} else {
+-		return -ENOSPC;
++		return -ESRCH;
+ 	}
+ 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
+ 		return -EFAULT;
 _
