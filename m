@@ -1,127 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/21] mm: fix global NR_SLAB_.*CLAIMABLE counter reads
-Date: Thu, 10 Aug 2017 15:23:31 -0700
-Message-ID: <598cdce3.334iwXYSINUlQ4Et%akpm@linux-foundation.org>
+Subject: [patch 02/21] mm: ratelimit PFNs busy info message
+Date: Thu, 10 Aug 2017 15:23:35 -0700
+Message-ID: <598cdce7.LHSXG+5xTnmA5BYJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753027AbdHJWXd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:33 -0400
+        with ESMTP id S1753089AbdHJWXg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, stefan@agner.ch, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jtoppins@redhat.com, dledford@redhat.com, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fix global NR_SLAB_.*CLAIMABLE counter reads
+From: Jonathan Toppins <jtoppins@redhat.com>
+Subject: mm: ratelimit PFNs busy info message
 
-As Tetsuo points out:
+The RDMA subsystem can generate several thousand of these messages per
+second eventually leading to a kernel crash.  Ratelimit these messages to
+prevent this crash.
 
-    Commit 385386cff4c6f047 ("mm: vmstat: move slab statistics from
-    zone to node counters") broke "Slab:" field of /proc/meminfo . It
-    shows nearly 0kB.
+Doug said:
 
-In addition to /proc/meminfo, this problem also affects the slab counters
-OOM/allocation failure info dumps, can cause early -ENOMEM from overcommit
-protection, and miscalculate image size requirements during
-suspend-to-disk.
+: I've been carrying a version of this for several kernel versions.  I don't
+: remember when they started, but we have one (and only one) class of
+: machines: Dell PE R730xd, that generate these errors.  When it happens,
+: without a rate limit, we get rcu timeouts and kernel oopses.  With the
+: rate limit, we just get a lot of annoying kernel messages but the machine
+: continues on, recovers, and eventually the memory operations all succeed.
 
-This is because the patch in question switched the slab counters from the
-zone level to the node level, but forgot to update the global accessor
-functions to read the aggregate node data instead of the aggregate zone
-data.
+And:
 
-Use global_node_page_state() to access the global slab counters.
+: > Well...  why are all these EBUSY's occurring?  It sounds inefficient
+: > (at least) but if it is expected, normal and unavoidable then perhaps we
+: > should just remove that message altogether?
+: 
+: I don't have an answer to that question.  To be honest, I haven't
+: looked real hard.  We never had this at all, then it started out of the
+: blue, but only on our Dell 730xd machines (and it hits all of them),
+: but no other classes or brands of machines.  And we have our 730xd
+: machines loaded up with different brands and models of cards (for
+: instance one dedicated to mlx4 hardware, one for qib, one for mlx5, an
+: ocrdma/cxgb4 combo, etc), so the fact that it hit all of the machines
+: meant it wasn't tied to any particular brand/model of RDMA hardware. 
+: To me, it always smelled of a hardware oddity specific to maybe the
+: CPUs or mainboard chipsets in these machines, so given that I'm not an
+: mm expert anyway, I never chased it down.
+: 
+: A few other relevant details: it showed up somewhere around 4.8/4.9 or
+: thereabouts.  It never happened before, but the prinkt has been there
+: since the 3.18 days, so possibly the test to trigger this message was
+: changed, or something else in the allocator changed such that the
+: situation started happening on these machines?
+: 
+: And, like I said, it is specific to our 730xd machines (but they are
+: all identical, so that could mean it's something like their specific
+: ram configuration is causing the allocator to hit this on these machine
+: but not on other machines in the cluster, I don't want to say it's
+: necessarily the model of chipset or CPU, there are other bits of
+: identicalness between these machines).
 
-Fixes: 385386cff4c6 ("mm: vmstat: move slab statistics from zone to node counters")
-Link: http://lkml.kernel.org/r/20170801134256.5400-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Stefan Agner <stefan@agner.ch>
+Link: http://lkml.kernel.org/r/499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com
+Signed-off-by: Jonathan Toppins <jtoppins@redhat.com>
+Reviewed-by: Doug Ledford <dledford@redhat.com>
+Tested-by: Doug Ledford <dledford@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c       |    8 ++++----
- kernel/power/snapshot.c |    2 +-
- mm/page_alloc.c         |    9 +++++----
- mm/util.c               |    2 +-
- 4 files changed, 11 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-fix-global-nr_slab_claimable-counter-reads
-+++ a/fs/proc/meminfo.c
-@@ -106,13 +106,13 @@ static int meminfo_proc_show(struct seq_
- 		    global_node_page_state(NR_FILE_MAPPED));
- 	show_val_kb(m, "Shmem:          ", i.sharedram);
- 	show_val_kb(m, "Slab:           ",
--		    global_page_state(NR_SLAB_RECLAIMABLE) +
--		    global_page_state(NR_SLAB_UNRECLAIMABLE));
-+		    global_node_page_state(NR_SLAB_RECLAIMABLE) +
-+		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
- 
- 	show_val_kb(m, "SReclaimable:   ",
--		    global_page_state(NR_SLAB_RECLAIMABLE));
-+		    global_node_page_state(NR_SLAB_RECLAIMABLE));
- 	show_val_kb(m, "SUnreclaim:     ",
--		    global_page_state(NR_SLAB_UNRECLAIMABLE));
-+		    global_node_page_state(NR_SLAB_UNRECLAIMABLE));
- 	seq_printf(m, "KernelStack:    %8lu kB\n",
- 		   global_page_state(NR_KERNEL_STACK_KB));
- 	show_val_kb(m, "PageTables:     ",
-diff -puN kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~mm-fix-global-nr_slab_claimable-counter-reads
-+++ a/kernel/power/snapshot.c
-@@ -1650,7 +1650,7 @@ static unsigned long minimum_image_size(
- {
- 	unsigned long size;
- 
--	size = global_page_state(NR_SLAB_RECLAIMABLE)
-+	size = global_node_page_state(NR_SLAB_RECLAIMABLE)
- 		+ global_node_page_state(NR_ACTIVE_ANON)
- 		+ global_node_page_state(NR_INACTIVE_ANON)
- 		+ global_node_page_state(NR_ACTIVE_FILE)
-diff -puN mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-global-nr_slab_claimable-counter-reads
+diff -puN mm/page_alloc.c~mm-ratelimit-pfns-busy-info-message mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-ratelimit-pfns-busy-info-message
 +++ a/mm/page_alloc.c
-@@ -4458,8 +4458,9 @@ long si_mem_available(void)
- 	 * Part of the reclaimable slab consists of items that are in use,
- 	 * and cannot be freed. Cap this estimate at the low watermark.
- 	 */
--	available += global_page_state(NR_SLAB_RECLAIMABLE) -
--		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
-+	available += global_node_page_state(NR_SLAB_RECLAIMABLE) -
-+		     min(global_node_page_state(NR_SLAB_RECLAIMABLE) / 2,
-+			 wmark_low);
+@@ -7669,7 +7669,7 @@ int alloc_contig_range(unsigned long sta
  
- 	if (available < 0)
- 		available = 0;
-@@ -4602,8 +4603,8 @@ void show_free_areas(unsigned int filter
- 		global_node_page_state(NR_FILE_DIRTY),
- 		global_node_page_state(NR_WRITEBACK),
- 		global_node_page_state(NR_UNSTABLE_NFS),
--		global_page_state(NR_SLAB_RECLAIMABLE),
--		global_page_state(NR_SLAB_UNRECLAIMABLE),
-+		global_node_page_state(NR_SLAB_RECLAIMABLE),
-+		global_node_page_state(NR_SLAB_UNRECLAIMABLE),
- 		global_node_page_state(NR_FILE_MAPPED),
- 		global_node_page_state(NR_SHMEM),
- 		global_page_state(NR_PAGETABLE),
-diff -puN mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads mm/util.c
---- a/mm/util.c~mm-fix-global-nr_slab_claimable-counter-reads
-+++ a/mm/util.c
-@@ -633,7 +633,7 @@ int __vm_enough_memory(struct mm_struct
- 		 * which are reclaimable, under pressure.  The dentry
- 		 * cache and most inode caches should fall into this
- 		 */
--		free += global_page_state(NR_SLAB_RECLAIMABLE);
-+		free += global_node_page_state(NR_SLAB_RECLAIMABLE);
- 
- 		/*
- 		 * Leave reserved pages. The pages are not for anonymous pages.
+ 	/* Make sure the range is really isolated. */
+ 	if (test_pages_isolated(outer_start, end, false)) {
+-		pr_info("%s: [%lx, %lx) PFNs busy\n",
++		pr_info_ratelimited("%s: [%lx, %lx) PFNs busy\n",
+ 			__func__, outer_start, end);
+ 		ret = -EBUSY;
+ 		goto done;
 _
