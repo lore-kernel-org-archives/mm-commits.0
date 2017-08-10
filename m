@@ -1,86 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/21] userfaultfd: hugetlbfs: remove superfluous page
- unlock in VM_SHARED case
-Date: Thu, 10 Aug 2017 15:23:38 -0700
-Message-ID: <598cdcea.0+p4baVXMxCLIYOV%akpm@linux-foundation.org>
+Subject: [patch 05/21] test_kmod: fix bug which allows negative values on
+ two config options
+Date: Thu, 10 Aug 2017 15:23:44 -0700
+Message-ID: <598cdcf0.3ephc2mhQNCI6XNt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48254 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753089AbdHJWXj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:39 -0400
+        with ESMTP id S1753089AbdHJWXp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, a.perevalov@samsung.com, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mcgrof@kernel.org, colin.king@canonical.com, dan.carpenter@oracle.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: remove superfluous page unlock in VM_SHARED case
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: test_kmod: fix bug which allows negative values on two config options
 
-huge_add_to_page_cache->add_to_page_cache implicitly unlocks the page
-before returning in case of errors.
+Parsing with kstrtol() enables values to be negative, and we failed to
+check for negative values when parsing with either
+test_dev_config_update_uint_sync() or test_dev_config_update_uint_range().
 
-The error returned was -EEXIST by running UFFDIO_COPY on a non-hole offset
-of a VM_SHARED hugetlbfs mapping.  It was an userland bug that triggered
-it and the kernel must cope with it returning -EEXIST from
-ioctl(UFFDIO_COPY) as expected.
+test_dev_config_update_uint_range() has a minimum check though so an issue
+is not present there.  test_dev_config_update_uint_sync() is only used for
+the number of threads to use (config_num_threads_store()), and indeed this
+would fail with an attempt for a large allocation.
 
-page dumped because: VM_BUG_ON_PAGE(!PageLocked(page))
-------------[ cut here ]------------
-kernel BUG at mm/filemap.c:964!
-invalid opcode: 0000 [#1] SMP
-CPU: 1 PID: 22582 Comm: qemu-system-x86 Not tainted 4.11.11-300.fc26.x86_64 #1
-task: ffff973131ab2600 task.stack: ffffacc0cba78000
-RIP: 0010:unlock_page+0x4a/0x50
-RSP: 0018:ffffacc0cba7bca0 EFLAGS: 00010246
-RAX: 0000000000000036 RBX: fffff99d09f38000 RCX: 0000000000000006
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff97326148e0c0
-RBP: ffffacc0cba7bca0 R08: 00000000000006be R09: 0000000000000004
-R10: 00000000000007ae R11: ffffffffb622cbed R12: 0000000000000008
-R13: ffff972f9a265240 R14: ffff972de2919740 R15: ffffffffb62da820
-FS:  00007f122efff700(0000) GS:ffff973261480000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fd52f788ea8 CR3: 000000036d022000 CR4: 00000000003426e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- hugetlb_mcopy_atomic_pte+0xc0/0x320
- mcopy_atomic+0x96f/0xbe0
- userfaultfd_ioctl+0x218/0xe90
- ? __schedule+0x23c/0x8d0
- ? hrtimer_start_range_ns+0x1bd/0x330
- do_vfs_ioctl+0xa5/0x600
- ? do_vfs_ioctl+0xa5/0x600
- SyS_ioctl+0x79/0x90
- entry_SYSCALL_64_fastpath+0x1a/0xa9
+Although the issue is only present in practice with the first fix both by
+using kstrtoul() instead of kstrtol().
 
-Link: http://lkml.kernel.org/r/20170802165145.22628-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Tested-by: Maxime Coquelin <maxime.coquelin@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>
+Link: http://lkml.kernel.org/r/20170802211450.27928-4-mcgrof@kernel.org
+Fixes: 39258f448d71 ("kmod: add test driver to stress test the module loader")
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: David Binderman <dcb314@hotmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jessica Yu <jeyu@redhat.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_kmod.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case
-+++ a/mm/hugetlb.c
-@@ -4062,9 +4062,9 @@ out:
- 	return ret;
- out_release_unlock:
- 	spin_unlock(ptl);
--out_release_nounlock:
- 	if (vm_shared)
- 		unlock_page(page);
-+out_release_nounlock:
- 	put_page(page);
- 	goto out;
- }
+diff -puN lib/test_kmod.c~test_kmod-fix-bug-which-allows-negative-values-on-two-config-options lib/test_kmod.c
+--- a/lib/test_kmod.c~test_kmod-fix-bug-which-allows-negative-values-on-two-config-options
++++ a/lib/test_kmod.c
+@@ -880,10 +880,10 @@ static int test_dev_config_update_uint_s
+ 					    int (*test_sync)(struct kmod_test_device *test_dev))
+ {
+ 	int ret;
+-	long new;
++	unsigned long new;
+ 	unsigned int old_val;
+ 
+-	ret = kstrtol(buf, 10, &new);
++	ret = kstrtoul(buf, 10, &new);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -918,9 +918,9 @@ static int test_dev_config_update_uint_r
+ 					     unsigned int max)
+ {
+ 	int ret;
+-	long new;
++	unsigned long new;
+ 
+-	ret = kstrtol(buf, 10, &new);
++	ret = kstrtoul(buf, 10, &new);
+ 	if (ret)
+ 		return ret;
+ 
 _
