@@ -1,139 +1,258 @@
 From: akpm@linux-foundation.org
-Subject: [patch 18/21] mm: fix list corruptions on shmem shrinklist
-Date: Thu, 10 Aug 2017 15:24:24 -0700
-Message-ID: <598cdd18.fzTq27hoaVaOnfd8%akpm@linux-foundation.org>
+Subject: [patch 14/21] mm: fix MADV_[FREE|DONTNEED] TLB flush miss problem
+Date: Thu, 10 Aug 2017 15:24:12 -0700
+Message-ID: <598cdd0c.EKyi895USFbFTKJm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48494 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753099AbdHJWYZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:25 -0400
+        with ESMTP id S1753027AbdHJWYN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xiyou.wangcong@gmail.com, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
 
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: mm: fix list corruptions on shmem shrinklist
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: fix MADV_[FREE|DONTNEED] TLB flush miss problem
 
-We saw many list corruption warnings on shmem shrinklist:
+Nadav reported parallel MADV_DONTNEED on same range has a stale TLB
+problem and Mel fixed it[1] and found same problem on MADV_FREE[2].
 
- [45480.300911] ------------[ cut here ]------------
- [45480.305558] WARNING: CPU: 18 PID: 177 at lib/list_debug.c:59 __list_del_entry+0x9e/0xc0
- [45480.313622] list_del corruption. prev->next should be ffff9ae5694b82d8, but was ffff9ae5699ba960
- [45480.322435] Modules linked in: intel_rapl sb_edac edac_core x86_pkg_temp_thermal coretemp iTCO_wdt iTCO_vendor_support crct10dif_pclmul crc32_pclmul ghash_clmulni_intel raid0 dcdbas shpchp wmi hed i2c_i801 ioatdma lpc_ich i2c_smbus acpi_cpufreq tcp_diag inet_diag sch_fq_codel ipmi_si ipmi_devintf ipmi_msghandler igb ptp crc32c_intel pps_core i2c_algo_bit i2c_core dca ipv6 crc_ccitt
- [45480.357776] CPU: 18 PID: 177 Comm: kswapd1 Not tainted 4.9.34-t3.el7.twitter.x86_64 #1
- [45480.365679] Hardware name: Dell Inc. PowerEdge C6220/0W6W6G, BIOS 2.2.3 11/07/2013
- [45480.373416]  ffffb13c03ccbaf8 ffffffff9e36bc87 ffffb13c03ccbb48 0000000000000000
- [45480.380940]  ffffb13c03ccbb38 ffffffff9e08511b 0000003b7fffc000 0000000000000002
- [45480.388392]  ffff9ae5699ba960 ffffb13c03ccbbe8 ffffb13c03ccbbf8 ffff9ae5694b82d8
- [45480.395893] Call Trace:
- [45480.398214]  [<ffffffff9e36bc87>] dump_stack+0x4d/0x66
- [45480.403481]  [<ffffffff9e08511b>] __warn+0xcb/0xf0
- [45480.408322]  [<ffffffff9e08518f>] warn_slowpath_fmt+0x4f/0x60
- [45480.414095]  [<ffffffff9e38a6fe>] __list_del_entry+0x9e/0xc0
- [45480.419831]  [<ffffffff9e1a33aa>] shmem_unused_huge_shrink+0xfa/0x2e0
- [45480.426269]  [<ffffffff9e1a35b0>] shmem_unused_huge_scan+0x20/0x30
- [45480.432382]  [<ffffffff9e20a0d3>] super_cache_scan+0x193/0x1a0
- [45480.438238]  [<ffffffff9e19a9c3>] shrink_slab.part.41+0x1e3/0x3f0
- [45480.444370]  [<ffffffff9e19abf9>] shrink_slab+0x29/0x30
- [45480.449610]  [<ffffffff9e19ed39>] shrink_node+0xf9/0x2f0
- [45480.454858]  [<ffffffff9e19fbd8>] kswapd+0x2d8/0x6c0
- [45480.459896]  [<ffffffff9e19f900>] ? mem_cgroup_shrink_node+0x140/0x140
- [45480.466337]  [<ffffffff9e0a3b87>] kthread+0xd7/0xf0
- [45480.471231]  [<ffffffff9e0b519e>] ? vtime_account_idle+0xe/0x50
- [45480.477282]  [<ffffffff9e0a3ab0>] ? kthread_park+0x60/0x60
- [45480.482820]  [<ffffffff9e6d4c52>] ret_from_fork+0x22/0x30
- [45480.488234] ---[ end trace 66841eda03a967a0 ]---
- [45480.492834] ------------[ cut here ]------------
- [45480.497432] WARNING: CPU: 23 PID: 639 at lib/list_debug.c:33 __list_add+0x89/0xb0
- [45480.505020] list_add corruption. prev->next should be next (ffff9ae5699ba960), but was ffff9ae5694b82d8. (prev=ffff9ae5694b82d8).
- [45480.516716] Modules linked in: intel_rapl sb_edac edac_core x86_pkg_temp_thermal coretemp iTCO_wdt iTCO_vendor_support crct10dif_pclmul crc32_pclmul ghash_clmulni_intel raid0 dcdbas shpchp wmi hed i2c_i801 ioatdma lpc_ich i2c_smbus acpi_cpufreq tcp_diag inet_diag sch_fq_codel ipmi_si ipmi_devintf ipmi_msghandler igb ptp crc32c_intel pps_core i2c_algo_bit i2c_core dca ipv6 crc_ccitt
- [45480.551020] CPU: 23 PID: 639 Comm: systemd-udevd Tainted: G        W       4.9.34-t3.el7.twitter.x86_64 #1
- [45480.560706] Hardware name: Dell Inc. PowerEdge C6220/0W6W6G, BIOS 2.2.3 11/07/2013
- [45480.568299]  ffffb13c04913b30 ffffffff9e36bc87 ffffb13c04913b80 0000000000000000
- [45480.575628]  ffffb13c04913b70 ffffffff9e08511b 00000021699ba900 ffff9ae5694b82d8
- [45480.583080]  ffff9ae5694b82d8 ffff9ae5699ba960 ffff9ae5699ba900 0000000000000000
- [45480.590560] Call Trace:
- [45480.592937]  [<ffffffff9e36bc87>] dump_stack+0x4d/0x66
- [45480.598144]  [<ffffffff9e08511b>] __warn+0xcb/0xf0
- [45480.602978]  [<ffffffff9e08518f>] warn_slowpath_fmt+0x4f/0x60
- [45480.608718]  [<ffffffff9e38a639>] __list_add+0x89/0xb0
- [45480.613785]  [<ffffffff9e1a55d4>] shmem_setattr+0x204/0x230
- [45480.619340]  [<ffffffff9e2232ef>] notify_change+0x2ef/0x440
- [45480.624929]  [<ffffffff9e203bad>] do_truncate+0x5d/0x90
- [45480.630184]  [<ffffffff9e20393a>] ? do_dentry_open+0x27a/0x310
- [45480.635974]  [<ffffffff9e214101>] path_openat+0x331/0x1190
- [45480.641549]  [<ffffffff9e21680e>] do_filp_open+0x7e/0xe0
- [45480.646791]  [<ffffffff9e1bb3f4>] ? handle_mm_fault+0xa54/0x1340
- [45480.652888]  [<ffffffff9e1e6703>] ? kmem_cache_alloc+0xd3/0x1a0
- [45480.658778]  [<ffffffff9e215927>] ? getname_flags+0x37/0x190
- [45480.664527]  [<ffffffff9e22423f>] ? __alloc_fd+0x3f/0x170
- [45480.669918]  [<ffffffff9e205023>] do_sys_open+0x123/0x200
- [45480.675339]  [<ffffffff9e20511e>] SyS_open+0x1e/0x20
- [45480.680216]  [<ffffffff9e002aa1>] do_syscall_64+0x61/0x170
- [45480.685805]  [<ffffffff9e6d4ac6>] entry_SYSCALL64_slow_path+0x25/0x25
- [45480.692255] ---[ end trace 66841eda03a967a1 ]---
- [45480.696823] ------------[ cut here ]------------
+Quote from Mel Gorman
 
-The problem is that shmem_unused_huge_shrink() moves entries from the
-global sbinfo->shrinklist to its local lists and then releases the
-spinlock.  However, a parallel shmem_setattr() could access one of these
-entries directly and add it back to the global shrinklist if it is
-removed, with the spinlock held.
+"The race in question is CPU 0 running madv_free and updating some PTEs
+while CPU 1 is also running madv_free and looking at the same PTEs.  CPU 1
+may have writable TLB entries for a page but fail the pte_dirty check
+(because CPU 0 has updated it already) and potentially fail to flush. 
+Hence, when madv_free on CPU 1 returns, there are still potentially
+writable TLB entries and the underlying PTE is still present so that a
+subsequent write does not necessarily propagate the dirty bit to the
+underlying PTE any more.  Reclaim at some unknown time at the future may
+then see that the PTE is still clean and discard the page even though a
+write has happened in the meantime.  I think this is possible but I could
+have missed some protection in madv_free that prevents it happening."
 
-The logic itself looks solid since an entry could be either in a local
-list or the global list, otherwise it is removed from one of them by
-list_del_init().  So probably the race condition is that, one CPU is in
-the middle of INIT_LIST_HEAD() but the other CPU calls list_empty() which
-returns true too early then the following list_add_tail() sees a corrupted
-entry.
+This patch aims for solving both problems all at once and is ready for
+other problem with KSM, MADV_FREE and soft-dirty story[3].
 
-list_empty_careful() is designed to fix this situation.
+TLB batch API(tlb_[gather|finish]_mmu] uses [inc|dec]_tlb_flush_pending
+and mmu_tlb_flush_pending so that when tlb_finish_mmu is called, we can
+catch there are parallel threads going on.  In that case, forcefully,
+flush TLB to prevent for user to access memory via stale TLB entry
+although it fail to gather page table entry.
 
-[akpm@linux-foundation.org: add comments]
-Link: http://lkml.kernel.org/r/20170803054630.18775-1-xiyou.wangcong@gmail.com
-Fixes: 779750d20b93 ("shmem: split huge pages beyond i_size under memory pressure")
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+I confirmed this patch works with [4] test program Nadav gave so this
+patch supersedes "mm: Always flush VMA ranges affected by zap_page_range
+v2" in current mmotm.
+
+NOTE:
+
+This patch modifies arch-specific TLB gathering interface(x86, ia64, s390,
+sh, um).  It seems most of architecture are straightforward but s390 need
+to be careful because tlb_flush_mmu works only if mm->context.flush_mm is
+set to non-zero which happens only a pte entry really is cleared by
+ptep_get_and_clear and friends.  However, this problem never changes the
+pte entries but need to flush to prevent memory access from stale tlb.
+
+[1] http://lkml.kernel.org/r/20170725101230.5v7gvnjmcnkzzql3@techsingularity.net
+[2] http://lkml.kernel.org/r/20170725100722.2dxnmgypmwnrfawp@suse.de
+[3] http://lkml.kernel.org/r/BD3A0EBE-ECF4-41D4-87FA-C755EA9AB6BD@gmail.com
+[4] https://patchwork.kernel.org/patch/9861621/
+
+[minchan@kernel.org: decrease tlb flush pending count in tlb_finish_mmu]
+  Link: http://lkml.kernel.org/r/20170808080821.GA31730@bbox
+Link: http://lkml.kernel.org/r/20170802000818.4760-7-namit@vmware.com
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Reported-by: Nadav Amit <namit@vmware.com>
+Reported-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/arm/include/asm/tlb.h  |    7 ++++++-
+ arch/ia64/include/asm/tlb.h |    4 +++-
+ arch/s390/include/asm/tlb.h |    7 ++++++-
+ arch/sh/include/asm/tlb.h   |    4 ++--
+ arch/um/include/asm/tlb.h   |    7 ++++++-
+ include/asm-generic/tlb.h   |    2 +-
+ include/linux/mm_types.h    |    8 ++++++++
+ mm/memory.c                 |   18 ++++++++++++++++--
+ 8 files changed, 48 insertions(+), 9 deletions(-)
 
-diff -puN mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist mm/shmem.c
---- a/mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist
-+++ a/mm/shmem.c
-@@ -1022,7 +1022,11 @@ static int shmem_setattr(struct dentry *
- 			 */
- 			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE)) {
- 				spin_lock(&sbinfo->shrinklist_lock);
--				if (list_empty(&info->shrinklist)) {
-+				/*
-+				 * _careful to defend against unlocked access to
-+				 * ->shrink_list in shmem_unused_huge_shrink()
-+				 */
-+				if (list_empty_careful(&info->shrinklist)) {
- 					list_add_tail(&info->shrinklist,
- 							&sbinfo->shrinklist);
- 					sbinfo->shrinklist_len++;
-@@ -1817,7 +1821,11 @@ alloc_nohuge:		page = shmem_alloc_and_ac
- 			 * to shrink under memory pressure.
- 			 */
- 			spin_lock(&sbinfo->shrinklist_lock);
--			if (list_empty(&info->shrinklist)) {
-+			/*
-+			 * _careful to defend against unlocked access to
-+			 * ->shrink_list in shmem_unused_huge_shrink()
-+			 */
-+			if (list_empty_careful(&info->shrinklist)) {
- 				list_add_tail(&info->shrinklist,
- 						&sbinfo->shrinklist);
- 				sbinfo->shrinklist_len++;
+diff -puN arch/arm/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/arm/include/asm/tlb.h
+--- a/arch/arm/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/arch/arm/include/asm/tlb.h
+@@ -168,8 +168,13 @@ arch_tlb_gather_mmu(struct mmu_gather *t
+ 
+ static inline void
+ arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-			unsigned long start, unsigned long end)
++			unsigned long start, unsigned long end, bool force)
+ {
++	if (force) {
++		tlb->range_start = start;
++		tlb->range_end = end;
++	}
++
+ 	tlb_flush_mmu(tlb);
+ 
+ 	/* keep the page table cache within bounds */
+diff -puN arch/ia64/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/ia64/include/asm/tlb.h
+--- a/arch/ia64/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/arch/ia64/include/asm/tlb.h
+@@ -187,8 +187,10 @@ arch_tlb_gather_mmu(struct mmu_gather *t
+  */
+ static inline void
+ arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-			unsigned long start, unsigned long end)
++			unsigned long start, unsigned long end, bool force)
+ {
++	if (force)
++		tlb->need_flush = 1;
+ 	/*
+ 	 * Note: tlb->nr may be 0 at this point, so we can't rely on tlb->start_addr and
+ 	 * tlb->end_addr.
+diff -puN arch/s390/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/s390/include/asm/tlb.h
+--- a/arch/s390/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/arch/s390/include/asm/tlb.h
+@@ -77,8 +77,13 @@ static inline void tlb_flush_mmu(struct
+ 
+ static inline void
+ arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-		unsigned long start, unsigned long end)
++		unsigned long start, unsigned long end, bool force)
+ {
++	if (force) {
++		tlb->start = start;
++		tlb->end = end;
++	}
++
+ 	tlb_flush_mmu(tlb);
+ }
+ 
+diff -puN arch/sh/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/sh/include/asm/tlb.h
+--- a/arch/sh/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/arch/sh/include/asm/tlb.h
+@@ -49,9 +49,9 @@ arch_tlb_gather_mmu(struct mmu_gather *t
+ 
+ static inline void
+ arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-		unsigned long start, unsigned long end)
++		unsigned long start, unsigned long end, bool force)
+ {
+-	if (tlb->fullmm)
++	if (tlb->fullmm || force)
+ 		flush_tlb_mm(tlb->mm);
+ 
+ 	/* keep the page table cache within bounds */
+diff -puN arch/um/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem arch/um/include/asm/tlb.h
+--- a/arch/um/include/asm/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/arch/um/include/asm/tlb.h
+@@ -87,8 +87,13 @@ tlb_flush_mmu(struct mmu_gather *tlb)
+  */
+ static inline void
+ arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-		unsigned long start, unsigned long end)
++		unsigned long start, unsigned long end, bool force)
+ {
++	if (force) {
++		tlb->start = start;
++		tlb->end = end;
++		tlb->need_flush = 1;
++	}
+ 	tlb_flush_mmu(tlb);
+ 
+ 	/* keep the page table cache within bounds */
+diff -puN include/asm-generic/tlb.h~mm-fix-madv_-tlb-flush-miss-problem include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/include/asm-generic/tlb.h
+@@ -116,7 +116,7 @@ void arch_tlb_gather_mmu(struct mmu_gath
+ 	struct mm_struct *mm, unsigned long start, unsigned long end);
+ void tlb_flush_mmu(struct mmu_gather *tlb);
+ void arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-			 unsigned long start, unsigned long end);
++			 unsigned long start, unsigned long end, bool force);
+ extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
+ 				   int page_size);
+ 
+diff -puN include/linux/mm_types.h~mm-fix-madv_-tlb-flush-miss-problem include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-fix-madv_-tlb-flush-miss-problem
++++ a/include/linux/mm_types.h
+@@ -538,6 +538,14 @@ static inline bool mm_tlb_flush_pending(
+ 	return atomic_read(&mm->tlb_flush_pending) > 0;
+ }
+ 
++/*
++ * Returns true if there are two above TLB batching threads in parallel.
++ */
++static inline bool mm_tlb_flush_nested(struct mm_struct *mm)
++{
++	return atomic_read(&mm->tlb_flush_pending) > 1;
++}
++
+ static inline void init_tlb_flush_pending(struct mm_struct *mm)
+ {
+ 	atomic_set(&mm->tlb_flush_pending, 0);
+diff -puN mm/memory.c~mm-fix-madv_-tlb-flush-miss-problem mm/memory.c
+--- a/mm/memory.c~mm-fix-madv_-tlb-flush-miss-problem
++++ a/mm/memory.c
+@@ -272,10 +272,13 @@ void tlb_flush_mmu(struct mmu_gather *tl
+  *	that were required.
+  */
+ void arch_tlb_finish_mmu(struct mmu_gather *tlb,
+-		unsigned long start, unsigned long end)
++		unsigned long start, unsigned long end, bool force)
+ {
+ 	struct mmu_gather_batch *batch, *next;
+ 
++	if (force)
++		__tlb_adjust_range(tlb, start, end - start);
++
+ 	tlb_flush_mmu(tlb);
+ 
+ 	/* keep the page table cache within bounds */
+@@ -404,12 +407,23 @@ void tlb_gather_mmu(struct mmu_gather *t
+ 			unsigned long start, unsigned long end)
+ {
+ 	arch_tlb_gather_mmu(tlb, mm, start, end);
++	inc_tlb_flush_pending(tlb->mm);
+ }
+ 
+ void tlb_finish_mmu(struct mmu_gather *tlb,
+ 		unsigned long start, unsigned long end)
+ {
+-	arch_tlb_finish_mmu(tlb, start, end);
++	/*
++	 * If there are parallel threads are doing PTE changes on same range
++	 * under non-exclusive lock(e.g., mmap_sem read-side) but defer TLB
++	 * flush by batching, a thread has stable TLB entry can fail to flush
++	 * the TLB by observing pte_none|!pte_dirty, for example so flush TLB
++	 * forcefully if we detect parallel PTE batching threads.
++	 */
++	bool force = mm_tlb_flush_nested(tlb->mm);
++
++	arch_tlb_finish_mmu(tlb, start, end, force);
++	dec_tlb_flush_pending(tlb->mm);
+ }
+ 
+ /*
 _
