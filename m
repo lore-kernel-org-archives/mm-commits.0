@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-move-ifdef-config_modules-wrapper-to-makefile.patch added
- to -mm tree
-Date: Thu, 10 Aug 2017 13:44:30 -0700
-Message-ID: <598cc5ae.TXftZyscEoYvGrBj%akpm@linux-foundation.org>
+Subject: + maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
+ added to -mm tree
+Date: Thu, 10 Aug 2017 13:44:25 -0700
+Message-ID: <598cc5a9.YGzdWDKzx+cgKJ6C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753249AbdHJUob (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 16:44:31 -0400
+        with ESMTP id S1753223AbdHJUo1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 16:44:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mcgrof@kernel.org, colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, gregkh@linuxfoundation.org, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, linux@roeck-us.net, matt.redfearn@imgtec.com, mbenes@suse.cz, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: move #ifdef CONFIG_MODULES wrapper to Makefile
+     Subject: MAINTAINERS: clarify kmod is just a kernel module loader
 has been added to the -mm tree.  Its filename is
-     kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
+     maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kmod: move #ifdef CONFIG_MODULES wrapper to Makefile
+Subject: MAINTAINERS: clarify kmod is just a kernel module loader
 
-The entire file is now conditionally compiled only when CONFIG_MODULES is
-enabled, and this this is a bool.  Just move this conditional to the
-Makefile as its easier to read this way.
+This should make it clearer what the kmod code is now that
+the umh code is split out separately.
 
-Link: http://lkml.kernel.org/r/20170810180618.22457-5-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20170810180618.22457-3-mcgrof@kernel.org
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
@@ -67,40 +66,28 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    3 ++-
- kernel/kmod.c   |    3 ---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/Makefile~kmod-move-ifdef-config_modules-wrapper-to-makefile kernel/Makefile
---- a/kernel/Makefile~kmod-move-ifdef-config_modules-wrapper-to-makefile
-+++ a/kernel/Makefile
-@@ -5,12 +5,13 @@
- obj-y     = fork.o exec_domain.o panic.o \
- 	    cpu.o exit.o softirq.o resource.o \
- 	    sysctl.o sysctl_binary.o capability.o ptrace.o user.o \
--	    signal.o sys.o umh.o kmod.o workqueue.o pid.o task_work.o \
-+	    signal.o sys.o umh.o workqueue.o pid.o task_work.o \
- 	    extable.o params.o \
- 	    kthread.o sys_ni.o nsproxy.o \
- 	    notifier.o ksysfs.o cred.o reboot.o \
- 	    async.o range.o smpboot.o ucount.o
+diff -puN MAINTAINERS~maintainers-clarify-kmod-is-just-a-kernel-module-loader MAINTAINERS
+--- a/MAINTAINERS~maintainers-clarify-kmod-is-just-a-kernel-module-loader
++++ a/MAINTAINERS
+@@ -7546,7 +7546,7 @@ F:	include/linux/kmemleak.h
+ F:	mm/kmemleak.c
+ F:	mm/kmemleak-test.c
  
-+obj-$(CONFIG_MODULES) += kmod.o
- obj-$(CONFIG_MULTIUSER) += groups.o
- 
- ifdef CONFIG_FUNCTION_TRACER
-diff -puN kernel/kmod.c~kmod-move-ifdef-config_modules-wrapper-to-makefile kernel/kmod.c
---- a/kernel/kmod.c~kmod-move-ifdef-config_modules-wrapper-to-makefile
-+++ a/kernel/kmod.c
-@@ -28,7 +28,6 @@
- 
- #include <trace/events/module.h>
- 
--#ifdef CONFIG_MODULES
- /*
-  * Assuming:
-  *
-@@ -156,5 +155,3 @@ int __request_module(bool wait, const ch
- 	return ret;
- }
- EXPORT_SYMBOL(__request_module);
+-KMOD MODULE USERMODE HELPER
++KMOD KERNEL MODULE LOADER - USERMODE HELPER
+ M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+_
+
+Patches currently in -mm which might be from mcgrof@kernel.org are
+
+test_kmod-fix-bug-which-allows-negative-values-on-two-config-options.patch
+kmod-split-out-umh-code-into-its-own-file.patch
+maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
+kmod-split-off-umh-headers-into-its-own-file.patch
+kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
+
