@@ -1,177 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [patch 15/21] mm: fix KSM data corruption
-Date: Thu, 10 Aug 2017 15:24:15 -0700
-Message-ID: <598cdd0f.gBV9+scyHKbOciz4%akpm@linux-foundation.org>
+Subject: [patch 19/21] rmap: do not call mmu_notifier_invalidate_page()
+ under ptl
+Date: Thu, 10 Aug 2017 15:24:27 -0700
+Message-ID: <598cdd1b.kfDVtAo8u4/Jv9pU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48568 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751487AbdHJWYR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:17 -0400
+        with ESMTP id S1753099AbdHJWY2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:24:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, aarcange@redhat.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hughd@google.com, jdike@addtoit.com, linux@armlinux.org.uk, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mingo@redhat.com, nadav.amit@gmail.com, namit@vmware.com, riel@redhat.com, schwidefsky@de.ibm.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, ysato@users.sourceforge.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, Tim.Writer@amd.com, alexander.deucher@amd.com, axie@amd.com, jglisse@redhat.com, stable@vger.kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix KSM data corruption
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: rmap: do not call mmu_notifier_invalidate_page() under ptl
 
-Nadav reported KSM can corrupt the user data by the TLB batching race[1]. 
-That means data user written can be lost.
+MMU notifiers can sleep, but in page_mkclean_one() we call
+mmu_notifier_invalidate_page() under page table lock.
 
-Quote from Nadav Amit
-"
-For this race we need 4 CPUs:
+Let's instead use mmu_notifier_invalidate_range() outside
+page_vma_mapped_walk() loop.
 
-CPU0: Caches a writable and dirty PTE entry, and uses the stale value for
-write later.
-
-CPU1: Runs madvise_free on the range that includes the PTE. It would clear
-the dirty-bit. It batches TLB flushes.
-
-CPU2: Writes 4 to /proc/PID/clear_refs , clearing the PTEs soft-dirty. We
-care about the fact that it clears the PTE write-bit, and of course,
-batches TLB flushes.
-
-CPU3: Runs KSM. Our purpose is to pass the following test in
-write_protect_page():
-
-	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
-(pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)))
-
-Since it will avoid TLB flush. And we want to do it while the PTE is stale.
-Later, and before replacing the page, we would be able to change the page.
-
-Note that all the operations the CPU1-3 perform canhappen in parallel since
-they only acquire mmap_sem for read.
-
-We start with two identical pages. Everything below regards the same
-page/PTE.
-
-CPU0		CPU1		CPU2		CPU3
-----		----		----		----
-Write the same
-value on page
-
-[cache PTE as
- dirty in TLB]
-
-		MADV_FREE
-		pte_mkclean()
-
-				4 > clear_refs
-				pte_wrprotect()
-
-						write_protect_page()
-						[ success, no flush ]
-
-						pages_indentical()
-						[ ok ]
-
-Write to page
-different value
-
-[Ok, using stale
- PTE]
-
-						replace_page()
-
-Later, CPU1, CPU2 and CPU3 would flush the TLB, but that is too late. CPU0
-already wrote on the page, but KSM ignored this write, and it got lost.
-"
-
-In above scenario, MADV_FREE is fixed by changing TLB batching API
-including [set|clear]_tlb_flush_pending.  Remained thing is soft-dirty
-part.
-
-This patch changes soft-dirty uses TLB batching API instead of
-flush_tlb_mm and KSM checks pending TLB flush by using
-mm_tlb_flush_pending so that it will flush TLB to avoid data lost if there
-are other parallel threads pending TLB flush.
-
-[1] http://lkml.kernel.org/r/BD3A0EBE-ECF4-41D4-87FA-C755EA9AB6BD@gmail.com
-
-Link: http://lkml.kernel.org/r/20170802000818.4760-8-namit@vmware.com
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reported-by: Nadav Amit <namit@vmware.com>
-Tested-by: Nadav Amit <namit@vmware.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+[jglisse@redhat.com: try_to_unmap_one() do not call mmu_notifier under ptl]
+  Link: http://lkml.kernel.org/r/20170809204333.27485-1-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170804134928.l4klfcnqatni7vsc@black.fi.intel.com
+Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Reported-by: axie <axie@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Writer, Tim" <Tim.Writer@amd.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    7 +++++--
- mm/ksm.c           |    3 ++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ mm/rmap.c |   52 ++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 30 insertions(+), 22 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-fix-ksm-data-corruption fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-fix-ksm-data-corruption
-+++ a/fs/proc/task_mmu.c
-@@ -16,9 +16,10 @@
- #include <linux/mmu_notifier.h>
- #include <linux/page_idle.h>
- #include <linux/shmem_fs.h>
-+#include <linux/uaccess.h>
+diff -puN mm/rmap.c~rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl mm/rmap.c
+--- a/mm/rmap.c~rmap-do-not-call-mmu_notifier_invalidate_page-under-ptl
++++ a/mm/rmap.c
+@@ -888,10 +888,10 @@ static bool page_mkclean_one(struct page
+ 		.flags = PVMW_SYNC,
+ 	};
+ 	int *cleaned = arg;
++	bool invalidation_needed = false;
  
- #include <asm/elf.h>
--#include <linux/uaccess.h>
-+#include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include "internal.h"
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		int ret = 0;
+-		address = pvmw.address;
+ 		if (pvmw.pte) {
+ 			pte_t entry;
+ 			pte_t *pte = pvmw.pte;
+@@ -899,11 +899,11 @@ static bool page_mkclean_one(struct page
+ 			if (!pte_dirty(*pte) && !pte_write(*pte))
+ 				continue;
  
-@@ -1008,6 +1009,7 @@ static ssize_t clear_refs_write(struct f
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
- 	enum clear_refs_types type;
-+	struct mmu_gather tlb;
- 	int itype;
- 	int rv;
+-			flush_cache_page(vma, address, pte_pfn(*pte));
+-			entry = ptep_clear_flush(vma, address, pte);
++			flush_cache_page(vma, pvmw.address, pte_pfn(*pte));
++			entry = ptep_clear_flush(vma, pvmw.address, pte);
+ 			entry = pte_wrprotect(entry);
+ 			entry = pte_mkclean(entry);
+-			set_pte_at(vma->vm_mm, address, pte, entry);
++			set_pte_at(vma->vm_mm, pvmw.address, pte, entry);
+ 			ret = 1;
+ 		} else {
+ #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
+@@ -913,11 +913,11 @@ static bool page_mkclean_one(struct page
+ 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+ 				continue;
  
-@@ -1054,6 +1056,7 @@ static ssize_t clear_refs_write(struct f
+-			flush_cache_page(vma, address, page_to_pfn(page));
+-			entry = pmdp_huge_clear_flush(vma, address, pmd);
++			flush_cache_page(vma, pvmw.address, page_to_pfn(page));
++			entry = pmdp_huge_clear_flush(vma, pvmw.address, pmd);
+ 			entry = pmd_wrprotect(entry);
+ 			entry = pmd_mkclean(entry);
+-			set_pmd_at(vma->vm_mm, address, pmd, entry);
++			set_pmd_at(vma->vm_mm, pvmw.address, pmd, entry);
+ 			ret = 1;
+ #else
+ 			/* unexpected pmd-mapped page? */
+@@ -926,11 +926,16 @@ static bool page_mkclean_one(struct page
  		}
  
- 		down_read(&mm->mmap_sem);
-+		tlb_gather_mmu(&tlb, mm, 0, -1);
- 		if (type == CLEAR_REFS_SOFT_DIRTY) {
- 			for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 				if (!(vma->vm_flags & VM_SOFTDIRTY))
-@@ -1075,7 +1078,7 @@ static ssize_t clear_refs_write(struct f
- 		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
- 		if (type == CLEAR_REFS_SOFT_DIRTY)
- 			mmu_notifier_invalidate_range_end(mm, 0, -1);
--		flush_tlb_mm(mm);
-+		tlb_finish_mmu(&tlb, 0, -1);
- 		up_read(&mm->mmap_sem);
- out_mm:
- 		mmput(mm);
-diff -puN mm/ksm.c~mm-fix-ksm-data-corruption mm/ksm.c
---- a/mm/ksm.c~mm-fix-ksm-data-corruption
-+++ a/mm/ksm.c
-@@ -1038,7 +1038,8 @@ static int write_protect_page(struct vm_
- 		goto out_unlock;
+ 		if (ret) {
+-			mmu_notifier_invalidate_page(vma->vm_mm, address);
+ 			(*cleaned)++;
++			invalidation_needed = true;
+ 		}
+ 	}
  
- 	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
--	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte))) {
-+	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)) ||
-+						mm_tlb_flush_pending(mm)) {
- 		pte_t entry;
++	if (invalidation_needed) {
++		mmu_notifier_invalidate_range(vma->vm_mm, address,
++				address + (1UL << compound_order(page)));
++	}
++
+ 	return true;
+ }
  
- 		swapped = PageSwapCache(page);
+@@ -1323,7 +1328,7 @@ static bool try_to_unmap_one(struct page
+ 	};
+ 	pte_t pteval;
+ 	struct page *subpage;
+-	bool ret = true;
++	bool ret = true, invalidation_needed = false;
+ 	enum ttu_flags flags = (enum ttu_flags)arg;
+ 
+ 	/* munlock has nothing to gain from examining un-locked vmas */
+@@ -1363,11 +1368,9 @@ static bool try_to_unmap_one(struct page
+ 		VM_BUG_ON_PAGE(!pvmw.pte, page);
+ 
+ 		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
+-		address = pvmw.address;
+-
+ 
+ 		if (!(flags & TTU_IGNORE_ACCESS)) {
+-			if (ptep_clear_flush_young_notify(vma, address,
++			if (ptep_clear_flush_young_notify(vma, pvmw.address,
+ 						pvmw.pte)) {
+ 				ret = false;
+ 				page_vma_mapped_walk_done(&pvmw);
+@@ -1376,7 +1379,7 @@ static bool try_to_unmap_one(struct page
+ 		}
+ 
+ 		/* Nuke the page table entry. */
+-		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
++		flush_cache_page(vma, pvmw.address, pte_pfn(*pvmw.pte));
+ 		if (should_defer_flush(mm, flags)) {
+ 			/*
+ 			 * We clear the PTE but do not flush so potentially
+@@ -1386,11 +1389,12 @@ static bool try_to_unmap_one(struct page
+ 			 * transition on a cached TLB entry is written through
+ 			 * and traps if the PTE is unmapped.
+ 			 */
+-			pteval = ptep_get_and_clear(mm, address, pvmw.pte);
++			pteval = ptep_get_and_clear(mm, pvmw.address,
++						    pvmw.pte);
+ 
+ 			set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
+ 		} else {
+-			pteval = ptep_clear_flush(vma, address, pvmw.pte);
++			pteval = ptep_clear_flush(vma, pvmw.address, pvmw.pte);
+ 		}
+ 
+ 		/* Move the dirty bit to the page. Now the pte is gone. */
+@@ -1405,12 +1409,12 @@ static bool try_to_unmap_one(struct page
+ 			if (PageHuge(page)) {
+ 				int nr = 1 << compound_order(page);
+ 				hugetlb_count_sub(nr, mm);
+-				set_huge_swap_pte_at(mm, address,
++				set_huge_swap_pte_at(mm, pvmw.address,
+ 						     pvmw.pte, pteval,
+ 						     vma_mmu_pagesize(vma));
+ 			} else {
+ 				dec_mm_counter(mm, mm_counter(page));
+-				set_pte_at(mm, address, pvmw.pte, pteval);
++				set_pte_at(mm, pvmw.address, pvmw.pte, pteval);
+ 			}
+ 
+ 		} else if (pte_unused(pteval)) {
+@@ -1434,7 +1438,7 @@ static bool try_to_unmap_one(struct page
+ 			swp_pte = swp_entry_to_pte(entry);
+ 			if (pte_soft_dirty(pteval))
+ 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
+-			set_pte_at(mm, address, pvmw.pte, swp_pte);
++			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
+ 		} else if (PageAnon(page)) {
+ 			swp_entry_t entry = { .val = page_private(subpage) };
+ 			pte_t swp_pte;
+@@ -1460,7 +1464,7 @@ static bool try_to_unmap_one(struct page
+ 				 * If the page was redirtied, it cannot be
+ 				 * discarded. Remap the page to page table.
+ 				 */
+-				set_pte_at(mm, address, pvmw.pte, pteval);
++				set_pte_at(mm, pvmw.address, pvmw.pte, pteval);
+ 				SetPageSwapBacked(page);
+ 				ret = false;
+ 				page_vma_mapped_walk_done(&pvmw);
+@@ -1468,7 +1472,7 @@ static bool try_to_unmap_one(struct page
+ 			}
+ 
+ 			if (swap_duplicate(entry) < 0) {
+-				set_pte_at(mm, address, pvmw.pte, pteval);
++				set_pte_at(mm, pvmw.address, pvmw.pte, pteval);
+ 				ret = false;
+ 				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+@@ -1484,14 +1488,18 @@ static bool try_to_unmap_one(struct page
+ 			swp_pte = swp_entry_to_pte(entry);
+ 			if (pte_soft_dirty(pteval))
+ 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
+-			set_pte_at(mm, address, pvmw.pte, swp_pte);
++			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
+ 		} else
+ 			dec_mm_counter(mm, mm_counter_file(page));
+ discard:
+ 		page_remove_rmap(subpage, PageHuge(page));
+ 		put_page(page);
+-		mmu_notifier_invalidate_page(mm, address);
++		invalidation_needed = true;
+ 	}
++
++	if (invalidation_needed)
++		mmu_notifier_invalidate_range(mm, address,
++				address + (1UL << compound_order(page)));
+ 	return ret;
+ }
+ 
 _
