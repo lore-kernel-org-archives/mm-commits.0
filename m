@@ -1,72 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-fix-madv_-tlb-flush-miss-problem-fix.patch
- removed from -mm tree
-Date: Thu, 10 Aug 2017 15:19:36 -0700
-Message-ID: <598cdbf8.O+I25muP+wk0twO6%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch removed from -mm tree
+Date: Thu, 10 Aug 2017 15:20:15 -0700
+Message-ID: <598cdc1f.dfuEZmIlfPXj4UGz%akpm__37712.8174681731$1502403618$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753362AbdHJWTh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:19:37 -0400
+        with ESMTP id S1753591AbdHJWUQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:20:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, nadav.amit@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: decrease tlb flush pending count in tlb_finish_mmu
+     Subject: mm-fix-list-corruptions-on-shmem-shrinklist-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-madv_-tlb-flush-miss-problem-fix.patch
+     mm-fix-list-corruptions-on-shmem-shrinklist-fix.patch
 
-This patch was dropped because it was folded into mm-fix-madv_-tlb-flush-miss-problem.patch
+This patch was dropped because it was folded into mm-fix-list-corruptions-on-shmem-shrinklist.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: decrease tlb flush pending count in tlb_finish_mmu
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-list-corruptions-on-shmem-shrinklist-fix
 
-The tlb pending count increased by tlb_gather_mmu should be decreased at
-tlb_finish_mmu.  Otherwise, A lot of TLB happens which makes performance
-regression.
+add comments
 
-Link: http://lkml.kernel.org/r/20170808080821.GA31730@bbox
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/memory.c~mm-fix-madv_-tlb-flush-miss-problem-fix mm/memory.c
---- a/mm/memory.c~mm-fix-madv_-tlb-flush-miss-problem-fix
-+++ a/mm/memory.c
-@@ -423,6 +423,7 @@ void tlb_finish_mmu(struct mmu_gather *t
- 	bool force = mm_tlb_flush_nested(tlb->mm);
- 
- 	arch_tlb_finish_mmu(tlb, start, end, force);
-+	dec_tlb_flush_pending(tlb->mm);
- }
- 
- /*
+diff -puN mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist-fix mm/shmem.c
+--- a/mm/shmem.c~mm-fix-list-corruptions-on-shmem-shrinklist-fix
++++ a/mm/shmem.c
+@@ -1022,6 +1022,10 @@ static int shmem_setattr(struct dentry *
+ 			 */
+ 			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE)) {
+ 				spin_lock(&sbinfo->shrinklist_lock);
++				/*
++				 * _careful to defend against unlocked access to
++				 * ->shrink_list in shmem_unused_huge_shrink()
++				 */
+ 				if (list_empty_careful(&info->shrinklist)) {
+ 					list_add_tail(&info->shrinklist,
+ 							&sbinfo->shrinklist);
+@@ -1817,6 +1821,10 @@ alloc_nohuge:		page = shmem_alloc_and_ac
+ 			 * to shrink under memory pressure.
+ 			 */
+ 			spin_lock(&sbinfo->shrinklist_lock);
++			/*
++			 * _careful to defend against unlocked access to
++			 * ->shrink_list in shmem_unused_huge_shrink()
++			 */
+ 			if (list_empty_careful(&info->shrinklist)) {
+ 				list_add_tail(&info->shrinklist,
+ 						&sbinfo->shrinklist);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-refactoring-tlb-gathering-api.patch
-mm-make-tlb_flush_pending-global.patch
-mm-fix-madv_-tlb-flush-miss-problem.patch
-mm-fix-ksm-data-corruption.patch
-zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
-zram-inlining-zram_compress.patch
-zram-rename-zram_decompress_page-with-__zram_bvec_read.patch
-zram-add-interface-to-specify-backing-device.patch
-zram-add-free-space-management-in-backing-device.patch
-zram-identify-asynchronous-ios-return-value.patch
-zram-write-incompressible-pages-to-backing-device.patch
-zram-read-page-from-backing-device.patch
-zram-add-config-and-doc-file-for-writeback-feature.patch
+i-need-old-gcc.patch
+mm-fix-list-corruptions-on-shmem-shrinklist.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
