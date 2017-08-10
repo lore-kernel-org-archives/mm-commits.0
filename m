@@ -1,92 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/21] mm: ratelimit PFNs busy info message
-Date: Thu, 10 Aug 2017 15:23:35 -0700
-Message-ID: <598cdce7.LHSXG+5xTnmA5BYJ%akpm@linux-foundation.org>
+Subject: [patch 03/21] userfaultfd: hugetlbfs: remove superfluous page
+ unlock in VM_SHARED case
+Date: Thu, 10 Aug 2017 15:23:38 -0700
+Message-ID: <598cdcea.0+p4baVXMxCLIYOV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753089AbdHJWXg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:36 -0400
+        with ESMTP id S1753089AbdHJWXj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2017 18:23:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jtoppins@redhat.com, dledford@redhat.com, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, a.perevalov@samsung.com, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com
 
-From: Jonathan Toppins <jtoppins@redhat.com>
-Subject: mm: ratelimit PFNs busy info message
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: hugetlbfs: remove superfluous page unlock in VM_SHARED case
 
-The RDMA subsystem can generate several thousand of these messages per
-second eventually leading to a kernel crash.  Ratelimit these messages to
-prevent this crash.
+huge_add_to_page_cache->add_to_page_cache implicitly unlocks the page
+before returning in case of errors.
 
-Doug said:
+The error returned was -EEXIST by running UFFDIO_COPY on a non-hole offset
+of a VM_SHARED hugetlbfs mapping.  It was an userland bug that triggered
+it and the kernel must cope with it returning -EEXIST from
+ioctl(UFFDIO_COPY) as expected.
 
-: I've been carrying a version of this for several kernel versions.  I don't
-: remember when they started, but we have one (and only one) class of
-: machines: Dell PE R730xd, that generate these errors.  When it happens,
-: without a rate limit, we get rcu timeouts and kernel oopses.  With the
-: rate limit, we just get a lot of annoying kernel messages but the machine
-: continues on, recovers, and eventually the memory operations all succeed.
+page dumped because: VM_BUG_ON_PAGE(!PageLocked(page))
+------------[ cut here ]------------
+kernel BUG at mm/filemap.c:964!
+invalid opcode: 0000 [#1] SMP
+CPU: 1 PID: 22582 Comm: qemu-system-x86 Not tainted 4.11.11-300.fc26.x86_64 #1
+task: ffff973131ab2600 task.stack: ffffacc0cba78000
+RIP: 0010:unlock_page+0x4a/0x50
+RSP: 0018:ffffacc0cba7bca0 EFLAGS: 00010246
+RAX: 0000000000000036 RBX: fffff99d09f38000 RCX: 0000000000000006
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff97326148e0c0
+RBP: ffffacc0cba7bca0 R08: 00000000000006be R09: 0000000000000004
+R10: 00000000000007ae R11: ffffffffb622cbed R12: 0000000000000008
+R13: ffff972f9a265240 R14: ffff972de2919740 R15: ffffffffb62da820
+FS:  00007f122efff700(0000) GS:ffff973261480000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fd52f788ea8 CR3: 000000036d022000 CR4: 00000000003426e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ hugetlb_mcopy_atomic_pte+0xc0/0x320
+ mcopy_atomic+0x96f/0xbe0
+ userfaultfd_ioctl+0x218/0xe90
+ ? __schedule+0x23c/0x8d0
+ ? hrtimer_start_range_ns+0x1bd/0x330
+ do_vfs_ioctl+0xa5/0x600
+ ? do_vfs_ioctl+0xa5/0x600
+ SyS_ioctl+0x79/0x90
+ entry_SYSCALL_64_fastpath+0x1a/0xa9
 
-And:
-
-: > Well...  why are all these EBUSY's occurring?  It sounds inefficient
-: > (at least) but if it is expected, normal and unavoidable then perhaps we
-: > should just remove that message altogether?
-: 
-: I don't have an answer to that question.  To be honest, I haven't
-: looked real hard.  We never had this at all, then it started out of the
-: blue, but only on our Dell 730xd machines (and it hits all of them),
-: but no other classes or brands of machines.  And we have our 730xd
-: machines loaded up with different brands and models of cards (for
-: instance one dedicated to mlx4 hardware, one for qib, one for mlx5, an
-: ocrdma/cxgb4 combo, etc), so the fact that it hit all of the machines
-: meant it wasn't tied to any particular brand/model of RDMA hardware. 
-: To me, it always smelled of a hardware oddity specific to maybe the
-: CPUs or mainboard chipsets in these machines, so given that I'm not an
-: mm expert anyway, I never chased it down.
-: 
-: A few other relevant details: it showed up somewhere around 4.8/4.9 or
-: thereabouts.  It never happened before, but the prinkt has been there
-: since the 3.18 days, so possibly the test to trigger this message was
-: changed, or something else in the allocator changed such that the
-: situation started happening on these machines?
-: 
-: And, like I said, it is specific to our 730xd machines (but they are
-: all identical, so that could mean it's something like their specific
-: ram configuration is causing the allocator to hit this on these machine
-: but not on other machines in the cluster, I don't want to say it's
-: necessarily the model of chipset or CPU, there are other bits of
-: identicalness between these machines).
-
-Link: http://lkml.kernel.org/r/499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com
-Signed-off-by: Jonathan Toppins <jtoppins@redhat.com>
-Reviewed-by: Doug Ledford <dledford@redhat.com>
-Tested-by: Doug Ledford <dledford@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170802165145.22628-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Tested-by: Maxime Coquelin <maxime.coquelin@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Alexey Perevalov <a.perevalov@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ mm/hugetlb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-ratelimit-pfns-busy-info-message mm/page_alloc.c
---- a/mm/page_alloc.c~mm-ratelimit-pfns-busy-info-message
-+++ a/mm/page_alloc.c
-@@ -7669,7 +7669,7 @@ int alloc_contig_range(unsigned long sta
- 
- 	/* Make sure the range is really isolated. */
- 	if (test_pages_isolated(outer_start, end, false)) {
--		pr_info("%s: [%lx, %lx) PFNs busy\n",
-+		pr_info_ratelimited("%s: [%lx, %lx) PFNs busy\n",
- 			__func__, outer_start, end);
- 		ret = -EBUSY;
- 		goto done;
+diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case mm/hugetlb.c
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-remove-superfluous-page-unlock-in-vm_shared-case
++++ a/mm/hugetlb.c
+@@ -4062,9 +4062,9 @@ out:
+ 	return ret;
+ out_release_unlock:
+ 	spin_unlock(ptl);
+-out_release_nounlock:
+ 	if (vm_shared)
+ 		unlock_page(page);
++out_release_nounlock:
+ 	put_page(page);
+ 	goto out;
+ }
 _
