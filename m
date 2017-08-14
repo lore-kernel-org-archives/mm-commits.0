@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-discard-memblock-data-later.patch added to -mm tree
-Date: Mon, 14 Aug 2017 14:50:42 -0700
-Message-ID: <59921b32.NG5D++wI83kButoj%akpm@linux-foundation.org>
+Subject: + swap-choose-swap-device-according-to-numa-node.patch added to
+ -mm tree
+Date: Mon, 14 Aug 2017 16:35:04 -0700
+Message-ID: <599233a8.10tymuYDn7kf8OLf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42672 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752437AbdHNVuo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2017 17:50:44 -0400
+        with ESMTP id S1752643AbdHNXfF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2017 19:35:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasha.tatashin@oracle.com, bob.picco@oracle.com, daniel.m.jordan@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, steven.sistare@oracle.com, mm-commits@vger.kernel.org
+To: aaron.lu@intel.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.com, minchan@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: discard memblock data later
+     Subject: swap: choose swap device according to numa node
 has been added to the -mm tree.  Its filename is
-     mm-discard-memblock-data-later.patch
+     swap-choose-swap-device-according-to-numa-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-discard-memblock-data-later.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-choose-swap-device-according-to-numa-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-discard-memblock-data-later.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-choose-swap-device-according-to-numa-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,158 +39,383 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: discard memblock data later
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: swap: choose swap device according to numa node
 
-There is existing use after free bug when deferred struct pages are
-enabled:
+If the system has more than one swap device and swap device has the node
+information, we can make use of this information to decide which swap
+device to use in get_swap_pages() to get better performance.
 
-The memblock_add() allocates memory for the memory array if more than 128
-entries are needed.  See comment in e820__memblock_setup():
+The current code uses a priority based list, swap_avail_list, to decide
+which swap device to use and if multiple swap devices share the same
+priority, they are used round robin.  This patch changes the previous
+single global swap_avail_list into a per-numa-node list, i.e.  for each
+numa node, it sees its own priority based list of available swap devices. 
+Swap device's priority can be promoted on its matching node's
+swap_avail_list.
 
-  * The bootstrap memblock region count maximum is 128 entries
-  * (INIT_MEMBLOCK_REGIONS), but EFI might pass us more E820 entries
-  * than that - so allow memblock resizing.
+The current swap device's priority is set as: user can set a >=0 value, or
+the system will pick one starting from -1 then downwards.  The priority
+value in the swap_avail_list is the negated value of the swap device's due
+to plist being sorted from low to high.  The new policy doesn't change the
+semantics for priority >=0 cases, the previous starting from -1 then
+downwards now becomes starting from -2 then downwards and -1 is reserved
+as the promoted value.
 
-This memblock memory is freed here:
-        free_low_memory_core_early()
+Take 4-node EX machine as an example, suppose 4 swap devices are
+available, each sit on a different node:
+swapA on node 0
+swapB on node 1
+swapC on node 2
+swapD on node 3
 
-We access the freed memblock.memory later in boot when deferred pages are
-initialized in this path:
+After they are all swapped on in the sequence of ABCD.
 
-        deferred_init_memmap()
-                for_each_mem_pfn_range()
-                  __next_mem_pfn_range()
-                    type = &memblock.memory;
+Current behaviour:
+their priorities will be:
+swapA: -1
+swapB: -2
+swapC: -3
+swapD: -4
+And their position in the global swap_avail_list will be:
+swapA   -> swapB   -> swapC   -> swapD
+prio:1     prio:2     prio:3     prio:4
 
-One possible explanation for why this use-after-free hasn't been hit
-before is that the limit of INIT_MEMBLOCK_REGIONS has never been exceeded
-at least on systems where deferred struct pages were enabled.
+New behaviour:
+their priorities will be(note that -1 is skipped):
+swapA: -2
+swapB: -3
+swapC: -4
+swapD: -5
+And their positions in the 4 swap_avail_lists[nid] will be:
+swap_avail_lists[0]: /* node 0's available swap device list */
+swapA   -> swapB   -> swapC   -> swapD
+prio:1     prio:3     prio:4     prio:5
+swap_avali_lists[1]: /* node 1's available swap device list */
+swapB   -> swapA   -> swapC   -> swapD
+prio:1     prio:2     prio:4     prio:5
+swap_avail_lists[2]: /* node 2's available swap device list */
+swapC   -> swapA   -> swapB   -> swapD
+prio:1     prio:2     prio:3     prio:5
+swap_avail_lists[3]: /* node 3's available swap device list */
+swapD   -> swapA   -> swapB   -> swapC
+prio:1     prio:2     prio:3     prio:4
 
-Tested by reducing INIT_MEMBLOCK_REGIONS down to 4 from the current 128,
-and verifying in qemu that this code is getting excuted and that the freed
-pages are sane.
+To see the effect of the patch, a test that starts N process, each mmap a
+region of anonymous memory and then continually write to it at random
+position to trigger both swap in and out is used.
 
-Link: http://lkml.kernel.org/r/1502485554-318703-2-git-send-email-pasha.tatashin@oracle.com
-Fixes: 7e18adb4f80b ("mm: meminit: initialise remaining struct pages in parallel with kswapd")
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>
+On a 2 node Skylake EP machine with 64GiB memory, two 170GB SSD drives are
+used as swap devices with each attached to a different node, the result
+is:
+
+runtime=30m/processes=32/total test size=128G/each process mmap region=4G
+kernel         throughput
+vanilla        13306
+auto-binding   15169 +14%
+
+runtime=30m/processes=64/total test size=128G/each process mmap region=2G
+kernel         throughput
+vanilla        11885
+auto-binding   14879 25%
+
+Link: http://lkml.kernel.org/r/20170814053130.GD2369@aaronlu.sh.intel.com
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    6 +++--
- mm/memblock.c            |   40 ++++++++++++++++---------------------
- mm/nobootmem.c           |   16 --------------
- mm/page_alloc.c          |    4 +++
- 4 files changed, 26 insertions(+), 40 deletions(-)
+ Documentation/vm/swap_numa.txt |   18 ++++
+ include/linux/swap.h           |    2 
+ mm/swapfile.c                  |  113 +++++++++++++++++++++++--------
+ 3 files changed, 106 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-discard-memblock-data-later include/linux/memblock.h
---- a/include/linux/memblock.h~mm-discard-memblock-data-later
-+++ a/include/linux/memblock.h
-@@ -61,6 +61,7 @@ extern int memblock_debug;
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
- #define __init_memblock __meminit
- #define __initdata_memblock __meminitdata
-+void memblock_discard(void);
- #else
- #define __init_memblock
- #define __initdata_memblock
-@@ -74,8 +75,6 @@ phys_addr_t memblock_find_in_range_node(
- 					int nid, ulong flags);
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
--phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
--phys_addr_t get_allocated_memblock_memory_regions_info(phys_addr_t *addr);
- void memblock_allow_resize(void);
- int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
- int memblock_add(phys_addr_t base, phys_addr_t size);
-@@ -110,6 +109,9 @@ void __next_mem_range_rev(u64 *idx, int
- void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
- 				phys_addr_t *out_end);
- 
-+void __memblock_free_early(phys_addr_t base, phys_addr_t size);
-+void __memblock_free_late(phys_addr_t base, phys_addr_t size);
+diff -puN /dev/null Documentation/vm/swap_numa.txt
+--- /dev/null
++++ a/Documentation/vm/swap_numa.txt
+@@ -0,0 +1,18 @@
++If the system has more than one swap device and swap device has the node
++information, we can make use of this information to decide which swap
++device to use in get_swap_pages() to get better performance.
 +
- /**
-  * for_each_mem_range - iterate through memblock areas from type_a and not
-  * included in type_b. Or just type_a if type_b is NULL.
-diff -puN mm/memblock.c~mm-discard-memblock-data-later mm/memblock.c
---- a/mm/memblock.c~mm-discard-memblock-data-later
-+++ a/mm/memblock.c
-@@ -285,31 +285,27 @@ static void __init_memblock memblock_rem
++The current code uses a priority based list, swap_avail_list, to decide
++which swap device to use and if multiple swap devices share the same
++priority, they are used round robin. This change here replaces the single
++global swap_avail_list with a per-numa-node list, i.e. for each numa node,
++it sees its own priority based list of available swap devices. Swap
++device's priority can be promoted on its matching node's swap_avail_list.
++
++The current swap device's priority is set as: user can set a >=0 value,
++or the system will pick one starting from -1 then downwards. The priority
++value in the swap_avail_list is the negated value of the swap device's
++due to plist being sorted from low to high. The new policy doesn't change
++the semantics for priority >=0 cases, the previous starting from -1 then
++downwards now becomes starting from -2 then downwards and -1 is reserved
++as the promoted value.
+diff -puN include/linux/swap.h~swap-choose-swap-device-according-to-numa-node include/linux/swap.h
+--- a/include/linux/swap.h~swap-choose-swap-device-according-to-numa-node
++++ a/include/linux/swap.h
+@@ -212,7 +212,7 @@ struct swap_info_struct {
+ 	unsigned long	flags;		/* SWP_USED etc: see above */
+ 	signed short	prio;		/* swap priority of this type */
+ 	struct plist_node list;		/* entry in swap_active_head */
+-	struct plist_node avail_list;	/* entry in swap_avail_head */
++	struct plist_node avail_lists[MAX_NUMNODES];/* entry in swap_avail_heads */
+ 	signed char	type;		/* strange name for an index */
+ 	unsigned int	max;		/* extent of the swap_map */
+ 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
+diff -puN mm/swapfile.c~swap-choose-swap-device-according-to-numa-node mm/swapfile.c
+--- a/mm/swapfile.c~swap-choose-swap-device-according-to-numa-node
++++ a/mm/swapfile.c
+@@ -60,7 +60,7 @@ atomic_long_t nr_swap_pages;
+ EXPORT_SYMBOL_GPL(nr_swap_pages);
+ /* protected with swap_lock. reading in vm_swap_full() doesn't need lock */
+ long total_swap_pages;
+-static int least_priority;
++static int least_priority = -1;
+ 
+ static const char Bad_file[] = "Bad swap file entry ";
+ static const char Unused_file[] = "Unused swap file entry ";
+@@ -85,7 +85,7 @@ PLIST_HEAD(swap_active_head);
+  * is held and the locking order requires swap_lock to be taken
+  * before any swap_info_struct->lock.
+  */
+-static PLIST_HEAD(swap_avail_head);
++struct plist_head *swap_avail_heads;
+ static DEFINE_SPINLOCK(swap_avail_lock);
+ 
+ struct swap_info_struct *swap_info[MAX_SWAPFILES];
+@@ -592,6 +592,20 @@ new_cluster:
+ 	return found_free;
  }
  
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
--
--phys_addr_t __init_memblock get_allocated_memblock_reserved_regions_info(
--					phys_addr_t *addr)
--{
--	if (memblock.reserved.regions == memblock_reserved_init_regions)
--		return 0;
--
--	*addr = __pa(memblock.reserved.regions);
--
--	return PAGE_ALIGN(sizeof(struct memblock_region) *
--			  memblock.reserved.max);
--}
--
--phys_addr_t __init_memblock get_allocated_memblock_memory_regions_info(
--					phys_addr_t *addr)
-+/**
-+ * Discard memory and reserved arrays if they were allocated
-+ */
-+void __init memblock_discard(void)
++static void __del_from_avail_list(struct swap_info_struct *p)
++{
++	int nid;
++	for_each_node(nid)
++		plist_del(&p->avail_lists[nid], &swap_avail_heads[nid]);
++}
++
++static void del_from_avail_list(struct swap_info_struct *p)
++{
++	spin_lock(&swap_avail_lock);
++	__del_from_avail_list(p);
++	spin_unlock(&swap_avail_lock);
++}
++
+ static void swap_range_alloc(struct swap_info_struct *si, unsigned long offset,
+ 			     unsigned int nr_entries)
  {
--	if (memblock.memory.regions == memblock_memory_init_regions)
--		return 0;
-+	phys_addr_t addr, size;
- 
--	*addr = __pa(memblock.memory.regions);
--
--	return PAGE_ALIGN(sizeof(struct memblock_region) *
--			  memblock.memory.max);
-+	if (memblock.reserved.regions != memblock_reserved_init_regions) {
-+		addr = __pa(memblock.reserved.regions);
-+		size = PAGE_ALIGN(sizeof(struct memblock_region) *
-+				  memblock.reserved.max);
-+		__memblock_free_late(addr, size);
-+	}
-+
-+	if (memblock.memory.regions == memblock_memory_init_regions) {
-+		addr = __pa(memblock.memory.regions);
-+		size = PAGE_ALIGN(sizeof(struct memblock_region) *
-+				  memblock.memory.max);
-+		__memblock_free_late(addr, size);
-+	}
+@@ -605,12 +619,22 @@ static void swap_range_alloc(struct swap
+ 	if (si->inuse_pages == si->pages) {
+ 		si->lowest_bit = si->max;
+ 		si->highest_bit = 0;
+-		spin_lock(&swap_avail_lock);
+-		plist_del(&si->avail_list, &swap_avail_head);
+-		spin_unlock(&swap_avail_lock);
++		del_from_avail_list(si);
+ 	}
  }
--
- #endif
  
- /**
-diff -puN mm/nobootmem.c~mm-discard-memblock-data-later mm/nobootmem.c
---- a/mm/nobootmem.c~mm-discard-memblock-data-later
-+++ a/mm/nobootmem.c
-@@ -146,22 +146,6 @@ static unsigned long __init free_low_mem
- 				NULL)
- 		count += __free_memory_core(start, end);
++static void add_to_avail_list(struct swap_info_struct *p)
++{
++	int nid;
++
++	spin_lock(&swap_avail_lock);
++	for_each_node(nid) {
++		WARN_ON(!plist_node_empty(&p->avail_lists[nid]));
++		plist_add(&p->avail_lists[nid], &swap_avail_heads[nid]);
++	}
++	spin_unlock(&swap_avail_lock);
++}
++
+ static void swap_range_free(struct swap_info_struct *si, unsigned long offset,
+ 			    unsigned int nr_entries)
+ {
+@@ -623,13 +647,8 @@ static void swap_range_free(struct swap_
+ 		bool was_full = !si->highest_bit;
  
--#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
--	{
--		phys_addr_t size;
--
--		/* Free memblock.reserved array if it was allocated */
--		size = get_allocated_memblock_reserved_regions_info(&start);
--		if (size)
--			count += __free_memory_core(start, start + size);
--
--		/* Free memblock.memory array if it was allocated */
--		size = get_allocated_memblock_memory_regions_info(&start);
--		if (size)
--			count += __free_memory_core(start, start + size);
--	}
--#endif
+ 		si->highest_bit = end;
+-		if (was_full && (si->flags & SWP_WRITEOK)) {
+-			spin_lock(&swap_avail_lock);
+-			WARN_ON(!plist_node_empty(&si->avail_list));
+-			if (plist_node_empty(&si->avail_list))
+-				plist_add(&si->avail_list, &swap_avail_head);
+-			spin_unlock(&swap_avail_lock);
+-		}
++		if (was_full && (si->flags & SWP_WRITEOK))
++			add_to_avail_list(si);
+ 	}
+ 	atomic_long_add(nr_entries, &nr_swap_pages);
+ 	si->inuse_pages -= nr_entries;
+@@ -910,6 +929,7 @@ int get_swap_pages(int n_goal, bool clus
+ 	struct swap_info_struct *si, *next;
+ 	long avail_pgs;
+ 	int n_ret = 0;
++	int node;
+ 
+ 	/* Only single cluster request supported */
+ 	WARN_ON_ONCE(n_goal > 1 && cluster);
+@@ -929,14 +949,15 @@ int get_swap_pages(int n_goal, bool clus
+ 	spin_lock(&swap_avail_lock);
+ 
+ start_over:
+-	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
++	node = numa_node_id();
++	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
+ 		/* requeue si to after same-priority siblings */
+-		plist_requeue(&si->avail_list, &swap_avail_head);
++		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
+ 		spin_unlock(&swap_avail_lock);
+ 		spin_lock(&si->lock);
+ 		if (!si->highest_bit || !(si->flags & SWP_WRITEOK)) {
+ 			spin_lock(&swap_avail_lock);
+-			if (plist_node_empty(&si->avail_list)) {
++			if (plist_node_empty(&si->avail_lists[node])) {
+ 				spin_unlock(&si->lock);
+ 				goto nextsi;
+ 			}
+@@ -946,7 +967,7 @@ start_over:
+ 			WARN(!(si->flags & SWP_WRITEOK),
+ 			     "swap_info %d in list but !SWP_WRITEOK\n",
+ 			     si->type);
+-			plist_del(&si->avail_list, &swap_avail_head);
++			__del_from_avail_list(si);
+ 			spin_unlock(&si->lock);
+ 			goto nextsi;
+ 		}
+@@ -975,7 +996,7 @@ nextsi:
+ 		 * swap_avail_head list then try it, otherwise start over
+ 		 * if we have not gotten any slots.
+ 		 */
+-		if (plist_node_empty(&next->avail_list))
++		if (plist_node_empty(&next->avail_lists[node]))
+ 			goto start_over;
+ 	}
+ 
+@@ -2410,10 +2431,24 @@ static int setup_swap_extents(struct swa
+ 	return generic_swapfile_activate(sis, swap_file, span);
+ }
+ 
++static int swap_node(struct swap_info_struct *p)
++{
++	struct block_device *bdev;
++
++	if (p->bdev)
++		bdev = p->bdev;
++	else
++		bdev = p->swap_file->f_inode->i_sb->s_bdev;
++
++	return bdev ? bdev->bd_disk->node_id : NUMA_NO_NODE;
++}
++
+ static void _enable_swap_info(struct swap_info_struct *p, int prio,
+ 				unsigned char *swap_map,
+ 				struct swap_cluster_info *cluster_info)
+ {
++	int i;
++
+ 	if (prio >= 0)
+ 		p->prio = prio;
+ 	else
+@@ -2423,7 +2458,16 @@ static void _enable_swap_info(struct swa
+ 	 * low-to-high, while swap ordering is high-to-low
+ 	 */
+ 	p->list.prio = -p->prio;
+-	p->avail_list.prio = -p->prio;
++	for_each_node(i) {
++		if (p->prio >= 0)
++			p->avail_lists[i].prio = -p->prio;
++		else {
++			if (swap_node(p) == i)
++				p->avail_lists[i].prio = 1;
++			else
++				p->avail_lists[i].prio = -p->prio;
++		}
++	}
+ 	p->swap_map = swap_map;
+ 	p->cluster_info = cluster_info;
+ 	p->flags |= SWP_WRITEOK;
+@@ -2442,9 +2486,7 @@ static void _enable_swap_info(struct swa
+ 	 * swap_info_struct.
+ 	 */
+ 	plist_add(&p->list, &swap_active_head);
+-	spin_lock(&swap_avail_lock);
+-	plist_add(&p->avail_list, &swap_avail_head);
+-	spin_unlock(&swap_avail_lock);
++	add_to_avail_list(p);
+ }
+ 
+ static void enable_swap_info(struct swap_info_struct *p, int prio,
+@@ -2529,17 +2571,19 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		spin_unlock(&swap_lock);
+ 		goto out_dput;
+ 	}
+-	spin_lock(&swap_avail_lock);
+-	plist_del(&p->avail_list, &swap_avail_head);
+-	spin_unlock(&swap_avail_lock);
++	del_from_avail_list(p);
+ 	spin_lock(&p->lock);
+ 	if (p->prio < 0) {
+ 		struct swap_info_struct *si = p;
++		int nid;
+ 
+ 		plist_for_each_entry_continue(si, &swap_active_head, list) {
+ 			si->prio++;
+ 			si->list.prio--;
+-			si->avail_list.prio--;
++			for_each_node(nid) {
++				if (si->avail_lists[nid].prio != 1)
++					si->avail_lists[nid].prio--;
++			}
+ 		}
+ 		least_priority++;
+ 	}
+@@ -2783,6 +2827,7 @@ static struct swap_info_struct *alloc_sw
+ {
+ 	struct swap_info_struct *p;
+ 	unsigned int type;
++	int i;
+ 
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (!p)
+@@ -2818,7 +2863,8 @@ static struct swap_info_struct *alloc_sw
+ 	}
+ 	INIT_LIST_HEAD(&p->first_swap_extent.list);
+ 	plist_node_init(&p->list, 0);
+-	plist_node_init(&p->avail_list, 0);
++	for_each_node(i)
++		plist_node_init(&p->avail_lists[i], 0);
+ 	p->flags = SWP_USED;
+ 	spin_unlock(&swap_lock);
+ 	spin_lock_init(&p->lock);
+@@ -3645,3 +3691,18 @@ static void free_swap_count_continuation
+ 		}
+ 	}
+ }
++
++static int __init swapfile_init(void)
++{
++	int nid;
++
++	swap_avail_heads = kmalloc(nr_node_ids * sizeof(struct plist_head), GFP_KERNEL);
++	if (!swap_avail_heads)
++		return -ENOMEM;
++
++	for_each_node(nid)
++		plist_head_init(&swap_avail_heads[nid]);
++
++	return 0;
++}
++subsys_initcall(swapfile_init);
+_
+
+Patches currently in -mm which might be from aaron.lu@intel.com are
+
+swap-choose-swap-device-according-to-numa-node.patch
+
