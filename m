@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + swap-choose-swap-device-according-to-numa-node.patch added to
- -mm tree
-Date: Mon, 14 Aug 2017 16:35:04 -0700
-Message-ID: <599233a8.10tymuYDn7kf8OLf%akpm@linux-foundation.org>
+Subject: + slub-fix-per-memcg-cache-leak-on-css-offline.patch added to -mm tree
+Date: Mon, 14 Aug 2017 16:46:13 -0700
+Message-ID: <59923645.amH9+ET9Vonm08fh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43664 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752643AbdHNXfF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2017 19:35:05 -0400
+        with ESMTP id S1752651AbdHNXqO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2017 19:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aaron.lu@intel.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.com, minchan@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: vdavydov.dev@gmail.com, avagin@gmail.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap: choose swap device according to numa node
+     Subject: slub: fix per memcg cache leak on css offline
 has been added to the -mm tree.  Its filename is
-     swap-choose-swap-device-according-to-numa-node.patch
+     slub-fix-per-memcg-cache-leak-on-css-offline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-choose-swap-device-according-to-numa-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-fix-per-memcg-cache-leak-on-css-offline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-choose-swap-device-according-to-numa-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-per-memcg-cache-leak-on-css-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,383 +38,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: swap: choose swap device according to numa node
+From: Vladimir Davydov <vdavydov.dev@gmail.com>
+Subject: slub: fix per memcg cache leak on css offline
 
-If the system has more than one swap device and swap device has the node
-information, we can make use of this information to decide which swap
-device to use in get_swap_pages() to get better performance.
+To avoid a possible deadlock, sysfs_slab_remove() schedules an
+asynchronous work to delete sysfs entries corresponding to the kmem cache.
+To ensure the cache isn't freed before the work function is called, it
+takes a reference to the cache kobject.  The reference is supposed to be
+released by the work function.  However, the work function
+(sysfs_slab_remove_workfn()) does nothing in case the cache sysfs entry
+has already been deleted, leaking the kobject and the corresponding cache.
+This may happen on a per memcg cache destruction, because sysfs entries
+of a per memcg cache are deleted on memcg offline if the cache is empty
+(see __kmemcg_cache_deactivate()).
 
-The current code uses a priority based list, swap_avail_list, to decide
-which swap device to use and if multiple swap devices share the same
-priority, they are used round robin.  This patch changes the previous
-single global swap_avail_list into a per-numa-node list, i.e.  for each
-numa node, it sees its own priority based list of available swap devices. 
-Swap device's priority can be promoted on its matching node's
-swap_avail_list.
+The kmemleak report looks like this:
 
-The current swap device's priority is set as: user can set a >=0 value, or
-the system will pick one starting from -1 then downwards.  The priority
-value in the swap_avail_list is the negated value of the swap device's due
-to plist being sorted from low to high.  The new policy doesn't change the
-semantics for priority >=0 cases, the previous starting from -1 then
-downwards now becomes starting from -2 then downwards and -1 is reserved
-as the promoted value.
+  unreferenced object 0xffff9f798a79f540 (size 32):
+    comm "kworker/1:4", pid 15416, jiffies 4307432429 (age 28687.554s)
+    hex dump (first 32 bytes):
+      6b 6d 61 6c 6c 6f 63 2d 31 36 28 31 35 39 39 3a  kmalloc-16(1599:
+      6e 65 77 72 6f 6f 74 29 00 23 6b c0 ff ff ff ff  newroot).#k.....
+    backtrace:
+      [<ffffffff9591d28a>] kmemleak_alloc+0x4a/0xa0
+      [<ffffffff9527a378>] __kmalloc_track_caller+0x148/0x2c0
+      [<ffffffff95499466>] kvasprintf+0x66/0xd0
+      [<ffffffff954995a9>] kasprintf+0x49/0x70
+      [<ffffffff952305c6>] memcg_create_kmem_cache+0xe6/0x160
+      [<ffffffff9528eaf0>] memcg_kmem_cache_create_func+0x20/0x110
+      [<ffffffff950cd6c5>] process_one_work+0x205/0x5d0
+      [<ffffffff950cdade>] worker_thread+0x4e/0x3a0
+      [<ffffffff950d5169>] kthread+0x109/0x140
+      [<ffffffff9592b8fa>] ret_from_fork+0x2a/0x40
+      [<ffffffffffffffff>] 0xffffffffffffffff
+  unreferenced object 0xffff9f79b6136840 (size 416):
+    comm "kworker/1:4", pid 15416, jiffies 4307432429 (age 28687.573s)
+    hex dump (first 32 bytes):
+      40 fb 80 c2 3e 33 00 00 00 00 00 40 00 00 00 00  @...>3.....@....
+      00 00 00 00 00 00 00 00 10 00 00 00 10 00 00 00  ................
+    backtrace:
+      [<ffffffff9591d28a>] kmemleak_alloc+0x4a/0xa0
+      [<ffffffff95275bc8>] kmem_cache_alloc+0x128/0x280
+      [<ffffffff9522fedb>] create_cache+0x3b/0x1e0
+      [<ffffffff952305f8>] memcg_create_kmem_cache+0x118/0x160
+      [<ffffffff9528eaf0>] memcg_kmem_cache_create_func+0x20/0x110
+      [<ffffffff950cd6c5>] process_one_work+0x205/0x5d0
+      [<ffffffff950cdade>] worker_thread+0x4e/0x3a0
+      [<ffffffff950d5169>] kthread+0x109/0x140
+      [<ffffffff9592b8fa>] ret_from_fork+0x2a/0x40
+      [<ffffffffffffffff>] 0xffffffffffffffff
 
-Take 4-node EX machine as an example, suppose 4 swap devices are
-available, each sit on a different node:
-swapA on node 0
-swapB on node 1
-swapC on node 2
-swapD on node 3
+Fix the leak by adding the missing call to kobject_put() to
+sysfs_slab_remove_workfn().
 
-After they are all swapped on in the sequence of ABCD.
-
-Current behaviour:
-their priorities will be:
-swapA: -1
-swapB: -2
-swapC: -3
-swapD: -4
-And their position in the global swap_avail_list will be:
-swapA   -> swapB   -> swapC   -> swapD
-prio:1     prio:2     prio:3     prio:4
-
-New behaviour:
-their priorities will be(note that -1 is skipped):
-swapA: -2
-swapB: -3
-swapC: -4
-swapD: -5
-And their positions in the 4 swap_avail_lists[nid] will be:
-swap_avail_lists[0]: /* node 0's available swap device list */
-swapA   -> swapB   -> swapC   -> swapD
-prio:1     prio:3     prio:4     prio:5
-swap_avali_lists[1]: /* node 1's available swap device list */
-swapB   -> swapA   -> swapC   -> swapD
-prio:1     prio:2     prio:4     prio:5
-swap_avail_lists[2]: /* node 2's available swap device list */
-swapC   -> swapA   -> swapB   -> swapD
-prio:1     prio:2     prio:3     prio:5
-swap_avail_lists[3]: /* node 3's available swap device list */
-swapD   -> swapA   -> swapB   -> swapC
-prio:1     prio:2     prio:3     prio:4
-
-To see the effect of the patch, a test that starts N process, each mmap a
-region of anonymous memory and then continually write to it at random
-position to trigger both swap in and out is used.
-
-On a 2 node Skylake EP machine with 64GiB memory, two 170GB SSD drives are
-used as swap devices with each attached to a different node, the result
-is:
-
-runtime=30m/processes=32/total test size=128G/each process mmap region=4G
-kernel         throughput
-vanilla        13306
-auto-binding   15169 +14%
-
-runtime=30m/processes=64/total test size=128G/each process mmap region=2G
-kernel         throughput
-vanilla        11885
-auto-binding   14879 25%
-
-Link: http://lkml.kernel.org/r/20170814053130.GD2369@aaronlu.sh.intel.com
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20170812181134.25027-1-vdavydov.dev@gmail.com
+Fixes: 3b7b314053d02 ("slub: make sysfs file removal asynchronous")
+Signed-off-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Reported-by: Andrei Vagin <avagin@gmail.com>
+Tested-by: Andrei Vagin <avagin@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>	[4.12.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/swap_numa.txt |   18 ++++
- include/linux/swap.h           |    2 
- mm/swapfile.c                  |  113 +++++++++++++++++++++++--------
- 3 files changed, 106 insertions(+), 27 deletions(-)
+ mm/slub.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/vm/swap_numa.txt
---- /dev/null
-+++ a/Documentation/vm/swap_numa.txt
-@@ -0,0 +1,18 @@
-+If the system has more than one swap device and swap device has the node
-+information, we can make use of this information to decide which swap
-+device to use in get_swap_pages() to get better performance.
-+
-+The current code uses a priority based list, swap_avail_list, to decide
-+which swap device to use and if multiple swap devices share the same
-+priority, they are used round robin. This change here replaces the single
-+global swap_avail_list with a per-numa-node list, i.e. for each numa node,
-+it sees its own priority based list of available swap devices. Swap
-+device's priority can be promoted on its matching node's swap_avail_list.
-+
-+The current swap device's priority is set as: user can set a >=0 value,
-+or the system will pick one starting from -1 then downwards. The priority
-+value in the swap_avail_list is the negated value of the swap device's
-+due to plist being sorted from low to high. The new policy doesn't change
-+the semantics for priority >=0 cases, the previous starting from -1 then
-+downwards now becomes starting from -2 then downwards and -1 is reserved
-+as the promoted value.
-diff -puN include/linux/swap.h~swap-choose-swap-device-according-to-numa-node include/linux/swap.h
---- a/include/linux/swap.h~swap-choose-swap-device-according-to-numa-node
-+++ a/include/linux/swap.h
-@@ -212,7 +212,7 @@ struct swap_info_struct {
- 	unsigned long	flags;		/* SWP_USED etc: see above */
- 	signed short	prio;		/* swap priority of this type */
- 	struct plist_node list;		/* entry in swap_active_head */
--	struct plist_node avail_list;	/* entry in swap_avail_head */
-+	struct plist_node avail_lists[MAX_NUMNODES];/* entry in swap_avail_heads */
- 	signed char	type;		/* strange name for an index */
- 	unsigned int	max;		/* extent of the swap_map */
- 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
-diff -puN mm/swapfile.c~swap-choose-swap-device-according-to-numa-node mm/swapfile.c
---- a/mm/swapfile.c~swap-choose-swap-device-according-to-numa-node
-+++ a/mm/swapfile.c
-@@ -60,7 +60,7 @@ atomic_long_t nr_swap_pages;
- EXPORT_SYMBOL_GPL(nr_swap_pages);
- /* protected with swap_lock. reading in vm_swap_full() doesn't need lock */
- long total_swap_pages;
--static int least_priority;
-+static int least_priority = -1;
- 
- static const char Bad_file[] = "Bad swap file entry ";
- static const char Unused_file[] = "Unused swap file entry ";
-@@ -85,7 +85,7 @@ PLIST_HEAD(swap_active_head);
-  * is held and the locking order requires swap_lock to be taken
-  * before any swap_info_struct->lock.
-  */
--static PLIST_HEAD(swap_avail_head);
-+struct plist_head *swap_avail_heads;
- static DEFINE_SPINLOCK(swap_avail_lock);
- 
- struct swap_info_struct *swap_info[MAX_SWAPFILES];
-@@ -592,6 +592,20 @@ new_cluster:
- 	return found_free;
- }
- 
-+static void __del_from_avail_list(struct swap_info_struct *p)
-+{
-+	int nid;
-+	for_each_node(nid)
-+		plist_del(&p->avail_lists[nid], &swap_avail_heads[nid]);
-+}
-+
-+static void del_from_avail_list(struct swap_info_struct *p)
-+{
-+	spin_lock(&swap_avail_lock);
-+	__del_from_avail_list(p);
-+	spin_unlock(&swap_avail_lock);
-+}
-+
- static void swap_range_alloc(struct swap_info_struct *si, unsigned long offset,
- 			     unsigned int nr_entries)
- {
-@@ -605,12 +619,22 @@ static void swap_range_alloc(struct swap
- 	if (si->inuse_pages == si->pages) {
- 		si->lowest_bit = si->max;
- 		si->highest_bit = 0;
--		spin_lock(&swap_avail_lock);
--		plist_del(&si->avail_list, &swap_avail_head);
--		spin_unlock(&swap_avail_lock);
-+		del_from_avail_list(si);
- 	}
- }
- 
-+static void add_to_avail_list(struct swap_info_struct *p)
-+{
-+	int nid;
-+
-+	spin_lock(&swap_avail_lock);
-+	for_each_node(nid) {
-+		WARN_ON(!plist_node_empty(&p->avail_lists[nid]));
-+		plist_add(&p->avail_lists[nid], &swap_avail_heads[nid]);
-+	}
-+	spin_unlock(&swap_avail_lock);
-+}
-+
- static void swap_range_free(struct swap_info_struct *si, unsigned long offset,
- 			    unsigned int nr_entries)
- {
-@@ -623,13 +647,8 @@ static void swap_range_free(struct swap_
- 		bool was_full = !si->highest_bit;
- 
- 		si->highest_bit = end;
--		if (was_full && (si->flags & SWP_WRITEOK)) {
--			spin_lock(&swap_avail_lock);
--			WARN_ON(!plist_node_empty(&si->avail_list));
--			if (plist_node_empty(&si->avail_list))
--				plist_add(&si->avail_list, &swap_avail_head);
--			spin_unlock(&swap_avail_lock);
--		}
-+		if (was_full && (si->flags & SWP_WRITEOK))
-+			add_to_avail_list(si);
- 	}
- 	atomic_long_add(nr_entries, &nr_swap_pages);
- 	si->inuse_pages -= nr_entries;
-@@ -910,6 +929,7 @@ int get_swap_pages(int n_goal, bool clus
- 	struct swap_info_struct *si, *next;
- 	long avail_pgs;
- 	int n_ret = 0;
-+	int node;
- 
- 	/* Only single cluster request supported */
- 	WARN_ON_ONCE(n_goal > 1 && cluster);
-@@ -929,14 +949,15 @@ int get_swap_pages(int n_goal, bool clus
- 	spin_lock(&swap_avail_lock);
- 
- start_over:
--	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
-+	node = numa_node_id();
-+	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
- 		/* requeue si to after same-priority siblings */
--		plist_requeue(&si->avail_list, &swap_avail_head);
-+		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
- 		spin_unlock(&swap_avail_lock);
- 		spin_lock(&si->lock);
- 		if (!si->highest_bit || !(si->flags & SWP_WRITEOK)) {
- 			spin_lock(&swap_avail_lock);
--			if (plist_node_empty(&si->avail_list)) {
-+			if (plist_node_empty(&si->avail_lists[node])) {
- 				spin_unlock(&si->lock);
- 				goto nextsi;
- 			}
-@@ -946,7 +967,7 @@ start_over:
- 			WARN(!(si->flags & SWP_WRITEOK),
- 			     "swap_info %d in list but !SWP_WRITEOK\n",
- 			     si->type);
--			plist_del(&si->avail_list, &swap_avail_head);
-+			__del_from_avail_list(si);
- 			spin_unlock(&si->lock);
- 			goto nextsi;
- 		}
-@@ -975,7 +996,7 @@ nextsi:
- 		 * swap_avail_head list then try it, otherwise start over
- 		 * if we have not gotten any slots.
+diff -puN mm/slub.c~slub-fix-per-memcg-cache-leak-on-css-offline mm/slub.c
+--- a/mm/slub.c~slub-fix-per-memcg-cache-leak-on-css-offline
++++ a/mm/slub.c
+@@ -5642,13 +5642,14 @@ static void sysfs_slab_remove_workfn(str
+ 		 * A cache is never shut down before deactivation is
+ 		 * complete, so no need to worry about synchronization.
  		 */
--		if (plist_node_empty(&next->avail_list))
-+		if (plist_node_empty(&next->avail_lists[node]))
- 			goto start_over;
- 	}
+-		return;
++		goto out;
  
-@@ -2410,10 +2431,24 @@ static int setup_swap_extents(struct swa
- 	return generic_swapfile_activate(sis, swap_file, span);
+ #ifdef CONFIG_MEMCG
+ 	kset_unregister(s->memcg_kset);
+ #endif
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
++out:
+ 	kobject_put(&s->kobj);
  }
  
-+static int swap_node(struct swap_info_struct *p)
-+{
-+	struct block_device *bdev;
-+
-+	if (p->bdev)
-+		bdev = p->bdev;
-+	else
-+		bdev = p->swap_file->f_inode->i_sb->s_bdev;
-+
-+	return bdev ? bdev->bd_disk->node_id : NUMA_NO_NODE;
-+}
-+
- static void _enable_swap_info(struct swap_info_struct *p, int prio,
- 				unsigned char *swap_map,
- 				struct swap_cluster_info *cluster_info)
- {
-+	int i;
-+
- 	if (prio >= 0)
- 		p->prio = prio;
- 	else
-@@ -2423,7 +2458,16 @@ static void _enable_swap_info(struct swa
- 	 * low-to-high, while swap ordering is high-to-low
- 	 */
- 	p->list.prio = -p->prio;
--	p->avail_list.prio = -p->prio;
-+	for_each_node(i) {
-+		if (p->prio >= 0)
-+			p->avail_lists[i].prio = -p->prio;
-+		else {
-+			if (swap_node(p) == i)
-+				p->avail_lists[i].prio = 1;
-+			else
-+				p->avail_lists[i].prio = -p->prio;
-+		}
-+	}
- 	p->swap_map = swap_map;
- 	p->cluster_info = cluster_info;
- 	p->flags |= SWP_WRITEOK;
-@@ -2442,9 +2486,7 @@ static void _enable_swap_info(struct swa
- 	 * swap_info_struct.
- 	 */
- 	plist_add(&p->list, &swap_active_head);
--	spin_lock(&swap_avail_lock);
--	plist_add(&p->avail_list, &swap_avail_head);
--	spin_unlock(&swap_avail_lock);
-+	add_to_avail_list(p);
- }
- 
- static void enable_swap_info(struct swap_info_struct *p, int prio,
-@@ -2529,17 +2571,19 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 		spin_unlock(&swap_lock);
- 		goto out_dput;
- 	}
--	spin_lock(&swap_avail_lock);
--	plist_del(&p->avail_list, &swap_avail_head);
--	spin_unlock(&swap_avail_lock);
-+	del_from_avail_list(p);
- 	spin_lock(&p->lock);
- 	if (p->prio < 0) {
- 		struct swap_info_struct *si = p;
-+		int nid;
- 
- 		plist_for_each_entry_continue(si, &swap_active_head, list) {
- 			si->prio++;
- 			si->list.prio--;
--			si->avail_list.prio--;
-+			for_each_node(nid) {
-+				if (si->avail_lists[nid].prio != 1)
-+					si->avail_lists[nid].prio--;
-+			}
- 		}
- 		least_priority++;
- 	}
-@@ -2783,6 +2827,7 @@ static struct swap_info_struct *alloc_sw
- {
- 	struct swap_info_struct *p;
- 	unsigned int type;
-+	int i;
- 
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
- 	if (!p)
-@@ -2818,7 +2863,8 @@ static struct swap_info_struct *alloc_sw
- 	}
- 	INIT_LIST_HEAD(&p->first_swap_extent.list);
- 	plist_node_init(&p->list, 0);
--	plist_node_init(&p->avail_list, 0);
-+	for_each_node(i)
-+		plist_node_init(&p->avail_lists[i], 0);
- 	p->flags = SWP_USED;
- 	spin_unlock(&swap_lock);
- 	spin_lock_init(&p->lock);
-@@ -3645,3 +3691,18 @@ static void free_swap_count_continuation
- 		}
- 	}
- }
-+
-+static int __init swapfile_init(void)
-+{
-+	int nid;
-+
-+	swap_avail_heads = kmalloc(nr_node_ids * sizeof(struct plist_head), GFP_KERNEL);
-+	if (!swap_avail_heads)
-+		return -ENOMEM;
-+
-+	for_each_node(nid)
-+		plist_head_init(&swap_avail_heads[nid]);
-+
-+	return 0;
-+}
-+subsys_initcall(swapfile_init);
 _
 
-Patches currently in -mm which might be from aaron.lu@intel.com are
+Patches currently in -mm which might be from vdavydov.dev@gmail.com are
 
-swap-choose-swap-device-according-to-numa-node.patch
+slub-fix-per-memcg-cache-leak-on-css-offline.patch
 
