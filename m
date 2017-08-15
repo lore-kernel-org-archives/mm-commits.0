@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-optimize-semget-shmget-msgget-for-lots-of-keys.patch added
+Subject: +
+ mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch added
  to -mm tree
-Date: Tue, 15 Aug 2017 14:49:48 -0700
-Message-ID: <59936c7c.onWAfWdI9mr1ER3+%akpm@linux-foundation.org>
+Date: Tue, 15 Aug 2017 14:58:54 -0700
+Message-ID: <59936e9e.5ObfOigNSF6MF4IA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751848AbdHOVtu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 17:49:50 -0400
+        with ESMTP id S1751095AbdHOV6z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 17:58:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guillaume.knispel@supersonicimagine.com, adobriyan@gmail.com, avagin@openvz.org, bigeasy@linutronix.de, dave@stgolabs.net, ebiederm@xmission.com, keescook@chromium.org, manfred@colorfullife.com, marc.pardo@supersonicimagine.com, mingo@kernel.org, peterz@infradead.org, serge@hallyn.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, kirill@shutemov.name, oleg@redhat.com, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, stable@vger.kernel.org, wenwei.tww@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: optimize semget/shmget/msgget for lots of keys
+     Subject: mm: fix double mmap_sem unlock on MMF_UNSTABLE enforced SIGBUS
 has been added to the -mm tree.  Its filename is
-     ipc-optimize-semget-shmget-msgget-for-lots-of-keys.patch
+     mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-optimize-semget-shmget-msgget-for-lots-of-keys.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-optimize-semget-shmget-msgget-for-lots-of-keys.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,567 +40,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guillaume Knispel <guillaume.knispel@supersonicimagine.com>
-Subject: ipc: optimize semget/shmget/msgget for lots of keys
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: fix double mmap_sem unlock on MMF_UNSTABLE enforced SIGBUS
 
-ipc_findkey() used to scan all objects to look for the wanted key.  This
-is slow when using a high number of keys.  This change adds an rhashtable
-of kern_ipc_perm objects in ipc_ids, so that one lookup cease to be O(n).
+Tetsuo Handa has noticed that MMF_UNSTABLE SIGBUS path in
+handle_mm_fault causes a lockdep splat
+[   58.539455] Out of memory: Kill process 1056 (a.out) score 603 or sacrifice child
+[   58.543943] Killed process 1056 (a.out) total-vm:4268108kB, anon-rss:2246048kB, file-rss:0kB, shmem-rss:0kB
+[   58.544245] a.out (1169) used greatest stack depth: 11664 bytes left
+[   58.557471] DEBUG_LOCKS_WARN_ON(depth <= 0)
+[   58.557480] ------------[ cut here ]------------
+[   58.564407] WARNING: CPU: 6 PID: 1339 at kernel/locking/lockdep.c:3617 lock_release+0x172/0x1e0
+[   58.599401] CPU: 6 PID: 1339 Comm: a.out Not tainted 4.13.0-rc3-next-20170803+ #142
+[   58.604126] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/02/2015
+[   58.609790] task: ffff9d90df888040 task.stack: ffffa07084854000
+[   58.613944] RIP: 0010:lock_release+0x172/0x1e0
+[   58.617622] RSP: 0000:ffffa07084857e58 EFLAGS: 00010082
+[   58.621533] RAX: 000000000000001f RBX: ffff9d90df888040 RCX: 0000000000000000
+[   58.626074] RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffffffffa30d4ba4
+[   58.630572] RBP: ffffa07084857e98 R08: 0000000000000000 R09: 0000000000000001
+[   58.635016] R10: 0000000000000000 R11: 000000000000001f R12: ffffa07084857f58
+[   58.639694] R13: ffff9d90f60d6cd0 R14: 0000000000000000 R15: ffffffffa305cb6e
+[   58.644200] FS:  00007fb932730740(0000) GS:ffff9d90f9f80000(0000) knlGS:0000000000000000
+[   58.648989] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   58.652903] CR2: 000000000040092f CR3: 0000000135229000 CR4: 00000000000606e0
+[   58.657280] Call Trace:
+[   58.659989]  up_read+0x1a/0x40
+[   58.662825]  __do_page_fault+0x28e/0x4c0
+[   58.665946]  do_page_fault+0x30/0x80
+[   58.668911]  page_fault+0x28/0x30
 
-This change gives a 865% improvement of benchmark reaim.jobs_per_min on a
-56 threads Intel(R) Xeon(R) CPU E5-2695 v3 @ 2.30GHz with 256G memory [1]
+The reason is that the page fault path might have dropped the mmap_sem and
+returned with VM_FAULT_RETRY.  MMF_UNSTABLE check however rewrites the
+error path to VM_FAULT_SIGBUS and we always expect mmap_sem taken in that
+path.  Fix this by taking mmap_sem when VM_FAULT_RETRY is held in the
+MMF_UNSTABLE path.  We cannot simply add VM_FAULT_SIGBUS to the existing
+error code because all arch specific page fault handlers and g-u-p would
+have to learn a new error code combination.
 
-Other (more micro) benchmark results, by the author: On an i5 laptop, the
-following loop executed right after a reboot took, without and with this
-change:
-
-    for (int i = 0, k=0x424242; i < KEYS; ++i)
-        semget(k++, 1, IPC_CREAT | 0600);
-
-                 total       total          max single  max single
-   KEYS        without        with        call without   call with
-
-      1            3.5         4.9   µs            3.5         4.9
-     10            7.6         8.6   µs            3.7         4.7
-     32           16.2        15.9   µs            4.3         5.3
-    100           72.9        41.8   µs            3.7         4.7
-   1000        5,630.0       502.0   µs             *           *
-  10000    1,340,000.0     7,240.0   µs             *           *
-  31900   17,600,000.0    22,200.0   µs             *           *
-
- *: unreliable measure: high variance
-
-The duration for a lookup-only usage was obtained by the same loop once
-the keys are present:
-
-                 total       total          max single  max single
-   KEYS        without        with        call without   call with
-
-      1            2.1         2.5   µs            2.1         2.5
-     10            4.5         4.8   µs            2.2         2.3
-     32           13.0        10.8   µs            2.3         2.8
-    100           82.9        25.1   µs             *          2.3
-   1000        5,780.0       217.0   µs             *           *
-  10000    1,470,000.0     2,520.0   µs             *           *
-  31900   17,400,000.0     7,810.0   µs             *           *
-
-Finally, executing each semget() in a new process gave, when still
-summing only the durations of these syscalls:
-
-creation:
-                 total       total
-   KEYS        without        with
-
-      1            3.7         5.0   µs
-     10           32.9        36.7   µs
-     32          125.0       109.0   µs
-    100          523.0       353.0   µs
-   1000       20,300.0     3,280.0   µs
-  10000    2,470,000.0    46,700.0   µs
-  31900   27,800,000.0   219,000.0   µs
-
-lookup-only:
-                 total       total
-   KEYS        without        with
-
-      1            2.5         2.7   µs
-     10           25.4        24.4   µs
-     32          106.0        72.6   µs
-    100          591.0       352.0   µs
-   1000       22,400.0     2,250.0   µs
-  10000    2,510,000.0    25,700.0   µs
-  31900   28,200,000.0   115,000.0   µs
-
-[1] http://lkml.kernel.org/r/20170814060507.GE23258@yexl-desktop
-
-Link: http://lkml.kernel.org/r/20170815194954.ck32ta2z35yuzpwp@debix
-Signed-off-by: Guillaume Knispel <guillaume.knispel@supersonicimagine.com>
-Reviewed-by: Marc Pardo <marc.pardo@supersonicimagine.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: Guillaume Knispel <guillaume.knispel@supersonicimagine.com>
-Cc: Marc Pardo <marc.pardo@supersonicimagine.com>
+Link: http://lkml.kernel.org/r/20170807113839.16695-2-mhocko@kernel.org
+Fixes: 3f70dc38cec2 ("mm: make sure that kthreads will not refault oom reaped memory")
+Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Wenwei Tao <wenwei.tww@alibaba-inc.com>
+Cc: <stable@vger.kernel.org>	[4.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h           |    3 
- include/linux/ipc_namespace.h |    3 
- ipc/msg.c                     |   10 +--
- ipc/namespace.c               |   20 +++++-
- ipc/sem.c                     |   11 ++-
- ipc/shm.c                     |   12 ++-
- ipc/util.c                    |  100 ++++++++++++++++++++++++--------
- ipc/util.h                    |   21 +++---
- 8 files changed, 130 insertions(+), 50 deletions(-)
+ mm/memory.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ipc.h~ipc-optimize-semget-shmget-msgget-for-lots-of-keys include/linux/ipc.h
---- a/include/linux/ipc.h~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/include/linux/ipc.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/spinlock.h>
- #include <linux/uidgid.h>
-+#include <linux/rhashtable.h>
- #include <uapi/linux/ipc.h>
- #include <linux/refcount.h>
- 
-@@ -22,6 +23,8 @@ struct kern_ipc_perm {
- 	unsigned long	seq;
- 	void		*security;
- 
-+	struct rhash_head khtnode;
+diff -puN mm/memory.c~mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus mm/memory.c
+--- a/mm/memory.c~mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus
++++ a/mm/memory.c
+@@ -3910,8 +3910,18 @@ int handle_mm_fault(struct vm_area_struc
+ 	 * further.
+ 	 */
+ 	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
+-				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags)))
++				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags))) {
 +
- 	struct rcu_head rcu;
- 	refcount_t refcount;
- } ____cacheline_aligned_in_smp __randomize_layout;
-diff -puN include/linux/ipc_namespace.h~ipc-optimize-semget-shmget-msgget-for-lots-of-keys include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/include/linux/ipc_namespace.h
-@@ -8,15 +8,18 @@
- #include <linux/nsproxy.h>
- #include <linux/ns_common.h>
- #include <linux/refcount.h>
-+#include <linux/rhashtable.h>
- 
- struct user_namespace;
- 
- struct ipc_ids {
- 	int in_use;
- 	unsigned short seq;
-+	bool tables_initialized;
- 	struct rw_semaphore rwsem;
- 	struct idr ipcs_idr;
- 	int next_id;
-+	struct rhashtable key_ht;
- };
- 
- struct ipc_namespace {
-diff -puN ipc/msg.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys ipc/msg.c
---- a/ipc/msg.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/ipc/msg.c
-@@ -1011,7 +1011,7 @@ SYSCALL_DEFINE5(msgrcv, int, msqid, stru
- }
- 
- 
--void msg_init_ns(struct ipc_namespace *ns)
-+int msg_init_ns(struct ipc_namespace *ns)
- {
- 	ns->msg_ctlmax = MSGMAX;
- 	ns->msg_ctlmnb = MSGMNB;
-@@ -1019,7 +1019,7 @@ void msg_init_ns(struct ipc_namespace *n
- 
- 	atomic_set(&ns->msg_bytes, 0);
- 	atomic_set(&ns->msg_hdrs, 0);
--	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
-+	return ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
- }
- 
- #ifdef CONFIG_IPC_NS
-@@ -1027,6 +1027,7 @@ void msg_exit_ns(struct ipc_namespace *n
- {
- 	free_ipcs(ns, &msg_ids(ns), freeque);
- 	idr_destroy(&ns->ids[IPC_MSG_IDS].ipcs_idr);
-+	rhashtable_destroy(&ns->ids[IPC_MSG_IDS].key_ht);
- }
- #endif
- 
-@@ -1058,11 +1059,12 @@ static int sysvipc_msg_proc_show(struct
- }
- #endif
- 
--void __init msg_init(void)
-+int __init msg_init(void)
- {
--	msg_init_ns(&init_ipc_ns);
-+	const int err = msg_init_ns(&init_ipc_ns);
- 
- 	ipc_init_proc_interface("sysvipc/msg",
- 				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
- 				IPC_MSG_IDS, sysvipc_msg_proc_show);
-+	return err;
- }
-diff -puN ipc/namespace.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys ipc/namespace.c
---- a/ipc/namespace.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/ipc/namespace.c
-@@ -54,16 +54,28 @@ static struct ipc_namespace *create_ipc_
- 	ns->user_ns = get_user_ns(user_ns);
- 	ns->ucounts = ucounts;
- 
--	err = mq_init_ns(ns);
-+	err = sem_init_ns(ns);
- 	if (err)
- 		goto fail_put;
-+	err = msg_init_ns(ns);
-+	if (err)
-+		goto fail_destroy_sem;
-+	err = shm_init_ns(ns);
-+	if (err)
-+		goto fail_destroy_msg;
- 
--	sem_init_ns(ns);
--	msg_init_ns(ns);
--	shm_init_ns(ns);
-+	err = mq_init_ns(ns);
-+	if (err)
-+		goto fail_destroy_shm;
- 
- 	return ns;
- 
-+fail_destroy_shm:
-+	shm_exit_ns(ns);
-+fail_destroy_msg:
-+	msg_exit_ns(ns);
-+fail_destroy_sem:
-+	sem_exit_ns(ns);
- fail_put:
- 	put_user_ns(ns->user_ns);
- 	ns_free_inum(&ns->ns);
-diff -puN ipc/sem.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys ipc/sem.c
---- a/ipc/sem.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/ipc/sem.c
-@@ -183,14 +183,14 @@ static int sysvipc_sem_proc_show(struct
- #define sc_semopm	sem_ctls[2]
- #define sc_semmni	sem_ctls[3]
- 
--void sem_init_ns(struct ipc_namespace *ns)
-+int sem_init_ns(struct ipc_namespace *ns)
- {
- 	ns->sc_semmsl = SEMMSL;
- 	ns->sc_semmns = SEMMNS;
- 	ns->sc_semopm = SEMOPM;
- 	ns->sc_semmni = SEMMNI;
- 	ns->used_sems = 0;
--	ipc_init_ids(&ns->ids[IPC_SEM_IDS]);
-+	return ipc_init_ids(&ns->ids[IPC_SEM_IDS]);
- }
- 
- #ifdef CONFIG_IPC_NS
-@@ -198,15 +198,18 @@ void sem_exit_ns(struct ipc_namespace *n
- {
- 	free_ipcs(ns, &sem_ids(ns), freeary);
- 	idr_destroy(&ns->ids[IPC_SEM_IDS].ipcs_idr);
-+	rhashtable_destroy(&ns->ids[IPC_SEM_IDS].key_ht);
- }
- #endif
- 
--void __init sem_init(void)
-+int __init sem_init(void)
- {
--	sem_init_ns(&init_ipc_ns);
-+	const int err = sem_init_ns(&init_ipc_ns);
-+
- 	ipc_init_proc_interface("sysvipc/sem",
- 				"       key      semid perms      nsems   uid   gid  cuid  cgid      otime      ctime\n",
- 				IPC_SEM_IDS, sysvipc_sem_proc_show);
-+	return err;
- }
- 
- /**
-diff -puN ipc/shm.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys ipc/shm.c
---- a/ipc/shm.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/ipc/shm.c
-@@ -72,14 +72,14 @@ static void shm_destroy(struct ipc_names
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
- #endif
- 
--void shm_init_ns(struct ipc_namespace *ns)
-+int shm_init_ns(struct ipc_namespace *ns)
- {
- 	ns->shm_ctlmax = SHMMAX;
- 	ns->shm_ctlall = SHMALL;
- 	ns->shm_ctlmni = SHMMNI;
- 	ns->shm_rmid_forced = 0;
- 	ns->shm_tot = 0;
--	ipc_init_ids(&shm_ids(ns));
-+	return ipc_init_ids(&shm_ids(ns));
- }
- 
- /*
-@@ -95,7 +95,7 @@ static void do_shm_rmid(struct ipc_names
- 	if (shp->shm_nattch) {
- 		shp->shm_perm.mode |= SHM_DEST;
- 		/* Do not find it any more */
--		shp->shm_perm.key = IPC_PRIVATE;
-+		ipc_set_key_private(&shm_ids(ns), &shp->shm_perm);
- 		shm_unlock(shp);
- 	} else
- 		shm_destroy(ns, shp);
-@@ -106,13 +106,15 @@ void shm_exit_ns(struct ipc_namespace *n
- {
- 	free_ipcs(ns, &shm_ids(ns), do_shm_rmid);
- 	idr_destroy(&ns->ids[IPC_SHM_IDS].ipcs_idr);
-+	rhashtable_destroy(&ns->ids[IPC_SHM_IDS].key_ht);
- }
- #endif
- 
- static int __init ipc_ns_init(void)
- {
--	shm_init_ns(&init_ipc_ns);
--	return 0;
-+	const int err = shm_init_ns(&init_ipc_ns);
-+	WARN(err, "ipc: sysv shm_init_ns failed: %d\n", err);
-+	return err;
- }
- 
- pure_initcall(ipc_ns_init);
-diff -puN ipc/util.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys ipc/util.c
---- a/ipc/util.c~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/ipc/util.c
-@@ -83,27 +83,46 @@ struct ipc_proc_iface {
-  */
- static int __init ipc_init(void)
- {
--	sem_init();
--	msg_init();
-+	int err_sem, err_msg;
-+
-+	err_sem = sem_init();
-+	WARN(err_sem, "ipc: sysv sem_init failed: %d\n", err_sem);
-+	err_msg = msg_init();
-+	WARN(err_msg, "ipc: sysv msg_init failed: %d\n", err_msg);
- 	shm_init();
--	return 0;
-+
-+	return err_msg ? err_msg : err_sem;
- }
- device_initcall(ipc_init);
- 
-+static const struct rhashtable_params ipc_kht_params = {
-+	.head_offset		= offsetof(struct kern_ipc_perm, khtnode),
-+	.key_offset		= offsetof(struct kern_ipc_perm, key),
-+	.key_len		= FIELD_SIZEOF(struct kern_ipc_perm, key),
-+	.locks_mul		= 1,
-+	.automatic_shrinking	= true,
-+};
-+
- /**
-  * ipc_init_ids	- initialise ipc identifiers
-  * @ids: ipc identifier set
-  *
-  * Set up the sequence range to use for the ipc identifier range (limited
-- * below IPCMNI) then initialise the ids idr.
-+ * below IPCMNI) then initialise the keys hashtable and ids idr.
-  */
--void ipc_init_ids(struct ipc_ids *ids)
-+int ipc_init_ids(struct ipc_ids *ids)
- {
-+	int err;
- 	ids->in_use = 0;
- 	ids->seq = 0;
- 	ids->next_id = -1;
- 	init_rwsem(&ids->rwsem);
-+	err = rhashtable_init(&ids->key_ht, &ipc_kht_params);
-+	if (err)
-+		return err;
- 	idr_init(&ids->ipcs_idr);
-+	ids->tables_initialized = true;
-+	return 0;
- }
- 
- #ifdef CONFIG_PROC_FS
-@@ -147,28 +166,20 @@ void __init ipc_init_proc_interface(cons
-  * Returns the locked pointer to the ipc structure if found or NULL
-  * otherwise. If key is found ipc points to the owning ipc structure
-  *
-- * Called with ipc_ids.rwsem held.
-+ * Called with writer ipc_ids.rwsem held.
-  */
- static struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key)
- {
--	struct kern_ipc_perm *ipc;
--	int next_id;
--	int total;
-+	struct kern_ipc_perm *ipcp = NULL;
- 
--	for (total = 0, next_id = 0; total < ids->in_use; next_id++) {
--		ipc = idr_find(&ids->ipcs_idr, next_id);
--
--		if (ipc == NULL)
--			continue;
--
--		if (ipc->key != key) {
--			total++;
--			continue;
--		}
-+	if (likely(ids->tables_initialized))
-+		ipcp = rhashtable_lookup_fast(&ids->key_ht, &key,
-+					      ipc_kht_params);
- 
-+	if (ipcp) {
- 		rcu_read_lock();
--		ipc_lock_object(ipc);
--		return ipc;
-+		ipc_lock_object(ipcp);
-+		return ipcp;
- 	}
- 
- 	return NULL;
-@@ -221,13 +232,13 @@ int ipc_addid(struct ipc_ids *ids, struc
- {
- 	kuid_t euid;
- 	kgid_t egid;
--	int id;
-+	int id, err;
- 	int next_id = ids->next_id;
- 
- 	if (size > IPCMNI)
- 		size = IPCMNI;
- 
--	if (ids->in_use >= size)
-+	if (!ids->tables_initialized || ids->in_use >= size)
- 		return -ENOSPC;
- 
- 	idr_preload(GFP_KERNEL);
-@@ -246,6 +257,15 @@ int ipc_addid(struct ipc_ids *ids, struc
- 		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
- 		       GFP_NOWAIT);
- 	idr_preload_end();
-+
-+	if (id >= 0 && new->key != IPC_PRIVATE) {
-+		err = rhashtable_insert_fast(&ids->key_ht, &new->khtnode,
-+					     ipc_kht_params);
-+		if (err < 0) {
-+			idr_remove(&ids->ipcs_idr, id);
-+			id = err;
-+		}
++		/*
++		 * We are going to enforce SIGBUS but the PF path might have
++		 * dropped the mmap_sem already so take it again so that
++		 * we do not break expectations of all arch specific PF paths
++		 * and g-u-p
++		 */
++		if (ret & VM_FAULT_RETRY)
++			down_read(&vma->vm_mm->mmap_sem);
+ 		ret = VM_FAULT_SIGBUS;
 +	}
- 	if (id < 0) {
- 		spin_unlock(&new->lock);
- 		rcu_read_unlock();
-@@ -377,6 +397,20 @@ static int ipcget_public(struct ipc_name
- 	return err;
+ 
+ 	return ret;
  }
- 
-+/**
-+ * ipc_kht_remove - remove an ipc from the key hashtable
-+ * @ids: ipc identifier set
-+ * @ipcp: ipc perm structure containing the key to remove
-+ *
-+ * ipc_ids.rwsem (as a writer) and the spinlock for this ID are held
-+ * before this function is called, and remain locked on the exit.
-+ */
-+static void ipc_kht_remove(struct ipc_ids *ids, struct kern_ipc_perm *ipcp)
-+{
-+	if (ipcp->key != IPC_PRIVATE)
-+		rhashtable_remove_fast(&ids->key_ht, &ipcp->khtnode,
-+				       ipc_kht_params);
-+}
- 
- /**
-  * ipc_rmid - remove an ipc identifier
-@@ -391,10 +425,25 @@ void ipc_rmid(struct ipc_ids *ids, struc
- 	int lid = ipcid_to_idx(ipcp->id);
- 
- 	idr_remove(&ids->ipcs_idr, lid);
-+	ipc_kht_remove(ids, ipcp);
- 	ids->in_use--;
- 	ipcp->deleted = true;
- }
- 
-+/**
-+ * ipc_set_key_private - switch the key of an existing ipc to IPC_PRIVATE
-+ * @ids: ipc identifier set
-+ * @ipcp: ipc perm structure containing the key to modify
-+ *
-+ * ipc_ids.rwsem (as a writer) and the spinlock for this ID are held
-+ * before this function is called, and remain locked on the exit.
-+ */
-+void ipc_set_key_private(struct ipc_ids *ids, struct kern_ipc_perm *ipcp)
-+{
-+	ipc_kht_remove(ids, ipcp);
-+	ipcp->key = IPC_PRIVATE;
-+}
-+
- int ipc_rcu_getref(struct kern_ipc_perm *ptr)
- {
- 	return refcount_inc_not_zero(&ptr->refcount);
-@@ -485,7 +534,7 @@ void ipc64_perm_to_ipc_perm(struct ipc64
- }
- 
- /**
-- * ipc_obtain_object
-+ * ipc_obtain_object_idr
-  * @ids: ipc identifier set
-  * @id: ipc id to look for
-  *
-@@ -499,6 +548,9 @@ struct kern_ipc_perm *ipc_obtain_object_
- 	struct kern_ipc_perm *out;
- 	int lid = ipcid_to_idx(id);
- 
-+	if (unlikely(!ids->tables_initialized))
-+		return ERR_PTR(-EINVAL);
-+
- 	out = idr_find(&ids->ipcs_idr, lid);
- 	if (!out)
- 		return ERR_PTR(-EINVAL);
-diff -puN ipc/util.h~ipc-optimize-semget-shmget-msgget-for-lots-of-keys ipc/util.h
---- a/ipc/util.h~ipc-optimize-semget-shmget-msgget-for-lots-of-keys
-+++ a/ipc/util.h
-@@ -15,8 +15,8 @@
- 
- #define SEQ_MULTIPLIER	(IPCMNI)
- 
--void sem_init(void);
--void msg_init(void);
-+int sem_init(void);
-+int msg_init(void);
- void shm_init(void);
- 
- struct ipc_namespace;
-@@ -30,17 +30,17 @@ static inline void mq_put_mnt(struct ipc
- #endif
- 
- #ifdef CONFIG_SYSVIPC
--void sem_init_ns(struct ipc_namespace *ns);
--void msg_init_ns(struct ipc_namespace *ns);
--void shm_init_ns(struct ipc_namespace *ns);
-+int sem_init_ns(struct ipc_namespace *ns);
-+int msg_init_ns(struct ipc_namespace *ns);
-+int shm_init_ns(struct ipc_namespace *ns);
- 
- void sem_exit_ns(struct ipc_namespace *ns);
- void msg_exit_ns(struct ipc_namespace *ns);
- void shm_exit_ns(struct ipc_namespace *ns);
- #else
--static inline void sem_init_ns(struct ipc_namespace *ns) { }
--static inline void msg_init_ns(struct ipc_namespace *ns) { }
--static inline void shm_init_ns(struct ipc_namespace *ns) { }
-+static inline int sem_init_ns(struct ipc_namespace *ns) { return 0; }
-+static inline int msg_init_ns(struct ipc_namespace *ns) { return 0; }
-+static inline int shm_init_ns(struct ipc_namespace *ns) { return 0; }
- 
- static inline void sem_exit_ns(struct ipc_namespace *ns) { }
- static inline void msg_exit_ns(struct ipc_namespace *ns) { }
-@@ -79,7 +79,7 @@ struct ipc_ops {
- struct seq_file;
- struct ipc_ids;
- 
--void ipc_init_ids(struct ipc_ids *);
-+int ipc_init_ids(struct ipc_ids *);
- #ifdef CONFIG_PROC_FS
- void __init ipc_init_proc_interface(const char *path, const char *header,
- 		int ids, int (*show)(struct seq_file *, void *));
-@@ -104,6 +104,9 @@ int ipc_get_maxid(struct ipc_ids *);
- /* must be called with both locks acquired. */
- void ipc_rmid(struct ipc_ids *, struct kern_ipc_perm *);
- 
-+/* must be called with both locks acquired. */
-+void ipc_set_key_private(struct ipc_ids *, struct kern_ipc_perm *);
-+
- /* must be called with ipcp locked */
- int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flg);
- 
 _
 
-Patches currently in -mm which might be from guillaume.knispel@supersonicimagine.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-ipc-optimize-semget-shmget-msgget-for-lots-of-keys.patch
+mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch
+mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
+mm-rename-global_page_state-to-global_zone_page_state.patch
+mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
+mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access.patch
+mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
 
