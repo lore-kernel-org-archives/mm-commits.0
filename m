@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+Subject: + signal-dont-remove-signal_unkillable-for-traced-tasks.patch
  added to -mm tree
-Date: Tue, 15 Aug 2017 15:00:06 -0700
-Message-ID: <59936ee6.Hql/I+tm/GBoZU8W%akpm@linux-foundation.org>
+Date: Tue, 15 Aug 2017 15:05:00 -0700
+Message-ID: <5993700c.UZolqV5uGWyZVIJT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49558 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751119AbdHOWAH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:00:07 -0400
+        with ESMTP id S1751427AbdHOWFB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, fw@strlen.de, mm-commits@vger.kernel.org
+To: jamie.iles@oracle.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rhashtable: fix comment on locks_mul default value
+     Subject: signal: don't remove SIGNAL_UNKILLABLE for traced tasks.
 has been added to the -mm tree.  Its filename is
-     lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+     signal-dont-remove-signal_unkillable-for-traced-tasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/signal-dont-remove-signal_unkillable-for-traced-tasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/signal-dont-remove-signal_unkillable-for-traced-tasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/rhashtable: fix comment on locks_mul default value
+From: Jamie Iles <jamie.iles@oracle.com>
+Subject: signal: don't remove SIGNAL_UNKILLABLE for traced tasks.
 
-As of 4cf0b354d92 ("rhashtable: avoid large lock-array allocations"), the
-default value for the locks multiplier was reduced from 128 to 32.  Update
-the header file to reflect this.
+When forcing a signal, SIGNAL_UNKILLABLE is removed to prevent recursive
+faults, but this is undesirable when tracing.  For example, debugging an
+init process (whether global or namespace), hitting a breakpoint and
+SIGTRAP will force SIGTRAP and then remove SIGNAL_UNKILLABLE.  Everything
+continues fine, but then once debugging has finished, the init process is
+left killable which is unlikely what the user expects, resulting in either
+an accidentally killed init or an init that stops reaping zombies.
 
-Link: http://lkml.kernel.org/r/20170815215401.30745-1-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Florian Westphal <fw@strlen.de>
+Link: http://lkml.kernel.org/r/20170815112806.10728-1-jamie.iles@oracle.com
+Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rhashtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/signal.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value include/linux/rhashtable.h
---- a/include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value
-+++ a/include/linux/rhashtable.h
-@@ -127,7 +127,7 @@ struct rhashtable;
-  * @head_offset: Offset of rhash_head in struct to be hashed
-  * @max_size: Maximum size while expanding
-  * @min_size: Minimum size while shrinking
-- * @locks_mul: Number of bucket locks to allocate per cpu (default: 128)
-+ * @locks_mul: Number of bucket locks to allocate per cpu (default: 32)
-  * @automatic_shrinking: Enable automatic shrinking of tables
-  * @nulls_base: Base value to generate nulls marker
-  * @hashfn: Hash function (default: jhash2 if !(key_len % 4), or jhash)
+diff -puN kernel/signal.c~signal-dont-remove-signal_unkillable-for-traced-tasks kernel/signal.c
+--- a/kernel/signal.c~signal-dont-remove-signal_unkillable-for-traced-tasks
++++ a/kernel/signal.c
+@@ -1194,7 +1194,11 @@ force_sig_info(int sig, struct siginfo *
+ 			recalc_sigpending_and_wake(t);
+ 		}
+ 	}
+-	if (action->sa.sa_handler == SIG_DFL)
++	/*
++	 * Don't clear SIGNAL_UNKILLABLE for traced tasks, users won't expect
++	 * debugging to leave init killable.
++	 */
++	if (action->sa.sa_handler == SIG_DFL && !t->ptrace)
+ 		t->signal->flags &= ~SIGNAL_UNKILLABLE;
+ 	ret = specific_send_sig_info(sig, info, t);
+ 	spin_unlock_irqrestore(&t->sighand->siglock, flags);
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from jamie.iles@oracle.com are
 
-rbtree-cache-leftmost-node-internally.patch
-rbtree-optimize-root-check-during-rebalancing-loop.patch
-rbtree-add-some-additional-comments-for-rebalancing-cases.patch
-lib-rbtree_testc-make-input-module-parameters.patch
-lib-rbtree_testc-add-inorder-traversal-test.patch
-lib-rbtree_testc-support-rb_root_cached.patch
-sched-fair-replace-cfs_rq-rb_leftmost.patch
-sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
-locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
-block-cfq-replace-cfq_rb_root-leftmost-caching.patch
-lib-interval_tree-fast-overlap-detection.patch
-lib-interval-tree-correct-comment-wrt-generic-flavor.patch
-procfs-use-faster-rb_first_cached.patch
-fs-epoll-use-faster-rb_first_cached.patch
-mem-memcg-cache-rightmost-node.patch
-mem-memcg-cache-rightmost-node-fix.patch
-block-cfq-cache-rightmost-rb_node.patch
-block-cfq-cache-rightmost-rb_node-fix.patch
-lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
-ipc-sem-drop-sem_checkid-helper.patch
-ipc-sem-play-nicer-with-large-nsops-allocations.patch
+signal-dont-remove-signal_unkillable-for-traced-tasks.patch
 
