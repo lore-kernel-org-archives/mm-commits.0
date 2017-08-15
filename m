@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-memfd-add-memfd_create-hugetlbfs-selftest.patch added to -mm tree
-Date: Tue, 15 Aug 2017 15:39:32 -0700
-Message-ID: <59937824.xVwCHzEhI36S1nlh%akpm@linux-foundation.org>
+Subject: + x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
+ added to -mm tree
+Date: Tue, 15 Aug 2017 15:52:32 -0700
+Message-ID: <59937b30.oeUnaQ8xkC7nG1qz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59604 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751624AbdHOWjd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:39:33 -0400
+        with ESMTP id S1752398AbdHOWwd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, colm@allcosts.net, dave.hansen@intel.com, fweimer@redhat.com, hpa@zytor.com, keescook@chromium.org, kirill@shutemov.name, luto@amacapital.net, mike.kravetz@oracle.com, mingo@kernel.org, tglx@linutronix.de, wad@chromium.org, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/memfd: add memfd_create hugetlbfs selftest
+     Subject: x86,mpx: make mpx depend on x86-64 to free up VMA flag
 has been added to the -mm tree.  Its filename is
-     selftests-memfd-add-memfd_create-hugetlbfs-selftest.patch
+     x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-memfd-add-memfd_create-hugetlbfs-selftest.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-memfd-add-memfd_create-hugetlbfs-selftest.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,868 +39,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: selftests/memfd: add memfd_create hugetlbfs selftest
+From: Rik van Riel <riel@redhat.com>
+Subject: x86,mpx: make mpx depend on x86-64 to free up VMA flag
 
-With the addition of hugetlbfs support in memfd_create, the memfd
-selftests should verify correct functionality with hugetlbfs.
+Patch series "mm,fork,security: introduce MADV_WIPEONFORK", v4.
 
-Instead of writing a separate memfd hugetlbfs test, modify the memfd_test
-program to take an optional argument 'hugetlbfs'.  If the hugetlbfs
-argument is specified, basic memfd_create functionality will be exercised
-on hugetlbfs.  If hugetlbfs is not specified, the current functionality of
-the test is unchanged.
+If a child process accesses memory that was MADV_WIPEONFORK, it will get
+zeroes.  The address ranges are still valid, they are just empty.
 
-Note that many of the tests in memfd_test test file sealing operations. 
-hugetlbfs does not support file sealing, therefore for hugetlbfs all
-sealing related tests are skipped.
+If a child process accesses memory that was MADV_DONTFORK, it will get a
+segmentation fault, since those address ranges are no longer valid in the
+child after fork.
 
-In order to test on hugetlbfs, there needs to be preallocated huge pages. 
-A new script (run_tests) is added.  This script will first run the
-existing memfd_create tests.  It will then, attempt to allocate the
-required number of huge pages before running the hugetlbfs test.  At the
-end of testing, it will release any huge pages allocated for testing
-purposes.
+Since MADV_DONTFORK also seems to be used to allow very large programs to
+fork in systems with strict memory overcommit restrictions, changing the
+semantics of MADV_DONTFORK might break existing programs.
 
-Link: http://lkml.kernel.org/r/1502495772-24736-3-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+The use case is libraries that store or cache information, and want to
+know that they need to regenerate it in the child process after fork.
+
+Examples of this would be:
+- systemd/pulseaudio API checks (fail after fork)
+  (replacing a getpid check, which is too slow without a PID cache)
+- PKCS#11 API reinitialization check (mandated by specification)
+- glibc's upcoming PRNG (reseed after fork)
+- OpenSSL PRNG (reseed after fork)
+
+The security benefits of a forking server having a re-inialized PRNG in
+every child process are pretty obvious.  However, due to libraries having
+all kinds of internal state, and programs getting compiled with many
+different versions of each library, it is unreasonable to expect calling
+programs to re-initialize everything manually after fork.
+
+A further complication is the proliferation of clone flags, programs
+bypassing glibc's functions to call clone directly, and programs calling
+unshare, causing the glibc pthread_atfork hook to not get called.
+
+It would be better to have the kernel take care of this automatically.
+
+The patchset also adds MADV_KEEPONFORK, to undo the effects of a prior
+MADV_WIPEONFORK.
+
+This is similar to the OpenBSD minherit syscall with MAP_INHERIT_ZERO:
+
+    https://man.openbsd.org/minherit.2
+
+
+
+This patch (of 2):
+
+MPX only seems to be available on 64 bit CPUs, starting with Skylake and
+Goldmont.  Move VM_MPX into the 64 bit only portion of vma->vm_flags, in
+order to free up a VMA flag.
+
+Link: http://lkml.kernel.org/r/20170811212829.29186-2-riel@redhat.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Colm MacCártaigh <colm@allcosts.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/Makefile     |    2 
- tools/testing/selftests/memfd/memfd_test.c |  372 ++++++++++++++-----
- tools/testing/selftests/memfd/run_tests.sh |   69 +++
- 3 files changed, 357 insertions(+), 86 deletions(-)
+ arch/x86/Kconfig   |    4 +++-
+ include/linux/mm.h |    8 ++++++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN tools/testing/selftests/memfd/Makefile~selftests-memfd-add-memfd_create-hugetlbfs-selftest tools/testing/selftests/memfd/Makefile
---- a/tools/testing/selftests/memfd/Makefile~selftests-memfd-add-memfd_create-hugetlbfs-selftest
-+++ a/tools/testing/selftests/memfd/Makefile
-@@ -3,7 +3,7 @@ CFLAGS += -I../../../../include/uapi/
- CFLAGS += -I../../../../include/
- CFLAGS += -I../../../../usr/include/
+diff -puN arch/x86/Kconfig~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag
++++ a/arch/x86/Kconfig
+@@ -1756,7 +1756,9 @@ config X86_SMAP
+ config X86_INTEL_MPX
+ 	prompt "Intel MPX (Memory Protection Extensions)"
+ 	def_bool n
+-	depends on CPU_SUP_INTEL
++	# Note: only available in 64-bit mode due to VMA flags shortage
++	depends on CPU_SUP_INTEL && X86_64
++	select ARCH_USES_HIGH_VMA_FLAGS
+ 	---help---
+ 	  MPX provides hardware features that can be used in
+ 	  conjunction with compiler-instrumented code to check
+diff -puN include/linux/mm.h~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag include/linux/mm.h
+--- a/include/linux/mm.h~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag
++++ a/include/linux/mm.h
+@@ -208,10 +208,12 @@ extern unsigned int kobjsize(const void
+ #define VM_HIGH_ARCH_BIT_1	33	/* bit only usable on 64-bit architectures */
+ #define VM_HIGH_ARCH_BIT_2	34	/* bit only usable on 64-bit architectures */
+ #define VM_HIGH_ARCH_BIT_3	35	/* bit only usable on 64-bit architectures */
++#define VM_HIGH_ARCH_BIT_4	36	/* bit only usable on 64-bit architectures */
+ #define VM_HIGH_ARCH_0	BIT(VM_HIGH_ARCH_BIT_0)
+ #define VM_HIGH_ARCH_1	BIT(VM_HIGH_ARCH_BIT_1)
+ #define VM_HIGH_ARCH_2	BIT(VM_HIGH_ARCH_BIT_2)
+ #define VM_HIGH_ARCH_3	BIT(VM_HIGH_ARCH_BIT_3)
++#define VM_HIGH_ARCH_4	BIT(VM_HIGH_ARCH_BIT_4)
+ #endif /* CONFIG_ARCH_USES_HIGH_VMA_FLAGS */
  
--TEST_PROGS := run_fuse_test.sh
-+TEST_PROGS := run_tests.sh
- TEST_GEN_FILES := memfd_test fuse_mnt fuse_test
+ #if defined(CONFIG_X86)
+@@ -235,9 +237,11 @@ extern unsigned int kobjsize(const void
+ # define VM_MAPPED_COPY	VM_ARCH_1	/* T if mapped copy of data (nommu mmap) */
+ #endif
  
- fuse_mnt.o: CFLAGS += $(shell pkg-config fuse --cflags)
-diff -puN tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-add-memfd_create-hugetlbfs-selftest tools/testing/selftests/memfd/memfd_test.c
---- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-add-memfd_create-hugetlbfs-selftest
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -18,12 +18,48 @@
- #include <sys/wait.h>
- #include <unistd.h>
+-#if defined(CONFIG_X86)
++#if defined(CONFIG_X86_INTEL_MPX)
+ /* MPX specific bounds table or bounds directory */
+-# define VM_MPX		VM_ARCH_2
++# define VM_MPX		VM_HIGH_ARCH_BIT_4
++#else
++# define VM_MPX		VM_NONE
+ #endif
  
-+#define MEMFD_STR	"memfd:"
-+#define SHARED_FT_STR	"(shared file-table)"
-+
- #define MFD_DEF_SIZE 8192
- #define STACK_SIZE 65536
- 
-+/*
-+ * Default is not to test hugetlbfs
-+ */
-+static int hugetlbfs_test;
-+static size_t mfd_def_size = MFD_DEF_SIZE;
-+
-+/*
-+ * Copied from mlock2-tests.c
-+ */
-+static unsigned long default_huge_page_size(void)
-+{
-+	unsigned long hps = 0;
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	FILE *f = fopen("/proc/meminfo", "r");
-+
-+	if (!f)
-+		return 0;
-+	while (getline(&line, &linelen, f) > 0) {
-+		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
-+			hps <<= 10;
-+			break;
-+		}
-+	}
-+
-+	free(line);
-+	fclose(f);
-+	return hps;
-+}
-+
- static int sys_memfd_create(const char *name,
- 			    unsigned int flags)
- {
-+	if (hugetlbfs_test)
-+		flags |= MFD_HUGETLB;
-+
- 	return syscall(__NR_memfd_create, name, flags);
- }
- 
-@@ -150,7 +186,7 @@ static void *mfd_assert_mmap_shared(int
- 	void *p;
- 
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ | PROT_WRITE,
- 		 MAP_SHARED,
- 		 fd,
-@@ -168,7 +204,7 @@ static void *mfd_assert_mmap_private(int
- 	void *p;
- 
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ,
- 		 MAP_PRIVATE,
- 		 fd,
-@@ -223,7 +259,7 @@ static void mfd_assert_read(int fd)
- 
- 	/* verify PROT_READ *is* allowed */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ,
- 		 MAP_PRIVATE,
- 		 fd,
-@@ -232,11 +268,11 @@ static void mfd_assert_read(int fd)
- 		printf("mmap() failed: %m\n");
- 		abort();
- 	}
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- 
- 	/* verify MAP_PRIVATE is *always* allowed (even writable) */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ | PROT_WRITE,
- 		 MAP_PRIVATE,
- 		 fd,
-@@ -245,7 +281,7 @@ static void mfd_assert_read(int fd)
- 		printf("mmap() failed: %m\n");
- 		abort();
- 	}
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- }
- 
- static void mfd_assert_write(int fd)
-@@ -254,16 +290,22 @@ static void mfd_assert_write(int fd)
- 	void *p;
- 	int r;
- 
--	/* verify write() succeeds */
--	l = write(fd, "\0\0\0\0", 4);
--	if (l != 4) {
--		printf("write() failed: %m\n");
--		abort();
-+	/*
-+	 * huegtlbfs does not support write, but we want to
-+	 * verify everything else here.
-+	 */
-+	if (!hugetlbfs_test) {
-+		/* verify write() succeeds */
-+		l = write(fd, "\0\0\0\0", 4);
-+		if (l != 4) {
-+			printf("write() failed: %m\n");
-+			abort();
-+		}
- 	}
- 
- 	/* verify PROT_READ | PROT_WRITE is allowed */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ | PROT_WRITE,
- 		 MAP_SHARED,
- 		 fd,
-@@ -273,11 +315,11 @@ static void mfd_assert_write(int fd)
- 		abort();
- 	}
- 	*(char *)p = 0;
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- 
- 	/* verify PROT_WRITE is allowed */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_WRITE,
- 		 MAP_SHARED,
- 		 fd,
-@@ -287,12 +329,12 @@ static void mfd_assert_write(int fd)
- 		abort();
- 	}
- 	*(char *)p = 0;
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- 
- 	/* verify PROT_READ with MAP_SHARED is allowed and a following
- 	 * mprotect(PROT_WRITE) allows writing */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ,
- 		 MAP_SHARED,
- 		 fd,
-@@ -302,20 +344,20 @@ static void mfd_assert_write(int fd)
- 		abort();
- 	}
- 
--	r = mprotect(p, MFD_DEF_SIZE, PROT_READ | PROT_WRITE);
-+	r = mprotect(p, mfd_def_size, PROT_READ | PROT_WRITE);
- 	if (r < 0) {
- 		printf("mprotect() failed: %m\n");
- 		abort();
- 	}
- 
- 	*(char *)p = 0;
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- 
- 	/* verify PUNCH_HOLE works */
- 	r = fallocate(fd,
- 		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
- 		      0,
--		      MFD_DEF_SIZE);
-+		      mfd_def_size);
- 	if (r < 0) {
- 		printf("fallocate(PUNCH_HOLE) failed: %m\n");
- 		abort();
-@@ -337,7 +379,7 @@ static void mfd_fail_write(int fd)
- 
- 	/* verify PROT_READ | PROT_WRITE is not allowed */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ | PROT_WRITE,
- 		 MAP_SHARED,
- 		 fd,
-@@ -349,7 +391,7 @@ static void mfd_fail_write(int fd)
- 
- 	/* verify PROT_WRITE is not allowed */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_WRITE,
- 		 MAP_SHARED,
- 		 fd,
-@@ -362,13 +404,13 @@ static void mfd_fail_write(int fd)
- 	/* Verify PROT_READ with MAP_SHARED with a following mprotect is not
- 	 * allowed. Note that for r/w the kernel already prevents the mmap. */
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ,
- 		 MAP_SHARED,
- 		 fd,
- 		 0);
- 	if (p != MAP_FAILED) {
--		r = mprotect(p, MFD_DEF_SIZE, PROT_READ | PROT_WRITE);
-+		r = mprotect(p, mfd_def_size, PROT_READ | PROT_WRITE);
- 		if (r >= 0) {
- 			printf("mmap()+mprotect() didn't fail as expected\n");
- 			abort();
-@@ -379,7 +421,7 @@ static void mfd_fail_write(int fd)
- 	r = fallocate(fd,
- 		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
- 		      0,
--		      MFD_DEF_SIZE);
-+		      mfd_def_size);
- 	if (r >= 0) {
- 		printf("fallocate(PUNCH_HOLE) didn't fail as expected\n");
- 		abort();
-@@ -390,13 +432,13 @@ static void mfd_assert_shrink(int fd)
- {
- 	int r, fd2;
- 
--	r = ftruncate(fd, MFD_DEF_SIZE / 2);
-+	r = ftruncate(fd, mfd_def_size / 2);
- 	if (r < 0) {
- 		printf("ftruncate(SHRINK) failed: %m\n");
- 		abort();
- 	}
- 
--	mfd_assert_size(fd, MFD_DEF_SIZE / 2);
-+	mfd_assert_size(fd, mfd_def_size / 2);
- 
- 	fd2 = mfd_assert_open(fd,
- 			      O_RDWR | O_CREAT | O_TRUNC,
-@@ -410,7 +452,7 @@ static void mfd_fail_shrink(int fd)
- {
- 	int r;
- 
--	r = ftruncate(fd, MFD_DEF_SIZE / 2);
-+	r = ftruncate(fd, mfd_def_size / 2);
- 	if (r >= 0) {
- 		printf("ftruncate(SHRINK) didn't fail as expected\n");
- 		abort();
-@@ -425,31 +467,31 @@ static void mfd_assert_grow(int fd)
- {
- 	int r;
- 
--	r = ftruncate(fd, MFD_DEF_SIZE * 2);
-+	r = ftruncate(fd, mfd_def_size * 2);
- 	if (r < 0) {
- 		printf("ftruncate(GROW) failed: %m\n");
- 		abort();
- 	}
- 
--	mfd_assert_size(fd, MFD_DEF_SIZE * 2);
-+	mfd_assert_size(fd, mfd_def_size * 2);
- 
- 	r = fallocate(fd,
- 		      0,
- 		      0,
--		      MFD_DEF_SIZE * 4);
-+		      mfd_def_size * 4);
- 	if (r < 0) {
- 		printf("fallocate(ALLOC) failed: %m\n");
- 		abort();
- 	}
- 
--	mfd_assert_size(fd, MFD_DEF_SIZE * 4);
-+	mfd_assert_size(fd, mfd_def_size * 4);
- }
- 
- static void mfd_fail_grow(int fd)
- {
- 	int r;
- 
--	r = ftruncate(fd, MFD_DEF_SIZE * 2);
-+	r = ftruncate(fd, mfd_def_size * 2);
- 	if (r >= 0) {
- 		printf("ftruncate(GROW) didn't fail as expected\n");
- 		abort();
-@@ -458,7 +500,7 @@ static void mfd_fail_grow(int fd)
- 	r = fallocate(fd,
- 		      0,
- 		      0,
--		      MFD_DEF_SIZE * 4);
-+		      mfd_def_size * 4);
- 	if (r >= 0) {
- 		printf("fallocate(ALLOC) didn't fail as expected\n");
- 		abort();
-@@ -467,25 +509,37 @@ static void mfd_fail_grow(int fd)
- 
- static void mfd_assert_grow_write(int fd)
- {
--	static char buf[MFD_DEF_SIZE * 8];
-+	static char *buf;
- 	ssize_t l;
- 
--	l = pwrite(fd, buf, sizeof(buf), 0);
--	if (l != sizeof(buf)) {
-+	buf = malloc(mfd_def_size * 8);
-+	if (!buf) {
-+		printf("malloc(%d) failed: %m\n", mfd_def_size * 8);
-+		abort();
-+	}
-+
-+	l = pwrite(fd, buf, mfd_def_size * 8, 0);
-+	if (l != (mfd_def_size * 8)) {
- 		printf("pwrite() failed: %m\n");
- 		abort();
- 	}
- 
--	mfd_assert_size(fd, MFD_DEF_SIZE * 8);
-+	mfd_assert_size(fd, mfd_def_size * 8);
- }
- 
- static void mfd_fail_grow_write(int fd)
- {
--	static char buf[MFD_DEF_SIZE * 8];
-+	static char *buf;
- 	ssize_t l;
- 
--	l = pwrite(fd, buf, sizeof(buf), 0);
--	if (l == sizeof(buf)) {
-+	buf = malloc(mfd_def_size * 8);
-+	if (!buf) {
-+		printf("malloc(%d) failed: %m\n", mfd_def_size * 8);
-+		abort();
-+	}
-+
-+	l = pwrite(fd, buf, mfd_def_size * 8, 0);
-+	if (l == (mfd_def_size * 8)) {
- 		printf("pwrite() didn't fail as expected\n");
- 		abort();
- 	}
-@@ -543,6 +597,8 @@ static void test_create(void)
- 	char buf[2048];
- 	int fd;
- 
-+	printf("%s CREATE\n", MEMFD_STR);
-+
- 	/* test NULL name */
- 	mfd_fail_new(NULL, 0);
- 
-@@ -570,13 +626,18 @@ static void test_create(void)
- 	fd = mfd_assert_new("", 0, MFD_CLOEXEC);
- 	close(fd);
- 
--	/* verify MFD_ALLOW_SEALING is allowed */
--	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
--	close(fd);
--
--	/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
--	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
--	close(fd);
-+	if (!hugetlbfs_test) {
-+		/* verify MFD_ALLOW_SEALING is allowed */
-+		fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
-+		close(fd);
-+
-+		/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
-+		fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
-+		close(fd);
-+	} else {
-+		/* sealing is not supported on hugetlbfs */
-+		mfd_fail_new("", MFD_ALLOW_SEALING);
-+	}
- }
- 
- /*
-@@ -587,8 +648,14 @@ static void test_basic(void)
- {
- 	int fd;
- 
-+	/* hugetlbfs does not contain sealing support */
-+	if (hugetlbfs_test)
-+		return;
-+
-+	printf("%s BASIC\n", MEMFD_STR);
-+
- 	fd = mfd_assert_new("kern_memfd_basic",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 
- 	/* add basic seals */
-@@ -619,7 +686,7 @@ static void test_basic(void)
- 
- 	/* verify sealing does not work without MFD_ALLOW_SEALING */
- 	fd = mfd_assert_new("kern_memfd_basic",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC);
- 	mfd_assert_has_seals(fd, F_SEAL_SEAL);
- 	mfd_fail_add_seals(fd, F_SEAL_SHRINK |
-@@ -630,6 +697,28 @@ static void test_basic(void)
- }
- 
- /*
-+ * hugetlbfs doesn't support seals or write, so just verify grow and shrink
-+ * on a hugetlbfs file created via memfd_create.
-+ */
-+static void test_hugetlbfs_grow_shrink(void)
-+{
-+	int fd;
-+
-+	printf("%s HUGETLBFS-GROW-SHRINK\n", MEMFD_STR);
-+
-+	fd = mfd_assert_new("kern_memfd_seal_write",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC);
-+
-+	mfd_assert_read(fd);
-+	mfd_assert_write(fd);
-+	mfd_assert_shrink(fd);
-+	mfd_assert_grow(fd);
-+
-+	close(fd);
-+}
-+
-+/*
-  * Test SEAL_WRITE
-  * Test whether SEAL_WRITE actually prevents modifications.
-  */
-@@ -637,8 +726,17 @@ static void test_seal_write(void)
- {
- 	int fd;
- 
-+	/*
-+	 * hugetlbfs does not contain sealing or write support.  Just test
-+	 * basic grow and shrink via test_hugetlbfs_grow_shrink.
-+	 */
-+	if (hugetlbfs_test)
-+		return test_hugetlbfs_grow_shrink();
-+
-+	printf("%s SEAL-WRITE\n", MEMFD_STR);
-+
- 	fd = mfd_assert_new("kern_memfd_seal_write",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 	mfd_assert_add_seals(fd, F_SEAL_WRITE);
-@@ -661,8 +759,14 @@ static void test_seal_shrink(void)
- {
- 	int fd;
- 
-+	/* hugetlbfs does not contain sealing support */
-+	if (hugetlbfs_test)
-+		return;
-+
-+	printf("%s SEAL-SHRINK\n", MEMFD_STR);
-+
- 	fd = mfd_assert_new("kern_memfd_seal_shrink",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 	mfd_assert_add_seals(fd, F_SEAL_SHRINK);
-@@ -685,8 +789,14 @@ static void test_seal_grow(void)
- {
- 	int fd;
- 
-+	/* hugetlbfs does not contain sealing support */
-+	if (hugetlbfs_test)
-+		return;
-+
-+	printf("%s SEAL-GROW\n", MEMFD_STR);
-+
- 	fd = mfd_assert_new("kern_memfd_seal_grow",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 	mfd_assert_add_seals(fd, F_SEAL_GROW);
-@@ -709,8 +819,14 @@ static void test_seal_resize(void)
- {
- 	int fd;
- 
-+	/* hugetlbfs does not contain sealing support */
-+	if (hugetlbfs_test)
-+		return;
-+
-+	printf("%s SEAL-RESIZE\n", MEMFD_STR);
-+
- 	fd = mfd_assert_new("kern_memfd_seal_resize",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 	mfd_assert_add_seals(fd, F_SEAL_SHRINK | F_SEAL_GROW);
-@@ -726,15 +842,52 @@ static void test_seal_resize(void)
- }
- 
- /*
-+ * hugetlbfs does not support seals.  Basic test to dup the memfd created
-+ * fd and perform some basic operations on it.
-+ */
-+static void hugetlbfs_dup(char *b_suffix)
-+{
-+	int fd, fd2;
-+
-+	printf("%s HUGETLBFS-DUP %s\n", MEMFD_STR, b_suffix);
-+
-+	fd = mfd_assert_new("kern_memfd_share_dup",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC);
-+
-+	fd2 = mfd_assert_dup(fd);
-+
-+	mfd_assert_read(fd);
-+	mfd_assert_write(fd);
-+
-+	mfd_assert_shrink(fd2);
-+	mfd_assert_grow(fd2);
-+
-+	close(fd2);
-+	close(fd);
-+}
-+
-+/*
-  * Test sharing via dup()
-  * Test that seals are shared between dupped FDs and they're all equal.
-  */
--static void test_share_dup(void)
-+static void test_share_dup(char *banner, char *b_suffix)
- {
- 	int fd, fd2;
- 
-+	/*
-+	 * hugetlbfs does not contain sealing support.  Perform some
-+	 * basic testing on dup'ed fd instead via hugetlbfs_dup.
-+	 */
-+	if (hugetlbfs_test) {
-+		hugetlbfs_dup(b_suffix);
-+		return;
-+	}
-+
-+	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+
- 	fd = mfd_assert_new("kern_memfd_share_dup",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 
-@@ -768,13 +921,19 @@ static void test_share_dup(void)
-  * Test sealing with active mmap()s
-  * Modifying seals is only allowed if no other mmap() refs exist.
-  */
--static void test_share_mmap(void)
-+static void test_share_mmap(char *banner, char *b_suffix)
- {
- 	int fd;
- 	void *p;
- 
-+	/* hugetlbfs does not contain sealing support */
-+	if (hugetlbfs_test)
-+		return;
-+
-+	printf("%s %s %s\n", MEMFD_STR,  banner, b_suffix);
-+
- 	fd = mfd_assert_new("kern_memfd_share_mmap",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 
-@@ -784,29 +943,66 @@ static void test_share_mmap(void)
- 	mfd_assert_has_seals(fd, 0);
- 	mfd_assert_add_seals(fd, F_SEAL_SHRINK);
- 	mfd_assert_has_seals(fd, F_SEAL_SHRINK);
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- 
- 	/* readable ref allows sealing */
- 	p = mfd_assert_mmap_private(fd);
- 	mfd_assert_add_seals(fd, F_SEAL_WRITE);
- 	mfd_assert_has_seals(fd, F_SEAL_WRITE | F_SEAL_SHRINK);
--	munmap(p, MFD_DEF_SIZE);
-+	munmap(p, mfd_def_size);
- 
- 	close(fd);
- }
- 
- /*
-+ * Basic test to make sure we can open the hugetlbfs fd via /proc and
-+ * perform some simple operations on it.
-+ */
-+static void hugetlbfs_proc_open(char *b_suffix)
-+{
-+	int fd, fd2;
-+
-+	printf("%s HUGETLBFS-PROC-OPEN %s\n", MEMFD_STR, b_suffix);
-+
-+	fd = mfd_assert_new("kern_memfd_share_open",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC);
-+
-+	fd2 = mfd_assert_open(fd, O_RDWR, 0);
-+
-+	mfd_assert_read(fd);
-+	mfd_assert_write(fd);
-+
-+	mfd_assert_shrink(fd2);
-+	mfd_assert_grow(fd2);
-+
-+	close(fd2);
-+	close(fd);
-+}
-+
-+/*
-  * Test sealing with open(/proc/self/fd/%d)
-  * Via /proc we can get access to a separate file-context for the same memfd.
-  * This is *not* like dup(), but like a real separate open(). Make sure the
-  * semantics are as expected and we correctly check for RDONLY / WRONLY / RDWR.
-  */
--static void test_share_open(void)
-+static void test_share_open(char *banner, char *b_suffix)
- {
- 	int fd, fd2;
- 
-+	/*
-+	 * hugetlbfs does not contain sealing support.  So test basic
-+	 * functionality of using /proc fd via hugetlbfs_proc_open
-+	 */
-+	if (hugetlbfs_test) {
-+		hugetlbfs_proc_open(b_suffix);
-+		return;
-+	}
-+
-+	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+
- 	fd = mfd_assert_new("kern_memfd_share_open",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 
-@@ -841,13 +1037,19 @@ static void test_share_open(void)
-  * Test sharing via fork()
-  * Test whether seal-modifications work as expected with forked childs.
-  */
--static void test_share_fork(void)
-+static void test_share_fork(char *banner, char *b_suffix)
- {
- 	int fd;
- 	pid_t pid;
- 
-+	/* hugetlbfs does not contain sealing support */
-+	if (hugetlbfs_test)
-+		return;
-+
-+	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+
- 	fd = mfd_assert_new("kern_memfd_share_fork",
--			    MFD_DEF_SIZE,
-+			    mfd_def_size,
- 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 	mfd_assert_has_seals(fd, 0);
- 
-@@ -870,40 +1072,40 @@ int main(int argc, char **argv)
- {
- 	pid_t pid;
- 
--	printf("memfd: CREATE\n");
-+	if (argc == 2) {
-+		if (!strcmp(argv[1], "hugetlbfs")) {
-+			unsigned long hpage_size = default_huge_page_size();
-+
-+			if (!hpage_size) {
-+				printf("Unable to determine huge page size\n");
-+				abort();
-+			}
-+
-+			hugetlbfs_test = 1;
-+			mfd_def_size = hpage_size * 2;
-+		}
-+	}
-+
- 	test_create();
--	printf("memfd: BASIC\n");
- 	test_basic();
- 
--	printf("memfd: SEAL-WRITE\n");
- 	test_seal_write();
--	printf("memfd: SEAL-SHRINK\n");
- 	test_seal_shrink();
--	printf("memfd: SEAL-GROW\n");
- 	test_seal_grow();
--	printf("memfd: SEAL-RESIZE\n");
- 	test_seal_resize();
- 
--	printf("memfd: SHARE-DUP\n");
--	test_share_dup();
--	printf("memfd: SHARE-MMAP\n");
--	test_share_mmap();
--	printf("memfd: SHARE-OPEN\n");
--	test_share_open();
--	printf("memfd: SHARE-FORK\n");
--	test_share_fork();
-+	test_share_dup("SHARE-DUP", "");
-+	test_share_mmap("SHARE-MMAP", "");
-+	test_share_open("SHARE-OPEN", "");
-+	test_share_fork("SHARE-FORK", "");
- 
- 	/* Run test-suite in a multi-threaded environment with a shared
- 	 * file-table. */
- 	pid = spawn_idle_thread(CLONE_FILES | CLONE_FS | CLONE_VM);
--	printf("memfd: SHARE-DUP (shared file-table)\n");
--	test_share_dup();
--	printf("memfd: SHARE-MMAP (shared file-table)\n");
--	test_share_mmap();
--	printf("memfd: SHARE-OPEN (shared file-table)\n");
--	test_share_open();
--	printf("memfd: SHARE-FORK (shared file-table)\n");
--	test_share_fork();
-+	test_share_dup("SHARE-DUP", SHARED_FT_STR);
-+	test_share_mmap("SHARE-MMAP", SHARED_FT_STR);
-+	test_share_open("SHARE-OPEN", SHARED_FT_STR);
-+	test_share_fork("SHARE-FORK", SHARED_FT_STR);
- 	join_idle_thread(pid);
- 
- 	printf("memfd: DONE\n");
-diff -puN /dev/null tools/testing/selftests/memfd/run_tests.sh
---- /dev/null
-+++ a/tools/testing/selftests/memfd/run_tests.sh
-@@ -0,0 +1,69 @@
-+#!/bin/bash
-+# please run as root
-+
-+#
-+# Normal tests requiring no special resources
-+#
-+./run_fuse_test.sh
-+./memfd_test
-+
-+#
-+# To test memfd_create with hugetlbfs, there needs to be hpages_test
-+# huge pages free.  Attempt to allocate enough pages to test.
-+#
-+hpages_test=8
-+
-+#
-+# Get count of free huge pages from /proc/meminfo
-+#
-+while read name size unit; do
-+        if [ "$name" = "HugePages_Free:" ]; then
-+                freepgs=$size
-+        fi
-+done < /proc/meminfo
-+
-+#
-+# If not enough free huge pages for test, attempt to increase
-+#
-+if [ -n "$freepgs" ] && [ $freepgs -lt $hpages_test ]; then
-+	nr_hugepgs=`cat /proc/sys/vm/nr_hugepages`
-+	hpages_needed=`expr $hpages_test - $freepgs`
-+
-+	echo 3 > /proc/sys/vm/drop_caches
-+	echo $(( $hpages_needed + $nr_hugepgs )) > /proc/sys/vm/nr_hugepages
-+	if [ $? -ne 0 ]; then
-+		echo "Please run this test as root"
-+		exit 1
-+	fi
-+	while read name size unit; do
-+		if [ "$name" = "HugePages_Free:" ]; then
-+			freepgs=$size
-+		fi
-+	done < /proc/meminfo
-+fi
-+
-+#
-+# If still not enough huge pages available, exit.  But, give back any huge
-+# pages potentially allocated above.
-+#
-+if [ $freepgs -lt $hpages_test ]; then
-+	# nr_hugepgs non-zero only if we attempted to increase
-+	if [ -n "$nr_hugepgs" ]; then
-+		echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
-+	fi
-+	printf "Not enough huge pages available (%d < %d)\n" \
-+		$freepgs $needpgs
-+	exit 1
-+fi
-+
-+#
-+# Run the hugetlbfs test
-+#
-+./memfd_test hugetlbfs
-+
-+#
-+# Give back any huge pages allocated for the test
-+#
-+if [ -n "$nr_hugepgs" ]; then
-+	echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
-+fi
+ #ifndef VM_GROWSUP
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-mm-mremap-fail-map-duplication-attempts-for-private-mappings.patch
-mm-hugetlb-define-system-call-hugetlb-size-encodings-in-single-file.patch
-mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
-mm-shm-use-new-hugetlb-size-encoding-definitions.patch
-mm-shmem-add-hugetlbfs-support-to-memfd_create.patch
-selftests-memfd-add-memfd_create-hugetlbfs-selftest.patch
+x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
+mmfork-introduce-madv_wipeonfork.patch
 
