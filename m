@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch added to -mm tree
-Date: Tue, 15 Aug 2017 14:58:57 -0700
-Message-ID: <59936ea1.vZkNfXLKmsUI+anu%akpm@linux-foundation.org>
+Subject: + lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+ added to -mm tree
+Date: Tue, 15 Aug 2017 15:00:06 -0700
+Message-ID: <59936ee6.Hql/I+tm/GBoZU8W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48338 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48422 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751095AbdHOV66 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 17:58:58 -0400
+        with ESMTP id S1751119AbdHOWAH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andrea@kernel.org, kirill@shutemov.name, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, wenwei.tww@alibaba-inc.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, fw@strlen.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
+     Subject: lib/rhashtable: fix comment on locks_mul default value
 has been added to the -mm tree.  Its filename is
-     mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
+     lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,308 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/rhashtable: fix comment on locks_mul default value
 
-Wenwei Tao has noticed that our current assumption that the oom victim is
-dying and never doing any visible changes after it dies, and so the
-oom_reaper can tear it down, is not entirely true.
+As of 4cf0b354d92 ("rhashtable: avoid large lock-array allocations"), the
+default value for the locks multiplier was reduced from 128 to 32.  Update
+the header file to reflect this.
 
-__task_will_free_mem consider a task dying when SIGNAL_GROUP_EXIT is set
-but do_group_exit sends SIGKILL to all threads _after_ the flag is set. 
-So there is a race window when some threads won't have
-fatal_signal_pending while the oom_reaper could start unmapping the
-address space.  Moreover some paths might not check for fatal signals
-before each PF/g-u-p/copy_from_user.
-
-We already have a protection for oom_reaper vs.  PF races by checking
-MMF_UNSTABLE.  This has been, however, checked only for kernel threads
-(use_mm users) which can outlive the oom victim.  A simple fix would be to
-extend the current check in handle_mm_fault for all tasks but that
-wouldn't be sufficient because the current check assumes that a kernel
-thread would bail out after EFAULT from get_user*/copy_from_user and never
-re-read the same address which would succeed because the PF path has
-established page tables already.  This seems to be the case for the only
-existing use_mm user currently (virtio driver) but it is rather fragile in
-general.
-
-This is even more fragile in general for more complex paths such as
-generic_perform_write which can re-read the same address more times (e.g. 
-iov_iter_copy_from_user_atomic to fail and then iov_iter_fault_in_readable
-on retry).  Therefore we have to implement MMF_UNSTABLE protection in a
-robust way and never make a potentially corrupted content visible.  That
-requires to hook deeper into the PF path and check for the flag _every
-time_ before a pte for anonymous memory is established (that means all
-!VM_SHARED mappings).
-
-The corruption can be triggered artificially
-(http://lkml.kernel.org/r/201708040646.v746kkhC024636@www262.sakura.ne.jp)
-but there doesn't seem to be any real life bug report.  The race window
-should be quite tight to trigger most of the time.
-
-Link: http://lkml.kernel.org/r/20170807113839.16695-3-mhocko@kernel.org
-Fixes: aac453635549 ("mm, oom: introduce oom reaper")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
-Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Andrea Argangeli <andrea@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: http://lkml.kernel.org/r/20170815215401.30745-1-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Florian Westphal <fw@strlen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |   22 ++++++++++++++++++++
- mm/huge_memory.c    |   30 ++++++++++++++++++++-------
- mm/memory.c         |   46 ++++++++++++++++++------------------------
- 3 files changed, 64 insertions(+), 34 deletions(-)
+ include/linux/rhashtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/oom.h~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer include/linux/oom.h
---- a/include/linux/oom.h~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
-+++ a/include/linux/oom.h
-@@ -6,6 +6,8 @@
- #include <linux/types.h>
- #include <linux/nodemask.h>
- #include <uapi/linux/oom.h>
-+#include <linux/sched/coredump.h> /* MMF_* */
-+#include <linux/mm.h> /* VM_FAULT* */
- 
- struct zonelist;
- struct notifier_block;
-@@ -63,6 +65,26 @@ static inline bool tsk_is_oom_victim(str
- 	return tsk->signal->oom_mm;
- }
- 
-+/*
-+ * Checks whether a page fault on the given mm is still reliable.
-+ * This is no longer true if the oom reaper started to reap the
-+ * address space which is reflected by MMF_UNSTABLE flag set in
-+ * the mm. At that moment any !shared mapping would lose the content
-+ * and could cause a memory corruption (zero pages instead of the
-+ * original content).
-+ *
-+ * User should call this before establishing a page table entry for
-+ * a !shared mapping and under the proper page table lock.
-+ *
-+ * Return 0 when the PF is safe VM_FAULT_SIGBUS otherwise.
-+ */
-+static inline int check_stable_address_space(struct mm_struct *mm)
-+{
-+	if (unlikely(test_bit(MMF_UNSTABLE, &mm->flags)))
-+		return VM_FAULT_SIGBUS;
-+	return 0;
-+}
-+
- extern unsigned long oom_badness(struct task_struct *p,
- 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
- 		unsigned long totalpages);
-diff -puN mm/huge_memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer mm/huge_memory.c
---- a/mm/huge_memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
-+++ a/mm/huge_memory.c
-@@ -32,6 +32,7 @@
- #include <linux/userfaultfd_k.h>
- #include <linux/page_idle.h>
- #include <linux/shmem_fs.h>
-+#include <linux/oom.h>
- 
- #include <asm/tlb.h>
- #include <asm/pgalloc.h>
-@@ -550,6 +551,7 @@ static int __do_huge_pmd_anonymous_page(
- 	struct mem_cgroup *memcg;
- 	pgtable_t pgtable;
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
-+	int ret = 0;
- 
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 
-@@ -561,9 +563,8 @@ static int __do_huge_pmd_anonymous_page(
- 
- 	pgtable = pte_alloc_one(vma->vm_mm, haddr);
- 	if (unlikely(!pgtable)) {
--		mem_cgroup_cancel_charge(page, memcg, true);
--		put_page(page);
--		return VM_FAULT_OOM;
-+		ret = VM_FAULT_OOM;
-+		goto release;
- 	}
- 
- 	clear_huge_page(page, haddr, HPAGE_PMD_NR);
-@@ -576,13 +577,14 @@ static int __do_huge_pmd_anonymous_page(
- 
- 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
- 	if (unlikely(!pmd_none(*vmf->pmd))) {
--		spin_unlock(vmf->ptl);
--		mem_cgroup_cancel_charge(page, memcg, true);
--		put_page(page);
--		pte_free(vma->vm_mm, pgtable);
-+		goto unlock_release;
- 	} else {
- 		pmd_t entry;
- 
-+		ret = check_stable_address_space(vma->vm_mm);
-+		if (ret)
-+			goto unlock_release;
-+
- 		/* Deliver the page fault to userland */
- 		if (userfaultfd_missing(vma)) {
- 			int ret;
-@@ -610,6 +612,15 @@ static int __do_huge_pmd_anonymous_page(
- 	}
- 
- 	return 0;
-+unlock_release:
-+	spin_unlock(vmf->ptl);
-+release:
-+	if (pgtable)
-+		pte_free(vma->vm_mm, pgtable);
-+	mem_cgroup_cancel_charge(page, memcg, true);
-+	put_page(page);
-+	return ret;
-+
- }
- 
- /*
-@@ -688,7 +699,10 @@ int do_huge_pmd_anonymous_page(struct vm
- 		ret = 0;
- 		set = false;
- 		if (pmd_none(*vmf->pmd)) {
--			if (userfaultfd_missing(vma)) {
-+			ret = check_stable_address_space(vma->vm_mm);
-+			if (ret) {
-+				spin_unlock(vmf->ptl);
-+			} else if (userfaultfd_missing(vma)) {
- 				spin_unlock(vmf->ptl);
- 				ret = handle_userfault(vmf, VM_UFFD_MISSING);
- 				VM_BUG_ON(ret & VM_FAULT_FALLBACK);
-diff -puN mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer mm/memory.c
---- a/mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
-+++ a/mm/memory.c
-@@ -68,6 +68,7 @@
- #include <linux/debugfs.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/dax.h>
-+#include <linux/oom.h>
- 
- #include <asm/io.h>
- #include <asm/mmu_context.h>
-@@ -2893,6 +2894,7 @@ static int do_anonymous_page(struct vm_f
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mem_cgroup *memcg;
- 	struct page *page;
-+	int ret = 0;
- 	pte_t entry;
- 
- 	/* File mapping without ->vm_ops ? */
-@@ -2925,6 +2927,9 @@ static int do_anonymous_page(struct vm_f
- 				vmf->address, &vmf->ptl);
- 		if (!pte_none(*vmf->pte))
- 			goto unlock;
-+		ret = check_stable_address_space(vma->vm_mm);
-+		if (ret)
-+			goto unlock;
- 		/* Deliver the page fault to userland, check inside PT lock */
- 		if (userfaultfd_missing(vma)) {
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
-@@ -2959,6 +2964,10 @@ static int do_anonymous_page(struct vm_f
- 	if (!pte_none(*vmf->pte))
- 		goto release;
- 
-+	ret = check_stable_address_space(vma->vm_mm);
-+	if (ret)
-+		goto release;
-+
- 	/* Deliver the page fault to userland, check inside PT lock */
- 	if (userfaultfd_missing(vma)) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
-@@ -2978,7 +2987,7 @@ setpte:
- 	update_mmu_cache(vma, vmf->address, vmf->pte);
- unlock:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	return 0;
-+	return ret;
- release:
- 	mem_cgroup_cancel_charge(page, memcg, false);
- 	put_page(page);
-@@ -3252,7 +3261,7 @@ int alloc_set_pte(struct vm_fault *vmf,
- int finish_fault(struct vm_fault *vmf)
- {
- 	struct page *page;
--	int ret;
-+	int ret = 0;
- 
- 	/* Did we COW the page? */
- 	if ((vmf->flags & FAULT_FLAG_WRITE) &&
-@@ -3260,7 +3269,15 @@ int finish_fault(struct vm_fault *vmf)
- 		page = vmf->cow_page;
- 	else
- 		page = vmf->page;
--	ret = alloc_set_pte(vmf, vmf->memcg, page);
-+
-+	/*
-+	 * check even for read faults because we might have lost our CoWed
-+	 * page
-+	 */
-+	if (!(vmf->vma->vm_flags & VM_SHARED))
-+		ret = check_stable_address_space(vmf->vma->vm_mm);
-+	if (!ret)
-+		ret = alloc_set_pte(vmf, vmf->memcg, page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	return ret;
-@@ -3900,29 +3917,6 @@ int handle_mm_fault(struct vm_area_struc
- 			mem_cgroup_oom_synchronize(false);
- 	}
- 
--	/*
--	 * This mm has been already reaped by the oom reaper and so the
--	 * refault cannot be trusted in general. Anonymous refaults would
--	 * lose data and give a zero page instead e.g. This is especially
--	 * problem for use_mm() because regular tasks will just die and
--	 * the corrupted data will not be visible anywhere while kthread
--	 * will outlive the oom victim and potentially propagate the date
--	 * further.
--	 */
--	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
--				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags))) {
--
--		/*
--		 * We are going to enforce SIGBUS but the PF path might have
--		 * dropped the mmap_sem already so take it again so that
--		 * we do not break expectations of all arch specific PF paths
--		 * and g-u-p
--		 */
--		if (ret & VM_FAULT_RETRY)
--			down_read(&vma->vm_mm->mmap_sem);
--		ret = VM_FAULT_SIGBUS;
--	}
--
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(handle_mm_fault);
+diff -puN include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value include/linux/rhashtable.h
+--- a/include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value
++++ a/include/linux/rhashtable.h
+@@ -127,7 +127,7 @@ struct rhashtable;
+  * @head_offset: Offset of rhash_head in struct to be hashed
+  * @max_size: Maximum size while expanding
+  * @min_size: Minimum size while shrinking
+- * @locks_mul: Number of bucket locks to allocate per cpu (default: 128)
++ * @locks_mul: Number of bucket locks to allocate per cpu (default: 32)
+  * @automatic_shrinking: Enable automatic shrinking of tables
+  * @nulls_base: Base value to generate nulls marker
+  * @hashfn: Hash function (default: jhash2 if !(key_len % 4), or jhash)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch
-mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
-mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
-mm-memory_hotplug-remove-zone-restrictions.patch
-mm-page_alloc-rip-out-zonelist_order_zone.patch
-mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
-mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
-mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
-mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
-mm-page_alloc-simplify-zonelist-initialization.patch
-mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
-mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
-mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
-mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
-mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
-mm-rename-global_page_state-to-global_zone_page_state.patch
-mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
-mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access.patch
-mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch
-fs-proc-remove-priv-argument-from-is_stack.patch
+rbtree-cache-leftmost-node-internally.patch
+rbtree-optimize-root-check-during-rebalancing-loop.patch
+rbtree-add-some-additional-comments-for-rebalancing-cases.patch
+lib-rbtree_testc-make-input-module-parameters.patch
+lib-rbtree_testc-add-inorder-traversal-test.patch
+lib-rbtree_testc-support-rb_root_cached.patch
+sched-fair-replace-cfs_rq-rb_leftmost.patch
+sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
+locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+block-cfq-replace-cfq_rb_root-leftmost-caching.patch
+lib-interval_tree-fast-overlap-detection.patch
+lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+procfs-use-faster-rb_first_cached.patch
+fs-epoll-use-faster-rb_first_cached.patch
+mem-memcg-cache-rightmost-node.patch
+mem-memcg-cache-rightmost-node-fix.patch
+block-cfq-cache-rightmost-rb_node.patch
+block-cfq-cache-rightmost-rb_node-fix.patch
+lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+ipc-sem-drop-sem_checkid-helper.patch
+ipc-sem-play-nicer-with-large-nsops-allocations.patch
 
