@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
- added to -mm tree
-Date: Tue, 15 Aug 2017 15:52:32 -0700
-Message-ID: <59937b30.oeUnaQ8xkC7nG1qz%akpm@linux-foundation.org>
+Subject: + mmfork-introduce-madv_wipeonfork.patch added to -mm tree
+Date: Tue, 15 Aug 2017 15:52:35 -0700
+Message-ID: <59937b33.ciCYy+JUPcxPm+RN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59640 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752398AbdHOWwd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:52:33 -0400
+        with ESMTP id S1752398AbdHOWwh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2017 18:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, colm@allcosts.net, dave.hansen@intel.com, fweimer@redhat.com, hpa@zytor.com, keescook@chromium.org, kirill@shutemov.name, luto@amacapital.net, mike.kravetz@oracle.com, mingo@kernel.org, tglx@linutronix.de, wad@chromium.org, willy@infradead.org, mm-commits@vger.kernel.org
+To: riel@redhat.com, colm@allcosts.net, dave.hansen@intel.com, fweimer@redhat.com, hpa@zytor.com, keescook@chromium.org, kirill@shutemov.name, linux-api@vger.kernel.org, luto@amacapital.net, mike.kravetz@oracle.com, mingo@kernel.org, tglx@linutronix.de, wad@chromium.org, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86,mpx: make mpx depend on x86-64 to free up VMA flag
+     Subject: mm,fork: introduce MADV_WIPEONFORK
 has been added to the -mm tree.  Its filename is
-     x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
+     mmfork-introduce-madv_wipeonfork.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmfork-introduce-madv_wipeonfork.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmfork-introduce-madv_wipeonfork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: x86,mpx: make mpx depend on x86-64 to free up VMA flag
+Subject: mm,fork: introduce MADV_WIPEONFORK
 
-Patch series "mm,fork,security: introduce MADV_WIPEONFORK", v4.
+Introduce MADV_WIPEONFORK semantics, which result in a VMA being empty in
+the child process after fork.  This differs from MADV_DONTFORK in one
+important way.
 
 If a child process accesses memory that was MADV_WIPEONFORK, it will get
 zeroes.  The address ranges are still valid, they are just empty.
@@ -54,6 +55,8 @@ child after fork.
 Since MADV_DONTFORK also seems to be used to allow very large programs to
 fork in systems with strict memory overcommit restrictions, changing the
 semantics of MADV_DONTFORK might break existing programs.
+
+MADV_WIPEONFORK only works on private, anonymous VMAs.
 
 The use case is libraries that store or cache information, and want to
 know that they need to regenerate it in the child process after fork.
@@ -77,86 +80,213 @@ unshare, causing the glibc pthread_atfork hook to not get called.
 
 It would be better to have the kernel take care of this automatically.
 
-The patchset also adds MADV_KEEPONFORK, to undo the effects of a prior
+The patch also adds MADV_KEEPONFORK, to undo the effects of a prior
 MADV_WIPEONFORK.
 
 This is similar to the OpenBSD minherit syscall with MAP_INHERIT_ZERO:
 
     https://man.openbsd.org/minherit.2
 
-
-
-This patch (of 2):
-
-MPX only seems to be available on 64 bit CPUs, starting with Skylake and
-Goldmont.  Move VM_MPX into the 64 bit only portion of vma->vm_flags, in
-order to free up a VMA flag.
-
-Link: http://lkml.kernel.org/r/20170811212829.29186-2-riel@redhat.com
+Link: http://lkml.kernel.org/r/20170811212829.29186-3-riel@redhat.com
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: Dave Hansen <dave.hansen@intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Will Drewry <wad@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Florian Weimer <fweimer@redhat.com>
+Reported-by: Colm MacCártaigh <colm@allcosts.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Colm MacCártaigh <colm@allcosts.net>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Drewry <wad@chromium.org>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig   |    4 +++-
- include/linux/mm.h |    8 ++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h     |    3 +++
+ arch/mips/include/uapi/asm/mman.h      |    3 +++
+ arch/parisc/include/uapi/asm/mman.h    |    3 +++
+ arch/xtensa/include/uapi/asm/mman.h    |    3 +++
+ fs/proc/task_mmu.c                     |    1 +
+ include/linux/mm.h                     |    2 +-
+ include/trace/events/mmflags.h         |    8 +-------
+ include/uapi/asm-generic/mman-common.h |    3 +++
+ kernel/fork.c                          |   10 ++++++++--
+ mm/madvise.c                           |   13 +++++++++++++
+ 10 files changed, 39 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag
-+++ a/arch/x86/Kconfig
-@@ -1756,7 +1756,9 @@ config X86_SMAP
- config X86_INTEL_MPX
- 	prompt "Intel MPX (Memory Protection Extensions)"
- 	def_bool n
--	depends on CPU_SUP_INTEL
-+	# Note: only available in 64-bit mode due to VMA flags shortage
-+	depends on CPU_SUP_INTEL && X86_64
-+	select ARCH_USES_HIGH_VMA_FLAGS
- 	---help---
- 	  MPX provides hardware features that can be used in
- 	  conjunction with compiler-instrumented code to check
-diff -puN include/linux/mm.h~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag include/linux/mm.h
---- a/include/linux/mm.h~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag
-+++ a/include/linux/mm.h
-@@ -208,10 +208,12 @@ extern unsigned int kobjsize(const void
- #define VM_HIGH_ARCH_BIT_1	33	/* bit only usable on 64-bit architectures */
- #define VM_HIGH_ARCH_BIT_2	34	/* bit only usable on 64-bit architectures */
- #define VM_HIGH_ARCH_BIT_3	35	/* bit only usable on 64-bit architectures */
-+#define VM_HIGH_ARCH_BIT_4	36	/* bit only usable on 64-bit architectures */
- #define VM_HIGH_ARCH_0	BIT(VM_HIGH_ARCH_BIT_0)
- #define VM_HIGH_ARCH_1	BIT(VM_HIGH_ARCH_BIT_1)
- #define VM_HIGH_ARCH_2	BIT(VM_HIGH_ARCH_BIT_2)
- #define VM_HIGH_ARCH_3	BIT(VM_HIGH_ARCH_BIT_3)
-+#define VM_HIGH_ARCH_4	BIT(VM_HIGH_ARCH_BIT_4)
- #endif /* CONFIG_ARCH_USES_HIGH_VMA_FLAGS */
+diff -puN arch/alpha/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/alpha/include/uapi/asm/mman.h
+--- a/arch/alpha/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -64,6 +64,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
  
- #if defined(CONFIG_X86)
-@@ -235,9 +237,11 @@ extern unsigned int kobjsize(const void
- # define VM_MAPPED_COPY	VM_ARCH_1	/* T if mapped copy of data (nommu mmap) */
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN arch/mips/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -91,6 +91,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN arch/parisc/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -60,6 +60,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	70		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 71		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 72		/* Undo MADV_WIPEONFORK */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ #define MAP_VARIABLE	0
+diff -puN arch/xtensa/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -103,6 +103,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN fs/proc/task_mmu.c~mmfork-introduce-madv_wipeonfork fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mmfork-introduce-madv_wipeonfork
++++ a/fs/proc/task_mmu.c
+@@ -664,6 +664,7 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_NORESERVE)]	= "nr",
+ 		[ilog2(VM_HUGETLB)]	= "ht",
+ 		[ilog2(VM_ARCH_1)]	= "ar",
++		[ilog2(VM_WIPEONFORK)]	= "wf",
+ 		[ilog2(VM_DONTDUMP)]	= "dd",
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ 		[ilog2(VM_SOFTDIRTY)]	= "sd",
+diff -puN include/linux/mm.h~mmfork-introduce-madv_wipeonfork include/linux/mm.h
+--- a/include/linux/mm.h~mmfork-introduce-madv_wipeonfork
++++ a/include/linux/mm.h
+@@ -189,7 +189,7 @@ extern unsigned int kobjsize(const void
+ #define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
+ #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
+ #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+-#define VM_ARCH_2	0x02000000
++#define VM_WIPEONFORK	0x02000000	/* Wipe VMA contents in child. */
+ #define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
+ 
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+diff -puN include/trace/events/mmflags.h~mmfork-introduce-madv_wipeonfork include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~mmfork-introduce-madv_wipeonfork
++++ a/include/trace/events/mmflags.h
+@@ -124,12 +124,6 @@ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
+ #define __VM_ARCH_SPECIFIC_1 {VM_ARCH_1,	"arch_1"	}
  #endif
  
 -#if defined(CONFIG_X86)
-+#if defined(CONFIG_X86_INTEL_MPX)
- /* MPX specific bounds table or bounds directory */
--# define VM_MPX		VM_ARCH_2
-+# define VM_MPX		VM_HIGH_ARCH_BIT_4
-+#else
-+# define VM_MPX		VM_NONE
- #endif
+-#define __VM_ARCH_SPECIFIC_2 {VM_MPX,		"mpx"		}
+-#else
+-#define __VM_ARCH_SPECIFIC_2 {VM_ARCH_2,	"arch_2"	}
+-#endif
+-
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ #define IF_HAVE_VM_SOFTDIRTY(flag,name) {flag, name },
+ #else
+@@ -161,7 +155,7 @@ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
+ 	{VM_NORESERVE,			"noreserve"	},		\
+ 	{VM_HUGETLB,			"hugetlb"	},		\
+ 	__VM_ARCH_SPECIFIC_1				,		\
+-	__VM_ARCH_SPECIFIC_2				,		\
++	{VM_WIPEONFORK,			"wipeonfork"	},		\
+ 	{VM_DONTDUMP,			"dontdump"	},		\
+ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"softdirty"	)		\
+ 	{VM_MIXEDMAP,			"mixedmap"	},		\
+diff -puN include/uapi/asm-generic/mman-common.h~mmfork-introduce-madv_wipeonfork include/uapi/asm-generic/mman-common.h
+--- a/include/uapi/asm-generic/mman-common.h~mmfork-introduce-madv_wipeonfork
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -58,6 +58,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_DONTDUMP flag */
  
- #ifndef VM_GROWSUP
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN kernel/fork.c~mmfork-introduce-madv_wipeonfork kernel/fork.c
+--- a/kernel/fork.c~mmfork-introduce-madv_wipeonfork
++++ a/kernel/fork.c
+@@ -654,7 +654,12 @@ static __latent_entropy int dup_mmap(str
+ 		retval = dup_userfaultfd(tmp, &uf);
+ 		if (retval)
+ 			goto fail_nomem_anon_vma_fork;
+-		if (anon_vma_fork(tmp, mpnt))
++		if (tmp->vm_flags & VM_WIPEONFORK) {
++			/* VM_WIPEONFORK gets a clean slate in the child. */
++			tmp->anon_vma = NULL;
++			if (anon_vma_prepare(tmp))
++				goto fail_nomem_anon_vma_fork;
++		} else if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+ 		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
+ 		tmp->vm_next = tmp->vm_prev = NULL;
+@@ -698,7 +703,8 @@ static __latent_entropy int dup_mmap(str
+ 		rb_parent = &tmp->vm_rb;
+ 
+ 		mm->map_count++;
+-		retval = copy_page_range(mm, oldmm, mpnt);
++		if (!(tmp->vm_flags & VM_WIPEONFORK))
++			retval = copy_page_range(mm, oldmm, mpnt);
+ 
+ 		if (tmp->vm_ops && tmp->vm_ops->open)
+ 			tmp->vm_ops->open(tmp);
+diff -puN mm/madvise.c~mmfork-introduce-madv_wipeonfork mm/madvise.c
+--- a/mm/madvise.c~mmfork-introduce-madv_wipeonfork
++++ a/mm/madvise.c
+@@ -80,6 +80,17 @@ static long madvise_behavior(struct vm_a
+ 		}
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
++	case MADV_WIPEONFORK:
++		/* MADV_WIPEONFORK is only supported on anonymous memory. */
++		if (vma->vm_file || vma->vm_flags & VM_SHARED) {
++			error = -EINVAL;
++			goto out;
++		}
++		new_flags |= VM_WIPEONFORK;
++		break;
++	case MADV_KEEPONFORK:
++		new_flags &= ~VM_WIPEONFORK;
++		break;
+ 	case MADV_DONTDUMP:
+ 		new_flags |= VM_DONTDUMP;
+ 		break;
+@@ -690,6 +701,8 @@ madvise_behavior_valid(int behavior)
+ #endif
+ 	case MADV_DONTDUMP:
+ 	case MADV_DODUMP:
++	case MADV_WIPEONFORK:
++	case MADV_KEEPONFORK:
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	case MADV_SOFT_OFFLINE:
+ 	case MADV_HWPOISON:
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
