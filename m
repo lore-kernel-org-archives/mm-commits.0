@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-use-autofs_dev_ioctl_size.patch added to -mm tree
-Date: Thu, 17 Aug 2017 15:47:57 -0700
-Message-ID: <59961d1d.mqD1BvnhV9l5NJih%akpm@linux-foundation.org>
+Subject: +
+ autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args.patch
+ added to -mm tree
+Date: Thu, 17 Aug 2017 15:48:01 -0700
+Message-ID: <59961d21.aLKoQdXo4JpXzqqp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753005AbdHQWr6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:47:58 -0400
+        with ESMTP id S1753005AbdHQWsC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:48:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: use AUTOFS_DEV_IOCTL_SIZE
+     Subject: autofs: use unsigned int/long instead of uint/ulong for ioctl args
 has been added to the -mm tree.  Its filename is
-     autofs-use-autofs_dev_ioctl_size.patch
+     autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-autofs_dev_ioctl_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-autofs_dev_ioctl_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +41,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: use AUTOFS_DEV_IOCTL_SIZE
+Subject: autofs: use unsigned int/long instead of uint/ulong for ioctl args
 
-Use a macro which defines misc-dev ioctl parameter size (excluding a path
-beyond &path[0]) since it's been used to initialize and copy this
-structure ever since it first appeared in 8d7b48e0 in 2008.
+The standard types unsigned int and unsigned long should be used for
+.compat_ioctl.  autofs is the only fs using uing/ulong for this, and these
+are even the only uint/ulong in the entire autofs code.
 
-(or simply get rid of this if this is just unnecessary abstraction when
-all it needs is sizeof(struct autofs_dev_ioctl))
+Drop unneeded long cast in return value of autofs_dev_ioctl_compat(). 
+It's already long.
 
-Edit: raven@themaw.net
-That's a good point but I'd prefer to keep the macro define.
-End edit: raven@themaw.net
-
-Link: http://lkml.kernel.org/r/150285068577.4670.2599968823770600622.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/150285069709.4670.3884827966280147529.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/autofs4/dev-ioctl.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-use-autofs_dev_ioctl_size fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-use-autofs_dev_ioctl_size
+diff -puN fs/autofs4/dev-ioctl.c~autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args
 +++ a/fs/autofs4/dev-ioctl.c
-@@ -97,13 +97,13 @@ static struct autofs_dev_ioctl *
+@@ -93,7 +93,7 @@ static int check_dev_ioctl_version(int c
+  * at the end of the struct.
+  */
+ static struct autofs_dev_ioctl *
+-		copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
++copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
  {
  	struct autofs_dev_ioctl tmp, *res;
  
--	if (copy_from_user(&tmp, in, sizeof(tmp)))
-+	if (copy_from_user(&tmp, in, AUTOFS_DEV_IOCTL_SIZE))
- 		return ERR_PTR(-EFAULT);
+@@ -705,7 +705,8 @@ out:
+ 	return err;
+ }
  
--	if (tmp.size < sizeof(tmp))
-+	if (tmp.size < AUTOFS_DEV_IOCTL_SIZE)
- 		return ERR_PTR(-EINVAL);
+-static long autofs_dev_ioctl(struct file *file, uint command, ulong u)
++static long autofs_dev_ioctl(struct file *file, unsigned int command,
++			     unsigned long u)
+ {
+ 	int err;
  
--	if (tmp.size > (PATH_MAX + sizeof(tmp)))
-+	if (tmp.size > AUTOFS_DEV_IOCTL_SIZE + PATH_MAX)
- 		return ERR_PTR(-ENAMETOOLONG);
+@@ -714,9 +715,10 @@ static long autofs_dev_ioctl(struct file
+ }
  
- 	res = memdup_user(in, tmp.size);
-@@ -133,8 +133,8 @@ static int validate_dev_ioctl(int cmd, s
- 		goto out;
- 	}
- 
--	if (param->size > sizeof(*param)) {
--		err = invalid_str(param->path, param->size - sizeof(*param));
-+	if (param->size > AUTOFS_DEV_IOCTL_SIZE) {
-+		err = invalid_str(param->path, param->size - AUTOFS_DEV_IOCTL_SIZE);
- 		if (err) {
- 			pr_warn(
- 			  "path string terminator missing for cmd(0x%08x)\n",
-@@ -451,7 +451,7 @@ static int autofs_dev_ioctl_requester(st
- 	dev_t devid;
- 	int err = -ENOENT;
- 
--	if (param->size <= sizeof(*param)) {
-+	if (param->size <= AUTOFS_DEV_IOCTL_SIZE) {
- 		err = -EINVAL;
- 		goto out;
- 	}
-@@ -539,7 +539,7 @@ static int autofs_dev_ioctl_ismountpoint
- 	unsigned int devid, magic;
- 	int err = -ENOENT;
- 
--	if (param->size <= sizeof(*param)) {
-+	if (param->size <= AUTOFS_DEV_IOCTL_SIZE) {
- 		err = -EINVAL;
- 		goto out;
- 	}
+ #ifdef CONFIG_COMPAT
+-static long autofs_dev_ioctl_compat(struct file *file, uint command, ulong u)
++static long autofs_dev_ioctl_compat(struct file *file, unsigned int command,
++				    unsigned long u)
+ {
+-	return (long) autofs_dev_ioctl(file, command, (ulong) compat_ptr(u));
++	return autofs_dev_ioctl(file, command, (unsigned long) compat_ptr(u));
+ }
+ #else
+ #define autofs_dev_ioctl_compat NULL
 _
 
 Patches currently in -mm which might be from tkusumi@tuxera.com are
