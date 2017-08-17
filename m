@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + swap-choose-swap-device-according-to-numa-node-v2.patch added
- to -mm tree
-Date: Thu, 17 Aug 2017 15:38:13 -0700
-Message-ID: <59961ad5.UXtpykbg7tWmPUDl%akpm@linux-foundation.org>
+Subject: + swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+ added to -mm tree
+Date: Thu, 17 Aug 2017 15:44:22 -0700
+Message-ID: <59961c46.xverUGN/wvXYCxdX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50412 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752632AbdHQWiP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:38:15 -0400
+        with ESMTP id S1753516AbdHQWoX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:44:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aaron.lu@intel.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.com, minchan@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaron.lu@intel.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.com, minchan@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap-choose-swap-device-according-to-numa-node-v2
+     Subject: swap-choose-swap-device-according-to-numa-node-v2-fix
 has been added to the -mm tree.  Its filename is
-     swap-choose-swap-device-according-to-numa-node-v2.patch
+     swap-choose-swap-device-according-to-numa-node-v2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-choose-swap-device-according-to-numa-node-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-choose-swap-device-according-to-numa-node-v2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-choose-swap-device-according-to-numa-node-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-choose-swap-device-according-to-numa-node-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,137 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: swap-choose-swap-device-according-to-numa-node-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: swap-choose-swap-device-according-to-numa-node-v2-fix
 
-- Add pr_emrg in swapfile_init() for -ENOMEM case and check for
-  swap_avail_heads during swap on time as suggested by Andrew Morton;
+use kmalloc_array()
 
-- Documentation update as suggested by Andrew Morton;
-
-- style fix by adding a blank line in __del_from_avail_list().
-
-Link: http://lkml.kernel.org/r/20170814053130.GD2369@aaronlu.sh.intel.com
-Link: http://lkml.kernel.org/r/20170816024439.GA10925@aaronlu.sh.intel.com
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/swap_numa.txt |   53 ++++++++++++++++++++++++++++++-
- mm/swapfile.c                  |    8 ++++
- 2 files changed, 59 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/vm/swap_numa.txt~swap-choose-swap-device-according-to-numa-node-v2 Documentation/vm/swap_numa.txt
---- a/Documentation/vm/swap_numa.txt~swap-choose-swap-device-according-to-numa-node-v2
-+++ a/Documentation/vm/swap_numa.txt
-@@ -1,7 +1,56 @@
-+Automatically bind swap device to numa node
-+-------------------------------------------
-+
- If the system has more than one swap device and swap device has the node
- information, we can make use of this information to decide which swap
- device to use in get_swap_pages() to get better performance.
- 
-+
-+How to use this feature
-+-----------------------
-+
-+Swap device has priority and that decides the order of it to be used. To make
-+use of automatically binding, there is no need to manipulate priority settings
-+for swap devices. e.g. on a 2 node machine, assume 2 swap devices swapA and
-+swapB, with swapA attached to node 0 and swapB attached to node 1, are going
-+to be swapped on. Simply swapping them on by doing:
-+# swapon /dev/swapA
-+# swapon /dev/swapB
-+
-+Then node 0 will use the two swap devices in the order of swapA then swapB and
-+node 1 will use the two swap devices in the order of swapB then swapA. Note
-+that the order of them being swapped on doesn't matter.
-+
-+A more complex example on a 4 node machine. Assume 6 swap devices are going to
-+be swapped on: swapA and swapB are attached to node 0, swapC is attached to
-+node 1, swapD and swapE are attached to node 2 and swapF is attached to node3.
-+The way to swap them on is the same as above:
-+# swapon /dev/swapA
-+# swapon /dev/swapB
-+# swapon /dev/swapC
-+# swapon /dev/swapD
-+# swapon /dev/swapE
-+# swapon /dev/swapF
-+
-+Then node 0 will use them in the order of:
-+swapA/swapB -> swapC -> swapD -> swapE -> swapF
-+swapA and swapB will be used in a round robin mode before any other swap device.
-+
-+node 1 will use them in the order of:
-+swapC -> swapA -> swapB -> swapD -> swapE -> swapF
-+
-+node 2 will use them in the order of:
-+swapD/swapE -> swapA -> swapB -> swapC -> swapF
-+Similaly, swapD and swapE will be used in a round robin mode before any
-+other swap devices.
-+
-+node 3 will use them in the order of:
-+swapF -> swapA -> swapB -> swapC -> swapD -> swapE
-+
-+
-+Implementation details
-+----------------------
-+
- The current code uses a priority based list, swap_avail_list, to decide
- which swap device to use and if multiple swap devices share the same
- priority, they are used round robin. This change here replaces the single
-@@ -15,4 +64,6 @@ value in the swap_avail_list is the nega
- due to plist being sorted from low to high. The new policy doesn't change
- the semantics for priority >=0 cases, the previous starting from -1 then
- downwards now becomes starting from -2 then downwards and -1 is reserved
--as the promoted value.
-+as the promoted value. So if multiple swap devices are attached to the same
-+node, they will all be promoted to priority -1 on that node's plist and will
-+be used round robin before any other swap devices.
-diff -puN mm/swapfile.c~swap-choose-swap-device-according-to-numa-node-v2 mm/swapfile.c
---- a/mm/swapfile.c~swap-choose-swap-device-according-to-numa-node-v2
+diff -puN mm/swapfile.c~swap-choose-swap-device-according-to-numa-node-v2-fix mm/swapfile.c
+--- a/mm/swapfile.c~swap-choose-swap-device-according-to-numa-node-v2-fix
 +++ a/mm/swapfile.c
-@@ -595,6 +595,7 @@ new_cluster:
- static void __del_from_avail_list(struct swap_info_struct *p)
+@@ -3700,7 +3700,8 @@ static int __init swapfile_init(void)
  {
  	int nid;
-+
- 	for_each_node(nid)
- 		plist_del(&p->avail_lists[nid], &swap_avail_heads[nid]);
- }
-@@ -3106,6 +3107,9 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
  
-+	if (!swap_avail_heads)
-+		return -ENOMEM;
-+
- 	p = alloc_swap_info();
- 	if (IS_ERR(p))
- 		return PTR_ERR(p);
-@@ -3697,8 +3701,10 @@ static int __init swapfile_init(void)
- 	int nid;
- 
- 	swap_avail_heads = kmalloc(nr_node_ids * sizeof(struct plist_head), GFP_KERNEL);
--	if (!swap_avail_heads)
-+	if (!swap_avail_heads) {
-+		pr_emerg("Not enough memory for swap heads, swap is disabled\n");
+-	swap_avail_heads = kmalloc(nr_node_ids * sizeof(struct plist_head), GFP_KERNEL);
++	swap_avail_heads = kmalloc_array(nr_node_ids, sizeof(struct plist_head),
++					 GFP_KERNEL);
+ 	if (!swap_avail_heads) {
+ 		pr_emerg("Not enough memory for swap heads, swap is disabled\n");
  		return -ENOMEM;
-+	}
- 
- 	for_each_node(nid)
- 		plist_head_init(&swap_avail_heads[nid]);
 _
 
-Patches currently in -mm which might be from aaron.lu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-swap-choose-swap-device-according-to-numa-node.patch
-swap-choose-swap-device-according-to-numa-node-v2.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
