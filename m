@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
- added to -mm tree
-Date: Thu, 17 Aug 2017 14:41:49 -0700
-Message-ID: <59960d9d.W7jeElSuWYGKVX21%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-introduce-add_pages.patch added to -mm tree
+Date: Thu, 17 Aug 2017 14:41:45 -0700
+Message-ID: <59960d99.bU5kRsZMWKtSzyER%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752969AbdHQVlv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 17:41:51 -0400
+        with ESMTP id S1753680AbdHQVlr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 17:41:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, SCheung@nvidia.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhairgrove@nvidia.com, mhocko@kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, sgutti@nvidia.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, SCheung@nvidia.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhairgrove@nvidia.com, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, sgutti@nvidia.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ZONE_DEVICE: new type of ZONE_DEVICE for unaddressable memory
+     Subject: mm/memory_hotplug: introduce add_pages
 has been added to the -mm tree.  Its filename is
-     mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
+     mm-memory_hotplug-introduce-add_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-introduce-add_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-introduce-add_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,624 +38,154 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/ZONE_DEVICE: new type of ZONE_DEVICE for unaddressable memory
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm/memory_hotplug: introduce add_pages
 
-HMM (heterogeneous memory management) need struct page to support
-migration from system main memory to device memory.  Reasons for HMM and
-migration to device memory is explained with HMM core patch.
+There are new users of memory hotplug emerging.  Some of them require
+different subset of arch_add_memory.  There are some which only require
+allocation of struct pages without mapping those pages to the kernel
+address space.  We currently have __add_pages for that purpose.  But this
+is rather lowlevel and not very suitable for the code outside of the
+memory hotplug.  E.g.  x86_64 wants to update max_pfn which should be done
+by the caller.  Introduce add_pages() which should care about those
+details if they are needed.  Each architecture should define its
+implementation and select CONFIG_ARCH_HAS_ADD_PAGES.  All others use the
+currently existing __add_pages.
 
-This patch deals with device memory that is un-addressable memory (ie CPU
-can not access it).  Hence we do not want those struct page to be manage
-like regular memory.  That is why we extend ZONE_DEVICE to support
-different types of memory.
-
-A persistent memory type is define for existing user of ZONE_DEVICE and a
-new device un-addressable type is added for the un-addressable memory
-type.  There is a clear separation between what is expected from each
-memory type and existing user of ZONE_DEVICE are un-affected by new
-requirement and new use of the un-addressable type.  All specific code
-path are protect with test against the memory type.
-
-Because memory is un-addressable we use a new special swap type for when a
-page is migrated to device memory (this reduces the number of maximum swap
-file).
-
-The main two additions beside memory type to ZONE_DEVICE is two callbacks.
-First one, page_free() is call whenever page refcount reach 1 (which
-means the page is free as ZONE_DEVICE page never reach a refcount of 0). 
-This allow device driver to manage its memory and associated struct page.
-
-The second callback page_fault() happens when there is a CPU access to an
-address that is back by a device page (which are un-addressable by the
-CPU).  This callback is responsible to migrate the page back to system
-main memory.  Device driver can not block migration back to system memory,
-HMM make sure that such page can not be pin into device memory.
-
-If device is in some error condition and can not migrate memory back then
-a CPU page fault to device memory should end with SIGBUS.
-
-Link: http://lkml.kernel.org/r/20170817000548.32038-8-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170817000548.32038-7-jglisse@redhat.com
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
 Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mark Hairgrove <mhairgrove@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Sherry Cheung <SCheung@nvidia.com>
 Cc: Subhash Gutti <sgutti@nvidia.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c       |    7 +++
- include/linux/ioport.h   |    1 
- include/linux/memremap.h |   73 +++++++++++++++++++++++++++++++++++++
- include/linux/mm.h       |   12 ++++++
- include/linux/swap.h     |   24 ++++++++++--
- include/linux/swapops.h  |   68 ++++++++++++++++++++++++++++++++++
- kernel/memremap.c        |   34 +++++++++++++++++
- mm/Kconfig               |   11 +++++
- mm/memory.c              |   61 ++++++++++++++++++++++++++++++
- mm/memory_hotplug.c      |   10 ++++-
- mm/mprotect.c            |   14 +++++++
- 11 files changed, 309 insertions(+), 6 deletions(-)
+ arch/x86/Kconfig               |    4 ++++
+ arch/x86/mm/init_64.c          |   22 +++++++++++++++-------
+ include/linux/memory_hotplug.h |   11 +++++++++++
+ 3 files changed, 30 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/fs/proc/task_mmu.c
-@@ -549,6 +549,8 @@ static void smaps_pte_entry(pte_t *pte,
- 			}
- 		} else if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
-+		else if (is_device_private_entry(swpent))
-+			page = device_private_entry_to_page(swpent);
- 	} else if (unlikely(IS_ENABLED(CONFIG_SHMEM) && mss->check_shmem_swap
- 							&& pte_none(*pte))) {
- 		page = find_get_entry(vma->vm_file->f_mapping,
-@@ -713,6 +715,8 @@ static int smaps_hugetlb_range(pte_t *pt
+diff -puN arch/x86/Kconfig~mm-memory_hotplug-introduce-add_pages arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-memory_hotplug-introduce-add_pages
++++ a/arch/x86/Kconfig
+@@ -2273,6 +2273,10 @@ source "kernel/livepatch/Kconfig"
  
- 		if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
-+		else if (is_device_private_entry(swpent))
-+			page = device_private_entry_to_page(swpent);
- 	}
- 	if (page) {
- 		int mapcount = page_mapcount(page);
-@@ -1276,6 +1280,9 @@ static pagemap_entry_t pte_to_pagemap_en
- 		flags |= PM_SWAP;
- 		if (is_migration_entry(entry))
- 			page = migration_entry_to_page(entry);
+ endmenu
+ 
++config ARCH_HAS_ADD_PAGES
++	def_bool y
++	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
 +
-+		if (is_device_private_entry(entry))
-+			page = device_private_entry_to_page(entry);
- 	}
- 
- 	if (page && !PageAnon(page))
-diff -puN include/linux/ioport.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 include/linux/ioport.h
---- a/include/linux/ioport.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/include/linux/ioport.h
-@@ -130,6 +130,7 @@ enum {
- 	IORES_DESC_ACPI_NV_STORAGE		= 3,
- 	IORES_DESC_PERSISTENT_MEMORY		= 4,
- 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
-+	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
- };
- 
- /* helpers to define resources */
-diff -puN include/linux/memremap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 include/linux/memremap.h
---- a/include/linux/memremap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/include/linux/memremap.h
-@@ -4,6 +4,8 @@
- #include <linux/ioport.h>
- #include <linux/percpu-refcount.h>
- 
-+#include <asm/pgtable.h>
-+
- struct resource;
- struct device;
- 
-@@ -35,18 +37,89 @@ static inline struct vmem_altmap *to_vme
- }
- #endif
- 
-+/*
-+ * Specialize ZONE_DEVICE memory into multiple types each having differents
-+ * usage.
-+ *
-+ * MEMORY_DEVICE_HOST:
-+ * Persistent device memory (pmem): struct page might be allocated in different
-+ * memory and architecture might want to perform special actions. It is similar
-+ * to regular memory, in that the CPU can access it transparently. However,
-+ * it is likely to have different bandwidth and latency than regular memory.
-+ * See Documentation/nvdimm/nvdimm.txt for more information.
-+ *
-+ * MEMORY_DEVICE_PRIVATE:
-+ * Device memory that is not directly addressable by the CPU: CPU can neither
-+ * read nor write private memory. In this case, we do still have struct pages
-+ * backing the device memory. Doing so simplifies the implementation, but it is
-+ * important to remember that there are certain points at which the struct page
-+ * must be treated as an opaque object, rather than a "normal" struct page.
-+ *
-+ * A more complete discussion of unaddressable memory may be found in
-+ * include/linux/hmm.h and Documentation/vm/hmm.txt.
-+ */
-+enum memory_type {
-+	MEMORY_DEVICE_HOST = 0,
-+	MEMORY_DEVICE_PRIVATE,
-+};
-+
-+/*
-+ * For MEMORY_DEVICE_PRIVATE we use ZONE_DEVICE and extend it with two
-+ * callbacks:
-+ *   page_fault()
-+ *   page_free()
-+ *
-+ * Additional notes about MEMORY_DEVICE_PRIVATE may be found in
-+ * include/linux/hmm.h and Documentation/vm/hmm.txt. There is also a brief
-+ * explanation in include/linux/memory_hotplug.h.
-+ *
-+ * The page_fault() callback must migrate page back, from device memory to
-+ * system memory, so that the CPU can access it. This might fail for various
-+ * reasons (device issues,  device have been unplugged, ...). When such error
-+ * conditions happen, the page_fault() callback must return VM_FAULT_SIGBUS and
-+ * set the CPU page table entry to "poisoned".
-+ *
-+ * Note that because memory cgroup charges are transferred to the device memory,
-+ * this should never fail due to memory restrictions. However, allocation
-+ * of a regular system page might still fail because we are out of memory. If
-+ * that happens, the page_fault() callback must return VM_FAULT_OOM.
-+ *
-+ * The page_fault() callback can also try to migrate back multiple pages in one
-+ * chunk, as an optimization. It must, however, prioritize the faulting address
-+ * over all the others.
-+ *
-+ *
-+ * The page_free() callback is called once the page refcount reaches 1
-+ * (ZONE_DEVICE pages never reach 0 refcount unless there is a refcount bug.
-+ * This allows the device driver to implement its own memory management.)
-+ */
-+typedef int (*dev_page_fault_t)(struct vm_area_struct *vma,
-+				unsigned long addr,
-+				const struct page *page,
-+				unsigned int flags,
-+				pmd_t *pmdp);
-+typedef void (*dev_page_free_t)(struct page *page, void *data);
-+
- /**
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-+ * @page_fault: callback when CPU fault on an unaddressable device page
-+ * @page_free: free page callback when page refcount reaches 1
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-  * @res: physical address range covered by @ref
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-  * @dev: host device of the mapping for debug
-+ * @data: private data pointer for page_free()
-+ * @type: memory type: see MEMORY_* in memory_hotplug.h
+ config ARCH_ENABLE_MEMORY_HOTPLUG
+ 	def_bool y
+ 	depends on X86_64 || (X86_32 && HIGHMEM)
+diff -puN arch/x86/mm/init_64.c~mm-memory_hotplug-introduce-add_pages arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~mm-memory_hotplug-introduce-add_pages
++++ a/arch/x86/mm/init_64.c
+@@ -761,7 +761,7 @@ void __init paging_init(void)
+  * After memory hotplug the variables max_pfn, max_low_pfn and high_memory need
+  * updating.
   */
- struct dev_pagemap {
-+	dev_page_fault_t page_fault;
-+	dev_page_free_t page_free;
- 	struct vmem_altmap *altmap;
- 	const struct resource *res;
- 	struct percpu_ref *ref;
- 	struct device *dev;
-+	void *data;
-+	enum memory_type type;
- };
- 
- #ifdef CONFIG_ZONE_DEVICE
-diff -puN include/linux/mm.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 include/linux/mm.h
---- a/include/linux/mm.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/include/linux/mm.h
-@@ -792,11 +792,23 @@ static inline bool is_zone_device_page(c
+-static void  update_end_of_memory_vars(u64 start, u64 size)
++static void update_end_of_memory_vars(u64 start, u64 size)
  {
- 	return page_zonenum(page) == ZONE_DEVICE;
+ 	unsigned long end_pfn = PFN_UP(start + size);
+ 
+@@ -772,22 +772,30 @@ static void  update_end_of_memory_vars(u
+ 	}
+ }
+ 
+-int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
++int add_pages(int nid, unsigned long start_pfn,
++	      unsigned long nr_pages, bool want_memblock)
+ {
+-	unsigned long start_pfn = start >> PAGE_SHIFT;
+-	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
+-	init_memory_mapping(start, start + size);
+-
+ 	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
+ 	WARN_ON_ONCE(ret);
+ 
+ 	/* update max_pfn, max_low_pfn and high_memory */
+-	update_end_of_memory_vars(start, size);
++	update_end_of_memory_vars(start_pfn << PAGE_SHIFT,
++				  nr_pages << PAGE_SHIFT);
+ 
+ 	return ret;
  }
 +
-+static inline bool is_device_private_page(const struct page *page)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
 +{
-+	/* See MEMORY_DEVICE_PRIVATE in include/linux/memory_hotplug.h */
-+	return ((page_zonenum(page) == ZONE_DEVICE) &&
-+		(page->pgmap->type == MEMORY_DEVICE_PRIVATE));
++	unsigned long start_pfn = start >> PAGE_SHIFT;
++	unsigned long nr_pages = size >> PAGE_SHIFT;
++
++	init_memory_mapping(start, start + size);
++
++	return add_pages(nid, start_pfn, nr_pages, want_memblock);
 +}
+ EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+ #define PAGE_INUSE 0xFD
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-add_pages include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-add_pages
++++ a/include/linux/memory_hotplug.h
+@@ -133,6 +133,17 @@ extern int __remove_pages(struct zone *z
+ extern int __add_pages(int nid, unsigned long start_pfn,
+ 	unsigned long nr_pages, bool want_memblock);
+ 
++#ifndef CONFIG_ARCH_HAS_ADD_PAGES
++static inline int add_pages(int nid, unsigned long start_pfn,
++			    unsigned long nr_pages, bool want_memblock)
++{
++	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
++}
++#else /* ARCH_HAS_ADD_PAGES */
++int add_pages(int nid, unsigned long start_pfn,
++	      unsigned long nr_pages, bool want_memblock);
++#endif /* ARCH_HAS_ADD_PAGES */
++
+ #ifdef CONFIG_NUMA
+ extern int memory_add_physaddr_to_nid(u64 start);
  #else
- static inline bool is_zone_device_page(const struct page *page)
- {
- 	return false;
- }
-+
-+static inline bool is_device_private_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif
- 
- static inline void get_page(struct page *page)
-diff -puN include/linux/swap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 include/linux/swap.h
---- a/include/linux/swap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/include/linux/swap.h
-@@ -51,6 +51,23 @@ static inline int current_is_kswapd(void
-  */
- 
- /*
-+ * Unaddressable device memory support. See include/linux/hmm.h and
-+ * Documentation/vm/hmm.txt. Short description is we need struct pages for
-+ * device memory that is unaddressable (inaccessible) by CPU, so that we can
-+ * migrate part of a process memory to device memory.
-+ *
-+ * When a page is migrated from CPU to device, we set the CPU page table entry
-+ * to a special SWP_DEVICE_* entry.
-+ */
-+#ifdef CONFIG_DEVICE_PRIVATE
-+#define SWP_DEVICE_NUM 2
-+#define SWP_DEVICE_WRITE (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM)
-+#define SWP_DEVICE_READ (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM+1)
-+#else
-+#define SWP_DEVICE_NUM 0
-+#endif
-+
-+/*
-  * NUMA node memory migration support
-  */
- #ifdef CONFIG_MIGRATION
-@@ -72,7 +89,8 @@ static inline int current_is_kswapd(void
- #endif
- 
- #define MAX_SWAPFILES \
--	((1 << MAX_SWAPFILES_SHIFT) - SWP_MIGRATION_NUM - SWP_HWPOISON_NUM)
-+	((1 << MAX_SWAPFILES_SHIFT) - SWP_DEVICE_NUM - \
-+	SWP_MIGRATION_NUM - SWP_HWPOISON_NUM)
- 
- /*
-  * Magic header for a swap area. The first part of the union is
-@@ -469,8 +487,8 @@ static inline void show_swap_cache_info(
- {
- }
- 
--#define free_swap_and_cache(swp)	is_migration_entry(swp)
--#define swapcache_prepare(swp)		is_migration_entry(swp)
-+#define free_swap_and_cache(e) (is_migration_entry(e) || is_device_private_entry(e))
-+#define swapcache_prepare(e) (is_migration_entry(e) || is_device_private_entry(e))
- 
- static inline int add_swap_count_continuation(swp_entry_t swp, gfp_t gfp_mask)
- {
-diff -puN include/linux/swapops.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 include/linux/swapops.h
---- a/include/linux/swapops.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/include/linux/swapops.h
-@@ -100,6 +100,74 @@ static inline void *swp_to_radix_entry(s
- 	return (void *)(value | RADIX_TREE_EXCEPTIONAL_ENTRY);
- }
- 
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
-+static inline swp_entry_t make_device_private_entry(struct page *page, bool write)
-+{
-+	return swp_entry(write ? SWP_DEVICE_WRITE : SWP_DEVICE_READ,
-+			 page_to_pfn(page));
-+}
-+
-+static inline bool is_device_private_entry(swp_entry_t entry)
-+{
-+	int type = swp_type(entry);
-+	return type == SWP_DEVICE_READ || type == SWP_DEVICE_WRITE;
-+}
-+
-+static inline void make_device_private_entry_read(swp_entry_t *entry)
-+{
-+	*entry = swp_entry(SWP_DEVICE_READ, swp_offset(*entry));
-+}
-+
-+static inline bool is_write_device_private_entry(swp_entry_t entry)
-+{
-+	return unlikely(swp_type(entry) == SWP_DEVICE_WRITE);
-+}
-+
-+static inline struct page *device_private_entry_to_page(swp_entry_t entry)
-+{
-+	return pfn_to_page(swp_offset(entry));
-+}
-+
-+int device_private_entry_fault(struct vm_area_struct *vma,
-+		       unsigned long addr,
-+		       swp_entry_t entry,
-+		       unsigned int flags,
-+		       pmd_t *pmdp);
-+#else /* CONFIG_DEVICE_PRIVATE */
-+static inline swp_entry_t make_device_private_entry(struct page *page, bool write)
-+{
-+	return swp_entry(0, 0);
-+}
-+
-+static inline void make_device_private_entry_read(swp_entry_t *entry)
-+{
-+}
-+
-+static inline bool is_device_private_entry(swp_entry_t entry)
-+{
-+	return false;
-+}
-+
-+static inline bool is_write_device_private_entry(swp_entry_t entry)
-+{
-+	return false;
-+}
-+
-+static inline struct page *device_private_entry_to_page(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
-+static inline int device_private_entry_fault(struct vm_area_struct *vma,
-+				     unsigned long addr,
-+				     swp_entry_t entry,
-+				     unsigned int flags,
-+				     pmd_t *pmdp)
-+{
-+	return VM_FAULT_SIGBUS;
-+}
-+#endif /* CONFIG_DEVICE_PRIVATE */
-+
- #ifdef CONFIG_MIGRATION
- static inline swp_entry_t make_migration_entry(struct page *page, int write)
- {
-diff -puN kernel/memremap.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 kernel/memremap.c
---- a/kernel/memremap.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/kernel/memremap.c
-@@ -18,6 +18,8 @@
- #include <linux/io.h>
- #include <linux/mm.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
- 
- #ifndef ioremap_cache
- /* temporary while we convert existing ioremap_cache users to memremap */
-@@ -207,6 +209,34 @@ static unsigned long order_at(struct res
- 	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
- 			pgoff += 1UL << order, order = order_at((res), pgoff))
- 
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
-+int device_private_entry_fault(struct vm_area_struct *vma,
-+		       unsigned long addr,
-+		       swp_entry_t entry,
-+		       unsigned int flags,
-+		       pmd_t *pmdp)
-+{
-+	struct page *page = device_private_entry_to_page(entry);
-+
-+	/*
-+	 * The page_fault() callback must migrate page back to system memory
-+	 * so that CPU can access it. This might fail for various reasons
-+	 * (device issue, device was unsafely unplugged, ...). When such
-+	 * error conditions happen, the callback must return VM_FAULT_SIGBUS.
-+	 *
-+	 * Note that because memory cgroup charges are accounted to the device
-+	 * memory, this should never fail because of memory restrictions (but
-+	 * allocation of regular system page might still fail because we are
-+	 * out of memory).
-+	 *
-+	 * There is a more in-depth description of what that callback can and
-+	 * cannot do, in include/linux/memremap.h
-+	 */
-+	return page->pgmap->page_fault(vma, addr, page, flags, pmdp);
-+}
-+EXPORT_SYMBOL(device_private_entry_fault);
-+#endif /* CONFIG_DEVICE_PRIVATE */
-+
- static void pgmap_radix_release(struct resource *res)
- {
- 	unsigned long pgoff, order;
-@@ -344,6 +374,10 @@ void *devm_memremap_pages(struct device
- 	}
- 	pgmap->ref = ref;
- 	pgmap->res = &page_map->res;
-+	pgmap->type = MEMORY_DEVICE_HOST;
-+	pgmap->page_fault = NULL;
-+	pgmap->page_free = NULL;
-+	pgmap->data = NULL;
- 
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
-diff -puN mm/Kconfig~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 mm/Kconfig
---- a/mm/Kconfig~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/mm/Kconfig
-@@ -676,7 +676,7 @@ config ARCH_HAS_ZONE_DEVICE
- 	bool
- 
- config ZONE_DEVICE
--	bool "Device memory (pmem, etc...) hotplug support"
-+	bool "Device memory (pmem, HMM, etc...) hotplug support"
- 	depends on MEMORY_HOTPLUG
- 	depends on MEMORY_HOTREMOVE
- 	depends on SPARSEMEM_VMEMMAP
-@@ -717,6 +717,15 @@ config HMM_MIRROR
- 	  page tables (at PAGE_SIZE granularity), and must be able to recover from
- 	  the resulting potential page faults.
- 
-+config DEVICE_PRIVATE
-+	bool "Unaddressable device memory (GPU memory, ...)"
-+	depends on ARCH_HAS_HMM
-+
-+	help
-+	  Allows creation of struct pages to represent unaddressable device
-+	  memory; i.e., memory that is only accessible from the device (or
-+	  group of devices). You likely also want to select HMM_MIRROR.
-+
- config FRAME_VECTOR
- 	bool
- 
-diff -puN mm/memory.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 mm/memory.c
---- a/mm/memory.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/mm/memory.c
-@@ -49,6 +49,7 @@
- #include <linux/swap.h>
- #include <linux/highmem.h>
- #include <linux/pagemap.h>
-+#include <linux/memremap.h>
- #include <linux/ksm.h>
- #include <linux/rmap.h>
- #include <linux/export.h>
-@@ -956,6 +957,35 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 					pte = pte_swp_mksoft_dirty(pte);
- 				set_pte_at(src_mm, addr, src_pte, pte);
- 			}
-+		} else if (is_device_private_entry(entry)) {
-+			page = device_private_entry_to_page(entry);
-+
-+			/*
-+			 * Update rss count even for unaddressable pages, as
-+			 * they should treated just like normal pages in this
-+			 * respect.
-+			 *
-+			 * We will likely want to have some new rss counters
-+			 * for unaddressable pages, at some point. But for now
-+			 * keep things as they are.
-+			 */
-+			get_page(page);
-+			rss[mm_counter(page)]++;
-+			page_dup_rmap(page, false);
-+
-+			/*
-+			 * We do not preserve soft-dirty information, because so
-+			 * far, checkpoint/restore is the only feature that
-+			 * requires that. And checkpoint/restore does not work
-+			 * when a device driver is involved (you cannot easily
-+			 * save and restore device driver state).
-+			 */
-+			if (is_write_device_private_entry(entry) &&
-+			    is_cow_mapping(vm_flags)) {
-+				make_device_private_entry_read(&entry);
-+				pte = swp_entry_to_pte(entry);
-+				set_pte_at(src_mm, addr, src_pte, pte);
-+			}
- 		}
- 		goto out_set_pte;
- 	}
-@@ -1274,6 +1304,29 @@ again:
- 			}
- 			continue;
- 		}
-+
-+		entry = pte_to_swp_entry(ptent);
-+		if (non_swap_entry(entry) && is_device_private_entry(entry)) {
-+			struct page *page = device_private_entry_to_page(entry);
-+
-+			if (unlikely(details && details->check_mapping)) {
-+				/*
-+				 * unmap_shared_mapping_pages() wants to
-+				 * invalidate cache without truncating:
-+				 * unmap shared but keep private pages.
-+				 */
-+				if (details->check_mapping !=
-+				    page_rmapping(page))
-+					continue;
-+			}
-+
-+			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
-+			rss[mm_counter(page)]--;
-+			page_remove_rmap(page, false);
-+			put_page(page);
-+			continue;
-+		}
-+
- 		/* If details->check_mapping, we leave swap entries. */
- 		if (unlikely(details))
- 			continue;
-@@ -2776,6 +2829,14 @@ int do_swap_page(struct vm_fault *vmf)
- 		if (is_migration_entry(entry)) {
- 			migration_entry_wait(vma->vm_mm, vmf->pmd,
- 					     vmf->address);
-+		} else if (is_device_private_entry(entry)) {
-+			/*
-+			 * For un-addressable device memory we call the pgmap
-+			 * fault handler callback. The callback must migrate
-+			 * the page back to some CPU accessible page.
-+			 */
-+			ret = device_private_entry_fault(vma, vmf->address, entry,
-+						 vmf->flags, vmf->pmd);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
- 		} else {
-diff -puN mm/memory_hotplug.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/mm/memory_hotplug.c
-@@ -99,7 +99,7 @@ void mem_hotplug_done(void)
- /* add this memory to iomem resource */
- static struct resource *register_memory_resource(u64 start, u64 size)
- {
--	struct resource *res;
-+	struct resource *res, *conflict;
- 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 	if (!res)
- 		return ERR_PTR(-ENOMEM);
-@@ -108,7 +108,13 @@ static struct resource *register_memory_
- 	res->start = start;
- 	res->end = start + size - 1;
- 	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
--	if (request_resource(&iomem_resource, res) < 0) {
-+	conflict =  request_resource_conflict(&iomem_resource, res);
-+	if (conflict) {
-+		if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
-+			pr_debug("Device unaddressable memory block "
-+				 "memory hotplug at %#010llx !\n",
-+				 (unsigned long long)start);
-+		}
- 		pr_debug("System RAM resource %pR cannot be added\n", res);
- 		kfree(res);
- 		return ERR_PTR(-EEXIST);
-diff -puN mm/mprotect.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5 mm/mprotect.c
---- a/mm/mprotect.c~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5
-+++ a/mm/mprotect.c
-@@ -125,6 +125,20 @@ static unsigned long change_pte_range(st
- 
- 				pages++;
- 			}
-+
-+			if (is_write_device_private_entry(entry)) {
-+				pte_t newpte;
-+
-+				/*
-+				 * We do not preserve soft-dirtiness. See
-+				 * copy_one_pte() for explanation.
-+				 */
-+				make_device_private_entry_read(&entry);
-+				newpte = swp_entry_to_pte(entry);
-+				set_pte_at(mm, addr, pte, newpte);
-+
-+				pages++;
-+			}
- 		}
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-hmm-heterogeneous-memory-management-documentation-v3.patch
-mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
-mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
-mm-hmm-mirror-device-page-fault-handler.patch
-mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
-mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
-mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
-mm-memcontrol-support-memory_device_private-v4.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device-v7.patch
-mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
-mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
-mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
-mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
-mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry-v4.patch
-mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
-mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3.patch
-lib-interval_tree-fast-overlap-detection-fix.patch
+mm-fix-double-mmap_sem-unlock-on-mmf_unstable-enforced-sigbus.patch
+mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
+mm-rename-global_page_state-to-global_zone_page_state.patch
+mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
+mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access.patch
+mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch
+mm-memory_hotplug-introduce-add_pages.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
 
