@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-drop-wrong-comment.patch added to -mm tree
-Date: Thu, 17 Aug 2017 15:47:59 -0700
-Message-ID: <59961d1f.OZmyhWwDK7Nrs4KE%akpm@linux-foundation.org>
+Subject: + mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
+ added to -mm tree
+Date: Thu, 17 Aug 2017 15:53:22 -0700
+Message-ID: <59961e62.CKi3X9wZpXZ3u1bu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753005AbdHQWsA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:48:00 -0400
+        with ESMTP id S1753271AbdHQWxX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: rientjes@google.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: drop wrong comment
+     Subject: mm, compaction: kcompactd should not ignore pageblock skip
 has been added to the -mm tree.  Its filename is
-     autofs-drop-wrong-comment.patch
+     mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-drop-wrong-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-drop-wrong-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,30 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: drop wrong comment
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: kcompactd should not ignore pageblock skip
 
-This comment was correct when it was added in 8d7b48e0 ("autofs4: add
-miscellaneous device for ioctls") in 2008, but not after 4e44b685 "Get rid
-of path_lookup in autofs4" in 2009 which introduced find_autofs_mount().
+Kcompactd is needlessly ignoring pageblock skip information.  It is doing
+MIGRATE_SYNC_LIGHT compaction, which is no more powerful than MIGRATE_SYNC
+compaction.
 
-Link: http://lkml.kernel.org/r/150285069148.4670.17959501481201077445.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+If compaction recently failed to isolate memory from a set of pageblocks,
+there is nothing to indicate that kcompactd will be able to do so, or that
+it is beneficial from attempting to isolate memory.
+
+Use the pageblock skip hint to avoid rescanning pageblocks needlessly
+until that information is reset.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708151638550.106658@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/compaction.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-drop-wrong-comment fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-drop-wrong-comment
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -258,11 +258,6 @@ static int autofs_dev_ioctl_open_mountpo
- 		if (err)
- 			goto out;
- 
--		/*
--		 * Find autofs super block that has the device number
--		 * corresponding to the autofs fs we want to open.
--		 */
+diff -puN mm/compaction.c~mm-compaction-kcompactd-should-not-ignore-pageblock-skip mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-kcompactd-should-not-ignore-pageblock-skip
++++ a/mm/compaction.c
+@@ -1927,9 +1927,8 @@ static void kcompactd_do_work(pg_data_t
+ 		.total_free_scanned = 0,
+ 		.classzone_idx = pgdat->kcompactd_classzone_idx,
+ 		.mode = MIGRATE_SYNC_LIGHT,
+-		.ignore_skip_hint = true,
++		.ignore_skip_hint = false,
+ 		.gfp_mask = GFP_KERNEL,
