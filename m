@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
+Subject: +
+ mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
  added to -mm tree
-Date: Thu, 17 Aug 2017 14:42:08 -0700
-Message-ID: <59960db0.p+sz5HOyCKrXZVuT%akpm@linux-foundation.org>
+Date: Thu, 17 Aug 2017 14:42:22 -0700
+Message-ID: <59960dbe.H8iPUI6WYHLjJUVw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40714 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753326AbdHQVmK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 17:42:10 -0400
+        with ESMTP id S1753736AbdHQVmY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 17:42:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jglisse@redhat.com, SCheung@nvidia.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhairgrove@nvidia.com, mhocko@kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, sgutti@nvidia.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm/devmem: dummy HMM device for ZONE_DEVICE memory
+     Subject: mm/migrate: support un-addressable ZONE_DEVICE page in migration
 has been added to the -mm tree.  Its filename is
-     mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
+     mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,177 +41,390 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm/devmem: dummy HMM device for ZONE_DEVICE memory
+Subject: mm/migrate: support un-addressable ZONE_DEVICE page in migration
 
-This introduce a dummy HMM device class so device driver can use it to
-create hmm_device for the sole purpose of registering device memory.  It
-is useful to device driver that want to manage multiple physical device
-memory under same struct device umbrella.
+Allow to unmap and restore special swap entry of un-addressable
+ZONE_DEVICE memory.
 
-Link: http://lkml.kernel.org/r/20170817000548.32038-13-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170817000548.32038-17-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |   22 ++++++++++-
- mm/hmm.c            |   81 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 102 insertions(+), 1 deletion(-)
+ include/linux/migrate.h |   10 ++
+ mm/migrate.c            |  149 ++++++++++++++++++++++++++++++--------
+ mm/page_vma_mapped.c    |   10 ++
+ mm/rmap.c               |   26 ++++++
+ 4 files changed, 165 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3 include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3
-+++ a/include/linux/hmm.h
-@@ -72,11 +72,11 @@
+diff -puN include/linux/migrate.h~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3 include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3
++++ a/include/linux/migrate.h
+@@ -159,12 +159,18 @@ static inline int migrate_misplaced_tran
  
- #if IS_ENABLED(CONFIG_HMM)
+ #ifdef CONFIG_MIGRATION
  
-+#include <linux/device.h>
- #include <linux/migrate.h>
- #include <linux/memremap.h>
- #include <linux/completion.h>
- 
--
- struct hmm;
- 
- /*
-@@ -474,6 +474,26 @@ static inline unsigned long hmm_devmem_p
- 
- 	return drvdata[1];
- }
-+
-+
 +/*
-+ * struct hmm_device - fake device to hang device memory onto
-+ *
-+ * @device: device struct
-+ * @minor: device minor number
++ * Watch out for PAE architecture, which has an unsigned long, and might not
++ * have enough bits to store all physical address and flags. So far we have
++ * enough room for all our flags.
 + */
-+struct hmm_device {
-+	struct device		device;
-+	unsigned int		minor;
-+};
-+
-+/*
-+ * A device driver that wants to handle multiple devices memory through a
-+ * single fake device can use hmm_device to do so. This is purely a helper and
-+ * it is not strictly needed, in order to make use of any HMM functionality.
-+ */
-+struct hmm_device *hmm_device_new(void *drvdata);
-+void hmm_device_put(struct hmm_device *hmm_device);
- #endif /* IS_ENABLED(CONFIG_DEVICE_PRIVATE) */
+ #define MIGRATE_PFN_VALID	(1UL << 0)
+ #define MIGRATE_PFN_MIGRATE	(1UL << 1)
+ #define MIGRATE_PFN_LOCKED	(1UL << 2)
+ #define MIGRATE_PFN_WRITE	(1UL << 3)
+-#define MIGRATE_PFN_ERROR	(1UL << 4)
+-#define MIGRATE_PFN_SHIFT	5
++#define MIGRATE_PFN_DEVICE	(1UL << 4)
++#define MIGRATE_PFN_ERROR	(1UL << 5)
++#define MIGRATE_PFN_SHIFT	6
  
+ static inline struct page *migrate_pfn_to_page(unsigned long mpfn)
+ {
+diff -puN mm/migrate.c~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3 mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3
++++ a/mm/migrate.c
+@@ -36,6 +36,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/hugetlb_cgroup.h>
+ #include <linux/gfp.h>
++#include <linux/memremap.h>
+ #include <linux/balloon_compaction.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/page_idle.h>
+@@ -236,7 +237,13 @@ static bool remove_migration_pte(struct
+ 		if (is_write_migration_entry(entry))
+ 			pte = maybe_mkwrite(pte, vma);
  
-diff -puN mm/hmm.c~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3 mm/hmm.c
---- a/mm/hmm.c~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3
-+++ a/mm/hmm.c
-@@ -19,6 +19,7 @@
-  */
- #include <linux/mm.h>
- #include <linux/hmm.h>
-+#include <linux/init.h>
- #include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/slab.h>
-@@ -1111,4 +1112,84 @@ void hmm_devmem_remove(struct hmm_devmem
- 	devm_release_mem_region(device, start, size);
- }
- EXPORT_SYMBOL(hmm_devmem_remove);
+-		flush_dcache_page(new);
++		if (unlikely(is_zone_device_page(new)) &&
++		    is_device_private_page(new)) {
++			entry = make_device_private_entry(new, pte_write(pte));
++			pte = swp_entry_to_pte(entry);
++		} else
++			flush_dcache_page(new);
 +
-+/*
-+ * A device driver that wants to handle multiple devices memory through a
-+ * single fake device can use hmm_device to do so. This is purely a helper
-+ * and it is not needed to make use of any HMM functionality.
-+ */
-+#define HMM_DEVICE_MAX 256
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		if (PageHuge(new)) {
+ 			pte = pte_mkhuge(pte);
+@@ -2210,17 +2217,40 @@ again:
+ 		pte = *ptep;
+ 		pfn = pte_pfn(pte);
+ 
+-		if (!pte_present(pte)) {
++		if (pte_none(pte)) {
+ 			mpfn = pfn = 0;
+ 			goto next;
+ 		}
+ 
++		if (!pte_present(pte)) {
++			mpfn = pfn = 0;
 +
-+static DECLARE_BITMAP(hmm_device_mask, HMM_DEVICE_MAX);
-+static DEFINE_SPINLOCK(hmm_device_lock);
-+static struct class *hmm_device_class;
-+static dev_t hmm_device_devt;
++			/*
++			 * Only care about unaddressable device page special
++			 * page table entry. Other special swap entries are not
++			 * migratable, and we ignore regular swapped page.
++			 */
++			entry = pte_to_swp_entry(pte);
++			if (!is_device_private_entry(entry))
++				goto next;
 +
-+static void hmm_device_release(struct device *device)
-+{
-+	struct hmm_device *hmm_device;
++			page = device_private_entry_to_page(entry);
++			mpfn = migrate_pfn(page_to_pfn(page))|
++				MIGRATE_PFN_DEVICE | MIGRATE_PFN_MIGRATE;
++			if (is_write_device_private_entry(entry))
++				mpfn |= MIGRATE_PFN_WRITE;
++		} else {
++			page = vm_normal_page(migrate->vma, addr, pte);
++			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
++			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
++		}
 +
-+	hmm_device = container_of(device, struct hmm_device, device);
-+	spin_lock(&hmm_device_lock);
-+	clear_bit(hmm_device->minor, hmm_device_mask);
-+	spin_unlock(&hmm_device_lock);
+ 		/* FIXME support THP */
+-		page = vm_normal_page(migrate->vma, addr, pte);
+ 		if (!page || !page->mapping || PageTransCompound(page)) {
+ 			mpfn = pfn = 0;
+ 			goto next;
+ 		}
++		pfn = page_to_pfn(page);
+ 
+ 		/*
+ 		 * By getting a reference on the page we pin it and that blocks
+@@ -2233,8 +2263,6 @@ again:
+ 		 */
+ 		get_page(page);
+ 		migrate->cpages++;
+-		mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
+-		mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
+ 
+ 		/*
+ 		 * Optimize for the common case where page is only mapped once
+@@ -2261,10 +2289,13 @@ again:
+ 			 */
+ 			page_remove_rmap(page, false);
+ 			put_page(page);
+-			unmapped++;
 +
-+	kfree(hmm_device);
-+}
++			if (pte_present(pte))
++				unmapped++;
+ 		}
+ 
+ next:
++		migrate->dst[migrate->npages] = 0;
+ 		migrate->src[migrate->npages++] = mpfn;
+ 	}
+ 	arch_leave_lazy_mmu_mode();
+@@ -2334,6 +2365,28 @@ static bool migrate_vma_check_page(struc
+ 	if (PageCompound(page))
+ 		return false;
+ 
++	/* Page from ZONE_DEVICE have one extra reference */
++	if (is_zone_device_page(page)) {
++		/*
++		 * Private page can never be pin as they have no valid pte and
++		 * GUP will fail for those. Yet if there is a pending migration
++		 * a thread might try to wait on the pte migration entry and
++		 * will bump the page reference count. Sadly there is no way to
++		 * differentiate a regular pin from migration wait. Hence to
++		 * avoid 2 racing thread trying to migrate back to CPU to enter
++		 * infinite loop (one stoping migration because the other is
++		 * waiting on pte migration entry). We always return true here.
++		 *
++		 * FIXME proper solution is to rework migration_entry_wait() so
++		 * it does not need to take a reference on page.
++		 */
++		if (is_device_private_page(page))
++			return true;
 +
-+struct hmm_device *hmm_device_new(void *drvdata)
-+{
-+	struct hmm_device *hmm_device;
-+
-+	hmm_device = kzalloc(sizeof(*hmm_device), GFP_KERNEL);
-+	if (!hmm_device)
-+		return ERR_PTR(-ENOMEM);
-+
-+	spin_lock(&hmm_device_lock);
-+	hmm_device->minor = find_first_zero_bit(hmm_device_mask, HMM_DEVICE_MAX);
-+	if (hmm_device->minor >= HMM_DEVICE_MAX) {
-+		spin_unlock(&hmm_device_lock);
-+		kfree(hmm_device);
-+		return ERR_PTR(-EBUSY);
++		/* Other ZONE_DEVICE memory type are not supported */
++		return false;
 +	}
-+	set_bit(hmm_device->minor, hmm_device_mask);
-+	spin_unlock(&hmm_device_lock);
 +
-+	dev_set_name(&hmm_device->device, "hmm_device%d", hmm_device->minor);
-+	hmm_device->device.devt = MKDEV(MAJOR(hmm_device_devt),
-+					hmm_device->minor);
-+	hmm_device->device.release = hmm_device_release;
-+	dev_set_drvdata(&hmm_device->device, drvdata);
-+	hmm_device->device.class = hmm_device_class;
-+	device_initialize(&hmm_device->device);
+ 	if ((page_count(page) - extra) > page_mapcount(page))
+ 		return false;
+ 
+@@ -2384,24 +2437,30 @@ static void migrate_vma_prepare(struct m
+ 			migrate->src[i] |= MIGRATE_PFN_LOCKED;
+ 		}
+ 
+-		if (!PageLRU(page) && allow_drain) {
+-			/* Drain CPU's pagevec */
+-			lru_add_drain_all();
+-			allow_drain = false;
+-		}
++		/* ZONE_DEVICE pages are not on LRU */
++		if (!is_zone_device_page(page)) {
++			if (!PageLRU(page) && allow_drain) {
++				/* Drain CPU's pagevec */
++				lru_add_drain_all();
++				allow_drain = false;
++			}
+ 
+-		if (isolate_lru_page(page)) {
+-			if (remap) {
+-				migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
+-				migrate->cpages--;
+-				restore++;
+-			} else {
+-				migrate->src[i] = 0;
+-				unlock_page(page);
+-				migrate->cpages--;
+-				put_page(page);
++			if (isolate_lru_page(page)) {
++				if (remap) {
++					migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++					migrate->cpages--;
++					restore++;
++				} else {
++					migrate->src[i] = 0;
++					unlock_page(page);
++					migrate->cpages--;
++					put_page(page);
++				}
++				continue;
+ 			}
+-			continue;
 +
-+	return hmm_device;
-+}
-+EXPORT_SYMBOL(hmm_device_new);
++			/* Drop the reference we took in collect */
++			put_page(page);
+ 		}
+ 
+ 		if (!migrate_vma_check_page(page)) {
+@@ -2410,14 +2469,19 @@ static void migrate_vma_prepare(struct m
+ 				migrate->cpages--;
+ 				restore++;
+ 
+-				get_page(page);
+-				putback_lru_page(page);
++				if (!is_zone_device_page(page)) {
++					get_page(page);
++					putback_lru_page(page);
++				}
+ 			} else {
+ 				migrate->src[i] = 0;
+ 				unlock_page(page);
+ 				migrate->cpages--;
+ 
+-				putback_lru_page(page);
++				if (!is_zone_device_page(page))
++					putback_lru_page(page);
++				else
++					put_page(page);
+ 			}
+ 		}
+ 	}
+@@ -2488,7 +2552,10 @@ restore:
+ 		unlock_page(page);
+ 		restore--;
+ 
+-		putback_lru_page(page);
++		if (is_zone_device_page(page))
++			put_page(page);
++		else
++			putback_lru_page(page);
+ 	}
+ }
+ 
+@@ -2519,6 +2586,26 @@ static void migrate_vma_pages(struct mig
+ 
+ 		mapping = page_mapping(page);
+ 
++		if (is_zone_device_page(newpage)) {
++			if (is_device_private_page(newpage)) {
++				/*
++				 * For now only support private anonymous when
++				 * migrating to un-addressable device memory.
++				 */
++				if (mapping) {
++					migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++					continue;
++				}
++			} else {
++				/*
++				 * Other types of ZONE_DEVICE page are not
++				 * supported.
++				 */
++				migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++				continue;
++			}
++		}
 +
-+void hmm_device_put(struct hmm_device *hmm_device)
-+{
-+	put_device(&hmm_device->device);
-+}
-+EXPORT_SYMBOL(hmm_device_put);
+ 		r = migrate_page(mapping, newpage, page, MIGRATE_SYNC_NO_COPY);
+ 		if (r != MIGRATEPAGE_SUCCESS)
+ 			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
+@@ -2559,11 +2646,17 @@ static void migrate_vma_finalize(struct
+ 		unlock_page(page);
+ 		migrate->cpages--;
+ 
+-		putback_lru_page(page);
++		if (is_zone_device_page(page))
++			put_page(page);
++		else
++			putback_lru_page(page);
+ 
+ 		if (newpage != page) {
+ 			unlock_page(newpage);
+-			putback_lru_page(newpage);
++			if (is_zone_device_page(newpage))
++				put_page(newpage);
++			else
++				putback_lru_page(newpage);
+ 		}
+ 	}
+ }
+diff -puN mm/page_vma_mapped.c~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3 mm/page_vma_mapped.c
+--- a/mm/page_vma_mapped.c~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3
++++ a/mm/page_vma_mapped.c
+@@ -48,6 +48,7 @@ static bool check_pte(struct page_vma_ma
+ 		if (!is_swap_pte(*pvmw->pte))
+ 			return false;
+ 		entry = pte_to_swp_entry(*pvmw->pte);
 +
-+static int __init hmm_init(void)
-+{
-+	int ret;
+ 		if (!is_migration_entry(entry))
+ 			return false;
+ 		if (migration_entry_to_page(entry) - pvmw->page >=
+@@ -60,6 +61,15 @@ static bool check_pte(struct page_vma_ma
+ 		WARN_ON_ONCE(1);
+ #endif
+ 	} else {
++		if (is_swap_pte(*pvmw->pte)) {
++			swp_entry_t entry;
 +
-+	ret = alloc_chrdev_region(&hmm_device_devt, 0,
-+				  HMM_DEVICE_MAX,
-+				  "hmm_device");
-+	if (ret)
-+		return ret;
++			entry = pte_to_swp_entry(*pvmw->pte);
++			if (is_device_private_entry(entry) &&
++			    device_private_entry_to_page(entry) == pvmw->page)
++				return true;
++		}
 +
-+	hmm_device_class = class_create(THIS_MODULE, "hmm_device");
-+	if (IS_ERR(hmm_device_class)) {
-+		unregister_chrdev_region(hmm_device_devt, HMM_DEVICE_MAX);
-+		return PTR_ERR(hmm_device_class);
-+	}
-+	return 0;
-+}
+ 		if (!pte_present(*pvmw->pte))
+ 			return false;
+ 
+diff -puN mm/rmap.c~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3 mm/rmap.c
+--- a/mm/rmap.c~mm-migrate-support-un-addressable-zone_device-page-in-migration-v3
++++ a/mm/rmap.c
+@@ -63,6 +63,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/backing-dev.h>
+ #include <linux/page_idle.h>
++#include <linux/memremap.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -1335,6 +1336,10 @@ static bool try_to_unmap_one(struct page
+ 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
+ 		return true;
+ 
++	if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
++	    is_zone_device_page(page) && !is_device_private_page(page))
++		return true;
 +
-+device_initcall(hmm_init);
- #endif /* IS_ENABLED(CONFIG_DEVICE_PRIVATE) */
+ 	if (flags & TTU_SPLIT_HUGE_PMD) {
+ 		split_huge_pmd_address(vma, address,
+ 				flags & TTU_SPLIT_FREEZE, page);
+@@ -1382,6 +1387,27 @@ static bool try_to_unmap_one(struct page
+ 
+ 		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
+ 
++		if (IS_ENABLED(CONFIG_MIGRATION) &&
++		    (flags & TTU_MIGRATION) &&
++		    is_zone_device_page(page)) {
++			swp_entry_t entry;
++			pte_t swp_pte;
++
++			pteval = ptep_get_and_clear(mm, pvmw.address, pvmw.pte);
++
++			/*
++			 * Store the pfn of the page in a special migration
++			 * pte. do_swap_page() will wait until the migration
++			 * pte is removed and then restart fault handling.
++			 */
++			entry = make_migration_entry(page, 0);
++			swp_pte = swp_entry_to_pte(entry);
++			if (pte_soft_dirty(pteval))
++				swp_pte = pte_swp_mksoft_dirty(swp_pte);
++			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
++			goto discard;
++		}
++
+ 		if (!(flags & TTU_IGNORE_ACCESS)) {
+ 			if (ptep_clear_flush_young_notify(vma, pvmw.address,
+ 						pvmw.pte)) {
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
