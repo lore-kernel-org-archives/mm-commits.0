@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+Subject: + autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
  added to -mm tree
-Date: Thu, 17 Aug 2017 15:44:22 -0700
-Message-ID: <59961c46.xverUGN/wvXYCxdX%akpm@linux-foundation.org>
+Date: Thu, 17 Aug 2017 15:47:48 -0700
+Message-ID: <59961d14.KV4APoBxZ+41f3ZP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51366 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753516AbdHQWoX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:44:23 -0400
+        with ESMTP id S1752632AbdHQWru (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:47:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aaron.lu@intel.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.com, minchan@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap-choose-swap-device-according-to-numa-node-v2-fix
+     Subject: autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
 has been added to the -mm tree.  Its filename is
-     swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+     autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: swap-choose-swap-device-according-to-numa-node-v2-fix
+From: Tomohiro Kusumi <tkusumi@tuxera.com>
+Subject: autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
 
-use kmalloc_array()
+These are not used by either kernel or userspace, although
+AUTOFS_IOC_EXPIRE_DIRECT once seems to have been used by userspace in
+around 2006-2008, which was technically just an alias of the existing
+ioctl AUTOFS_IOC_EXPIRE_MULTI.
 
-Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
+ioctls for autofs are already complicated enough that they could be
+removed unless these are staying here to be able to compile userspace code
+of certain period of time from a decade ago.
+
+Edit: raven@themaw.net
+Yes, this is indeed very old and anything that still uses must
+be updated becuase it will be using broken functionality.
+End edit: raven@themaw.net
+
+Link: http://lkml.kernel.org/r/150285067347.4670.11494624644273072003.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/uapi/linux/auto_fs4.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/swapfile.c~swap-choose-swap-device-according-to-numa-node-v2-fix mm/swapfile.c
---- a/mm/swapfile.c~swap-choose-swap-device-according-to-numa-node-v2-fix
-+++ a/mm/swapfile.c
-@@ -3700,7 +3700,8 @@ static int __init swapfile_init(void)
- {
- 	int nid;
+diff -puN include/uapi/linux/auto_fs4.h~autofs-remove-unused-autofs_ioc_expire_direct-indirect include/uapi/linux/auto_fs4.h
+--- a/include/uapi/linux/auto_fs4.h~autofs-remove-unused-autofs_ioc_expire_direct-indirect
++++ a/include/uapi/linux/auto_fs4.h
+@@ -155,8 +155,6 @@ enum {
+ };
  
--	swap_avail_heads = kmalloc(nr_node_ids * sizeof(struct plist_head), GFP_KERNEL);
-+	swap_avail_heads = kmalloc_array(nr_node_ids, sizeof(struct plist_head),
-+					 GFP_KERNEL);
- 	if (!swap_avail_heads) {
- 		pr_emerg("Not enough memory for swap heads, swap is disabled\n");
- 		return -ENOMEM;
+ #define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
+-#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
+-#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
+ #define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tkusumi@tuxera.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
+autofs-non-functional-header-inclusion-cleanup.patch
+autofs-use-autofs_dev_ioctl_size.patch
+autofs-drop-wrong-comment.patch
+autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args.patch
 
