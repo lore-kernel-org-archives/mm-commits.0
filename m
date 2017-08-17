@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch added to -mm tree
-Date: Thu, 17 Aug 2017 15:28:33 -0700
-Message-ID: <59961891.Fa+skJfE8ovOVX9L%akpm__48419.6534300738$1503008924$gmane$org@linux-foundation.org>
+Subject: + mm-remove-useless-vma-parameter-to-offset_il_node.patch added
+ to -mm tree
+Date: Thu, 17 Aug 2017 15:28:56 -0700
+Message-ID: <599618a8.VZ0UKfbhsnXfwSIP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49288 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753345AbdHQW2e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:28:34 -0400
+        with ESMTP id S1753326AbdHQW25 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:28:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, bp@suse.de, dave.hansen@intel.com, elliott@hpe.com, hpa@zytor.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: ldufour@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: clear PRESENT bit for kernel 1:1 mappings of poison pages
+     Subject: mm: remove useless vma parameter to offset_il_node
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
+     mm-remove-useless-vma-parameter-to-offset_il_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-useless-vma-parameter-to-offset_il_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-useless-vma-parameter-to-offset_il_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,156 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: mm/hwpoison: clear PRESENT bit for kernel 1:1 mappings of poison pages
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Subject: mm: remove useless vma parameter to offset_il_node
 
-Speculative processor accesses may reference any memory that has a valid
-page table entry.  While a speculative access won't generate a machine
-check, it will log the error in a machine check bank.  That could cause
-escalation of a subsequent error since the overflow bit will be then set
-in the machine check bank status register.
+While reading the code I found that offset_il_node() has a vm_area_struct
+pointer parameter which is unused.
 
-Code has to be double-plus-tricky to avoid mentioning the 1:1 virtual
-address of the page we want to map out otherwise we may trigger the very
-problem we are trying to avoid.  We use a non-canonical address that
-passes through the usual Linux table walking code to get to the same
-"pte".
-
-Thanks to Dave Hansen for reviewing several iterations of this.
-
-Full previous thread here:
-http://marc.info/?l=linux-mm&m=149860136413338&w=2 but the Cliff notes
-are: Discussion on this stalled out at the end of June.  Robert Elliott
-had raised questions on whether there needed to be a method to re-enable
-the 1:1 mapping if the poison was cleared. I replied that would be a good
-follow-on patch when we have a way to clear poison. Robert also asked
-whether this needs to integrate with the handling of poison in NVDIMMs,
-But discussions with Dan Williams ended up concluding that this code is
-executed much earlier (right as the fault is detected) than the NVDIMM
-code is prepared to take action. Dan thought this patch could move ahead.
-
-Link: http://lkml.kernel.org/r/20170816171803.28342-1-tony.luck@intel.com
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1502899755-23146-1-git-send-email-ldufour@linux.vnet.ibm.com
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/page_64.h   |    4 ++
- arch/x86/kernel/cpu/mcheck/mce.c |   43 +++++++++++++++++++++++++++++
- include/linux/mm_inline.h        |    6 ++++
- mm/memory-failure.c              |    2 +
- 4 files changed, 55 insertions(+)
+ mm/mempolicy.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/page_64.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages arch/x86/include/asm/page_64.h
---- a/arch/x86/include/asm/page_64.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
-+++ a/arch/x86/include/asm/page_64.h
-@@ -51,6 +51,10 @@ static inline void clear_page(void *page
- 
- void copy_page(void *to, void *from);
- 
-+#ifdef CONFIG_X86_MCE
-+#define arch_unmap_kpfn arch_unmap_kpfn
-+#endif
-+
- #endif	/* !__ASSEMBLY__ */
- 
- #ifdef CONFIG_X86_VSYSCALL_EMULATION
-diff -puN arch/x86/kernel/cpu/mcheck/mce.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages arch/x86/kernel/cpu/mcheck/mce.c
---- a/arch/x86/kernel/cpu/mcheck/mce.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
-+++ a/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -51,6 +51,7 @@
- #include <asm/mce.h>
- #include <asm/msr.h>
- #include <asm/reboot.h>
-+#include <asm/set_memory.h>
- 
- #include "mce-internal.h"
- 
-@@ -1051,6 +1052,48 @@ static int do_memory_failure(struct mce
- 	return ret;
+diff -puN mm/mempolicy.c~mm-remove-useless-vma-parameter-to-offset_il_node mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-remove-useless-vma-parameter-to-offset_il_node
++++ a/mm/mempolicy.c
+@@ -1745,8 +1745,7 @@ unsigned int mempolicy_slab_node(void)
+  * node in pol->v.nodes (starting from n=0), wrapping around if n exceeds the
+  * number of present nodes.
+  */
+-static unsigned offset_il_node(struct mempolicy *pol,
+-			       struct vm_area_struct *vma, unsigned long n)
++static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
+ {
+ 	unsigned nnodes = nodes_weight(pol->v.nodes);
+ 	unsigned target;
+@@ -1779,7 +1778,7 @@ static inline unsigned interleave_nid(st
+ 		BUG_ON(shift < PAGE_SHIFT);
+ 		off = vma->vm_pgoff >> (shift - PAGE_SHIFT);
+ 		off += (addr - vma->vm_start) >> shift;
+-		return offset_il_node(pol, vma, off);
++		return offset_il_node(pol, off);
+ 	} else
+ 		return interleave_nodes(pol);
  }
+@@ -2247,7 +2246,7 @@ int mpol_misplaced(struct page *page, st
  
-+#if defined(arch_unmap_kpfn) && defined(CONFIG_MEMORY_FAILURE)
-+
-+void arch_unmap_kpfn(unsigned long pfn)
-+{
-+	unsigned long decoy_addr;
-+
-+	/*
-+	 * Unmap this page from the kernel 1:1 mappings to make sure
-+	 * we don't log more errors because of speculative access to
-+	 * the page.
-+	 * We would like to just call:
-+	 *	set_memory_np((unsigned long)pfn_to_kaddr(pfn), 1);
-+	 * but doing that would radically increase the odds of a
-+	 * speculative access to the posion page because we'd have
-+	 * the virtual address of the kernel 1:1 mapping sitting
-+	 * around in registers.
-+	 * Instead we get tricky.  We create a non-canonical address
-+	 * that looks just like the one we want, but has bit 63 flipped.
-+	 * This relies on set_memory_np() not checking whether we passed
-+	 * a legal address.
-+	 */
-+
-+/*
-+ * Build time check to see if we have a spare virtual bit. Don't want
-+ * to leave this until run time because most developers don't have a
-+ * system that can exercise this code path. This will only become a
-+ * problem if/when we move beyond 5-level page tables.
-+ *
-+ * Hard code "9" here because cpp doesn't grok ilog2(PTRS_PER_PGD)
-+ */
-+#if PGDIR_SHIFT + 9 < 63
-+	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
-+#else
-+#error "no unused virtual bit available"
-+#endif
-+
-+	if (set_memory_np(decoy_addr, 1))
-+		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-+
-+}
-+#endif
-+
- /*
-  * The actual machine check handler. This only handles real
-  * exceptions when something got corrupted coming in through int 18.
-diff -puN include/linux/mm_inline.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
-+++ a/include/linux/mm_inline.h
-@@ -126,4 +126,10 @@ static __always_inline enum lru_list pag
+ 		pgoff = vma->vm_pgoff;
+ 		pgoff += (addr - vma->vm_start) >> PAGE_SHIFT;
+-		polnid = offset_il_node(pol, vma, pgoff);
++		polnid = offset_il_node(pol, pgoff);
+ 		break;
  
- #define lru_to_page(head) (list_entry((head)->prev, struct page, lru))
- 
-+#ifdef arch_unmap_kpfn
-+extern void arch_unmap_kpfn(unsigned long pfn);
-+#else
-+static __always_inline void arch_unmap_kpfn(unsigned long pfn) { }
-+#endif
-+
- #endif
-diff -puN mm/memory-failure.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
-+++ a/mm/memory-failure.c
-@@ -1146,6 +1146,8 @@ int memory_failure(unsigned long pfn, in
- 		return 0;
- 	}
- 
-+	arch_unmap_kpfn(pfn);
-+
- 	orig_head = hpage = compound_head(p);
- 	num_poisoned_pages_inc();
- 
+ 	case MPOL_PREFERRED:
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from ldufour@linux.vnet.ibm.com are
 
-mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
+mm-skip-hwpoisoned-pages-when-onlining-pages.patch
+mm-remove-useless-vma-parameter-to-offset_il_node.patch
 
