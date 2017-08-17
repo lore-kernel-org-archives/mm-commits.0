@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch added to
- -mm tree
-Date: Thu, 17 Aug 2017 15:23:33 -0700
-Message-ID: <59961765.1QWYKA8SFhXUIkha%akpm@linux-foundation.org>
+Subject: +
+ mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch added to -mm tree
+Date: Thu, 17 Aug 2017 15:28:33 -0700
+Message-ID: <59961891.Fa+skJfE8ovOVX9L%akpm__48419.6534300738$1503008924$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49246 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752872AbdHQWXe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:23:34 -0400
+        with ESMTP id S1753345AbdHQW2e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:28:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, hpa@zytor.com, kcc@google.com, mingo@elte.hu, stable@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: tony.luck@intel.com, bp@suse.de, dave.hansen@intel.com, elliott@hpe.com, hpa@zytor.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: revert x86_64 and arm64 ELF_ET_DYN_BASE base changes
+     Subject: mm/hwpoison: clear PRESENT bit for kernel 1:1 mappings of poison pages
 has been added to the -mm tree.  Its filename is
-     mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch
+     mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,37 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: revert x86_64 and arm64 ELF_ET_DYN_BASE base changes
+From: Tony Luck <tony.luck@intel.com>
+Subject: mm/hwpoison: clear PRESENT bit for kernel 1:1 mappings of poison pages
 
-Moving the x86_64 and arm64 PIE base from 0x555555554000 to 0x000100000000
-broke AddressSanitizer.  This is a partial revert of:
+Speculative processor accesses may reference any memory that has a valid
+page table entry.  While a speculative access won't generate a machine
+check, it will log the error in a machine check bank.  That could cause
+escalation of a subsequent error since the overflow bit will be then set
+in the machine check bank status register.
 
-  eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE")
-  02445990a96e ("arm64: move ELF_ET_DYN_BASE to 4GB / 4MB")
+Code has to be double-plus-tricky to avoid mentioning the 1:1 virtual
+address of the page we want to map out otherwise we may trigger the very
+problem we are trying to avoid.  We use a non-canonical address that
+passes through the usual Linux table walking code to get to the same
+"pte".
 
-The AddressSanitizer tool has hard-coded expectations about where
-executable mappings are loaded.  The motivation for changing the PIE base
-in the above commits was to avoid the Stack-Clash CVEs that allowed
-executable mappings to get too close to heap and stack.  This was mainly a
-problem on 32-bit, but the 64-bit bases were moved too, in an effort to
-proactively protect those systems (proofs of concept do exist that show
-64-bit collisions, but other recent changes to fix stack accounting and
-setuid behaviors will minimize the impact).
+Thanks to Dave Hansen for reviewing several iterations of this.
 
-The new 32-bit PIE base is fine for ASan (since it matches the ET_EXEC
-base), so only the 64-bit PIE base needs to be reverted to let x86 and
-arm64 ASan binaries run again.  Future changes to the 64-bit PIE base on
-these architectures can be made optional once a more dynamic method for
-dealing with AddressSanitizer is found.  (e.g.  always loading PIE into
-the mmap region for marked binaries.)
+Full previous thread here:
+http://marc.info/?l=linux-mm&m=149860136413338&w=2 but the Cliff notes
+are: Discussion on this stalled out at the end of June.  Robert Elliott
+had raised questions on whether there needed to be a method to re-enable
+the 1:1 mapping if the poison was cleared. I replied that would be a good
+follow-on patch when we have a way to clear poison. Robert also asked
+whether this needs to integrate with the handling of poison in NVDIMMs,
+But discussions with Dan Williams ended up concluding that this code is
+executed much earlier (right as the fault is detected) than the NVDIMM
+code is prepared to take action. Dan thought this patch could move ahead.
 
-Link: http://lkml.kernel.org/r/20170807201542.GA21271@beast
-Fixes: eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE")
-Fixes: 02445990a96e ("arm64: move ELF_ET_DYN_BASE to 4GB / 4MB")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Kostya Serebryany <kcc@google.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
+Link: http://lkml.kernel.org/r/20170816171803.28342-1-tony.luck@intel.com
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -77,48 +80,115 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/elf.h |    4 ++--
- arch/x86/include/asm/elf.h   |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/page_64.h   |    4 ++
+ arch/x86/kernel/cpu/mcheck/mce.c |   43 +++++++++++++++++++++++++++++
+ include/linux/mm_inline.h        |    6 ++++
+ mm/memory-failure.c              |    2 +
+ 4 files changed, 55 insertions(+)
 
-diff -puN arch/arm64/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base arch/arm64/include/asm/elf.h
---- a/arch/arm64/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base
-+++ a/arch/arm64/include/asm/elf.h
-@@ -114,10 +114,10 @@
+diff -puN arch/x86/include/asm/page_64.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages arch/x86/include/asm/page_64.h
+--- a/arch/x86/include/asm/page_64.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
++++ a/arch/x86/include/asm/page_64.h
+@@ -51,6 +51,10 @@ static inline void clear_page(void *page
  
+ void copy_page(void *to, void *from);
+ 
++#ifdef CONFIG_X86_MCE
++#define arch_unmap_kpfn arch_unmap_kpfn
++#endif
++
+ #endif	/* !__ASSEMBLY__ */
+ 
+ #ifdef CONFIG_X86_VSYSCALL_EMULATION
+diff -puN arch/x86/kernel/cpu/mcheck/mce.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages arch/x86/kernel/cpu/mcheck/mce.c
+--- a/arch/x86/kernel/cpu/mcheck/mce.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
++++ a/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -51,6 +51,7 @@
+ #include <asm/mce.h>
+ #include <asm/msr.h>
+ #include <asm/reboot.h>
++#include <asm/set_memory.h>
+ 
+ #include "mce-internal.h"
+ 
+@@ -1051,6 +1052,48 @@ static int do_memory_failure(struct mce
+ 	return ret;
+ }
+ 
++#if defined(arch_unmap_kpfn) && defined(CONFIG_MEMORY_FAILURE)
++
++void arch_unmap_kpfn(unsigned long pfn)
++{
++	unsigned long decoy_addr;
++
++	/*
++	 * Unmap this page from the kernel 1:1 mappings to make sure
++	 * we don't log more errors because of speculative access to
++	 * the page.
++	 * We would like to just call:
++	 *	set_memory_np((unsigned long)pfn_to_kaddr(pfn), 1);
++	 * but doing that would radically increase the odds of a
++	 * speculative access to the posion page because we'd have
++	 * the virtual address of the kernel 1:1 mapping sitting
++	 * around in registers.
++	 * Instead we get tricky.  We create a non-canonical address
++	 * that looks just like the one we want, but has bit 63 flipped.
++	 * This relies on set_memory_np() not checking whether we passed
++	 * a legal address.
++	 */
++
++/*
++ * Build time check to see if we have a spare virtual bit. Don't want
++ * to leave this until run time because most developers don't have a
++ * system that can exercise this code path. This will only become a
++ * problem if/when we move beyond 5-level page tables.
++ *
++ * Hard code "9" here because cpp doesn't grok ilog2(PTRS_PER_PGD)
++ */
++#if PGDIR_SHIFT + 9 < 63
++	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
++#else
++#error "no unused virtual bit available"
++#endif
++
++	if (set_memory_np(decoy_addr, 1))
++		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
++
++}
++#endif
++
  /*
-  * This is the base location for PIE (ET_DYN with INTERP) loads. On
-- * 64-bit, this is raised to 4GB to leave the entire 32-bit address
-+ * 64-bit, this is above 4GB to leave the entire 32-bit address
-  * space open for things that want to use the area for 32-bit pointers.
-  */
--#define ELF_ET_DYN_BASE		0x100000000UL
-+#define ELF_ET_DYN_BASE		(2 * TASK_SIZE_64 / 3)
+  * The actual machine check handler. This only handles real
+  * exceptions when something got corrupted coming in through int 18.
+diff -puN include/linux/mm_inline.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
++++ a/include/linux/mm_inline.h
+@@ -126,4 +126,10 @@ static __always_inline enum lru_list pag
  
- #ifndef __ASSEMBLY__
+ #define lru_to_page(head) (list_entry((head)->prev, struct page, lru))
  
-diff -puN arch/x86/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base arch/x86/include/asm/elf.h
---- a/arch/x86/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base
-+++ a/arch/x86/include/asm/elf.h
-@@ -247,11 +247,11 @@ extern int force_personality32;
++#ifdef arch_unmap_kpfn
++extern void arch_unmap_kpfn(unsigned long pfn);
++#else
++static __always_inline void arch_unmap_kpfn(unsigned long pfn) { }
++#endif
++
+ #endif
+diff -puN mm/memory-failure.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages
++++ a/mm/memory-failure.c
+@@ -1146,6 +1146,8 @@ int memory_failure(unsigned long pfn, in
+ 		return 0;
+ 	}
  
- /*
-  * This is the base location for PIE (ET_DYN with INTERP) loads. On
-- * 64-bit, this is raised to 4GB to leave the entire 32-bit address
-+ * 64-bit, this is above 4GB to leave the entire 32-bit address
-  * space open for things that want to use the area for 32-bit pointers.
-  */
- #define ELF_ET_DYN_BASE		(mmap_is_ia32() ? 0x000400000UL : \
--						  0x100000000UL)
-+						  (TASK_SIZE / 3 * 2))
++	arch_unmap_kpfn(pfn);
++
+ 	orig_head = hpage = compound_head(p);
+ 	num_poisoned_pages_inc();
  
- /* This yields a mask that user programs can use to figure out what
-    instruction set this CPU supports.  This could be done in user space,
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from tony.luck@intel.com are
 
-fortify-use-warn-instead-of-bug-for-now.patch
-mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch
-mm-add-slub-free-list-pointer-obfuscation.patch
+mm-hwpoison-clear-present-bit-for-kernel-1-1-mappings-of-poison-pages.patch
 
