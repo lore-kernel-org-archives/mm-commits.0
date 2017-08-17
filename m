@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch added to -mm tree
-Date: Thu, 17 Aug 2017 14:41:33 -0700
-Message-ID: <59960d8d.o/+LeeJGBMgFH7yu%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-support-memory_device_private-v4.patch added to
+ -mm tree
+Date: Thu, 17 Aug 2017 14:42:01 -0700
+Message-ID: <59960da9.p+CZ47QQnq6RQvsG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40566 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753372AbdHQVlf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 17:41:35 -0400
+        with ESMTP id S1753736AbdHQVmD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 17:42:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jglisse@redhat.com, SCheung@nvidia.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhairgrove@nvidia.com, mhocko@kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, sgutti@nvidia.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm/mirror: mirror process address space on device with HMM helpers
+     Subject: mm/memcontrol: support MEMORY_DEVICE_PRIVATE
 has been added to the -mm tree.  Its filename is
-     mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
+     mm-memcontrol-support-memory_device_private-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-support-memory_device_private-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-support-memory_device_private-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,401 +40,187 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm/mirror: mirror process address space on device with HMM helpers
+Subject: mm/memcontrol: support MEMORY_DEVICE_PRIVATE
 
-This is a heterogeneous memory management (HMM) process address space
-mirroring.  In a nutshell this provide an API to mirror process address
-space on a device.  This boils down to keeping CPU and device page table
-synchronize (we assume that both device and CPU are cache coherent like
-PCIe device can be).
+HMM pages (private or public device pages) are ZONE_DEVICE page and thus
+need special handling when it comes to lru or refcount.  This patch make
+sure that memcontrol properly handle those when it face them.  Those pages
+are use like regular pages in a process address space either as anonymous
+page or as file back page.  So from memcg point of view we want to handle
+them like regular page for now at least.
 
-This patch provide a simple API for device driver to achieve address space
-mirroring thus avoiding each device driver to grow its own CPU page table
-walker and its own CPU page table synchronization mechanism.
-
-This is useful for NVidia GPU >= Pascal, Mellanox IB >= mlx5 and more
-hardware in the future.
-
-Link: http://lkml.kernel.org/r/20170817000548.32038-4-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170817000548.32038-11-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |  110 +++++++++++++++++++++++++++
- mm/Kconfig          |   12 +++
- mm/hmm.c            |  168 ++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 275 insertions(+), 15 deletions(-)
+ kernel/memremap.c |    1 
+ mm/memcontrol.c   |   52 ++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 49 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3 include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3
-+++ a/include/linux/hmm.h
-@@ -72,6 +72,7 @@
+diff -puN kernel/memremap.c~mm-memcontrol-support-memory_device_private-v4 kernel/memremap.c
+--- a/kernel/memremap.c~mm-memcontrol-support-memory_device_private-v4
++++ a/kernel/memremap.c
+@@ -504,6 +504,7 @@ void put_zone_device_private_page(struct
+ 		__ClearPageWaiters(page);
  
- #if IS_ENABLED(CONFIG_HMM)
+ 		page->mapping = NULL;
++		mem_cgroup_uncharge(page);
  
-+struct hmm;
- 
- /*
-  * hmm_pfn_t - HMM uses its own pfn type to keep several flags per page
-@@ -134,6 +135,115 @@ static inline hmm_pfn_t hmm_pfn_t_from_p
- }
- 
- 
-+#if IS_ENABLED(CONFIG_HMM_MIRROR)
-+/*
-+ * Mirroring: how to synchronize device page table with CPU page table.
-+ *
-+ * A device driver that is participating in HMM mirroring must always
-+ * synchronize with CPU page table updates. For this, device drivers can either
-+ * directly use mmu_notifier APIs or they can use the hmm_mirror API. Device
-+ * drivers can decide to register one mirror per device per process, or just
-+ * one mirror per process for a group of devices. The pattern is:
-+ *
-+ *      int device_bind_address_space(..., struct mm_struct *mm, ...)
-+ *      {
-+ *          struct device_address_space *das;
-+ *
-+ *          // Device driver specific initialization, and allocation of das
-+ *          // which contains an hmm_mirror struct as one of its fields.
-+ *          ...
-+ *
-+ *          ret = hmm_mirror_register(&das->mirror, mm, &device_mirror_ops);
-+ *          if (ret) {
-+ *              // Cleanup on error
-+ *              return ret;
-+ *          }
-+ *
-+ *          // Other device driver specific initialization
-+ *          ...
-+ *      }
-+ *
-+ * Once an hmm_mirror is registered for an address space, the device driver
-+ * will get callbacks through sync_cpu_device_pagetables() operation (see
-+ * hmm_mirror_ops struct).
-+ *
-+ * Device driver must not free the struct containing the hmm_mirror struct
-+ * before calling hmm_mirror_unregister(). The expected usage is to do that when
-+ * the device driver is unbinding from an address space.
-+ *
-+ *
-+ *      void device_unbind_address_space(struct device_address_space *das)
-+ *      {
-+ *          // Device driver specific cleanup
-+ *          ...
-+ *
-+ *          hmm_mirror_unregister(&das->mirror);
-+ *
-+ *          // Other device driver specific cleanup, and now das can be freed
-+ *          ...
-+ *      }
-+ */
-+
-+struct hmm_mirror;
-+
-+/*
-+ * enum hmm_update_type - type of update
-+ * @HMM_UPDATE_INVALIDATE: invalidate range (no indication as to why)
-+ */
-+enum hmm_update_type {
-+	HMM_UPDATE_INVALIDATE,
-+};
-+
-+/*
-+ * struct hmm_mirror_ops - HMM mirror device operations callback
-+ *
-+ * @update: callback to update range on a device
-+ */
-+struct hmm_mirror_ops {
-+	/* sync_cpu_device_pagetables() - synchronize page tables
-+	 *
-+	 * @mirror: pointer to struct hmm_mirror
-+	 * @update_type: type of update that occurred to the CPU page table
-+	 * @start: virtual start address of the range to update
-+	 * @end: virtual end address of the range to update
-+	 *
-+	 * This callback ultimately originates from mmu_notifiers when the CPU
-+	 * page table is updated. The device driver must update its page table
-+	 * in response to this callback. The update argument tells what action
-+	 * to perform.
-+	 *
-+	 * The device driver must not return from this callback until the device
-+	 * page tables are completely updated (TLBs flushed, etc); this is a
-+	 * synchronous call.
-+	 */
-+	void (*sync_cpu_device_pagetables)(struct hmm_mirror *mirror,
-+					   enum hmm_update_type update_type,
-+					   unsigned long start,
-+					   unsigned long end);
-+};
-+
-+/*
-+ * struct hmm_mirror - mirror struct for a device driver
-+ *
-+ * @hmm: pointer to struct hmm (which is unique per mm_struct)
-+ * @ops: device driver callback for HMM mirror operations
-+ * @list: for list of mirrors of a given mm
-+ *
-+ * Each address space (mm_struct) being mirrored by a device must register one
-+ * instance of an hmm_mirror struct with HMM. HMM will track the list of all
-+ * mirrors for each mm_struct.
-+ */
-+struct hmm_mirror {
-+	struct hmm			*hmm;
-+	const struct hmm_mirror_ops	*ops;
-+	struct list_head		list;
-+};
-+
-+int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm);
-+void hmm_mirror_unregister(struct hmm_mirror *mirror);
-+#endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
-+
-+
- /* Below are for HMM internal use only! Not to be used by device driver! */
- void hmm_mm_destroy(struct mm_struct *mm);
- 
-diff -puN mm/Kconfig~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3 mm/Kconfig
---- a/mm/Kconfig~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3
-+++ a/mm/Kconfig
-@@ -705,6 +705,18 @@ config ARCH_HAS_HMM
- config HMM
- 	bool
- 
-+config HMM_MIRROR
-+	bool "HMM mirror CPU page table into a device page table"
-+	depends on ARCH_HAS_HMM
-+	select MMU_NOTIFIER
-+	select HMM
-+	help
-+	  Select HMM_MIRROR if you want to mirror range of the CPU page table of a
-+	  process into a device page table. Here, mirror means "keep synchronized".
-+	  Prerequisites: the device must provide the ability to write-protect its
-+	  page tables (at PAGE_SIZE granularity), and must be able to recover from
-+	  the resulting potential page faults.
-+
- config FRAME_VECTOR
- 	bool
- 
-diff -puN mm/hmm.c~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3 mm/hmm.c
---- a/mm/hmm.c~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3
-+++ a/mm/hmm.c
-@@ -21,16 +21,27 @@
- #include <linux/hmm.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <linux/mmu_notifier.h>
- 
- 
- #ifdef CONFIG_HMM
-+static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
-+
- /*
-  * struct hmm - HMM per mm struct
-  *
-  * @mm: mm struct this HMM struct is bound to
-+ * @sequence: we track updates to the CPU page table with a sequence number
-+ * @mirrors: list of mirrors for this mm
-+ * @mmu_notifier: mmu notifier to track updates to CPU page table
-+ * @mirrors_sem: read/write semaphore protecting the mirrors list
-  */
- struct hmm {
- 	struct mm_struct	*mm;
-+	atomic_t		sequence;
-+	struct list_head	mirrors;
-+	struct mmu_notifier	mmu_notifier;
-+	struct rw_semaphore	mirrors_sem;
+ 		page->pgmap->page_free(page, page->pgmap->data);
+ 	} else if (!count)
+diff -puN mm/memcontrol.c~mm-memcontrol-support-memory_device_private-v4 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-support-memory_device_private-v4
++++ a/mm/memcontrol.c
+@@ -4414,12 +4414,13 @@ enum mc_target_type {
+ 	MC_TARGET_NONE = 0,
+ 	MC_TARGET_PAGE,
+ 	MC_TARGET_SWAP,
++	MC_TARGET_DEVICE,
  };
  
- /*
-@@ -43,27 +54,48 @@ struct hmm {
-  */
- static struct hmm *hmm_register(struct mm_struct *mm)
+ static struct page *mc_handle_present_pte(struct vm_area_struct *vma,
+ 						unsigned long addr, pte_t ptent)
  {
--	if (!mm->hmm) {
--		struct hmm *hmm = NULL;
--
--		hmm = kmalloc(sizeof(*hmm), GFP_KERNEL);
--		if (!hmm)
--			return NULL;
--		hmm->mm = mm;
--
--		spin_lock(&mm->page_table_lock);
--		if (!mm->hmm)
--			mm->hmm = hmm;
--		else
--			kfree(hmm);
--		spin_unlock(&mm->page_table_lock);
--	}
-+	struct hmm *hmm = READ_ONCE(mm->hmm);
-+	bool cleanup = false;
+-	struct page *page = vm_normal_page(vma, addr, ptent);
++	struct page *page = _vm_normal_page(vma, addr, ptent, true);
  
- 	/*
- 	 * The hmm struct can only be freed once the mm_struct goes away,
- 	 * hence we should always have pre-allocated an new hmm struct
- 	 * above.
- 	 */
-+	if (hmm)
-+		return hmm;
-+
-+	hmm = kmalloc(sizeof(*hmm), GFP_KERNEL);
-+	if (!hmm)
-+		return NULL;
-+	INIT_LIST_HEAD(&hmm->mirrors);
-+	init_rwsem(&hmm->mirrors_sem);
-+	atomic_set(&hmm->sequence, 0);
-+	hmm->mmu_notifier.ops = NULL;
-+	hmm->mm = mm;
+ 	if (!page || !page_mapped(page))
+ 		return NULL;
+@@ -4436,7 +4437,7 @@ static struct page *mc_handle_present_pt
+ 	return page;
+ }
+ 
+-#ifdef CONFIG_SWAP
++#if defined(CONFIG_SWAP) || defined(CONFIG_DEVICE_PRIVATE)
+ static struct page *mc_handle_swap_pte(struct vm_area_struct *vma,
+ 			pte_t ptent, swp_entry_t *entry)
+ {
+@@ -4445,6 +4446,23 @@ static struct page *mc_handle_swap_pte(s
+ 
+ 	if (!(mc.flags & MOVE_ANON) || non_swap_entry(ent))
+ 		return NULL;
 +
 +	/*
-+	 * We should only get here if hold the mmap_sem in write mode ie on
-+	 * registration of first mirror through hmm_mirror_register()
++	 * Handle MEMORY_DEVICE_PRIVATE which are ZONE_DEVICE page belonging to
++	 * a device and because they are not accessible by CPU they are store
++	 * as special swap entry in the CPU page table.
 +	 */
-+	hmm->mmu_notifier.ops = &hmm_mmu_notifier_ops;
-+	if (__mmu_notifier_register(&hmm->mmu_notifier, mm)) {
-+		kfree(hmm);
-+		return NULL;
++	if (is_device_private_entry(ent)) {
++		page = device_private_entry_to_page(ent);
++		/*
++		 * MEMORY_DEVICE_PRIVATE means ZONE_DEVICE page and which have
++		 * a refcount of 1 when free (unlike normal page)
++		 */
++		if (!page_ref_add_unless(page, 1, 1))
++			return NULL;
++		return page;
 +	}
 +
-+	spin_lock(&mm->page_table_lock);
-+	if (!mm->hmm)
-+		mm->hmm = hmm;
-+	else
-+		cleanup = true;
-+	spin_unlock(&mm->page_table_lock);
-+
-+	if (cleanup) {
-+		mmu_notifier_unregister(&hmm->mmu_notifier, mm);
-+		kfree(hmm);
-+	}
-+
- 	return mm->hmm;
- }
+ 	/*
+ 	 * Because lookup_swap_cache() updates some statistics counter,
+ 	 * we call find_get_page() with swapper_space directly.
+@@ -4605,6 +4623,12 @@ out:
+  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
+  *     target for charge migration. if @target is not NULL, the entry is stored
+  *     in target->ent.
++ *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PRIVATE
++ *     (so ZONE_DEVICE page and thus not on the lru). For now we such page is
++ *     charge like a regular page would be as for all intent and purposes it is
++ *     just special memory taking the place of a regular page.
++ *
++ *     See Documentations/vm/hmm.txt and include/linux/hmm.h
+  *
+  * Called with pte lock held.
+  */
+@@ -4633,6 +4657,8 @@ static enum mc_target_type get_mctgt_typ
+ 		 */
+ 		if (page->mem_cgroup == mc.from) {
+ 			ret = MC_TARGET_PAGE;
++			if (is_device_private_page(page))
++				ret = MC_TARGET_DEVICE;
+ 			if (target)
+ 				target->page = page;
+ 		}
+@@ -4700,6 +4726,11 @@ static int mem_cgroup_count_precharge_pt
  
-@@ -72,3 +104,109 @@ void hmm_mm_destroy(struct mm_struct *mm
- 	kfree(mm->hmm);
- }
- #endif /* CONFIG_HMM */
-+
-+#if IS_ENABLED(CONFIG_HMM_MIRROR)
-+static void hmm_invalidate_range(struct hmm *hmm,
-+				 enum hmm_update_type action,
-+				 unsigned long start,
-+				 unsigned long end)
-+{
-+	struct hmm_mirror *mirror;
-+
-+	down_read(&hmm->mirrors_sem);
-+	list_for_each_entry(mirror, &hmm->mirrors, list)
-+		mirror->ops->sync_cpu_device_pagetables(mirror, action,
-+							start, end);
-+	up_read(&hmm->mirrors_sem);
-+}
-+
-+static void hmm_invalidate_page(struct mmu_notifier *mn,
-+				struct mm_struct *mm,
-+				unsigned long addr)
-+{
-+	unsigned long start = addr & PAGE_MASK;
-+	unsigned long end = start + PAGE_SIZE;
-+	struct hmm *hmm = mm->hmm;
-+
-+	VM_BUG_ON(!hmm);
-+
-+	atomic_inc(&hmm->sequence);
-+	hmm_invalidate_range(mm->hmm, HMM_UPDATE_INVALIDATE, start, end);
-+}
-+
-+static void hmm_invalidate_range_start(struct mmu_notifier *mn,
-+				       struct mm_struct *mm,
-+				       unsigned long start,
-+				       unsigned long end)
-+{
-+	struct hmm *hmm = mm->hmm;
-+
-+	VM_BUG_ON(!hmm);
-+
-+	atomic_inc(&hmm->sequence);
-+}
-+
-+static void hmm_invalidate_range_end(struct mmu_notifier *mn,
-+				     struct mm_struct *mm,
-+				     unsigned long start,
-+				     unsigned long end)
-+{
-+	struct hmm *hmm = mm->hmm;
-+
-+	VM_BUG_ON(!hmm);
-+
-+	hmm_invalidate_range(mm->hmm, HMM_UPDATE_INVALIDATE, start, end);
-+}
-+
-+static const struct mmu_notifier_ops hmm_mmu_notifier_ops = {
-+	.invalidate_page	= hmm_invalidate_page,
-+	.invalidate_range_start	= hmm_invalidate_range_start,
-+	.invalidate_range_end	= hmm_invalidate_range_end,
-+};
-+
-+/*
-+ * hmm_mirror_register() - register a mirror against an mm
-+ *
-+ * @mirror: new mirror struct to register
-+ * @mm: mm to register against
-+ *
-+ * To start mirroring a process address space, the device driver must register
-+ * an HMM mirror struct.
-+ *
-+ * THE mm->mmap_sem MUST BE HELD IN WRITE MODE !
-+ */
-+int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm)
-+{
-+	/* Sanity check */
-+	if (!mm || !mirror || !mirror->ops)
-+		return -EINVAL;
-+
-+	mirror->hmm = hmm_register(mm);
-+	if (!mirror->hmm)
-+		return -ENOMEM;
-+
-+	down_write(&mirror->hmm->mirrors_sem);
-+	list_add(&mirror->list, &mirror->hmm->mirrors);
-+	up_write(&mirror->hmm->mirrors_sem);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(hmm_mirror_register);
-+
-+/*
-+ * hmm_mirror_unregister() - unregister a mirror
-+ *
-+ * @mirror: new mirror struct to register
-+ *
-+ * Stop mirroring a process address space, and cleanup.
-+ */
-+void hmm_mirror_unregister(struct hmm_mirror *mirror)
-+{
-+	struct hmm *hmm = mirror->hmm;
-+
-+	down_write(&hmm->mirrors_sem);
-+	list_del(&mirror->list);
-+	up_write(&hmm->mirrors_sem);
-+}
-+EXPORT_SYMBOL(hmm_mirror_unregister);
-+#endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
++		/*
++		 * Note their can not be MC_TARGET_DEVICE for now as we do not
++		 * support transparent huge page with MEMORY_DEVICE_PUBLIC or
++		 * MEMORY_DEVICE_PRIVATE but this might change.
++		 */
+ 		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
+ 			mc.precharge += HPAGE_PMD_NR;
+ 		spin_unlock(ptl);
+@@ -4915,6 +4946,14 @@ static int mem_cgroup_move_charge_pte_ra
+ 				putback_lru_page(page);
+ 			}
+ 			put_page(page);
++		} else if (target_type == MC_TARGET_DEVICE) {
++			page = target.page;
++			if (!mem_cgroup_move_account(page, true,
++						     mc.from, mc.to)) {
++				mc.precharge -= HPAGE_PMD_NR;
++				mc.moved_charge += HPAGE_PMD_NR;
++			}
++			put_page(page);
+ 		}
+ 		spin_unlock(ptl);
+ 		return 0;
+@@ -4926,12 +4965,16 @@ retry:
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		pte_t ptent = *(pte++);
++		bool device = false;
+ 		swp_entry_t ent;
+ 
+ 		if (!mc.precharge)
+ 			break;
+ 
+ 		switch (get_mctgt_type(vma, addr, ptent, &target)) {
++		case MC_TARGET_DEVICE:
++			device = true;
++			/* fall through */
+ 		case MC_TARGET_PAGE:
+ 			page = target.page;
+ 			/*
+@@ -4942,7 +4985,7 @@ retry:
+ 			 */
+ 			if (PageTransCompound(page))
+ 				goto put;
+-			if (isolate_lru_page(page))
++			if (!device && isolate_lru_page(page))
+ 				goto put;
+ 			if (!mem_cgroup_move_account(page, false,
+ 						mc.from, mc.to)) {
+@@ -4950,7 +4993,8 @@ retry:
+ 				/* we uncharge from mc.from later. */
+ 				mc.moved_charge++;
+ 			}
+-			putback_lru_page(page);
++			if (!device)
++				putback_lru_page(page);
+ put:			/* get_mctgt_type() gets the page */
+ 			put_page(page);
+ 			break;
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
