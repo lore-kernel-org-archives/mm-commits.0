@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-non-functional-header-inclusion-cleanup.patch added to
- -mm tree
-Date: Thu, 17 Aug 2017 15:47:55 -0700
-Message-ID: <59961d1b.cTYataXW48sGZEou%akpm@linux-foundation.org>
+Subject: + autofs-use-autofs_dev_ioctl_size.patch added to -mm tree
+Date: Thu, 17 Aug 2017 15:47:57 -0700
+Message-ID: <59961d1d.mqD1BvnhV9l5NJih%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51392 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753005AbdHQWr4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:47:56 -0400
+        with ESMTP id S1753005AbdHQWr6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Aug 2017 18:47:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: non functional header inclusion cleanup
+     Subject: autofs: use AUTOFS_DEV_IOCTL_SIZE
 has been added to the -mm tree.  Its filename is
-     autofs-non-functional-header-inclusion-cleanup.patch
+     autofs-use-autofs_dev_ioctl_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-non-functional-header-inclusion-cleanup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-autofs_dev_ioctl_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-non-functional-header-inclusion-cleanup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-autofs_dev_ioctl_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,56 +39,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: non functional header inclusion cleanup
+Subject: autofs: use AUTOFS_DEV_IOCTL_SIZE
 
-Having header includes before any macro (without any dependency) simply
-looks normal.  No reason to have these macros in between.
+Use a macro which defines misc-dev ioctl parameter size (excluding a path
+beyond &path[0]) since it's been used to initialize and copy this
+structure ever since it first appeared in 8d7b48e0 in 2008.
 
-Link: http://lkml.kernel.org/r/150285068011.4670.10271483982093996996.stgit@pluto.themaw.net
+(or simply get rid of this if this is just unnecessary abstraction when
+all it needs is sizeof(struct autofs_dev_ioctl))
+
+Edit: raven@themaw.net
+That's a good point but I'd prefer to keep the macro define.
+End edit: raven@themaw.net
+
+Link: http://lkml.kernel.org/r/150285068577.4670.2599968823770600622.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/autofs4/dev-ioctl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs-non-functional-header-inclusion-cleanup fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs-non-functional-header-inclusion-cleanup
-+++ a/fs/autofs4/autofs_i.h
-@@ -11,10 +11,21 @@
+diff -puN fs/autofs4/dev-ioctl.c~autofs-use-autofs_dev_ioctl_size fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-use-autofs_dev_ioctl_size
++++ a/fs/autofs4/dev-ioctl.c
+@@ -97,13 +97,13 @@ static struct autofs_dev_ioctl *
+ {
+ 	struct autofs_dev_ioctl tmp, *res;
  
- #include <linux/auto_fs4.h>
- #include <linux/auto_dev-ioctl.h>
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/time.h>
-+#include <linux/string.h>
-+#include <linux/wait.h>
-+#include <linux/sched.h>
-+#include <linux/mount.h>
-+#include <linux/namei.h>
-+#include <linux/uaccess.h>
- #include <linux/mutex.h>
- #include <linux/spinlock.h>
- #include <linux/list.h>
- #include <linux/completion.h>
-+#include <asm/current.h>
+-	if (copy_from_user(&tmp, in, sizeof(tmp)))
++	if (copy_from_user(&tmp, in, AUTOFS_DEV_IOCTL_SIZE))
+ 		return ERR_PTR(-EFAULT);
  
- /* This is the range of ioctl() numbers we claim as ours */
- #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
-@@ -24,17 +35,6 @@
- #define AUTOFS_DEV_IOCTL_IOC_COUNT \
- 	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
+-	if (tmp.size < sizeof(tmp))
++	if (tmp.size < AUTOFS_DEV_IOCTL_SIZE)
+ 		return ERR_PTR(-EINVAL);
  
--#include <linux/kernel.h>
--#include <linux/slab.h>
--#include <linux/time.h>
--#include <linux/string.h>
--#include <linux/wait.h>
--#include <linux/sched.h>
--#include <linux/mount.h>
--#include <linux/namei.h>
--#include <asm/current.h>
--#include <linux/uaccess.h>
+-	if (tmp.size > (PATH_MAX + sizeof(tmp)))
++	if (tmp.size > AUTOFS_DEV_IOCTL_SIZE + PATH_MAX)
+ 		return ERR_PTR(-ENAMETOOLONG);
+ 
+ 	res = memdup_user(in, tmp.size);
+@@ -133,8 +133,8 @@ static int validate_dev_ioctl(int cmd, s
+ 		goto out;
+ 	}
+ 
+-	if (param->size > sizeof(*param)) {
+-		err = invalid_str(param->path, param->size - sizeof(*param));
++	if (param->size > AUTOFS_DEV_IOCTL_SIZE) {
++		err = invalid_str(param->path, param->size - AUTOFS_DEV_IOCTL_SIZE);
+ 		if (err) {
+ 			pr_warn(
+ 			  "path string terminator missing for cmd(0x%08x)\n",
+@@ -451,7 +451,7 @@ static int autofs_dev_ioctl_requester(st
+ 	dev_t devid;
+ 	int err = -ENOENT;
+ 
+-	if (param->size <= sizeof(*param)) {
++	if (param->size <= AUTOFS_DEV_IOCTL_SIZE) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -539,7 +539,7 @@ static int autofs_dev_ioctl_ismountpoint
+ 	unsigned int devid, magic;
+ 	int err = -ENOENT;
+ 
+-	if (param->size <= sizeof(*param)) {
++	if (param->size <= AUTOFS_DEV_IOCTL_SIZE) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+_
+
+Patches currently in -mm which might be from tkusumi@tuxera.com are
+
+autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
+autofs-non-functional-header-inclusion-cleanup.patch
+autofs-use-autofs_dev_ioctl_size.patch
+autofs-drop-wrong-comment.patch
+autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args.patch
+
