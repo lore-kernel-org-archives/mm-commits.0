@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2.patch added to -mm tree
-Date: Fri, 18 Aug 2017 14:25:06 -0700
-Message-ID: <59975b32.XMm7thE7AHY7Le4t%akpm@linux-foundation.org>
+Subject: + mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
+ added to -mm tree
+Date: Fri, 18 Aug 2017 14:30:50 -0700
+Message-ID: <59975c8a.BR1ydTN5k0+Tf4kX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37216 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751173AbdHRVZH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2017 17:25:07 -0400
+        with ESMTP id S1751558AbdHRVav (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2017 17:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: punit.agrawal@arm.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2
+     Subject: mm/hmm: avoid bloating arch that do not make use of HMM
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2.patch
+     mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +39,254 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2
+From: Jérôme Glisse <jglisse@redhat.com>
+Subject: mm/hmm: avoid bloating arch that do not make use of HMM
 
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+This moves all new code including new page migration helper behind kernel
+Kconfig option so that there is no codee bloat for arch or user that do
+not want to use HMM or any of its associated features.
+
+arm allyesconfig (without all the patchset, then with and this patch):
+   text	   data	    bss	    dec	    hex	filename
+83721896	46511131	27582964	157815991	96814b7	../without/vmlinux
+83722364	46511131	27582964	157816459	968168b	vmlinux
+
+Link: http://lkml.kernel.org/r/20170818032858.7447-1-jglisse@redhat.com
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/linux/memremap.h |   22 +++++++---------------
+ include/linux/migrate.h  |   13 +++++++++++++
+ include/linux/mm.h       |   26 +++++++++++++++++---------
+ mm/Kconfig               |    4 ++++
+ mm/Makefile              |    3 ++-
+ mm/hmm.c                 |    6 +++---
+ mm/migrate.c             |    2 ++
+ 7 files changed, 48 insertions(+), 28 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2
-+++ a/mm/hugetlb.c
-@@ -4604,8 +4604,10 @@ pte_t *huge_pte_alloc(struct mm_struct *
-  * huge_pte_offset() - Walk the page table to resolve the hugepage
-  * entry at address @addr
-  *
-- * Return: Pointer to page table or swap entry (PUD or PMD) for address @addr
-- * or NULL if the entry is p*d_none().
-+ * Return: Pointer to page table or swap entry (PUD or PMD) for
-+ * address @addr, or NULL if a p*d_none() entry is encountered and the
-+ * size @sz doesn't match the hugepage size at this level of the page
-+ * table.
-  */
- pte_t *huge_pte_offset(struct mm_struct *mm,
- 		       unsigned long addr, unsigned long sz)
-@@ -4623,18 +4625,18 @@ pte_t *huge_pte_offset(struct mm_struct
- 		return NULL;
+diff -puN include/linux/memremap.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/include/linux/memremap.h
+@@ -138,18 +138,6 @@ void *devm_memremap_pages(struct device
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
  
- 	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud))
-+	if (sz != PUD_SIZE && pud_none(*pud))
- 		return NULL;
- 	/* hugepage or swap? */
- 	if (pud_huge(*pud) || !pud_present(*pud))
- 		return (pte_t *)pud;
- 
- 	pmd = pmd_offset(pud, addr);
--	if (pmd_none(*pmd))
-+	if (sz != PMD_SIZE && pmd_none(*pmd))
- 		return NULL;
- 	/* hugepage or swap? */
- 	if (pmd_huge(*pmd) || !pmd_present(*pmd))
--		return (pte_t *) pmd;
-+		return (pte_t *)pmd;
- 
+ static inline bool is_zone_device_page(const struct page *page);
+-
+-static inline bool is_device_private_page(const struct page *page)
+-{
+-	return is_zone_device_page(page) &&
+-		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+-}
+-
+-static inline bool is_device_public_page(const struct page *page)
+-{
+-	return is_zone_device_page(page) &&
+-		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+-}
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct resource *res, struct percpu_ref *ref,
+@@ -168,17 +156,21 @@ static inline struct dev_pagemap *find_d
+ {
  	return NULL;
  }
++#endif
+ 
++#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ static inline bool is_device_private_page(const struct page *page)
+ {
+-	return false;
++	return is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+ }
+ 
+ static inline bool is_device_public_page(const struct page *page)
+ {
+-	return false;
++	return is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+ }
+-#endif
++#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ 
+ /**
+  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
+diff -puN include/linux/migrate.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/include/linux/migrate.h
+@@ -265,6 +265,7 @@ struct migrate_vma_ops {
+ 				 void *private);
+ };
+ 
++#if defined(CONFIG_MIGRATE_VMA_HELPER)
+ int migrate_vma(const struct migrate_vma_ops *ops,
+ 		struct vm_area_struct *vma,
+ 		unsigned long start,
+@@ -272,6 +273,18 @@ int migrate_vma(const struct migrate_vma
+ 		unsigned long *src,
+ 		unsigned long *dst,
+ 		void *private);
++#else
++static inline int migrate_vma(const struct migrate_vma_ops *ops,
++			      struct vm_area_struct *vma,
++			      unsigned long start,
++			      unsigned long end,
++			      unsigned long *src,
++			      unsigned long *dst,
++			      void *private)
++{
++	return -EINVAL;
++}
++#endif /* IS_ENABLED(CONFIG_MIGRATE_VMA_HELPER) */
+ 
+ #endif /* CONFIG_MIGRATION */
+ 
+diff -puN include/linux/mm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/mm.h
+--- a/include/linux/mm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/include/linux/mm.h
+@@ -800,18 +800,27 @@ static inline bool is_zone_device_page(c
+ }
+ #endif
+ 
+-#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
++#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ void put_zone_device_private_or_public_page(struct page *page);
+-#else
++DECLARE_STATIC_KEY_FALSE(device_private_key);
++#define IS_HMM_ENABLED static_branch_unlikely(&device_private_key)
++static inline bool is_device_private_page(const struct page *page);
++static inline bool is_device_public_page(const struct page *page);
++#else /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ static inline void put_zone_device_private_or_public_page(struct page *page)
+ {
+ }
++#define IS_HMM_ENABLED 0
++static inline bool is_device_private_page(const struct page *page)
++{
++	return false;
++}
++static inline bool is_device_public_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ 
+-static inline bool is_device_private_page(const struct page *page);
+-static inline bool is_device_public_page(const struct page *page);
+-
+-DECLARE_STATIC_KEY_FALSE(device_private_key);
+ 
+ static inline void get_page(struct page *page)
+ {
+@@ -834,9 +843,8 @@ static inline void put_page(struct page
+ 	 * free and we need to inform the device driver through callback. See
+ 	 * include/linux/memremap.h and HMM for details.
+ 	 */
+-	if (static_branch_unlikely(&device_private_key) &&
+-	    unlikely(is_device_private_page(page) ||
+-		     is_device_public_page(page))) {
++	if (IS_HMM_ENABLED && unlikely(is_device_private_page(page) ||
++	    unlikely(is_device_public_page(page)))) {
+ 		put_zone_device_private_or_public_page(page);
+ 		return;
+ 	}
+diff -puN mm/Kconfig~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/Kconfig
+--- a/mm/Kconfig~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/Kconfig
+@@ -702,8 +702,12 @@ config ARCH_HAS_HMM
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+ 
++config MIGRATE_VMA_HELPER
++	bool
++
+ config HMM
+ 	bool
++	select MIGRATE_VMA_HELPER
+ 
+ config HMM_MIRROR
+ 	bool "HMM mirror CPU page table into a device page table"
+diff -puN mm/Makefile~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/Makefile
+--- a/mm/Makefile~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/Makefile
+@@ -39,7 +39,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
+ 			   mm_init.o mmu_context.o percpu.o slab_common.o \
+ 			   compaction.o vmacache.o swap_slots.o \
+ 			   interval_tree.o list_lru.o workingset.o \
+-			   debug.o hmm.o $(mmu-y)
++			   debug.o $(mmu-y)
+ 
+ obj-y += init-mm.o
+ 
+@@ -104,3 +104,4 @@ obj-$(CONFIG_FRAME_VECTOR) += frame_vect
+ obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
+ obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
+ obj-$(CONFIG_PERCPU_STATS) += percpu-stats.o
++obj-$(CONFIG_HMM) += hmm.o
+diff -puN mm/hmm.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/hmm.c
+--- a/mm/hmm.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/hmm.c
+@@ -35,17 +35,17 @@
+ 
+ #define PA_SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+ 
+-
++#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ /*
+  * Device private memory see HMM (Documentation/vm/hmm.txt) or hmm.h
+  */
+ DEFINE_STATIC_KEY_FALSE(device_private_key);
+ EXPORT_SYMBOL(device_private_key);
++static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
++#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ 
+ 
+ #ifdef CONFIG_HMM
+-static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
+-
+ /*
+  * struct hmm - HMM per mm struct
+  *
+diff -puN mm/migrate.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/migrate.c
+--- a/mm/migrate.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/migrate.c
+@@ -2132,6 +2132,7 @@ out_unlock:
+ 
+ #endif /* CONFIG_NUMA */
+ 
++#if defined(CONFIG_MIGRATE_VMA_HELPER)
+ struct migrate_vma {
+ 	struct vm_area_struct	*vma;
+ 	unsigned long		*dst;
+@@ -2985,3 +2986,4 @@ int migrate_vma(const struct migrate_vma
+ 	return 0;
+ }
+ EXPORT_SYMBOL(migrate_vma);
++#endif /* defined(MIGRATE_VMA_HELPER) */
 _
 
-Patches currently in -mm which might be from punit.agrawal@arm.com are
+Patches currently in -mm which might be from jglisse@redhat.com are
 
-mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour.patch
-mm-hugetlbc-make-huge_pte_offset-consistent-and-document-behaviour-v2.patch
+hmm-heterogeneous-memory-management-documentation-v3.patch
+mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
+mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
+mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
+mm-hmm-mirror-device-page-fault-handler.patch
+mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
+mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
+mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
+mm-memcontrol-support-memory_device_private-v4.patch
+mm-hmm-devmem-device-memory-hotplug-using-zone_device-v7.patch
+mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
+mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
+mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
+mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
+mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
+mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry-v4.patch
+mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
+mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3.patch
+mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
+lib-interval_tree-fast-overlap-detection-fix.patch
 
