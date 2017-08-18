@@ -1,27 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 18 Aug 2017 12:51:38 -0700
-Message-ID: <20170818195138.gTZC4Xa0S%akpm@linux-foundation.org>
+Subject: + mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
+ added to -mm tree
+Date: Fri, 18 Aug 2017 14:03:25 -0700
+Message-ID: <5997561d.o1/NlMaxoDWgmEo3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752557AbdHRTvj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2017 15:51:39 -0400
+        with ESMTP id S1751572AbdHRVD1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2017 17:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,38 +40,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix
 
+fix CONFIG_COMPACTION=n build
+
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/pageblock-flags.h |    2 ++
+ mm/compaction.c                 |    5 +++++
+ 2 files changed, 7 insertions(+)
 
-diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -3685,14 +3685,6 @@ void intel_prepare_reset(struct drm_i915
- 	    !gpu_reset_clobbers_display(dev_priv))
- 		return;
+diff -puN include/linux/pageblock-flags.h~mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix include/linux/pageblock-flags.h
+--- a/include/linux/pageblock-flags.h~mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix
++++ a/include/linux/pageblock-flags.h
+@@ -96,6 +96,8 @@ void set_pfnblock_flags_mask(struct page
+ #define set_pageblock_skip(page) \
+ 			set_pageblock_flags_group(page, 1, PB_migrate_skip,  \
+ 							PB_migrate_skip)
++#else
++#define set_pageblock_skip(page) do { } while (0)
+ #endif /* CONFIG_COMPACTION */
  
--<<<<<<< HEAD
--	/* We have a modeset vs reset deadlock, defensively unbreak it.
--	 *
--	 * FIXME: We can do a _lot_ better, this is just a first iteration.
--	 */
--	i915_gem_set_wedged(dev_priv);
--	DRM_DEBUG_DRIVER("Wedging GPU to avoid deadlocks with pending modeset updates\n");
--=======
- 	/* We have a modeset vs reset deadlock, defensively unbreak it. */
- 	set_bit(I915_RESET_MODESET, &dev_priv->gpu_error.flags);
- 	wake_up_all(&dev_priv->gpu_error.wait_queue);
-@@ -3701,7 +3693,6 @@ void intel_prepare_reset(struct drm_i915
- 		DRM_DEBUG_KMS("Modeset potentially stuck, unbreaking through wedging\n");
- 		i915_gem_set_wedged(dev_priv);
- 	}
-->>>>>>> linux-next/akpm-base
+ #endif	/* PAGEBLOCK_FLAGS_H */
+diff -puN mm/compaction.c~mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix
++++ a/mm/compaction.c
+@@ -327,6 +327,11 @@ static void update_pageblock_skip(struct
+ 			bool migrate_scanner)
+ {
+ }
++
++static bool pageblock_skip_persistent(struct page *page, unsigned int order)
++{
++	return false;
++}
+ #endif /* CONFIG_COMPACTION */
  
- 	/*
- 	 * Need mode_config.mutex so that we don't
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,15 +97,16 @@ zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-i
 userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
 mm-swap-add-swap-readahead-hit-statistics-fix.patch
 swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 add-testcases-for-memset16-32-64-fix.patch
 lib-add-test-for-bitmap_parselist-fix.patch
 bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
 bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
 kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 treewide-remove-gfp_temporary-allocation-flag-fix.patch
 treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
 
