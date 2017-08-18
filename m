@@ -1,117 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/14] kmod: fix wait on recursive loop
-Date: Fri, 18 Aug 2017 15:15:58 -0700
-Message-ID: <5997671e.2Q8X5ddTX2uuMeM8%akpm@linux-foundation.org>
+Subject: [patch 07/14] slub: fix per memcg cache leak on css offline
+Date: Fri, 18 Aug 2017 15:16:08 -0700
+Message-ID: <59976728.3hTnsfJeM+xb0/4s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46516 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752412AbdHRWQA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2017 18:16:00 -0400
+        with ESMTP id S1751843AbdHRWQK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2017 18:16:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mcgrof@kernel.org, colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, matt.redfearn@imgetc.com, matt.redfearn@imgtec.com, mbenes@suse.cz, mingo@redhat.com, mmarek@suse.com, peterz@infradead.org, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov.dev@gmail.com, avagin@gmail.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, tj@kernel.org
 
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kmod: fix wait on recursive loop
+From: Vladimir Davydov <vdavydov.dev@gmail.com>
+Subject: slub: fix per memcg cache leak on css offline
 
-Recursive loops with module loading were previously handled in kmod by
-restricting the number of modprobe calls to 50 and if that limit was
-breached request_module() would return an error and a user would see the
-following on their kernel dmesg:
+To avoid a possible deadlock, sysfs_slab_remove() schedules an
+asynchronous work to delete sysfs entries corresponding to the kmem cache.
+To ensure the cache isn't freed before the work function is called, it
+takes a reference to the cache kobject.  The reference is supposed to be
+released by the work function.  However, the work function
+(sysfs_slab_remove_workfn()) does nothing in case the cache sysfs entry
+has already been deleted, leaking the kobject and the corresponding cache.
+This may happen on a per memcg cache destruction, because sysfs entries
+of a per memcg cache are deleted on memcg offline if the cache is empty
+(see __kmemcg_cache_deactivate()).
 
-request_module: runaway loop modprobe binfmt-464c
-Starting init:/sbin/init exists but couldn't execute it (error -8)
+The kmemleak report looks like this:
 
-This issue could happen for instance when a 64-bit kernel boots a 32-bit
-userspace on some architectures and has no 32-bit binary format hanlders. 
-This is visible, for instance, when a CONFIG_MODULES enabled 64-bit MIPS
-kernel boots a into o32 root filesystem and the binfmt handler for o32
-binaries is not built-in.
+  unreferenced object 0xffff9f798a79f540 (size 32):
+    comm "kworker/1:4", pid 15416, jiffies 4307432429 (age 28687.554s)
+    hex dump (first 32 bytes):
+      6b 6d 61 6c 6c 6f 63 2d 31 36 28 31 35 39 39 3a  kmalloc-16(1599:
+      6e 65 77 72 6f 6f 74 29 00 23 6b c0 ff ff ff ff  newroot).#k.....
+    backtrace:
+      [<ffffffff9591d28a>] kmemleak_alloc+0x4a/0xa0
+      [<ffffffff9527a378>] __kmalloc_track_caller+0x148/0x2c0
+      [<ffffffff95499466>] kvasprintf+0x66/0xd0
+      [<ffffffff954995a9>] kasprintf+0x49/0x70
+      [<ffffffff952305c6>] memcg_create_kmem_cache+0xe6/0x160
+      [<ffffffff9528eaf0>] memcg_kmem_cache_create_func+0x20/0x110
+      [<ffffffff950cd6c5>] process_one_work+0x205/0x5d0
+      [<ffffffff950cdade>] worker_thread+0x4e/0x3a0
+      [<ffffffff950d5169>] kthread+0x109/0x140
+      [<ffffffff9592b8fa>] ret_from_fork+0x2a/0x40
+      [<ffffffffffffffff>] 0xffffffffffffffff
+  unreferenced object 0xffff9f79b6136840 (size 416):
+    comm "kworker/1:4", pid 15416, jiffies 4307432429 (age 28687.573s)
+    hex dump (first 32 bytes):
+      40 fb 80 c2 3e 33 00 00 00 00 00 40 00 00 00 00  @...>3.....@....
+      00 00 00 00 00 00 00 00 10 00 00 00 10 00 00 00  ................
+    backtrace:
+      [<ffffffff9591d28a>] kmemleak_alloc+0x4a/0xa0
+      [<ffffffff95275bc8>] kmem_cache_alloc+0x128/0x280
+      [<ffffffff9522fedb>] create_cache+0x3b/0x1e0
+      [<ffffffff952305f8>] memcg_create_kmem_cache+0x118/0x160
+      [<ffffffff9528eaf0>] memcg_kmem_cache_create_func+0x20/0x110
+      [<ffffffff950cd6c5>] process_one_work+0x205/0x5d0
+      [<ffffffff950cdade>] worker_thread+0x4e/0x3a0
+      [<ffffffff950d5169>] kthread+0x109/0x140
+      [<ffffffff9592b8fa>] ret_from_fork+0x2a/0x40
+      [<ffffffffffffffff>] 0xffffffffffffffff
 
-After commit 6d7964a722af ("kmod: throttle kmod thread limit") we now
-don't have any visible signs of an error and the kernel just waits for the
-loop to end somehow.
+Fix the leak by adding the missing call to kobject_put() to
+sysfs_slab_remove_workfn().
 
-Although this *particular* recursive loop could also be addressed by doing
-a sanity check on search_binary_handler() and disallowing a modular binfmt
-to be required for modprobe, a generic solution for any recursive kernel
-kmod issues is still needed.
-
-This should catch these loops.  We can investigate each loop and address
-each one separately as they come in, this however puts a stop gap for them
-as before.
-
-Link: http://lkml.kernel.org/r/20170809234635.13443-3-mcgrof@kernel.org
-Fixes: 6d7964a722af ("kmod: throttle kmod thread limit")
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Reported-by: Matt Redfearn <matt.redfearn@imgtec.com>
-Tested-by: Matt Redfearn <matt.redfearn@imgetc.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Daniel Mentz <danielmentz@google.com>
-Cc: David Binderman <dcb314@hotmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: http://lkml.kernel.org/r/20170812181134.25027-1-vdavydov.dev@gmail.com
+Fixes: 3b7b314053d02 ("slub: make sysfs file removal asynchronous")
+Signed-off-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Reported-by: Andrei Vagin <avagin@gmail.com>
+Tested-by: Andrei Vagin <avagin@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>	[4.12.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ mm/slub.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kmod.c~kmod-fix-wait-on-recursive-loop kernel/kmod.c
---- a/kernel/kmod.c~kmod-fix-wait-on-recursive-loop
-+++ a/kernel/kmod.c
-@@ -71,6 +71,18 @@ static atomic_t kmod_concurrent_max = AT
- static DECLARE_WAIT_QUEUE_HEAD(kmod_wq);
+diff -puN mm/slub.c~slub-fix-per-memcg-cache-leak-on-css-offline mm/slub.c
+--- a/mm/slub.c~slub-fix-per-memcg-cache-leak-on-css-offline
++++ a/mm/slub.c
+@@ -5642,13 +5642,14 @@ static void sysfs_slab_remove_workfn(str
+ 		 * A cache is never shut down before deactivation is
+ 		 * complete, so no need to worry about synchronization.
+ 		 */
+-		return;
++		goto out;
  
- /*
-+ * This is a restriction on having *all* MAX_KMOD_CONCURRENT threads
-+ * running at the same time without returning. When this happens we
-+ * believe you've somehow ended up with a recursive module dependency
-+ * creating a loop.
-+ *
-+ * We have no option but to fail.
-+ *
-+ * Userspace should proactively try to detect and prevent these.
-+ */
-+#define MAX_KMOD_ALL_BUSY_TIMEOUT 5
-+
-+/*
- 	modprobe_path is set via /proc/sys.
- */
- char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
-@@ -167,8 +179,17 @@ int __request_module(bool wait, const ch
- 		pr_warn_ratelimited("request_module: kmod_concurrent_max (%u) close to 0 (max_modprobes: %u), for module %s, throttling...",
- 				    atomic_read(&kmod_concurrent_max),
- 				    MAX_KMOD_CONCURRENT, module_name);
--		wait_event_interruptible(kmod_wq,
--					 atomic_dec_if_positive(&kmod_concurrent_max) >= 0);
-+		ret = wait_event_killable_timeout(kmod_wq,
-+						  atomic_dec_if_positive(&kmod_concurrent_max) >= 0,
-+						  MAX_KMOD_ALL_BUSY_TIMEOUT * HZ);
-+		if (!ret) {
-+			pr_warn_ratelimited("request_module: modprobe %s cannot be processed, kmod busy with %d threads for more than %d seconds now",
-+					    module_name, MAX_KMOD_CONCURRENT, MAX_KMOD_ALL_BUSY_TIMEOUT);
-+			return -ETIME;
-+		} else if (ret == -ERESTARTSYS) {
-+			pr_warn_ratelimited("request_module: sigkill sent for modprobe %s, giving up", module_name);
-+			return ret;
-+		}
- 	}
+ #ifdef CONFIG_MEMCG
+ 	kset_unregister(s->memcg_kset);
+ #endif
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
++out:
+ 	kobject_put(&s->kobj);
+ }
  
- 	trace_module_request(module_name, wait, _RET_IP_);
 _
