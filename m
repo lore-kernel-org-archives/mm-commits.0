@@ -1,106 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch removed from -mm tree
-Date: Mon, 21 Aug 2017 11:30:31 -0700
-Message-ID: <20170821183031.-z8kBSecl%akpm@linux-foundation.org>
+ mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy.patch removed
+ from -mm tree
+Date: Mon, 21 Aug 2017 11:30:25 -0700
+Message-ID: <20170821183025.fwVKsKOlE%akpm__694.84580676562$1503340234$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50462 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753548AbdHUSac (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:32 -0400
+        with ESMTP id S1753548AbdHUSa0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, kcc@google.com, keescook@chromium.org, mingo@elte.hu, mm-commits@vger.kernel.org, stable@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com
+To: mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: mm: revert x86_64 and arm64 ELF_ET_DYN_BASE base changes
+     Subject: mm/mempolicy: fix use after free when calling get_mempolicy
 has been removed from the -mm tree.  Its filename was
-     mm-revert-x86_64-and-arm64-elf_et_dyn_base-base.patch
+     mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: revert x86_64 and arm64 ELF_ET_DYN_BASE base changes
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm/mempolicy: fix use after free when calling get_mempolicy
 
-Moving the x86_64 and arm64 PIE base from 0x555555554000 to 0x000100000000
-broke AddressSanitizer.  This is a partial revert of:
+I hit a use after free issue when executing trinity and repoduced it with
+KASAN enabled.  The related call trace is as follows.
 
-  eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE")
-  02445990a96e ("arm64: move ELF_ET_DYN_BASE to 4GB / 4MB")
+BUG: KASan: use after free in SyS_get_mempolicy+0x3c8/0x960 at addr ffff8801f582d766
+Read of size 2 by task syz-executor1/798
 
-The AddressSanitizer tool has hard-coded expectations about where
-executable mappings are loaded.  The motivation for changing the PIE base
-in the above commits was to avoid the Stack-Clash CVEs that allowed
-executable mappings to get too close to heap and stack.  This was mainly a
-problem on 32-bit, but the 64-bit bases were moved too, in an effort to
-proactively protect those systems (proofs of concept do exist that show
-64-bit collisions, but other recent changes to fix stack accounting and
-setuid behaviors will minimize the impact).
+INFO: Allocated in mpol_new.part.2+0x74/0x160 age=3 cpu=1 pid=799
+__slab_alloc+0x768/0x970
+kmem_cache_alloc+0x2e7/0x450
+mpol_new.part.2+0x74/0x160
+mpol_new+0x66/0x80
+SyS_mbind+0x267/0x9f0
+system_call_fastpath+0x16/0x1b
+INFO: Freed in __mpol_put+0x2b/0x40 age=4 cpu=1 pid=799
+__slab_free+0x495/0x8e0
+kmem_cache_free+0x2f3/0x4c0
+__mpol_put+0x2b/0x40
+SyS_mbind+0x383/0x9f0
+system_call_fastpath+0x16/0x1b
+INFO: Slab 0xffffea0009cb8dc0 objects=23 used=8 fp=0xffff8801f582de40 flags=0x200000000004080
+INFO: Object 0xffff8801f582d760 @offset=5984 fp=0xffff8801f582d600
 
-The new 32-bit PIE base is fine for ASan (since it matches the ET_EXEC
-base), so only the 64-bit PIE base needs to be reverted to let x86 and
-arm64 ASan binaries run again.  Future changes to the 64-bit PIE base on
-these architectures can be made optional once a more dynamic method for
-dealing with AddressSanitizer is found.  (e.g.  always loading PIE into
-the mmap region for marked binaries.)
+Bytes b4 ffff8801f582d750: ae 01 ff ff 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a  ........ZZZZZZZZ
+Object ffff8801f582d760: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
+Object ffff8801f582d770: 6b 6b 6b 6b 6b 6b 6b a5                          kkkkkkk.
+Redzone ffff8801f582d778: bb bb bb bb bb bb bb bb                          ........
+Padding ffff8801f582d8b8: 5a 5a 5a 5a 5a 5a 5a 5a                          ZZZZZZZZ
+Memory state around the buggy address:
+ffff8801f582d600: fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc fc
+ffff8801f582d680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801f582d700: fc fc fc fc fc fc fc fc fc fc fc fc fb fb fb fc
 
-Link: http://lkml.kernel.org/r/20170807201542.GA21271@beast
-Fixes: eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE")
-Fixes: 02445990a96e ("arm64: move ELF_ET_DYN_BASE to 4GB / 4MB")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Kostya Serebryany <kcc@google.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+!shared memory policy is not protected against parallel removal by other
+thread which is normally protected by the mmap_sem.  do_get_mempolicy,
+however, drops the lock midway while we can still access it later.  Early
+premature up_read is a historical artifact from times when put_user was
+called in this path see https://lwn.net/Articles/124754/ but that is gone
+since 8bccd85ffbaf ("[PATCH] Implement sys_* do_* layering in the memory
+policy layer.").  but when we have the the current mempolicy ref count
+model.  The issue was introduced accordingly.
+
+Fix the issue by removing the premature release.
+
+Link: http://lkml.kernel.org/r/1502950924-27521-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>	[2.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/elf.h |    4 ++--
- arch/x86/include/asm/elf.h   |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/arm64/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base arch/arm64/include/asm/elf.h
---- a/arch/arm64/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base
-+++ a/arch/arm64/include/asm/elf.h
-@@ -114,10 +114,10 @@
+diff -puN mm/mempolicy.c~mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy
++++ a/mm/mempolicy.c
+@@ -861,11 +861,6 @@ static long do_get_mempolicy(int *policy
+ 		*policy |= (pol->flags & MPOL_MODE_FLAGS);
+ 	}
  
- /*
-  * This is the base location for PIE (ET_DYN with INTERP) loads. On
-- * 64-bit, this is raised to 4GB to leave the entire 32-bit address
-+ * 64-bit, this is above 4GB to leave the entire 32-bit address
-  * space open for things that want to use the area for 32-bit pointers.
-  */
--#define ELF_ET_DYN_BASE		0x100000000UL
-+#define ELF_ET_DYN_BASE		(2 * TASK_SIZE_64 / 3)
- 
- #ifndef __ASSEMBLY__
- 
-diff -puN arch/x86/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base arch/x86/include/asm/elf.h
---- a/arch/x86/include/asm/elf.h~mm-revert-x86_64-and-arm64-elf_et_dyn_base-base
-+++ a/arch/x86/include/asm/elf.h
-@@ -247,11 +247,11 @@ extern int force_personality32;
- 
- /*
-  * This is the base location for PIE (ET_DYN with INTERP) loads. On
-- * 64-bit, this is raised to 4GB to leave the entire 32-bit address
-+ * 64-bit, this is above 4GB to leave the entire 32-bit address
-  * space open for things that want to use the area for 32-bit pointers.
-  */
- #define ELF_ET_DYN_BASE		(mmap_is_ia32() ? 0x000400000UL : \
--						  0x100000000UL)
-+						  (TASK_SIZE / 3 * 2))
- 
- /* This yields a mask that user programs can use to figure out what
-    instruction set this CPU supports.  This could be done in user space,
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-fortify-use-warn-instead-of-bug-for-now.patch
-mm-add-slub-free-list-pointer-obfuscation.patch
-
+-	if (vma) {
+-		up_read(&current->mm->mmap_sem);
+-		vma = NULL;
+-	}
