@@ -1,66 +1,331 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- signal-dont-remove-signal_unkillable-for-traced-tasks.patch removed from
- -mm tree
-Date: Mon, 21 Aug 2017 11:30:19 -0700
-Message-ID: <20170821183019.WdsPLxpjO%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-oom-fix-potential-data-corruption-when-oom=5Freaper-rac?=
+ =?US-ASCII?Q?es-with-writer.patch?= removed from -mm tree
+Date: Mon, 21 Aug 2017 11:30:16 -0700
+Message-ID: <20170821183016.YDqo5chou%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50410 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753800AbdHUSaU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:20 -0400
+        with ESMTP id S1753800AbdHUSaR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jamie.iles@oracle.com, mm-commits@vger.kernel.org, oleg@redhat.com
+To: andrea@kernel.org, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, wenwei.tww@alibaba-inc.com
 
 
 The patch titled
-     Subject: signal: don't remove SIGNAL_UNKILLABLE for traced tasks.
+     Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
 has been removed from the -mm tree.  Its filename was
-     signal-dont-remove-signal_unkillable-for-traced-tasks.patch
+     mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jamie Iles <jamie.iles@oracle.com>
-Subject: signal: don't remove SIGNAL_UNKILLABLE for traced tasks.
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: fix potential data corruption when oom_reaper races with writer
 
-When forcing a signal, SIGNAL_UNKILLABLE is removed to prevent recursive
-faults, but this is undesirable when tracing.  For example, debugging an
-init process (whether global or namespace), hitting a breakpoint and
-SIGTRAP will force SIGTRAP and then remove SIGNAL_UNKILLABLE.  Everything
-continues fine, but then once debugging has finished, the init process is
-left killable which is unlikely what the user expects, resulting in either
-an accidentally killed init or an init that stops reaping zombies.
+Wenwei Tao has noticed that our current assumption that the oom victim is
+dying and never doing any visible changes after it dies, and so the
+oom_reaper can tear it down, is not entirely true.
 
-Link: http://lkml.kernel.org/r/20170815112806.10728-1-jamie.iles@oracle.com
-Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+__task_will_free_mem consider a task dying when SIGNAL_GROUP_EXIT is set
+but do_group_exit sends SIGKILL to all threads _after_ the flag is set. 
+So there is a race window when some threads won't have
+fatal_signal_pending while the oom_reaper could start unmapping the
+address space.  Moreover some paths might not check for fatal signals
+before each PF/g-u-p/copy_from_user.
+
+We already have a protection for oom_reaper vs.  PF races by checking
+MMF_UNSTABLE.  This has been, however, checked only for kernel threads
+(use_mm users) which can outlive the oom victim.  A simple fix would be to
+extend the current check in handle_mm_fault for all tasks but that
+wouldn't be sufficient because the current check assumes that a kernel
+thread would bail out after EFAULT from get_user*/copy_from_user and never
+re-read the same address which would succeed because the PF path has
+established page tables already.  This seems to be the case for the only
+existing use_mm user currently (virtio driver) but it is rather fragile in
+general.
+
+This is even more fragile in general for more complex paths such as
+generic_perform_write which can re-read the same address more times (e.g. 
+iov_iter_copy_from_user_atomic to fail and then iov_iter_fault_in_readable
+on retry).  Therefore we have to implement MMF_UNSTABLE protection in a
+robust way and never make a potentially corrupted content visible.  That
+requires to hook deeper into the PF path and check for the flag _every
+time_ before a pte for anonymous memory is established (that means all
+!VM_SHARED mappings).
+
+The corruption can be triggered artificially
+(http://lkml.kernel.org/r/201708040646.v746kkhC024636@www262.sakura.ne.jp)
+but there doesn't seem to be any real life bug report.  The race window
+should be quite tight to trigger most of the time.
+
+Link: http://lkml.kernel.org/r/20170807113839.16695-3-mhocko@kernel.org
+Fixes: aac453635549 ("mm, oom: introduce oom reaper")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
+Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/oom.h |   22 ++++++++++++++++++++
+ mm/huge_memory.c    |   30 ++++++++++++++++++++-------
+ mm/memory.c         |   46 ++++++++++++++++++------------------------
+ 3 files changed, 64 insertions(+), 34 deletions(-)
 
-diff -puN kernel/signal.c~signal-dont-remove-signal_unkillable-for-traced-tasks kernel/signal.c
---- a/kernel/signal.c~signal-dont-remove-signal_unkillable-for-traced-tasks
-+++ a/kernel/signal.c
-@@ -1194,7 +1194,11 @@ force_sig_info(int sig, struct siginfo *
- 			recalc_sigpending_and_wake(t);
- 		}
+diff -puN include/linux/oom.h~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
++++ a/include/linux/oom.h
+@@ -6,6 +6,8 @@
+ #include <linux/types.h>
+ #include <linux/nodemask.h>
+ #include <uapi/linux/oom.h>
++#include <linux/sched/coredump.h> /* MMF_* */
++#include <linux/mm.h> /* VM_FAULT* */
+ 
+ struct zonelist;
+ struct notifier_block;
+@@ -63,6 +65,26 @@ static inline bool tsk_is_oom_victim(str
+ 	return tsk->signal->oom_mm;
+ }
+ 
++/*
++ * Checks whether a page fault on the given mm is still reliable.
++ * This is no longer true if the oom reaper started to reap the
++ * address space which is reflected by MMF_UNSTABLE flag set in
++ * the mm. At that moment any !shared mapping would lose the content
++ * and could cause a memory corruption (zero pages instead of the
++ * original content).
++ *
++ * User should call this before establishing a page table entry for
++ * a !shared mapping and under the proper page table lock.
++ *
++ * Return 0 when the PF is safe VM_FAULT_SIGBUS otherwise.
++ */
++static inline int check_stable_address_space(struct mm_struct *mm)
++{
++	if (unlikely(test_bit(MMF_UNSTABLE, &mm->flags)))
++		return VM_FAULT_SIGBUS;
++	return 0;
++}
++
+ extern unsigned long oom_badness(struct task_struct *p,
+ 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
+ 		unsigned long totalpages);
+diff -puN mm/huge_memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
++++ a/mm/huge_memory.c
+@@ -32,6 +32,7 @@
+ #include <linux/userfaultfd_k.h>
+ #include <linux/page_idle.h>
+ #include <linux/shmem_fs.h>
++#include <linux/oom.h>
+ 
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+@@ -550,6 +551,7 @@ static int __do_huge_pmd_anonymous_page(
+ 	struct mem_cgroup *memcg;
+ 	pgtable_t pgtable;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
++	int ret = 0;
+ 
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 
+@@ -561,9 +563,8 @@ static int __do_huge_pmd_anonymous_page(
+ 
+ 	pgtable = pte_alloc_one(vma->vm_mm, haddr);
+ 	if (unlikely(!pgtable)) {
+-		mem_cgroup_cancel_charge(page, memcg, true);
+-		put_page(page);
+-		return VM_FAULT_OOM;
++		ret = VM_FAULT_OOM;
++		goto release;
  	}
--	if (action->sa.sa_handler == SIG_DFL)
+ 
+ 	clear_huge_page(page, haddr, HPAGE_PMD_NR);
+@@ -576,13 +577,14 @@ static int __do_huge_pmd_anonymous_page(
+ 
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+ 	if (unlikely(!pmd_none(*vmf->pmd))) {
+-		spin_unlock(vmf->ptl);
+-		mem_cgroup_cancel_charge(page, memcg, true);
+-		put_page(page);
+-		pte_free(vma->vm_mm, pgtable);
++		goto unlock_release;
+ 	} else {
+ 		pmd_t entry;
+ 
++		ret = check_stable_address_space(vma->vm_mm);
++		if (ret)
++			goto unlock_release;
++
+ 		/* Deliver the page fault to userland */
+ 		if (userfaultfd_missing(vma)) {
+ 			int ret;
+@@ -610,6 +612,15 @@ static int __do_huge_pmd_anonymous_page(
+ 	}
+ 
+ 	return 0;
++unlock_release:
++	spin_unlock(vmf->ptl);
++release:
++	if (pgtable)
++		pte_free(vma->vm_mm, pgtable);
++	mem_cgroup_cancel_charge(page, memcg, true);
++	put_page(page);
++	return ret;
++
+ }
+ 
+ /*
+@@ -688,7 +699,10 @@ int do_huge_pmd_anonymous_page(struct vm
+ 		ret = 0;
+ 		set = false;
+ 		if (pmd_none(*vmf->pmd)) {
+-			if (userfaultfd_missing(vma)) {
++			ret = check_stable_address_space(vma->vm_mm);
++			if (ret) {
++				spin_unlock(vmf->ptl);
++			} else if (userfaultfd_missing(vma)) {
+ 				spin_unlock(vmf->ptl);
+ 				ret = handle_userfault(vmf, VM_UFFD_MISSING);
+ 				VM_BUG_ON(ret & VM_FAULT_FALLBACK);
+diff -puN mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer mm/memory.c
+--- a/mm/memory.c~mm-oom-fix-potential-data-corruption-when-oom_reaper-races-with-writer
++++ a/mm/memory.c
+@@ -68,6 +68,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/userfaultfd_k.h>
+ #include <linux/dax.h>
++#include <linux/oom.h>
+ 
+ #include <asm/io.h>
+ #include <asm/mmu_context.h>
+@@ -2893,6 +2894,7 @@ static int do_anonymous_page(struct vm_f
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct mem_cgroup *memcg;
+ 	struct page *page;
++	int ret = 0;
+ 	pte_t entry;
+ 
+ 	/* File mapping without ->vm_ops ? */
+@@ -2925,6 +2927,9 @@ static int do_anonymous_page(struct vm_f
+ 				vmf->address, &vmf->ptl);
+ 		if (!pte_none(*vmf->pte))
+ 			goto unlock;
++		ret = check_stable_address_space(vma->vm_mm);
++		if (ret)
++			goto unlock;
+ 		/* Deliver the page fault to userland, check inside PT lock */
+ 		if (userfaultfd_missing(vma)) {
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+@@ -2959,6 +2964,10 @@ static int do_anonymous_page(struct vm_f
+ 	if (!pte_none(*vmf->pte))
+ 		goto release;
+ 
++	ret = check_stable_address_space(vma->vm_mm);
++	if (ret)
++		goto release;
++
+ 	/* Deliver the page fault to userland, check inside PT lock */
+ 	if (userfaultfd_missing(vma)) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+@@ -2978,7 +2987,7 @@ setpte:
+ 	update_mmu_cache(vma, vmf->address, vmf->pte);
+ unlock:
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+-	return 0;
++	return ret;
+ release:
+ 	mem_cgroup_cancel_charge(page, memcg, false);
+ 	put_page(page);
+@@ -3252,7 +3261,7 @@ int alloc_set_pte(struct vm_fault *vmf,
+ int finish_fault(struct vm_fault *vmf)
+ {
+ 	struct page *page;
+-	int ret;
++	int ret = 0;
+ 
+ 	/* Did we COW the page? */
+ 	if ((vmf->flags & FAULT_FLAG_WRITE) &&
+@@ -3260,7 +3269,15 @@ int finish_fault(struct vm_fault *vmf)
+ 		page = vmf->cow_page;
+ 	else
+ 		page = vmf->page;
+-	ret = alloc_set_pte(vmf, vmf->memcg, page);
++
 +	/*
-+	 * Don't clear SIGNAL_UNKILLABLE for traced tasks, users won't expect
-+	 * debugging to leave init killable.
++	 * check even for read faults because we might have lost our CoWed
++	 * page
 +	 */
-+	if (action->sa.sa_handler == SIG_DFL && !t->ptrace)
- 		t->signal->flags &= ~SIGNAL_UNKILLABLE;
- 	ret = specific_send_sig_info(sig, info, t);
- 	spin_unlock_irqrestore(&t->sighand->siglock, flags);
++	if (!(vmf->vma->vm_flags & VM_SHARED))
++		ret = check_stable_address_space(vmf->vma->vm_mm);
++	if (!ret)
++		ret = alloc_set_pte(vmf, vmf->memcg, page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return ret;
+@@ -3900,29 +3917,6 @@ int handle_mm_fault(struct vm_area_struc
+ 			mem_cgroup_oom_synchronize(false);
+ 	}
+ 
+-	/*
+-	 * This mm has been already reaped by the oom reaper and so the
+-	 * refault cannot be trusted in general. Anonymous refaults would
+-	 * lose data and give a zero page instead e.g. This is especially
+-	 * problem for use_mm() because regular tasks will just die and
+-	 * the corrupted data will not be visible anywhere while kthread
+-	 * will outlive the oom victim and potentially propagate the date
+-	 * further.
+-	 */
+-	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
+-				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags))) {
+-
+-		/*
+-		 * We are going to enforce SIGBUS but the PF path might have
+-		 * dropped the mmap_sem already so take it again so that
+-		 * we do not break expectations of all arch specific PF paths
+-		 * and g-u-p
+-		 */
+-		if (ret & VM_FAULT_RETRY)
+-			down_read(&vma->vm_mm->mmap_sem);
+-		ret = VM_FAULT_SIGBUS;
+-	}
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(handle_mm_fault);
 _
 
-Patches currently in -mm which might be from jamie.iles@oracle.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
+mm-memory_hotplug-remove-zone-restrictions.patch
+mm-page_alloc-rip-out-zonelist_order_zone.patch
+mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
+mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
+mm-page_alloc-simplify-zonelist-initialization.patch
+mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
+mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
+mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+mm-rename-global_page_state-to-global_zone_page_state.patch
+mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
+mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access.patch
+mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch
+mm-memory_hotplug-introduce-add_pages.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
 
