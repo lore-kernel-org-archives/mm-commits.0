@@ -1,96 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy.patch removed
- from -mm tree
-Date: Mon, 21 Aug 2017 11:30:25 -0700
-Message-ID: <20170821183025.fwVKsKOlE%akpm__694.84580676562$1503340234$gmane$org@linux-foundation.org>
+ mm-vmalloc-dont-unconditonally-use-__gfp_highmem.patch removed from -mm
+ tree
+Date: Mon, 21 Aug 2017 11:30:28 -0700
+Message-ID: <20170821183028.SnJyQo36I%akpm__4323.53553264893$1503340242$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50472 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753548AbdHUSa0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:26 -0400
+        with ESMTP id S1753548AbdHUSa3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, zhongjiang@huawei.com
+To: kirill.shutemov@linux.intel.com, labbott@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm/mempolicy: fix use after free when calling get_mempolicy
+     Subject: mm/vmalloc.c: don't unconditonally use __GFP_HIGHMEM
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy.patch
+     mm-vmalloc-dont-unconditonally-use-__gfp_highmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm/mempolicy: fix use after free when calling get_mempolicy
+From: Laura Abbott <labbott@redhat.com>
+Subject: mm/vmalloc.c: don't unconditonally use __GFP_HIGHMEM
 
-I hit a use after free issue when executing trinity and repoduced it with
-KASAN enabled.  The related call trace is as follows.
+19809c2da28a ("mm, vmalloc: use __GFP_HIGHMEM implicitly") added use of
+__GFP_HIGHMEM for allocations.  vmalloc_32 may use GFP_DMA/GFP_DMA32 which
+does not play nice with __GFP_HIGHMEM and will trigger a BUG in gfp_zone. 
+Only add __GFP_HIGHMEM if we aren't using GFP_DMA/GFP_DMA32.
 
-BUG: KASan: use after free in SyS_get_mempolicy+0x3c8/0x960 at addr ffff8801f582d766
-Read of size 2 by task syz-executor1/798
-
-INFO: Allocated in mpol_new.part.2+0x74/0x160 age=3 cpu=1 pid=799
-__slab_alloc+0x768/0x970
-kmem_cache_alloc+0x2e7/0x450
-mpol_new.part.2+0x74/0x160
-mpol_new+0x66/0x80
-SyS_mbind+0x267/0x9f0
-system_call_fastpath+0x16/0x1b
-INFO: Freed in __mpol_put+0x2b/0x40 age=4 cpu=1 pid=799
-__slab_free+0x495/0x8e0
-kmem_cache_free+0x2f3/0x4c0
-__mpol_put+0x2b/0x40
-SyS_mbind+0x383/0x9f0
-system_call_fastpath+0x16/0x1b
-INFO: Slab 0xffffea0009cb8dc0 objects=23 used=8 fp=0xffff8801f582de40 flags=0x200000000004080
-INFO: Object 0xffff8801f582d760 @offset=5984 fp=0xffff8801f582d600
-
-Bytes b4 ffff8801f582d750: ae 01 ff ff 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a  ........ZZZZZZZZ
-Object ffff8801f582d760: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
-Object ffff8801f582d770: 6b 6b 6b 6b 6b 6b 6b a5                          kkkkkkk.
-Redzone ffff8801f582d778: bb bb bb bb bb bb bb bb                          ........
-Padding ffff8801f582d8b8: 5a 5a 5a 5a 5a 5a 5a 5a                          ZZZZZZZZ
-Memory state around the buggy address:
-ffff8801f582d600: fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc fc
-ffff8801f582d680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->ffff8801f582d700: fc fc fc fc fc fc fc fc fc fc fc fc fb fb fb fc
-
-!shared memory policy is not protected against parallel removal by other
-thread which is normally protected by the mmap_sem.  do_get_mempolicy,
-however, drops the lock midway while we can still access it later.  Early
-premature up_read is a historical artifact from times when put_user was
-called in this path see https://lwn.net/Articles/124754/ but that is gone
-since 8bccd85ffbaf ("[PATCH] Implement sys_* do_* layering in the memory
-policy layer.").  but when we have the the current mempolicy ref count
-model.  The issue was introduced accordingly.
-
-Fix the issue by removing the premature release.
-
-Link: http://lkml.kernel.org/r/1502950924-27521-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=1482249
+Link: http://lkml.kernel.org/r/20170816220705.31374-1-labbott@redhat.com
+Fixes: 19809c2da28a ("mm, vmalloc: use __GFP_HIGHMEM implicitly")
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[2.6+]
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/vmalloc.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-fix-use-after-free-when-calling-get_mempolicy
-+++ a/mm/mempolicy.c
-@@ -861,11 +861,6 @@ static long do_get_mempolicy(int *policy
- 		*policy |= (pol->flags & MPOL_MODE_FLAGS);
+diff -puN mm/vmalloc.c~mm-vmalloc-dont-unconditonally-use-__gfp_highmem mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-dont-unconditonally-use-__gfp_highmem
++++ a/mm/vmalloc.c
+@@ -1671,7 +1671,10 @@ static void *__vmalloc_area_node(struct
+ 	struct page **pages;
+ 	unsigned int nr_pages, array_size, i;
+ 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
+-	const gfp_t alloc_mask = gfp_mask | __GFP_HIGHMEM | __GFP_NOWARN;
++	const gfp_t alloc_mask = gfp_mask | __GFP_NOWARN;
++	const gfp_t highmem_mask = (gfp_mask & (GFP_DMA | GFP_DMA32)) ?
++					0 :
++					__GFP_HIGHMEM;
+ 
+ 	nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
+ 	array_size = (nr_pages * sizeof(struct page *));
+@@ -1679,7 +1682,7 @@ static void *__vmalloc_area_node(struct
+ 	area->nr_pages = nr_pages;
+ 	/* Please note that the recursion is strictly bounded. */
+ 	if (array_size > PAGE_SIZE) {
+-		pages = __vmalloc_node(array_size, 1, nested_gfp|__GFP_HIGHMEM,
++		pages = __vmalloc_node(array_size, 1, nested_gfp|highmem_mask,
+ 				PAGE_KERNEL, node, area->caller);
+ 	} else {
+ 		pages = kmalloc_node(array_size, nested_gfp, node);
+@@ -1700,9 +1703,9 @@ static void *__vmalloc_area_node(struct
+ 		}
+ 
+ 		if (node == NUMA_NO_NODE)
+-			page = alloc_page(alloc_mask);
++			page = alloc_page(alloc_mask|highmem_mask);
+ 		else
+-			page = alloc_pages_node(node, alloc_mask, 0);
++			page = alloc_pages_node(node, alloc_mask|highmem_mask, 0);
+ 
+ 		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vunmap() */
+@@ -1710,7 +1713,7 @@ static void *__vmalloc_area_node(struct
+ 			goto fail;
+ 		}
+ 		area->pages[i] = page;
+-		if (gfpflags_allow_blocking(gfp_mask))
++		if (gfpflags_allow_blocking(gfp_mask|highmem_mask))
+ 			cond_resched();
  	}
  
--	if (vma) {
--		up_read(&current->mm->mmap_sem);
--		vma = NULL;
--	}
+_
+
+Patches currently in -mm which might be from labbott@redhat.com are
+
+
