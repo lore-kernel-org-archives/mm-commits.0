@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-uninline-proc_create.patch added to -mm tree
-Date: Mon, 21 Aug 2017 13:58:18 -0700
-Message-ID: <599b496a.K/pORl9RTcofU9S3%akpm@linux-foundation.org>
+Subject: + fs-proc-unconditional-cond_resched-when-reading-smaps.patch
+ added to -mm tree
+Date: Mon, 21 Aug 2017 14:16:07 -0700
+Message-ID: <599b4d97.orRRcdpnl3QQ3R6Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49332 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753610AbdHUU6T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 16:58:19 -0400
+        with ESMTP id S1753548AbdHUVQI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 17:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: uninline proc_create()
+     Subject: fs, proc: unconditional cond_resched when reading smaps
 has been added to the -mm tree.  Its filename is
-     proc-uninline-proc_create.patch
+     fs-proc-unconditional-cond_resched-when-reading-smaps.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-uninline-proc_create.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-unconditional-cond_resched-when-reading-smaps.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-uninline-proc_create.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-unconditional-cond_resched-when-reading-smaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,60 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: uninline proc_create()
+From: David Rientjes <rientjes@google.com>
+Subject: fs, proc: unconditional cond_resched when reading smaps
 
-Save some code from ~320 invocations all clearing last argument.
+If there are large numbers of hugepages to iterate while reading
+/proc/pid/smaps, the page walk never does cond_resched().  On archs
+without split pmd locks, there can be significant and observable
+contention on mm->page_table_lock which cause lengthy delays without
+rescheduling.
 
-	add/remove: 3/0 grow/shrink: 0/158 up/down: 45/-702 (-657)
-	function                                     old     new   delta
-	proc_create                                    -      17     +17
-	__ksymtab_proc_create                          -      16     +16
-	__kstrtab_proc_create                          -      12     +12
-	yam_init_driver                              301     298      -3
+Always reschedule in smaps_pte_range() if necessary since the pagewalk
+iteration can be expensive.
 
-		...
-
-	cifs_proc_init                               249     228     -21
-	via_fb_pci_probe                            2304    2280     -24
-
-Link: http://lkml.kernel.org/r/20170819094702.GA27864@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708211405520.131071@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c       |    8 ++++++++
- include/linux/proc_fs.h |    8 +-------
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ fs/proc/task_mmu.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-uninline-proc_create fs/proc/generic.c
---- a/fs/proc/generic.c~proc-uninline-proc_create
-+++ a/fs/proc/generic.c
-@@ -499,6 +499,14 @@ out:
- }
- EXPORT_SYMBOL(proc_create_data);
-  
-+struct proc_dir_entry *proc_create(const char *name, umode_t mode,
-+				   struct proc_dir_entry *parent,
-+				   const struct file_operations *proc_fops)
-+{
-+	return proc_create_data(name, mode, parent, proc_fops, NULL);
-+}
-+EXPORT_SYMBOL(proc_create);
-+
- void proc_set_size(struct proc_dir_entry *de, loff_t size)
- {
- 	de->size = size;
-diff -puN include/linux/proc_fs.h~proc-uninline-proc_create include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-uninline-proc_create
-+++ a/include/linux/proc_fs.h
-@@ -28,13 +28,7 @@ extern struct proc_dir_entry *proc_creat
- 					       const struct file_operations *,
- 					       void *);
+diff -puN fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps
++++ a/fs/proc/task_mmu.c
+@@ -611,11 +611,11 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 		if (pmd_present(*pmd))
+ 			smaps_pmd_entry(pmd, addr, walk);
+ 		spin_unlock(ptl);
+-		return 0;
++		goto out;
+ 	}
  
--static inline struct proc_dir_entry *proc_create(
--	const char *name, umode_t mode, struct proc_dir_entry *parent,
--	const struct file_operations *proc_fops)
--{
--	return proc_create_data(name, mode, parent, proc_fops, NULL);
--}
+ 	if (pmd_trans_unstable(pmd))
+-		return 0;
++		goto out;
+ 	/*
+ 	 * The mmap_sem held all the way back in m_start() is what
+ 	 * keeps khugepaged out of here and from collapsing things
+@@ -625,6 +625,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+ 		smaps_pte_entry(pte, addr, walk);
+ 	pte_unmap_unlock(pte - 1, ptl);
++out:
+ 	cond_resched();
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently-fix-2.patch
+mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
+fs-proc-unconditional-cond_resched-when-reading-smaps.patch
+
