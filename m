@@ -1,179 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-discard-memblock-data-later.patch removed from
- -mm tree
-Date: Mon, 21 Aug 2017 11:30:07 -0700
-Message-ID: <20170821183007.rUWvFBAQd%akpm@linux-foundation.org>
+Subject: [merged]
+ test_kmod-fix-description-for-s-and-c-parameters.patch removed from -mm
+ tree
+Date: Mon, 21 Aug 2017 11:30:04 -0700
+Message-ID: <20170821183004.4z6p-Lq9i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50342 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753723AbdHUSaI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:08 -0400
+        with ESMTP id S1753610AbdHUSaG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bob.picco@oracle.com, daniel.m.jordan@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, stable@vger.kernel.org, steven.sistare@oracle.com
+To: colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, matt.redfearn@imgetc.com, matt.redfearn@imgtec.com, mbenes@suse.cz, mcgrof@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mmarek@suse.com, peterz@infradead.org, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
 
 
 The patch titled
-     Subject: mm: discard memblock data later
+     Subject: test_kmod: fix description for -s -and -c parameters
 has been removed from the -mm tree.  Its filename was
-     mm-discard-memblock-data-later.patch
+     test_kmod-fix-description-for-s-and-c-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: discard memblock data later
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: test_kmod: fix description for -s -and -c parameters
 
-There is existing use after free bug when deferred struct pages are
-enabled:
+The descriptions were reversed, correct this.
 
-The memblock_add() allocates memory for the memory array if more than 128
-entries are needed.  See comment in e820__memblock_setup():
-
-  * The bootstrap memblock region count maximum is 128 entries
-  * (INIT_MEMBLOCK_REGIONS), but EFI might pass us more E820 entries
-  * than that - so allow memblock resizing.
-
-This memblock memory is freed here:
-        free_low_memory_core_early()
-
-We access the freed memblock.memory later in boot when deferred pages are
-initialized in this path:
-
-        deferred_init_memmap()
-                for_each_mem_pfn_range()
-                  __next_mem_pfn_range()
-                    type = &memblock.memory;
-
-One possible explanation for why this use-after-free hasn't been hit
-before is that the limit of INIT_MEMBLOCK_REGIONS has never been exceeded
-at least on systems where deferred struct pages were enabled.
-
-Tested by reducing INIT_MEMBLOCK_REGIONS down to 4 from the current 128,
-and verifying in qemu that this code is getting excuted and that the freed
-pages are sane.
-
-Link: http://lkml.kernel.org/r/1502485554-318703-2-git-send-email-pasha.tatashin@oracle.com
-Fixes: 7e18adb4f80b ("mm: meminit: initialise remaining struct pages in parallel with kswapd")
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170809234635.13443-4-mcgrof@kernel.org
+Fixes: 64b671204afd71 ("test_sysctl: add generic script to expand on tests")
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Reported-by: Daniel Mentz <danielmentz@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: David Binderman <dcb314@hotmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jessica Yu <jeyu@redhat.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matt Redfearn <matt.redfearn@imgetc.com>
+Cc: Matt Redfearn <matt.redfearn@imgtec.com>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    6 +++--
- mm/memblock.c            |   40 ++++++++++++++++---------------------
- mm/nobootmem.c           |   16 --------------
- mm/page_alloc.c          |    4 +++
- 4 files changed, 26 insertions(+), 40 deletions(-)
+ tools/testing/selftests/kmod/kmod.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-discard-memblock-data-later include/linux/memblock.h
---- a/include/linux/memblock.h~mm-discard-memblock-data-later
-+++ a/include/linux/memblock.h
-@@ -61,6 +61,7 @@ extern int memblock_debug;
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
- #define __init_memblock __meminit
- #define __initdata_memblock __meminitdata
-+void memblock_discard(void);
- #else
- #define __init_memblock
- #define __initdata_memblock
-@@ -74,8 +75,6 @@ phys_addr_t memblock_find_in_range_node(
- 					int nid, ulong flags);
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
--phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
--phys_addr_t get_allocated_memblock_memory_regions_info(phys_addr_t *addr);
- void memblock_allow_resize(void);
- int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
- int memblock_add(phys_addr_t base, phys_addr_t size);
-@@ -110,6 +109,9 @@ void __next_mem_range_rev(u64 *idx, int
- void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
- 				phys_addr_t *out_end);
- 
-+void __memblock_free_early(phys_addr_t base, phys_addr_t size);
-+void __memblock_free_late(phys_addr_t base, phys_addr_t size);
-+
- /**
-  * for_each_mem_range - iterate through memblock areas from type_a and not
-  * included in type_b. Or just type_a if type_b is NULL.
-diff -puN mm/memblock.c~mm-discard-memblock-data-later mm/memblock.c
---- a/mm/memblock.c~mm-discard-memblock-data-later
-+++ a/mm/memblock.c
-@@ -285,31 +285,27 @@ static void __init_memblock memblock_rem
- }
- 
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
--
--phys_addr_t __init_memblock get_allocated_memblock_reserved_regions_info(
--					phys_addr_t *addr)
--{
--	if (memblock.reserved.regions == memblock_reserved_init_regions)
--		return 0;
--
--	*addr = __pa(memblock.reserved.regions);
--
--	return PAGE_ALIGN(sizeof(struct memblock_region) *
--			  memblock.reserved.max);
--}
--
--phys_addr_t __init_memblock get_allocated_memblock_memory_regions_info(
--					phys_addr_t *addr)
-+/**
-+ * Discard memory and reserved arrays if they were allocated
-+ */
-+void __init memblock_discard(void)
- {
--	if (memblock.memory.regions == memblock_memory_init_regions)
--		return 0;
-+	phys_addr_t addr, size;
- 
--	*addr = __pa(memblock.memory.regions);
--
--	return PAGE_ALIGN(sizeof(struct memblock_region) *
--			  memblock.memory.max);
-+	if (memblock.reserved.regions != memblock_reserved_init_regions) {
-+		addr = __pa(memblock.reserved.regions);
-+		size = PAGE_ALIGN(sizeof(struct memblock_region) *
-+				  memblock.reserved.max);
-+		__memblock_free_late(addr, size);
-+	}
-+
-+	if (memblock.memory.regions == memblock_memory_init_regions) {
-+		addr = __pa(memblock.memory.regions);
-+		size = PAGE_ALIGN(sizeof(struct memblock_region) *
-+				  memblock.memory.max);
-+		__memblock_free_late(addr, size);
-+	}
- }
--
- #endif
- 
- /**
-diff -puN mm/nobootmem.c~mm-discard-memblock-data-later mm/nobootmem.c
---- a/mm/nobootmem.c~mm-discard-memblock-data-later
-+++ a/mm/nobootmem.c
-@@ -146,22 +146,6 @@ static unsigned long __init free_low_mem
- 				NULL)
- 		count += __free_memory_core(start, end);
- 
--#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
--	{
--		phys_addr_t size;
--
--		/* Free memblock.reserved array if it was allocated */
--		size = get_allocated_memblock_reserved_regions_info(&start);
--		if (size)
--			count += __free_memory_core(start, start + size);
--
--		/* Free memblock.memory array if it was allocated */
--		size = get_allocated_memblock_memory_regions_info(&start);
--		if (size)
--			count += __free_memory_core(start, start + size);
--	}
--#endif
+diff -puN tools/testing/selftests/kmod/kmod.sh~test_kmod-fix-description-for-s-and-c-parameters tools/testing/selftests/kmod/kmod.sh
+--- a/tools/testing/selftests/kmod/kmod.sh~test_kmod-fix-description-for-s-and-c-parameters
++++ a/tools/testing/selftests/kmod/kmod.sh
+@@ -473,8 +473,8 @@ usage()
+ 	echo "    all     Runs all tests (default)"
+ 	echo "    -t      Run test ID the number amount of times is recommended"
+ 	echo "    -w      Watch test ID run until it runs into an error"
+-	echo "    -c      Run test ID once"
+-	echo "    -s      Run test ID x test-count number of times"
++	echo "    -s      Run test ID once"
++	echo "    -c      Run test ID x test-count number of times"
+ 	echo "    -l      List all test ID list"
+ 	echo " -h|--help  Help"
+ 	echo
+_
+
+Patches currently in -mm which might be from mcgrof@kernel.org are
+
+kmod-split-out-umh-code-into-its-own-file.patch
+maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
+kmod-split-off-umh-headers-into-its-own-file.patch
+kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
+
