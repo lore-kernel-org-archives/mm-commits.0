@@ -1,161 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wait-add-wait_event_killable_timeout.patch
- removed from -mm tree
-Date: Mon, 21 Aug 2017 11:29:58 -0700
-Message-ID: <20170821182958.zWgUXM7TU%akpm@linux-foundation.org>
+Subject: [merged] mm-discard-memblock-data-later.patch removed from
+ -mm tree
+Date: Mon, 21 Aug 2017 11:30:07 -0700
+Message-ID: <20170821183007.rUWvFBAQd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753644AbdHUSaA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:00 -0400
+        with ESMTP id S1753723AbdHUSaI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2017 14:30:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, matt.redfearn@imgetc.com, matt.redfearn@imgtec.com, mbenes@suse.cz, mcgrof@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mmarek@suse.com, peterz@infradead.org, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
+To: bob.picco@oracle.com, daniel.m.jordan@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, stable@vger.kernel.org, steven.sistare@oracle.com
 
 
 The patch titled
-     Subject: wait: add wait_event_killable_timeout()
+     Subject: mm: discard memblock data later
 has been removed from the -mm tree.  Its filename was
-     wait-add-wait_event_killable_timeout.patch
+     mm-discard-memblock-data-later.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: wait: add wait_event_killable_timeout()
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm: discard memblock data later
 
-These are the few pending fixes I have queued up for v4.13-final.  One is
-a a generic regression fix for recursive loops on kmod and the other one
-is a trivial print out correction.
+There is existing use after free bug when deferred struct pages are
+enabled:
 
-During the v4.13 development we assumed that recursive kmod loops were no
-longer possible.  Clearly that is not true.  The regression fix makes use
-of a new killable wait.  We use a killable wait to be paranoid in how
-signals might be sent to modprobe and only accept a proper SIGKILL.  The
-signal will only be available to userspace to issue *iff* a thread has
-already entered a wait state, and that happens only if we've already
-throttled after 50 kmod threads have been hit.
+The memblock_add() allocates memory for the memory array if more than 128
+entries are needed.  See comment in e820__memblock_setup():
 
-Note that although it may seem excessive to trigger a failure afer 5
-seconds if all kmod thread remain busy, prior to the series of changes
-that went into v4.13 we would actually *always* fatally fail any request
-which came in if the limit was already reached.  The new waiting
-implemented in v4.13 actually gives us *more* breathing room -- the wait
-for 5 seconds is a wait for *any* kmod thread to finish.  We give up and
-fail *iff* no kmod thread has finished and they're *all* running straight
-for 5 consecutive seconds.  If 50 kmod threads are running consecutively
-for 5 seconds something else must be really bad.
+  * The bootstrap memblock region count maximum is 128 entries
+  * (INIT_MEMBLOCK_REGIONS), but EFI might pass us more E820 entries
+  * than that - so allow memblock resizing.
 
-Recursive loops with kmod are bad but they're also hard to implement
-properly as a selftest without currently fooling current userspace tools
-like kmod [1].  For instance kmod will complain when you run depmod if it
-finds a recursive loop with symbol dependency between modules as such this
-type of recursive loop cannot go upstream as the modules_install target
-will fail after running depmod.  These tests already exist on userspace
-kmod upstream though (refer to the
-testsuite/module-playground/mod-loop-*.c files).  The same is not true if
-request_module() is used though, or worst if aliases are used.  Likewise
-the issue with 64-bit kernels booting 32-bit userspace without a binfmt
-handler built-in is also currently not detected and proactively avoided by
-userspace kmod tools, or kconfig for all architectures.  Although we could
-complain in the kernel when some of these individual recursive issues
-creep up, proactively avoiding these situations in userspace at build time
-is what we should keep striving for.
+This memblock memory is freed here:
+        free_low_memory_core_early()
 
-Lastly, since recursive loops could happen with kmod it may mean recursive
-loops may also be possible with other kernel usermode helpers, this should
-be investigated and long term if we can come up with a more sensible
-generic solution even better!
+We access the freed memblock.memory later in boot when deferred pages are
+initialized in this path:
 
-[0] https://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/linux.git/log/?h=20170809-kmod-for-v4.13-final
-[1] https://git.kernel.org/pub/scm/utils/kernel/kmod/kmod.git
+        deferred_init_memmap()
+                for_each_mem_pfn_range()
+                  __next_mem_pfn_range()
+                    type = &memblock.memory;
 
+One possible explanation for why this use-after-free hasn't been hit
+before is that the limit of INIT_MEMBLOCK_REGIONS has never been exceeded
+at least on systems where deferred struct pages were enabled.
 
-This patch (of 3):
+Tested by reducing INIT_MEMBLOCK_REGIONS down to 4 from the current 128,
+and verifying in qemu that this code is getting excuted and that the freed
+pages are sane.
 
-This wait is similar to wait_event_interruptible_timeout() but only
-accepts SIGKILL interrupt signal.  Other signals are ignored.
-
-Link: http://lkml.kernel.org/r/20170809234635.13443-2-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Matt Redfearn <matt.redfearn@imgtec.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Daniel Mentz <danielmentz@google.com>
-Cc: David Binderman <dcb314@hotmail.com>
-Cc: Matt Redfearn <matt.redfearn@imgetc.com>
+Link: http://lkml.kernel.org/r/1502485554-318703-2-git-send-email-pasha.tatashin@oracle.com
+Fixes: 7e18adb4f80b ("mm: meminit: initialise remaining struct pages in parallel with kswapd")
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ include/linux/memblock.h |    6 +++--
+ mm/memblock.c            |   40 ++++++++++++++++---------------------
+ mm/nobootmem.c           |   16 --------------
+ mm/page_alloc.c          |    4 +++
+ 4 files changed, 26 insertions(+), 40 deletions(-)
 
-diff -puN include/linux/wait.h~wait-add-wait_event_killable_timeout include/linux/wait.h
---- a/include/linux/wait.h~wait-add-wait_event_killable_timeout
-+++ a/include/linux/wait.h
-@@ -757,6 +757,43 @@ extern int do_wait_intr_irq(wait_queue_h
- 	__ret;									\
- })
+diff -puN include/linux/memblock.h~mm-discard-memblock-data-later include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-discard-memblock-data-later
++++ a/include/linux/memblock.h
+@@ -61,6 +61,7 @@ extern int memblock_debug;
+ #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
+ #define __init_memblock __meminit
+ #define __initdata_memblock __meminitdata
++void memblock_discard(void);
+ #else
+ #define __init_memblock
+ #define __initdata_memblock
+@@ -74,8 +75,6 @@ phys_addr_t memblock_find_in_range_node(
+ 					int nid, ulong flags);
+ phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
+ 				   phys_addr_t size, phys_addr_t align);
+-phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
+-phys_addr_t get_allocated_memblock_memory_regions_info(phys_addr_t *addr);
+ void memblock_allow_resize(void);
+ int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
+ int memblock_add(phys_addr_t base, phys_addr_t size);
+@@ -110,6 +109,9 @@ void __next_mem_range_rev(u64 *idx, int
+ void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
+ 				phys_addr_t *out_end);
  
-+#define __wait_event_killable_timeout(wq_head, condition, timeout)		\
-+	___wait_event(wq_head, ___wait_cond_timeout(condition),			\
-+		      TASK_KILLABLE, 0, timeout,				\
-+		      __ret = schedule_timeout(__ret))
++void __memblock_free_early(phys_addr_t base, phys_addr_t size);
++void __memblock_free_late(phys_addr_t base, phys_addr_t size);
 +
+ /**
+  * for_each_mem_range - iterate through memblock areas from type_a and not
+  * included in type_b. Or just type_a if type_b is NULL.
+diff -puN mm/memblock.c~mm-discard-memblock-data-later mm/memblock.c
+--- a/mm/memblock.c~mm-discard-memblock-data-later
++++ a/mm/memblock.c
+@@ -285,31 +285,27 @@ static void __init_memblock memblock_rem
+ }
+ 
+ #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
+-
+-phys_addr_t __init_memblock get_allocated_memblock_reserved_regions_info(
+-					phys_addr_t *addr)
+-{
+-	if (memblock.reserved.regions == memblock_reserved_init_regions)
+-		return 0;
+-
+-	*addr = __pa(memblock.reserved.regions);
+-
+-	return PAGE_ALIGN(sizeof(struct memblock_region) *
+-			  memblock.reserved.max);
+-}
+-
+-phys_addr_t __init_memblock get_allocated_memblock_memory_regions_info(
+-					phys_addr_t *addr)
 +/**
-+ * wait_event_killable_timeout - sleep until a condition gets true or a timeout elapses
-+ * @wq_head: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, in jiffies
-+ *
-+ * The process is put to sleep (TASK_KILLABLE) until the
-+ * @condition evaluates to true or a kill signal is received.
-+ * The @condition is checked each time the waitqueue @wq_head is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * Returns:
-+ * 0 if the @condition evaluated to %false after the @timeout elapsed,
-+ * 1 if the @condition evaluated to %true after the @timeout elapsed,
-+ * the remaining jiffies (at least 1) if the @condition evaluated
-+ * to %true before the @timeout elapsed, or -%ERESTARTSYS if it was
-+ * interrupted by a kill signal.
-+ *
-+ * Only kill signals interrupt this process.
++ * Discard memory and reserved arrays if they were allocated
 + */
-+#define wait_event_killable_timeout(wq_head, condition, timeout)		\
-+({										\
-+	long __ret = timeout;							\
-+	might_sleep();								\
-+	if (!___wait_cond_timeout(condition))					\
-+		__ret = __wait_event_killable_timeout(wq_head,			\
-+						condition, timeout);		\
-+	__ret;									\
-+})
-+
++void __init memblock_discard(void)
+ {
+-	if (memblock.memory.regions == memblock_memory_init_regions)
+-		return 0;
++	phys_addr_t addr, size;
  
- #define __wait_event_lock_irq(wq_head, condition, lock, cmd)			\
- 	(void)___wait_event(wq_head, condition, TASK_UNINTERRUPTIBLE, 0, 0,	\
-_
-
-Patches currently in -mm which might be from mcgrof@kernel.org are
-
-kmod-split-out-umh-code-into-its-own-file.patch
-maintainers-clarify-kmod-is-just-a-kernel-module-loader.patch
-kmod-split-off-umh-headers-into-its-own-file.patch
-kmod-move-ifdef-config_modules-wrapper-to-makefile.patch
-
+-	*addr = __pa(memblock.memory.regions);
+-
+-	return PAGE_ALIGN(sizeof(struct memblock_region) *
+-			  memblock.memory.max);
++	if (memblock.reserved.regions != memblock_reserved_init_regions) {
++		addr = __pa(memblock.reserved.regions);
++		size = PAGE_ALIGN(sizeof(struct memblock_region) *
++				  memblock.reserved.max);
++		__memblock_free_late(addr, size);
++	}
++
++	if (memblock.memory.regions == memblock_memory_init_regions) {
++		addr = __pa(memblock.memory.regions);
++		size = PAGE_ALIGN(sizeof(struct memblock_region) *
++				  memblock.memory.max);
++		__memblock_free_late(addr, size);
++	}
+ }
+-
+ #endif
+ 
+ /**
+diff -puN mm/nobootmem.c~mm-discard-memblock-data-later mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-discard-memblock-data-later
++++ a/mm/nobootmem.c
+@@ -146,22 +146,6 @@ static unsigned long __init free_low_mem
+ 				NULL)
+ 		count += __free_memory_core(start, end);
+ 
+-#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
+-	{
+-		phys_addr_t size;
+-
+-		/* Free memblock.reserved array if it was allocated */
+-		size = get_allocated_memblock_reserved_regions_info(&start);
+-		if (size)
+-			count += __free_memory_core(start, start + size);
+-
+-		/* Free memblock.memory array if it was allocated */
+-		size = get_allocated_memblock_memory_regions_info(&start);
+-		if (size)
+-			count += __free_memory_core(start, start + size);
+-	}
+-#endif
