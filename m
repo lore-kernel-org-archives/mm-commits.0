@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-clean-up-some-dead-code.patch added to -mm tree
-Date: Tue, 22 Aug 2017 15:13:18 -0700
-Message-ID: <599cac7e.Y74Zvoa3/dL94bRk%akpm@linux-foundation.org>
+Subject: +
+ block-make-i-o-timeout-failure-injection-support-again-task-independent.patch added to -mm tree
+Date: Tue, 22 Aug 2017 15:16:18 -0700
+Message-ID: <599cad32.5/1O46qK6BPGGsQX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51120 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751641AbdHVWNT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 18:13:19 -0400
+        with ESMTP id S1751687AbdHVWQT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 18:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: bart.vanassche@wdc.com, akinobu.mita@gmail.com, axboe@kernel.dk, dvyukov@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up some dead code
+     Subject: block: make I/O timeout failure injection support again task-independent
 has been added to the -mm tree.  Its filename is
-     ocfs2-clean-up-some-dead-code.patch
+     block-make-i-o-timeout-failure-injection-support-again-task-independent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-some-dead-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-make-i-o-timeout-failure-injection-support-again-task-independent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-some-dead-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-make-i-o-timeout-failure-injection-support-again-task-independent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,353 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jun Piao <piaojun@huawei.com>
-Subject: ocfs2: clean up some dead code
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: block: make I/O timeout failure injection support again task-independent
 
-clean up some unused functions and parameters.
+e41d58185f14 made all faults that are triggered from task context,
+including I/O timeouts, dependent on the failure injection settings for
+that task.  Make it again possible to inject I/O timeout failures
+independent of task context.  An example for a fault injection for which
+this patch makes a difference (from a VM booted with the 'threadirqs'
+command line parameter):
 
-Link: http://lkml.kernel.org/r/598A5E21.2080807@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+FAULT_INJECTION: forcing a failure. name fail_io_timeout, interval 1, probability 100, space 0, times 1
+CPU: 6 PID: 1253 Comm: irq/36-skd0-msi Not tainted 4.13.0-rc2-dbg+ #5
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1.fc26 04/01/2014
+Call Trace:
+ dump_stack+0x8e/0xcd
+ should_fail+0x154/0x160
+ blk_should_fake_timeout+0x27/0x30
+ blk_mq_complete_request+0x11/0x30
+ skd_end_request+0x32/0xc0 [skd]
+ skd_isr_completion_posted.isra.30+0x14a/0x400 [skd]
+ skd_comp_q+0x40/0xb0 [skd]
+ irq_forced_thread_fn+0x2a/0x70
+ irq_thread+0x144/0x1a0
+ kthread+0x125/0x140
+ ret_from_fork+0x2a/0x40
+
+Link: http://lkml.kernel.org/r/20170822165236.12275-3-bart.vanassche@wdc.com
+Fixes: commit e41d58185f14 ("fault-inject: support systematic fault injection")
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c             |   22 ++++++-----------
- fs/ocfs2/alloc.h             |    3 --
- fs/ocfs2/cluster/heartbeat.c |   42 +++------------------------------
- fs/ocfs2/dir.c               |    2 -
- fs/ocfs2/file.c              |    7 -----
- fs/ocfs2/journal.c           |    1 
- fs/ocfs2/move_extents.c      |    2 -
- fs/ocfs2/ocfs2.h             |    4 ---
- fs/ocfs2/refcounttree.c      |    2 -
- fs/ocfs2/suballoc.c          |    2 -
- fs/ocfs2/super.c             |    1 
- fs/ocfs2/xattr.c             |    2 -
- 12 files changed, 19 insertions(+), 71 deletions(-)
+ block/blk-timeout.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-some-dead-code fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/alloc.c
-@@ -955,8 +955,7 @@ int ocfs2_read_extent_block(struct ocfs2
- /*
-  * How many free extents have we got before we need more meta data?
-  */
--int ocfs2_num_free_extents(struct ocfs2_super *osb,
--			   struct ocfs2_extent_tree *et)
-+int ocfs2_num_free_extents(struct ocfs2_extent_tree *et)
+diff -puN block/blk-timeout.c~block-make-i-o-timeout-failure-injection-support-again-task-independent block/blk-timeout.c
+--- a/block/blk-timeout.c~block-make-i-o-timeout-failure-injection-support-again-task-independent
++++ a/block/blk-timeout.c
+@@ -11,7 +11,7 @@
+ 
+ #ifdef CONFIG_FAIL_IO_TIMEOUT
+ 
+-static DECLARE_FAULT_ATTR(fail_io_timeout);
++static DECLARE_GLOBAL_FAULT_ATTR(fail_io_timeout);
+ 
+ static int __init setup_fail_io_timeout(char *str)
  {
- 	int retval;
- 	struct ocfs2_extent_list *el = NULL;
-@@ -1933,14 +1932,12 @@ out:
-  * the new changes.
-  *
-  * left_rec: the record on the left.
-- * left_child_el: is the child list pointed to by left_rec
-  * right_rec: the record to the right of left_rec
-  * right_child_el: is the child list pointed to by right_rec
-  *
-  * By definition, this only works on interior nodes.
-  */
- static void ocfs2_adjust_adjacent_records(struct ocfs2_extent_rec *left_rec,
--				  struct ocfs2_extent_list *left_child_el,
- 				  struct ocfs2_extent_rec *right_rec,
- 				  struct ocfs2_extent_list *right_child_el)
- {
-@@ -2003,7 +2000,7 @@ static void ocfs2_adjust_root_records(st
- 	 */
- 	BUG_ON(i >= (le16_to_cpu(root_el->l_next_free_rec) - 1));
- 
--	ocfs2_adjust_adjacent_records(&root_el->l_recs[i], left_el,
-+	ocfs2_adjust_adjacent_records(&root_el->l_recs[i],
- 				      &root_el->l_recs[i + 1], right_el);
- }
- 
-@@ -2060,8 +2057,7 @@ static void ocfs2_complete_edge_insert(h
- 		el = right_path->p_node[i].el;
- 		right_rec = &el->l_recs[0];
- 
--		ocfs2_adjust_adjacent_records(left_rec, left_el, right_rec,
--					      right_el);
-+		ocfs2_adjust_adjacent_records(left_rec, right_rec, right_el);
- 
- 		ocfs2_journal_dirty(handle, left_path->p_node[i].bh);
- 		ocfs2_journal_dirty(handle, right_path->p_node[i].bh);
-@@ -2509,7 +2505,7 @@ out_ret_path:
- 
- static int ocfs2_update_edge_lengths(handle_t *handle,
- 				     struct ocfs2_extent_tree *et,
--				     int subtree_index, struct ocfs2_path *path)
-+				     struct ocfs2_path *path)
- {
- 	int i, idx, ret;
- 	struct ocfs2_extent_rec *rec;
-@@ -2755,8 +2751,7 @@ static int ocfs2_rotate_subtree_left(han
- 	if (del_right_subtree) {
- 		ocfs2_unlink_subtree(handle, et, left_path, right_path,
- 				     subtree_index, dealloc);
--		ret = ocfs2_update_edge_lengths(handle, et, subtree_index,
--						left_path);
-+		ret = ocfs2_update_edge_lengths(handle, et, left_path);
- 		if (ret) {
- 			mlog_errno(ret);
- 			goto out;
-@@ -3060,8 +3055,7 @@ static int ocfs2_remove_rightmost_path(h
- 
- 		ocfs2_unlink_subtree(handle, et, left_path, path,
- 				     subtree_index, dealloc);
--		ret = ocfs2_update_edge_lengths(handle, et, subtree_index,
--						left_path);
-+		ret = ocfs2_update_edge_lengths(handle, et, left_path);
- 		if (ret) {
- 			mlog_errno(ret);
- 			goto out;
-@@ -4790,7 +4784,7 @@ int ocfs2_add_clusters_in_btree(handle_t
- 	if (mark_unwritten)
- 		flags = OCFS2_EXT_UNWRITTEN;
- 
--	free_extents = ocfs2_num_free_extents(osb, et);
-+	free_extents = ocfs2_num_free_extents(et);
- 	if (free_extents < 0) {
- 		status = free_extents;
- 		mlog_errno(status);
-@@ -5668,7 +5662,7 @@ static int ocfs2_reserve_blocks_for_rec_
- 
- 	*ac = NULL;
- 
--	num_free_extents = ocfs2_num_free_extents(osb, et);
-+	num_free_extents = ocfs2_num_free_extents(et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/alloc.h~ocfs2-clean-up-some-dead-code fs/ocfs2/alloc.h
---- a/fs/ocfs2/alloc.h~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/alloc.h
-@@ -144,8 +144,7 @@ int ocfs2_remove_btree_range(struct inod
- 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
- 			     u64 refcount_loc, bool refcount_tree_locked);
- 
--int ocfs2_num_free_extents(struct ocfs2_super *osb,
--			   struct ocfs2_extent_tree *et);
-+int ocfs2_num_free_extents(struct ocfs2_extent_tree *et);
- 
- /*
-  * how many new metadata chunks would an allocation need at maximum?
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-some-dead-code fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -505,8 +505,7 @@ static inline void o2hb_bio_wait_dec(str
- 	}
- }
- 
--static void o2hb_wait_on_io(struct o2hb_region *reg,
--			    struct o2hb_bio_wait_ctxt *wc)
-+static void o2hb_wait_on_io(struct o2hb_bio_wait_ctxt *wc)
- {
- 	o2hb_bio_wait_dec(wc, 1);
- 	wait_for_completion(&wc->wc_io_complete);
-@@ -608,7 +607,7 @@ static int o2hb_read_slots(struct o2hb_r
- 	status = 0;
- 
- bail_and_wait:
--	o2hb_wait_on_io(reg, &wc);
-+	o2hb_wait_on_io(&wc);
- 	if (wc.wc_error && !status)
- 		status = wc.wc_error;
- 
-@@ -1162,7 +1161,7 @@ static int o2hb_do_disk_heartbeat(struct
- 	 * before we can go to steady state.  This ensures that
- 	 * people we find in our steady state have seen us.
- 	 */
--	o2hb_wait_on_io(reg, &write_wc);
-+	o2hb_wait_on_io(&write_wc);
- 	if (write_wc.wc_error) {
- 		/* Do not re-arm the write timeout on I/O error - we
- 		 * can't be sure that the new block ever made it to
-@@ -1275,7 +1274,7 @@ static int o2hb_thread(void *data)
- 		o2hb_prepare_block(reg, 0);
- 		ret = o2hb_issue_node_write(reg, &write_wc);
- 		if (ret == 0)
--			o2hb_wait_on_io(reg, &write_wc);
-+			o2hb_wait_on_io(&write_wc);
- 		else
- 			mlog_errno(ret);
- 	}
-@@ -2576,22 +2575,6 @@ void o2hb_unregister_callback(const char
- }
- EXPORT_SYMBOL_GPL(o2hb_unregister_callback);
- 
--int o2hb_check_node_heartbeating(u8 node_num)
--{
--	unsigned long testing_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
--
--	o2hb_fill_node_map(testing_map, sizeof(testing_map));
--	if (!test_bit(node_num, testing_map)) {
--		mlog(ML_HEARTBEAT,
--		     "node (%u) does not have heartbeating enabled.\n",
--		     node_num);
--		return 0;
--	}
--
--	return 1;
--}
--EXPORT_SYMBOL_GPL(o2hb_check_node_heartbeating);
--
- int o2hb_check_node_heartbeating_no_sem(u8 node_num)
- {
- 	unsigned long testing_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
-@@ -2626,23 +2609,6 @@ int o2hb_check_node_heartbeating_from_ca
- }
- EXPORT_SYMBOL_GPL(o2hb_check_node_heartbeating_from_callback);
- 
--/* Makes sure our local node is configured with a node number, and is
-- * heartbeating. */
--int o2hb_check_local_node_heartbeating(void)
--{
--	u8 node_num;
--
--	/* if this node was set then we have networking */
--	node_num = o2nm_this_node();
--	if (node_num == O2NM_MAX_NODES) {
--		mlog(ML_HEARTBEAT, "this node has not been configured.\n");
--		return 0;
--	}
--
--	return o2hb_check_node_heartbeating(node_num);
--}
--EXPORT_SYMBOL_GPL(o2hb_check_local_node_heartbeating);
--
- /*
-  * this is just a hack until we get the plumbing which flips file systems
-  * read only and drops the hb ref instead of killing the node dead.
-diff -puN fs/ocfs2/dir.c~ocfs2-clean-up-some-dead-code fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/dir.c
-@@ -3249,7 +3249,7 @@ static int ocfs2_extend_dir(struct ocfs2
- 		spin_unlock(&OCFS2_I(dir)->ip_lock);
- 		ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(dir),
- 					      parent_fe_bh);
--		num_free_extents = ocfs2_num_free_extents(osb, &et);
-+		num_free_extents = ocfs2_num_free_extents(&et);
- 		if (num_free_extents < 0) {
- 			status = num_free_extents;
- 			mlog_errno(status);
-diff -puN fs/ocfs2/file.c~ocfs2-clean-up-some-dead-code fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/file.c
-@@ -713,13 +713,6 @@ leave:
- 	return status;
- }
- 
--int ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
--		u32 clusters_to_add, int mark_unwritten)
--{
--	return __ocfs2_extend_allocation(inode, logical_start,
--			clusters_to_add, mark_unwritten);
--}
--
- /*
-  * While a write will already be ordering the data, a truncate will not.
-  * Thus, we need to explicitly order the zeroed pages.
-diff -puN fs/ocfs2/journal.c~ocfs2-clean-up-some-dead-code fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/journal.c
-@@ -1348,7 +1348,6 @@ void ocfs2_complete_mount_recovery(struc
- 	ocfs2_schedule_truncate_log_flush(osb, 0);
- 
- 	osb->local_alloc_copy = NULL;
--	osb->dirty = 0;
- 
- 	/* queue to recover orphan slots for all offline slots */
- 	ocfs2_replay_map_set_state(osb, REPLAY_NEEDED);
-diff -puN fs/ocfs2/move_extents.c~ocfs2-clean-up-some-dead-code fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/move_extents.c
-@@ -175,7 +175,7 @@ static int ocfs2_lock_allocators_move_ex
- 	unsigned int max_recs_needed = 2 * extents_to_split + clusters_to_move;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 
--	num_free_extents = ocfs2_num_free_extents(osb, et);
-+	num_free_extents = ocfs2_num_free_extents(et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-clean-up-some-dead-code fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/ocfs2.h
-@@ -320,7 +320,6 @@ struct ocfs2_super
- 	u64 system_dir_blkno;
- 	u64 bitmap_blkno;
- 	u32 bitmap_cpg;
--	u8 *uuid;
- 	char *uuid_str;
- 	u32 uuid_hash;
- 	u8 *vol_label;
-@@ -388,9 +387,8 @@ struct ocfs2_super
- 	unsigned int	osb_resv_level;
- 	unsigned int	osb_dir_resv_level;
- 
--	/* Next three fields are for local node slot recovery during
-+	/* Next two fields are for local node slot recovery during
- 	 * mount. */
--	int dirty;
- 	struct ocfs2_dinode *local_alloc_copy;
- 	struct ocfs2_quota_recovery *quota_rec;
- 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-clean-up-some-dead-code fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2851,7 +2851,7 @@ static int ocfs2_lock_refcount_allocator
- 					int *credits)
- {
- 	int ret = 0, meta_add = 0;
--	int num_free_extents = ocfs2_num_free_extents(OCFS2_SB(sb), et);
-+	int num_free_extents = ocfs2_num_free_extents(et);
- 
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
-diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-up-some-dead-code fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/suballoc.c
-@@ -2700,7 +2700,7 @@ int ocfs2_lock_allocators(struct inode *
- 
- 	BUG_ON(clusters_to_add != 0 && data_ac == NULL);
- 
--	num_free_extents = ocfs2_num_free_extents(osb, et);
-+	num_free_extents = ocfs2_num_free_extents(et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/super.c~ocfs2-clean-up-some-dead-code fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/super.c
-@@ -2486,7 +2486,6 @@ static int ocfs2_check_volume(struct ocf
- 	if (dirty) {
- 		/* Recovery will be completed after we've mounted the
- 		 * rest of the volume. */
--		osb->dirty = 1;
- 		osb->local_alloc_copy = local_alloc;
- 		local_alloc = NULL;
- 	}
-diff -puN fs/ocfs2/xattr.c~ocfs2-clean-up-some-dead-code fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/xattr.c
-@@ -6800,7 +6800,7 @@ static int ocfs2_lock_reflink_xattr_rec_
- 		*credits += 1;
- 
- 	/* count in the xattr tree change. */
--	num_free_extents = ocfs2_num_free_extents(osb, xt_et);
-+	num_free_extents = ocfs2_num_free_extents(xt_et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from bart.vanassche@wdc.com are
 
-ocfs2-clean-up-some-dead-code.patch
+fault-inject-restore-support-for-task-independent-fault-injection.patch
+block-make-i-o-timeout-failure-injection-support-again-task-independent.patch
 
