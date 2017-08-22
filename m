@@ -1,120 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- debugobjects-make-kmemleak-ignore-debug-objects.patch removed from -mm tree
-Date: Tue, 22 Aug 2017 13:55:02 -0700
-Message-ID: <20170822205502.5MCmUGe8_%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch added to -mm tree
+Date: Tue, 22 Aug 2017 15:12:22 -0700
+Message-ID: <599cac46.ed4kcc+00eXgNLcp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36386 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50654 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751085AbdHVUzD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 16:55:03 -0400
+        with ESMTP id S1752473AbdHVWMY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 18:12:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, longman@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugobjects: make kmemleak ignore debug objects
-has been removed from the -mm tree.  Its filename was
-     debugobjects-make-kmemleak-ignore-debug-objects.patch
+     Subject: ocfs2: re-queue AST or BAST if sending is failed to improve the reliability
+has been added to the -mm tree.  Its filename is
+     ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: debugobjects: make kmemleak ignore debug objects
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2: re-queue AST or BAST if sending is failed to improve the reliability
 
-The allocated debug objects are either on the free list or in the hashed
-bucket lists.  So they won't get lost.  However if both debug objects and
-kmemleak are enabled and kmemleak scanning is done while some of the debug
-objects are transitioning from one list to the others, false negative
-reporting of memory leaks may happen for those objects.  For example,
+In current code, while flushing AST, we don't handle an exception that
+sending AST or BAST is failed.  But it is indeed possible that AST or BAST
+is lost due to some kind of networks fault.
 
-[38687.275678] kmemleak: 12 new suspected memory leaks (see
-/sys/kernel/debug/kmemleak)
-unreferenced object 0xffff92e98aabeb68 (size 40):
-  comm "ksmtuned", pid 4344, jiffies 4298403600 (age 906.430s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 d0 bc db 92 e9 92 ff ff  ................
-    01 00 00 00 00 00 00 00 38 36 8a 61 e9 92 ff ff  ........86.a....
-  backtrace:
-    [<ffffffff8fa5378a>] kmemleak_alloc+0x4a/0xa0
-    [<ffffffff8f47c019>] kmem_cache_alloc+0xe9/0x320
-    [<ffffffff8f62ed96>] __debug_object_init+0x3e6/0x400
-    [<ffffffff8f62ef01>] debug_object_activate+0x131/0x210
-    [<ffffffff8f330d9f>] __call_rcu+0x3f/0x400
-    [<ffffffff8f33117d>] call_rcu_sched+0x1d/0x20
-    [<ffffffff8f4a183c>] put_object+0x2c/0x40
-    [<ffffffff8f4a188c>] __delete_object+0x3c/0x50
-    [<ffffffff8f4a18bd>] delete_object_full+0x1d/0x20
-    [<ffffffff8fa535c2>] kmemleak_free+0x32/0x80
-    [<ffffffff8f47af07>] kmem_cache_free+0x77/0x350
-    [<ffffffff8f453912>] unlink_anon_vmas+0x82/0x1e0
-    [<ffffffff8f440341>] free_pgtables+0xa1/0x110
-    [<ffffffff8f44af91>] exit_mmap+0xc1/0x170
-    [<ffffffff8f29db60>] mmput+0x80/0x150
-    [<ffffffff8f2a7609>] do_exit+0x2a9/0xd20
+If above exception happens, the requesting node will never obtain an AST
+back, hence, it will never acquire the lock or abort current locking.
 
-The references in the debug objects may also hide a real memory leak.
+With this patch, I'd like to fix this issue by re-queuing the AST or BAST
+if sending is failed due to networks fault.
 
-As there is no point in having kmemleak to track debug object allocations,
-kmemleak checking is now disabled for debug objects.
+And the re-queuing AST or BAST will be dropped if the requesting node is
+dead!
 
-Link: http://lkml.kernel.org/r/1502718733-8527-1-git-send-email-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+It will improve reliability a lot.
+
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373AC2CB721@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: "Gang He" <ghe@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c        |    2 +-
- lib/debugobjects.c |    3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmrecovery.c |   51 +++++++++++++++++++++++++++++++++--
+ fs/ocfs2/dlm/dlmthread.c   |   35 ++++++++++++++++++++----
+ 2 files changed, 79 insertions(+), 7 deletions(-)
 
-diff -puN init/main.c~debugobjects-make-kmemleak-ignore-debug-objects init/main.c
---- a/init/main.c~debugobjects-make-kmemleak-ignore-debug-objects
-+++ a/init/main.c
-@@ -659,8 +659,8 @@ asmlinkage __visible void __init start_k
- 		initrd_start = 0;
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2263,11 +2263,45 @@ static void dlm_revalidate_lvb(struct dl
  	}
- #endif
--	debug_objects_mem_init();
- 	kmemleak_init();
-+	debug_objects_mem_init();
- 	setup_per_cpu_pageset();
- 	numa_policy_init();
- 	if (late_time_init)
-diff -puN lib/debugobjects.c~debugobjects-make-kmemleak-ignore-debug-objects lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-make-kmemleak-ignore-debug-objects
-+++ a/lib/debugobjects.c
-@@ -18,6 +18,7 @@
- #include <linux/debugfs.h>
- #include <linux/slab.h>
- #include <linux/hash.h>
-+#include <linux/kmemleak.h>
+ }
  
- #define ODEBUG_HASH_BITS	14
- #define ODEBUG_HASH_SIZE	(1 << ODEBUG_HASH_BITS)
-@@ -110,6 +111,7 @@ static void fill_pool(void)
- 		if (!new)
- 			return;
++static int dlm_drop_pending_ast_bast(struct dlm_ctxt *dlm,
++			struct dlm_lock *lock)
++{
++	int reserved = 0;
++
++	spin_lock(&dlm->ast_lock);
++	if (!list_empty(&lock->ast_list)) {
++		mlog(0, "%s: drop pending AST for lock(cookie=%u:%llu).\n",
++			dlm->name,
++			dlm_get_lock_cookie_node(be64_to_cpu(lock->ml.cookie)),
++			dlm_get_lock_cookie_seq(be64_to_cpu(lock->ml.cookie)));
++		list_del_init(&lock->ast_list);
++		lock->ast_pending = 0;
++		dlm_lock_put(lock);
++		reserved++;
++	}
++
++	if (!list_empty(&lock->bast_list)) {
++		mlog(0, "%s: drop pending BAST for lock(cookie=%u:%llu).\n",
++			dlm->name,
++			dlm_get_lock_cookie_node(be64_to_cpu(lock->ml.cookie)),
++			dlm_get_lock_cookie_seq(be64_to_cpu(lock->ml.cookie)));
++		list_del_init(&lock->bast_list);
++		lock->bast_pending = 0;
++		dlm_lock_put(lock);
++		reserved++;
++	}
++	spin_unlock(&dlm->ast_lock);
++
++	return reserved;
++}
++
+ static void dlm_free_dead_locks(struct dlm_ctxt *dlm,
+-				struct dlm_lock_resource *res, u8 dead_node)
++		struct dlm_lock_resource *res, u8 dead_node,
++		int *reserved)
+ {
+ 	struct dlm_lock *lock, *next;
+ 	unsigned int freed = 0;
++	int reserved_tmp = 0;
  
-+		kmemleak_ignore(new);
- 		raw_spin_lock_irqsave(&pool_lock, flags);
- 		hlist_add_head(&new->node, &obj_pool);
- 		debug_objects_allocated++;
-@@ -1080,6 +1082,7 @@ static int __init debug_objects_replace_
- 		obj = kmem_cache_zalloc(obj_cache, GFP_KERNEL);
- 		if (!obj)
- 			goto free;
-+		kmemleak_ignore(obj);
- 		hlist_add_head(&obj->node, &objects);
+ 	/* this node is the lockres master:
+ 	 * 1) remove any stale locks for the dead node
+@@ -2284,6 +2318,9 @@ static void dlm_free_dead_locks(struct d
+ 		if (lock->ml.node == dead_node) {
+ 			list_del_init(&lock->list);
+ 			dlm_lock_put(lock);
++
++		reserved_tmp += dlm_drop_pending_ast_bast(dlm, lock);
++
+ 			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
+ 			dlm_lock_put(lock);
+ 			freed++;
+@@ -2293,6 +2330,9 @@ static void dlm_free_dead_locks(struct d
+ 		if (lock->ml.node == dead_node) {
+ 			list_del_init(&lock->list);
+ 			dlm_lock_put(lock);
++
++		reserved_tmp += dlm_drop_pending_ast_bast(dlm, lock);
++
+ 			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
+ 			dlm_lock_put(lock);
+ 			freed++;
+@@ -2308,6 +2348,8 @@ static void dlm_free_dead_locks(struct d
+ 		}
  	}
  
++	*reserved = reserved_tmp;
++
+ 	if (freed) {
+ 		mlog(0, "%s:%.*s: freed %u locks for dead node %u, "
+ 		     "dropping ref from lockres\n", dlm->name,
+@@ -2367,6 +2409,7 @@ static void dlm_do_local_recovery_cleanu
+ 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
+ 		bucket = dlm_lockres_hash(dlm, i);
+ 		hlist_for_each_entry_safe(res, tmp, bucket, hash_node) {
++			int reserved = 0;
+  			/* always prune any $RECOVERY entries for dead nodes,
+  			 * otherwise hangs can occur during later recovery */
+ 			if (dlm_is_recovery_lock(res->lockname.name,
+@@ -2420,7 +2463,7 @@ static void dlm_do_local_recovery_cleanu
+ 					continue;
+ 				}
+ 			} else if (res->owner == dlm->node_num) {
+-				dlm_free_dead_locks(dlm, res, dead_node);
++				dlm_free_dead_locks(dlm, res, dead_node, &reserved);
+ 				__dlm_lockres_calc_usage(dlm, res);
+ 			} else if (res->owner == DLM_LOCK_RES_OWNER_UNKNOWN) {
+ 				if (test_bit(dead_node, res->refmap)) {
+@@ -2432,6 +2475,10 @@ static void dlm_do_local_recovery_cleanu
+ 				}
+ 			}
+ 			spin_unlock(&res->spinlock);
++			while (reserved) {
++				dlm_lockres_release_ast(dlm, res);
++				reserved--;
++			}
+ 		}
+ 	}
+ 
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -587,13 +587,13 @@ static int dlm_dirty_list_empty(struct d
+ 
+ static void dlm_flush_asts(struct dlm_ctxt *dlm)
+ {
+-	int ret;
++	int ret = 0;
+ 	struct dlm_lock *lock;
+ 	struct dlm_lock_resource *res;
+ 	u8 hi;
+ 
+ 	spin_lock(&dlm->ast_lock);
+-	while (!list_empty(&dlm->pending_asts)) {
++	while (!list_empty(&dlm->pending_asts) && !ret) {
+ 		lock = list_entry(dlm->pending_asts.next,
+ 				  struct dlm_lock, ast_list);
+ 		/* get an extra ref on lock */
+@@ -628,8 +628,20 @@ static void dlm_flush_asts(struct dlm_ct
+ 			mlog(0, "%s: res %.*s, AST queued while flushing last "
+ 			     "one\n", dlm->name, res->lockname.len,
+ 			     res->lockname.name);
+-		} else
++	} else {
++		if (unlikely(ret < 0)) {
++			/* If this AST is not sent back successfully,
++			 * there is no chance that the second lock
++			 * request comes.
++			 */
++			spin_lock(&res->spinlock);
++			__dlm_lockres_reserve_ast(res);
++			spin_unlock(&res->spinlock);
++			__dlm_queue_ast(dlm, lock);
++		} else {
+ 			lock->ast_pending = 0;
++		}
++	}
+ 
+ 		/* drop the extra ref.
+ 		 * this may drop it completely. */
+@@ -637,7 +649,9 @@ static void dlm_flush_asts(struct dlm_ct
+ 		dlm_lockres_release_ast(dlm, res);
+ 	}
+ 
+-	while (!list_empty(&dlm->pending_basts)) {
++	ret = 0;
++
++	while (!list_empty(&dlm->pending_basts) && !ret) {
+ 		lock = list_entry(dlm->pending_basts.next,
+ 				  struct dlm_lock, bast_list);
+ 		/* get an extra ref on lock */
+@@ -650,7 +664,6 @@ static void dlm_flush_asts(struct dlm_ct
+ 		spin_lock(&lock->spinlock);
+ 		BUG_ON(lock->ml.highest_blocked <= LKM_IVMODE);
+ 		hi = lock->ml.highest_blocked;
+-		lock->ml.highest_blocked = LKM_IVMODE;
+ 		spin_unlock(&lock->spinlock);
+ 
+ 		/* remove from list (including ref) */
+@@ -681,7 +694,19 @@ static void dlm_flush_asts(struct dlm_ct
+ 			     "one\n", dlm->name, res->lockname.len,
+ 			     res->lockname.name);
+ 		} else
++		if (unlikely(ret)) {
++			spin_lock(&res->spinlock);
++			__dlm_lockres_reserve_ast(res);
++			spin_unlock(&res->spinlock);
++			__dlm_queue_bast(dlm, lock);
++		} else {
+ 			lock->bast_pending = 0;
++			/* Set ::highest_blocked to invalid after
++			 * sending BAST successfully so that
++			 * no more BAST would be queued.
++			 */
++			lock->ml.highest_blocked = LKM_IVMODE;
++		}
+ 
+ 		/* drop the extra ref.
+ 		 * this may drop it completely. */
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from ge.changwei@h3c.com are
 
+ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
 
