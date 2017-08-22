@@ -1,81 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-use-fshort-wchar-globally.patch removed
- from -mm tree
-Date: Tue, 22 Aug 2017 13:54:59 -0700
-Message-ID: <20170822205459.F3Qc5NMcC%akpm@linux-foundation.org>
+Subject: [merged]
+ debugobjects-make-kmemleak-ignore-debug-objects.patch removed from -mm tree
+Date: Tue, 22 Aug 2017 13:55:02 -0700
+Message-ID: <20170822205502.5MCmUGe8_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36366 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751085AbdHVUzA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 16:55:00 -0400
+        with ESMTP id S1751085AbdHVUzD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 16:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, jgross@suse.com, mm-commits@vger.kernel.org, mmarek@suse.com, yamada.masahiro@socionext.com
+To: catalin.marinas@arm.com, longman@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: Kbuild: use -fshort-wchar globally
+     Subject: debugobjects: make kmemleak ignore debug objects
 has been removed from the -mm tree.  Its filename was
-     kbuild-use-fshort-wchar-globally.patch
+     debugobjects-make-kmemleak-ignore-debug-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Kbuild: use -fshort-wchar globally
+From: Waiman Long <longman@redhat.com>
+Subject: debugobjects: make kmemleak ignore debug objects
 
-A previous patch added the --no-wchar-size-warning to the Makefile to
-avoid this harmless warning:
+The allocated debug objects are either on the free list or in the hashed
+bucket lists.  So they won't get lost.  However if both debug objects and
+kmemleak are enabled and kmemleak scanning is done while some of the debug
+objects are transitioning from one list to the others, false negative
+reporting of memory leaks may happen for those objects.  For example,
 
-arm-linux-gnueabi-ld: warning: drivers/xen/efi.o uses 2-byte wchar_t yet the output is to use 4-byte wchar_t; use of wchar_t values across objects may fail
+[38687.275678] kmemleak: 12 new suspected memory leaks (see
+/sys/kernel/debug/kmemleak)
+unreferenced object 0xffff92e98aabeb68 (size 40):
+  comm "ksmtuned", pid 4344, jiffies 4298403600 (age 906.430s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 d0 bc db 92 e9 92 ff ff  ................
+    01 00 00 00 00 00 00 00 38 36 8a 61 e9 92 ff ff  ........86.a....
+  backtrace:
+    [<ffffffff8fa5378a>] kmemleak_alloc+0x4a/0xa0
+    [<ffffffff8f47c019>] kmem_cache_alloc+0xe9/0x320
+    [<ffffffff8f62ed96>] __debug_object_init+0x3e6/0x400
+    [<ffffffff8f62ef01>] debug_object_activate+0x131/0x210
+    [<ffffffff8f330d9f>] __call_rcu+0x3f/0x400
+    [<ffffffff8f33117d>] call_rcu_sched+0x1d/0x20
+    [<ffffffff8f4a183c>] put_object+0x2c/0x40
+    [<ffffffff8f4a188c>] __delete_object+0x3c/0x50
+    [<ffffffff8f4a18bd>] delete_object_full+0x1d/0x20
+    [<ffffffff8fa535c2>] kmemleak_free+0x32/0x80
+    [<ffffffff8f47af07>] kmem_cache_free+0x77/0x350
+    [<ffffffff8f453912>] unlink_anon_vmas+0x82/0x1e0
+    [<ffffffff8f440341>] free_pgtables+0xa1/0x110
+    [<ffffffff8f44af91>] exit_mmap+0xc1/0x170
+    [<ffffffff8f29db60>] mmput+0x80/0x150
+    [<ffffffff8f2a7609>] do_exit+0x2a9/0xd20
 
-Changing kbuild to use thin archives instead of recursive linking
-unfortunately brings the same warning back during the final link.
+The references in the debug objects may also hide a real memory leak.
 
-The kernel does not use wchar_t string literals at this point, and xen
-does not use wchar_t at all (only efi_char16_t), so the flag has no
-effect, but as pointed out by Jan Beulich, adding a wchar_t string literal
-would be bad here.
+As there is no point in having kmemleak to track debug object allocations,
+kmemleak checking is now disabled for debug objects.
 
-Since wchar_t is always defined as u16, independent of the toolchain
-default, always passing -fshort-wchar is correct and lets us remove the
-Xen specific hack along with fixing the warning.
-
-Link: http://lkml.kernel.org/r/20170726133655.2137437-1-arnd@arndb.de
-Link: https://patchwork.kernel.org/patch/9275217/
-Fixes: 971a69db7dc0 ("Xen: don't warn about 2-byte wchar_t in efi")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
+Link: http://lkml.kernel.org/r/1502718733-8527-1-git-send-email-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile             |    2 +-
- drivers/xen/Makefile |    3 ---
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ init/main.c        |    2 +-
+ lib/debugobjects.c |    3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Makefile~kbuild-use-fshort-wchar-globally Makefile
---- a/Makefile~kbuild-use-fshort-wchar-globally
-+++ a/Makefile
-@@ -396,7 +396,7 @@ LINUXINCLUDE    := \
- KBUILD_CPPFLAGS := -D__KERNEL__
+diff -puN init/main.c~debugobjects-make-kmemleak-ignore-debug-objects init/main.c
+--- a/init/main.c~debugobjects-make-kmemleak-ignore-debug-objects
++++ a/init/main.c
+@@ -659,8 +659,8 @@ asmlinkage __visible void __init start_k
+ 		initrd_start = 0;
+ 	}
+ #endif
+-	debug_objects_mem_init();
+ 	kmemleak_init();
++	debug_objects_mem_init();
+ 	setup_per_cpu_pageset();
+ 	numa_policy_init();
+ 	if (late_time_init)
+diff -puN lib/debugobjects.c~debugobjects-make-kmemleak-ignore-debug-objects lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-make-kmemleak-ignore-debug-objects
++++ a/lib/debugobjects.c
+@@ -18,6 +18,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
+ #include <linux/hash.h>
++#include <linux/kmemleak.h>
  
- KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
--		   -fno-strict-aliasing -fno-common \
-+		   -fno-strict-aliasing -fno-common -fshort-wchar \
- 		   -Werror-implicit-function-declaration \
- 		   -Wno-format-security \
- 		   -std=gnu89 $(call cc-option,-fno-PIE)
-diff -puN drivers/xen/Makefile~kbuild-use-fshort-wchar-globally drivers/xen/Makefile
---- a/drivers/xen/Makefile~kbuild-use-fshort-wchar-globally
-+++ a/drivers/xen/Makefile
-@@ -7,9 +7,6 @@ obj-y	+= xenbus/
- nostackp := $(call cc-option, -fno-stack-protector)
- CFLAGS_features.o			:= $(nostackp)
+ #define ODEBUG_HASH_BITS	14
+ #define ODEBUG_HASH_SIZE	(1 << ODEBUG_HASH_BITS)
+@@ -110,6 +111,7 @@ static void fill_pool(void)
+ 		if (!new)
+ 			return;
  
--CFLAGS_efi.o				+= -fshort-wchar
--LDFLAGS					+= $(call ld-option, --no-wchar-size-warning)
++		kmemleak_ignore(new);
+ 		raw_spin_lock_irqsave(&pool_lock, flags);
+ 		hlist_add_head(&new->node, &obj_pool);
+ 		debug_objects_allocated++;
+@@ -1080,6 +1082,7 @@ static int __init debug_objects_replace_
+ 		obj = kmem_cache_zalloc(obj_cache, GFP_KERNEL);
+ 		if (!obj)
+ 			goto free;
++		kmemleak_ignore(obj);
+ 		hlist_add_head(&obj->node, &objects);
+ 	}
+ 
+_
+
+Patches currently in -mm which might be from longman@redhat.com are
+
+
