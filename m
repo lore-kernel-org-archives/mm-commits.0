@@ -1,32 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- fault-inject-restore-support-for-task-independent-fault-injection.patch
- added to -mm tree
-Date: Tue, 22 Aug 2017 16:07:48 -0700
-Message-ID: <599cb944.Ndsl3h6/e7nxAjja%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 23 Aug 2017 12:57:44 -0700
+Message-ID: <20170823195744.XnDagCGRN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35470 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751687AbdHVXHt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2017 19:07:49 -0400
+        with ESMTP id S932405AbdHWT5q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2017 15:57:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bart.vanassche@wdc.com, akinobu.mita@gmail.com, axboe@kernel.dk, dvyukov@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fault-inject: restore support for task-independent fault injection
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fault-inject-restore-support-for-task-independent-fault-injection.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-restore-support-for-task-independent-fault-injection.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-restore-support-for-task-independent-fault-injection.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,90 +35,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: fault-inject: restore support for task-independent fault injection
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Certain faults should be injected independent of the context in which
-these occur.  Commit e41d58185f14 made it impossible to inject faults
-independent of their context.  Restore support for task-independent fault
-injection by adding the attribute 'global'.
-
-Fixes: e41d58185f14 ("fault-inject: support systematic fault injection")
-Link: http://lkml.kernel.org/r/20170822230043.9968-2-bart.vanassche@wdc.com
-Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fault-inject.h |   11 +++++++++--
- lib/fault-inject.c           |    4 +++-
- 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/fault-inject.h~fault-inject-restore-support-for-task-independent-fault-injection include/linux/fault-inject.h
---- a/include/linux/fault-inject.h~fault-inject-restore-support-for-task-independent-fault-injection
-+++ a/include/linux/fault-inject.h
-@@ -18,6 +18,7 @@ struct fault_attr {
- 	atomic_t times;
- 	atomic_t space;
- 	unsigned long verbose;
-+	bool global;
- 	bool task_filter;
- 	unsigned long stacktrace_depth;
- 	unsigned long require_start;
-@@ -30,17 +31,23 @@ struct fault_attr {
- 	struct dentry *dname;
- };
- 
--#define FAULT_ATTR_INITIALIZER {					\
-+#define __FAULT_ATTR_INITIALIZER(__global) {				\
- 		.interval = 1,						\
- 		.times = ATOMIC_INIT(1),				\
- 		.require_end = ULONG_MAX,				\
-+		.global = (__global),					\
- 		.stacktrace_depth = 32,					\
- 		.ratelimit_state = RATELIMIT_STATE_INIT_DISABLED,	\
- 		.verbose = 2,						\
- 		.dname = NULL,						\
- 	}
- 
--#define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
-+#define FAULT_ATTR_INITIALIZER __FAULT_ATTR_INITIALIZER(false)
-+
-+#define DECLARE_FAULT_ATTR(name)				\
-+	struct fault_attr name = __FAULT_ATTR_INITIALIZER(false)
-+#define DECLARE_GLOBAL_FAULT_ATTR(name)				\
-+	struct fault_attr name = __FAULT_ATTR_INITIALIZER(true)
- int setup_fault_attr(struct fault_attr *attr, char *str);
- bool should_fail(struct fault_attr *attr, ssize_t size);
- 
-diff -puN lib/fault-inject.c~fault-inject-restore-support-for-task-independent-fault-injection lib/fault-inject.c
---- a/lib/fault-inject.c~fault-inject-restore-support-for-task-independent-fault-injection
-+++ a/lib/fault-inject.c
-@@ -107,7 +107,7 @@ static inline bool fail_stacktrace(struc
- 
- bool should_fail(struct fault_attr *attr, ssize_t size)
+diff -puN arch/arm64/kernel/fpsimd.c~linux-next-git-rejects arch/arm64/kernel/fpsimd.c
+--- a/arch/arm64/kernel/fpsimd.c~linux-next-git-rejects
++++ a/arch/arm64/kernel/fpsimd.c
+@@ -171,13 +171,6 @@ void fpsimd_flush_thread(void)
  {
--	if (in_task()) {
-+	if (!attr->global && in_task()) {
- 		unsigned int fail_nth = READ_ONCE(current->fail_nth);
+ 	if (!system_supports_fpsimd())
+ 		return;
+-<<<<<<< HEAD
+-	preempt_disable();
+-	memset(&current->thread.fpsimd_state, 0, sizeof(struct fpsimd_state));
+-	fpsimd_flush_task_state(current);
+-	set_thread_flag(TIF_FOREIGN_FPSTATE);
+-	preempt_enable();
+-=======
  
- 		if (fail_nth) {
-@@ -226,6 +226,8 @@ struct dentry *fault_create_debugfs_attr
- 	if (!debugfs_create_u32("verbose_ratelimit_burst", mode, dir,
- 				&attr->ratelimit_state.burst))
- 		goto fail;
-+	if (!debugfs_create_bool("global", mode, dir, &attr->global))
-+		goto fail;
- 	if (!debugfs_create_bool("task-filter", mode, dir, &attr->task_filter))
- 		goto fail;
+ 	local_bh_disable();
  
+@@ -186,7 +179,6 @@ void fpsimd_flush_thread(void)
+ 	set_thread_flag(TIF_FOREIGN_FPSTATE);
+ 
+ 	local_bh_enable();
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from bart.vanassche@wdc.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fault-inject-restore-support-for-task-independent-fault-injection.patch
-block-make-i-o-timeout-failure-injection-again-task-independent.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
