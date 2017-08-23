@@ -1,27 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 23 Aug 2017 12:57:44 -0700
-Message-ID: <20170823195744.XnDagCGRN%akpm@linux-foundation.org>
+Subject: + mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch
+ added to -mm tree
+Date: Wed, 23 Aug 2017 14:41:21 -0700
+Message-ID: <599df681.NreP1dR3/HGSfpCe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42644 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932405AbdHWT5q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2017 15:57:46 -0400
+        with ESMTP id S1750962AbdHWVlX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2017 17:41:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: ebiggers@google.com, aarcange@redhat.com, dvyukov@google.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/madvise.c: fix freeing of locked page with MADV_FREE
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,62 +39,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Eric Biggers <ebiggers@google.com>
+Subject: mm/madvise.c: fix freeing of locked page with MADV_FREE
 
+If madvise(..., MADV_FREE) split a transparent hugepage, it called
+put_page() before unlock_page().  This was wrong because put_page() can
+free the page, e.g.  if a concurrent madvise(..., MADV_DONTNEED) has
+removed it from the memory mapping.  put_page() then rightfully complained
+about freeing a locked page.
+
+Fix this by moving the unlock_page() before put_page().
+
+This bug was found by syzkaller, which encountered the following splat:
+
+    BUG: Bad page state in process syzkaller412798  pfn:1bd800
+    page:ffffea0006f60000 count:0 mapcount:0 mapping:          (null) index:0x20a00
+    flags: 0x200000000040019(locked|uptodate|dirty|swapbacked)
+    raw: 0200000000040019 0000000000000000 0000000000020a00 00000000ffffffff
+    raw: ffffea0006f60020 ffffea0006f60020 0000000000000000 0000000000000000
+    page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+    bad because of flags: 0x1(locked)
+    Modules linked in:
+    CPU: 1 PID: 3037 Comm: syzkaller412798 Not tainted 4.13.0-rc5+ #35
+    Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+    Call Trace:
+     __dump_stack lib/dump_stack.c:16 [inline]
+     dump_stack+0x194/0x257 lib/dump_stack.c:52
+     bad_page+0x230/0x2b0 mm/page_alloc.c:565
+     free_pages_check_bad+0x1f0/0x2e0 mm/page_alloc.c:943
+     free_pages_check mm/page_alloc.c:952 [inline]
+     free_pages_prepare mm/page_alloc.c:1043 [inline]
+     free_pcp_prepare mm/page_alloc.c:1068 [inline]
+     free_hot_cold_page+0x8cf/0x12b0 mm/page_alloc.c:2584
+     __put_single_page mm/swap.c:79 [inline]
+     __put_page+0xfb/0x160 mm/swap.c:113
+     put_page include/linux/mm.h:814 [inline]
+     madvise_free_pte_range+0x137a/0x1ec0 mm/madvise.c:371
+     walk_pmd_range mm/pagewalk.c:50 [inline]
+     walk_pud_range mm/pagewalk.c:108 [inline]
+     walk_p4d_range mm/pagewalk.c:134 [inline]
+     walk_pgd_range mm/pagewalk.c:160 [inline]
+     __walk_page_range+0xc3a/0x1450 mm/pagewalk.c:249
+     walk_page_range+0x200/0x470 mm/pagewalk.c:326
+     madvise_free_page_range.isra.9+0x17d/0x230 mm/madvise.c:444
+     madvise_free_single_vma+0x353/0x580 mm/madvise.c:471
+     madvise_dontneed_free mm/madvise.c:555 [inline]
+     madvise_vma mm/madvise.c:664 [inline]
+     SYSC_madvise mm/madvise.c:832 [inline]
+     SyS_madvise+0x7d3/0x13c0 mm/madvise.c:760
+     entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Here is a C reproducer:
+
+    #define _GNU_SOURCE
+    #include <pthread.h>
+    #include <sys/mman.h>
+    #include <unistd.h>
+
+    #define MADV_FREE	8
+    #define PAGE_SIZE	4096
+
+    static void *mapping;
+    static const size_t mapping_size = 0x1000000;
+
+    static void *madvise_thrproc(void *arg)
+    {
+        madvise(mapping, mapping_size, (long)arg);
+    }
+
+    int main(void)
+    {
+        pthread_t t[2];
+
+        for (;;) {
+            mapping = mmap(NULL, mapping_size, PROT_WRITE,
+                           MAP_POPULATE|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+
+            munmap(mapping + mapping_size / 2, PAGE_SIZE);
+
+            pthread_create(&t[0], 0, madvise_thrproc, (void*)MADV_DONTNEED);
+            pthread_create(&t[1], 0, madvise_thrproc, (void*)MADV_FREE);
+            pthread_join(t[0], NULL);
+            pthread_join(t[1], NULL);
+            munmap(mapping, mapping_size);
+        }
+    }
+
+Note: to see the splat, CONFIG_TRANSPARENT_HUGEPAGE=y and
+CONFIG_DEBUG_VM=y are needed.
+
+Google Bug Id: 64696096
+
+Link: http://lkml.kernel.org/r/20170823205235.132061-1-ebiggers3@gmail.com
+Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>	[v4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/kernel/fpsimd.c~linux-next-git-rejects arch/arm64/kernel/fpsimd.c
---- a/arch/arm64/kernel/fpsimd.c~linux-next-git-rejects
-+++ a/arch/arm64/kernel/fpsimd.c
-@@ -171,13 +171,6 @@ void fpsimd_flush_thread(void)
- {
- 	if (!system_supports_fpsimd())
- 		return;
--<<<<<<< HEAD
--	preempt_disable();
--	memset(&current->thread.fpsimd_state, 0, sizeof(struct fpsimd_state));
--	fpsimd_flush_task_state(current);
--	set_thread_flag(TIF_FOREIGN_FPSTATE);
--	preempt_enable();
--=======
- 
- 	local_bh_disable();
- 
-@@ -186,7 +179,6 @@ void fpsimd_flush_thread(void)
- 	set_thread_flag(TIF_FOREIGN_FPSTATE);
- 
- 	local_bh_enable();
-->>>>>>> linux-next/akpm-base
- }
- 
- /*
+diff -puN mm/madvise.c~mm-madvise-fix-freeing-of-locked-page-with-madv_free mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-fix-freeing-of-locked-page-with-madv_free
++++ a/mm/madvise.c
+@@ -368,8 +368,8 @@ static int madvise_free_pte_range(pmd_t
+ 				pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 				goto out;
+ 			}
+-			put_page(page);
+ 			unlock_page(page);
++			put_page(page);
+ 			pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 			pte--;
+ 			addr -= PAGE_SIZE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch
 
