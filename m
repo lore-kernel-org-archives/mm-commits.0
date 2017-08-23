@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3.patch
- added to -mm tree
-Date: Wed, 23 Aug 2017 15:47:15 -0700
-Message-ID: <599e05f3.a6lrfJxT1xwKOdg1%akpm@linux-foundation.org>
+Subject: + drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch added
+ to -mm tree
+Date: Wed, 23 Aug 2017 16:14:30 -0700
+Message-ID: <599e0c56.s/LCkVgm+sxNTnyq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47658 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751085AbdHWWrQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2017 18:47:16 -0400
+        with ESMTP id S1751093AbdHWXOb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2017 19:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yu.c.chen@intel.com, dan.j.williams@intel.com, jan.filipcewicz@intel.com, lenb@kernel.org, mgorman@techsingularity.net, mhocko@suse.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hans.verkuil@cisco.com, maxime.ripard@free-electrons.com, mchehab@s-opensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [v3] PM / Hibernate: Feed the wathdog when creating snapshot
+     Subject: drivers/media/cec/cec-adap.c: fix build with gcc-4.4.4
 has been added to the -mm tree.  Its filename is
-     pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3.patch
+     drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: [v3] PM / Hibernate: Feed the wathdog when creating snapshot
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/media/cec/cec-adap.c: fix build with gcc-4.4.4
 
-simplification
+gcc-4.4.4 has issues with initialization of anonymous unions:
 
-Link: http://lkml.kernel.org/r/1503460079-29721-1-git-send-email-yu.c.chen@intel.com
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-Cc: Jan Filipcewicz <jan.filipcewicz@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+drivers/media/cec/cec-adap.c: In function 'cec_queue_msg_fh':
+drivers/media/cec/cec-adap.c:184: error: unknown field 'lost_msgs' specified in initializer
+
+work around this.
+
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ drivers/media/cec/cec-adap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3 mm/page_alloc.c
---- a/mm/page_alloc.c~pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3
-+++ a/mm/page_alloc.c
-@@ -2537,14 +2537,13 @@ void drain_all_pages(struct zone *zone)
- #ifdef CONFIG_HIBERNATION
- 
- /*
-- * Touch the watchdog for every WD_INTERVAL_PAGE pages,
-- * choose a power of 2 to avoid the modulus operation.
-+ * Touch the watchdog for every WD_PAGE_COUNT pages.
-  */
--#define WD_INTERVAL_PAGE	(128*1024)
-+#define WD_PAGE_COUNT	(128*1024)
- 
- void mark_free_pages(struct zone *zone)
+diff -puN drivers/media/cec/cec-adap.c~drivers-media-cec-cec-adapc-fix-build-with-gcc-444 drivers/media/cec/cec-adap.c
+--- a/drivers/media/cec/cec-adap.c~drivers-media-cec-cec-adapc-fix-build-with-gcc-444
++++ a/drivers/media/cec/cec-adap.c
+@@ -181,7 +181,10 @@ static void cec_queue_msg_fh(struct cec_
  {
--	unsigned long pfn, max_zone_pfn, page_num = 0;
-+	unsigned long pfn, max_zone_pfn, page_count = WD_PAGE_COUNT;
- 	unsigned long flags;
- 	unsigned int order, t;
- 	struct page *page;
-@@ -2559,8 +2558,10 @@ void mark_free_pages(struct zone *zone)
- 		if (pfn_valid(pfn)) {
- 			page = pfn_to_page(pfn);
+ 	static const struct cec_event ev_lost_msgs = {
+ 		.event = CEC_EVENT_LOST_MSGS,
+-		.lost_msgs.lost_msgs = 1,
++		.flags = 0,
++		{
++			.lost_msgs = { 1 },
++		},
+ 	};
+ 	struct cec_msg_entry *entry;
  
--			if (!((page_num++) % WD_INTERVAL_PAGE))
-+			if (!--page_count) {
- 				touch_nmi_watchdog();
-+				page_count = WD_PAGE_COUNT;
-+			}
- 
- 			if (page_zone(page) != zone)
- 				continue;
-@@ -2576,8 +2577,10 @@ void mark_free_pages(struct zone *zone)
- 
- 			pfn = page_to_pfn(page);
- 			for (i = 0; i < (1UL << order); i++) {
--				if (!((page_num++) % WD_INTERVAL_PAGE))
-+				if (!--page_count) {
- 					touch_nmi_watchdog();
-+					page_count = WD_PAGE_COUNT;
-+				}
- 				swsusp_set_page_free(pfn_to_page(pfn + i));
- 			}
- 		}
 _
 
-Patches currently in -mm which might be from yu.c.chen@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pm-hibernate-feed-the-wathdog-when-creating-snapshot.patch
-pm-hibernate-feed-the-wathdog-when-creating-snapshot-v2.patch
-pm-hibernate-feed-the-wathdog-when-creating-snapshot-v3.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+add-testcases-for-memset16-32-64-fix.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
