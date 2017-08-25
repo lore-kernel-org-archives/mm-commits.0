@@ -1,139 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/6] mm/madvise.c: fix freeing of locked page with
- MADV_FREE
-Date: Fri, 25 Aug 2017 15:55:39 -0700
-Message-ID: <59a0aaeb.alqzLQywGYJ+/zoD%akpm@linux-foundation.org>
+Subject: [patch 3/6] dax: fix deadlock due to misaligned PMD faults
+Date: Fri, 25 Aug 2017 15:55:36 -0700
+Message-ID: <59a0aae8.I+nPQt9tdyBmJIX4%akpm__13348.9000647844$1503701754$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964842AbdHYWzp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 18:55:45 -0400
+        with ESMTP id S964842AbdHYWzl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 18:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ebiggers@google.com, aarcange@redhat.com, dvyukov@google.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, rientjes@google.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, marcin.slusarz@intel.com, mawilcox@microsoft.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
-From: Eric Biggers <ebiggers@google.com>
-Subject: mm/madvise.c: fix freeing of locked page with MADV_FREE
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: fix deadlock due to misaligned PMD faults
 
-If madvise(..., MADV_FREE) split a transparent hugepage, it called
-put_page() before unlock_page().  This was wrong because put_page() can
-free the page, e.g.  if a concurrent madvise(..., MADV_DONTNEED) has
-removed it from the memory mapping.  put_page() then rightfully complained
-about freeing a locked page.
+In DAX there are two separate places where the 2MiB range of a PMD is
+defined.
 
-Fix this by moving the unlock_page() before put_page().
+The first is in the page tables, where a PMD mapping inserted for a given
+address spans from (vmf->address & PMD_MASK) to ((vmf->address & PMD_MASK)
++ PMD_SIZE - 1).  That is, from the 2MiB boundary below the address to the
+2MiB boundary above the address.
 
-This bug was found by syzkaller, which encountered the following splat:
+So, for example, a fault at address 3MiB (0x30 0000) falls within the PMD
+that ranges from 2MiB (0x20 0000) to 4MiB (0x40 0000).
 
-    BUG: Bad page state in process syzkaller412798  pfn:1bd800
-    page:ffffea0006f60000 count:0 mapcount:0 mapping:          (null) index:0x20a00
-    flags: 0x200000000040019(locked|uptodate|dirty|swapbacked)
-    raw: 0200000000040019 0000000000000000 0000000000020a00 00000000ffffffff
-    raw: ffffea0006f60020 ffffea0006f60020 0000000000000000 0000000000000000
-    page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-    bad because of flags: 0x1(locked)
-    Modules linked in:
-    CPU: 1 PID: 3037 Comm: syzkaller412798 Not tainted 4.13.0-rc5+ #35
-    Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-    Call Trace:
-     __dump_stack lib/dump_stack.c:16 [inline]
-     dump_stack+0x194/0x257 lib/dump_stack.c:52
-     bad_page+0x230/0x2b0 mm/page_alloc.c:565
-     free_pages_check_bad+0x1f0/0x2e0 mm/page_alloc.c:943
-     free_pages_check mm/page_alloc.c:952 [inline]
-     free_pages_prepare mm/page_alloc.c:1043 [inline]
-     free_pcp_prepare mm/page_alloc.c:1068 [inline]
-     free_hot_cold_page+0x8cf/0x12b0 mm/page_alloc.c:2584
-     __put_single_page mm/swap.c:79 [inline]
-     __put_page+0xfb/0x160 mm/swap.c:113
-     put_page include/linux/mm.h:814 [inline]
-     madvise_free_pte_range+0x137a/0x1ec0 mm/madvise.c:371
-     walk_pmd_range mm/pagewalk.c:50 [inline]
-     walk_pud_range mm/pagewalk.c:108 [inline]
-     walk_p4d_range mm/pagewalk.c:134 [inline]
-     walk_pgd_range mm/pagewalk.c:160 [inline]
-     __walk_page_range+0xc3a/0x1450 mm/pagewalk.c:249
-     walk_page_range+0x200/0x470 mm/pagewalk.c:326
-     madvise_free_page_range.isra.9+0x17d/0x230 mm/madvise.c:444
-     madvise_free_single_vma+0x353/0x580 mm/madvise.c:471
-     madvise_dontneed_free mm/madvise.c:555 [inline]
-     madvise_vma mm/madvise.c:664 [inline]
-     SYSC_madvise mm/madvise.c:832 [inline]
-     SyS_madvise+0x7d3/0x13c0 mm/madvise.c:760
-     entry_SYSCALL_64_fastpath+0x1f/0xbe
+The second PMD range is in the mapping->page_tree, where a given file
+offset is covered by a radix tree entry that spans from one 2MiB aligned
+file offset to another 2MiB aligned file offset.
 
-Here is a C reproducer:
+So, for example, the file offset for 3MiB (pgoff 768) falls within the PMD
+range for the order 9 radix tree entry that ranges from 2MiB (pgoff 512)
+to 4MiB (pgoff 1024).
 
-    #define _GNU_SOURCE
-    #include <pthread.h>
-    #include <sys/mman.h>
-    #include <unistd.h>
+This system works so long as the addresses and file offsets for a given
+mapping both have the same offsets relative to the start of each PMD.
 
-    #define MADV_FREE	8
-    #define PAGE_SIZE	4096
+Consider the case where the starting address for a given file isn't 2MiB
+aligned - say our faulting address is 3 MiB (0x30 0000), but that
+corresponds to the beginning of our file (pgoff 0).  Now all the PMDs in
+the mapping are misaligned so that the 2MiB range defined in the page
+tables never matches up with the 2MiB range defined in the radix tree.
 
-    static void *mapping;
-    static const size_t mapping_size = 0x1000000;
+The current code notices this case for DAX faults to storage with the
+following test in dax_pmd_insert_mapping():
 
-    static void *madvise_thrproc(void *arg)
-    {
-        madvise(mapping, mapping_size, (long)arg);
-    }
+	if (pfn_t_to_pfn(pfn) & PG_PMD_COLOUR)
+		goto unlock_fallback;
 
-    int main(void)
-    {
-        pthread_t t[2];
+This test makes sure that the pfn we get from the driver is 2MiB aligned,
+and relies on the assumption that the 2MiB alignment of the pfn we get
+back from the driver matches the 2MiB alignment of the faulting address.
 
-        for (;;) {
-            mapping = mmap(NULL, mapping_size, PROT_WRITE,
-                           MAP_POPULATE|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+However, faults to holes were not checked and we could hit the problem
+described above.
 
-            munmap(mapping + mapping_size / 2, PAGE_SIZE);
+This was reported in response to the NVML nvml/src/test/pmempool_sync
+TEST5:
 
-            pthread_create(&t[0], 0, madvise_thrproc, (void*)MADV_DONTNEED);
-            pthread_create(&t[1], 0, madvise_thrproc, (void*)MADV_FREE);
-            pthread_join(t[0], NULL);
-            pthread_join(t[1], NULL);
-            munmap(mapping, mapping_size);
-        }
-    }
+	$ cd nvml/src/test/pmempool_sync
+	$ make TEST5
 
-Note: to see the splat, CONFIG_TRANSPARENT_HUGEPAGE=y and
-CONFIG_DEBUG_VM=y are needed.
+You can grab NVML here:
 
-Google Bug Id: 64696096
+	https://github.com/pmem/nvml/
 
-Link: http://lkml.kernel.org/r/20170823205235.132061-1-ebiggers3@gmail.com
-Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>	[v4.5+]
+The dmesg warning you see when you hit this error is:
+
+WARNING: CPU: 13 PID: 2900 at fs/dax.c:641 dax_insert_mapping_entry+0x2df/0x310
+
+Where we notice in dax_insert_mapping_entry() that the radix tree entry we
+are about to replace doesn't match the locked entry that we had previously
+inserted into the tree.  This happens because the initial insertion was
+done in grab_mapping_entry() using a pgoff calculated from the faulting
+address (vmf->address), and the replacement in dax_pmd_load_hole() =>
+dax_insert_mapping_entry() is done using vmf->pgoff.
+
+In our failure case those two page offsets (one calculated from
+vmf->address, one using vmf->pgoff) point to different order 9 radix tree
+entries.
+
+This failure case can result in a deadlock because the radix tree unlock
+also happens on the pgoff calculated from vmf->address.  This means that
+the locked radix tree entry that we swapped in to the tree in
+dax_insert_mapping_entry() using vmf->pgoff is never unlocked, so all
+future faults to that 2MiB range will block forever.
+
+Fix this by validating that the faulting address's PMD offset matches the
+PMD offset from the start of the file.  This check is done at the very
+beginning of the fault and covers faults that would have mapped to storage
+as well as faults to holes.  I left the COLOUR check in
+dax_pmd_insert_mapping() in place in case we ever hit the insanity
+condition where the alignment of the pfn we get from the driver doesn't
+match the alignment of the userspace address.
+
+Link: http://lkml.kernel.org/r/20170822222436.18926-1-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: "Slusarz, Marcin" <marcin.slusarz@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dax.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/madvise.c~mm-madvise-fix-freeing-of-locked-page-with-madv_free mm/madvise.c
---- a/mm/madvise.c~mm-madvise-fix-freeing-of-locked-page-with-madv_free
-+++ a/mm/madvise.c
-@@ -368,8 +368,8 @@ static int madvise_free_pte_range(pmd_t
- 				pte_offset_map_lock(mm, pmd, addr, &ptl);
- 				goto out;
- 			}
--			put_page(page);
- 			unlock_page(page);
-+			put_page(page);
- 			pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
- 			pte--;
- 			addr -= PAGE_SIZE;
+diff -puN fs/dax.c~dax-fix-deadlock-due-to-misaligned-pmd-faults fs/dax.c
+--- a/fs/dax.c~dax-fix-deadlock-due-to-misaligned-pmd-faults
++++ a/fs/dax.c
+@@ -1383,6 +1383,16 @@ static int dax_iomap_pmd_fault(struct vm
+ 
+ 	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+ 
++	/*
++	 * Make sure that the faulting address's PMD offset (color) matches
++	 * the PMD offset from the start of the file.  This is necessary so
++	 * that a PMD range in the page table overlaps exactly with a PMD
++	 * range in the radix tree.
++	 */
++	if ((vmf->pgoff & PG_PMD_COLOUR) !=
++	    ((vmf->address >> PAGE_SHIFT) & PG_PMD_COLOUR))
++		goto fallback;
++
+ 	/* Fall back to PTEs if we're going to COW */
+ 	if (write && !(vma->vm_flags & VM_SHARED))
+ 		goto fallback;
 _
