@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-make-cpumask_next-out-of-line.patch added to -mm tree
-Date: Fri, 25 Aug 2017 13:05:17 -0700
-Message-ID: <59a082fd.pX+d1GoYfpIjvlRb%akpm@linux-foundation.org>
+Subject: + mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch
+ added to -mm tree
+Date: Fri, 25 Aug 2017 13:47:44 -0700
+Message-ID: <59a08cf0.kcrLjAez8jdDsBrD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47800 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932644AbdHYUFS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 16:05:18 -0400
+        with ESMTP id S932578AbdHYUrp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 16:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, mgorman@suse.de, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask: make cpumask_next() out-of-line
+     Subject: mm,page_alloc: don't call __node_reclaim() with oom_lock held.
 has been added to the -mm tree.  Its filename is
-     cpumask-make-cpumask_next-out-of-line.patch
+     mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpumask-make-cpumask_next-out-of-line.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpumask-make-cpumask_next-out-of-line.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,104 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: cpumask: make cpumask_next() out-of-line
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm,page_alloc: don't call __node_reclaim() with oom_lock held.
 
-Every for_each_XXX_cpu() invocation calls cpumask_next() which is an
-inline function:
+We are doing last second memory allocation attempt before calling
+out_of_memory().  But since slab shrinker functions might indirectly wait
+for other thread's __GFP_DIRECT_RECLAIM && !__GFP_NORETRY memory
+allocations via sleeping locks, calling slab shrinker functions from
+node_reclaim() from get_page_from_freelist() with oom_lock held has
+possibility of deadlock.  Therefore, make sure that last second memory
+allocation attempt does not call slab shrinker functions.
 
-	static inline unsigned int cpumask_next(int n, const struct cpumask *srcp)
-	{
-	        /* -1 is a legal arg here. */
-	        if (n != -1)
-	                cpumask_check(n);
-	        return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n + 1);
-	}
-
-However!
-
-find_next_bit() is regular out-of-line function which means "nr_cpu_ids"
-load and increment happen at the caller resulting in a lot of bloat
-
-x86_64 defconfig:
-	add/remove: 3/0 grow/shrink: 8/373 up/down: 155/-5668 (-5513)
-x86_64 allyesconfig-ish:
-	add/remove: 3/1 grow/shrink: 57/634 up/down: 3515/-28177 (-24662) !!!
-
-Some archs redefine find_next_bit() but it is OK:
-
-	m68k		inline but SMP is not supported
-	arm		out-of-line
-	unicore32	out-of-line
-
-Function call will happen anyway, so move load and increment into callee.
-
-Link: http://lkml.kernel.org/r/20170824230010.GA1593@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/1503577106-9196-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   15 +--------------
- lib/cpumask.c           |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/cpumask.h~cpumask-make-cpumask_next-out-of-line include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-make-cpumask_next-out-of-line
-+++ a/include/linux/cpumask.h
-@@ -178,20 +178,7 @@ static inline unsigned int cpumask_first
- 	return find_first_bit(cpumask_bits(srcp), nr_cpumask_bits);
- }
+diff -puN mm/page_alloc.c~mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held mm/page_alloc.c
+--- a/mm/page_alloc.c~mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held
++++ a/mm/page_alloc.c
+@@ -3291,10 +3291,13 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	/*
+ 	 * Go through the zonelist yet one more time, keep very high watermark
+ 	 * here, this is only to catch a parallel oom killing, we must fail if
+-	 * we're still under heavy pressure.
++	 * we're still under heavy pressure. But make sure that this reclaim
++	 * attempt shall not depend on __GFP_DIRECT_RECLAIM && !__GFP_NORETRY
++	 * allocation which will never fail due to oom_lock already held.
+ 	 */
+-	page = get_page_from_freelist(gfp_mask | __GFP_HARDWALL, order,
+-					ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
++	page = get_page_from_freelist((gfp_mask | __GFP_HARDWALL) &
++				      ~__GFP_DIRECT_RECLAIM, order,
++				      ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
+ 	if (page)
+ 		goto out;
  
--/**
-- * cpumask_next - get the next cpu in a cpumask
-- * @n: the cpu prior to the place to search (ie. return will be > @n)
-- * @srcp: the cpumask pointer
-- *
-- * Returns >= nr_cpu_ids if no further cpus set.
-- */
--static inline unsigned int cpumask_next(int n, const struct cpumask *srcp)
--{
--	/* -1 is a legal arg here. */
--	if (n != -1)
--		cpumask_check(n);
--	return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n+1);
--}
-+unsigned int cpumask_next(int n, const struct cpumask *srcp);
- 
- /**
-  * cpumask_next_zero - get the next unset cpu in a cpumask
-diff -puN lib/cpumask.c~cpumask-make-cpumask_next-out-of-line lib/cpumask.c
---- a/lib/cpumask.c~cpumask-make-cpumask_next-out-of-line
-+++ a/lib/cpumask.c
-@@ -6,6 +6,22 @@
- #include <linux/bootmem.h>
- 
- /**
-+ * cpumask_next - get the next cpu in a cpumask
-+ * @n: the cpu prior to the place to search (ie. return will be > @n)
-+ * @srcp: the cpumask pointer
-+ *
-+ * Returns >= nr_cpu_ids if no further cpus set.
-+ */
-+unsigned int cpumask_next(int n, const struct cpumask *srcp)
-+{
-+	/* -1 is a legal arg here. */
-+	if (n != -1)
-+		cpumask_check(n);
-+	return find_next_bit(cpumask_bits(srcp), nr_cpumask_bits, n + 1);
-+}
-+EXPORT_SYMBOL(cpumask_next);
-+
-+/**
-  * cpumask_next_and - get the next cpu in *src1p & *src2p
-  * @n: the cpu prior to the place to search (ie. return will be > @n)
-  * @src1p: the first cpumask pointer
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-proc-uninline-proc_create.patch
-make-nr_cpu_ids-unsigned.patch
-seq_file-delete-small-value-optimization.patch
-cpumask-make-cpumask_next-out-of-line.patch
+mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch
 
