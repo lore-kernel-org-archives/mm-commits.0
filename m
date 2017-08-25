@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-use-page_zone-instead-of-page_zone_id.patch added to
- -mm tree
-Date: Fri, 25 Aug 2017 14:25:36 -0700
-Message-ID: <59a095d0.TUJGkNOnl7n4n5GM%akpm@linux-foundation.org>
+Subject: + mm-page_owner-make-init_pages_in_zone-faster-fix.patch added to -mm tree
+Date: Fri, 25 Aug 2017 14:26:55 -0700
+Message-ID: <59a0961f.om5B0shxDg+IeLWG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48886 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932374AbdHYVZh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 17:25:37 -0400
+        with ESMTP id S933182AbdHYV04 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 17:26:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock.c: use page_zone() instead of page_zone_id()
+     Subject: [PATCH] mm, page_owner: make init_pages_in_zone() faster-fix
 has been added to the -mm tree.  Its filename is
-     mm-mlock-use-page_zone-instead-of-page_zone_id.patch
+     mm-page_owner-make-init_pages_in_zone-faster-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-use-page_zone-instead-of-page_zone_id.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-make-init_pages_in_zone-faster-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-use-page_zone-instead-of-page_zone_id.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-make-init_pages_in_zone-faster-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +38,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/mlock.c: use page_zone() instead of page_zone_id()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: [PATCH] mm, page_owner: make init_pages_in_zone() faster-fix
 
-page_zone_id() is a specialized function to compare the zone for the pages
-that are within the section range.  If the section of the pages are
-different, page_zone_id() can be different even if their zone is the same.
-This wrong usage doesn't cause any actual problem since
-__munlock_pagevec_fill() would be called again with failed index. 
-However, it's better to use more appropriate function here.
+don't duplicate code of __set_page_owner(), per Michal Hocko
 
-Link: http://lkml.kernel.org/r/1503559211-10259-1-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/page_owner.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-use-page_zone-instead-of-page_zone_id mm/mlock.c
---- a/mm/mlock.c~mm-mlock-use-page_zone-instead-of-page_zone_id
-+++ a/mm/mlock.c
-@@ -365,8 +365,8 @@ static void __munlock_pagevec(struct pag
-  * @start + PAGE_SIZE when no page could be added by the pte walk.
-  */
- static unsigned long __munlock_pagevec_fill(struct pagevec *pvec,
--		struct vm_area_struct *vma, int zoneid,	unsigned long start,
--		unsigned long end)
-+			struct vm_area_struct *vma, struct zone *zone,
-+			unsigned long start, unsigned long end)
+diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix
++++ a/mm/page_owner.c
+@@ -165,17 +165,13 @@ static noinline depot_stack_handle_t sav
+ 	return handle;
+ }
+ 
+-noinline void __set_page_owner(struct page *page, unsigned int order,
+-					gfp_t gfp_mask)
++static inline void __set_page_owner_handle(struct page_ext *page_ext,
++	depot_stack_handle_t handle, unsigned int order, gfp_t gfp_mask)
  {
- 	pte_t *pte;
- 	spinlock_t *ptl;
-@@ -394,7 +394,7 @@ static unsigned long __munlock_pagevec_f
- 		 * Break if page could not be obtained or the page's node+zone does not
- 		 * match
- 		 */
--		if (!page || page_zone_id(page) != zoneid)
-+		if (!page || page_zone(page) != zone)
- 			break;
+-	struct page_ext *page_ext = lookup_page_ext(page);
+ 	struct page_owner *page_owner;
  
- 		/*
-@@ -446,7 +446,6 @@ void munlock_vma_pages_range(struct vm_a
- 		unsigned long page_increm;
- 		struct pagevec pvec;
- 		struct zone *zone;
--		int zoneid;
+-	if (unlikely(!page_ext))
+-		return;
+-
+ 	page_owner = get_page_owner(page_ext);
+-	page_owner->handle = save_stack(gfp_mask);
++	page_owner->handle = handle;
+ 	page_owner->order = order;
+ 	page_owner->gfp_mask = gfp_mask;
+ 	page_owner->last_migrate_reason = -1;
+@@ -183,18 +179,17 @@ noinline void __set_page_owner(struct pa
+ 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ }
  
- 		pagevec_init(&pvec, 0);
- 		/*
-@@ -481,7 +480,6 @@ void munlock_vma_pages_range(struct vm_a
- 				 */
- 				pagevec_add(&pvec, page);
- 				zone = page_zone(page);
--				zoneid = page_zone_id(page);
+-static void __set_page_owner_init(struct page_ext *page_ext,
+-					depot_stack_handle_t handle)
++noinline void __set_page_owner(struct page *page, unsigned int order,
++					gfp_t gfp_mask)
+ {
+-	struct page_owner *page_owner;
++	struct page_ext *page_ext = lookup_page_ext(page);
++	depot_stack_handle_t handle;
  
- 				/*
- 				 * Try to fill the rest of pagevec using fast
-@@ -490,7 +488,7 @@ void munlock_vma_pages_range(struct vm_a
- 				 * pagevec.
- 				 */
- 				start = __munlock_pagevec_fill(&pvec, vma,
--						zoneid, start, end);
-+						zone, start, end);
- 				__munlock_pagevec(&pvec, zone);
- 				goto next;
- 			}
+-	page_owner = get_page_owner(page_ext);
+-	page_owner->handle = handle;
+-	page_owner->order = 0;
+-	page_owner->gfp_mask = 0;
+-	page_owner->last_migrate_reason = -1;
++	if (unlikely(!page_ext))
++		return;
+ 
+-	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
++	handle = save_stack(gfp_mask);
++	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
+ }
+ 
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+@@ -582,12 +577,12 @@ static void init_pages_in_zone(pg_data_t
+ 			if (unlikely(!page_ext))
+ 				continue;
+ 
+-			/* Maybe overraping zone */
++			/* Maybe overlaping zone */
+ 			if (test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+ 				continue;
+ 
+ 			/* Found early allocated page */
+-			__set_page_owner_init(page_ext, init_handle);
++			__set_page_owner_handle(page_ext, init_handle, 0, 0);
+ 			count++;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-mlock-use-page_zone-instead-of-page_zone_id.patch
+mm-page_owner-make-init_pages_in_zone-faster.patch
+mm-page_owner-make-init_pages_in_zone-faster-fix.patch
+mm-page_ext-periodically-reschedule-during-page_ext_init.patch
+mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
 
