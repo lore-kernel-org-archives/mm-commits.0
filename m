@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kthread_worker-dont-hog-the-cpu.patch added to -mm tree
-Date: Fri, 25 Aug 2017 14:55:52 -0700
-Message-ID: <59a09ce8.Fkl/E/bmaDy5/3Tg%akpm@linux-foundation.org>
+Subject: + linux-next-rejects-2.patch added to -mm tree
+Date: Fri, 25 Aug 2017 15:17:03 -0700
+Message-ID: <59a0a1df.iLpXWIcrtKSmbYS0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52550 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932398AbdHYVzx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 17:55:53 -0400
+        with ESMTP id S933894AbdHYWRE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 18:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shli@fb.com, akpm@linux-foundation.org, mingo@kernel.org, oleg@redhat.com, pmladek@suse.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/kthread.c: kthread_worker: don't hog the cpu
+     Subject: a
 has been added to the -mm tree.  Its filename is
-     kthread_worker-dont-hog-the-cpu.patch
+     linux-next-rejects-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kthread_worker-dont-hog-the-cpu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kthread_worker-dont-hog-the-cpu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@fb.com>
-Subject: kernel/kthread.c: kthread_worker: don't hog the cpu
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: a
 
-If the worker thread continues getting work, it will hog the cpu and rcu
-stall complains.  Make it a good citizen.  This is triggered in a loop
-block device test.
-
-Link: http://lkml.kernel.org/r/5de0a179b3184e1a2183fc503448b0269f24d75b.1503697127.git.shli@fb.com
-Signed-off-by: Shaohua Li <shli@fb.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kthread.c~kthread_worker-dont-hog-the-cpu kernel/kthread.c
---- a/kernel/kthread.c~kthread_worker-dont-hog-the-cpu
-+++ a/kernel/kthread.c
-@@ -637,6 +637,7 @@ repeat:
- 		schedule();
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c~linux-next-rejects-2 drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c~linux-next-rejects-2
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
+@@ -2479,7 +2479,7 @@ int amdgpu_vm_init(struct amdgpu_device
+ 	for (i = 0; i < AMDGPU_MAX_VMHUBS; i++)
+ 		vm->reserved_vmid[i] = NULL;
+ 	spin_lock_init(&vm->status_lock);
+-	INIT_LIST_HEAD(&vm->invalidated);
++	INIT_LIST_HEAD(&vm->moved);
+ 	INIT_LIST_HEAD(&vm->cleared);
+ 	INIT_LIST_HEAD(&vm->freed);
  
- 	try_to_freeze();
-+	cond_resched();
- 	goto repeat;
- }
- EXPORT_SYMBOL_GPL(kthread_worker_fn);
 _
 
-Patches currently in -mm which might be from shli@fb.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kthread_worker-dont-hog-the-cpu.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+add-testcases-for-memset16-32-64-fix.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+linux-next-rejects-2.patch
+linux-next-git-rejects.patch
+zram-mm-vs-block.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
