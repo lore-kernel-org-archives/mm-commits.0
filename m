@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-mm-vs-block.patch added to -mm tree
-Date: Fri, 25 Aug 2017 12:54:05 -0700
-Message-ID: <59a0805d.+Stgs7t+IN2CkqZt%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch added to -mm tree
+Date: Fri, 25 Aug 2017 13:03:55 -0700
+Message-ID: <59a082ab.LBM3vqcLPjremGKo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46132 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932424AbdHYTyG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 15:54:06 -0400
+        with ESMTP id S932556AbdHYUD4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 16:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de, minchan@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: arnd@arndb.de, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-mm-vs-block
+     Subject: ocfs2: remove two unused variables
 has been added to the -mm tree.  Its filename is
-     zram-mm-vs-block.patch
+     ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-mm-vs-block.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-mm-vs-block.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-mm-vs-block
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ocfs2: remove two unused variables
 
-resolve interface changes from block tree
+A reliability fix introduced two local variables but never used
+them:
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+fs/ocfs2/dlm/dlmrecovery.c: In function 'dlm_free_dead_locks':
+fs/ocfs2/dlm/dlmrecovery.c:2306:6: error: unused variable 'i' [-Werror=unused-variable]
+fs/ocfs2/dlm/dlmrecovery.c:2305:20: error: unused variable 'queue' [-Werror=unused-variable]
+
+This removes them both again.
+
+Link: http://lkml.kernel.org/r/20170824222149.759050-1-arnd@arndb.de
+Fixes: d09f2c6cf3b8 ("ocfs2: re-queue AST or BAST if sending is failed to improve the reliability")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Changwei Ge <ge.changwei@h3c.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: "Gang He" <ghe@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-mm-vs-block drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-mm-vs-block
-+++ a/drivers/block/zram/zram_drv.c
-@@ -458,7 +458,7 @@ static int read_from_bdev_async(struct z
- 		return -ENOMEM;
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2302,8 +2302,6 @@ static void dlm_free_dead_locks(struct d
+ 	struct dlm_lock *lock, *next;
+ 	unsigned int freed = 0;
+ 	int reserved_tmp = 0;
+-	struct list_head *queue = NULL;
+-	int i;
  
- 	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
--	bio->bi_bdev = zram->bdev;
-+	bio_set_dev(bio, zram->bdev);
- 	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len, bvec->bv_offset)) {
- 		bio_put(bio);
- 		return -EIO;
-@@ -552,7 +552,7 @@ static int write_to_bdev(struct zram *zr
- 	}
- 
- 	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
--	bio->bi_bdev = zram->bdev;
-+	bio_set_dev(bio, zram->bdev);
- 	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len,
- 					bvec->bv_offset)) {
- 		bio_put(bio);
+ 	/* this node is the lockres master:
+ 	 * 1) remove any stale locks for the dead node
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-add-testcases-for-memset16-32-64-fix.patch
-vga-optimise-console-scrolling-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-zram-mm-vs-block.patch
-drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+adfs-use-unsigned-types-for-memcpy-length.patch
+ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch
+mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
+fs-proc-remove-priv-argument-from-is_stack-fix.patch
+fscache-fix-fscache_objlist_show-format-processing.patch
+ib-mlx4-fix-sprintf-format-warning.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
 
