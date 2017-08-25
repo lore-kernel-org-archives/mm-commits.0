@@ -1,137 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/6] dax: fix deadlock due to misaligned PMD faults
-Date: Fri, 25 Aug 2017 15:55:36 -0700
-Message-ID: <59a0aae8.I+nPQt9tdyBmJIX4%akpm__13348.9000647844$1503701754$gmane$org@linux-foundation.org>
+Subject: [patch 5/6] fork: fix incorrect fput of ->exe_file causing
+ use-after-free
+Date: Fri, 25 Aug 2017 15:55:43 -0700
+Message-ID: <59a0aaef.Nf2evLFqUS6DLR36%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34330 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964842AbdHYWzl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 18:55:41 -0400
+        with ESMTP id S964842AbdHYWzv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 18:55:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, marcin.slusarz@intel.com, mawilcox@microsoft.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ebiggers@google.com, dvyukov@google.com, koct9i@gmail.com, mark.rutland@arm.com, mhocko@suse.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, stable@vger.kernel.org, vbabka@suse.cz
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix deadlock due to misaligned PMD faults
+From: Eric Biggers <ebiggers@google.com>
+Subject: fork: fix incorrect fput of ->exe_file causing use-after-free
 
-In DAX there are two separate places where the 2MiB range of a PMD is
-defined.
+7c051267931a ("mm, fork: make dup_mmap wait for mmap_sem for write
+killable") made it possible to kill a forking task while it is waiting to
+acquire its ->mmap_sem for write, in dup_mmap().  However, it was
+overlooked that this introduced an new error path before a reference is
+taken on the mm_struct's ->exe_file.  Since the ->exe_file of the new
+mm_struct was already set to the old ->exe_file by the memcpy() in
+dup_mm(), it was possible for the mmput() in the error path of dup_mm() to
+drop a reference to ->exe_file which was never taken.  This caused the
+struct file to later be freed prematurely.
 
-The first is in the page tables, where a PMD mapping inserted for a given
-address spans from (vmf->address & PMD_MASK) to ((vmf->address & PMD_MASK)
-+ PMD_SIZE - 1).  That is, from the 2MiB boundary below the address to the
-2MiB boundary above the address.
+Fix it by updating mm_init() to NULL out the ->exe_file, in the same place
+it clears other things like the list of mmaps.
 
-So, for example, a fault at address 3MiB (0x30 0000) falls within the PMD
-that ranges from 2MiB (0x20 0000) to 4MiB (0x40 0000).
+This bug was found by syzkaller.  It can be reproduced using the
+following C program:
 
-The second PMD range is in the mapping->page_tree, where a given file
-offset is covered by a radix tree entry that spans from one 2MiB aligned
-file offset to another 2MiB aligned file offset.
+    #define _GNU_SOURCE
+    #include <pthread.h>
+    #include <stdlib.h>
+    #include <sys/mman.h>
+    #include <sys/syscall.h>
+    #include <sys/wait.h>
+    #include <unistd.h>
 
-So, for example, the file offset for 3MiB (pgoff 768) falls within the PMD
-range for the order 9 radix tree entry that ranges from 2MiB (pgoff 512)
-to 4MiB (pgoff 1024).
+    static void *mmap_thread(void *_arg)
+    {
+        for (;;) {
+            mmap(NULL, 0x1000000, PROT_READ,
+                 MAP_POPULATE|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+        }
+    }
 
-This system works so long as the addresses and file offsets for a given
-mapping both have the same offsets relative to the start of each PMD.
+    static void *fork_thread(void *_arg)
+    {
+        usleep(rand() % 10000);
+        fork();
+    }
 
-Consider the case where the starting address for a given file isn't 2MiB
-aligned - say our faulting address is 3 MiB (0x30 0000), but that
-corresponds to the beginning of our file (pgoff 0).  Now all the PMDs in
-the mapping are misaligned so that the 2MiB range defined in the page
-tables never matches up with the 2MiB range defined in the radix tree.
+    int main(void)
+    {
+        fork();
+        fork();
+        fork();
+        for (;;) {
+            if (fork() == 0) {
+                pthread_t t;
 
-The current code notices this case for DAX faults to storage with the
-following test in dax_pmd_insert_mapping():
+                pthread_create(&t, NULL, mmap_thread, NULL);
+                pthread_create(&t, NULL, fork_thread, NULL);
+                usleep(rand() % 10000);
+                syscall(__NR_exit_group, 0);
+            }
+            wait(NULL);
+        }
+    }
 
-	if (pfn_t_to_pfn(pfn) & PG_PMD_COLOUR)
-		goto unlock_fallback;
+No special kernel config options are needed.  It usually causes a NULL
+pointer dereference in __remove_shared_vm_struct() during exit, or in
+dup_mmap() (which is usually inlined into copy_process()) during fork. 
+Both are due to a vm_area_struct's ->vm_file being used after it's already
+been freed.
 
-This test makes sure that the pfn we get from the driver is 2MiB aligned,
-and relies on the assumption that the 2MiB alignment of the pfn we get
-back from the driver matches the 2MiB alignment of the faulting address.
+Google Bug Id: 64772007
 
-However, faults to holes were not checked and we could hit the problem
-described above.
-
-This was reported in response to the NVML nvml/src/test/pmempool_sync
-TEST5:
-
-	$ cd nvml/src/test/pmempool_sync
-	$ make TEST5
-
-You can grab NVML here:
-
-	https://github.com/pmem/nvml/
-
-The dmesg warning you see when you hit this error is:
-
-WARNING: CPU: 13 PID: 2900 at fs/dax.c:641 dax_insert_mapping_entry+0x2df/0x310
-
-Where we notice in dax_insert_mapping_entry() that the radix tree entry we
-are about to replace doesn't match the locked entry that we had previously
-inserted into the tree.  This happens because the initial insertion was
-done in grab_mapping_entry() using a pgoff calculated from the faulting
-address (vmf->address), and the replacement in dax_pmd_load_hole() =>
-dax_insert_mapping_entry() is done using vmf->pgoff.
-
-In our failure case those two page offsets (one calculated from
-vmf->address, one using vmf->pgoff) point to different order 9 radix tree
-entries.
-
-This failure case can result in a deadlock because the radix tree unlock
-also happens on the pgoff calculated from vmf->address.  This means that
-the locked radix tree entry that we swapped in to the tree in
-dax_insert_mapping_entry() using vmf->pgoff is never unlocked, so all
-future faults to that 2MiB range will block forever.
-
-Fix this by validating that the faulting address's PMD offset matches the
-PMD offset from the start of the file.  This check is done at the very
-beginning of the fault and covers faults that would have mapped to storage
-as well as faults to holes.  I left the COLOUR check in
-dax_pmd_insert_mapping() in place in case we ever hit the insanity
-condition where the alignment of the pfn we get from the driver doesn't
-match the alignment of the userspace address.
-
-Link: http://lkml.kernel.org/r/20170822222436.18926-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: "Slusarz, Marcin" <marcin.slusarz@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170823211408.31198-1-ebiggers3@gmail.com
+Fixes: 7c051267931a ("mm, fork: make dup_mmap wait for mmap_sem for write killable")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Tested-by: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>	[v4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ kernel/fork.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/dax.c~dax-fix-deadlock-due-to-misaligned-pmd-faults fs/dax.c
---- a/fs/dax.c~dax-fix-deadlock-due-to-misaligned-pmd-faults
-+++ a/fs/dax.c
-@@ -1383,6 +1383,16 @@ static int dax_iomap_pmd_fault(struct vm
- 
- 	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
- 
-+	/*
-+	 * Make sure that the faulting address's PMD offset (color) matches
-+	 * the PMD offset from the start of the file.  This is necessary so
-+	 * that a PMD range in the page table overlaps exactly with a PMD
-+	 * range in the radix tree.
-+	 */
-+	if ((vmf->pgoff & PG_PMD_COLOUR) !=
-+	    ((vmf->address >> PAGE_SHIFT) & PG_PMD_COLOUR))
-+		goto fallback;
-+
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED))
- 		goto fallback;
+diff -puN kernel/fork.c~fork-fix-incorrect-fput-of-exe_file-causing-use-after-free kernel/fork.c
+--- a/kernel/fork.c~fork-fix-incorrect-fput-of-exe_file-causing-use-after-free
++++ a/kernel/fork.c
+@@ -806,6 +806,7 @@ static struct mm_struct *mm_init(struct
+ 	mm_init_cpumask(mm);
+ 	mm_init_aio(mm);
+ 	mm_init_owner(mm, p);
++	RCU_INIT_POINTER(mm->exe_file, NULL);
+ 	mmu_notifier_mm_init(mm);
+ 	init_tlb_flush_pending(mm);
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
 _
