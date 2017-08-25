@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-update-numa-counter-threshold-size.patch added to -mm tree
-Date: Fri, 25 Aug 2017 14:11:21 -0700
-Message-ID: <59a09279.1vFxcNcdwvZcdDPZ%akpm@linux-foundation.org>
+Subject: +
+ mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+ added to -mm tree
+Date: Fri, 25 Aug 2017 14:14:13 -0700
+Message-ID: <59a09325.hh8dpSog/wyjDqwP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758740AbdHYVLW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 17:11:22 -0400
+        with ESMTP id S932374AbdHYVOO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Aug 2017 17:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kemi.wang@intel.com, aaron.lu@intel.com, andi.kleen@intel.com, brouer@redhat.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kemi.wang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: update NUMA counter threshold size
+     Subject: mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-update-numa-counter-threshold-size.patch
+     mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-update-numa-counter-threshold-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-update-numa-counter-threshold-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,148 +40,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kemi Wang <kemi.wang@intel.com>
-Subject: mm: update NUMA counter threshold size
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
 
-There is significant overhead in cache bouncing caused by zone counters
-(NUMA associated counters) update in parallel in multi-threaded page
-allocation (suggested by Dave Hansen).
+ERROR: "foo * bar" should be "foo *bar"
+#249: FILE: include/linux/vmstat.h:222:
++extern void __inc_numa_state(struct zone * zone,
 
-This patch updates NUMA counter threshold to a fixed size of MAX_U16 - 2,
-as a small threshold greatly increases the update frequency of the global
-counter from local per cpu counter(suggested by Ying Huang).
+WARNING: line over 80 characters
+#402: FILE: mm/vmstat.c:768:
++	changes += fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
 
-The rationality is that these statistics counters don't affect the
-kernel's decision, unlike other VM counters, so it's not a problem to use
-a large threshold.
+WARNING: Missing a blank line after declarations
+#459: FILE: mm/vmstat.c:862:
++			int v = pset->vm_numa_stat_diff[i];
++			pset->vm_numa_stat_diff[i] = 0;
 
-With this patchset, we see 31.3% drop of CPU cycles(537-->369) for per
-single page allocation and reclaim on Jesper's page_bench03 benchmark.
+ERROR: space required before the open parenthesis '('
+#571: FILE: mm/vmstat.c:1641:
++	for(i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
 
-Benchmark provided by Jesper D Brouer(increase loop times to 10000000):
-https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/
-bench
+WARNING: line over 80 characters
+#588: FILE: mm/vmstat.c:1752:
++				__func__, vmstat_text[i + NR_VM_ZONE_STAT_ITEMS], val);
 
- Threshold   CPU cycles    Throughput(88 threads)
-     32          799         241760478
-     64          640         301628829
-     125         537         358906028 <==> system by default (base)
-     256         468         412397590
-     512         428         450550704
-     4096        399         482520943
-     20000       394         489009617
-     30000       395         488017817
-     65533       369(-31.3%) 521661345(+45.3%) <==> with this patchset
-     N/A         342(-36.3%) 562900157(+56.8%) <==> disable zone_statistics
+total: 2 errors, 4 warnings, 460 lines checked
 
-Link: http://lkml.kernel.org/r/1503568801-21305-3-git-send-email-kemi.wang@intel.com
-Signed-off-by: Kemi Wang <kemi.wang@intel.com>
-Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
-Suggested-by: Ying Huang <ying.huang@intel.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-change-the-call-sites-of-numa-statistics-items.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Kemi Wang <kemi.wang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +--
- mm/vmstat.c            |   28 ++++++++++------------------
- 2 files changed, 11 insertions(+), 20 deletions(-)
+ include/linux/vmstat.h |    8 +++-----
+ mm/vmstat.c            |    6 ++++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-update-numa-counter-threshold-size include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-update-numa-counter-threshold-size
-+++ a/include/linux/mmzone.h
-@@ -282,8 +282,7 @@ struct per_cpu_pageset {
- 	struct per_cpu_pages pcp;
+diff -puN include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
++++ a/include/linux/vmstat.h
+@@ -219,12 +219,10 @@ static inline unsigned long node_page_st
+ 
+ 
  #ifdef CONFIG_NUMA
- 	s8 expire;
--	s8 numa_stat_threshold;
--	s8 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
-+	u16 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
- #endif
- #ifdef CONFIG_SMP
- 	s8 stat_threshold;
-diff -puN mm/vmstat.c~mm-update-numa-counter-threshold-size mm/vmstat.c
---- a/mm/vmstat.c~mm-update-numa-counter-threshold-size
+-extern void __inc_numa_state(struct zone * zone,
+-						enum numa_stat_item item);
++extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+-						enum zone_stat_item item);
+-extern unsigned long sum_zone_numa_state(int node,
+-						enum numa_stat_item item);
++					      enum zone_stat_item item);
++extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
+ extern unsigned long node_page_state(struct pglist_data *pgdat,
+ 						enum node_stat_item item);
+ #else
+diff -puN mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes mm/vmstat.c
+--- a/mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
 +++ a/mm/vmstat.c
-@@ -30,6 +30,8 @@
- 
- #include "internal.h"
- 
-+#define NUMA_STATS_THRESHOLD (U16_MAX - 2)
-+
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
- EXPORT_PER_CPU_SYMBOL(vm_event_states);
-@@ -194,10 +196,7 @@ void refresh_zone_stat_thresholds(void)
- 
- 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
- 							= threshold;
--#ifdef CONFIG_NUMA
--			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
--							= threshold;
--#endif
-+
- 			/* Base nodestat threshold on the largest populated zone. */
- 			pgdat_threshold = per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold;
- 			per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold
-@@ -231,14 +230,9 @@ void set_pgdat_percpu_threshold(pg_data_
- 			continue;
- 
- 		threshold = (*calculate_pressure)(zone);
--		for_each_online_cpu(cpu) {
-+		for_each_online_cpu(cpu)
- 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
- 							= threshold;
--#ifdef CONFIG_NUMA
--			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
--							= threshold;
--#endif
--		}
+@@ -765,7 +765,8 @@ static int refresh_cpu_vm_stats(bool do_
  	}
- }
  
-@@ -872,16 +866,14 @@ void __inc_numa_state(struct zone *zone,
- 				 enum numa_stat_item item)
- {
- 	struct per_cpu_pageset __percpu *pcp = zone->pageset;
--	s8 __percpu *p = pcp->vm_numa_stat_diff + item;
--	s8 v, t;
-+	u16 __percpu *p = pcp->vm_numa_stat_diff + item;
-+	u16 v;
- 
- 	v = __this_cpu_inc_return(*p);
--	t = __this_cpu_read(pcp->numa_stat_threshold);
--	if (unlikely(v > t)) {
--		s8 overstep = t >> 1;
- 
--		zone_numa_state_add(v + overstep, zone, item);
--		__this_cpu_write(*p, -overstep);
-+	if (unlikely(v > NUMA_STATS_THRESHOLD)) {
-+		zone_numa_state_add(v, zone, item);
-+		__this_cpu_write(*p, 0);
- 	}
- }
- 
-@@ -1796,7 +1788,7 @@ static bool need_update(int cpu)
- 
- 		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
  #ifdef CONFIG_NUMA
--		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 1);
-+		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
+-	changes += fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
++	changes += fold_diff(global_zone_diff, global_numa_diff,
++			     global_node_diff);
+ #else
+ 	changes += fold_diff(global_zone_diff, global_node_diff);
  #endif
- 		/*
- 		 * The fast way of checking if there are any vmstat diffs.
+@@ -859,6 +860,7 @@ void drain_zonestat(struct zone *zone, s
+ 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+ 		if (pset->vm_numa_stat_diff[i]) {
+ 			int v = pset->vm_numa_stat_diff[i];
++
+ 			pset->vm_numa_stat_diff[i] = 0;
+ 			atomic_long_add(v, &zone->vm_numa_stat[i]);
+ 			atomic_long_add(v, &vm_numa_stat[i]);
+@@ -1638,7 +1640,7 @@ static void *vmstat_start(struct seq_fil
+ 	v += NR_VM_ZONE_STAT_ITEMS;
+ 
+ #ifdef CONFIG_NUMA
+-	for(i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+ 		v[i] = global_numa_state(i);
+ 	v += NR_VM_NUMA_STAT_ITEMS;
+ #endif
 _
 
-Patches currently in -mm which might be from kemi.wang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-change-the-call-sites-of-numa-statistics-items.patch
-mm-update-numa-counter-threshold-size.patch
-mm-consider-the-number-in-local-cpus-when-reads-numa-stats.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+add-testcases-for-memset16-32-64-fix.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+zram-mm-vs-block.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
