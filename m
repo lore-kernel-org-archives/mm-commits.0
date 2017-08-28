@@ -1,112 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Mon, 28 Aug 2017 13:14:59 -0700
-Message-ID: <20170828201459.nk9RkRGGM%akpm@linux-foundation.org>
+Subject: +
+ cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs.patch
+ added to -mm tree
+Date: Mon, 28 Aug 2017 14:54:04 -0700
+Message-ID: <59a490fc.yDyjF5HDxYQyDO1r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbdH1UPB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 16:15:01 -0400
+        with ESMTP id S1751550AbdH1VyF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 17:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, geert@linux-m68k.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: cpumask: fix spurious cpumask_of_node() on non-NUMA multi-node configs
+has been added to the -mm tree.  Its filename is
+     cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Tejun Heo <tj@kernel.org>
+Subject: cpumask: fix spurious cpumask_of_node() on non-NUMA multi-node configs
 
+When !CONFIG_NUMA, cpumask_of_node(@node) equals cpu_online_mask
+regardless of @node.  The assumption seems that if !NUMA, there shouldn't
+be more than one node and thus reporting cpu_online_mask regardless of
+@node is correct.  However, that assumption was broken years ago to
+support CONFIG_DISCONTIGMEM and whether a system has multiple nodes or not
+is separately controlled by CONFIG_NEED_MULTIPLE_NODES.
+
+This means that, on a system with !CONFIG_NUMA &&
+CONFIG_NEED_MULTIPLE_NODES, cpumask_of_node() will report cpu_online_mask
+for all possible nodes, indicating that the CPUs are associated with
+multiple nodes which is an impossible configuration.
+
+This bug has been around forever but doesn't look like it has caused any
+noticeable symptoms.  However, it triggers a WARN recently added to
+workqueue to verify NUMA affinity configuration.
+
+Fix it by reporting empty cpumask on non-zero nodes if !NUMA.
+
+Link: http://lkml.kernel.org/r/20170828215127.GC491396@devbig577.frc2.facebook.com
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/uverbs_cmd.c |   36 -------------------------
- 1 file changed, 36 deletions(-)
+ include/asm-generic/topology.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/core/uverbs_cmd.c~linux-next-git-rejects drivers/infiniband/core/uverbs_cmd.c
---- a/drivers/infiniband/core/uverbs_cmd.c~linux-next-git-rejects
-+++ a/drivers/infiniband/core/uverbs_cmd.c
-@@ -2006,44 +2006,8 @@ static int modify_qp(struct ib_uverbs_fi
- 	attr->rate_limit	  = cmd->rate_limit;
- 
- 	if (cmd->base.attr_mask & IB_QP_AV)
--<<<<<<< HEAD
--		attr->ah_attr.type = rdma_ah_find_type(qp->device,
--						       cmd->base.dest.port_num);
--	if (cmd->base.dest.is_global) {
--		rdma_ah_set_grh(&attr->ah_attr, NULL,
--				cmd->base.dest.flow_label,
--				cmd->base.dest.sgid_index,
--				cmd->base.dest.hop_limit,
--				cmd->base.dest.traffic_class);
--		rdma_ah_set_dgid_raw(&attr->ah_attr, cmd->base.dest.dgid);
--	} else {
--		rdma_ah_set_ah_flags(&attr->ah_attr, 0);
--	}
--	rdma_ah_set_dlid(&attr->ah_attr, cmd->base.dest.dlid);
--	rdma_ah_set_sl(&attr->ah_attr, cmd->base.dest.sl);
--	rdma_ah_set_path_bits(&attr->ah_attr, cmd->base.dest.src_path_bits);
--	rdma_ah_set_static_rate(&attr->ah_attr, cmd->base.dest.static_rate);
--	rdma_ah_set_port_num(&attr->ah_attr,
--			     cmd->base.dest.port_num);
--
--	if (cmd->base.attr_mask & IB_QP_ALT_PATH)
--		attr->alt_ah_attr.type =
--			rdma_ah_find_type(qp->device, cmd->base.dest.port_num);
--	if (cmd->base.alt_dest.is_global) {
--		rdma_ah_set_grh(&attr->alt_ah_attr, NULL,
--				cmd->base.alt_dest.flow_label,
--				cmd->base.alt_dest.sgid_index,
--				cmd->base.alt_dest.hop_limit,
--				cmd->base.alt_dest.traffic_class);
--		rdma_ah_set_dgid_raw(&attr->alt_ah_attr,
--				     cmd->base.alt_dest.dgid);
--	} else {
--		rdma_ah_set_ah_flags(&attr->alt_ah_attr, 0);
--	}
--=======
- 		copy_ah_attr_from_uverbs(qp->device, &attr->ah_attr,
- 					 &cmd->base.dest);
-->>>>>>> linux-next/akpm-base
- 
- 	if (cmd->base.attr_mask & IB_QP_ALT_PATH)
- 		copy_ah_attr_from_uverbs(qp->device, &attr->alt_ah_attr,
+diff -puN include/asm-generic/topology.h~cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs
++++ a/include/asm-generic/topology.h
+@@ -48,7 +48,11 @@
+ #define parent_node(node)	((void)(node),0)
+ #endif
+ #ifndef cpumask_of_node
+-#define cpumask_of_node(node)	((void)node, cpu_online_mask)
++  #ifdef CONFIG_NEED_MULTIPLE_NODES
++    #define cpumask_of_node(node)	((node) == 0 ? cpu_online_mask : cpu_none_mask)
++  #else
++    #define cpumask_of_node(node)	((void)node, cpu_online_mask)
++  #endif
+ #endif
+ #ifndef pcibus_to_node
+ #define pcibus_to_node(bus)	((void)(bus), -1)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
-add-testcases-for-memset16-32-64-fix.patch
-vga-optimise-console-scrolling-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-zram-mm-vs-block.patch
-drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+cpumask-fix-spurious-cpumask_of_node-on-non-numa-multi-node-configs.patch
 
