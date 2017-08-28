@@ -1,255 +1,491 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch removed from -mm tree
-Date: Mon, 28 Aug 2017 15:39:53 -0700
-Message-ID: <59a49bb9.h0xeN/nwChvXRjWn%akpm@linux-foundation.org>
+Subject: +
+ mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
+ added to -mm tree
+Date: Mon, 28 Aug 2017 16:00:02 -0700
+Message-ID: <59a4a072.2DBQVJoNIm0HCnHL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751215AbdH1Wjy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 18:39:54 -0400
+        with ESMTP id S1751190AbdH1XAE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 19:00:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, arnd@arndb.de, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, linux@armlinux.org.uk, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: re-queue AST or BAST if sending is failed to improve the reliability
-has been removed from the -mm tree.  Its filename was
-     ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
+     Subject: mm/cma: manage the memory of the CMA area by using the ZONE_MOVABLE
+has been added to the -mm tree.  Its filename is
+     mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2: re-queue AST or BAST if sending is failed to improve the reliability
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/cma: manage the memory of the CMA area by using the ZONE_MOVABLE
 
-In current code, while flushing AST, we don't handle an exception that
-sending AST or BAST is failed.  But it is indeed possible that AST or BAST
-is lost due to some kind of networks fault.
+0. History
 
-If above exception happens, the requesting node will never obtain an AST
-back, hence, it will never acquire the lock or abort current locking.
+This patchset is the follow-up of the discussion about the
+"Introduce ZONE_CMA (v7)" [1]. Please reference it if more information
+is needed.
 
-With this patch, I'd like to fix this issue by re-queuing the AST or BAST
-if sending is failed due to networks fault.
+1. What does this patch do?
 
-And the re-queuing AST or BAST will be dropped if the requesting node is
-dead!
+This patch changes the management way for the memory of the CMA area in
+the MM subsystem.  Currently, The memory of the CMA area is managed by the
+zone where their pfn is belong to.  However, this approach has some
+problems since MM subsystem doesn't have enough logic to handle the
+situation that different characteristic memories are in a single zone.  To
+solve this issue, this patch try to manage all the memory of the CMA area
+by using the MOVABLE zone.  In MM subsystem's point of view,
+characteristic of the memory on the MOVABLE zone and the memory of the CMA
+area are the same.  So, managing the memory of the CMA area by using the
+MOVABLE zone will not have any problem.
 
-It will improve reliability a lot.
+2. Motivation
 
-[arnd@arndb.de: remove two unused variables]
-  Link: http://lkml.kernel.org/r/20170824222149.759050-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373AC2CB721@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: "Gang He" <ghe@suse.com>
+There are some problems with current approach.  See following.  Although
+these problem would not be inherent and it could be fixed without this
+conception change, it requires many hooks addition in various code path
+and it would be intrusive to core MM and would be really error-prone. 
+Therefore, I try to solve them with this new approach.  Anyway, following
+is the problems of the current implementation.
+
+o CMA memory utilization
+
+First, following is the freepage calculation logic in MM.
+
+- For movable allocation: freepage = total freepage
+- For unmovable allocation: freepage = total freepage - CMA freepage
+
+Freepages on the CMA area is used after the normal freepages in the zone
+where the memory of the CMA area is belong to are exhausted.  At that
+moment that the number of the normal freepages is zero, so
+
+- For movable allocation: freepage = total freepage = CMA freepage
+- For unmovable allocation: freepage = 0
+
+If unmovable allocation comes at this moment, allocation request would
+fail to pass the watermark check and reclaim is started.  After reclaim,
+there would exist the normal freepages so freepages on the CMA areas would
+not be used.
+
+FYI, there is another attempt [2] trying to solve this problem in lkml. 
+And, as far as I know, Qualcomm also has out-of-tree solution for this
+problem.
+
+o useless reclaim
+
+There is no logic to distinguish CMA pages in the reclaim path.  Hence,
+CMA page is reclaimed even if the system just needs the page that can be
+usable for the kernel allocation.
+
+o atomic allocation failure
+
+This is also related to the fallback allocation policy for the memory of
+the CMA area.  Consider the situation that the number of the normal
+freepages is *zero* since the bunch of the movable allocation requests
+come.  Kswapd would not be woken up due to following freepage calculation
+logic.
+
+- For movable allocation: freepage = total freepage = CMA freepage
+
+If atomic unmovable allocation request comes at this moment, it would
+fails due to following logic.
+
+- For unmovable allocation: freepage = total freepage - CMA freepage = 0
+
+It was reported by Aneesh [3].
+
+o useless compaction
+
+Usual high-order allocation request is unmovable allocation request and it
+cannot be served from the memory of the CMA area.  In compaction,
+migration scanner try to migrate the page in the CMA area and make
+high-order page there.  As mentioned above, it cannot be usable for the
+unmovable allocation request so it's just waste.
+
+3. Current approach and new approach
+
+Current approach is that the memory of the CMA area is managed by the zone
+where their pfn is belong to.  However, these memory should be
+distinguishable since they have a strong limitation.  So, they are marked
+as MIGRATE_CMA in pageblock flag and handled specially.  However, as
+mentioned in section 2, the MM subsystem doesn't have enough logic to deal
+with this special pageblock so many problems raised.
+
+New approach is that the memory of the CMA area is managed by the MOVABLE
+zone.  MM already have enough logic to deal with special zone like as
+HIGHMEM and MOVABLE zone.  So, managing the memory of the CMA area by the
+MOVABLE zone just naturally work well because constraints for the memory
+of the CMA area that the memory should always be migratable is the same
+with the constraint for the MOVABLE zone.
+
+There is one side-effect for the usability of the memory of the CMA area. 
+The use of MOVABLE zone is only allowed for a request with GFP_HIGHMEM &&
+GFP_MOVABLE so now the memory of the CMA area is also only allowed for
+this gfp flag.  Before this patchset, a request with GFP_MOVABLE can use
+them.  IMO, It would not be a big issue since most of GFP_MOVABLE request
+also has GFP_HIGHMEM flag.  For example, file cache page and anonymous
+page.  However, file cache page for blockdev file is an exception. 
+Request for it has no GFP_HIGHMEM flag.  There is pros and cons on this
+exception.  In my experience, blockdev file cache pages are one of the top
+reason that causes cma_alloc() to fail temporarily.  So, we can get more
+guarantee of cma_alloc() success by discarding this case.
+
+Note that there is no change in admin POV since this patchset is just for
+internal implementation change in MM subsystem.  Just one minor difference
+for admin is that the memory stat for CMA area will be printed in the
+MOVABLE zone.  That's all.
+
+4. Result
+
+Following is the experimental result related to utilization problem.
+
+8 CPUs, 1024 MB, VIRTUAL MACHINE
+make -j16
+
+<Before>
+CMA area:               0 MB            512 MB
+Elapsed-time:           92.4		186.5
+pswpin:                 82		18647
+pswpout:                160		69839
+
+<After>
+CMA        :            0 MB            512 MB
+Elapsed-time:           93.1		93.4
+pswpin:                 84		46
+pswpout:                183		92
+
+[1]: lkml.kernel.org/r/1491880640-9944-1-git-send-email-iamjoonsoo.kim@lge.com
+[2]: https://lkml.org/lkml/2014/10/15/623
+[3]: http://www.spinics.net/lists/linux-mm/msg100562.html
+
+Link: http://lkml.kernel.org/r/1503556593-10720-2-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   51 +++++++++++++++++++++++++++++++++--
- fs/ocfs2/dlm/dlmthread.c   |   36 ++++++++++++++++++++----
- 2 files changed, 79 insertions(+), 8 deletions(-)
+ include/linux/memory_hotplug.h |    3 -
+ include/linux/mm.h             |    1 
+ mm/cma.c                       |   83 ++++++++++++++++++++++++++-----
+ mm/internal.h                  |    3 +
+ mm/page_alloc.c                |   55 ++++++++++++++++++--
+ 5 files changed, 126 insertions(+), 19 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2263,11 +2263,45 @@ static void dlm_revalidate_lvb(struct dl
+diff -puN include/linux/memory_hotplug.h~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable
++++ a/include/linux/memory_hotplug.h
+@@ -230,9 +230,6 @@ void put_online_mems(void);
+ void mem_hotplug_begin(void);
+ void mem_hotplug_done(void);
+ 
+-extern void set_zone_contiguous(struct zone *zone);
+-extern void clear_zone_contiguous(struct zone *zone);
+-
+ #else /* ! CONFIG_MEMORY_HOTPLUG */
+ #define pfn_to_online_page(pfn)			\
+ ({						\
+diff -puN include/linux/mm.h~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable include/linux/mm.h
+--- a/include/linux/mm.h~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable
++++ a/include/linux/mm.h
+@@ -2022,6 +2022,7 @@ extern void setup_per_cpu_pageset(void);
+ 
+ extern void zone_pcp_update(struct zone *zone);
+ extern void zone_pcp_reset(struct zone *zone);
++extern void setup_zone_pageset(struct zone *zone);
+ 
+ /* page_alloc.c */
+ extern int min_free_kbytes;
+diff -puN mm/cma.c~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable mm/cma.c
+--- a/mm/cma.c~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable
++++ a/mm/cma.c
+@@ -38,6 +38,7 @@
+ #include <trace/events/cma.h>
+ 
+ #include "cma.h"
++#include "internal.h"
+ 
+ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned cma_area_count;
+@@ -108,23 +109,25 @@ static int __init cma_activate_area(stru
+ 	if (!cma->bitmap)
+ 		return -ENOMEM;
+ 
+-	WARN_ON_ONCE(!pfn_valid(pfn));
+-	zone = page_zone(pfn_to_page(pfn));
+-
+ 	do {
+ 		unsigned j;
+ 
+ 		base_pfn = pfn;
++		if (!pfn_valid(base_pfn))
++			goto err;
++
++		zone = page_zone(pfn_to_page(base_pfn));
+ 		for (j = pageblock_nr_pages; j; --j, pfn++) {
+-			WARN_ON_ONCE(!pfn_valid(pfn));
++			if (!pfn_valid(pfn))
++				goto err;
++
+ 			/*
+-			 * alloc_contig_range requires the pfn range
+-			 * specified to be in the same zone. Make this
+-			 * simple by forcing the entire CMA resv range
+-			 * to be in the same zone.
++			 * In init_cma_reserved_pageblock(), present_pages
++			 * is adjusted with assumption that all pages in
++			 * the pageblock come from a single zone.
+ 			 */
+ 			if (page_zone(pfn_to_page(pfn)) != zone)
+-				goto not_in_zone;
++				goto err;
+ 		}
+ 		init_cma_reserved_pageblock(pfn_to_page(base_pfn));
+ 	} while (--i);
+@@ -138,7 +141,7 @@ static int __init cma_activate_area(stru
+ 
+ 	return 0;
+ 
+-not_in_zone:
++err:
+ 	pr_err("CMA area %s could not be activated\n", cma->name);
+ 	kfree(cma->bitmap);
+ 	cma->count = 0;
+@@ -148,6 +151,41 @@ not_in_zone:
+ static int __init cma_init_reserved_areas(void)
+ {
+ 	int i;
++	struct zone *zone;
++	pg_data_t *pgdat;
++
++	if (!cma_area_count)
++		return 0;
++
++	for_each_online_pgdat(pgdat) {
++		unsigned long start_pfn = UINT_MAX, end_pfn = 0;
++
++		zone = &pgdat->node_zones[ZONE_MOVABLE];
++
++		/*
++		 * In this case, we cannot adjust the zone range
++		 * since it is now maximum node span and we don't
++		 * know original zone range.
++		 */
++		if (populated_zone(zone))
++			continue;
++
++		for (i = 0; i < cma_area_count; i++) {
++			if (pfn_to_nid(cma_areas[i].base_pfn) !=
++				pgdat->node_id)
++				continue;
++
++			start_pfn = min(start_pfn, cma_areas[i].base_pfn);
++			end_pfn = max(end_pfn, cma_areas[i].base_pfn +
++						cma_areas[i].count);
++		}
++
++		if (!end_pfn)
++			continue;
++
++		zone->zone_start_pfn = start_pfn;
++		zone->spanned_pages = end_pfn - start_pfn;
++	}
+ 
+ 	for (i = 0; i < cma_area_count; i++) {
+ 		int ret = cma_activate_area(&cma_areas[i]);
+@@ -156,9 +194,32 @@ static int __init cma_init_reserved_area
+ 			return ret;
  	}
+ 
++	/*
++	 * Reserved pages for ZONE_MOVABLE are now activated and
++	 * this would change ZONE_MOVABLE's managed page counter and
++	 * the other zones' present counter. We need to re-calculate
++	 * various zone information that depends on this initialization.
++	 */
++	build_all_zonelists(NULL);
++	for_each_populated_zone(zone) {
++		if (zone_idx(zone) == ZONE_MOVABLE) {
++			zone_pcp_reset(zone);
++			setup_zone_pageset(zone);
++		} else
++			zone_pcp_update(zone);
++
++		set_zone_contiguous(zone);
++	}
++
++	/*
++	 * We need to re-init per zone wmark by calling
++	 * init_per_zone_wmark_min() but doesn't call here because it is
++	 * registered on core_initcall and it will be called later than us.
++	 */
++
+ 	return 0;
+ }
+-core_initcall(cma_init_reserved_areas);
++pure_initcall(cma_init_reserved_areas);
+ 
+ /**
+  * cma_init_reserved_mem() - create custom contiguous area from reserved memory
+diff -puN mm/internal.h~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable mm/internal.h
+--- a/mm/internal.h~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable
++++ a/mm/internal.h
+@@ -168,6 +168,9 @@ extern void post_alloc_hook(struct page
+ 					gfp_t gfp_flags);
+ extern int user_min_free_kbytes;
+ 
++extern void set_zone_contiguous(struct zone *zone);
++extern void clear_zone_contiguous(struct zone *zone);
++
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ 
+ /*
+diff -puN mm/page_alloc.c~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable
++++ a/mm/page_alloc.c
+@@ -1595,16 +1595,38 @@ void __init page_alloc_init_late(void)
  }
  
-+static int dlm_drop_pending_ast_bast(struct dlm_ctxt *dlm,
-+			struct dlm_lock *lock)
+ #ifdef CONFIG_CMA
++static void __init adjust_present_page_count(struct page *page, long count)
 +{
-+	int reserved = 0;
++	struct zone *zone = page_zone(page);
 +
-+	spin_lock(&dlm->ast_lock);
-+	if (!list_empty(&lock->ast_list)) {
-+		mlog(0, "%s: drop pending AST for lock(cookie=%u:%llu).\n",
-+			dlm->name,
-+			dlm_get_lock_cookie_node(be64_to_cpu(lock->ml.cookie)),
-+			dlm_get_lock_cookie_seq(be64_to_cpu(lock->ml.cookie)));
-+		list_del_init(&lock->ast_list);
-+		lock->ast_pending = 0;
-+		dlm_lock_put(lock);
-+		reserved++;
-+	}
-+
-+	if (!list_empty(&lock->bast_list)) {
-+		mlog(0, "%s: drop pending BAST for lock(cookie=%u:%llu).\n",
-+			dlm->name,
-+			dlm_get_lock_cookie_node(be64_to_cpu(lock->ml.cookie)),
-+			dlm_get_lock_cookie_seq(be64_to_cpu(lock->ml.cookie)));
-+		list_del_init(&lock->bast_list);
-+		lock->bast_pending = 0;
-+		dlm_lock_put(lock);
-+		reserved++;
-+	}
-+	spin_unlock(&dlm->ast_lock);
-+
-+	return reserved;
++	/* We don't need to hold a lock since it is boot-up process */
++	zone->present_pages += count;
 +}
 +
- static void dlm_free_dead_locks(struct dlm_ctxt *dlm,
--				struct dlm_lock_resource *res, u8 dead_node)
-+		struct dlm_lock_resource *res, u8 dead_node,
-+		int *reserved)
+ /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+ void __init init_cma_reserved_pageblock(struct page *page)
  {
- 	struct dlm_lock *lock, *next;
- 	unsigned int freed = 0;
-+	int reserved_tmp = 0;
+ 	unsigned i = pageblock_nr_pages;
++	unsigned long pfn = page_to_pfn(page);
+ 	struct page *p = page;
++	int nid = page_to_nid(page);
++
++	/*
++	 * ZONE_MOVABLE will steal present pages from other zones by
++	 * changing page links so page_zone() is changed. Before that,
++	 * we need to adjust previous zone's page count first.
++	 */
++	adjust_present_page_count(page, -pageblock_nr_pages);
  
- 	/* this node is the lockres master:
- 	 * 1) remove any stale locks for the dead node
-@@ -2284,6 +2318,9 @@ static void dlm_free_dead_locks(struct d
- 		if (lock->ml.node == dead_node) {
- 			list_del_init(&lock->list);
- 			dlm_lock_put(lock);
+ 	do {
+ 		__ClearPageReserved(p);
+ 		set_page_count(p, 0);
+-	} while (++p, --i);
 +
-+			reserved_tmp += dlm_drop_pending_ast_bast(dlm, lock);
++		/* Steal pages from other zones */
++		set_page_links(p, ZONE_MOVABLE, nid, pfn);
++	} while (++p, ++pfn, --i);
 +
- 			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
- 			dlm_lock_put(lock);
- 			freed++;
-@@ -2293,6 +2330,9 @@ static void dlm_free_dead_locks(struct d
- 		if (lock->ml.node == dead_node) {
- 			list_del_init(&lock->list);
- 			dlm_lock_put(lock);
-+
-+			reserved_tmp += dlm_drop_pending_ast_bast(dlm, lock);
-+
- 			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
- 			dlm_lock_put(lock);
- 			freed++;
-@@ -2308,6 +2348,8 @@ static void dlm_free_dead_locks(struct d
- 		}
- 	}
++	adjust_present_page_count(page, pageblock_nr_pages);
  
-+	*reserved = reserved_tmp;
-+
- 	if (freed) {
- 		mlog(0, "%s:%.*s: freed %u locks for dead node %u, "
- 		     "dropping ref from lockres\n", dlm->name,
-@@ -2367,6 +2409,7 @@ static void dlm_do_local_recovery_cleanu
- 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
- 		bucket = dlm_lockres_hash(dlm, i);
- 		hlist_for_each_entry_safe(res, tmp, bucket, hash_node) {
-+			int reserved = 0;
-  			/* always prune any $RECOVERY entries for dead nodes,
-  			 * otherwise hangs can occur during later recovery */
- 			if (dlm_is_recovery_lock(res->lockname.name,
-@@ -2420,7 +2463,7 @@ static void dlm_do_local_recovery_cleanu
- 					continue;
- 				}
- 			} else if (res->owner == dlm->node_num) {
--				dlm_free_dead_locks(dlm, res, dead_node);
-+				dlm_free_dead_locks(dlm, res, dead_node, &reserved);
- 				__dlm_lockres_calc_usage(dlm, res);
- 			} else if (res->owner == DLM_LOCK_RES_OWNER_UNKNOWN) {
- 				if (test_bit(dead_node, res->refmap)) {
-@@ -2432,6 +2475,10 @@ static void dlm_do_local_recovery_cleanu
- 				}
- 			}
- 			spin_unlock(&res->spinlock);
-+			while (reserved) {
-+				dlm_lockres_release_ast(dlm, res);
-+				reserved--;
-+			}
- 		}
- 	}
+ 	set_pageblock_migratetype(page, MIGRATE_CMA);
  
-diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability fs/ocfs2/dlm/dlmthread.c
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -587,13 +587,13 @@ static int dlm_dirty_list_empty(struct d
- 
- static void dlm_flush_asts(struct dlm_ctxt *dlm)
+@@ -5989,6 +6011,7 @@ static void __paginginit free_area_init_
  {
--	int ret;
-+	int ret = 0;
- 	struct dlm_lock *lock;
- 	struct dlm_lock_resource *res;
- 	u8 hi;
+ 	enum zone_type j;
+ 	int nid = pgdat->node_id;
++	unsigned long node_end_pfn = 0;
  
- 	spin_lock(&dlm->ast_lock);
--	while (!list_empty(&dlm->pending_asts)) {
-+	while (!list_empty(&dlm->pending_asts) && !ret) {
- 		lock = list_entry(dlm->pending_asts.next,
- 				  struct dlm_lock, ast_list);
- 		/* get an extra ref on lock */
-@@ -628,8 +628,20 @@ static void dlm_flush_asts(struct dlm_ct
- 			mlog(0, "%s: res %.*s, AST queued while flushing last "
- 			     "one\n", dlm->name, res->lockname.len,
- 			     res->lockname.name);
--		} else
-+	} else {
-+		if (unlikely(ret < 0)) {
-+			/* If this AST is not sent back successfully,
-+			 * there is no chance that the second lock
-+			 * request comes.
-+			 */
-+			spin_lock(&res->spinlock);
-+			__dlm_lockres_reserve_ast(res);
-+			spin_unlock(&res->spinlock);
-+			__dlm_queue_ast(dlm, lock);
-+		} else {
- 			lock->ast_pending = 0;
-+		}
-+	}
+ 	pgdat_resize_init(pgdat);
+ #ifdef CONFIG_NUMA_BALANCING
+@@ -6016,9 +6039,13 @@ static void __paginginit free_area_init_
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, freesize, memmap_pages;
+ 		unsigned long zone_start_pfn = zone->zone_start_pfn;
++		unsigned long movable_size = 0;
  
- 		/* drop the extra ref.
- 		 * this may drop it completely. */
-@@ -637,7 +649,9 @@ static void dlm_flush_asts(struct dlm_ct
- 		dlm_lockres_release_ast(dlm, res);
- 	}
- 
--	while (!list_empty(&dlm->pending_basts)) {
-+	ret = 0;
+ 		size = zone->spanned_pages;
+ 		realsize = freesize = zone->present_pages;
++		if (zone_end_pfn(zone) > node_end_pfn)
++			node_end_pfn = zone_end_pfn(zone);
 +
-+	while (!list_empty(&dlm->pending_basts) && !ret) {
- 		lock = list_entry(dlm->pending_basts.next,
- 				  struct dlm_lock, bast_list);
- 		/* get an extra ref on lock */
-@@ -650,7 +664,6 @@ static void dlm_flush_asts(struct dlm_ct
- 		spin_lock(&lock->spinlock);
- 		BUG_ON(lock->ml.highest_blocked <= LKM_IVMODE);
- 		hi = lock->ml.highest_blocked;
--		lock->ml.highest_blocked = LKM_IVMODE;
- 		spin_unlock(&lock->spinlock);
  
- 		/* remove from list (including ref) */
-@@ -680,8 +693,19 @@ static void dlm_flush_asts(struct dlm_ct
- 			mlog(0, "%s: res %.*s, BAST queued while flushing last "
- 			     "one\n", dlm->name, res->lockname.len,
- 			     res->lockname.name);
--		} else
-+		} else if (unlikely(ret)) {
-+			spin_lock(&res->spinlock);
-+			__dlm_lockres_reserve_ast(res);
-+			spin_unlock(&res->spinlock);
-+			__dlm_queue_bast(dlm, lock);
-+		} else {
- 			lock->bast_pending = 0;
-+			/* Set ::highest_blocked to invalid after
-+			 * sending BAST successfully so that
-+			 * no more BAST would be queued.
-+			 */
-+			lock->ml.highest_blocked = LKM_IVMODE;
+ 		/*
+ 		 * Adjust freesize so that it accounts for how much memory
+@@ -6067,12 +6094,30 @@ static void __paginginit free_area_init_
+ 		zone_seqlock_init(zone);
+ 		zone_pcp_init(zone);
+ 
+-		if (!size)
++		/*
++		 * The size of the CMA area is unknown now so we need to
++		 * prepare the memory for the usemap at maximum.
++		 */
++		if (IS_ENABLED(CONFIG_CMA) && j == ZONE_MOVABLE &&
++			pgdat->node_spanned_pages) {
++			movable_size = node_end_pfn - pgdat->node_start_pfn;
 +		}
++
++		if (!size && !movable_size)
+ 			continue;
  
- 		/* drop the extra ref.
- 		 * this may drop it completely. */
+ 		set_pageblock_order();
+-		setup_usemap(pgdat, zone, zone_start_pfn, size);
+-		init_currently_empty_zone(zone, zone_start_pfn, size);
++		if (movable_size) {
++			zone->zone_start_pfn = pgdat->node_start_pfn;
++			zone->spanned_pages = movable_size;
++			setup_usemap(pgdat, zone,
++				pgdat->node_start_pfn, movable_size);
++			init_currently_empty_zone(zone,
++				pgdat->node_start_pfn, movable_size);
++		} else {
++			setup_usemap(pgdat, zone, zone_start_pfn, size);
++			init_currently_empty_zone(zone, zone_start_pfn, size);
++		}
+ 		memmap_init(size, nid, j, zone_start_pfn);
+ 	}
+ }
+@@ -7623,7 +7668,7 @@ void free_contig_range(unsigned long pfn
+ }
+ #endif
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG
++#if defined CONFIG_MEMORY_HOTPLUG || defined CONFIG_CMA
+ /*
+  * The zone indicated has a new number of managed_pages; batch sizes and percpu
+  * page high values need to be recalulated.
 _
 
-Patches currently in -mm which might be from ge.changwei@h3c.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-mlock-use-page_zone-instead-of-page_zone_id.patch
+mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
+mm-cma-remove-alloc_cma.patch
+arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
 
