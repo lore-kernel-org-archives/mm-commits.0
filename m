@@ -1,76 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
- added to -mm tree
-Date: Mon, 28 Aug 2017 15:37:28 -0700
-Message-ID: <59a49b28.LEZIVifVuvtGZiUU%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch removed from -mm tree
+Date: Mon, 28 Aug 2017 15:39:01 -0700
+Message-ID: <59a49b85.kg41rf06OFd+vi6v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38138 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdH1Wh3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 18:37:29 -0400
+        with ESMTP id S1751190AbdH1WjE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 18:39:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, arnd@arndb.de, jglisse@redhat.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm: struct hmm is only use by HMM mirror functionality v2 fix
-has been added to the -mm tree.  Its filename is
-     mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
+     Subject: ocfs2: remove two unused variables
+has been removed from the -mm tree.  Its filename was
+     ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm/hmm: struct hmm is only use by HMM mirror functionality v2 fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ocfs2: remove two unused variables
 
-fix build (arm multi_v7_defconfig)
+A reliability fix introduced two local variables but never used
+them:
 
-Link: http://lkml.kernel.org/r/20170828181849.323ab81b@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+fs/ocfs2/dlm/dlmrecovery.c: In function 'dlm_free_dead_locks':
+fs/ocfs2/dlm/dlmrecovery.c:2306:6: error: unused variable 'i' [-Werror=unused-variable]
+fs/ocfs2/dlm/dlmrecovery.c:2305:20: error: unused variable 'queue' [-Werror=unused-variable]
+
+This removes them both again.
+
+Link: http://lkml.kernel.org/r/20170824222149.759050-1-arnd@arndb.de
+Fixes: d09f2c6cf3b8 ("ocfs2: re-queue AST or BAST if sending is failed to improve the reliability")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Changwei Ge <ge.changwei@h3c.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: "Gang He" <ghe@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/dlm/dlmrecovery.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix
-+++ a/include/linux/hmm.h
-@@ -514,5 +514,8 @@ static inline void hmm_mm_init(struct mm
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability-fix
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2302,8 +2302,6 @@ static void dlm_free_dead_locks(struct d
+ 	struct dlm_lock *lock, *next;
+ 	unsigned int freed = 0;
+ 	int reserved_tmp = 0;
+-	struct list_head *queue = NULL;
+-	int i;
  
- 
-+#else /* IS_ENABLED(CONFIG_HMM) */
-+static inline void hmm_mm_destroy(struct mm_struct *mm) {}
-+static inline void hmm_mm_init(struct mm_struct *mm) {}
- #endif /* IS_ENABLED(CONFIG_HMM) */
- #endif /* LINUX_HMM_H */
+ 	/* this node is the lockres master:
+ 	 * 1) remove any stale locks for the dead node
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-fix-2.patch
+adfs-use-unsigned-types-for-memcpy-length.patch
+ocfs2-re-queue-ast-or-bast-if-sending-is-failed-to-improve-the-reliability.patch
+mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
+fs-proc-remove-priv-argument-from-is_stack-fix.patch
+fscache-fix-fscache_objlist_show-format-processing.patch
+ib-mlx4-fix-sprintf-format-warning.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
 
