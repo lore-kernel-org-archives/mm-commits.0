@@ -1,48 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects-2.patch removed from -mm
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
  tree
-Date: Mon, 28 Aug 2017 13:14:04 -0700
-Message-ID: <20170828201404.YTRVZ3TUF%akpm@linux-foundation.org>
+Date: Mon, 28 Aug 2017 13:14:59 -0700
+Message-ID: <20170828201459.nk9RkRGGM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57126 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbdH1UOG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 16:14:06 -0400
+        with ESMTP id S1750841AbdH1UPB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 16:15:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: a
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects-2.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c |   36 -------------------------
+ 1 file changed, 36 deletions(-)
 
-diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c~linux-next-rejects-2 drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c~linux-next-rejects-2
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
-@@ -2479,7 +2479,7 @@ int amdgpu_vm_init(struct amdgpu_device
- 	for (i = 0; i < AMDGPU_MAX_VMHUBS; i++)
- 		vm->reserved_vmid[i] = NULL;
- 	spin_lock_init(&vm->status_lock);
--	INIT_LIST_HEAD(&vm->invalidated);
-+	INIT_LIST_HEAD(&vm->moved);
- 	INIT_LIST_HEAD(&vm->cleared);
- 	INIT_LIST_HEAD(&vm->freed);
+diff -puN drivers/infiniband/core/uverbs_cmd.c~linux-next-git-rejects drivers/infiniband/core/uverbs_cmd.c
+--- a/drivers/infiniband/core/uverbs_cmd.c~linux-next-git-rejects
++++ a/drivers/infiniband/core/uverbs_cmd.c
+@@ -2006,44 +2006,8 @@ static int modify_qp(struct ib_uverbs_fi
+ 	attr->rate_limit	  = cmd->rate_limit;
  
+ 	if (cmd->base.attr_mask & IB_QP_AV)
+-<<<<<<< HEAD
+-		attr->ah_attr.type = rdma_ah_find_type(qp->device,
+-						       cmd->base.dest.port_num);
+-	if (cmd->base.dest.is_global) {
+-		rdma_ah_set_grh(&attr->ah_attr, NULL,
+-				cmd->base.dest.flow_label,
+-				cmd->base.dest.sgid_index,
+-				cmd->base.dest.hop_limit,
+-				cmd->base.dest.traffic_class);
+-		rdma_ah_set_dgid_raw(&attr->ah_attr, cmd->base.dest.dgid);
+-	} else {
+-		rdma_ah_set_ah_flags(&attr->ah_attr, 0);
+-	}
+-	rdma_ah_set_dlid(&attr->ah_attr, cmd->base.dest.dlid);
+-	rdma_ah_set_sl(&attr->ah_attr, cmd->base.dest.sl);
+-	rdma_ah_set_path_bits(&attr->ah_attr, cmd->base.dest.src_path_bits);
+-	rdma_ah_set_static_rate(&attr->ah_attr, cmd->base.dest.static_rate);
+-	rdma_ah_set_port_num(&attr->ah_attr,
+-			     cmd->base.dest.port_num);
+-
+-	if (cmd->base.attr_mask & IB_QP_ALT_PATH)
+-		attr->alt_ah_attr.type =
+-			rdma_ah_find_type(qp->device, cmd->base.dest.port_num);
+-	if (cmd->base.alt_dest.is_global) {
+-		rdma_ah_set_grh(&attr->alt_ah_attr, NULL,
+-				cmd->base.alt_dest.flow_label,
+-				cmd->base.alt_dest.sgid_index,
+-				cmd->base.alt_dest.hop_limit,
+-				cmd->base.alt_dest.traffic_class);
+-		rdma_ah_set_dgid_raw(&attr->alt_ah_attr,
+-				     cmd->base.alt_dest.dgid);
+-	} else {
+-		rdma_ah_set_ah_flags(&attr->alt_ah_attr, 0);
+-	}
+-=======
+ 		copy_ah_attr_from_uverbs(qp->device, &attr->ah_attr,
+ 					 &cmd->base.dest);
+->>>>>>> linux-next/akpm-base
+ 
+ 	if (cmd->base.attr_mask & IB_QP_ALT_PATH)
+ 		copy_ah_attr_from_uverbs(qp->device, &attr->alt_ah_attr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +103,6 @@ bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
 bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
 kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 zram-mm-vs-block.patch
 drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
 treewide-remove-gfp_temporary-allocation-flag-fix.patch
