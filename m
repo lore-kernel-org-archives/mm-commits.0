@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-remove-alloc_cma.patch added to -mm tree
-Date: Mon, 28 Aug 2017 16:00:06 -0700
-Message-ID: <59a4a076.yic1Hl+1Jvrx38X7%akpm@linux-foundation.org>
+Subject: +
+ pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch added to -mm tree
+Date: Mon, 28 Aug 2017 16:04:17 -0700
+Message-ID: <59a4a171.lehc2jlaFWAxP2mG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdH1XAI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 19:00:08 -0400
+        with ESMTP id S1751190AbdH1XES (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 19:04:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, linux@armlinux.org.uk, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, giometti@enneenne.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: remove ALLOC_CMA
+     Subject: drivers/pps: use surrounding "if PPS" to remove numerous dependency checks
 has been added to the -mm tree.  Its filename is
-     mm-cma-remove-alloc_cma.patch
+     pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-remove-alloc_cma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-remove-alloc_cma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,138 +39,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/cma: remove ALLOC_CMA
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: drivers/pps: use surrounding "if PPS" to remove numerous dependency checks
 
-Now, all reserved pages for CMA region are belong to the ZONE_MOVABLE and
-it only serves for a request with GFP_HIGHMEM && GFP_MOVABLE.  Therefore,
-we don't need to maintain ALLOC_CMA at all.
+Adding high-level "if PPS" makes lower-level dependency tests superfluous.
 
-Link: http://lkml.kernel.org/r/1503556593-10720-3-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: http://lkml.kernel.org/r/alpine.LFD.2.20.1708261050500.8156@localhost.localdomain
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +---
- mm/internal.h   |    1 -
- mm/page_alloc.c |   28 +++-------------------------
- 3 files changed, 4 insertions(+), 29 deletions(-)
+ drivers/pps/Kconfig            |    7 +++++--
+ drivers/pps/clients/Kconfig    |    7 ++-----
+ drivers/pps/generators/Kconfig |    3 +--
+ 3 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN mm/compaction.c~mm-cma-remove-alloc_cma mm/compaction.c
---- a/mm/compaction.c~mm-cma-remove-alloc_cma
-+++ a/mm/compaction.c
-@@ -1458,14 +1458,12 @@ static enum compact_result __compaction_
- 	 * if compaction succeeds.
- 	 * For costly orders, we require low watermark instead of min for
- 	 * compaction to proceed to increase its chances.
--	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
--	 * suitable migration targets
- 	 */
- 	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
- 				low_wmark_pages(zone) : min_wmark_pages(zone);
- 	watermark += compact_gap(order);
- 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
--						ALLOC_CMA, wmark_target))
-+						0, wmark_target))
- 		return COMPACT_SKIPPED;
+diff -puN drivers/pps/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks drivers/pps/Kconfig
+--- a/drivers/pps/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks
++++ a/drivers/pps/Kconfig
+@@ -19,9 +19,10 @@ menuconfig PPS
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called pps_core.ko.
  
- 	return COMPACT_CONTINUE;
-diff -puN mm/internal.h~mm-cma-remove-alloc_cma mm/internal.h
---- a/mm/internal.h~mm-cma-remove-alloc_cma
-+++ a/mm/internal.h
-@@ -497,7 +497,6 @@ unsigned long reclaim_clean_pages_from_l
- #define ALLOC_HARDER		0x10 /* try to alloc harder */
- #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
--#define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
++if PPS
++
+ config PPS_DEBUG
+ 	bool "PPS debugging messages"
+-	depends on PPS
+ 	help
+ 	  Say Y here if you want the PPS support to produce a bunch of debug
+ 	  messages to the system log.  Select this if you are having a
+@@ -29,7 +30,7 @@ config PPS_DEBUG
  
- enum ttu_flags;
- struct tlbflush_unmap_batch;
-diff -puN mm/page_alloc.c~mm-cma-remove-alloc_cma mm/page_alloc.c
---- a/mm/page_alloc.c~mm-cma-remove-alloc_cma
-+++ a/mm/page_alloc.c
-@@ -2720,7 +2720,7 @@ int __isolate_free_page(struct page *pag
- 		 * exists.
- 		 */
- 		watermark = min_wmark_pages(zone) + (1UL << order);
--		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
-+		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
- 			return 0;
+ config NTP_PPS
+ 	bool "PPS kernel consumer support"
+-	depends on PPS && !NO_HZ_COMMON
++	depends on !NO_HZ_COMMON
+ 	help
+ 	  This option adds support for direct in-kernel time
+ 	  synchronization using an external PPS signal.
+@@ -39,3 +40,5 @@ config NTP_PPS
+ source drivers/pps/clients/Kconfig
  
- 		__mod_zone_freepage_state(zone, -(1UL << order), mt);
-@@ -2997,12 +2997,6 @@ bool __zone_watermark_ok(struct zone *z,
- 	}
+ source drivers/pps/generators/Kconfig
++
++endif # PPS
+diff -puN drivers/pps/clients/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks drivers/pps/clients/Kconfig
+--- a/drivers/pps/clients/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks
++++ a/drivers/pps/clients/Kconfig
+@@ -3,11 +3,9 @@
+ #
  
+ comment "PPS clients support"
+-	depends on PPS
  
--#ifdef CONFIG_CMA
--	/* If allocation can't use CMA areas don't use free CMA pages */
--	if (!(alloc_flags & ALLOC_CMA))
--		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
--#endif
--
- 	/*
- 	 * Check watermarks for an order-0 allocation request. If these
- 	 * are not met, then a high-order request also cannot go ahead
-@@ -3032,10 +3026,8 @@ bool __zone_watermark_ok(struct zone *z,
- 		}
+ config PPS_CLIENT_KTIMER
+ 	tristate "Kernel timer client (Testing client, use for debug)"
+-	depends on PPS
+ 	help
+ 	  If you say yes here you get support for a PPS debugging client
+ 	  which uses a kernel timer to generate the PPS signal.
+@@ -17,21 +15,20 @@ config PPS_CLIENT_KTIMER
  
- #ifdef CONFIG_CMA
--		if ((alloc_flags & ALLOC_CMA) &&
--		    !list_empty(&area->free_list[MIGRATE_CMA])) {
-+		if (!list_empty(&area->free_list[MIGRATE_CMA]))
- 			return true;
--		}
- #endif
- 	}
- 	return false;
-@@ -3052,13 +3044,6 @@ static inline bool zone_watermark_fast(s
- 		unsigned long mark, int classzone_idx, unsigned int alloc_flags)
- {
- 	long free_pages = zone_page_state(z, NR_FREE_PAGES);
--	long cma_pages = 0;
--
--#ifdef CONFIG_CMA
--	/* If allocation can't use CMA areas don't use free CMA pages */
--	if (!(alloc_flags & ALLOC_CMA))
--		cma_pages = zone_page_state(z, NR_FREE_CMA_PAGES);
--#endif
+ config PPS_CLIENT_LDISC
+ 	tristate "PPS line discipline"
+-	depends on PPS && TTY
++	depends on TTY
+ 	help
+ 	  If you say yes here you get support for a PPS source connected
+ 	  with the CD (Carrier Detect) pin of your serial port.
  
- 	/*
- 	 * Fast check for order-0 only. If this fails then the reserves
-@@ -3067,7 +3052,7 @@ static inline bool zone_watermark_fast(s
- 	 * the caller is !atomic then it'll uselessly search the free
- 	 * list. That corner case is then slower but it is harmless.
- 	 */
--	if (!order && (free_pages - cma_pages) > mark + z->lowmem_reserve[classzone_idx])
-+	if (!order && free_pages > mark + z->lowmem_reserve[classzone_idx])
- 		return true;
+ config PPS_CLIENT_PARPORT
+ 	tristate "Parallel port PPS client"
+-	depends on PPS && PARPORT
++	depends on PARPORT
+ 	help
+ 	  If you say yes here you get support for a PPS source connected
+ 	  with the interrupt pin of your parallel port.
  
- 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
-@@ -3648,10 +3633,6 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	} else if (unlikely(rt_task(current)) && !in_interrupt())
- 		alloc_flags |= ALLOC_HARDER;
+ config PPS_CLIENT_GPIO
+ 	tristate "PPS client using GPIO"
+-	depends on PPS
+ 	help
+ 	  If you say yes here you get support for a PPS source using
+ 	  GPIO. To be useful you must also register a platform device
+diff -puN drivers/pps/generators/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks drivers/pps/generators/Kconfig
+--- a/drivers/pps/generators/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks
++++ a/drivers/pps/generators/Kconfig
+@@ -3,11 +3,10 @@
+ #
  
--#ifdef CONFIG_CMA
--	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
--		alloc_flags |= ALLOC_CMA;
--#endif
- 	return alloc_flags;
- }
+ comment "PPS generators support"
+-	depends on PPS
  
-@@ -4127,9 +4108,6 @@ static inline bool prepare_alloc_pages(g
- 	if (should_fail_alloc_page(gfp_mask, order))
- 		return false;
- 
--	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
--		*alloc_flags |= ALLOC_CMA;
+ config PPS_GENERATOR_PARPORT
+ 	tristate "Parallel port PPS signal generator"
+-	depends on PPS && PARPORT && BROKEN
++	depends on PARPORT && BROKEN
+ 	help
+ 	  If you say yes here you get support for a PPS signal generator which
+ 	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
+_
+
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
+
+pps-aesthetic-tweaks-to-pps-related-content.patch
+pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
+
