@@ -1,323 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: + pps-aesthetic-tweaks-to-pps-related-content.patch added to -mm
+Subject: [merged]
+ pm-hibernate-feed-the-wathdog-when-creating-snapshot.patch removed from -mm
  tree
-Date: Mon, 28 Aug 2017 16:04:14 -0700
-Message-ID: <59a4a16e.sbkSfW8zGKxQFGRw%akpm@linux-foundation.org>
+Date: Tue, 29 Aug 2017 11:14:23 -0700
+Message-ID: <20170829181423.zMcWNVQmD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751190AbdH1XEP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Aug 2017 19:04:15 -0400
+        with ESMTP id S1751186AbdH2SOZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, giometti@enneenne.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jan.filipcewicz@intel.com, lenb@kernel.org, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com, stable@vger.kernel.org, vbabka@suse.cz, yu.c.chen@intel.com
 
 
 The patch titled
-     Subject: drivers/pps: aesthetic tweaks to PPS-related content
-has been added to the -mm tree.  Its filename is
-     pps-aesthetic-tweaks-to-pps-related-content.patch
+     Subject: PM/hibernate: touch NMI watchdog when creating snapshot
+has been removed from the -mm tree.  Its filename was
+     pm-hibernate-feed-the-wathdog-when-creating-snapshot.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pps-aesthetic-tweaks-to-pps-related-content.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pps-aesthetic-tweaks-to-pps-related-content.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: drivers/pps: aesthetic tweaks to PPS-related content
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: PM/hibernate: touch NMI watchdog when creating snapshot
 
-Collection of aesthetic adjustments to various PPS-related files,
-directories and Documentation, some quite minor just for the sake of
-consistency, including:
+There is a problem that when counting the pages for creating the
+hibernation snapshot will take significant amount of time, especially on
+system with large memory.  Since the counting job is performed with irq
+disabled, this might lead to NMI lockup.  The following warning were found
+on a system with 1.5TB DRAM:
 
- * Updated example of pps device tree node (courtesy Rodolfo G.)
- * "PPS-API" -> "PPS API"
- * "pps_source_info_s" -> "pps_source_info"
- * "ktimer driver" -> "pps-ktimer driver"
- * "ppstest /dev/pps0" -> "ppstest /dev/pps1" to match example
- * Add missing PPS-related entries to MAINTAINERS file
- * Other trivialities
+[ 1124.758184] Freezing user space processes ... (elapsed 0.002 seconds) done.
+[ 1124.768721] OOM killer disabled.
+[ 1124.847009] PM: Preallocating image memory...
+[ 1139.392042] NMI watchdog: Watchdog detected hard LOCKUP on cpu 27
+[ 1139.392076] CPU: 27 PID: 3128 Comm: systemd-sleep Not tainted 4.13.0-0.rc2.git0.1.fc27.x86_64 #1
+[ 1139.392077] task: ffff9f01971ac000 task.stack: ffffb1a3f325c000
+[ 1139.392083] RIP: 0010:memory_bm_find_bit+0xf4/0x100
+[ 1139.392084] RSP: 0018:ffffb1a3f325fc20 EFLAGS: 00000006
+[ 1139.392084] RAX: 0000000000000000 RBX: 0000000013b83000 RCX: ffff9fbe89caf000
+[ 1139.392085] RDX: ffffb1a3f325fc30 RSI: 0000000000003200 RDI: ffff9fbeaffffe80
+[ 1139.392085] RBP: ffffb1a3f325fc40 R08: 0000000013b80000 R09: ffff9fbe89c54878
+[ 1139.392085] R10: ffffb1a3f325fc2c R11: 0000000013b83200 R12: 0000000000000400
+[ 1139.392086] R13: fffffd552e0c0000 R14: ffff9fc1bffd31e0 R15: 0000000000000202
+[ 1139.392086] FS:  00007f3189704180(0000) GS:ffff9fbec8ec0000(0000) knlGS:0000000000000000
+[ 1139.392087] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 1139.392087] CR2: 00000085da0f7398 CR3: 000001771cf9a000 CR4: 00000000007406e0
+[ 1139.392088] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[ 1139.392088] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[ 1139.392088] PKRU: 55555554
+[ 1139.392089] Call Trace:
+[ 1139.392092]  ? memory_bm_set_bit+0x29/0x60
+[ 1139.392094]  swsusp_set_page_free+0x2b/0x30
+[ 1139.392098]  mark_free_pages+0x147/0x1c0
+[ 1139.392099]  count_data_pages+0x41/0xa0
+[ 1139.392101]  hibernate_preallocate_memory+0x80/0x450
+[ 1139.392102]  hibernation_snapshot+0x58/0x410
+[ 1139.392103]  hibernate+0x17c/0x310
+[ 1139.392104]  state_store+0xdf/0xf0
+[ 1139.392107]  kobj_attr_store+0xf/0x20
+[ 1139.392111]  sysfs_kf_write+0x37/0x40
+[ 1139.392113]  kernfs_fop_write+0x11c/0x1a0
+[ 1139.392117]  __vfs_write+0x37/0x170
+[ 1139.392121]  ? handle_mm_fault+0xd8/0x230
+[ 1139.392122]  vfs_write+0xb1/0x1a0
+[ 1139.392123]  SyS_write+0x55/0xc0
+[ 1139.392126]  entry_SYSCALL_64_fastpath+0x1a/0xa5
+...
+[ 1144.690405] done (allocated 6590003 pages)
+[ 1144.694971] PM: Allocated 26360012 kbytes in 19.89 seconds (1325.28 MB/s)
 
-Link: http://lkml.kernel.org/r/alpine.LFD.2.20.1708261048220.8106@localhost.localdomain
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+It has taken nearly 20 seconds(2.10GHz CPU) thus the NMI lockup was
+triggered.  In case the timeout of the NMI watch dog has been set to 1
+second, a safe interval should be 6590003/20 = 320k pages in theory. 
+However there might also be some platforms running at a lower frequency,
+so feed the watchdog every 100k pages.
+
+[yu.c.chen@intel.com: simplification]
+  Link: http://lkml.kernel.org/r/1503460079-29721-1-git-send-email-yu.c.chen@intel.com
+[yu.c.chen@intel.com: use interval of 128k instead of 100k to avoid modulus]
+Link: http://lkml.kernel.org/r/1503328098-5120-1-git-send-email-yu.c.chen@intel.com
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Reported-by: Jan Filipcewicz <jan.filipcewicz@intel.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/pps/pps-gpio.txt |    8 +-
- Documentation/pps/pps.txt                          |   44 +++++------
- MAINTAINERS                                        |    3 
- include/linux/pps-gpio.h                           |    2 
- include/linux/pps_kernel.h                         |   16 +---
- include/uapi/linux/pps.h                           |    4 -
- kernel/time/timekeeping.c                          |    2 
- 7 files changed, 43 insertions(+), 36 deletions(-)
+ mm/page_alloc.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/pps/pps-gpio.txt~pps-aesthetic-tweaks-to-pps-related-content Documentation/devicetree/bindings/pps/pps-gpio.txt
---- a/Documentation/devicetree/bindings/pps/pps-gpio.txt~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/Documentation/devicetree/bindings/pps/pps-gpio.txt
-@@ -13,8 +13,12 @@ Optional properties:
+diff -puN mm/page_alloc.c~pm-hibernate-feed-the-wathdog-when-creating-snapshot mm/page_alloc.c
+--- a/mm/page_alloc.c~pm-hibernate-feed-the-wathdog-when-creating-snapshot
++++ a/mm/page_alloc.c
+@@ -66,6 +66,7 @@
+ #include <linux/kthread.h>
+ #include <linux/memcontrol.h>
+ #include <linux/ftrace.h>
++#include <linux/nmi.h>
  
- Example:
- 	pps {
--		compatible = "pps-gpio";
--		gpios = <&gpio2 6 0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_pps>;
+ #include <asm/sections.h>
+ #include <asm/tlbflush.h>
+@@ -2535,9 +2536,14 @@ void drain_all_pages(struct zone *zone)
  
-+		gpios = <&gpio1 26 GPIO_ACTIVE_HIGH>;
- 		assert-falling-edge;
+ #ifdef CONFIG_HIBERNATION
+ 
++/*
++ * Touch the watchdog for every WD_PAGE_COUNT pages.
++ */
++#define WD_PAGE_COUNT	(128*1024)
 +
-+		compatible = "pps-gpio";
-+		status = "okay";
- 	};
-diff -puN Documentation/pps/pps.txt~pps-aesthetic-tweaks-to-pps-related-content Documentation/pps/pps.txt
---- a/Documentation/pps/pps.txt~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/Documentation/pps/pps.txt
-@@ -48,12 +48,12 @@ problem:
-    time_pps_create().
+ void mark_free_pages(struct zone *zone)
+ {
+-	unsigned long pfn, max_zone_pfn;
++	unsigned long pfn, max_zone_pfn, page_count = WD_PAGE_COUNT;
+ 	unsigned long flags;
+ 	unsigned int order, t;
+ 	struct page *page;
+@@ -2552,6 +2558,11 @@ void mark_free_pages(struct zone *zone)
+ 		if (pfn_valid(pfn)) {
+ 			page = pfn_to_page(pfn);
  
- This implies that the source has a /dev/... entry. This assumption is
--ok for the serial and parallel port, where you can do something
-+OK for the serial and parallel port, where you can do something
- useful besides(!) the gathering of timestamps as it is the central
--task for a PPS-API. But this assumption does not work for a single
-+task for a PPS API. But this assumption does not work for a single
- purpose GPIO line. In this case even basic file-related functionality
- (like read() and write()) makes no sense at all and should not be a
--precondition for the use of a PPS-API.
-+precondition for the use of a PPS API.
- 
- The problem can be simply solved if you consider that a PPS source is
- not always connected with a GPS data source.
-@@ -88,13 +88,13 @@ Coding example
- --------------
- 
- To register a PPS source into the kernel you should define a struct
--pps_source_info_s as follows:
-+pps_source_info as follows:
- 
-     static struct pps_source_info pps_ktimer_info = {
- 	    .name         = "ktimer",
- 	    .path         = "",
--	    .mode         = PPS_CAPTUREASSERT | PPS_OFFSETASSERT | \
--			    PPS_ECHOASSERT | \
-+	    .mode         = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
-+			    PPS_ECHOASSERT |
- 			    PPS_CANWAIT | PPS_TSFMT_TSPEC,
- 	    .echo         = pps_ktimer_echo,
- 	    .owner        = THIS_MODULE,
-@@ -108,13 +108,13 @@ initialization routine as follows:
- 
- The pps_register_source() prototype is:
- 
--  int pps_register_source(struct pps_source_info_s *info, int default_params)
-+  int pps_register_source(struct pps_source_info *info, int default_params)
- 
- where "info" is a pointer to a structure that describes a particular
- PPS source, "default_params" tells the system what the initial default
- parameters for the device should be (it is obvious that these parameters
- must be a subset of ones defined in the struct
--pps_source_info_s which describe the capabilities of the driver).
-+pps_source_info which describe the capabilities of the driver).
- 
- Once you have registered a new PPS source into the system you can
- signal an assert event (for example in the interrupt handler routine)
-@@ -142,8 +142,10 @@ If the SYSFS filesystem is enabled in th
- Every directory is the ID of a PPS sources defined in the system and
- inside you find several files:
- 
--   $ ls /sys/class/pps/pps0/
--   assert	clear  echo  mode  name  path  subsystem@  uevent
-+   $ ls -F /sys/class/pps/pps0/
-+   assert     dev        mode       path       subsystem@
-+   clear      echo       name       power/     uevent
++			if (!--page_count) {
++				touch_nmi_watchdog();
++				page_count = WD_PAGE_COUNT;
++			}
 +
+ 			if (page_zone(page) != zone)
+ 				continue;
  
- Inside each "assert" and "clear" file you can find the timestamp and a
- sequence number:
-@@ -154,32 +156,32 @@ sequence number:
- Where before the "#" is the timestamp in seconds; after it is the
- sequence number. Other files are:
+@@ -2565,8 +2576,13 @@ void mark_free_pages(struct zone *zone)
+ 			unsigned long i;
  
--* echo: reports if the PPS source has an echo function or not;
-+ * echo: reports if the PPS source has an echo function or not;
- 
--* mode: reports available PPS functioning modes;
-+ * mode: reports available PPS functioning modes;
- 
--* name: reports the PPS source's name;
-+ * name: reports the PPS source's name;
- 
--* path: reports the PPS source's device path, that is the device the
--  PPS source is connected to (if it exists).
-+ * path: reports the PPS source's device path, that is the device the
-+   PPS source is connected to (if it exists).
- 
- 
- Testing the PPS support
- -----------------------
- 
- In order to test the PPS support even without specific hardware you can use
--the ktimer driver (see the client subsection in the PPS configuration menu)
-+the pps-ktimer driver (see the client subsection in the PPS configuration menu)
- and the userland tools available in your distribution's pps-tools package,
--http://linuxpps.org , or https://github.com/ago/pps-tools .
-+http://linuxpps.org , or https://github.com/redlab-i/pps-tools.
- 
--Once you have enabled the compilation of ktimer just modprobe it (if
-+Once you have enabled the compilation of pps-ktimer just modprobe it (if
- not statically compiled):
- 
--   # modprobe ktimer
-+   # modprobe pps-ktimer
- 
- and the run ppstest as follow:
- 
--   $ ./ppstest /dev/pps0
-+   $ ./ppstest /dev/pps1
-    trying PPS source "/dev/pps1"
-    found PPS source "/dev/pps1"
-    ok, found 1 source(s), now start fetching data...
-@@ -187,7 +189,7 @@ and the run ppstest as follow:
-    source 0 - assert 1186592700.388931295, sequence: 365 - clear  0.000000000, sequence: 0
-    source 0 - assert 1186592701.389032765, sequence: 366 - clear  0.000000000, sequence: 0
- 
--Please, note that to compile userland programs you need the file timepps.h .
-+Please note that to compile userland programs, you need the file timepps.h.
- This is available in the pps-tools repository mentioned above.
- 
- 
-diff -puN MAINTAINERS~pps-aesthetic-tweaks-to-pps-related-content MAINTAINERS
---- a/MAINTAINERS~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/MAINTAINERS
-@@ -10593,8 +10593,11 @@ W:	http://wiki.enneenne.com/index.php/Li
- L:	linuxpps@ml.enneenne.com (subscribers-only)
- S:	Maintained
- F:	Documentation/pps/
-+F:	Documentation/devicetree/bindings/pps/pps-gpio.txt
-+F:	Documentation/ABI/testing/sysfs-pps
- F:	drivers/pps/
- F:	include/linux/pps*.h
-+F:	include/uapi/linux/pps.h
- 
- PPTP DRIVER
- M:	Dmitry Kozlov <xeb@mail.ru>
-diff -puN include/linux/pps-gpio.h~pps-aesthetic-tweaks-to-pps-related-content include/linux/pps-gpio.h
---- a/include/linux/pps-gpio.h~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/include/linux/pps-gpio.h
-@@ -29,4 +29,4 @@ struct pps_gpio_platform_data {
- 	const char *gpio_label;
- };
- 
--#endif
-+#endif /* _PPS_GPIO_H */
-diff -puN include/linux/pps_kernel.h~pps-aesthetic-tweaks-to-pps-related-content include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/include/linux/pps_kernel.h
-@@ -22,7 +22,6 @@
- #define LINUX_PPS_KERNEL_H
- 
- #include <linux/pps.h>
--
- #include <linux/cdev.h>
- #include <linux/device.h>
- #include <linux/time.h>
-@@ -35,9 +34,9 @@ struct pps_device;
- 
- /* The specific PPS source info */
- struct pps_source_info {
--	char name[PPS_MAX_NAME_LEN];		/* simbolic name */
-+	char name[PPS_MAX_NAME_LEN];		/* symbolic name */
- 	char path[PPS_MAX_NAME_LEN];		/* path of connected device */
--	int mode;				/* PPS's allowed mode */
-+	int mode;				/* PPS allowed mode */
- 
- 	void (*echo)(struct pps_device *pps,
- 			int event, void *data);	/* PPS echo function */
-@@ -57,10 +56,10 @@ struct pps_event_time {
- struct pps_device {
- 	struct pps_source_info info;		/* PSS source info */
- 
--	struct pps_kparams params;		/* PPS's current params */
-+	struct pps_kparams params;		/* PPS current params */
- 
--	__u32 assert_sequence;			/* PPS' assert event seq # */
--	__u32 clear_sequence;			/* PPS' clear event seq # */
-+	__u32 assert_sequence;			/* PPS assert event seq # */
-+	__u32 clear_sequence;			/* PPS clear event seq # */
- 	struct pps_ktime assert_tu;
- 	struct pps_ktime clear_tu;
- 	int current_mode;			/* PPS mode at event time */
-@@ -69,7 +68,7 @@ struct pps_device {
- 	wait_queue_head_t queue;		/* PPS event queue */
- 
- 	unsigned int id;			/* PPS source unique ID */
--	void const *lookup_cookie;		/* pps_lookup_dev only */
-+	void const *lookup_cookie;		/* For pps_lookup_dev() only */
- 	struct cdev cdev;
- 	struct device *dev;
- 	struct fasync_struct *async_queue;	/* fasync method */
-@@ -101,7 +100,7 @@ extern struct pps_device *pps_register_s
- extern void pps_unregister_source(struct pps_device *pps);
- extern void pps_event(struct pps_device *pps,
- 		struct pps_event_time *ts, int event, void *data);
--/* Look up a pps device by magic cookie */
-+/* Look up a pps_device by magic cookie */
- struct pps_device *pps_lookup_dev(void const *cookie);
- 
- static inline void timespec_to_pps_ktime(struct pps_ktime *kt,
-@@ -132,4 +131,3 @@ static inline void pps_sub_ts(struct pps
- }
- 
- #endif /* LINUX_PPS_KERNEL_H */
--
-diff -puN include/uapi/linux/pps.h~pps-aesthetic-tweaks-to-pps-related-content include/uapi/linux/pps.h
---- a/include/uapi/linux/pps.h~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/include/uapi/linux/pps.h
-@@ -95,8 +95,8 @@ struct pps_kparams {
- #define PPS_CAPTURECLEAR	0x02	/* capture clear events */
- #define PPS_CAPTUREBOTH		0x03	/* capture assert and clear events */
- 
--#define PPS_OFFSETASSERT	0x10	/* apply compensation for assert ev. */
--#define PPS_OFFSETCLEAR		0x20	/* apply compensation for clear ev. */
-+#define PPS_OFFSETASSERT	0x10	/* apply compensation for assert event */
-+#define PPS_OFFSETCLEAR		0x20	/* apply compensation for clear event */
- 
- #define PPS_CANWAIT		0x100	/* can we wait for an event? */
- #define PPS_CANPOLL		0x200	/* bit reserved for future use */
-diff -puN kernel/time/timekeeping.c~pps-aesthetic-tweaks-to-pps-related-content kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~pps-aesthetic-tweaks-to-pps-related-content
-+++ a/kernel/time/timekeeping.c
-@@ -2318,7 +2318,7 @@ void hardpps(const struct timespec64 *ph
- 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
- }
- EXPORT_SYMBOL(hardpps);
--#endif
-+#endif /* CONFIG_NTP_PPS */
- 
- /**
-  * xtime_update() - advances the timekeeping infrastructure
+ 			pfn = page_to_pfn(page);
+-			for (i = 0; i < (1UL << order); i++)
++			for (i = 0; i < (1UL << order); i++) {
++				if (!--page_count) {
++					touch_nmi_watchdog();
++					page_count = WD_PAGE_COUNT;
++				}
+ 				swsusp_set_page_free(pfn_to_page(pfn + i));
++			}
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(&zone->lock, flags);
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from yu.c.chen@intel.com are
 
-pps-aesthetic-tweaks-to-pps-related-content.patch
-pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
 
