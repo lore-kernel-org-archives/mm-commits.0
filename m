@@ -1,126 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fork-fix-incorrect-fput-of-exe_file-causing-use-after-free.patch removed
- from -mm tree
-Date: Tue, 29 Aug 2017 11:14:36 -0700
-Message-ID: <20170829181436.Jxhgew33V%akpm__1542.12435377321$1504030489$gmane$org@linux-foundation.org>
+ =?US-ASCII?Q?mm-shmem-fix-handling-sys-kernel-mm-transparent=5Fhugepage?=
+ =?US-ASCII?Q?-shmem=5Fenabled.patch?= removed from -mm tree
+Date: Tue, 29 Aug 2017 11:14:27 -0700
+Message-ID: <20170829181427.Q3tLNS4Nq%akpm__9020.83237092501$1504030489$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55832 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751186AbdH2SOi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:38 -0400
+        with ESMTP id S1751186AbdH2SO2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, ebiggers@google.com, koct9i@gmail.com, mark.rutland@arm.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, peterz@infradead.org, stable@vger.kernel.org, vbabka@suse.cz
+To: dan.carpenter@oracle.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: fix incorrect fput of ->exe_file causing use-after-free
+     Subject: mm, shmem: fix handling /sys/kernel/mm/transparent_hugepage/shmem_enabled
 has been removed from the -mm tree.  Its filename was
-     fork-fix-incorrect-fput-of-exe_file-causing-use-after-free.patch
+     mm-shmem-fix-handling-sys-kernel-mm-transparent_hugepage-shmem_enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: fork: fix incorrect fput of ->exe_file causing use-after-free
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, shmem: fix handling /sys/kernel/mm/transparent_hugepage/shmem_enabled
 
-7c051267931a ("mm, fork: make dup_mmap wait for mmap_sem for write
-killable") made it possible to kill a forking task while it is waiting to
-acquire its ->mmap_sem for write, in dup_mmap().  However, it was
-overlooked that this introduced an new error path before a reference is
-taken on the mm_struct's ->exe_file.  Since the ->exe_file of the new
-mm_struct was already set to the old ->exe_file by the memcpy() in
-dup_mm(), it was possible for the mmput() in the error path of dup_mm() to
-drop a reference to ->exe_file which was never taken.  This caused the
-struct file to later be freed prematurely.
+/sys/kernel/mm/transparent_hugepage/shmem_enabled controls if we want to
+allocate huge pages when allocate pages for private in-kernel shmem mount.
 
-Fix it by updating mm_init() to NULL out the ->exe_file, in the same place
-it clears other things like the list of mmaps.
+Unfortunately, as Dan noticed, I've screwed it up and the only way to make
+kernel allocate huge page for the mount is to use "force" there.  All
+other values will be effectively ignored.
 
-This bug was found by syzkaller.  It can be reproduced using the
-following C program:
-
-    #define _GNU_SOURCE
-    #include <pthread.h>
-    #include <stdlib.h>
-    #include <sys/mman.h>
-    #include <sys/syscall.h>
-    #include <sys/wait.h>
-    #include <unistd.h>
-
-    static void *mmap_thread(void *_arg)
-    {
-        for (;;) {
-            mmap(NULL, 0x1000000, PROT_READ,
-                 MAP_POPULATE|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-        }
-    }
-
-    static void *fork_thread(void *_arg)
-    {
-        usleep(rand() % 10000);
-        fork();
-    }
-
-    int main(void)
-    {
-        fork();
-        fork();
-        fork();
-        for (;;) {
-            if (fork() == 0) {
-                pthread_t t;
-
-                pthread_create(&t, NULL, mmap_thread, NULL);
-                pthread_create(&t, NULL, fork_thread, NULL);
-                usleep(rand() % 10000);
-                syscall(__NR_exit_group, 0);
-            }
-            wait(NULL);
-        }
-    }
-
-No special kernel config options are needed.  It usually causes a NULL
-pointer dereference in __remove_shared_vm_struct() during exit, or in
-dup_mmap() (which is usually inlined into copy_process()) during fork. 
-Both are due to a vm_area_struct's ->vm_file being used after it's already
-been freed.
-
-Google Bug Id: 64772007
-
-Link: http://lkml.kernel.org/r/20170823211408.31198-1-ebiggers3@gmail.com
-Fixes: 7c051267931a ("mm, fork: make dup_mmap wait for mmap_sem for write killable")
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Tested-by: Mark Rutland <mark.rutland@arm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[v4.7+]
+Link: http://lkml.kernel.org/r/20170822144254.66431-1-kirill.shutemov@linux.intel.com
+Fixes: 5a6e75f8110c ("shmem: prepare huge= mount option and sysfs knob")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: stable <stable@vger.kernel.org> [4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/fork.c~fork-fix-incorrect-fput-of-exe_file-causing-use-after-free kernel/fork.c
---- a/kernel/fork.c~fork-fix-incorrect-fput-of-exe_file-causing-use-after-free
-+++ a/kernel/fork.c
-@@ -806,6 +806,7 @@ static struct mm_struct *mm_init(struct
- 	mm_init_cpumask(mm);
- 	mm_init_aio(mm);
- 	mm_init_owner(mm, p);
-+	RCU_INIT_POINTER(mm->exe_file, NULL);
- 	mmu_notifier_mm_init(mm);
- 	init_tlb_flush_pending(mm);
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+diff -puN mm/shmem.c~mm-shmem-fix-handling-sys-kernel-mm-transparent_hugepage-shmem_enabled mm/shmem.c
+--- a/mm/shmem.c~mm-shmem-fix-handling-sys-kernel-mm-transparent_hugepage-shmem_enabled
++++ a/mm/shmem.c
+@@ -3967,7 +3967,7 @@ int __init shmem_init(void)
+ 	}
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
+-	if (has_transparent_hugepage() && shmem_huge < SHMEM_HUGE_DENY)
++	if (has_transparent_hugepage() && shmem_huge > SHMEM_HUGE_DENY)
+ 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
+ 	else
+ 		shmem_huge = 0; /* just in case it was patched */
+@@ -4028,7 +4028,7 @@ static ssize_t shmem_enabled_store(struc
+ 		return -EINVAL;
+ 
+ 	shmem_huge = huge;
+-	if (shmem_huge < SHMEM_HUGE_DENY)
++	if (shmem_huge > SHMEM_HUGE_DENY)
+ 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from ebiggers@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 
