@@ -1,159 +1,150 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- pm-hibernate-feed-the-wathdog-when-creating-snapshot.patch removed from -mm
+ mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch removed from -mm
  tree
-Date: Tue, 29 Aug 2017 11:14:23 -0700
-Message-ID: <20170829181423.zMcWNVQmD%akpm@linux-foundation.org>
+Date: Tue, 29 Aug 2017 11:14:33 -0700
+Message-ID: <20170829181433.AbXFFQUnd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55854 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751186AbdH2SOZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:25 -0400
+        with ESMTP id S1751186AbdH2SOe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, jan.filipcewicz@intel.com, lenb@kernel.org, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com, stable@vger.kernel.org, vbabka@suse.cz, yu.c.chen@intel.com
+To: aarcange@redhat.com, dvyukov@google.com, ebiggers@google.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: PM/hibernate: touch NMI watchdog when creating snapshot
+     Subject: mm/madvise.c: fix freeing of locked page with MADV_FREE
 has been removed from the -mm tree.  Its filename was
-     pm-hibernate-feed-the-wathdog-when-creating-snapshot.patch
+     mm-madvise-fix-freeing-of-locked-page-with-madv_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: PM/hibernate: touch NMI watchdog when creating snapshot
+From: Eric Biggers <ebiggers@google.com>
+Subject: mm/madvise.c: fix freeing of locked page with MADV_FREE
 
-There is a problem that when counting the pages for creating the
-hibernation snapshot will take significant amount of time, especially on
-system with large memory.  Since the counting job is performed with irq
-disabled, this might lead to NMI lockup.  The following warning were found
-on a system with 1.5TB DRAM:
+If madvise(..., MADV_FREE) split a transparent hugepage, it called
+put_page() before unlock_page().  This was wrong because put_page() can
+free the page, e.g.  if a concurrent madvise(..., MADV_DONTNEED) has
+removed it from the memory mapping.  put_page() then rightfully complained
+about freeing a locked page.
 
-[ 1124.758184] Freezing user space processes ... (elapsed 0.002 seconds) done.
-[ 1124.768721] OOM killer disabled.
-[ 1124.847009] PM: Preallocating image memory...
-[ 1139.392042] NMI watchdog: Watchdog detected hard LOCKUP on cpu 27
-[ 1139.392076] CPU: 27 PID: 3128 Comm: systemd-sleep Not tainted 4.13.0-0.rc2.git0.1.fc27.x86_64 #1
-[ 1139.392077] task: ffff9f01971ac000 task.stack: ffffb1a3f325c000
-[ 1139.392083] RIP: 0010:memory_bm_find_bit+0xf4/0x100
-[ 1139.392084] RSP: 0018:ffffb1a3f325fc20 EFLAGS: 00000006
-[ 1139.392084] RAX: 0000000000000000 RBX: 0000000013b83000 RCX: ffff9fbe89caf000
-[ 1139.392085] RDX: ffffb1a3f325fc30 RSI: 0000000000003200 RDI: ffff9fbeaffffe80
-[ 1139.392085] RBP: ffffb1a3f325fc40 R08: 0000000013b80000 R09: ffff9fbe89c54878
-[ 1139.392085] R10: ffffb1a3f325fc2c R11: 0000000013b83200 R12: 0000000000000400
-[ 1139.392086] R13: fffffd552e0c0000 R14: ffff9fc1bffd31e0 R15: 0000000000000202
-[ 1139.392086] FS:  00007f3189704180(0000) GS:ffff9fbec8ec0000(0000) knlGS:0000000000000000
-[ 1139.392087] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 1139.392087] CR2: 00000085da0f7398 CR3: 000001771cf9a000 CR4: 00000000007406e0
-[ 1139.392088] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[ 1139.392088] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[ 1139.392088] PKRU: 55555554
-[ 1139.392089] Call Trace:
-[ 1139.392092]  ? memory_bm_set_bit+0x29/0x60
-[ 1139.392094]  swsusp_set_page_free+0x2b/0x30
-[ 1139.392098]  mark_free_pages+0x147/0x1c0
-[ 1139.392099]  count_data_pages+0x41/0xa0
-[ 1139.392101]  hibernate_preallocate_memory+0x80/0x450
-[ 1139.392102]  hibernation_snapshot+0x58/0x410
-[ 1139.392103]  hibernate+0x17c/0x310
-[ 1139.392104]  state_store+0xdf/0xf0
-[ 1139.392107]  kobj_attr_store+0xf/0x20
-[ 1139.392111]  sysfs_kf_write+0x37/0x40
-[ 1139.392113]  kernfs_fop_write+0x11c/0x1a0
-[ 1139.392117]  __vfs_write+0x37/0x170
-[ 1139.392121]  ? handle_mm_fault+0xd8/0x230
-[ 1139.392122]  vfs_write+0xb1/0x1a0
-[ 1139.392123]  SyS_write+0x55/0xc0
-[ 1139.392126]  entry_SYSCALL_64_fastpath+0x1a/0xa5
-...
-[ 1144.690405] done (allocated 6590003 pages)
-[ 1144.694971] PM: Allocated 26360012 kbytes in 19.89 seconds (1325.28 MB/s)
+Fix this by moving the unlock_page() before put_page().
 
-It has taken nearly 20 seconds(2.10GHz CPU) thus the NMI lockup was
-triggered.  In case the timeout of the NMI watch dog has been set to 1
-second, a safe interval should be 6590003/20 = 320k pages in theory. 
-However there might also be some platforms running at a lower frequency,
-so feed the watchdog every 100k pages.
+This bug was found by syzkaller, which encountered the following splat:
 
-[yu.c.chen@intel.com: simplification]
-  Link: http://lkml.kernel.org/r/1503460079-29721-1-git-send-email-yu.c.chen@intel.com
-[yu.c.chen@intel.com: use interval of 128k instead of 100k to avoid modulus]
-Link: http://lkml.kernel.org/r/1503328098-5120-1-git-send-email-yu.c.chen@intel.com
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-Reported-by: Jan Filipcewicz <jan.filipcewicz@intel.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>
+    BUG: Bad page state in process syzkaller412798  pfn:1bd800
+    page:ffffea0006f60000 count:0 mapcount:0 mapping:          (null) index:0x20a00
+    flags: 0x200000000040019(locked|uptodate|dirty|swapbacked)
+    raw: 0200000000040019 0000000000000000 0000000000020a00 00000000ffffffff
+    raw: ffffea0006f60020 ffffea0006f60020 0000000000000000 0000000000000000
+    page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+    bad because of flags: 0x1(locked)
+    Modules linked in:
+    CPU: 1 PID: 3037 Comm: syzkaller412798 Not tainted 4.13.0-rc5+ #35
+    Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+    Call Trace:
+     __dump_stack lib/dump_stack.c:16 [inline]
+     dump_stack+0x194/0x257 lib/dump_stack.c:52
+     bad_page+0x230/0x2b0 mm/page_alloc.c:565
+     free_pages_check_bad+0x1f0/0x2e0 mm/page_alloc.c:943
+     free_pages_check mm/page_alloc.c:952 [inline]
+     free_pages_prepare mm/page_alloc.c:1043 [inline]
+     free_pcp_prepare mm/page_alloc.c:1068 [inline]
+     free_hot_cold_page+0x8cf/0x12b0 mm/page_alloc.c:2584
+     __put_single_page mm/swap.c:79 [inline]
+     __put_page+0xfb/0x160 mm/swap.c:113
+     put_page include/linux/mm.h:814 [inline]
+     madvise_free_pte_range+0x137a/0x1ec0 mm/madvise.c:371
+     walk_pmd_range mm/pagewalk.c:50 [inline]
+     walk_pud_range mm/pagewalk.c:108 [inline]
+     walk_p4d_range mm/pagewalk.c:134 [inline]
+     walk_pgd_range mm/pagewalk.c:160 [inline]
+     __walk_page_range+0xc3a/0x1450 mm/pagewalk.c:249
+     walk_page_range+0x200/0x470 mm/pagewalk.c:326
+     madvise_free_page_range.isra.9+0x17d/0x230 mm/madvise.c:444
+     madvise_free_single_vma+0x353/0x580 mm/madvise.c:471
+     madvise_dontneed_free mm/madvise.c:555 [inline]
+     madvise_vma mm/madvise.c:664 [inline]
+     SYSC_madvise mm/madvise.c:832 [inline]
+     SyS_madvise+0x7d3/0x13c0 mm/madvise.c:760
+     entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Here is a C reproducer:
+
+    #define _GNU_SOURCE
+    #include <pthread.h>
+    #include <sys/mman.h>
+    #include <unistd.h>
+
+    #define MADV_FREE	8
+    #define PAGE_SIZE	4096
+
+    static void *mapping;
+    static const size_t mapping_size = 0x1000000;
+
+    static void *madvise_thrproc(void *arg)
+    {
+        madvise(mapping, mapping_size, (long)arg);
+    }
+
+    int main(void)
+    {
+        pthread_t t[2];
+
+        for (;;) {
+            mapping = mmap(NULL, mapping_size, PROT_WRITE,
+                           MAP_POPULATE|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+
+            munmap(mapping + mapping_size / 2, PAGE_SIZE);
+
+            pthread_create(&t[0], 0, madvise_thrproc, (void*)MADV_DONTNEED);
+            pthread_create(&t[1], 0, madvise_thrproc, (void*)MADV_FREE);
+            pthread_join(t[0], NULL);
+            pthread_join(t[1], NULL);
+            munmap(mapping, mapping_size);
+        }
+    }
+
+Note: to see the splat, CONFIG_TRANSPARENT_HUGEPAGE=y and
+CONFIG_DEBUG_VM=y are needed.
+
+Google Bug Id: 64696096
+
+Link: http://lkml.kernel.org/r/20170823205235.132061-1-ebiggers3@gmail.com
+Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>	[v4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~pm-hibernate-feed-the-wathdog-when-creating-snapshot mm/page_alloc.c
---- a/mm/page_alloc.c~pm-hibernate-feed-the-wathdog-when-creating-snapshot
-+++ a/mm/page_alloc.c
-@@ -66,6 +66,7 @@
- #include <linux/kthread.h>
- #include <linux/memcontrol.h>
- #include <linux/ftrace.h>
-+#include <linux/nmi.h>
- 
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
-@@ -2535,9 +2536,14 @@ void drain_all_pages(struct zone *zone)
- 
- #ifdef CONFIG_HIBERNATION
- 
-+/*
-+ * Touch the watchdog for every WD_PAGE_COUNT pages.
-+ */
-+#define WD_PAGE_COUNT	(128*1024)
-+
- void mark_free_pages(struct zone *zone)
- {
--	unsigned long pfn, max_zone_pfn;
-+	unsigned long pfn, max_zone_pfn, page_count = WD_PAGE_COUNT;
- 	unsigned long flags;
- 	unsigned int order, t;
- 	struct page *page;
-@@ -2552,6 +2558,11 @@ void mark_free_pages(struct zone *zone)
- 		if (pfn_valid(pfn)) {
- 			page = pfn_to_page(pfn);
- 
-+			if (!--page_count) {
-+				touch_nmi_watchdog();
-+				page_count = WD_PAGE_COUNT;
-+			}
-+
- 			if (page_zone(page) != zone)
- 				continue;
- 
-@@ -2565,8 +2576,13 @@ void mark_free_pages(struct zone *zone)
- 			unsigned long i;
- 
- 			pfn = page_to_pfn(page);
--			for (i = 0; i < (1UL << order); i++)
-+			for (i = 0; i < (1UL << order); i++) {
-+				if (!--page_count) {
-+					touch_nmi_watchdog();
-+					page_count = WD_PAGE_COUNT;
-+				}
- 				swsusp_set_page_free(pfn_to_page(pfn + i));
-+			}
- 		}
- 	}
- 	spin_unlock_irqrestore(&zone->lock, flags);
+diff -puN mm/madvise.c~mm-madvise-fix-freeing-of-locked-page-with-madv_free mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-fix-freeing-of-locked-page-with-madv_free
++++ a/mm/madvise.c
+@@ -368,8 +368,8 @@ static int madvise_free_pte_range(pmd_t
+ 				pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 				goto out;
+ 			}
+-			put_page(page);
+ 			unlock_page(page);
++			put_page(page);
+ 			pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 			pte--;
+ 			addr -= PAGE_SIZE;
 _
 
-Patches currently in -mm which might be from yu.c.chen@intel.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
 
