@@ -1,62 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-reversed-logic-in-memblock_discard.patch
- removed from -mm tree
-Date: Tue, 29 Aug 2017 11:14:39 -0700
-Message-ID: <20170829181439.l1B6yLmGE%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-select-fix-memory-corruption-in-compat_get_fd_set.patch removed from -mm
+ tree
+Date: Tue, 29 Aug 2017 11:14:45 -0700
+Message-ID: <20170829181445.C7E_1xY7Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751186AbdH2SOk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:40 -0400
+        with ESMTP id S1751186AbdH2SOq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 14:14:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, stable@vger.kernel.org, terraluna977@gmail.com, vbabka@suse.cz
+To: deller@gmx.de, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/memblock.c: reversed logic in memblock_discard()
+     Subject: fs/select.c: fix memory corruption in compat_get_fd_set()
 has been removed from the -mm tree.  Its filename was
-     mm-reversed-logic-in-memblock_discard.patch
+     fs-select-fix-memory-corruption-in-compat_get_fd_set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm/memblock.c: reversed logic in memblock_discard()
+From: Helge Deller <deller@gmx.de>
+Subject: fs/select.c: fix memory corruption in compat_get_fd_set()
 
-In recently introduced memblock_discard() there is a reversed logic bug. 
-Memory is freed of static array instead of dynamically allocated one.
+464d62421cb8 ("select: switch compat_{get,put}_fd_set() to
+compat_{get,put}_bitmap()") changed the calculation on how many bytes need
+to be zeroed when userspace handed over a NULL pointer for a fdset array
+in the select syscall.
 
-Link: http://lkml.kernel.org/r/1503511441-95478-2-git-send-email-pasha.tatashin@oracle.com
-Fixes: 3010f876500f ("mm: discard memblock data later")
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reported-by: Woody Suwalski <terraluna977@gmail.com>
-Tested-by: Woody Suwalski <terraluna977@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+The calculation was changed in compat_get_fd_set() wrongly from
+	memset(fdset, 0, ((nr + 1) & ~1)*sizeof(compat_ulong_t));
+to
+	memset(fdset, 0, ALIGN(nr, BITS_PER_LONG));
+
+The ALIGN(nr, BITS_PER_LONG) calculates the number of bits which need to
+be zeroed in the target fdset array (rounded up to the next full bits for
+an unsigned long).  But the memset() call expects the number of bytes to
+be zeroed.
+
+This leads to clearing more memory than wanted (on the stack area or even
+at kmalloc()ed memory areas) and to random kernel crashes as we have seen
+them on the parisc platform.
+
+The correct change should have been
+	memset(fdset, 0, (ALIGN(nr, BITS_PER_LONG) / BITS_PER_LONG) * BYTES_PER_LONG);
+which is the same as can be archieved with a call to
+	zero_fd_set(nr, fdset).
+
+Link: http://lkml.kernel.org/r/20170823203700.GA29614@ls3530.fritz.box
+Fixes: 464d62421cb8 ("select: switch compat_{get,put}_fd_set() to compat_{get,put}_bitmap()"
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/select.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/memblock.c~mm-reversed-logic-in-memblock_discard mm/memblock.c
---- a/mm/memblock.c~mm-reversed-logic-in-memblock_discard
-+++ a/mm/memblock.c
-@@ -299,7 +299,7 @@ void __init memblock_discard(void)
- 		__memblock_free_late(addr, size);
+diff -puN fs/select.c~fs-select-fix-memory-corruption-in-compat_get_fd_set fs/select.c
+--- a/fs/select.c~fs-select-fix-memory-corruption-in-compat_get_fd_set
++++ a/fs/select.c
+@@ -1164,11 +1164,7 @@ int compat_get_fd_set(unsigned long nr,
+ 	if (ufdset) {
+ 		return compat_get_bitmap(fdset, ufdset, nr);
+ 	} else {
+-		/* Tricky, must clear full unsigned long in the
+-		 * kernel fdset at the end, ALIGN makes sure that
+-		 * actually happens.
+-		 */
+-		memset(fdset, 0, ALIGN(nr, BITS_PER_LONG));
++		zero_fd_set(nr, fdset);
+ 		return 0;
  	}
- 
--	if (memblock.memory.regions == memblock_memory_init_regions) {
-+	if (memblock.memory.regions != memblock_memory_init_regions) {
- 		addr = __pa(memblock.memory.regions);
- 		size = PAGE_ALIGN(sizeof(struct memblock_region) *
- 				  memblock.memory.max);
+ }
 _
 
-Patches currently in -mm which might be from pasha.tatashin@oracle.com are
+Patches currently in -mm which might be from deller@gmx.de are
 
-sparc64-ng4-memset-32-bits-overflow.patch
 
