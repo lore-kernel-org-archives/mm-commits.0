@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-improve-readability-of-clear_huge_page.patch added to -mm
- tree
-Date: Wed, 30 Aug 2017 15:02:09 -0700
-Message-ID: <59a735e1.mOyc+/nR0JzpIHZg%akpm@linux-foundation.org>
+Subject: + mm-uprobes-fix-multiple-free-of-uprobes_statexol_area.patch
+ added to -mm tree
+Date: Wed, 30 Aug 2017 15:04:06 -0700
+Message-ID: <59a73656.y7IINRz5e3+NFfFI%akpm__43777.7200634175$1504130673$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48720 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751385AbdH3WCK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 18:02:10 -0400
+        with ESMTP id S1751409AbdH3WEH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 18:04:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: ebiggers@google.com, acme@kernel.org, alexander.shishkin@linux.intel.com, dvyukov@google.com, koct9i@gmail.com, mark.rutland@arm.com, mhocko@suse.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: improve readability of clear_huge_page
+     Subject: mm, uprobes: fix multiple free of ->uprobes_state.xol_area
 has been added to the -mm tree.  Its filename is
-     mm-improve-readability-of-clear_huge_page.patch
+     mm-uprobes-fix-multiple-free-of-uprobes_statexol_area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-improve-readability-of-clear_huge_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-uprobes-fix-multiple-free-of-uprobes_statexol_area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-improve-readability-of-clear_huge_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uprobes-fix-multiple-free-of-uprobes_statexol_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +39,146 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/memory.c: improve readability of clear_huge_page
+From: Eric Biggers <ebiggers@google.com>
+Subject: mm, uprobes: fix multiple free of ->uprobes_state.xol_area
 
-The optimized clear_huge_page() isn't easy to read and understand.  This
-is suggested by Michael Hocko to improve it.
+7c051267931a ("mm, fork: make dup_mmap wait for mmap_sem for write
+killable") made it possible to kill a forking task while it is waiting to
+acquire its ->mmap_sem for write, in dup_mmap().
 
-Link: http://lkml.kernel.org/r/20170830051842.1397-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
+However, it was overlooked that this introduced an new error path before
+the new mm_struct's ->uprobes_state.xol_area has been set to NULL after
+being copied from the old mm_struct by the memcpy in dup_mm().  For a task
+that has previously hit a uprobe tracepoint, this resulted in the 'struct
+xol_area' being freed multiple times if the task was killed at just the
+right time while forking.
+
+Fix it by setting ->uprobes_state.xol_area to NULL in mm_init() rather
+than in uprobe_dup_mmap().
+
+With CONFIG_UPROBE_EVENTS=y, the bug can be reproduced by the same C
+program given by commit 2b7e8665b4ff ("fork: fix incorrect fput of
+->exe_file causing use-after-free"), provided that a uprobe tracepoint has
+been set on the fork_thread() function.  For example:
+
+    $ gcc reproducer.c -o reproducer -lpthread
+    $ nm reproducer | grep fork_thread
+    0000000000400719 t fork_thread
+    $ echo "p $PWD/reproducer:0x719" > /sys/kernel/debug/tracing/uprobe_events
+    $ echo 1 > /sys/kernel/debug/tracing/events/uprobes/enable
+    $ ./reproducer
+
+Here is the use-after-free reported by KASAN:
+
+    BUG: KASAN: use-after-free in uprobe_clear_state+0x1c4/0x200
+    Read of size 8 at addr ffff8800320a8b88 by task reproducer/198
+
+    CPU: 1 PID: 198 Comm: reproducer Not tainted 4.13.0-rc7-00015-g36fde05f3fb5 #255
+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-20170228_101828-anatol 04/01/2014
+    Call Trace:
+     dump_stack+0xdb/0x185
+     print_address_description+0x7e/0x290
+     kasan_report+0x23b/0x350
+     __asan_report_load8_noabort+0x19/0x20
+     uprobe_clear_state+0x1c4/0x200
+     mmput+0xd6/0x360
+     do_exit+0x740/0x1670
+     do_group_exit+0x13f/0x380
+     get_signal+0x597/0x17d0
+     do_signal+0x99/0x1df0
+     exit_to_usermode_loop+0x166/0x1e0
+     syscall_return_slowpath+0x258/0x2c0
+     entry_SYSCALL_64_fastpath+0xbc/0xbe
+
+    ...
+
+    Allocated by task 199:
+     save_stack_trace+0x1b/0x20
+     kasan_kmalloc+0xfc/0x180
+     kmem_cache_alloc_trace+0xf3/0x330
+     __create_xol_area+0x10f/0x780
+     uprobe_notify_resume+0x1674/0x2210
+     exit_to_usermode_loop+0x150/0x1e0
+     prepare_exit_to_usermode+0x14b/0x180
+     retint_user+0x8/0x20
+
+    Freed by task 199:
+     save_stack_trace+0x1b/0x20
+     kasan_slab_free+0xa8/0x1a0
+     kfree+0xba/0x210
+     uprobe_clear_state+0x151/0x200
+     mmput+0xd6/0x360
+     copy_process.part.8+0x605f/0x65d0
+     _do_fork+0x1a5/0xbd0
+     SyS_clone+0x19/0x20
+     do_syscall_64+0x22f/0x660
+     return_from_SYSCALL_64+0x0/0x7a
+
+Note: without KASAN, you may instead see a "Bad page state" message, or
+simply a general protection fault.
+
+Link: http://lkml.kernel.org/r/20170830033303.17927-1-ebiggers3@gmail.com
+Fixes: 7c051267931a ("mm, fork: make dup_mmap wait for mmap_sem for write killable")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reported-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>    [4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ kernel/events/uprobes.c |    2 --
+ kernel/fork.c           |    8 ++++++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-improve-readability-of-clear_huge_page mm/memory.c
---- a/mm/memory.c~mm-improve-readability-of-clear_huge_page
-+++ a/mm/memory.c
-@@ -4543,12 +4543,15 @@ void clear_huge_page(struct page *page,
- 	 * towards the sub-page to access
- 	 */
- 	for (i = 0; i < l; i++) {
-+		int left_idx = base + i;
-+		int right_idx = base + 2 * l - 1 - i;
-+
- 		cond_resched();
--		clear_user_highpage(page + base + i,
--				    addr + (base + i) * PAGE_SIZE);
-+		clear_user_highpage(page + left_idx,
-+				    addr + left_idx * PAGE_SIZE);
- 		cond_resched();
--		clear_user_highpage(page + base + 2 * l - 1 - i,
--				    addr + (base + 2 * l - 1 - i) * PAGE_SIZE);
-+		clear_user_highpage(page + right_idx,
-+				    addr + right_idx * PAGE_SIZE);
- 	}
+diff -puN kernel/events/uprobes.c~mm-uprobes-fix-multiple-free-of-uprobes_statexol_area kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-uprobes-fix-multiple-free-of-uprobes_statexol_area
++++ a/kernel/events/uprobes.c
+@@ -1262,8 +1262,6 @@ void uprobe_end_dup_mmap(void)
+ 
+ void uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm)
+ {
+-	newmm->uprobes_state.xol_area = NULL;
+-
+ 	if (test_bit(MMF_HAS_UPROBES, &oldmm->flags)) {
+ 		set_bit(MMF_HAS_UPROBES, &newmm->flags);
+ 		/* unconditionally, dup_mmap() skips VM_DONTCOPY vmas */
+diff -puN kernel/fork.c~mm-uprobes-fix-multiple-free-of-uprobes_statexol_area kernel/fork.c
+--- a/kernel/fork.c~mm-uprobes-fix-multiple-free-of-uprobes_statexol_area
++++ a/kernel/fork.c
+@@ -785,6 +785,13 @@ static void mm_init_owner(struct mm_stru
+ #endif
  }
  
++static void mm_init_uprobes_state(struct mm_struct *mm)
++{
++#ifdef CONFIG_UPROBES
++	mm->uprobes_state.xol_area = NULL;
++#endif
++}
++
+ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
+ 	struct user_namespace *user_ns)
+ {
+@@ -812,6 +819,7 @@ static struct mm_struct *mm_init(struct
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+ 	mm->pmd_huge_pte = NULL;
+ #endif
++	mm_init_uprobes_state(mm);
+ 
+ 	if (current->mm) {
+ 		mm->flags = current->mm->flags & MMF_INIT_MASK;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
-mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
-mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
-mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
-mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
-mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
-block-thp-make-block_device_operationsrw_page-support-thp.patch
-test-code-to-write-thp-to-swap-device-as-a-whole.patch
-mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
-memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
-memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
-memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
-mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
-mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
-mm-swap-add-swap-readahead-hit-statistics.patch
-mm-swap-fix-swap-readahead-marking.patch
-mm-swap-vma-based-swap-readahead.patch
-mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch
-mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
-mm-clear-to-access-sub-page-last-when-clearing-huge-page.patch
-mm-improve-readability-of-clear_huge_page.patch
+mm-uprobes-fix-multiple-free-of-uprobes_statexol_area.patch
 
