@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_owner-skip-unnecessary-stack_trace-entries.patch added
- to -mm tree
-Date: Wed, 30 Aug 2017 13:29:49 -0700
-Message-ID: <59a7203d.zbx6wCJjn9LxoKAB%akpm@linux-foundation.org>
+Subject: + mm-improve-readability-of-clear_huge_page.patch added to -mm
+ tree
+Date: Wed, 30 Aug 2017 15:02:09 -0700
+Message-ID: <59a735e1.mOyc+/nR0JzpIHZg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48560 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750757AbdH3U3u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 16:29:50 -0400
+        with ESMTP id S1751385AbdH3WCK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 18:02:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guptap@codeaurora.org, catalin.marinas@arm.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, rmk+kernel@arm.linux.org.uk, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: skip unnecessary stack_trace entries
+     Subject: mm/memory.c: improve readability of clear_huge_page
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-skip-unnecessary-stack_trace-entries.patch
+     mm-improve-readability-of-clear_huge_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-skip-unnecessary-stack_trace-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-improve-readability-of-clear_huge_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-skip-unnecessary-stack_trace-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-improve-readability-of-clear_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Prakash Gupta <guptap@codeaurora.org>
-Subject: mm, page_owner: skip unnecessary stack_trace entries
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/memory.c: improve readability of clear_huge_page
 
-The page_owner stacktrace always begin as follows:
+The optimized clear_huge_page() isn't easy to read and understand.  This
+is suggested by Michael Hocko to improve it.
 
-[<ffffff987bfd48f4>] save_stack+0x40/0xc8
-[<ffffff987bfd4da8>] __set_page_owner+0x3c/0x6c
-
-These two entries do not provide any useful information and limits the
-available stacktrace depth.  The page_owner stacktrace was skipping caller
-function from stack entries but this was missed with commit f2ca0b557107
-("mm/page_owner: use stackdepot to store stacktrace")
-
-Example page_owner entry after the patch:
-
-Page allocated via order 0, mask 0x8(ffffff80085fb714)
-PFN 654411 type Movable Block 639 type CMA Flags 0x0(ffffffbe5c7f12c0)
-[<ffffff9b64989c14>] post_alloc_hook+0x70/0x80
-...
-[<ffffff9b651216e8>] msm_comm_try_state+0x5f8/0x14f4
-[<ffffff9b6512486c>] msm_vidc_open+0x5e4/0x7d0
-[<ffffff9b65113674>] msm_v4l2_open+0xa8/0x224
-
-Link: http://lkml.kernel.org/r/1504078343-28754-2-git-send-email-guptap@codeaurora.org
-Fixes: f2ca0b557107 ("mm/page_owner: use stackdepot to store stacktrace")
-Signed-off-by: Prakash Gupta <guptap@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: http://lkml.kernel.org/r/20170830051842.1397-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-skip-unnecessary-stack_trace-entries mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-skip-unnecessary-stack_trace-entries
-+++ a/mm/page_owner.c
-@@ -139,7 +139,7 @@ static noinline depot_stack_handle_t sav
- 		.nr_entries = 0,
- 		.entries = entries,
- 		.max_entries = PAGE_OWNER_STACK_DEPTH,
--		.skip = 0
-+		.skip = 2
- 	};
- 	depot_stack_handle_t handle;
+diff -puN mm/memory.c~mm-improve-readability-of-clear_huge_page mm/memory.c
+--- a/mm/memory.c~mm-improve-readability-of-clear_huge_page
++++ a/mm/memory.c
+@@ -4543,12 +4543,15 @@ void clear_huge_page(struct page *page,
+ 	 * towards the sub-page to access
+ 	 */
+ 	for (i = 0; i < l; i++) {
++		int left_idx = base + i;
++		int right_idx = base + 2 * l - 1 - i;
++
+ 		cond_resched();
+-		clear_user_highpage(page + base + i,
+-				    addr + (base + i) * PAGE_SIZE);
++		clear_user_highpage(page + left_idx,
++				    addr + left_idx * PAGE_SIZE);
+ 		cond_resched();
+-		clear_user_highpage(page + base + 2 * l - 1 - i,
+-				    addr + (base + 2 * l - 1 - i) * PAGE_SIZE);
++		clear_user_highpage(page + right_idx,
++				    addr + right_idx * PAGE_SIZE);
+ 	}
+ }
  
 _
 
-Patches currently in -mm which might be from guptap@codeaurora.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
-mm-page_owner-skip-unnecessary-stack_trace-entries.patch
+mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
+mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+block-thp-make-block_device_operationsrw_page-support-thp.patch
+test-code-to-write-thp-to-swap-device-as-a-whole.patch
+mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
+memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
+memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
+mm-swap-add-swap-readahead-hit-statistics.patch
+mm-swap-fix-swap-readahead-marking.patch
+mm-swap-vma-based-swap-readahead.patch
+mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch
+mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
+mm-clear-to-access-sub-page-last-when-clearing-huge-page.patch
+mm-improve-readability-of-clear_huge_page.patch
 
