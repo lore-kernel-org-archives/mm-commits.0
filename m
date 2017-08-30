@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-dont-perform-compiletime_assert-with-o0-fix.patch
- added to -mm tree
-Date: Wed, 30 Aug 2017 15:59:27 -0700
-Message-ID: <59a7434f.GVLTOtYWPyRhH/+e%akpm@linux-foundation.org>
+Subject: + scripts-dtc-fix-%zx-warning.patch added to -mm tree
+Date: Wed, 30 Aug 2017 16:02:12 -0700
+Message-ID: <59a743f4.5aGDdxlOKgpRRZAB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751016AbdH3W72 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 18:59:28 -0400
+        with ESMTP id S1750973AbdH3XCN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 19:02:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, abbotti@mev.co.uk, arnd@arndb.de, joe@ovn.org, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
+To: rmk+kernel@armlinux.org.uk, david@gibson.dropbear.id.au, frowand.list@gmail.com, mmarek@suse.cz, robh+dt@kernel.org, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-dont-perform-compiletime_assert-with-o0-fix
+     Subject: scripts/dtc: fix '%zx' warning
 has been added to the -mm tree.  Its filename is
-     compiler-dont-perform-compiletime_assert-with-o0-fix.patch
+     scripts-dtc-fix-%zx-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compiler-dont-perform-compiletime_assert-with-o0-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-dtc-fix-%25zx-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-dont-perform-compiletime_assert-with-o0-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-dtc-fix-%25zx-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: compiler-dont-perform-compiletime_assert-with-o0-fix
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: scripts/dtc: fix '%zx' warning
 
-use do{}while(0), per Michal
+dtc uses an incorrect format specifier for printing a uint64_t value. 
+uint64_t may be either 'unsigned long' or 'unsigned long long' depending
+on the host architecture.
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ian Abbott <abbotti@mev.co.uk>
-Cc: Joe Stringer <joe@ovn.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+Fix this by using %llx and casting to unsigned long long, which ensures
+that we always have a wide enough variable to print 64 bits of hex.
+
+  HOSTCC  scripts/dtc/checks.o
+scripts/dtc/checks.c: In function 'check_simple_bus_reg':
+scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+  snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
+  ^
+scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+
+Link: http://lkml.kernel.org/r/20170829222034.GJ20805@n2100.armlinux.org.uk
+Fixes: 828d4cdd012c ("dtc: check.c fix compile error")
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    2 +-
+ scripts/dtc/checks.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0-fix include/linux/compiler.h
---- a/include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0-fix
-+++ a/include/linux/compiler.h
-@@ -527,7 +527,7 @@ static __always_inline void __write_once
- 		__compiletime_error_fallback(__cond);			\
- 	} while (0)
- #else
--# define __compiletime_assert(condition, msg, prefix, suffix)
-+# define __compiletime_assert(condition, msg, prefix, suffix) do { } while (0)
- #endif
+diff -puN scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning scripts/dtc/checks.c
+--- a/scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning
++++ a/scripts/dtc/checks.c
+@@ -873,7 +873,7 @@ static void check_simple_bus_reg(struct
+ 	while (size--)
+ 		reg = (reg << 32) | fdt32_to_cpu(*(cells++));
  
- #define _compiletime_assert(condition, msg, prefix, suffix) \
+-	snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
++	snprintf(unit_addr, sizeof(unit_addr), "%llx", (unsigned long long)reg);
+ 	if (!streq(unitname, unit_addr))
+ 		FAIL(c, dti, "Node %s simple-bus unit address format error, expected \"%s\"",
+ 		     node->fullpath, unit_addr);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rmk+kernel@armlinux.org.uk are
 
-i-need-old-gcc.patch
-compiler-dont-perform-compiletime_assert-with-o0-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
-mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
-add-testcases-for-memset16-32-64-fix.patch
-vga-optimise-console-scrolling-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-zram-mm-vs-block.patch
-drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+scripts-dtc-fix-%zx-warning.patch
 
