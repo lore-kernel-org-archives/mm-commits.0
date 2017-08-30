@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + include-warn-for-inconsistent-endian-config-definition.patch
- added to -mm tree
-Date: Tue, 29 Aug 2017 12:36:14 -0700
-Message-ID: <59a5c22e.vXazJtsnCB0qXsVe%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch added
+ to -mm tree
+Date: Wed, 30 Aug 2017 13:16:38 -0700
+Message-ID: <59a71d26.EyoAdu+58TFG9bAZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34694 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdH2TgQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2017 15:36:16 -0400
+        with ESMTP id S1750793AbdH3UQj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 16:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: babu.moger@oracle.com, arnd@arndb.de, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, jejb@parisc-linux.org, jonas@southpole.se, mingo@elte.hu, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include: warn for inconsistent endian config definition
+     Subject: mm: memcontrol: use per-cpu stocks for socket memory uncharging
 has been added to the -mm tree.  Its filename is
-     include-warn-for-inconsistent-endian-config-definition.patch
+     mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-warn-for-inconsistent-endian-config-definition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-warn-for-inconsistent-endian-config-definition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +40,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Babu Moger <babu.moger@oracle.com>
-Subject: include: warn for inconsistent endian config definition
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: memcontrol: use per-cpu stocks for socket memory uncharging
 
-We have seen some generic code use config parameter CONFIG_CPU_BIG_ENDIAN
-to decide the endianness.
+We've noticed a quite sensible performance overhead on some hosts with
+significant network traffic when socket memory accounting is enabled.
 
-Here are the few examples.
-include/asm-generic/qrwlock.h
-drivers/of/base.c
-drivers/of/fdt.c
-drivers/tty/serial/earlycon.c
-drivers/tty/serial/serial_core.c
+Perf top shows that socket memory uncharging path is hot:
+  2.13%  [kernel]                [k] page_counter_cancel
+  1.14%  [kernel]                [k] __sk_mem_reduce_allocated
+  1.14%  [kernel]                [k] _raw_spin_lock
+  0.87%  [kernel]                [k] _raw_spin_lock_irqsave
+  0.84%  [kernel]                [k] tcp_ack
+  0.84%  [kernel]                [k] ixgbe_poll
+  0.83%  < workload >
+  0.82%  [kernel]                [k] enqueue_entity
+  0.68%  [kernel]                [k] __fget
+  0.68%  [kernel]                [k] tcp_delack_timer_handler
+  0.67%  [kernel]                [k] __schedule
+  0.60%  < workload >
+  0.59%  [kernel]                [k] __inet6_lookup_established
+  0.55%  [kernel]                [k] __switch_to
+  0.55%  [kernel]                [k] menu_select
+  0.54%  libc-2.20.so            [.] __memcpy_avx_unaligned
 
-Display warning if CPU_BIG_ENDIAN is not defined on big endian
-architecture and also warn if it defined on little endian architectures.
+To address this issue, the existing per-cpu stock infrastructure can be
+used.
 
-Here is our original discussion
-https://lkml.org/lkml/2017/5/24/620
+refill_stock() can be called from mem_cgroup_uncharge_skmem() to move
+charge to a per-cpu stock instead of calling atomic
+page_counter_uncharge().
 
-Link: http://lkml.kernel.org/r/1499358861-179979-4-git-send-email-babu.moger@oracle.com
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+To prevent the uncontrolled growth of per-cpu stocks, refill_stock() will
+explicitly drain the cached charge, if the cached value exceeds
+CHARGE_BATCH.
+
+This allows significantly optimize the load:
+  1.21%  [kernel]                [k] _raw_spin_lock
+  1.01%  [kernel]                [k] ixgbe_poll
+  0.92%  [kernel]                [k] _raw_spin_lock_irqsave
+  0.90%  [kernel]                [k] enqueue_entity
+  0.86%  [kernel]                [k] tcp_ack
+  0.85%  < workload >
+  0.74%  perf-11120.map          [.] 0x000000000061bf24
+  0.73%  [kernel]                [k] __schedule
+  0.67%  [kernel]                [k] __fget
+  0.63%  [kernel]                [k] __inet6_lookup_established
+  0.62%  [kernel]                [k] menu_select
+  0.59%  < workload >
+  0.59%  [kernel]                [k] __switch_to
+  0.57%  libc-2.20.so            [.] __memcpy_avx_unaligned
+
+Link: http://lkml.kernel.org/r/20170829100150.4580-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder/big_endian.h    |    4 ++++
- include/linux/byteorder/little_endian.h |    4 ++++
- 2 files changed, 8 insertions(+)
+ mm/memcontrol.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/byteorder/big_endian.h~include-warn-for-inconsistent-endian-config-definition include/linux/byteorder/big_endian.h
---- a/include/linux/byteorder/big_endian.h~include-warn-for-inconsistent-endian-config-definition
-+++ a/include/linux/byteorder/big_endian.h
-@@ -3,5 +3,9 @@
+diff -puN mm/memcontrol.c~mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging
++++ a/mm/memcontrol.c
+@@ -1792,6 +1792,9 @@ static void refill_stock(struct mem_cgro
+ 	}
+ 	stock->nr_pages += nr_pages;
  
- #include <uapi/linux/byteorder/big_endian.h>
- 
-+#ifndef CONFIG_CPU_BIG_ENDIAN
-+#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
-+#endif
++	if (stock->nr_pages > CHARGE_BATCH)
++		drain_stock(stock);
 +
- #include <linux/byteorder/generic.h>
- #endif /* _LINUX_BYTEORDER_BIG_ENDIAN_H */
-diff -puN include/linux/byteorder/little_endian.h~include-warn-for-inconsistent-endian-config-definition include/linux/byteorder/little_endian.h
---- a/include/linux/byteorder/little_endian.h~include-warn-for-inconsistent-endian-config-definition
-+++ a/include/linux/byteorder/little_endian.h
-@@ -3,5 +3,9 @@
+ 	local_irq_restore(flags);
+ }
  
- #include <uapi/linux/byteorder/little_endian.h>
+@@ -5886,8 +5889,7 @@ void mem_cgroup_uncharge_skmem(struct me
  
-+#ifdef CONFIG_CPU_BIG_ENDIAN
-+#warning inconsistent configuration, CONFIG_CPU_BIG_ENDIAN is set
-+#endif
-+
- #include <linux/byteorder/generic.h>
- #endif /* _LINUX_BYTEORDER_LITTLE_ENDIAN_H */
+ 	this_cpu_sub(memcg->stat->count[MEMCG_SOCK], nr_pages);
+ 
+-	page_counter_uncharge(&memcg->memory, nr_pages);
+-	css_put_many(&memcg->css, nr_pages);
++	refill_stock(memcg, nr_pages);
+ }
+ 
+ static int __init cgroup_memory(char *s)
 _
 
-Patches currently in -mm which might be from babu.moger@oracle.com are
+Patches currently in -mm which might be from guro@fb.com are
 
-arch-define-cpu_big_endian-for-all-fixed-big-endian-archs.patch
-arch-microblaze-add-choice-for-endianness-and-update-makefile.patch
-include-warn-for-inconsistent-endian-config-definition.patch
+mm-memcg-reset-memorylow-during-memcg-offlining.patch
+cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction.patch
+mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
 
