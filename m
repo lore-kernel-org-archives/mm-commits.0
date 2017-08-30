@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch added
- to -mm tree
-Date: Wed, 30 Aug 2017 13:16:38 -0700
-Message-ID: <59a71d26.EyoAdu+58TFG9bAZ%akpm@linux-foundation.org>
+ arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
+ added to -mm tree
+Date: Wed, 30 Aug 2017 13:29:47 -0700
+Message-ID: <59a7203b.QQYiVWige6P9t8+b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750793AbdH3UQj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 16:16:39 -0400
+        with ESMTP id S1750757AbdH3U3s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 16:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: guptap@codeaurora.org, catalin.marinas@arm.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, rmk+kernel@arm.linux.org.uk, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: use per-cpu stocks for socket memory uncharging
+     Subject: arm64: stacktrace: avoid listing stacktrace functions in stacktrace
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
+     arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +40,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcontrol: use per-cpu stocks for socket memory uncharging
+From: Prakash Gupta <guptap@codeaurora.org>
+Subject: arm64: stacktrace: avoid listing stacktrace functions in stacktrace
 
-We've noticed a quite sensible performance overhead on some hosts with
-significant network traffic when socket memory accounting is enabled.
+The stacktraces always begin as follows:
 
-Perf top shows that socket memory uncharging path is hot:
-  2.13%  [kernel]                [k] page_counter_cancel
-  1.14%  [kernel]                [k] __sk_mem_reduce_allocated
-  1.14%  [kernel]                [k] _raw_spin_lock
-  0.87%  [kernel]                [k] _raw_spin_lock_irqsave
-  0.84%  [kernel]                [k] tcp_ack
-  0.84%  [kernel]                [k] ixgbe_poll
-  0.83%  < workload >
-  0.82%  [kernel]                [k] enqueue_entity
-  0.68%  [kernel]                [k] __fget
-  0.68%  [kernel]                [k] tcp_delack_timer_handler
-  0.67%  [kernel]                [k] __schedule
-  0.60%  < workload >
-  0.59%  [kernel]                [k] __inet6_lookup_established
-  0.55%  [kernel]                [k] __switch_to
-  0.55%  [kernel]                [k] menu_select
-  0.54%  libc-2.20.so            [.] __memcpy_avx_unaligned
+ [<c00117b4>] save_stack_trace_tsk+0x0/0x98
+ [<c0011870>] save_stack_trace+0x24/0x28
+ ...
 
-To address this issue, the existing per-cpu stock infrastructure can be
-used.
+This is because the stack trace code includes the stack frames for itself.
+This is incorrect behaviour, and also leads to "skip" doing the wrong
+thing (which is the number of stack frames to avoid recording.)
 
-refill_stock() can be called from mem_cgroup_uncharge_skmem() to move
-charge to a per-cpu stock instead of calling atomic
-page_counter_uncharge().
+Perversely, it does the right thing when passed a non-current thread.  Fix
+this by ensuring that we have a known constant number of frames above the
+main stack trace function, and always skip these.
 
-To prevent the uncontrolled growth of per-cpu stocks, refill_stock() will
-explicitly drain the cached charge, if the cached value exceeds
-CHARGE_BATCH.
+This was fixed for arch arm by 3683f44c42e9 ("ARM: stacktrace: avoid
+listing stacktrace functions in stacktrace")
 
-This allows significantly optimize the load:
-  1.21%  [kernel]                [k] _raw_spin_lock
-  1.01%  [kernel]                [k] ixgbe_poll
-  0.92%  [kernel]                [k] _raw_spin_lock_irqsave
-  0.90%  [kernel]                [k] enqueue_entity
-  0.86%  [kernel]                [k] tcp_ack
-  0.85%  < workload >
-  0.74%  perf-11120.map          [.] 0x000000000061bf24
-  0.73%  [kernel]                [k] __schedule
-  0.67%  [kernel]                [k] __fget
-  0.63%  [kernel]                [k] __inet6_lookup_established
-  0.62%  [kernel]                [k] menu_select
-  0.59%  < workload >
-  0.59%  [kernel]                [k] __switch_to
-  0.57%  libc-2.20.so            [.] __memcpy_avx_unaligned
-
-Link: http://lkml.kernel.org/r/20170829100150.4580-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/1504078343-28754-1-git-send-email-guptap@codeaurora.org
+Signed-off-by: Prakash Gupta <guptap@codeaurora.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/stacktrace.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging
-+++ a/mm/memcontrol.c
-@@ -1792,6 +1792,9 @@ static void refill_stock(struct mem_cgro
+diff -puN arch/arm64/kernel/stacktrace.c~arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace arch/arm64/kernel/stacktrace.c
+--- a/arch/arm64/kernel/stacktrace.c~arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace
++++ a/arch/arm64/kernel/stacktrace.c
+@@ -140,7 +140,8 @@ void save_stack_trace_regs(struct pt_reg
+ 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+ }
+ 
+-void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
++static noinline void __save_stack_trace(struct task_struct *tsk,
++	struct stack_trace *trace, unsigned int nosched)
+ {
+ 	struct stack_trace_data data;
+ 	struct stackframe frame;
+@@ -150,15 +151,16 @@ void save_stack_trace_tsk(struct task_st
+ 
+ 	data.trace = trace;
+ 	data.skip = trace->skip;
++	data.no_sched_functions = nosched;
+ 
+ 	if (tsk != current) {
+-		data.no_sched_functions = 1;
+ 		frame.fp = thread_saved_fp(tsk);
+ 		frame.pc = thread_saved_pc(tsk);
+ 	} else {
+-		data.no_sched_functions = 0;
++		/* We don't want this function nor the caller */
++		data.skip += 2;
+ 		frame.fp = (unsigned long)__builtin_frame_address(0);
+-		frame.pc = (unsigned long)save_stack_trace_tsk;
++		frame.pc = (unsigned long)__save_stack_trace;
  	}
- 	stock->nr_pages += nr_pages;
+ #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+ 	frame.graph = tsk->curr_ret_stack;
+@@ -172,9 +174,15 @@ void save_stack_trace_tsk(struct task_st
+ }
+ EXPORT_SYMBOL_GPL(save_stack_trace_tsk);
  
-+	if (stock->nr_pages > CHARGE_BATCH)
-+		drain_stock(stock);
++void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
++{
++	__save_stack_trace(tsk, trace, 1);
++}
 +
- 	local_irq_restore(flags);
+ void save_stack_trace(struct stack_trace *trace)
+ {
+-	save_stack_trace_tsk(current, trace);
++	__save_stack_trace(current, trace, 0);
  }
- 
-@@ -5886,8 +5889,7 @@ void mem_cgroup_uncharge_skmem(struct me
- 
- 	this_cpu_sub(memcg->stat->count[MEMCG_SOCK], nr_pages);
- 
--	page_counter_uncharge(&memcg->memory, nr_pages);
--	css_put_many(&memcg->css, nr_pages);
-+	refill_stock(memcg, nr_pages);
- }
- 
- static int __init cgroup_memory(char *s)
++
+ EXPORT_SYMBOL_GPL(save_stack_trace);
+ #endif
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from guptap@codeaurora.org are
 
-mm-memcg-reset-memorylow-during-memcg-offlining.patch
-cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction.patch
-mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
+arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
+mm-page_owner-skip-unnecessary-stack_trace-entries.patch
 
