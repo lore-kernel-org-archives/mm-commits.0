@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_owner-make-init_pages_in_zone-faster-fix2.patch added
- to -mm tree
-Date: Thu, 31 Aug 2017 14:15:59 -0700
-Message-ID: <59a87c8f.uzucCpDOTJ26/JF+%akpm@linux-foundation.org>
+Subject: +
+ mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch added to -mm tree
+Date: Thu, 31 Aug 2017 14:18:55 -0700
+Message-ID: <59a87d3f.OLYA18CD4dkc/FDE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50480 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750908AbdHaVQD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 17:16:03 -0400
+        with ESMTP id S1752053AbdHaVS6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 17:18:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, vinmenon@codeaurora.org, yang.shi@linaro.org, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_owner-make-init_pages_in_zone-faster-fix2
+     Subject: mm/memory.c: improve readability of clear_huge_page
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-make-init_pages_in_zone-faster-fix2.patch
+     mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-make-init_pages_in_zone-faster-fix2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-make-init_pages_in_zone-faster-fix2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +39,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-page_owner-make-init_pages_in_zone-faster-fix2
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/memory.c: improve readability of clear_huge_page
 
-Create statically allocated fake stack trace for early allocated pages, per
-Michal Hocko.
+The optimized clear_huge_page() isn't easy to read and understand.  This
+is suggested by Michael Hocko to improve it.
 
-Link: http://lkml.kernel.org/r/45813564-2342-fc8d-d31a-f4b68a724325@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: zhong jiang <zhongjiang@huawei.com>
+Link: http://lkml.kernel.org/r/20170830051842.1397-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ mm/memory.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix2 mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix2
-+++ a/mm/page_owner.c
-@@ -30,6 +30,7 @@ DEFINE_STATIC_KEY_FALSE(page_owner_inite
- 
- static depot_stack_handle_t dummy_handle;
- static depot_stack_handle_t failure_handle;
-+static depot_stack_handle_t early_handle;
- 
- static void init_early_allocated_pages(void);
- 
-@@ -53,7 +54,7 @@ static bool need_page_owner(void)
- 	return true;
+diff -puN mm/memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix mm/memory.c
+--- a/mm/memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix
++++ a/mm/memory.c
+@@ -4447,12 +4447,15 @@ void clear_huge_page(struct page *page,
+ 	 * towards the sub-page to access
+ 	 */
+ 	for (i = 0; i < l; i++) {
++		int left_idx = base + i;
++		int right_idx = base + 2 * l - 1 - i;
++
+ 		cond_resched();
+-		clear_user_highpage(page + base + i,
+-				    addr + (base + i) * PAGE_SIZE);
++		clear_user_highpage(page + left_idx,
++				    addr + left_idx * PAGE_SIZE);
+ 		cond_resched();
+-		clear_user_highpage(page + base + 2 * l - 1 - i,
+-				    addr + (base + 2 * l - 1 - i) * PAGE_SIZE);
++		clear_user_highpage(page + right_idx,
++				    addr + right_idx * PAGE_SIZE);
+ 	}
  }
  
--static noinline void register_dummy_stack(void)
-+static __always_inline depot_stack_handle_t create_dummy_stack(void)
- {
- 	unsigned long entries[4];
- 	struct stack_trace dummy;
-@@ -64,21 +65,22 @@ static noinline void register_dummy_stac
- 	dummy.skip = 0;
- 
- 	save_stack_trace(&dummy);
--	dummy_handle = depot_save_stack(&dummy, GFP_KERNEL);
-+	return depot_save_stack(&dummy, GFP_KERNEL);
- }
- 
--static noinline void register_failure_stack(void)
-+static noinline void register_dummy_stack(void)
- {
--	unsigned long entries[4];
--	struct stack_trace failure;
-+	dummy_handle = create_dummy_stack();
-+}
- 
--	failure.nr_entries = 0;
--	failure.max_entries = ARRAY_SIZE(entries);
--	failure.entries = &entries[0];
--	failure.skip = 0;
-+static noinline void register_failure_stack(void)
-+{
-+	failure_handle = create_dummy_stack();
-+}
- 
--	save_stack_trace(&failure);
--	failure_handle = depot_save_stack(&failure, GFP_KERNEL);
-+static noinline void register_early_stack(void)
-+{
-+	early_handle = create_dummy_stack();
- }
- 
- static void init_page_owner(void)
-@@ -88,6 +90,7 @@ static void init_page_owner(void)
- 
- 	register_dummy_stack();
- 	register_failure_stack();
-+	register_early_stack();
- 	static_branch_enable(&page_owner_inited);
- 	init_early_allocated_pages();
- }
-@@ -529,13 +532,10 @@ static void init_pages_in_zone(pg_data_t
- 	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
- 	unsigned long end_pfn = pfn + zone->spanned_pages;
- 	unsigned long count = 0;
--	depot_stack_handle_t init_handle;
- 
- 	/* Scan block by block. First and last block may be incomplete */
- 	pfn = zone->zone_start_pfn;
- 
--	init_handle = save_stack(0);
+_
+
+Patches currently in -mm which might be from ying.huang@intel.com are
+
+mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
+mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+block-thp-make-block_device_operationsrw_page-support-thp.patch
+test-code-to-write-thp-to-swap-device-as-a-whole.patch
+mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
+memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
+memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
+mm-swap-add-swap-readahead-hit-statistics.patch
+mm-swap-fix-swap-readahead-marking.patch
+mm-swap-vma-based-swap-readahead.patch
+mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch
+mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
+mm-clear-to-access-sub-page-last-when-clearing-huge-page.patch
+mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch
+
