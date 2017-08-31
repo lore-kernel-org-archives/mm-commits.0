@@ -1,91 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/6] include/linux/compiler.h: don't perform
- compiletime_assert with -O0
-Date: Thu, 31 Aug 2017 16:15:33 -0700
-Message-ID: <59a89895.lUcIs0NUh5y4e7vm%akpm@linux-foundation.org>
+Subject: [patch 2/6] kernel/kthread.c: kthread_worker: don't hog the cpu
+Date: Thu, 31 Aug 2017 16:15:23 -0700
+Message-ID: <59a8988b.D0872Ct61+7L1p9Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52884 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751415AbdHaXPe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 19:15:34 -0400
+        with ESMTP id S1751776AbdHaXPY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 19:15:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@ovn.org, abbotti@mev.co.uk, arnd@arndb.de, keescook@chromium.org, mina86@mina86.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, shli@fb.com, mingo@kernel.org, oleg@redhat.com, pmladek@suse.com, tglx@linutronix.de, tj@kernel.org
 
-From: Joe Stringer <joe@ovn.org>
-Subject: include/linux/compiler.h: don't perform compiletime_assert with -O0
+From: Shaohua Li <shli@fb.com>
+Subject: kernel/kthread.c: kthread_worker: don't hog the cpu
 
-c7acec713d14c6c ("kernel.h: handle pointers to arrays better in
-container_of()") made use of __compiletime_assert() from container_of()
-thus increasing the usage of this macro, allowing developers to notice
-type conflicts in usage of container_of() at compile time.
+If the worker thread continues getting work, it will hog the cpu and rcu
+stall complains.  Make it a good citizen.  This is triggered in a loop
+block device test.
 
-However, the implementation of __compiletime_assert relies on compiler
-optimizations to report an error.  This means that if a developer uses
-"-O0" with any code that performs container_of(), the compiler will always
-report an error regardless of whether there is an actual problem in the
-code.
-
-This patch disables compile_time_assert when optimizations are disabled to
-allow such code to compile with CFLAGS="-O0".
-
-Example compilation failure:
-
-./include/linux/compiler.h:547:38: error: call to `__compiletime_assert_94' declared with attribute error: pointer type mismatch in container_of()
-  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-                                      ^
-./include/linux/compiler.h:530:4: note: in definition of macro `__compiletime_assert'
-    prefix ## suffix();    \
-    ^~~~~~
-./include/linux/compiler.h:547:2: note: in expansion of macro `_compiletime_assert'
-  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-  ^~~~~~~~~~~~~~~~~~~
-./include/linux/build_bug.h:46:37: note: in expansion of macro `compiletime_assert'
- #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
-                                     ^~~~~~~~~~~~~~~~~~
-./include/linux/kernel.h:860:2: note: in expansion of macro `BUILD_BUG_ON_MSG'
-  BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) && \
-  ^~~~~~~~~~~~~~~~
-
-[akpm@linux-foundation.org: use do{}while(0), per Michal]
-Link: http://lkml.kernel.org/r/20170829230114.11662-1-joe@ovn.org
-Fixes: c7acec713d14c6c ("kernel.h: handle pointers to arrays better in container_of()")
-Signed-off-by: Joe Stringer <joe@ovn.org>
-Cc: Ian Abbott <abbotti@mev.co.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/5de0a179b3184e1a2183fc503448b0269f24d75b.1503697127.git.shli@fb.com
+Signed-off-by: Shaohua Li <shli@fb.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ kernel/kthread.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0 include/linux/compiler.h
---- a/include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0
-+++ a/include/linux/compiler.h
-@@ -517,7 +517,8 @@ static __always_inline void __write_once
- # define __compiletime_error_fallback(condition) do { } while (0)
- #endif
+diff -puN kernel/kthread.c~kthread_worker-dont-hog-the-cpu kernel/kthread.c
+--- a/kernel/kthread.c~kthread_worker-dont-hog-the-cpu
++++ a/kernel/kthread.c
+@@ -637,6 +637,7 @@ repeat:
+ 		schedule();
  
--#define __compiletime_assert(condition, msg, prefix, suffix)		\
-+#ifdef __OPTIMIZE__
-+# define __compiletime_assert(condition, msg, prefix, suffix)		\
- 	do {								\
- 		bool __cond = !(condition);				\
- 		extern void prefix ## suffix(void) __compiletime_error(msg); \
-@@ -525,6 +526,9 @@ static __always_inline void __write_once
- 			prefix ## suffix();				\
- 		__compiletime_error_fallback(__cond);			\
- 	} while (0)
-+#else
-+# define __compiletime_assert(condition, msg, prefix, suffix) do { } while (0)
-+#endif
- 
- #define _compiletime_assert(condition, msg, prefix, suffix) \
- 	__compiletime_assert(condition, msg, prefix, suffix)
+ 	try_to_freeze();
++	cond_resched();
+ 	goto repeat;
+ }
+ EXPORT_SYMBOL_GPL(kthread_worker_fn);
 _
