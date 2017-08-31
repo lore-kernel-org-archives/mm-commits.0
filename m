@@ -1,233 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fortify-use-warn-instead-of-bug-for-now.patch
+Subject: [to-be-updated] adfs-use-unsigned-types-for-memcpy-length.patch
  removed from -mm tree
-Date: Thu, 31 Aug 2017 14:14:36 -0700
-Message-ID: <59a87c3c.LX7XGJTkVO1OFTWB%akpm@linux-foundation.org>
+Date: Thu, 31 Aug 2017 14:14:39 -0700
+Message-ID: <59a87c3f.2UVAeHdac5I+1A1E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48854 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751698AbdHaVOi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 17:14:38 -0400
+        with ESMTP id S1751778AbdHaVOk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 17:14:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, danielmicay@gmail.com, jpoimboe@redhat.com, sfr@canb.auug.org.au, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, keescook@chromium.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fortify: use WARN instead of BUG for now
+     Subject: adfs: use 'unsigned' types for memcpy length
 has been removed from the -mm tree.  Its filename was
-     fortify-use-warn-instead-of-bug-for-now.patch
+     adfs-use-unsigned-types-for-memcpy-length.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fortify: use WARN instead of BUG for now
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: adfs: use 'unsigned' types for memcpy length
 
-While CONFIG_FORTIFY_SOURCE continues to shake out, don't unconditionally
-use BUG(), opting instead for WARN().  This also renames fortify_panic()
-to fortify_overflow() which better matches what it is being called for.
+After 62d1034f53e3 ("fortify: use WARN instead of BUG for now"), we get a
+warning in adfs about a possible buffer overflow:
 
-[akpm@linux-foundation.org: remove fortify_overflow from tools/objtool/check.c:global_noreturns, per Josh]
-Link: http://lkml.kernel.org/r/20170726185219.GA57833@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+In function 'memcpy',
+    inlined from '__adfs_dir_put' at fs/adfs/dir_f.c:318:2,
+    inlined from 'adfs_f_update' at fs/adfs/dir_f.c:403:2:
+include/linux/string.h:305:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
+    __read_overflow2();
+    ^~~~~~~~~~~~~~~~~~
+
+The warning is correct in the sense that a negative 'pos' argument to the
+function would have that result.  However, this is not a bug, as we know
+the position is always positive (in fact, between 5 and 2007, inclusive)
+when the function gets called.
+
+Changing the variable to a unsigned type avoids the problem.  I decided to
+use 'unsigned int' for the position in the directory and the block number,
+as they are both counting things, but use size_t for the offset and length
+that get passed into memcpy.  This shuts up the warning.
+
+Link: http://lkml.kernel.org/r/20170801120438.1582336-2-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/compressed/misc.c |    2 +-
- include/linux/string.h          |   30 +++++++++++++++---------------
- lib/string.c                    |    7 +++----
- tools/objtool/check.c           |    1 -
- 4 files changed, 19 insertions(+), 21 deletions(-)
+ fs/adfs/dir_f.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now arch/x86/boot/compressed/misc.c
---- a/arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now
-+++ a/arch/x86/boot/compressed/misc.c
-@@ -412,7 +412,7 @@ asmlinkage __visible void *extract_kerne
- 	return output;
+diff -puN fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length fs/adfs/dir_f.c
+--- a/fs/adfs/dir_f.c~adfs-use-unsigned-types-for-memcpy-length
++++ a/fs/adfs/dir_f.c
+@@ -283,11 +283,12 @@ __adfs_dir_get(struct adfs_dir *dir, int
  }
  
--void fortify_panic(const char *name)
-+void fortify_overflow(const char *name)
+ static int
+-__adfs_dir_put(struct adfs_dir *dir, int pos, struct object_info *obj)
++__adfs_dir_put(struct adfs_dir *dir, unsigned int pos, struct object_info *obj)
  {
- 	error("detected buffer overflow");
- }
-diff -puN include/linux/string.h~fortify-use-warn-instead-of-bug-for-now include/linux/string.h
---- a/include/linux/string.h~fortify-use-warn-instead-of-bug-for-now
-+++ a/include/linux/string.h
-@@ -197,7 +197,7 @@ static inline const char *kbasename(cons
- #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
- #define __RENAME(x) __asm__(#x)
+ 	struct super_block *sb = dir->sb;
+ 	struct adfs_direntry de;
+-	int thissize, buffer, offset;
++	unsigned int buffer;
++	size_t thissize, offset;
  
--void fortify_panic(const char *name) __noreturn __cold;
-+void fortify_overflow(const char *name) __cold;
- void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
- void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
- void __write_overflow(void) __compiletime_error("detected write beyond size of object passed as 1st parameter");
-@@ -209,7 +209,7 @@ __FORTIFY_INLINE char *strncpy(char *p,
- 	if (__builtin_constant_p(size) && p_size < size)
- 		__write_overflow();
- 	if (p_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __builtin_strncpy(p, q, size);
- }
+ 	buffer = pos >> sb->s_blocksize_bits;
  
-@@ -219,7 +219,7 @@ __FORTIFY_INLINE char *strcat(char *p, c
- 	if (p_size == (size_t)-1)
- 		return __builtin_strcat(p, q);
- 	if (strlcat(p, q, p_size) >= p_size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return p;
- }
- 
-@@ -231,7 +231,7 @@ __FORTIFY_INLINE __kernel_size_t strlen(
- 		return __builtin_strlen(p);
- 	ret = strnlen(p, p_size);
- 	if (p_size <= ret)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return ret;
- }
- 
-@@ -241,7 +241,7 @@ __FORTIFY_INLINE __kernel_size_t strnlen
- 	size_t p_size = __builtin_object_size(p, 0);
- 	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
- 	if (p_size <= ret && maxlen != ret)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return ret;
- }
- 
-@@ -260,7 +260,7 @@ __FORTIFY_INLINE size_t strlcpy(char *p,
- 		if (__builtin_constant_p(len) && len >= p_size)
- 			__write_overflow();
- 		if (len >= p_size)
--			fortify_panic(__func__);
-+			fortify_overflow(__func__);
- 		__builtin_memcpy(p, q, len);
- 		p[len] = '\0';
- 	}
-@@ -278,7 +278,7 @@ __FORTIFY_INLINE char *strncat(char *p,
- 	p_len = strlen(p);
- 	copy_len = strnlen(q, count);
- 	if (p_size < p_len + copy_len + 1)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	__builtin_memcpy(p + p_len, q, copy_len);
- 	p[p_len + copy_len] = '\0';
- 	return p;
-@@ -290,7 +290,7 @@ __FORTIFY_INLINE void *memset(void *p, i
- 	if (__builtin_constant_p(size) && p_size < size)
- 		__write_overflow();
- 	if (p_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __builtin_memset(p, c, size);
- }
- 
-@@ -305,7 +305,7 @@ __FORTIFY_INLINE void *memcpy(void *p, c
- 			__read_overflow2();
- 	}
- 	if (p_size < size || q_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __builtin_memcpy(p, q, size);
- }
- 
-@@ -320,7 +320,7 @@ __FORTIFY_INLINE void *memmove(void *p,
- 			__read_overflow2();
- 	}
- 	if (p_size < size || q_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __builtin_memmove(p, q, size);
- }
- 
-@@ -331,7 +331,7 @@ __FORTIFY_INLINE void *memscan(void *p,
- 	if (__builtin_constant_p(size) && p_size < size)
- 		__read_overflow();
- 	if (p_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __real_memscan(p, c, size);
- }
- 
-@@ -346,7 +346,7 @@ __FORTIFY_INLINE int memcmp(const void *
- 			__read_overflow2();
- 	}
- 	if (p_size < size || q_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __builtin_memcmp(p, q, size);
- }
- 
-@@ -356,7 +356,7 @@ __FORTIFY_INLINE void *memchr(const void
- 	if (__builtin_constant_p(size) && p_size < size)
- 		__read_overflow();
- 	if (p_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __builtin_memchr(p, c, size);
- }
- 
-@@ -367,7 +367,7 @@ __FORTIFY_INLINE void *memchr_inv(const
- 	if (__builtin_constant_p(size) && p_size < size)
- 		__read_overflow();
- 	if (p_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __real_memchr_inv(p, c, size);
- }
- 
-@@ -378,7 +378,7 @@ __FORTIFY_INLINE void *kmemdup(const voi
- 	if (__builtin_constant_p(size) && p_size < size)
- 		__read_overflow();
- 	if (p_size < size)
--		fortify_panic(__func__);
-+		fortify_overflow(__func__);
- 	return __real_kmemdup(p, size, gfp);
- }
- 
-diff -puN lib/string.c~fortify-use-warn-instead-of-bug-for-now lib/string.c
---- a/lib/string.c~fortify-use-warn-instead-of-bug-for-now
-+++ a/lib/string.c
-@@ -979,9 +979,8 @@ char *strreplace(char *s, char old, char
- }
- EXPORT_SYMBOL(strreplace);
- 
--void fortify_panic(const char *name)
-+void fortify_overflow(const char *name)
- {
--	pr_emerg("detected buffer overflow in %s\n", name);
--	BUG();
-+	WARN(1, "detected buffer overflow in %s\n", name);
- }
--EXPORT_SYMBOL(fortify_panic);
-+EXPORT_SYMBOL(fortify_overflow);
-diff -puN tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now tools/objtool/check.c
---- a/tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now
-+++ a/tools/objtool/check.c
-@@ -156,7 +156,6 @@ static int __dead_end_function(struct ob
- 		"kvm_spurious_fault",
- 		"__reiserfs_panic",
- 		"lbug_with_loc",
--		"fortify_panic",
- 	};
- 
- 	if (func->bind == STB_WEAK)
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-add-slub-free-list-pointer-obfuscation.patch
+mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
+fs-proc-remove-priv-argument-from-is_stack-fix.patch
+fscache-fix-fscache_objlist_show-format-processing.patch
+ib-mlx4-fix-sprintf-format-warning.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
 
