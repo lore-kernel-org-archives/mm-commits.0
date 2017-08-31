@@ -1,126 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?completion-avoid-unnecessary-stack-allocation-for-completi?=
- =?US-ASCII?Q?on=5Finitializer=5Fonstack.patch?= removed from -mm tree
-Date: Thu, 31 Aug 2017 12:59:11 -0700
-Message-ID: <20170831195911.LKfH3k1YK%akpm@linux-foundation.org>
+Subject: [to-be-updated] fortify-use-warn-instead-of-bug-for-now.patch
+ removed from -mm tree
+Date: Thu, 31 Aug 2017 14:14:36 -0700
+Message-ID: <59a87c3c.LX7XGJTkVO1OFTWB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751086AbdHaT7M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 15:59:12 -0400
+        with ESMTP id S1751698AbdHaVOi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 17:14:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, boqun.feng@gmail.com, byungchul.park@lge.com, dan.j.williams@intel.com, mingo@kernel.org, mm-commits@vger.kernel.org, npiggin@gmail.com, peterz@infradead.org, rjw@rjwysocki.net, tglx@linutronix.de, walken@google.com
+To: keescook@chromium.org, danielmicay@gmail.com, jpoimboe@redhat.com, sfr@canb.auug.org.au, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/completion.h: avoid unnecessary stack allocation for COMPLETION_INITIALIZER_ONSTACK()
+     Subject: fortify: use WARN instead of BUG for now
 has been removed from the -mm tree.  Its filename was
-     completion-avoid-unnecessary-stack-allocation-for-completion_initializer_onstack.patch
+     fortify-use-warn-instead-of-bug-for-now.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Boqun Feng <boqun.feng@gmail.com>
-Subject: include/linux/completion.h: avoid unnecessary stack allocation for COMPLETION_INITIALIZER_ONSTACK()
+From: Kees Cook <keescook@chromium.org>
+Subject: fortify: use WARN instead of BUG for now
 
-In theory, COMPLETION_INITIALIZER_ONSTACK() should never affect the
-stack allocation of the caller. However, on some compilers, a temporary
-structure was allocated for the return value of
-COMPLETION_INITIALIZER_ONSTACK(), for example in write_journal() with
-LOCKDEP_COMPLETIONS=y(gcc is 7.1.1):
+While CONFIG_FORTIFY_SOURCE continues to shake out, don't unconditionally
+use BUG(), opting instead for WARN().  This also renames fortify_panic()
+to fortify_overflow() which better matches what it is being called for.
 
-	io_comp.comp = COMPLETION_INITIALIZER_ONSTACK(io_comp.comp);
-	    2462:       e8 00 00 00 00          callq  2467 <write_journal+0x47>
-	    2467:       48 8d 85 80 fd ff ff    lea    -0x280(%rbp),%rax
-	    246e:       48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-	    2475:       48 c7 c2 00 00 00 00    mov    $0x0,%rdx
-		x->done = 0;
-	    247c:       c7 85 90 fd ff ff 00    movl   $0x0,-0x270(%rbp)
-	    2483:       00 00 00
-		init_waitqueue_head(&x->wait);
-	    2486:       48 8d 78 18             lea    0x18(%rax),%rdi
-	    248a:       e8 00 00 00 00          callq  248f <write_journal+0x6f>
-		if (commit_start + commit_sections <= ic->journal_sections) {
-	    248f:       41 8b 87 a8 00 00 00    mov    0xa8(%r15),%eax
-		io_comp.comp = COMPLETION_INITIALIZER_ONSTACK(io_comp.comp);
-	    2496:       48 8d bd e8 f9 ff ff    lea    -0x618(%rbp),%rdi
-	    249d:       48 8d b5 90 fd ff ff    lea    -0x270(%rbp),%rsi
-	    24a4:       b9 17 00 00 00          mov    $0x17,%ecx
-	    24a9:       f3 48 a5                rep movsq %ds:(%rsi),%es:(%rdi)
-		if (commit_start + commit_sections <= ic->journal_sections) {
-	    24ac:       41 39 c6                cmp    %eax,%r14d
-		io_comp.comp = COMPLETION_INITIALIZER_ONSTACK(io_comp.comp);
-	    24af:       48 8d bd 90 fd ff ff    lea    -0x270(%rbp),%rdi
-	    24b6:       48 8d b5 e8 f9 ff ff    lea    -0x618(%rbp),%rsi
-	    24bd:       b9 17 00 00 00          mov    $0x17,%ecx
-	    24c2:       f3 48 a5                rep movsq %ds:(%rsi),%es:(%rdi)
-
-We can obviously see the temporary structure allocated, and the compiler
-also does two meaningless memcpy with "rep movsq".
-
-And according to:
-
-	https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html#Statement-Exprs
-
-The return value of a statement expression is returned by value, so the
-temporary variable is created in COMPLETION_INITIALIZER_ONSTACK(), and
-that's why the temporary structures are allocted.
-
-To fix this, make the brace block in COMPLETION_INITIALIZER_ONSTACK()
-return a pointer and dereference it outside the block rather than return
-the whole structure, in this way, we are able to teach the compiler not
-to do the unnecessary stack allocation.
-
-This could also reduce the stack size even if !LOCKDEP, for example in
-write_journal(), compiled with gcc 7.1.1, the result of command:
-
-	 objdump -d drivers/md/dm-integrity.o | ./scripts/checkstack.pl x86
-
-before:
-
-	0x0000246a write_journal [dm-integrity.o]:              696
-
-after:
-
-	0x00002b7a write_journal [dm-integrity.o]:              296
-
-Link: http://lkml.kernel.org/r/20170823152542.5150-3-boqun.feng@gmail.com
-Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Byungchul Park <byungchul.park@lge.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+[akpm@linux-foundation.org: remove fortify_overflow from tools/objtool/check.c:global_noreturns, per Josh]
+Link: http://lkml.kernel.org/r/20170726185219.GA57833@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/completion.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/boot/compressed/misc.c |    2 +-
+ include/linux/string.h          |   30 +++++++++++++++---------------
+ lib/string.c                    |    7 +++----
+ tools/objtool/check.c           |    1 -
+ 4 files changed, 19 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/completion.h~completion-avoid-unnecessary-stack-allocation-for-completion_initializer_onstack include/linux/completion.h
---- a/include/linux/completion.h~completion-avoid-unnecessary-stack-allocation-for-completion_initializer_onstack
-+++ a/include/linux/completion.h
-@@ -74,7 +74,7 @@ static inline void complete_release_comm
- #endif
+diff -puN arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~fortify-use-warn-instead-of-bug-for-now
++++ a/arch/x86/boot/compressed/misc.c
+@@ -412,7 +412,7 @@ asmlinkage __visible void *extract_kerne
+ 	return output;
+ }
  
- #define COMPLETION_INITIALIZER_ONSTACK(work) \
--	({ init_completion(&work); work; })
-+	(*({ init_completion(&work); &work; }))
+-void fortify_panic(const char *name)
++void fortify_overflow(const char *name)
+ {
+ 	error("detected buffer overflow");
+ }
+diff -puN include/linux/string.h~fortify-use-warn-instead-of-bug-for-now include/linux/string.h
+--- a/include/linux/string.h~fortify-use-warn-instead-of-bug-for-now
++++ a/include/linux/string.h
+@@ -197,7 +197,7 @@ static inline const char *kbasename(cons
+ #define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
+ #define __RENAME(x) __asm__(#x)
  
- /**
-  * DECLARE_COMPLETION - declare and initialize a completion structure
+-void fortify_panic(const char *name) __noreturn __cold;
++void fortify_overflow(const char *name) __cold;
+ void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
+ void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
+ void __write_overflow(void) __compiletime_error("detected write beyond size of object passed as 1st parameter");
+@@ -209,7 +209,7 @@ __FORTIFY_INLINE char *strncpy(char *p,
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_strncpy(p, q, size);
+ }
+ 
+@@ -219,7 +219,7 @@ __FORTIFY_INLINE char *strcat(char *p, c
+ 	if (p_size == (size_t)-1)
+ 		return __builtin_strcat(p, q);
+ 	if (strlcat(p, q, p_size) >= p_size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return p;
+ }
+ 
+@@ -231,7 +231,7 @@ __FORTIFY_INLINE __kernel_size_t strlen(
+ 		return __builtin_strlen(p);
+ 	ret = strnlen(p, p_size);
+ 	if (p_size <= ret)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return ret;
+ }
+ 
+@@ -241,7 +241,7 @@ __FORTIFY_INLINE __kernel_size_t strnlen
+ 	size_t p_size = __builtin_object_size(p, 0);
+ 	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
+ 	if (p_size <= ret && maxlen != ret)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return ret;
+ }
+ 
+@@ -260,7 +260,7 @@ __FORTIFY_INLINE size_t strlcpy(char *p,
+ 		if (__builtin_constant_p(len) && len >= p_size)
+ 			__write_overflow();
+ 		if (len >= p_size)
+-			fortify_panic(__func__);
++			fortify_overflow(__func__);
+ 		__builtin_memcpy(p, q, len);
+ 		p[len] = '\0';
+ 	}
+@@ -278,7 +278,7 @@ __FORTIFY_INLINE char *strncat(char *p,
+ 	p_len = strlen(p);
+ 	copy_len = strnlen(q, count);
+ 	if (p_size < p_len + copy_len + 1)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	__builtin_memcpy(p + p_len, q, copy_len);
+ 	p[p_len + copy_len] = '\0';
+ 	return p;
+@@ -290,7 +290,7 @@ __FORTIFY_INLINE void *memset(void *p, i
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__write_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memset(p, c, size);
+ }
+ 
+@@ -305,7 +305,7 @@ __FORTIFY_INLINE void *memcpy(void *p, c
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memcpy(p, q, size);
+ }
+ 
+@@ -320,7 +320,7 @@ __FORTIFY_INLINE void *memmove(void *p,
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memmove(p, q, size);
+ }
+ 
+@@ -331,7 +331,7 @@ __FORTIFY_INLINE void *memscan(void *p,
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_memscan(p, c, size);
+ }
+ 
+@@ -346,7 +346,7 @@ __FORTIFY_INLINE int memcmp(const void *
+ 			__read_overflow2();
+ 	}
+ 	if (p_size < size || q_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memcmp(p, q, size);
+ }
+ 
+@@ -356,7 +356,7 @@ __FORTIFY_INLINE void *memchr(const void
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __builtin_memchr(p, c, size);
+ }
+ 
+@@ -367,7 +367,7 @@ __FORTIFY_INLINE void *memchr_inv(const
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_memchr_inv(p, c, size);
+ }
+ 
+@@ -378,7 +378,7 @@ __FORTIFY_INLINE void *kmemdup(const voi
+ 	if (__builtin_constant_p(size) && p_size < size)
+ 		__read_overflow();
+ 	if (p_size < size)
+-		fortify_panic(__func__);
++		fortify_overflow(__func__);
+ 	return __real_kmemdup(p, size, gfp);
+ }
+ 
+diff -puN lib/string.c~fortify-use-warn-instead-of-bug-for-now lib/string.c
+--- a/lib/string.c~fortify-use-warn-instead-of-bug-for-now
++++ a/lib/string.c
+@@ -979,9 +979,8 @@ char *strreplace(char *s, char old, char
+ }
+ EXPORT_SYMBOL(strreplace);
+ 
+-void fortify_panic(const char *name)
++void fortify_overflow(const char *name)
+ {
+-	pr_emerg("detected buffer overflow in %s\n", name);
+-	BUG();
++	WARN(1, "detected buffer overflow in %s\n", name);
+ }
+-EXPORT_SYMBOL(fortify_panic);
++EXPORT_SYMBOL(fortify_overflow);
+diff -puN tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now tools/objtool/check.c
+--- a/tools/objtool/check.c~fortify-use-warn-instead-of-bug-for-now
++++ a/tools/objtool/check.c
+@@ -156,7 +156,6 @@ static int __dead_end_function(struct ob
+ 		"kvm_spurious_fault",
+ 		"__reiserfs_panic",
+ 		"lbug_with_loc",
+-		"fortify_panic",
+ 	};
+ 
+ 	if (func->bind == STB_WEAK)
 _
 
-Patches currently in -mm which might be from boqun.feng@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+mm-add-slub-free-list-pointer-obfuscation.patch
 
