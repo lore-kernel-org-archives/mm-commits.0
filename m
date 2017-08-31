@@ -1,76 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/6] mm, madvise: ensure poisoned pages are removed from
- per-cpu lists
-Date: Thu, 31 Aug 2017 16:15:30 -0700
-Message-ID: <59a89892.Q7NBUMF00ONQflAF%akpm__11289.3849880949$1504221349$gmane$org@linux-foundation.org>
+Subject: [patch 6/6] scripts/dtc: fix '%zx' warning
+Date: Thu, 31 Aug 2017 16:15:36 -0700
+Message-ID: <59a89898.LTl77zNwjftCfUMR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52992 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751415AbdHaXPb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 19:15:31 -0400
+        with ESMTP id S1751825AbdHaXPh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 19:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, dave.hansen@intel.com, nao.horiguchi@gmail.com, rientjes@google.com, stable@vger.kernel.org, tony.luck@intel.com, vbabka@suse.cz, wendy.wang@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rmk+kernel@armlinux.org.uk, david@gibson.dropbear.id.au, frowand.list@gmail.com, mmarek@suse.cz, robh+dt@kernel.org, shuahkh@osg.samsung.com
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, madvise: ensure poisoned pages are removed from per-cpu lists
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: scripts/dtc: fix '%zx' warning
 
-Wendy Wang reported off-list that a RAS HWPOISON-SOFT test case failed and
-bisected it to the commit 479f854a207c ("mm, page_alloc: defer debugging
-checks of pages allocated from the PCP").  The problem is that a page that
-was poisoned with madvise() is reused.  The commit removed a check that
-would trigger if DEBUG_VM was enabled but re-enabling the check only fixes
-the problem as a side-effect by printing a bad_page warning and
-recovering.
+dtc uses an incorrect format specifier for printing a uint64_t value. 
+uint64_t may be either 'unsigned long' or 'unsigned long long' depending
+on the host architecture.
 
-The root of the problem is that an madvise() can leave a poisoned page on
-the per-cpu list.  This patch drains all per-cpu lists after pages are
-poisoned so that they will not be reused.  Wendy reports that the test
-case in question passes with this patch applied.  While this could be done
-in a targeted fashion, it is over-complicated for such a rare operation.
+Fix this by using %llx and casting to unsigned long long, which ensures
+that we always have a wide enough variable to print 64 bits of hex.
 
-Link: http://lkml.kernel.org/r/20170828133414.7qro57jbepdcyz5x@techsingularity.net
-Fixes: 479f854a207c ("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Wang, Wendy <wendy.wang@intel.com>
-Tested-by: Wang, Wendy <wendy.wang@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Hansen, Dave" <dave.hansen@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: <stable@vger.kernel.org>
+  HOSTCC  scripts/dtc/checks.o
+scripts/dtc/checks.c: In function 'check_simple_bus_reg':
+scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+  snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
+  ^
+scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+
+Link: http://lkml.kernel.org/r/20170829222034.GJ20805@n2100.armlinux.org.uk
+Fixes: 828d4cdd012c ("dtc: check.c fix compile error")
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/dtc/checks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-madvise-ensure-poisoned-pages-are-removed-from-per-cpu-lists mm/madvise.c
---- a/mm/madvise.c~mm-madvise-ensure-poisoned-pages-are-removed-from-per-cpu-lists
-+++ a/mm/madvise.c
-@@ -613,6 +613,7 @@ static int madvise_inject_error(int beha
- 		unsigned long start, unsigned long end)
- {
- 	struct page *page;
-+	struct zone *zone;
+diff -puN scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning scripts/dtc/checks.c
+--- a/scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning
++++ a/scripts/dtc/checks.c
+@@ -873,7 +873,7 @@ static void check_simple_bus_reg(struct
+ 	while (size--)
+ 		reg = (reg << 32) | fdt32_to_cpu(*(cells++));
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
-@@ -646,6 +647,11 @@ static int madvise_inject_error(int beha
- 		if (ret)
- 			return ret;
- 	}
-+
-+	/* Ensure that all poisoned pages are removed from per-cpu lists */
-+	for_each_populated_zone(zone)
-+		drain_all_pages(zone);
-+
- 	return 0;
- }
- #endif
+-	snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
++	snprintf(unit_addr, sizeof(unit_addr), "%llx", (unsigned long long)reg);
+ 	if (!streq(unitname, unit_addr))
+ 		FAIL(c, dti, "Node %s simple-bus unit address format error, expected \"%s\"",
+ 		     node->fullpath, unit_addr);
 _
