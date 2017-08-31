@@ -1,61 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/6] mm,page_alloc: don't call __node_reclaim() with
- oom_lock held.
-Date: Thu, 31 Aug 2017 16:15:20 -0700
-Message-ID: <59a89888.t4z8m90oTvGwLa+z%akpm@linux-foundation.org>
+Subject: [patch 5/6] include/linux/compiler.h: don't perform
+ compiletime_assert with -O0
+Date: Thu, 31 Aug 2017 16:15:33 -0700
+Message-ID: <59a89895.lUcIs0NUh5y4e7vm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52976 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751336AbdHaXPV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 19:15:21 -0400
+        with ESMTP id S1751415AbdHaXPe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 19:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, mgorman@suse.de, mhocko@suse.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@ovn.org, abbotti@mev.co.uk, arnd@arndb.de, keescook@chromium.org, mina86@mina86.com
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,page_alloc: don't call __node_reclaim() with oom_lock held.
+From: Joe Stringer <joe@ovn.org>
+Subject: include/linux/compiler.h: don't perform compiletime_assert with -O0
 
-We are doing last second memory allocation attempt before calling
-out_of_memory().  But since slab shrinker functions might indirectly wait
-for other thread's __GFP_DIRECT_RECLAIM && !__GFP_NORETRY memory
-allocations via sleeping locks, calling slab shrinker functions from
-node_reclaim() from get_page_from_freelist() with oom_lock held has
-possibility of deadlock.  Therefore, make sure that last second memory
-allocation attempt does not call slab shrinker functions.
+c7acec713d14c6c ("kernel.h: handle pointers to arrays better in
+container_of()") made use of __compiletime_assert() from container_of()
+thus increasing the usage of this macro, allowing developers to notice
+type conflicts in usage of container_of() at compile time.
 
-Link: http://lkml.kernel.org/r/1503577106-9196-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+However, the implementation of __compiletime_assert relies on compiler
+optimizations to report an error.  This means that if a developer uses
+"-O0" with any code that performs container_of(), the compiler will always
+report an error regardless of whether there is an actual problem in the
+code.
+
+This patch disables compile_time_assert when optimizations are disabled to
+allow such code to compile with CFLAGS="-O0".
+
+Example compilation failure:
+
+./include/linux/compiler.h:547:38: error: call to `__compiletime_assert_94' declared with attribute error: pointer type mismatch in container_of()
+  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+                                      ^
+./include/linux/compiler.h:530:4: note: in definition of macro `__compiletime_assert'
+    prefix ## suffix();    \
+    ^~~~~~
+./include/linux/compiler.h:547:2: note: in expansion of macro `_compiletime_assert'
+  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+  ^~~~~~~~~~~~~~~~~~~
+./include/linux/build_bug.h:46:37: note: in expansion of macro `compiletime_assert'
+ #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+                                     ^~~~~~~~~~~~~~~~~~
+./include/linux/kernel.h:860:2: note: in expansion of macro `BUILD_BUG_ON_MSG'
+  BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) && \
+  ^~~~~~~~~~~~~~~~
+
+[akpm@linux-foundation.org: use do{}while(0), per Michal]
+Link: http://lkml.kernel.org/r/20170829230114.11662-1-joe@ovn.org
+Fixes: c7acec713d14c6c ("kernel.h: handle pointers to arrays better in container_of()")
+Signed-off-by: Joe Stringer <joe@ovn.org>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/compiler.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held mm/page_alloc.c
---- a/mm/page_alloc.c~mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held
-+++ a/mm/page_alloc.c
-@@ -3291,10 +3291,13 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	/*
- 	 * Go through the zonelist yet one more time, keep very high watermark
- 	 * here, this is only to catch a parallel oom killing, we must fail if
--	 * we're still under heavy pressure.
-+	 * we're still under heavy pressure. But make sure that this reclaim
-+	 * attempt shall not depend on __GFP_DIRECT_RECLAIM && !__GFP_NORETRY
-+	 * allocation which will never fail due to oom_lock already held.
- 	 */
--	page = get_page_from_freelist(gfp_mask | __GFP_HARDWALL, order,
--					ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
-+	page = get_page_from_freelist((gfp_mask | __GFP_HARDWALL) &
-+				      ~__GFP_DIRECT_RECLAIM, order,
-+				      ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
- 	if (page)
- 		goto out;
+diff -puN include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0 include/linux/compiler.h
+--- a/include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0
++++ a/include/linux/compiler.h
+@@ -517,7 +517,8 @@ static __always_inline void __write_once
+ # define __compiletime_error_fallback(condition) do { } while (0)
+ #endif
  
+-#define __compiletime_assert(condition, msg, prefix, suffix)		\
++#ifdef __OPTIMIZE__
++# define __compiletime_assert(condition, msg, prefix, suffix)		\
+ 	do {								\
+ 		bool __cond = !(condition);				\
+ 		extern void prefix ## suffix(void) __compiletime_error(msg); \
+@@ -525,6 +526,9 @@ static __always_inline void __write_once
+ 			prefix ## suffix();				\
+ 		__compiletime_error_fallback(__cond);			\
+ 	} while (0)
++#else
++# define __compiletime_assert(condition, msg, prefix, suffix) do { } while (0)
++#endif
+ 
+ #define _compiletime_assert(condition, msg, prefix, suffix) \
+ 	__compiletime_assert(condition, msg, prefix, suffix)
 _
