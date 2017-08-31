@@ -1,89 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-dtc-fix-%zx-warning.patch added to -mm tree
-Date: Wed, 30 Aug 2017 16:02:12 -0700
-Message-ID: <59a743f4.5aGDdxlOKgpRRZAB%akpm@linux-foundation.org>
+Subject: [merged]
+ nfit-use-init_completion-in-acpi_nfit_flush_probe.patch removed from -mm
+ tree
+Date: Thu, 31 Aug 2017 12:59:08 -0700
+Message-ID: <20170831195908.y_NibyjAt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37874 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750973AbdH3XCN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Aug 2017 19:02:13 -0400
+        with ESMTP id S1751086AbdHaT7K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Aug 2017 15:59:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk+kernel@armlinux.org.uk, david@gibson.dropbear.id.au, frowand.list@gmail.com, mmarek@suse.cz, robh+dt@kernel.org, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, boqun.feng@gmail.com, byungchul.park@lge.com, dan.j.williams@intel.com, mingo@kernel.org, mm-commits@vger.kernel.org, npiggin@gmail.com, peterz@infradead.org, rjw@rjwysocki.net, tglx@linutronix.de, walken@google.com
 
 
 The patch titled
-     Subject: scripts/dtc: fix '%zx' warning
-has been added to the -mm tree.  Its filename is
-     scripts-dtc-fix-%zx-warning.patch
+     Subject: drivers/acpi/nfit/core.c: fix the abuse of COMPLETION_INITIALIZER_ONSTACK()
+has been removed from the -mm tree.  Its filename was
+     nfit-use-init_completion-in-acpi_nfit_flush_probe.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-dtc-fix-%25zx-warning.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-dtc-fix-%25zx-warning.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: scripts/dtc: fix '%zx' warning
+From: Boqun Feng <boqun.feng@gmail.com>
+Subject: drivers/acpi/nfit/core.c: fix the abuse of COMPLETION_INITIALIZER_ONSTACK()
 
-dtc uses an incorrect format specifier for printing a uint64_t value. 
-uint64_t may be either 'unsigned long' or 'unsigned long long' depending
-on the host architecture.
+Patch series "completion: Reduce stack usage caused by
+COMPLETION_INITIALIZER_ONSTACK()".
 
-Fix this by using %llx and casting to unsigned long long, which ensures
-that we always have a wide enough variable to print 64 bits of hex.
+With LOCKDEP_CROSSRELEASE and LOCKDEP_COMPLETIONS introduced, the growth
+in kernel stack usage of several functions were reported:
 
-  HOSTCC  scripts/dtc/checks.o
-scripts/dtc/checks.c: In function 'check_simple_bus_reg':
-scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
-  snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
-  ^
-scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+	https://marc.info/?l=linux-kernel&m=150270063231284&w=2
 
-Link: http://lkml.kernel.org/r/20170829222034.GJ20805@n2100.armlinux.org.uk
-Fixes: 828d4cdd012c ("dtc: check.c fix compile error")
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Michal Marek <mmarek@suse.cz>
+The root cause of this is in COMPLETION_INITIALIZER_ONSTACK(), we use
+
+	({init_completion(&work); work})
+
+which will create a temporary object when returned.  However this
+temporary object is unnecessary.  And this patch fixes it by making the
+statement expression in COMPLETION_INITIALIZER_ONSTACK() return a pointer
+rather than a whole structure.  This will reduce the stack usage even if
+!LOCKDEP.
+
+However, such a change does make one COMPLETION_INITIALIZER_ONSTACK()
+callsite invalid, so we fix this first via converting to
+init_completion().
+
+
+This patch (of 2):
+
+COMPLETION_INITIALIZER_ONSTACK() is supposed to used as an initializer, in
+other words, it should only be used in assignment expressions or compound
+literals.  So the usage in drivers/acpi/nfit/core.c:
+
+	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+
+is inappropriate.
+
+Besides, this usage could also break compilations for another fix to
+reduce stack sizes caused by COMPLETION_INITIALIZER_ONSTACK(), because
+that fix changes COMPLETION_INITIALIZER_ONSTACK() from rvalue to lvalue,
+and usage as above will report error:
+
+	drivers/acpi/nfit/core.c: In function 'acpi_nfit_flush_probe':
+	include/linux/completion.h:77:3: error: value computed is not used [-Werror=unused-value]
+	  (*({ init_completion(&work); &work; }))
+
+This patch fixes this by replacing COMPLETION_INITIALIZER_ONSTACK() with
+init_completion() in acpi_nfit_flush_probe(), which does the same
+initialization without any other problem.
+
+Link: http://lkml.kernel.org/r/20170823152542.5150-2-boqun.feng@gmail.com
+Signed-off-by: Boqun Feng <boqun.feng@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Byungchul Park <byungchul.park@lge.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/dtc/checks.c |    2 +-
+ drivers/acpi/nfit/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning scripts/dtc/checks.c
---- a/scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning
-+++ a/scripts/dtc/checks.c
-@@ -873,7 +873,7 @@ static void check_simple_bus_reg(struct
- 	while (size--)
- 		reg = (reg << 32) | fdt32_to_cpu(*(cells++));
+diff -puN drivers/acpi/nfit/core.c~nfit-use-init_completion-in-acpi_nfit_flush_probe drivers/acpi/nfit/core.c
+--- a/drivers/acpi/nfit/core.c~nfit-use-init_completion-in-acpi_nfit_flush_probe
++++ a/drivers/acpi/nfit/core.c
+@@ -2884,7 +2884,7 @@ static int acpi_nfit_flush_probe(struct
+ 	 * need to be interruptible while waiting.
+ 	 */
+ 	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+-	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
++	init_completion(&flush.cmp);
+ 	queue_work(nfit_wq, &flush.work);
+ 	mutex_unlock(&acpi_desc->init_mutex);
  
--	snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
-+	snprintf(unit_addr, sizeof(unit_addr), "%llx", (unsigned long long)reg);
- 	if (!streq(unitname, unit_addr))
- 		FAIL(c, dti, "Node %s simple-bus unit address format error, expected \"%s\"",
- 		     node->fullpath, unit_addr);
 _
 
-Patches currently in -mm which might be from rmk+kernel@armlinux.org.uk are
+Patches currently in -mm which might be from boqun.feng@gmail.com are
 
-scripts-dtc-fix-%zx-warning.patch
 
