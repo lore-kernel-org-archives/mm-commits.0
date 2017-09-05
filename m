@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-must-check-__radix_tree_preload-return-value.patch
- added to -mm tree
-Date: Tue, 05 Sep 2017 16:09:29 -0700
-Message-ID: <59af2ea9.JBRPa/k+h+LEN57n%akpm@linux-foundation.org>
+Subject: + mm-fix-mem_cgroup_oom_disable-call-missing.patch added to -mm
+ tree
+Date: Tue, 05 Sep 2017 16:11:35 -0700
+Message-ID: <59af2f27.AQ7NE5cJ2YlbfDER%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39346 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753694AbdIEXJa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:09:30 -0400
+        with ESMTP id S1752778AbdIEXLg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edumazet@google.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ldufour@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: must check __radix_tree_preload() return value
+     Subject: mm/memory.c: fix mem_cgroup_oom_disable() call missing
 has been added to the -mm tree.  Its filename is
-     radix-tree-must-check-__radix_tree_preload-return-value.patch
+     mm-fix-mem_cgroup_oom_disable-call-missing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-must-check-__radix_tree_preload-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-mem_cgroup_oom_disable-call-missing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-must-check-__radix_tree_preload-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-mem_cgroup_oom_disable-call-missing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: radix-tree: must check __radix_tree_preload() return value
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Subject: mm/memory.c: fix mem_cgroup_oom_disable() call missing
 
-__radix_tree_preload() only disables preemption if no error is returned.
+Seen while reading the code, in handle_mm_fault(), in the case
+arch_vma_access_permitted() is failing the call to
+mem_cgroup_oom_disable() is not made.
 
-So we really need to make sure callers always check the return value.
+To fix that, move the call to mem_cgroup_oom_enable() after calling
+arch_vma_access_permitted() as it should not have entered the memcg OOM.
 
-idr_preload() contract is to always disable preemption, so we need
-to add a missing preempt_disable() if an error happened.
-
-Similarly, ida_pre_get() only needs to call preempt_enable() in the
-case no error happened.
-
-Link: http://lkml.kernel.org/r/1504637190.15310.62.camel@edumazet-glaptop3.roam.corp.google.com
-Fixes: 0a835c4f090a ("Reimplement IDR and IDA using the radix tree")
-Fixes: 7ad3d4d85c7a ("ida: Move ida_bitmap to a percpu variable")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>    [4.11+]
+Link: http://lkml.kernel.org/r/1504625439-31313-1-git-send-email-ldufour@linux.vnet.ibm.com
+Fixes: bae473a423f6 ("mm: introduce fault_env")
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-must-check-__radix_tree_preload-return-value lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-must-check-__radix_tree_preload-return-value
-+++ a/lib/radix-tree.c
-@@ -463,7 +463,7 @@ radix_tree_node_free(struct radix_tree_n
-  * To make use of this facility, the radix tree must be initialised without
-  * __GFP_DIRECT_RECLAIM being passed to INIT_RADIX_TREE().
-  */
--static int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
-+static __must_check int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
- {
- 	struct radix_tree_preload *rtp;
- 	struct radix_tree_node *node;
-@@ -2104,7 +2104,8 @@ EXPORT_SYMBOL(radix_tree_tagged);
-  */
- void idr_preload(gfp_t gfp_mask)
- {
--	__radix_tree_preload(gfp_mask, IDR_PRELOAD_SIZE);
-+	if (__radix_tree_preload(gfp_mask, IDR_PRELOAD_SIZE))
-+		preempt_disable();
- }
- EXPORT_SYMBOL(idr_preload);
+diff -puN mm/memory.c~mm-fix-mem_cgroup_oom_disable-call-missing mm/memory.c
+--- a/mm/memory.c~mm-fix-mem_cgroup_oom_disable-call-missing
++++ a/mm/memory.c
+@@ -4053,6 +4053,11 @@ int handle_mm_fault(struct vm_area_struc
+ 	/* do counter updates before entering really critical section. */
+ 	check_sync_rss_stat(current);
  
-@@ -2118,13 +2119,13 @@ EXPORT_SYMBOL(idr_preload);
-  */
- int ida_pre_get(struct ida *ida, gfp_t gfp)
- {
--	__radix_tree_preload(gfp, IDA_PRELOAD_SIZE);
++	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
++					    flags & FAULT_FLAG_INSTRUCTION,
++					    flags & FAULT_FLAG_REMOTE))
++		return VM_FAULT_SIGSEGV;
++
  	/*
- 	 * The IDA API has no preload_end() equivalent.  Instead,
- 	 * ida_get_new() can return -EAGAIN, prompting the caller
- 	 * to return to the ida_pre_get() step.
- 	 */
--	preempt_enable();
-+	if (!__radix_tree_preload(gfp, IDA_PRELOAD_SIZE))
-+		preempt_enable();
+ 	 * Enable the memcg OOM handling for faults triggered in user
+ 	 * space.  Kernel faults are handled more gracefully.
+@@ -4060,11 +4065,6 @@ int handle_mm_fault(struct vm_area_struc
+ 	if (flags & FAULT_FLAG_USER)
+ 		mem_cgroup_oom_enable();
  
- 	if (!this_cpu_read(ida_bitmap)) {
- 		struct ida_bitmap *bitmap = kmalloc(sizeof(*bitmap), gfp);
-_
-
-Patches currently in -mm which might be from edumazet@google.com are
-
-radix-tree-must-check-__radix_tree_preload-return-value.patch
-
+-	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
+-					    flags & FAULT_FLAG_INSTRUCTION,
+-					    flags & FAULT_FLAG_REMOTE))
+-		return VM_FAULT_SIGSEGV;
