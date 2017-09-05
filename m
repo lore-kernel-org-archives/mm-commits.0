@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
- added to -mm tree
-Date: Tue, 05 Sep 2017 16:39:20 -0700
-Message-ID: <59af35a8.+dJ8gILJk0HcZrOC%akpm@linux-foundation.org>
+Subject: + checkpatch-rename-variables-to-avoid-confusion.patch added to
+ -mm tree
+Date: Tue, 05 Sep 2017 16:41:22 -0700
+Message-ID: <59af3622.ERVBbFpIaTI6nrjS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753652AbdIEXjV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:39:21 -0400
+        with ESMTP id S1753652AbdIEXlX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:41:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, dhowells@redhat.com, jlee@suse.com, pwieczorkiewicz@suse.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
+     Subject: checkpatch: rename variables to avoid confusion
 has been added to the -mm tree.  Its filename is
-     x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+     checkpatch-rename-variables-to-avoid-confusion.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-rename-variables-to-avoid-confusion.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-rename-variables-to-avoid-confusion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
+From: Jean Delvare <jdelvare@suse.de>
+Subject: checkpatch: rename variables to avoid confusion
 
-The sprint_oid() utility function doesn't properly check the buffer size
-that it causes that the warning in vsnprintf() be triggered.  For example
-on v4.1 kernel:
+The variable name "$msg_type" is sometimes used to set the message type,
+and sometimes used to set the message level.  This works but is kind of
+confusing.  Use "$msg_level" in the latter case instead, to make the code
+clearer.
 
-[   49.612536] ------------[ cut here ]------------
-[   49.612543] WARNING: CPU: 0 PID: 2357 at lib/vsprintf.c:1867 vsnprintf+0x5a7/0x5c0()
-...
-
-We can trigger this issue by injecting maliciously crafted x509 cert in
-DER format.  Just using hex editor to change the length of OID to over the
-length of the SEQUENCE container.  For example:
-
-    0:d=0  hl=4 l= 980 cons: SEQUENCE
-    4:d=1  hl=4 l= 700 cons:  SEQUENCE
-    8:d=2  hl=2 l=   3 cons:   cont [ 0 ]
-   10:d=3  hl=2 l=   1 prim:    INTEGER           :02
-   13:d=2  hl=2 l=   9 prim:   INTEGER           :9B47FAF791E7D1E3
-   24:d=2  hl=2 l=  13 cons:   SEQUENCE
-   26:d=3  hl=2 l=   9 prim:    OBJECT            :sha256WithRSAEncryption
-   37:d=3  hl=2 l=   0 prim:    NULL
-   39:d=2  hl=2 l= 121 cons:   SEQUENCE
-   41:d=3  hl=2 l=  22 cons:    SET
-   43:d=4  hl=2 l=  20 cons:     SEQUENCE      <=== the SEQ length is 20
-   45:d=5  hl=2 l=   3 prim:      OBJECT            :organizationName
-	<=== the original length is 3, change the length of OID to over the length of SEQUENCE
-
-Pawel Wieczorkiewicz reported this problem and Takashi Iwai provided patch
-to fix it by checking the bufsize in sprint_oid().
-
-Link: http://lkml.kernel.org/r/20170903021646.2080-1-jlee@suse.com
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
-Reported-by: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
+Link: http://lkml.kernel.org/r/20170902175345.175db33a@endymion
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/oid_registry.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string lib/oid_registry.c
---- a/lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string
-+++ a/lib/oid_registry.c
-@@ -142,9 +142,9 @@ int sprint_oid(const void *data, size_t
+diff -puN scripts/checkpatch.pl~checkpatch-rename-variables-to-avoid-confusion scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-rename-variables-to-avoid-confusion
++++ a/scripts/checkpatch.pl
+@@ -2715,10 +2715,10 @@ sub process {
+ 				my $typo_fix = $spelling_fix{lc($typo)};
+ 				$typo_fix = ucfirst($typo_fix) if ($typo =~ /^[A-Z]/);
+ 				$typo_fix = uc($typo_fix) if ($typo =~ /^[A-Z]+$/);
+-				my $msg_type = \&WARN;
+-				$msg_type = \&CHK if ($file);
+-				if (&{$msg_type}("TYPO_SPELLING",
+-						 "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $herecurr) &&
++				my $msg_level = \&WARN;
++				$msg_level = \&CHK if ($file);
++				if (&{$msg_level}("TYPO_SPELLING",
++						  "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $herecurr) &&
+ 				    $fix) {
+ 					$fixed[$fixlinenr] =~ s/(^|[^A-Za-z@])($typo)($|[^A-Za-z@])/$1$typo_fix$3/;
+ 				}
+@@ -2753,10 +2753,10 @@ sub process {
+ 		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
+ 		    $rawline =~ /\b51\s+Franklin\s+St/i) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+-			my $msg_type = \&ERROR;
+-			$msg_type = \&CHK if ($file);
+-			&{$msg_type}("FSF_MAILING_ADDRESS",
+-				     "Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
++			my $msg_level = \&ERROR;
++			$msg_level = \&CHK if ($file);
++			&{$msg_level}("FSF_MAILING_ADDRESS",
++				      "Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
  		}
- 		ret += count = snprintf(buffer, bufsize, ".%lu", num);
- 		buffer += count;
--		bufsize -= count;
--		if (bufsize == 0)
-+		if (bufsize <= count)
- 			return -ENOBUFS;
-+		bufsize -= count;
- 	}
  
- 	return ret;
+ # check for Kconfig help text having a real description
+@@ -3810,10 +3810,10 @@ sub process {
+ 
+ # avoid BUG() or BUG_ON()
+ 		if ($line =~ /\b(?:BUG|BUG_ON)\b/) {
+-			my $msg_type = \&WARN;
+-			$msg_type = \&CHK if ($file);
+-			&{$msg_type}("AVOID_BUG",
+-				     "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
++			my $msg_level = \&WARN;
++			$msg_level = \&CHK if ($file);
++			&{$msg_level}("AVOID_BUG",
++				      "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
+ 		}
+ 
+ # avoid LINUX_VERSION_CODE
+@@ -4339,11 +4339,11 @@ sub process {
+ 
+ 					# messages are ERROR, but ?: are CHK
+ 					if ($ok == 0) {
+-						my $msg_type = \&ERROR;
+-						$msg_type = \&CHK if (($op eq '?:' || $op eq '?' || $op eq ':') && $ctx =~ /VxV/);
++						my $msg_level = \&ERROR;
++						$msg_level = \&CHK if (($op eq '?:' || $op eq '?' || $op eq ':') && $ctx =~ /VxV/);
+ 
+-						if (&{$msg_type}("SPACING",
+-								 "spaces required around that '$op' $at\n" . $hereptr)) {
++						if (&{$msg_level}("SPACING",
++								  "spaces required around that '$op' $at\n" . $hereptr)) {
+ 							$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
+ 							if (defined $fix_elements[$n + 2]) {
+ 								$fix_elements[$n + 2] =~ s/^\s+//;
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+checkpatch-fix-typo-in-comment.patch
+checkpatch-rename-variables-to-avoid-confusion.patch
+checkpatch-add-6-missing-types-to-list-types.patch
 
