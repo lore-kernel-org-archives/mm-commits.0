@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-mem_cgroup_oom_disable-call-missing.patch added to -mm
- tree
-Date: Tue, 05 Sep 2017 16:11:35 -0700
-Message-ID: <59af2f27.AQ7NE5cJ2YlbfDER%akpm@linux-foundation.org>
+Subject: + mmfork-introduce-madv_wipeonfork-fix.patch added to -mm tree
+Date: Tue, 05 Sep 2017 16:15:46 -0700
+Message-ID: <59af3022.s9KSujD6NfCBDaBp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39766 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752778AbdIEXLg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:11:36 -0400
+        with ESMTP id S1753115AbdIEXPr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:15:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ldufour@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, deller@gmx.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix mem_cgroup_oom_disable() call missing
+     Subject: mmfork-introduce-madv_wipeonfork-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-mem_cgroup_oom_disable-call-missing.patch
+     mmfork-introduce-madv_wipeonfork-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-mem_cgroup_oom_disable-call-missing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmfork-introduce-madv_wipeonfork-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-mem_cgroup_oom_disable-call-missing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmfork-introduce-madv_wipeonfork-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Subject: mm/memory.c: fix mem_cgroup_oom_disable() call missing
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmfork-introduce-madv_wipeonfork-fix
 
-Seen while reading the code, in handle_mm_fault(), in the case
-arch_vma_access_permitted() is failing the call to
-mem_cgroup_oom_disable() is not made.
+numerically order arch/parisc/include/uapi/asm/mman.h #defines
 
-To fix that, move the call to mem_cgroup_oom_enable() after calling
-arch_vma_access_permitted() as it should not have entered the memcg OOM.
-
-Link: http://lkml.kernel.org/r/1504625439-31313-1-git-send-email-ldufour@linux.vnet.ibm.com
-Fixes: bae473a423f6 ("mm: introduce fault_env")
-Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/parisc/include/uapi/asm/mman.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-mem_cgroup_oom_disable-call-missing mm/memory.c
---- a/mm/memory.c~mm-fix-mem_cgroup_oom_disable-call-missing
-+++ a/mm/memory.c
-@@ -4053,6 +4053,11 @@ int handle_mm_fault(struct vm_area_struc
- 	/* do counter updates before entering really critical section. */
- 	check_sync_rss_stat(current);
+diff -puN arch/parisc/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork-fix arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork-fix
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -57,12 +57,12 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	70		/* Clear the MADV_NODUMP flag */
  
-+	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
-+					    flags & FAULT_FLAG_INSTRUCTION,
-+					    flags & FAULT_FLAG_REMOTE))
-+		return VM_FAULT_SIGSEGV;
+-#define MADV_HWPOISON     100		/* poison a page for testing */
+-#define MADV_SOFT_OFFLINE 101		/* soft offline page for testing */
+-
+ #define MADV_WIPEONFORK 71		/* Zero memory on fork, child only */
+ #define MADV_KEEPONFORK 72		/* Undo MADV_WIPEONFORK */
+ 
++#define MADV_HWPOISON     100		/* poison a page for testing */
++#define MADV_SOFT_OFFLINE 101		/* soft offline page for testing */
 +
- 	/*
- 	 * Enable the memcg OOM handling for faults triggered in user
- 	 * space.  Kernel faults are handled more gracefully.
-@@ -4060,11 +4065,6 @@ int handle_mm_fault(struct vm_area_struc
- 	if (flags & FAULT_FLAG_USER)
- 		mem_cgroup_oom_enable();
- 
--	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
--					    flags & FAULT_FLAG_INSTRUCTION,
--					    flags & FAULT_FLAG_REMOTE))
--		return VM_FAULT_SIGSEGV;
+ /* compatibility flags */
+ #define MAP_FILE	0
+ #define MAP_VARIABLE	0
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
+mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes.patch
+zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
+userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+mm-swap-add-swap-readahead-hit-statistics-fix.patch
+swap-choose-swap-device-according-to-numa-node-v2-fix.patch
+mmfork-introduce-madv_wipeonfork-fix.patch
+mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+add-testcases-for-memset16-32-64-fix.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+zram-mm-vs-block.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
