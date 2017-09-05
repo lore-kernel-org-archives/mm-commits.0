@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec.patch added to -mm tree
-Date: Tue, 05 Sep 2017 15:49:22 -0700
-Message-ID: <59af29f2.gGm7PkaoBIXAO+I5%akpm@linux-foundation.org>
+Subject: + dax-initialize-variable-pfn-before-using-it.patch added to -mm
+ tree
+Date: Tue, 05 Sep 2017 15:55:42 -0700
+Message-ID: <59af2b6e.RfmvEMvGPlLnuLzd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37454 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752909AbdIEWtX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 18:49:23 -0400
+        with ESMTP id S1752459AbdIEWzn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 18:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt_flat: delete two error messages for a failed memory allocation in decompress_exec()
+     Subject: dax: initialize variable pfn before using it
 has been added to the -mm tree.  Its filename is
-     binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec.patch
+     dax-initialize-variable-pfn-before-using-it.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-initialize-variable-pfn-before-using-it.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-initialize-variable-pfn-before-using-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: binfmt_flat: delete two error messages for a failed memory allocation in decompress_exec()
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: dax: initialize variable pfn before using it
 
-Omit extra messages for a memory allocation failure in this function.
+dax_pmd_insert_mapping() contains the following code:
 
-This issue was detected by using the Coccinelle software.
+        pfn_t pfn;
+        if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
+            goto fallback;
+        /* ... */
+    fallback:
+      trace_dax_pmd_insert_mapping_fallback(inode, vmf, length, pfn, ret);
 
-Link: http://lkml.kernel.org/r/f92aac79-b05e-321a-1a19-d38c7159ee9c@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+When the condition in the if statement fails, the function calls
+trace_dax_pmd_insert_mapping_fallback() with an uninitialized pfn value.
+
+This issue has been found while building the kernel with clang. The
+compiler reported:
+
+    fs/dax.c:1280:6: error: variable 'pfn' is used uninitialized
+    whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
+        if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    fs/dax.c:1310:60: note: uninitialized use occurs here
+      trace_dax_pmd_insert_mapping_fallback(inode, vmf, length, pfn, ret);
+                                                                     ^~~
+
+Link: http://lkml.kernel.org/r/20170903083000.587-1-nicolas.iooss_linux@m4x.org
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_flat.c~binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec
-+++ a/fs/binfmt_flat.c
-@@ -192,13 +192,11 @@ static int decompress_exec(
+diff -puN fs/dax.c~dax-initialize-variable-pfn-before-using-it fs/dax.c
+--- a/fs/dax.c~dax-initialize-variable-pfn-before-using-it
++++ a/fs/dax.c
+@@ -1230,7 +1230,7 @@ static int dax_pmd_insert_mapping(struct
+ 	void *ret = NULL, *kaddr;
+ 	long length = 0;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
++	pfn_t pfn = {};
+ 	int id;
  
- 	memset(&strm, 0, sizeof(strm));
- 	strm.workspace = kmalloc(zlib_inflate_workspacesize(), GFP_KERNEL);
--	if (strm.workspace == NULL) {
--		pr_debug("no memory for decompress workspace\n");
-+	if (!strm.workspace)
- 		return -ENOMEM;
--	}
-+
- 	buf = kmalloc(LBUFSIZE, GFP_KERNEL);
--	if (buf == NULL) {
--		pr_debug("no memory for read buffer\n");
-+	if (!buf) {
- 		retval = -ENOMEM;
- 		goto out_free;
- 	}
+ 	if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
-binfmt_flat-delete-two-error-messages-for-a-failed-memory-allocation-in-decompress_exec.patch
+dax-initialize-variable-pfn-before-using-it.patch
 
