@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch added to -mm tree
-Date: Tue, 05 Sep 2017 16:30:43 -0700
-Message-ID: <59af33a3.tkch1sYF8o18H2J2%akpm@linux-foundation.org>
+ x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+ added to -mm tree
+Date: Tue, 05 Sep 2017 16:39:20 -0700
+Message-ID: <59af35a8.+dJ8gILJk0HcZrOC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41330 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752753AbdIEXao (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:30:44 -0400
+        with ESMTP id S1753652AbdIEXjV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 19:39:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: tiwai@suse.de, dhowells@redhat.com, jlee@suse.com, pwieczorkiewicz@suse.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix
+     Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
 has been added to the -mm tree.  Its filename is
-     mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch
+     x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +40,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix
+From: Takashi Iwai <tiwai@suse.de>
+Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
 
-fix hmm for "mmu_notifier kill invalidate_page callback"
+The sprint_oid() utility function doesn't properly check the buffer size
+that it causes that the warning in vsnprintf() be triggered.  For example
+on v4.1 kernel:
 
-Link: http://lkml.kernel.org/r/20170830231955.GD9445@redhat.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+[   49.612536] ------------[ cut here ]------------
+[   49.612543] WARNING: CPU: 0 PID: 2357 at lib/vsprintf.c:1867 vsnprintf+0x5a7/0x5c0()
+...
+
+We can trigger this issue by injecting maliciously crafted x509 cert in
+DER format.  Just using hex editor to change the length of OID to over the
+length of the SEQUENCE container.  For example:
+
+    0:d=0  hl=4 l= 980 cons: SEQUENCE
+    4:d=1  hl=4 l= 700 cons:  SEQUENCE
+    8:d=2  hl=2 l=   3 cons:   cont [ 0 ]
+   10:d=3  hl=2 l=   1 prim:    INTEGER           :02
+   13:d=2  hl=2 l=   9 prim:   INTEGER           :9B47FAF791E7D1E3
+   24:d=2  hl=2 l=  13 cons:   SEQUENCE
+   26:d=3  hl=2 l=   9 prim:    OBJECT            :sha256WithRSAEncryption
+   37:d=3  hl=2 l=   0 prim:    NULL
+   39:d=2  hl=2 l= 121 cons:   SEQUENCE
+   41:d=3  hl=2 l=  22 cons:    SET
+   43:d=4  hl=2 l=  20 cons:     SEQUENCE      <=== the SEQ length is 20
+   45:d=5  hl=2 l=   3 prim:      OBJECT            :organizationName
+	<=== the original length is 3, change the length of OID to over the length of SEQUENCE
+
+Pawel Wieczorkiewicz reported this problem and Takashi Iwai provided patch
+to fix it by checking the bufsize in sprint_oid().
+
+Link: http://lkml.kernel.org/r/20170903021646.2080-1-jlee@suse.com
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+Reported-by: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ lib/oid_registry.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hmm.c~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix mm/hmm.c
---- a/mm/hmm.c~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix
-+++ a/mm/hmm.c
-@@ -120,20 +120,6 @@ static void hmm_invalidate_range(struct
- 	up_read(&hmm->mirrors_sem);
- }
+diff -puN lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string lib/oid_registry.c
+--- a/lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string
++++ a/lib/oid_registry.c
+@@ -142,9 +142,9 @@ int sprint_oid(const void *data, size_t
+ 		}
+ 		ret += count = snprintf(buffer, bufsize, ".%lu", num);
+ 		buffer += count;
+-		bufsize -= count;
+-		if (bufsize == 0)
++		if (bufsize <= count)
+ 			return -ENOBUFS;
++		bufsize -= count;
+ 	}
  
--static void hmm_invalidate_page(struct mmu_notifier *mn,
--				struct mm_struct *mm,
--				unsigned long addr)
--{
--	unsigned long start = addr & PAGE_MASK;
--	unsigned long end = start + PAGE_SIZE;
--	struct hmm *hmm = mm->hmm;
--
--	VM_BUG_ON(!hmm);
--
--	atomic_inc(&hmm->sequence);
--	hmm_invalidate_range(mm->hmm, HMM_UPDATE_INVALIDATE, start, end);
--}
--
- static void hmm_invalidate_range_start(struct mmu_notifier *mn,
- 				       struct mm_struct *mm,
- 				       unsigned long start,
-@@ -159,7 +145,6 @@ static void hmm_invalidate_range_end(str
- }
- 
- static const struct mmu_notifier_ops hmm_mmu_notifier_ops = {
--	.invalidate_page	= hmm_invalidate_page,
- 	.invalidate_range_start	= hmm_invalidate_range_start,
- 	.invalidate_range_end	= hmm_invalidate_range_end,
- };
+ 	return ret;
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
-hmm-heterogeneous-memory-management-documentation-v3.patch
-mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch
-mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
-mm-hmm-mirror-device-page-fault-handler.patch
-mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
-mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
-mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
-mm-memcontrol-support-memory_device_private-v4.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device-v7.patch
-mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
-mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
-mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
-mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
-mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry-v4.patch
-mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
-mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3.patch
-mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
-mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2.patch
-mm-hmm-fix-build-when-hmm-is-disabled.patch
-lib-interval_tree-fast-overlap-detection-fix.patch
+x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
 
