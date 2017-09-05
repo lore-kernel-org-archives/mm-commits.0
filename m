@@ -1,72 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-dtc-fix-%zx-warning.patch removed from
- -mm tree
-Date: Tue, 05 Sep 2017 12:51:55 -0700
-Message-ID: <20170905195155.kWjiFX7-e%akpm@linux-foundation.org>
+Subject: [merged]
+ compiler-dont-perform-compiletime_assert-with-o0.patch removed from -mm
+ tree
+Date: Tue, 05 Sep 2017 12:51:52 -0700
+Message-ID: <20170905195152.KMYIsoFqq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752153AbdIETv4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 15:51:56 -0400
+        with ESMTP id S1752747AbdIETvx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 15:51:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@gibson.dropbear.id.au, frowand.list@gmail.com, mm-commits@vger.kernel.org, mmarek@suse.cz, rmk+kernel@armlinux.org.uk, robh+dt@kernel.org, shuahkh@osg.samsung.com
+To: abbotti@mev.co.uk, arnd@arndb.de, joe@ovn.org, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/dtc: fix '%zx' warning
+     Subject: include/linux/compiler.h: don't perform compiletime_assert with -O0
 has been removed from the -mm tree.  Its filename was
-     scripts-dtc-fix-%zx-warning.patch
+     compiler-dont-perform-compiletime_assert-with-o0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Russell King <rmk+kernel@armlinux.org.uk>
-Subject: scripts/dtc: fix '%zx' warning
+From: Joe Stringer <joe@ovn.org>
+Subject: include/linux/compiler.h: don't perform compiletime_assert with -O0
 
-dtc uses an incorrect format specifier for printing a uint64_t value. 
-uint64_t may be either 'unsigned long' or 'unsigned long long' depending
-on the host architecture.
+c7acec713d14c6c ("kernel.h: handle pointers to arrays better in
+container_of()") made use of __compiletime_assert() from container_of()
+thus increasing the usage of this macro, allowing developers to notice
+type conflicts in usage of container_of() at compile time.
 
-Fix this by using %llx and casting to unsigned long long, which ensures
-that we always have a wide enough variable to print 64 bits of hex.
+However, the implementation of __compiletime_assert relies on compiler
+optimizations to report an error.  This means that if a developer uses
+"-O0" with any code that performs container_of(), the compiler will always
+report an error regardless of whether there is an actual problem in the
+code.
 
-  HOSTCC  scripts/dtc/checks.o
-scripts/dtc/checks.c: In function 'check_simple_bus_reg':
-scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
-  snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
-  ^
-scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+This patch disables compile_time_assert when optimizations are disabled to
+allow such code to compile with CFLAGS="-O0".
 
-Link: http://lkml.kernel.org/r/20170829222034.GJ20805@n2100.armlinux.org.uk
-Fixes: 828d4cdd012c ("dtc: check.c fix compile error")
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Michal Marek <mmarek@suse.cz>
+Example compilation failure:
+
+./include/linux/compiler.h:547:38: error: call to `__compiletime_assert_94' declared with attribute error: pointer type mismatch in container_of()
+  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+                                      ^
+./include/linux/compiler.h:530:4: note: in definition of macro `__compiletime_assert'
+    prefix ## suffix();    \
+    ^~~~~~
+./include/linux/compiler.h:547:2: note: in expansion of macro `_compiletime_assert'
+  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+  ^~~~~~~~~~~~~~~~~~~
+./include/linux/build_bug.h:46:37: note: in expansion of macro `compiletime_assert'
+ #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+                                     ^~~~~~~~~~~~~~~~~~
+./include/linux/kernel.h:860:2: note: in expansion of macro `BUILD_BUG_ON_MSG'
+  BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) && \
+  ^~~~~~~~~~~~~~~~
+
+[akpm@linux-foundation.org: use do{}while(0), per Michal]
+Link: http://lkml.kernel.org/r/20170829230114.11662-1-joe@ovn.org
+Fixes: c7acec713d14c6c ("kernel.h: handle pointers to arrays better in container_of()")
+Signed-off-by: Joe Stringer <joe@ovn.org>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/dtc/checks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning scripts/dtc/checks.c
---- a/scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning
-+++ a/scripts/dtc/checks.c
-@@ -873,7 +873,7 @@ static void check_simple_bus_reg(struct
- 	while (size--)
- 		reg = (reg << 32) | fdt32_to_cpu(*(cells++));
+diff -puN include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0 include/linux/compiler.h
+--- a/include/linux/compiler.h~compiler-dont-perform-compiletime_assert-with-o0
++++ a/include/linux/compiler.h
+@@ -517,7 +517,8 @@ static __always_inline void __write_once
+ # define __compiletime_error_fallback(condition) do { } while (0)
+ #endif
  
--	snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
-+	snprintf(unit_addr, sizeof(unit_addr), "%llx", (unsigned long long)reg);
- 	if (!streq(unitname, unit_addr))
- 		FAIL(c, dti, "Node %s simple-bus unit address format error, expected \"%s\"",
- 		     node->fullpath, unit_addr);
+-#define __compiletime_assert(condition, msg, prefix, suffix)		\
++#ifdef __OPTIMIZE__
++# define __compiletime_assert(condition, msg, prefix, suffix)		\
+ 	do {								\
+ 		bool __cond = !(condition);				\
+ 		extern void prefix ## suffix(void) __compiletime_error(msg); \
+@@ -525,6 +526,9 @@ static __always_inline void __write_once
+ 			prefix ## suffix();				\
+ 		__compiletime_error_fallback(__cond);			\
+ 	} while (0)
++#else
++# define __compiletime_assert(condition, msg, prefix, suffix) do { } while (0)
++#endif
+ 
+ #define _compiletime_assert(condition, msg, prefix, suffix) \
+ 	__compiletime_assert(condition, msg, prefix, suffix)
 _
 
-Patches currently in -mm which might be from rmk+kernel@armlinux.org.uk are
+Patches currently in -mm which might be from joe@ovn.org are
 
 
