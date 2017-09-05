@@ -1,72 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch removed from
+Subject: [merged] scripts-dtc-fix-%zx-warning.patch removed from
  -mm tree
-Date: Tue, 05 Sep 2017 12:51:40 -0700
-Message-ID: <20170905195140.WSBDlb42s%akpm@linux-foundation.org>
+Date: Tue, 05 Sep 2017 12:51:55 -0700
+Message-ID: <20170905195155.kWjiFX7-e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37830 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752292AbdIETvm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 15:51:42 -0400
+        with ESMTP id S1752153AbdIETv4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2017 15:51:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz
+To: david@gibson.dropbear.id.au, frowand.list@gmail.com, mm-commits@vger.kernel.org, mmarek@suse.cz, rmk+kernel@armlinux.org.uk, robh+dt@kernel.org, shuahkh@osg.samsung.com
 
 
 The patch titled
-     Subject: mm,page_alloc: don't call __node_reclaim() with oom_lock held.
+     Subject: scripts/dtc: fix '%zx' warning
 has been removed from the -mm tree.  Its filename was
-     mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held.patch
+     scripts-dtc-fix-%zx-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,page_alloc: don't call __node_reclaim() with oom_lock held.
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: scripts/dtc: fix '%zx' warning
 
-We are doing last second memory allocation attempt before calling
-out_of_memory().  But since slab shrinker functions might indirectly wait
-for other thread's __GFP_DIRECT_RECLAIM && !__GFP_NORETRY memory
-allocations via sleeping locks, calling slab shrinker functions from
-node_reclaim() from get_page_from_freelist() with oom_lock held has
-possibility of deadlock.  Therefore, make sure that last second memory
-allocation attempt does not call slab shrinker functions.
+dtc uses an incorrect format specifier for printing a uint64_t value. 
+uint64_t may be either 'unsigned long' or 'unsigned long long' depending
+on the host architecture.
 
-Link: http://lkml.kernel.org/r/1503577106-9196-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Fix this by using %llx and casting to unsigned long long, which ensures
+that we always have a wide enough variable to print 64 bits of hex.
+
+  HOSTCC  scripts/dtc/checks.o
+scripts/dtc/checks.c: In function 'check_simple_bus_reg':
+scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+  snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
+  ^
+scripts/dtc/checks.c:876:2: warning: format '%zx' expects argument of type 'size_t', but argument 4 has type 'uint64_t' [-Wformat=]
+
+Link: http://lkml.kernel.org/r/20170829222034.GJ20805@n2100.armlinux.org.uk
+Fixes: 828d4cdd012c ("dtc: check.c fix compile error")
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ scripts/dtc/checks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held mm/page_alloc.c
---- a/mm/page_alloc.c~mmpage_alloc-dont-call-__node_reclaim-with-oom_lock-held
-+++ a/mm/page_alloc.c
-@@ -3291,10 +3291,13 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	/*
- 	 * Go through the zonelist yet one more time, keep very high watermark
- 	 * here, this is only to catch a parallel oom killing, we must fail if
--	 * we're still under heavy pressure.
-+	 * we're still under heavy pressure. But make sure that this reclaim
-+	 * attempt shall not depend on __GFP_DIRECT_RECLAIM && !__GFP_NORETRY
-+	 * allocation which will never fail due to oom_lock already held.
- 	 */
--	page = get_page_from_freelist(gfp_mask | __GFP_HARDWALL, order,
--					ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
-+	page = get_page_from_freelist((gfp_mask | __GFP_HARDWALL) &
-+				      ~__GFP_DIRECT_RECLAIM, order,
-+				      ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
- 	if (page)
- 		goto out;
+diff -puN scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning scripts/dtc/checks.c
+--- a/scripts/dtc/checks.c~scripts-dtc-fix-%zx-warning
++++ a/scripts/dtc/checks.c
+@@ -873,7 +873,7 @@ static void check_simple_bus_reg(struct
+ 	while (size--)
+ 		reg = (reg << 32) | fdt32_to_cpu(*(cells++));
  
+-	snprintf(unit_addr, sizeof(unit_addr), "%zx", reg);
++	snprintf(unit_addr, sizeof(unit_addr), "%llx", (unsigned long long)reg);
+ 	if (!streq(unitname, unit_addr))
+ 		FAIL(c, dti, "Node %s simple-bus unit address format error, expected \"%s\"",
+ 		     node->fullpath, unit_addr);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from rmk+kernel@armlinux.org.uk are
 
 
