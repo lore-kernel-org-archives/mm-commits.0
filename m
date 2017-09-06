@@ -1,72 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch removed from -mm tree
-Date: Wed, 06 Sep 2017 16:07:37 -0700
-Message-ID: <59b07fb9.DSCgpVFndsetV0ut%akpm@linux-foundation.org>
+ mm-swap-add-swap-readahead-hit-statistics-fix.patch removed from -mm tree
+Date: Wed, 06 Sep 2017 16:08:26 -0700
+Message-ID: <59b07fea.RhkPqXfKfhfl/kxr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752270AbdIFXHj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:07:39 -0400
+        with ESMTP id S1752270AbdIFXI1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.perevalov@samsung.com, aarcange@redhat.com, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dave.hansen@intel.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix
+     Subject: mm-swap-add-swap-readahead-hit-statistics-fix
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
+     mm-swap-add-swap-readahead-hit-statistics-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch
+This patch was dropped because it was folded into mm-swap-add-swap-readahead-hit-statistics.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix
+Subject: mm-swap-add-swap-readahead-hit-statistics-fix
 
-fix uffdio_zeropage(), per Mike Kravetz
+don't display swap stats if CONFOG_SWAP=n
 
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/vm_event_item.h |    2 ++
+ mm/vmstat.c                   |    3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -813,13 +813,14 @@ static int uffdio_zeropage(int ufd, unsi
- 		if (uffdio_zeropage.zeropage != page_size) {
- 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
- 				uffdio_zeropage.zeropage), exit(1);
--		} else
-+		} else {
- 			if (test_uffdio_zeropage_eexist) {
- 				test_uffdio_zeropage_eexist = false;
- 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
- 						      offset);
- 			}
- 			return 1;
-+		}
- 	} else {
- 		fprintf(stderr,
- 			"UFFDIO_ZEROPAGE succeeded %Ld\n",
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-mmfork-introduce-madv_wipeonfork-fix.patch
-
+diff -puN include/linux/vm_event_item.h~mm-swap-add-swap-readahead-hit-statistics-fix include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-swap-add-swap-readahead-hit-statistics-fix
++++ a/include/linux/vm_event_item.h
+@@ -106,8 +106,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		VMACACHE_FIND_HITS,
+ 		VMACACHE_FULL_FLUSHES,
+ #endif
++#ifdef CONFIG_SWAP
+ 		SWAP_RA,
+ 		SWAP_RA_HIT,
++#endif
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
+diff -puN mm/vmstat.c~mm-swap-add-swap-readahead-hit-statistics-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-swap-add-swap-readahead-hit-statistics-fix
++++ a/mm/vmstat.c
+@@ -1098,9 +1098,10 @@ const char * const vmstat_text[] = {
+ 	"vmacache_find_hits",
+ 	"vmacache_full_flushes",
+ #endif
