@@ -1,71 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/119] hugetlbfs: use pagevec_lookup_range() in
- remove_inode_hugepages()
-Date: Wed, 06 Sep 2017 16:21:33 -0700
-Message-ID: <20170906232133.nRUszTopZ%akpm@linux-foundation.org>
+Subject: [patch 060/119] mm/ksm.c: constify attribute_group
+ structures
+Date: Wed, 06 Sep 2017 16:21:53 -0700
+Message-ID: <20170906232153.F_3hCSUVy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50058 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbdIFXVf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:35 -0400
+        with ESMTP id S1753778AbdIFXVy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, nyc@holomorphy.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Jan Kara <jack@suse.cz>
-Subject: hugetlbfs: use pagevec_lookup_range() in remove_inode_hugepages()
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: mm/ksm.c: constify attribute_group structures
 
-We want only pages from given range in remove_inode_hugepages().  Use
-pagevec_lookup_range() instead of pagevec_lookup().
+attribute_group are not supposed to change at runtime.  All functions
+working with attribute_group provided by <linux/sysfs.h> work with const
+attribute_group.  So mark the non-const structs as const.
 
-Link: http://lkml.kernel.org/r/20170726114704.7626-8-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Link: http://lkml.kernel.org/r/1501157167-3706-2-git-send-email-arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+ mm/ksm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-use-pagevec_lookup_range-in-remove_inode_hugepages
-+++ a/fs/hugetlbfs/inode.c
-@@ -403,7 +403,6 @@ static void remove_inode_hugepages(struc
- 	struct pagevec pvec;
- 	pgoff_t next, index;
- 	int i, freed = 0;
--	long lookup_nr = PAGEVEC_SIZE;
- 	bool truncate_op = (lend == LLONG_MAX);
+diff -puN mm/ksm.c~mm-ksm-constify-attribute_group-structures mm/ksm.c
+--- a/mm/ksm.c~mm-ksm-constify-attribute_group-structures
++++ a/mm/ksm.c
+@@ -3043,7 +3043,7 @@ static struct attribute *ksm_attrs[] = {
+ 	NULL,
+ };
  
- 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
-@@ -412,30 +411,17 @@ static void remove_inode_hugepages(struc
- 	next = start;
- 	while (next < end) {
- 		/*
--		 * Don't grab more pages than the number left in the range.
--		 */
--		if (end - next < lookup_nr)
--			lookup_nr = end - next;
--
--		/*
- 		 * When no more pages are found, we are done.
- 		 */
--		if (!pagevec_lookup(&pvec, mapping, &next, lookup_nr))
-+		if (!pagevec_lookup_range(&pvec, mapping, &next, end - 1,
-+					  PAGEVEC_SIZE))
- 			break;
- 
- 		for (i = 0; i < pagevec_count(&pvec); ++i) {
- 			struct page *page = pvec.pages[i];
- 			u32 hash;
- 
--			/*
--			 * The page (index) could be beyond end.  This is
--			 * only possible in the punch hole case as end is
--			 * max page offset in the truncate case.
--			 */
- 			index = page->index;
--			if (index >= end)
--				break;
+-static struct attribute_group ksm_attr_group = {
++static const struct attribute_group ksm_attr_group = {
+ 	.attrs = ksm_attrs,
+ 	.name = "ksm",
+ };
+_
