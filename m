@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/119] userfaultfd: report UFFDIO_ZEROPAGE as
- available for shmem VMAs
-Date: Wed, 06 Sep 2017 16:23:12 -0700
-Message-ID: <20170906232312.wdnBldFpT%akpm@linux-foundation.org>
+Subject: [patch 079/119] shmem: introduce shmem_inode_acct_block
+Date: Wed, 06 Sep 2017 16:22:59 -0700
+Message-ID: <20170906232259.GVJlOP-Rv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50454 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754096AbdIFXXO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:23:14 -0400
+        with ESMTP id S1752270AbdIFXXB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:23:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, xemul@virtuozzo.com
 
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
+Subject: shmem: introduce shmem_inode_acct_block
 
-Now when shmem VMAs can be filled with zero page via userfaultfd we can
-report that UFFDIO_ZEROPAGE is available for those VMAs
+The shmem_acct_block and the update of used_blocks are following one
+another in all the places they are used.  Combine these two into a helper
+function.
 
-Link: http://lkml.kernel.org/r/1497939652-16528-7-git-send-email-rppt@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1497939652-16528-3-git-send-email-rppt@linux.vnet.ibm.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -29,48 +29,230 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/shmem.c |  102 +++++++++++++++++++++++----------------------------
+ 1 file changed, 46 insertions(+), 56 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas
-+++ a/fs/userfaultfd.c
-@@ -1194,7 +1194,7 @@ static int userfaultfd_register(struct u
- 	struct uffdio_register __user *user_uffdio_register;
- 	unsigned long vm_flags, new_flags;
- 	bool found;
--	bool non_anon_pages;
-+	bool basic_ioctls;
- 	unsigned long start, end, vma_end;
+diff -puN mm/shmem.c~shmem-introduce-shmem_inode_acct_block mm/shmem.c
+--- a/mm/shmem.c~shmem-introduce-shmem_inode_acct_block
++++ a/mm/shmem.c
+@@ -188,6 +188,38 @@ static inline void shmem_unacct_blocks(u
+ 		vm_unacct_memory(pages * VM_ACCT(PAGE_SIZE));
+ }
  
- 	user_uffdio_register = (struct uffdio_register __user *) arg;
-@@ -1260,7 +1260,7 @@ static int userfaultfd_register(struct u
- 	 * Search for not compatible vmas.
- 	 */
- 	found = false;
--	non_anon_pages = false;
-+	basic_ioctls = false;
- 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
- 		cond_resched();
++static inline bool shmem_inode_acct_block(struct inode *inode, long pages)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++
++	if (shmem_acct_block(info->flags, pages))
++		return false;
++
++	if (sbinfo->max_blocks) {
++		if (percpu_counter_compare(&sbinfo->used_blocks,
++					   sbinfo->max_blocks - pages) > 0)
++			goto unacct;
++		percpu_counter_add(&sbinfo->used_blocks, pages);
++	}
++
++	return true;
++
++unacct:
++	shmem_unacct_blocks(info->flags, pages);
++	return false;
++}
++
++static inline void shmem_inode_unacct_blocks(struct inode *inode, long pages)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++
++	if (sbinfo->max_blocks)
++		percpu_counter_sub(&sbinfo->used_blocks, pages);
++	shmem_unacct_blocks(info->flags, pages);
++}
++
+ static const struct super_operations shmem_ops;
+ static const struct address_space_operations shmem_aops;
+ static const struct file_operations shmem_file_operations;
+@@ -249,31 +281,20 @@ static void shmem_recalc_inode(struct in
  
-@@ -1299,8 +1299,8 @@ static int userfaultfd_register(struct u
- 		/*
- 		 * Note vmas containing huge pages
- 		 */
--		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
--			non_anon_pages = true;
-+		if (is_vm_hugetlb_page(cur))
-+			basic_ioctls = true;
- 
- 		found = true;
+ 	freed = info->alloced - info->swapped - inode->i_mapping->nrpages;
+ 	if (freed > 0) {
+-		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+-		if (sbinfo->max_blocks)
+-			percpu_counter_add(&sbinfo->used_blocks, -freed);
+ 		info->alloced -= freed;
+ 		inode->i_blocks -= freed * BLOCKS_PER_PAGE;
+-		shmem_unacct_blocks(info->flags, freed);
++		shmem_inode_unacct_blocks(inode, freed);
  	}
-@@ -1371,7 +1371,7 @@ out_unlock:
- 		 * userland which ioctls methods are guaranteed to
- 		 * succeed on this range.
- 		 */
--		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
-+		if (put_user(basic_ioctls ? UFFD_API_RANGE_IOCTLS_BASIC :
- 			     UFFD_API_RANGE_IOCTLS,
- 			     &user_uffdio_register->ioctls))
- 			ret = -EFAULT;
+ }
+ 
+ bool shmem_charge(struct inode *inode, long pages)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	unsigned long flags;
+ 
+-	if (shmem_acct_block(info->flags, pages))
++	if (!shmem_inode_acct_block(inode, pages))
+ 		return false;
+ 
+-	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					   sbinfo->max_blocks - pages) > 0)
+-			goto unacct;
+-		percpu_counter_add(&sbinfo->used_blocks, pages);
+-	}
+-
+ 	spin_lock_irqsave(&info->lock, flags);
+ 	info->alloced += pages;
+ 	inode->i_blocks += pages * BLOCKS_PER_PAGE;
+@@ -282,16 +303,11 @@ bool shmem_charge(struct inode *inode, l
+ 	inode->i_mapping->nrpages += pages;
+ 
+ 	return true;
+-
+-unacct:
+-	shmem_unacct_blocks(info->flags, pages);
+-	return false;
+ }
+ 
+ void shmem_uncharge(struct inode *inode, long pages)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&info->lock, flags);
+@@ -300,9 +316,7 @@ void shmem_uncharge(struct inode *inode,
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock_irqrestore(&info->lock, flags);
+ 
+-	if (sbinfo->max_blocks)
+-		percpu_counter_sub(&sbinfo->used_blocks, pages);
+-	shmem_unacct_blocks(info->flags, pages);
++	shmem_inode_unacct_blocks(inode, pages);
+ }
+ 
+ /*
+@@ -1451,9 +1465,10 @@ static struct page *shmem_alloc_page(gfp
+ }
+ 
+ static struct page *shmem_alloc_and_acct_page(gfp_t gfp,
+-		struct shmem_inode_info *info, struct shmem_sb_info *sbinfo,
++		struct inode *inode,
+ 		pgoff_t index, bool huge)
+ {
++	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct page *page;
+ 	int nr;
+ 	int err = -ENOSPC;
+@@ -1462,14 +1477,8 @@ static struct page *shmem_alloc_and_acct
+ 		huge = false;
+ 	nr = huge ? HPAGE_PMD_NR : 1;
+ 
+-	if (shmem_acct_block(info->flags, nr))
++	if (!shmem_inode_acct_block(inode, nr))
+ 		goto failed;
+-	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					sbinfo->max_blocks - nr) > 0)
+-			goto unacct;
+-		percpu_counter_add(&sbinfo->used_blocks, nr);
+-	}
+ 
+ 	if (huge)
+ 		page = shmem_alloc_hugepage(gfp, info, index);
+@@ -1482,10 +1491,7 @@ static struct page *shmem_alloc_and_acct
+ 	}
+ 
+ 	err = -ENOMEM;
+-	if (sbinfo->max_blocks)
+-		percpu_counter_add(&sbinfo->used_blocks, -nr);
+-unacct:
+-	shmem_unacct_blocks(info->flags, nr);
++	shmem_inode_unacct_blocks(inode, nr);
+ failed:
+ 	return ERR_PTR(err);
+ }
+@@ -1750,10 +1756,9 @@ repeat:
+ 		}
+ 
+ alloc_huge:
+-		page = shmem_alloc_and_acct_page(gfp, info, sbinfo,
+-				index, true);
++		page = shmem_alloc_and_acct_page(gfp, inode, index, true);
+ 		if (IS_ERR(page)) {
+-alloc_nohuge:		page = shmem_alloc_and_acct_page(gfp, info, sbinfo,
++alloc_nohuge:		page = shmem_alloc_and_acct_page(gfp, inode,
+ 					index, false);
+ 		}
+ 		if (IS_ERR(page)) {
+@@ -1875,10 +1880,7 @@ clear:
+ 	 * Error recovery.
+ 	 */
+ unacct:
+-	if (sbinfo->max_blocks)
+-		percpu_counter_sub(&sbinfo->used_blocks,
+-				1 << compound_order(page));
+-	shmem_unacct_blocks(info->flags, 1 << compound_order(page));
++	shmem_inode_unacct_blocks(inode, 1 << compound_order(page));
+ 
+ 	if (PageTransHuge(page)) {
+ 		unlock_page(page);
+@@ -2214,7 +2216,6 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ {
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	struct address_space *mapping = inode->i_mapping;
+ 	gfp_t gfp = mapping_gfp_mask(mapping);
+ 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
+@@ -2226,19 +2227,13 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 	int ret;
+ 
+ 	ret = -ENOMEM;
+-	if (shmem_acct_block(info->flags, 1))
++	if (!shmem_inode_acct_block(inode, 1))
+ 		goto out;
+-	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					   sbinfo->max_blocks) >= 0)
+-			goto out_unacct_blocks;
+-		percpu_counter_inc(&sbinfo->used_blocks);
+-	}
+ 
+ 	if (!*pagep) {
+ 		page = shmem_alloc_page(gfp, info, pgoff);
+ 		if (!page)
+-			goto out_dec_used_blocks;
++			goto out_unacct_blocks;
+ 
+ 		page_kaddr = kmap_atomic(page);
+ 		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
+@@ -2248,9 +2243,7 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 		/* fallback to copy_from_user outside mmap_sem */
+ 		if (unlikely(ret)) {
+ 			*pagep = page;
+-			if (sbinfo->max_blocks)
+-				percpu_counter_add(&sbinfo->used_blocks, -1);
+-			shmem_unacct_blocks(info->flags, 1);
++			shmem_inode_unacct_blocks(inode, 1);
+ 			/* don't free the page */
+ 			return -EFAULT;
+ 		}
+@@ -2313,11 +2306,8 @@ out_release_uncharge:
+ out_release:
+ 	unlock_page(page);
+ 	put_page(page);
+-out_dec_used_blocks:
+-	if (sbinfo->max_blocks)
+-		percpu_counter_add(&sbinfo->used_blocks, -1);
+ out_unacct_blocks:
+-	shmem_unacct_blocks(info->flags, 1);
++	shmem_inode_unacct_blocks(inode, 1);
+ 	goto out;
+ }
+ 
 _
