@@ -1,58 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [patch 058/119] mm, memcg: reset memory.low during memcg
- offlining
-Date: Wed, 06 Sep 2017 16:21:47 -0700
-Message-ID: <20170906232147.p3xnQlu_t%akpm@linux-foundation.org>
+Subject: [patch 064/119] mm/hugetlb.c: constify attribute_group
+ structures
+Date: Wed, 06 Sep 2017 16:22:06 -0700
+Message-ID: <20170906232206.bhYclslHD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50116 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753778AbdIFXVs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:48 -0400
+        with ESMTP id S1751287AbdIFXWH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, tj@kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm, memcg: reset memory.low during memcg offlining
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: mm/hugetlb.c: constify attribute_group structures
 
-A removed memory cgroup with a defined memory.low and some belonging
-pagecache has very low chances to be freed.
+attribute_group are not supposed to change at runtime.  All functions
+working with attribute_group provided by <linux/sysfs.h> work with const
+attribute_group.  So mark the non-const structs as const.
 
-If a cgroup has been removed, there is likely no memory pressure inside
-the cgroup, and the pagecache is protected from the external pressure by
-the defined low limit.  The cgroup will be freed only after the reclaim of
-all belonging pages.  And it will not happen until there are any
-reclaimable memory in the system.  That means, there is a good chance,
-that a cold pagecache will reside in the memory for an undefined amount of
-time, wasting system resources.
-
-This problem was fixed earlier by fa06235b8eb0 ("cgroup: reset css on
-destruction"), but it's not a best way to do it, as we can't really reset
-all limits/counters during cgroup offlining.
-
-Link: http://lkml.kernel.org/r/20170727130428.28856-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: http://lkml.kernel.org/r/1501157260-3922-1-git-send-email-arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-reset-memorylow-during-memcg-offlining mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-reset-memorylow-during-memcg-offlining
-+++ a/mm/memcontrol.c
-@@ -4319,6 +4319,8 @@ static void mem_cgroup_css_offline(struc
- 	}
- 	spin_unlock(&memcg->event_list_lock);
+diff -puN mm/hugetlb.c~mm-hugetlb-constify-attribute_group-structures mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-constify-attribute_group-structures
++++ a/mm/hugetlb.c
+@@ -2569,13 +2569,13 @@ static struct attribute *hstate_attrs[]
+ 	NULL,
+ };
  
-+	memcg->low = 0;
-+
- 	memcg_offline_kmem(memcg);
- 	wb_memcg_offline(memcg);
+-static struct attribute_group hstate_attr_group = {
++static const struct attribute_group hstate_attr_group = {
+ 	.attrs = hstate_attrs,
+ };
+ 
+ static int hugetlb_sysfs_add_hstate(struct hstate *h, struct kobject *parent,
+ 				    struct kobject **hstate_kobjs,
+-				    struct attribute_group *hstate_attr_group)
++				    const struct attribute_group *hstate_attr_group)
+ {
+ 	int retval;
+ 	int hi = hstate_index(h);
+@@ -2633,7 +2633,7 @@ static struct attribute *per_node_hstate
+ 	NULL,
+ };
+ 
+-static struct attribute_group per_node_hstate_attr_group = {
++static const struct attribute_group per_node_hstate_attr_group = {
+ 	.attrs = per_node_hstate_attrs,
+ };
  
 _
