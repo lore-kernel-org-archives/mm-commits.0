@@ -1,90 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [patch 078/119] shmem: shmem_charge: verify max_block is
- not exceeded before inode update
-Date: Wed, 06 Sep 2017 16:22:56 -0700
-Message-ID: <20170906232256.ObDAR8qgT%akpm@linux-foundation.org>
+Subject: [patch 075/119] memcg, THP, swap: make
+ mem_cgroup_swapout() support THP
+Date: Wed, 06 Sep 2017 16:22:45 -0700
+Message-ID: <20170906232245.E-D3Qx0qo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50358 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752270AbdIFXW5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:57 -0400
+        with ESMTP id S1752270AbdIFXWr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, xemul@virtuozzo.com
+To: aarcange@redhat.com, akpm@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, torvalds@linux-foundation.org, vishal.l.verma@intel.com, ying.huang@intel.com
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: shmem: shmem_charge: verify max_block is not exceeded before inode update
+From: Huang Ying <ying.huang@intel.com>
+Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
 
-Patch series "userfaultfd: enable zeropage support for shmem".
+This patch makes mem_cgroup_swapout() works for the transparent huge page
+(THP).  Which will move the memory cgroup charge from memory to swap for a
+THP.
 
-These patches enable support for UFFDIO_ZEROPAGE for shared memory.
+This will be used for the THP swap support.  Where a THP may be swapped
+out as a whole to a set of (HPAGE_PMD_NR) continuous swap slots on the
+swap device.
 
-The first two patches are not strictly related to userfaultfd, they are
-just minor refactoring to reduce amount of code duplication.
-
-
-This patch (of 7):
-
-Currently we update inode and shmem_inode_info before verifying that
-used_blocks will not exceed max_blocks.  In case it will, we undo the
-update.  Let's switch the order and move the verification of the blocks
-count before the inode and shmem_inode_info update.
-
-Link: http://lkml.kernel.org/r/1497939652-16528-2-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20170724051840.2309-11-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN mm/shmem.c~shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update mm/shmem.c
---- a/mm/shmem.c~shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update
-+++ a/mm/shmem.c
-@@ -266,6 +266,14 @@ bool shmem_charge(struct inode *inode, l
+diff -puN mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp
++++ a/mm/memcontrol.c
+@@ -4654,8 +4654,8 @@ static enum mc_target_type get_mctgt_typ
  
- 	if (shmem_acct_block(info->flags, pages))
- 		return false;
-+
-+	if (sbinfo->max_blocks) {
-+		if (percpu_counter_compare(&sbinfo->used_blocks,
-+					   sbinfo->max_blocks - pages) > 0)
-+			goto unacct;
-+		percpu_counter_add(&sbinfo->used_blocks, pages);
-+	}
-+
- 	spin_lock_irqsave(&info->lock, flags);
- 	info->alloced += pages;
- 	inode->i_blocks += pages * BLOCKS_PER_PAGE;
-@@ -273,20 +281,11 @@ bool shmem_charge(struct inode *inode, l
- 	spin_unlock_irqrestore(&info->lock, flags);
- 	inode->i_mapping->nrpages += pages;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * We don't consider swapping or file mapped pages because THP does not
+- * support them for now.
++ * We don't consider PMD mapped swapping or file mapped pages because THP does
++ * not support them for now.
+  * Caller should make sure that pmd_trans_huge(pmd) is true.
+  */
+ static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
+@@ -5913,6 +5913,7 @@ static struct mem_cgroup *mem_cgroup_id_
+ void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
+ {
+ 	struct mem_cgroup *memcg, *swap_memcg;
++	unsigned int nr_entries;
+ 	unsigned short oldid;
  
--	if (!sbinfo->max_blocks)
--		return true;
--	if (percpu_counter_compare(&sbinfo->used_blocks,
--				sbinfo->max_blocks - pages) > 0) {
--		inode->i_mapping->nrpages -= pages;
--		spin_lock_irqsave(&info->lock, flags);
--		info->alloced -= pages;
--		shmem_recalc_inode(inode);
--		spin_unlock_irqrestore(&info->lock, flags);
--		shmem_unacct_blocks(info->flags, pages);
--		return false;
--	}
--	percpu_counter_add(&sbinfo->used_blocks, pages);
- 	return true;
-+
-+unacct:
-+	shmem_unacct_blocks(info->flags, pages);
-+	return false;
- }
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+@@ -5933,19 +5934,24 @@ void mem_cgroup_swapout(struct page *pag
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	 */
+ 	swap_memcg = mem_cgroup_id_get_online(memcg);
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg), 1);
++	nr_entries = hpage_nr_pages(page);
++	/* Get references for the tail pages, too */
++	if (nr_entries > 1)
++		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg),
++				   nr_entries);
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(swap_memcg, 1);
++	mem_cgroup_swap_statistics(swap_memcg, nr_entries);
  
- void shmem_uncharge(struct inode *inode, long pages)
+ 	page->mem_cgroup = NULL;
+ 
+ 	if (!mem_cgroup_is_root(memcg))
+-		page_counter_uncharge(&memcg->memory, 1);
++		page_counter_uncharge(&memcg->memory, nr_entries);
+ 
+ 	if (memcg != swap_memcg) {
+ 		if (!mem_cgroup_is_root(swap_memcg))
+-			page_counter_charge(&swap_memcg->memsw, 1);
+-		page_counter_uncharge(&memcg->memsw, 1);
++			page_counter_charge(&swap_memcg->memsw, nr_entries);
++		page_counter_uncharge(&memcg->memsw, nr_entries);
+ 	}
+ 
+ 	/*
+@@ -5955,7 +5961,8 @@ void mem_cgroup_swapout(struct page *pag
+ 	 * only synchronisation we have for udpating the per-CPU variables.
+ 	 */
+ 	VM_BUG_ON(!irqs_disabled());
+-	mem_cgroup_charge_statistics(memcg, page, false, -1);
++	mem_cgroup_charge_statistics(memcg, page, PageTransHuge(page),
++				     -nr_entries);
+ 	memcg_check_events(memcg, page);
+ 
+ 	if (!mem_cgroup_is_root(memcg))
 _
