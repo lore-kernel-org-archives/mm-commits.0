@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 013/119] slub: tidy up initialization ordering
-Date: Wed, 06 Sep 2017 16:19:15 -0700
-Message-ID: <20170906231915.I8fHw0k2a%akpm@linux-foundation.org>
+Subject: [patch 015/119] mm/slub.c: add a naive detection of double
+ free or corruption
+Date: Wed, 06 Sep 2017 16:19:22 -0700
+Message-ID: <20170906231922.NPtw_S3Sv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49240 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750944AbdIFXTQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:16 -0400
+        with ESMTP id S1750944AbdIFXTY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, glider@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.popov@linux.com, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, luto@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, nicolas.pitre@linaro.org, paulmck@linux.vnet.ibm.com, penberg@kernel.org, riel@redhat.com, rientjes@google.com, tj@kernel.org, torvalds@linux-foundation.org, tycho@docker.com
 
-From: Alexander Potapenko <glider@google.com>
-Subject: slub: tidy up initialization ordering
+From: Alexander Popov <alex.popov@linux.com>
+Subject: mm/slub.c: add a naive detection of double free or corruption
 
-- free_kmem_cache_nodes() frees the cache node before nulling out a
-  reference to it
+Add an assertion similar to "fasttop" check in GNU C Library allocator as
+a part of SLAB_FREELIST_HARDENED feature.  An object added to a singly
+linked freelist should not point to itself.  That helps to detect some
+double free errors (e.g.  CVE-2017-2636) without slub_debug and KASAN.
 
-- init_kmem_cache_nodes() publishes the cache node before initializing it
-
-Neither of these matter at runtime because the cache nodes cannot be
-looked up by any other thread.  But it's neater and more consistent to
-reorder these.
-
-Link: http://lkml.kernel.org/r/20170707083408.40410-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/1502468246-1262-1-git-send-email-alex.popov@linux.com
+Signed-off-by: Alexander Popov <alex.popov@linux.com>
 Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Paul E McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Tycho Andersen <tycho@docker.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/slub.c~slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication mm/slub.c
---- a/mm/slub.c~slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication
+diff -puN mm/slub.c~mm-slubc-add-a-naive-detection-of-double-free-or-corruption mm/slub.c
+--- a/mm/slub.c~mm-slubc-add-a-naive-detection-of-double-free-or-corruption
 +++ a/mm/slub.c
-@@ -3358,8 +3358,8 @@ static void free_kmem_cache_nodes(struct
- 	struct kmem_cache_node *n;
+@@ -290,6 +290,10 @@ static inline void set_freepointer(struc
+ {
+ 	unsigned long freeptr_addr = (unsigned long)object + s->offset;
  
- 	for_each_kmem_cache_node(s, node, n) {
--		kmem_cache_free(kmem_cache_node, n);
- 		s->node[node] = NULL;
-+		kmem_cache_free(kmem_cache_node, n);
- 	}
++#ifdef CONFIG_SLAB_FREELIST_HARDENED
++	BUG_ON(object == fp); /* naive detection of double free or corruption */
++#endif
++
+ 	*(void **)freeptr_addr = freelist_ptr(s, fp, freeptr_addr);
  }
  
-@@ -3389,8 +3389,8 @@ static int init_kmem_cache_nodes(struct
- 			return 0;
- 		}
- 
--		s->node[node] = n;
- 		init_kmem_cache_node(n);
-+		s->node[node] = n;
- 	}
- 	return 1;
- }
 _
