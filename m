@@ -1,68 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [patch 055/119] fs: use pagevec_lookup_range() in
- page_cache_seek_hole_data()
-Date: Wed, 06 Sep 2017 16:21:37 -0700
-Message-ID: <20170906232137.RP1eICQAW%akpm@linux-foundation.org>
+Subject: [patch 062/119] mm/page_idle.c: constify attribute_group
+ structures
+Date: Wed, 06 Sep 2017 16:21:59 -0700
+Message-ID: <20170906232159.q8Jbp9WlZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50084 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753778AbdIFXVi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:38 -0400
+        with ESMTP id S1753778AbdIFXWB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Jan Kara <jack@suse.cz>
-Subject: fs: use pagevec_lookup_range() in page_cache_seek_hole_data()
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: mm/page_idle.c: constify attribute_group structures
 
-We want only pages from given range in page_cache_seek_hole_data().  Use
-pagevec_lookup_range() instead of pagevec_lookup() and remove unnecessary
-code.  Note that the check for getting less pages than desired can be
-removed because index gets updated by pagevec_lookup_range().
+attribute_group are not supposed to change at runtime.  All functions
+working with attribute_group provided by <linux/sysfs.h> work with const
+attribute_group.  So mark the non-const structs as const.
 
-Link: http://lkml.kernel.org/r/20170726114704.7626-9-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/1501157221-3832-1-git-send-email-arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ mm/page_idle.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data fs/buffer.c
---- a/fs/buffer.c~fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data
-+++ a/fs/buffer.c
-@@ -3549,11 +3549,10 @@ page_cache_seek_hole_data(struct inode *
- 	pagevec_init(&pvec, 0);
+diff -puN mm/page_idle.c~mm-page_idle-constify-attribute_group-structures mm/page_idle.c
+--- a/mm/page_idle.c~mm-page_idle-constify-attribute_group-structures
++++ a/mm/page_idle.c
+@@ -204,7 +204,7 @@ static struct bin_attribute *page_idle_b
+ 	NULL,
+ };
  
- 	do {
--		unsigned want, nr_pages, i;
-+		unsigned nr_pages, i;
- 
--		want = min_t(unsigned, end - index, PAGEVEC_SIZE);
--		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &index,
--					  want);
-+		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping, &index,
-+						end - 1, PAGEVEC_SIZE);
- 		if (nr_pages == 0)
- 			break;
- 
-@@ -3574,10 +3573,6 @@ page_cache_seek_hole_data(struct inode *
- 			    lastoff < page_offset(page))
- 				goto check_range;
- 
--			/* Searching done if the page index is out of range. */
--			if (page->index >= end)
--				goto not_found;
--
- 			lock_page(page);
- 			if (likely(page->mapping == inode->i_mapping) &&
- 			    page_has_buffers(page)) {
-@@ -3590,11 +3585,6 @@ page_cache_seek_hole_data(struct inode *
- 			unlock_page(page);
- 			lastoff = page_offset(page) + PAGE_SIZE;
- 		}
--
--		/* Searching done if fewer pages returned than wanted. */
--		if (nr_pages < want)
--			break;
+-static struct attribute_group page_idle_attr_group = {
++static const struct attribute_group page_idle_attr_group = {
+ 	.bin_attrs = page_idle_bin_attrs,
+ 	.name = "page_idle",
+ };
+_
