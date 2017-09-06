@@ -1,113 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: [patch 071/119] mm: test code to write THP to swap device
- as a whole
-Date: Wed, 06 Sep 2017 16:22:30 -0700
-Message-ID: <20170906232230.hMxC_oT-_%akpm@linux-foundation.org>
+Subject: [patch 068/119] mm, THP, swap: make reuse_swap_page()
+ works for THP swapped out
+Date: Wed, 06 Sep 2017 16:22:19 -0700
+Message-ID: <20170906232219.0Aun9lFhU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: application/octet-stream; charset=binary
-Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50206 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754199AbdIFXWc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:32 -0400
+        with ESMTP id S1750786AbdIFXWV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, torvalds@linux-foundation.org, vishal.l.verma@intel.com, ying.huang@intel.com
 
-RnJvbTogSHVhbmcgWWluZyA8eWluZy5odWFuZ0BpbnRlbC5jb20+ClN1YmplY3Q6IG1tOiB0ZXN0
-IGNvZGUgdG8gd3JpdGUgVEhQIHRvIHN3YXAgZGV2aWNlIGFzIGEgd2hvbGUKClRvIHN1cHBvcnQg
-dG8QIGRlbGF5IHNwbGl0dGluZyBUSFAgKFRyYW5zcGFyZW50IEh1Z2UgUGFnZSkgYWZ0ZXIKc3dh
-cHBlZCBvdXQuICBXZSBuZWVkIHRvIGVuaGFuY2Ugc3dhcCB3cml0aW5nIGNvZGUgdG8gc3VwcG9y
-dCB0byB3cml0ZQphIFRIUCBhcyBhIHdob2xlLiAgVGhpcyB3aWxsIGltcHJvdmUgc3dhcCB3cml0
-ZSBJTyBwZXJmb3JtYW5jZS4gIEFzCk1pbmcgTGVpIDxtaW5nLmxlaUByZWRoYXQuY29tPiBwb2lu
-dGVkIG91dCwgdGhpcyBzaG91bGQgYmUgYmFzZWQgb24KbXVsdGlwYWdlIGJ2ZWMgc3VwcG9ydCwg
-d2hpY2ggaGFzbid0IGJlZW4gbWVyZ2VkIHlldC4gIFNvIHRoaXMgcGF0Y2gKaXMgb25seSBmb3Ig
-dGVzdGluZyB0aGUgZnVuY3Rpb25hbGl0eSBvZiB0aGUgb3RoZXIgcGF0Y2hlcyBpbiB0aGUKc2Vy
-aWVzLiAgQW5kIHdpbGwgYmUgcmVpbXBsZW1lbnRlZCBhZnRlciBtdWx0aXBhZ2UgYnZlYyBzdXBw
-b3J0IGlzCm1lcmdlZC4KCkxpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcvci8yMDE3MDcyNDA1
-MTg0MC4yMzA5LTcteWluZy5odWFuZ0BpbnRlbC5jb20KU2lnbmVkLW9mZi1ieTogIkh1YW5nLCBZ
-aW5nIiA8eWluZy5odWFuZ0BpbnRlbC5jb20+CkNjOiAiS2lyaWxsIEEgLiBTaHV0ZW1vdiIgPGtp
-cmlsbC5zaHV0ZW1vdkBsaW51eC5pbnRlbC5jb20+CkNjOiBBbmRyZWEgQXJjYW5nZWxpIDxhYXJj
-YW5nZUByZWRoYXQuY29tPgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5j
-b20+CkNjOiBIdWdoIERpY2tpbnMgPGh1Z2hkQGdvb2dsZS5jb20+CkNjOiBKZW5zIEF4Ym9lIDxh
-eGJvZUBrZXJuZWwuZGs+CkNjOiBKb2hhbm5lcyBXZWluZXIgPGhhbm5lc0BjbXB4Y2hnLm9yZz4K
-Q2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+CkNjOiBNaW5jaGFuIEtpbSA8bWlu
-Y2hhbkBrZXJuZWwub3JnPgpDYzogUmlrIHZhbiBSaWVsIDxyaWVsQHJlZGhhdC5jb20+CkNjOiBS
-b3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBpbnRlbC5jb20+IFtmb3IgYnJkLmMsIHpyYW1fZHJ2
-LmMsIHBtZW0uY10KQ2M6IFNoYW9odWEgTGkgPHNobGlAa2VybmVsLm9yZz4KQ2M6IFZpc2hhbCBM
-IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBN
-b3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+Ci0tLQoKIGluY2x1ZGUvbGludXgvYmlv
-LmggICAgICAgICAgIHwgICAgOCArKysrKysrKwogaW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmgg
-ICAgfCAgICA0ICsrLS0KIGluY2x1ZGUvbGludXgvdm1fZXZlbnRfaXRlbS5oIHwgICAgMSArCiBt
-bS9wYWdlX2lvLmMgICAgICAgICAgICAgICAgICB8ICAgMjEgKysrKysrKysrKysrKysrKy0tLS0t
-CiBtbS92bXN0YXQuYyAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwogNSBmaWxlcyBjaGFuZ2Vk
-LCAyOCBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQoKZGlmZiAtcHVOIGluY2x1ZGUvbGlu
-dXgvYmlvLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xl
-IGluY2x1ZGUvbGludXgvYmlvLmgKLS0tIGEvaW5jbHVkZS9saW51eC9iaW8uaH50ZXN0LWNvZGUt
-dG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUKKysrIGEvaW5jbHVkZS9saW51
-eC9iaW8uaApAQCAtMzgsNyArMzgsMTUgQEAKICNkZWZpbmUgQklPX0JVR19PTgogI2VuZGlmCiAK
-KyNpZmRlZiBDT05GSUdfVEhQX1NXQVAKKyNpZiBIUEFHRV9QTURfTlIgPiAyNTYKKyNkZWZpbmUg
-QklPX01BWF9QQUdFUwkJSFBBR0VfUE1EX05SCisjZWxzZQogI2RlZmluZSBCSU9fTUFYX1BBR0VT
-CQkyNTYKKyNlbmRpZgorI2Vsc2UKKyNkZWZpbmUgQklPX01BWF9QQUdFUwkJMjU2CisjZW5kaWYK
-IAogI2RlZmluZSBiaW9fcHJpbyhiaW8pCQkJKGJpbyktPmJpX2lvcHJpbwogI2RlZmluZSBiaW9f
-c2V0X3ByaW8oYmlvLCBwcmlvKQkJKChiaW8pLT5iaV9pb3ByaW8gPSBwcmlvKQpkaWZmIC1wdU4g
-aW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2Fw
-LWRldmljZS1hcy1hLXdob2xlIGluY2x1ZGUvbGludXgvcGFnZS1mbGFncy5oCi0tLSBhL2luY2x1
-ZGUvbGludXgvcGFnZS1mbGFncy5ofnRlc3QtY29kZS10by13cml0ZS10aHAtdG8tc3dhcC1kZXZp
-Y2UtYXMtYS13aG9sZQorKysgYS9pbmNsdWRlL2xpbnV4L3BhZ2UtZmxhZ3MuaApAQCAtMzAzLDgg
-KzMwMyw4IEBAIFBBR0VGTEFHKE93bmVyUHJpdjEsIG93bmVyX3ByaXZfMSwgUEZfQU4KICAqIE9u
-bHkgdGVzdC1hbmQtc2V0IGV4aXN0IGZvciBQR193cml0ZWJhY2suICBUaGUgdW5jb25kaXRpb25h
-bCBvcGVyYXRvcnMgYXJlCiAgKiByaXNreTogdGhleSBieXBhc3MgcGFnZSBhY2NvdW50aW5nLgog
-ICovCi1URVNUUEFHRUZMQUcoV3JpdGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX0NPTVBPVU5EKQot
-CVRFU1RTQ0ZMQUcoV3JpdGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX0NPTVBPVU5EKQorVEVTVFBB
-R0VGTEFHKFdyaXRlYmFjaywgd3JpdGViYWNrLCBQRl9OT19UQUlMKQorCVRFU1RTQ0ZMQUcoV3Jp
-dGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX1RBSUwpCiBQQUdFRkxBRyhNYXBwZWRUb0Rpc2ssIG1h
-cHBlZHRvZGlzaywgUEZfTk9fVEFJTCkKIAogLyogUEdfcmVhZGFoZWFkIGlzIG9ubHkgdXNlZCBm
-b3IgcmVhZHM7IFBHX3JlY2xhaW0gaXMgb25seSBmb3Igd3JpdGVzICovCmRpZmYgLXB1TiBpbmNs
-dWRlL2xpbnV4L3ZtX2V2ZW50X2l0ZW0uaH50ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAt
-ZGV2aWNlLWFzLWEtd2hvbGUgaW5jbHVkZS9saW51eC92bV9ldmVudF9pdGVtLmgKLS0tIGEvaW5j
-bHVkZS9saW51eC92bV9ldmVudF9pdGVtLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2Fw
-LWRldmljZS1hcy1hLXdob2xlCisrKyBhL2luY2x1ZGUvbGludXgvdm1fZXZlbnRfaXRlbS5oCkBA
-IC04NSw2ICs4NSw3IEBAIGVudW0gdm1fZXZlbnRfaXRlbSB7IFBHUEdJTiwgUEdQR09VVCwgUFMK
-ICNlbmRpZgogCQlUSFBfWkVST19QQUdFX0FMTE9DLAogCQlUSFBfWkVST19QQUdFX0FMTE9DX0ZB
-SUxFRCwKKwkJVEhQX1NXUE9VVCwKICNlbmRpZgogI2lmZGVmIENPTkZJR19NRU1PUllfQkFMTE9P
-TgogCQlCQUxMT09OX0lORkxBVEUsCmRpZmYgLXB1TiBtbS9wYWdlX2lvLmN+dGVzdC1jb2RlLXRv
-LXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlIG1tL3BhZ2VfaW8uYwotLS0gYS9t
-bS9wYWdlX2lvLmN+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdo
-b2xlCisrKyBhL21tL3BhZ2VfaW8uYwpAQCAtMjgsMTYgKzI4LDE4IEBACiBzdGF0aWMgc3RydWN0
-IGJpbyAqZ2V0X3N3YXBfYmlvKGdmcF90IGdmcF9mbGFncywKIAkJCQlzdHJ1Y3QgcGFnZSAqcGFn
-ZSwgYmlvX2VuZF9pb190IGVuZF9pbykKIHsKKwlpbnQgaSwgbnIgPSBocGFnZV9ucl9wYWdlcyhw
-YWdlKTsKIAlzdHJ1Y3QgYmlvICpiaW87CiAKLQliaW8gPSBiaW9fYWxsb2MoZ2ZwX2ZsYWdzLCAx
-KTsKKwliaW8gPSBiaW9fYWxsb2MoZ2ZwX2ZsYWdzLCBucik7CiAJaWYgKGJpbykgewogCQliaW8t
-PmJpX2l0ZXIuYmlfc2VjdG9yID0gbWFwX3N3YXBfcGFnZShwYWdlLCAmYmlvLT5iaV9iZGV2KTsK
-IAkJYmlvLT5iaV9pdGVyLmJpX3NlY3RvciA8PD0gUEFHRV9TSElGVCAtIDk7CiAJCWJpby0+Ymlf
-ZW5kX2lvID0gZW5kX2lvOwogCi0JCWJpb19hZGRfcGFnZShiaW8sIHBhZ2UsIFBBR0VfU0laRSwg
-MCk7Ci0JCUJVR19PTihiaW8tPmJpX2l0ZXIuYmlfc2l6ZSAhPSBQQUdFX1NJWkUpOworCQlmb3Ig
-KGkgPSAwOyBpIDwgbnI7IGkrKykKKwkJCWJpb19hZGRfcGFnZShiaW8sIHBhZ2UgKyBpLCBQQUdF
-X1NJWkUsIDApOworCQlWTV9CVUdfT04oYmlvLT5iaV9pdGVyLmJpX3NpemUgIT0gUEFHRV9TSVpF
-ICogbnIpOwogCX0KIAlyZXR1cm4gYmlvOwogfQpAQCAtMjYyLDYgKzI2NCwxNSBAQCBzdGF0aWMg
-c2VjdG9yX3Qgc3dhcF9wYWdlX3NlY3RvcihzdHJ1Y3QKIAlyZXR1cm4gKHNlY3Rvcl90KV9fcGFn
-ZV9maWxlX2luZGV4KHBhZ2UpIDw8IChQQUdFX1NISUZUIC0gOSk7CiB9CiAKK3N0YXRpYyBpbmxp
-bmUgdm9pZCBjb3VudF9zd3BvdXRfdm1fZXZlbnQoc3RydWN0IHBhZ2UgKnBhZ2UpCit7CisjaWZk
-ZWYgQ09ORklHX1RSQU5TUEFSRU5UX0hVR0VQQUdFCisJaWYgKHVubGlrZWx5KFBhZ2VUcmFuc0h1
-Z2UocGFnZSkpKQorCQljb3VudF92bV9ldmVudChUSFBfU1dQT1VUKTsKKyNlbmRpZgorCWNvdW50
-X3ZtX2V2ZW50cyhQU1dQT1VULCBocGFnZV9ucl9wYWdlcyhwYWdlKSk7Cit9CisKIGludCBfX3N3
-YXBfd3JpdGVwYWdlKHN0cnVjdCBwYWdlICpwYWdlLCBzdHJ1Y3Qgd3JpdGViYWNrX2NvbnRyb2wg
-KndiYywKIAkJYmlvX2VuZF9pb190IGVuZF93cml0ZV9mdW5jKQogewpAQCAtMzEzLDcgKzMyNCw3
-IEBAIGludCBfX3N3YXBfd3JpdGVwYWdlKHN0cnVjdCBwYWdlICpwYWdlLAogCiAJcmV0ID0gYmRl
-dl93cml0ZV9wYWdlKHNpcy0+YmRldiwgc3dhcF9wYWdlX3NlY3RvcihwYWdlKSwgcGFnZSwgd2Jj
-KTsKIAlpZiAoIXJldCkgewotCQljb3VudF92bV9ldmVudChQU1dQT1VUKTsKKwkJY291bnRfc3dw
-b3V0X3ZtX2V2ZW50KHBhZ2UpOwogCQlyZXR1cm4gMDsKIAl9CiAKQEAgLTMyNiw3ICszMzcsNyBA
-QCBpbnQgX19zd2FwX3dyaXRlcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSwKIAkJZ290byBvdXQ7CiAJ
-fQogCWJpby0+Ymlfb3BmID0gUkVRX09QX1dSSVRFIHwgd2JjX3RvX3dyaXRlX2ZsYWdzKHdiYyk7
-Ci0JY291bnRfdm1fZXZlbnQoUFNXUE9VVCk7CisJY291bnRfc3dwb3V0X3ZtX2V2ZW50KHBhZ2Up
-OwogCXNldF9wYWdlX3dyaXRlYmFjayhwYWdlKTsKIAl1bmxvY2tfcGFnZShwYWdlKTsKIAlzdWJt
-aXRfYmlvKGJpbyk7CmRpZmYgLXB1TiBtbS92bXN0YXQuY350ZXN0LWNvZGUtdG8td3JpdGUtdGhw
-LXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUgbW0vdm1zdGF0LmMKLS0tIGEvbW0vdm1zdGF0LmN+
-dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlCisrKyBhL21t
-L3Ztc3RhdC5jCkBAIC0xMDcxLDYgKzEwNzEsNyBAQCBjb25zdCBjaGFyICogY29uc3Qgdm1zdGF0
-X3RleHRbXSA9IHsKICNlbmRpZgogCSJ0aHBfemVyb19wYWdlX2FsbG9jIiwKIAkidGhwX3plcm9f
-cGFnZV9hbGxvY19mYWlsZWQiLAorCSJ0aHBfc3dwb3V0IiwKICNlbmRpZgogI2lmZGVmIENPTkZJ
-R19NRU1PUllfQkFMTE9PTgogCSJiYWxsb29uX2luZmxhdGUiLApfCg==
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, THP, swap: make reuse_swap_page() works for THP swapped out
+
+After supporting to delay THP (Transparent Huge Page) splitting after
+swapped out, it is possible that some page table mappings of the THP are
+turned into swap entries.  So reuse_swap_page() need to check the swap
+count in addition to the map count as before.  This patch done that.
+
+In the huge PMD write protect fault handler, in addition to the page map
+count, the swap count need to be checked too, so the page lock need to be
+acquired too when calling reuse_swap_page() in addition to the page table
+lock.
+
+[ying.huang@intel.com: silence a compiler warning]
+  Link: http://lkml.kernel.org/r/87bmnzizjy.fsf@yhuang-dev.intel.com
+Link: http://lkml.kernel.org/r/20170724051840.2309-4-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/swap.h |    4 -
+ mm/huge_memory.c     |   16 ++++++
+ mm/memory.c          |    6 +-
+ mm/swapfile.c        |  102 +++++++++++++++++++++++++++++++++++++----
+ 4 files changed, 113 insertions(+), 15 deletions(-)
+
+diff -puN include/linux/swap.h~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/include/linux/swap.h
+@@ -510,8 +510,8 @@ static inline int swp_swapcount(swp_entr
+ 	return 0;
+ }
+ 
+-#define reuse_swap_page(page, total_mapcount) \
+-	(page_trans_huge_mapcount(page, total_mapcount) == 1)
++#define reuse_swap_page(page, total_map_swapcount) \
++	(page_trans_huge_mapcount(page, total_map_swapcount) == 1)
+ 
+ static inline int try_to_free_swap(struct page *page)
+ {
+diff -puN mm/huge_memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/mm/huge_memory.c
+@@ -1240,15 +1240,29 @@ int do_huge_pmd_wp_page(struct vm_fault
+ 	 * We can only reuse the page if nobody else maps the huge page or it's
+ 	 * part.
+ 	 */
+-	if (page_trans_huge_mapcount(page, NULL) == 1) {
++	if (!trylock_page(page)) {
++		get_page(page);
++		spin_unlock(vmf->ptl);
++		lock_page(page);
++		spin_lock(vmf->ptl);
++		if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
++			unlock_page(page);
++			put_page(page);
++			goto out_unlock;
++		}
++		put_page(page);
++	}
++	if (reuse_swap_page(page, NULL)) {
+ 		pmd_t entry;
+ 		entry = pmd_mkyoung(orig_pmd);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry,  1))
+ 			update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 		ret |= VM_FAULT_WRITE;
++		unlock_page(page);
+ 		goto out_unlock;
+ 	}
++	unlock_page(page);
+ 	get_page(page);
+ 	spin_unlock(vmf->ptl);
+ alloc:
+diff -puN mm/memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out mm/memory.c
+--- a/mm/memory.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/mm/memory.c
+@@ -2619,7 +2619,7 @@ static int do_wp_page(struct vm_fault *v
+ 	 * not dirty accountable.
+ 	 */
+ 	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
+-		int total_mapcount;
++		int total_map_swapcount;
+ 		if (!trylock_page(vmf->page)) {
+ 			get_page(vmf->page);
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+@@ -2634,8 +2634,8 @@ static int do_wp_page(struct vm_fault *v
+ 			}
+ 			put_page(vmf->page);
+ 		}
+-		if (reuse_swap_page(vmf->page, &total_mapcount)) {
+-			if (total_mapcount == 1) {
++		if (reuse_swap_page(vmf->page, &total_map_swapcount)) {
++			if (total_map_swapcount == 1) {
+ 				/*
+ 				 * The page is all ours. Move it to
+ 				 * our anon_vma so the rmap code will
+diff -puN mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out
++++ a/mm/swapfile.c
+@@ -1405,9 +1405,89 @@ static bool page_swapped(struct page *pa
+ 		return swap_page_trans_huge_swapped(si, entry);
+ 	return false;
+ }
++
++static int page_trans_huge_map_swapcount(struct page *page, int *total_mapcount,
++					 int *total_swapcount)
++{
++	int i, map_swapcount, _total_mapcount, _total_swapcount;
++	unsigned long offset = 0;
++	struct swap_info_struct *si;
++	struct swap_cluster_info *ci = NULL;
++	unsigned char *map = NULL;
++	int mapcount, swapcount = 0;
++
++	/* hugetlbfs shouldn't call it */
++	VM_BUG_ON_PAGE(PageHuge(page), page);
++
++	if (likely(!PageTransCompound(page))) {
++		mapcount = atomic_read(&page->_mapcount) + 1;
++		if (total_mapcount)
++			*total_mapcount = mapcount;
++		if (PageSwapCache(page))
++			swapcount = page_swapcount(page);
++		if (total_swapcount)
++			*total_swapcount = swapcount;
++		return mapcount + swapcount;
++	}
++
++	page = compound_head(page);
++
++	_total_mapcount = _total_swapcount = map_swapcount = 0;
++	if (PageSwapCache(page)) {
++		swp_entry_t entry;
++
++		entry.val = page_private(page);
++		si = _swap_info_get(entry);
++		if (si) {
++			map = si->swap_map;
++			offset = swp_offset(entry);
++		}
++	}
++	if (map)
++		ci = lock_cluster(si, offset);
++	for (i = 0; i < HPAGE_PMD_NR; i++) {
++		mapcount = atomic_read(&page[i]._mapcount) + 1;
++		_total_mapcount += mapcount;
++		if (map) {
++			swapcount = swap_count(map[offset + i]);
++			_total_swapcount += swapcount;
++		}
++		map_swapcount = max(map_swapcount, mapcount + swapcount);
++	}
++	unlock_cluster(ci);
++	if (PageDoubleMap(page)) {
++		map_swapcount -= 1;
++		_total_mapcount -= HPAGE_PMD_NR;
++	}
++	mapcount = compound_mapcount(page);
++	map_swapcount += mapcount;
++	_total_mapcount += mapcount;
++	if (total_mapcount)
++		*total_mapcount = _total_mapcount;
++	if (total_swapcount)
++		*total_swapcount = _total_swapcount;
++
++	return map_swapcount;
++}
+ #else
+ #define swap_page_trans_huge_swapped(si, entry)	swap_swapcount(si, entry)
+ #define page_swapped(page)			(page_swapcount(page) != 0)
++
++static int page_trans_huge_map_swapcount(struct page *page, int *total_mapcount,
++					 int *total_swapcount)
++{
++	int mapcount, swapcount = 0;
++
++	/* hugetlbfs shouldn't call it */
++	VM_BUG_ON_PAGE(PageHuge(page), page);
++
++	mapcount = page_trans_huge_mapcount(page, total_mapcount);
++	if (PageSwapCache(page))
++		swapcount = page_swapcount(page);
++	if (total_swapcount)
++		*total_swapcount = swapcount;
++	return mapcount + swapcount;
++}
+ #endif
+ 
+ /*
+@@ -1416,23 +1496,27 @@ static bool page_swapped(struct page *pa
+  * on disk will never be read, and seeking back there to write new content
+  * later would only waste time away from clustering.
+  *
+- * NOTE: total_mapcount should not be relied upon by the caller if
++ * NOTE: total_map_swapcount should not be relied upon by the caller if
+  * reuse_swap_page() returns false, but it may be always overwritten
+  * (see the other implementation for CONFIG_SWAP=n).
+  */
+-bool reuse_swap_page(struct page *page, int *total_mapcount)
++bool reuse_swap_page(struct page *page, int *total_map_swapcount)
+ {
+-	int count;
++	int count, total_mapcount, total_swapcount;
+ 
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	if (unlikely(PageKsm(page)))
+ 		return false;
+-	count = page_trans_huge_mapcount(page, total_mapcount);
+-	if (count <= 1 && PageSwapCache(page)) {
+-		count += page_swapcount(page);
+-		if (count != 1)
+-			goto out;
++	count = page_trans_huge_map_swapcount(page, &total_mapcount,
++					      &total_swapcount);
++	if (total_map_swapcount)
++		*total_map_swapcount = total_mapcount + total_swapcount;
++	if (count == 1 && PageSwapCache(page) &&
++	    (likely(!PageTransCompound(page)) ||
++	     /* The remaining swap count will be freed soon */
++	     total_swapcount == page_swapcount(page))) {
+ 		if (!PageWriteback(page)) {
++			page = compound_head(page);
+ 			delete_from_swap_cache(page);
+ 			SetPageDirty(page);
+ 		} else {
+@@ -1448,7 +1532,7 @@ bool reuse_swap_page(struct page *page,
+ 			spin_unlock(&p->lock);
+ 		}
+ 	}
+-out:
++
+ 	return count <= 1;
+ }
+ 
+_
