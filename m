@@ -1,264 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [patch 112/119] mm, oom: do not rely on TIF_MEMDIE for
- memory reserves access
-Date: Wed, 06 Sep 2017 16:24:50 -0700
-Message-ID: <20170906232450.YB-6P81Yl%akpm@linux-foundation.org>
+Subject: [patch 115/119] mm: oom: let oom_reap_task and exit_mmap
+ run concurrently
+Date: Wed, 06 Sep 2017 16:25:00 -0700
+Message-ID: <20170906232500.U3GmPp2Dd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51334 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754327AbdIFXYv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:24:51 -0400
+        with ESMTP id S1754327AbdIFXZC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:25:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, hughd@google.com, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: do not rely on TIF_MEMDIE for memory reserves access
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: oom: let oom_reap_task and exit_mmap run concurrently
 
-For ages we have been relying on TIF_MEMDIE thread flag to mark OOM
-victims and then, among other things, to give these threads full access to
-memory reserves.  There are few shortcomings of this implementation,
-though.
+This is purely required because exit_aio() may block and exit_mmap() may
+never start, if the oom_reap_task cannot start running on a mm with
+mm_users == 0.
 
-First of all and the most serious one is that the full access to memory
-reserves is quite dangerous because we leave no safety room for the system
-to operate and potentially do last emergency steps to move on.
+At the same time if the OOM reaper doesn't wait at all for the memory of
+the current OOM candidate to be freed by exit_mmap->unmap_vmas, it would
+generate a spurious OOM kill.
 
-Secondly this flag is per task_struct while the OOM killer operates on
-mm_struct granularity so all processes sharing the given mm are killed. 
-Giving the full access to all these task_structs could lead to a quick
-memory reserves depletion.  We have tried to reduce this risk by giving
-TIF_MEMDIE only to the main thread and the currently allocating task but
-that doesn't really solve this problem while it surely opens up a room for
-corner cases - e.g.  GFP_NO{FS,IO} requests might loop inside the
-allocator without access to memory reserves because a particular thread
-was not the group leader.
+If it wasn't because of the exit_aio or similar blocking functions in the
+last mmput, it would be enough to change the oom_reap_task() in the case
+it finds mm_users == 0, to wait for a timeout or to wait for __mmput to
+set MMF_OOM_SKIP itself, but it's not just exit_mmap the problem here so
+the concurrency of exit_mmap and oom_reap_task is apparently warranted.
 
-Now that we have the oom reaper and that all oom victims are reapable
-after 1b51e65eab64 ("oom, oom_reaper: allow to reap mm shared by the
-kthreads") we can be more conservative and grant only partial access to
-memory reserves because there are reasonable chances of the parallel
-memory freeing.  We still want some access to reserves because we do not
-want other consumers to eat up the victim's freed memory.  oom victims
-will still contend with __GFP_HIGH users but those shouldn't be so
-aggressive to starve oom victims completely.
+It's a non standard runtime, exit_mmap() runs without mmap_sem, and
+oom_reap_task runs with the mmap_sem for reading as usual (kind of
+MADV_DONTNEED).
 
-Introduce ALLOC_OOM flag and give all tsk_is_oom_victim tasks access to
-the half of the reserves.  This makes the access to reserves independent
-on which task has passed through mark_oom_victim.  Also drop any usage of
-TIF_MEMDIE from the page allocator proper and replace it by
-tsk_is_oom_victim as well which will make page_alloc.c completely
-TIF_MEMDIE free finally.
+The race between the two is solved with a combination of
+tsk_is_oom_victim() (serialized by task_lock) and MMF_OOM_SKIP (serialized
+by a dummy down_write/up_write cycle on the same lines of the ksm_exit
+method).
 
-CONFIG_MMU=n doesn't have oom reaper so let's stick to the original
-ALLOC_NO_WATERMARKS approach.
+If the oom_reap_task() may be running concurrently during exit_mmap,
+exit_mmap will wait it to finish in down_write (before taking down mm
+structures that would make the oom_reap_task fail with use after free).
 
-There is a demand to make the oom killer memcg aware which will imply many
-tasks killed at once.  This change will allow such a usecase without
-worrying about complete memory reserves depletion.
+If exit_mmap comes first, oom_reap_task() will skip the mm if MMF_OOM_SKIP
+is already set and in turn all memory is already freed and furthermore the
+mm data structures may already have been taken down by free_pgtables.
 
-Link: http://lkml.kernel.org/r/20170810075019.28998-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+[aarcange@redhat.com: incremental one liner]
+  Link: http://lkml.kernel.org/r/20170726164319.GC29716@redhat.com
+[rientjes@google.com: remove unused mmput_async]
+  Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708141733130.50317@chino.kir.corp.google.com
+[aarcange@redhat.com: microoptimization]
+  Link: http://lkml.kernel.org/r/20170817171240.GB5066@redhat.com
+Link: http://lkml.kernel.org/r/20170726162912.GA29716@redhat.com
+Fixes: 26db62f179d1 ("oom: keep mm of the killed task available")
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: David Rientjes <rientjes@google.com>
+Tested-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Michal Hocko <mhocko@suse.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |   11 ++++++
- mm/oom_kill.c   |    9 +++--
- mm/page_alloc.c |   76 ++++++++++++++++++++++++++++++++++------------
- 3 files changed, 73 insertions(+), 23 deletions(-)
+ include/linux/sched/mm.h |    6 ------
+ kernel/fork.c            |   17 -----------------
+ mm/mmap.c                |   18 ++++++++++++++++++
+ mm/oom_kill.c            |   15 +++++----------
+ 4 files changed, 23 insertions(+), 33 deletions(-)
 
-diff -puN mm/internal.h~mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access mm/internal.h
---- a/mm/internal.h~mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access
-+++ a/mm/internal.h
-@@ -480,6 +480,17 @@ unsigned long reclaim_clean_pages_from_l
- /* Mask to get the watermark bits */
- #define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
+diff -puN include/linux/sched/mm.h~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently include/linux/sched/mm.h
+--- a/include/linux/sched/mm.h~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
++++ a/include/linux/sched/mm.h
+@@ -84,12 +84,6 @@ static inline bool mmget_not_zero(struct
  
-+/*
-+ * Only MMU archs have async oom victim reclaim - aka oom_reaper so we
-+ * cannot assume a reduced access to memory reserves is sufficient for
-+ * !MMU
-+ */
-+#ifdef CONFIG_MMU
-+#define ALLOC_OOM		0x08
-+#else
-+#define ALLOC_OOM		ALLOC_NO_WATERMARKS
-+#endif
-+
- #define ALLOC_HARDER		0x10 /* try to alloc harder */
- #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
-diff -puN mm/oom_kill.c~mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access
-+++ a/mm/oom_kill.c
-@@ -824,7 +824,8 @@ static void oom_kill_process(struct oom_
+ /* mmput gets rid of the mappings and all user-space */
+ extern void mmput(struct mm_struct *);
+-#ifdef CONFIG_MMU
+-/* same as above but performs the slow path from the async context. Can
+- * be called from the atomic context as well
+- */
+-extern void mmput_async(struct mm_struct *);
+-#endif
  
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
--	 * its children or threads, just set TIF_MEMDIE so it can die quickly
-+	 * its children or threads, just give it access to memory reserves
-+	 * so it can die quickly
- 	 */
- 	task_lock(p);
- 	if (task_will_free_mem(p)) {
-@@ -889,9 +890,9 @@ static void oom_kill_process(struct oom_
- 	count_memcg_event_mm(mm, OOM_KILL);
+ /* Grab a reference to a task's mm, if it is not already going away */
+ extern struct mm_struct *get_task_mm(struct task_struct *task);
+diff -puN kernel/fork.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently kernel/fork.c
+--- a/kernel/fork.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
++++ a/kernel/fork.c
+@@ -922,7 +922,6 @@ static inline void __mmput(struct mm_str
+ 	}
+ 	if (mm->binfmt)
+ 		module_put(mm->binfmt->module);
+-	set_bit(MMF_OOM_SKIP, &mm->flags);
+ 	mmdrop(mm);
+ }
  
- 	/*
--	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
--	 * the OOM victim from depleting the memory reserves from the user
--	 * space under its control.
-+	 * We should send SIGKILL before granting access to memory reserves
-+	 * in order to prevent the OOM victim from depleting the memory
-+	 * reserves from the user space under its control.
- 	 */
- 	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
- 	mark_oom_victim(victim);
-diff -puN mm/page_alloc.c~mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access
-+++ a/mm/page_alloc.c
-@@ -2951,7 +2951,7 @@ bool __zone_watermark_ok(struct zone *z,
- {
- 	long min = mark;
- 	int o;
--	const bool alloc_harder = (alloc_flags & ALLOC_HARDER);
-+	const bool alloc_harder = (alloc_flags & (ALLOC_HARDER|ALLOC_OOM));
+@@ -938,22 +937,6 @@ void mmput(struct mm_struct *mm)
+ }
+ EXPORT_SYMBOL_GPL(mmput);
  
- 	/* free_pages may go negative - that's OK */
- 	free_pages -= (1 << order) - 1;
-@@ -2964,10 +2964,21 @@ bool __zone_watermark_ok(struct zone *z,
- 	 * the high-atomic reserves. This will over-estimate the size of the
- 	 * atomic reserve but it avoids a search.
- 	 */
--	if (likely(!alloc_harder))
-+	if (likely(!alloc_harder)) {
- 		free_pages -= z->nr_reserved_highatomic;
--	else
--		min -= min / 4;
-+	} else {
+-#ifdef CONFIG_MMU
+-static void mmput_async_fn(struct work_struct *work)
+-{
+-	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
+-	__mmput(mm);
+-}
+-
+-void mmput_async(struct mm_struct *mm)
+-{
+-	if (atomic_dec_and_test(&mm->mm_users)) {
+-		INIT_WORK(&mm->async_put_work, mmput_async_fn);
+-		schedule_work(&mm->async_put_work);
+-	}
+-}
+-#endif
+-
+ /**
+  * set_mm_exe_file - change a reference to the mm's executable file
+  *
+diff -puN mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently mm/mmap.c
+--- a/mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
++++ a/mm/mmap.c
+@@ -44,6 +44,7 @@
+ #include <linux/userfaultfd_k.h>
+ #include <linux/moduleparam.h>
+ #include <linux/pkeys.h>
++#include <linux/oom.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/cacheflush.h>
+@@ -3001,6 +3002,23 @@ void exit_mmap(struct mm_struct *mm)
+ 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
+ 	unmap_vmas(&tlb, vma, 0, -1);
+ 
++	set_bit(MMF_OOM_SKIP, &mm->flags);
++	if (unlikely(tsk_is_oom_victim(current))) {
 +		/*
-+		 * OOM victims can try even harder than normal ALLOC_HARDER
-+		 * users on the grounds that it's definitely going to be in
-+		 * the exit path shortly and free memory. Any allocation it
-+		 * makes during the free path will be small and short-lived.
++		 * Wait for oom_reap_task() to stop working on this
++		 * mm. Because MMF_OOM_SKIP is already set before
++		 * calling down_read(), oom_reap_task() will not run
++		 * on this "mm" post up_write().
++		 *
++		 * tsk_is_oom_victim() cannot be set from under us
++		 * either because current->mm is already set to NULL
++		 * under task_lock before calling mmput and oom_mm is
++		 * set not NULL by the OOM killer only if current->mm
++		 * is found not NULL while holding the task_lock.
 +		 */
-+		if (alloc_flags & ALLOC_OOM)
-+			min -= min / 2;
-+		else
-+			min -= min / 4;
++		down_write(&mm->mmap_sem);
++		up_write(&mm->mmap_sem);
 +	}
-+
+ 	free_pgtables(&tlb, vma, FIRST_USER_ADDRESS, USER_PGTABLES_CEILING);
+ 	tlb_finish_mmu(&tlb, 0, -1);
  
- #ifdef CONFIG_CMA
- 	/* If allocation can't use CMA areas don't use free CMA pages */
-@@ -3205,7 +3216,7 @@ static void warn_alloc_show_mem(gfp_t gf
- 	 * of allowed nodes.
- 	 */
- 	if (!(gfp_mask & __GFP_NOMEMALLOC))
--		if (test_thread_flag(TIF_MEMDIE) ||
-+		if (tsk_is_oom_victim(current) ||
- 		    (current->flags & (PF_MEMALLOC | PF_EXITING)))
- 			filter &= ~SHOW_MEM_FILTER_NODES;
- 	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
-@@ -3668,21 +3679,46 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	return alloc_flags;
- }
- 
--bool gfp_pfmemalloc_allowed(gfp_t gfp_mask)
-+static bool oom_reserves_allowed(struct task_struct *tsk)
- {
--	if (unlikely(gfp_mask & __GFP_NOMEMALLOC))
-+	if (!tsk_is_oom_victim(tsk))
- 		return false;
- 
-+	/*
-+	 * !MMU doesn't have oom reaper so give access to memory reserves
-+	 * only to the thread with TIF_MEMDIE set
-+	 */
-+	if (!IS_ENABLED(CONFIG_MMU) && !test_thread_flag(TIF_MEMDIE))
-+		return false;
-+
-+	return true;
-+}
-+
-+/*
-+ * Distinguish requests which really need access to full memory
-+ * reserves from oom victims which can live with a portion of it
-+ */
-+static inline int __gfp_pfmemalloc_flags(gfp_t gfp_mask)
-+{
-+	if (unlikely(gfp_mask & __GFP_NOMEMALLOC))
-+		return 0;
- 	if (gfp_mask & __GFP_MEMALLOC)
--		return true;
-+		return ALLOC_NO_WATERMARKS;
- 	if (in_serving_softirq() && (current->flags & PF_MEMALLOC))
--		return true;
--	if (!in_interrupt() &&
--			((current->flags & PF_MEMALLOC) ||
--			 unlikely(test_thread_flag(TIF_MEMDIE))))
--		return true;
-+		return ALLOC_NO_WATERMARKS;
-+	if (!in_interrupt()) {
-+		if (current->flags & PF_MEMALLOC)
-+			return ALLOC_NO_WATERMARKS;
-+		else if (oom_reserves_allowed(current))
-+			return ALLOC_OOM;
-+	}
- 
--	return false;
-+	return 0;
-+}
-+
-+bool gfp_pfmemalloc_allowed(gfp_t gfp_mask)
-+{
-+	return !!__gfp_pfmemalloc_flags(gfp_mask);
- }
- 
- /*
-@@ -3835,6 +3871,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	unsigned long alloc_start = jiffies;
- 	unsigned int stall_timeout = 10 * HZ;
- 	unsigned int cpuset_mems_cookie;
-+	int reserve_flags;
+diff -puN mm/oom_kill.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
++++ a/mm/oom_kill.c
+@@ -495,11 +495,12 @@ static bool __oom_reap_task_mm(struct ta
+ 	}
  
  	/*
- 	 * In the slowpath, we sanity check order to avoid ever trying to
-@@ -3940,15 +3977,16 @@ retry:
- 	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
- 		wake_all_kswapds(order, ac);
- 
--	if (gfp_pfmemalloc_allowed(gfp_mask))
--		alloc_flags = ALLOC_NO_WATERMARKS;
-+	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
-+	if (reserve_flags)
-+		alloc_flags = reserve_flags;
- 
- 	/*
- 	 * Reset the zonelist iterators if memory policies can be ignored.
- 	 * These allocations are high priority and system rather than user
- 	 * orientated.
+-	 * increase mm_users only after we know we will reap something so
+-	 * that the mmput_async is called only when we have reaped something
+-	 * and delayed __mmput doesn't matter that much
++	 * MMF_OOM_SKIP is set by exit_mmap when the OOM reaper can't
++	 * work on the mm anymore. The check for MMF_OOM_SKIP must run
++	 * under mmap_sem for reading because it serializes against the
++	 * down_write();up_write() cycle in exit_mmap().
  	 */
--	if (!(alloc_flags & ALLOC_CPUSET) || (alloc_flags & ALLOC_NO_WATERMARKS)) {
-+	if (!(alloc_flags & ALLOC_CPUSET) || reserve_flags) {
- 		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
- 		ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
- 					ac->high_zoneidx, ac->nodemask);
-@@ -4025,8 +4063,8 @@ retry:
- 		goto got_pg;
+-	if (!mmget_not_zero(mm)) {
++	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
+ 		up_read(&mm->mmap_sem);
+ 		trace_skip_task_reaping(tsk->pid);
+ 		goto unlock_oom;
+@@ -542,12 +543,6 @@ static bool __oom_reap_task_mm(struct ta
+ 			K(get_mm_counter(mm, MM_SHMEMPAGES)));
+ 	up_read(&mm->mmap_sem);
  
- 	/* Avoid allocations with no watermarks from looping endlessly */
--	if (test_thread_flag(TIF_MEMDIE) &&
--	    (alloc_flags == ALLOC_NO_WATERMARKS ||
-+	if (tsk_is_oom_victim(current) &&
-+	    (alloc_flags == ALLOC_OOM ||
- 	     (gfp_mask & __GFP_NOMEMALLOC)))
- 		goto nopage;
- 
+-	/*
+-	 * Drop our reference but make sure the mmput slow path is called from a
+-	 * different context because we shouldn't risk we get stuck there and
+-	 * put the oom_reaper out of the way.
+-	 */
+-	mmput_async(mm);
+ 	trace_finish_task_reaping(tsk->pid);
+ unlock_oom:
+ 	mutex_unlock(&oom_lock);
 _
