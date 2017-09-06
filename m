@@ -1,87 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [patch 047/119] mm, vmscan: do not loop on
- too_many_isolated for ever
-Date: Wed, 06 Sep 2017 16:21:11 -0700
-Message-ID: <20170906232111.fpB4l3ids%akpm@linux-foundation.org>
+Subject: [patch 045/119] mm: always flush VMA ranges affected by
+ zap_page_range
+Date: Wed, 06 Sep 2017 16:21:05 -0700
+Message-ID: <20170906232105.Ha5y-1JlW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49816 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbdIFXVN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:13 -0400
+        with ESMTP id S1753570AbdIFXVG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, luto@kernel.org, mgorman@suse.de, mgorman@techsingularity.net, mm-commits@vger.kernel.org, nadav.amit@gmail.com, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: do not loop on too_many_isolated for ever
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: always flush VMA ranges affected by zap_page_range
 
-Tetsuo Handa has reported[1][2][3] that direct reclaimers might get stuck
-in too_many_isolated loop basically for ever because the last few pages on
-the LRU lists are isolated by the kswapd which is stuck on fs locks when
-doing the pageout or slab reclaim.  This in turn means that there is
-nobody to actually trigger the oom killer and the system is basically
-unusable.
+Nadav Amit report zap_page_range only specifies that the caller protect
+the VMA list but does not specify whether it is held for read or write
+with callers using either.  madvise holds mmap_sem for read meaning that a
+parallel zap operation can unmap PTEs which are then potentially skipped
+by madvise which potentially returns with stale TLB entries present. 
+While the API could be extended, it would be a difficult API to use.  This
+patch causes zap_page_range() to always consider flushing the full
+affected range.  For small ranges or sparsely populated mappings, this may
+result in one additional spurious TLB flush.  For larger ranges, it is
+possible that the TLB has already been flushed and the overhead is
+negligible.  Either way, this approach is safer overall and avoids stale
+entries being present when madvise returns.
 
-too_many_isolated has been introduced by 35cd78156c49 ("vmscan: throttle
-direct reclaim when too many pages are isolated already") to prevent from
-pre-mature oom killer invocations because back then no reclaim progress
-could indeed trigger the OOM killer too early.  But since the oom
-detection rework 0a0337e0d1d1 ("mm, oom: rework oom detection") the
-allocation/reclaim retry loop considers all the reclaimable pages and
-throttles the allocation at that layer so we can loosen the direct reclaim
-throttling.
+This can be illustrated with the following program provided by Nadav Amit
+and slightly modified.  With the patch applied, it has an exit code of 0
+indicating a stale TLB entry did not leak to userspace.
 
-Make shrink_inactive_list loop over too_many_isolated bounded and returns
-immediately when the situation hasn't resolved after the first sleep. 
-Replace congestion_wait by a simple schedule_timeout_interruptible because
-we are not really waiting on the IO congestion in this path.
+---8<---
 
-Please note that this patch can theoretically cause the OOM killer to
-trigger earlier while there are many pages isolated for the reclaim which
-makes progress only very slowly.  This would be obvious from the oom
-report as the number of isolated pages are printed there.  If we ever hit
-this should_reclaim_retry should consider those numbers in the evaluation
-in one way or another.
+volatile int sync_step = 0;
+volatile char *p;
 
-[1] http://lkml.kernel.org/r/201602092349.ACG81273.OSVtMJQHLOFOFF@I-love.SAKURA.ne.jp
-[2] http://lkml.kernel.org/r/201702212335.DJB30777.JOFMHSFtVLQOOF@I-love.SAKURA.ne.jp
-[3] http://lkml.kernel.org/r/201706300914.CEH95859.FMQOLVFHJFtOOS@I-love.SAKURA.ne.jp
+static inline unsigned long rdtsc()
+{
+	unsigned long hi, lo;
+	__asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+	 return lo | (hi << 32);
+}
 
-[mhocko@suse.com: switch to uninterruptible sleep]
-  Link: http://lkml.kernel.org/r/20170724065048.GB25221@dhcp22.suse.cz
-Link: http://lkml.kernel.org/r/20170710074842.23175-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+static inline void wait_rdtsc(unsigned long cycles)
+{
+	unsigned long tsc = rdtsc();
+
+	while (rdtsc() - tsc < cycles);
+}
+
+void *big_madvise_thread(void *ign)
+{
+	sync_step = 1;
+	while (sync_step != 2);
+	madvise((void*)p, PAGE_SIZE * N_PAGES, MADV_DONTNEED);
+}
+
+int main(void)
+{
+	pthread_t aux_thread;
+
+	p = mmap(0, PAGE_SIZE * N_PAGES, PROT_READ|PROT_WRITE,
+		 MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+
+	memset((void*)p, 8, PAGE_SIZE * N_PAGES);
+
+	pthread_create(&aux_thread, NULL, big_madvise_thread, NULL);
+	while (sync_step != 1);
+
+	*p = 8;		// Cache in TLB
+	sync_step = 2;
+	wait_rdtsc(100000);
+	madvise((void*)p, PAGE_SIZE, MADV_DONTNEED);
+	printf("data: %d (%s)\n", *p, (*p == 8 ? "stale, broken" : "cleared, fine"));
+	return *p == 8 ? -1 : 0;
+}
+---8<---
+
+Link: http://lkml.kernel.org/r/20170725101230.5v7gvnjmcnkzzql3@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Nadav Amit <nadav.amit@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/memory.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever
-+++ a/mm/vmscan.c
-@@ -1743,9 +1743,15 @@ shrink_inactive_list(unsigned long nr_to
- 	int file = is_file_lru(lru);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-+	bool stalled = false;
- 
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
--		congestion_wait(BLK_RW_ASYNC, HZ/10);
-+		if (stalled)
-+			return 0;
+diff -puN mm/memory.c~mm-always-flush-vma-ranges-affected-by-zap_page_range-v2 mm/memory.c
+--- a/mm/memory.c~mm-always-flush-vma-ranges-affected-by-zap_page_range-v2
++++ a/mm/memory.c
+@@ -1513,8 +1513,20 @@ void zap_page_range(struct vm_area_struc
+ 	tlb_gather_mmu(&tlb, mm, start, end);
+ 	update_hiwater_rss(mm);
+ 	mmu_notifier_invalidate_range_start(mm, start, end);
+-	for ( ; vma && vma->vm_start < end; vma = vma->vm_next)
++	for ( ; vma && vma->vm_start < end; vma = vma->vm_next) {
+ 		unmap_single_vma(&tlb, vma, start, end, NULL);
 +
-+		/* wait a bit for the reclaimer. */
-+		msleep(100);
-+		stalled = true;
- 
- 		/* We are about to die and free our memory. Return now. */
- 		if (fatal_signal_pending(current))
++		/*
++		 * zap_page_range does not specify whether mmap_sem should be
++		 * held for read or write. That allows parallel zap_page_range
++		 * operations to unmap a PTE and defer a flush meaning that
++		 * this call observes pte_none and fails to flush the TLB.
++		 * Rather than adding a complex API, ensure that no stale
++		 * TLB entries exist when this call returns.
++		 */
++		flush_tlb_range(vma, start, end);
++	}
++
+ 	mmu_notifier_invalidate_range_end(mm, start, end);
+ 	tlb_finish_mmu(&tlb, start, end);
+ }
 _
