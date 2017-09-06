@@ -1,237 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [patch 065/119] mm: memcontrol: use int for event/state
- parameter in several functions
-Date: Wed, 06 Sep 2017 16:22:09 -0700
-Message-ID: <20170906232209.eBdfrUrOv%akpm@linux-foundation.org>
+Subject: [patch 071/119] mm: test code to write THP to swap device
+ as a whole
+Date: Wed, 06 Sep 2017 16:22:30 -0700
+Message-ID: <20170906232230.hMxC_oT-_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: application/octet-stream; charset=binary
+Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50260 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754752AbdIFXWK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:10 -0400
+        with ESMTP id S1754199AbdIFXWc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dianders@chromium.org, hannes@cmpxchg.org, mhocko@suse.com, mka@chromium.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: aarcange@redhat.com, akpm@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, torvalds@linux-foundation.org, vishal.l.verma@intel.com, ying.huang@intel.com
 
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: mm: memcontrol: use int for event/state parameter in several functions
-
-Several functions use an enum type as parameter for an event/state, but
-are called in some locations with an argument of a different enum type. 
-Adjust the interface of these functions to reality by changing the
-parameter to int.
-
-This fixes a ton of enum-conversion warnings that are generated when
-building the kernel with clang.
-
-[mka@chromium.org: also change parameter type of inc/dec/mod_memcg_page_state()]
-  Link: http://lkml.kernel.org/r/20170728213442.93823-1-mka@chromium.org
-Link: http://lkml.kernel.org/r/20170727211004.34435-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Doug Anderson <dianders@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/memcontrol.h |   52 +++++++++++++++++++++--------------
- mm/memcontrol.c            |    4 ++
- 2 files changed, 35 insertions(+), 21 deletions(-)
-
-diff -puN include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions
-+++ a/include/linux/memcontrol.h
-@@ -488,8 +488,9 @@ struct mem_cgroup *lock_page_memcg(struc
- void __unlock_page_memcg(struct mem_cgroup *memcg);
- void unlock_page_memcg(struct page *page);
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline unsigned long memcg_page_state(struct mem_cgroup *memcg,
--					     enum memcg_stat_item idx)
-+					     int idx)
- {
- 	long val = 0;
- 	int cpu;
-@@ -503,15 +504,17 @@ static inline unsigned long memcg_page_s
- 	return val;
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __mod_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx, int val)
-+				     int idx, int val)
- {
- 	if (!mem_cgroup_disabled())
- 		__this_cpu_add(memcg->stat->count[idx], val);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void mod_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx, int val)
-+				   int idx, int val)
- {
- 	if (!mem_cgroup_disabled())
- 		this_cpu_add(memcg->stat->count[idx], val);
-@@ -535,14 +538,14 @@ static inline void mod_memcg_state(struc
-  * Kernel pages are an exception to this, since they'll never move.
-  */
- static inline void __mod_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx, int val)
-+					  int idx, int val)
- {
- 	if (page->mem_cgroup)
- 		__mod_memcg_state(page->mem_cgroup, idx, val);
- }
- 
- static inline void mod_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx, int val)
-+					int idx, int val)
- {
- 	if (page->mem_cgroup)
- 		mod_memcg_state(page->mem_cgroup, idx, val);
-@@ -632,8 +635,9 @@ static inline void count_memcg_events(st
- 		this_cpu_add(memcg->stat->events[idx], count);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void count_memcg_page_event(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	if (page->mem_cgroup)
- 		count_memcg_events(page->mem_cgroup, idx, 1);
-@@ -846,31 +850,31 @@ static inline bool mem_cgroup_oom_synchr
- }
- 
- static inline unsigned long memcg_page_state(struct mem_cgroup *memcg,
--					     enum memcg_stat_item idx)
-+					     int idx)
- {
- 	return 0;
- }
- 
- static inline void __mod_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx,
-+				     int idx,
- 				     int nr)
- {
- }
- 
- static inline void mod_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx,
-+				   int idx,
- 				   int nr)
- {
- }
- 
- static inline void __mod_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx,
-+					  int idx,
- 					  int nr)
- {
- }
- 
- static inline void mod_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx,
-+					int idx,
- 					int nr)
- {
- }
-@@ -924,7 +928,7 @@ static inline void count_memcg_events(st
- }
- 
- static inline void count_memcg_page_event(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- }
- 
-@@ -934,26 +938,30 @@ void count_memcg_event_mm(struct mm_stru
- }
- #endif /* CONFIG_MEMCG */
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __inc_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx)
-+				     int idx)
- {
- 	__mod_memcg_state(memcg, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __dec_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx)
-+				     int idx)
- {
- 	__mod_memcg_state(memcg, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __inc_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	__mod_memcg_page_state(page, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __dec_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	__mod_memcg_page_state(page, idx, -1);
- }
-@@ -982,26 +990,30 @@ static inline void __dec_lruvec_page_sta
- 	__mod_lruvec_page_state(page, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void inc_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx)
-+				   int idx)
- {
- 	mod_memcg_state(memcg, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void dec_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx)
-+				   int idx)
- {
- 	mod_memcg_state(memcg, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void inc_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx)
-+					int idx)
- {
- 	mod_memcg_page_state(page, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void dec_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx)
-+					int idx)
- {
- 	mod_memcg_page_state(page, idx, -1);
- }
-diff -puN mm/memcontrol.c~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions
-+++ a/mm/memcontrol.c
-@@ -550,10 +550,12 @@ mem_cgroup_largest_soft_limit_node(struc
-  * value, and reading all cpu value can be performance bottleneck in some
-  * common workload, threshold and synchronization as vmstat[] should be
-  * implemented.
-+ *
-+ * The parameter idx can be of type enum memcg_event_item or vm_event_item.
-  */
- 
- static unsigned long memcg_sum_events(struct mem_cgroup *memcg,
--				      enum memcg_event_item event)
-+				      int event)
- {
- 	unsigned long val = 0;
- 	int cpu;
-_
+RnJvbTogSHVhbmcgWWluZyA8eWluZy5odWFuZ0BpbnRlbC5jb20+ClN1YmplY3Q6IG1tOiB0ZXN0
+IGNvZGUgdG8gd3JpdGUgVEhQIHRvIHN3YXAgZGV2aWNlIGFzIGEgd2hvbGUKClRvIHN1cHBvcnQg
+dG8QIGRlbGF5IHNwbGl0dGluZyBUSFAgKFRyYW5zcGFyZW50IEh1Z2UgUGFnZSkgYWZ0ZXIKc3dh
+cHBlZCBvdXQuICBXZSBuZWVkIHRvIGVuaGFuY2Ugc3dhcCB3cml0aW5nIGNvZGUgdG8gc3VwcG9y
+dCB0byB3cml0ZQphIFRIUCBhcyBhIHdob2xlLiAgVGhpcyB3aWxsIGltcHJvdmUgc3dhcCB3cml0
+ZSBJTyBwZXJmb3JtYW5jZS4gIEFzCk1pbmcgTGVpIDxtaW5nLmxlaUByZWRoYXQuY29tPiBwb2lu
+dGVkIG91dCwgdGhpcyBzaG91bGQgYmUgYmFzZWQgb24KbXVsdGlwYWdlIGJ2ZWMgc3VwcG9ydCwg
+d2hpY2ggaGFzbid0IGJlZW4gbWVyZ2VkIHlldC4gIFNvIHRoaXMgcGF0Y2gKaXMgb25seSBmb3Ig
+dGVzdGluZyB0aGUgZnVuY3Rpb25hbGl0eSBvZiB0aGUgb3RoZXIgcGF0Y2hlcyBpbiB0aGUKc2Vy
+aWVzLiAgQW5kIHdpbGwgYmUgcmVpbXBsZW1lbnRlZCBhZnRlciBtdWx0aXBhZ2UgYnZlYyBzdXBw
+b3J0IGlzCm1lcmdlZC4KCkxpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcvci8yMDE3MDcyNDA1
+MTg0MC4yMzA5LTcteWluZy5odWFuZ0BpbnRlbC5jb20KU2lnbmVkLW9mZi1ieTogIkh1YW5nLCBZ
+aW5nIiA8eWluZy5odWFuZ0BpbnRlbC5jb20+CkNjOiAiS2lyaWxsIEEgLiBTaHV0ZW1vdiIgPGtp
+cmlsbC5zaHV0ZW1vdkBsaW51eC5pbnRlbC5jb20+CkNjOiBBbmRyZWEgQXJjYW5nZWxpIDxhYXJj
+YW5nZUByZWRoYXQuY29tPgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5j
+b20+CkNjOiBIdWdoIERpY2tpbnMgPGh1Z2hkQGdvb2dsZS5jb20+CkNjOiBKZW5zIEF4Ym9lIDxh
+eGJvZUBrZXJuZWwuZGs+CkNjOiBKb2hhbm5lcyBXZWluZXIgPGhhbm5lc0BjbXB4Y2hnLm9yZz4K
+Q2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+CkNjOiBNaW5jaGFuIEtpbSA8bWlu
+Y2hhbkBrZXJuZWwub3JnPgpDYzogUmlrIHZhbiBSaWVsIDxyaWVsQHJlZGhhdC5jb20+CkNjOiBS
+b3NzIFp3aXNsZXIgPHJvc3Muendpc2xlckBpbnRlbC5jb20+IFtmb3IgYnJkLmMsIHpyYW1fZHJ2
+LmMsIHBtZW0uY10KQ2M6IFNoYW9odWEgTGkgPHNobGlAa2VybmVsLm9yZz4KQ2M6IFZpc2hhbCBM
+IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBN
+b3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+Ci0tLQoKIGluY2x1ZGUvbGludXgvYmlv
+LmggICAgICAgICAgIHwgICAgOCArKysrKysrKwogaW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmgg
+ICAgfCAgICA0ICsrLS0KIGluY2x1ZGUvbGludXgvdm1fZXZlbnRfaXRlbS5oIHwgICAgMSArCiBt
+bS9wYWdlX2lvLmMgICAgICAgICAgICAgICAgICB8ICAgMjEgKysrKysrKysrKysrKysrKy0tLS0t
+CiBtbS92bXN0YXQuYyAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwogNSBmaWxlcyBjaGFuZ2Vk
+LCAyOCBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQoKZGlmZiAtcHVOIGluY2x1ZGUvbGlu
+dXgvYmlvLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xl
+IGluY2x1ZGUvbGludXgvYmlvLmgKLS0tIGEvaW5jbHVkZS9saW51eC9iaW8uaH50ZXN0LWNvZGUt
+dG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUKKysrIGEvaW5jbHVkZS9saW51
+eC9iaW8uaApAQCAtMzgsNyArMzgsMTUgQEAKICNkZWZpbmUgQklPX0JVR19PTgogI2VuZGlmCiAK
+KyNpZmRlZiBDT05GSUdfVEhQX1NXQVAKKyNpZiBIUEFHRV9QTURfTlIgPiAyNTYKKyNkZWZpbmUg
+QklPX01BWF9QQUdFUwkJSFBBR0VfUE1EX05SCisjZWxzZQogI2RlZmluZSBCSU9fTUFYX1BBR0VT
+CQkyNTYKKyNlbmRpZgorI2Vsc2UKKyNkZWZpbmUgQklPX01BWF9QQUdFUwkJMjU2CisjZW5kaWYK
+IAogI2RlZmluZSBiaW9fcHJpbyhiaW8pCQkJKGJpbyktPmJpX2lvcHJpbwogI2RlZmluZSBiaW9f
+c2V0X3ByaW8oYmlvLCBwcmlvKQkJKChiaW8pLT5iaV9pb3ByaW8gPSBwcmlvKQpkaWZmIC1wdU4g
+aW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2Fw
+LWRldmljZS1hcy1hLXdob2xlIGluY2x1ZGUvbGludXgvcGFnZS1mbGFncy5oCi0tLSBhL2luY2x1
+ZGUvbGludXgvcGFnZS1mbGFncy5ofnRlc3QtY29kZS10by13cml0ZS10aHAtdG8tc3dhcC1kZXZp
+Y2UtYXMtYS13aG9sZQorKysgYS9pbmNsdWRlL2xpbnV4L3BhZ2UtZmxhZ3MuaApAQCAtMzAzLDgg
+KzMwMyw4IEBAIFBBR0VGTEFHKE93bmVyUHJpdjEsIG93bmVyX3ByaXZfMSwgUEZfQU4KICAqIE9u
+bHkgdGVzdC1hbmQtc2V0IGV4aXN0IGZvciBQR193cml0ZWJhY2suICBUaGUgdW5jb25kaXRpb25h
+bCBvcGVyYXRvcnMgYXJlCiAgKiByaXNreTogdGhleSBieXBhc3MgcGFnZSBhY2NvdW50aW5nLgog
+ICovCi1URVNUUEFHRUZMQUcoV3JpdGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX0NPTVBPVU5EKQot
+CVRFU1RTQ0ZMQUcoV3JpdGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX0NPTVBPVU5EKQorVEVTVFBB
+R0VGTEFHKFdyaXRlYmFjaywgd3JpdGViYWNrLCBQRl9OT19UQUlMKQorCVRFU1RTQ0ZMQUcoV3Jp
+dGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX1RBSUwpCiBQQUdFRkxBRyhNYXBwZWRUb0Rpc2ssIG1h
+cHBlZHRvZGlzaywgUEZfTk9fVEFJTCkKIAogLyogUEdfcmVhZGFoZWFkIGlzIG9ubHkgdXNlZCBm
+b3IgcmVhZHM7IFBHX3JlY2xhaW0gaXMgb25seSBmb3Igd3JpdGVzICovCmRpZmYgLXB1TiBpbmNs
+dWRlL2xpbnV4L3ZtX2V2ZW50X2l0ZW0uaH50ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAt
+ZGV2aWNlLWFzLWEtd2hvbGUgaW5jbHVkZS9saW51eC92bV9ldmVudF9pdGVtLmgKLS0tIGEvaW5j
+bHVkZS9saW51eC92bV9ldmVudF9pdGVtLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2Fw
+LWRldmljZS1hcy1hLXdob2xlCisrKyBhL2luY2x1ZGUvbGludXgvdm1fZXZlbnRfaXRlbS5oCkBA
+IC04NSw2ICs4NSw3IEBAIGVudW0gdm1fZXZlbnRfaXRlbSB7IFBHUEdJTiwgUEdQR09VVCwgUFMK
+ICNlbmRpZgogCQlUSFBfWkVST19QQUdFX0FMTE9DLAogCQlUSFBfWkVST19QQUdFX0FMTE9DX0ZB
+SUxFRCwKKwkJVEhQX1NXUE9VVCwKICNlbmRpZgogI2lmZGVmIENPTkZJR19NRU1PUllfQkFMTE9P
+TgogCQlCQUxMT09OX0lORkxBVEUsCmRpZmYgLXB1TiBtbS9wYWdlX2lvLmN+dGVzdC1jb2RlLXRv
+LXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlIG1tL3BhZ2VfaW8uYwotLS0gYS9t
+bS9wYWdlX2lvLmN+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdo
+b2xlCisrKyBhL21tL3BhZ2VfaW8uYwpAQCAtMjgsMTYgKzI4LDE4IEBACiBzdGF0aWMgc3RydWN0
+IGJpbyAqZ2V0X3N3YXBfYmlvKGdmcF90IGdmcF9mbGFncywKIAkJCQlzdHJ1Y3QgcGFnZSAqcGFn
+ZSwgYmlvX2VuZF9pb190IGVuZF9pbykKIHsKKwlpbnQgaSwgbnIgPSBocGFnZV9ucl9wYWdlcyhw
+YWdlKTsKIAlzdHJ1Y3QgYmlvICpiaW87CiAKLQliaW8gPSBiaW9fYWxsb2MoZ2ZwX2ZsYWdzLCAx
+KTsKKwliaW8gPSBiaW9fYWxsb2MoZ2ZwX2ZsYWdzLCBucik7CiAJaWYgKGJpbykgewogCQliaW8t
+PmJpX2l0ZXIuYmlfc2VjdG9yID0gbWFwX3N3YXBfcGFnZShwYWdlLCAmYmlvLT5iaV9iZGV2KTsK
+IAkJYmlvLT5iaV9pdGVyLmJpX3NlY3RvciA8PD0gUEFHRV9TSElGVCAtIDk7CiAJCWJpby0+Ymlf
+ZW5kX2lvID0gZW5kX2lvOwogCi0JCWJpb19hZGRfcGFnZShiaW8sIHBhZ2UsIFBBR0VfU0laRSwg
+MCk7Ci0JCUJVR19PTihiaW8tPmJpX2l0ZXIuYmlfc2l6ZSAhPSBQQUdFX1NJWkUpOworCQlmb3Ig
+KGkgPSAwOyBpIDwgbnI7IGkrKykKKwkJCWJpb19hZGRfcGFnZShiaW8sIHBhZ2UgKyBpLCBQQUdF
+X1NJWkUsIDApOworCQlWTV9CVUdfT04oYmlvLT5iaV9pdGVyLmJpX3NpemUgIT0gUEFHRV9TSVpF
+ICogbnIpOwogCX0KIAlyZXR1cm4gYmlvOwogfQpAQCAtMjYyLDYgKzI2NCwxNSBAQCBzdGF0aWMg
+c2VjdG9yX3Qgc3dhcF9wYWdlX3NlY3RvcihzdHJ1Y3QKIAlyZXR1cm4gKHNlY3Rvcl90KV9fcGFn
+ZV9maWxlX2luZGV4KHBhZ2UpIDw8IChQQUdFX1NISUZUIC0gOSk7CiB9CiAKK3N0YXRpYyBpbmxp
+bmUgdm9pZCBjb3VudF9zd3BvdXRfdm1fZXZlbnQoc3RydWN0IHBhZ2UgKnBhZ2UpCit7CisjaWZk
+ZWYgQ09ORklHX1RSQU5TUEFSRU5UX0hVR0VQQUdFCisJaWYgKHVubGlrZWx5KFBhZ2VUcmFuc0h1
+Z2UocGFnZSkpKQorCQljb3VudF92bV9ldmVudChUSFBfU1dQT1VUKTsKKyNlbmRpZgorCWNvdW50
+X3ZtX2V2ZW50cyhQU1dQT1VULCBocGFnZV9ucl9wYWdlcyhwYWdlKSk7Cit9CisKIGludCBfX3N3
+YXBfd3JpdGVwYWdlKHN0cnVjdCBwYWdlICpwYWdlLCBzdHJ1Y3Qgd3JpdGViYWNrX2NvbnRyb2wg
+KndiYywKIAkJYmlvX2VuZF9pb190IGVuZF93cml0ZV9mdW5jKQogewpAQCAtMzEzLDcgKzMyNCw3
+IEBAIGludCBfX3N3YXBfd3JpdGVwYWdlKHN0cnVjdCBwYWdlICpwYWdlLAogCiAJcmV0ID0gYmRl
+dl93cml0ZV9wYWdlKHNpcy0+YmRldiwgc3dhcF9wYWdlX3NlY3RvcihwYWdlKSwgcGFnZSwgd2Jj
+KTsKIAlpZiAoIXJldCkgewotCQljb3VudF92bV9ldmVudChQU1dQT1VUKTsKKwkJY291bnRfc3dw
+b3V0X3ZtX2V2ZW50KHBhZ2UpOwogCQlyZXR1cm4gMDsKIAl9CiAKQEAgLTMyNiw3ICszMzcsNyBA
+QCBpbnQgX19zd2FwX3dyaXRlcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSwKIAkJZ290byBvdXQ7CiAJ
+fQogCWJpby0+Ymlfb3BmID0gUkVRX09QX1dSSVRFIHwgd2JjX3RvX3dyaXRlX2ZsYWdzKHdiYyk7
+Ci0JY291bnRfdm1fZXZlbnQoUFNXUE9VVCk7CisJY291bnRfc3dwb3V0X3ZtX2V2ZW50KHBhZ2Up
+OwogCXNldF9wYWdlX3dyaXRlYmFjayhwYWdlKTsKIAl1bmxvY2tfcGFnZShwYWdlKTsKIAlzdWJt
+aXRfYmlvKGJpbyk7CmRpZmYgLXB1TiBtbS92bXN0YXQuY350ZXN0LWNvZGUtdG8td3JpdGUtdGhw
+LXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUgbW0vdm1zdGF0LmMKLS0tIGEvbW0vdm1zdGF0LmN+
+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1hLXdob2xlCisrKyBhL21t
+L3Ztc3RhdC5jCkBAIC0xMDcxLDYgKzEwNzEsNyBAQCBjb25zdCBjaGFyICogY29uc3Qgdm1zdGF0
+X3RleHRbXSA9IHsKICNlbmRpZgogCSJ0aHBfemVyb19wYWdlX2FsbG9jIiwKIAkidGhwX3plcm9f
+cGFnZV9hbGxvY19mYWlsZWQiLAorCSJ0aHBfc3dwb3V0IiwKICNlbmRpZgogI2lmZGVmIENPTkZJ
+R19NRU1PUllfQkFMTE9PTgogCSJiYWxsb29uX2luZmxhdGUiLApfCg==
