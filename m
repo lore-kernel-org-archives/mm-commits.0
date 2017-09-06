@@ -1,94 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/119] zram: add config and doc file for
- writeback feature
-Date: Wed, 06 Sep 2017 16:20:10 -0700
-Message-ID: <20170906232010.pLewKQuvt%akpm@linux-foundation.org>
+Subject: [patch 031/119] mm, page_alloc: remove boot pageset
+ initialization from memory hotplug
+Date: Wed, 06 Sep 2017 16:20:17 -0700
+Message-ID: <20170906232017.UowAzgr7B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753909AbdIFXUL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:11 -0400
+        with ESMTP id S1754508AbdIFXUS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: add config and doc file for writeback feature
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, page_alloc: remove boot pageset initialization from memory hotplug
 
-This patch adds document and kconfig for using of writeback feature.
+boot_pageset is a boot time hack which gets superseded by normal pagesets
+later in the boot process.  It makes zero sense to reinitialize it again
+and again during memory hotplug.
 
-Link: http://lkml.kernel.org/r/1498459987-24562-10-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Juneho Choi <juno.choi@lge.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20170721143915.14161-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    8 ++++++++
- Documentation/blockdev/zram.txt            |   11 +++++++++++
- drivers/block/zram/Kconfig                 |   12 ++++++++++++
- 3 files changed, 31 insertions(+)
+ mm/page_alloc.c |   40 ++++++++++++++++++++++------------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -90,3 +90,11 @@ Description:
- 		device's debugging info useful for kernel developers. Its
- 		format is not documented intentionally and may change
- 		anytime without any notice.
-+
-+What:		/sys/block/zram<id>/backing_dev
-+Date:		June 2017
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		The backing_dev file is read-write and set up backing
-+		device for zram to write incompressible pages.
-+		For using, user should enable CONFIG_ZRAM_WRITEBACK.
-diff -puN Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/Documentation/blockdev/zram.txt
-@@ -168,6 +168,7 @@ max_comp_streams  RW    the number of po
- comp_algorithm    RW    show and change the compression algorithm
- compact           WO    trigger memory compaction
- debug_stat        RO    this file is used for zram debugging purposes
-+backing_dev	  RW	set up backend storage for zram to write out
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug
++++ a/mm/page_alloc.c
+@@ -5141,7 +5141,7 @@ DEFINE_MUTEX(zonelists_mutex);
+ static int __build_all_zonelists(void *data)
+ {
+ 	int nid;
+-	int cpu;
++	int __maybe_unused cpu;
+ 	pg_data_t *self = data;
  
+ #ifdef CONFIG_NUMA
+@@ -5162,23 +5162,8 @@ static int __build_all_zonelists(void *d
+ 		}
+ 	}
  
- User space is advised to use the following files to read the device statistics.
-@@ -231,5 +232,15 @@ line of text and contains the following
- 	resets the disksize to zero. You must set the disksize again
- 	before reusing the device.
+-	/*
+-	 * Initialize the boot_pagesets that are going to be used
+-	 * for bootstrapping processors. The real pagesets for
+-	 * each zone will be allocated later when the per cpu
+-	 * allocator is available.
+-	 *
+-	 * boot_pagesets are used also for bootstrapping offline
+-	 * cpus if the system is already booted because the pagesets
+-	 * are needed to initialize allocators on a specific cpu too.
+-	 * F.e. the percpu allocator needs the page allocator which
+-	 * needs the percpu allocator in order to allocate its pagesets
+-	 * (a chicken-egg dilemma).
+-	 */
+-	for_each_possible_cpu(cpu) {
+-		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
+-
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
++	for_each_possible_cpu(cpu) {
+ 		/*
+ 		 * We now know the "local memory node" for each node--
+ 		 * i.e., the node of the first zone in the generic zonelist.
+@@ -5189,8 +5174,8 @@ static int __build_all_zonelists(void *d
+ 		 */
+ 		if (cpu_online(cpu))
+ 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
+-#endif
+ 	}
++#endif
  
-+* Optional Feature
+ 	return 0;
+ }
+@@ -5198,7 +5183,26 @@ static int __build_all_zonelists(void *d
+ static noinline void __init
+ build_all_zonelists_init(void)
+ {
++	int cpu;
 +
-+= writeback
+ 	__build_all_zonelists(NULL);
 +
-+With incompressible pages, there is no memory saving with zram.
-+Instead, with CONFIG_ZRAM_WRITEBACK, zram can write incompressible page
-+to backing storage rather than keeping it in memory.
-+User should set up backing device via /sys/block/zramX/backing_dev
-+before disksize setting.
++	/*
++	 * Initialize the boot_pagesets that are going to be used
++	 * for bootstrapping processors. The real pagesets for
++	 * each zone will be allocated later when the per cpu
++	 * allocator is available.
++	 *
++	 * boot_pagesets are used also for bootstrapping offline
++	 * cpus if the system is already booted because the pagesets
++	 * are needed to initialize allocators on a specific cpu too.
++	 * F.e. the percpu allocator needs the page allocator which
++	 * needs the percpu allocator in order to allocate its pagesets
++	 * (a chicken-egg dilemma).
++	 */
++	for_each_possible_cpu(cpu)
++		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
 +
- Nitin Gupta
- ngupta@vflare.org
-diff -puN drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature drivers/block/zram/Kconfig
---- a/drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/drivers/block/zram/Kconfig
-@@ -13,3 +13,15 @@ config ZRAM
- 	  disks and maybe many more.
- 
- 	  See zram.txt for more information.
-+
-+config ZRAM_WRITEBACK
-+       bool "Write back incompressible page to backing device"
-+       depends on ZRAM
-+       default n
-+       help
-+	 With incompressible page, there is no memory saving to keep it
-+	 in memory. Instead, write it out to backing device.
-+	 For this feature, admin should set up backing device via
-+	 /sys/block/zramX/backing_dev.
-+
-+	 See zram.txt for more infomration.
+ 	mminit_verify_zonelist();
+ 	cpuset_init_current_mems_allowed();
+ }
 _
