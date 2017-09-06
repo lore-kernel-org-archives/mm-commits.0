@@ -1,198 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [patch 106/119] mm, swap: add swap readahead hit
- statistics
-Date: Wed, 06 Sep 2017 16:24:29 -0700
-Message-ID: <20170906232429.UJKYKB0pg%akpm@linux-foundation.org>
+Subject: [patch 102/119] mm/shmem: add hugetlbfs support to
+ memfd_create()
+Date: Wed, 06 Sep 2017 16:24:16 -0700
+Message-ID: <20170906232416.pDEhJTF45%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754327AbdIFXYb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:24:31 -0400
+        with ESMTP id S1754023AbdIFXYS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@intel.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: aarcange@redhat.com, akpm@linux-foundation.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: add swap readahead hit statistics
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/shmem: add hugetlbfs support to memfd_create()
 
-Patch series "mm, swap: VMA based swap readahead", v4.
+This patch came out of discussions in this e-mail thread:
+http://lkml.kernel.org/r/1499357846-7481-1-git-send-email-mike.kravetz%40oracle.com
 
-The swap readahead is an important mechanism to reduce the swap in
-latency.  Although pure sequential memory access pattern isn't very
-popular for anonymous memory, the space locality is still considered
-valid.
+The Oracle JVM team is developing a new garbage collection model.  This
+new model requires multiple mappings of the same anonymous memory.  One
+straight forward way to accomplish this is with memfd_create.  They can
+use the returned fd to create multiple mappings of the same memory.
 
-In the original swap readahead implementation, the consecutive blocks in
-swap device are readahead based on the global space locality estimation. 
-But the consecutive blocks in swap device just reflect the order of page
-reclaiming, don't necessarily reflect the access pattern in virtual memory
-space.  And the different tasks in the system may have different access
-patterns, which makes the global space locality estimation incorrect.
+The JVM today has an option to use (static hugetlb) huge pages.  If this
+option is specified, they would like to use the same garbage collection
+model requiring multiple mappings to the same memory.  Using hugetlbfs, it
+is possible to explicitly mount a filesystem and specify file paths in
+order to get an fd that can be used for multiple mappings.  However, this
+introduces additional system admin work and coordination.
 
-In this patchset, when page fault occurs, the virtual pages near the fault
-address will be readahead instead of the swap slots near the fault swap
-slot in swap device.  This avoid to readahead the unrelated swap slots. 
-At the same time, the swap readahead is changed to work on per-VMA from
-globally.  So that the different access patterns of the different VMAs
-could be distinguished, and the different readahead policy could be
-applied accordingly.  The original core readahead detection and scaling
-algorithm is reused, because it is an effect algorithm to detect the space
-locality.
+Ideally they would like to get a hugetlbfs fd without requiring explicit
+mounting of a filesystem.  Today, mmap and shmget can make use of
+hugetlbfs without explicitly mounting a filesystem.  The patch adds this
+functionality to memfd_create.
 
-In addition to the swap readahead changes, some new sysfs interface is
-added to show the efficiency of the readahead algorithm and some other
-swap statistics.
+Add a new flag MFD_HUGETLB to memfd_create() that will specify the file to
+be created resides in the hugetlbfs filesystem.  This is the generic
+hugetlbfs filesystem not associated with any specific mount point.  As
+with other system calls that request hugetlbfs backed pages, there is the
+ability to encode huge page size in the flag arguments.
 
-This new implementation will incur more small random read, on SSD, the
-improved correctness of estimation and readahead target should beat the
-potential increased overhead, this is also illustrated in the test results
-below.  But on HDD, the overhead may beat the benefit, so the original
-implementation will be used by default.
+hugetlbfs does not support sealing operations, therefore specifying
+MFD_ALLOW_SEALING with MFD_HUGETLB will result in EINVAL.
 
-The test and result is as follow,
+Of course, the memfd_man page would need updating if this type of
+functionality moves forward.
 
-Common test condition
-=====================
-
-Test Machine: Xeon E5 v3 (2 sockets, 72 threads, 32G RAM)
-Swap device: NVMe disk
-
-Micro-benchmark with combined access pattern
-============================================
-
-vm-scalability, sequential swap test case, 4 processes to eat 50G
-virtual memory space, repeat the sequential memory writing until 300
-seconds.  The first round writing will trigger swap out, the following
-rounds will trigger sequential swap in and out.
-
-At the same time, run vm-scalability random swap test case in
-background, 8 processes to eat 30G virtual memory space, repeat the
-random memory write until 300 seconds.  This will trigger random
-swap-in in the background.
-
-This is a combined workload with sequential and random memory
-accessing at the same time.  The result (for sequential workload) is
-as follow,
-
-			Base		Optimized
-			----		---------
-throughput		345413 KB/s	414029 KB/s (+19.9%)
-latency.average		97.14 us	61.06 us (-37.1%)
-latency.50th		2 us		1 us
-latency.60th		2 us		1 us
-latency.70th		98 us		2 us
-latency.80th		160 us		2 us
-latency.90th		260 us		217 us
-latency.95th		346 us		369 us
-latency.99th		1.34 ms		1.09 ms
-ra_hit%			52.69%		99.98%
-
-The original swap readahead algorithm is confused by the background random
-access workload, so readahead hit rate is lower.  The VMA-base readahead
-algorithm works much better.
-
-Linpack
-=======
-
-The test memory size is bigger than RAM to trigger swapping.
-
-			Base		Optimized
-			----		---------
-elapsed_time		393.49 s	329.88 s (-16.2%)
-ra_hit%			86.21%		98.82%
-
-The score of base and optimized kernel hasn't visible changes.  But the
-elapsed time reduced and readahead hit rate improved, so the optimized
-kernel runs better for startup and tear down stages.  And the absolute
-value of readahead hit rate is high, shows that the space locality is
-still valid in some practical workloads.
-
-
-This patch (of 5):
-
-The statistics for total readahead pages and total readahead hits are
-recorded and exported via the following sysfs interface.
-
-/sys/kernel/mm/swap/ra_hits
-/sys/kernel/mm/swap/ra_total
-
-With them, the efficiency of the swap readahead could be measured, so that
-the swap readahead algorithm and parameters could be tuned accordingly.
-
-[akpm@linux-foundation.org: don't display swap stats if CONFIG_SWAP=n]
-Link: http://lkml.kernel.org/r/20170807054038.1843-2-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
+Link: http://lkml.kernel.org/r/1502149672-7759-2-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    4 ++++
- mm/swap_state.c               |    9 +++++++--
- mm/vmstat.c                   |    4 ++++
- 3 files changed, 15 insertions(+), 2 deletions(-)
+ include/uapi/linux/memfd.h |   24 ++++++++++++++++++++++
+ mm/shmem.c                 |   37 +++++++++++++++++++++++++++++------
+ 2 files changed, 55 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-swap-add-swap-readahead-hit-statistics include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-swap-add-swap-readahead-hit-statistics
-+++ a/include/linux/vm_event_item.h
-@@ -106,6 +106,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		VMACACHE_FIND_HITS,
- 		VMACACHE_FULL_FLUSHES,
- #endif
-+#ifdef CONFIG_SWAP
-+		SWAP_RA,
-+		SWAP_RA_HIT,
-+#endif
- 		NR_VM_EVENT_ITEMS
- };
+diff -puN include/uapi/linux/memfd.h~mm-shmem-add-hugetlbfs-support-to-memfd_create include/uapi/linux/memfd.h
+--- a/include/uapi/linux/memfd.h~mm-shmem-add-hugetlbfs-support-to-memfd_create
++++ a/include/uapi/linux/memfd.h
+@@ -1,8 +1,32 @@
+ #ifndef _UAPI_LINUX_MEMFD_H
+ #define _UAPI_LINUX_MEMFD_H
  
-diff -puN mm/swap_state.c~mm-swap-add-swap-readahead-hit-statistics mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-add-swap-readahead-hit-statistics
-+++ a/mm/swap_state.c
-@@ -305,8 +305,10 @@ struct page * lookup_swap_cache(swp_entr
++#include <asm-generic/hugetlb_encode.h>
++
+ /* flags for memfd_create(2) (unsigned int) */
+ #define MFD_CLOEXEC		0x0001U
+ #define MFD_ALLOW_SEALING	0x0002U
++#define MFD_HUGETLB		0x0004U
++
++/*
++ * Huge page size encoding when MFD_HUGETLB is specified, and a huge page
++ * size other than the default is desired.  See hugetlb_encode.h.
++ * All known huge page size encodings are provided here.  It is the
++ * responsibility of the application to know which sizes are supported on
++ * the running system.  See mmap(2) man page for details.
++ */
++#define MFD_HUGE_SHIFT	HUGETLB_FLAG_ENCODE_SHIFT
++#define MFD_HUGE_MASK	HUGETLB_FLAG_ENCODE_MASK
++
++#define MFD_HUGE_64KB	HUGETLB_FLAG_ENCODE_64KB
++#define MFD_HUGE_512KB	HUGETLB_FLAG_ENCODE_512KB
++#define MFD_HUGE_1MB	HUGETLB_FLAG_ENCODE_1MB
++#define MFD_HUGE_2MB	HUGETLB_FLAG_ENCODE_2MB
++#define MFD_HUGE_8MB	HUGETLB_FLAG_ENCODE_8MB
++#define MFD_HUGE_16MB	HUGETLB_FLAG_ENCODE_16MB
++#define MFD_HUGE_256MB	HUGETLB_FLAG_ENCODE_256MB
++#define MFD_HUGE_1GB	HUGETLB_FLAG_ENCODE_1GB
++#define MFD_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
++#define MFD_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
  
- 	if (page && likely(!PageTransCompound(page))) {
- 		INC_CACHE_INFO(find_success);
--		if (TestClearPageReadahead(page))
-+		if (TestClearPageReadahead(page)) {
- 			atomic_inc(&swapin_readahead_hits);
-+			count_vm_event(SWAP_RA_HIT);
-+		}
+ #endif /* _UAPI_LINUX_MEMFD_H */
+diff -puN mm/shmem.c~mm-shmem-add-hugetlbfs-support-to-memfd_create mm/shmem.c
+--- a/mm/shmem.c~mm-shmem-add-hugetlbfs-support-to-memfd_create
++++ a/mm/shmem.c
+@@ -34,6 +34,7 @@
+ #include <linux/swap.h>
+ #include <linux/uio.h>
+ #include <linux/khugepaged.h>
++#include <linux/hugetlb.h>
+ 
+ #include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
+ 
+@@ -3652,7 +3653,7 @@ static int shmem_show_options(struct seq
+ #define MFD_NAME_PREFIX_LEN (sizeof(MFD_NAME_PREFIX) - 1)
+ #define MFD_NAME_MAX_LEN (NAME_MAX - MFD_NAME_PREFIX_LEN)
+ 
+-#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING)
++#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_HUGETLB)
+ 
+ SYSCALL_DEFINE2(memfd_create,
+ 		const char __user *, uname,
+@@ -3664,8 +3665,18 @@ SYSCALL_DEFINE2(memfd_create,
+ 	char *name;
+ 	long len;
+ 
+-	if (flags & ~(unsigned int)MFD_ALL_FLAGS)
+-		return -EINVAL;
++	if (!(flags & MFD_HUGETLB)) {
++		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
++			return -EINVAL;
++	} else {
++		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
++		if (flags & MFD_ALLOW_SEALING)
++			return -EINVAL;
++		/* Allow huge page size encoding in flags. */
++		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
++				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
++			return -EINVAL;
++	}
+ 
+ 	/* length includes terminating zero */
+ 	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
+@@ -3696,16 +3707,30 @@ SYSCALL_DEFINE2(memfd_create,
+ 		goto err_name;
  	}
  
- 	INC_CACHE_INFO(find_total);
-@@ -516,8 +518,11 @@ struct page *swapin_readahead(swp_entry_
- 						gfp_mask, vma, addr, false);
- 		if (!page)
- 			continue;
--		if (offset != entry_offset && likely(!PageTransCompound(page)))
-+		if (offset != entry_offset &&
-+		    likely(!PageTransCompound(page))) {
- 			SetPageReadahead(page);
-+			count_vm_event(SWAP_RA);
-+		}
- 		put_page(page);
+-	file = shmem_file_setup(name, 0, VM_NORESERVE);
++	if (flags & MFD_HUGETLB) {
++		struct user_struct *user = NULL;
++
++		file = hugetlb_file_setup(name, 0, VM_NORESERVE, &user,
++					HUGETLB_ANONHUGE_INODE,
++					(flags >> MFD_HUGE_SHIFT) &
++					MFD_HUGE_MASK);
++	} else
++		file = shmem_file_setup(name, 0, VM_NORESERVE);
+ 	if (IS_ERR(file)) {
+ 		error = PTR_ERR(file);
+ 		goto err_fd;
  	}
- 	blk_finish_plug(&plug);
-diff -puN mm/vmstat.c~mm-swap-add-swap-readahead-hit-statistics mm/vmstat.c
---- a/mm/vmstat.c~mm-swap-add-swap-readahead-hit-statistics
-+++ a/mm/vmstat.c
-@@ -1098,6 +1098,10 @@ const char * const vmstat_text[] = {
- 	"vmacache_find_hits",
- 	"vmacache_full_flushes",
- #endif
-+#ifdef CONFIG_SWAP
-+	"swap_ra",
-+	"swap_ra_hit",
-+#endif
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
- };
- #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA */
+-	info = SHMEM_I(file_inode(file));
+ 	file->f_mode |= FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
+ 	file->f_flags |= O_RDWR | O_LARGEFILE;
+-	if (flags & MFD_ALLOW_SEALING)
++
++	if (flags & MFD_ALLOW_SEALING) {
++		/*
++		 * flags check at beginning of function ensures
++		 * this is not a hugetlbfs (MFD_HUGETLB) file.
++		 */
++		info = SHMEM_I(file_inode(file));
+ 		info->seals &= ~F_SEAL_SEAL;
++	}
+ 
+ 	fd_install(fd, file);
+ 	kfree(name);
 _
