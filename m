@@ -1,85 +1,156 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch removed from
- -mm tree
-Date: Wed, 06 Sep 2017 16:04:00 -0700
-Message-ID: <59b07ee0./ye9rmTIwA97ftgY%akpm@linux-foundation.org>
+ mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch removed from -mm tree
+Date: Wed, 06 Sep 2017 16:04:59 -0700
+Message-ID: <59b07f1b.0BErWtnKGUwADQ7a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47238 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750968AbdIFXEB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:04:01 -0400
+        with ESMTP id S1750968AbdIFXFA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mka@chromium.org, dianders@chromium.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix
+     Subject: mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix.patch
+     mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2.patch
 
-This patch was dropped because it was folded into mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
+This patch was dropped because it was folded into mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
 
-"mm, vmscan: do not loop on too_many_isolated for ever" has added an
-interruptible sleep into shrink_inactive_list when we have isolated too
-many pages. Andrew has noticed that we used to sleep in uninterruptible
-sleep previously (in congestion_wait) and that changing that is wrong
-for at least two reasons
-	- waiting task would not participate in the load average anymore
-	- task with a pending signal will not sleep and bail out
-	  immediately
-While none of those issues are critical in any way but they are
-unnecessary. The interruptible sleep was more an oversight than a
-deliberate decision. Fix this by using msleep instead.
+also change parameter type of inc/dec/mod_memcg_page_state()
 
-Link: http://lkml.kernel.org/r/20170724065048.GB25221@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20170728213442.93823-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Doug Anderson <dianders@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever-fix
-+++ a/mm/vmscan.c
-@@ -1750,7 +1750,7 @@ shrink_inactive_list(unsigned long nr_to
- 			return 0;
+diff -puN include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions-v2
++++ a/include/linux/memcontrol.h
+@@ -538,14 +538,14 @@ static inline void mod_memcg_state(struc
+  * Kernel pages are an exception to this, since they'll never move.
+  */
+ static inline void __mod_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx, int val)
++					  int idx, int val)
+ {
+ 	if (page->mem_cgroup)
+ 		__mod_memcg_state(page->mem_cgroup, idx, val);
+ }
  
- 		/* wait a bit for the reclaimer. */
--		schedule_timeout_interruptible(HZ/10);
-+		msleep(100);
- 		stalled = true;
+ static inline void mod_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx, int val)
++					int idx, int val)
+ {
+ 	if (page->mem_cgroup)
+ 		mod_memcg_state(page->mem_cgroup, idx, val);
+@@ -868,13 +868,13 @@ static inline void mod_memcg_state(struc
+ }
  
- 		/* We are about to die and free our memory. Return now. */
+ static inline void __mod_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx,
++					  int idx,
+ 					  int nr)
+ {
+ }
+ 
+ static inline void mod_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx,
++					int idx,
+ 					int nr)
+ {
+ }
+@@ -938,26 +938,30 @@ void count_memcg_event_mm(struct mm_stru
+ }
+ #endif /* CONFIG_MEMCG */
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __inc_memcg_state(struct mem_cgroup *memcg,
+-				     enum memcg_stat_item idx)
++				     int idx)
+ {
+ 	__mod_memcg_state(memcg, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __dec_memcg_state(struct mem_cgroup *memcg,
+-				     enum memcg_stat_item idx)
++				     int idx)
+ {
+ 	__mod_memcg_state(memcg, idx, -1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __inc_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx)
++					  int idx)
+ {
+ 	__mod_memcg_page_state(page, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void __dec_memcg_page_state(struct page *page,
+-					  enum memcg_stat_item idx)
++					  int idx)
+ {
+ 	__mod_memcg_page_state(page, idx, -1);
+ }
+@@ -986,26 +990,30 @@ static inline void __dec_lruvec_page_sta
+ 	__mod_lruvec_page_state(page, idx, -1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void inc_memcg_state(struct mem_cgroup *memcg,
+-				   enum memcg_stat_item idx)
++				   int idx)
+ {
+ 	mod_memcg_state(memcg, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void dec_memcg_state(struct mem_cgroup *memcg,
+-				   enum memcg_stat_item idx)
++				   int idx)
+ {
+ 	mod_memcg_state(memcg, idx, -1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void inc_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx)
++					int idx)
+ {
+ 	mod_memcg_page_state(page, idx, 1);
+ }
+ 
++/* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void dec_memcg_page_state(struct page *page,
+-					enum memcg_stat_item idx)
++					int idx)
+ {
+ 	mod_memcg_page_state(page, idx, -1);
+ }
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from mka@chromium.org are
 
-mm-memory_hotplug-display-allowed-zones-in-the-preferred-ordering.patch
-mm-memory_hotplug-remove-zone-restrictions.patch
-mm-page_alloc-rip-out-zonelist_order_zone.patch
-mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
-mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
-mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
-mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node.patch
-mm-page_alloc-simplify-zonelist-initialization.patch
-mm-page_alloc-remove-stop_machine-from-build_all_zonelists.patch
-mm-memory_hotplug-get-rid-of-zonelists_mutex.patch
-mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
-mm-vmscan-do-not-loop-on-too_many_isolated-for-ever.patch
-mm-rename-global_page_state-to-global_zone_page_state.patch
-mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
-mm-oom-do-not-rely-on-tif_memdie-for-memory-reserves-access.patch
-mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch
+mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
 
