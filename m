@@ -1,515 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: [patch 117/119] mm: add /proc/pid/smaps_rollup
-Date: Wed, 06 Sep 2017 16:25:08 -0700
-Message-ID: <20170906232508.0KMg-tFhL%akpm@linux-foundation.org>
+Subject: [patch 119/119] mm,fork: introduce MADV_WIPEONFORK
+Date: Wed, 06 Sep 2017 16:25:15 -0700
+Message-ID: <20170906232515.oeZx0mf1Q%akpm__38221.6839156628$1504740330$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51450 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752600AbdIFXZJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:25:09 -0400
+        with ESMTP id S1754134AbdIFXZQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dancol@google.com, joelaf@google.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, sonnyrao@chromium.org, timmurray@google.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, colm@allcosts.net, dave.hansen@intel.com, deller@gmx.de, fweimer@redhat.com, hpa@zytor.com, keescook@chromium.org, kirill@shutemov.name, linux-api@vger.kernel.org, luto@amacapital.net, mike.kravetz@oracle.com, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, wad@chromium.org, willy@infradead.org
 
-From: Daniel Colascione <dancol@google.com>
-Subject: mm: add /proc/pid/smaps_rollup
+From: Rik van Riel <riel@redhat.com>
+Subject: mm,fork: introduce MADV_WIPEONFORK
 
-/proc/pid/smaps_rollup is a new proc file that improves the performance of
-user programs that determine aggregate memory statistics (e.g., total PSS)
-of a process.
+Introduce MADV_WIPEONFORK semantics, which result in a VMA being empty in
+the child process after fork.  This differs from MADV_DONTFORK in one
+important way.
 
-Android regularly "samples" the memory usage of various processes in order
-to balance its memory pool sizes.  This sampling process involves opening
-/proc/pid/smaps and summing certain fields.  For very large processes,
-sampling memory use this way can take several hundred milliseconds, due
-mostly to the overhead of the seq_printf calls in task_mmu.c.
+If a child process accesses memory that was MADV_WIPEONFORK, it will get
+zeroes.  The address ranges are still valid, they are just empty.
 
-smaps_rollup improves the situation.  It contains most of the fields of
-/proc/pid/smaps, but instead of a set of fields for each VMA, smaps_rollup
-instead contains one synthetic smaps-format entry representing the whole
-process.  In the single smaps_rollup synthetic entry, each field is the
-summation of the corresponding field in all of the real-smaps VMAs.  Using
-a common format for smaps_rollup and smaps allows userspace parsers to
-repurpose parsers meant for use with non-rollup smaps for smaps_rollup,
-and it allows userspace to switch between smaps_rollup and smaps at
-runtime (say, based on the availability of smaps_rollup in a given kernel)
-with minimal fuss.
+If a child process accesses memory that was MADV_DONTFORK, it will get a
+segmentation fault, since those address ranges are no longer valid in the
+child after fork.
 
-By using smaps_rollup instead of smaps, a caller can avoid the significant
-overhead of formatting, reading, and parsing each of a large process's
-potentially very numerous memory mappings.  For sampling system_server's
-PSS in Android, we measured a 12x speedup, representing a savings of
-several hundred milliseconds.
+Since MADV_DONTFORK also seems to be used to allow very large programs to
+fork in systems with strict memory overcommit restrictions, changing the
+semantics of MADV_DONTFORK might break existing programs.
 
-One alternative to a new per-process proc file would have been including
-PSS information in /proc/pid/status.  We considered this option but
-thought that PSS would be too expensive (by a few orders of magnitude) to
-collect relative to what's already emitted as part of /proc/pid/status,
-and slowing every user of /proc/pid/status for the sake of readers that
-happen to want PSS feels wrong.
+MADV_WIPEONFORK only works on private, anonymous VMAs.
 
-The code itself works by reusing the existing VMA-walking framework we use
-for regular smaps generation and keeping the mem_size_stats structure
-around between VMA walks instead of using a fresh one for each VMA.  In
-this way, summation happens automatically.  We let seq_file walk over the
-VMAs just as it does for regular smaps and just emit nothing to the
-seq_file until we hit the last VMA.
+The use case is libraries that store or cache information, and want to
+know that they need to regenerate it in the child process after fork.
 
-Benchmarks:
+Examples of this would be:
+- systemd/pulseaudio API checks (fail after fork)
+  (replacing a getpid check, which is too slow without a PID cache)
+- PKCS#11 API reinitialization check (mandated by specification)
+- glibc's upcoming PRNG (reseed after fork)
+- OpenSSL PRNG (reseed after fork)
 
-    using smaps:
-    iterations:1000 pid:1163 pss:220023808
-    0m29.46s real 0m08.28s user 0m20.98s system
+The security benefits of a forking server having a re-inialized PRNG in
+every child process are pretty obvious.  However, due to libraries having
+all kinds of internal state, and programs getting compiled with many
+different versions of each library, it is unreasonable to expect calling
+programs to re-initialize everything manually after fork.
 
-    using smaps_rollup:
-    iterations:1000 pid:1163 pss:220702720
-    0m04.39s real 0m00.03s user 0m04.31s system
+A further complication is the proliferation of clone flags, programs
+bypassing glibc's functions to call clone directly, and programs calling
+unshare, causing the glibc pthread_atfork hook to not get called.
 
-We're using the PSS samples we collect asynchronously for
-system-management tasks like fine-tuning oom_adj_score, memory use
-tracking for debugging, application-level memory-use attribution, and
-deciding whether we want to kill large processes during system idle
-maintenance windows.  Android has been using PSS for these purposes for a
-long time; as the average process VMA count has increased and and devices
-become more efficiency-conscious, PSS-collection inefficiency has started
-to matter more.  IMHO, it'd be a lot safer to optimize the existing
-PSS-collection model, which has been fine-tuned over the years, instead of
-changing the memory tracking approach entirely to work around
-smaps-generation inefficiency.
+It would be better to have the kernel take care of this automatically.
 
-Tim said:
+The patch also adds MADV_KEEPONFORK, to undo the effects of a prior
+MADV_WIPEONFORK.
 
-: There are two main reasons why Android gathers PSS information:
-: 
-: 1. Android devices can show the user the amount of memory used per
-:    application via the settings app.  This is a less important use case.
-: 
-: 2. We log PSS to help identify leaks in applications.  We have found
-:    an enormous number of bugs (in the Android platform, in Google's own
-:    apps, and in third-party applications) using this data.
-: 
-: To do this, system_server (the main process in Android userspace) will
-: sample the PSS of a process three seconds after it changes state (for
-: example, app is launched and becomes the foreground application) and about
-: every ten minutes after that.  The net result is that PSS collection is
-: regularly running on at least one process in the system (usually a few
-: times a minute while the screen is on, less when screen is off due to
-: suspend).  PSS of a process is an incredibly useful stat to track, and we
-: aren't going to get rid of it.  We've looked at some very hacky approaches
-: using RSS ("take the RSS of the target process, subtract the RSS of the
-: zygote process that is the parent of all Android apps") to reduce the
-: accounting time, but it regularly overestimated the memory used by 20+
-: percent.  Accordingly, I don't think that there's a good alternative to
-: using PSS.
-: 
-: We started looking into PSS collection performance after we noticed random
-: frequency spikes while a phone's screen was off; occasionally, one of the
-: CPU clusters would ramp to a high frequency because there was 200-300ms of
-: constant CPU work from a single thread in the main Android userspace
-: process.  The work causing the spike (which is reasonable governor
-: behavior given the amount of CPU time needed) was always PSS collection. 
-: As a result, Android is burning more power than we should be on PSS
-: collection.
-: 
-: The other issue (and why I'm less sure about improving smaps as a
-: long-term solution) is that the number of VMAs per process has increased
-: significantly from release to release.  After trying to figure out why we
-: were seeing these 200-300ms PSS collection times on Android O but had not
-: noticed it in previous versions, we found that the number of VMAs in the
-: main system process increased by 50% from Android N to Android O (from
-: ~1800 to ~2700) and varying increases in every userspace process.  Android
-: M to N also had an increase in the number of VMAs, although not as much. 
-: I'm not sure why this is increasing so much over time, but thinking about
-: ASLR and ways to make ASLR better, I expect that this will continue to
-: increase going forward.  I would not be surprised if we hit 5000 VMAs on
-: the main Android process (system_server) by 2020.
-: 
-: If we assume that the number of VMAs is going to increase over time, then
-: doing anything we can do to reduce the overhead of each VMA during PSS
-: collection seems like the right way to go, and that means outputting an
-: aggregate statistic (to avoid whatever overhead there is per line in
-: writing smaps and in reading each line from userspace).
+This is similar to the OpenBSD minherit syscall with MAP_INHERIT_ZERO:
 
-Link: http://lkml.kernel.org/r/20170812022148.178293-1-dancol@google.com
-Signed-off-by: Daniel Colascione <dancol@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Joel Fernandes <joelaf@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sonny Rao <sonnyrao@chromium.org>
+    https://man.openbsd.org/minherit.2
+
+[akpm@linux-foundation.org: numerically order arch/parisc/include/uapi/asm/mman.h #defines]
+Link: http://lkml.kernel.org/r/20170811212829.29186-3-riel@redhat.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Florian Weimer <fweimer@redhat.com>
+Reported-by: Colm MacCártaigh <colm@allcosts.net>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Drewry <wad@chromium.org>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/procfs-smaps_rollup |   34 ++
- fs/proc/base.c                                |    2 
- fs/proc/internal.h                            |    3 
- fs/proc/task_mmu.c                            |  196 ++++++++++------
- 4 files changed, 173 insertions(+), 62 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h     |    3 +++
+ arch/mips/include/uapi/asm/mman.h      |    3 +++
+ arch/parisc/include/uapi/asm/mman.h    |    3 +++
+ arch/xtensa/include/uapi/asm/mman.h    |    3 +++
+ fs/proc/task_mmu.c                     |    1 +
+ include/linux/mm.h                     |    2 +-
+ include/trace/events/mmflags.h         |    8 +-------
+ include/uapi/asm-generic/mman-common.h |    3 +++
+ kernel/fork.c                          |   10 ++++++++--
+ mm/madvise.c                           |   13 +++++++++++++
+ 10 files changed, 39 insertions(+), 10 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/procfs-smaps_rollup
---- /dev/null
-+++ a/Documentation/ABI/testing/procfs-smaps_rollup
-@@ -0,0 +1,34 @@
-+What:		/proc/pid/smaps_rollup
-+Date:		August 2017
-+Contact:	Daniel Colascione <dancol@google.com>
-+Description:
-+		This file provides pre-summed memory information for a
-+		process.  The format is identical to /proc/pid/smaps,
-+		except instead of an entry for each VMA in a process,
-+		smaps_rollup has a single entry (tagged "[rollup]")
-+		for which each field is the sum of the corresponding
-+		fields from all the maps in /proc/pid/smaps.
-+		For more details, see the procfs man page.
+diff -puN arch/alpha/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/alpha/include/uapi/asm/mman.h
+--- a/arch/alpha/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -64,6 +64,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
 +
-+		Typical output looks like this:
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN arch/mips/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -91,6 +91,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
 +
-+		00100000-ff709000 ---p 00000000 00:00 0		 [rollup]
-+		Rss:		     884 kB
-+		Pss:		     385 kB
-+		Shared_Clean:	     696 kB
-+		Shared_Dirty:	       0 kB
-+		Private_Clean:	     120 kB
-+		Private_Dirty:	      68 kB
-+		Referenced:	     884 kB
-+		Anonymous:	      68 kB
-+		LazyFree:	       0 kB
-+		AnonHugePages:	       0 kB
-+		ShmemPmdMapped:	       0 kB
-+		Shared_Hugetlb:	       0 kB
-+		Private_Hugetlb:       0 kB
-+		Swap:		       0 kB
-+		SwapPss:	       0 kB
-+		Locked:		     385 kB
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN arch/parisc/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -57,6 +57,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	70		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 71		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 72		/* Undo MADV_WIPEONFORK */
 +
+ #define MADV_HWPOISON     100		/* poison a page for testing */
+ #define MADV_SOFT_OFFLINE 101		/* soft offline page for testing */
+ 
+diff -puN arch/xtensa/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~mmfork-introduce-madv_wipeonfork
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -103,6 +103,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
+ 
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
 +
-+
-diff -puN fs/proc/base.c~add-proc-pid-smaps_rollup fs/proc/base.c
---- a/fs/proc/base.c~add-proc-pid-smaps_rollup
-+++ a/fs/proc/base.c
-@@ -2931,6 +2931,7 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
-+	REG("smaps_rollup", S_IRUGO, proc_pid_smaps_rollup_operations),
- 	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
- #endif
- #ifdef CONFIG_SECURITY
-@@ -3324,6 +3325,7 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",     S_IRUGO, proc_tid_smaps_operations),
-+	REG("smaps_rollup", S_IRUGO, proc_pid_smaps_rollup_operations),
- 	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
- #endif
- #ifdef CONFIG_SECURITY
-diff -puN fs/proc/internal.h~add-proc-pid-smaps_rollup fs/proc/internal.h
---- a/fs/proc/internal.h~add-proc-pid-smaps_rollup
-+++ a/fs/proc/internal.h
-@@ -269,10 +269,12 @@ extern int proc_remount(struct super_blo
- /*
-  * task_[no]mmu.c
-  */
-+struct mem_size_stats;
- struct proc_maps_private {
- 	struct inode *inode;
- 	struct task_struct *task;
- 	struct mm_struct *mm;
-+	struct mem_size_stats *rollup;
- #ifdef CONFIG_MMU
- 	struct vm_area_struct *tail_vma;
- #endif
-@@ -288,6 +290,7 @@ extern const struct file_operations proc
- extern const struct file_operations proc_pid_numa_maps_operations;
- extern const struct file_operations proc_tid_numa_maps_operations;
- extern const struct file_operations proc_pid_smaps_operations;
-+extern const struct file_operations proc_pid_smaps_rollup_operations;
- extern const struct file_operations proc_tid_smaps_operations;
- extern const struct file_operations proc_clear_refs_operations;
- extern const struct file_operations proc_pagemap_operations;
-diff -puN fs/proc/task_mmu.c~add-proc-pid-smaps_rollup fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~add-proc-pid-smaps_rollup
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN fs/proc/task_mmu.c~mmfork-introduce-madv_wipeonfork fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mmfork-introduce-madv_wipeonfork
 +++ a/fs/proc/task_mmu.c
-@@ -253,6 +253,7 @@ static int proc_map_release(struct inode
- 	if (priv->mm)
- 		mmdrop(priv->mm);
+@@ -663,6 +663,7 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_NORESERVE)]	= "nr",
+ 		[ilog2(VM_HUGETLB)]	= "ht",
+ 		[ilog2(VM_ARCH_1)]	= "ar",
++		[ilog2(VM_WIPEONFORK)]	= "wf",
+ 		[ilog2(VM_DONTDUMP)]	= "dd",
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ 		[ilog2(VM_SOFTDIRTY)]	= "sd",
+diff -puN include/linux/mm.h~mmfork-introduce-madv_wipeonfork include/linux/mm.h
+--- a/include/linux/mm.h~mmfork-introduce-madv_wipeonfork
++++ a/include/linux/mm.h
+@@ -189,7 +189,7 @@ extern unsigned int kobjsize(const void
+ #define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
+ #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
+ #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+-#define VM_ARCH_2	0x02000000
++#define VM_WIPEONFORK	0x02000000	/* Wipe VMA contents in child. */
+ #define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
  
-+	kfree(priv->rollup);
- 	return seq_release_private(inode, file);
- }
- 
-@@ -279,6 +280,23 @@ static int is_stack(struct proc_maps_pri
- 		vma->vm_end >= vma->vm_mm->start_stack;
- }
- 
-+static void show_vma_header_prefix(struct seq_file *m,
-+				   unsigned long start, unsigned long end,
-+				   vm_flags_t flags, unsigned long long pgoff,
-+				   dev_t dev, unsigned long ino)
-+{
-+	seq_setwidth(m, 25 + sizeof(void *) * 6 - 1);
-+	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu ",
-+		   start,
-+		   end,
-+		   flags & VM_READ ? 'r' : '-',
-+		   flags & VM_WRITE ? 'w' : '-',
-+		   flags & VM_EXEC ? 'x' : '-',
-+		   flags & VM_MAYSHARE ? 's' : 'p',
-+		   pgoff,
-+		   MAJOR(dev), MINOR(dev), ino);
-+}
-+
- static void
- show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
- {
-@@ -301,17 +319,7 @@ show_map_vma(struct seq_file *m, struct
- 
- 	start = vma->vm_start;
- 	end = vma->vm_end;
--
--	seq_setwidth(m, 25 + sizeof(void *) * 6 - 1);
--	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu ",
--			start,
--			end,
--			flags & VM_READ ? 'r' : '-',
--			flags & VM_WRITE ? 'w' : '-',
--			flags & VM_EXEC ? 'x' : '-',
--			flags & VM_MAYSHARE ? 's' : 'p',
--			pgoff,
--			MAJOR(dev), MINOR(dev), ino);
-+	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
- 
- 	/*
- 	 * Print the dentry name for named mappings, and a
-@@ -430,6 +438,7 @@ const struct file_operations proc_tid_ma
- 
- #ifdef CONFIG_PROC_PAGE_MONITOR
- struct mem_size_stats {
-+	bool first;
- 	unsigned long resident;
- 	unsigned long shared_clean;
- 	unsigned long shared_dirty;
-@@ -443,7 +452,9 @@ struct mem_size_stats {
- 	unsigned long swap;
- 	unsigned long shared_hugetlb;
- 	unsigned long private_hugetlb;
-+	unsigned long first_vma_start;
- 	u64 pss;
-+	u64 pss_locked;
- 	u64 swap_pss;
- 	bool check_shmem_swap;
- };
-@@ -719,18 +730,36 @@ void __weak arch_show_smap(struct seq_fi
- 
- static int show_smap(struct seq_file *m, void *v, int is_pid)
- {
-+	struct proc_maps_private *priv = m->private;
- 	struct vm_area_struct *vma = v;
--	struct mem_size_stats mss;
-+	struct mem_size_stats mss_stack;
-+	struct mem_size_stats *mss;
- 	struct mm_walk smaps_walk = {
- 		.pmd_entry = smaps_pte_range,
- #ifdef CONFIG_HUGETLB_PAGE
- 		.hugetlb_entry = smaps_hugetlb_range,
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+diff -puN include/trace/events/mmflags.h~mmfork-introduce-madv_wipeonfork include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~mmfork-introduce-madv_wipeonfork
++++ a/include/trace/events/mmflags.h
+@@ -125,12 +125,6 @@ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
+ #define __VM_ARCH_SPECIFIC_1 {VM_ARCH_1,	"arch_1"	}
  #endif
- 		.mm = vma->vm_mm,
--		.private = &mss,
- 	};
-+	int ret = 0;
-+	bool rollup_mode;
-+	bool last_vma;
+ 
+-#if defined(CONFIG_X86)
+-#define __VM_ARCH_SPECIFIC_2 {VM_MPX,		"mpx"		}
+-#else
+-#define __VM_ARCH_SPECIFIC_2 {VM_ARCH_2,	"arch_2"	}
+-#endif
+-
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ #define IF_HAVE_VM_SOFTDIRTY(flag,name) {flag, name },
+ #else
+@@ -162,7 +156,7 @@ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
+ 	{VM_NORESERVE,			"noreserve"	},		\
+ 	{VM_HUGETLB,			"hugetlb"	},		\
+ 	__VM_ARCH_SPECIFIC_1				,		\
+-	__VM_ARCH_SPECIFIC_2				,		\
++	{VM_WIPEONFORK,			"wipeonfork"	},		\
+ 	{VM_DONTDUMP,			"dontdump"	},		\
+ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"softdirty"	)		\
+ 	{VM_MIXEDMAP,			"mixedmap"	},		\
+diff -puN include/uapi/asm-generic/mman-common.h~mmfork-introduce-madv_wipeonfork include/uapi/asm-generic/mman-common.h
+--- a/include/uapi/asm-generic/mman-common.h~mmfork-introduce-madv_wipeonfork
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -58,6 +58,9 @@
+ 					   overrides the coredump filter bits */
+ #define MADV_DODUMP	17		/* Clear the MADV_DONTDUMP flag */
+ 
++#define MADV_WIPEONFORK 18		/* Zero memory on fork, child only */
++#define MADV_KEEPONFORK 19		/* Undo MADV_WIPEONFORK */
 +
-+	if (priv->rollup) {
-+		rollup_mode = true;
-+		mss = priv->rollup;
-+		if (mss->first) {
-+			mss->first_vma_start = vma->vm_start;
-+			mss->first = false;
-+		}
-+		last_vma = !m_next_vma(priv, vma);
-+	} else {
-+		rollup_mode = false;
-+		memset(&mss_stack, 0, sizeof(mss_stack));
-+		mss = &mss_stack;
-+	}
+ /* compatibility flags */
+ #define MAP_FILE	0
  
--	memset(&mss, 0, sizeof mss);
-+	smaps_walk.private = mss;
+diff -puN kernel/fork.c~mmfork-introduce-madv_wipeonfork kernel/fork.c
+--- a/kernel/fork.c~mmfork-introduce-madv_wipeonfork
++++ a/kernel/fork.c
+@@ -657,7 +657,12 @@ static __latent_entropy int dup_mmap(str
+ 		retval = dup_userfaultfd(tmp, &uf);
+ 		if (retval)
+ 			goto fail_nomem_anon_vma_fork;
+-		if (anon_vma_fork(tmp, mpnt))
++		if (tmp->vm_flags & VM_WIPEONFORK) {
++			/* VM_WIPEONFORK gets a clean slate in the child. */
++			tmp->anon_vma = NULL;
++			if (anon_vma_prepare(tmp))
++				goto fail_nomem_anon_vma_fork;
++		} else if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+ 		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
+ 		tmp->vm_next = tmp->vm_prev = NULL;
+@@ -701,7 +706,8 @@ static __latent_entropy int dup_mmap(str
+ 		rb_parent = &tmp->vm_rb;
  
- #ifdef CONFIG_SHMEM
- 	if (vma->vm_file && shmem_mapping(vma->vm_file->f_mapping)) {
-@@ -748,9 +777,9 @@ static int show_smap(struct seq_file *m,
+ 		mm->map_count++;
+-		retval = copy_page_range(mm, oldmm, mpnt);
++		if (!(tmp->vm_flags & VM_WIPEONFORK))
++			retval = copy_page_range(mm, oldmm, mpnt);
  
- 		if (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
- 					!(vma->vm_flags & VM_WRITE)) {
--			mss.swap = shmem_swapped;
-+			mss->swap = shmem_swapped;
- 		} else {
--			mss.check_shmem_swap = true;
-+			mss->check_shmem_swap = true;
- 			smaps_walk.pte_hole = smaps_pte_hole;
+ 		if (tmp->vm_ops && tmp->vm_ops->open)
+ 			tmp->vm_ops->open(tmp);
+diff -puN mm/madvise.c~mmfork-introduce-madv_wipeonfork mm/madvise.c
+--- a/mm/madvise.c~mmfork-introduce-madv_wipeonfork
++++ a/mm/madvise.c
+@@ -80,6 +80,17 @@ static long madvise_behavior(struct vm_a
  		}
- 	}
-@@ -758,54 +787,71 @@ static int show_smap(struct seq_file *m,
- 
- 	/* mmap_sem is held in m_start */
- 	walk_page_vma(vma, &smaps_walk);
-+	if (vma->vm_flags & VM_LOCKED)
-+		mss->pss_locked += mss->pss;
- 
--	show_map_vma(m, vma, is_pid);
--
--	seq_printf(m,
--		   "Size:           %8lu kB\n"
--		   "Rss:            %8lu kB\n"
--		   "Pss:            %8lu kB\n"
--		   "Shared_Clean:   %8lu kB\n"
--		   "Shared_Dirty:   %8lu kB\n"
--		   "Private_Clean:  %8lu kB\n"
--		   "Private_Dirty:  %8lu kB\n"
--		   "Referenced:     %8lu kB\n"
--		   "Anonymous:      %8lu kB\n"
--		   "LazyFree:       %8lu kB\n"
--		   "AnonHugePages:  %8lu kB\n"
--		   "ShmemPmdMapped: %8lu kB\n"
--		   "Shared_Hugetlb: %8lu kB\n"
--		   "Private_Hugetlb: %7lu kB\n"
--		   "Swap:           %8lu kB\n"
--		   "SwapPss:        %8lu kB\n"
--		   "KernelPageSize: %8lu kB\n"
--		   "MMUPageSize:    %8lu kB\n"
--		   "Locked:         %8lu kB\n",
--		   (vma->vm_end - vma->vm_start) >> 10,
--		   mss.resident >> 10,
--		   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
--		   mss.shared_clean  >> 10,
--		   mss.shared_dirty  >> 10,
--		   mss.private_clean >> 10,
--		   mss.private_dirty >> 10,
--		   mss.referenced >> 10,
--		   mss.anonymous >> 10,
--		   mss.lazyfree >> 10,
--		   mss.anonymous_thp >> 10,
--		   mss.shmem_thp >> 10,
--		   mss.shared_hugetlb >> 10,
--		   mss.private_hugetlb >> 10,
--		   mss.swap >> 10,
--		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
--		   vma_kernel_pagesize(vma) >> 10,
--		   vma_mmu_pagesize(vma) >> 10,
--		   (vma->vm_flags & VM_LOCKED) ?
--			(unsigned long)(mss.pss >> (10 + PSS_SHIFT)) : 0);
--
--	arch_show_smap(m, vma);
--	show_smap_vma_flags(m, vma);
-+	if (!rollup_mode) {
-+		show_map_vma(m, vma, is_pid);
-+	} else if (last_vma) {
-+		show_vma_header_prefix(
-+			m, mss->first_vma_start, vma->vm_end, 0, 0, 0, 0);
-+		seq_pad(m, ' ');
-+		seq_puts(m, "[rollup]\n");
-+	} else {
-+		ret = SEQ_SKIP;
-+	}
-+
-+	if (!rollup_mode)
-+		seq_printf(m,
-+			   "Size:           %8lu kB\n"
-+			   "KernelPageSize: %8lu kB\n"
-+			   "MMUPageSize:    %8lu kB\n",
-+			   (vma->vm_end - vma->vm_start) >> 10,
-+			   vma_kernel_pagesize(vma) >> 10,
-+			   vma_mmu_pagesize(vma) >> 10);
-+
-+
-+	if (!rollup_mode || last_vma)
-+		seq_printf(m,
-+			   "Rss:            %8lu kB\n"
-+			   "Pss:            %8lu kB\n"
-+			   "Shared_Clean:   %8lu kB\n"
-+			   "Shared_Dirty:   %8lu kB\n"
-+			   "Private_Clean:  %8lu kB\n"
-+			   "Private_Dirty:  %8lu kB\n"
-+			   "Referenced:     %8lu kB\n"
-+			   "Anonymous:      %8lu kB\n"
-+			   "LazyFree:       %8lu kB\n"
-+			   "AnonHugePages:  %8lu kB\n"
-+			   "ShmemPmdMapped: %8lu kB\n"
-+			   "Shared_Hugetlb: %8lu kB\n"
-+			   "Private_Hugetlb: %7lu kB\n"
-+			   "Swap:           %8lu kB\n"
-+			   "SwapPss:        %8lu kB\n"
-+			   "Locked:         %8lu kB\n",
-+			   mss->resident >> 10,
-+			   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)),
-+			   mss->shared_clean  >> 10,
-+			   mss->shared_dirty  >> 10,
-+			   mss->private_clean >> 10,
-+			   mss->private_dirty >> 10,
-+			   mss->referenced >> 10,
-+			   mss->anonymous >> 10,
-+			   mss->lazyfree >> 10,
-+			   mss->anonymous_thp >> 10,
-+			   mss->shmem_thp >> 10,
-+			   mss->shared_hugetlb >> 10,
-+			   mss->private_hugetlb >> 10,
-+			   mss->swap >> 10,
-+			   (unsigned long)(mss->swap_pss >> (10 + PSS_SHIFT)),
-+			   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)));
-+
-+	if (!rollup_mode) {
-+		arch_show_smap(m, vma);
-+		show_smap_vma_flags(m, vma);
-+	}
- 	m_cache_vma(m, vma);
--	return 0;
-+	return ret;
- }
- 
- static int show_pid_smap(struct seq_file *m, void *v)
-@@ -837,6 +883,25 @@ static int pid_smaps_open(struct inode *
- 	return do_maps_open(inode, file, &proc_pid_smaps_op);
- }
- 
-+static int pid_smaps_rollup_open(struct inode *inode, struct file *file)
-+{
-+	struct seq_file *seq;
-+	struct proc_maps_private *priv;
-+	int ret = do_maps_open(inode, file, &proc_pid_smaps_op);
-+
-+	if (ret < 0)
-+		return ret;
-+	seq = file->private_data;
-+	priv = seq->private;
-+	priv->rollup = kzalloc(sizeof(*priv->rollup), GFP_KERNEL);
-+	if (!priv->rollup) {
-+		proc_map_release(inode, file);
-+		return -ENOMEM;
-+	}
-+	priv->rollup->first = true;
-+	return 0;
-+}
-+
- static int tid_smaps_open(struct inode *inode, struct file *file)
- {
- 	return do_maps_open(inode, file, &proc_tid_smaps_op);
-@@ -847,6 +912,13 @@ const struct file_operations proc_pid_sm
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= proc_map_release,
-+};
-+
-+const struct file_operations proc_pid_smaps_rollup_operations = {
-+	.open		= pid_smaps_rollup_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= proc_map_release,
- };
- 
- const struct file_operations proc_tid_smaps_operations = {
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
++	case MADV_WIPEONFORK:
++		/* MADV_WIPEONFORK is only supported on anonymous memory. */
++		if (vma->vm_file || vma->vm_flags & VM_SHARED) {
++			error = -EINVAL;
++			goto out;
++		}
++		new_flags |= VM_WIPEONFORK;
++		break;
++	case MADV_KEEPONFORK:
++		new_flags &= ~VM_WIPEONFORK;
++		break;
+ 	case MADV_DONTDUMP:
+ 		new_flags |= VM_DONTDUMP;
+ 		break;
+@@ -696,6 +707,8 @@ madvise_behavior_valid(int behavior)
+ #endif
+ 	case MADV_DONTDUMP:
+ 	case MADV_DODUMP:
++	case MADV_WIPEONFORK:
++	case MADV_KEEPONFORK:
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	case MADV_SOFT_OFFLINE:
+ 	case MADV_HWPOISON:
 _
