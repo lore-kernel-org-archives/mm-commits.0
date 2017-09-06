@@ -1,133 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [patch 046/119] zsmalloc: zs_page_migrate: skip
- unnecessary loops but not return -EBUSY if zspage is not inuse
-Date: Wed, 06 Sep 2017 16:21:08 -0700
-Message-ID: <20170906232108.8Xgy2pAck%akpm@linux-foundation.org>
+Subject: [patch 050/119] mm: implement find_get_pages_range()
+Date: Wed, 06 Sep 2017 16:21:21 -0700
+Message-ID: <20170906232121.x3wMrRgMq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49882 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbdIFXVJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:09 -0400
+        with ESMTP id S1753570AbdIFXVW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, zhuhui@xiaomi.com
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Hui Zhu <zhuhui@xiaomi.com>
-Subject: zsmalloc: zs_page_migrate: skip unnecessary loops but not return -EBUSY if zspage is not inuse
+From: Jan Kara <jack@suse.cz>
+Subject: mm: implement find_get_pages_range()
 
-Getting -EBUSY from zs_page_migrate will make migration slow (retry) or
-fail (zs_page_putback will schedule_work free_work, but it cannot ensure
-the success).
+Implement a variant of find_get_pages() that stops iterating at given
+index.  This may be substantial performance gain if the mapping is sparse.
+See following commit for details.  Furthermore lots of users of this
+function (through pagevec_lookup()) actually want a range lookup and all
+of them are currently open-coding this.
 
-I noticed this issue because my Kernel patched
-(https://lkml.org/lkml/2014/5/28/113) that will remove retry in
-__alloc_contig_migrate_range.  This retry willhandle the -EBUSY because it
-will re-isolate the page and re-call migrate_pages.  Without it will make
-cma_alloc fail at once with -EBUSY.
+Also create corresponding pagevec_lookup_range() function.
 
-According to the review from Minchan Kim in
-https://lkml.org/lkml/2014/5/28/113, I update the patch to skip
-unnecessary loops but not return -EBUSY if zspage is not inuse.
-
-Following is what I got with highalloc-performance in a vbox with 2
-cpu 1G memory 512 zram as swap.  And the swappiness is set to 100.
-
-                                   ori          ne
-                                  orig         new
-Minor Faults                  50805113    50830235
-Major Faults                     43918       56530
-Swap Ins                         42087       55680
-Swap Outs                        89718      104700
-Allocation stalls                    0           0
-DMA allocs                       57787       52364
-DMA32 allocs                  47964599    48043563
-Normal allocs                        0           0
-Movable allocs                       0           0
-Direct pages scanned             45493       23167
-Kswapd pages scanned           1565222     1725078
-Kswapd pages reclaimed         1342222     1503037
-Direct pages reclaimed           45615       25186
-Kswapd efficiency                  85%         87%
-Kswapd velocity               1897.101    1949.042
-Direct efficiency                 100%        108%
-Direct velocity                 55.139      26.175
-Percentage direct scans             2%          1%
-Zone normal velocity          1952.240    1975.217
-Zone dma32 velocity              0.000       0.000
-Zone dma velocity                0.000       0.000
-Page writes by reclaim       89764.000  105233.000
-Page writes file                    46         533
-Page writes anon                 89718      104700
-Page reclaim immediate           21457        3699
-Sector Reads                   3259688     3441368
-Sector Writes                  3667252     3754836
-Page rescued immediate               0           0
-Slabs scanned                  1042872     1160855
-Direct inode steals               8042       10089
-Kswapd inode steals              54295       29170
-Kswapd skipped wait                  0           0
-THP fault alloc                    175         154
-THP collapse alloc                 226         289
-THP splits                           0           0
-THP fault fallback                  11          14
-THP collapse fail                    3           2
-Compaction stalls                  536         646
-Compaction success                 322         358
-Compaction failures                214         288
-Page migrate success            119608      111063
-Page migrate failure              2723        2593
-Compaction pages isolated       250179      232652
-Compaction migrate scanned     9131832     9942306
-Compaction free scanned        2093272     2613998
-Compaction cost                    192         189
-NUMA alloc hit                47124555    47193990
-NUMA alloc miss                      0           0
-NUMA interleave hit                  0           0
-NUMA alloc local              47124555    47193990
-NUMA base PTE updates                0           0
-NUMA huge PMD updates                0           0
-NUMA page range updates              0           0
-NUMA hint faults                     0           0
-NUMA hint local faults               0           0
-NUMA hint local percent            100         100
-NUMA pages migrated                  0           0
-AutoNUMA cost                       0%          0%
-
-[akpm@linux-foundation.org: remove newline, per Minchan]
-Link: http://lkml.kernel.org/r/1500889535-19648-1-git-send-email-zhuhui@xiaomi.com
-Signed-off-by: Hui Zhu <zhuhui@xiaomi.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20170726114704.7626-4-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/pagemap.h |   12 +++++++++-
+ include/linux/pagevec.h |   13 +++++++++--
+ mm/filemap.c            |   42 +++++++++++++++++++++++++++-----------
+ mm/swap.c               |   22 ++++++++++++-------
+ 4 files changed, 65 insertions(+), 24 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse
-+++ a/mm/zsmalloc.c
-@@ -1983,8 +1983,11 @@ int zs_page_migrate(struct address_space
+diff -puN include/linux/pagemap.h~mm-implement-find_get_pages_range include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-implement-find_get_pages_range
++++ a/include/linux/pagemap.h
+@@ -353,8 +353,16 @@ struct page *find_lock_entry(struct addr
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
+ 			  unsigned int nr_entries, struct page **entries,
+ 			  pgoff_t *indices);
+-unsigned find_get_pages(struct address_space *mapping, pgoff_t *start,
+-			unsigned int nr_pages, struct page **pages);
++unsigned find_get_pages_range(struct address_space *mapping, pgoff_t *start,
++			pgoff_t end, unsigned int nr_pages,
++			struct page **pages);
++static inline unsigned find_get_pages(struct address_space *mapping,
++			pgoff_t *start, unsigned int nr_pages,
++			struct page **pages)
++{
++	return find_get_pages_range(mapping, start, (pgoff_t)-1, nr_pages,
++				    pages);
++}
+ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
+ 			       unsigned int nr_pages, struct page **pages);
+ unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
+diff -puN include/linux/pagevec.h~mm-implement-find_get_pages_range include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-implement-find_get_pages_range
++++ a/include/linux/pagevec.h
+@@ -27,8 +27,17 @@ unsigned pagevec_lookup_entries(struct p
+ 				pgoff_t start, unsigned nr_entries,
+ 				pgoff_t *indices);
+ void pagevec_remove_exceptionals(struct pagevec *pvec);
+-unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+-		pgoff_t *start, unsigned nr_pages);
++unsigned pagevec_lookup_range(struct pagevec *pvec,
++			      struct address_space *mapping,
++			      pgoff_t *start, pgoff_t end, unsigned nr_pages);
++static inline unsigned pagevec_lookup(struct pagevec *pvec,
++				      struct address_space *mapping,
++				      pgoff_t *start, unsigned nr_pages)
++{
++	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1,
++				    nr_pages);
++}
++
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+ 		struct address_space *mapping, pgoff_t *index, int tag,
+ 		unsigned nr_pages);
+diff -puN mm/filemap.c~mm-implement-find_get_pages_range mm/filemap.c
+--- a/mm/filemap.c~mm-implement-find_get_pages_range
++++ a/mm/filemap.c
+@@ -1557,24 +1557,29 @@ export:
+ }
  
- 	spin_lock(&class->lock);
- 	if (!get_zspage_inuse(zspage)) {
--		ret = -EBUSY;
--		goto unlock_class;
-+		/*
-+		 * Set "offset" to end of the page so that every loops
-+		 * skips unnecessary object scanning.
-+		 */
-+		offset = PAGE_SIZE;
- 	}
- 
- 	pos = offset;
-@@ -2052,7 +2055,6 @@ unpin_objects:
+ /**
+- * find_get_pages - gang pagecache lookup
++ * find_get_pages_range - gang pagecache lookup
+  * @mapping:	The address_space to search
+  * @start:	The starting page index
++ * @end:	The final page index (inclusive)
+  * @nr_pages:	The maximum number of pages
+  * @pages:	Where the resulting pages are placed
+  *
+- * find_get_pages() will search for and return a group of up to
+- * @nr_pages pages in the mapping.  The pages are placed at @pages.
+- * find_get_pages() takes a reference against the returned pages.
++ * find_get_pages_range() will search for and return a group of up to @nr_pages
++ * pages in the mapping starting at index @start and up to index @end
++ * (inclusive).  The pages are placed at @pages.  find_get_pages_range() takes
++ * a reference against the returned pages.
+  *
+  * The search returns a group of mapping-contiguous pages with ascending
+  * indexes.  There may be holes in the indices due to not-present pages.
+  * We also update @start to index the next page for the traversal.
+  *
+- * find_get_pages() returns the number of pages which were found.
++ * find_get_pages_range() returns the number of pages which were found. If this
++ * number is smaller than @nr_pages, the end of specified range has been
++ * reached.
+  */
+-unsigned find_get_pages(struct address_space *mapping, pgoff_t *start,
+-			    unsigned int nr_pages, struct page **pages)
++unsigned find_get_pages_range(struct address_space *mapping, pgoff_t *start,
++			      pgoff_t end, unsigned int nr_pages,
++			      struct page **pages)
+ {
+ 	struct radix_tree_iter iter;
+ 	void **slot;
+@@ -1586,6 +1591,9 @@ unsigned find_get_pages(struct address_s
+ 	rcu_read_lock();
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, *start) {
+ 		struct page *head, *page;
++
++		if (iter.index > end)
++			break;
+ repeat:
+ 		page = radix_tree_deref_slot(slot);
+ 		if (unlikely(!page))
+@@ -1621,15 +1629,25 @@ repeat:
  		}
- 	}
- 	kunmap_atomic(s_addr);
--unlock_class:
- 	spin_unlock(&class->lock);
- 	migrate_write_unlock(zspage);
  
+ 		pages[ret] = page;
+-		if (++ret == nr_pages)
+-			break;
++		if (++ret == nr_pages) {
++			*start = pages[ret - 1]->index + 1;
++			goto out;
++		}
+ 	}
+ 
++	/*
++	 * We come here when there is no page beyond @end. We take care to not
++	 * overflow the index @start as it confuses some of the callers. This
++	 * breaks the iteration when there is page at index -1 but that is
++	 * already broken anyway.
++	 */
++	if (end == (pgoff_t)-1)
++		*start = (pgoff_t)-1;
++	else
++		*start = end + 1;
++out:
+ 	rcu_read_unlock();
+ 
+-	if (ret)
+-		*start = pages[ret - 1]->index + 1;
+-
+ 	return ret;
+ }
+ 
+diff -puN mm/swap.c~mm-implement-find_get_pages_range mm/swap.c
+--- a/mm/swap.c~mm-implement-find_get_pages_range
++++ a/mm/swap.c
+@@ -946,29 +946,35 @@ void pagevec_remove_exceptionals(struct
+ }
+ 
+ /**
+- * pagevec_lookup - gang pagecache lookup
++ * pagevec_lookup_range - gang pagecache lookup
+  * @pvec:	Where the resulting pages are placed
+  * @mapping:	The address_space to search
+  * @start:	The starting page index
++ * @end:	The final page index
+  * @nr_pages:	The maximum number of pages
+  *
+- * pagevec_lookup() will search for and return a group of up to @nr_pages pages
+- * in the mapping.  The pages are placed in @pvec.  pagevec_lookup() takes a
++ * pagevec_lookup_range() will search for and return a group of up to @nr_pages
++ * pages in the mapping starting from index @start and upto index @end
++ * (inclusive).  The pages are placed in @pvec.  pagevec_lookup() takes a
+  * reference against the pages in @pvec.
+  *
+  * The search returns a group of mapping-contiguous pages with ascending
+  * indexes.  There may be holes in the indices due to not-present pages. We
+  * also update @start to index the next page for the traversal.
+  *
+- * pagevec_lookup() returns the number of pages which were found.
++ * pagevec_lookup_range() returns the number of pages which were found. If this
++ * number is smaller than @nr_pages, the end of specified range has been
++ * reached.
+  */
+-unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+-		pgoff_t *start, unsigned nr_pages)
++unsigned pagevec_lookup_range(struct pagevec *pvec,
++		struct address_space *mapping, pgoff_t *start, pgoff_t end,
++		unsigned nr_pages)
+ {
+-	pvec->nr = find_get_pages(mapping, start, nr_pages, pvec->pages);
++	pvec->nr = find_get_pages_range(mapping, start, end, nr_pages,
++					pvec->pages);
+ 	return pagevec_count(pvec);
+ }
+-EXPORT_SYMBOL(pagevec_lookup);
++EXPORT_SYMBOL(pagevec_lookup_range);
+ 
+ unsigned pagevec_lookup_tag(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t *index, int tag, unsigned nr_pages)
 _
