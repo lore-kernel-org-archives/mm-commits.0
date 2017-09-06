@@ -1,108 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [patch 044/119] mm/hugetlb.c: make huge_pte_offset()
- consistent and document behaviour
-Date: Wed, 06 Sep 2017 16:21:01 -0700
-Message-ID: <20170906232101.DLQ7-7ycL%akpm@linux-foundation.org>
+Subject: [patch 047/119] mm, vmscan: do not loop on
+ too_many_isolated for ever
+Date: Wed, 06 Sep 2017 16:21:11 -0700
+Message-ID: <20170906232111.fpB4l3ids%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbdIFXVD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:03 -0400
+        with ESMTP id S1753570AbdIFXVN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, steve.capper@arm.com, torvalds@linux-foundation.org, will.deacon@arm.com
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm/hugetlb.c: make huge_pte_offset() consistent and document behaviour
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmscan: do not loop on too_many_isolated for ever
 
-When walking the page tables to resolve an address that points to
-!p*d_present() entry, huge_pte_offset() returns inconsistent values
-depending on the level of page table (PUD or PMD).
+Tetsuo Handa has reported[1][2][3] that direct reclaimers might get stuck
+in too_many_isolated loop basically for ever because the last few pages on
+the LRU lists are isolated by the kswapd which is stuck on fs locks when
+doing the pageout or slab reclaim.  This in turn means that there is
+nobody to actually trigger the oom killer and the system is basically
+unusable.
 
-It returns NULL in the case of a PUD entry while in the case of a PMD
-entry, it returns a pointer to the page table entry.
+too_many_isolated has been introduced by 35cd78156c49 ("vmscan: throttle
+direct reclaim when too many pages are isolated already") to prevent from
+pre-mature oom killer invocations because back then no reclaim progress
+could indeed trigger the OOM killer too early.  But since the oom
+detection rework 0a0337e0d1d1 ("mm, oom: rework oom detection") the
+allocation/reclaim retry loop considers all the reclaimable pages and
+throttles the allocation at that layer so we can loosen the direct reclaim
+throttling.
 
-A similar inconsitency exists when handling swap entries - returns NULL
-for a PUD entry while a pointer to the pte_t is retured for the PMD entry.
+Make shrink_inactive_list loop over too_many_isolated bounded and returns
+immediately when the situation hasn't resolved after the first sleep. 
+Replace congestion_wait by a simple schedule_timeout_interruptible because
+we are not really waiting on the IO congestion in this path.
 
-Update huge_pte_offset() to make the behaviour consistent - return a
-pointer to the pte_t for hugepage or swap entries.  Only return NULL in
-instances where we have a p*d_none() entry and the size parameter doesn't
-match the hugepage size at this level of the page table.
+Please note that this patch can theoretically cause the OOM killer to
+trigger earlier while there are many pages isolated for the reclaim which
+makes progress only very slowly.  This would be obvious from the oom
+report as the number of isolated pages are printed there.  If we ever hit
+this should_reclaim_retry should consider those numbers in the evaluation
+in one way or another.
 
-Document the behaviour to clarify the expected behaviour of this function.
-This is to set clear semantics for architecture specific implementations
-of huge_pte_offset().
+[1] http://lkml.kernel.org/r/201602092349.ACG81273.OSVtMJQHLOFOFF@I-love.SAKURA.ne.jp
+[2] http://lkml.kernel.org/r/201702212335.DJB30777.JOFMHSFtVLQOOF@I-love.SAKURA.ne.jp
+[3] http://lkml.kernel.org/r/201706300914.CEH95859.FMQOLVFHJFtOOS@I-love.SAKURA.ne.jp
 
-Discussions on the arm64 implementation of huge_pte_offset()
-(http://www.spinics.net/lists/linux-mm/msg133699.html) showed that there
-is benefit from returning a pte_t* in the case of p*d_none().
-
-The fault handling code in hugetlb_fault() can handle p*d_none() entries
-and saves an extra round trip to huge_pte_alloc().  Other callers of
-huge_pte_offset() should be ok as well.
-
-[punit.agrawal@arm.com: v2]
-Link: http://lkml.kernel.org/r/20170725154114.24131-2-punit.agrawal@arm.com
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+[mhocko@suse.com: switch to uninterruptible sleep]
+  Link: http://lkml.kernel.org/r/20170724065048.GB25221@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/20170710074842.23175-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour
-+++ a/mm/hugetlb.c
-@@ -4600,6 +4600,15 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	return pte;
- }
+diff -puN mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-loop-on-too_many_isolated-for-ever
++++ a/mm/vmscan.c
+@@ -1743,9 +1743,15 @@ shrink_inactive_list(unsigned long nr_to
+ 	int file = is_file_lru(lru);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
++	bool stalled = false;
  
-+/*
-+ * huge_pte_offset() - Walk the page table to resolve the hugepage
-+ * entry at address @addr
-+ *
-+ * Return: Pointer to page table or swap entry (PUD or PMD) for
-+ * address @addr, or NULL if a p*d_none() entry is encountered and the
-+ * size @sz doesn't match the hugepage size at this level of the page
-+ * table.
-+ */
- pte_t *huge_pte_offset(struct mm_struct *mm,
- 		       unsigned long addr, unsigned long sz)
- {
-@@ -4614,13 +4623,22 @@ pte_t *huge_pte_offset(struct mm_struct
- 	p4d = p4d_offset(pgd, addr);
- 	if (!p4d_present(*p4d))
- 		return NULL;
+ 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
+-		congestion_wait(BLK_RW_ASYNC, HZ/10);
++		if (stalled)
++			return 0;
 +
- 	pud = pud_offset(p4d, addr);
--	if (!pud_present(*pud))
-+	if (sz != PUD_SIZE && pud_none(*pud))
- 		return NULL;
--	if (pud_huge(*pud))
-+	/* hugepage or swap? */
-+	if (pud_huge(*pud) || !pud_present(*pud))
- 		return (pte_t *)pud;
-+
- 	pmd = pmd_offset(pud, addr);
--	return (pte_t *) pmd;
-+	if (sz != PMD_SIZE && pmd_none(*pmd))
-+		return NULL;
-+	/* hugepage or swap? */
-+	if (pmd_huge(*pmd) || !pmd_present(*pmd))
-+		return (pte_t *)pmd;
-+
-+	return NULL;
- }
++		/* wait a bit for the reclaimer. */
++		msleep(100);
++		stalled = true;
  
- #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+ 		/* We are about to die and free our memory. Return now. */
+ 		if (fatal_signal_pending(current))
 _
