@@ -1,194 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [patch 115/119] mm: oom: let oom_reap_task and exit_mmap
- run concurrently
-Date: Wed, 06 Sep 2017 16:25:00 -0700
-Message-ID: <20170906232500.U3GmPp2Dd%akpm@linux-foundation.org>
+Subject: [patch 116/119] mm: hugetlb: clear target sub-page last
+ when clearing huge page
+Date: Wed, 06 Sep 2017 16:25:04 -0700
+Message-ID: <20170906232504.fcqmff6MB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51360 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754327AbdIFXZC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:25:02 -0400
+        with ESMTP id S1752600AbdIFXZF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, hughd@google.com, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, andi.kleen@intel.com, cl@linux.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, mike.kravetz@oracle.com, minchan@kernel.org, mm-commits@vger.kernel.org, nyc@holomorphy.com, shli@fb.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: oom: let oom_reap_task and exit_mmap run concurrently
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: hugetlb: clear target sub-page last when clearing huge page
 
-This is purely required because exit_aio() may block and exit_mmap() may
-never start, if the oom_reap_task cannot start running on a mm with
-mm_users == 0.
+Huge page helps to reduce TLB miss rate, but it has higher cache
+footprint, sometimes this may cause some issue.  For example, when
+clearing huge page on x86_64 platform, the cache footprint is 2M.  But on
+a Xeon E5 v3 2699 CPU, there are 18 cores, 36 threads, and only 45M LLC
+(last level cache).  That is, in average, there are 2.5M LLC for each core
+and 1.25M LLC for each thread.  If the cache pressure is heavy when
+clearing the huge page, and we clear the huge page from the begin to the
+end, it is possible that the begin of huge page is evicted from the cache
+after we finishing clearing the end of the huge page.  And it is possible
+for the application to access the begin of the huge page after clearing
+the huge page.
 
-At the same time if the OOM reaper doesn't wait at all for the memory of
-the current OOM candidate to be freed by exit_mmap->unmap_vmas, it would
-generate a spurious OOM kill.
+To help the above situation, in this patch, when we clear a huge page, the
+order to clear sub-pages is changed.  In quite some situation, we can get
+the address that the application will access after we clear the huge page,
+for example, in a page fault handler.  Instead of clearing the huge page
+from begin to end, we will clear the sub-pages farthest from the the
+sub-page to access firstly, and clear the sub-page to access last.  This
+will make the sub-page to access most cache-hot and sub-pages around it
+more cache-hot too.  If we cannot know the address the application will
+access, the begin of the huge page is assumed to be the the address the
+application will access.
 
-If it wasn't because of the exit_aio or similar blocking functions in the
-last mmput, it would be enough to change the oom_reap_task() in the case
-it finds mm_users == 0, to wait for a timeout or to wait for __mmput to
-set MMF_OOM_SKIP itself, but it's not just exit_mmap the problem here so
-the concurrency of exit_mmap and oom_reap_task is apparently warranted.
+With this patch, the throughput increases ~28.3% in vm-scalability
+anon-w-seq test case with 72 processes on a 2 socket Xeon E5 v3 2699
+system (36 cores, 72 threads).  The test case creates 72 processes, each
+process mmap a big anonymous memory area and writes to it from the begin
+to the end.  For each process, other processes could be seen as other
+workload which generates heavy cache pressure.  At the same time, the
+cache miss rate reduced from ~33.4% to ~31.7%, the IPC (instruction per
+cycle) increased from 0.56 to 0.74, and the time spent in user space is
+reduced ~7.9%
 
-It's a non standard runtime, exit_mmap() runs without mmap_sem, and
-oom_reap_task runs with the mmap_sem for reading as usual (kind of
-MADV_DONTNEED).
+Christopher Lameter suggests to clear bytes inside a sub-page from end to
+begin too.  But tests show no visible performance difference in the tests.
+May because the size of page is small compared with the cache size.
 
-The race between the two is solved with a combination of
-tsk_is_oom_victim() (serialized by task_lock) and MMF_OOM_SKIP (serialized
-by a dummy down_write/up_write cycle on the same lines of the ksm_exit
-method).
+Thanks Andi Kleen to propose to use address to access to determine the
+order of sub-pages to clear.
 
-If the oom_reap_task() may be running concurrently during exit_mmap,
-exit_mmap will wait it to finish in down_write (before taking down mm
-structures that would make the oom_reap_task fail with use after free).
+The hugetlbfs access address could be improved, will do that in another
+patch.
 
-If exit_mmap comes first, oom_reap_task() will skip the mm if MMF_OOM_SKIP
-is already set and in turn all memory is already freed and furthermore the
-mm data structures may already have been taken down by free_pgtables.
-
-[aarcange@redhat.com: incremental one liner]
-  Link: http://lkml.kernel.org/r/20170726164319.GC29716@redhat.com
-[rientjes@google.com: remove unused mmput_async]
-  Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708141733130.50317@chino.kir.corp.google.com
-[aarcange@redhat.com: microoptimization]
-  Link: http://lkml.kernel.org/r/20170817171240.GB5066@redhat.com
-Link: http://lkml.kernel.org/r/20170726162912.GA29716@redhat.com
-Fixes: 26db62f179d1 ("oom: keep mm of the killed task available")
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: David Rientjes <rientjes@google.com>
-Tested-by: David Rientjes <rientjes@google.com>
+[ying.huang@intel.com: improve readability of clear_huge_page()]
+  Link: http://lkml.kernel.org/r/20170830051842.1397-1-ying.huang@intel.com
+Link: http://lkml.kernel.org/r/20170815014618.15842-1-ying.huang@intel.com
+Suggested-by: Andi Kleen <andi.kleen@intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    6 ------
- kernel/fork.c            |   17 -----------------
- mm/mmap.c                |   18 ++++++++++++++++++
- mm/oom_kill.c            |   15 +++++----------
- 4 files changed, 23 insertions(+), 33 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/huge_memory.c   |    4 ++--
+ mm/memory.c        |   42 ++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 41 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/sched/mm.h~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently include/linux/sched/mm.h
---- a/include/linux/sched/mm.h~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/include/linux/sched/mm.h
-@@ -84,12 +84,6 @@ static inline bool mmget_not_zero(struct
+diff -puN include/linux/mm.h~mm-clear-to-access-sub-page-last-when-clearing-huge-page include/linux/mm.h
+--- a/include/linux/mm.h~mm-clear-to-access-sub-page-last-when-clearing-huge-page
++++ a/include/linux/mm.h
+@@ -2508,7 +2508,7 @@ enum mf_action_page_type {
  
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
--#ifdef CONFIG_MMU
--/* same as above but performs the slow path from the async context. Can
-- * be called from the atomic context as well
-- */
--extern void mmput_async(struct mm_struct *);
--#endif
- 
- /* Grab a reference to a task's mm, if it is not already going away */
- extern struct mm_struct *get_task_mm(struct task_struct *task);
-diff -puN kernel/fork.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently kernel/fork.c
---- a/kernel/fork.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/kernel/fork.c
-@@ -922,7 +922,6 @@ static inline void __mmput(struct mm_str
- 	}
- 	if (mm->binfmt)
- 		module_put(mm->binfmt->module);
--	set_bit(MMF_OOM_SKIP, &mm->flags);
- 	mmdrop(mm);
- }
- 
-@@ -938,22 +937,6 @@ void mmput(struct mm_struct *mm)
- }
- EXPORT_SYMBOL_GPL(mmput);
- 
--#ifdef CONFIG_MMU
--static void mmput_async_fn(struct work_struct *work)
--{
--	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
--	__mmput(mm);
--}
--
--void mmput_async(struct mm_struct *mm)
--{
--	if (atomic_dec_and_test(&mm->mm_users)) {
--		INIT_WORK(&mm->async_put_work, mmput_async_fn);
--		schedule_work(&mm->async_put_work);
--	}
--}
--#endif
--
- /**
-  * set_mm_exe_file - change a reference to the mm's executable file
-  *
-diff -puN mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently mm/mmap.c
---- a/mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/mm/mmap.c
-@@ -44,6 +44,7 @@
- #include <linux/userfaultfd_k.h>
- #include <linux/moduleparam.h>
- #include <linux/pkeys.h>
-+#include <linux/oom.h>
- 
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
-@@ -3001,6 +3002,23 @@ void exit_mmap(struct mm_struct *mm)
- 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
- 	unmap_vmas(&tlb, vma, 0, -1);
- 
-+	set_bit(MMF_OOM_SKIP, &mm->flags);
-+	if (unlikely(tsk_is_oom_victim(current))) {
-+		/*
-+		 * Wait for oom_reap_task() to stop working on this
-+		 * mm. Because MMF_OOM_SKIP is already set before
-+		 * calling down_read(), oom_reap_task() will not run
-+		 * on this "mm" post up_write().
-+		 *
-+		 * tsk_is_oom_victim() cannot be set from under us
-+		 * either because current->mm is already set to NULL
-+		 * under task_lock before calling mmput and oom_mm is
-+		 * set not NULL by the OOM killer only if current->mm
-+		 * is found not NULL while holding the task_lock.
-+		 */
-+		down_write(&mm->mmap_sem);
-+		up_write(&mm->mmap_sem);
-+	}
- 	free_pgtables(&tlb, vma, FIRST_USER_ADDRESS, USER_PGTABLES_CEILING);
- 	tlb_finish_mmu(&tlb, 0, -1);
- 
-diff -puN mm/oom_kill.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/mm/oom_kill.c
-@@ -495,11 +495,12 @@ static bool __oom_reap_task_mm(struct ta
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
+ extern void clear_huge_page(struct page *page,
+-			    unsigned long addr,
++			    unsigned long addr_hint,
+ 			    unsigned int pages_per_huge_page);
+ extern void copy_user_huge_page(struct page *dst, struct page *src,
+ 				unsigned long addr, struct vm_area_struct *vma,
+diff -puN mm/huge_memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page
++++ a/mm/huge_memory.c
+@@ -567,7 +567,7 @@ static int __do_huge_pmd_anonymous_page(
+ 		goto release;
  	}
  
+-	clear_huge_page(page, haddr, HPAGE_PMD_NR);
++	clear_huge_page(page, vmf->address, HPAGE_PMD_NR);
  	/*
--	 * increase mm_users only after we know we will reap something so
--	 * that the mmput_async is called only when we have reaped something
--	 * and delayed __mmput doesn't matter that much
-+	 * MMF_OOM_SKIP is set by exit_mmap when the OOM reaper can't
-+	 * work on the mm anymore. The check for MMF_OOM_SKIP must run
-+	 * under mmap_sem for reading because it serializes against the
-+	 * down_write();up_write() cycle in exit_mmap().
- 	 */
--	if (!mmget_not_zero(mm)) {
-+	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
- 		up_read(&mm->mmap_sem);
- 		trace_skip_task_reaping(tsk->pid);
- 		goto unlock_oom;
-@@ -542,12 +543,6 @@ static bool __oom_reap_task_mm(struct ta
- 			K(get_mm_counter(mm, MM_SHMEMPAGES)));
- 	up_read(&mm->mmap_sem);
+ 	 * The memory barrier inside __SetPageUptodate makes sure that
+ 	 * clear_huge_page writes become visible before the set_pmd_at()
+@@ -1305,7 +1305,7 @@ alloc:
+ 	count_vm_event(THP_FAULT_ALLOC);
  
--	/*
--	 * Drop our reference but make sure the mmput slow path is called from a
--	 * different context because we shouldn't risk we get stuck there and
--	 * put the oom_reaper out of the way.
--	 */
--	mmput_async(mm);
- 	trace_finish_task_reaping(tsk->pid);
- unlock_oom:
- 	mutex_unlock(&oom_lock);
+ 	if (!page)
+-		clear_huge_page(new_page, haddr, HPAGE_PMD_NR);
++		clear_huge_page(new_page, vmf->address, HPAGE_PMD_NR);
+ 	else
+ 		copy_user_huge_page(new_page, page, haddr, vma, HPAGE_PMD_NR);
+ 	__SetPageUptodate(new_page);
+diff -puN mm/memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page mm/memory.c
+--- a/mm/memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page
++++ a/mm/memory.c
+@@ -4417,19 +4417,53 @@ static void clear_gigantic_page(struct p
+ 	}
+ }
+ void clear_huge_page(struct page *page,
+-		     unsigned long addr, unsigned int pages_per_huge_page)
++		     unsigned long addr_hint, unsigned int pages_per_huge_page)
+ {
+-	int i;
++	int i, n, base, l;
++	unsigned long addr = addr_hint &
++		~(((unsigned long)pages_per_huge_page << PAGE_SHIFT) - 1);
+ 
+ 	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
+ 		clear_gigantic_page(page, addr, pages_per_huge_page);
+ 		return;
+ 	}
+ 
++	/* Clear sub-page to access last to keep its cache lines hot */
+ 	might_sleep();
+-	for (i = 0; i < pages_per_huge_page; i++) {
++	n = (addr_hint - addr) / PAGE_SIZE;
++	if (2 * n <= pages_per_huge_page) {
++		/* If sub-page to access in first half of huge page */
++		base = 0;
++		l = n;
++		/* Clear sub-pages at the end of huge page */
++		for (i = pages_per_huge_page - 1; i >= 2 * n; i--) {
++			cond_resched();
++			clear_user_highpage(page + i, addr + i * PAGE_SIZE);
++		}
++	} else {
++		/* If sub-page to access in second half of huge page */
++		base = pages_per_huge_page - 2 * (pages_per_huge_page - n);
++		l = pages_per_huge_page - n;
++		/* Clear sub-pages at the begin of huge page */
++		for (i = 0; i < base; i++) {
++			cond_resched();
++			clear_user_highpage(page + i, addr + i * PAGE_SIZE);
++		}
++	}
++	/*
++	 * Clear remaining sub-pages in left-right-left-right pattern
++	 * towards the sub-page to access
++	 */
++	for (i = 0; i < l; i++) {
++		int left_idx = base + i;
++		int right_idx = base + 2 * l - 1 - i;
++
++		cond_resched();
++		clear_user_highpage(page + left_idx,
++				    addr + left_idx * PAGE_SIZE);
+ 		cond_resched();
+-		clear_user_highpage(page + i, addr + i * PAGE_SIZE);
++		clear_user_highpage(page + right_idx,
++				    addr + right_idx * PAGE_SIZE);
+ 	}
+ }
+ 
 _
