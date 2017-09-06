@@ -1,195 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 002/119] mm: add vm_insert_mixed_mkwrite()
-Date: Wed, 06 Sep 2017 16:18:35 -0700
-Message-ID: <20170906231835.lSiHQaK_G%akpm@linux-foundation.org>
+Subject: [patch 007/119] dax: explain how read(2)/write(2)
+ addresses are validated
+Date: Wed, 06 Sep 2017 16:18:54 -0700
+Message-ID: <20170906231854.tXZTNU4Vv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49084 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754570AbdIFXSh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:18:37 -0400
+        with ESMTP id S1754151AbdIFXS4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:18:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adilger.kernel@dilger.ca, akpm@linux-foundation.org, corbet@lwn.net, dan.j.williams@intel.com, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@redhat.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, rostedt@goodmis.org, torvalds@linux-foundation.org, tytso@mit.edu, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org
 
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm: add vm_insert_mixed_mkwrite()
+Subject: dax: explain how read(2)/write(2) addresses are validated
 
-When servicing mmap() reads from file holes the current DAX code allocates
-a page cache page of all zeroes and places the struct page pointer in the
-mapping->page_tree radix tree.  This has three major drawbacks:
+Add a comment explaining how the user addresses provided to read(2) and
+write(2) are validated in the DAX I/O path.  We call dax_copy_from_iter()
+or copy_to_iter() on these without calling access_ok() first in the DAX
+code, and there was a concern that the user might be able to read/write to
+arbitrary kernel addresses with this path.
 
-1) It consumes memory unnecessarily.  For every 4k page that is read
-   via a DAX mmap() over a hole, we allocate a new page cache page.  This
-   means that if you read 1GiB worth of pages, you end up using 1GiB of
-   zeroed memory.
-
-2) It is slower than using a common zero page because each page fault
-   has more work to do.  Instead of just inserting a common zero page we
-   have to allocate a page cache page, zero it, and then insert it.
-
-3) The fact that we had to check for both DAX exceptional entries and
-   for page cache pages in the radix tree made the DAX code more complex.
-
-This series solves these issues by following the lead of the DAX PMD code
-and using a common 4k zero page instead.  This reduces memory usage and
-decreases latencies for some workloads, and it simplifies the DAX code,
-removing over 100 lines in total.
-
-
-
-This patch (of 5):
-
-To be able to use the common 4k zero page in DAX we need to have our PTE
-fault path look more like our PMD fault path where a PTE entry can be
-marked as dirty and writeable as it is first inserted rather than waiting
-for a follow-up dax_pfn_mkwrite() => finish_mkwrite_fault() call.
-
-Right now we can rely on having a dax_pfn_mkwrite() call because we can
-distinguish between these two cases in do_wp_page():
-
-	case 1: 4k zero page => writable DAX storage
-	case 2: read-only DAX storage => writeable DAX storage
-
-This distinction is made by via vm_normal_page().  vm_normal_page()
-returns false for the common 4k zero page, though, just as it does for DAX
-ptes.  Instead of special casing the DAX + 4k zero page case we will
-simplify our DAX PTE page fault sequence so that it matches our DAX PMD
-sequence, and get rid of the dax_pfn_mkwrite() helper.  We will instead
-use dax_iomap_fault() to handle write-protection faults.
-
-This means that insert_pfn() needs to follow the lead of insert_pfn_pmd()
-and allow us to pass in a 'mkwrite' flag.  If 'mkwrite' is set
-insert_pfn() will do the work that was previously done by wp_page_reuse()
-as part of the dax_pfn_mkwrite() call path.
-
-Link: http://lkml.kernel.org/r/20170724170616.25810-2-ross.zwisler@linux.intel.com
+Link: http://lkml.kernel.org/r/20170816173615.10098-1-ross.zwisler@linux.intel.com
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +
- mm/memory.c        |   50 ++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 45 insertions(+), 7 deletions(-)
+ fs/dax.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/mm.h~mm-add-vm_insert_mixed_mkwrite include/linux/mm.h
---- a/include/linux/mm.h~mm-add-vm_insert_mixed_mkwrite
-+++ a/include/linux/mm.h
-@@ -2294,6 +2294,8 @@ int vm_insert_pfn_prot(struct vm_area_st
- 			unsigned long pfn, pgprot_t pgprot);
- int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn);
-+int vm_insert_mixed_mkwrite(struct vm_area_struct *vma, unsigned long addr,
-+			pfn_t pfn);
- int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
+diff -puN fs/dax.c~dax-explain-how-read2-write2-addresses-are-validated fs/dax.c
+--- a/fs/dax.c~dax-explain-how-read2-write2-addresses-are-validated
++++ a/fs/dax.c
+@@ -1004,6 +1004,11 @@ dax_iomap_actor(struct inode *inode, lof
+ 		if (map_len > end - pos)
+ 			map_len = end - pos;
  
- 
-diff -puN mm/memory.c~mm-add-vm_insert_mixed_mkwrite mm/memory.c
---- a/mm/memory.c~mm-add-vm_insert_mixed_mkwrite
-+++ a/mm/memory.c
-@@ -1676,7 +1676,7 @@ int vm_insert_page(struct vm_area_struct
- EXPORT_SYMBOL(vm_insert_page);
- 
- static int insert_pfn(struct vm_area_struct *vma, unsigned long addr,
--			pfn_t pfn, pgprot_t prot)
-+			pfn_t pfn, pgprot_t prot, bool mkwrite)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	int retval;
-@@ -1688,14 +1688,35 @@ static int insert_pfn(struct vm_area_str
- 	if (!pte)
- 		goto out;
- 	retval = -EBUSY;
--	if (!pte_none(*pte))
--		goto out_unlock;
-+	if (!pte_none(*pte)) {
-+		if (mkwrite) {
-+			/*
-+			 * For read faults on private mappings the PFN passed
-+			 * in may not match the PFN we have mapped if the
-+			 * mapped PFN is a writeable COW page.  In the mkwrite
-+			 * case we are creating a writable PTE for a shared
-+			 * mapping and we expect the PFNs to match.
-+			 */
-+			if (WARN_ON_ONCE(pte_pfn(*pte) != pfn_t_to_pfn(pfn)))
-+				goto out_unlock;
-+			entry = *pte;
-+			goto out_mkwrite;
-+		} else
-+			goto out_unlock;
-+	}
- 
- 	/* Ok, finally just insert the thing.. */
- 	if (pfn_t_devmap(pfn))
- 		entry = pte_mkdevmap(pfn_t_pte(pfn, prot));
- 	else
- 		entry = pte_mkspecial(pfn_t_pte(pfn, prot));
-+
-+out_mkwrite:
-+	if (mkwrite) {
-+		entry = pte_mkyoung(entry);
-+		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+	}
-+
- 	set_pte_at(mm, addr, pte, entry);
- 	update_mmu_cache(vma, addr, pte); /* XXX: why not for insert_page? */
- 
-@@ -1766,14 +1787,15 @@ int vm_insert_pfn_prot(struct vm_area_st
- 
- 	track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV));
- 
--	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
-+	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot,
-+			false);
- 
- 	return ret;
- }
- EXPORT_SYMBOL(vm_insert_pfn_prot);
- 
--int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
--			pfn_t pfn)
-+static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
-+			pfn_t pfn, bool mkwrite)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
- 
-@@ -1802,10 +1824,24 @@ int vm_insert_mixed(struct vm_area_struc
- 		page = pfn_to_page(pfn_t_to_pfn(pfn));
- 		return insert_page(vma, addr, page, pgprot);
- 	}
--	return insert_pfn(vma, addr, pfn, pgprot);
-+	return insert_pfn(vma, addr, pfn, pgprot, mkwrite);
-+}
-+
-+int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
-+			pfn_t pfn)
-+{
-+	return __vm_insert_mixed(vma, addr, pfn, false);
-+
- }
- EXPORT_SYMBOL(vm_insert_mixed);
- 
-+int vm_insert_mixed_mkwrite(struct vm_area_struct *vma, unsigned long addr,
-+			pfn_t pfn)
-+{
-+	return __vm_insert_mixed(vma, addr, pfn, true);
-+}
-+EXPORT_SYMBOL(vm_insert_mixed_mkwrite);
-+
- /*
-  * maps a range of physical memory into the requested pages. the old
-  * mappings are removed. any references to nonexistent pages results
++		/*
++		 * The userspace address for the memory copy has already been
++		 * validated via access_ok() in either vfs_read() or
++		 * vfs_write(), depending on which operation we are doing.
++		 */
+ 		if (iov_iter_rw(iter) == WRITE)
+ 			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
+ 					map_len, iter);
 _
