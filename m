@@ -1,76 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [patch 010/119] modpost: simplify sec_name()
-Date: Wed, 06 Sep 2017 16:19:05 -0700
-Message-ID: <20170906231905.vAvubXPgp%akpm@linux-foundation.org>
+Subject: [patch 016/119] mm: track actual nr_scanned during
+ shrink_slab()
+Date: Wed, 06 Sep 2017 16:19:26 -0700
+Message-ID: <20170906231926.kBhN1vcBJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754578AbdIFXTG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:06 -0400
+        with ESMTP id S1750944AbdIFXT2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ard.biesheuvel@linaro.org, cmetcalf@mellanox.com, jeyu@redhat.com, keescook@chromium.org, mingo@kernel.org, mm-commits@vger.kernel.org, npiggin@gmail.com, torvalds@linux-foundation.org, xypron.glpk@gmx.de, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, joonas.lahtinen@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, shli@fb.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: modpost: simplify sec_name()
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: mm: track actual nr_scanned during shrink_slab()
 
-There is code duplication between sec_name() and sech_name().  Simplify
-sec_name() by re-using sech_name().  Also, move them up to remove the
-forward declaration of sec_name().
+Some shrinkers may only be able to free a bunch of objects at a time, and
+so free more than the requested nr_to_scan in one pass.  Whilst other
+shrinkers may find themselves even unable to scan as many objects as they
+counted, and so underreport.  Account for the extra freed/scanned objects
+against the total number of objects we intend to scan, otherwise we may
+end up penalising the slab far more than intended.  Similarly, we want to
+add the underperforming scan to the deferred pass so that we try harder
+and harder in future passes.
 
-Link: http://lkml.kernel.org/r/1502248721-22009-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Link: http://lkml.kernel.org/r/20170822135325.9191-1-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ include/linux/shrinker.h |    7 +++++++
+ mm/vmscan.c              |    7 ++++---
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN scripts/mod/modpost.c~modpost-simplify-sec_name scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~modpost-simplify-sec_name
-+++ a/scripts/mod/modpost.c
-@@ -261,7 +261,17 @@ static enum export export_no(const char
- 	return export_unknown;
- }
+diff -puN include/linux/shrinker.h~mm-track-actual-nr_scanned-during-shrink_slab include/linux/shrinker.h
+--- a/include/linux/shrinker.h~mm-track-actual-nr_scanned-during-shrink_slab
++++ a/include/linux/shrinker.h
+@@ -18,6 +18,13 @@ struct shrink_control {
+ 	 */
+ 	unsigned long nr_to_scan;
  
--static const char *sec_name(struct elf_info *elf, int secindex);
-+static const char *sech_name(struct elf_info *elf, Elf_Shdr *sechdr)
-+{
-+	return (void *)elf->hdr +
-+		elf->sechdrs[elf->secindex_strings].sh_offset +
-+		sechdr->sh_name;
-+}
++	/*
++	 * How many objects did scan_objects process?
++	 * This defaults to nr_to_scan before every call, but the callee
++	 * should track its actual progress.
++	 */
++	unsigned long nr_scanned;
 +
-+static const char *sec_name(struct elf_info *elf, int secindex)
-+{
-+	return sech_name(elf, &elf->sechdrs[secindex]);
-+}
+ 	/* current node being shrunk (for NUMA aware shrinkers) */
+ 	int nid;
  
- #define strstarts(str, prefix) (strncmp(str, prefix, strlen(prefix)) == 0)
+diff -puN mm/vmscan.c~mm-track-actual-nr_scanned-during-shrink_slab mm/vmscan.c
+--- a/mm/vmscan.c~mm-track-actual-nr_scanned-during-shrink_slab
++++ a/mm/vmscan.c
+@@ -393,14 +393,15 @@ static unsigned long do_shrink_slab(stru
+ 		unsigned long nr_to_scan = min(batch_size, total_scan);
  
-@@ -775,21 +785,6 @@ static const char *sym_name(struct elf_i
- 		return "(unknown)";
- }
+ 		shrinkctl->nr_to_scan = nr_to_scan;
++		shrinkctl->nr_scanned = nr_to_scan;
+ 		ret = shrinker->scan_objects(shrinker, shrinkctl);
+ 		if (ret == SHRINK_STOP)
+ 			break;
+ 		freed += ret;
  
--static const char *sec_name(struct elf_info *elf, int secindex)
--{
--	Elf_Shdr *sechdrs = elf->sechdrs;
--	return (void *)elf->hdr +
--		elf->sechdrs[elf->secindex_strings].sh_offset +
--		sechdrs[secindex].sh_name;
--}
--
--static const char *sech_name(struct elf_info *elf, Elf_Shdr *sechdr)
--{
--	return (void *)elf->hdr +
--		elf->sechdrs[elf->secindex_strings].sh_offset +
--		sechdr->sh_name;
--}
+-		count_vm_events(SLABS_SCANNED, nr_to_scan);
+-		total_scan -= nr_to_scan;
+-		scanned += nr_to_scan;
++		count_vm_events(SLABS_SCANNED, shrinkctl->nr_scanned);
++		total_scan -= shrinkctl->nr_scanned;
++		scanned += shrinkctl->nr_scanned;
+ 
+ 		cond_resched();
+ 	}
+_
