@@ -1,131 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
+ mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
  removed from -mm tree
-Date: Wed, 06 Sep 2017 16:05:46 -0700
-Message-ID: <59b07f4a.FuKbdXiGPFxS8UBq%akpm@linux-foundation.org>
+Date: Wed, 06 Sep 2017 16:06:51 -0700
+Message-ID: <59b07f8b.N+qKCy0AHHCs15Aj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47380 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750968AbdIFXFr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:05:47 -0400
+        with ESMTP id S1753894AbdIFXGw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:06:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, n-horiguchi@ah.jp.nec.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, arnd@arndb.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP, swap: Fix swap_page_trans_huge_swapped on HDD
+     Subject: mm, THP, swap: Silence a compiler warning
 has been removed from the -mm tree.  Its filename was
-     mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix.patch
+     mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
 
-This patch was dropped because it was folded into mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+This patch was dropped because it was folded into mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: Fix swap_page_trans_huge_swapped on HDD
+Subject: mm, THP, swap: Silence a compiler warning
 
-To fix the following kernel bug,
+To fix the following compiler warning,
 
-[  112.690842] ===> testcase 'mm/shmem_swap' start
-[ 112.788440] Adding 40956k swap on
-/mnt/tests/examples/regression/kernel/mm_regression/mm_regression/work/swapfile.
-Priority:-2 extents:1 across:40956k FS
-[  112.815903] bash (17346): drop_caches: 3
-[  112.975713] BUG: unable to handle kernel NULL pointer dereference at 0000000000000007
-[  112.984464] IP: swap_page_trans_huge_swapped+0x49/0xd0
-[  112.990202] PGD 805e62067
-[  112.990202] P4D 805e62067
-[  112.993219] PUD 80447b067
-[  112.996236] PMD 0
-[  112.999253]
-[  113.003155] Oops: 0000 [#1] SMP
-[ 113.006658] Modules linked in: nfsv4 dns_resolver nfs fscache
-xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4
-iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4
-xt_conntrack nf_conntrack libcrc32c ipt_REJECT nf_reject_ipv4 tun
-bridge stp llc ebtable_filter ebtables ip6_tables iptable_filter
-intel_rapl x86_pkg_temp_thermal intel_powerclamp kvm_intel kvm
-iTCO_wdt nfsd iTCO_vendor_support mei_me auth_rpcgss mei lpc_ich
-ipmi_si ipmi_devintf irqbypass nfs_acl shpchp sg mfd_core ie31200_edac
-lockd ipmi_msghandler pcspkr video acpi_pad grace sunrpc ip_tables
-sr_mod sd_mod cdrom tg3 ata_generic pata_acpi ata_piix ptp libata
-megaraid_sas crc32c_intel pps_core dm_mirror dm_region_hash dm_log
-dm_mod
-[  113.077676] CPU: 0 PID: 17431 Comm: test_alloc_gene Not tainted 4.13.0-rc3-mm1-v4.13-rc3-mmotm-2017-07-31-16-56+ #1
-[  113.089323] Hardware name: NEC Express5800/T110g-E [N8100-2187Y]/GA-6LASV1, BIOS 4.6.1204 10/17/2014
-[  113.099516] task: ffffa06705de9740 task.stack: ffffac0947c0c000
-[  113.106124] RIP: 0010:swap_page_trans_huge_swapped+0x49/0xd0
-[  113.112438] RSP: 0018:ffffac0947c0fb38 EFLAGS: 00010246
-[  113.118269] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000040
-[  113.126233] RDX: 0000000000000001 RSI: 00000000000005d6 RDI: ffffa06705674cfc
-[  113.134196] RBP: ffffac0947c0fb60 R08: 0000000000000000 R09: ffffffff88ca2180
-[  113.142161] R10: 0000000000000230 R11: ffffa066e7a9b451 R12: ffffa06705674c00
-[  113.150123] R13: 00000000000005d6 R14: 0000000000000400 R15: ffffac0944001000
-[  113.158088] FS:  00007f855b243740(0000) GS:ffffa0672fc00000(0000) knlGS:0000000000000000
-[  113.167118] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  113.173529] CR2: 0000000000000007 CR3: 0000000808de2002 CR4: 00000000001606f0
-[  113.181493] Call Trace:
-[  113.184222]  free_swap_and_cache+0x73/0x1d0
-[  113.188889]  shmem_free_swap+0x5e/0x70
-[  113.193072]  shmem_undo_range+0x4bd/0x8b0
-[  113.197547]  shmem_truncate_range+0x14/0x40
-[  113.202211]  shmem_evict_inode+0xba/0x190
-[  113.206686]  evict+0xd3/0x1a0
-[  113.210004]  iput+0x17d/0x1d0
-[  113.213316]  dentry_unlink_inode+0xb9/0xf0
-[  113.217887]  __dentry_kill+0xc7/0x170
-[  113.221994]  dput+0x19c/0x1d0
-[  113.225311]  __fput+0x188/0x210
-[  113.228813]  ____fput+0xe/0x10
-[  113.232221]  task_work_run+0x86/0xa0
-[  113.236209]  exit_to_usermode_loop+0x6d/0x99
-[  113.240981]  syscall_return_slowpath+0xad/0xd0
-[  113.245961]  entry_SYSCALL_64_fastpath+0xa3/0xa5
-[  113.251127] RIP: 0033:0x7f855a940b17
-[  113.255113] RSP: 002b:00007fff955b5048 EFLAGS: 00000206 ORIG_RAX: 000000000000001f
-[  113.263562] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00007f855a940b17
-[  113.271524] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000028001
-[  113.279488] RBP: 00007fff955b5060 R08: 0000000000000000 R09: 0000000000000000
-[  113.287450] R10: 00007fff955b4dd0 R11: 0000000000000206 R12: 0000000000401da0
-[  113.295414] R13: 00007fff955b5350 R14: 0000000000000000 R15: 0000000000000000
-[ 113.303378] Code: f5 41 54 49 89 fc 53 48 8b 47 70 4c 8b 7f 68 48 85
-c0 74 70 4c 89 f3 48 c1 eb 06 48 01 c3 48 89 df e8 fc 10 54 00 48 85
-db 74 59 <f6> 43 07 04 75 31 48 b8 ff ff ff ff ff ff ff 01 49 21 c5 43
-80
-[  113.324450] RIP: swap_page_trans_huge_swapped+0x49/0xd0 RSP: ffffac0947c0fb38
-[  113.332413] CR2: 0000000000000007
-[  113.336121] ---[ end trace 2cd503b4980b0afc ]---
-[  113.341281] Kernel panic - not syncing: Fatal exception
-[  113.347398] Kernel Offset: 0x7000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
+mm/swapfile.c: In function 'reuse_swap_page':
+mm/swapfile.c:1429:16: warning: 'offset' may be used uninitialized in this function [-Wmaybe-uninitialized]
+  unsigned long offset;
+                ^
+This is a false positive report, but we should silence it anyway.
 
-Link: http://lkml.kernel.org/r/874ltsm0bi.fsf@yhuang-dev.intel.com
+Link: http://lkml.kernel.org/r/87bmnzizjy.fsf@yhuang-dev.intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Tested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/swapfile.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swapfile.c~mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix mm/swapfile.c
---- a/mm/swapfile.c~mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out-fix
+diff -puN mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix
 +++ a/mm/swapfile.c
-@@ -1374,7 +1374,7 @@ static bool swap_page_trans_huge_swapped
- 	bool ret = false;
- 
- 	ci = lock_cluster_or_swap_info(si, offset);
--	if (!cluster_is_huge(ci)) {
-+	if (!ci || !cluster_is_huge(ci)) {
- 		if (map[roffset] != SWAP_HAS_CACHE)
- 			ret = true;
- 		goto unlock_out;
+@@ -1410,7 +1410,7 @@ static int page_trans_huge_map_swapcount
+ 					 int *total_swapcount)
+ {
+ 	int i, map_swapcount, _total_mapcount, _total_swapcount;
+-	unsigned long offset;
++	unsigned long offset = 0;
+ 	struct swap_info_struct *si;
+ 	struct swap_cluster_info *ci = NULL;
+ 	unsigned char *map = NULL;
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
@@ -133,7 +66,6 @@ Patches currently in -mm which might be from ying.huang@intel.com are
 mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
 mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
 mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
-mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out-fix.patch
 mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
 block-thp-make-block_device_operationsrw_page-support-thp.patch
 test-code-to-write-thp-to-swap-device-as-a-whole.patch
