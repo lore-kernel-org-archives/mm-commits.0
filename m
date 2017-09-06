@@ -1,148 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: [patch 021/119] zram: clean up duplicated codes in
- __zram_bvec_write
-Date: Wed, 06 Sep 2017 16:19:44 -0700
-Message-ID: <20170906231944.iL7791ixD%akpm@linux-foundation.org>
+Subject: [patch 024/119] zram: add interface to specif backing
+ device
+Date: Wed, 06 Sep 2017 16:19:54 -0700
+Message-ID: <20170906231954.Cqnax_xF6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49426 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754597AbdIFXTp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:45 -0400
+        with ESMTP id S1753963AbdIFXTz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, xieyisheng1@huawei.com
+To: akpm@linux-foundation.org, juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: clean up duplicated codes in __zram_bvec_write
+Subject: zram: add interface to specif backing device
 
-Patch series "writeback incompressible pages to storage", v1.
+For writeback feature, user should set up backing device before the zram
+working.  This patch enables the interface via
+/sys/block/zramX/backing_dev.
 
-zRam is useful for memory saving with compressible pages but sometime,
-workload can be changed and system has lots of incompressible pages which
-is very harmful for zram.
+Currently, it supports block device only but it could be enhanced for file
+as well.
 
-This patch supports writeback feature of zram so admin can set up a block
-device and with it, zram can save the memory via writing out the
-incompressile pages once it found it's incompressible pages (1/4 comp
-ratio) instead of keeping the page in memory.
-
-[1-3] is just clean up and [4-8] is step by step feature enablement.
-[4-8] is logically not bisectable(ie, logical unit separation)
-although I tried to compiled out without breaking but I think it would
-be better to review.
-
-
-This patch (of 9):
-
-__zram_bvec_write has some of duplicated logic for zram meta data handling
-of same_page|compressed_page.  This patch aims to clean it up without
-behavior change.
-
-[xieyisheng1@huawei.com: fix compr_data_size stat]
-  Link: http://lkml.kernel.org/r/1502707447-6944-1-git-send-email-xieyisheng1@huawei.com
-Link: http://lkml.kernel.org/r/1496019048-27016-1-git-send-email-minchan@kernel.org
-Link: http://lkml.kernel.org/r/1498459987-24562-2-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1498459987-24562-5-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Juneho Choi <juno.choi@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   56 +++++++++++++-------------------
- 1 file changed, 23 insertions(+), 33 deletions(-)
+ drivers/block/zram/zram_drv.c |  142 ++++++++++++++++++++++++++++++++
+ drivers/block/zram/zram_drv.h |    5 +
+ 2 files changed, 147 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write
+diff -puN drivers/block/zram/zram_drv.c~zram-add-interface-to-specify-backing-device drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-add-interface-to-specify-backing-device
 +++ a/drivers/block/zram/zram_drv.c
-@@ -453,30 +453,6 @@ static bool zram_same_page_read(struct z
- 	return false;
+@@ -270,6 +270,141 @@ static ssize_t mem_used_max_store(struct
+ 	return len;
  }
  
--static bool zram_same_page_write(struct zram *zram, u32 index,
--					struct page *page)
--{
--	unsigned long element;
--	void *mem = kmap_atomic(page);
--
--	if (page_same_filled(mem, &element)) {
--		kunmap_atomic(mem);
--		/* Free memory associated with this sector now. */
--		zram_slot_lock(zram, index);
--		zram_free_page(zram, index);
--		zram_set_flag(zram, index, ZRAM_SAME);
--		zram_set_element(zram, index, element);
--		zram_slot_unlock(zram, index);
--
--		atomic64_inc(&zram->stats.same_pages);
--		atomic64_inc(&zram->stats.pages_stored);
--		return true;
--	}
--	kunmap_atomic(mem);
--
--	return false;
--}
--
- static void zram_meta_free(struct zram *zram, u64 disksize)
- {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -685,14 +661,23 @@ compress_again:
- static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
- {
- 	int ret;
--	unsigned long handle;
--	unsigned int comp_len;
--	void *src, *dst;
-+	unsigned long handle = 0;
-+	unsigned int comp_len = 0;
-+	void *src, *dst, *mem;
- 	struct zcomp_strm *zstrm;
- 	struct page *page = bvec->bv_page;
-+	unsigned long element = 0;
-+	enum zram_pageflags flags = 0;
- 
--	if (zram_same_page_write(zram, index, page))
--		return 0;
-+	mem = kmap_atomic(page);
-+	if (page_same_filled(mem, &element)) {
-+		kunmap_atomic(mem);
-+		/* Free memory associated with this sector now */
-+		atomic64_inc(&zram->stats.same_pages);
-+		flags = ZRAM_SAME;
++#ifdef CONFIG_ZRAM_WRITEBACK
++static bool zram_wb_enabled(struct zram *zram)
++{
++	return zram->backing_dev;
++}
++
++static void reset_bdev(struct zram *zram)
++{
++	struct block_device *bdev;
++
++	if (!zram_wb_enabled(zram))
++		return;
++
++	bdev = zram->bdev;
++	if (zram->old_block_size)
++		set_blocksize(bdev, zram->old_block_size);
++	blkdev_put(bdev, FMODE_READ|FMODE_WRITE|FMODE_EXCL);
++	/* hope filp_close flush all of IO */
++	filp_close(zram->backing_dev, NULL);
++	zram->backing_dev = NULL;
++	zram->old_block_size = 0;
++	zram->bdev = NULL;
++}
++
++static ssize_t backing_dev_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++	struct file *file = zram->backing_dev;
++	char *p;
++	ssize_t ret;
++
++	down_read(&zram->init_lock);
++	if (!zram_wb_enabled(zram)) {
++		memcpy(buf, "none\n", 5);
++		up_read(&zram->init_lock);
++		return 5;
++	}
++
++	p = file_path(file, buf, PAGE_SIZE - 1);
++	if (IS_ERR(p)) {
++		ret = PTR_ERR(p);
 +		goto out;
 +	}
-+	kunmap_atomic(mem);
- 
- 	zstrm = zcomp_stream_get(zram->comp);
- 	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
-@@ -712,19 +697,24 @@ static int __zram_bvec_write(struct zram
- 
- 	zcomp_stream_put(zram->comp);
- 	zs_unmap_object(zram->mem_pool, handle);
--
-+	atomic64_add(comp_len, &zram->stats.compr_data_size);
++
++	ret = strlen(p);
++	memmove(buf, p, ret);
++	buf[ret++] = '\n';
 +out:
- 	/*
- 	 * Free memory associated with this sector
- 	 * before overwriting unused sectors.
- 	 */
- 	zram_slot_lock(zram, index);
- 	zram_free_page(zram, index);
--	zram_set_handle(zram, index, handle);
--	zram_set_obj_size(zram, index, comp_len);
-+	if (flags == ZRAM_SAME) {
-+		zram_set_flag(zram, index, ZRAM_SAME);
-+		zram_set_element(zram, index, element);
-+	} else {
-+		zram_set_handle(zram, index, handle);
-+		zram_set_obj_size(zram, index, comp_len);
++	up_read(&zram->init_lock);
++	return ret;
++}
++
++static ssize_t backing_dev_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	char *file_name;
++	struct file *backing_dev = NULL;
++	struct inode *inode;
++	struct address_space *mapping;
++	unsigned int old_block_size = 0;
++	struct block_device *bdev = NULL;
++	int err;
++	struct zram *zram = dev_to_zram(dev);
++
++	file_name = kmalloc(PATH_MAX, GFP_KERNEL);
++	if (!file_name)
++		return -ENOMEM;
++
++	down_write(&zram->init_lock);
++	if (init_done(zram)) {
++		pr_info("Can't setup backing device for initialized device\n");
++		err = -EBUSY;
++		goto out;
 +	}
- 	zram_slot_unlock(zram, index);
- 
- 	/* Update stats */
--	atomic64_add(comp_len, &zram->stats.compr_data_size);
- 	atomic64_inc(&zram->stats.pages_stored);
- 	return 0;
++
++	strlcpy(file_name, buf, len);
++
++	backing_dev = filp_open(file_name, O_RDWR|O_LARGEFILE, 0);
++	if (IS_ERR(backing_dev)) {
++		err = PTR_ERR(backing_dev);
++		backing_dev = NULL;
++		goto out;
++	}
++
++	mapping = backing_dev->f_mapping;
++	inode = mapping->host;
++
++	/* Support only block device in this moment */
++	if (!S_ISBLK(inode->i_mode)) {
++		err = -ENOTBLK;
++		goto out;
++	}
++
++	bdev = bdgrab(I_BDEV(inode));
++	err = blkdev_get(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL, zram);
++	if (err < 0)
++		goto out;
++
++	old_block_size = block_size(bdev);
++	err = set_blocksize(bdev, PAGE_SIZE);
++	if (err)
++		goto out;
++
++	reset_bdev(zram);
++
++	zram->old_block_size = old_block_size;
++	zram->bdev = bdev;
++	zram->backing_dev = backing_dev;
++	up_write(&zram->init_lock);
++
++	pr_info("setup backing device %s\n", file_name);
++	kfree(file_name);
++
++	return len;
++out:
++	if (bdev)
++		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
++
++	if (backing_dev)
++		filp_close(backing_dev, NULL);
++
++	up_write(&zram->init_lock);
++
++	kfree(file_name);
++
++	return err;
++}
++
++#else
++static bool zram_wb_enabled(struct zram *zram) { return false; }
++static inline void reset_bdev(struct zram *zram) {};
++#endif
++
++
+ /*
+  * We switched to per-cpu streams and this attr is not needed anymore.
+  * However, we will keep it around for some time, because:
+@@ -953,6 +1088,7 @@ static void zram_reset_device(struct zra
+ 	zram_meta_free(zram, disksize);
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 	zcomp_destroy(comp);
++	reset_bdev(zram);
  }
+ 
+ static ssize_t disksize_store(struct device *dev,
+@@ -1078,6 +1214,9 @@ static DEVICE_ATTR_WO(mem_limit);
+ static DEVICE_ATTR_WO(mem_used_max);
+ static DEVICE_ATTR_RW(max_comp_streams);
+ static DEVICE_ATTR_RW(comp_algorithm);
++#ifdef CONFIG_ZRAM_WRITEBACK
++static DEVICE_ATTR_RW(backing_dev);
++#endif
+ 
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -1088,6 +1227,9 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_mem_used_max.attr,
+ 	&dev_attr_max_comp_streams.attr,
+ 	&dev_attr_comp_algorithm.attr,
++#ifdef CONFIG_ZRAM_WRITEBACK
++	&dev_attr_backing_dev.attr,
++#endif
+ 	&dev_attr_io_stat.attr,
+ 	&dev_attr_mm_stat.attr,
+ 	&dev_attr_debug_stat.attr,
+diff -puN drivers/block/zram/zram_drv.h~zram-add-interface-to-specify-backing-device drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-add-interface-to-specify-backing-device
++++ a/drivers/block/zram/zram_drv.h
+@@ -115,5 +115,10 @@ struct zram {
+ 	 * zram is claimed so open request will be failed
+ 	 */
+ 	bool claim; /* Protected by bdev->bd_mutex */
++#ifdef CONFIG_ZRAM_WRITEBACK
++	struct file *backing_dev;
++	struct block_device *bdev;
++	unsigned int old_block_size;
++#endif
+ };
+ #endif
 _
