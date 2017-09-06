@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [patch 027/119] zram: write incompressible pages to
- backing device
-Date: Wed, 06 Sep 2017 16:20:03 -0700
-Message-ID: <20170906232003.lwh__tyAu%akpm@linux-foundation.org>
+Subject: [patch 028/119] zram: read page from backing device
+Date: Wed, 06 Sep 2017 16:20:07 -0700
+Message-ID: <20170906232007.QAdoHQi82%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753909AbdIFXUF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:05 -0400
+        with ESMTP id S1753909AbdIFXUI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, xieyisheng1@huawei.com
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: write incompressible pages to backing device
+Subject: zram: read page from backing device
 
-This patch enables write IO to transfer data to backing device.  For that,
-it implements write_to_bdev function which creates new bio and chaining
-with parent bio to make the parent bio asynchrnous.
+This patch enables read IO from backing device.  For the feature, it
+implements two IO read functions to transfer data from backing storage.
 
-For rw_page which don't have parent bio, it submit owned bio and handle IO
-completion by zram_page_end_io.
+One is asynchronous IO function and other is synchronous one.
 
-Also, this patch defines new flag ZRAM_WB to mark written page for later
-read IO.
+A reason I need synchrnous IO is due to partial write which need to
+complete read IO before the overwriting partial data.
 
-[xieyisheng1@huawei.com: fix typo in comment]
-  Link: http://lkml.kernel.org/r/1502707447-6944-2-git-send-email-xieyisheng1@huawei.com
-Link: http://lkml.kernel.org/r/1498459987-24562-8-git-send-email-minchan@kernel.org
+We can make the partial IO's case asynchronous, too but at the moment, I
+don't feel adding more complexity to support such rare use cases so want
+to go with simple.
+
+[xieyisheng1@huawei.com: read_from_bdev_async(): return 1 to avoid call page_endio() in zram_rw_page()]
+  Link: http://lkml.kernel.org/r/1502707447-6944-1-git-send-email-xieyisheng1@huawei.com
+Link: http://lkml.kernel.org/r/1498459987-24562-9-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
 Cc: Juneho Choi <juno.choi@lge.com>
@@ -36,54 +37,37 @@ Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  113 ++++++++++++++++++++++++++++----
- drivers/block/zram/zram_drv.h |    3 
- 2 files changed, 103 insertions(+), 13 deletions(-)
+ drivers/block/zram/zram_drv.c |  123 ++++++++++++++++++++++++++++++--
+ 1 file changed, 118 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-write-incompressible-pages-to-backing-device drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-write-incompressible-pages-to-backing-device
+diff -puN drivers/block/zram/zram_drv.c~zram-read-page-from-backing-device drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-read-page-from-backing-device
 +++ a/drivers/block/zram/zram_drv.c
-@@ -445,9 +445,76 @@ static void put_entry_bdev(struct zram *
- 	WARN_ON_ONCE(!was_set);
+@@ -454,6 +454,95 @@ void zram_page_end_io(struct bio *bio)
+ 	bio_put(bio);
  }
  
-+void zram_page_end_io(struct bio *bio)
-+{
-+	struct page *page = bio->bi_io_vec[0].bv_page;
-+
-+	page_endio(page, op_is_write(bio_op(bio)),
-+			blk_status_to_errno(bio->bi_status));
-+	bio_put(bio);
-+}
-+
-+static int write_to_bdev(struct zram *zram, struct bio_vec *bvec,
-+					u32 index, struct bio *parent,
-+					unsigned long *pentry)
++/*
++ * Returns 1 if the submission is successful.
++ */
++static int read_from_bdev_async(struct zram *zram, struct bio_vec *bvec,
++			unsigned long entry, struct bio *parent)
 +{
 +	struct bio *bio;
-+	unsigned long entry;
 +
 +	bio = bio_alloc(GFP_ATOMIC, 1);
 +	if (!bio)
 +		return -ENOMEM;
 +
-+	entry = get_entry_bdev(zram);
-+	if (!entry) {
-+		bio_put(bio);
-+		return -ENOSPC;
-+	}
-+
 +	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
 +	bio->bi_bdev = zram->bdev;
-+	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len,
-+					bvec->bv_offset)) {
++	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len, bvec->bv_offset)) {
 +		bio_put(bio);
-+		put_entry_bdev(zram, entry);
 +		return -EIO;
 +	}
 +
 +	if (!parent) {
-+		bio->bi_opf = REQ_OP_WRITE | REQ_SYNC;
++		bio->bi_opf = REQ_OP_READ;
 +		bio->bi_end_io = zram_page_end_io;
 +	} else {
 +		bio->bi_opf = parent->bi_opf;
@@ -91,180 +75,150 @@ diff -puN drivers/block/zram/zram_drv.c~zram-write-incompressible-pages-to-backi
 +	}
 +
 +	submit_bio(bio);
-+	*pentry = entry;
-+
-+	return 0;
++	return 1;
 +}
 +
-+static void zram_wb_clear(struct zram *zram, u32 index)
-+{
++struct zram_work {
++	struct work_struct work;
++	struct zram *zram;
 +	unsigned long entry;
++	struct bio *bio;
++};
 +
-+	zram_clear_flag(zram, index, ZRAM_WB);
-+	entry = zram_get_element(zram, index);
-+	zram_set_element(zram, index, 0);
-+	put_entry_bdev(zram, entry);
++#if PAGE_SIZE != 4096
++static void zram_sync_read(struct work_struct *work)
++{
++	struct bio_vec bvec;
++	struct zram_work *zw = container_of(work, struct zram_work, work);
++	struct zram *zram = zw->zram;
++	unsigned long entry = zw->entry;
++	struct bio *bio = zw->bio;
++
++	read_from_bdev_async(zram, &bvec, entry, bio);
 +}
 +
- #else
- static bool zram_wb_enabled(struct zram *zram) { return false; }
- static inline void reset_bdev(struct zram *zram) {};
-+static int write_to_bdev(struct zram *zram, struct bio_vec *bvec,
-+					u32 index, struct bio *parent,
-+					unsigned long *pentry)
++/*
++ * Block layer want one ->make_request_fn to be active at a time
++ * so if we use chained IO with parent IO in same context,
++ * it's a deadlock. To avoid, it, it uses worker thread context.
++ */
++static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
++				unsigned long entry, struct bio *bio)
++{
++	struct zram_work work;
 +
++	work.zram = zram;
++	work.entry = entry;
++	work.bio = bio;
++
++	INIT_WORK_ONSTACK(&work.work, zram_sync_read);
++	queue_work(system_unbound_wq, &work.work);
++	flush_work(&work.work);
++	destroy_work_on_stack(&work.work);
++
++	return 1;
++}
++#else
++static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
++				unsigned long entry, struct bio *bio)
++{
++	WARN_ON(1);
++	return -EIO;
++}
++#endif
++
++static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
++			unsigned long entry, struct bio *parent, bool sync)
++{
++	if (sync)
++		return read_from_bdev_sync(zram, bvec, entry, parent);
++	else
++		return read_from_bdev_async(zram, bvec, entry, parent);
++}
++
+ static int write_to_bdev(struct zram *zram, struct bio_vec *bvec,
+ 					u32 index, struct bio *parent,
+ 					unsigned long *pentry)
+@@ -514,6 +603,12 @@ static int write_to_bdev(struct zram *zr
+ {
+ 	return -EIO;
+ }
++
++static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
++			unsigned long entry, struct bio *parent, bool sync)
 +{
 +	return -EIO;
 +}
-+static void zram_wb_clear(struct zram *zram, u32 index) {}
+ static void zram_wb_clear(struct zram *zram, u32 index) {}
  #endif
  
- 
-@@ -672,7 +739,13 @@ static bool zram_meta_alloc(struct zram
-  */
- static void zram_free_page(struct zram *zram, size_t index)
- {
--	unsigned long handle = zram_get_handle(zram, index);
-+	unsigned long handle;
-+
-+	if (zram_wb_enabled(zram) && zram_test_flag(zram, index, ZRAM_WB)) {
-+		zram_wb_clear(zram, index);
-+		atomic64_dec(&zram->stats.pages_stored);
-+		return;
-+	}
- 
- 	/*
- 	 * No memory is allocated for same element filled pages.
-@@ -686,6 +759,7 @@ static void zram_free_page(struct zram *
- 		return;
- 	}
- 
-+	handle = zram_get_handle(zram, index);
- 	if (!handle)
- 		return;
- 
-@@ -770,7 +844,8 @@ out:
- 	return ret;
+@@ -773,13 +868,31 @@ static void zram_free_page(struct zram *
+ 	zram_set_obj_size(zram, index, 0);
  }
  
--static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
-+static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
-+				u32 index, struct bio *bio)
+-static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index)
++static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index,
++				struct bio *bio, bool partial_io)
  {
- 	int ret = 0;
- 	unsigned long alloced_pages;
-@@ -781,6 +856,7 @@ static int __zram_bvec_write(struct zram
- 	struct page *page = bvec->bv_page;
- 	unsigned long element = 0;
- 	enum zram_pageflags flags = 0;
-+	bool allow_wb = true;
+ 	int ret;
+ 	unsigned long handle;
+ 	unsigned int size;
+ 	void *src, *dst;
  
- 	mem = kmap_atomic(page);
- 	if (page_same_filled(mem, &element)) {
-@@ -805,8 +881,20 @@ compress_again:
- 		return ret;
- 	}
- 
--	if (unlikely(comp_len > max_zpage_size))
-+	if (unlikely(comp_len > max_zpage_size)) {
-+		if (zram_wb_enabled(zram) && allow_wb) {
-+			zcomp_stream_put(zram->comp);
-+			ret = write_to_bdev(zram, bvec, index, bio, &element);
-+			if (!ret) {
-+				flags = ZRAM_WB;
-+				ret = 1;
-+				goto out;
-+			}
-+			allow_wb = false;
-+			goto compress_again;
++	if (zram_wb_enabled(zram)) {
++		zram_slot_lock(zram, index);
++		if (zram_test_flag(zram, index, ZRAM_WB)) {
++			struct bio_vec bvec;
++
++			zram_slot_unlock(zram, index);
++
++			bvec.bv_page = page;
++			bvec.bv_len = PAGE_SIZE;
++			bvec.bv_offset = 0;
++			return read_from_bdev(zram, &bvec,
++					zram_get_element(zram, index),
++					bio, partial_io);
 +		}
- 		comp_len = PAGE_SIZE;
++		zram_slot_unlock(zram, index);
 +	}
- 
- 	/*
- 	 * handle allocation has 2 paths:
-@@ -866,10 +954,11 @@ out:
- 	 */
- 	zram_slot_lock(zram, index);
- 	zram_free_page(zram, index);
--	if (flags == ZRAM_SAME) {
--		zram_set_flag(zram, index, ZRAM_SAME);
 +
-+	if (flags) {
-+		zram_set_flag(zram, index, flags);
- 		zram_set_element(zram, index, element);
--	} else {
-+	}  else {
- 		zram_set_handle(zram, index, handle);
- 		zram_set_obj_size(zram, index, comp_len);
- 	}
-@@ -881,7 +970,7 @@ out:
+ 	if (zram_same_page_read(zram, index, page, 0, PAGE_SIZE))
+ 		return 0;
+ 
+@@ -812,7 +925,7 @@ static int __zram_bvec_read(struct zram
  }
  
- static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
+ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 -				u32 index, int offset)
 +				u32 index, int offset, struct bio *bio)
  {
  	int ret;
- 	struct page *page = NULL;
-@@ -914,7 +1003,7 @@ static int zram_bvec_write(struct zram *
- 		vec.bv_offset = 0;
+ 	struct page *page;
+@@ -825,7 +938,7 @@ static int zram_bvec_read(struct zram *z
+ 			return -ENOMEM;
  	}
  
--	ret = __zram_bvec_write(zram, &vec, index);
-+	ret = __zram_bvec_write(zram, &vec, index, bio);
- out:
- 	if (is_partial_io(bvec))
- 		__free_page(page);
-@@ -965,7 +1054,7 @@ static void zram_bio_discard(struct zram
-  * Returns 1 if IO request was successfully submitted.
-  */
- static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
--			int offset, bool is_write)
-+			int offset, bool is_write, struct bio *bio)
- {
- 	unsigned long start_time = jiffies;
- 	int rw_acct = is_write ? REQ_OP_WRITE : REQ_OP_READ;
-@@ -980,7 +1069,7 @@ static int zram_bvec_rw(struct zram *zra
+-	ret = __zram_bvec_read(zram, page, index);
++	ret = __zram_bvec_read(zram, page, index, bio, is_partial_io(bvec));
+ 	if (unlikely(ret))
+ 		goto out;
+ 
+@@ -988,7 +1101,7 @@ static int zram_bvec_write(struct zram *
+ 		if (!page)
+ 			return -ENOMEM;
+ 
+-		ret = __zram_bvec_read(zram, page, index);
++		ret = __zram_bvec_read(zram, page, index, bio, true);
+ 		if (ret)
+ 			goto out;
+ 
+@@ -1065,7 +1178,7 @@ static int zram_bvec_rw(struct zram *zra
+ 
+ 	if (!is_write) {
+ 		atomic64_inc(&zram->stats.num_reads);
+-		ret = zram_bvec_read(zram, bvec, index, offset);
++		ret = zram_bvec_read(zram, bvec, index, offset, bio);
  		flush_dcache_page(bvec->bv_page);
  	} else {
  		atomic64_inc(&zram->stats.num_writes);
--		ret = zram_bvec_write(zram, bvec, index, offset);
-+		ret = zram_bvec_write(zram, bvec, index, offset, bio);
- 	}
- 
- 	generic_end_io_acct(rw_acct, &zram->disk->part0, start_time);
-@@ -1024,7 +1113,7 @@ static void __zram_make_request(struct z
- 			bv.bv_len = min_t(unsigned int, PAGE_SIZE - offset,
- 							unwritten);
- 			if (zram_bvec_rw(zram, &bv, index, offset,
--					op_is_write(bio_op(bio))) < 0)
-+					op_is_write(bio_op(bio)), bio) < 0)
- 				goto out;
- 
- 			bv.bv_offset += bv.bv_len;
-@@ -1098,7 +1187,7 @@ static int zram_rw_page(struct block_dev
- 	bv.bv_len = PAGE_SIZE;
- 	bv.bv_offset = 0;
- 
--	ret = zram_bvec_rw(zram, &bv, index, offset, is_write);
-+	ret = zram_bvec_rw(zram, &bv, index, offset, is_write, NULL);
- out:
- 	/*
- 	 * If I/O fails, just return error(ie, non-zero) without
-diff -puN drivers/block/zram/zram_drv.h~zram-write-incompressible-pages-to-backing-device drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-write-incompressible-pages-to-backing-device
-+++ a/drivers/block/zram/zram_drv.h
-@@ -60,9 +60,10 @@ static const size_t max_zpage_size = PAG
- 
- /* Flags for zram pages (table[page_no].value) */
- enum zram_pageflags {
--	/* Page consists entirely of zeros */
-+	/* Page consists the same element */
- 	ZRAM_SAME = ZRAM_FLAG_SHIFT,
- 	ZRAM_ACCESS,	/* page is now accessed */
-+	ZRAM_WB,	/* page is stored on backing_device */
- 
- 	__NR_ZRAM_PAGEFLAGS,
- };
 _
