@@ -1,84 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [patch 095/119] userfaultfd: call userfaultfd_unmap_prep
- only if __split_vma succeeds
-Date: Wed, 06 Sep 2017 16:23:53 -0700
-Message-ID: <20170906232353.PIlu8PBIJ%akpm@linux-foundation.org>
+Subject: [patch 101/119] mm, devm_memremap_pages: use multi-order
+ radix for ZONE_DEVICE lookups
+Date: Wed, 06 Sep 2017 16:24:13 -0700
+Message-ID: <20170906232413.Bq7JyuAOK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754810AbdIFXXy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:23:54 -0400
+        with ESMTP id S1754565AbdIFXYO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:24:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.perevalov@samsung.com, aarcange@redhat.com, akpm@linux-foundation.org, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, toshi.kani@hpe.com
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: call userfaultfd_unmap_prep only if __split_vma succeeds
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
 
-A __split_vma is not a worthy event to report, and it's definitely not a
-unmap so it would be incorrect to report unmap for the whole region to the
-userfaultfd manager if a __split_vma fails.
+devm_memremap_pages() records mapped ranges in pgmap_radix with an entry
+per section's worth of memory (128MB).  The key for each of those entries
+is a section number.
 
-So only call userfaultfd_unmap_prep after the __vma_splitting is over and
-do_munmap cannot fail anymore.
+This leads to false positives when devm_memremap_pages() is passed a
+section-unaligned range as lookups in the misalignment fail to return
+NULL.  We can close this hole by using the pfn as the key for entries in
+the tree.  The number of entries required to describe a remapped range is
+reduced by leveraging multi-order entries.
 
-Also add unlikely because it's better to optimize for the vast majority of
-apps that aren't using userfaultfd in a non cooperative way.  Ideally we
-should also find a way to eliminate the branch entirely if
-CONFIG_USERFAULTFD=n, but it would complicate things so stick to unlikely
-for now.
+In practice this approach usually yields just one entry in the tree if the
+size and starting address are of the same power-of-2 alignment. 
+Previously we always needed nr_entries = mapping_size / 128MB.
 
-Link: http://lkml.kernel.org/r/20170802165145.22628-5-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>
-Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
+Link: http://lkml.kernel.org/r/150215410565.39310.13767886055248249438.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ kernel/memremap.c |   52 ++++++++++++++++++++++++++++++++------------
+ mm/Kconfig        |    1 
+ 2 files changed, 39 insertions(+), 14 deletions(-)
 
-diff -puN mm/mmap.c~userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds mm/mmap.c
---- a/mm/mmap.c~userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds
-+++ a/mm/mmap.c
-@@ -2639,13 +2639,6 @@ int do_munmap(struct mm_struct *mm, unsi
- 	if (vma->vm_start >= end)
- 		return 0;
+diff -puN kernel/memremap.c~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups kernel/memremap.c
+--- a/kernel/memremap.c~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups
++++ a/kernel/memremap.c
+@@ -194,18 +194,41 @@ struct page_map {
+ 	struct vmem_altmap altmap;
+ };
  
--	if (uf) {
--		int error = userfaultfd_unmap_prep(vma, start, end, uf);
--
--		if (error)
--			return error;
--	}
--
- 	/*
- 	 * If we need to split any vma, do it now to save pain later.
- 	 *
-@@ -2679,6 +2672,21 @@ int do_munmap(struct mm_struct *mm, unsi
- 	}
- 	vma = prev ? prev->vm_next : mm->mmap;
+-static void pgmap_radix_release(struct resource *res)
++static unsigned long order_at(struct resource *res, unsigned long pgoff)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
++	unsigned long nr_pages, mask;
  
-+	if (unlikely(uf)) {
-+		/*
-+		 * If userfaultfd_unmap_prep returns an error the vmas
-+		 * will remain splitted, but userland will get a
-+		 * highly unexpected error anyway. This is no
-+		 * different than the case where the first of the two
-+		 * __split_vma fails, but we don't undo the first
-+		 * split, despite we could. This is unlikely enough
-+		 * failure that it's not worth optimizing it for.
-+		 */
-+		int error = userfaultfd_unmap_prep(vma, start, end, uf);
-+		if (error)
-+			return error;
-+	}
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+-	align_end = align_start + align_size - 1;
++	nr_pages = PHYS_PFN(resource_size(res));
++	if (nr_pages == pgoff)
++		return ULONG_MAX;
 +
- 	/*
- 	 * unlock any mlock()ed ranges before detaching vmas
- 	 */
++	/*
++	 * What is the largest aligned power-of-2 range available from
++	 * this resource pgoff to the end of the resource range,
++	 * considering the alignment of the current pgoff?
++	 */
++	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
++	if (!mask)
++		return ULONG_MAX;
++
++	return find_first_bit(&mask, BITS_PER_LONG);
++}
++
++#define foreach_order_pgoff(res, order, pgoff) \
++	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
++			pgoff += 1UL << order, order = order_at((res), pgoff))
++
++static void pgmap_radix_release(struct resource *res)
++{
++	unsigned long pgoff, order;
+ 
+ 	mutex_lock(&pgmap_lock);
+-	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+-		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
++	foreach_order_pgoff(res, order, pgoff)
++		radix_tree_delete(&pgmap_radix, PHYS_PFN(res->start) + pgoff);
+ 	mutex_unlock(&pgmap_lock);
++
++	synchronize_rcu();
+ }
+ 
+ static unsigned long pfn_first(struct page_map *page_map)
+@@ -268,7 +291,7 @@ struct dev_pagemap *find_dev_pagemap(res
+ 
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+ 
+-	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
++	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+ 	return page_map ? &page_map->pgmap : NULL;
+ }
+ 
+@@ -293,12 +316,12 @@ struct dev_pagemap *find_dev_pagemap(res
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	resource_size_t align_start, align_size, align_end;
++	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+-	unsigned long pfn;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+@@ -337,11 +360,12 @@ void *devm_memremap_pages(struct device
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+ 	align_end = align_start + align_size - 1;
+-	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
++
++	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+ 
+ 		rcu_read_lock();
+-		dup = find_dev_pagemap(key);
++		dup = find_dev_pagemap(res->start + PFN_PHYS(pgoff));
+ 		rcu_read_unlock();
+ 		if (dup) {
+ 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
+@@ -349,8 +373,8 @@ void *devm_memremap_pages(struct device
+ 			error = -EBUSY;
+ 			break;
+ 		}
+-		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
+-				page_map);
++		error = __radix_tree_insert(&pgmap_radix,
++				PHYS_PFN(res->start) + pgoff, order, page_map);
+ 		if (error) {
+ 			dev_err(dev, "%s: failed: %d\n", __func__, error);
+ 			break;
+diff -puN mm/Kconfig~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups mm/Kconfig
+--- a/mm/Kconfig~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups
++++ a/mm/Kconfig
+@@ -678,6 +678,7 @@ config ZONE_DEVICE
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+ 	depends on ARCH_HAS_ZONE_DEVICE
++	select RADIX_TREE_MULTIORDER
+ 
+ 	help
+ 	  Device memory hotplug support allows for establishing pmem,
 _
