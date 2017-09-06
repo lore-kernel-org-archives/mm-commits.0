@@ -1,123 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 036/119] mm, page_alloc: remove stop_machine from
- build_all_zonelists
-Date: Wed, 06 Sep 2017 16:20:34 -0700
-Message-ID: <20170906232034.Db6utMUWu%akpm@linux-foundation.org>
+Subject: [patch 034/119] mm, memory_hotplug: remove explicit
+ build_all_zonelists from try_online_node
+Date: Wed, 06 Sep 2017 16:20:27 -0700
+Message-ID: <20170906232027.OmMfi9_KH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49588 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753909AbdIFXUg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:36 -0400
+        with ESMTP id S1753909AbdIFXU3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, tglx@linutronix.de, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: remove stop_machine from build_all_zonelists
+Subject: mm, memory_hotplug: remove explicit build_all_zonelists from try_online_node
 
-build_all_zonelists has been (ab)using stop_machine to make sure that
-zonelists do not change while somebody is looking at them.  This is is
-just a gross hack because a) it complicates the context from which we can
-call build_all_zonelists (see 3f906ba23689 ("mm/memory-hotplug: switch
-locking to a percpu rwsem")) and b) is is not really necessary especially
-after "mm, page_alloc: simplify zonelist initialization" and c) it doesn't
-really provide the protection it claims (see below).
+try_online_node calls hotadd_new_pgdat which already calls
+build_all_zonelists.  So the additional call is redundant.  Even though
+hotadd_new_pgdat will only initialize zonelists of the new node this is
+the right thing to do because such a node doesn't have any memory so other
+zonelists would ignore all the zones from this node anyway.
 
-Updates of the zonelists happen very seldom, basically only when a zone
-becomes populated during memory online or when it loses all the memory
-during offline.  A racing iteration over zonelists could either miss a
-zone or try to work on one zone twice.  Both of these are something we can
-live with occasionally because there will always be at least one zone
-visible so we are not likely to fail allocation too easily for example.
-
-Please note that the original stop_machine approach doesn't really provide
-a better exclusion because the iteration might be interrupted half way
-(unless the whole iteration is preempt disabled which is not the case in
-most cases) so the some zones could still be seen twice or a zone missed.
-
-I have run the pathological online/offline of the single memblock in the
-movable zone while stressing the same small node with some memory
-pressure.
-
-Node 1, zone      DMA
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  0
-        present  0
-        managed  0
-        protection: (0, 943, 943, 943)
-Node 1, zone    DMA32
-  pages free     227310
-        min      8294
-        low      10367
-        high     12440
-        spanned  262112
-        present  262112
-        managed  241436
-        protection: (0, 0, 0, 0)
-Node 1, zone   Normal
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  0
-        present  0
-        managed  0
-        protection: (0, 0, 0, 1024)
-Node 1, zone  Movable
-  pages free     32722
-        min      85
-        low      117
-        high     149
-        spanned  32768
-        present  32768
-        managed  32768
-        protection: (0, 0, 0, 0)
-
-root@test1:/sys/devices/system/node/node1# while true
-do
-	echo offline > memory34/state
-	echo online_movable > memory34/state
-done
-
-root@test1:/mnt/data/test/linux-3.7-rc5# numactl --preferred=1 make -j4
-
-and it survived without any unexpected behavior.  While this is not really
-a great testing coverage it should exercise the allocation path quite a
-lot.
-
-Link: http://lkml.kernel.org/r/20170721143915.14161-8-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170721143915.14161-6-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-stop_machine-from-build_all_zonelists mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-stop_machine-from-build_all_zonelists
-+++ a/mm/page_alloc.c
-@@ -5137,8 +5137,7 @@ static DEFINE_PER_CPU(struct per_cpu_nod
-  */
- DEFINE_MUTEX(zonelists_mutex);
- 
--/* return values int ....just for stop_machine() */
--static int __build_all_zonelists(void *data)
-+static void __build_all_zonelists(void *data)
- {
- 	int nid;
- 	int __maybe_unused cpu;
-@@ -5174,8 +5173,6 @@ static int __build_all_zonelists(void *d
- 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
- #endif
- 	}
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-explicit-build_all_zonelists-from-try_online_node
++++ a/mm/memory_hotplug.c
+@@ -1081,13 +1081,6 @@ int try_online_node(int nid)
+ 	node_set_online(nid);
+ 	ret = register_one_node(nid);
+ 	BUG_ON(ret);
+-
+-	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
+-		mutex_lock(&zonelists_mutex);
+-		build_all_zonelists(NULL);
+-		mutex_unlock(&zonelists_mutex);
+-	}
