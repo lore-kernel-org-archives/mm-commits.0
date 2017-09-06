@@ -1,63 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently-fix-3.patch
- removed from -mm tree
-Date: Wed, 06 Sep 2017 16:09:54 -0700
-Message-ID: <59b08042.yZxZP9EPtIfWVrtI%akpm@linux-foundation.org>
+ mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch removed
+ from -mm tree
+Date: Wed, 06 Sep 2017 16:11:25 -0700
+Message-ID: <59b0809d.a+6+y8M+eJneY8pm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47868 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752351AbdIFXJz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:09:55 -0400
+        with ESMTP id S1754319AbdIFXL0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:11:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: oom: let oom_reap_task and exit_mmap run concurrently, add unlikely
+     Subject: mm/memory.c: improve readability of clear_huge_page
 has been removed from the -mm tree.  Its filename was
-     mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently-fix-3.patch
+     mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix.patch
 
-This patch was dropped because it was folded into mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently.patch
+This patch was dropped because it was folded into mm-clear-to-access-sub-page-last-when-clearing-huge-page.patch
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: oom: let oom_reap_task and exit_mmap run concurrently, add unlikely
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/memory.c: improve readability of clear_huge_page
 
-Microoptimization to fold before merging.
+The optimized clear_huge_page() isn't easy to read and understand.  This
+is suggested by Michael Hocko to improve it.
 
-Link: http://lkml.kernel.org/r/20170817171240.GB5066@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/20170830051842.1397-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently-fix-3 mm/mmap.c
---- a/mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently-fix-3
-+++ a/mm/mmap.c
-@@ -3003,7 +3003,7 @@ void exit_mmap(struct mm_struct *mm)
- 	unmap_vmas(&tlb, vma, 0, -1);
+diff -puN mm/memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix mm/memory.c
+--- a/mm/memory.c~mm-clear-to-access-sub-page-last-when-clearing-huge-page-fix
++++ a/mm/memory.c
+@@ -4463,12 +4463,15 @@ void clear_huge_page(struct page *page,
+ 	 * towards the sub-page to access
+ 	 */
+ 	for (i = 0; i < l; i++) {
++		int left_idx = base + i;
++		int right_idx = base + 2 * l - 1 - i;
++
+ 		cond_resched();
+-		clear_user_highpage(page + base + i,
+-				    addr + (base + i) * PAGE_SIZE);
++		clear_user_highpage(page + left_idx,
++				    addr + left_idx * PAGE_SIZE);
+ 		cond_resched();
+-		clear_user_highpage(page + base + 2 * l - 1 - i,
+-				    addr + (base + 2 * l - 1 - i) * PAGE_SIZE);
++		clear_user_highpage(page + right_idx,
++				    addr + right_idx * PAGE_SIZE);
+ 	}
+ }
  
- 	set_bit(MMF_OOM_SKIP, &mm->flags);
--	if (tsk_is_oom_victim(current)) {
-+	if (unlikely(tsk_is_oom_victim(current))) {
- 		/*
- 		 * Wait for oom_reap_task() to stop working on this
- 		 * mm. Because MMF_OOM_SKIP is already set before
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist.patch
-userfaultfd-selftest-explicit-failure-if-the-sigbus-test-failed.patch
-userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds.patch
-userfaultfd-provide-pid-in-userfault-msg-add-feat-union.patch
-mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently.patch
+mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+mm-thp-swap-support-to-reclaim-swap-space-for-thp-swapped-out.patch
+mm-thp-swap-make-reuse_swap_page-works-for-thp-swapped-out.patch
+mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+block-thp-make-block_device_operationsrw_page-support-thp.patch
+test-code-to-write-thp-to-swap-device-as-a-whole.patch
+mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
+memcg-thp-swap-support-move-mem-cgroup-charge-for-thp-swapped-out.patch
+memcg-thp-swap-avoid-to-duplicated-charge-thp-in-swap-cache.patch
+memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+mm-thp-swap-delay-splitting-thp-after-swapped-out.patch
+mm-thp-swap-add-thp-swapping-out-fallback-counting.patch
+mm-swap-add-swap-readahead-hit-statistics.patch
+mm-swap-fix-swap-readahead-marking.patch
+mm-swap-vma-based-swap-readahead.patch
+mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch
+mm-swap-dont-use-vma-based-swap-readahead-if-hdd-is-used-as-swap.patch
+mm-clear-to-access-sub-page-last-when-clearing-huge-page.patch
 
