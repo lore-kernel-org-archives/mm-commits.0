@@ -1,77 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes.patch
- removed from -mm tree
-Date: Wed, 06 Sep 2017 16:01:12 -0700
-Message-ID: <59b07e38.xiDyjN9+kqlupqXH%akpm@linux-foundation.org>
+ mm-page_owner-make-init_pages_in_zone-faster-fix.patch removed from -mm
+ tree
+Date: Wed, 06 Sep 2017 16:01:09 -0700
+Message-ID: <59b07e35.fj++VKRIb0kBVCAM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46810 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752422AbdIFXBN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:01:13 -0400
+        with ESMTP id S1752422AbdIFXBK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes
+     Subject: [PATCH] mm, page_owner: make init_pages_in_zone() faster-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes.patch
+     mm-page_owner-make-init_pages_in_zone-faster-fix.patch
 
 This patch was dropped because it was folded into mm-page_owner-make-init_pages_in_zone-faster.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: [PATCH] mm, page_owner: make init_pages_in_zone() faster-fix
 
-WARNING: 'overlaping' may be misspelled - perhaps 'overlapping'?
-#69: FILE: mm/page_owner.c:580:
-+			/* Maybe overlaping zone */
+don't duplicate code of __set_page_owner(), per Michal Hocko
 
-total: 0 errors, 1 warnings, 60 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-page_owner-make-init_pages_in_zone-faster-fix.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix-checkpatch-fixes
+diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster-fix
 +++ a/mm/page_owner.c
-@@ -577,7 +577,7 @@ static void init_pages_in_zone(pg_data_t
+@@ -165,17 +165,13 @@ static noinline depot_stack_handle_t sav
+ 	return handle;
+ }
+ 
+-noinline void __set_page_owner(struct page *page, unsigned int order,
+-					gfp_t gfp_mask)
++static inline void __set_page_owner_handle(struct page_ext *page_ext,
++	depot_stack_handle_t handle, unsigned int order, gfp_t gfp_mask)
+ {
+-	struct page_ext *page_ext = lookup_page_ext(page);
+ 	struct page_owner *page_owner;
+ 
+-	if (unlikely(!page_ext))
+-		return;
+-
+ 	page_owner = get_page_owner(page_ext);
+-	page_owner->handle = save_stack(gfp_mask);
++	page_owner->handle = handle;
+ 	page_owner->order = order;
+ 	page_owner->gfp_mask = gfp_mask;
+ 	page_owner->last_migrate_reason = -1;
+@@ -183,18 +179,17 @@ noinline void __set_page_owner(struct pa
+ 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ }
+ 
+-static void __set_page_owner_init(struct page_ext *page_ext,
+-					depot_stack_handle_t handle)
++noinline void __set_page_owner(struct page *page, unsigned int order,
++					gfp_t gfp_mask)
+ {
+-	struct page_owner *page_owner;
++	struct page_ext *page_ext = lookup_page_ext(page);
++	depot_stack_handle_t handle;
+ 
+-	page_owner = get_page_owner(page_ext);
+-	page_owner->handle = handle;
+-	page_owner->order = 0;
+-	page_owner->gfp_mask = 0;
+-	page_owner->last_migrate_reason = -1;
++	if (unlikely(!page_ext))
++		return;
+ 
+-	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
++	handle = save_stack(gfp_mask);
++	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
+ }
+ 
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+@@ -582,12 +577,12 @@ static void init_pages_in_zone(pg_data_t
  			if (unlikely(!page_ext))
  				continue;
  
--			/* Maybe overlaping zone */
-+			/* Maybe overlapping zone */
+-			/* Maybe overraping zone */
++			/* Maybe overlaping zone */
  			if (test_bit(PAGE_EXT_OWNER, &page_ext->flags))
  				continue;
  
+ 			/* Found early allocated page */
+-			__set_page_owner_init(page_ext, init_handle);
++			__set_page_owner_handle(page_ext, init_handle, 0, 0);
+ 			count++;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 mm-page_owner-make-init_pages_in_zone-faster.patch
-zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse-fix.patch
-userfaultfd-selftest-exercise-uffdio_copy-zeropage-eexist-fix.patch
-mm-swap-add-swap-readahead-hit-statistics-fix.patch
-swap-choose-swap-device-according-to-numa-node-v2-fix.patch
-mmfork-introduce-madv_wipeonfork-fix.patch
+mm-page_owner-make-init_pages_in_zone-faster-fix2.patch
+mm-page_ext-periodically-reschedule-during-page_ext_init.patch
+mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone.patch
 
