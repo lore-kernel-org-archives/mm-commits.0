@@ -1,53 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [patch 082/119] userfaultfd: shmem: wire up
- shmem_mfill_zeropage_pte
-Date: Wed, 06 Sep 2017 16:23:09 -0700
-Message-ID: <20170906232309.T5gkDAubW%akpm@linux-foundation.org>
+Subject: [patch 078/119] shmem: shmem_charge: verify max_block is
+ not exceeded before inode update
+Date: Wed, 06 Sep 2017 16:22:56 -0700
+Message-ID: <20170906232256.ObDAR8qgT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50436 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751399AbdIFXXK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:23:10 -0400
+        with ESMTP id S1752270AbdIFXW5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:22:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, xemul@virtuozzo.com
 
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: shmem: wire up shmem_mfill_zeropage_pte
+Subject: shmem: shmem_charge: verify max_block is not exceeded before inode update
 
-For shmem VMAs we can use shmem_mfill_zeropage_pte for UFFDIO_ZEROPAGE
+Patch series "userfaultfd: enable zeropage support for shmem".
 
-Link: http://lkml.kernel.org/r/1497939652-16528-6-git-send-email-rppt@linux.vnet.ibm.com
+These patches enable support for UFFDIO_ZEROPAGE for shared memory.
+
+The first two patches are not strictly related to userfaultfd, they are
+just minor refactoring to reduce amount of code duplication.
+
+
+This patch (of 7):
+
+Currently we update inode and shmem_inode_info before verifying that
+used_blocks will not exceed max_blocks.  In case it will, we undo the
+update.  Let's switch the order and move the verification of the blocks
+count before the inode and shmem_inode_info update.
+
+Link: http://lkml.kernel.org/r/1497939652-16528-2-git-send-email-rppt@linux.vnet.ibm.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/shmem.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN mm/userfaultfd.c~userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-shmem-wire-up-shmem_mfill_zeropage_pte
-+++ a/mm/userfaultfd.c
-@@ -389,11 +389,13 @@ static __always_inline ssize_t mfill_ato
- 			err = mfill_zeropage_pte(dst_mm, dst_pmd,
- 						 dst_vma, dst_addr);
- 	} else {
--		err = -EINVAL; /* if zeropage is true return -EINVAL */
--		if (likely(!zeropage))
-+		if (!zeropage)
- 			err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
- 						     dst_vma, dst_addr,
- 						     src_addr, page);
-+		else
-+			err = shmem_mfill_zeropage_pte(dst_mm, dst_pmd,
-+						       dst_vma, dst_addr);
- 	}
+diff -puN mm/shmem.c~shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update mm/shmem.c
+--- a/mm/shmem.c~shmem-shmem_charge-verify-max_block-is-not-exceeded-before-inode-update
++++ a/mm/shmem.c
+@@ -266,6 +266,14 @@ bool shmem_charge(struct inode *inode, l
  
- 	return err;
+ 	if (shmem_acct_block(info->flags, pages))
+ 		return false;
++
++	if (sbinfo->max_blocks) {
++		if (percpu_counter_compare(&sbinfo->used_blocks,
++					   sbinfo->max_blocks - pages) > 0)
++			goto unacct;
++		percpu_counter_add(&sbinfo->used_blocks, pages);
++	}
++
+ 	spin_lock_irqsave(&info->lock, flags);
+ 	info->alloced += pages;
+ 	inode->i_blocks += pages * BLOCKS_PER_PAGE;
+@@ -273,20 +281,11 @@ bool shmem_charge(struct inode *inode, l
+ 	spin_unlock_irqrestore(&info->lock, flags);
+ 	inode->i_mapping->nrpages += pages;
+ 
+-	if (!sbinfo->max_blocks)
+-		return true;
+-	if (percpu_counter_compare(&sbinfo->used_blocks,
+-				sbinfo->max_blocks - pages) > 0) {
+-		inode->i_mapping->nrpages -= pages;
+-		spin_lock_irqsave(&info->lock, flags);
+-		info->alloced -= pages;
+-		shmem_recalc_inode(inode);
+-		spin_unlock_irqrestore(&info->lock, flags);
+-		shmem_unacct_blocks(info->flags, pages);
+-		return false;
+-	}
+-	percpu_counter_add(&sbinfo->used_blocks, pages);
+ 	return true;
++
++unacct:
++	shmem_unacct_blocks(info->flags, pages);
++	return false;
+ }
+ 
+ void shmem_uncharge(struct inode *inode, long pages)
 _
