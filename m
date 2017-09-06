@@ -1,54 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 105/119] mm/vmalloc.c: don't reinvent the wheel but
- use existing llist API
-Date: Wed, 06 Sep 2017 16:24:26 -0700
-Message-ID: <20170906232426.5yji7ccS9%akpm@linux-foundation.org>
+Subject: [patch 100/119] mm/vmalloc.c: halve the number of
+ comparisons performed in pcpu_get_vm_areas()
+Date: Wed, 06 Sep 2017 16:24:09 -0700
+Message-ID: <20170906232409.PfjtN99AX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51112 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752525AbdIFXY1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:24:27 -0400
+        with ESMTP id S1754565AbdIFXYL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:24:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, byungchul.park@lge.com, joelaf@google.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, zijun_hu@htc.com
+To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, tj@kernel.org, torvalds@linux-foundation.org
 
-From: Byungchul Park <byungchul.park@lge.com>
-Subject: mm/vmalloc.c: don't reinvent the wheel but use existing llist API
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/vmalloc.c: halve the number of comparisons performed in pcpu_get_vm_areas()
 
-Although llist provides proper APIs, they are not used.  Make them used.
+In pcpu_get_vm_areas(), it checks each range is not overlapped.  To make
+sure it is, only (N^2)/2 comparison is necessary, while current code does
+N^2 times.  By starting from the next range, it achieves the goal and the
+continue could be removed.
 
-Link: http://lkml.kernel.org/r/1502095374-16112-1-git-send-email-byungchul.park@lge.com
-Signed-off-by: Byungchul Park <byungchul.park@lge.com>
-Cc: zijun_hu <zijun_hu@htc.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joel Fernandes <joelaf@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Also,
+
+- the overlap check of two ranges could be done with one clause
+
+- one typo in comment is fixed.
+
+Link: http://lkml.kernel.org/r/20170803063822.48702-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/vmalloc.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-dont-reinvent-the-wheel-but-use-existing-llist-api mm/vmalloc.c
---- a/mm/vmalloc.c~mm-dont-reinvent-the-wheel-but-use-existing-llist-api
+diff -puN mm/vmalloc.c~mm-vmalloc-reduce-half-comparison-during-pcpu_get_vm_areas mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-reduce-half-comparison-during-pcpu_get_vm_areas
 +++ a/mm/vmalloc.c
-@@ -49,12 +49,10 @@ static void __vunmap(const void *, int);
- static void free_work(struct work_struct *w)
- {
- 	struct vfree_deferred *p = container_of(w, struct vfree_deferred, wq);
--	struct llist_node *llnode = llist_del_all(&p->list);
--	while (llnode) {
--		void *p = llnode;
--		llnode = llist_next(llnode);
--		__vunmap(p, 1);
--	}
-+	struct llist_node *t, *llnode;
-+
-+	llist_for_each_safe(llnode, t, llist_del_all(&p->list))
-+		__vunmap((void *)llnode, 1);
- }
+@@ -2482,7 +2482,7 @@ static unsigned long pvm_determine_end(s
+  * matching slot.  While scanning, if any of the areas overlaps with
+  * existing vmap_area, the base address is pulled down to fit the
+  * area.  Scanning is repeated till all the areas fit and then all
+- * necessary data structres are inserted and the result is returned.
++ * necessary data structures are inserted and the result is returned.
+  */
+ struct vm_struct **pcpu_get_vm_areas(const unsigned long *offsets,
+ 				     const size_t *sizes, int nr_vms,
+@@ -2510,15 +2510,11 @@ struct vm_struct **pcpu_get_vm_areas(con
+ 		if (start > offsets[last_area])
+ 			last_area = area;
  
- /*** Page table manipulation functions ***/
-_
+-		for (area2 = 0; area2 < nr_vms; area2++) {
++		for (area2 = area + 1; area2 < nr_vms; area2++) {
+ 			unsigned long start2 = offsets[area2];
+ 			unsigned long end2 = start2 + sizes[area2];
+ 
+-			if (area2 == area)
+-				continue;
