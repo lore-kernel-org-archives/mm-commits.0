@@ -1,229 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [patch 035/119] mm, page_alloc: simplify zonelist
- initialization
-Date: Wed, 06 Sep 2017 16:20:30 -0700
-Message-ID: <20170906232030.D2PVf2V0D%akpm@linux-foundation.org>
+Subject: [patch 037/119] mm, memory_hotplug: get rid of
+ zonelists_mutex
+Date: Wed, 06 Sep 2017 16:20:37 -0700
+Message-ID: <20170906232037.m5mki3fCE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49642 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753909AbdIFXUc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:32 -0400
+        with ESMTP id S1753909AbdIFXUj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, haicheng.li@linux.intel.com, hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: simplify zonelist initialization
+Subject: mm, memory_hotplug: get rid of zonelists_mutex
 
-build_zonelists gradually builds zonelists from the nearest to the most
-distant node.  As we do not know how many populated zones we will have in
-each node we rely on the _zoneref to terminate initialized part of the
-zonelist by a NULL zone.  While this is functionally correct it is quite
-suboptimal because we cannot allow updaters to race with zonelists users
-because they could see an empty zonelist and fail the allocation or hit
-the OOM killer in the worst case.
+zonelists_mutex has been introduced by 4eaf3f64397c ("mem-hotplug: fix
+potential race while building zonelist for new populated zone") to protect
+zonelist building from races.  This is no longer needed though because
+both memory online and offline are fully serialized.  New users have grown
+since then.
 
-We can do much better, though.  We can store the node ordering into an
-already existing node_order array and then give this array to
-build_zonelists_in_node_order and do the whole initialization at once. 
-zonelists consumers still might see halfway initialized state but that
-should be much more tolerateable because the list will not be empty and
-they would either see some zone twice or skip over some zone(s) in the
-worst case which shouldn't lead to immediate failures.
+Notably setup_per_zone_wmarks wants to prevent from races between memory
+hotplug, khugepaged setup and manual min_free_kbytes update via sysctl
+(see cfd3da1e49bb ("mm: Serialize access to min_free_kbytes").  Let's add
+a private lock for that purpose.  This will not prevent from seeing
+halfway through memory hotplug operation but that shouldn't be a big deal
+becuse memory hotplug will update watermarks explicitly so we will
+eventually get a full picture.  The lock just makes sure we won't race
+when updating watermarks leading to weird results.
 
-While at it let's simplify build_zonelists_node which is rather confusing
-now.  It gets an index into the zoneref array and returns the updated
-index for the next iteration.  Let's rename the function to
-build_zonerefs_node to better reflect its purpose and give it zoneref
-array to update.  The function doesn't the index anymore.  It just returns
-the number of added zones so that the caller can advance the zonered array
-start for the next update.
+Also __build_all_zonelists manipulates global data so add a private lock
+for it as well.  This doesn't seem to be necessary today but it is more
+robust to have a lock there.
 
-This patch alone doesn't introduce any functional change yet, though, it
-is merely a preparatory work for later changes.
+While we are at it make sure we document that memory online/offline
+depends on a full serialization either via mem_hotplug_begin() or
+device_lock.
 
-Link: http://lkml.kernel.org/r/20170721143915.14161-7-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170721143915.14161-9-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Haicheng Li <haicheng.li@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   81 +++++++++++++++++++++++-----------------------
- 1 file changed, 41 insertions(+), 40 deletions(-)
+ include/linux/mmzone.h |    1 -
+ mm/memory_hotplug.c    |   12 ++----------
+ mm/page_alloc.c        |   18 +++++++++---------
+ 3 files changed, 11 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-simplify-zonelist-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-simplify-zonelist-initialization
-+++ a/mm/page_alloc.c
-@@ -4839,18 +4839,17 @@ static void zoneref_set_zone(struct zone
-  *
-  * Add all populated zones of a node to the zonelist.
-  */
--static int build_zonelists_node(pg_data_t *pgdat, struct zonelist *zonelist,
--				int nr_zones)
-+static int build_zonerefs_node(pg_data_t *pgdat, struct zoneref *zonerefs)
- {
- 	struct zone *zone;
- 	enum zone_type zone_type = MAX_NR_ZONES;
-+	int nr_zones = 0;
+diff -puN include/linux/mmzone.h~mm-memory_hotplug-get-rid-of-zonelists_mutex include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-memory_hotplug-get-rid-of-zonelists_mutex
++++ a/include/linux/mmzone.h
+@@ -770,7 +770,6 @@ static inline bool is_dev_zone(const str
  
- 	do {
- 		zone_type--;
- 		zone = pgdat->node_zones + zone_type;
- 		if (managed_zone(zone)) {
--			zoneref_set_zone(zone,
--				&zonelist->_zonerefs[nr_zones++]);
-+			zoneref_set_zone(zone, &zonerefs[nr_zones++]);
- 			check_highest_zone(zone_type);
- 		}
- 	} while (zone_type);
-@@ -4977,17 +4976,24 @@ static int find_next_best_node(int node,
-  * This results in maximum locality--normal zone overflows into local
-  * DMA zone, if any--but risks exhausting DMA zone.
-  */
--static void build_zonelists_in_node_order(pg_data_t *pgdat, int node)
-+static void build_zonelists_in_node_order(pg_data_t *pgdat, int *node_order,
-+		unsigned nr_nodes)
- {
--	int j;
--	struct zonelist *zonelist;
-+	struct zoneref *zonerefs;
-+	int i;
+ #include <linux/memory_hotplug.h>
  
--	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
--	for (j = 0; zonelist->_zonerefs[j].zone != NULL; j++)
--		;
--	j = build_zonelists_node(NODE_DATA(node), zonelist, j);
--	zonelist->_zonerefs[j].zone = NULL;
--	zonelist->_zonerefs[j].zone_idx = 0;
-+	zonerefs = pgdat->node_zonelists[ZONELIST_FALLBACK]._zonerefs;
-+
-+	for (i = 0; i < nr_nodes; i++) {
-+		int nr_zones;
-+
-+		pg_data_t *node = NODE_DATA(node_order[i]);
-+
-+		nr_zones = build_zonerefs_node(node, zonerefs);
-+		zonerefs += nr_zones;
-+	}
-+	zonerefs->zone = NULL;
-+	zonerefs->zone_idx = 0;
+-extern struct mutex zonelists_mutex;
+ void build_all_zonelists(pg_data_t *pgdat);
+ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
+ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-zonelists_mutex mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-zonelists_mutex
++++ a/mm/memory_hotplug.c
+@@ -897,7 +897,7 @@ static struct zone * __meminit move_pfn_
+ 	return zone;
  }
  
- /*
-@@ -4995,13 +5001,14 @@ static void build_zonelists_in_node_orde
-  */
- static void build_thisnode_zonelists(pg_data_t *pgdat)
+-/* Must be protected by mem_hotplug_begin() */
++/* Must be protected by mem_hotplug_begin() or a device_lock */
+ int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
  {
--	int j;
--	struct zonelist *zonelist;
-+	struct zoneref *zonerefs;
-+	int nr_zones;
- 
--	zonelist = &pgdat->node_zonelists[ZONELIST_NOFALLBACK];
--	j = build_zonelists_node(pgdat, zonelist, 0);
--	zonelist->_zonerefs[j].zone = NULL;
--	zonelist->_zonerefs[j].zone_idx = 0;
-+	zonerefs = pgdat->node_zonelists[ZONELIST_NOFALLBACK]._zonerefs;
-+	nr_zones = build_zonerefs_node(pgdat, zonerefs);
-+	zonerefs += nr_zones;
-+	zonerefs->zone = NULL;
-+	zonerefs->zone_idx = 0;
- }
- 
- /*
-@@ -5010,21 +5017,13 @@ static void build_thisnode_zonelists(pg_
-  * exhausted, but results in overflowing to remote node while memory
-  * may still exist in local DMA zone.
-  */
--static int node_order[MAX_NUMNODES];
- 
- static void build_zonelists(pg_data_t *pgdat)
- {
--	int i, node, load;
-+	static int node_order[MAX_NUMNODES];
-+	int node, load, nr_nodes = 0;
- 	nodemask_t used_mask;
- 	int local_node, prev_node;
--	struct zonelist *zonelist;
--
--	/* initialize zonelists */
--	for (i = 0; i < MAX_ZONELISTS; i++) {
--		zonelist = pgdat->node_zonelists + i;
--		zonelist->_zonerefs[0].zone = NULL;
--		zonelist->_zonerefs[0].zone_idx = 0;
--	}
- 
- 	/* NUMA-aware ordering of nodes */
- 	local_node = pgdat->node_id;
-@@ -5033,8 +5032,6 @@ static void build_zonelists(pg_data_t *p
- 	nodes_clear(used_mask);
- 
- 	memset(node_order, 0, sizeof(node_order));
--	i = 0;
--
- 	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
- 		/*
- 		 * We don't want to pressure a particular node.
-@@ -5045,11 +5042,12 @@ static void build_zonelists(pg_data_t *p
- 		    node_distance(local_node, prev_node))
- 			node_load[node] = load;
- 
-+		node_order[nr_nodes++] = node;
- 		prev_node = node;
- 		load--;
--		build_zonelists_in_node_order(pgdat, node);
+ 	unsigned long flags;
+@@ -926,7 +926,6 @@ int __ref online_pages(unsigned long pfn
+ 	 * This means the page allocator ignores this zone.
+ 	 * So, zonelist must be updated after online.
+ 	 */
+-	mutex_lock(&zonelists_mutex);
+ 	if (!populated_zone(zone)) {
+ 		need_zonelists_rebuild = 1;
+ 		setup_zone_pageset(zone);
+@@ -937,7 +936,6 @@ int __ref online_pages(unsigned long pfn
+ 	if (ret) {
+ 		if (need_zonelists_rebuild)
+ 			zone_pcp_reset(zone);
+-		mutex_unlock(&zonelists_mutex);
+ 		goto failed_addition;
  	}
  
-+	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
- 	build_thisnode_zonelists(pgdat);
- }
+@@ -955,8 +953,6 @@ int __ref online_pages(unsigned long pfn
+ 			zone_pcp_update(zone);
+ 	}
  
-@@ -5078,13 +5076,14 @@ static void setup_min_slab_ratio(void);
- static void build_zonelists(pg_data_t *pgdat)
- {
- 	int node, local_node;
--	enum zone_type j;
--	struct zonelist *zonelist;
-+	struct zoneref *zonerefs;
-+	int nr_zones;
+-	mutex_unlock(&zonelists_mutex);
+-
+ 	init_per_zone_wmark_min();
  
- 	local_node = pgdat->node_id;
- 
--	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
--	j = build_zonelists_node(pgdat, zonelist, 0);
-+	zonerefs = pgdat->node_zonelists[ZONELIST_FALLBACK]._zonerefs;
-+	nr_zones = build_zonerefs_node(pgdat, zonerefs);
-+	zonerefs += nr_zones;
+ 	if (onlined_pages) {
+@@ -1027,9 +1023,7 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	 * The node we allocated has no zone fallback lists. For avoiding
+ 	 * to access not-initialized zonelist, build here.
+ 	 */
+-	mutex_lock(&zonelists_mutex);
+ 	build_all_zonelists(pgdat);
+-	mutex_unlock(&zonelists_mutex);
  
  	/*
- 	 * Now we build the zonelist so that it contains the zones
-@@ -5097,16 +5096,18 @@ static void build_zonelists(pg_data_t *p
- 	for (node = local_node + 1; node < MAX_NUMNODES; node++) {
- 		if (!node_online(node))
- 			continue;
--		j = build_zonelists_node(NODE_DATA(node), zonelist, j);
-+		nr_zones = build_zonerefs_node(NODE_DATA(node), zonerefs);
-+		zonerefs += nr_zones;
- 	}
- 	for (node = 0; node < local_node; node++) {
- 		if (!node_online(node))
- 			continue;
--		j = build_zonelists_node(NODE_DATA(node), zonelist, j);
-+		nr_zones = build_zonerefs_node(NODE_DATA(node), zonerefs);
-+		zonerefs += nr_zones;
- 	}
+ 	 * zone->managed_pages is set to an approximate value in
+@@ -1696,9 +1690,7 @@ repeat:
  
--	zonelist->_zonerefs[j].zone = NULL;
--	zonelist->_zonerefs[j].zone_idx = 0;
-+	zonerefs->zone = NULL;
-+	zonerefs->zone_idx = 0;
+ 	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
+-		mutex_lock(&zonelists_mutex);
+ 		build_all_zonelists(NULL);
+-		mutex_unlock(&zonelists_mutex);
+ 	} else
+ 		zone_pcp_update(zone);
+ 
+@@ -1724,7 +1716,7 @@ failed_removal:
+ 	return ret;
  }
  
- #endif	/* CONFIG_NUMA */
+-/* Must be protected by mem_hotplug_begin() */
++/* Must be protected by mem_hotplug_begin() or a device_lock */
+ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
+diff -puN mm/page_alloc.c~mm-memory_hotplug-get-rid-of-zonelists_mutex mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-get-rid-of-zonelists_mutex
++++ a/mm/page_alloc.c
+@@ -5131,17 +5131,14 @@ static void setup_pageset(struct per_cpu
+ static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
+ static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+ 
+-/*
+- * Global mutex to protect against size modification of zonelists
+- * as well as to serialize pageset setup for the new populated zone.
+- */
+-DEFINE_MUTEX(zonelists_mutex);
+-
+ static void __build_all_zonelists(void *data)
+ {
+ 	int nid;
+ 	int __maybe_unused cpu;
+ 	pg_data_t *self = data;
++	static DEFINE_SPINLOCK(lock);
++
++	spin_lock(&lock);
+ 
+ #ifdef CONFIG_NUMA
+ 	memset(node_load, 0, sizeof(node_load));
+@@ -5173,6 +5170,8 @@ static void __build_all_zonelists(void *
+ 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
+ #endif
+ 	}
++
++	spin_unlock(&lock);
+ }
+ 
+ static noinline void __init
+@@ -5203,7 +5202,6 @@ build_all_zonelists_init(void)
+ }
+ 
+ /*
+- * Called with zonelists_mutex held always
+  * unless system_state == SYSTEM_BOOTING.
+  *
+  * __ref due to call of __init annotated helper build_all_zonelists_init
+@@ -6939,9 +6937,11 @@ static void __setup_per_zone_wmarks(void
+  */
+ void setup_per_zone_wmarks(void)
+ {
+-	mutex_lock(&zonelists_mutex);
++	static DEFINE_SPINLOCK(lock);
++
++	spin_lock(&lock);
+ 	__setup_per_zone_wmarks();
+-	mutex_unlock(&zonelists_mutex);
++	spin_unlock(&lock);
+ }
+ 
+ /*
 _
