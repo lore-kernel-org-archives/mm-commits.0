@@ -1,38 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [patch 039/119] mm, page_owner: make init_pages_in_zone()
- faster
-Date: Wed, 06 Sep 2017 16:20:44 -0700
-Message-ID: <20170906232044.tDHN3DKJV%akpm@linux-foundation.org>
+Subject: [patch 041/119] mm, page_owner: don't grab zone->lock for
+ init_pages_in_zone()
+Date: Wed, 06 Sep 2017 16:20:51 -0700
+Message-ID: <20170906232051.gEaoz8_tm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49754 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754029AbdIFXUq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:46 -0400
+        with ESMTP id S1753570AbdIFXUx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, vinmenon@codeaurora.org, yang.shi@linaro.org, zhongjiang@huawei.com
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_owner: make init_pages_in_zone() faster
+Subject: mm, page_owner: don't grab zone->lock for init_pages_in_zone()
 
-In init_pages_in_zone() we currently use the generic set_page_owner()
-function to initialize page_owner info for early allocated pages.  This
-means we needlessly do lookup_page_ext() twice for each page, and more
-importantly save_stack(), which has to unwind the stack and find the
-corresponding stack depot handle.  Because the stack is always the same
-for the initialization, unwind it once in init_pages_in_zone() and reuse
-the handle.  Also avoid the repeated lookup_page_ext().
+init_pages_in_zone() is run under zone->lock, which means a long lock time
+and disabled interrupts on large machines.  This is currently not an issue
+since it runs early in boot, but a later patch will change that.  However,
+like other pfn scanners, we don't actually need zone->lock even when other
+cpus are running.  The only potentially dangerous operation here is
+reading bogus buddy page owner due to race, and we already know how to
+handle that.  The worse that can happen is that we skip some early
+allocated pages, which should not affect the debugging power of page_owner
+noticeably.
 
-This can significantly reduce boot times with page_owner=on on large
-machines, especially for kernels built without frame pointer, where the
-stack unwinding is noticeably slower.
-
-[vbabka@suse.cz: don't duplicate code of __set_page_owner(), per Michal Hocko]
-[akpm@linux-foundation.org: coding-style fixes]
-[vbabka@suse.cz: create statically allocated fake stack trace for early allocated pages, per Michal]
-  Link: http://lkml.kernel.org/r/45813564-2342-fc8d-d31a-f4b68a724325@suse.cz
-Link: http://lkml.kernel.org/r/20170720134029.25268-2-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20170720134029.25268-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -44,124 +38,55 @@ Cc: zhong jiang <zhongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   52 ++++++++++++++++++++++++++++------------------
- 1 file changed, 32 insertions(+), 20 deletions(-)
+ mm/page_owner.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster
+diff -puN mm/page_owner.c~mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-dont-grab-zone-lock-for-init_pages_in_zone
 +++ a/mm/page_owner.c
-@@ -30,6 +30,7 @@ DEFINE_STATIC_KEY_FALSE(page_owner_inite
- 
- static depot_stack_handle_t dummy_handle;
- static depot_stack_handle_t failure_handle;
-+static depot_stack_handle_t early_handle;
- 
- static void init_early_allocated_pages(void);
- 
-@@ -53,7 +54,7 @@ static bool need_page_owner(void)
- 	return true;
- }
- 
--static noinline void register_dummy_stack(void)
-+static __always_inline depot_stack_handle_t create_dummy_stack(void)
- {
- 	unsigned long entries[4];
- 	struct stack_trace dummy;
-@@ -64,21 +65,22 @@ static noinline void register_dummy_stac
- 	dummy.skip = 0;
- 
- 	save_stack_trace(&dummy);
--	dummy_handle = depot_save_stack(&dummy, GFP_KERNEL);
-+	return depot_save_stack(&dummy, GFP_KERNEL);
- }
- 
--static noinline void register_failure_stack(void)
-+static noinline void register_dummy_stack(void)
- {
--	unsigned long entries[4];
--	struct stack_trace failure;
-+	dummy_handle = create_dummy_stack();
-+}
- 
--	failure.nr_entries = 0;
--	failure.max_entries = ARRAY_SIZE(entries);
--	failure.entries = &entries[0];
--	failure.skip = 0;
-+static noinline void register_failure_stack(void)
-+{
-+	failure_handle = create_dummy_stack();
-+}
- 
--	save_stack_trace(&failure);
--	failure_handle = depot_save_stack(&failure, GFP_KERNEL);
-+static noinline void register_early_stack(void)
-+{
-+	early_handle = create_dummy_stack();
- }
- 
- static void init_page_owner(void)
-@@ -88,6 +90,7 @@ static void init_page_owner(void)
- 
- 	register_dummy_stack();
- 	register_failure_stack();
-+	register_early_stack();
- 	static_branch_enable(&page_owner_inited);
- 	init_early_allocated_pages();
- }
-@@ -165,17 +168,13 @@ static noinline depot_stack_handle_t sav
- 	return handle;
- }
- 
--noinline void __set_page_owner(struct page *page, unsigned int order,
--					gfp_t gfp_mask)
-+static inline void __set_page_owner_handle(struct page_ext *page_ext,
-+	depot_stack_handle_t handle, unsigned int order, gfp_t gfp_mask)
- {
--	struct page_ext *page_ext = lookup_page_ext(page);
- 	struct page_owner *page_owner;
- 
--	if (unlikely(!page_ext))
--		return;
--
- 	page_owner = get_page_owner(page_ext);
--	page_owner->handle = save_stack(gfp_mask);
-+	page_owner->handle = handle;
- 	page_owner->order = order;
- 	page_owner->gfp_mask = gfp_mask;
- 	page_owner->last_migrate_reason = -1;
-@@ -183,6 +182,19 @@ noinline void __set_page_owner(struct pa
- 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- }
- 
-+noinline void __set_page_owner(struct page *page, unsigned int order,
-+					gfp_t gfp_mask)
-+{
-+	struct page_ext *page_ext = lookup_page_ext(page);
-+	depot_stack_handle_t handle;
-+
-+	if (unlikely(!page_ext))
-+		return;
-+
-+	handle = save_stack(gfp_mask);
-+	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
-+}
-+
- void __set_page_owner_migrate_reason(struct page *page, int reason)
- {
- 	struct page_ext *page_ext = lookup_page_ext(page);
-@@ -565,12 +577,12 @@ static void init_pages_in_zone(pg_data_t
- 			if (unlikely(!page_ext))
+@@ -562,11 +562,17 @@ static void init_pages_in_zone(pg_data_t
  				continue;
  
--			/* Maybe overraping zone */
-+			/* Maybe overlapping zone */
- 			if (test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+ 			/*
+-			 * We are safe to check buddy flag and order, because
+-			 * this is init stage and only single thread runs.
++			 * To avoid having to grab zone->lock, be a little
++			 * careful when reading buddy page order. The only
++			 * danger is that we skip too much and potentially miss
++			 * some early allocated pages, which is better than
++			 * heavy lock contention.
+ 			 */
+ 			if (PageBuddy(page)) {
+-				pfn += (1UL << page_order(page)) - 1;
++				unsigned long order = page_order_unsafe(page);
++
++				if (order > 0 && order < MAX_ORDER)
++					pfn += (1UL << order) - 1;
  				continue;
+ 			}
  
- 			/* Found early allocated page */
--			set_page_owner(page, 0, 0);
-+			__set_page_owner_handle(page_ext, early_handle, 0, 0);
+@@ -585,6 +591,7 @@ static void init_pages_in_zone(pg_data_t
+ 			__set_page_owner_handle(page_ext, early_handle, 0, 0);
  			count++;
  		}
++		cond_resched();
  	}
+ 
+ 	pr_info("Node %d, zone %8s: page owner found early allocated %lu pages\n",
+@@ -595,15 +602,12 @@ static void init_zones_in_node(pg_data_t
+ {
+ 	struct zone *zone;
+ 	struct zone *node_zones = pgdat->node_zones;
+-	unsigned long flags;
+ 
+ 	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
+ 		if (!populated_zone(zone))
+ 			continue;
+ 
+-		spin_lock_irqsave(&zone->lock, flags);
+ 		init_pages_in_zone(pgdat, zone);
+-		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+ }
+ 
 _
