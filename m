@@ -1,224 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/119] zram: read page from backing device
-Date: Wed, 06 Sep 2017 16:20:07 -0700
-Message-ID: <20170906232007.QAdoHQi82%akpm@linux-foundation.org>
+Subject: [patch 029/119] zram: add config and doc file for
+ writeback feature
+Date: Wed, 06 Sep 2017 16:20:10 -0700
+Message-ID: <20170906232010.pLewKQuvt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753909AbdIFXUI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:08 -0400
+        with ESMTP id S1753909AbdIFXUL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:20:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, xieyisheng1@huawei.com
+To: akpm@linux-foundation.org, juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: read page from backing device
+Subject: zram: add config and doc file for writeback feature
 
-This patch enables read IO from backing device.  For the feature, it
-implements two IO read functions to transfer data from backing storage.
+This patch adds document and kconfig for using of writeback feature.
 
-One is asynchronous IO function and other is synchronous one.
-
-A reason I need synchrnous IO is due to partial write which need to
-complete read IO before the overwriting partial data.
-
-We can make the partial IO's case asynchronous, too but at the moment, I
-don't feel adding more complexity to support such rare use cases so want
-to go with simple.
-
-[xieyisheng1@huawei.com: read_from_bdev_async(): return 1 to avoid call page_endio() in zram_rw_page()]
-  Link: http://lkml.kernel.org/r/1502707447-6944-1-git-send-email-xieyisheng1@huawei.com
-Link: http://lkml.kernel.org/r/1498459987-24562-9-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1498459987-24562-10-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
 Cc: Juneho Choi <juno.choi@lge.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  123 ++++++++++++++++++++++++++++++--
- 1 file changed, 118 insertions(+), 5 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram |    8 ++++++++
+ Documentation/blockdev/zram.txt            |   11 +++++++++++
+ drivers/block/zram/Kconfig                 |   12 ++++++++++++
+ 3 files changed, 31 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-read-page-from-backing-device drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-read-page-from-backing-device
-+++ a/drivers/block/zram/zram_drv.c
-@@ -454,6 +454,95 @@ void zram_page_end_io(struct bio *bio)
- 	bio_put(bio);
- }
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -90,3 +90,11 @@ Description:
+ 		device's debugging info useful for kernel developers. Its
+ 		format is not documented intentionally and may change
+ 		anytime without any notice.
++
++What:		/sys/block/zram<id>/backing_dev
++Date:		June 2017
++Contact:	Minchan Kim <minchan@kernel.org>
++Description:
++		The backing_dev file is read-write and set up backing
++		device for zram to write incompressible pages.
++		For using, user should enable CONFIG_ZRAM_WRITEBACK.
+diff -puN Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature
++++ a/Documentation/blockdev/zram.txt
+@@ -168,6 +168,7 @@ max_comp_streams  RW    the number of po
+ comp_algorithm    RW    show and change the compression algorithm
+ compact           WO    trigger memory compaction
+ debug_stat        RO    this file is used for zram debugging purposes
++backing_dev	  RW	set up backend storage for zram to write out
  
-+/*
-+ * Returns 1 if the submission is successful.
-+ */
-+static int read_from_bdev_async(struct zram *zram, struct bio_vec *bvec,
-+			unsigned long entry, struct bio *parent)
-+{
-+	struct bio *bio;
-+
-+	bio = bio_alloc(GFP_ATOMIC, 1);
-+	if (!bio)
-+		return -ENOMEM;
-+
-+	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
-+	bio->bi_bdev = zram->bdev;
-+	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len, bvec->bv_offset)) {
-+		bio_put(bio);
-+		return -EIO;
-+	}
-+
-+	if (!parent) {
-+		bio->bi_opf = REQ_OP_READ;
-+		bio->bi_end_io = zram_page_end_io;
-+	} else {
-+		bio->bi_opf = parent->bi_opf;
-+		bio_chain(bio, parent);
-+	}
-+
-+	submit_bio(bio);
-+	return 1;
-+}
-+
-+struct zram_work {
-+	struct work_struct work;
-+	struct zram *zram;
-+	unsigned long entry;
-+	struct bio *bio;
-+};
-+
-+#if PAGE_SIZE != 4096
-+static void zram_sync_read(struct work_struct *work)
-+{
-+	struct bio_vec bvec;
-+	struct zram_work *zw = container_of(work, struct zram_work, work);
-+	struct zram *zram = zw->zram;
-+	unsigned long entry = zw->entry;
-+	struct bio *bio = zw->bio;
-+
-+	read_from_bdev_async(zram, &bvec, entry, bio);
-+}
-+
-+/*
-+ * Block layer want one ->make_request_fn to be active at a time
-+ * so if we use chained IO with parent IO in same context,
-+ * it's a deadlock. To avoid, it, it uses worker thread context.
-+ */
-+static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
-+				unsigned long entry, struct bio *bio)
-+{
-+	struct zram_work work;
-+
-+	work.zram = zram;
-+	work.entry = entry;
-+	work.bio = bio;
-+
-+	INIT_WORK_ONSTACK(&work.work, zram_sync_read);
-+	queue_work(system_unbound_wq, &work.work);
-+	flush_work(&work.work);
-+	destroy_work_on_stack(&work.work);
-+
-+	return 1;
-+}
-+#else
-+static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
-+				unsigned long entry, struct bio *bio)
-+{
-+	WARN_ON(1);
-+	return -EIO;
-+}
-+#endif
-+
-+static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
-+			unsigned long entry, struct bio *parent, bool sync)
-+{
-+	if (sync)
-+		return read_from_bdev_sync(zram, bvec, entry, parent);
-+	else
-+		return read_from_bdev_async(zram, bvec, entry, parent);
-+}
-+
- static int write_to_bdev(struct zram *zram, struct bio_vec *bvec,
- 					u32 index, struct bio *parent,
- 					unsigned long *pentry)
-@@ -514,6 +603,12 @@ static int write_to_bdev(struct zram *zr
- {
- 	return -EIO;
- }
-+
-+static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
-+			unsigned long entry, struct bio *parent, bool sync)
-+{
-+	return -EIO;
-+}
- static void zram_wb_clear(struct zram *zram, u32 index) {}
- #endif
  
-@@ -773,13 +868,31 @@ static void zram_free_page(struct zram *
- 	zram_set_obj_size(zram, index, 0);
- }
+ User space is advised to use the following files to read the device statistics.
+@@ -231,5 +232,15 @@ line of text and contains the following
+ 	resets the disksize to zero. You must set the disksize again
+ 	before reusing the device.
  
--static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index)
-+static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index,
-+				struct bio *bio, bool partial_io)
- {
- 	int ret;
- 	unsigned long handle;
- 	unsigned int size;
- 	void *src, *dst;
- 
-+	if (zram_wb_enabled(zram)) {
-+		zram_slot_lock(zram, index);
-+		if (zram_test_flag(zram, index, ZRAM_WB)) {
-+			struct bio_vec bvec;
++* Optional Feature
 +
-+			zram_slot_unlock(zram, index);
++= writeback
 +
-+			bvec.bv_page = page;
-+			bvec.bv_len = PAGE_SIZE;
-+			bvec.bv_offset = 0;
-+			return read_from_bdev(zram, &bvec,
-+					zram_get_element(zram, index),
-+					bio, partial_io);
-+		}
-+		zram_slot_unlock(zram, index);
-+	}
++With incompressible pages, there is no memory saving with zram.
++Instead, with CONFIG_ZRAM_WRITEBACK, zram can write incompressible page
++to backing storage rather than keeping it in memory.
++User should set up backing device via /sys/block/zramX/backing_dev
++before disksize setting.
 +
- 	if (zram_same_page_read(zram, index, page, 0, PAGE_SIZE))
- 		return 0;
+ Nitin Gupta
+ ngupta@vflare.org
+diff -puN drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature drivers/block/zram/Kconfig
+--- a/drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature
++++ a/drivers/block/zram/Kconfig
+@@ -13,3 +13,15 @@ config ZRAM
+ 	  disks and maybe many more.
  
-@@ -812,7 +925,7 @@ static int __zram_bvec_read(struct zram
- }
- 
- static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
--				u32 index, int offset)
-+				u32 index, int offset, struct bio *bio)
- {
- 	int ret;
- 	struct page *page;
-@@ -825,7 +938,7 @@ static int zram_bvec_read(struct zram *z
- 			return -ENOMEM;
- 	}
- 
--	ret = __zram_bvec_read(zram, page, index);
-+	ret = __zram_bvec_read(zram, page, index, bio, is_partial_io(bvec));
- 	if (unlikely(ret))
- 		goto out;
- 
-@@ -988,7 +1101,7 @@ static int zram_bvec_write(struct zram *
- 		if (!page)
- 			return -ENOMEM;
- 
--		ret = __zram_bvec_read(zram, page, index);
-+		ret = __zram_bvec_read(zram, page, index, bio, true);
- 		if (ret)
- 			goto out;
- 
-@@ -1065,7 +1178,7 @@ static int zram_bvec_rw(struct zram *zra
- 
- 	if (!is_write) {
- 		atomic64_inc(&zram->stats.num_reads);
--		ret = zram_bvec_read(zram, bvec, index, offset);
-+		ret = zram_bvec_read(zram, bvec, index, offset, bio);
- 		flush_dcache_page(bvec->bv_page);
- 	} else {
- 		atomic64_inc(&zram->stats.num_writes);
+ 	  See zram.txt for more information.
++
++config ZRAM_WRITEBACK
++       bool "Write back incompressible page to backing device"
++       depends on ZRAM
++       default n
++       help
++	 With incompressible page, there is no memory saving to keep it
++	 in memory. Instead, write it out to backing device.
++	 For this feature, admin should set up backing device via
++	 /sys/block/zramX/backing_dev.
++
++	 See zram.txt for more infomration.
 _
