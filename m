@@ -1,263 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [patch 020/119] mm, memory_hotplug: remove zone
- restrictions
-Date: Wed, 06 Sep 2017 16:19:40 -0700
-Message-ID: <20170906231940.zd64LK3Nx%akpm@linux-foundation.org>
+Subject: [patch 017/119] drm/i915: wire up shrinkctl->nr_scanned
+Date: Wed, 06 Sep 2017 16:19:30 -0700
+Message-ID: <20170906231930.twaX7ke8L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49310 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751907AbdIFXTm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:42 -0400
+        with ESMTP id S1750944AbdIFXTb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2017 19:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, iamjoonsoo.kim@lge.com, imammedo@redhat.com, linux-api@vger.kernel.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, richard.weiyang@gmail.com, slaoub@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, joonas.lahtinen@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, shli@fb.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: remove zone restrictions
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: drm/i915: wire up shrinkctl->nr_scanned
 
-Historically we have enforced that any kernel zone (e.g ZONE_NORMAL) has
-to precede the Movable zone in the physical memory range.  The purpose of
-the movable zone is, however, not bound to any physical memory
-restriction.  It merely defines a class of migrateable and reclaimable
-memory.
+shrink_slab() allows us to report back the number of objects we
+successfully scanned (out of the target shrinkctl->nr_to_scan).  As report
+the number of pages owned by each GEM object as a separate item to the
+shrinker, we cannot precisely control the number of shrinker objects we
+scan on each pass; and indeed may free more than requested.  If we fail to
+tell the shrinker about the number of objects we process, it will continue
+to hold a grudge against us as any objects left unscanned are added to the
+next reclaim -- and so we will keep on "unfairly" shrinking our own slab
+in comparison to other slabs.
 
-There are users (e.g.  CMA) who might want to reserve specific physical
-memory ranges for their own purpose.  Moreover our pfn walkers have to be
-prepared for zones overlapping in the physical range already because we do
-support interleaving NUMA nodes and therefore zones can interleave as
-well.  This means we can allow each memory block to be associated with a
-different zone.
-
-Loosen the current onlining semantic and allow explicit onlining type on
-any memblock.  That means that online_{kernel,movable} will be allowed
-regardless of the physical address of the memblock as long as it is
-offline of course.  This might result in moveble zone overlapping with
-other kernel zones.  Default onlining then becomes a bit tricky but still
-sensible.  echo online > memoryXY/state will online the given block to
-
-	1) the default zone if the given range is outside of any zone
-	2) the enclosing zone if such a zone doesn't interleave with
-	   any other zone
-        3) the default zone if more zones interleave for this range
-
-where default zone is movable zone only if movable_node is enabled
-otherwise it is a kernel zone.
-
-Here is an example of the semantic with (movable_node is not present but
-it work in an analogous way). We start with following memblocks, all of
-them offline
-memory34/valid_zones:Normal Movable
-memory35/valid_zones:Normal Movable
-memory36/valid_zones:Normal Movable
-memory37/valid_zones:Normal Movable
-memory38/valid_zones:Normal Movable
-memory39/valid_zones:Normal Movable
-memory40/valid_zones:Normal Movable
-memory41/valid_zones:Normal Movable
-
-Now, we online block 34 in default mode and block 37 as movable
-root@test1:/sys/devices/system/node/node1# echo online > memory34/state
-root@test1:/sys/devices/system/node/node1# echo online_movable > memory37/state
-memory34/valid_zones:Normal
-memory35/valid_zones:Normal Movable
-memory36/valid_zones:Normal Movable
-memory37/valid_zones:Movable
-memory38/valid_zones:Normal Movable
-memory39/valid_zones:Normal Movable
-memory40/valid_zones:Normal Movable
-memory41/valid_zones:Normal Movable
-
-As we can see all other blocks can still be onlined both into Normal and
-Movable zones and the Normal is default because the Movable zone spans
-only block37 now.
-root@test1:/sys/devices/system/node/node1# echo online_movable > memory41/state
-memory34/valid_zones:Normal
-memory35/valid_zones:Normal Movable
-memory36/valid_zones:Normal Movable
-memory37/valid_zones:Movable
-memory38/valid_zones:Movable Normal
-memory39/valid_zones:Movable Normal
-memory40/valid_zones:Movable Normal
-memory41/valid_zones:Movable
-
-Now the default zone for blocks 37-41 has changed because movable zone
-spans that range.
-root@test1:/sys/devices/system/node/node1# echo online_kernel > memory39/state
-memory34/valid_zones:Normal
-memory35/valid_zones:Normal Movable
-memory36/valid_zones:Normal Movable
-memory37/valid_zones:Movable
-memory38/valid_zones:Normal Movable
-memory39/valid_zones:Normal
-memory40/valid_zones:Movable Normal
-memory41/valid_zones:Movable
-
-Note that the block 39 now belongs to the zone Normal and so block38
-falls into Normal by default as well.
-
-For completness
-root@test1:/sys/devices/system/node/node1# for i in memory[34]?
-do
-	echo online > $i/state 2>/dev/null
-done
-
-memory34/valid_zones:Normal
-memory35/valid_zones:Normal
-memory36/valid_zones:Normal
-memory37/valid_zones:Movable
-memory38/valid_zones:Normal
-memory39/valid_zones:Normal
-memory40/valid_zones:Movable
-memory41/valid_zones:Movable
-
-Implementation wise the change is quite straightforward.  We can get rid
-of allow_online_pfn_range altogether.  online_pages allows only offline
-nodes already.  The original default_zone_for_pfn will become
-default_kernel_zone_for_pfn.  New default_zone_for_pfn implements the
-above semantic.  zone_for_pfn_range is slightly reorganized to implement
-kernel and movable online type explicitly and MMOP_ONLINE_KEEP becomes a
-catch all default behavior.
-
-Link: http://lkml.kernel.org/r/20170714121233.16861-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: <slaoub@gmail.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: <linux-api@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170822135325.9191-2-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    3 -
- mm/memory_hotplug.c   |   74 ++++++++++++----------------------------
- 2 files changed, 23 insertions(+), 54 deletions(-)
+ drivers/gpu/drm/i915/i915_debugfs.c      |    4 +--
+ drivers/gpu/drm/i915/i915_drv.h          |    1 
+ drivers/gpu/drm/i915/i915_gem.c          |    4 +--
+ drivers/gpu/drm/i915/i915_gem_gtt.c      |    2 -
+ drivers/gpu/drm/i915/i915_gem_shrinker.c |   24 +++++++++++++++------
+ 5 files changed, 24 insertions(+), 11 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory_hotplug-remove-zone-restrictions drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory_hotplug-remove-zone-restrictions
-+++ a/drivers/base/memory.c
-@@ -394,9 +394,6 @@ static void print_allowed_zone(char *buf
- {
- 	struct zone *zone;
+diff -puN drivers/gpu/drm/i915/i915_debugfs.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_debugfs.c
+--- a/drivers/gpu/drm/i915/i915_debugfs.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -4308,10 +4308,10 @@ i915_drop_caches_set(void *data, u64 val
  
--	if (!allow_online_pfn_range(nid, start_pfn, nr_pages, online_type))
--		return;
--
- 	zone = zone_for_pfn_range(online_type, nid, start_pfn, nr_pages);
- 	if (zone != default_zone) {
- 		strcat(buf, " ");
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-zone-restrictions mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-zone-restrictions
-+++ a/mm/memory_hotplug.c
-@@ -831,7 +831,7 @@ void __ref move_pfn_range_to_zone(struct
-  * If no kernel zone covers this pfn range it will automatically go
-  * to the ZONE_NORMAL.
-  */
--static struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
-+static struct zone *default_kernel_zone_for_pfn(int nid, unsigned long start_pfn,
- 		unsigned long nr_pages)
- {
- 	struct pglist_data *pgdat = NODE_DATA(nid);
-@@ -847,65 +847,40 @@ static struct zone *default_zone_for_pfn
- 	return &pgdat->node_zones[ZONE_NORMAL];
- }
+ 	fs_reclaim_acquire(GFP_KERNEL);
+ 	if (val & DROP_BOUND)
+-		i915_gem_shrink(dev_priv, LONG_MAX, I915_SHRINK_BOUND);
++		i915_gem_shrink(dev_priv, LONG_MAX, NULL, I915_SHRINK_BOUND);
  
--bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned long nr_pages, int online_type)
-+static inline struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
-+		unsigned long nr_pages)
- {
--	struct pglist_data *pgdat = NODE_DATA(nid);
--	struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
--	struct zone *default_zone = default_zone_for_pfn(nid, pfn, nr_pages);
-+	struct zone *kernel_zone = default_kernel_zone_for_pfn(nid, start_pfn,
-+			nr_pages);
-+	struct zone *movable_zone = &NODE_DATA(nid)->node_zones[ZONE_MOVABLE];
-+	bool in_kernel = zone_intersects(kernel_zone, start_pfn, nr_pages);
-+	bool in_movable = zone_intersects(movable_zone, start_pfn, nr_pages);
+ 	if (val & DROP_UNBOUND)
+-		i915_gem_shrink(dev_priv, LONG_MAX, I915_SHRINK_UNBOUND);
++		i915_gem_shrink(dev_priv, LONG_MAX, NULL, I915_SHRINK_UNBOUND);
  
- 	/*
--	 * TODO there shouldn't be any inherent reason to have ZONE_NORMAL
--	 * physically before ZONE_MOVABLE. All we need is they do not
--	 * overlap. Historically we didn't allow ZONE_NORMAL after ZONE_MOVABLE
--	 * though so let's stick with it for simplicity for now.
--	 * TODO make sure we do not overlap with ZONE_DEVICE
-+	 * We inherit the existing zone in a simple case where zones do not
-+	 * overlap in the given range
+ 	if (val & DROP_SHRINK_ALL)
+ 		i915_gem_shrink_all(dev_priv);
+diff -puN drivers/gpu/drm/i915/i915_drv.h~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_drv.h
+--- a/drivers/gpu/drm/i915/i915_drv.h~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_drv.h
+@@ -3742,6 +3742,7 @@ i915_gem_object_create_internal(struct d
+ /* i915_gem_shrinker.c */
+ unsigned long i915_gem_shrink(struct drm_i915_private *dev_priv,
+ 			      unsigned long target,
++			      unsigned long *nr_scanned,
+ 			      unsigned flags);
+ #define I915_SHRINK_PURGEABLE 0x1
+ #define I915_SHRINK_UNBOUND 0x2
+diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -2354,7 +2354,7 @@ rebuild_st:
+ 				goto err_sg;
+ 			}
+ 
+-			i915_gem_shrink(dev_priv, 2 * page_count, *s++);
++			i915_gem_shrink(dev_priv, 2 * page_count, NULL, *s++);
+ 			cond_resched();
+ 
+ 			/* We've tried hard to allocate the memory by reaping
+@@ -5015,7 +5015,7 @@ int i915_gem_freeze_late(struct drm_i915
+ 	 * the objects as well, see i915_gem_freeze()
  	 */
--	if (online_type == MMOP_ONLINE_KERNEL) {
--		if (zone_is_empty(movable_zone))
--			return true;
--		return movable_zone->zone_start_pfn >= pfn + nr_pages;
--	} else if (online_type == MMOP_ONLINE_MOVABLE) {
--		return zone_end_pfn(default_zone) <= pfn;
--	}
--
--	/* MMOP_ONLINE_KEEP will always succeed and inherits the current zone */
--	return online_type == MMOP_ONLINE_KEEP;
--}
--
--static inline bool movable_pfn_range(int nid, struct zone *default_zone,
--		unsigned long start_pfn, unsigned long nr_pages)
--{
--	if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
--				MMOP_ONLINE_KERNEL))
--		return true;
-+	if (in_kernel ^ in_movable)
-+		return (in_kernel) ? kernel_zone : movable_zone;
  
--	if (!movable_node_is_enabled())
--		return false;
--
--	return !zone_intersects(default_zone, start_pfn, nr_pages);
-+	/*
-+	 * If the range doesn't belong to any zone or two zones overlap in the
-+	 * given range then we use movable zone only if movable_node is
-+	 * enabled because we always online to a kernel zone by default.
-+	 */
-+	return movable_node_enabled ? movable_zone : kernel_zone;
- }
+-	i915_gem_shrink(dev_priv, -1UL, I915_SHRINK_UNBOUND);
++	i915_gem_shrink(dev_priv, -1UL, NULL, I915_SHRINK_UNBOUND);
+ 	i915_gem_drain_freed_objects(dev_priv);
  
- struct zone * zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
- 		unsigned long nr_pages)
+ 	mutex_lock(&dev_priv->drm.struct_mutex);
+diff -puN drivers/gpu/drm/i915/i915_gem_gtt.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_gem_gtt.c
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -2062,7 +2062,7 @@ int i915_gem_gtt_prepare_pages(struct dr
+ 		 */
+ 		GEM_BUG_ON(obj->mm.pages == pages);
+ 	} while (i915_gem_shrink(to_i915(obj->base.dev),
+-				 obj->base.size >> PAGE_SHIFT,
++				 obj->base.size >> PAGE_SHIFT, NULL,
+ 				 I915_SHRINK_BOUND |
+ 				 I915_SHRINK_UNBOUND |
+ 				 I915_SHRINK_ACTIVE));
+diff -puN drivers/gpu/drm/i915/i915_gem_shrinker.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_gem_shrinker.c
+--- a/drivers/gpu/drm/i915/i915_gem_shrinker.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_gem_shrinker.c
+@@ -136,6 +136,7 @@ static bool unsafe_drop_pages(struct drm
+  * i915_gem_shrink - Shrink buffer object caches
+  * @dev_priv: i915 device
+  * @target: amount of memory to make available, in pages
++ * @nr_scanned: optional output for number of pages scanned (incremental)
+  * @flags: control flags for selecting cache types
+  *
+  * This function is the main interface to the shrinker. It will try to release
+@@ -158,7 +159,9 @@ static bool unsafe_drop_pages(struct drm
+  */
+ unsigned long
+ i915_gem_shrink(struct drm_i915_private *dev_priv,
+-		unsigned long target, unsigned flags)
++		unsigned long target,
++		unsigned long *nr_scanned,
++		unsigned flags)
  {
--	struct pglist_data *pgdat = NODE_DATA(nid);
--	struct zone *zone = default_zone_for_pfn(nid, start_pfn, nr_pages);
-+	if (online_type == MMOP_ONLINE_KERNEL)
-+		return default_kernel_zone_for_pfn(nid, start_pfn, nr_pages);
+ 	const struct {
+ 		struct list_head *list;
+@@ -169,6 +172,7 @@ i915_gem_shrink(struct drm_i915_private
+ 		{ NULL, 0 },
+ 	}, *phase;
+ 	unsigned long count = 0;
++	unsigned long scanned = 0;
+ 	bool unlock;
  
--	if (online_type == MMOP_ONLINE_KEEP) {
--		struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
--		/*
--		 * MMOP_ONLINE_KEEP defaults to MMOP_ONLINE_KERNEL but use
--		 * movable zone if that is not possible (e.g. we are within
--		 * or past the existing movable zone). movable_node overrides
--		 * this default and defaults to movable zone
--		 */
--		if (movable_pfn_range(nid, zone, start_pfn, nr_pages))
--			zone = movable_zone;
--	} else if (online_type == MMOP_ONLINE_MOVABLE) {
--		zone = &pgdat->node_zones[ZONE_MOVABLE];
--	}
-+	if (online_type == MMOP_ONLINE_MOVABLE)
-+		return &NODE_DATA(nid)->node_zones[ZONE_MOVABLE];
+ 	if (!shrinker_lock(dev_priv, &unlock))
+@@ -249,6 +253,7 @@ i915_gem_shrink(struct drm_i915_private
+ 					count += obj->base.size >> PAGE_SHIFT;
+ 				}
+ 				mutex_unlock(&obj->mm.lock);
++				scanned += obj->base.size >> PAGE_SHIFT;
+ 			}
+ 		}
+ 		list_splice_tail(&still_in_list, phase->list);
+@@ -261,6 +266,8 @@ i915_gem_shrink(struct drm_i915_private
  
--	return zone;
-+	return default_zone_for_pfn(nid, start_pfn, nr_pages);
+ 	shrinker_unlock(dev_priv, unlock);
+ 
++	if (nr_scanned)
++		*nr_scanned += scanned;
+ 	return count;
  }
  
- /*
-@@ -934,9 +909,6 @@ int __ref online_pages(unsigned long pfn
- 	struct memory_notify arg;
+@@ -283,7 +290,7 @@ unsigned long i915_gem_shrink_all(struct
+ 	unsigned long freed;
  
- 	nid = pfn_to_nid(pfn);
--	if (!allow_online_pfn_range(nid, pfn, nr_pages, online_type))
--		return -EINVAL;
+ 	intel_runtime_pm_get(dev_priv);
+-	freed = i915_gem_shrink(dev_priv, -1UL,
++	freed = i915_gem_shrink(dev_priv, -1UL, NULL,
+ 				I915_SHRINK_BOUND |
+ 				I915_SHRINK_UNBOUND |
+ 				I915_SHRINK_ACTIVE);
+@@ -329,23 +336,28 @@ i915_gem_shrinker_scan(struct shrinker *
+ 	unsigned long freed;
+ 	bool unlock;
+ 
++	sc->nr_scanned = 0;
++
+ 	if (!shrinker_lock(dev_priv, &unlock))
+ 		return SHRINK_STOP;
+ 
+ 	freed = i915_gem_shrink(dev_priv,
+ 				sc->nr_to_scan,
++				&sc->nr_scanned,
+ 				I915_SHRINK_BOUND |
+ 				I915_SHRINK_UNBOUND |
+ 				I915_SHRINK_PURGEABLE);
+ 	if (freed < sc->nr_to_scan)
+ 		freed += i915_gem_shrink(dev_priv,
+-					 sc->nr_to_scan - freed,
++					 sc->nr_to_scan - sc->nr_scanned,
++					 &sc->nr_scanned,
+ 					 I915_SHRINK_BOUND |
+ 					 I915_SHRINK_UNBOUND);
+ 	if (freed < sc->nr_to_scan && current_is_kswapd()) {
+ 		intel_runtime_pm_get(dev_priv);
+ 		freed += i915_gem_shrink(dev_priv,
+-					 sc->nr_to_scan - freed,
++					 sc->nr_to_scan - sc->nr_scanned,
++					 &sc->nr_scanned,
+ 					 I915_SHRINK_ACTIVE |
+ 					 I915_SHRINK_BOUND |
+ 					 I915_SHRINK_UNBOUND);
+@@ -354,7 +366,7 @@ i915_gem_shrinker_scan(struct shrinker *
+ 
+ 	shrinker_unlock(dev_priv, unlock);
+ 
+-	return freed;
++	return sc->nr_scanned ? freed : SHRINK_STOP;
+ }
+ 
+ static bool
+@@ -453,7 +465,7 @@ i915_gem_shrinker_vmap(struct notifier_b
+ 		goto out;
+ 
+ 	intel_runtime_pm_get(dev_priv);
+-	freed_pages += i915_gem_shrink(dev_priv, -1UL,
++	freed_pages += i915_gem_shrink(dev_priv, -1UL, NULL,
+ 				       I915_SHRINK_BOUND |
+ 				       I915_SHRINK_UNBOUND |
+ 				       I915_SHRINK_ACTIVE |
+_
