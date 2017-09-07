@@ -1,244 +1,143 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-arch-consolidate-mmap-hugetlb-size-encodings.patch removed from -mm tree
-Date: Thu, 07 Sep 2017 11:40:46 -0700
-Message-ID: <20170907184046.rJVoOWKvC%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-?=
+ =?US-ASCII?Q?from-movable-zones.patch?= removed from -mm tree
+Date: Thu, 07 Sep 2017 11:41:16 -0700
+Message-ID: <20170907184116.YVN-AU-PE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57686 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755836AbdIGSkr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:47 -0400
+        with ESMTP id S1755659AbdIGSlR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, dbueso@suse.de, khandual@linux.vnet.ibm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, mtk.manpages@gmail.com, willy@infradead.org
+To: lcapitulino@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm: arch: consolidate mmap hugetlb size encodings
+     Subject: mm, hugetlb: do not allocate non-migrateable gigantic pages from movable zones
 has been removed from the -mm tree.  Its filename was
-     mm-arch-consolidate-mmap-hugetlb-size-encodings.patch
+     mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm: arch: consolidate mmap hugetlb size encodings
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, hugetlb: do not allocate non-migrateable gigantic pages from movable zones
 
-A non-default huge page size can be encoded in the flags argument of the
-mmap system call.  The definitions for these encodings are in arch
-specific header files.  However, all architectures use the same values.
+alloc_gigantic_page doesn't consider movability of the gigantic hugetlb
+when scanning eligible ranges for the allocation.  As 1GB hugetlb pages
+are not movable currently this can break the movable zone assumption that
+all allocations are migrateable and as such break memory hotplug.
 
-Consolidate all the definitions in the primary user header file
-(uapi/linux/mman.h).  Include definitions for all known huge page sizes. 
-Use the generic encoding definitions in hugetlb_encode.h as the basis for
-these definitions.
+Reorganize the code and use the standard zonelist allocations scheme that
+we use for standard hugetbl pages.  htlb_alloc_mask will ensure that only
+migratable hugetlb pages will ever see a movable zone.
 
-Link: http://lkml.kernel.org/r/1501527386-10736-3-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Link: http://lkml.kernel.org/r/20170803083549.21407-1-mhocko@kernel.org
+Fixes: 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at runtime")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/uapi/asm/mman.h     |   11 -----------
- arch/mips/include/uapi/asm/mman.h      |   11 -----------
- arch/parisc/include/uapi/asm/mman.h    |   11 -----------
- arch/powerpc/include/uapi/asm/mman.h   |   16 ----------------
- arch/x86/include/uapi/asm/mman.h       |    3 ---
- arch/xtensa/include/uapi/asm/mman.h    |   11 -----------
- include/uapi/asm-generic/mman-common.h |   11 -----------
- include/uapi/linux/mman.h              |   22 ++++++++++++++++++++++
- 8 files changed, 22 insertions(+), 74 deletions(-)
+ mm/hugetlb.c |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
-diff -puN arch/alpha/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/alpha/include/uapi/asm/mman.h
---- a/arch/alpha/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/alpha/include/uapi/asm/mman.h
-@@ -67,17 +67,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
+diff -puN mm/hugetlb.c~mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones
++++ a/mm/hugetlb.c
+@@ -1066,11 +1066,11 @@ static void free_gigantic_page(struct pa
+ }
  
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
+ static int __alloc_gigantic_page(unsigned long start_pfn,
+-				unsigned long nr_pages)
++				unsigned long nr_pages, gfp_t gfp_mask)
+ {
+ 	unsigned long end_pfn = start_pfn + nr_pages;
+ 	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE,
+-				  GFP_KERNEL);
++				  gfp_mask);
+ }
+ 
+ static bool pfn_range_valid_gigantic(struct zone *z,
+@@ -1108,19 +1108,24 @@ static bool zone_spans_last_pfn(const st
+ 	return zone_spans_pfn(zone, last_pfn);
+ }
+ 
+-static struct page *alloc_gigantic_page(int nid, unsigned int order)
++static struct page *alloc_gigantic_page(int nid, struct hstate *h)
+ {
++	unsigned int order = huge_page_order(h);
+ 	unsigned long nr_pages = 1 << order;
+ 	unsigned long ret, pfn, flags;
+-	struct zone *z;
 -
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -94,17 +94,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
+-	z = NODE_DATA(nid)->node_zones;
+-	for (; z - NODE_DATA(nid)->node_zones < MAX_NR_ZONES; z++) {
+-		spin_lock_irqsave(&z->lock, flags);
 -
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -64,17 +64,6 @@
- #define MAP_FILE	0
- #define MAP_VARIABLE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN arch/powerpc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/powerpc/include/uapi/asm/mman.h
---- a/arch/powerpc/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/powerpc/include/uapi/asm/mman.h
-@@ -29,20 +29,4 @@
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
--/*
-- * When MAP_HUGETLB is set, bits [26:31] of the flags argument to mmap(2),
-- * encode the log2 of the huge page size. A value of zero indicates that the
-- * default huge page size should be used. To use a non-default huge page size,
-- * one of these defines can be used, or the size can be encoded by hand. Note
-- * that on most systems only a subset, or possibly none, of these sizes will be
-- * available.
-- */
--#define MAP_HUGE_512KB	(19 << MAP_HUGE_SHIFT)	/* 512KB HugeTLB Page */
--#define MAP_HUGE_1MB	(20 << MAP_HUGE_SHIFT)	/* 1MB   HugeTLB Page */
--#define MAP_HUGE_2MB	(21 << MAP_HUGE_SHIFT)	/* 2MB   HugeTLB Page */
--#define MAP_HUGE_8MB	(23 << MAP_HUGE_SHIFT)	/* 8MB   HugeTLB Page */
--#define MAP_HUGE_16MB	(24 << MAP_HUGE_SHIFT)	/* 16MB  HugeTLB Page */
--#define MAP_HUGE_1GB	(30 << MAP_HUGE_SHIFT)	/* 1GB   HugeTLB Page */
--#define MAP_HUGE_16GB	(34 << MAP_HUGE_SHIFT)	/* 16GB  HugeTLB Page */
--
- #endif /* _UAPI_ASM_POWERPC_MMAN_H */
-diff -puN arch/x86/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/x86/include/uapi/asm/mman.h
---- a/arch/x86/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/x86/include/uapi/asm/mman.h
-@@ -3,9 +3,6 @@
- 
- #define MAP_32BIT	0x40		/* only give out 32bit addresses */
- 
--#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
--#define MAP_HUGE_1GB    (30 << MAP_HUGE_SHIFT)
--
- #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
- /*
-  * Take the 4 protection key bits out of the vma->vm_flags
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -106,17 +106,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN include/uapi/asm-generic/mman-common.h~mm-arch-consolidate-mmap-hugetlb-size-encodings include/uapi/asm-generic/mman-common.h
---- a/include/uapi/asm-generic/mman-common.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/include/uapi/asm-generic/mman-common.h
-@@ -61,17 +61,6 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT	26
--#define MAP_HUGE_MASK	0x3f
--
- #define PKEY_DISABLE_ACCESS	0x1
- #define PKEY_DISABLE_WRITE	0x2
- #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-diff -puN include/uapi/linux/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings include/uapi/linux/mman.h
---- a/include/uapi/linux/mman.h~mm-arch-consolidate-mmap-hugetlb-size-encodings
-+++ a/include/uapi/linux/mman.h
-@@ -2,6 +2,7 @@
- #define _UAPI_LINUX_MMAN_H
- 
- #include <asm/mman.h>
-+#include <asm-generic/hugetlb_encode.h>
- 
- #define MREMAP_MAYMOVE	1
- #define MREMAP_FIXED	2
-@@ -10,4 +11,25 @@
- #define OVERCOMMIT_ALWAYS		1
- #define OVERCOMMIT_NEVER		2
- 
-+/*
-+ * Huge page size encoding when MAP_HUGETLB is specified, and a huge page
-+ * size other than the default is desired.  See hugetlb_encode.h.
-+ * All known huge page size encodings are provided here.  It is the
-+ * responsibility of the application to know which sizes are supported on
-+ * the running system.  See mmap(2) man page for details.
-+ */
-+#define MAP_HUGE_SHIFT	HUGETLB_FLAG_ENCODE_SHIFT
-+#define MAP_HUGE_MASK	HUGETLB_FLAG_ENCODE_MASK
+-		pfn = ALIGN(z->zone_start_pfn, nr_pages);
+-		while (zone_spans_last_pfn(z, pfn, nr_pages)) {
+-			if (pfn_range_valid_gigantic(z, pfn, nr_pages)) {
++	struct zonelist *zonelist;
++	struct zone *zone;
++	struct zoneref *z;
++	gfp_t gfp_mask;
 +
-+#define MAP_HUGE_64KB	HUGETLB_FLAG_ENCODE_64KB
-+#define MAP_HUGE_512KB	HUGETLB_FLAG_ENCODE_512KB
-+#define MAP_HUGE_1MB	HUGETLB_FLAG_ENCODE_1MB
-+#define MAP_HUGE_2MB	HUGETLB_FLAG_ENCODE_2MB
-+#define MAP_HUGE_8MB	HUGETLB_FLAG_ENCODE_8MB
-+#define MAP_HUGE_16MB	HUGETLB_FLAG_ENCODE_16MB
-+#define MAP_HUGE_256MB	HUGETLB_FLAG_ENCODE_256MB
-+#define MAP_HUGE_1GB	HUGETLB_FLAG_ENCODE_1GB
-+#define MAP_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
-+#define MAP_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
++	gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++	zonelist = node_zonelist(nid, gfp_mask);
++	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), NULL) {
++		spin_lock_irqsave(&zone->lock, flags);
 +
- #endif /* _UAPI_LINUX_MMAN_H */
++		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
++		while (zone_spans_last_pfn(zone, pfn, nr_pages)) {
++			if (pfn_range_valid_gigantic(zone, pfn, nr_pages)) {
+ 				/*
+ 				 * We release the zone lock here because
+ 				 * alloc_contig_range() will also lock the zone
+@@ -1128,16 +1133,16 @@ static struct page *alloc_gigantic_page(
+ 				 * spinning on this lock, it may win the race
+ 				 * and cause alloc_contig_range() to fail...
+ 				 */
+-				spin_unlock_irqrestore(&z->lock, flags);
+-				ret = __alloc_gigantic_page(pfn, nr_pages);
++				spin_unlock_irqrestore(&zone->lock, flags);
++				ret = __alloc_gigantic_page(pfn, nr_pages, gfp_mask);
+ 				if (!ret)
+ 					return pfn_to_page(pfn);
+-				spin_lock_irqsave(&z->lock, flags);
++				spin_lock_irqsave(&zone->lock, flags);
+ 			}
+ 			pfn += nr_pages;
+ 		}
+ 
+-		spin_unlock_irqrestore(&z->lock, flags);
++		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+ 
+ 	return NULL;
+@@ -1150,7 +1155,7 @@ static struct page *alloc_fresh_gigantic
+ {
+ 	struct page *page;
+ 
+-	page = alloc_gigantic_page(nid, huge_page_order(h));
++	page = alloc_gigantic_page(nid, h);
+ 	if (page) {
+ 		prep_compound_gigantic_page(page, huge_page_order(h));
+ 		prep_new_huge_page(h, page, nid);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-memory_hotplug-introduce-add_pages.patch
+mm-sparse-fix-typo-in-online_mem_sections.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
 
