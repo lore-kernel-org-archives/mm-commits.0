@@ -1,130 +1,162 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
- removed from -mm tree
-Date: Thu, 07 Sep 2017 11:37:55 -0700
-Message-ID: <20170907183755.03ikLg9dQ%akpm@linux-foundation.org>
+ zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch removed from -mm
+ tree
+Date: Thu, 07 Sep 2017 11:37:25 -0700
+Message-ID: <20170907183725.XdK6DobAL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55254 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755713AbdIGSh4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:56 -0400
+        with ESMTP id S1755809AbdIGSh0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz
+To: juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, xieyisheng1@huawei.com
 
 
 The patch titled
-     Subject: mm, page_alloc: remove boot pageset initialization from memory hotplug
+     Subject: zram: clean up duplicated codes in __zram_bvec_write
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug.patch
+     zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: remove boot pageset initialization from memory hotplug
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: clean up duplicated codes in __zram_bvec_write
 
-boot_pageset is a boot time hack which gets superseded by normal pagesets
-later in the boot process.  It makes zero sense to reinitialize it again
-and again during memory hotplug.
+Patch series "writeback incompressible pages to storage", v1.
 
-Link: http://lkml.kernel.org/r/20170721143915.14161-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
+zRam is useful for memory saving with compressible pages but sometime,
+workload can be changed and system has lots of incompressible pages which
+is very harmful for zram.
+
+This patch supports writeback feature of zram so admin can set up a block
+device and with it, zram can save the memory via writing out the
+incompressile pages once it found it's incompressible pages (1/4 comp
+ratio) instead of keeping the page in memory.
+
+[1-3] is just clean up and [4-8] is step by step feature enablement.
+[4-8] is logically not bisectable(ie, logical unit separation)
+although I tried to compiled out without breaking but I think it would
+be better to review.
+
+
+This patch (of 9):
+
+__zram_bvec_write has some of duplicated logic for zram meta data handling
+of same_page|compressed_page.  This patch aims to clean it up without
+behavior change.
+
+[xieyisheng1@huawei.com: fix compr_data_size stat]
+  Link: http://lkml.kernel.org/r/1502707447-6944-1-git-send-email-xieyisheng1@huawei.com
+Link: http://lkml.kernel.org/r/1496019048-27016-1-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1498459987-24562-2-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Juneho Choi <juno.choi@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   40 ++++++++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ drivers/block/zram/zram_drv.c |   56 +++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 33 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-boot-pageset-initialization-from-memory-hotplug
-+++ a/mm/page_alloc.c
-@@ -5141,7 +5141,7 @@ DEFINE_MUTEX(zonelists_mutex);
- static int __build_all_zonelists(void *data)
- {
- 	int nid;
--	int cpu;
-+	int __maybe_unused cpu;
- 	pg_data_t *self = data;
- 
- #ifdef CONFIG_NUMA
-@@ -5162,23 +5162,8 @@ static int __build_all_zonelists(void *d
- 		}
- 	}
- 
--	/*
--	 * Initialize the boot_pagesets that are going to be used
--	 * for bootstrapping processors. The real pagesets for
--	 * each zone will be allocated later when the per cpu
--	 * allocator is available.
--	 *
--	 * boot_pagesets are used also for bootstrapping offline
--	 * cpus if the system is already booted because the pagesets
--	 * are needed to initialize allocators on a specific cpu too.
--	 * F.e. the percpu allocator needs the page allocator which
--	 * needs the percpu allocator in order to allocate its pagesets
--	 * (a chicken-egg dilemma).
--	 */
--	for_each_possible_cpu(cpu) {
--		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
--
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
-+	for_each_possible_cpu(cpu) {
- 		/*
- 		 * We now know the "local memory node" for each node--
- 		 * i.e., the node of the first zone in the generic zonelist.
-@@ -5189,8 +5174,8 @@ static int __build_all_zonelists(void *d
- 		 */
- 		if (cpu_online(cpu))
- 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
--#endif
- 	}
-+#endif
- 
- 	return 0;
+diff -puN drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write
++++ a/drivers/block/zram/zram_drv.c
+@@ -453,30 +453,6 @@ static bool zram_same_page_read(struct z
+ 	return false;
  }
-@@ -5198,7 +5183,26 @@ static int __build_all_zonelists(void *d
- static noinline void __init
- build_all_zonelists_init(void)
+ 
+-static bool zram_same_page_write(struct zram *zram, u32 index,
+-					struct page *page)
+-{
+-	unsigned long element;
+-	void *mem = kmap_atomic(page);
+-
+-	if (page_same_filled(mem, &element)) {
+-		kunmap_atomic(mem);
+-		/* Free memory associated with this sector now. */
+-		zram_slot_lock(zram, index);
+-		zram_free_page(zram, index);
+-		zram_set_flag(zram, index, ZRAM_SAME);
+-		zram_set_element(zram, index, element);
+-		zram_slot_unlock(zram, index);
+-
+-		atomic64_inc(&zram->stats.same_pages);
+-		atomic64_inc(&zram->stats.pages_stored);
+-		return true;
+-	}
+-	kunmap_atomic(mem);
+-
+-	return false;
+-}
+-
+ static void zram_meta_free(struct zram *zram, u64 disksize)
  {
-+	int cpu;
-+
- 	__build_all_zonelists(NULL);
-+
-+	/*
-+	 * Initialize the boot_pagesets that are going to be used
-+	 * for bootstrapping processors. The real pagesets for
-+	 * each zone will be allocated later when the per cpu
-+	 * allocator is available.
-+	 *
-+	 * boot_pagesets are used also for bootstrapping offline
-+	 * cpus if the system is already booted because the pagesets
-+	 * are needed to initialize allocators on a specific cpu too.
-+	 * F.e. the percpu allocator needs the page allocator which
-+	 * needs the percpu allocator in order to allocate its pagesets
-+	 * (a chicken-egg dilemma).
-+	 */
-+	for_each_possible_cpu(cpu)
-+		setup_pageset(&per_cpu(boot_pageset, cpu), 0);
-+
- 	mminit_verify_zonelist();
- 	cpuset_init_current_mems_allowed();
+ 	size_t num_pages = disksize >> PAGE_SHIFT;
+@@ -685,14 +661,23 @@ compress_again:
+ static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
+ {
+ 	int ret;
+-	unsigned long handle;
+-	unsigned int comp_len;
+-	void *src, *dst;
++	unsigned long handle = 0;
++	unsigned int comp_len = 0;
++	void *src, *dst, *mem;
+ 	struct zcomp_strm *zstrm;
+ 	struct page *page = bvec->bv_page;
++	unsigned long element = 0;
++	enum zram_pageflags flags = 0;
+ 
+-	if (zram_same_page_write(zram, index, page))
+-		return 0;
++	mem = kmap_atomic(page);
++	if (page_same_filled(mem, &element)) {
++		kunmap_atomic(mem);
++		/* Free memory associated with this sector now */
++		atomic64_inc(&zram->stats.same_pages);
++		flags = ZRAM_SAME;
++		goto out;
++	}
++	kunmap_atomic(mem);
+ 
+ 	zstrm = zcomp_stream_get(zram->comp);
+ 	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
+@@ -712,19 +697,24 @@ static int __zram_bvec_write(struct zram
+ 
+ 	zcomp_stream_put(zram->comp);
+ 	zs_unmap_object(zram->mem_pool, handle);
+-
++	atomic64_add(comp_len, &zram->stats.compr_data_size);
++out:
+ 	/*
+ 	 * Free memory associated with this sector
+ 	 * before overwriting unused sectors.
+ 	 */
+ 	zram_slot_lock(zram, index);
+ 	zram_free_page(zram, index);
+-	zram_set_handle(zram, index, handle);
+-	zram_set_obj_size(zram, index, comp_len);
++	if (flags == ZRAM_SAME) {
++		zram_set_flag(zram, index, ZRAM_SAME);
++		zram_set_element(zram, index, element);
++	} else {
++		zram_set_handle(zram, index, handle);
++		zram_set_obj_size(zram, index, comp_len);
++	}
+ 	zram_slot_unlock(zram, index);
+ 
+ 	/* Update stats */
+-	atomic64_add(comp_len, &zram->stats.compr_data_size);
+ 	atomic64_inc(&zram->stats.pages_stored);
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-memory_hotplug-introduce-add_pages.patch
-mm-sparse-fix-typo-in-online_mem_sections.patch
-fs-proc-remove-priv-argument-from-is_stack.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
 
