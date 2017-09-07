@@ -1,99 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds.patch
+Subject: [merged] userfaultfd-provide-pid-in-userfault-msg.patch
  removed from -mm tree
-Date: Thu, 07 Sep 2017 11:41:07 -0700
-Message-ID: <20170907184107.0Omid_CI5%akpm@linux-foundation.org>
+Date: Thu, 07 Sep 2017 11:41:10 -0700
+Message-ID: <20170907184110.rHIS_-AQc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57654 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751456AbdIGSlI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:08 -0400
+        with ESMTP id S1755443AbdIGSlL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.perevalov@samsung.com, aarcange@redhat.com, dgilbert@redhat.com, maxime.coquelin@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: userfaultfd: call userfaultfd_unmap_prep only if __split_vma succeeds
+     Subject: userfaultfd: provide pid in userfault msg
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds.patch
+     userfaultfd-provide-pid-in-userfault-msg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: call userfaultfd_unmap_prep only if __split_vma succeeds
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: userfaultfd: provide pid in userfault msg
 
-A __split_vma is not a worthy event to report, and it's definitely not a
-unmap so it would be incorrect to report unmap for the whole region to the
-userfaultfd manager if a __split_vma fails.
+It could be useful for calculating downtime during postcopy live migration
+per vCPU.  Side observer or application itself will be informed about
+proper task's sleep during userfaultfd processing.
 
-So only call userfaultfd_unmap_prep after the __vma_splitting is over and
-do_munmap cannot fail anymore.
+Process's thread id is being provided when user requeste it
+by setting UFFD_FEATURE_THREAD_ID bit into uffdio_api.features.
 
-Also add unlikely because it's better to optimize for the vast majority of
-apps that aren't using userfaultfd in a non cooperative way.  Ideally we
-should also find a way to eliminate the branch entirely if
-CONFIG_USERFAULTFD=n, but it would complicate things so stick to unlikely
-for now.
-
-Link: http://lkml.kernel.org/r/20170802165145.22628-5-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20170802165145.22628-6-aarcange@redhat.com
+Signed-off-by: Alexey Perevalov <a.perevalov@samsung.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>
 Cc: Maxime Coquelin <maxime.coquelin@redhat.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ fs/userfaultfd.c                 |    8 ++++++--
+ include/uapi/linux/userfaultfd.h |   10 +++++++---
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/mmap.c~userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds mm/mmap.c
---- a/mm/mmap.c~userfaultfd-call-userfaultfd_unmap_prep-only-if-__split_vma-succeeds
-+++ a/mm/mmap.c
-@@ -2639,13 +2639,6 @@ int do_munmap(struct mm_struct *mm, unsi
- 	if (vma->vm_start >= end)
- 		return 0;
+diff -puN fs/userfaultfd.c~userfaultfd-provide-pid-in-userfault-msg fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-provide-pid-in-userfault-msg
++++ a/fs/userfaultfd.c
+@@ -178,7 +178,8 @@ static inline void msg_init(struct uffd_
  
--	if (uf) {
--		int error = userfaultfd_unmap_prep(vma, start, end, uf);
--
--		if (error)
--			return error;
--	}
--
- 	/*
- 	 * If we need to split any vma, do it now to save pain later.
- 	 *
-@@ -2679,6 +2672,21 @@ int do_munmap(struct mm_struct *mm, unsi
- 	}
- 	vma = prev ? prev->vm_next : mm->mmap;
+ static inline struct uffd_msg userfault_msg(unsigned long address,
+ 					    unsigned int flags,
+-					    unsigned long reason)
++					    unsigned long reason,
++					    unsigned int features)
+ {
+ 	struct uffd_msg msg;
+ 	msg_init(&msg);
+@@ -202,6 +203,8 @@ static inline struct uffd_msg userfault_
+ 		 * write protect fault.
+ 		 */
+ 		msg.arg.pagefault.flags |= UFFD_PAGEFAULT_FLAG_WP;
++	if (features & UFFD_FEATURE_THREAD_ID)
++		msg.arg.pagefault.ptid = task_pid_vnr(current);
+ 	return msg;
+ }
  
-+	if (unlikely(uf)) {
-+		/*
-+		 * If userfaultfd_unmap_prep returns an error the vmas
-+		 * will remain splitted, but userland will get a
-+		 * highly unexpected error anyway. This is no
-+		 * different than the case where the first of the two
-+		 * __split_vma fails, but we don't undo the first
-+		 * split, despite we could. This is unlikely enough
-+		 * failure that it's not worth optimizing it for.
-+		 */
-+		int error = userfaultfd_unmap_prep(vma, start, end, uf);
-+		if (error)
-+			return error;
-+	}
-+
- 	/*
- 	 * unlock any mlock()ed ranges before detaching vmas
+@@ -422,7 +425,8 @@ int handle_userfault(struct vm_fault *vm
+ 
+ 	init_waitqueue_func_entry(&uwq.wq, userfaultfd_wake_function);
+ 	uwq.wq.private = current;
+-	uwq.msg = userfault_msg(vmf->address, vmf->flags, reason);
++	uwq.msg = userfault_msg(vmf->address, vmf->flags, reason,
++			ctx->features);
+ 	uwq.ctx = ctx;
+ 	uwq.waken = false;
+ 
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-provide-pid-in-userfault-msg include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-provide-pid-in-userfault-msg
++++ a/include/uapi/linux/userfaultfd.h
+@@ -24,7 +24,8 @@
+ 			   UFFD_FEATURE_EVENT_UNMAP |		\
+ 			   UFFD_FEATURE_MISSING_HUGETLBFS |	\
+ 			   UFFD_FEATURE_MISSING_SHMEM |		\
+-			   UFFD_FEATURE_SIGBUS)
++			   UFFD_FEATURE_SIGBUS |		\
++			   UFFD_FEATURE_THREAD_ID)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
+ 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
+@@ -79,6 +80,7 @@ struct uffd_msg {
+ 		struct {
+ 			__u64	flags;
+ 			__u64	address;
++			__u32   ptid;
+ 		} pagefault;
+ 
+ 		struct {
+@@ -158,8 +160,9 @@ struct uffdio_api {
+ 	 * UFFD_FEATURE_SIGBUS feature means no page-fault
+ 	 * (UFFD_EVENT_PAGEFAULT) event will be delivered, instead
+ 	 * a SIGBUS signal will be sent to the faulting process.
+-	 * The application process can enable this behavior by adding
+-	 * it to uffdio_api.features.
++	 *
++	 * UFFD_FEATURE_THREAD_ID pid of the page faulted task_struct will
++	 * be returned, if feature is not requested 0 will be returned.
  	 */
+ #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
+ #define UFFD_FEATURE_EVENT_FORK			(1<<1)
+@@ -169,6 +172,7 @@ struct uffdio_api {
+ #define UFFD_FEATURE_MISSING_SHMEM		(1<<5)
+ #define UFFD_FEATURE_EVENT_UNMAP		(1<<6)
+ #define UFFD_FEATURE_SIGBUS			(1<<7)
++#define UFFD_FEATURE_THREAD_ID			(1<<8)
+ 	__u64 features;
+ 
+ 	__u64 ioctls;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from a.perevalov@samsung.com are
 
-userfaultfd-non-cooperative-closing-the-uffd-without-triggering-sigbus.patch
 
