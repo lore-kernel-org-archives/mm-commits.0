@@ -1,66 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- dax-explain-how-read2-write2-addresses-are-validated.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:36:43 -0700
-Message-ID: <20170907183643.Y_pzuDrvi%akpm@linux-foundation.org>
+Subject: [merged] dax-initialize-variable-pfn-before-using-it.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:36:49 -0700
+Message-ID: <20170907183649.KfG5AhFkr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54734 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751854AbdIGSgv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:36:51 -0400
+        with ESMTP id S1751854AbdIGSgu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:36:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com
+To: mawilcox@microsoft.com, mm-commits@vger.kernel.org, nicolas.iooss_linux@m4x.org, ross.zwisler@linux.intel.com
 
 
 The patch titled
-     Subject: dax: explain how read(2)/write(2) addresses are validated
+     Subject: dax: initialize variable pfn before using it
 has been removed from the -mm tree.  Its filename was
-     dax-explain-how-read2-write2-addresses-are-validated.patch
+     dax-initialize-variable-pfn-before-using-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: explain how read(2)/write(2) addresses are validated
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: dax: initialize variable pfn before using it
 
-Add a comment explaining how the user addresses provided to read(2) and
-write(2) are validated in the DAX I/O path.  We call dax_copy_from_iter()
-or copy_to_iter() on these without calling access_ok() first in the DAX
-code, and there was a concern that the user might be able to read/write to
-arbitrary kernel addresses with this path.
+dax_pmd_insert_mapping() contains the following code:
 
-Link: http://lkml.kernel.org/r/20170816173615.10098-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
+        pfn_t pfn;
+        if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
+            goto fallback;
+        /* ... */
+    fallback:
+      trace_dax_pmd_insert_mapping_fallback(inode, vmf, length, pfn, ret);
+
+When the condition in the if statement fails, the function calls
+trace_dax_pmd_insert_mapping_fallback() with an uninitialized pfn value.
+
+This issue has been found while building the kernel with clang. The
+compiler reported:
+
+    fs/dax.c:1280:6: error: variable 'pfn' is used uninitialized
+    whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
+        if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    fs/dax.c:1310:60: note: uninitialized use occurs here
+      trace_dax_pmd_insert_mapping_fallback(inode, vmf, length, pfn, ret);
+                                                                     ^~~
+
+Link: http://lkml.kernel.org/r/20170903083000.587-1-nicolas.iooss_linux@m4x.org
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dax.c~dax-explain-how-read2-write2-addresses-are-validated fs/dax.c
---- a/fs/dax.c~dax-explain-how-read2-write2-addresses-are-validated
+diff -puN fs/dax.c~dax-initialize-variable-pfn-before-using-it fs/dax.c
+--- a/fs/dax.c~dax-initialize-variable-pfn-before-using-it
 +++ a/fs/dax.c
-@@ -1004,6 +1004,11 @@ dax_iomap_actor(struct inode *inode, lof
- 		if (map_len > end - pos)
- 			map_len = end - pos;
+@@ -1230,7 +1230,7 @@ static int dax_pmd_insert_mapping(struct
+ 	void *ret = NULL, *kaddr;
+ 	long length = 0;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
++	pfn_t pfn = {};
+ 	int id;
  
-+		/*
-+		 * The userspace address for the memory copy has already been
-+		 * validated via access_ok() in either vfs_read() or
-+		 * vfs_write(), depending on which operation we are doing.
-+		 */
- 		if (iov_iter_rw(iter) == WRITE)
- 			map_len = dax_copy_from_iter(dax_dev, pgoff, kaddr,
- 					map_len, iter);
+ 	if (bdev_dax_pgoff(bdev, sector, size, &pgoff) != 0)
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
 
