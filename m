@@ -1,165 +1,193 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- block-thp-make-block_device_operationsrw_page-support-thp.patch removed
- from -mm tree
-Date: Thu, 07 Sep 2017 11:39:52 -0700
-Message-ID: <20170907183952.fuuE1nL5K%akpm@linux-foundation.org>
+ mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:39:40 -0700
+Message-ID: <20170907183940.F9cUyHEOC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755798AbdIGSjy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:54 -0400
+        with ESMTP id S1755788AbdIGSjm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: block, THP: make block_device_operations.rw_page support THP
+     Subject: mm, THP, swap: support to clear swap cache flag for THP swapped out
 has been removed from the -mm tree.  Its filename was
-     block-thp-make-block_device_operationsrw_page-support-thp.patch
+     mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: block, THP: make block_device_operations.rw_page support THP
+Subject: mm, THP, swap: support to clear swap cache flag for THP swapped out
 
-The .rw_page in struct block_device_operations is used by the swap
-subsystem to read/write the page contents from/into the corresponding swap
-slot in the swap device.  To support the THP (Transparent Huge Page) swap
-optimization, the .rw_page is enhanced to support to read/write THP if
-possible.
+Patch series "mm, THP, swap: Delay splitting THP after swapped out", v3.
 
-Link: http://lkml.kernel.org/r/20170724051840.2309-6-ying.huang@intel.com
+This is the second step of THP (Transparent Huge Page) swap optimization. 
+In the first step, the splitting huge page is delayed from almost the
+first step of swapping out to after allocating the swap space for the THP
+and adding the THP into the swap cache.  In the second step, the splitting
+is delayed further to after the swapping out finished.  The plan is to
+delay splitting THP step by step, finally avoid splitting THP for the THP
+swapping out and swap out/in the THP as a whole.
+
+In the patchset, more operations for the anonymous THP reclaiming, such as
+TLB flushing, writing the THP to the swap device, removing the THP from
+the swap cache are batched.  So that the performance of anonymous THP
+swapping out are improved.
+
+During the development, the following scenarios/code paths have been
+checked,
+
+- swap out/in
+- swap off
+- write protect page fault
+- madvise_free
+- process exit
+- split huge page
+
+With the patchset, the swap out throughput improves 42% (from about
+5.81GB/s to about 8.25GB/s) in the vm-scalability swap-w-seq test case
+with 16 processes.  At the same time, the IPI (reflect TLB flushing)
+reduced about 78.9%.  The test is done on a Xeon E5 v3 system.  The
+swap device used is a RAM simulated PMEM (persistent memory) device.
+To test the sequential swapping out, the test case creates 8
+processes, which sequentially allocate and write to the anonymous
+pages until the RAM and part of the swap device is used up.
+
+Below is the part of the cover letter for the first step patchset of
+THP swap optimization which applies to all steps.
+
+=========================
+
+Recently, the performance of the storage devices improved so fast that we
+cannot saturate the disk bandwidth with single logical CPU when do page
+swap out even on a high-end server machine.  Because the performance of
+the storage device improved faster than that of single logical CPU.  And
+it seems that the trend will not change in the near future.  On the other
+hand, the THP becomes more and more popular because of increased memory
+size.  So it becomes necessary to optimize THP swap performance.
+
+The advantages of the THP swap support include:
+
+- Batch the swap operations for the THP to reduce TLB flushing and lock
+  acquiring/releasing, including allocating/freeing the swap space,
+  adding/deleting to/from the swap cache, and writing/reading the swap
+  space, etc.  This will help improve the performance of the THP swap.
+
+- The THP swap space read/write will be 2M sequential IO.  It is
+  particularly helpful for the swap read, which are usually 4k random IO. 
+  This will improve the performance of the THP swap too.
+
+- It will help the memory fragmentation, especially when the THP is
+  heavily used by the applications.  The 2M continuous pages will be free
+  up after THP swapping out.
+
+- It will improve the THP utilization on the system with the swap turned
+  on.  Because the speed for khugepaged to collapse the normal pages into
+  the THP is quite slow.  After the THP is split during the swapping out,
+  it will take quite long time for the normal pages to collapse back into
+  the THP after being swapped in.  The high THP utilization helps the
+  efficiency of the page based memory management too.
+
+There are some concerns regarding THP swap in, mainly because possible
+enlarged read/write IO size (for swap in/out) may put more overhead on the
+storage device.  To deal with that, the THP swap in should be turned on
+only when necessary.  For example, it can be selected via
+"always/never/madvise" logic, to be turned on globally, turned off
+globally, or turned on only for VMA with MADV_HUGEPAGE, etc.
+
+
+This patch (of 12):
+
+Previously, swapcache_free_cluster() is used only in the error path of
+shrink_page_list() to free the swap cluster just allocated if the THP
+(Transparent Huge Page) is failed to be split.  In this patch, it is
+enhanced to clear the swap cache flag (SWAP_HAS_CACHE) for the swap
+cluster that holds the contents of THP swapped out.
+
+This will be used in delaying splitting THP after swapping out support. 
+Because there is no THP swapping in as a whole support yet, after clearing
+the swap cache flag, the swap cluster backing the THP swapped out will be
+split.  So that the swap slots in the swap cluster can be swapped in as
+normal pages later.
+
+Link: http://lkml.kernel.org/r/20170724051840.2309-2-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
 Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
+Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c           |    6 ++++-
- drivers/block/zram/zram_drv.c |    2 +
- drivers/nvdimm/btt.c          |    4 ++-
- drivers/nvdimm/pmem.c         |   37 ++++++++++++++++++++++++--------
- 4 files changed, 38 insertions(+), 11 deletions(-)
+ mm/swapfile.c |   32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
-diff -puN drivers/block/brd.c~block-thp-make-block_device_operationsrw_page-support-thp drivers/block/brd.c
---- a/drivers/block/brd.c~block-thp-make-block_device_operationsrw_page-support-thp
-+++ a/drivers/block/brd.c
-@@ -326,7 +326,11 @@ static int brd_rw_page(struct block_devi
- 		       struct page *page, bool is_write)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
--	int err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
-+	int err;
-+
-+	if (PageTransHuge(page))
-+		return -ENOTSUPP;
-+	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, is_write, sector);
- 	page_endio(page, is_write, err);
- 	return err;
- }
-diff -puN drivers/block/zram/zram_drv.c~block-thp-make-block_device_operationsrw_page-support-thp drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~block-thp-make-block_device_operationsrw_page-support-thp
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1285,6 +1285,8 @@ static int zram_rw_page(struct block_dev
- 	struct zram *zram;
- 	struct bio_vec bv;
+diff -puN mm/swapfile.c~mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-support-to-clear-swap-cache-flag-for-thp-swapped-out
++++ a/mm/swapfile.c
+@@ -1168,22 +1168,40 @@ static void swapcache_free_cluster(swp_e
+ 	struct swap_cluster_info *ci;
+ 	struct swap_info_struct *si;
+ 	unsigned char *map;
+-	unsigned int i;
++	unsigned int i, free_entries = 0;
++	unsigned char val;
  
-+	if (PageTransHuge(page))
-+		return -ENOTSUPP;
- 	zram = bdev->bd_disk->private_data;
+-	si = swap_info_get(entry);
++	si = _swap_info_get(entry);
+ 	if (!si)
+ 		return;
  
- 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
-diff -puN drivers/nvdimm/btt.c~block-thp-make-block_device_operationsrw_page-support-thp drivers/nvdimm/btt.c
---- a/drivers/nvdimm/btt.c~block-thp-make-block_device_operationsrw_page-support-thp
-+++ a/drivers/nvdimm/btt.c
-@@ -1241,8 +1241,10 @@ static int btt_rw_page(struct block_devi
- {
- 	struct btt *btt = bdev->bd_disk->private_data;
- 	int rc;
-+	unsigned int len;
- 
--	rc = btt_do_bvec(btt, NULL, page, PAGE_SIZE, 0, is_write, sector);
-+	len = hpage_nr_pages(page) * PAGE_SIZE;
-+	rc = btt_do_bvec(btt, NULL, page, len, 0, is_write, sector);
- 	if (rc == 0)
- 		page_endio(page, is_write, 0);
- 
-diff -puN drivers/nvdimm/pmem.c~block-thp-make-block_device_operationsrw_page-support-thp drivers/nvdimm/pmem.c
---- a/drivers/nvdimm/pmem.c~block-thp-make-block_device_operationsrw_page-support-thp
-+++ a/drivers/nvdimm/pmem.c
-@@ -80,22 +80,40 @@ static blk_status_t pmem_clear_poison(st
- static void write_pmem(void *pmem_addr, struct page *page,
- 		unsigned int off, unsigned int len)
- {
--	void *mem = kmap_atomic(page);
-+	unsigned int chunk;
-+	void *mem;
- 
--	memcpy_flushcache(pmem_addr, mem + off, len);
--	kunmap_atomic(mem);
-+	while (len) {
-+		mem = kmap_atomic(page);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		memcpy_flushcache(pmem_addr, mem + off, chunk);
-+		kunmap_atomic(mem);
-+		len -= chunk;
-+		off = 0;
-+		page++;
-+		pmem_addr += PAGE_SIZE;
+ 	ci = lock_cluster(si, offset);
+ 	map = si->swap_map + offset;
+ 	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
+-		VM_BUG_ON(map[i] != SWAP_HAS_CACHE);
+-		map[i] = 0;
++		val = map[i];
++		VM_BUG_ON(!(val & SWAP_HAS_CACHE));
++		if (val == SWAP_HAS_CACHE)
++			free_entries++;
++	}
++	if (!free_entries) {
++		for (i = 0; i < SWAPFILE_CLUSTER; i++)
++			map[i] &= ~SWAP_HAS_CACHE;
+ 	}
+ 	unlock_cluster(ci);
+-	mem_cgroup_uncharge_swap(entry, SWAPFILE_CLUSTER);
+-	swap_free_cluster(si, idx);
+-	spin_unlock(&si->lock);
++	if (free_entries == SWAPFILE_CLUSTER) {
++		spin_lock(&si->lock);
++		ci = lock_cluster(si, offset);
++		memset(map, 0, SWAPFILE_CLUSTER);
++		unlock_cluster(ci);
++		mem_cgroup_uncharge_swap(entry, SWAPFILE_CLUSTER);
++		swap_free_cluster(si, idx);
++		spin_unlock(&si->lock);
++	} else if (free_entries) {
++		for (i = 0; i < SWAPFILE_CLUSTER; i++, entry.val++) {
++			if (!__swap_entry_free(si, entry, SWAP_HAS_CACHE))
++				free_swap_slot(entry);
++		}
 +	}
  }
- 
- static blk_status_t read_pmem(struct page *page, unsigned int off,
- 		void *pmem_addr, unsigned int len)
- {
-+	unsigned int chunk;
- 	int rc;
--	void *mem = kmap_atomic(page);
-+	void *mem;
- 
--	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
--	kunmap_atomic(mem);
--	if (rc)
--		return BLK_STS_IOERR;
-+	while (len) {
-+		mem = kmap_atomic(page);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		rc = memcpy_mcsafe(mem + off, pmem_addr, chunk);
-+		kunmap_atomic(mem);
-+		if (rc)
-+			return BLK_STS_IOERR;
-+		len -= chunk;
-+		off = 0;
-+		page++;
-+		pmem_addr += PAGE_SIZE;
-+	}
- 	return BLK_STS_OK;
- }
- 
-@@ -188,7 +206,8 @@ static int pmem_rw_page(struct block_dev
- 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
- 	blk_status_t rc;
- 
--	rc = pmem_do_bvec(pmem, page, PAGE_SIZE, 0, is_write, sector);
-+	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
-+			  0, is_write, sector);
- 
- 	/*
- 	 * The ->rw_page interface is subtle and tricky.  The core
+ #else
+ static inline void swapcache_free_cluster(swp_entry_t entry)
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
