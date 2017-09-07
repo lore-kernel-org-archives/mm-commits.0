@@ -1,79 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?slub-make-sure-struct-kmem=5Fcache=5Fnode-is-initialized-?=
- =?US-ASCII?Q?before-publication.patch?= removed from -mm tree
-Date: Thu, 07 Sep 2017 11:37:01 -0700
-Message-ID: <20170907183701.lFjirnOB4%akpm@linux-foundation.org>
+Subject: [merged] zram-inlining-zram_compress.patch removed from
+ -mm tree
+Date: Thu, 07 Sep 2017 11:37:28 -0700
+Message-ID: <20170907183728.c6OOn21A6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55278 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755762AbdIGShI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:08 -0400
+        with ESMTP id S1755821AbdIGSh3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, glider@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: slub: tidy up initialization ordering
+     Subject: zram: inline zram_compress
 has been removed from the -mm tree.  Its filename was
-     slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication.patch
+     zram-inlining-zram_compress.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: slub: tidy up initialization ordering
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: inline zram_compress
 
-- free_kmem_cache_nodes() frees the cache node before nulling out a
-  reference to it
+zram_compress does several things, compress, entry alloc and check
+limitation.  I did for just readbility but it hurts modulization.:( So
+this patch removes zram_compress functions and inline it in
+__zram_bvec_write for upcoming patches.
 
-- init_kmem_cache_nodes() publishes the cache node before initializing it
-
-Neither of these matter at runtime because the cache nodes cannot be
-looked up by any other thread.  But it's neater and more consistent to
-reorder these.
-
-Link: http://lkml.kernel.org/r/20170707083408.40410-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/1498459987-24562-3-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Juneho Choi <juno.choi@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   64 +++++++++++---------------------
+ 1 file changed, 22 insertions(+), 42 deletions(-)
 
-diff -puN mm/slub.c~slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication mm/slub.c
---- a/mm/slub.c~slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication
-+++ a/mm/slub.c
-@@ -3358,8 +3358,8 @@ static void free_kmem_cache_nodes(struct
- 	struct kmem_cache_node *n;
- 
- 	for_each_kmem_cache_node(s, node, n) {
--		kmem_cache_free(kmem_cache_node, n);
- 		s->node[node] = NULL;
-+		kmem_cache_free(kmem_cache_node, n);
- 	}
+diff -puN drivers/block/zram/zram_drv.c~zram-inlining-zram_compress drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-inlining-zram_compress
++++ a/drivers/block/zram/zram_drv.c
+@@ -589,25 +589,38 @@ out:
+ 	return ret;
  }
  
-@@ -3389,8 +3389,8 @@ static int init_kmem_cache_nodes(struct
- 			return 0;
- 		}
+-static int zram_compress(struct zram *zram, struct zcomp_strm **zstrm,
+-			struct page *page,
+-			unsigned long *out_handle, unsigned int *out_comp_len)
++static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
+ {
+ 	int ret;
+-	unsigned int comp_len;
+-	void *src;
+ 	unsigned long alloced_pages;
+ 	unsigned long handle = 0;
++	unsigned int comp_len = 0;
++	void *src, *dst, *mem;
++	struct zcomp_strm *zstrm;
++	struct page *page = bvec->bv_page;
++	unsigned long element = 0;
++	enum zram_pageflags flags = 0;
++
++	mem = kmap_atomic(page);
++	if (page_same_filled(mem, &element)) {
++		kunmap_atomic(mem);
++		/* Free memory associated with this sector now. */
++		flags = ZRAM_SAME;
++		atomic64_inc(&zram->stats.same_pages);
++		goto out;
++	}
++	kunmap_atomic(mem);
  
--		s->node[node] = n;
- 		init_kmem_cache_node(n);
-+		s->node[node] = n;
+ compress_again:
++	zstrm = zcomp_stream_get(zram->comp);
+ 	src = kmap_atomic(page);
+-	ret = zcomp_compress(*zstrm, src, &comp_len);
++	ret = zcomp_compress(zstrm, src, &comp_len);
+ 	kunmap_atomic(src);
+ 
+ 	if (unlikely(ret)) {
++		zcomp_stream_put(zram->comp);
+ 		pr_err("Compression failed! err=%d\n", ret);
+-		if (handle)
+-			zs_free(zram->mem_pool, handle);
++		zs_free(zram->mem_pool, handle);
+ 		return ret;
  	}
- 	return 1;
- }
-_
-
-Patches currently in -mm which might be from glider@google.com are
-
-
+ 
+@@ -639,7 +652,6 @@ compress_again:
+ 		handle = zs_malloc(zram->mem_pool, comp_len,
+ 				GFP_NOIO | __GFP_HIGHMEM |
+ 				__GFP_MOVABLE);
+-		*zstrm = zcomp_stream_get(zram->comp);
+ 		if (handle)
+ 			goto compress_again;
+ 		return -ENOMEM;
+@@ -649,43 +661,11 @@ compress_again:
+ 	update_used_max(zram, alloced_pages);
+ 
+ 	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
++		zcomp_stream_put(zram->comp);
+ 		zs_free(zram->mem_pool, handle);
+ 		return -ENOMEM;
+ 	}
+ 
+-	*out_handle = handle;
+-	*out_comp_len = comp_len;
+-	return 0;
+-}
+-
+-static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
+-{
+-	int ret;
+-	unsigned long handle = 0;
+-	unsigned int comp_len = 0;
+-	void *src, *dst, *mem;
+-	struct zcomp_strm *zstrm;
+-	struct page *page = bvec->bv_page;
+-	unsigned long element = 0;
+-	enum zram_pageflags flags = 0;
+-
+-	mem = kmap_atomic(page);
+-	if (page_same_filled(mem, &element)) {
+-		kunmap_atomic(mem);
+-		/* Free memory associated with this sector now */
+-		atomic64_inc(&zram->stats.same_pages);
+-		flags = ZRAM_SAME;
+-		goto out;
+-	}
+-	kunmap_atomic(mem);
+-
+-	zstrm = zcomp_stream_get(zram->comp);
+-	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
+-	if (ret) {
+-		zcomp_stream_put(zram->comp);
+-		return ret;
+-	}
