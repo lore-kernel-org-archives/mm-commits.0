@@ -1,76 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- dax-use-pg_pmd_colour-instead-of-open-coding.patch removed from -mm tree
-Date: Thu, 07 Sep 2017 11:36:46 -0700
-Message-ID: <20170907183646.OMBlA73C-%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-make-ocfs2_set_acl-static.patch removed
+ from -mm tree
+Date: Thu, 07 Sep 2017 11:36:55 -0700
+Message-ID: <20170907183655.h4p-vsm2c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55064 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755468AbdIGSg4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:36:56 -0400
+        with ESMTP id S1755761AbdIGShH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, marcin.slusarz@intel.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk
+To: jack@suse.cz, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: use PG_PMD_COLOUR instead of open coding
+     Subject: ocfs2: make ocfs2_set_acl() static
 has been removed from the -mm tree.  Its filename was
-     dax-use-pg_pmd_colour-instead-of-open-coding.patch
+     ocfs2-make-ocfs2_set_acl-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: use PG_PMD_COLOUR instead of open coding
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: make ocfs2_set_acl() static
 
-Use ~PG_PMD_COLOUR in dax_entry_waitqueue() instead of open coding an
-equivalent page offset mask.
+The function is never called outside of fs/ocfs2/acl.c.
 
-Link: http://lkml.kernel.org/r/20170822222436.18926-2-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "Slusarz, Marcin" <marcin.slusarz@intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/20170801141252.19675-2-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/ocfs2/acl.c |    2 +-
+ fs/ocfs2/acl.h |    7 -------
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN fs/dax.c~dax-use-pg_pmd_colour-instead-of-open-coding fs/dax.c
---- a/fs/dax.c~dax-use-pg_pmd_colour-instead-of-open-coding
-+++ a/fs/dax.c
-@@ -42,6 +42,9 @@
- #define DAX_WAIT_TABLE_BITS 12
- #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
+diff -puN fs/ocfs2/acl.c~ocfs2-make-ocfs2_set_acl-static fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-make-ocfs2_set_acl-static
++++ a/fs/ocfs2/acl.c
+@@ -221,7 +221,7 @@ out:
+ /*
+  * Set the access or default ACL of an inode.
+  */
+-int ocfs2_set_acl(handle_t *handle,
++static int ocfs2_set_acl(handle_t *handle,
+ 			 struct inode *inode,
+ 			 struct buffer_head *di_bh,
+ 			 int type,
+diff -puN fs/ocfs2/acl.h~ocfs2-make-ocfs2_set_acl-static fs/ocfs2/acl.h
+--- a/fs/ocfs2/acl.h~ocfs2-make-ocfs2_set_acl-static
++++ a/fs/ocfs2/acl.h
+@@ -28,13 +28,6 @@ struct ocfs2_acl_entry {
  
-+/* The 'colour' (ie low bits) within a PMD of a page offset.  */
-+#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
-+
- static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
- 
- static int __init init_dax_wait_table(void)
-@@ -132,7 +135,7 @@ static wait_queue_head_t *dax_entry_wait
- 	 * the range covered by the PMD map to the same bit lock.
- 	 */
- 	if (dax_is_pmd_entry(entry))
--		index &= ~((1UL << (PMD_SHIFT - PAGE_SHIFT)) - 1);
-+		index &= ~PG_PMD_COLOUR;
- 
- 	key->mapping = mapping;
- 	key->entry_start = index;
-@@ -1215,12 +1218,6 @@ static int dax_iomap_pte_fault(struct vm
- }
- 
- #ifdef CONFIG_FS_DAX_PMD
--/*
-- * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
-- * more often than one might expect in the below functions.
-- */
--#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
+ struct posix_acl *ocfs2_iop_get_acl(struct inode *inode, int type);
+ int ocfs2_iop_set_acl(struct inode *inode, struct posix_acl *acl, int type);
+-int ocfs2_set_acl(handle_t *handle,
+-			 struct inode *inode,
+-			 struct buffer_head *di_bh,
+-			 int type,
+-			 struct posix_acl *acl,
+-			 struct ocfs2_alloc_context *meta_ac,
+-			 struct ocfs2_alloc_context *data_ac);
+ extern int ocfs2_acl_chmod(struct inode *, struct buffer_head *);
+ extern int ocfs2_init_acl(handle_t *, struct inode *, struct inode *,
+ 			  struct buffer_head *, struct buffer_head *,
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+
