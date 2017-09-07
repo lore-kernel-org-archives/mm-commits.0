@@ -1,117 +1,151 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch removed from -mm
+ x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch removed from -mm
  tree
-Date: Thu, 07 Sep 2017 11:42:01 -0700
-Message-ID: <20170907184201.5PaSOSzmQ%akpm@linux-foundation.org>
+Date: Thu, 07 Sep 2017 11:42:17 -0700
+Message-ID: <20170907184217.AW29ZWzc0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58014 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755748AbdIGSmC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:42:02 -0400
+        with ESMTP id S1755443AbdIGSmS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:42:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com
+To: colm@allcosts.net, dave.hansen@intel.com, fweimer@redhat.com, hpa@zytor.com, keescook@chromium.org, kirill@shutemov.name, luto@amacapital.net, mike.kravetz@oracle.com, mingo@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tglx@linutronix.de, wad@chromium.org, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: replace TIF_MEMDIE checks by tsk_is_oom_victim
+     Subject: x86,mpx: make mpx depend on x86-64 to free up VMA flag
 has been removed from the -mm tree.  Its filename was
-     mm-replace-tif_memdie-checks-by-tsk_is_oom_victim.patch
+     x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: replace TIF_MEMDIE checks by tsk_is_oom_victim
+From: Rik van Riel <riel@redhat.com>
+Subject: x86,mpx: make mpx depend on x86-64 to free up VMA flag
 
-TIF_MEMDIE is set only to the tasks whick were either directly selected by
-the OOM killer or passed through mark_oom_victim from the allocator path. 
-tsk_is_oom_victim is more generic and allows to identify all tasks
-(threads) which share the mm with the oom victim.
+Patch series "mm,fork,security: introduce MADV_WIPEONFORK", v4.
 
-Please note that the freezer still needs to check TIF_MEMDIE because we
-cannot thaw tasks which do not participage in oom_victims counting
-otherwise a !TIF_MEMDIE task could interfere after oom_disbale returns.
+If a child process accesses memory that was MADV_WIPEONFORK, it will get
+zeroes.  The address ranges are still valid, they are just empty.
 
-Link: http://lkml.kernel.org/r/20170810075019.28998-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
+If a child process accesses memory that was MADV_DONTFORK, it will get a
+segmentation fault, since those address ranges are no longer valid in the
+child after fork.
+
+Since MADV_DONTFORK also seems to be used to allow very large programs to
+fork in systems with strict memory overcommit restrictions, changing the
+semantics of MADV_DONTFORK might break existing programs.
+
+The use case is libraries that store or cache information, and want to
+know that they need to regenerate it in the child process after fork.
+
+Examples of this would be:
+- systemd/pulseaudio API checks (fail after fork)
+  (replacing a getpid check, which is too slow without a PID cache)
+- PKCS#11 API reinitialization check (mandated by specification)
+- glibc's upcoming PRNG (reseed after fork)
+- OpenSSL PRNG (reseed after fork)
+
+The security benefits of a forking server having a re-inialized PRNG in
+every child process are pretty obvious.  However, due to libraries having
+all kinds of internal state, and programs getting compiled with many
+different versions of each library, it is unreasonable to expect calling
+programs to re-initialize everything manually after fork.
+
+A further complication is the proliferation of clone flags, programs
+bypassing glibc's functions to call clone directly, and programs calling
+unshare, causing the glibc pthread_atfork hook to not get called.
+
+It would be better to have the kernel take care of this automatically.
+
+The patchset also adds MADV_KEEPONFORK, to undo the effects of a prior
+MADV_WIPEONFORK.
+
+This is similar to the OpenBSD minherit syscall with MAP_INHERIT_ZERO:
+
+    https://man.openbsd.org/minherit.2
+
+
+
+This patch (of 2):
+
+MPX only seems to be available on 64 bit CPUs, starting with Skylake and
+Goldmont.  Move VM_MPX into the 64 bit only portion of vma->vm_flags, in
+order to free up a VMA flag.
+
+Link: http://lkml.kernel.org/r/20170811212829.29186-2-riel@redhat.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Colm MacCártaigh <colm@allcosts.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cpuset.c |    9 +++++----
- mm/memcontrol.c        |    2 +-
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ arch/x86/Kconfig   |    4 +++-
+ include/linux/mm.h |    8 ++++++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup/cpuset.c~mm-replace-tif_memdie-checks-by-tsk_is_oom_victim kernel/cgroup/cpuset.c
---- a/kernel/cgroup/cpuset.c~mm-replace-tif_memdie-checks-by-tsk_is_oom_victim
-+++ a/kernel/cgroup/cpuset.c
-@@ -56,6 +56,7 @@
- #include <linux/time64.h>
- #include <linux/backing-dev.h>
- #include <linux/sort.h>
-+#include <linux/oom.h>
+diff -puN arch/x86/Kconfig~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag
++++ a/arch/x86/Kconfig
+@@ -1806,7 +1806,9 @@ config X86_SMAP
+ config X86_INTEL_MPX
+ 	prompt "Intel MPX (Memory Protection Extensions)"
+ 	def_bool n
+-	depends on CPU_SUP_INTEL
++	# Note: only available in 64-bit mode due to VMA flags shortage
++	depends on CPU_SUP_INTEL && X86_64
++	select ARCH_USES_HIGH_VMA_FLAGS
+ 	---help---
+ 	  MPX provides hardware features that can be used in
+ 	  conjunction with compiler-instrumented code to check
+diff -puN include/linux/mm.h~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag include/linux/mm.h
+--- a/include/linux/mm.h~x86mpx-make-mpx-depend-on-x86-64-to-free-up-vma-flag
++++ a/include/linux/mm.h
+@@ -208,10 +208,12 @@ extern unsigned int kobjsize(const void
+ #define VM_HIGH_ARCH_BIT_1	33	/* bit only usable on 64-bit architectures */
+ #define VM_HIGH_ARCH_BIT_2	34	/* bit only usable on 64-bit architectures */
+ #define VM_HIGH_ARCH_BIT_3	35	/* bit only usable on 64-bit architectures */
++#define VM_HIGH_ARCH_BIT_4	36	/* bit only usable on 64-bit architectures */
+ #define VM_HIGH_ARCH_0	BIT(VM_HIGH_ARCH_BIT_0)
+ #define VM_HIGH_ARCH_1	BIT(VM_HIGH_ARCH_BIT_1)
+ #define VM_HIGH_ARCH_2	BIT(VM_HIGH_ARCH_BIT_2)
+ #define VM_HIGH_ARCH_3	BIT(VM_HIGH_ARCH_BIT_3)
++#define VM_HIGH_ARCH_4	BIT(VM_HIGH_ARCH_BIT_4)
+ #endif /* CONFIG_ARCH_USES_HIGH_VMA_FLAGS */
  
- #include <linux/uaccess.h>
- #include <linux/atomic.h>
-@@ -2500,12 +2501,12 @@ static struct cpuset *nearest_hardwall_a
-  * If we're in interrupt, yes, we can always allocate.  If @node is set in
-  * current's mems_allowed, yes.  If it's not a __GFP_HARDWALL request and this
-  * node is set in the nearest hardwalled cpuset ancestor to current's cpuset,
-- * yes.  If current has access to memory reserves due to TIF_MEMDIE, yes.
-+ * yes.  If current has access to memory reserves as an oom victim, yes.
-  * Otherwise, no.
-  *
-  * GFP_USER allocations are marked with the __GFP_HARDWALL bit,
-  * and do not allow allocations outside the current tasks cpuset
-- * unless the task has been OOM killed as is marked TIF_MEMDIE.
-+ * unless the task has been OOM killed.
-  * GFP_KERNEL allocations are not so marked, so can escape to the
-  * nearest enclosing hardwalled ancestor cpuset.
-  *
-@@ -2528,7 +2529,7 @@ static struct cpuset *nearest_hardwall_a
-  * affect that:
-  *	in_interrupt - any node ok (current task context irrelevant)
-  *	GFP_ATOMIC   - any node ok
-- *	TIF_MEMDIE   - any node ok
-+ *	tsk_is_oom_victim   - any node ok
-  *	GFP_KERNEL   - any node in enclosing hardwalled cpuset ok
-  *	GFP_USER     - only nodes in current tasks mems allowed ok.
-  */
-@@ -2546,7 +2547,7 @@ bool __cpuset_node_allowed(int node, gfp
- 	 * Allow tasks that have access to memory reserves because they have
- 	 * been OOM killed to get memory anywhere.
- 	 */
--	if (unlikely(test_thread_flag(TIF_MEMDIE)))
-+	if (unlikely(tsk_is_oom_victim(current)))
- 		return true;
- 	if (gfp_mask & __GFP_HARDWALL)	/* If hardwall request, stop here */
- 		return false;
-diff -puN mm/memcontrol.c~mm-replace-tif_memdie-checks-by-tsk_is_oom_victim mm/memcontrol.c
---- a/mm/memcontrol.c~mm-replace-tif_memdie-checks-by-tsk_is_oom_victim
-+++ a/mm/memcontrol.c
-@@ -1917,7 +1917,7 @@ retry:
- 	 * bypass the last charges so that they can exit quickly and
- 	 * free their memory.
- 	 */
--	if (unlikely(test_thread_flag(TIF_MEMDIE) ||
-+	if (unlikely(tsk_is_oom_victim(current) ||
- 		     fatal_signal_pending(current) ||
- 		     current->flags & PF_EXITING))
- 		goto force;
+ #if defined(CONFIG_X86)
+@@ -235,9 +237,11 @@ extern unsigned int kobjsize(const void
+ # define VM_MAPPED_COPY	VM_ARCH_1	/* T if mapped copy of data (nommu mmap) */
+ #endif
+ 
+-#if defined(CONFIG_X86)
++#if defined(CONFIG_X86_INTEL_MPX)
+ /* MPX specific bounds table or bounds directory */
+-# define VM_MPX		VM_ARCH_2
++# define VM_MPX		VM_HIGH_ARCH_BIT_4
++#else
++# define VM_MPX		VM_NONE
+ #endif
+ 
+ #ifndef VM_GROWSUP
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-memory_hotplug-introduce-add_pages.patch
-mm-sparse-fix-typo-in-online_mem_sections.patch
-fs-proc-remove-priv-argument-from-is_stack.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
 
