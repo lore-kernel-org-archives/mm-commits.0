@@ -1,123 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:40:07 -0700
-Message-ID: <20170907184007.mFH9oT0Mw%akpm@linux-foundation.org>
+ userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:40:31 -0700
+Message-ID: <20170907184031.oQxNtneow%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755818AbdIGSkI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:08 -0400
+        with ESMTP id S1755707AbdIGSkc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, ying.huang@intel.com
+To: aarcange@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, xemul@virtuozzo.com
 
 
 The patch titled
-     Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
+     Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
 has been removed from the -mm tree.  Its filename was
-     memcg-thp-swap-make-mem_cgroup_swapout-support-thp.patch
+     userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: memcg, THP, swap: make mem_cgroup_swapout() support THP
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
 
-This patch makes mem_cgroup_swapout() works for the transparent huge page
-(THP).  Which will move the memory cgroup charge from memory to swap for a
-THP.
+Now when shmem VMAs can be filled with zero page via userfaultfd we can
+report that UFFDIO_ZEROPAGE is available for those VMAs
 
-This will be used for the THP swap support.  Where a THP may be swapped
-out as a whole to a set of (HPAGE_PMD_NR) continuous swap slots on the
-swap device.
-
-Link: http://lkml.kernel.org/r/20170724051840.2309-11-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1497939652-16528-7-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ fs/userfaultfd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-thp-swap-make-mem_cgroup_swapout-support-thp
-+++ a/mm/memcontrol.c
-@@ -4654,8 +4654,8 @@ static enum mc_target_type get_mctgt_typ
+diff -puN fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas
++++ a/fs/userfaultfd.c
+@@ -1194,7 +1194,7 @@ static int userfaultfd_register(struct u
+ 	struct uffdio_register __user *user_uffdio_register;
+ 	unsigned long vm_flags, new_flags;
+ 	bool found;
+-	bool non_anon_pages;
++	bool basic_ioctls;
+ 	unsigned long start, end, vma_end;
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-- * We don't consider swapping or file mapped pages because THP does not
-- * support them for now.
-+ * We don't consider PMD mapped swapping or file mapped pages because THP does
-+ * not support them for now.
-  * Caller should make sure that pmd_trans_huge(pmd) is true.
-  */
- static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
-@@ -5913,6 +5913,7 @@ static struct mem_cgroup *mem_cgroup_id_
- void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
- {
- 	struct mem_cgroup *memcg, *swap_memcg;
-+	unsigned int nr_entries;
- 	unsigned short oldid;
- 
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
-@@ -5933,19 +5934,24 @@ void mem_cgroup_swapout(struct page *pag
- 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+@@ -1260,7 +1260,7 @@ static int userfaultfd_register(struct u
+ 	 * Search for not compatible vmas.
  	 */
- 	swap_memcg = mem_cgroup_id_get_online(memcg);
--	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg), 1);
-+	nr_entries = hpage_nr_pages(page);
-+	/* Get references for the tail pages, too */
-+	if (nr_entries > 1)
-+		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
-+	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg),
-+				   nr_entries);
- 	VM_BUG_ON_PAGE(oldid, page);
--	mem_cgroup_swap_statistics(swap_memcg, 1);
-+	mem_cgroup_swap_statistics(swap_memcg, nr_entries);
+ 	found = false;
+-	non_anon_pages = false;
++	basic_ioctls = false;
+ 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
+ 		cond_resched();
  
- 	page->mem_cgroup = NULL;
+@@ -1299,8 +1299,8 @@ static int userfaultfd_register(struct u
+ 		/*
+ 		 * Note vmas containing huge pages
+ 		 */
+-		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
+-			non_anon_pages = true;
++		if (is_vm_hugetlb_page(cur))
++			basic_ioctls = true;
  
- 	if (!mem_cgroup_is_root(memcg))
--		page_counter_uncharge(&memcg->memory, 1);
-+		page_counter_uncharge(&memcg->memory, nr_entries);
- 
- 	if (memcg != swap_memcg) {
- 		if (!mem_cgroup_is_root(swap_memcg))
--			page_counter_charge(&swap_memcg->memsw, 1);
--		page_counter_uncharge(&memcg->memsw, 1);
-+			page_counter_charge(&swap_memcg->memsw, nr_entries);
-+		page_counter_uncharge(&memcg->memsw, nr_entries);
+ 		found = true;
  	}
- 
- 	/*
-@@ -5955,7 +5961,8 @@ void mem_cgroup_swapout(struct page *pag
- 	 * only synchronisation we have for udpating the per-CPU variables.
- 	 */
- 	VM_BUG_ON(!irqs_disabled());
--	mem_cgroup_charge_statistics(memcg, page, false, -1);
-+	mem_cgroup_charge_statistics(memcg, page, PageTransHuge(page),
-+				     -nr_entries);
- 	memcg_check_events(memcg, page);
- 
- 	if (!mem_cgroup_is_root(memcg))
+@@ -1371,7 +1371,7 @@ out_unlock:
+ 		 * userland which ioctls methods are guaranteed to
+ 		 * succeed on this range.
+ 		 */
+-		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
++		if (put_user(basic_ioctls ? UFFD_API_RANGE_IOCTLS_BASIC :
+ 			     UFFD_API_RANGE_IOCTLS,
+ 			     &user_uffdio_register->ioctls))
+ 			ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
 
