@@ -1,89 +1,180 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
- removed from -mm tree
-Date: Thu, 07 Sep 2017 11:37:58 -0700
-Message-ID: <20170907183758.lJB0PPs1n%akpm@linux-foundation.org>
+ mm-page_owner-make-init_pages_in_zone-faster.patch removed from -mm tree
+Date: Thu, 07 Sep 2017 11:38:19 -0700
+Message-ID: <20170907183819.MqpkD_Fn8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755713AbdIGSh7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:59 -0400
+        with ESMTP id S1755722AbdIGSiU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz
+To: iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz, vinmenon@codeaurora.org, yang.shi@linaro.org, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: mm, page_alloc: do not set_cpu_numa_mem on empty nodes initialization
+     Subject: mm, page_owner: make init_pages_in_zone() faster
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
+     mm-page_owner-make-init_pages_in_zone-faster.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: do not set_cpu_numa_mem on empty nodes initialization
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_owner: make init_pages_in_zone() faster
 
-__build_all_zonelists reinitializes each online cpu local node for
-CONFIG_HAVE_MEMORYLESS_NODES.  This makes sense because previously memory
-less nodes could gain some memory during memory hotplug and so the local
-node should be changed for CPUs close to such a node.  It makes less sense
-to do that unconditionally for a newly creaded NUMA node which is still
-offline and without any memory.
+In init_pages_in_zone() we currently use the generic set_page_owner()
+function to initialize page_owner info for early allocated pages.  This
+means we needlessly do lookup_page_ext() twice for each page, and more
+importantly save_stack(), which has to unwind the stack and find the
+corresponding stack depot handle.  Because the stack is always the same
+for the initialization, unwind it once in init_pages_in_zone() and reuse
+the handle.  Also avoid the repeated lookup_page_ext().
 
-Let's also simplify the cpu loop and use for_each_online_cpu instead of an
-explicit cpu_online check for all possible cpus.
+This can significantly reduce boot times with page_owner=on on large
+machines, especially for kernels built without frame pointer, where the
+stack unwinding is noticeably slower.
 
-Link: http://lkml.kernel.org/r/20170721143915.14161-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
+[vbabka@suse.cz: don't duplicate code of __set_page_owner(), per Michal Hocko]
+[akpm@linux-foundation.org: coding-style fixes]
+[vbabka@suse.cz: create statically allocated fake stack trace for early allocated pages, per Michal]
+  Link: http://lkml.kernel.org/r/45813564-2342-fc8d-d31a-f4b68a724325@suse.cz
+Link: http://lkml.kernel.org/r/20170720134029.25268-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: zhong jiang <zhongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/page_owner.c |   52 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 32 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization
-+++ a/mm/page_alloc.c
-@@ -5160,10 +5160,8 @@ static int __build_all_zonelists(void *d
+diff -puN mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-make-init_pages_in_zone-faster
++++ a/mm/page_owner.c
+@@ -30,6 +30,7 @@ DEFINE_STATIC_KEY_FALSE(page_owner_inite
  
- 			build_zonelists(pgdat);
- 		}
--	}
+ static depot_stack_handle_t dummy_handle;
+ static depot_stack_handle_t failure_handle;
++static depot_stack_handle_t early_handle;
  
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
--	for_each_possible_cpu(cpu) {
- 		/*
- 		 * We now know the "local memory node" for each node--
- 		 * i.e., the node of the first zone in the generic zonelist.
-@@ -5172,10 +5170,10 @@ static int __build_all_zonelists(void *d
- 		 * secondary cpus' numa_mem as they come on-line.  During
- 		 * node/memory hotplug, we'll fixup all on-line cpus.
- 		 */
--		if (cpu_online(cpu))
-+		for_each_online_cpu(cpu)
- 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
--	}
- #endif
-+	}
+ static void init_early_allocated_pages(void);
  
- 	return 0;
+@@ -53,7 +54,7 @@ static bool need_page_owner(void)
+ 	return true;
  }
+ 
+-static noinline void register_dummy_stack(void)
++static __always_inline depot_stack_handle_t create_dummy_stack(void)
+ {
+ 	unsigned long entries[4];
+ 	struct stack_trace dummy;
+@@ -64,21 +65,22 @@ static noinline void register_dummy_stac
+ 	dummy.skip = 0;
+ 
+ 	save_stack_trace(&dummy);
+-	dummy_handle = depot_save_stack(&dummy, GFP_KERNEL);
++	return depot_save_stack(&dummy, GFP_KERNEL);
+ }
+ 
+-static noinline void register_failure_stack(void)
++static noinline void register_dummy_stack(void)
+ {
+-	unsigned long entries[4];
+-	struct stack_trace failure;
++	dummy_handle = create_dummy_stack();
++}
+ 
+-	failure.nr_entries = 0;
+-	failure.max_entries = ARRAY_SIZE(entries);
+-	failure.entries = &entries[0];
+-	failure.skip = 0;
++static noinline void register_failure_stack(void)
++{
++	failure_handle = create_dummy_stack();
++}
+ 
+-	save_stack_trace(&failure);
+-	failure_handle = depot_save_stack(&failure, GFP_KERNEL);
++static noinline void register_early_stack(void)
++{
++	early_handle = create_dummy_stack();
+ }
+ 
+ static void init_page_owner(void)
+@@ -88,6 +90,7 @@ static void init_page_owner(void)
+ 
+ 	register_dummy_stack();
+ 	register_failure_stack();
++	register_early_stack();
+ 	static_branch_enable(&page_owner_inited);
+ 	init_early_allocated_pages();
+ }
+@@ -165,17 +168,13 @@ static noinline depot_stack_handle_t sav
+ 	return handle;
+ }
+ 
+-noinline void __set_page_owner(struct page *page, unsigned int order,
+-					gfp_t gfp_mask)
++static inline void __set_page_owner_handle(struct page_ext *page_ext,
++	depot_stack_handle_t handle, unsigned int order, gfp_t gfp_mask)
+ {
+-	struct page_ext *page_ext = lookup_page_ext(page);
+ 	struct page_owner *page_owner;
+ 
+-	if (unlikely(!page_ext))
+-		return;
+-
+ 	page_owner = get_page_owner(page_ext);
+-	page_owner->handle = save_stack(gfp_mask);
++	page_owner->handle = handle;
+ 	page_owner->order = order;
+ 	page_owner->gfp_mask = gfp_mask;
+ 	page_owner->last_migrate_reason = -1;
+@@ -183,6 +182,19 @@ noinline void __set_page_owner(struct pa
+ 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ }
+ 
++noinline void __set_page_owner(struct page *page, unsigned int order,
++					gfp_t gfp_mask)
++{
++	struct page_ext *page_ext = lookup_page_ext(page);
++	depot_stack_handle_t handle;
++
++	if (unlikely(!page_ext))
++		return;
++
++	handle = save_stack(gfp_mask);
++	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
++}
++
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
+@@ -565,12 +577,12 @@ static void init_pages_in_zone(pg_data_t
+ 			if (unlikely(!page_ext))
+ 				continue;
+ 
+-			/* Maybe overraping zone */
++			/* Maybe overlapping zone */
+ 			if (test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+ 				continue;
+ 
+ 			/* Found early allocated page */
+-			set_page_owner(page, 0, 0);
++			__set_page_owner_handle(page_ext, early_handle, 0, 0);
+ 			count++;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-memory_hotplug-introduce-add_pages.patch
-mm-sparse-fix-typo-in-online_mem_sections.patch
-fs-proc-remove-priv-argument-from-is_stack.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
 
