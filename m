@@ -1,150 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?zsmalloc-zs=5Fpage=5Fmigrate-skip-unnecessary-loops-but-n?=
- =?US-ASCII?Q?ot-return-ebusy-if-zspage-is-not-inuse.patch?= removed from
+ fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch removed from
  -mm tree
-Date: Thu, 07 Sep 2017 11:38:40 -0700
-Message-ID: <20170907183840.0U25u7aq8%akpm@linux-foundation.org>
+Date: Thu, 07 Sep 2017 11:39:07 -0700
+Message-ID: <20170907183907.DlZQzSxbu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56100 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755684AbdIGSil (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:41 -0400
+        with ESMTP id S1755671AbdIGSjI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, zhuhui@xiaomi.com
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: zs_page_migrate: skip unnecessary loops but not return -EBUSY if zspage is not inuse
+     Subject: fs: use pagevec_lookup_range() in page_cache_seek_hole_data()
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse.patch
+     fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@xiaomi.com>
-Subject: zsmalloc: zs_page_migrate: skip unnecessary loops but not return -EBUSY if zspage is not inuse
+From: Jan Kara <jack@suse.cz>
+Subject: fs: use pagevec_lookup_range() in page_cache_seek_hole_data()
 
-Getting -EBUSY from zs_page_migrate will make migration slow (retry) or
-fail (zs_page_putback will schedule_work free_work, but it cannot ensure
-the success).
+We want only pages from given range in page_cache_seek_hole_data().  Use
+pagevec_lookup_range() instead of pagevec_lookup() and remove unnecessary
+code.  Note that the check for getting less pages than desired can be
+removed because index gets updated by pagevec_lookup_range().
 
-I noticed this issue because my Kernel patched
-(https://lkml.org/lkml/2014/5/28/113) that will remove retry in
-__alloc_contig_migrate_range.  This retry willhandle the -EBUSY because it
-will re-isolate the page and re-call migrate_pages.  Without it will make
-cma_alloc fail at once with -EBUSY.
-
-According to the review from Minchan Kim in
-https://lkml.org/lkml/2014/5/28/113, I update the patch to skip
-unnecessary loops but not return -EBUSY if zspage is not inuse.
-
-Following is what I got with highalloc-performance in a vbox with 2
-cpu 1G memory 512 zram as swap.  And the swappiness is set to 100.
-
-                                   ori          ne
-                                  orig         new
-Minor Faults                  50805113    50830235
-Major Faults                     43918       56530
-Swap Ins                         42087       55680
-Swap Outs                        89718      104700
-Allocation stalls                    0           0
-DMA allocs                       57787       52364
-DMA32 allocs                  47964599    48043563
-Normal allocs                        0           0
-Movable allocs                       0           0
-Direct pages scanned             45493       23167
-Kswapd pages scanned           1565222     1725078
-Kswapd pages reclaimed         1342222     1503037
-Direct pages reclaimed           45615       25186
-Kswapd efficiency                  85%         87%
-Kswapd velocity               1897.101    1949.042
-Direct efficiency                 100%        108%
-Direct velocity                 55.139      26.175
-Percentage direct scans             2%          1%
-Zone normal velocity          1952.240    1975.217
-Zone dma32 velocity              0.000       0.000
-Zone dma velocity                0.000       0.000
-Page writes by reclaim       89764.000  105233.000
-Page writes file                    46         533
-Page writes anon                 89718      104700
-Page reclaim immediate           21457        3699
-Sector Reads                   3259688     3441368
-Sector Writes                  3667252     3754836
-Page rescued immediate               0           0
-Slabs scanned                  1042872     1160855
-Direct inode steals               8042       10089
-Kswapd inode steals              54295       29170
-Kswapd skipped wait                  0           0
-THP fault alloc                    175         154
-THP collapse alloc                 226         289
-THP splits                           0           0
-THP fault fallback                  11          14
-THP collapse fail                    3           2
-Compaction stalls                  536         646
-Compaction success                 322         358
-Compaction failures                214         288
-Page migrate success            119608      111063
-Page migrate failure              2723        2593
-Compaction pages isolated       250179      232652
-Compaction migrate scanned     9131832     9942306
-Compaction free scanned        2093272     2613998
-Compaction cost                    192         189
-NUMA alloc hit                47124555    47193990
-NUMA alloc miss                      0           0
-NUMA interleave hit                  0           0
-NUMA alloc local              47124555    47193990
-NUMA base PTE updates                0           0
-NUMA huge PMD updates                0           0
-NUMA page range updates              0           0
-NUMA hint faults                     0           0
-NUMA hint local faults               0           0
-NUMA hint local percent            100         100
-NUMA pages migrated                  0           0
-AutoNUMA cost                       0%          0%
-
-[akpm@linux-foundation.org: remove newline, per Minchan]
-Link: http://lkml.kernel.org/r/1500889535-19648-1-git-send-email-zhuhui@xiaomi.com
-Signed-off-by: Hui Zhu <zhuhui@xiaomi.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20170726114704.7626-9-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/buffer.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-zs_page_migrate-skip-unnecessary-loops-but-not-return-ebusy-if-zspage-is-not-inuse
-+++ a/mm/zsmalloc.c
-@@ -1983,8 +1983,11 @@ int zs_page_migrate(struct address_space
+diff -puN fs/buffer.c~fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data fs/buffer.c
+--- a/fs/buffer.c~fs-use-pagevec_lookup_range-in-page_cache_seek_hole_data
++++ a/fs/buffer.c
+@@ -3549,11 +3549,10 @@ page_cache_seek_hole_data(struct inode *
+ 	pagevec_init(&pvec, 0);
  
- 	spin_lock(&class->lock);
- 	if (!get_zspage_inuse(zspage)) {
--		ret = -EBUSY;
--		goto unlock_class;
-+		/*
-+		 * Set "offset" to end of the page so that every loops
-+		 * skips unnecessary object scanning.
-+		 */
-+		offset = PAGE_SIZE;
- 	}
+ 	do {
+-		unsigned want, nr_pages, i;
++		unsigned nr_pages, i;
  
- 	pos = offset;
-@@ -2052,7 +2055,6 @@ unpin_objects:
+-		want = min_t(unsigned, end - index, PAGEVEC_SIZE);
+-		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &index,
+-					  want);
++		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping, &index,
++						end - 1, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
+ 
+@@ -3574,10 +3573,6 @@ page_cache_seek_hole_data(struct inode *
+ 			    lastoff < page_offset(page))
+ 				goto check_range;
+ 
+-			/* Searching done if the page index is out of range. */
+-			if (page->index >= end)
+-				goto not_found;
+-
+ 			lock_page(page);
+ 			if (likely(page->mapping == inode->i_mapping) &&
+ 			    page_has_buffers(page)) {
+@@ -3590,11 +3585,6 @@ page_cache_seek_hole_data(struct inode *
+ 			unlock_page(page);
+ 			lastoff = page_offset(page) + PAGE_SIZE;
  		}
- 	}
- 	kunmap_atomic(s_addr);
--unlock_class:
- 	spin_unlock(&class->lock);
- 	migrate_write_unlock(zspage);
- 
-_
-
-Patches currently in -mm which might be from zhuhui@xiaomi.com are
-
-
+-
+-		/* Searching done if fewer pages returned than wanted. */
+-		if (nr_pages < want)
+-			break;
