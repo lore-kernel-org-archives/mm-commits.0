@@ -1,182 +1,529 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch removed from
- -mm tree
-Date: Thu, 07 Sep 2017 11:41:49 -0700
-Message-ID: <20170907184149.7WvZwb8jN%akpm@linux-foundation.org>
+Subject: [merged] add-proc-pid-smaps_rollup.patch removed from -mm
+ tree
+Date: Thu, 07 Sep 2017 11:42:13 -0700
+Message-ID: <20170907184213.1ZmSGD3V6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57994 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755744AbdIGSlu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:50 -0400
+        with ESMTP id S1755468AbdIGSmP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@intel.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com
+To: dancol@google.com, joelaf@google.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, sonnyrao@chromium.org, timmurray@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm, swap: add sysfs interface for VMA based swap readahead
+     Subject: mm: add /proc/pid/smaps_rollup
 has been removed from the -mm tree.  Its filename was
-     mm-swap-add-sysfs-interface-for-vma-based-swap-readahead.patch
+     add-proc-pid-smaps_rollup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: add sysfs interface for VMA based swap readahead
+From: Daniel Colascione <dancol@google.com>
+Subject: mm: add /proc/pid/smaps_rollup
 
-The sysfs interface to control the VMA based swap readahead is added as
-follow,
+/proc/pid/smaps_rollup is a new proc file that improves the performance of
+user programs that determine aggregate memory statistics (e.g., total PSS)
+of a process.
 
-/sys/kernel/mm/swap/vma_ra_enabled
+Android regularly "samples" the memory usage of various processes in order
+to balance its memory pool sizes.  This sampling process involves opening
+/proc/pid/smaps and summing certain fields.  For very large processes,
+sampling memory use this way can take several hundred milliseconds, due
+mostly to the overhead of the seq_printf calls in task_mmu.c.
 
-Enable the VMA based swap readahead algorithm, or use the original global
-swap readahead algorithm.
+smaps_rollup improves the situation.  It contains most of the fields of
+/proc/pid/smaps, but instead of a set of fields for each VMA, smaps_rollup
+instead contains one synthetic smaps-format entry representing the whole
+process.  In the single smaps_rollup synthetic entry, each field is the
+summation of the corresponding field in all of the real-smaps VMAs.  Using
+a common format for smaps_rollup and smaps allows userspace parsers to
+repurpose parsers meant for use with non-rollup smaps for smaps_rollup,
+and it allows userspace to switch between smaps_rollup and smaps at
+runtime (say, based on the availability of smaps_rollup in a given kernel)
+with minimal fuss.
 
-/sys/kernel/mm/swap/vma_ra_max_order
+By using smaps_rollup instead of smaps, a caller can avoid the significant
+overhead of formatting, reading, and parsing each of a large process's
+potentially very numerous memory mappings.  For sampling system_server's
+PSS in Android, we measured a 12x speedup, representing a savings of
+several hundred milliseconds.
 
-Set the max order of the readahead window size for the VMA based swap
-readahead algorithm.
+One alternative to a new per-process proc file would have been including
+PSS information in /proc/pid/status.  We considered this option but
+thought that PSS would be too expensive (by a few orders of magnitude) to
+collect relative to what's already emitted as part of /proc/pid/status,
+and slowing every user of /proc/pid/status for the sake of readers that
+happen to want PSS feels wrong.
 
-The corresponding ABI documentation is added too.
+The code itself works by reusing the existing VMA-walking framework we use
+for regular smaps generation and keeping the mem_size_stats structure
+around between VMA walks instead of using a fresh one for each VMA.  In
+this way, summation happens automatically.  We let seq_file walk over the
+VMAs just as it does for regular smaps and just emit nothing to the
+seq_file until we hit the last VMA.
 
-Link: http://lkml.kernel.org/r/20170807054038.1843-5-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Benchmarks:
+
+    using smaps:
+    iterations:1000 pid:1163 pss:220023808
+    0m29.46s real 0m08.28s user 0m20.98s system
+
+    using smaps_rollup:
+    iterations:1000 pid:1163 pss:220702720
+    0m04.39s real 0m00.03s user 0m04.31s system
+
+We're using the PSS samples we collect asynchronously for
+system-management tasks like fine-tuning oom_adj_score, memory use
+tracking for debugging, application-level memory-use attribution, and
+deciding whether we want to kill large processes during system idle
+maintenance windows.  Android has been using PSS for these purposes for a
+long time; as the average process VMA count has increased and and devices
+become more efficiency-conscious, PSS-collection inefficiency has started
+to matter more.  IMHO, it'd be a lot safer to optimize the existing
+PSS-collection model, which has been fine-tuned over the years, instead of
+changing the memory tracking approach entirely to work around
+smaps-generation inefficiency.
+
+Tim said:
+
+: There are two main reasons why Android gathers PSS information:
+: 
+: 1. Android devices can show the user the amount of memory used per
+:    application via the settings app.  This is a less important use case.
+: 
+: 2. We log PSS to help identify leaks in applications.  We have found
+:    an enormous number of bugs (in the Android platform, in Google's own
+:    apps, and in third-party applications) using this data.
+: 
+: To do this, system_server (the main process in Android userspace) will
+: sample the PSS of a process three seconds after it changes state (for
+: example, app is launched and becomes the foreground application) and about
+: every ten minutes after that.  The net result is that PSS collection is
+: regularly running on at least one process in the system (usually a few
+: times a minute while the screen is on, less when screen is off due to
+: suspend).  PSS of a process is an incredibly useful stat to track, and we
+: aren't going to get rid of it.  We've looked at some very hacky approaches
+: using RSS ("take the RSS of the target process, subtract the RSS of the
+: zygote process that is the parent of all Android apps") to reduce the
+: accounting time, but it regularly overestimated the memory used by 20+
+: percent.  Accordingly, I don't think that there's a good alternative to
+: using PSS.
+: 
+: We started looking into PSS collection performance after we noticed random
+: frequency spikes while a phone's screen was off; occasionally, one of the
+: CPU clusters would ramp to a high frequency because there was 200-300ms of
+: constant CPU work from a single thread in the main Android userspace
+: process.  The work causing the spike (which is reasonable governor
+: behavior given the amount of CPU time needed) was always PSS collection. 
+: As a result, Android is burning more power than we should be on PSS
+: collection.
+: 
+: The other issue (and why I'm less sure about improving smaps as a
+: long-term solution) is that the number of VMAs per process has increased
+: significantly from release to release.  After trying to figure out why we
+: were seeing these 200-300ms PSS collection times on Android O but had not
+: noticed it in previous versions, we found that the number of VMAs in the
+: main system process increased by 50% from Android N to Android O (from
+: ~1800 to ~2700) and varying increases in every userspace process.  Android
+: M to N also had an increase in the number of VMAs, although not as much. 
+: I'm not sure why this is increasing so much over time, but thinking about
+: ASLR and ways to make ASLR better, I expect that this will continue to
+: increase going forward.  I would not be surprised if we hit 5000 VMAs on
+: the main Android process (system_server) by 2020.
+: 
+: If we assume that the number of VMAs is going to increase over time, then
+: doing anything we can do to reduce the overhead of each VMA during PSS
+: collection seems like the right way to go, and that means outputting an
+: aggregate statistic (to avoid whatever overhead there is per line in
+: writing smaps and in reading each line from userspace).
+
+Link: http://lkml.kernel.org/r/20170812022148.178293-1-dancol@google.com
+Signed-off-by: Daniel Colascione <dancol@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Joel Fernandes <joelaf@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Sonny Rao <sonnyrao@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-swap |   26 ++++
- mm/swap_state.c                                |   80 +++++++++++++++
- 2 files changed, 106 insertions(+)
+ Documentation/ABI/testing/procfs-smaps_rollup |   34 ++
+ fs/proc/base.c                                |    2 
+ fs/proc/internal.h                            |    3 
+ fs/proc/task_mmu.c                            |  196 ++++++++++------
+ 4 files changed, 173 insertions(+), 62 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-kernel-mm-swap
+diff -puN /dev/null Documentation/ABI/testing/procfs-smaps_rollup
 --- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-swap
-@@ -0,0 +1,26 @@
-+What:		/sys/kernel/mm/swap/
++++ a/Documentation/ABI/testing/procfs-smaps_rollup
+@@ -0,0 +1,34 @@
++What:		/proc/pid/smaps_rollup
 +Date:		August 2017
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Interface for swapping
++Contact:	Daniel Colascione <dancol@google.com>
++Description:
++		This file provides pre-summed memory information for a
++		process.  The format is identical to /proc/pid/smaps,
++		except instead of an entry for each VMA in a process,
++		smaps_rollup has a single entry (tagged "[rollup]")
++		for which each field is the sum of the corresponding
++		fields from all the maps in /proc/pid/smaps.
++		For more details, see the procfs man page.
 +
-+What:		/sys/kernel/mm/swap/vma_ra_enabled
-+Date:		August 2017
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Enable/disable VMA based swap readahead.
++		Typical output looks like this:
 +
-+		If set to true, the VMA based swap readahead algorithm
-+		will be used for swappable anonymous pages mapped in a
-+		VMA, and the global swap readahead algorithm will be
-+		still used for tmpfs etc. other users.  If set to
-+		false, the global swap readahead algorithm will be
-+		used for all swappable pages.
++		00100000-ff709000 ---p 00000000 00:00 0		 [rollup]
++		Rss:		     884 kB
++		Pss:		     385 kB
++		Shared_Clean:	     696 kB
++		Shared_Dirty:	       0 kB
++		Private_Clean:	     120 kB
++		Private_Dirty:	      68 kB
++		Referenced:	     884 kB
++		Anonymous:	      68 kB
++		LazyFree:	       0 kB
++		AnonHugePages:	       0 kB
++		ShmemPmdMapped:	       0 kB
++		Shared_Hugetlb:	       0 kB
++		Private_Hugetlb:       0 kB
++		Swap:		       0 kB
++		SwapPss:	       0 kB
++		Locked:		     385 kB
 +
-+What:		/sys/kernel/mm/swap/vma_ra_max_order
-+Date:		August 2017
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	The max readahead size in order for VMA based swap readahead
 +
-+		VMA based swap readahead algorithm will readahead at
-+		most 1 << max_order pages for each readahead.  The
-+		real readahead size for each readahead will be scaled
-+		according to the estimation algorithm.
-diff -puN mm/swap_state.c~mm-swap-add-sysfs-interface-for-vma-based-swap-readahead mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-add-sysfs-interface-for-vma-based-swap-readahead
-+++ a/mm/swap_state.c
-@@ -751,3 +751,83 @@ skip:
- 	return read_swap_cache_async(fentry, gfp_mask, vma, vmf->address,
- 				     swap_ra->win == 1);
++
+diff -puN fs/proc/base.c~add-proc-pid-smaps_rollup fs/proc/base.c
+--- a/fs/proc/base.c~add-proc-pid-smaps_rollup
++++ a/fs/proc/base.c
+@@ -2931,6 +2931,7 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_PROC_PAGE_MONITOR
+ 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
+ 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
++	REG("smaps_rollup", S_IRUGO, proc_pid_smaps_rollup_operations),
+ 	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
+ #endif
+ #ifdef CONFIG_SECURITY
+@@ -3324,6 +3325,7 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_PROC_PAGE_MONITOR
+ 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
+ 	REG("smaps",     S_IRUGO, proc_tid_smaps_operations),
++	REG("smaps_rollup", S_IRUGO, proc_pid_smaps_rollup_operations),
+ 	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
+ #endif
+ #ifdef CONFIG_SECURITY
+diff -puN fs/proc/internal.h~add-proc-pid-smaps_rollup fs/proc/internal.h
+--- a/fs/proc/internal.h~add-proc-pid-smaps_rollup
++++ a/fs/proc/internal.h
+@@ -269,10 +269,12 @@ extern int proc_remount(struct super_blo
+ /*
+  * task_[no]mmu.c
+  */
++struct mem_size_stats;
+ struct proc_maps_private {
+ 	struct inode *inode;
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
++	struct mem_size_stats *rollup;
+ #ifdef CONFIG_MMU
+ 	struct vm_area_struct *tail_vma;
+ #endif
+@@ -288,6 +290,7 @@ extern const struct file_operations proc
+ extern const struct file_operations proc_pid_numa_maps_operations;
+ extern const struct file_operations proc_tid_numa_maps_operations;
+ extern const struct file_operations proc_pid_smaps_operations;
++extern const struct file_operations proc_pid_smaps_rollup_operations;
+ extern const struct file_operations proc_tid_smaps_operations;
+ extern const struct file_operations proc_clear_refs_operations;
+ extern const struct file_operations proc_pagemap_operations;
+diff -puN fs/proc/task_mmu.c~add-proc-pid-smaps_rollup fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~add-proc-pid-smaps_rollup
++++ a/fs/proc/task_mmu.c
+@@ -253,6 +253,7 @@ static int proc_map_release(struct inode
+ 	if (priv->mm)
+ 		mmdrop(priv->mm);
+ 
++	kfree(priv->rollup);
+ 	return seq_release_private(inode, file);
  }
-+
-+#ifdef CONFIG_SYSFS
-+static ssize_t vma_ra_enabled_show(struct kobject *kobj,
-+				     struct kobj_attribute *attr, char *buf)
+ 
+@@ -279,6 +280,23 @@ static int is_stack(struct proc_maps_pri
+ 		vma->vm_end >= vma->vm_mm->start_stack;
+ }
+ 
++static void show_vma_header_prefix(struct seq_file *m,
++				   unsigned long start, unsigned long end,
++				   vm_flags_t flags, unsigned long long pgoff,
++				   dev_t dev, unsigned long ino)
 +{
-+	return sprintf(buf, "%s\n", swap_vma_readahead ? "true" : "false");
++	seq_setwidth(m, 25 + sizeof(void *) * 6 - 1);
++	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu ",
++		   start,
++		   end,
++		   flags & VM_READ ? 'r' : '-',
++		   flags & VM_WRITE ? 'w' : '-',
++		   flags & VM_EXEC ? 'x' : '-',
++		   flags & VM_MAYSHARE ? 's' : 'p',
++		   pgoff,
++		   MAJOR(dev), MINOR(dev), ino);
 +}
-+static ssize_t vma_ra_enabled_store(struct kobject *kobj,
-+				      struct kobj_attribute *attr,
-+				      const char *buf, size_t count)
++
+ static void
+ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
+ {
+@@ -301,17 +319,7 @@ show_map_vma(struct seq_file *m, struct
+ 
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+-
+-	seq_setwidth(m, 25 + sizeof(void *) * 6 - 1);
+-	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu ",
+-			start,
+-			end,
+-			flags & VM_READ ? 'r' : '-',
+-			flags & VM_WRITE ? 'w' : '-',
+-			flags & VM_EXEC ? 'x' : '-',
+-			flags & VM_MAYSHARE ? 's' : 'p',
+-			pgoff,
+-			MAJOR(dev), MINOR(dev), ino);
++	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
+ 
+ 	/*
+ 	 * Print the dentry name for named mappings, and a
+@@ -430,6 +438,7 @@ const struct file_operations proc_tid_ma
+ 
+ #ifdef CONFIG_PROC_PAGE_MONITOR
+ struct mem_size_stats {
++	bool first;
+ 	unsigned long resident;
+ 	unsigned long shared_clean;
+ 	unsigned long shared_dirty;
+@@ -443,7 +452,9 @@ struct mem_size_stats {
+ 	unsigned long swap;
+ 	unsigned long shared_hugetlb;
+ 	unsigned long private_hugetlb;
++	unsigned long first_vma_start;
+ 	u64 pss;
++	u64 pss_locked;
+ 	u64 swap_pss;
+ 	bool check_shmem_swap;
+ };
+@@ -719,18 +730,36 @@ void __weak arch_show_smap(struct seq_fi
+ 
+ static int show_smap(struct seq_file *m, void *v, int is_pid)
+ {
++	struct proc_maps_private *priv = m->private;
+ 	struct vm_area_struct *vma = v;
+-	struct mem_size_stats mss;
++	struct mem_size_stats mss_stack;
++	struct mem_size_stats *mss;
+ 	struct mm_walk smaps_walk = {
+ 		.pmd_entry = smaps_pte_range,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		.hugetlb_entry = smaps_hugetlb_range,
+ #endif
+ 		.mm = vma->vm_mm,
+-		.private = &mss,
+ 	};
++	int ret = 0;
++	bool rollup_mode;
++	bool last_vma;
++
++	if (priv->rollup) {
++		rollup_mode = true;
++		mss = priv->rollup;
++		if (mss->first) {
++			mss->first_vma_start = vma->vm_start;
++			mss->first = false;
++		}
++		last_vma = !m_next_vma(priv, vma);
++	} else {
++		rollup_mode = false;
++		memset(&mss_stack, 0, sizeof(mss_stack));
++		mss = &mss_stack;
++	}
+ 
+-	memset(&mss, 0, sizeof mss);
++	smaps_walk.private = mss;
+ 
+ #ifdef CONFIG_SHMEM
+ 	if (vma->vm_file && shmem_mapping(vma->vm_file->f_mapping)) {
+@@ -748,9 +777,9 @@ static int show_smap(struct seq_file *m,
+ 
+ 		if (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
+ 					!(vma->vm_flags & VM_WRITE)) {
+-			mss.swap = shmem_swapped;
++			mss->swap = shmem_swapped;
+ 		} else {
+-			mss.check_shmem_swap = true;
++			mss->check_shmem_swap = true;
+ 			smaps_walk.pte_hole = smaps_pte_hole;
+ 		}
+ 	}
+@@ -758,54 +787,71 @@ static int show_smap(struct seq_file *m,
+ 
+ 	/* mmap_sem is held in m_start */
+ 	walk_page_vma(vma, &smaps_walk);
++	if (vma->vm_flags & VM_LOCKED)
++		mss->pss_locked += mss->pss;
+ 
+-	show_map_vma(m, vma, is_pid);
+-
+-	seq_printf(m,
+-		   "Size:           %8lu kB\n"
+-		   "Rss:            %8lu kB\n"
+-		   "Pss:            %8lu kB\n"
+-		   "Shared_Clean:   %8lu kB\n"
+-		   "Shared_Dirty:   %8lu kB\n"
+-		   "Private_Clean:  %8lu kB\n"
+-		   "Private_Dirty:  %8lu kB\n"
+-		   "Referenced:     %8lu kB\n"
+-		   "Anonymous:      %8lu kB\n"
+-		   "LazyFree:       %8lu kB\n"
+-		   "AnonHugePages:  %8lu kB\n"
+-		   "ShmemPmdMapped: %8lu kB\n"
+-		   "Shared_Hugetlb: %8lu kB\n"
+-		   "Private_Hugetlb: %7lu kB\n"
+-		   "Swap:           %8lu kB\n"
+-		   "SwapPss:        %8lu kB\n"
+-		   "KernelPageSize: %8lu kB\n"
+-		   "MMUPageSize:    %8lu kB\n"
+-		   "Locked:         %8lu kB\n",
+-		   (vma->vm_end - vma->vm_start) >> 10,
+-		   mss.resident >> 10,
+-		   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
+-		   mss.shared_clean  >> 10,
+-		   mss.shared_dirty  >> 10,
+-		   mss.private_clean >> 10,
+-		   mss.private_dirty >> 10,
+-		   mss.referenced >> 10,
+-		   mss.anonymous >> 10,
+-		   mss.lazyfree >> 10,
+-		   mss.anonymous_thp >> 10,
+-		   mss.shmem_thp >> 10,
+-		   mss.shared_hugetlb >> 10,
+-		   mss.private_hugetlb >> 10,
+-		   mss.swap >> 10,
+-		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
+-		   vma_kernel_pagesize(vma) >> 10,
+-		   vma_mmu_pagesize(vma) >> 10,
+-		   (vma->vm_flags & VM_LOCKED) ?
+-			(unsigned long)(mss.pss >> (10 + PSS_SHIFT)) : 0);
+-
+-	arch_show_smap(m, vma);
+-	show_smap_vma_flags(m, vma);
++	if (!rollup_mode) {
++		show_map_vma(m, vma, is_pid);
++	} else if (last_vma) {
++		show_vma_header_prefix(
++			m, mss->first_vma_start, vma->vm_end, 0, 0, 0, 0);
++		seq_pad(m, ' ');
++		seq_puts(m, "[rollup]\n");
++	} else {
++		ret = SEQ_SKIP;
++	}
++
++	if (!rollup_mode)
++		seq_printf(m,
++			   "Size:           %8lu kB\n"
++			   "KernelPageSize: %8lu kB\n"
++			   "MMUPageSize:    %8lu kB\n",
++			   (vma->vm_end - vma->vm_start) >> 10,
++			   vma_kernel_pagesize(vma) >> 10,
++			   vma_mmu_pagesize(vma) >> 10);
++
++
++	if (!rollup_mode || last_vma)
++		seq_printf(m,
++			   "Rss:            %8lu kB\n"
++			   "Pss:            %8lu kB\n"
++			   "Shared_Clean:   %8lu kB\n"
++			   "Shared_Dirty:   %8lu kB\n"
++			   "Private_Clean:  %8lu kB\n"
++			   "Private_Dirty:  %8lu kB\n"
++			   "Referenced:     %8lu kB\n"
++			   "Anonymous:      %8lu kB\n"
++			   "LazyFree:       %8lu kB\n"
++			   "AnonHugePages:  %8lu kB\n"
++			   "ShmemPmdMapped: %8lu kB\n"
++			   "Shared_Hugetlb: %8lu kB\n"
++			   "Private_Hugetlb: %7lu kB\n"
++			   "Swap:           %8lu kB\n"
++			   "SwapPss:        %8lu kB\n"
++			   "Locked:         %8lu kB\n",
++			   mss->resident >> 10,
++			   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)),
++			   mss->shared_clean  >> 10,
++			   mss->shared_dirty  >> 10,
++			   mss->private_clean >> 10,
++			   mss->private_dirty >> 10,
++			   mss->referenced >> 10,
++			   mss->anonymous >> 10,
++			   mss->lazyfree >> 10,
++			   mss->anonymous_thp >> 10,
++			   mss->shmem_thp >> 10,
++			   mss->shared_hugetlb >> 10,
++			   mss->private_hugetlb >> 10,
++			   mss->swap >> 10,
++			   (unsigned long)(mss->swap_pss >> (10 + PSS_SHIFT)),
++			   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)));
++
++	if (!rollup_mode) {
++		arch_show_smap(m, vma);
++		show_smap_vma_flags(m, vma);
++	}
+ 	m_cache_vma(m, vma);
+-	return 0;
++	return ret;
+ }
+ 
+ static int show_pid_smap(struct seq_file *m, void *v)
+@@ -837,6 +883,25 @@ static int pid_smaps_open(struct inode *
+ 	return do_maps_open(inode, file, &proc_pid_smaps_op);
+ }
+ 
++static int pid_smaps_rollup_open(struct inode *inode, struct file *file)
 +{
-+	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
-+		swap_vma_readahead = true;
-+	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
-+		swap_vma_readahead = false;
-+	else
-+		return -EINVAL;
++	struct seq_file *seq;
++	struct proc_maps_private *priv;
++	int ret = do_maps_open(inode, file, &proc_pid_smaps_op);
 +
-+	return count;
-+}
-+static struct kobj_attribute vma_ra_enabled_attr =
-+	__ATTR(vma_ra_enabled, 0644, vma_ra_enabled_show,
-+	       vma_ra_enabled_store);
-+
-+static ssize_t vma_ra_max_order_show(struct kobject *kobj,
-+				     struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", swap_ra_max_order);
-+}
-+static ssize_t vma_ra_max_order_store(struct kobject *kobj,
-+				      struct kobj_attribute *attr,
-+				      const char *buf, size_t count)
-+{
-+	int err, v;
-+
-+	err = kstrtoint(buf, 10, &v);
-+	if (err || v > SWAP_RA_ORDER_CEILING || v <= 0)
-+		return -EINVAL;
-+
-+	swap_ra_max_order = v;
-+
-+	return count;
-+}
-+static struct kobj_attribute vma_ra_max_order_attr =
-+	__ATTR(vma_ra_max_order, 0644, vma_ra_max_order_show,
-+	       vma_ra_max_order_store);
-+
-+static struct attribute *swap_attrs[] = {
-+	&vma_ra_enabled_attr.attr,
-+	&vma_ra_max_order_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group swap_attr_group = {
-+	.attrs = swap_attrs,
-+};
-+
-+static int __init swap_init_sysfs(void)
-+{
-+	int err;
-+	struct kobject *swap_kobj;
-+
-+	swap_kobj = kobject_create_and_add("swap", mm_kobj);
-+	if (!swap_kobj) {
-+		pr_err("failed to create swap kobject\n");
++	if (ret < 0)
++		return ret;
++	seq = file->private_data;
++	priv = seq->private;
++	priv->rollup = kzalloc(sizeof(*priv->rollup), GFP_KERNEL);
++	if (!priv->rollup) {
++		proc_map_release(inode, file);
 +		return -ENOMEM;
 +	}
-+	err = sysfs_create_group(swap_kobj, &swap_attr_group);
-+	if (err) {
-+		pr_err("failed to register swap group\n");
-+		goto delete_obj;
-+	}
++	priv->rollup->first = true;
 +	return 0;
-+
-+delete_obj:
-+	kobject_put(swap_kobj);
-+	return err;
 +}
-+subsys_initcall(swap_init_sysfs);
-+#endif
++
+ static int tid_smaps_open(struct inode *inode, struct file *file)
+ {
+ 	return do_maps_open(inode, file, &proc_tid_smaps_op);
+@@ -847,6 +912,13 @@ const struct file_operations proc_pid_sm
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+ 	.release	= proc_map_release,
++};
++
++const struct file_operations proc_pid_smaps_rollup_operations = {
++	.open		= pid_smaps_rollup_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= proc_map_release,
+ };
+ 
+ const struct file_operations proc_tid_smaps_operations = {
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from dancol@google.com are
 
 
