@@ -1,57 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-huge_memory-constify-attribute_group-structures.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:39:31 -0700
-Message-ID: <20170907183931.pK3NMwnNN%akpm@linux-foundation.org>
+ mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:39:49 -0700
+Message-ID: <20170907183949.YFsyL-WXh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57180 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755802AbdIGSjc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:32 -0400
+        with ESMTP id S1755781AbdIGSjy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/huge_memory.c: constify attribute_group structures
+     Subject: mm, THP, swap: don't allocate huge cluster for file backed swap device
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-constify-attribute_group-structures.patch
+     mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: mm/huge_memory.c: constify attribute_group structures
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, THP, swap: don't allocate huge cluster for file backed swap device
 
-attribute_group are not supposed to change at runtime.  All functions
-working with attribute_group provided by <linux/sysfs.h> work with const
-attribute_group.  So mark the non-const structs as const.
+It's hard to write a whole transparent huge page (THP) to a file backed
+swap device during swapping out and the file backed swap device isn't very
+popular.  So the huge cluster allocation for the file backed swap device
+is disabled.
 
-Link: http://lkml.kernel.org/r/1501157240-3876-1-git-send-email-arvind.yadav.cs@gmail.com
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Link: http://lkml.kernel.org/r/20170724051840.2309-5-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memory-constify-attribute_group-structures mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memory-constify-attribute_group-structures
-+++ a/mm/huge_memory.c
-@@ -328,7 +328,7 @@ static struct attribute *hugepage_attr[]
- 	NULL,
- };
- 
--static struct attribute_group hugepage_attr_group = {
-+static const struct attribute_group hugepage_attr_group = {
- 	.attrs = hugepage_attr,
- };
- 
+diff -puN mm/swapfile.c~mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-dont-allocate-huge-cluster-for-file-backed-swap-device
++++ a/mm/swapfile.c
+@@ -948,9 +948,10 @@ start_over:
+ 			spin_unlock(&si->lock);
+ 			goto nextsi;
+ 		}
+-		if (cluster)
+-			n_ret = swap_alloc_cluster(si, swp_entries);
+-		else
++		if (cluster) {
++			if (!(si->flags & SWP_FILE))
++				n_ret = swap_alloc_cluster(si, swp_entries);
++		} else
+ 			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
+ 						    n_goal, swp_entries);
+ 		spin_unlock(&si->lock);
 _
 
-Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
