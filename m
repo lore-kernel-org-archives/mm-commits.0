@@ -1,178 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch removed from
- -mm tree
-Date: Thu, 07 Sep 2017 11:39:13 -0700
-Message-ID: <20170907183913.ec7iLrOkQ%akpm@linux-foundation.org>
+ fs-fix-performance-regression-in-clean_bdev_aliases.patch removed from -mm
+ tree
+Date: Thu, 07 Sep 2017 11:38:55 -0700
+Message-ID: <20170907183855.w73DfvidW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55918 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755551AbdIGSjO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:14 -0400
+        with ESMTP id S1755705AbdIGSi4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: axboe@fb.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove nr_pages argument from pagevec_lookup{,_range}()
+     Subject: fs: fix performance regression in clean_bdev_aliases()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-nr_pages-argument-from-pagevec_lookup_range.patch
+     fs-fix-performance-regression-in-clean_bdev_aliases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: remove nr_pages argument from pagevec_lookup{,_range}()
+Subject: fs: fix performance regression in clean_bdev_aliases()
 
-All users of pagevec_lookup() and pagevec_lookup_range() now pass
-PAGEVEC_SIZE as a desired number of pages.  Just drop the argument.
+e64855c6cfaa ("fs: Add helper to clean bdev aliases under a bh and use
+it") added a wrapper for clean_bdev_aliases() that invalidates bdev
+aliases underlying a single buffer head.  However this has caused a
+performance regression for bonnie++ benchmark on ext4 filesystem when
+delayed allocation is turned off (ext3 mode) - average of 3 runs:
 
-Link: http://lkml.kernel.org/r/20170726114704.7626-11-jack@suse.cz
+Hmean SeqOut Char  164787.55 (  0.00%) 107189.06 (-34.95%)
+Hmean SeqOut Block 219883.89 (  0.00%) 168870.32 (-23.20%)
+
+The reason for this regression is that clean_bdev_aliases() is slower
+when called for a single block because pagevec_lookup() it uses will end
+up iterating through the radix tree until it finds a page (which may
+take a while) but we are only interested whether there's a page at a
+particular index.
+
+Fix the problem by using pagevec_lookup_range() instead which avoids the
+needless iteration.
+
+Fixes: e64855c6cfaa ("fs: Add helper to clean bdev aliases under a bh and use it")
+Link: http://lkml.kernel.org/r/20170726114704.7626-5-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c             |    5 ++---
- fs/ext4/file.c          |    2 +-
- fs/ext4/inode.c         |    5 ++---
- fs/fscache/page.c       |    2 +-
- fs/hugetlbfs/inode.c    |    3 +--
- fs/nilfs2/page.c        |    2 +-
- include/linux/pagevec.h |    7 +++----
- mm/swap.c               |    5 ++---
- 8 files changed, 13 insertions(+), 18 deletions(-)
+ fs/buffer.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN fs/buffer.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/buffer.c
---- a/fs/buffer.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
+diff -puN fs/buffer.c~fs-fix-performance-regression-in-clean_bdev_aliases fs/buffer.c
+--- a/fs/buffer.c~fs-fix-performance-regression-in-clean_bdev_aliases
 +++ a/fs/buffer.c
-@@ -1633,8 +1633,7 @@ void clean_bdev_aliases(struct block_dev
+@@ -1627,19 +1627,18 @@ void clean_bdev_aliases(struct block_dev
+ 	struct pagevec pvec;
+ 	pgoff_t index = block >> (PAGE_SHIFT - bd_inode->i_blkbits);
+ 	pgoff_t end;
+-	int i;
++	int i, count;
+ 	struct buffer_head *bh;
+ 	struct buffer_head *head;
  
  	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
  	pagevec_init(&pvec, 0);
--	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end,
--				    PAGEVEC_SIZE)) {
-+	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end)) {
- 		count = pagevec_count(&pvec);
- 		for (i = 0; i < count; i++) {
+-	while (index <= end && pagevec_lookup(&pvec, bd_mapping, &index,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+-		for (i = 0; i < pagevec_count(&pvec); i++) {
++	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end,
++				    PAGEVEC_SIZE)) {
++		count = pagevec_count(&pvec);
++		for (i = 0; i < count; i++) {
  			struct page *page = pvec.pages[i];
-@@ -3552,7 +3551,7 @@ page_cache_seek_hole_data(struct inode *
- 		unsigned nr_pages, i;
  
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping, &index,
--						end - 1, PAGEVEC_SIZE);
-+						end - 1);
- 		if (nr_pages == 0)
- 			break;
- 
-diff -puN fs/ext4/file.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/ext4/file.c
---- a/fs/ext4/file.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/ext4/file.c
-@@ -468,7 +468,7 @@ static int ext4_find_unwritten_pgoff(str
- 		unsigned long nr_pages;
- 
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
--					&index, end, PAGEVEC_SIZE);
-+					&index, end);
- 		if (nr_pages == 0)
- 			break;
- 
-diff -puN fs/ext4/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/ext4/inode.c
---- a/fs/ext4/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/ext4/inode.c
-@@ -1720,8 +1720,7 @@ static void mpage_release_unused_pages(s
- 
- 	pagevec_init(&pvec, 0);
- 	while (index <= end) {
--		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end,
--						PAGEVEC_SIZE);
-+		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end);
- 		if (nr_pages == 0)
- 			break;
- 		for (i = 0; i < nr_pages; i++) {
-@@ -2348,7 +2347,7 @@ static int mpage_map_and_submit_buffers(
- 	pagevec_init(&pvec, 0);
- 	while (start <= end) {
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
--						&start, end, PAGEVEC_SIZE);
-+						&start, end);
- 		if (nr_pages == 0)
- 			break;
- 		for (i = 0; i < nr_pages; i++) {
-diff -puN fs/fscache/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/fscache/page.c
---- a/fs/fscache/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/fscache/page.c
-@@ -1178,7 +1178,7 @@ void __fscache_uncache_all_inode_pages(s
- 	pagevec_init(&pvec, 0);
- 	next = 0;
- 	do {
--		if (!pagevec_lookup(&pvec, mapping, &next, PAGEVEC_SIZE))
-+		if (!pagevec_lookup(&pvec, mapping, &next))
- 			break;
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
-diff -puN fs/hugetlbfs/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/hugetlbfs/inode.c
-@@ -413,8 +413,7 @@ static void remove_inode_hugepages(struc
- 		/*
- 		 * When no more pages are found, we are done.
- 		 */
--		if (!pagevec_lookup_range(&pvec, mapping, &next, end - 1,
--					  PAGEVEC_SIZE))
-+		if (!pagevec_lookup_range(&pvec, mapping, &next, end - 1))
- 			break;
- 
- 		for (i = 0; i < pagevec_count(&pvec); ++i) {
-diff -puN fs/nilfs2/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/fs/nilfs2/page.c
-@@ -312,7 +312,7 @@ void nilfs_copy_back_pages(struct addres
- 
- 	pagevec_init(&pvec, 0);
- repeat:
--	n = pagevec_lookup(&pvec, smap, &index, PAGEVEC_SIZE);
-+	n = pagevec_lookup(&pvec, smap, &index);
- 	if (!n)
- 		return;
- 
-diff -puN include/linux/pagevec.h~mm-remove-nr_pages-argument-from-pagevec_lookup_range include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/include/linux/pagevec.h
-@@ -29,13 +29,12 @@ unsigned pagevec_lookup_entries(struct p
- void pagevec_remove_exceptionals(struct pagevec *pvec);
- unsigned pagevec_lookup_range(struct pagevec *pvec,
- 			      struct address_space *mapping,
--			      pgoff_t *start, pgoff_t end, unsigned nr_pages);
-+			      pgoff_t *start, pgoff_t end);
- static inline unsigned pagevec_lookup(struct pagevec *pvec,
- 				      struct address_space *mapping,
--				      pgoff_t *start, unsigned nr_pages)
-+				      pgoff_t *start)
- {
--	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1,
--				    nr_pages);
-+	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1);
+-			if (page->index > end)
+-				break;
+ 			if (!page_has_buffers(page))
+ 				continue;
+ 			/*
+@@ -1669,6 +1668,9 @@ unlock_page:
+ 		}
+ 		pagevec_release(&pvec);
+ 		cond_resched();
++		/* End of range already reached? */
++		if (index > end || !index)
++			break;
+ 	}
  }
- 
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-diff -puN mm/swap.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range mm/swap.c
---- a/mm/swap.c~mm-remove-nr_pages-argument-from-pagevec_lookup_range
-+++ a/mm/swap.c
-@@ -967,10 +967,9 @@ void pagevec_remove_exceptionals(struct
-  * reached.
-  */
- unsigned pagevec_lookup_range(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *start, pgoff_t end,
--		unsigned nr_pages)
-+		struct address_space *mapping, pgoff_t *start, pgoff_t end)
- {
--	pvec->nr = find_get_pages_range(mapping, start, end, nr_pages,
-+	pvec->nr = find_get_pages_range(mapping, start, end, PAGEVEC_SIZE,
- 					pvec->pages);
- 	return pagevec_count(pvec);
- }
+ EXPORT_SYMBOL(clean_bdev_aliases);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
