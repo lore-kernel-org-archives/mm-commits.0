@@ -1,162 +1,395 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:37:25 -0700
-Message-ID: <20170907183725.XdK6DobAL%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-rip-out-zonelist_order_zone.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:37:52 -0700
+Message-ID: <20170907183752.2-nMkWkoK%akpm__32870.7496672452$1504809494$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55392 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755809AbdIGSh0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:26 -0400
+        with ESMTP id S1755713AbdIGShx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, xieyisheng1@huawei.com
+To: abdhalee@linux.vnet.ibm.com, hannes@cmpxchg.org, js1304@gmail.com, linux-api@vger.kernel.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: zram: clean up duplicated codes in __zram_bvec_write
+     Subject: mm, page_alloc: rip out ZONELIST_ORDER_ZONE
 has been removed from the -mm tree.  Its filename was
-     zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+     mm-page_alloc-rip-out-zonelist_order_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: clean up duplicated codes in __zram_bvec_write
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, page_alloc: rip out ZONELIST_ORDER_ZONE
 
-Patch series "writeback incompressible pages to storage", v1.
+Patch series "cleanup zonelists initialization", v1.
 
-zRam is useful for memory saving with compressible pages but sometime,
-workload can be changed and system has lots of incompressible pages which
-is very harmful for zram.
+This is aimed at cleaning up the zonelists initialization code we have
+but the primary motivation was bug report [2] which got resolved but
+the usage of stop_machine is just too ugly to live. Most patches are
+straightforward but 3 of them need a special consideration.
 
-This patch supports writeback feature of zram so admin can set up a block
-device and with it, zram can save the memory via writing out the
-incompressile pages once it found it's incompressible pages (1/4 comp
-ratio) instead of keeping the page in memory.
+Patch 1 removes zone ordered zonelists completely. I am CCing linux-api
+because this is a user visible change. As I argue in the patch
+description I do not think we have a strong usecase for it these days.
+I have kept sysctl in place and warn into the log if somebody tries to
+configure zone lists ordering. If somebody has a real usecase for it
+we can revert this patch but I do not expect anybody will actually notice
+runtime differences. This patch is not strictly needed for the rest but
+it made patch 6 easier to implement.
 
-[1-3] is just clean up and [4-8] is step by step feature enablement.
-[4-8] is logically not bisectable(ie, logical unit separation)
-although I tried to compiled out without breaking but I think it would
-be better to review.
+Patch 7 removes stop_machine from build_all_zonelists without adding any
+special synchronization between iterators and updater which I _believe_
+is acceptable as explained in the changelog. I hope I am not missing
+anything.
+
+Patch 8 then removes zonelists_mutex which is kind of ugly as well and
+not really needed AFAICS but a care should be taken when double checking
+my thinking.
 
 
 This patch (of 9):
 
-__zram_bvec_write has some of duplicated logic for zram meta data handling
-of same_page|compressed_page.  This patch aims to clean it up without
-behavior change.
+Supporting zone ordered zonelists costs us just a lot of code while the
+usefulness is arguable if existent at all.  Mel has already made node
+ordering default on 64b systems.  32b systems are still using
+ZONELIST_ORDER_ZONE because it is considered better to fallback to a
+different NUMA node rather than consume precious lowmem zones.
 
-[xieyisheng1@huawei.com: fix compr_data_size stat]
-  Link: http://lkml.kernel.org/r/1502707447-6944-1-git-send-email-xieyisheng1@huawei.com
-Link: http://lkml.kernel.org/r/1496019048-27016-1-git-send-email-minchan@kernel.org
-Link: http://lkml.kernel.org/r/1498459987-24562-2-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Juneho Choi <juno.choi@lge.com>
+This argument is, however, weaken by the fact that the memory reclaim has
+been reworked to be node rather than zone oriented.  This means that
+lowmem requests have to skip over all highmem pages on LRUs already and so
+zone ordering doesn't save the reclaim time much.  So the only advantage
+of the zone ordering is under a light memory pressure when highmem
+requests do not ever hit into lowmem zones and the lowmem pressure doesn't
+need to reclaim.
+
+Considering that 32b NUMA systems are rather suboptimal already and it is
+generally advisable to use 64b kernel on such a HW I believe we should
+rather care about the code maintainability and just get rid of
+ZONELIST_ORDER_ZONE altogether.  Keep systcl in place and warn if somebody
+tries to set zone ordering either from kernel command line or the sysctl.
+
+[mhocko@suse.com: reading vm.numa_zonelist_order will never terminate]
+Link: http://lkml.kernel.org/r/20170721143915.14161-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   56 +++++++++++++-------------------
- 1 file changed, 23 insertions(+), 33 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 
+ Documentation/sysctl/vm.txt                     |    4 
+ Documentation/vm/numa                           |    7 
+ include/linux/mmzone.h                          |    2 
+ mm/page_alloc.c                                 |  181 +-------------
+ 5 files changed, 29 insertions(+), 167 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write
-+++ a/drivers/block/zram/zram_drv.c
-@@ -453,30 +453,6 @@ static bool zram_same_page_read(struct z
- 	return false;
+diff -puN Documentation/admin-guide/kernel-parameters.txt~mm-page_alloc-rip-out-zonelist_order_zone Documentation/admin-guide/kernel-parameters.txt
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2783,7 +2783,7 @@
+ 			Allowed values are enable and disable
+ 
+ 	numa_zonelist_order= [KNL, BOOT] Select zonelist order for NUMA.
+-			one of ['zone', 'node', 'default'] can be specified
++			'node', 'default' can be specified
+ 			This can be set from sysctl after boot.
+ 			See Documentation/sysctl/vm.txt for details.
+ 
+diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-rip-out-zonelist_order_zone Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/Documentation/sysctl/vm.txt
+@@ -572,7 +572,9 @@ See Documentation/nommu-mmap.txt for mor
+ 
+ numa_zonelist_order
+ 
+-This sysctl is only for NUMA.
++This sysctl is only for NUMA and it is deprecated. Anything but
++Node order will fail!
++
+ 'where the memory is allocated from' is controlled by zonelists.
+ (This documentation ignores ZONE_HIGHMEM/ZONE_DMA32 for simple explanation.
+  you may be able to read ZONE_DMA as ZONE_DMA32...)
+diff -puN Documentation/vm/numa~mm-page_alloc-rip-out-zonelist_order_zone Documentation/vm/numa
+--- a/Documentation/vm/numa~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/Documentation/vm/numa
+@@ -79,11 +79,8 @@ memory, Linux must decide whether to ord
+ fall back to the same zone type on a different node, or to a different zone
+ type on the same node.  This is an important consideration because some zones,
+ such as DMA or DMA32, represent relatively scarce resources.  Linux chooses
+-a default zonelist order based on the sizes of the various zone types relative
+-to the total memory of the node and the total memory of the system.  The
+-default zonelist order may be overridden using the numa_zonelist_order kernel
+-boot parameter or sysctl.  [see Documentation/admin-guide/kernel-parameters.rst and
+-Documentation/sysctl/vm.txt]
++a default Node ordered zonelist. This means it tries to fallback to other zones
++from the same node before using remote nodes which are ordered by NUMA distance.
+ 
+ By default, Linux will attempt to satisfy memory allocation requests from the
+ node to which the CPU that executes the request is assigned.  Specifically,
+diff -puN include/linux/mmzone.h~mm-page_alloc-rip-out-zonelist_order_zone include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/include/linux/mmzone.h
+@@ -896,7 +896,7 @@ int sysctl_min_slab_ratio_sysctl_handler
+ extern int numa_zonelist_order_handler(struct ctl_table *, int,
+ 			void __user *, size_t *, loff_t *);
+ extern char numa_zonelist_order[];
+-#define NUMA_ZONELIST_ORDER_LEN 16	/* string buffer size */
++#define NUMA_ZONELIST_ORDER_LEN	16
+ 
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-rip-out-zonelist_order_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-rip-out-zonelist_order_zone
++++ a/mm/page_alloc.c
+@@ -4858,52 +4858,18 @@ static int build_zonelists_node(pg_data_
+ 	return nr_zones;
  }
  
--static bool zram_same_page_write(struct zram *zram, u32 index,
--					struct page *page)
--{
--	unsigned long element;
--	void *mem = kmap_atomic(page);
 -
--	if (page_same_filled(mem, &element)) {
--		kunmap_atomic(mem);
--		/* Free memory associated with this sector now. */
--		zram_slot_lock(zram, index);
--		zram_free_page(zram, index);
--		zram_set_flag(zram, index, ZRAM_SAME);
--		zram_set_element(zram, index, element);
--		zram_slot_unlock(zram, index);
+-/*
+- *  zonelist_order:
+- *  0 = automatic detection of better ordering.
+- *  1 = order by ([node] distance, -zonetype)
+- *  2 = order by (-zonetype, [node] distance)
+- *
+- *  If not NUMA, ZONELIST_ORDER_ZONE and ZONELIST_ORDER_NODE will create
+- *  the same zonelist. So only NUMA can configure this param.
+- */
+-#define ZONELIST_ORDER_DEFAULT  0
+-#define ZONELIST_ORDER_NODE     1
+-#define ZONELIST_ORDER_ZONE     2
 -
--		atomic64_inc(&zram->stats.same_pages);
--		atomic64_inc(&zram->stats.pages_stored);
--		return true;
+-/* zonelist order in the kernel.
+- * set_zonelist_order() will set this to NODE or ZONE.
+- */
+-static int current_zonelist_order = ZONELIST_ORDER_DEFAULT;
+-static char zonelist_order_name[3][8] = {"Default", "Node", "Zone"};
+-
+-
+ #ifdef CONFIG_NUMA
+-/* The value user specified ....changed by config */
+-static int user_zonelist_order = ZONELIST_ORDER_DEFAULT;
+-/* string for sysctl */
+-#define NUMA_ZONELIST_ORDER_LEN	16
+-char numa_zonelist_order[16] = "default";
+-
+-/*
+- * interface for configure zonelist ordering.
+- * command line option "numa_zonelist_order"
+- *	= "[dD]efault	- default, automatic configuration.
+- *	= "[nN]ode 	- order by node locality, then by zone within node
+- *	= "[zZ]one      - order by zone, then by locality within zone
+- */
+ 
+ static int __parse_numa_zonelist_order(char *s)
+ {
+-	if (*s == 'd' || *s == 'D') {
+-		user_zonelist_order = ZONELIST_ORDER_DEFAULT;
+-	} else if (*s == 'n' || *s == 'N') {
+-		user_zonelist_order = ZONELIST_ORDER_NODE;
+-	} else if (*s == 'z' || *s == 'Z') {
+-		user_zonelist_order = ZONELIST_ORDER_ZONE;
+-	} else {
+-		pr_warn("Ignoring invalid numa_zonelist_order value:  %s\n", s);
++	/*
++	 * We used to support different zonlists modes but they turned
++	 * out to be just not useful. Let's keep the warning in place
++	 * if somebody still use the cmd line parameter so that we do
++	 * not fail it silently
++	 */
++	if (!(*s == 'd' || *s == 'D' || *s == 'n' || *s == 'N')) {
++		pr_warn("Ignoring unsupported numa_zonelist_order value:  %s\n", s);
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+@@ -4911,19 +4877,15 @@ static int __parse_numa_zonelist_order(c
+ 
+ static __init int setup_numa_zonelist_order(char *s)
+ {
+-	int ret;
+-
+ 	if (!s)
+ 		return 0;
+ 
+-	ret = __parse_numa_zonelist_order(s);
+-	if (ret == 0)
+-		strlcpy(numa_zonelist_order, s, NUMA_ZONELIST_ORDER_LEN);
+-
+-	return ret;
++	return __parse_numa_zonelist_order(s);
+ }
+ early_param("numa_zonelist_order", setup_numa_zonelist_order);
+ 
++char numa_zonelist_order[] = "Node";
++
+ /*
+  * sysctl handler for numa_zonelist_order
+  */
+@@ -4931,42 +4893,17 @@ int numa_zonelist_order_handler(struct c
+ 		void __user *buffer, size_t *length,
+ 		loff_t *ppos)
+ {
+-	char saved_string[NUMA_ZONELIST_ORDER_LEN];
++	char *str;
+ 	int ret;
+-	static DEFINE_MUTEX(zl_order_mutex);
+ 
+-	mutex_lock(&zl_order_mutex);
+-	if (write) {
+-		if (strlen((char *)table->data) >= NUMA_ZONELIST_ORDER_LEN) {
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-		strcpy(saved_string, (char *)table->data);
 -	}
--	kunmap_atomic(mem);
+-	ret = proc_dostring(table, write, buffer, length, ppos);
+-	if (ret)
+-		goto out;
+-	if (write) {
+-		int oldval = user_zonelist_order;
 -
--	return false;
+-		ret = __parse_numa_zonelist_order((char *)table->data);
+-		if (ret) {
+-			/*
+-			 * bogus value.  restore saved string
+-			 */
+-			strncpy((char *)table->data, saved_string,
+-				NUMA_ZONELIST_ORDER_LEN);
+-			user_zonelist_order = oldval;
+-		} else if (oldval != user_zonelist_order) {
+-			mem_hotplug_begin();
+-			mutex_lock(&zonelists_mutex);
+-			build_all_zonelists(NULL, NULL);
+-			mutex_unlock(&zonelists_mutex);
+-			mem_hotplug_done();
+-		}
+-	}
+-out:
+-	mutex_unlock(&zl_order_mutex);
++	if (!write)
++		return proc_dostring(table, write, buffer, length, ppos);
++	str = memdup_user_nul(buffer, 16);
++	if (IS_ERR(str))
++		return PTR_ERR(str);
++
++	ret = __parse_numa_zonelist_order(str);
++	kfree(str);
+ 	return ret;
+ }
+ 
+@@ -5075,70 +5012,12 @@ static void build_thisnode_zonelists(pg_
+  */
+ static int node_order[MAX_NUMNODES];
+ 
+-static void build_zonelists_in_zone_order(pg_data_t *pgdat, int nr_nodes)
+-{
+-	int pos, j, node;
+-	int zone_type;		/* needs to be signed */
+-	struct zone *z;
+-	struct zonelist *zonelist;
+-
+-	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
+-	pos = 0;
+-	for (zone_type = MAX_NR_ZONES - 1; zone_type >= 0; zone_type--) {
+-		for (j = 0; j < nr_nodes; j++) {
+-			node = node_order[j];
+-			z = &NODE_DATA(node)->node_zones[zone_type];
+-			if (managed_zone(z)) {
+-				zoneref_set_zone(z,
+-					&zonelist->_zonerefs[pos++]);
+-				check_highest_zone(zone_type);
+-			}
+-		}
+-	}
+-	zonelist->_zonerefs[pos].zone = NULL;
+-	zonelist->_zonerefs[pos].zone_idx = 0;
 -}
 -
- static void zram_meta_free(struct zram *zram, u64 disksize)
- {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -685,14 +661,23 @@ compress_again:
- static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
- {
- 	int ret;
--	unsigned long handle;
--	unsigned int comp_len;
--	void *src, *dst;
-+	unsigned long handle = 0;
-+	unsigned int comp_len = 0;
-+	void *src, *dst, *mem;
- 	struct zcomp_strm *zstrm;
- 	struct page *page = bvec->bv_page;
-+	unsigned long element = 0;
-+	enum zram_pageflags flags = 0;
- 
--	if (zram_same_page_write(zram, index, page))
--		return 0;
-+	mem = kmap_atomic(page);
-+	if (page_same_filled(mem, &element)) {
-+		kunmap_atomic(mem);
-+		/* Free memory associated with this sector now */
-+		atomic64_inc(&zram->stats.same_pages);
-+		flags = ZRAM_SAME;
-+		goto out;
-+	}
-+	kunmap_atomic(mem);
- 
- 	zstrm = zcomp_stream_get(zram->comp);
- 	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
-@@ -712,19 +697,24 @@ static int __zram_bvec_write(struct zram
- 
- 	zcomp_stream_put(zram->comp);
- 	zs_unmap_object(zram->mem_pool, handle);
+-#if defined(CONFIG_64BIT)
+-/*
+- * Devices that require DMA32/DMA are relatively rare and do not justify a
+- * penalty to every machine in case the specialised case applies. Default
+- * to Node-ordering on 64-bit NUMA machines
+- */
+-static int default_zonelist_order(void)
+-{
+-	return ZONELIST_ORDER_NODE;
+-}
+-#else
+-/*
+- * On 32-bit, the Normal zone needs to be preserved for allocations accessible
+- * by the kernel. If processes running on node 0 deplete the low memory zone
+- * then reclaim will occur more frequency increasing stalls and potentially
+- * be easier to OOM if a large percentage of the zone is under writeback or
+- * dirty. The problem is significantly worse if CONFIG_HIGHPTE is not set.
+- * Hence, default to zone ordering on 32-bit.
+- */
+-static int default_zonelist_order(void)
+-{
+-	return ZONELIST_ORDER_ZONE;
+-}
+-#endif /* CONFIG_64BIT */
 -
-+	atomic64_add(comp_len, &zram->stats.compr_data_size);
-+out:
- 	/*
- 	 * Free memory associated with this sector
- 	 * before overwriting unused sectors.
- 	 */
- 	zram_slot_lock(zram, index);
- 	zram_free_page(zram, index);
--	zram_set_handle(zram, index, handle);
--	zram_set_obj_size(zram, index, comp_len);
-+	if (flags == ZRAM_SAME) {
-+		zram_set_flag(zram, index, ZRAM_SAME);
-+		zram_set_element(zram, index, element);
-+	} else {
-+		zram_set_handle(zram, index, handle);
-+		zram_set_obj_size(zram, index, comp_len);
-+	}
- 	zram_slot_unlock(zram, index);
+-static void set_zonelist_order(void)
+-{
+-	if (user_zonelist_order == ZONELIST_ORDER_DEFAULT)
+-		current_zonelist_order = default_zonelist_order();
+-	else
+-		current_zonelist_order = user_zonelist_order;
+-}
+-
+ static void build_zonelists(pg_data_t *pgdat)
+ {
+ 	int i, node, load;
+ 	nodemask_t used_mask;
+ 	int local_node, prev_node;
+ 	struct zonelist *zonelist;
+-	unsigned int order = current_zonelist_order;
  
- 	/* Update stats */
--	atomic64_add(comp_len, &zram->stats.compr_data_size);
- 	atomic64_inc(&zram->stats.pages_stored);
- 	return 0;
- }
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-
+ 	/* initialize zonelists */
+ 	for (i = 0; i < MAX_ZONELISTS; i++) {
+@@ -5168,15 +5047,7 @@ static void build_zonelists(pg_data_t *p
+ 
+ 		prev_node = node;
+ 		load--;
+-		if (order == ZONELIST_ORDER_NODE)
+-			build_zonelists_in_node_order(pgdat, node);
+-		else
+-			node_order[i++] = node;	/* remember order */
+-	}
+-
+-	if (order == ZONELIST_ORDER_ZONE) {
+-		/* calculate node order -- i.e., DMA last! */
+-		build_zonelists_in_zone_order(pgdat, i);
++		build_zonelists_in_node_order(pgdat, node);
+ 	}
+ 
+ 	build_thisnode_zonelists(pgdat);
+@@ -5204,11 +5075,6 @@ static void setup_min_unmapped_ratio(voi
+ static void setup_min_slab_ratio(void);
+ #else	/* CONFIG_NUMA */
+ 
+-static void set_zonelist_order(void)
+-{
+-	current_zonelist_order = ZONELIST_ORDER_ZONE;
+-}
+-
+ static void build_zonelists(pg_data_t *pgdat)
+ {
+ 	int node, local_node;
+@@ -5348,8 +5214,6 @@ build_all_zonelists_init(void)
+  */
+ void __ref build_all_zonelists(pg_data_t *pgdat, struct zone *zone)
+ {
+-	set_zonelist_order();
