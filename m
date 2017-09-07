@@ -1,122 +1,191 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour.patch
- removed from -mm tree
-Date: Thu, 07 Sep 2017 11:38:34 -0700
-Message-ID: <20170907183834.Rh6WBA-KC%akpm@linux-foundation.org>
+ mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch removed from -mm
+ tree
+Date: Thu, 07 Sep 2017 11:38:01 -0700
+Message-ID: <20170907183801.oJ5pLJZBc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55452 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755660AbdIGSif (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:35 -0400
+        with ESMTP id S1755713AbdIGSiC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, steve.capper@arm.com, will.deacon@arm.com
+To: hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: mm/hugetlb.c: make huge_pte_offset() consistent and document behaviour
+     Subject: mm, memory_hotplug: drop zone from build_all_zonelists
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour.patch
+     mm-memory_hotplug-drop-zone-from-build_all_zonelists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm/hugetlb.c: make huge_pte_offset() consistent and document behaviour
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: drop zone from build_all_zonelists
 
-When walking the page tables to resolve an address that points to
-!p*d_present() entry, huge_pte_offset() returns inconsistent values
-depending on the level of page table (PUD or PMD).
+build_all_zonelists gets a zone parameter to initialize zone's pagesets. 
+There is only a single user which gives a non-NULL zone parameter and that
+one doesn't really need the rest of the build_all_zonelists (see
+6dcd73d7011b ("memory-hotplug: allocate zone's pcp before onlining
+pages")).
 
-It returns NULL in the case of a PUD entry while in the case of a PMD
-entry, it returns a pointer to the page table entry.
+Therefore remove setup_zone_pageset from build_all_zonelists and call it
+from its only user directly.  This will also remove a pointless zonlists
+rebuilding which is always good.
 
-A similar inconsitency exists when handling swap entries - returns NULL
-for a PUD entry while a pointer to the pte_t is retured for the PMD entry.
-
-Update huge_pte_offset() to make the behaviour consistent - return a
-pointer to the pte_t for hugepage or swap entries.  Only return NULL in
-instances where we have a p*d_none() entry and the size parameter doesn't
-match the hugepage size at this level of the page table.
-
-Document the behaviour to clarify the expected behaviour of this function.
-This is to set clear semantics for architecture specific implementations
-of huge_pte_offset().
-
-Discussions on the arm64 implementation of huge_pte_offset()
-(http://www.spinics.net/lists/linux-mm/msg133699.html) showed that there
-is benefit from returning a pte_t* in the case of p*d_none().
-
-The fault handling code in hugetlb_fault() can handle p*d_none() entries
-and saves an extra round trip to huge_pte_alloc().  Other callers of
-huge_pte_offset() should be ok as well.
-
-[punit.agrawal@arm.com: v2]
-Link: http://lkml.kernel.org/r/20170725154114.24131-2-punit.agrawal@arm.com
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20170721143915.14161-5-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ init/main.c            |    2 +-
+ mm/internal.h          |    1 +
+ mm/memory_hotplug.c    |   10 +++++-----
+ mm/page_alloc.c        |   13 +++----------
+ 5 files changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-make-huge_pte_offset-consistent-and-document-behaviour
-+++ a/mm/hugetlb.c
-@@ -4600,6 +4600,15 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	return pte;
+diff -puN include/linux/mmzone.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists
++++ a/include/linux/mmzone.h
+@@ -771,7 +771,7 @@ static inline bool is_dev_zone(const str
+ #include <linux/memory_hotplug.h>
+ 
+ extern struct mutex zonelists_mutex;
+-void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
++void build_all_zonelists(pg_data_t *pgdat);
+ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
+ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
+ 			 int classzone_idx, unsigned int alloc_flags,
+diff -puN init/main.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists init/main.c
+--- a/init/main.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists
++++ a/init/main.c
+@@ -542,7 +542,7 @@ asmlinkage __visible void __init start_k
+ 	boot_cpu_state_init();
+ 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+ 
+-	build_all_zonelists(NULL, NULL);
++	build_all_zonelists(NULL);
+ 	page_alloc_init();
+ 
+ 	pr_notice("Kernel command line: %s\n", boot_command_line);
+diff -puN mm/internal.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists mm/internal.h
+--- a/mm/internal.h~mm-memory_hotplug-drop-zone-from-build_all_zonelists
++++ a/mm/internal.h
+@@ -525,4 +525,5 @@ static inline bool is_migrate_highatomic
+ 	return get_pageblock_migratetype(page) == MIGRATE_HIGHATOMIC;
  }
  
-+/*
-+ * huge_pte_offset() - Walk the page table to resolve the hugepage
-+ * entry at address @addr
-+ *
-+ * Return: Pointer to page table or swap entry (PUD or PMD) for
-+ * address @addr, or NULL if a p*d_none() entry is encountered and the
-+ * size @sz doesn't match the hugepage size at this level of the page
-+ * table.
-+ */
- pte_t *huge_pte_offset(struct mm_struct *mm,
- 		       unsigned long addr, unsigned long sz)
++void setup_zone_pageset(struct zone *zone);
+ #endif	/* __MM_INTERNAL_H */
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists
++++ a/mm/memory_hotplug.c
+@@ -929,7 +929,7 @@ int __ref online_pages(unsigned long pfn
+ 	mutex_lock(&zonelists_mutex);
+ 	if (!populated_zone(zone)) {
+ 		need_zonelists_rebuild = 1;
+-		build_all_zonelists(NULL, zone);
++		setup_zone_pageset(zone);
+ 	}
+ 
+ 	ret = walk_system_ram_range(pfn, nr_pages, &onlined_pages,
+@@ -950,7 +950,7 @@ int __ref online_pages(unsigned long pfn
+ 	if (onlined_pages) {
+ 		node_states_set_node(nid, &arg);
+ 		if (need_zonelists_rebuild)
+-			build_all_zonelists(NULL, NULL);
++			build_all_zonelists(NULL);
+ 		else
+ 			zone_pcp_update(zone);
+ 	}
+@@ -1028,7 +1028,7 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	 * to access not-initialized zonelist, build here.
+ 	 */
+ 	mutex_lock(&zonelists_mutex);
+-	build_all_zonelists(pgdat, NULL);
++	build_all_zonelists(pgdat);
+ 	mutex_unlock(&zonelists_mutex);
+ 
+ 	/*
+@@ -1084,7 +1084,7 @@ int try_online_node(int nid)
+ 
+ 	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
+ 		mutex_lock(&zonelists_mutex);
+-		build_all_zonelists(NULL, NULL);
++		build_all_zonelists(NULL);
+ 		mutex_unlock(&zonelists_mutex);
+ 	}
+ 
+@@ -1704,7 +1704,7 @@ repeat:
+ 	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
+ 		mutex_lock(&zonelists_mutex);
+-		build_all_zonelists(NULL, NULL);
++		build_all_zonelists(NULL);
+ 		mutex_unlock(&zonelists_mutex);
+ 	} else
+ 		zone_pcp_update(zone);
+diff -puN mm/page_alloc.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-drop-zone-from-build_all_zonelists
++++ a/mm/page_alloc.c
+@@ -5129,7 +5129,6 @@ static void build_zonelists(pg_data_t *p
+ static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch);
+ static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
+ static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+-static void setup_zone_pageset(struct zone *zone);
+ 
+ /*
+  * Global mutex to protect against size modification of zonelists
+@@ -5209,20 +5208,14 @@ build_all_zonelists_init(void)
+  * Called with zonelists_mutex held always
+  * unless system_state == SYSTEM_BOOTING.
+  *
+- * __ref due to (1) call of __meminit annotated setup_zone_pageset
+- * [we're only called with non-NULL zone through __meminit paths] and
+- * (2) call of __init annotated helper build_all_zonelists_init
++ * __ref due to call of __init annotated helper build_all_zonelists_init
+  * [protected by SYSTEM_BOOTING].
+  */
+-void __ref build_all_zonelists(pg_data_t *pgdat, struct zone *zone)
++void __ref build_all_zonelists(pg_data_t *pgdat)
  {
-@@ -4614,13 +4623,22 @@ pte_t *huge_pte_offset(struct mm_struct
- 	p4d = p4d_offset(pgd, addr);
- 	if (!p4d_present(*p4d))
- 		return NULL;
-+
- 	pud = pud_offset(p4d, addr);
--	if (!pud_present(*pud))
-+	if (sz != PUD_SIZE && pud_none(*pud))
- 		return NULL;
--	if (pud_huge(*pud))
-+	/* hugepage or swap? */
-+	if (pud_huge(*pud) || !pud_present(*pud))
- 		return (pte_t *)pud;
-+
- 	pmd = pmd_offset(pud, addr);
--	return (pte_t *) pmd;
-+	if (sz != PMD_SIZE && pmd_none(*pmd))
-+		return NULL;
-+	/* hugepage or swap? */
-+	if (pmd_huge(*pmd) || !pmd_present(*pmd))
-+		return (pte_t *)pmd;
-+
-+	return NULL;
+ 	if (system_state == SYSTEM_BOOTING) {
+ 		build_all_zonelists_init();
+ 	} else {
+-#ifdef CONFIG_MEMORY_HOTPLUG
+-		if (zone)
+-			setup_zone_pageset(zone);
+-#endif
+ 		/* we have to stop all cpus to guarantee there is no user
+ 		   of zonelist */
+ 		stop_machine_cpuslocked(__build_all_zonelists, pgdat, NULL);
+@@ -5496,7 +5489,7 @@ static void __meminit zone_pageset_init(
+ 	pageset_set_high_and_batch(zone, pcp);
  }
  
- #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+-static void __meminit setup_zone_pageset(struct zone *zone)
++void __meminit setup_zone_pageset(struct zone *zone)
+ {
+ 	int cpu;
+ 	zone->pageset = alloc_percpu(struct per_cpu_pageset);
 _
 
-Patches currently in -mm which might be from punit.agrawal@arm.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-memory_hotplug-introduce-add_pages.patch
+mm-sparse-fix-typo-in-online_mem_sections.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
 
