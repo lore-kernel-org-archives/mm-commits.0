@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-constify-attribute_group-structures.patch removed from -mm tree
-Date: Thu, 07 Sep 2017 11:39:34 -0700
-Message-ID: <20170907183934.wlBhbMKkF%akpm@linux-foundation.org>
+ ext4-use-pagevec_lookup_range-in-writeback-code.patch removed from -mm tree
+Date: Thu, 07 Sep 2017 11:39:01 -0700
+Message-ID: <20170907183901.dCzgK6jt5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755873AbdIGSjf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:35 -0400
+        with ESMTP id S1755881AbdIGSjC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org, tytso@mit.edu
 
 
 The patch titled
-     Subject: mm/hugetlb.c: constify attribute_group structures
+     Subject: ext4: use pagevec_lookup_range() in writeback code
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-constify-attribute_group-structures.patch
+     ext4-use-pagevec_lookup_range-in-writeback-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: mm/hugetlb.c: constify attribute_group structures
+From: Jan Kara <jack@suse.cz>
+Subject: ext4: use pagevec_lookup_range() in writeback code
 
-attribute_group are not supposed to change at runtime.  All functions
-working with attribute_group provided by <linux/sysfs.h> work with const
-attribute_group.  So mark the non-const structs as const.
+Both occurences of pagevec_lookup() actually want only pages from a given
+range.  Use pagevec_lookup_range() for the lookup.
 
-Link: http://lkml.kernel.org/r/1501157260-3922-1-git-send-email-arvind.yadav.cs@gmail.com
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Link: http://lkml.kernel.org/r/20170726114704.7626-7-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ext4/inode.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-constify-attribute_group-structures mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-constify-attribute_group-structures
-+++ a/mm/hugetlb.c
-@@ -2569,13 +2569,13 @@ static struct attribute *hstate_attrs[]
- 	NULL,
- };
+diff -puN fs/ext4/inode.c~ext4-use-pagevec_lookup_range-in-writeback-code fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-use-pagevec_lookup_range-in-writeback-code
++++ a/fs/ext4/inode.c
+@@ -1720,13 +1720,13 @@ static void mpage_release_unused_pages(s
  
--static struct attribute_group hstate_attr_group = {
-+static const struct attribute_group hstate_attr_group = {
- 	.attrs = hstate_attrs,
- };
+ 	pagevec_init(&pvec, 0);
+ 	while (index <= end) {
+-		nr_pages = pagevec_lookup(&pvec, mapping, &index, PAGEVEC_SIZE);
++		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end,
++						PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
+ 		for (i = 0; i < nr_pages; i++) {
+ 			struct page *page = pvec.pages[i];
+-			if (page->index > end)
+-				break;
++
+ 			BUG_ON(!PageLocked(page));
+ 			BUG_ON(PageWriteback(page));
+ 			if (invalidate) {
+@@ -2347,15 +2347,13 @@ static int mpage_map_and_submit_buffers(
  
- static int hugetlb_sysfs_add_hstate(struct hstate *h, struct kobject *parent,
- 				    struct kobject **hstate_kobjs,
--				    struct attribute_group *hstate_attr_group)
-+				    const struct attribute_group *hstate_attr_group)
- {
- 	int retval;
- 	int hi = hstate_index(h);
-@@ -2633,7 +2633,7 @@ static struct attribute *per_node_hstate
- 	NULL,
- };
+ 	pagevec_init(&pvec, 0);
+ 	while (start <= end) {
+-		nr_pages = pagevec_lookup(&pvec, inode->i_mapping, &start,
+-					  PAGEVEC_SIZE);
++		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
++						&start, end, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
+ 		for (i = 0; i < nr_pages; i++) {
+ 			struct page *page = pvec.pages[i];
  
--static struct attribute_group per_node_hstate_attr_group = {
-+static const struct attribute_group per_node_hstate_attr_group = {
- 	.attrs = per_node_hstate_attrs,
- };
- 
+-			if (page->index > end)
+-				break;
+ 			bh = head = page_buffers(page);
+ 			do {
+ 				if (lblk < mpd->map.m_lblk)
 _
 
-Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
