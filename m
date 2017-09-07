@@ -1,57 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_idle-constify-attribute_group-structures.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:39:28 -0700
-Message-ID: <20170907183928.EFfIl7yAL%akpm@linux-foundation.org>
+ cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction.patch removed
+ from -mm tree
+Date: Thu, 07 Sep 2017 11:39:19 -0700
+Message-ID: <20170907183919.-aZ4N-UbG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755802AbdIGSj3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:29 -0400
+        with ESMTP id S1755616AbdIGSjV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org
+To: guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/page_idle.c: constify attribute_group structures
+     Subject: cgroup: revert fa06235b8eb0 ("cgroup: reset css on destruction")
 has been removed from the -mm tree.  Its filename was
-     mm-page_idle-constify-attribute_group-structures.patch
+     cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: mm/page_idle.c: constify attribute_group structures
+From: Roman Gushchin <guro@fb.com>
+Subject: cgroup: revert fa06235b8eb0 ("cgroup: reset css on destruction")
 
-attribute_group are not supposed to change at runtime.  All functions
-working with attribute_group provided by <linux/sysfs.h> work with const
-attribute_group.  So mark the non-const structs as const.
+fa06235b8eb0 ("cgroup: reset css on destruction") caused css_reset
+callback to be called from the offlining path.  Although it solves the
+problem mentioned in the commit description ("For instance, memory cgroup
+needs to reset memory.low, otherwise pages charged to a dead cgroup might
+never get reclaimed."), generally speaking, it's not correct.
 
-Link: http://lkml.kernel.org/r/1501157221-3832-1-git-send-email-arvind.yadav.cs@gmail.com
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+An offline cgroup can still be a resource domain, and we shouldn't grant
+it more resources than it had before deletion.
+
+For instance, if an offline memory cgroup has dirty pages, we should still
+imply i/o limits during writeback.
+
+The css_reset callback is designed to return the cgroup state into the
+original state, that means reset all limits and counters.  It's spomething
+different from the offlining, and we shouldn't use it from the offlining
+path.  Instead, we should adjust necessary settings from the
+per-controller css_offline callbacks (e.g.  reset memory.low).
+
+Link: http://lkml.kernel.org/r/20170727130428.28856-2-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup/cgroup.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/page_idle.c~mm-page_idle-constify-attribute_group-structures mm/page_idle.c
---- a/mm/page_idle.c~mm-page_idle-constify-attribute_group-structures
-+++ a/mm/page_idle.c
-@@ -204,7 +204,7 @@ static struct bin_attribute *page_idle_b
- 	NULL,
- };
+diff -puN kernel/cgroup/cgroup.c~cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction kernel/cgroup/cgroup.c
+--- a/kernel/cgroup/cgroup.c~cgroup-revert-fa06235b8eb0-cgroup-reset-css-on-destruction
++++ a/kernel/cgroup/cgroup.c
+@@ -4100,9 +4100,6 @@ static void offline_css(struct cgroup_su
+ 	if (!(css->flags & CSS_ONLINE))
+ 		return;
  
--static struct attribute_group page_idle_attr_group = {
-+static const struct attribute_group page_idle_attr_group = {
- 	.bin_attrs = page_idle_bin_attrs,
- 	.name = "page_idle",
- };
-_
-
-Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
-
-
+-	if (ss->css_reset)
+-		ss->css_reset(css);
