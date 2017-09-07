@@ -1,90 +1,135 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
- removed from -mm tree
-Date: Thu, 07 Sep 2017 11:40:31 -0700
-Message-ID: <20170907184031.oQxNtneow%akpm@linux-foundation.org>
+ mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch removed from -mm
+ tree
+Date: Thu, 07 Sep 2017 11:39:58 -0700
+Message-ID: <20170907183958.FyrEP5mfu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755707AbdIGSkc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:32 -0400
+        with ESMTP id S1755748AbdIGSj7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, xemul@virtuozzo.com
+To: aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
+     Subject: mm, THP, swap: support splitting THP for THP swap out
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas.patch
+     mm-thp-swap-support-to-split-thp-for-thp-swapped-out.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: report UFFDIO_ZEROPAGE as available for shmem VMAs
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, THP, swap: support splitting THP for THP swap out
 
-Now when shmem VMAs can be filled with zero page via userfaultfd we can
-report that UFFDIO_ZEROPAGE is available for those VMAs
+After adding swapping out support for THP (Transparent Huge Page), it is
+possible that a THP in swap cache (partly swapped out) need to be split. 
+To split such a THP, the swap cluster backing the THP need to be split
+too, that is, the CLUSTER_FLAG_HUGE flag need to be cleared for the swap
+cluster.  The patch implemented this.
 
-Link: http://lkml.kernel.org/r/1497939652-16528-7-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+And because the THP swap writing needs the THP keeps as huge page during
+writing.  The PageWriteback flag is checked before splitting.
+
+Link: http://lkml.kernel.org/r/20170724051840.2309-8-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Ross Zwisler <ross.zwisler@intel.com> [for brd.c, zram_drv.c, pmem.c]
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/swap.h |    9 +++++++++
+ mm/huge_memory.c     |   10 +++++++++-
+ mm/swapfile.c        |   15 +++++++++++++++
+ 3 files changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-report-uffdio_zeropage-as-available-for-shmem-vmas
-+++ a/fs/userfaultfd.c
-@@ -1194,7 +1194,7 @@ static int userfaultfd_register(struct u
- 	struct uffdio_register __user *user_uffdio_register;
- 	unsigned long vm_flags, new_flags;
- 	bool found;
--	bool non_anon_pages;
-+	bool basic_ioctls;
- 	unsigned long start, end, vma_end;
+diff -puN include/linux/swap.h~mm-thp-swap-support-to-split-thp-for-thp-swapped-out include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-swap-support-to-split-thp-for-thp-swapped-out
++++ a/include/linux/swap.h
+@@ -527,6 +527,15 @@ static inline swp_entry_t get_swap_page(
  
- 	user_uffdio_register = (struct uffdio_register __user *) arg;
-@@ -1260,7 +1260,7 @@ static int userfaultfd_register(struct u
- 	 * Search for not compatible vmas.
- 	 */
- 	found = false;
--	non_anon_pages = false;
-+	basic_ioctls = false;
- 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
- 		cond_resched();
+ #endif /* CONFIG_SWAP */
  
-@@ -1299,8 +1299,8 @@ static int userfaultfd_register(struct u
++#ifdef CONFIG_THP_SWAP
++extern int split_swap_cluster(swp_entry_t entry);
++#else
++static inline int split_swap_cluster(swp_entry_t entry)
++{
++	return 0;
++}
++#endif
++
+ #ifdef CONFIG_MEMCG
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
+ {
+diff -puN mm/huge_memory.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out
++++ a/mm/huge_memory.c
+@@ -2481,6 +2481,9 @@ int split_huge_page_to_list(struct page
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 
++	if (PageWriteback(page))
++		return -EBUSY;
++
+ 	if (PageAnon(head)) {
  		/*
- 		 * Note vmas containing huge pages
- 		 */
--		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
--			non_anon_pages = true;
-+		if (is_vm_hugetlb_page(cur))
-+			basic_ioctls = true;
- 
- 		found = true;
+ 		 * The caller does not necessarily hold an mmap_sem that would
+@@ -2558,7 +2561,12 @@ int split_huge_page_to_list(struct page
+ 			__dec_node_page_state(page, NR_SHMEM_THPS);
+ 		spin_unlock(&pgdata->split_queue_lock);
+ 		__split_huge_page(page, list, flags);
+-		ret = 0;
++		if (PageSwapCache(head)) {
++			swp_entry_t entry = { .val = page_private(head) };
++
++			ret = split_swap_cluster(entry);
++		} else
++			ret = 0;
+ 	} else {
+ 		if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
+ 			pr_alert("total_mapcount: %u, page_count(): %u\n",
+diff -puN mm/swapfile.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-support-to-split-thp-for-thp-swapped-out
++++ a/mm/swapfile.c
+@@ -1216,6 +1216,21 @@ static void swapcache_free_cluster(swp_e
+ 		}
  	}
-@@ -1371,7 +1371,7 @@ out_unlock:
- 		 * userland which ioctls methods are guaranteed to
- 		 * succeed on this range.
- 		 */
--		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
-+		if (put_user(basic_ioctls ? UFFD_API_RANGE_IOCTLS_BASIC :
- 			     UFFD_API_RANGE_IOCTLS,
- 			     &user_uffdio_register->ioctls))
- 			ret = -EFAULT;
+ }
++
++int split_swap_cluster(swp_entry_t entry)
++{
++	struct swap_info_struct *si;
++	struct swap_cluster_info *ci;
++	unsigned long offset = swp_offset(entry);
++
++	si = _swap_info_get(entry);
++	if (!si)
++		return -EBUSY;
++	ci = lock_cluster(si, offset);
++	cluster_clear_huge(ci);
++	unlock_cluster(ci);
++	return 0;
++}
+ #else
+ static inline void swapcache_free_cluster(swp_entry_t entry)
+ {
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
