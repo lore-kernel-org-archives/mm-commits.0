@@ -1,188 +1,172 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-shmem-add-hugetlbfs-support-to-memfd_create.patch removed from -mm tree
-Date: Thu, 07 Sep 2017 11:41:28 -0700
-Message-ID: <20170907184128.tAVkHjxDr%akpm@linux-foundation.org>
+ mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:41:25 -0700
+Message-ID: <20170907184125.tXd8hdM0c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57716 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755713AbdIGSl3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:29 -0400
+        with ESMTP id S1755713AbdIGSl0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org, toshi.kani@hpe.com
 
 
 The patch titled
-     Subject: mm/shmem: add hugetlbfs support to memfd_create()
+     Subject: mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-add-hugetlbfs-support-to-memfd_create.patch
+     mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/shmem: add hugetlbfs support to memfd_create()
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm, devm_memremap_pages: use multi-order radix for ZONE_DEVICE lookups
 
-This patch came out of discussions in this e-mail thread:
-http://lkml.kernel.org/r/1499357846-7481-1-git-send-email-mike.kravetz%40oracle.com
+devm_memremap_pages() records mapped ranges in pgmap_radix with an entry
+per section's worth of memory (128MB).  The key for each of those entries
+is a section number.
 
-The Oracle JVM team is developing a new garbage collection model.  This
-new model requires multiple mappings of the same anonymous memory.  One
-straight forward way to accomplish this is with memfd_create.  They can
-use the returned fd to create multiple mappings of the same memory.
+This leads to false positives when devm_memremap_pages() is passed a
+section-unaligned range as lookups in the misalignment fail to return
+NULL.  We can close this hole by using the pfn as the key for entries in
+the tree.  The number of entries required to describe a remapped range is
+reduced by leveraging multi-order entries.
 
-The JVM today has an option to use (static hugetlb) huge pages.  If this
-option is specified, they would like to use the same garbage collection
-model requiring multiple mappings to the same memory.  Using hugetlbfs, it
-is possible to explicitly mount a filesystem and specify file paths in
-order to get an fd that can be used for multiple mappings.  However, this
-introduces additional system admin work and coordination.
+In practice this approach usually yields just one entry in the tree if the
+size and starting address are of the same power-of-2 alignment. 
+Previously we always needed nr_entries = mapping_size / 128MB.
 
-Ideally they would like to get a hugetlbfs fd without requiring explicit
-mounting of a filesystem.  Today, mmap and shmget can make use of
-hugetlbfs without explicitly mounting a filesystem.  The patch adds this
-functionality to memfd_create.
-
-Add a new flag MFD_HUGETLB to memfd_create() that will specify the file to
-be created resides in the hugetlbfs filesystem.  This is the generic
-hugetlbfs filesystem not associated with any specific mount point.  As
-with other system calls that request hugetlbfs backed pages, there is the
-ability to encode huge page size in the flag arguments.
-
-hugetlbfs does not support sealing operations, therefore specifying
-MFD_ALLOW_SEALING with MFD_HUGETLB will result in EINVAL.
-
-Of course, the memfd_man page would need updating if this type of
-functionality moves forward.
-
-Link: http://lkml.kernel.org/r/1502149672-7759-2-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Link: https://lists.01.org/pipermail/linux-nvdimm/2016-August/006666.html
+Link: http://lkml.kernel.org/r/150215410565.39310.13767886055248249438.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/memfd.h |   24 ++++++++++++++++++++++
- mm/shmem.c                 |   37 +++++++++++++++++++++++++++++------
- 2 files changed, 55 insertions(+), 6 deletions(-)
+ kernel/memremap.c |   52 ++++++++++++++++++++++++++++++++------------
+ mm/Kconfig        |    1 
+ 2 files changed, 39 insertions(+), 14 deletions(-)
 
-diff -puN include/uapi/linux/memfd.h~mm-shmem-add-hugetlbfs-support-to-memfd_create include/uapi/linux/memfd.h
---- a/include/uapi/linux/memfd.h~mm-shmem-add-hugetlbfs-support-to-memfd_create
-+++ a/include/uapi/linux/memfd.h
-@@ -1,8 +1,32 @@
- #ifndef _UAPI_LINUX_MEMFD_H
- #define _UAPI_LINUX_MEMFD_H
+diff -puN kernel/memremap.c~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups kernel/memremap.c
+--- a/kernel/memremap.c~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups
++++ a/kernel/memremap.c
+@@ -194,18 +194,41 @@ struct page_map {
+ 	struct vmem_altmap altmap;
+ };
  
-+#include <asm-generic/hugetlb_encode.h>
+-static void pgmap_radix_release(struct resource *res)
++static unsigned long order_at(struct resource *res, unsigned long pgoff)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
++	unsigned long nr_pages, mask;
+ 
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+-	align_end = align_start + align_size - 1;
++	nr_pages = PHYS_PFN(resource_size(res));
++	if (nr_pages == pgoff)
++		return ULONG_MAX;
 +
- /* flags for memfd_create(2) (unsigned int) */
- #define MFD_CLOEXEC		0x0001U
- #define MFD_ALLOW_SEALING	0x0002U
-+#define MFD_HUGETLB		0x0004U
++	/*
++	 * What is the largest aligned power-of-2 range available from
++	 * this resource pgoff to the end of the resource range,
++	 * considering the alignment of the current pgoff?
++	 */
++	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
++	if (!mask)
++		return ULONG_MAX;
 +
-+/*
-+ * Huge page size encoding when MFD_HUGETLB is specified, and a huge page
-+ * size other than the default is desired.  See hugetlb_encode.h.
-+ * All known huge page size encodings are provided here.  It is the
-+ * responsibility of the application to know which sizes are supported on
-+ * the running system.  See mmap(2) man page for details.
-+ */
-+#define MFD_HUGE_SHIFT	HUGETLB_FLAG_ENCODE_SHIFT
-+#define MFD_HUGE_MASK	HUGETLB_FLAG_ENCODE_MASK
++	return find_first_bit(&mask, BITS_PER_LONG);
++}
 +
-+#define MFD_HUGE_64KB	HUGETLB_FLAG_ENCODE_64KB
-+#define MFD_HUGE_512KB	HUGETLB_FLAG_ENCODE_512KB
-+#define MFD_HUGE_1MB	HUGETLB_FLAG_ENCODE_1MB
-+#define MFD_HUGE_2MB	HUGETLB_FLAG_ENCODE_2MB
-+#define MFD_HUGE_8MB	HUGETLB_FLAG_ENCODE_8MB
-+#define MFD_HUGE_16MB	HUGETLB_FLAG_ENCODE_16MB
-+#define MFD_HUGE_256MB	HUGETLB_FLAG_ENCODE_256MB
-+#define MFD_HUGE_1GB	HUGETLB_FLAG_ENCODE_1GB
-+#define MFD_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
-+#define MFD_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
- 
- #endif /* _UAPI_LINUX_MEMFD_H */
-diff -puN mm/shmem.c~mm-shmem-add-hugetlbfs-support-to-memfd_create mm/shmem.c
---- a/mm/shmem.c~mm-shmem-add-hugetlbfs-support-to-memfd_create
-+++ a/mm/shmem.c
-@@ -34,6 +34,7 @@
- #include <linux/swap.h>
- #include <linux/uio.h>
- #include <linux/khugepaged.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
- 
-@@ -3652,7 +3653,7 @@ static int shmem_show_options(struct seq
- #define MFD_NAME_PREFIX_LEN (sizeof(MFD_NAME_PREFIX) - 1)
- #define MFD_NAME_MAX_LEN (NAME_MAX - MFD_NAME_PREFIX_LEN)
- 
--#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING)
-+#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_HUGETLB)
- 
- SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
-@@ -3664,8 +3665,18 @@ SYSCALL_DEFINE2(memfd_create,
- 	char *name;
- 	long len;
- 
--	if (flags & ~(unsigned int)MFD_ALL_FLAGS)
--		return -EINVAL;
-+	if (!(flags & MFD_HUGETLB)) {
-+		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
-+			return -EINVAL;
-+	} else {
-+		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
-+		if (flags & MFD_ALLOW_SEALING)
-+			return -EINVAL;
-+		/* Allow huge page size encoding in flags. */
-+		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
-+				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
-+			return -EINVAL;
-+	}
- 
- 	/* length includes terminating zero */
- 	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
-@@ -3696,16 +3707,30 @@ SYSCALL_DEFINE2(memfd_create,
- 		goto err_name;
- 	}
- 
--	file = shmem_file_setup(name, 0, VM_NORESERVE);
-+	if (flags & MFD_HUGETLB) {
-+		struct user_struct *user = NULL;
++#define foreach_order_pgoff(res, order, pgoff) \
++	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
++			pgoff += 1UL << order, order = order_at((res), pgoff))
 +
-+		file = hugetlb_file_setup(name, 0, VM_NORESERVE, &user,
-+					HUGETLB_ANONHUGE_INODE,
-+					(flags >> MFD_HUGE_SHIFT) &
-+					MFD_HUGE_MASK);
-+	} else
-+		file = shmem_file_setup(name, 0, VM_NORESERVE);
- 	if (IS_ERR(file)) {
- 		error = PTR_ERR(file);
- 		goto err_fd;
- 	}
--	info = SHMEM_I(file_inode(file));
- 	file->f_mode |= FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
- 	file->f_flags |= O_RDWR | O_LARGEFILE;
--	if (flags & MFD_ALLOW_SEALING)
-+
-+	if (flags & MFD_ALLOW_SEALING) {
-+		/*
-+		 * flags check at beginning of function ensures
-+		 * this is not a hugetlbfs (MFD_HUGETLB) file.
-+		 */
-+		info = SHMEM_I(file_inode(file));
- 		info->seals &= ~F_SEAL_SEAL;
-+	}
++static void pgmap_radix_release(struct resource *res)
++{
++	unsigned long pgoff, order;
  
- 	fd_install(fd, file);
- 	kfree(name);
+ 	mutex_lock(&pgmap_lock);
+-	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+-		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
++	foreach_order_pgoff(res, order, pgoff)
++		radix_tree_delete(&pgmap_radix, PHYS_PFN(res->start) + pgoff);
+ 	mutex_unlock(&pgmap_lock);
++
++	synchronize_rcu();
+ }
+ 
+ static unsigned long pfn_first(struct page_map *page_map)
+@@ -268,7 +291,7 @@ struct dev_pagemap *find_dev_pagemap(res
+ 
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+ 
+-	page_map = radix_tree_lookup(&pgmap_radix, phys >> PA_SECTION_SHIFT);
++	page_map = radix_tree_lookup(&pgmap_radix, PHYS_PFN(phys));
+ 	return page_map ? &page_map->pgmap : NULL;
+ }
+ 
+@@ -293,12 +316,12 @@ struct dev_pagemap *find_dev_pagemap(res
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t key, align_start, align_size, align_end;
++	resource_size_t align_start, align_size, align_end;
++	unsigned long pfn, pgoff, order;
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
+ 	int error, nid, is_ram;
+-	unsigned long pfn;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+@@ -337,11 +360,12 @@ void *devm_memremap_pages(struct device
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+ 	align_end = align_start + align_size - 1;
+-	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
++
++	foreach_order_pgoff(res, order, pgoff) {
+ 		struct dev_pagemap *dup;
+ 
+ 		rcu_read_lock();
+-		dup = find_dev_pagemap(key);
++		dup = find_dev_pagemap(res->start + PFN_PHYS(pgoff));
+ 		rcu_read_unlock();
+ 		if (dup) {
+ 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
+@@ -349,8 +373,8 @@ void *devm_memremap_pages(struct device
+ 			error = -EBUSY;
+ 			break;
+ 		}
+-		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
+-				page_map);
++		error = __radix_tree_insert(&pgmap_radix,
++				PHYS_PFN(res->start) + pgoff, order, page_map);
+ 		if (error) {
+ 			dev_err(dev, "%s: failed: %d\n", __func__, error);
+ 			break;
+diff -puN mm/Kconfig~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups mm/Kconfig
+--- a/mm/Kconfig~mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups
++++ a/mm/Kconfig
+@@ -678,6 +678,7 @@ config ZONE_DEVICE
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+ 	depends on ARCH_HAS_ZONE_DEVICE
++	select RADIX_TREE_MULTIORDER
+ 
+ 	help
+ 	  Device memory hotplug support allows for establishing pmem,
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 
