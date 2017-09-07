@@ -1,70 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch removed from
- -mm tree
-Date: Thu, 07 Sep 2017 11:37:16 -0700
-Message-ID: <20170907183716.327ng8j28%akpm@linux-foundation.org>
+ =?US-ASCII?Q?slub-make-sure-struct-kmem=5Fcache=5Fnode-is-initialized-?=
+ =?US-ASCII?Q?before-publication.patch?= removed from -mm tree
+Date: Thu, 07 Sep 2017 11:37:01 -0700
+Message-ID: <20170907183701.lFjirnOB4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55030 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755805AbdIGShR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:17 -0400
+        with ESMTP id S1755762AbdIGShI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuj97@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, richard.weiyang@gmail.com, vbabka@suse.cz
+To: cl@linux.com, glider@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/memory_hotplug: just build zonelist for newly added node
+     Subject: slub: tidy up initialization ordering
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch
+     slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memory_hotplug: just build zonelist for newly added node
+From: Alexander Potapenko <glider@google.com>
+Subject: slub: tidy up initialization ordering
 
-9adb62a5df9c0fbef7 ("mm/hotplug: correctly setup fallback zonelists when
-creating new pgdat") tries to build the correct zonelist for a newly added
-node, while it is not necessary to rebuild it for already exist nodes.
+- free_kmem_cache_nodes() frees the cache node before nulling out a
+  reference to it
 
-In build_zonelists(), it will iterate on nodes with memory.  For a newly
-added node, it will have memory until node_states_set_node() is called in
-online_pages().
+- init_kmem_cache_nodes() publishes the cache node before initializing it
 
-This patch avoids rebuilding the zonelists for already existing nodes.
+Neither of these matter at runtime because the cache nodes cannot be
+looked up by any other thread.  But it's neater and more consistent to
+reorder these.
 
-build_zonelists_node() uses managed_zone(zone) checks, so it should not
-include empty zones anyway.  So effectively we avoid some pointless
-work under stop_machine().
-
-[akpm@linux-foundation.org: tweak comment text]
-[akpm@linux-foundation.org: coding-style tweak, per Vlastimil]
-Link: http://lkml.kernel.org/r/20170626035822.50155-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Link: http://lkml.kernel.org/r/20170707083408.40410-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-just-build-zonelist-for-new-added-node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-just-build-zonelist-for-new-added-node
-+++ a/mm/page_alloc.c
-@@ -5282,14 +5282,18 @@ static int __build_all_zonelists(void *d
- 	memset(node_load, 0, sizeof(node_load));
- #endif
+diff -puN mm/slub.c~slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication mm/slub.c
+--- a/mm/slub.c~slub-make-sure-struct-kmem_cache_node-is-initialized-before-publication
++++ a/mm/slub.c
+@@ -3358,8 +3358,8 @@ static void free_kmem_cache_nodes(struct
+ 	struct kmem_cache_node *n;
  
-+	/*
-+	 * This node is hotadded and no memory is yet present.   So just
-+	 * building zonelists is fine - no need to touch other nodes.
-+	 */
- 	if (self && !node_online(self->node_id)) {
- 		build_zonelists(self);
--	}
+ 	for_each_kmem_cache_node(s, node, n) {
+-		kmem_cache_free(kmem_cache_node, n);
+ 		s->node[node] = NULL;
++		kmem_cache_free(kmem_cache_node, n);
+ 	}
+ }
+ 
+@@ -3389,8 +3389,8 @@ static int init_kmem_cache_nodes(struct
+ 			return 0;
+ 		}
+ 
+-		s->node[node] = n;
+ 		init_kmem_cache_node(n);
++		s->node[node] = n;
+ 	}
+ 	return 1;
+ }
+_
+
+Patches currently in -mm which might be from glider@google.com are
+
+
