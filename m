@@ -1,209 +1,578 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently.patch removed
+Subject: [merged] mm-swap-vma-based-swap-readahead.patch removed
  from -mm tree
-Date: Thu, 07 Sep 2017 11:42:07 -0700
-Message-ID: <20170907184207.wUirJ7gJp%akpm@linux-foundation.org>
+Date: Thu, 07 Sep 2017 11:41:46 -0700
+Message-ID: <20170907184146.-dfBFGWI4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57828 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755748AbdIGSmI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:42:08 -0400
+        with ESMTP id S1755218AbdIGSlr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com
+To: dave.hansen@intel.com, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm: oom: let oom_reap_task and exit_mmap run concurrently
+     Subject: mm, swap: VMA based swap readahead
 has been removed from the -mm tree.  Its filename was
-     mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently.patch
+     mm-swap-vma-based-swap-readahead.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: oom: let oom_reap_task and exit_mmap run concurrently
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, swap: VMA based swap readahead
 
-This is purely required because exit_aio() may block and exit_mmap() may
-never start, if the oom_reap_task cannot start running on a mm with
-mm_users == 0.
+The swap readahead is an important mechanism to reduce the swap in
+latency.  Although pure sequential memory access pattern isn't very
+popular for anonymous memory, the space locality is still considered
+valid.
 
-At the same time if the OOM reaper doesn't wait at all for the memory of
-the current OOM candidate to be freed by exit_mmap->unmap_vmas, it would
-generate a spurious OOM kill.
+In the original swap readahead implementation, the consecutive blocks in
+swap device are readahead based on the global space locality estimation. 
+But the consecutive blocks in swap device just reflect the order of page
+reclaiming, don't necessarily reflect the access pattern in virtual
+memory.  And the different tasks in the system may have different access
+patterns, which makes the global space locality estimation incorrect.
 
-If it wasn't because of the exit_aio or similar blocking functions in the
-last mmput, it would be enough to change the oom_reap_task() in the case
-it finds mm_users == 0, to wait for a timeout or to wait for __mmput to
-set MMF_OOM_SKIP itself, but it's not just exit_mmap the problem here so
-the concurrency of exit_mmap and oom_reap_task is apparently warranted.
+In this patch, when page fault occurs, the virtual pages near the fault
+address will be readahead instead of the swap slots near the fault swap
+slot in swap device.  This avoid to readahead the unrelated swap slots. 
+At the same time, the swap readahead is changed to work on per-VMA from
+globally.  So that the different access patterns of the different VMAs
+could be distinguished, and the different readahead policy could be
+applied accordingly.  The original core readahead detection and scaling
+algorithm is reused, because it is an effect algorithm to detect the space
+locality.
 
-It's a non standard runtime, exit_mmap() runs without mmap_sem, and
-oom_reap_task runs with the mmap_sem for reading as usual (kind of
-MADV_DONTNEED).
+The test and result is as follow,
 
-The race between the two is solved with a combination of
-tsk_is_oom_victim() (serialized by task_lock) and MMF_OOM_SKIP (serialized
-by a dummy down_write/up_write cycle on the same lines of the ksm_exit
-method).
+Common test condition
+=====================
 
-If the oom_reap_task() may be running concurrently during exit_mmap,
-exit_mmap will wait it to finish in down_write (before taking down mm
-structures that would make the oom_reap_task fail with use after free).
+Test Machine: Xeon E5 v3 (2 sockets, 72 threads, 32G RAM) Swap device:
+NVMe disk
 
-If exit_mmap comes first, oom_reap_task() will skip the mm if MMF_OOM_SKIP
-is already set and in turn all memory is already freed and furthermore the
-mm data structures may already have been taken down by free_pgtables.
+Micro-benchmark with combined access pattern
+============================================
 
-[aarcange@redhat.com: incremental one liner]
-  Link: http://lkml.kernel.org/r/20170726164319.GC29716@redhat.com
-[rientjes@google.com: remove unused mmput_async]
-  Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708141733130.50317@chino.kir.corp.google.com
-[aarcange@redhat.com: microoptimization]
-  Link: http://lkml.kernel.org/r/20170817171240.GB5066@redhat.com
-Link: http://lkml.kernel.org/r/20170726162912.GA29716@redhat.com
-Fixes: 26db62f179d1 ("oom: keep mm of the killed task available")
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: David Rientjes <rientjes@google.com>
-Tested-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Oleg Nesterov <oleg@redhat.com>
+vm-scalability, sequential swap test case, 4 processes to eat 50G virtual
+memory space, repeat the sequential memory writing until 300 seconds.  The
+first round writing will trigger swap out, the following rounds will
+trigger sequential swap in and out.
+
+At the same time, run vm-scalability random swap test case in background,
+8 processes to eat 30G virtual memory space, repeat the random memory
+write until 300 seconds.  This will trigger random swap-in in the
+background.
+
+This is a combined workload with sequential and random memory accessing at
+the same time.  The result (for sequential workload) is as follow,
+
+			Base		Optimized
+			----		---------
+throughput		345413 KB/s	414029 KB/s (+19.9%)
+latency.average		97.14 us	61.06 us (-37.1%)
+latency.50th		2 us		1 us
+latency.60th		2 us		1 us
+latency.70th		98 us		2 us
+latency.80th		160 us		2 us
+latency.90th		260 us		217 us
+latency.95th		346 us		369 us
+latency.99th		1.34 ms		1.09 ms
+ra_hit%			52.69%		99.98%
+
+The original swap readahead algorithm is confused by the background random
+access workload, so readahead hit rate is lower.  The VMA-base readahead
+algorithm works much better.
+
+Linpack
+=======
+
+The test memory size is bigger than RAM to trigger swapping.
+
+			Base		Optimized
+			----		---------
+elapsed_time		393.49 s	329.88 s (-16.2%)
+ra_hit%			86.21%		98.82%
+
+The score of base and optimized kernel hasn't visible changes.  But the
+elapsed time reduced and readahead hit rate improved, so the optimized
+kernel runs better for startup and tear down stages.  And the absolute
+value of readahead hit rate is high, shows that the space locality is
+still valid in some practical workloads.
+
+Link: http://lkml.kernel.org/r/20170807054038.1843-4-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    6 ------
- kernel/fork.c            |   17 -----------------
- mm/mmap.c                |   18 ++++++++++++++++++
- mm/oom_kill.c            |   15 +++++----------
- 4 files changed, 23 insertions(+), 33 deletions(-)
+ include/linux/mm_types.h |    1 
+ include/linux/swap.h     |   57 +++++++++
+ mm/memory.c              |   23 +++
+ mm/shmem.c               |    2 
+ mm/swap_state.c          |  215 ++++++++++++++++++++++++++++++++++---
+ 5 files changed, 273 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/sched/mm.h~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently include/linux/sched/mm.h
---- a/include/linux/sched/mm.h~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/include/linux/sched/mm.h
-@@ -84,12 +84,6 @@ static inline bool mmget_not_zero(struct
+diff -puN include/linux/mm_types.h~mm-swap-vma-based-swap-readahead include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-swap-vma-based-swap-readahead
++++ a/include/linux/mm_types.h
+@@ -335,6 +335,7 @@ struct vm_area_struct {
+ 	struct file * vm_file;		/* File we map to (can be NULL). */
+ 	void * vm_private_data;		/* was vm_pte (shared mem) */
  
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
--#ifdef CONFIG_MMU
--/* same as above but performs the slow path from the async context. Can
-- * be called from the atomic context as well
-- */
--extern void mmput_async(struct mm_struct *);
--#endif
++	atomic_long_t swap_readahead_info;
+ #ifndef CONFIG_MMU
+ 	struct vm_region *vm_region;	/* NOMMU mapping region */
+ #endif
+diff -puN include/linux/swap.h~mm-swap-vma-based-swap-readahead include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-vma-based-swap-readahead
++++ a/include/linux/swap.h
+@@ -251,6 +251,25 @@ struct swap_info_struct {
+ 	struct swap_cluster_list discard_clusters; /* discard clusters list */
+ };
  
- /* Grab a reference to a task's mm, if it is not already going away */
- extern struct mm_struct *get_task_mm(struct task_struct *task);
-diff -puN kernel/fork.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently kernel/fork.c
---- a/kernel/fork.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/kernel/fork.c
-@@ -922,7 +922,6 @@ static inline void __mmput(struct mm_str
- 	}
- 	if (mm->binfmt)
- 		module_put(mm->binfmt->module);
--	set_bit(MMF_OOM_SKIP, &mm->flags);
- 	mmdrop(mm);
++#ifdef CONFIG_64BIT
++#define SWAP_RA_ORDER_CEILING	5
++#else
++/* Avoid stack overflow, because we need to save part of page table */
++#define SWAP_RA_ORDER_CEILING	3
++#define SWAP_RA_PTE_CACHE_SIZE	(1 << SWAP_RA_ORDER_CEILING)
++#endif
++
++struct vma_swap_readahead {
++	unsigned short win;
++	unsigned short offset;
++	unsigned short nr_pte;
++#ifdef CONFIG_64BIT
++	pte_t *ptes;
++#else
++	pte_t ptes[SWAP_RA_PTE_CACHE_SIZE];
++#endif
++};
++
+ /* linux/mm/workingset.c */
+ void *workingset_eviction(struct address_space *mapping, struct page *page);
+ bool workingset_refault(void *shadow);
+@@ -350,6 +369,7 @@ int generic_swapfile_activate(struct swa
+ #define SWAP_ADDRESS_SPACE_SHIFT	14
+ #define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
+ extern struct address_space *swapper_spaces[];
++extern bool swap_vma_readahead;
+ #define swap_address_space(entry)			    \
+ 	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
+ 		>> SWAP_ADDRESS_SPACE_SHIFT])
+@@ -362,7 +382,9 @@ extern void __delete_from_swap_cache(str
+ extern void delete_from_swap_cache(struct page *);
+ extern void free_page_and_swap_cache(struct page *);
+ extern void free_pages_and_swap_cache(struct page **, int);
+-extern struct page *lookup_swap_cache(swp_entry_t);
++extern struct page *lookup_swap_cache(swp_entry_t entry,
++				      struct vm_area_struct *vma,
++				      unsigned long addr);
+ extern struct page *read_swap_cache_async(swp_entry_t, gfp_t,
+ 			struct vm_area_struct *vma, unsigned long addr,
+ 			bool do_poll);
+@@ -372,6 +394,17 @@ extern struct page *__read_swap_cache_as
+ extern struct page *swapin_readahead(swp_entry_t, gfp_t,
+ 			struct vm_area_struct *vma, unsigned long addr);
+ 
++extern struct page *swap_readahead_detect(struct vm_fault *vmf,
++					  struct vma_swap_readahead *swap_ra);
++extern struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
++					   struct vm_fault *vmf,
++					   struct vma_swap_readahead *swap_ra);
++
++static inline bool swap_use_vma_readahead(void)
++{
++	return READ_ONCE(swap_vma_readahead);
++}
++
+ /* linux/mm/swapfile.c */
+ extern atomic_long_t nr_swap_pages;
+ extern long total_swap_pages;
+@@ -466,12 +499,32 @@ static inline struct page *swapin_readah
+ 	return NULL;
  }
  
-@@ -938,22 +937,6 @@ void mmput(struct mm_struct *mm)
++static inline bool swap_use_vma_readahead(void)
++{
++	return false;
++}
++
++static inline struct page *swap_readahead_detect(
++	struct vm_fault *vmf, struct vma_swap_readahead *swap_ra)
++{
++	return NULL;
++}
++
++static inline struct page *do_swap_page_readahead(
++	swp_entry_t fentry, gfp_t gfp_mask,
++	struct vm_fault *vmf, struct vma_swap_readahead *swap_ra)
++{
++	return NULL;
++}
++
+ static inline int swap_writepage(struct page *p, struct writeback_control *wbc)
+ {
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(mmput);
  
--#ifdef CONFIG_MMU
--static void mmput_async_fn(struct work_struct *work)
--{
--	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
--	__mmput(mm);
--}
--
--void mmput_async(struct mm_struct *mm)
--{
--	if (atomic_dec_and_test(&mm->mm_users)) {
--		INIT_WORK(&mm->async_put_work, mmput_async_fn);
--		schedule_work(&mm->async_put_work);
--	}
--}
--#endif
--
- /**
-  * set_mm_exe_file - change a reference to the mm's executable file
-  *
-diff -puN mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently mm/mmap.c
---- a/mm/mmap.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/mm/mmap.c
-@@ -44,6 +44,7 @@
- #include <linux/userfaultfd_k.h>
- #include <linux/moduleparam.h>
- #include <linux/pkeys.h>
-+#include <linux/oom.h>
+-static inline struct page *lookup_swap_cache(swp_entry_t swp)
++static inline struct page *lookup_swap_cache(swp_entry_t swp,
++					     struct vm_area_struct *vma,
++					     unsigned long addr)
+ {
+ 	return NULL;
+ }
+diff -puN mm/memory.c~mm-swap-vma-based-swap-readahead mm/memory.c
+--- a/mm/memory.c~mm-swap-vma-based-swap-readahead
++++ a/mm/memory.c
+@@ -2752,16 +2752,23 @@ EXPORT_SYMBOL(unmap_mapping_range);
+ int do_swap_page(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *page, *swapcache;
++	struct page *page = NULL, *swapcache;
+ 	struct mem_cgroup *memcg;
++	struct vma_swap_readahead swap_ra;
+ 	swp_entry_t entry;
+ 	pte_t pte;
+ 	int locked;
+ 	int exclusive = 0;
+ 	int ret = 0;
++	bool vma_readahead = swap_use_vma_readahead();
  
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
-@@ -3001,6 +3002,23 @@ void exit_mmap(struct mm_struct *mm)
- 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
- 	unmap_vmas(&tlb, vma, 0, -1);
- 
-+	set_bit(MMF_OOM_SKIP, &mm->flags);
-+	if (unlikely(tsk_is_oom_victim(current))) {
-+		/*
-+		 * Wait for oom_reap_task() to stop working on this
-+		 * mm. Because MMF_OOM_SKIP is already set before
-+		 * calling down_read(), oom_reap_task() will not run
-+		 * on this "mm" post up_write().
-+		 *
-+		 * tsk_is_oom_victim() cannot be set from under us
-+		 * either because current->mm is already set to NULL
-+		 * under task_lock before calling mmput and oom_mm is
-+		 * set not NULL by the OOM killer only if current->mm
-+		 * is found not NULL while holding the task_lock.
-+		 */
-+		down_write(&mm->mmap_sem);
-+		up_write(&mm->mmap_sem);
+-	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte))
++	if (vma_readahead)
++		page = swap_readahead_detect(vmf, &swap_ra);
++	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte)) {
++		if (page)
++			put_page(page);
+ 		goto out;
 +	}
- 	free_pgtables(&tlb, vma, FIRST_USER_ADDRESS, USER_PGTABLES_CEILING);
- 	tlb_finish_mmu(&tlb, 0, -1);
  
-diff -puN mm/oom_kill.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-let-oom_reap_task-and-exit_mmap-to-run-concurrently
-+++ a/mm/oom_kill.c
-@@ -495,11 +495,12 @@ static bool __oom_reap_task_mm(struct ta
+ 	entry = pte_to_swp_entry(vmf->orig_pte);
+ 	if (unlikely(non_swap_entry(entry))) {
+@@ -2777,10 +2784,16 @@ int do_swap_page(struct vm_fault *vmf)
+ 		goto out;
  	}
+ 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
+-	page = lookup_swap_cache(entry);
++	if (!page)
++		page = lookup_swap_cache(entry, vma_readahead ? vma : NULL,
++					 vmf->address);
+ 	if (!page) {
+-		page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE, vma,
+-					vmf->address);
++		if (vma_readahead)
++			page = do_swap_page_readahead(entry,
++				GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
++		else
++			page = swapin_readahead(entry,
++				GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+ 		if (!page) {
+ 			/*
+ 			 * Back out if somebody else faulted in this pte
+diff -puN mm/shmem.c~mm-swap-vma-based-swap-readahead mm/shmem.c
+--- a/mm/shmem.c~mm-swap-vma-based-swap-readahead
++++ a/mm/shmem.c
+@@ -1650,7 +1650,7 @@ repeat:
+ 
+ 	if (swap.val) {
+ 		/* Look it up and read it in.. */
+-		page = lookup_swap_cache(swap);
++		page = lookup_swap_cache(swap, NULL, 0);
+ 		if (!page) {
+ 			/* Or update major stats only when swapin succeeds?? */
+ 			if (fault_type) {
+diff -puN mm/swap_state.c~mm-swap-vma-based-swap-readahead mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-vma-based-swap-readahead
++++ a/mm/swap_state.c
+@@ -37,6 +37,29 @@ static const struct address_space_operat
+ 
+ struct address_space *swapper_spaces[MAX_SWAPFILES];
+ static unsigned int nr_swapper_spaces[MAX_SWAPFILES];
++bool swap_vma_readahead = true;
++
++#define SWAP_RA_MAX_ORDER_DEFAULT	3
++
++static int swap_ra_max_order = SWAP_RA_MAX_ORDER_DEFAULT;
++
++#define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
++#define SWAP_RA_HITS_MASK	((1UL << SWAP_RA_WIN_SHIFT) - 1)
++#define SWAP_RA_HITS_MAX	SWAP_RA_HITS_MASK
++#define SWAP_RA_WIN_MASK	(~PAGE_MASK & ~SWAP_RA_HITS_MASK)
++
++#define SWAP_RA_HITS(v)		((v) & SWAP_RA_HITS_MASK)
++#define SWAP_RA_WIN(v)		(((v) & SWAP_RA_WIN_MASK) >> SWAP_RA_WIN_SHIFT)
++#define SWAP_RA_ADDR(v)		((v) & PAGE_MASK)
++
++#define SWAP_RA_VAL(addr, win, hits)				\
++	(((addr) & PAGE_MASK) |					\
++	 (((win) << SWAP_RA_WIN_SHIFT) & SWAP_RA_WIN_MASK) |	\
++	 ((hits) & SWAP_RA_HITS_MASK))
++
++/* Initial readahead hits is 4 to start up with a small window */
++#define GET_SWAP_RA_VAL(vma)					\
++	(atomic_long_read(&(vma)->swap_readahead_info) ? : 4)
+ 
+ #define INC_CACHE_INFO(x)	do { swap_cache_info.x++; } while (0)
+ #define ADD_CACHE_INFO(x, nr)	do { swap_cache_info.x += (nr); } while (0)
+@@ -297,21 +320,36 @@ void free_pages_and_swap_cache(struct pa
+  * lock getting page table operations atomic even if we drop the page
+  * lock before returning.
+  */
+-struct page * lookup_swap_cache(swp_entry_t entry)
++struct page *lookup_swap_cache(swp_entry_t entry, struct vm_area_struct *vma,
++			       unsigned long addr)
+ {
+ 	struct page *page;
++	unsigned long ra_info;
++	int win, hits, readahead;
+ 
+ 	page = find_get_page(swap_address_space(entry), swp_offset(entry));
+ 
+-	if (page && likely(!PageTransCompound(page))) {
++	INC_CACHE_INFO(find_total);
++	if (page) {
+ 		INC_CACHE_INFO(find_success);
+-		if (TestClearPageReadahead(page)) {
+-			atomic_inc(&swapin_readahead_hits);
++		if (unlikely(PageTransCompound(page)))
++			return page;
++		readahead = TestClearPageReadahead(page);
++		if (vma) {
++			ra_info = GET_SWAP_RA_VAL(vma);
++			win = SWAP_RA_WIN(ra_info);
++			hits = SWAP_RA_HITS(ra_info);
++			if (readahead)
++				hits = min_t(int, hits + 1, SWAP_RA_HITS_MAX);
++			atomic_long_set(&vma->swap_readahead_info,
++					SWAP_RA_VAL(addr, win, hits));
++		}
++		if (readahead) {
+ 			count_vm_event(SWAP_RA_HIT);
++			if (!vma)
++				atomic_inc(&swapin_readahead_hits);
+ 		}
+ 	}
+-
+-	INC_CACHE_INFO(find_total);
+ 	return page;
+ }
+ 
+@@ -426,22 +464,20 @@ struct page *read_swap_cache_async(swp_e
+ 	return retpage;
+ }
+ 
+-static unsigned long swapin_nr_pages(unsigned long offset)
++static unsigned int __swapin_nr_pages(unsigned long prev_offset,
++				      unsigned long offset,
++				      int hits,
++				      int max_pages,
++				      int prev_win)
+ {
+-	static unsigned long prev_offset;
+-	unsigned int pages, max_pages, last_ra;
+-	static atomic_t last_readahead_pages;
+-
+-	max_pages = 1 << READ_ONCE(page_cluster);
+-	if (max_pages <= 1)
+-		return 1;
++	unsigned int pages, last_ra;
  
  	/*
--	 * increase mm_users only after we know we will reap something so
--	 * that the mmput_async is called only when we have reaped something
--	 * and delayed __mmput doesn't matter that much
-+	 * MMF_OOM_SKIP is set by exit_mmap when the OOM reaper can't
-+	 * work on the mm anymore. The check for MMF_OOM_SKIP must run
-+	 * under mmap_sem for reading because it serializes against the
-+	 * down_write();up_write() cycle in exit_mmap().
+ 	 * This heuristic has been found to work well on both sequential and
+ 	 * random loads, swapping to hard disk or to SSD: please don't ask
+ 	 * what the "+ 2" means, it just happens to work well, that's all.
  	 */
--	if (!mmget_not_zero(mm)) {
-+	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
- 		up_read(&mm->mmap_sem);
- 		trace_skip_task_reaping(tsk->pid);
- 		goto unlock_oom;
-@@ -542,12 +543,6 @@ static bool __oom_reap_task_mm(struct ta
- 			K(get_mm_counter(mm, MM_SHMEMPAGES)));
- 	up_read(&mm->mmap_sem);
+-	pages = atomic_xchg(&swapin_readahead_hits, 0) + 2;
++	pages = hits + 2;
+ 	if (pages == 2) {
+ 		/*
+ 		 * We can have no readahead hits to judge by: but must not get
+@@ -450,7 +486,6 @@ static unsigned long swapin_nr_pages(uns
+ 		 */
+ 		if (offset != prev_offset + 1 && offset != prev_offset - 1)
+ 			pages = 1;
+-		prev_offset = offset;
+ 	} else {
+ 		unsigned int roundup = 4;
+ 		while (roundup < pages)
+@@ -462,9 +497,28 @@ static unsigned long swapin_nr_pages(uns
+ 		pages = max_pages;
  
--	/*
--	 * Drop our reference but make sure the mmput slow path is called from a
--	 * different context because we shouldn't risk we get stuck there and
--	 * put the oom_reaper out of the way.
--	 */
--	mmput_async(mm);
- 	trace_finish_task_reaping(tsk->pid);
- unlock_oom:
- 	mutex_unlock(&oom_lock);
+ 	/* Don't shrink readahead too fast */
+-	last_ra = atomic_read(&last_readahead_pages) / 2;
++	last_ra = prev_win / 2;
+ 	if (pages < last_ra)
+ 		pages = last_ra;
++
++	return pages;
++}
++
++static unsigned long swapin_nr_pages(unsigned long offset)
++{
++	static unsigned long prev_offset;
++	unsigned int hits, pages, max_pages;
++	static atomic_t last_readahead_pages;
++
++	max_pages = 1 << READ_ONCE(page_cluster);
++	if (max_pages <= 1)
++		return 1;
++
++	hits = atomic_xchg(&swapin_readahead_hits, 0);
++	pages = __swapin_nr_pages(prev_offset, offset, hits, max_pages,
++				  atomic_read(&last_readahead_pages));
++	if (!hits)
++		prev_offset = offset;
+ 	atomic_set(&last_readahead_pages, pages);
+ 
+ 	return pages;
+@@ -570,3 +624,130 @@ void exit_swap_address_space(unsigned in
+ 	synchronize_rcu();
+ 	kvfree(spaces);
+ }
++
++static inline void swap_ra_clamp_pfn(struct vm_area_struct *vma,
++				     unsigned long faddr,
++				     unsigned long lpfn,
++				     unsigned long rpfn,
++				     unsigned long *start,
++				     unsigned long *end)
++{
++	*start = max3(lpfn, PFN_DOWN(vma->vm_start),
++		      PFN_DOWN(faddr & PMD_MASK));
++	*end = min3(rpfn, PFN_DOWN(vma->vm_end),
++		    PFN_DOWN((faddr & PMD_MASK) + PMD_SIZE));
++}
++
++struct page *swap_readahead_detect(struct vm_fault *vmf,
++				   struct vma_swap_readahead *swap_ra)
++{
++	struct vm_area_struct *vma = vmf->vma;
++	unsigned long swap_ra_info;
++	struct page *page;
++	swp_entry_t entry;
++	unsigned long faddr, pfn, fpfn;
++	unsigned long start, end;
++	pte_t *pte;
++	unsigned int max_win, hits, prev_win, win, left;
++#ifndef CONFIG_64BIT
++	pte_t *tpte;
++#endif
++
++	faddr = vmf->address;
++	entry = pte_to_swp_entry(vmf->orig_pte);
++	if ((unlikely(non_swap_entry(entry))))
++		return NULL;
++	page = lookup_swap_cache(entry, vma, faddr);
++	if (page)
++		return page;
++
++	max_win = 1 << READ_ONCE(swap_ra_max_order);
++	if (max_win == 1) {
++		swap_ra->win = 1;
++		return NULL;
++	}
++
++	fpfn = PFN_DOWN(faddr);
++	swap_ra_info = GET_SWAP_RA_VAL(vma);
++	pfn = PFN_DOWN(SWAP_RA_ADDR(swap_ra_info));
++	prev_win = SWAP_RA_WIN(swap_ra_info);
++	hits = SWAP_RA_HITS(swap_ra_info);
++	swap_ra->win = win = __swapin_nr_pages(pfn, fpfn, hits,
++					       max_win, prev_win);
++	atomic_long_set(&vma->swap_readahead_info,
++			SWAP_RA_VAL(faddr, win, 0));
++
++	if (win == 1)
++		return NULL;
++
++	/* Copy the PTEs because the page table may be unmapped */
++	if (fpfn == pfn + 1)
++		swap_ra_clamp_pfn(vma, faddr, fpfn, fpfn + win, &start, &end);
++	else if (pfn == fpfn + 1)
++		swap_ra_clamp_pfn(vma, faddr, fpfn - win + 1, fpfn + 1,
++				  &start, &end);
++	else {
++		left = (win - 1) / 2;
++		swap_ra_clamp_pfn(vma, faddr, fpfn - left, fpfn + win - left,
++				  &start, &end);
++	}
++	swap_ra->nr_pte = end - start;
++	swap_ra->offset = fpfn - start;
++	pte = vmf->pte - swap_ra->offset;
++#ifdef CONFIG_64BIT
++	swap_ra->ptes = pte;
++#else
++	tpte = swap_ra->ptes;
++	for (pfn = start; pfn != end; pfn++)
++		*tpte++ = *pte++;
++#endif
++
++	return NULL;
++}
++
++struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
++				    struct vm_fault *vmf,
++				    struct vma_swap_readahead *swap_ra)
++{
++	struct blk_plug plug;
++	struct vm_area_struct *vma = vmf->vma;
++	struct page *page;
++	pte_t *pte, pentry;
++	swp_entry_t entry;
++	unsigned int i;
++	bool page_allocated;
++
++	if (swap_ra->win == 1)
++		goto skip;
++
++	blk_start_plug(&plug);
++	for (i = 0, pte = swap_ra->ptes; i < swap_ra->nr_pte;
++	     i++, pte++) {
++		pentry = *pte;
++		if (pte_none(pentry))
++			continue;
++		if (pte_present(pentry))
++			continue;
++		entry = pte_to_swp_entry(pentry);
++		if (unlikely(non_swap_entry(entry)))
++			continue;
++		page = __read_swap_cache_async(entry, gfp_mask, vma,
++					       vmf->address, &page_allocated);
++		if (!page)
++			continue;
++		if (page_allocated) {
++			swap_readpage(page, false);
++			if (i != swap_ra->offset &&
++			    likely(!PageTransCompound(page))) {
++				SetPageReadahead(page);
++				count_vm_event(SWAP_RA);
++			}
++		}
++		put_page(page);
++	}
++	blk_finish_plug(&plug);
++	lru_add_drain();
++skip:
++	return read_swap_cache_async(fentry, gfp_mask, vma, vmf->address,
++				     swap_ra->win == 1);
++}
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-userfaultfd-non-cooperative-closing-the-uffd-without-triggering-sigbus.patch
 
