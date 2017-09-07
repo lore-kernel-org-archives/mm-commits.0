@@ -1,114 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+ mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
  removed from -mm tree
-Date: Thu, 07 Sep 2017 11:38:16 -0700
-Message-ID: <20170907183816.mJY1WaR1b%akpm@linux-foundation.org>
+Date: Thu, 07 Sep 2017 11:37:58 -0700
+Message-ID: <20170907183758.lJB0PPs1n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55434 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755722AbdIGSiR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:17 -0400
+        with ESMTP id S1755713AbdIGSh7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, shaohua.li@intel.com, toshi.kani@hpe.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, sparse, page_ext: drop ugly N_HIGH_MEMORY branches for allocations
+     Subject: mm, page_alloc: do not set_cpu_numa_mem on empty nodes initialization
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations.patch
+     mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, sparse, page_ext: drop ugly N_HIGH_MEMORY branches for allocations
+Subject: mm, page_alloc: do not set_cpu_numa_mem on empty nodes initialization
 
-f52407ce2dea ("memory hotplug: alloc page from other node in memory
-online") has introduced N_HIGH_MEMORY checks to only use NUMA aware
-allocations when there is some memory present because the respective node
-might not have any memory yet at the time and so it could fail or even
-OOM.  Things have changed since then though.  Zonelists are now always
-initialized before we do any allocations even for hotplug (see
-959ecc48fc75 ("mm/memory_hotplug.c: fix building of node hotplug
-zonelist")).  Therefore these checks are not really needed.  In fact
-caller of the allocator should never care about whether the node is
-populated because that might change at any time.
+__build_all_zonelists reinitializes each online cpu local node for
+CONFIG_HAVE_MEMORYLESS_NODES.  This makes sense because previously memory
+less nodes could gain some memory during memory hotplug and so the local
+node should be changed for CPUs close to such a node.  It makes less sense
+to do that unconditionally for a newly creaded NUMA node which is still
+offline and without any memory.
 
-Link: http://lkml.kernel.org/r/20170721143915.14161-10-mhocko@kernel.org
+Let's also simplify the cpu loop and use for_each_online_cpu instead of an
+explicit cpu_online check for all possible cpus.
+
+Link: http://lkml.kernel.org/r/20170721143915.14161-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c       |    5 +----
- mm/sparse-vmemmap.c |   11 +++--------
- mm/sparse.c         |   10 +++-------
- 3 files changed, 7 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_ext.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations mm/page_ext.c
---- a/mm/page_ext.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations
-+++ a/mm/page_ext.c
-@@ -222,10 +222,7 @@ static void *__meminit alloc_page_ext(si
- 		return addr;
- 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-set_cpu_numa_mem-on-empty-nodes-initialization
++++ a/mm/page_alloc.c
+@@ -5160,10 +5160,8 @@ static int __build_all_zonelists(void *d
  
--	if (node_state(nid, N_HIGH_MEMORY))
--		addr = vzalloc_node(size, nid);
--	else
--		addr = vzalloc(size);
-+	addr = vzalloc_node(size, nid);
- 
- 	return addr;
- }
-diff -puN mm/sparse-vmemmap.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations
-+++ a/mm/sparse-vmemmap.c
-@@ -54,14 +54,9 @@ void * __meminit vmemmap_alloc_block(uns
- 	if (slab_is_available()) {
- 		struct page *page;
- 
--		if (node_state(node, N_HIGH_MEMORY))
--			page = alloc_pages_node(
--				node, GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
--				get_order(size));
--		else
--			page = alloc_pages(
--				GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
--				get_order(size));
-+		page = alloc_pages_node(node,
-+			GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
-+			get_order(size));
- 		if (page)
- 			return page_address(page);
- 		return NULL;
-diff -puN mm/sparse.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations mm/sparse.c
---- a/mm/sparse.c~mm-sparse-page_ext-drop-ugly-n_high_memory-branches-for-allocations
-+++ a/mm/sparse.c
-@@ -65,14 +65,10 @@ static noinline struct mem_section __ref
- 	unsigned long array_size = SECTIONS_PER_ROOT *
- 				   sizeof(struct mem_section);
- 
--	if (slab_is_available()) {
--		if (node_state(nid, N_HIGH_MEMORY))
--			section = kzalloc_node(array_size, GFP_KERNEL, nid);
--		else
--			section = kzalloc(array_size, GFP_KERNEL);
--	} else {
-+	if (slab_is_available())
-+		section = kzalloc_node(array_size, GFP_KERNEL, nid);
-+	else
- 		section = memblock_virt_alloc_node(array_size, nid);
+ 			build_zonelists(pgdat);
+ 		}
 -	}
  
- 	return section;
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
+-	for_each_possible_cpu(cpu) {
+ 		/*
+ 		 * We now know the "local memory node" for each node--
+ 		 * i.e., the node of the first zone in the generic zonelist.
+@@ -5172,10 +5170,10 @@ static int __build_all_zonelists(void *d
+ 		 * secondary cpus' numa_mem as they come on-line.  During
+ 		 * node/memory hotplug, we'll fixup all on-line cpus.
+ 		 */
+-		if (cpu_online(cpu))
++		for_each_online_cpu(cpu)
+ 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
+-	}
+ #endif
++	}
+ 
+ 	return 0;
  }
 _
 
