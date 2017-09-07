@@ -1,253 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
- removed from -mm tree
-Date: Thu, 07 Sep 2017 11:39:37 -0700
-Message-ID: <20170907183937.DSYIsEimx%akpm@linux-foundation.org>
+Subject: [merged] mm-implement-find_get_pages_range.patch removed
+ from -mm tree
+Date: Thu, 07 Sep 2017 11:38:52 -0700
+Message-ID: <20170907183852.mhw54GOnB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55834 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755468AbdIGSji (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:38 -0400
+        with ESMTP id S1755705AbdIGSix (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:38:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dianders@chromium.org, hannes@cmpxchg.org, mhocko@suse.com, mka@chromium.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: use int for event/state parameter in several functions
+     Subject: mm: implement find_get_pages_range()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-use-int-for-event-state-parameter-in-several-functions.patch
+     mm-implement-find_get_pages_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: mm: memcontrol: use int for event/state parameter in several functions
+From: Jan Kara <jack@suse.cz>
+Subject: mm: implement find_get_pages_range()
 
-Several functions use an enum type as parameter for an event/state, but
-are called in some locations with an argument of a different enum type. 
-Adjust the interface of these functions to reality by changing the
-parameter to int.
+Implement a variant of find_get_pages() that stops iterating at given
+index.  This may be substantial performance gain if the mapping is sparse.
+See following commit for details.  Furthermore lots of users of this
+function (through pagevec_lookup()) actually want a range lookup and all
+of them are currently open-coding this.
 
-This fixes a ton of enum-conversion warnings that are generated when
-building the kernel with clang.
+Also create corresponding pagevec_lookup_range() function.
 
-[mka@chromium.org: also change parameter type of inc/dec/mod_memcg_page_state()]
-  Link: http://lkml.kernel.org/r/20170728213442.93823-1-mka@chromium.org
-Link: http://lkml.kernel.org/r/20170727211004.34435-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Doug Anderson <dianders@chromium.org>
+Link: http://lkml.kernel.org/r/20170726114704.7626-4-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   52 +++++++++++++++++++++--------------
- mm/memcontrol.c            |    4 ++
- 2 files changed, 35 insertions(+), 21 deletions(-)
+ include/linux/pagemap.h |   12 +++++++++-
+ include/linux/pagevec.h |   13 +++++++++--
+ mm/filemap.c            |   42 +++++++++++++++++++++++++++-----------
+ mm/swap.c               |   22 ++++++++++++-------
+ 4 files changed, 65 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions
-+++ a/include/linux/memcontrol.h
-@@ -488,8 +488,9 @@ struct mem_cgroup *lock_page_memcg(struc
- void __unlock_page_memcg(struct mem_cgroup *memcg);
- void unlock_page_memcg(struct page *page);
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline unsigned long memcg_page_state(struct mem_cgroup *memcg,
--					     enum memcg_stat_item idx)
-+					     int idx)
- {
- 	long val = 0;
- 	int cpu;
-@@ -503,15 +504,17 @@ static inline unsigned long memcg_page_s
- 	return val;
+diff -puN include/linux/pagemap.h~mm-implement-find_get_pages_range include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-implement-find_get_pages_range
++++ a/include/linux/pagemap.h
+@@ -353,8 +353,16 @@ struct page *find_lock_entry(struct addr
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
+ 			  unsigned int nr_entries, struct page **entries,
+ 			  pgoff_t *indices);
+-unsigned find_get_pages(struct address_space *mapping, pgoff_t *start,
+-			unsigned int nr_pages, struct page **pages);
++unsigned find_get_pages_range(struct address_space *mapping, pgoff_t *start,
++			pgoff_t end, unsigned int nr_pages,
++			struct page **pages);
++static inline unsigned find_get_pages(struct address_space *mapping,
++			pgoff_t *start, unsigned int nr_pages,
++			struct page **pages)
++{
++	return find_get_pages_range(mapping, start, (pgoff_t)-1, nr_pages,
++				    pages);
++}
+ unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
+ 			       unsigned int nr_pages, struct page **pages);
+ unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
+diff -puN include/linux/pagevec.h~mm-implement-find_get_pages_range include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-implement-find_get_pages_range
++++ a/include/linux/pagevec.h
+@@ -27,8 +27,17 @@ unsigned pagevec_lookup_entries(struct p
+ 				pgoff_t start, unsigned nr_entries,
+ 				pgoff_t *indices);
+ void pagevec_remove_exceptionals(struct pagevec *pvec);
+-unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+-		pgoff_t *start, unsigned nr_pages);
++unsigned pagevec_lookup_range(struct pagevec *pvec,
++			      struct address_space *mapping,
++			      pgoff_t *start, pgoff_t end, unsigned nr_pages);
++static inline unsigned pagevec_lookup(struct pagevec *pvec,
++				      struct address_space *mapping,
++				      pgoff_t *start, unsigned nr_pages)
++{
++	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1,
++				    nr_pages);
++}
++
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+ 		struct address_space *mapping, pgoff_t *index, int tag,
+ 		unsigned nr_pages);
+diff -puN mm/filemap.c~mm-implement-find_get_pages_range mm/filemap.c
+--- a/mm/filemap.c~mm-implement-find_get_pages_range
++++ a/mm/filemap.c
+@@ -1557,24 +1557,29 @@ export:
  }
  
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __mod_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx, int val)
-+				     int idx, int val)
- {
- 	if (!mem_cgroup_disabled())
- 		__this_cpu_add(memcg->stat->count[idx], val);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void mod_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx, int val)
-+				   int idx, int val)
- {
- 	if (!mem_cgroup_disabled())
- 		this_cpu_add(memcg->stat->count[idx], val);
-@@ -535,14 +538,14 @@ static inline void mod_memcg_state(struc
-  * Kernel pages are an exception to this, since they'll never move.
+ /**
+- * find_get_pages - gang pagecache lookup
++ * find_get_pages_range - gang pagecache lookup
+  * @mapping:	The address_space to search
+  * @start:	The starting page index
++ * @end:	The final page index (inclusive)
+  * @nr_pages:	The maximum number of pages
+  * @pages:	Where the resulting pages are placed
+  *
+- * find_get_pages() will search for and return a group of up to
+- * @nr_pages pages in the mapping.  The pages are placed at @pages.
+- * find_get_pages() takes a reference against the returned pages.
++ * find_get_pages_range() will search for and return a group of up to @nr_pages
++ * pages in the mapping starting at index @start and up to index @end
++ * (inclusive).  The pages are placed at @pages.  find_get_pages_range() takes
++ * a reference against the returned pages.
+  *
+  * The search returns a group of mapping-contiguous pages with ascending
+  * indexes.  There may be holes in the indices due to not-present pages.
+  * We also update @start to index the next page for the traversal.
+  *
+- * find_get_pages() returns the number of pages which were found.
++ * find_get_pages_range() returns the number of pages which were found. If this
++ * number is smaller than @nr_pages, the end of specified range has been
++ * reached.
   */
- static inline void __mod_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx, int val)
-+					  int idx, int val)
+-unsigned find_get_pages(struct address_space *mapping, pgoff_t *start,
+-			    unsigned int nr_pages, struct page **pages)
++unsigned find_get_pages_range(struct address_space *mapping, pgoff_t *start,
++			      pgoff_t end, unsigned int nr_pages,
++			      struct page **pages)
  {
- 	if (page->mem_cgroup)
- 		__mod_memcg_state(page->mem_cgroup, idx, val);
+ 	struct radix_tree_iter iter;
+ 	void **slot;
+@@ -1586,6 +1591,9 @@ unsigned find_get_pages(struct address_s
+ 	rcu_read_lock();
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, *start) {
+ 		struct page *head, *page;
++
++		if (iter.index > end)
++			break;
+ repeat:
+ 		page = radix_tree_deref_slot(slot);
+ 		if (unlikely(!page))
+@@ -1621,15 +1629,25 @@ repeat:
+ 		}
+ 
+ 		pages[ret] = page;
+-		if (++ret == nr_pages)
+-			break;
++		if (++ret == nr_pages) {
++			*start = pages[ret - 1]->index + 1;
++			goto out;
++		}
+ 	}
+ 
++	/*
++	 * We come here when there is no page beyond @end. We take care to not
++	 * overflow the index @start as it confuses some of the callers. This
++	 * breaks the iteration when there is page at index -1 but that is
++	 * already broken anyway.
++	 */
++	if (end == (pgoff_t)-1)
++		*start = (pgoff_t)-1;
++	else
++		*start = end + 1;
++out:
+ 	rcu_read_unlock();
+ 
+-	if (ret)
+-		*start = pages[ret - 1]->index + 1;
+-
+ 	return ret;
  }
  
- static inline void mod_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx, int val)
-+					int idx, int val)
- {
- 	if (page->mem_cgroup)
- 		mod_memcg_state(page->mem_cgroup, idx, val);
-@@ -632,8 +635,9 @@ static inline void count_memcg_events(st
- 		this_cpu_add(memcg->stat->events[idx], count);
+diff -puN mm/swap.c~mm-implement-find_get_pages_range mm/swap.c
+--- a/mm/swap.c~mm-implement-find_get_pages_range
++++ a/mm/swap.c
+@@ -946,29 +946,35 @@ void pagevec_remove_exceptionals(struct
  }
  
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void count_memcg_page_event(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	if (page->mem_cgroup)
- 		count_memcg_events(page->mem_cgroup, idx, 1);
-@@ -846,31 +850,31 @@ static inline bool mem_cgroup_oom_synchr
- }
- 
- static inline unsigned long memcg_page_state(struct mem_cgroup *memcg,
--					     enum memcg_stat_item idx)
-+					     int idx)
- {
- 	return 0;
- }
- 
- static inline void __mod_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx,
-+				     int idx,
- 				     int nr)
- {
- }
- 
- static inline void mod_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx,
-+				   int idx,
- 				   int nr)
- {
- }
- 
- static inline void __mod_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx,
-+					  int idx,
- 					  int nr)
- {
- }
- 
- static inline void mod_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx,
-+					int idx,
- 					int nr)
- {
- }
-@@ -924,7 +928,7 @@ static inline void count_memcg_events(st
- }
- 
- static inline void count_memcg_page_event(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- }
- 
-@@ -934,26 +938,30 @@ void count_memcg_event_mm(struct mm_stru
- }
- #endif /* CONFIG_MEMCG */
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __inc_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx)
-+				     int idx)
- {
- 	__mod_memcg_state(memcg, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __dec_memcg_state(struct mem_cgroup *memcg,
--				     enum memcg_stat_item idx)
-+				     int idx)
- {
- 	__mod_memcg_state(memcg, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __inc_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	__mod_memcg_page_state(page, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void __dec_memcg_page_state(struct page *page,
--					  enum memcg_stat_item idx)
-+					  int idx)
- {
- 	__mod_memcg_page_state(page, idx, -1);
- }
-@@ -982,26 +990,30 @@ static inline void __dec_lruvec_page_sta
- 	__mod_lruvec_page_state(page, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void inc_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx)
-+				   int idx)
- {
- 	mod_memcg_state(memcg, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void dec_memcg_state(struct mem_cgroup *memcg,
--				   enum memcg_stat_item idx)
-+				   int idx)
- {
- 	mod_memcg_state(memcg, idx, -1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void inc_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx)
-+					int idx)
- {
- 	mod_memcg_page_state(page, idx, 1);
- }
- 
-+/* idx can be of type enum memcg_stat_item or node_stat_item */
- static inline void dec_memcg_page_state(struct page *page,
--					enum memcg_stat_item idx)
-+					int idx)
- {
- 	mod_memcg_page_state(page, idx, -1);
- }
-diff -puN mm/memcontrol.c~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-use-int-for-event-state-parameter-in-several-functions
-+++ a/mm/memcontrol.c
-@@ -550,10 +550,12 @@ mem_cgroup_largest_soft_limit_node(struc
-  * value, and reading all cpu value can be performance bottleneck in some
-  * common workload, threshold and synchronization as vmstat[] should be
-  * implemented.
-+ *
-+ * The parameter idx can be of type enum memcg_event_item or vm_event_item.
+ /**
+- * pagevec_lookup - gang pagecache lookup
++ * pagevec_lookup_range - gang pagecache lookup
+  * @pvec:	Where the resulting pages are placed
+  * @mapping:	The address_space to search
+  * @start:	The starting page index
++ * @end:	The final page index
+  * @nr_pages:	The maximum number of pages
+  *
+- * pagevec_lookup() will search for and return a group of up to @nr_pages pages
+- * in the mapping.  The pages are placed in @pvec.  pagevec_lookup() takes a
++ * pagevec_lookup_range() will search for and return a group of up to @nr_pages
++ * pages in the mapping starting from index @start and upto index @end
++ * (inclusive).  The pages are placed in @pvec.  pagevec_lookup() takes a
+  * reference against the pages in @pvec.
+  *
+  * The search returns a group of mapping-contiguous pages with ascending
+  * indexes.  There may be holes in the indices due to not-present pages. We
+  * also update @start to index the next page for the traversal.
+  *
+- * pagevec_lookup() returns the number of pages which were found.
++ * pagevec_lookup_range() returns the number of pages which were found. If this
++ * number is smaller than @nr_pages, the end of specified range has been
++ * reached.
   */
- 
- static unsigned long memcg_sum_events(struct mem_cgroup *memcg,
--				      enum memcg_event_item event)
-+				      int event)
+-unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+-		pgoff_t *start, unsigned nr_pages)
++unsigned pagevec_lookup_range(struct pagevec *pvec,
++		struct address_space *mapping, pgoff_t *start, pgoff_t end,
++		unsigned nr_pages)
  {
- 	unsigned long val = 0;
- 	int cpu;
+-	pvec->nr = find_get_pages(mapping, start, nr_pages, pvec->pages);
++	pvec->nr = find_get_pages_range(mapping, start, end, nr_pages,
++					pvec->pages);
+ 	return pagevec_count(pvec);
+ }
+-EXPORT_SYMBOL(pagevec_lookup);
++EXPORT_SYMBOL(pagevec_lookup_range);
+ 
+ unsigned pagevec_lookup_tag(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t *index, int tag, unsigned nr_pages)
 _
 
-Patches currently in -mm which might be from mka@chromium.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-zsmalloc-change-stat-type-parameter-to-int.patch
-bitops-avoid-integer-overflow-in-genmask_ull.patch
 
