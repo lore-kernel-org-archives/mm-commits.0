@@ -1,143 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-?=
- =?US-ASCII?Q?from-movable-zones.patch?= removed from -mm tree
-Date: Thu, 07 Sep 2017 11:41:16 -0700
-Message-ID: <20170907184116.YVN-AU-PE%akpm@linux-foundation.org>
+ mm-vmstat-fix-divide-error-at-__fragmentation_index.patch removed from -mm
+ tree
+Date: Thu, 07 Sep 2017 11:41:19 -0700
+Message-ID: <20170907184119.opuMlr8CS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57698 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755659AbdIGSlR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:17 -0400
+        with ESMTP id S1755713AbdIGSlU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:41:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lcapitulino@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
+To: jiang.biao2@zte.com.cn, mm-commits@vger.kernel.org, vbabka@suse.cz, wen.yang99@zte.com.cn
 
 
 The patch titled
-     Subject: mm, hugetlb: do not allocate non-migrateable gigantic pages from movable zones
+     Subject: mm/vmstat: fix divide error at __fragmentation_index
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones.patch
+     mm-vmstat-fix-divide-error-at-__fragmentation_index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: do not allocate non-migrateable gigantic pages from movable zones
+From: Wen Yang <wen.yang99@zte.com.cn>
+Subject: mm/vmstat: fix divide error at __fragmentation_index
 
-alloc_gigantic_page doesn't consider movability of the gigantic hugetlb
-when scanning eligible ranges for the allocation.  As 1GB hugetlb pages
-are not movable currently this can break the movable zone assumption that
-all allocations are migrateable and as such break memory hotplug.
+When order is -1 or too big, *1UL << order* will be 0, which will cause
+divide error.  Although it seems that all callers of
+__fragmentation_index() will only do so with a valid order, the patch can
+make it more robust.
 
-Reorganize the code and use the standard zonelist allocations scheme that
-we use for standard hugetbl pages.  htlb_alloc_mask will ensure that only
-migratable hugetlb pages will ever see a movable zone.
+Should prevent reoccurrences of
+https://bugzilla.kernel.org/show_bug.cgi?id=196555
 
-Link: http://lkml.kernel.org/r/20170803083549.21407-1-mhocko@kernel.org
-Fixes: 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at runtime")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/1501751520-2598-1-git-send-email-wen.yang99@zte.com.cn
+Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
+Reviewed-by: Jiang Biao <jiang.biao2@zte.com.cn>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ mm/vmstat.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-do-not-allocate-non-migrateable-gigantic-pages-from-movable-zones
-+++ a/mm/hugetlb.c
-@@ -1066,11 +1066,11 @@ static void free_gigantic_page(struct pa
- }
- 
- static int __alloc_gigantic_page(unsigned long start_pfn,
--				unsigned long nr_pages)
-+				unsigned long nr_pages, gfp_t gfp_mask)
+diff -puN mm/vmstat.c~mm-vmstat-fix-divide-error-at-__fragmentation_index mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-fix-divide-error-at-__fragmentation_index
++++ a/mm/vmstat.c
+@@ -870,6 +870,9 @@ static int __fragmentation_index(unsigne
  {
- 	unsigned long end_pfn = start_pfn + nr_pages;
- 	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE,
--				  GFP_KERNEL);
-+				  gfp_mask);
- }
+ 	unsigned long requested = 1UL << order;
  
- static bool pfn_range_valid_gigantic(struct zone *z,
-@@ -1108,19 +1108,24 @@ static bool zone_spans_last_pfn(const st
- 	return zone_spans_pfn(zone, last_pfn);
- }
- 
--static struct page *alloc_gigantic_page(int nid, unsigned int order)
-+static struct page *alloc_gigantic_page(int nid, struct hstate *h)
- {
-+	unsigned int order = huge_page_order(h);
- 	unsigned long nr_pages = 1 << order;
- 	unsigned long ret, pfn, flags;
--	struct zone *z;
--
--	z = NODE_DATA(nid)->node_zones;
--	for (; z - NODE_DATA(nid)->node_zones < MAX_NR_ZONES; z++) {
--		spin_lock_irqsave(&z->lock, flags);
--
--		pfn = ALIGN(z->zone_start_pfn, nr_pages);
--		while (zone_spans_last_pfn(z, pfn, nr_pages)) {
--			if (pfn_range_valid_gigantic(z, pfn, nr_pages)) {
-+	struct zonelist *zonelist;
-+	struct zone *zone;
-+	struct zoneref *z;
-+	gfp_t gfp_mask;
++	if (WARN_ON_ONCE(order >= MAX_ORDER))
++		return 0;
 +
-+	gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
-+	zonelist = node_zonelist(nid, gfp_mask);
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), NULL) {
-+		spin_lock_irqsave(&zone->lock, flags);
-+
-+		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
-+		while (zone_spans_last_pfn(zone, pfn, nr_pages)) {
-+			if (pfn_range_valid_gigantic(zone, pfn, nr_pages)) {
- 				/*
- 				 * We release the zone lock here because
- 				 * alloc_contig_range() will also lock the zone
-@@ -1128,16 +1133,16 @@ static struct page *alloc_gigantic_page(
- 				 * spinning on this lock, it may win the race
- 				 * and cause alloc_contig_range() to fail...
- 				 */
--				spin_unlock_irqrestore(&z->lock, flags);
--				ret = __alloc_gigantic_page(pfn, nr_pages);
-+				spin_unlock_irqrestore(&zone->lock, flags);
-+				ret = __alloc_gigantic_page(pfn, nr_pages, gfp_mask);
- 				if (!ret)
- 					return pfn_to_page(pfn);
--				spin_lock_irqsave(&z->lock, flags);
-+				spin_lock_irqsave(&zone->lock, flags);
- 			}
- 			pfn += nr_pages;
- 		}
+ 	if (!info->free_blocks_total)
+ 		return 0;
  
--		spin_unlock_irqrestore(&z->lock, flags);
-+		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
- 
- 	return NULL;
-@@ -1150,7 +1155,7 @@ static struct page *alloc_fresh_gigantic
- {
- 	struct page *page;
- 
--	page = alloc_gigantic_page(nid, huge_page_order(h));
-+	page = alloc_gigantic_page(nid, h);
- 	if (page) {
- 		prep_compound_gigantic_page(page, huge_page_order(h));
- 		prep_new_huge_page(h, page, nid);
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from wen.yang99@zte.com.cn are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-memory_hotplug-introduce-add_pages.patch
-mm-sparse-fix-typo-in-online_mem_sections.patch
-fs-proc-remove-priv-argument-from-is_stack.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
 
