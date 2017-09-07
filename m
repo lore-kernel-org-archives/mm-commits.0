@@ -1,373 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-clean-up-some-dead-code.patch removed from
- -mm tree
-Date: Thu, 07 Sep 2017 11:36:58 -0700
-Message-ID: <20170907183658.UBzTF5TbH%akpm@linux-foundation.org>
+Subject: [merged] dax-move-all-dax-radix-tree-defs-to-fs-daxc.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:36:40 -0700
+Message-ID: <20170907183640.w3CQUYBcO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55076 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55030 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755763AbdIGShI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:08 -0400
+        with ESMTP id S1755747AbdIGShG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: adilger.kernel@dilger.ca, corbet@lwn.net, dan.j.williams@intel.com, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@redhat.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, rostedt@goodmis.org, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: ocfs2: clean up some dead code
+     Subject: dax: move all DAX radix tree defs to fs/dax.c
 has been removed from the -mm tree.  Its filename was
-     ocfs2-clean-up-some-dead-code.patch
+     dax-move-all-dax-radix-tree-defs-to-fs-daxc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jun Piao <piaojun@huawei.com>
-Subject: ocfs2: clean up some dead code
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: move all DAX radix tree defs to fs/dax.c
 
-clean up some unused functions and parameters.
+Now that we no longer insert struct page pointers in DAX radix trees the
+page cache code no longer needs to know anything about DAX exceptional
+entries.  Move all the DAX exceptional entry definitions from dax.h to
+fs/dax.c.
 
-Link: http://lkml.kernel.org/r/598A5E21.2080807@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/20170724170616.25810-6-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c             |   22 ++++++-----------
- fs/ocfs2/alloc.h             |    3 --
- fs/ocfs2/cluster/heartbeat.c |   42 +++------------------------------
- fs/ocfs2/dir.c               |    2 -
- fs/ocfs2/file.c              |    7 -----
- fs/ocfs2/journal.c           |    1 
- fs/ocfs2/move_extents.c      |    2 -
- fs/ocfs2/ocfs2.h             |    4 ---
- fs/ocfs2/refcounttree.c      |    2 -
- fs/ocfs2/suballoc.c          |    2 -
- fs/ocfs2/super.c             |    1 
- fs/ocfs2/xattr.c             |    2 -
- 12 files changed, 19 insertions(+), 71 deletions(-)
+ fs/dax.c            |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/dax.h |   41 -----------------------------------------
+ 2 files changed, 34 insertions(+), 41 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-some-dead-code fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/alloc.c
-@@ -955,8 +955,7 @@ int ocfs2_read_extent_block(struct ocfs2
- /*
-  * How many free extents have we got before we need more meta data?
-  */
--int ocfs2_num_free_extents(struct ocfs2_super *osb,
--			   struct ocfs2_extent_tree *et)
-+int ocfs2_num_free_extents(struct ocfs2_extent_tree *et)
- {
- 	int retval;
- 	struct ocfs2_extent_list *el = NULL;
-@@ -1933,14 +1932,12 @@ out:
-  * the new changes.
-  *
-  * left_rec: the record on the left.
-- * left_child_el: is the child list pointed to by left_rec
-  * right_rec: the record to the right of left_rec
-  * right_child_el: is the child list pointed to by right_rec
-  *
-  * By definition, this only works on interior nodes.
-  */
- static void ocfs2_adjust_adjacent_records(struct ocfs2_extent_rec *left_rec,
--				  struct ocfs2_extent_list *left_child_el,
- 				  struct ocfs2_extent_rec *right_rec,
- 				  struct ocfs2_extent_list *right_child_el)
- {
-@@ -2003,7 +2000,7 @@ static void ocfs2_adjust_root_records(st
- 	 */
- 	BUG_ON(i >= (le16_to_cpu(root_el->l_next_free_rec) - 1));
- 
--	ocfs2_adjust_adjacent_records(&root_el->l_recs[i], left_el,
-+	ocfs2_adjust_adjacent_records(&root_el->l_recs[i],
- 				      &root_el->l_recs[i + 1], right_el);
+diff -puN fs/dax.c~dax-move-all-dax-radix-tree-defs-to-fs-daxc fs/dax.c
+--- a/fs/dax.c~dax-move-all-dax-radix-tree-defs-to-fs-daxc
++++ a/fs/dax.c
+@@ -54,6 +54,40 @@ static int __init init_dax_wait_table(vo
  }
+ fs_initcall(init_dax_wait_table);
  
-@@ -2060,8 +2057,7 @@ static void ocfs2_complete_edge_insert(h
- 		el = right_path->p_node[i].el;
- 		right_rec = &el->l_recs[0];
- 
--		ocfs2_adjust_adjacent_records(left_rec, left_el, right_rec,
--					      right_el);
-+		ocfs2_adjust_adjacent_records(left_rec, right_rec, right_el);
- 
- 		ocfs2_journal_dirty(handle, left_path->p_node[i].bh);
- 		ocfs2_journal_dirty(handle, right_path->p_node[i].bh);
-@@ -2509,7 +2505,7 @@ out_ret_path:
- 
- static int ocfs2_update_edge_lengths(handle_t *handle,
- 				     struct ocfs2_extent_tree *et,
--				     int subtree_index, struct ocfs2_path *path)
-+				     struct ocfs2_path *path)
++/*
++ * We use lowest available bit in exceptional entry for locking, one bit for
++ * the entry size (PMD) and two more to tell us if the entry is a zero page or
++ * an empty entry that is just used for locking.  In total four special bits.
++ *
++ * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
++ * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
++ * block allocation.
++ */
++#define RADIX_DAX_SHIFT		(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
++#define RADIX_DAX_ENTRY_LOCK	(1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
++#define RADIX_DAX_PMD		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
++#define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
++#define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
++
++static unsigned long dax_radix_sector(void *entry)
++{
++	return (unsigned long)entry >> RADIX_DAX_SHIFT;
++}
++
++static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
++{
++	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
++			((unsigned long)sector << RADIX_DAX_SHIFT) |
++			RADIX_DAX_ENTRY_LOCK);
++}
++
++static unsigned int dax_radix_order(void *entry)
++{
++	if ((unsigned long)entry & RADIX_DAX_PMD)
++		return PMD_SHIFT - PAGE_SHIFT;
++	return 0;
++}
++
+ static int dax_is_pmd_entry(void *entry)
  {
- 	int i, idx, ret;
- 	struct ocfs2_extent_rec *rec;
-@@ -2755,8 +2751,7 @@ static int ocfs2_rotate_subtree_left(han
- 	if (del_right_subtree) {
- 		ocfs2_unlink_subtree(handle, et, left_path, right_path,
- 				     subtree_index, dealloc);
--		ret = ocfs2_update_edge_lengths(handle, et, subtree_index,
--						left_path);
-+		ret = ocfs2_update_edge_lengths(handle, et, left_path);
- 		if (ret) {
- 			mlog_errno(ret);
- 			goto out;
-@@ -3060,8 +3055,7 @@ static int ocfs2_remove_rightmost_path(h
+ 	return (unsigned long)entry & RADIX_DAX_PMD;
+diff -puN include/linux/dax.h~dax-move-all-dax-radix-tree-defs-to-fs-daxc include/linux/dax.h
+--- a/include/linux/dax.h~dax-move-all-dax-radix-tree-defs-to-fs-daxc
++++ a/include/linux/dax.h
+@@ -89,33 +89,6 @@ void dax_flush(struct dax_device *dax_de
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
  
- 		ocfs2_unlink_subtree(handle, et, left_path, path,
- 				     subtree_index, dealloc);
--		ret = ocfs2_update_edge_lengths(handle, et, subtree_index,
--						left_path);
-+		ret = ocfs2_update_edge_lengths(handle, et, left_path);
- 		if (ret) {
- 			mlog_errno(ret);
- 			goto out;
-@@ -4790,7 +4784,7 @@ int ocfs2_add_clusters_in_btree(handle_t
- 	if (mark_unwritten)
- 		flags = OCFS2_EXT_UNWRITTEN;
- 
--	free_extents = ocfs2_num_free_extents(osb, et);
-+	free_extents = ocfs2_num_free_extents(et);
- 	if (free_extents < 0) {
- 		status = free_extents;
- 		mlog_errno(status);
-@@ -5668,7 +5662,7 @@ static int ocfs2_reserve_blocks_for_rec_
- 
- 	*ac = NULL;
- 
--	num_free_extents = ocfs2_num_free_extents(osb, et);
-+	num_free_extents = ocfs2_num_free_extents(et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/alloc.h~ocfs2-clean-up-some-dead-code fs/ocfs2/alloc.h
---- a/fs/ocfs2/alloc.h~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/alloc.h
-@@ -144,8 +144,7 @@ int ocfs2_remove_btree_range(struct inod
- 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
- 			     u64 refcount_loc, bool refcount_tree_locked);
- 
--int ocfs2_num_free_extents(struct ocfs2_super *osb,
--			   struct ocfs2_extent_tree *et);
-+int ocfs2_num_free_extents(struct ocfs2_extent_tree *et);
- 
- /*
-  * how many new metadata chunks would an allocation need at maximum?
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-some-dead-code fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -505,8 +505,7 @@ static inline void o2hb_bio_wait_dec(str
- 	}
- }
- 
--static void o2hb_wait_on_io(struct o2hb_region *reg,
--			    struct o2hb_bio_wait_ctxt *wc)
-+static void o2hb_wait_on_io(struct o2hb_bio_wait_ctxt *wc)
- {
- 	o2hb_bio_wait_dec(wc, 1);
- 	wait_for_completion(&wc->wc_io_complete);
-@@ -608,7 +607,7 @@ static int o2hb_read_slots(struct o2hb_r
- 	status = 0;
- 
- bail_and_wait:
--	o2hb_wait_on_io(reg, &wc);
-+	o2hb_wait_on_io(&wc);
- 	if (wc.wc_error && !status)
- 		status = wc.wc_error;
- 
-@@ -1162,7 +1161,7 @@ static int o2hb_do_disk_heartbeat(struct
- 	 * before we can go to steady state.  This ensures that
- 	 * people we find in our steady state have seen us.
- 	 */
--	o2hb_wait_on_io(reg, &write_wc);
-+	o2hb_wait_on_io(&write_wc);
- 	if (write_wc.wc_error) {
- 		/* Do not re-arm the write timeout on I/O error - we
- 		 * can't be sure that the new block ever made it to
-@@ -1275,7 +1274,7 @@ static int o2hb_thread(void *data)
- 		o2hb_prepare_block(reg, 0);
- 		ret = o2hb_issue_node_write(reg, &write_wc);
- 		if (ret == 0)
--			o2hb_wait_on_io(reg, &write_wc);
-+			o2hb_wait_on_io(&write_wc);
- 		else
- 			mlog_errno(ret);
- 	}
-@@ -2576,22 +2575,6 @@ void o2hb_unregister_callback(const char
- }
- EXPORT_SYMBOL_GPL(o2hb_unregister_callback);
- 
--int o2hb_check_node_heartbeating(u8 node_num)
+-/*
+- * We use lowest available bit in exceptional entry for locking, one bit for
+- * the entry size (PMD) and two more to tell us if the entry is a zero page or
+- * an empty entry that is just used for locking.  In total four special bits.
+- *
+- * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
+- * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
+- * block allocation.
+- */
+-#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
+-#define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
+-#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
+-#define RADIX_DAX_ZERO_PAGE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
+-#define RADIX_DAX_EMPTY (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
+-
+-static inline unsigned long dax_radix_sector(void *entry)
 -{
--	unsigned long testing_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
--
--	o2hb_fill_node_map(testing_map, sizeof(testing_map));
--	if (!test_bit(node_num, testing_map)) {
--		mlog(ML_HEARTBEAT,
--		     "node (%u) does not have heartbeating enabled.\n",
--		     node_num);
--		return 0;
--	}
--
--	return 1;
--}
--EXPORT_SYMBOL_GPL(o2hb_check_node_heartbeating);
--
- int o2hb_check_node_heartbeating_no_sem(u8 node_num)
- {
- 	unsigned long testing_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
-@@ -2626,23 +2609,6 @@ int o2hb_check_node_heartbeating_from_ca
- }
- EXPORT_SYMBOL_GPL(o2hb_check_node_heartbeating_from_callback);
- 
--/* Makes sure our local node is configured with a node number, and is
-- * heartbeating. */
--int o2hb_check_local_node_heartbeating(void)
--{
--	u8 node_num;
--
--	/* if this node was set then we have networking */
--	node_num = o2nm_this_node();
--	if (node_num == O2NM_MAX_NODES) {
--		mlog(ML_HEARTBEAT, "this node has not been configured.\n");
--		return 0;
--	}
--
--	return o2hb_check_node_heartbeating(node_num);
--}
--EXPORT_SYMBOL_GPL(o2hb_check_local_node_heartbeating);
--
- /*
-  * this is just a hack until we get the plumbing which flips file systems
-  * read only and drops the hb ref instead of killing the node dead.
-diff -puN fs/ocfs2/dir.c~ocfs2-clean-up-some-dead-code fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/dir.c
-@@ -3249,7 +3249,7 @@ static int ocfs2_extend_dir(struct ocfs2
- 		spin_unlock(&OCFS2_I(dir)->ip_lock);
- 		ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(dir),
- 					      parent_fe_bh);
--		num_free_extents = ocfs2_num_free_extents(osb, &et);
-+		num_free_extents = ocfs2_num_free_extents(&et);
- 		if (num_free_extents < 0) {
- 			status = num_free_extents;
- 			mlog_errno(status);
-diff -puN fs/ocfs2/file.c~ocfs2-clean-up-some-dead-code fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/file.c
-@@ -713,13 +713,6 @@ leave:
- 	return status;
- }
- 
--int ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
--		u32 clusters_to_add, int mark_unwritten)
--{
--	return __ocfs2_extend_allocation(inode, logical_start,
--			clusters_to_add, mark_unwritten);
+-	return (unsigned long)entry >> RADIX_DAX_SHIFT;
 -}
 -
- /*
-  * While a write will already be ordering the data, a truncate will not.
-  * Thus, we need to explicitly order the zeroed pages.
-diff -puN fs/ocfs2/journal.c~ocfs2-clean-up-some-dead-code fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/journal.c
-@@ -1348,7 +1348,6 @@ void ocfs2_complete_mount_recovery(struc
- 	ocfs2_schedule_truncate_log_flush(osb, 0);
+-static inline void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
+-{
+-	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
+-			((unsigned long)sector << RADIX_DAX_SHIFT) |
+-			RADIX_DAX_ENTRY_LOCK);
+-}
+-
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		const struct iomap_ops *ops);
+ int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+@@ -137,20 +110,6 @@ static inline int __dax_zero_page_range(
+ }
+ #endif
  
- 	osb->local_alloc_copy = NULL;
--	osb->dirty = 0;
- 
- 	/* queue to recover orphan slots for all offline slots */
- 	ocfs2_replay_map_set_state(osb, REPLAY_NEEDED);
-diff -puN fs/ocfs2/move_extents.c~ocfs2-clean-up-some-dead-code fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/move_extents.c
-@@ -175,7 +175,7 @@ static int ocfs2_lock_allocators_move_ex
- 	unsigned int max_recs_needed = 2 * extents_to_split + clusters_to_move;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 
--	num_free_extents = ocfs2_num_free_extents(osb, et);
-+	num_free_extents = ocfs2_num_free_extents(et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-clean-up-some-dead-code fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/ocfs2.h
-@@ -320,7 +320,6 @@ struct ocfs2_super
- 	u64 system_dir_blkno;
- 	u64 bitmap_blkno;
- 	u32 bitmap_cpg;
--	u8 *uuid;
- 	char *uuid_str;
- 	u32 uuid_hash;
- 	u8 *vol_label;
-@@ -388,9 +387,8 @@ struct ocfs2_super
- 	unsigned int	osb_resv_level;
- 	unsigned int	osb_dir_resv_level;
- 
--	/* Next three fields are for local node slot recovery during
-+	/* Next two fields are for local node slot recovery during
- 	 * mount. */
--	int dirty;
- 	struct ocfs2_dinode *local_alloc_copy;
- 	struct ocfs2_quota_recovery *quota_rec;
- 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-clean-up-some-dead-code fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2851,7 +2851,7 @@ static int ocfs2_lock_refcount_allocator
- 					int *credits)
- {
- 	int ret = 0, meta_add = 0;
--	int num_free_extents = ocfs2_num_free_extents(OCFS2_SB(sb), et);
-+	int num_free_extents = ocfs2_num_free_extents(et);
- 
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
-diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-up-some-dead-code fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/suballoc.c
-@@ -2700,7 +2700,7 @@ int ocfs2_lock_allocators(struct inode *
- 
- 	BUG_ON(clusters_to_add != 0 && data_ac == NULL);
- 
--	num_free_extents = ocfs2_num_free_extents(osb, et);
-+	num_free_extents = ocfs2_num_free_extents(et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/super.c~ocfs2-clean-up-some-dead-code fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/super.c
-@@ -2486,7 +2486,6 @@ static int ocfs2_check_volume(struct ocf
- 	if (dirty) {
- 		/* Recovery will be completed after we've mounted the
- 		 * rest of the volume. */
--		osb->dirty = 1;
- 		osb->local_alloc_copy = local_alloc;
- 		local_alloc = NULL;
- 	}
-diff -puN fs/ocfs2/xattr.c~ocfs2-clean-up-some-dead-code fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-clean-up-some-dead-code
-+++ a/fs/ocfs2/xattr.c
-@@ -6800,7 +6800,7 @@ static int ocfs2_lock_reflink_xattr_rec_
- 		*credits += 1;
- 
- 	/* count in the xattr tree change. */
--	num_free_extents = ocfs2_num_free_extents(osb, xt_et);
-+	num_free_extents = ocfs2_num_free_extents(xt_et);
- 	if (num_free_extents < 0) {
- 		ret = num_free_extents;
- 		mlog_errno(ret);
-_
-
-Patches currently in -mm which might be from piaojun@huawei.com are
-
-
+-#ifdef CONFIG_FS_DAX_PMD
+-static inline unsigned int dax_radix_order(void *entry)
+-{
+-	if ((unsigned long)entry & RADIX_DAX_PMD)
+-		return PMD_SHIFT - PAGE_SHIFT;
+-	return 0;
+-}
+-#else
+-static inline unsigned int dax_radix_order(void *entry)
+-{
+-	return 0;
+-}
+-#endif
