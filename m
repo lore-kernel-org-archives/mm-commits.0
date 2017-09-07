@@ -1,35 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-introduce-shmem_inode_acct_block.patch
- removed from -mm tree
-Date: Thu, 07 Sep 2017 11:40:19 -0700
-Message-ID: <20170907184019.5c0vn4W9S%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch removed
+ from -mm tree
+Date: Thu, 07 Sep 2017 11:40:25 -0700
+Message-ID: <20170907184025.0wNppAgAZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57406 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755733AbdIGSkU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:20 -0400
+        with ESMTP id S1755707AbdIGSk0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, xemul@virtuozzo.com
 
 
 The patch titled
-     Subject: shmem: introduce shmem_inode_acct_block
+     Subject: userfaultfd: mcopy_atomic: introduce mfill_atomic_pte helper
 has been removed from the -mm tree.  Its filename was
-     shmem-introduce-shmem_inode_acct_block.patch
+     userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: shmem: introduce shmem_inode_acct_block
+Subject: userfaultfd: mcopy_atomic: introduce mfill_atomic_pte helper
 
-The shmem_acct_block and the update of used_blocks are following one
-another in all the places they are used.  Combine these two into a helper
-function.
+Shuffle the code a bit to improve readability.
 
-Link: http://lkml.kernel.org/r/1497939652-16528-3-git-send-email-rppt@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1497939652-16528-5-git-send-email-rppt@linux.vnet.ibm.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -39,234 +38,63 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  102 +++++++++++++++++++++++----------------------------
- 1 file changed, 46 insertions(+), 56 deletions(-)
+ mm/userfaultfd.c |   46 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 16 deletions(-)
 
-diff -puN mm/shmem.c~shmem-introduce-shmem_inode_acct_block mm/shmem.c
---- a/mm/shmem.c~shmem-introduce-shmem_inode_acct_block
-+++ a/mm/shmem.c
-@@ -188,6 +188,38 @@ static inline void shmem_unacct_blocks(u
- 		vm_unacct_memory(pages * VM_ACCT(PAGE_SIZE));
- }
+diff -puN mm/userfaultfd.c~userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper mm/userfaultfd.c
+--- a/mm/userfaultfd.c~userfaultfd-mcopy_atomic-introduce-mfill_atomic_pte-helper
++++ a/mm/userfaultfd.c
+@@ -371,6 +371,34 @@ extern ssize_t __mcopy_atomic_hugetlb(st
+ 				      bool zeropage);
+ #endif /* CONFIG_HUGETLB_PAGE */
  
-+static inline bool shmem_inode_acct_block(struct inode *inode, long pages)
++static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
++						pmd_t *dst_pmd,
++						struct vm_area_struct *dst_vma,
++						unsigned long dst_addr,
++						unsigned long src_addr,
++						struct page **page,
++						bool zeropage)
 +{
-+	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++	ssize_t err;
 +
-+	if (shmem_acct_block(info->flags, pages))
-+		return false;
-+
-+	if (sbinfo->max_blocks) {
-+		if (percpu_counter_compare(&sbinfo->used_blocks,
-+					   sbinfo->max_blocks - pages) > 0)
-+			goto unacct;
-+		percpu_counter_add(&sbinfo->used_blocks, pages);
++	if (vma_is_anonymous(dst_vma)) {
++		if (!zeropage)
++			err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
++					       dst_addr, src_addr, page);
++		else
++			err = mfill_zeropage_pte(dst_mm, dst_pmd,
++						 dst_vma, dst_addr);
++	} else {
++		err = -EINVAL; /* if zeropage is true return -EINVAL */
++		if (likely(!zeropage))
++			err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
++						     dst_vma, dst_addr,
++						     src_addr, page);
 +	}
 +
-+	return true;
-+
-+unacct:
-+	shmem_unacct_blocks(info->flags, pages);
-+	return false;
++	return err;
 +}
 +
-+static inline void shmem_inode_unacct_blocks(struct inode *inode, long pages)
-+{
-+	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+
-+	if (sbinfo->max_blocks)
-+		percpu_counter_sub(&sbinfo->used_blocks, pages);
-+	shmem_unacct_blocks(info->flags, pages);
-+}
-+
- static const struct super_operations shmem_ops;
- static const struct address_space_operations shmem_aops;
- static const struct file_operations shmem_file_operations;
-@@ -249,31 +281,20 @@ static void shmem_recalc_inode(struct in
+ static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
+ 					      unsigned long dst_start,
+ 					      unsigned long src_start,
+@@ -487,22 +515,8 @@ retry:
+ 		BUG_ON(pmd_none(*dst_pmd));
+ 		BUG_ON(pmd_trans_huge(*dst_pmd));
  
- 	freed = info->alloced - info->swapped - inode->i_mapping->nrpages;
- 	if (freed > 0) {
--		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
--		if (sbinfo->max_blocks)
--			percpu_counter_add(&sbinfo->used_blocks, -freed);
- 		info->alloced -= freed;
- 		inode->i_blocks -= freed * BLOCKS_PER_PAGE;
--		shmem_unacct_blocks(info->flags, freed);
-+		shmem_inode_unacct_blocks(inode, freed);
- 	}
- }
- 
- bool shmem_charge(struct inode *inode, long pages)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	unsigned long flags;
- 
--	if (shmem_acct_block(info->flags, pages))
-+	if (!shmem_inode_acct_block(inode, pages))
- 		return false;
- 
--	if (sbinfo->max_blocks) {
--		if (percpu_counter_compare(&sbinfo->used_blocks,
--					   sbinfo->max_blocks - pages) > 0)
--			goto unacct;
--		percpu_counter_add(&sbinfo->used_blocks, pages);
--	}
--
- 	spin_lock_irqsave(&info->lock, flags);
- 	info->alloced += pages;
- 	inode->i_blocks += pages * BLOCKS_PER_PAGE;
-@@ -282,16 +303,11 @@ bool shmem_charge(struct inode *inode, l
- 	inode->i_mapping->nrpages += pages;
- 
- 	return true;
--
--unacct:
--	shmem_unacct_blocks(info->flags, pages);
--	return false;
- }
- 
- void shmem_uncharge(struct inode *inode, long pages)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&info->lock, flags);
-@@ -300,9 +316,7 @@ void shmem_uncharge(struct inode *inode,
- 	shmem_recalc_inode(inode);
- 	spin_unlock_irqrestore(&info->lock, flags);
- 
--	if (sbinfo->max_blocks)
--		percpu_counter_sub(&sbinfo->used_blocks, pages);
--	shmem_unacct_blocks(info->flags, pages);
-+	shmem_inode_unacct_blocks(inode, pages);
- }
- 
- /*
-@@ -1451,9 +1465,10 @@ static struct page *shmem_alloc_page(gfp
- }
- 
- static struct page *shmem_alloc_and_acct_page(gfp_t gfp,
--		struct shmem_inode_info *info, struct shmem_sb_info *sbinfo,
-+		struct inode *inode,
- 		pgoff_t index, bool huge)
- {
-+	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct page *page;
- 	int nr;
- 	int err = -ENOSPC;
-@@ -1462,14 +1477,8 @@ static struct page *shmem_alloc_and_acct
- 		huge = false;
- 	nr = huge ? HPAGE_PMD_NR : 1;
- 
--	if (shmem_acct_block(info->flags, nr))
-+	if (!shmem_inode_acct_block(inode, nr))
- 		goto failed;
--	if (sbinfo->max_blocks) {
--		if (percpu_counter_compare(&sbinfo->used_blocks,
--					sbinfo->max_blocks - nr) > 0)
--			goto unacct;
--		percpu_counter_add(&sbinfo->used_blocks, nr);
--	}
- 
- 	if (huge)
- 		page = shmem_alloc_hugepage(gfp, info, index);
-@@ -1482,10 +1491,7 @@ static struct page *shmem_alloc_and_acct
- 	}
- 
- 	err = -ENOMEM;
--	if (sbinfo->max_blocks)
--		percpu_counter_add(&sbinfo->used_blocks, -nr);
--unacct:
--	shmem_unacct_blocks(info->flags, nr);
-+	shmem_inode_unacct_blocks(inode, nr);
- failed:
- 	return ERR_PTR(err);
- }
-@@ -1750,10 +1756,9 @@ repeat:
- 		}
- 
- alloc_huge:
--		page = shmem_alloc_and_acct_page(gfp, info, sbinfo,
--				index, true);
-+		page = shmem_alloc_and_acct_page(gfp, inode, index, true);
- 		if (IS_ERR(page)) {
--alloc_nohuge:		page = shmem_alloc_and_acct_page(gfp, info, sbinfo,
-+alloc_nohuge:		page = shmem_alloc_and_acct_page(gfp, inode,
- 					index, false);
- 		}
- 		if (IS_ERR(page)) {
-@@ -1875,10 +1880,7 @@ clear:
- 	 * Error recovery.
- 	 */
- unacct:
--	if (sbinfo->max_blocks)
--		percpu_counter_sub(&sbinfo->used_blocks,
--				1 << compound_order(page));
--	shmem_unacct_blocks(info->flags, 1 << compound_order(page));
-+	shmem_inode_unacct_blocks(inode, 1 << compound_order(page));
- 
- 	if (PageTransHuge(page)) {
- 		unlock_page(page);
-@@ -2214,7 +2216,6 @@ int shmem_mcopy_atomic_pte(struct mm_str
- {
- 	struct inode *inode = file_inode(dst_vma->vm_file);
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	struct address_space *mapping = inode->i_mapping;
- 	gfp_t gfp = mapping_gfp_mask(mapping);
- 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
-@@ -2226,19 +2227,13 @@ int shmem_mcopy_atomic_pte(struct mm_str
- 	int ret;
- 
- 	ret = -ENOMEM;
--	if (shmem_acct_block(info->flags, 1))
-+	if (!shmem_inode_acct_block(inode, 1))
- 		goto out;
--	if (sbinfo->max_blocks) {
--		if (percpu_counter_compare(&sbinfo->used_blocks,
--					   sbinfo->max_blocks) >= 0)
--			goto out_unacct_blocks;
--		percpu_counter_inc(&sbinfo->used_blocks);
--	}
- 
- 	if (!*pagep) {
- 		page = shmem_alloc_page(gfp, info, pgoff);
- 		if (!page)
--			goto out_dec_used_blocks;
-+			goto out_unacct_blocks;
- 
- 		page_kaddr = kmap_atomic(page);
- 		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
-@@ -2248,9 +2243,7 @@ int shmem_mcopy_atomic_pte(struct mm_str
- 		/* fallback to copy_from_user outside mmap_sem */
- 		if (unlikely(ret)) {
- 			*pagep = page;
--			if (sbinfo->max_blocks)
--				percpu_counter_add(&sbinfo->used_blocks, -1);
--			shmem_unacct_blocks(info->flags, 1);
-+			shmem_inode_unacct_blocks(inode, 1);
- 			/* don't free the page */
- 			return -EFAULT;
- 		}
-@@ -2313,11 +2306,8 @@ out_release_uncharge:
- out_release:
- 	unlock_page(page);
- 	put_page(page);
--out_dec_used_blocks:
--	if (sbinfo->max_blocks)
--		percpu_counter_add(&sbinfo->used_blocks, -1);
- out_unacct_blocks:
--	shmem_unacct_blocks(info->flags, 1);
-+	shmem_inode_unacct_blocks(inode, 1);
- 	goto out;
- }
- 
-_
-
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
-
-
+-		if (vma_is_anonymous(dst_vma)) {
+-			if (!zeropage)
+-				err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
+-						       dst_addr, src_addr,
+-						       &page);
+-			else
+-				err = mfill_zeropage_pte(dst_mm, dst_pmd,
+-							 dst_vma, dst_addr);
+-		} else {
+-			err = -EINVAL; /* if zeropage is true return -EINVAL */
+-			if (likely(!zeropage))
+-				err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
+-							     dst_vma, dst_addr,
+-							     src_addr, &page);
+-		}
