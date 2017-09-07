@@ -1,153 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-move-all-dax-radix-tree-defs-to-fs-daxc.patch
+Subject: [merged] drm-i915-wire-up-shrinkctl-nr_scanned.patch
  removed from -mm tree
-Date: Thu, 07 Sep 2017 11:36:40 -0700
-Message-ID: <20170907183640.w3CQUYBcO%akpm@linux-foundation.org>
+Date: Thu, 07 Sep 2017 11:37:13 -0700
+Message-ID: <20170907183713.MBqXvfhwc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755747AbdIGShG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:06 -0400
+        with ESMTP id S1755805AbdIGShO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adilger.kernel@dilger.ca, corbet@lwn.net, dan.j.williams@intel.com, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@redhat.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, rostedt@goodmis.org, tytso@mit.edu, viro@zeniv.linux.org.uk
+To: chris@chris-wilson.co.uk, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, joonas.lahtinen@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, shli@fb.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: dax: move all DAX radix tree defs to fs/dax.c
+     Subject: drm/i915: wire up shrinkctl->nr_scanned
 has been removed from the -mm tree.  Its filename was
-     dax-move-all-dax-radix-tree-defs-to-fs-daxc.patch
+     drm-i915-wire-up-shrinkctl-nr_scanned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: move all DAX radix tree defs to fs/dax.c
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: drm/i915: wire up shrinkctl->nr_scanned
 
-Now that we no longer insert struct page pointers in DAX radix trees the
-page cache code no longer needs to know anything about DAX exceptional
-entries.  Move all the DAX exceptional entry definitions from dax.h to
-fs/dax.c.
+shrink_slab() allows us to report back the number of objects we
+successfully scanned (out of the target shrinkctl->nr_to_scan).  As report
+the number of pages owned by each GEM object as a separate item to the
+shrinker, we cannot precisely control the number of shrinker objects we
+scan on each pass; and indeed may free more than requested.  If we fail to
+tell the shrinker about the number of objects we process, it will continue
+to hold a grudge against us as any objects left unscanned are added to the
+next reclaim -- and so we will keep on "unfairly" shrinking our own slab
+in comparison to other slabs.
 
-Link: http://lkml.kernel.org/r/20170724170616.25810-6-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20170822135325.9191-2-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   34 ++++++++++++++++++++++++++++++++++
- include/linux/dax.h |   41 -----------------------------------------
- 2 files changed, 34 insertions(+), 41 deletions(-)
+ drivers/gpu/drm/i915/i915_debugfs.c      |    4 +--
+ drivers/gpu/drm/i915/i915_drv.h          |    1 
+ drivers/gpu/drm/i915/i915_gem.c          |    4 +--
+ drivers/gpu/drm/i915/i915_gem_gtt.c      |    2 -
+ drivers/gpu/drm/i915/i915_gem_shrinker.c |   24 +++++++++++++++------
+ 5 files changed, 24 insertions(+), 11 deletions(-)
 
-diff -puN fs/dax.c~dax-move-all-dax-radix-tree-defs-to-fs-daxc fs/dax.c
---- a/fs/dax.c~dax-move-all-dax-radix-tree-defs-to-fs-daxc
-+++ a/fs/dax.c
-@@ -54,6 +54,40 @@ static int __init init_dax_wait_table(vo
- }
- fs_initcall(init_dax_wait_table);
+diff -puN drivers/gpu/drm/i915/i915_debugfs.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_debugfs.c
+--- a/drivers/gpu/drm/i915/i915_debugfs.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -4308,10 +4308,10 @@ i915_drop_caches_set(void *data, u64 val
  
-+/*
-+ * We use lowest available bit in exceptional entry for locking, one bit for
-+ * the entry size (PMD) and two more to tell us if the entry is a zero page or
-+ * an empty entry that is just used for locking.  In total four special bits.
-+ *
-+ * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
-+ * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
-+ * block allocation.
-+ */
-+#define RADIX_DAX_SHIFT		(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
-+#define RADIX_DAX_ENTRY_LOCK	(1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
-+#define RADIX_DAX_PMD		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
-+#define RADIX_DAX_ZERO_PAGE	(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
-+#define RADIX_DAX_EMPTY		(1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
-+
-+static unsigned long dax_radix_sector(void *entry)
-+{
-+	return (unsigned long)entry >> RADIX_DAX_SHIFT;
-+}
-+
-+static void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
-+{
-+	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
-+			((unsigned long)sector << RADIX_DAX_SHIFT) |
-+			RADIX_DAX_ENTRY_LOCK);
-+}
-+
-+static unsigned int dax_radix_order(void *entry)
-+{
-+	if ((unsigned long)entry & RADIX_DAX_PMD)
-+		return PMD_SHIFT - PAGE_SHIFT;
-+	return 0;
-+}
-+
- static int dax_is_pmd_entry(void *entry)
+ 	fs_reclaim_acquire(GFP_KERNEL);
+ 	if (val & DROP_BOUND)
+-		i915_gem_shrink(dev_priv, LONG_MAX, I915_SHRINK_BOUND);
++		i915_gem_shrink(dev_priv, LONG_MAX, NULL, I915_SHRINK_BOUND);
+ 
+ 	if (val & DROP_UNBOUND)
+-		i915_gem_shrink(dev_priv, LONG_MAX, I915_SHRINK_UNBOUND);
++		i915_gem_shrink(dev_priv, LONG_MAX, NULL, I915_SHRINK_UNBOUND);
+ 
+ 	if (val & DROP_SHRINK_ALL)
+ 		i915_gem_shrink_all(dev_priv);
+diff -puN drivers/gpu/drm/i915/i915_drv.h~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_drv.h
+--- a/drivers/gpu/drm/i915/i915_drv.h~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_drv.h
+@@ -3742,6 +3742,7 @@ i915_gem_object_create_internal(struct d
+ /* i915_gem_shrinker.c */
+ unsigned long i915_gem_shrink(struct drm_i915_private *dev_priv,
+ 			      unsigned long target,
++			      unsigned long *nr_scanned,
+ 			      unsigned flags);
+ #define I915_SHRINK_PURGEABLE 0x1
+ #define I915_SHRINK_UNBOUND 0x2
+diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -2354,7 +2354,7 @@ rebuild_st:
+ 				goto err_sg;
+ 			}
+ 
+-			i915_gem_shrink(dev_priv, 2 * page_count, *s++);
++			i915_gem_shrink(dev_priv, 2 * page_count, NULL, *s++);
+ 			cond_resched();
+ 
+ 			/* We've tried hard to allocate the memory by reaping
+@@ -5015,7 +5015,7 @@ int i915_gem_freeze_late(struct drm_i915
+ 	 * the objects as well, see i915_gem_freeze()
+ 	 */
+ 
+-	i915_gem_shrink(dev_priv, -1UL, I915_SHRINK_UNBOUND);
++	i915_gem_shrink(dev_priv, -1UL, NULL, I915_SHRINK_UNBOUND);
+ 	i915_gem_drain_freed_objects(dev_priv);
+ 
+ 	mutex_lock(&dev_priv->drm.struct_mutex);
+diff -puN drivers/gpu/drm/i915/i915_gem_gtt.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_gem_gtt.c
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -2062,7 +2062,7 @@ int i915_gem_gtt_prepare_pages(struct dr
+ 		 */
+ 		GEM_BUG_ON(obj->mm.pages == pages);
+ 	} while (i915_gem_shrink(to_i915(obj->base.dev),
+-				 obj->base.size >> PAGE_SHIFT,
++				 obj->base.size >> PAGE_SHIFT, NULL,
+ 				 I915_SHRINK_BOUND |
+ 				 I915_SHRINK_UNBOUND |
+ 				 I915_SHRINK_ACTIVE));
+diff -puN drivers/gpu/drm/i915/i915_gem_shrinker.c~drm-i915-wire-up-shrinkctl-nr_scanned drivers/gpu/drm/i915/i915_gem_shrinker.c
+--- a/drivers/gpu/drm/i915/i915_gem_shrinker.c~drm-i915-wire-up-shrinkctl-nr_scanned
++++ a/drivers/gpu/drm/i915/i915_gem_shrinker.c
+@@ -136,6 +136,7 @@ static bool unsafe_drop_pages(struct drm
+  * i915_gem_shrink - Shrink buffer object caches
+  * @dev_priv: i915 device
+  * @target: amount of memory to make available, in pages
++ * @nr_scanned: optional output for number of pages scanned (incremental)
+  * @flags: control flags for selecting cache types
+  *
+  * This function is the main interface to the shrinker. It will try to release
+@@ -158,7 +159,9 @@ static bool unsafe_drop_pages(struct drm
+  */
+ unsigned long
+ i915_gem_shrink(struct drm_i915_private *dev_priv,
+-		unsigned long target, unsigned flags)
++		unsigned long target,
++		unsigned long *nr_scanned,
++		unsigned flags)
  {
- 	return (unsigned long)entry & RADIX_DAX_PMD;
-diff -puN include/linux/dax.h~dax-move-all-dax-radix-tree-defs-to-fs-daxc include/linux/dax.h
---- a/include/linux/dax.h~dax-move-all-dax-radix-tree-defs-to-fs-daxc
-+++ a/include/linux/dax.h
-@@ -89,33 +89,6 @@ void dax_flush(struct dax_device *dax_de
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ 	const struct {
+ 		struct list_head *list;
+@@ -169,6 +172,7 @@ i915_gem_shrink(struct drm_i915_private
+ 		{ NULL, 0 },
+ 	}, *phase;
+ 	unsigned long count = 0;
++	unsigned long scanned = 0;
+ 	bool unlock;
  
--/*
-- * We use lowest available bit in exceptional entry for locking, one bit for
-- * the entry size (PMD) and two more to tell us if the entry is a zero page or
-- * an empty entry that is just used for locking.  In total four special bits.
-- *
-- * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
-- * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
-- * block allocation.
-- */
--#define RADIX_DAX_SHIFT	(RADIX_TREE_EXCEPTIONAL_SHIFT + 4)
--#define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
--#define RADIX_DAX_PMD (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 1))
--#define RADIX_DAX_ZERO_PAGE (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 2))
--#define RADIX_DAX_EMPTY (1 << (RADIX_TREE_EXCEPTIONAL_SHIFT + 3))
--
--static inline unsigned long dax_radix_sector(void *entry)
--{
--	return (unsigned long)entry >> RADIX_DAX_SHIFT;
--}
--
--static inline void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
--{
--	return (void *)(RADIX_TREE_EXCEPTIONAL_ENTRY | flags |
--			((unsigned long)sector << RADIX_DAX_SHIFT) |
--			RADIX_DAX_ENTRY_LOCK);
--}
--
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 		const struct iomap_ops *ops);
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-@@ -137,20 +110,6 @@ static inline int __dax_zero_page_range(
+ 	if (!shrinker_lock(dev_priv, &unlock))
+@@ -249,6 +253,7 @@ i915_gem_shrink(struct drm_i915_private
+ 					count += obj->base.size >> PAGE_SHIFT;
+ 				}
+ 				mutex_unlock(&obj->mm.lock);
++				scanned += obj->base.size >> PAGE_SHIFT;
+ 			}
+ 		}
+ 		list_splice_tail(&still_in_list, phase->list);
+@@ -261,6 +266,8 @@ i915_gem_shrink(struct drm_i915_private
+ 
+ 	shrinker_unlock(dev_priv, unlock);
+ 
++	if (nr_scanned)
++		*nr_scanned += scanned;
+ 	return count;
  }
- #endif
  
--#ifdef CONFIG_FS_DAX_PMD
--static inline unsigned int dax_radix_order(void *entry)
--{
--	if ((unsigned long)entry & RADIX_DAX_PMD)
--		return PMD_SHIFT - PAGE_SHIFT;
--	return 0;
--}
--#else
--static inline unsigned int dax_radix_order(void *entry)
--{
--	return 0;
--}
--#endif
+@@ -283,7 +290,7 @@ unsigned long i915_gem_shrink_all(struct
+ 	unsigned long freed;
+ 
+ 	intel_runtime_pm_get(dev_priv);
+-	freed = i915_gem_shrink(dev_priv, -1UL,
++	freed = i915_gem_shrink(dev_priv, -1UL, NULL,
+ 				I915_SHRINK_BOUND |
+ 				I915_SHRINK_UNBOUND |
+ 				I915_SHRINK_ACTIVE);
+@@ -329,23 +336,28 @@ i915_gem_shrinker_scan(struct shrinker *
+ 	unsigned long freed;
+ 	bool unlock;
+ 
++	sc->nr_scanned = 0;
++
+ 	if (!shrinker_lock(dev_priv, &unlock))
+ 		return SHRINK_STOP;
+ 
+ 	freed = i915_gem_shrink(dev_priv,
+ 				sc->nr_to_scan,
++				&sc->nr_scanned,
+ 				I915_SHRINK_BOUND |
+ 				I915_SHRINK_UNBOUND |
+ 				I915_SHRINK_PURGEABLE);
+ 	if (freed < sc->nr_to_scan)
+ 		freed += i915_gem_shrink(dev_priv,
+-					 sc->nr_to_scan - freed,
++					 sc->nr_to_scan - sc->nr_scanned,
++					 &sc->nr_scanned,
+ 					 I915_SHRINK_BOUND |
+ 					 I915_SHRINK_UNBOUND);
+ 	if (freed < sc->nr_to_scan && current_is_kswapd()) {
+ 		intel_runtime_pm_get(dev_priv);
+ 		freed += i915_gem_shrink(dev_priv,
+-					 sc->nr_to_scan - freed,
++					 sc->nr_to_scan - sc->nr_scanned,
++					 &sc->nr_scanned,
+ 					 I915_SHRINK_ACTIVE |
+ 					 I915_SHRINK_BOUND |
+ 					 I915_SHRINK_UNBOUND);
+@@ -354,7 +366,7 @@ i915_gem_shrinker_scan(struct shrinker *
+ 
+ 	shrinker_unlock(dev_priv, unlock);
+ 
+-	return freed;
++	return sc->nr_scanned ? freed : SHRINK_STOP;
+ }
+ 
+ static bool
+@@ -453,7 +465,7 @@ i915_gem_shrinker_vmap(struct notifier_b
+ 		goto out;
+ 
+ 	intel_runtime_pm_get(dev_priv);
+-	freed_pages += i915_gem_shrink(dev_priv, -1UL,
++	freed_pages += i915_gem_shrink(dev_priv, -1UL, NULL,
+ 				       I915_SHRINK_BOUND |
+ 				       I915_SHRINK_UNBOUND |
+ 				       I915_SHRINK_ACTIVE |
+_
+
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
+
+
