@@ -1,106 +1,235 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- zram-add-config-and-doc-file-for-writeback-feature.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:37:49 -0700
-Message-ID: <20170907183749.ud05JZNzY%akpm@linux-foundation.org>
+ zram-add-interface-to-specify-backing-device.patch removed from -mm tree
+Date: Thu, 07 Sep 2017 11:37:34 -0700
+Message-ID: <20170907183734.YDW0s23dC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55306 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755722AbdIGShu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:50 -0400
+        with ESMTP id S1755821AbdIGShf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: juno.choi@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: zram: add config and doc file for writeback feature
+     Subject: zram: add interface to specif backing device
 has been removed from the -mm tree.  Its filename was
-     zram-add-config-and-doc-file-for-writeback-feature.patch
+     zram-add-interface-to-specify-backing-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: add config and doc file for writeback feature
+Subject: zram: add interface to specif backing device
 
-This patch adds document and kconfig for using of writeback feature.
+For writeback feature, user should set up backing device before the zram
+working.  This patch enables the interface via
+/sys/block/zramX/backing_dev.
 
-Link: http://lkml.kernel.org/r/1498459987-24562-10-git-send-email-minchan@kernel.org
+Currently, it supports block device only but it could be enhanced for file
+as well.
+
+Link: http://lkml.kernel.org/r/1498459987-24562-5-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Juneho Choi <juno.choi@lge.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    8 ++++++++
- Documentation/blockdev/zram.txt            |   11 +++++++++++
- drivers/block/zram/Kconfig                 |   12 ++++++++++++
- 3 files changed, 31 insertions(+)
+ drivers/block/zram/zram_drv.c |  142 ++++++++++++++++++++++++++++++++
+ drivers/block/zram/zram_drv.h |    5 +
+ 2 files changed, 147 insertions(+)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -90,3 +90,11 @@ Description:
- 		device's debugging info useful for kernel developers. Its
- 		format is not documented intentionally and may change
- 		anytime without any notice.
-+
-+What:		/sys/block/zram<id>/backing_dev
-+Date:		June 2017
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		The backing_dev file is read-write and set up backing
-+		device for zram to write incompressible pages.
-+		For using, user should enable CONFIG_ZRAM_WRITEBACK.
-diff -puN Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/Documentation/blockdev/zram.txt
-@@ -168,6 +168,7 @@ max_comp_streams  RW    the number of po
- comp_algorithm    RW    show and change the compression algorithm
- compact           WO    trigger memory compaction
- debug_stat        RO    this file is used for zram debugging purposes
-+backing_dev	  RW	set up backend storage for zram to write out
+diff -puN drivers/block/zram/zram_drv.c~zram-add-interface-to-specify-backing-device drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-add-interface-to-specify-backing-device
++++ a/drivers/block/zram/zram_drv.c
+@@ -270,6 +270,141 @@ static ssize_t mem_used_max_store(struct
+ 	return len;
+ }
  
++#ifdef CONFIG_ZRAM_WRITEBACK
++static bool zram_wb_enabled(struct zram *zram)
++{
++	return zram->backing_dev;
++}
++
++static void reset_bdev(struct zram *zram)
++{
++	struct block_device *bdev;
++
++	if (!zram_wb_enabled(zram))
++		return;
++
++	bdev = zram->bdev;
++	if (zram->old_block_size)
++		set_blocksize(bdev, zram->old_block_size);
++	blkdev_put(bdev, FMODE_READ|FMODE_WRITE|FMODE_EXCL);
++	/* hope filp_close flush all of IO */
++	filp_close(zram->backing_dev, NULL);
++	zram->backing_dev = NULL;
++	zram->old_block_size = 0;
++	zram->bdev = NULL;
++}
++
++static ssize_t backing_dev_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++	struct file *file = zram->backing_dev;
++	char *p;
++	ssize_t ret;
++
++	down_read(&zram->init_lock);
++	if (!zram_wb_enabled(zram)) {
++		memcpy(buf, "none\n", 5);
++		up_read(&zram->init_lock);
++		return 5;
++	}
++
++	p = file_path(file, buf, PAGE_SIZE - 1);
++	if (IS_ERR(p)) {
++		ret = PTR_ERR(p);
++		goto out;
++	}
++
++	ret = strlen(p);
++	memmove(buf, p, ret);
++	buf[ret++] = '\n';
++out:
++	up_read(&zram->init_lock);
++	return ret;
++}
++
++static ssize_t backing_dev_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	char *file_name;
++	struct file *backing_dev = NULL;
++	struct inode *inode;
++	struct address_space *mapping;
++	unsigned int old_block_size = 0;
++	struct block_device *bdev = NULL;
++	int err;
++	struct zram *zram = dev_to_zram(dev);
++
++	file_name = kmalloc(PATH_MAX, GFP_KERNEL);
++	if (!file_name)
++		return -ENOMEM;
++
++	down_write(&zram->init_lock);
++	if (init_done(zram)) {
++		pr_info("Can't setup backing device for initialized device\n");
++		err = -EBUSY;
++		goto out;
++	}
++
++	strlcpy(file_name, buf, len);
++
++	backing_dev = filp_open(file_name, O_RDWR|O_LARGEFILE, 0);
++	if (IS_ERR(backing_dev)) {
++		err = PTR_ERR(backing_dev);
++		backing_dev = NULL;
++		goto out;
++	}
++
++	mapping = backing_dev->f_mapping;
++	inode = mapping->host;
++
++	/* Support only block device in this moment */
++	if (!S_ISBLK(inode->i_mode)) {
++		err = -ENOTBLK;
++		goto out;
++	}
++
++	bdev = bdgrab(I_BDEV(inode));
++	err = blkdev_get(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL, zram);
++	if (err < 0)
++		goto out;
++
++	old_block_size = block_size(bdev);
++	err = set_blocksize(bdev, PAGE_SIZE);
++	if (err)
++		goto out;
++
++	reset_bdev(zram);
++
++	zram->old_block_size = old_block_size;
++	zram->bdev = bdev;
++	zram->backing_dev = backing_dev;
++	up_write(&zram->init_lock);
++
++	pr_info("setup backing device %s\n", file_name);
++	kfree(file_name);
++
++	return len;
++out:
++	if (bdev)
++		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
++
++	if (backing_dev)
++		filp_close(backing_dev, NULL);
++
++	up_write(&zram->init_lock);
++
++	kfree(file_name);
++
++	return err;
++}
++
++#else
++static bool zram_wb_enabled(struct zram *zram) { return false; }
++static inline void reset_bdev(struct zram *zram) {};
++#endif
++
++
+ /*
+  * We switched to per-cpu streams and this attr is not needed anymore.
+  * However, we will keep it around for some time, because:
+@@ -953,6 +1088,7 @@ static void zram_reset_device(struct zra
+ 	zram_meta_free(zram, disksize);
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 	zcomp_destroy(comp);
++	reset_bdev(zram);
+ }
  
- User space is advised to use the following files to read the device statistics.
-@@ -231,5 +232,15 @@ line of text and contains the following
- 	resets the disksize to zero. You must set the disksize again
- 	before reusing the device.
+ static ssize_t disksize_store(struct device *dev,
+@@ -1078,6 +1214,9 @@ static DEVICE_ATTR_WO(mem_limit);
+ static DEVICE_ATTR_WO(mem_used_max);
+ static DEVICE_ATTR_RW(max_comp_streams);
+ static DEVICE_ATTR_RW(comp_algorithm);
++#ifdef CONFIG_ZRAM_WRITEBACK
++static DEVICE_ATTR_RW(backing_dev);
++#endif
  
-+* Optional Feature
-+
-+= writeback
-+
-+With incompressible pages, there is no memory saving with zram.
-+Instead, with CONFIG_ZRAM_WRITEBACK, zram can write incompressible page
-+to backing storage rather than keeping it in memory.
-+User should set up backing device via /sys/block/zramX/backing_dev
-+before disksize setting.
-+
- Nitin Gupta
- ngupta@vflare.org
-diff -puN drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature drivers/block/zram/Kconfig
---- a/drivers/block/zram/Kconfig~zram-add-config-and-doc-file-for-writeback-feature
-+++ a/drivers/block/zram/Kconfig
-@@ -13,3 +13,15 @@ config ZRAM
- 	  disks and maybe many more.
- 
- 	  See zram.txt for more information.
-+
-+config ZRAM_WRITEBACK
-+       bool "Write back incompressible page to backing device"
-+       depends on ZRAM
-+       default n
-+       help
-+	 With incompressible page, there is no memory saving to keep it
-+	 in memory. Instead, write it out to backing device.
-+	 For this feature, admin should set up backing device via
-+	 /sys/block/zramX/backing_dev.
-+
-+	 See zram.txt for more infomration.
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -1088,6 +1227,9 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_mem_used_max.attr,
+ 	&dev_attr_max_comp_streams.attr,
+ 	&dev_attr_comp_algorithm.attr,
++#ifdef CONFIG_ZRAM_WRITEBACK
++	&dev_attr_backing_dev.attr,
++#endif
+ 	&dev_attr_io_stat.attr,
+ 	&dev_attr_mm_stat.attr,
+ 	&dev_attr_debug_stat.attr,
+diff -puN drivers/block/zram/zram_drv.h~zram-add-interface-to-specify-backing-device drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-add-interface-to-specify-backing-device
++++ a/drivers/block/zram/zram_drv.h
+@@ -115,5 +115,10 @@ struct zram {
+ 	 * zram is claimed so open request will be failed
+ 	 */
+ 	bool claim; /* Protected by bdev->bd_mutex */
++#ifdef CONFIG_ZRAM_WRITEBACK
++	struct file *backing_dev;
++	struct block_device *bdev;
++	unsigned int old_block_size;
++#endif
+ };
+ #endif
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
