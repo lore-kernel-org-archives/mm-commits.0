@@ -1,121 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- test-code-to-write-thp-to-swap-device-as-a-whole.patch removed from -mm
- tree
-Date: Thu, 07 Sep 2017 11:39:55 -0700
-Message-ID: <20170907183955.sSj5NyKxx%akpm@linux-foundation.org>
+Subject: [merged] shmem-introduce-shmem_inode_acct_block.patch
+ removed from -mm tree
+Date: Thu, 07 Sep 2017 11:40:19 -0700
+Message-ID: <20170907184019.5c0vn4W9S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: application/octet-stream; charset=binary
-Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57372 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755798AbdIGSj4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:39:56 -0400
+        with ESMTP id S1755733AbdIGSkU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Sep 2017 14:40:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, axboe@kernel.dk, dan.j.williams@intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, ross.zwisler@intel.com, shli@kernel.org, vishal.l.verma@intel.com, ying.huang@intel.com
+To: aarcange@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, xemul@virtuozzo.com
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbTogdGVzdCBjb2RlIHRvIHdyaXRlIFRI
-UCB0byBzd2FwIGRldmljZSBhcyBhIHdob2xlCmhhcyBiZWVuIHJlbW92ZWQgZnJvbSB0aGUgLW1t
-IHRyZWUuICBJdHMgZmlsZW5hbWUgd2FzCiAgICAgdGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1z
-d2FwLWRldmljZS1hcy1hLXdob2xlLnBhdGNoCgpUaGlzIHBhdGNoIHdhcyBkcm9wcGVkIGJlY2F1
-c2UgaXQgd2FzIG1lcmdlZCBpbnRvIG1haW5saW5lIG9yIGEgc3Vic3lzdGVtIHRyZWUKCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9tOiBI
-dWFuZyBZaW5nIDx5aW5nLmh1YW5nQGludGVsLmNvbT4KU3ViamVjdDogbW06IHRlc3QgY29kZSB0
-byB3cml0ZSBUSFAgdG8gc3dhcCBkZXZpY2UgYXMgYSB3aG9sZQoKVG8gc3VwcG9ydCB0bxAgZGVs
-YXkgc3BsaXR0aW5nIFRIUCAoVHJhbnNwYXJlbnQgSHVnZSBQYWdlKSBhZnRlcgpzd2FwcGVkIG91
-dC4gIFdlIG5lZWQgdG8gZW5oYW5jZSBzd2FwIHdyaXRpbmcgY29kZSB0byBzdXBwb3J0IHRvIHdy
-aXRlCmEgVEhQIGFzIGEgd2hvbGUuICBUaGlzIHdpbGwgaW1wcm92ZSBzd2FwIHdyaXRlIElPIHBl
-cmZvcm1hbmNlLiAgQXMKTWluZyBMZWkgPG1pbmcubGVpQHJlZGhhdC5jb20+IHBvaW50ZWQgb3V0
-LCB0aGlzIHNob3VsZCBiZSBiYXNlZCBvbgptdWx0aXBhZ2UgYnZlYyBzdXBwb3J0LCB3aGljaCBo
-YXNuJ3QgYmVlbiBtZXJnZWQgeWV0LiAgU28gdGhpcyBwYXRjaAppcyBvbmx5IGZvciB0ZXN0aW5n
-IHRoZSBmdW5jdGlvbmFsaXR5IG9mIHRoZSBvdGhlciBwYXRjaGVzIGluIHRoZQpzZXJpZXMuICBB
-bmQgd2lsbCBiZSByZWltcGxlbWVudGVkIGFmdGVyIG11bHRpcGFnZSBidmVjIHN1cHBvcnQgaXMK
-bWVyZ2VkLgoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yLzIwMTcwNzI0MDUxODQwLjIz
-MDktNy15aW5nLmh1YW5nQGludGVsLmNvbQpTaWduZWQtb2ZmLWJ5OiAiSHVhbmcsIFlpbmciIDx5
-aW5nLmh1YW5nQGludGVsLmNvbT4KQ2M6ICJLaXJpbGwgQSAuIFNodXRlbW92IiA8a2lyaWxsLnNo
-dXRlbW92QGxpbnV4LmludGVsLmNvbT4KQ2M6IEFuZHJlYSBBcmNhbmdlbGkgPGFhcmNhbmdlQHJl
-ZGhhdC5jb20+CkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KQ2M6
-IEh1Z2ggRGlja2lucyA8aHVnaGRAZ29vZ2xlLmNvbT4KQ2M6IEplbnMgQXhib2UgPGF4Ym9lQGtl
-cm5lbC5kaz4KQ2M6IEpvaGFubmVzIFdlaW5lciA8aGFubmVzQGNtcHhjaGcub3JnPgpDYzogTWlj
-aGFsIEhvY2tvIDxtaG9ja29Aa2VybmVsLm9yZz4KQ2M6IE1pbmNoYW4gS2ltIDxtaW5jaGFuQGtl
-cm5lbC5vcmc+CkNjOiBSaWsgdmFuIFJpZWwgPHJpZWxAcmVkaGF0LmNvbT4KQ2M6IFJvc3MgWndp
-c2xlciA8cm9zcy56d2lzbGVyQGludGVsLmNvbT4gW2ZvciBicmQuYywgenJhbV9kcnYuYywgcG1l
-bS5jXQpDYzogU2hhb2h1YSBMaSA8c2hsaUBrZXJuZWwub3JnPgpDYzogVmlzaGFsIEwgVmVybWEg
-PHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8
-YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KLS0tCgogaW5jbHVkZS9saW51eC9iaW8uaCAgICAg
-ICAgICAgfCAgICA4ICsrKysrKysrCiBpbmNsdWRlL2xpbnV4L3BhZ2UtZmxhZ3MuaCAgICB8ICAg
-IDQgKystLQogaW5jbHVkZS9saW51eC92bV9ldmVudF9pdGVtLmggfCAgICAxICsKIG1tL3BhZ2Vf
-aW8uYyAgICAgICAgICAgICAgICAgIHwgICAyMSArKysrKysrKysrKysrKysrLS0tLS0KIG1tL3Zt
-c3RhdC5jICAgICAgICAgICAgICAgICAgIHwgICAgMSArCiA1IGZpbGVzIGNoYW5nZWQsIDI4IGlu
-c2VydGlvbnMoKyksIDcgZGVsZXRpb25zKC0pCgpkaWZmIC1wdU4gaW5jbHVkZS9saW51eC9iaW8u
-aH50ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUgaW5jbHVk
-ZS9saW51eC9iaW8uaAotLS0gYS9pbmNsdWRlL2xpbnV4L2Jpby5ofnRlc3QtY29kZS10by13cml0
-ZS10aHAtdG8tc3dhcC1kZXZpY2UtYXMtYS13aG9sZQorKysgYS9pbmNsdWRlL2xpbnV4L2Jpby5o
-CkBAIC0zOCw3ICszOCwxNSBAQAogI2RlZmluZSBCSU9fQlVHX09OCiAjZW5kaWYKIAorI2lmZGVm
-IENPTkZJR19USFBfU1dBUAorI2lmIEhQQUdFX1BNRF9OUiA+IDI1NgorI2RlZmluZSBCSU9fTUFY
-X1BBR0VTCQlIUEFHRV9QTURfTlIKKyNlbHNlCiAjZGVmaW5lIEJJT19NQVhfUEFHRVMJCTI1Ngor
-I2VuZGlmCisjZWxzZQorI2RlZmluZSBCSU9fTUFYX1BBR0VTCQkyNTYKKyNlbmRpZgogCiAjZGVm
-aW5lIGJpb19wcmlvKGJpbykJCQkoYmlvKS0+YmlfaW9wcmlvCiAjZGVmaW5lIGJpb19zZXRfcHJp
-byhiaW8sIHByaW8pCQkoKGJpbyktPmJpX2lvcHJpbyA9IHByaW8pCmRpZmYgLXB1TiBpbmNsdWRl
-L2xpbnV4L3BhZ2UtZmxhZ3MuaH50ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNl
-LWFzLWEtd2hvbGUgaW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmgKLS0tIGEvaW5jbHVkZS9saW51
-eC9wYWdlLWZsYWdzLmh+dGVzdC1jb2RlLXRvLXdyaXRlLXRocC10by1zd2FwLWRldmljZS1hcy1h
-LXdob2xlCisrKyBhL2luY2x1ZGUvbGludXgvcGFnZS1mbGFncy5oCkBAIC0zMDMsOCArMzAzLDgg
-QEAgUEFHRUZMQUcoT3duZXJQcml2MSwgb3duZXJfcHJpdl8xLCBQRl9BTgogICogT25seSB0ZXN0
-LWFuZC1zZXQgZXhpc3QgZm9yIFBHX3dyaXRlYmFjay4gIFRoZSB1bmNvbmRpdGlvbmFsIG9wZXJh
-dG9ycyBhcmUKICAqIHJpc2t5OiB0aGV5IGJ5cGFzcyBwYWdlIGFjY291bnRpbmcuCiAgKi8KLVRF
-U1RQQUdFRkxBRyhXcml0ZWJhY2ssIHdyaXRlYmFjaywgUEZfTk9fQ09NUE9VTkQpCi0JVEVTVFND
-RkxBRyhXcml0ZWJhY2ssIHdyaXRlYmFjaywgUEZfTk9fQ09NUE9VTkQpCitURVNUUEFHRUZMQUco
-V3JpdGViYWNrLCB3cml0ZWJhY2ssIFBGX05PX1RBSUwpCisJVEVTVFNDRkxBRyhXcml0ZWJhY2ss
-IHdyaXRlYmFjaywgUEZfTk9fVEFJTCkKIFBBR0VGTEFHKE1hcHBlZFRvRGlzaywgbWFwcGVkdG9k
-aXNrLCBQRl9OT19UQUlMKQogCiAvKiBQR19yZWFkYWhlYWQgaXMgb25seSB1c2VkIGZvciByZWFk
-czsgUEdfcmVjbGFpbSBpcyBvbmx5IGZvciB3cml0ZXMgKi8KZGlmZiAtcHVOIGluY2x1ZGUvbGlu
-dXgvdm1fZXZlbnRfaXRlbS5ofnRlc3QtY29kZS10by13cml0ZS10aHAtdG8tc3dhcC1kZXZpY2Ut
-YXMtYS13aG9sZSBpbmNsdWRlL2xpbnV4L3ZtX2V2ZW50X2l0ZW0uaAotLS0gYS9pbmNsdWRlL2xp
-bnV4L3ZtX2V2ZW50X2l0ZW0uaH50ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNl
-LWFzLWEtd2hvbGUKKysrIGEvaW5jbHVkZS9saW51eC92bV9ldmVudF9pdGVtLmgKQEAgLTg1LDYg
-Kzg1LDcgQEAgZW51bSB2bV9ldmVudF9pdGVtIHsgUEdQR0lOLCBQR1BHT1VULCBQUwogI2VuZGlm
-CiAJCVRIUF9aRVJPX1BBR0VfQUxMT0MsCiAJCVRIUF9aRVJPX1BBR0VfQUxMT0NfRkFJTEVELAor
-CQlUSFBfU1dQT1VULAogI2VuZGlmCiAjaWZkZWYgQ09ORklHX01FTU9SWV9CQUxMT09OCiAJCUJB
-TExPT05fSU5GTEFURSwKZGlmZiAtcHVOIG1tL3BhZ2VfaW8uY350ZXN0LWNvZGUtdG8td3JpdGUt
-dGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUgbW0vcGFnZV9pby5jCi0tLSBhL21tL3BhZ2Vf
-aW8uY350ZXN0LWNvZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUKKysr
-IGEvbW0vcGFnZV9pby5jCkBAIC0yOCwxNiArMjgsMTggQEAKIHN0YXRpYyBzdHJ1Y3QgYmlvICpn
-ZXRfc3dhcF9iaW8oZ2ZwX3QgZ2ZwX2ZsYWdzLAogCQkJCXN0cnVjdCBwYWdlICpwYWdlLCBiaW9f
-ZW5kX2lvX3QgZW5kX2lvKQogeworCWludCBpLCBuciA9IGhwYWdlX25yX3BhZ2VzKHBhZ2UpOwog
-CXN0cnVjdCBiaW8gKmJpbzsKIAotCWJpbyA9IGJpb19hbGxvYyhnZnBfZmxhZ3MsIDEpOworCWJp
-byA9IGJpb19hbGxvYyhnZnBfZmxhZ3MsIG5yKTsKIAlpZiAoYmlvKSB7CiAJCWJpby0+YmlfaXRl
-ci5iaV9zZWN0b3IgPSBtYXBfc3dhcF9wYWdlKHBhZ2UsICZiaW8tPmJpX2JkZXYpOwogCQliaW8t
-PmJpX2l0ZXIuYmlfc2VjdG9yIDw8PSBQQUdFX1NISUZUIC0gOTsKIAkJYmlvLT5iaV9lbmRfaW8g
-PSBlbmRfaW87CiAKLQkJYmlvX2FkZF9wYWdlKGJpbywgcGFnZSwgUEFHRV9TSVpFLCAwKTsKLQkJ
-QlVHX09OKGJpby0+YmlfaXRlci5iaV9zaXplICE9IFBBR0VfU0laRSk7CisJCWZvciAoaSA9IDA7
-IGkgPCBucjsgaSsrKQorCQkJYmlvX2FkZF9wYWdlKGJpbywgcGFnZSArIGksIFBBR0VfU0laRSwg
-MCk7CisJCVZNX0JVR19PTihiaW8tPmJpX2l0ZXIuYmlfc2l6ZSAhPSBQQUdFX1NJWkUgKiBucik7
-CiAJfQogCXJldHVybiBiaW87CiB9CkBAIC0yNjIsNiArMjY0LDE1IEBAIHN0YXRpYyBzZWN0b3Jf
-dCBzd2FwX3BhZ2Vfc2VjdG9yKHN0cnVjdAogCXJldHVybiAoc2VjdG9yX3QpX19wYWdlX2ZpbGVf
-aW5kZXgocGFnZSkgPDwgKFBBR0VfU0hJRlQgLSA5KTsKIH0KIAorc3RhdGljIGlubGluZSB2b2lk
-IGNvdW50X3N3cG91dF92bV9ldmVudChzdHJ1Y3QgcGFnZSAqcGFnZSkKK3sKKyNpZmRlZiBDT05G
-SUdfVFJBTlNQQVJFTlRfSFVHRVBBR0UKKwlpZiAodW5saWtlbHkoUGFnZVRyYW5zSHVnZShwYWdl
-KSkpCisJCWNvdW50X3ZtX2V2ZW50KFRIUF9TV1BPVVQpOworI2VuZGlmCisJY291bnRfdm1fZXZl
-bnRzKFBTV1BPVVQsIGhwYWdlX25yX3BhZ2VzKHBhZ2UpKTsKK30KKwogaW50IF9fc3dhcF93cml0
-ZXBhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UsIHN0cnVjdCB3cml0ZWJhY2tfY29udHJvbCAqd2JjLAog
-CQliaW9fZW5kX2lvX3QgZW5kX3dyaXRlX2Z1bmMpCiB7CkBAIC0zMTMsNyArMzI0LDcgQEAgaW50
-IF9fc3dhcF93cml0ZXBhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UsCiAKIAlyZXQgPSBiZGV2X3dyaXRl
-X3BhZ2Uoc2lzLT5iZGV2LCBzd2FwX3BhZ2Vfc2VjdG9yKHBhZ2UpLCBwYWdlLCB3YmMpOwogCWlm
-ICghcmV0KSB7Ci0JCWNvdW50X3ZtX2V2ZW50KFBTV1BPVVQpOworCQljb3VudF9zd3BvdXRfdm1f
-ZXZlbnQocGFnZSk7CiAJCXJldHVybiAwOwogCX0KIApAQCAtMzI2LDcgKzMzNyw3IEBAIGludCBf
-X3N3YXBfd3JpdGVwYWdlKHN0cnVjdCBwYWdlICpwYWdlLAogCQlnb3RvIG91dDsKIAl9CiAJYmlv
-LT5iaV9vcGYgPSBSRVFfT1BfV1JJVEUgfCB3YmNfdG9fd3JpdGVfZmxhZ3Mod2JjKTsKLQljb3Vu
-dF92bV9ldmVudChQU1dQT1VUKTsKKwljb3VudF9zd3BvdXRfdm1fZXZlbnQocGFnZSk7CiAJc2V0
-X3BhZ2Vfd3JpdGViYWNrKHBhZ2UpOwogCXVubG9ja19wYWdlKHBhZ2UpOwogCXN1Ym1pdF9iaW8o
-YmlvKTsKZGlmZiAtcHVOIG1tL3Ztc3RhdC5jfnRlc3QtY29kZS10by13cml0ZS10aHAtdG8tc3dh
-cC1kZXZpY2UtYXMtYS13aG9sZSBtbS92bXN0YXQuYwotLS0gYS9tbS92bXN0YXQuY350ZXN0LWNv
-ZGUtdG8td3JpdGUtdGhwLXRvLXN3YXAtZGV2aWNlLWFzLWEtd2hvbGUKKysrIGEvbW0vdm1zdGF0
-LmMKQEAgLTEwNzEsNiArMTA3MSw3IEBAIGNvbnN0IGNoYXIgKiBjb25zdCB2bXN0YXRfdGV4dFtd
-ID0gewogI2VuZGlmCiAJInRocF96ZXJvX3BhZ2VfYWxsb2MiLAogCSJ0aHBfemVyb19wYWdlX2Fs
-bG9jX2ZhaWxlZCIsCisJInRocF9zd3BvdXQiLAogI2VuZGlmCiAjaWZkZWYgQ09ORklHX01FTU9S
-WV9CQUxMT09OCiAJImJhbGxvb25faW5mbGF0ZSIsCl8KClBhdGNoZXMgY3VycmVudGx5IGluIC1t
-bSB3aGljaCBtaWdodCBiZSBmcm9tIHlpbmcuaHVhbmdAaW50ZWwuY29tIGFyZQoKCg==
+
+The patch titled
+     Subject: shmem: introduce shmem_inode_acct_block
+has been removed from the -mm tree.  Its filename was
+     shmem-introduce-shmem_inode_acct_block.patch
+
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: shmem: introduce shmem_inode_acct_block
+
+The shmem_acct_block and the update of used_blocks are following one
+another in all the places they are used.  Combine these two into a helper
+function.
+
+Link: http://lkml.kernel.org/r/1497939652-16528-3-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/shmem.c |  102 +++++++++++++++++++++++----------------------------
+ 1 file changed, 46 insertions(+), 56 deletions(-)
+
+diff -puN mm/shmem.c~shmem-introduce-shmem_inode_acct_block mm/shmem.c
+--- a/mm/shmem.c~shmem-introduce-shmem_inode_acct_block
++++ a/mm/shmem.c
+@@ -188,6 +188,38 @@ static inline void shmem_unacct_blocks(u
+ 		vm_unacct_memory(pages * VM_ACCT(PAGE_SIZE));
+ }
+ 
++static inline bool shmem_inode_acct_block(struct inode *inode, long pages)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++
++	if (shmem_acct_block(info->flags, pages))
++		return false;
++
++	if (sbinfo->max_blocks) {
++		if (percpu_counter_compare(&sbinfo->used_blocks,
++					   sbinfo->max_blocks - pages) > 0)
++			goto unacct;
++		percpu_counter_add(&sbinfo->used_blocks, pages);
++	}
++
++	return true;
++
++unacct:
++	shmem_unacct_blocks(info->flags, pages);
++	return false;
++}
++
++static inline void shmem_inode_unacct_blocks(struct inode *inode, long pages)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++
++	if (sbinfo->max_blocks)
++		percpu_counter_sub(&sbinfo->used_blocks, pages);
++	shmem_unacct_blocks(info->flags, pages);
++}
++
+ static const struct super_operations shmem_ops;
+ static const struct address_space_operations shmem_aops;
+ static const struct file_operations shmem_file_operations;
+@@ -249,31 +281,20 @@ static void shmem_recalc_inode(struct in
+ 
+ 	freed = info->alloced - info->swapped - inode->i_mapping->nrpages;
+ 	if (freed > 0) {
+-		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+-		if (sbinfo->max_blocks)
+-			percpu_counter_add(&sbinfo->used_blocks, -freed);
+ 		info->alloced -= freed;
+ 		inode->i_blocks -= freed * BLOCKS_PER_PAGE;
+-		shmem_unacct_blocks(info->flags, freed);
++		shmem_inode_unacct_blocks(inode, freed);
+ 	}
+ }
+ 
+ bool shmem_charge(struct inode *inode, long pages)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	unsigned long flags;
+ 
+-	if (shmem_acct_block(info->flags, pages))
++	if (!shmem_inode_acct_block(inode, pages))
+ 		return false;
+ 
+-	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					   sbinfo->max_blocks - pages) > 0)
+-			goto unacct;
+-		percpu_counter_add(&sbinfo->used_blocks, pages);
+-	}
+-
+ 	spin_lock_irqsave(&info->lock, flags);
+ 	info->alloced += pages;
+ 	inode->i_blocks += pages * BLOCKS_PER_PAGE;
+@@ -282,16 +303,11 @@ bool shmem_charge(struct inode *inode, l
+ 	inode->i_mapping->nrpages += pages;
+ 
+ 	return true;
+-
+-unacct:
+-	shmem_unacct_blocks(info->flags, pages);
+-	return false;
+ }
+ 
+ void shmem_uncharge(struct inode *inode, long pages)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&info->lock, flags);
+@@ -300,9 +316,7 @@ void shmem_uncharge(struct inode *inode,
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock_irqrestore(&info->lock, flags);
+ 
+-	if (sbinfo->max_blocks)
+-		percpu_counter_sub(&sbinfo->used_blocks, pages);
+-	shmem_unacct_blocks(info->flags, pages);
++	shmem_inode_unacct_blocks(inode, pages);
+ }
+ 
+ /*
+@@ -1451,9 +1465,10 @@ static struct page *shmem_alloc_page(gfp
+ }
+ 
+ static struct page *shmem_alloc_and_acct_page(gfp_t gfp,
+-		struct shmem_inode_info *info, struct shmem_sb_info *sbinfo,
++		struct inode *inode,
+ 		pgoff_t index, bool huge)
+ {
++	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct page *page;
+ 	int nr;
+ 	int err = -ENOSPC;
+@@ -1462,14 +1477,8 @@ static struct page *shmem_alloc_and_acct
+ 		huge = false;
+ 	nr = huge ? HPAGE_PMD_NR : 1;
+ 
+-	if (shmem_acct_block(info->flags, nr))
++	if (!shmem_inode_acct_block(inode, nr))
+ 		goto failed;
+-	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					sbinfo->max_blocks - nr) > 0)
+-			goto unacct;
+-		percpu_counter_add(&sbinfo->used_blocks, nr);
+-	}
+ 
+ 	if (huge)
+ 		page = shmem_alloc_hugepage(gfp, info, index);
+@@ -1482,10 +1491,7 @@ static struct page *shmem_alloc_and_acct
+ 	}
+ 
+ 	err = -ENOMEM;
+-	if (sbinfo->max_blocks)
+-		percpu_counter_add(&sbinfo->used_blocks, -nr);
+-unacct:
+-	shmem_unacct_blocks(info->flags, nr);
++	shmem_inode_unacct_blocks(inode, nr);
+ failed:
+ 	return ERR_PTR(err);
+ }
+@@ -1750,10 +1756,9 @@ repeat:
+ 		}
+ 
+ alloc_huge:
+-		page = shmem_alloc_and_acct_page(gfp, info, sbinfo,
+-				index, true);
++		page = shmem_alloc_and_acct_page(gfp, inode, index, true);
+ 		if (IS_ERR(page)) {
+-alloc_nohuge:		page = shmem_alloc_and_acct_page(gfp, info, sbinfo,
++alloc_nohuge:		page = shmem_alloc_and_acct_page(gfp, inode,
+ 					index, false);
+ 		}
+ 		if (IS_ERR(page)) {
+@@ -1875,10 +1880,7 @@ clear:
+ 	 * Error recovery.
+ 	 */
+ unacct:
+-	if (sbinfo->max_blocks)
+-		percpu_counter_sub(&sbinfo->used_blocks,
+-				1 << compound_order(page));
+-	shmem_unacct_blocks(info->flags, 1 << compound_order(page));
++	shmem_inode_unacct_blocks(inode, 1 << compound_order(page));
+ 
+ 	if (PageTransHuge(page)) {
+ 		unlock_page(page);
+@@ -2214,7 +2216,6 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ {
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	struct address_space *mapping = inode->i_mapping;
+ 	gfp_t gfp = mapping_gfp_mask(mapping);
+ 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
+@@ -2226,19 +2227,13 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 	int ret;
+ 
+ 	ret = -ENOMEM;
+-	if (shmem_acct_block(info->flags, 1))
++	if (!shmem_inode_acct_block(inode, 1))
+ 		goto out;
+-	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					   sbinfo->max_blocks) >= 0)
+-			goto out_unacct_blocks;
+-		percpu_counter_inc(&sbinfo->used_blocks);
+-	}
+ 
+ 	if (!*pagep) {
+ 		page = shmem_alloc_page(gfp, info, pgoff);
+ 		if (!page)
+-			goto out_dec_used_blocks;
++			goto out_unacct_blocks;
+ 
+ 		page_kaddr = kmap_atomic(page);
+ 		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
+@@ -2248,9 +2243,7 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 		/* fallback to copy_from_user outside mmap_sem */
+ 		if (unlikely(ret)) {
+ 			*pagep = page;
+-			if (sbinfo->max_blocks)
+-				percpu_counter_add(&sbinfo->used_blocks, -1);
+-			shmem_unacct_blocks(info->flags, 1);
++			shmem_inode_unacct_blocks(inode, 1);
+ 			/* don't free the page */
+ 			return -EFAULT;
+ 		}
+@@ -2313,11 +2306,8 @@ out_release_uncharge:
+ out_release:
+ 	unlock_page(page);
+ 	put_page(page);
+-out_dec_used_blocks:
+-	if (sbinfo->max_blocks)
+-		percpu_counter_add(&sbinfo->used_blocks, -1);
+ out_unacct_blocks:
+-	shmem_unacct_blocks(info->flags, 1);
++	shmem_inode_unacct_blocks(inode, 1);
+ 	goto out;
+ }
+ 
+_
+
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+
+
