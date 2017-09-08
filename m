@@ -1,84 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 038/126] mm/mlock.c: use page_zone() instead of
- page_zone_id()
-Date: Fri, 08 Sep 2017 16:12:59 -0700
-Message-ID: <20170908231259.byS8zM4cD%akpm@linux-foundation.org>
+Subject: [patch 040/126] mm: fadvise: avoid fadvise for fs without
+ backing device
+Date: Fri, 08 Sep 2017 16:13:05 -0700
+Message-ID: <20170908231305.Yg-XWq2Yc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXNA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:00 -0400
+        with ESMTP id S1757173AbdIHXNH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, mgorman@suse.de, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/mlock.c: use page_zone() instead of page_zone_id()
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: fadvise: avoid fadvise for fs without backing device
 
-page_zone_id() is a specialized function to compare the zone for the pages
-that are within the section range.  If the section of the pages are
-different, page_zone_id() can be different even if their zone is the same.
-This wrong usage doesn't cause any actual problem since
-__munlock_pagevec_fill() would be called again with failed index. 
-However, it's better to use more appropriate function here.
+The fadvise() manpage is silent on fadvise()'s effect on memory-based
+filesystems (shmem, hugetlbfs & ramfs) and pseudo file systems (procfs,
+sysfs, kernfs).  The current implementaion of fadvise is mostly a noop
+for such filesystems except for FADV_DONTNEED which will trigger
+expensive remote LRU cache draining.  This patch makes the noop of
+fadvise() on such file systems very explicit.
 
-Link: http://lkml.kernel.org/r/1503559211-10259-1-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
+However this change has two side effects for ramfs and one for tmpfs. 
+First fadvise(FADV_DONTNEED) could remove the unmapped clean zero'ed
+pages of ramfs (allocated through read, readahead & read fault) and
+tmpfs (allocated through read fault).  Also fadvise(FADV_WILLNEED)
+could create such clean zero'ed pages for ramfs.  This change removes
+those possibilities.
+
+One of our generic libraries does fadvise(FADV_DONTNEED).  Recently we
+observed high latency in fadvise() and noticed that the users have
+started using tmpfs files and the latency was due to expensive remote
+LRU cache draining.  For normal tmpfs files (have data written on
+them), fadvise(FADV_DONTNEED) will always trigger the unneeded remote
+cache draining.
+
+Link: http://lkml.kernel.org/r/20170818011023.181465-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/fadvise.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-use-page_zone-instead-of-page_zone_id mm/mlock.c
---- a/mm/mlock.c~mm-mlock-use-page_zone-instead-of-page_zone_id
-+++ a/mm/mlock.c
-@@ -365,8 +365,8 @@ static void __munlock_pagevec(struct pag
-  * @start + PAGE_SIZE when no page could be added by the pte walk.
-  */
- static unsigned long __munlock_pagevec_fill(struct pagevec *pvec,
--		struct vm_area_struct *vma, int zoneid,	unsigned long start,
--		unsigned long end)
-+			struct vm_area_struct *vma, struct zone *zone,
-+			unsigned long start, unsigned long end)
- {
- 	pte_t *pte;
- 	spinlock_t *ptl;
-@@ -394,7 +394,7 @@ static unsigned long __munlock_pagevec_f
- 		 * Break if page could not be obtained or the page's node+zone does not
- 		 * match
- 		 */
--		if (!page || page_zone_id(page) != zoneid)
-+		if (!page || page_zone(page) != zone)
- 			break;
+diff -puN mm/fadvise.c~mm-fadvise-avoid-fadvise-for-fs-without-backing-device mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-avoid-fadvise-for-fs-without-backing-device
++++ a/mm/fadvise.c
+@@ -52,7 +52,9 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 		goto out;
+ 	}
  
- 		/*
-@@ -446,7 +446,6 @@ void munlock_vma_pages_range(struct vm_a
- 		unsigned long page_increm;
- 		struct pagevec pvec;
- 		struct zone *zone;
--		int zoneid;
+-	if (IS_DAX(inode)) {
++	bdi = inode_to_bdi(mapping->host);
++
++	if (IS_DAX(inode) || (bdi == &noop_backing_dev_info)) {
+ 		switch (advice) {
+ 		case POSIX_FADV_NORMAL:
+ 		case POSIX_FADV_RANDOM:
+@@ -75,8 +77,6 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 	else
+ 		endbyte--;		/* inclusive */
  
- 		pagevec_init(&pvec, 0);
- 		/*
-@@ -481,7 +480,6 @@ void munlock_vma_pages_range(struct vm_a
- 				 */
- 				pagevec_add(&pvec, page);
- 				zone = page_zone(page);
--				zoneid = page_zone_id(page);
- 
- 				/*
- 				 * Try to fill the rest of pagevec using fast
-@@ -490,7 +488,7 @@ void munlock_vma_pages_range(struct vm_a
- 				 * pagevec.
- 				 */
- 				start = __munlock_pagevec_fill(&pvec, vma,
--						zoneid, start, end);
-+						zone, start, end);
- 				__munlock_pagevec(&pvec, zone);
- 				goto next;
- 			}
-_
+-	bdi = inode_to_bdi(mapping->host);
