@@ -1,625 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [patch 035/126] mm: change the call sites of numa
- statistics items
-Date: Fri, 08 Sep 2017 16:12:48 -0700
-Message-ID: <20170908231248.g5qF_SKAX%akpm@linux-foundation.org>
+Subject: [patch 029/126] mm/hmm: add new helper to hotplug CDM
+ memory region
+Date: Fri, 08 Sep 2017 16:12:28 -0700
+Message-ID: <20170908231228.ANYtivisl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51930 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51838 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932658AbdIHXMu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:50 -0400
+        with ESMTP id S1752952AbdIHXMa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aaron.lu@intel.com, akpm@linux-foundation.org, andi.kleen@intel.com, brouer@redhat.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
 
-From: Kemi Wang <kemi.wang@intel.com>
-Subject: mm: change the call sites of numa statistics items
+From: Jérôme Glisse <jglisse@redhat.com>
+Subject: mm/hmm: add new helper to hotplug CDM memory region
 
-Patch series "Separate NUMA statistics from zone statistics", v2.
+Unlike unaddressable memory, coherent device memory has a real resource
+associated with it on the system (as CPU can address it).  Add a new
+helper to hotplug such memory within the HMM framework.
 
-Each page allocation updates a set of per-zone statistics with a call to
-zone_statistics().  As discussed in 2017 MM summit, these are a
-substantial source of overhead in the page allocator and are very rarely
-consumed.  This significant overhead in cache bouncing caused by zone
-counters (NUMA associated counters) update in parallel in multi-threaded
-page allocation (pointed out by Dave Hansen).
-
-A link to the MM summit slides:
-http://people.netfilter.org/hawk/presentations/MM-summit2017/MM-summit2017
--JesperBrouer.pdf
-
-To mitigate this overhead, this patchset separates NUMA statistics from
-zone statistics framework, and update NUMA counter threshold to a fixed
-size of MAX_U16 - 2, as a small threshold greatly increases the update
-frequency of the global counter from local per cpu counter (suggested by
-Ying Huang).  The rationality is that these statistics counters don't need
-to be read often, unlike other VM counters, so it's not a problem to use a
-large threshold and make readers more expensive.
-
-With this patchset, we see 31.3% drop of CPU cycles(537-->369, see below)
-for per single page allocation and reclaim on Jesper's page_bench03
-benchmark.  Meanwhile, this patchset keeps the same style of virtual
-memory statistics with little end-user-visible effects (only move the numa
-stats to show behind zone page stats, see the first patch for details).
-
-I did an experiment of single page allocation and reclaim concurrently
-using Jesper's page_bench03 benchmark on a 2-Socket Broadwell-based server
-(88 processors with 126G memory) with different size of threshold of pcp
-counter.
-
-Benchmark provided by Jesper D Brouer(increase loop times to 10000000):
-https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/
-bench
-
-   Threshold   CPU cycles    Throughput(88 threads)
-      32        799         241760478
-      64        640         301628829
-      125       537         358906028 <==> system by default
-      256       468         412397590
-      512       428         450550704
-      4096      399         482520943
-      20000     394         489009617
-      30000     395         488017817
-      65533     369(-31.3%) 521661345(+45.3%) <==> with this patchset
-      N/A       342(-36.3%) 562900157(+56.8%) <==> disable zone_statistics
-
-
-This patch (of 3):
-
-In this patch, NUMA statistics is separated from zone statistics
-framework, all the call sites of NUMA stats are changed to use
-numa-stats-specific functions, it does not have any functionality change
-except that the number of NUMA stats is shown behind zone page stats when
-users *read* the zone info.
-
-E.g. cat /proc/zoneinfo
-    ***Base***                           ***With this patch***
-nr_free_pages 3976                         nr_free_pages 3976
-nr_zone_inactive_anon 0                    nr_zone_inactive_anon 0
-nr_zone_active_anon 0                      nr_zone_active_anon 0
-nr_zone_inactive_file 0                    nr_zone_inactive_file 0
-nr_zone_active_file 0                      nr_zone_active_file 0
-nr_zone_unevictable 0                      nr_zone_unevictable 0
-nr_zone_write_pending 0                    nr_zone_write_pending 0
-nr_mlock     0                             nr_mlock     0
-nr_page_table_pages 0                      nr_page_table_pages 0
-nr_kernel_stack 0                          nr_kernel_stack 0
-nr_bounce    0                             nr_bounce    0
-nr_zspages   0                             nr_zspages   0
-numa_hit 0                                *nr_free_cma  0*
-numa_miss 0                                numa_hit     0
-numa_foreign 0                             numa_miss    0
-numa_interleave 0                          numa_foreign 0
-numa_local   0                             numa_interleave 0
-numa_other   0                             numa_local   0
-*nr_free_cma 0*                            numa_other 0
-    ...                                        ...
-vm stats threshold: 10                     vm stats threshold: 10
-    ...                                        ...
-
-The next patch updates the numa stats counter size and threshold.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/1503568801-21305-2-git-send-email-kemi.wang@intel.com
-Signed-off-by: Kemi Wang <kemi.wang@intel.com>
-Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170817000548.32038-20-jglisse@redhat.com
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Nellans <dnellans@nvidia.com>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Ying Huang <ying.huang@intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |   22 +++--
- include/linux/mmzone.h |   25 ++++--
- include/linux/vmstat.h |   29 ++++++-
- mm/page_alloc.c        |   10 +-
- mm/vmstat.c            |  161 +++++++++++++++++++++++++++++++++++++--
- 5 files changed, 220 insertions(+), 27 deletions(-)
+ include/linux/hmm.h |    3 +
+ mm/hmm.c            |   88 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 86 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/node.c~mm-change-the-call-sites-of-numa-statistics-items drivers/base/node.c
---- a/drivers/base/node.c~mm-change-the-call-sites-of-numa-statistics-items
-+++ a/drivers/base/node.c
-@@ -160,12 +160,12 @@ static ssize_t node_read_numastat(struct
- 		       "interleave_hit %lu\n"
- 		       "local_node %lu\n"
- 		       "other_node %lu\n",
--		       sum_zone_node_page_state(dev->id, NUMA_HIT),
--		       sum_zone_node_page_state(dev->id, NUMA_MISS),
--		       sum_zone_node_page_state(dev->id, NUMA_FOREIGN),
--		       sum_zone_node_page_state(dev->id, NUMA_INTERLEAVE_HIT),
--		       sum_zone_node_page_state(dev->id, NUMA_LOCAL),
--		       sum_zone_node_page_state(dev->id, NUMA_OTHER));
-+		       sum_zone_numa_state(dev->id, NUMA_HIT),
-+		       sum_zone_numa_state(dev->id, NUMA_MISS),
-+		       sum_zone_numa_state(dev->id, NUMA_FOREIGN),
-+		       sum_zone_numa_state(dev->id, NUMA_INTERLEAVE_HIT),
-+		       sum_zone_numa_state(dev->id, NUMA_LOCAL),
-+		       sum_zone_numa_state(dev->id, NUMA_OTHER));
+diff -puN include/linux/hmm.h~mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3 include/linux/hmm.h
+--- a/include/linux/hmm.h~mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3
++++ a/include/linux/hmm.h
+@@ -443,6 +443,9 @@ struct hmm_devmem {
+ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+ 				  struct device *device,
+ 				  unsigned long size);
++struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
++					   struct device *device,
++					   struct resource *res);
+ void hmm_devmem_remove(struct hmm_devmem *devmem);
+ 
+ /*
+diff -puN mm/hmm.c~mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3 mm/hmm.c
+--- a/mm/hmm.c~mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3
++++ a/mm/hmm.c
+@@ -839,7 +839,11 @@ static void hmm_devmem_release(struct de
+ 	zone = page_zone(page);
+ 
+ 	mem_hotplug_begin();
+-	__remove_pages(zone, start_pfn, npages);
++	if (resource->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY)
++		__remove_pages(zone, start_pfn, npages);
++	else
++		arch_remove_memory(start_pfn << PAGE_SHIFT,
++				   npages << PAGE_SHIFT);
+ 	mem_hotplug_done();
+ 
+ 	hmm_devmem_radix_release(resource);
+@@ -875,7 +879,11 @@ static int hmm_devmem_pages_create(struc
+ 	if (is_ram == REGION_INTERSECTS)
+ 		return -ENXIO;
+ 
+-	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
++	if (devmem->resource->desc == IORES_DESC_DEVICE_PUBLIC_MEMORY)
++		devmem->pagemap.type = MEMORY_DEVICE_PUBLIC;
++	else
++		devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
++
+ 	devmem->pagemap.res = devmem->resource;
+ 	devmem->pagemap.page_fault = hmm_devmem_fault;
+ 	devmem->pagemap.page_free = hmm_devmem_free;
+@@ -920,9 +928,15 @@ static int hmm_devmem_pages_create(struc
+ 	 * over the device memory is un-accessible thus we do not want to
+ 	 * create a linear mapping for the memory like arch_add_memory()
+ 	 * would do.
++	 *
++	 * For device public memory, which is accesible by the CPU, we do
++	 * want the linear mapping and thus use arch_add_memory().
+ 	 */
+-	ret = add_pages(nid, align_start >> PAGE_SHIFT,
+-			align_size >> PAGE_SHIFT, false);
++	if (devmem->pagemap.type == MEMORY_DEVICE_PUBLIC)
++		ret = arch_add_memory(nid, align_start, align_size, false);
++	else
++		ret = add_pages(nid, align_start >> PAGE_SHIFT,
++				align_size >> PAGE_SHIFT, false);
+ 	if (ret) {
+ 		mem_hotplug_done();
+ 		goto error_add_memory;
+@@ -1069,6 +1083,67 @@ error_percpu_ref:
  }
- static DEVICE_ATTR(numastat, S_IRUGO, node_read_numastat, NULL);
+ EXPORT_SYMBOL(hmm_devmem_add);
  
-@@ -181,9 +181,17 @@ static ssize_t node_read_vmstat(struct d
- 		n += sprintf(buf+n, "%s %lu\n", vmstat_text[i],
- 			     sum_zone_node_page_state(nid, i));
- 
--	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
-+#ifdef CONFIG_NUMA
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
- 		n += sprintf(buf+n, "%s %lu\n",
- 			     vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
-+			     sum_zone_numa_state(nid, i));
-+#endif
-+
-+	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
-+		n += sprintf(buf+n, "%s %lu\n",
-+			     vmstat_text[i + NR_VM_ZONE_STAT_ITEMS +
-+			     NR_VM_NUMA_STAT_ITEMS],
- 			     node_page_state(pgdat, i));
- 
- 	return n;
-diff -puN include/linux/mmzone.h~mm-change-the-call-sites-of-numa-statistics-items include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-change-the-call-sites-of-numa-statistics-items
-+++ a/include/linux/mmzone.h
-@@ -114,6 +114,20 @@ struct zone_padding {
- #define ZONE_PADDING(name)
- #endif
- 
-+#ifdef CONFIG_NUMA
-+enum numa_stat_item {
-+	NUMA_HIT,		/* allocated in intended node */
-+	NUMA_MISS,		/* allocated in non intended node */
-+	NUMA_FOREIGN,		/* was intended here, hit elsewhere */
-+	NUMA_INTERLEAVE_HIT,	/* interleaver preferred this zone */
-+	NUMA_LOCAL,		/* allocation from local node */
-+	NUMA_OTHER,		/* allocation from other node */
-+	NR_VM_NUMA_STAT_ITEMS
-+};
-+#else
-+#define NR_VM_NUMA_STAT_ITEMS 0
-+#endif
-+
- enum zone_stat_item {
- 	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
-@@ -132,14 +146,6 @@ enum zone_stat_item {
- #if IS_ENABLED(CONFIG_ZSMALLOC)
- 	NR_ZSPAGES,		/* allocated in zsmalloc */
- #endif
--#ifdef CONFIG_NUMA
--	NUMA_HIT,		/* allocated in intended node */
--	NUMA_MISS,		/* allocated in non intended node */
--	NUMA_FOREIGN,		/* was intended here, hit elsewhere */
--	NUMA_INTERLEAVE_HIT,	/* interleaver preferred this zone */
--	NUMA_LOCAL,		/* allocation from local node */
--	NUMA_OTHER,		/* allocation from other node */
--#endif
- 	NR_FREE_CMA_PAGES,
- 	NR_VM_ZONE_STAT_ITEMS };
- 
-@@ -276,6 +282,8 @@ struct per_cpu_pageset {
- 	struct per_cpu_pages pcp;
- #ifdef CONFIG_NUMA
- 	s8 expire;
-+	s8 numa_stat_threshold;
-+	s8 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
- #endif
- #ifdef CONFIG_SMP
- 	s8 stat_threshold;
-@@ -496,6 +504,7 @@ struct zone {
- 	ZONE_PADDING(_pad3_)
- 	/* Zone statistics */
- 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
-+	atomic_long_t		vm_numa_stat[NR_VM_NUMA_STAT_ITEMS];
- } ____cacheline_internodealigned_in_smp;
- 
- enum pgdat_flags {
-diff -puN include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items
-+++ a/include/linux/vmstat.h
-@@ -107,8 +107,33 @@ static inline void vm_events_fold_cpu(in
-  * Zone and node-based page accounting with per cpu differentials.
-  */
- extern atomic_long_t vm_zone_stat[NR_VM_ZONE_STAT_ITEMS];
-+extern atomic_long_t vm_numa_stat[NR_VM_NUMA_STAT_ITEMS];
- extern atomic_long_t vm_node_stat[NR_VM_NODE_STAT_ITEMS];
- 
-+#ifdef CONFIG_NUMA
-+static inline void zone_numa_state_add(long x, struct zone *zone,
-+				 enum numa_stat_item item)
++struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
++					   struct device *device,
++					   struct resource *res)
 +{
-+	atomic_long_add(x, &zone->vm_numa_stat[item]);
-+	atomic_long_add(x, &vm_numa_stat[item]);
++	struct hmm_devmem *devmem;
++	int ret;
++
++	if (res->desc != IORES_DESC_DEVICE_PUBLIC_MEMORY)
++		return ERR_PTR(-EINVAL);
++
++	static_branch_enable(&device_private_key);
++
++	devmem = devres_alloc_node(&hmm_devmem_release, sizeof(*devmem),
++				   GFP_KERNEL, dev_to_node(device));
++	if (!devmem)
++		return ERR_PTR(-ENOMEM);
++
++	init_completion(&devmem->completion);
++	devmem->pfn_first = -1UL;
++	devmem->pfn_last = -1UL;
++	devmem->resource = res;
++	devmem->device = device;
++	devmem->ops = ops;
++
++	ret = percpu_ref_init(&devmem->ref, &hmm_devmem_ref_release,
++			      0, GFP_KERNEL);
++	if (ret)
++		goto error_percpu_ref;
++
++	ret = devm_add_action(device, hmm_devmem_ref_exit, &devmem->ref);
++	if (ret)
++		goto error_devm_add_action;
++
++
++	devmem->pfn_first = devmem->resource->start >> PAGE_SHIFT;
++	devmem->pfn_last = devmem->pfn_first +
++			   (resource_size(devmem->resource) >> PAGE_SHIFT);
++
++	ret = hmm_devmem_pages_create(devmem);
++	if (ret)
++		goto error_devm_add_action;
++
++	devres_add(device, devmem);
++
++	ret = devm_add_action(device, hmm_devmem_ref_kill, &devmem->ref);
++	if (ret) {
++		hmm_devmem_remove(devmem);
++		return ERR_PTR(ret);
++	}
++
++	return devmem;
++
++error_devm_add_action:
++	hmm_devmem_ref_kill(&devmem->ref);
++	hmm_devmem_ref_exit(&devmem->ref);
++error_percpu_ref:
++	devres_free(devmem);
++	return ERR_PTR(ret);
 +}
++EXPORT_SYMBOL(hmm_devmem_add_resource);
 +
-+static inline unsigned long global_numa_state(enum numa_stat_item item)
-+{
-+	long x = atomic_long_read(&vm_numa_stat[item]);
-+
-+	return x;
-+}
-+
-+static inline unsigned long zone_numa_state(struct zone *zone,
-+					enum numa_stat_item item)
-+{
-+	long x = atomic_long_read(&zone->vm_numa_stat[item]);
-+
-+	return x;
-+}
-+#endif /* CONFIG_NUMA */
-+
- static inline void zone_page_state_add(long x, struct zone *zone,
- 				 enum zone_stat_item item)
+ /*
+  * hmm_devmem_remove() - remove device memory (kill and free ZONE_DEVICE)
+  *
+@@ -1082,6 +1157,7 @@ void hmm_devmem_remove(struct hmm_devmem
  {
-@@ -194,8 +219,10 @@ static inline unsigned long node_page_st
+ 	resource_size_t start, size;
+ 	struct device *device;
++	bool cdm = false;
  
+ 	if (!devmem)
+ 		return;
+@@ -1090,11 +1166,13 @@ void hmm_devmem_remove(struct hmm_devmem
+ 	start = devmem->resource->start;
+ 	size = resource_size(devmem->resource);
  
- #ifdef CONFIG_NUMA
-+extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
- extern unsigned long sum_zone_node_page_state(int node,
--						enum zone_stat_item item);
-+					      enum zone_stat_item item);
-+extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
- extern unsigned long node_page_state(struct pglist_data *pgdat,
- 						enum node_stat_item item);
- #else
-diff -puN mm/page_alloc.c~mm-change-the-call-sites-of-numa-statistics-items mm/page_alloc.c
---- a/mm/page_alloc.c~mm-change-the-call-sites-of-numa-statistics-items
-+++ a/mm/page_alloc.c
-@@ -2741,18 +2741,18 @@ int __isolate_free_page(struct page *pag
- static inline void zone_statistics(struct zone *preferred_zone, struct zone *z)
- {
- #ifdef CONFIG_NUMA
--	enum zone_stat_item local_stat = NUMA_LOCAL;
-+	enum numa_stat_item local_stat = NUMA_LOCAL;
++	cdm = devmem->resource->desc == IORES_DESC_DEVICE_PUBLIC_MEMORY;
+ 	hmm_devmem_ref_kill(&devmem->ref);
+ 	hmm_devmem_ref_exit(&devmem->ref);
+ 	hmm_devmem_pages_remove(devmem);
  
- 	if (z->node != numa_node_id())
- 		local_stat = NUMA_OTHER;
- 
- 	if (z->node == preferred_zone->node)
--		__inc_zone_state(z, NUMA_HIT);
-+		__inc_numa_state(z, NUMA_HIT);
- 	else {
--		__inc_zone_state(z, NUMA_MISS);
--		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
-+		__inc_numa_state(z, NUMA_MISS);
-+		__inc_numa_state(preferred_zone, NUMA_FOREIGN);
- 	}
--	__inc_zone_state(z, local_stat);
-+	__inc_numa_state(z, local_stat);
- #endif
+-	devm_release_mem_region(device, start, size);
++	if (!cdm)
++		devm_release_mem_region(device, start, size);
  }
+ EXPORT_SYMBOL(hmm_devmem_remove);
  
-diff -puN mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items mm/vmstat.c
---- a/mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items
-+++ a/mm/vmstat.c
-@@ -87,8 +87,10 @@ void vm_events_fold_cpu(int cpu)
-  * vm_stat contains the global counters
-  */
- atomic_long_t vm_zone_stat[NR_VM_ZONE_STAT_ITEMS] __cacheline_aligned_in_smp;
-+atomic_long_t vm_numa_stat[NR_VM_NUMA_STAT_ITEMS] __cacheline_aligned_in_smp;
- atomic_long_t vm_node_stat[NR_VM_NODE_STAT_ITEMS] __cacheline_aligned_in_smp;
- EXPORT_SYMBOL(vm_zone_stat);
-+EXPORT_SYMBOL(vm_numa_stat);
- EXPORT_SYMBOL(vm_node_stat);
- 
- #ifdef CONFIG_SMP
-@@ -192,7 +194,10 @@ void refresh_zone_stat_thresholds(void)
- 
- 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
- 							= threshold;
--
-+#ifdef CONFIG_NUMA
-+			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
-+							= threshold;
-+#endif
- 			/* Base nodestat threshold on the largest populated zone. */
- 			pgdat_threshold = per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold;
- 			per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold
-@@ -226,9 +231,14 @@ void set_pgdat_percpu_threshold(pg_data_
- 			continue;
- 
- 		threshold = (*calculate_pressure)(zone);
--		for_each_online_cpu(cpu)
-+		for_each_online_cpu(cpu) {
- 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
- 							= threshold;
-+#ifdef CONFIG_NUMA
-+			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
-+							= threshold;
-+#endif
-+		}
- 	}
- }
- 
-@@ -604,6 +614,32 @@ EXPORT_SYMBOL(dec_node_page_state);
-  * Fold a differential into the global counters.
-  * Returns the number of counters updated.
-  */
-+#ifdef CONFIG_NUMA
-+static int fold_diff(int *zone_diff, int *numa_diff, int *node_diff)
-+{
-+	int i;
-+	int changes = 0;
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (zone_diff[i]) {
-+			atomic_long_add(zone_diff[i], &vm_zone_stat[i]);
-+			changes++;
-+	}
-+
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-+		if (numa_diff[i]) {
-+			atomic_long_add(numa_diff[i], &vm_numa_stat[i]);
-+			changes++;
-+	}
-+
-+	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
-+		if (node_diff[i]) {
-+			atomic_long_add(node_diff[i], &vm_node_stat[i]);
-+			changes++;
-+	}
-+	return changes;
-+}
-+#else
- static int fold_diff(int *zone_diff, int *node_diff)
- {
- 	int i;
-@@ -622,6 +658,7 @@ static int fold_diff(int *zone_diff, int
- 	}
- 	return changes;
- }
-+#endif /* CONFIG_NUMA */
- 
- /*
-  * Update the zone counters for the current cpu.
-@@ -645,6 +682,9 @@ static int refresh_cpu_vm_stats(bool do_
- 	struct zone *zone;
- 	int i;
- 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
-+#ifdef CONFIG_NUMA
-+	int global_numa_diff[NR_VM_NUMA_STAT_ITEMS] = { 0, };
-+#endif
- 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
- 	int changes = 0;
- 
-@@ -666,6 +706,18 @@ static int refresh_cpu_vm_stats(bool do_
- 			}
- 		}
- #ifdef CONFIG_NUMA
-+		for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
-+			int v;
-+
-+			v = this_cpu_xchg(p->vm_numa_stat_diff[i], 0);
-+			if (v) {
-+
-+				atomic_long_add(v, &zone->vm_numa_stat[i]);
-+				global_numa_diff[i] += v;
-+				__this_cpu_write(p->expire, 3);
-+			}
-+		}
-+
- 		if (do_pagesets) {
- 			cond_resched();
- 			/*
-@@ -712,7 +764,12 @@ static int refresh_cpu_vm_stats(bool do_
- 		}
- 	}
- 
-+#ifdef CONFIG_NUMA
-+	changes += fold_diff(global_zone_diff, global_numa_diff,
-+			     global_node_diff);
-+#else
- 	changes += fold_diff(global_zone_diff, global_node_diff);
-+#endif
- 	return changes;
- }
- 
-@@ -727,6 +784,9 @@ void cpu_vm_stats_fold(int cpu)
- 	struct zone *zone;
- 	int i;
- 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
-+#ifdef CONFIG_NUMA
-+	int global_numa_diff[NR_VM_NUMA_STAT_ITEMS] = { 0, };
-+#endif
- 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
- 
- 	for_each_populated_zone(zone) {
-@@ -743,6 +803,18 @@ void cpu_vm_stats_fold(int cpu)
- 				atomic_long_add(v, &zone->vm_stat[i]);
- 				global_zone_diff[i] += v;
- 			}
-+
-+#ifdef CONFIG_NUMA
-+		for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-+			if (p->vm_numa_stat_diff[i]) {
-+				int v;
-+
-+				v = p->vm_numa_stat_diff[i];
-+				p->vm_numa_stat_diff[i] = 0;
-+				atomic_long_add(v, &zone->vm_numa_stat[i]);
-+				global_numa_diff[i] += v;
-+			}
-+#endif
- 	}
- 
- 	for_each_online_pgdat(pgdat) {
-@@ -761,7 +833,11 @@ void cpu_vm_stats_fold(int cpu)
- 			}
- 	}
- 
-+#ifdef CONFIG_NUMA
-+	fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
-+#else
- 	fold_diff(global_zone_diff, global_node_diff);
-+#endif
- }
- 
- /*
-@@ -779,10 +855,38 @@ void drain_zonestat(struct zone *zone, s
- 			atomic_long_add(v, &zone->vm_stat[i]);
- 			atomic_long_add(v, &vm_zone_stat[i]);
- 		}
-+
-+#ifdef CONFIG_NUMA
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-+		if (pset->vm_numa_stat_diff[i]) {
-+			int v = pset->vm_numa_stat_diff[i];
-+
-+			pset->vm_numa_stat_diff[i] = 0;
-+			atomic_long_add(v, &zone->vm_numa_stat[i]);
-+			atomic_long_add(v, &vm_numa_stat[i]);
-+		}
-+#endif
- }
- #endif
- 
- #ifdef CONFIG_NUMA
-+void __inc_numa_state(struct zone *zone,
-+				 enum numa_stat_item item)
-+{
-+	struct per_cpu_pageset __percpu *pcp = zone->pageset;
-+	s8 __percpu *p = pcp->vm_numa_stat_diff + item;
-+	s8 v, t;
-+
-+	v = __this_cpu_inc_return(*p);
-+	t = __this_cpu_read(pcp->numa_stat_threshold);
-+	if (unlikely(v > t)) {
-+		s8 overstep = t >> 1;
-+
-+		zone_numa_state_add(v + overstep, zone, item);
-+		__this_cpu_write(*p, -overstep);
-+	}
-+}
-+
- /*
-  * Determine the per node value of a stat item. This function
-  * is called frequently in a NUMA machine, so try to be as
-@@ -801,6 +905,19 @@ unsigned long sum_zone_node_page_state(i
- 	return count;
- }
- 
-+unsigned long sum_zone_numa_state(int node,
-+				 enum numa_stat_item item)
-+{
-+	struct zone *zones = NODE_DATA(node)->node_zones;
-+	int i;
-+	unsigned long count = 0;
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++)
-+		count += zone_numa_state(zones + i, item);
-+
-+	return count;
-+}
-+
- /*
-  * Determine the per node value of a stat item.
-  */
-@@ -937,6 +1054,9 @@ const char * const vmstat_text[] = {
- #if IS_ENABLED(CONFIG_ZSMALLOC)
- 	"nr_zspages",
- #endif
-+	"nr_free_cma",
-+
-+	/* enum numa_stat_item counters */
- #ifdef CONFIG_NUMA
- 	"numa_hit",
- 	"numa_miss",
-@@ -945,7 +1065,6 @@ const char * const vmstat_text[] = {
- 	"numa_local",
- 	"numa_other",
- #endif
--	"nr_free_cma",
- 
- 	/* Node-based counters */
- 	"nr_inactive_anon",
-@@ -1106,7 +1225,6 @@ const char * const vmstat_text[] = {
- };
- #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA */
- 
--
- #if (defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)) || \
-      defined(CONFIG_PROC_FS)
- static void *frag_start(struct seq_file *m, loff_t *pos)
-@@ -1384,7 +1502,8 @@ static void zoneinfo_show_print(struct s
- 		seq_printf(m, "\n  per-node stats");
- 		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
- 			seq_printf(m, "\n      %-12s %lu",
--				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
-+				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS +
-+				NR_VM_NUMA_STAT_ITEMS],
- 				node_page_state(pgdat, i));
- 		}
- 	}
-@@ -1421,6 +1540,13 @@ static void zoneinfo_show_print(struct s
- 		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
- 				zone_page_state(zone, i));
- 
-+#ifdef CONFIG_NUMA
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-+		seq_printf(m, "\n      %-12s %lu",
-+				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
-+				zone_numa_state(zone, i));
-+#endif
-+
- 	seq_printf(m, "\n  pagesets");
- 	for_each_online_cpu(i) {
- 		struct per_cpu_pageset *pageset;
-@@ -1497,6 +1623,7 @@ static void *vmstat_start(struct seq_fil
- 	if (*pos >= ARRAY_SIZE(vmstat_text))
- 		return NULL;
- 	stat_items_size = NR_VM_ZONE_STAT_ITEMS * sizeof(unsigned long) +
-+			  NR_VM_NUMA_STAT_ITEMS * sizeof(unsigned long) +
- 			  NR_VM_NODE_STAT_ITEMS * sizeof(unsigned long) +
- 			  NR_VM_WRITEBACK_STAT_ITEMS * sizeof(unsigned long);
- 
-@@ -1512,6 +1639,12 @@ static void *vmstat_start(struct seq_fil
- 		v[i] = global_zone_page_state(i);
- 	v += NR_VM_ZONE_STAT_ITEMS;
- 
-+#ifdef CONFIG_NUMA
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-+		v[i] = global_numa_state(i);
-+	v += NR_VM_NUMA_STAT_ITEMS;
-+#endif
-+
- 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
- 		v[i] = global_node_page_state(i);
- 	v += NR_VM_NODE_STAT_ITEMS;
-@@ -1613,6 +1746,16 @@ int vmstat_refresh(struct ctl_table *tab
- 			err = -EINVAL;
- 		}
- 	}
-+#ifdef CONFIG_NUMA
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
-+		val = atomic_long_read(&vm_numa_stat[i]);
-+		if (val < 0) {
-+			pr_warn("%s: %s %ld\n",
-+				__func__, vmstat_text[i + NR_VM_ZONE_STAT_ITEMS], val);
-+			err = -EINVAL;
-+		}
-+	}
-+#endif
- 	if (err)
- 		return err;
- 	if (write)
-@@ -1654,13 +1797,19 @@ static bool need_update(int cpu)
- 		struct per_cpu_pageset *p = per_cpu_ptr(zone->pageset, cpu);
- 
- 		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
-+#ifdef CONFIG_NUMA
-+		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 1);
-+#endif
- 		/*
- 		 * The fast way of checking if there are any vmstat diffs.
- 		 * This works because the diffs are byte sized items.
- 		 */
- 		if (memchr_inv(p->vm_stat_diff, 0, NR_VM_ZONE_STAT_ITEMS))
- 			return true;
+_
