@@ -1,153 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [patch 079/126] fs/epoll: use faster rb_first_cached()
-Date: Fri, 08 Sep 2017 16:15:18 -0700
-Message-ID: <20170908231518.zeQWCchci%akpm@linux-foundation.org>
+Subject: [patch 084/126] lib/bitmap.c: make bitmap_parselist()
+ thread-safe and much faster
+Date: Fri, 08 Sep 2017 16:15:34 -0700
+Message-ID: <20170908231534.Y06VOF1Oj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXPT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:19 -0400
+        with ESMTP id S1753026AbdIHXPg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, mm-commits@vger.kernel.org, noamca@mellanox.com, torvalds@linux-foundation.org, ynorov@caviumnetworks.com
 
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: fs/epoll: use faster rb_first_cached()
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
 
-...  such that we can avoid the tree walks to get the node with the
-smallest key.  Semantically the same, as the previously used rb_first(),
-but O(1).  The main overhead is the extra footprint for the cached rb_node
-pointer, which should not matter for epoll.
+Current implementation of bitmap_parselist() uses a static variable to
+save local state while setting bits in the bitmap.  It is obviously wrong
+if we assume execution in multiprocessor environment.  Fortunately, it's
+possible to rewrite this portion of code to avoid using the static
+variable.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-15-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
+It is also possible to set bits in the mask per-range with bitmap_set(),
+not per-bit, as it is implemented now, with set_bit(); which is way
+faster.
+
+The important side effect of this change is that setting bits in this
+function from now is not per-bit atomic and less memory-ordered.  This is
+because set_bit() guarantees the order of memory accesses, while
+bitmap_set() does not.  I think that it is the advantage of the new
+approach, because the bitmap_parselist() is intended to initialise bit
+arrays, and user should protect the whole bitmap during initialisation if
+needed.  So protecting individual bits looks expensive and useless.  Also,
+other range-oriented functions in lib/bitmap.c don't worry much about
+atomicity.
+
+With all that, setting 2k bits in map with the pattern like 0-2047:128/256
+becomes ~50 times faster after applying the patch in my testing
+environment (arm64 hosted on qemu).
+
+The second patch of the series adds the test for bitmap_parselist().  It's
+not intended to cover all tricky cases, just to make sure that I didn't
+screw up during rework.
+
+Link: http://lkml.kernel.org/r/20170807225438.16161-1-ynorov@caviumnetworks.com
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Noam Camus <noamca@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ lib/bitmap.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached fs/eventpoll.c
---- a/fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached
-+++ a/fs/eventpoll.c
-@@ -205,7 +205,7 @@ struct eventpoll {
- 	struct list_head rdllist;
- 
- 	/* RB tree root used to store monitored fd structs */
--	struct rb_root rbr;
-+	struct rb_root_cached rbr;
- 
- 	/*
- 	 * This is a single linked list that chains all the "struct epitem" that
-@@ -796,7 +796,7 @@ static int ep_remove(struct eventpoll *e
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&file->f_lock);
- 
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
- 
- 	spin_lock_irqsave(&ep->lock, flags);
- 	if (ep_is_linked(&epi->rdllink))
-@@ -840,7 +840,7 @@ static void ep_free(struct eventpoll *ep
- 	/*
- 	 * Walks through the whole tree by unregistering poll callbacks.
- 	 */
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 
- 		ep_unregister_pollwait(ep, epi);
-@@ -856,7 +856,7 @@ static void ep_free(struct eventpoll *ep
- 	 * a lockdep warning.
- 	 */
- 	mutex_lock(&ep->mtx);
--	while ((rbp = rb_first(&ep->rbr)) != NULL) {
-+	while ((rbp = rb_first_cached(&ep->rbr)) != NULL) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		ep_remove(ep, epi);
- 		cond_resched();
-@@ -963,7 +963,7 @@ static void ep_show_fdinfo(struct seq_fi
- 	struct rb_node *rbp;
- 
- 	mutex_lock(&ep->mtx);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
- 		struct inode *inode = file_inode(epi->ffd.file);
- 
-@@ -1040,7 +1040,7 @@ static int ep_alloc(struct eventpoll **p
- 	init_waitqueue_head(&ep->wq);
- 	init_waitqueue_head(&ep->poll_wait);
- 	INIT_LIST_HEAD(&ep->rdllist);
--	ep->rbr = RB_ROOT;
-+	ep->rbr = RB_ROOT_CACHED;
- 	ep->ovflist = EP_UNACTIVE_PTR;
- 	ep->user = user;
- 
-@@ -1066,7 +1066,7 @@ static struct epitem *ep_find(struct eve
- 	struct epoll_filefd ffd;
- 
- 	ep_set_ffd(&ffd, file, fd);
--	for (rbp = ep->rbr.rb_node; rbp; ) {
-+	for (rbp = ep->rbr.rb_root.rb_node; rbp; ) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&ffd, &epi->ffd);
- 		if (kcmp > 0)
-@@ -1088,7 +1088,7 @@ static struct epitem *ep_find_tfd(struct
- 	struct rb_node *rbp;
- 	struct epitem *epi;
- 
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (epi->ffd.fd == tfd) {
- 			if (toff == 0)
-@@ -1273,20 +1273,22 @@ static void ep_ptable_queue_proc(struct
- static void ep_rbtree_insert(struct eventpoll *ep, struct epitem *epi)
+diff -puN lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster lib/bitmap.c
+--- a/lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster
++++ a/lib/bitmap.c
+@@ -513,7 +513,7 @@ static int __bitmap_parselist(const char
+ 		int nmaskbits)
  {
- 	int kcmp;
--	struct rb_node **p = &ep->rbr.rb_node, *parent = NULL;
-+	struct rb_node **p = &ep->rbr.rb_root.rb_node, *parent = NULL;
- 	struct epitem *epic;
-+	bool leftmost = true;
- 
- 	while (*p) {
- 		parent = *p;
- 		epic = rb_entry(parent, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&epi->ffd, &epic->ffd);
--		if (kcmp > 0)
-+		if (kcmp > 0) {
- 			p = &parent->rb_right;
--		else
-+			leftmost = false;
-+		} else
- 			p = &parent->rb_left;
- 	}
- 	rb_link_node(&epi->rbn, parent, p);
--	rb_insert_color(&epi->rbn, &ep->rbr);
-+	rb_insert_color_cached(&epi->rbn, &ep->rbr, leftmost);
- }
- 
- 
-@@ -1530,7 +1532,7 @@ error_remove_epi:
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&tfile->f_lock);
- 
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
- 
- error_unregister:
- 	ep_unregister_pollwait(ep, epi);
-@@ -1878,7 +1880,7 @@ static int ep_loop_check_proc(void *priv
- 	mutex_lock_nested(&ep->mtx, call_nests + 1);
- 	ep->visited = 1;
- 	list_add(&ep->visited_list_link, &visited_list);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (unlikely(is_file_epoll(epi->ffd.file))) {
- 			ep_tovisit = epi->ffd.file->private_data;
-_
+ 	unsigned int a, b, old_a, old_b;
+-	unsigned int group_size, used_size;
++	unsigned int group_size, used_size, off;
+ 	int c, old_c, totaldigits, ndigits;
+ 	const char __user __force *ubuf = (const char __user __force *)buf;
+ 	int at_start, in_range, in_partial_range;
+@@ -599,6 +599,8 @@ static int __bitmap_parselist(const char
+ 			a = old_a;
+ 			b = old_b;
+ 			old_a = old_b = 0;
++		} else {
++			used_size = group_size = b - a + 1;
+ 		}
+ 		/* if no digit is after '-', it's wrong*/
+ 		if (at_start && in_range)
+@@ -608,17 +610,9 @@ static int __bitmap_parselist(const char
+ 		if (b >= nmaskbits)
+ 			return -ERANGE;
+ 		while (a <= b) {
+-			if (in_partial_range) {
+-				static int pos_in_group = 1;
+-
+-				if (pos_in_group <= used_size)
+-					set_bit(a, maskp);
