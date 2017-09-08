@@ -1,60 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [patch 042/126] mm/memory.c: fix mem_cgroup_oom_disable()
- call missing
-Date: Fri, 08 Sep 2017 16:13:12 -0700
-Message-ID: <20170908231312.sdIneZtaO%akpm__12931.5735925504$1504912400$gmane$org@linux-foundation.org>
+Subject: [patch 044/126] tools/testing/selftests/kcmp/kcmp_test.c:
+ add KCMP_EPOLL_TFD testing
+Date: Fri, 08 Sep 2017 16:13:19 -0700
+Message-ID: <20170908231319.nqzpkh-xv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52096 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXNN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:13 -0400
+        with ESMTP id S1757173AbdIHXNU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill@shutemov.name, ldufour@linux.vnet.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, avagin@openvz.org, gorcunov@gmail.com, gorcunov@openvz.org, mm-commits@vger.kernel.org, mtk.manpages@gmail.com, shuah@kernel.org, torvalds@linux-foundation.org, xemul@virtuozzo.com
 
-From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Subject: mm/memory.c: fix mem_cgroup_oom_disable() call missing
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: tools/testing/selftests/kcmp/kcmp_test.c: add KCMP_EPOLL_TFD testing
 
-Seen while reading the code, in handle_mm_fault(), in the case
-arch_vma_access_permitted() is failing the call to
-mem_cgroup_oom_disable() is not made.
+KCMP's KCMP_EPOLL_TFD mode merged in commit 0791e3644e5ef2 ("kcmp: add
+KCMP_EPOLL_TFD mode to compare epoll target files") we've had no selftest
+for it yet (except in criu development list).  Thus add it.
 
-To fix that, move the call to mem_cgroup_oom_enable() after calling
-arch_vma_access_permitted() as it should not have entered the memcg OOM.
-
-Link: http://lkml.kernel.org/r/1504625439-31313-1-git-send-email-ldufour@linux.vnet.ibm.com
-Fixes: bae473a423f6 ("mm: introduce fault_env")
-Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170901151620.GK1898@uranus.lan
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ tools/testing/selftests/kcmp/kcmp_test.c |   60 ++++++++++++++++++++-
+ 1 file changed, 58 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-mem_cgroup_oom_disable-call-missing mm/memory.c
---- a/mm/memory.c~mm-fix-mem_cgroup_oom_disable-call-missing
-+++ a/mm/memory.c
-@@ -4053,6 +4053,11 @@ int handle_mm_fault(struct vm_area_struc
- 	/* do counter updates before entering really critical section. */
- 	check_sync_rss_stat(current);
+diff -puN tools/testing/selftests/kcmp/kcmp_test.c~toolsselftest-kcmp-add-kcmp_epoll_tfd-testing tools/testing/selftests/kcmp/kcmp_test.c
+--- a/tools/testing/selftests/kcmp/kcmp_test.c~toolsselftest-kcmp-add-kcmp_epoll_tfd-testing
++++ a/tools/testing/selftests/kcmp/kcmp_test.c
+@@ -8,7 +8,6 @@
+ #include <errno.h>
+ #include <string.h>
+ #include <fcntl.h>
+-
+ #include <linux/unistd.h>
+ #include <linux/kcmp.h>
  
-+	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
-+					    flags & FAULT_FLAG_INSTRUCTION,
-+					    flags & FAULT_FLAG_REMOTE))
-+		return VM_FAULT_SIGSEGV;
+@@ -16,20 +15,28 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/wait.h>
++#include <sys/epoll.h>
+ 
+ #include "../kselftest.h"
+ 
+-static long sys_kcmp(int pid1, int pid2, int type, int fd1, int fd2)
++static long sys_kcmp(int pid1, int pid2, int type, unsigned long fd1, unsigned long fd2)
+ {
+ 	return syscall(__NR_kcmp, pid1, pid2, type, fd1, fd2);
+ }
+ 
++static const unsigned int duped_num = 64;
 +
- 	/*
- 	 * Enable the memcg OOM handling for faults triggered in user
- 	 * space.  Kernel faults are handled more gracefully.
-@@ -4060,11 +4065,6 @@ int handle_mm_fault(struct vm_area_struc
- 	if (flags & FAULT_FLAG_USER)
- 		mem_cgroup_oom_enable();
+ int main(int argc, char **argv)
+ {
+ 	const char kpath[] = "kcmp-test-file";
++	struct kcmp_epoll_slot epoll_slot;
++	struct epoll_event ev;
+ 	int pid1, pid2;
++	int pipefd[2];
+ 	int fd1, fd2;
++	int epollfd;
+ 	int status;
++	int fddup;
  
--	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
--					    flags & FAULT_FLAG_INSTRUCTION,
--					    flags & FAULT_FLAG_REMOTE))
--		return VM_FAULT_SIGSEGV;
+ 	fd1 = open(kpath, O_RDWR | O_CREAT | O_TRUNC, 0644);
+ 	pid1 = getpid();
+@@ -39,6 +46,37 @@ int main(int argc, char **argv)
+ 		ksft_exit_fail();
+ 	}
+ 
++	if (pipe(pipefd)) {
++		perror("Can't create pipe");
++		ksft_exit_fail();
++	}
++
++	epollfd = epoll_create1(0);
++	if (epollfd < 0) {
++		perror("epoll_create1 failed");
++		ksft_exit_fail();
++	}
++
++	memset(&ev, 0xff, sizeof(ev));
++	ev.events = EPOLLIN | EPOLLOUT;
++
++	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, pipefd[0], &ev)) {
++		perror("epoll_ctl failed");
++		ksft_exit_fail();
++	}
++
++	fddup = dup2(pipefd[1], duped_num);
++	if (fddup < 0) {
++		perror("dup2 failed");
++		ksft_exit_fail();
++	}
++
++	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fddup, &ev)) {
++		perror("epoll_ctl failed");
++		ksft_exit_fail();
++	}
++	close(fddup);
++
+ 	pid2 = fork();
+ 	if (pid2 < 0) {
+ 		perror("fork failed");
+@@ -88,6 +126,24 @@ int main(int argc, char **argv)
+ 		if (ret) {
+ 			printf("FAIL: 0 expected but %d returned (%s)\n",
+ 				ret, strerror(errno));
++			ksft_inc_fail_cnt();
++			ret = -1;
++		} else {
++			printf("PASS: 0 returned as expected\n");
++			ksft_inc_pass_cnt();
++		}
++
++		/* Compare epoll target */
++		epoll_slot = (struct kcmp_epoll_slot) {
++			.efd	= epollfd,
++			.tfd	= duped_num,
++			.toff	= 0,
++		};
++		ret = sys_kcmp(pid1, pid1, KCMP_EPOLL_TFD, pipefd[1],
++			       (unsigned long)(void *)&epoll_slot);
++		if (ret) {
++			printf("FAIL: 0 expected but %d returned (%s)\n",
++				ret, strerror(errno));
+ 			ksft_inc_fail_cnt();
+ 			ret = -1;
+ 		} else {
+_
