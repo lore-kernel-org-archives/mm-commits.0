@@ -1,117 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [patch 080/126] mem/memcg: cache rightmost node
-Date: Fri, 08 Sep 2017 16:15:21 -0700
-Message-ID: <20170908231521.q5T11QqF8%akpm@linux-foundation.org>
+Subject: [patch 083/126] lib: add test module for
+ CONFIG_DEBUG_VIRTUAL
+Date: Fri, 08 Sep 2017 16:15:31 -0700
+Message-ID: <20170908231531.esqDvFPoZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXPX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:23 -0400
+        with ESMTP id S1753026AbdIHXPc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, f.fainelli@gmail.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mem/memcg: cache rightmost node
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
 
-Such that we can optimize __mem_cgroup_largest_soft_limit_node().  The
-only overhead is the extra footprint for the cached pointer, but this
-should not be an issue for mem_cgroup_tree_per_node.
+Add a test module that allows testing that CONFIG_DEBUG_VIRTUAL works
+correctly, at least that it can catch invalid calls to virt_to_phys()
+against the non-linear kernel virtual address map.
 
-[dave@stgolabs.net: brain fart #2]
-  Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
-Link: http://lkml.kernel.org/r/20170719014603.19029-17-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/20170808164035.26725-1-f.fainelli@gmail.com
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ lib/Kconfig.debug        |   11 ++++++++
+ lib/Makefile             |    1 
+ lib/test_debug_virtual.c |   49 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 61 insertions(+)
 
-diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node mm/memcontrol.c
---- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node
-+++ a/mm/memcontrol.c
-@@ -119,6 +119,7 @@ static const char *const mem_cgroup_lru_
+diff -puN lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual
++++ a/lib/Kconfig.debug
+@@ -1930,6 +1930,17 @@ config TEST_KMOD
  
- struct mem_cgroup_tree_per_node {
- 	struct rb_root rb_root;
-+	struct rb_node *rb_rightmost;
- 	spinlock_t lock;
- };
+ 	  If unsure, say N.
  
-@@ -386,6 +387,7 @@ static void __mem_cgroup_insert_exceeded
- 	struct rb_node **p = &mctz->rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct mem_cgroup_per_node *mz_node;
-+	bool rightmost = true;
- 
- 	if (mz->on_tree)
- 		return;
-@@ -397,8 +399,11 @@ static void __mem_cgroup_insert_exceeded
- 		parent = *p;
- 		mz_node = rb_entry(parent, struct mem_cgroup_per_node,
- 					tree_node);
--		if (mz->usage_in_excess < mz_node->usage_in_excess)
-+		if (mz->usage_in_excess < mz_node->usage_in_excess) {
- 			p = &(*p)->rb_left;
-+			rightmost = false;
-+		}
++config TEST_DEBUG_VIRTUAL
++	tristate "Test CONFIG_DEBUG_VIRTUAL feature"
++	depends on DEBUG_VIRTUAL
++	help
++	  Test the kernel's ability to detect incorrect calls to
++	  virt_to_phys() done against the non-linear part of the
++	  kernel's virtual address map.
 +
- 		/*
- 		 * We can't avoid mem cgroups that are over their soft
- 		 * limit by the same amount
-@@ -406,6 +411,10 @@ static void __mem_cgroup_insert_exceeded
- 		else if (mz->usage_in_excess >= mz_node->usage_in_excess)
- 			p = &(*p)->rb_right;
- 	}
++	  If unsure, say N.
 +
-+	if (rightmost)
-+		mctz->rb_rightmost = &mz->tree_node;
 +
- 	rb_link_node(&mz->tree_node, parent, p);
- 	rb_insert_color(&mz->tree_node, &mctz->rb_root);
- 	mz->on_tree = true;
-@@ -416,6 +425,10 @@ static void __mem_cgroup_remove_exceeded
- {
- 	if (!mz->on_tree)
- 		return;
-+
-+	if (&mz->tree_node == mctz->rb_rightmost)
-+		mctz->rb_rightmost = rb_prev(&mz->tree_node);
-+
- 	rb_erase(&mz->tree_node, &mctz->rb_root);
- 	mz->on_tree = false;
- }
-@@ -496,16 +509,15 @@ static void mem_cgroup_remove_from_trees
- static struct mem_cgroup_per_node *
- __mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_node *mctz)
- {
--	struct rb_node *rightmost = NULL;
- 	struct mem_cgroup_per_node *mz;
+ source "samples/Kconfig"
  
- retry:
- 	mz = NULL;
--	rightmost = rb_last(&mctz->rb_root);
--	if (!rightmost)
-+	if (!mctz->rb_rightmost)
- 		goto done;		/* Nothing to reclaim from */
+ source "lib/Kconfig.kgdb"
+diff -puN lib/Makefile~lib-add-test-module-for-config_debug_virtual lib/Makefile
+--- a/lib/Makefile~lib-add-test-module-for-config_debug_virtual
++++ a/lib/Makefile
+@@ -62,6 +62,7 @@ obj-$(CONFIG_TEST_BITMAP) += test_bitmap
+ obj-$(CONFIG_TEST_UUID) += test_uuid.o
+ obj-$(CONFIG_TEST_PARMAN) += test_parman.o
+ obj-$(CONFIG_TEST_KMOD) += test_kmod.o
++obj-$(CONFIG_TEST_DEBUG_VIRTUAL) += test_debug_virtual.o
  
--	mz = rb_entry(rightmost, struct mem_cgroup_per_node, tree_node);
-+	mz = rb_entry(mctz->rb_rightmost,
-+		      struct mem_cgroup_per_node, tree_node);
- 	/*
- 	 * Remove the node now but someone else can add it back,
- 	 * we will to add it back at the end of reclaim to its correct
-@@ -5945,6 +5957,7 @@ static int __init mem_cgroup_init(void)
- 				    node_online(node) ? node : NUMA_NO_NODE);
- 
- 		rtpn->rb_root = RB_ROOT;
-+		rtpn->rb_rightmost = NULL;
- 		spin_lock_init(&rtpn->lock);
- 		soft_limit_tree.rb_tree_per_node[node] = rtpn;
- 	}
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN /dev/null lib/test_debug_virtual.c
+--- /dev/null
++++ a/lib/test_debug_virtual.c
+@@ -0,0 +1,49 @@
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/export.h>
++#include <linux/mm.h>
++#include <linux/vmalloc.h>
++#include <linux/slab.h>
++#include <linux/sizes.h>
++
++#include <asm/page.h>
++#ifdef CONFIG_MIPS
++#include <asm/bootinfo.h>
++#endif
++
++struct foo {
++	unsigned int bar;
++};
++
++struct foo *foo;
++
++static int __init test_debug_virtual_init(void)
++{
++	phys_addr_t pa;
++	void *va;
++
++	va = (void *)VMALLOC_START;
++	pa = virt_to_phys(va);
++
++	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
++
++	foo = kzalloc(sizeof(*foo), GFP_KERNEL);
++	if (!foo)
++		return -ENOMEM;
++
++	pa = virt_to_phys(foo);
++	va = foo;
++	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
++
++	return 0;
++}
++module_init(test_debug_virtual_init);
++
++static void __exit test_debug_virtual_exit(void)
++{
++	kfree(foo);
++}
++module_exit(test_debug_virtual_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Test module for CONFIG_DEBUG_VIRTUAL");
 _
