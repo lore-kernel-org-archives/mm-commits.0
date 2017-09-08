@@ -1,210 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [patch 112/126] kmod: split off umh headers into its own
- file
-Date: Fri, 08 Sep 2017 16:17:08 -0700
-Message-ID: <20170908231708.UqmRSYaEA%akpm@linux-foundation.org>
+Subject: [patch 118/126] mn10300: defconfig: cleanup from old
+ Kconfig options
+Date: Fri, 08 Sep 2017 16:17:28 -0700
+Message-ID: <20170908231728.p-BGLtly4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53772 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752999AbdIHXRK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:17:10 -0400
+        with ESMTP id S932521AbdIHXRa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:17:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, gregkh@linuxfoundation.org, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, linux@roeck-us.net, matt.redfearn@imgtec.com, mbenes@suse.cz, mcgrof@kernel.org, mm-commits@vger.kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, krzk@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kmod: split off umh headers into its own file
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: mn10300: defconfig: cleanup from old Kconfig options
 
-In the future usermode helper users do not need to carry in all the of
-kmod headers declarations.
+Remove old, dead Kconfig options (in order appearing in this commit):
+ - EXPERIMENTAL is gone since v3.9;
+ - INET_LRO: commit 7bbf3cae65b6 ("ipv4: Remove inet_lro library");
+ - MTD_PARTITIONS: commit 6a8a98b22b10 ("mtd: kill
+   CONFIG_MTD_PARTITIONS");
+ - MTD_CHAR: commit 660685d9d1b4 ("mtd: merge mtdchar module with
+   mtdcore");
+ - NETDEV_1000 and NETDEV_10000: commit f860b0522f65 ("drivers/net:
+   Kconfig and Makefile cleanup"); NET_ETHERNET should be replaced with
+   just ETHERNET but that is separate change;
+ - HID_SUPPORT: commit 1f41a6a99476 ("HID: Fix the generic Kconfig
+   options");
+ - RCU_CPU_STALL_DETECTOR: commit a00e0d714fbd ("rcu: Remove conditional
+   compilation for RCU CPU stall warnings");
 
-Since kmod.h still includes umh.h this change has no functional changes,
-each umh user can be cleaned up separately later and with time.
-
-Link: http://lkml.kernel.org/r/20170810180618.22457-4-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Matt Redfearn <matt.redfearn@imgtec.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Daniel Mentz <danielmentz@google.com>
-Cc: David Binderman <dcb314@hotmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: http://lkml.kernel.org/r/1500526786-3789-1-git-send-email-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS          |    1 
- include/linux/kmod.h |   60 -----------------------------------
- include/linux/umh.h  |   69 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 71 insertions(+), 59 deletions(-)
+ arch/mn10300/configs/asb2303_defconfig |    6 ------
+ arch/mn10300/configs/asb2364_defconfig |    8 --------
+ 2 files changed, 14 deletions(-)
 
-diff -puN MAINTAINERS~kmod-split-off-umh-headers-into-its-own-file MAINTAINERS
---- a/MAINTAINERS~kmod-split-off-umh-headers-into-its-own-file
-+++ a/MAINTAINERS
-@@ -7462,6 +7462,7 @@ M:	"Luis R. Rodriguez" <mcgrof@kernel.or
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	kernel/umh.c
-+F:	include/linux/umh.h
- 
- KERNEL VIRTUAL MACHINE (KVM)
- M:	Paolo Bonzini <pbonzini@redhat.com>
-diff -puN include/linux/kmod.h~kmod-split-off-umh-headers-into-its-own-file include/linux/kmod.h
---- a/include/linux/kmod.h~kmod-split-off-umh-headers-into-its-own-file
-+++ a/include/linux/kmod.h
-@@ -19,6 +19,7 @@
-  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#include <linux/umh.h>
- #include <linux/gfp.h>
- #include <linux/stddef.h>
- #include <linux/errno.h>
-@@ -44,63 +45,4 @@ static inline int request_module_nowait(
- #define try_then_request_module(x, mod...) (x)
- #endif
- 
--
--struct cred;
--struct file;
--
--#define UMH_NO_WAIT	0	/* don't wait at all */
--#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
--#define UMH_WAIT_PROC	2	/* wait for the process to complete */
--#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
--
--struct subprocess_info {
--	struct work_struct work;
--	struct completion *complete;
--	const char *path;
--	char **argv;
--	char **envp;
--	int wait;
--	int retval;
--	int (*init)(struct subprocess_info *info, struct cred *new);
--	void (*cleanup)(struct subprocess_info *info);
--	void *data;
--} __randomize_layout;
--
--extern int
--call_usermodehelper(const char *path, char **argv, char **envp, int wait);
--
--extern struct subprocess_info *
--call_usermodehelper_setup(const char *path, char **argv, char **envp,
--			  gfp_t gfp_mask,
--			  int (*init)(struct subprocess_info *info, struct cred *new),
--			  void (*cleanup)(struct subprocess_info *), void *data);
--
--extern int
--call_usermodehelper_exec(struct subprocess_info *info, int wait);
--
--extern struct ctl_table usermodehelper_table[];
--
--enum umh_disable_depth {
--	UMH_ENABLED = 0,
--	UMH_FREEZING,
--	UMH_DISABLED,
--};
--
--extern int __usermodehelper_disable(enum umh_disable_depth depth);
--extern void __usermodehelper_set_disable_depth(enum umh_disable_depth depth);
--
--static inline int usermodehelper_disable(void)
--{
--	return __usermodehelper_disable(UMH_DISABLED);
--}
--
--static inline void usermodehelper_enable(void)
--{
--	__usermodehelper_set_disable_depth(UMH_ENABLED);
--}
--
--extern int usermodehelper_read_trylock(void);
--extern long usermodehelper_read_lock_wait(long timeout);
--extern void usermodehelper_read_unlock(void);
--
- #endif /* __LINUX_KMOD_H__ */
-diff -puN /dev/null include/linux/umh.h
---- /dev/null
-+++ a/include/linux/umh.h
-@@ -0,0 +1,69 @@
-+#ifndef __LINUX_UMH_H__
-+#define __LINUX_UMH_H__
-+
-+#include <linux/gfp.h>
-+#include <linux/stddef.h>
-+#include <linux/errno.h>
-+#include <linux/compiler.h>
-+#include <linux/workqueue.h>
-+#include <linux/sysctl.h>
-+
-+struct cred;
-+struct file;
-+
-+#define UMH_NO_WAIT	0	/* don't wait at all */
-+#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
-+#define UMH_WAIT_PROC	2	/* wait for the process to complete */
-+#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
-+
-+struct subprocess_info {
-+	struct work_struct work;
-+	struct completion *complete;
-+	const char *path;
-+	char **argv;
-+	char **envp;
-+	int wait;
-+	int retval;
-+	int (*init)(struct subprocess_info *info, struct cred *new);
-+	void (*cleanup)(struct subprocess_info *info);
-+	void *data;
-+} __randomize_layout;
-+
-+extern int
-+call_usermodehelper(const char *path, char **argv, char **envp, int wait);
-+
-+extern struct subprocess_info *
-+call_usermodehelper_setup(const char *path, char **argv, char **envp,
-+			  gfp_t gfp_mask,
-+			  int (*init)(struct subprocess_info *info, struct cred *new),
-+			  void (*cleanup)(struct subprocess_info *), void *data);
-+
-+extern int
-+call_usermodehelper_exec(struct subprocess_info *info, int wait);
-+
-+extern struct ctl_table usermodehelper_table[];
-+
-+enum umh_disable_depth {
-+	UMH_ENABLED = 0,
-+	UMH_FREEZING,
-+	UMH_DISABLED,
-+};
-+
-+extern int __usermodehelper_disable(enum umh_disable_depth depth);
-+extern void __usermodehelper_set_disable_depth(enum umh_disable_depth depth);
-+
-+static inline int usermodehelper_disable(void)
-+{
-+	return __usermodehelper_disable(UMH_DISABLED);
-+}
-+
-+static inline void usermodehelper_enable(void)
-+{
-+	__usermodehelper_set_disable_depth(UMH_ENABLED);
-+}
-+
-+extern int usermodehelper_read_trylock(void);
-+extern long usermodehelper_read_lock_wait(long timeout);
-+extern void usermodehelper_read_unlock(void);
-+
-+#endif /* __LINUX_UMH_H__ */
+diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options arch/mn10300/configs/asb2303_defconfig
+--- a/arch/mn10300/configs/asb2303_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/mn10300/configs/asb2303_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_TINY_RCU=y
+@@ -28,16 +27,13 @@ CONFIG_IP_PNP_BOOTP=y
+ # CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+ # CONFIG_INET_XFRM_MODE_TUNNEL is not set
+ # CONFIG_INET_XFRM_MODE_BEET is not set
+-# CONFIG_INET_LRO is not set
+ # CONFIG_INET_DIAG is not set
+ # CONFIG_IPV6 is not set
+ # CONFIG_WIRELESS is not set
+ CONFIG_MTD=y
+ CONFIG_MTD_DEBUG=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_CFI=y
+ CONFIG_MTD_JEDECPROBE=y
+ CONFIG_MTD_CFI_ADV_OPTIONS=y
+@@ -48,8 +44,6 @@ CONFIG_MTD_PHYSMAP=y
+ CONFIG_NETDEVICES=y
+ CONFIG_NET_ETHERNET=y
+ CONFIG_SMC91X=y
+-# CONFIG_NETDEV_1000 is not set
+-# CONFIG_NETDEV_10000 is not set
+ # CONFIG_WLAN is not set
+ # CONFIG_INPUT is not set
+ # CONFIG_SERIO is not set
+diff -puN arch/mn10300/configs/asb2364_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options arch/mn10300/configs/asb2364_defconfig
+--- a/arch/mn10300/configs/asb2364_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/mn10300/configs/asb2364_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+ CONFIG_BSD_PROCESS_ACCT=y
+@@ -40,7 +39,6 @@ CONFIG_IP_PNP_BOOTP=y
+ # CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+ # CONFIG_INET_XFRM_MODE_TUNNEL is not set
+ # CONFIG_INET_XFRM_MODE_BEET is not set
+-# CONFIG_INET_LRO is not set
+ # CONFIG_INET_DIAG is not set
+ CONFIG_IPV6=y
+ # CONFIG_INET6_XFRM_MODE_TRANSPORT is not set
+@@ -50,10 +48,8 @@ CONFIG_IPV6=y
+ CONFIG_CONNECTOR=y
+ CONFIG_MTD=y
+ CONFIG_MTD_DEBUG=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_CFI=y
+ CONFIG_MTD_JEDECPROBE=y
+ CONFIG_MTD_CFI_ADV_OPTIONS=y
+@@ -64,8 +60,6 @@ CONFIG_MTD_PHYSMAP=y
+ CONFIG_NETDEVICES=y
+ CONFIG_NET_ETHERNET=y
+ CONFIG_SMSC911X=y
+-# CONFIG_NETDEV_1000 is not set
+-# CONFIG_NETDEV_10000 is not set
+ # CONFIG_INPUT_MOUSEDEV is not set
+ # CONFIG_INPUT_KEYBOARD is not set
+ # CONFIG_INPUT_MOUSE is not set
+@@ -77,7 +71,6 @@ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+ # CONFIG_HW_RANDOM is not set
+ # CONFIG_HWMON is not set
+-# CONFIG_HID_SUPPORT is not set
+ # CONFIG_USB_SUPPORT is not set
+ CONFIG_PROC_KCORE=y
+ # CONFIG_PROC_PAGE_MONITOR is not set
+@@ -93,4 +86,3 @@ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+ CONFIG_DEBUG_INFO=y
+-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
 _
