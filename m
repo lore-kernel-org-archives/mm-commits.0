@@ -1,223 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [patch 075/126] block/cfq: replace cfq_rb_root leftmost
- caching
-Date: Fri, 08 Sep 2017 16:15:05 -0700
-Message-ID: <20170908231505.jDA7EtPVH%akpm@linux-foundation.org>
+Subject: [patch 072/126] sched/fair: replace cfs_rq->rb_leftmost
+Date: Fri, 08 Sep 2017 16:14:55 -0700
+Message-ID: <20170908231455.cmW7TaYLd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52888 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52834 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757289AbdIHXPG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:06 -0400
+        with ESMTP id S1753026AbdIHXO4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@fb.com, dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
 
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: block/cfq: replace cfq_rb_root leftmost caching
+Subject: sched/fair: replace cfs_rq->rb_leftmost
 
 ... with the generic rbtree flavor instead. No changes
 in semantics whatsoever.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-11-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-8-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |   70 ++++++++++++------------------------------
- 1 file changed, 20 insertions(+), 50 deletions(-)
+ kernel/sched/debug.c |    2 +-
+ kernel/sched/fair.c  |   39 +++++++++++++--------------------------
+ kernel/sched/sched.h |    3 +--
+ 3 files changed, 15 insertions(+), 29 deletions(-)
 
-diff -puN block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching block/cfq-iosched.c
---- a/block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching
-+++ a/block/cfq-iosched.c
-@@ -93,13 +93,12 @@ struct cfq_ttime {
-  * move this into the elevator for the rq sorting as well.
+diff -puN kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/debug.c
+--- a/kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/debug.c
+@@ -530,7 +530,7 @@ void print_cfs_rq(struct seq_file *m, in
+ 			SPLIT_NS(cfs_rq->exec_clock));
+ 
+ 	raw_spin_lock_irqsave(&rq->lock, flags);
+-	if (cfs_rq->rb_leftmost)
++	if (rb_first_cached(&cfs_rq->tasks_timeline))
+ 		MIN_vruntime = (__pick_first_entity(cfs_rq))->vruntime;
+ 	last = __pick_last_entity(cfs_rq);
+ 	if (last)
+diff -puN kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/fair.c
+@@ -513,6 +513,7 @@ static inline int entity_before(struct s
+ static void update_min_vruntime(struct cfs_rq *cfs_rq)
+ {
+ 	struct sched_entity *curr = cfs_rq->curr;
++	struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
+ 
+ 	u64 vruntime = cfs_rq->min_vruntime;
+ 
+@@ -523,10 +524,9 @@ static void update_min_vruntime(struct c
+ 			curr = NULL;
+ 	}
+ 
+-	if (cfs_rq->rb_leftmost) {
+-		struct sched_entity *se = rb_entry(cfs_rq->rb_leftmost,
+-						   struct sched_entity,
+-						   run_node);
++	if (leftmost) { /* non-empty tree */
++		struct sched_entity *se;
++		se = rb_entry(leftmost, struct sched_entity, run_node);
+ 
+ 		if (!curr)
+ 			vruntime = se->vruntime;
+@@ -547,10 +547,10 @@ static void update_min_vruntime(struct c
   */
- struct cfq_rb_root {
--	struct rb_root rb;
--	struct rb_node *left;
-+	struct rb_root_cached rb;
- 	unsigned count;
- 	u64 min_vdisktime;
- 	struct cfq_ttime ttime;
- };
--#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT, \
-+#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT_CACHED, \
- 			.ttime = {.last_end_request = ktime_get_ns(),},}
- 
- /*
-@@ -981,10 +980,9 @@ static inline u64 max_vdisktime(u64 min_
- 
- static void update_min_vdisktime(struct cfq_rb_root *st)
+ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
  {
--	struct cfq_group *cfqg;
-+	if (!RB_EMPTY_ROOT(&st->rb.rb_root)) {
-+		struct cfq_group *cfqg = rb_entry_cfqg(st->rb.rb_leftmost);
- 
--	if (st->left) {
--		cfqg = rb_entry_cfqg(st->left);
- 		st->min_vdisktime = max_vdisktime(st->min_vdisktime,
- 						  cfqg->vdisktime);
- 	}
-@@ -1166,46 +1164,25 @@ cfq_choose_req(struct cfq_data *cfqd, st
- 	}
- }
- 
--/*
-- * The below is leftmost cache rbtree addon
-- */
- static struct cfq_queue *cfq_rb_first(struct cfq_rb_root *root)
- {
- 	/* Service tree is empty */
- 	if (!root->count)
- 		return NULL;
- 
--	if (!root->left)
--		root->left = rb_first(&root->rb);
--
--	if (root->left)
--		return rb_entry(root->left, struct cfq_queue, rb_node);
--
--	return NULL;
-+	return rb_entry(rb_first_cached(&root->rb), struct cfq_queue, rb_node);
- }
- 
- static struct cfq_group *cfq_rb_first_group(struct cfq_rb_root *root)
- {
--	if (!root->left)
--		root->left = rb_first(&root->rb);
--
--	if (root->left)
--		return rb_entry_cfqg(root->left);
--
--	return NULL;
-+	return rb_entry_cfqg(rb_first_cached(&root->rb));
- }
- 
--static void rb_erase_init(struct rb_node *n, struct rb_root *root)
-+static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
- {
--	rb_erase(n, root);
-+	rb_erase_cached(n, &root->rb);
- 	RB_CLEAR_NODE(n);
--}
- 
--static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
--{
--	if (root->left == n)
--		root->left = NULL;
--	rb_erase_init(n, &root->rb);
- 	--root->count;
- }
- 
-@@ -1255,11 +1232,11 @@ cfqg_key(struct cfq_rb_root *st, struct
- static void
- __cfq_group_service_tree_add(struct cfq_rb_root *st, struct cfq_group *cfqg)
- {
--	struct rb_node **node = &st->rb.rb_node;
-+	struct rb_node **node = &st->rb.rb_root.rb_node;
+-	struct rb_node **link = &cfs_rq->tasks_timeline.rb_node;
++	struct rb_node **link = &cfs_rq->tasks_timeline.rb_root.rb_node;
  	struct rb_node *parent = NULL;
- 	struct cfq_group *__cfqg;
- 	s64 key = cfqg_key(st, cfqg);
--	int left = 1;
+ 	struct sched_entity *entry;
+-	int leftmost = 1;
 +	bool leftmost = true;
  
- 	while (*node != NULL) {
- 		parent = *node;
-@@ -1269,15 +1246,12 @@ __cfq_group_service_tree_add(struct cfq_
- 			node = &parent->rb_left;
- 		else {
- 			node = &parent->rb_right;
--			left = 0;
+ 	/*
+ 	 * Find the right place in the rbtree:
+@@ -566,36 +566,23 @@ static void __enqueue_entity(struct cfs_
+ 			link = &parent->rb_left;
+ 		} else {
+ 			link = &parent->rb_right;
+-			leftmost = 0;
 +			leftmost = false;
  		}
  	}
  
--	if (left)
--		st->left = &cfqg->rb_node;
+-	/*
+-	 * Maintain a cache of leftmost tree entries (it is frequently
+-	 * used):
+-	 */
+-	if (leftmost)
+-		cfs_rq->rb_leftmost = &se->run_node;
 -
- 	rb_link_node(&cfqg->rb_node, parent, node);
--	rb_insert_color(&cfqg->rb_node, &st->rb);
-+	rb_insert_color_cached(&cfqg->rb_node, &st->rb, leftmost);
+ 	rb_link_node(&se->run_node, parent, link);
+-	rb_insert_color(&se->run_node, &cfs_rq->tasks_timeline);
++	rb_insert_color_cached(&se->run_node,
++			       &cfs_rq->tasks_timeline, leftmost);
  }
  
- /*
-@@ -1378,7 +1352,7 @@ cfq_group_notify_queue_add(struct cfq_da
- 	 * so that groups get lesser vtime based on their weights, so that
- 	 * if group does not loose all if it was not continuously backlogged.
- 	 */
--	n = rb_last(&st->rb);
-+	n = rb_last(&st->rb.rb_root);
- 	if (n) {
- 		__cfqg = rb_entry_cfqg(n);
- 		cfqg->vdisktime = __cfqg->vdisktime +
-@@ -2220,14 +2194,14 @@ static void cfq_service_tree_add(struct
- 	struct cfq_queue *__cfqq;
- 	u64 rb_key;
- 	struct cfq_rb_root *st;
--	int left;
-+	bool leftmost = true;
- 	int new_cfqq = 1;
- 	u64 now = ktime_get_ns();
- 
- 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
- 	if (cfq_class_idle(cfqq)) {
- 		rb_key = CFQ_IDLE_DELAY;
--		parent = rb_last(&st->rb);
-+		parent = rb_last(&st->rb.rb_root);
- 		if (parent && parent != &cfqq->rb_node) {
- 			__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
- 			rb_key += __cfqq->rb_key;
-@@ -2261,10 +2235,9 @@ static void cfq_service_tree_add(struct
- 		cfqq->service_tree = NULL;
- 	}
- 
--	left = 1;
- 	parent = NULL;
- 	cfqq->service_tree = st;
--	p = &st->rb.rb_node;
-+	p = &st->rb.rb_root.rb_node;
- 	while (*p) {
- 		parent = *p;
- 		__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
-@@ -2276,16 +2249,13 @@ static void cfq_service_tree_add(struct
- 			p = &parent->rb_left;
- 		else {
- 			p = &parent->rb_right;
--			left = 0;
-+			leftmost = false;
- 		}
- 	}
- 
--	if (left)
--		st->left = &cfqq->rb_node;
+ static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
+ {
+-	if (cfs_rq->rb_leftmost == &se->run_node) {
+-		struct rb_node *next_node;
 -
- 	cfqq->rb_key = rb_key;
- 	rb_link_node(&cfqq->rb_node, parent, p);
--	rb_insert_color(&cfqq->rb_node, &st->rb);
-+	rb_insert_color_cached(&cfqq->rb_node, &st->rb, leftmost);
- 	st->count++;
- 	if (add_front || !new_cfqq)
- 		return;
-@@ -2732,7 +2702,7 @@ static struct cfq_queue *cfq_get_next_qu
- 	/* There is nothing to dispatch */
- 	if (!st)
- 		return NULL;
--	if (RB_EMPTY_ROOT(&st->rb))
-+	if (RB_EMPTY_ROOT(&st->rb.rb_root))
- 		return NULL;
- 	return cfq_rb_first(st);
+-		next_node = rb_next(&se->run_node);
+-		cfs_rq->rb_leftmost = next_node;
+-	}
+-
+-	rb_erase(&se->run_node, &cfs_rq->tasks_timeline);
++	rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
  }
-@@ -3219,7 +3189,7 @@ static struct cfq_group *cfq_get_next_cf
- 	struct cfq_rb_root *st = &cfqd->grp_service_tree;
- 	struct cfq_group *cfqg;
  
--	if (RB_EMPTY_ROOT(&st->rb))
-+	if (RB_EMPTY_ROOT(&st->rb.rb_root))
+ struct sched_entity *__pick_first_entity(struct cfs_rq *cfs_rq)
+ {
+-	struct rb_node *left = cfs_rq->rb_leftmost;
++	struct rb_node *left = rb_first_cached(&cfs_rq->tasks_timeline);
+ 
+ 	if (!left)
  		return NULL;
- 	cfqg = cfq_rb_first_group(st);
- 	update_min_vdisktime(st);
+@@ -616,7 +603,7 @@ static struct sched_entity *__pick_next_
+ #ifdef CONFIG_SCHED_DEBUG
+ struct sched_entity *__pick_last_entity(struct cfs_rq *cfs_rq)
+ {
+-	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline);
++	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline.rb_root);
+ 
+ 	if (!last)
+ 		return NULL;
+@@ -9312,7 +9299,7 @@ static void set_curr_task_fair(struct rq
+ 
+ void init_cfs_rq(struct cfs_rq *cfs_rq)
+ {
+-	cfs_rq->tasks_timeline = RB_ROOT;
++	cfs_rq->tasks_timeline = RB_ROOT_CACHED;
+ 	cfs_rq->min_vruntime = (u64)(-(1LL << 20));
+ #ifndef CONFIG_64BIT
+ 	cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
+diff -puN kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/sched.h
+--- a/kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/sched.h
+@@ -426,8 +426,7 @@ struct cfs_rq {
+ 	u64 min_vruntime_copy;
+ #endif
+ 
+-	struct rb_root tasks_timeline;
+-	struct rb_node *rb_leftmost;
++	struct rb_root_cached tasks_timeline;
+ 
+ 	/*
+ 	 * 'curr' points to currently running entity on this cfs_rq.
 _
