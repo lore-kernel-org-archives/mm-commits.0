@@ -1,83 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [patch 059/126] drivers/scsi/sym53c8xx_2/sym_hipd.c:
- convert to use memset32
-Date: Fri, 08 Sep 2017 16:14:11 -0700
-Message-ID: <20170908231411.Sy_O1DoE1%akpm@linux-foundation.org>
+Subject: [patch 063/126] arch/microblaze: add choice for endianness
+ and update Makefile
+Date: Fri, 08 Sep 2017 16:14:25 -0700
+Message-ID: <20170908231425.255zyyRDC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXON (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:13 -0400
+        with ESMTP id S1753026AbdIHXO1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arnd@arndb.de, babu.moger@oracle.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, jejb@parisc-linux.org, jonas@southpole.se, mingo@elte.hu, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: drivers/scsi/sym53c8xx_2/sym_hipd.c: convert to use memset32
+From: Babu Moger <babu.moger@oracle.com>
+Subject: arch/microblaze: add choice for endianness and update Makefile
 
-memset32() can be used to initialise these three arrays.  Minor code
-footprint reduction.
+microblaze architectures can be configured for either little or big endian
+formats.  Add a choice option for the user to select the correct endian
+format(default to big endian).
 
-Link: http://lkml.kernel.org/r/20170720184539.31609-8-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: David Miller <davem@davemloft.net>
+Also update the Makefile so toolchain can compile for the format it is
+configured for.
+
+Link: http://lkml.kernel.org/r/1499358861-179979-3-git-send-email-babu.moger@oracle.com
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Helge Deller <deller@gmx.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sym53c8xx_2/sym_hipd.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ arch/microblaze/Kconfig  |   16 ++++++++++++++++
+ arch/microblaze/Makefile |    2 ++
+ 2 files changed, 18 insertions(+)
 
-diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~sym53c8xx_2-convert-to-use-memset32 drivers/scsi/sym53c8xx_2/sym_hipd.c
---- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~sym53c8xx_2-convert-to-use-memset32
-+++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
-@@ -4985,13 +4985,10 @@ struct sym_lcb *sym_alloc_lcb (struct sy
- 	 *  Compute the bus address of this table.
- 	 */
- 	if (ln && !tp->luntbl) {
--		int i;
--
- 		tp->luntbl = sym_calloc_dma(256, "LUNTBL");
- 		if (!tp->luntbl)
- 			goto fail;
--		for (i = 0 ; i < 64 ; i++)
--			tp->luntbl[i] = cpu_to_scr(vtobus(&np->badlun_sa));
-+		memset32(tp->luntbl, cpu_to_scr(vtobus(&np->badlun_sa)), 64);
- 		tp->head.luntbl_sa = cpu_to_scr(vtobus(tp->luntbl));
- 	}
+diff -puN arch/microblaze/Kconfig~arch-microblaze-add-choice-for-endianness-and-update-makefile arch/microblaze/Kconfig
+--- a/arch/microblaze/Kconfig~arch-microblaze-add-choice-for-endianness-and-update-makefile
++++ a/arch/microblaze/Kconfig
+@@ -36,6 +36,22 @@ config MICROBLAZE
+ 	select VIRT_TO_BUS
+ 	select CPU_NO_EFFICIENT_FFS
  
-@@ -5077,8 +5074,7 @@ static void sym_alloc_lcb_tags (struct s
- 	/*
- 	 *  Initialize the task table with invalid entries.
- 	 */
--	for (i = 0 ; i < SYM_CONF_MAX_TASK ; i++)
--		lp->itlq_tbl[i] = cpu_to_scr(np->notask_ba);
-+	memset32(lp->itlq_tbl, cpu_to_scr(np->notask_ba), SYM_CONF_MAX_TASK);
++# Endianness selection
++choice
++	prompt "Endianness selection"
++	default CPU_BIG_ENDIAN
++	help
++	  microblaze architectures can be configured for either little or
++	  big endian formats. Be sure to select the appropriate mode.
++
++config CPU_BIG_ENDIAN
++	bool "Big endian"
++
++config CPU_LITTLE_ENDIAN
++	bool "Little endian"
++
++endchoice
++
+ config SWAP
+ 	def_bool n
  
- 	/*
- 	 *  Fill up the tag buffer with tag numbers.
-@@ -5764,8 +5760,7 @@ int sym_hcb_attach(struct Scsi_Host *sho
- 		goto attach_failed;
+diff -puN arch/microblaze/Makefile~arch-microblaze-add-choice-for-endianness-and-update-makefile arch/microblaze/Makefile
+--- a/arch/microblaze/Makefile~arch-microblaze-add-choice-for-endianness-and-update-makefile
++++ a/arch/microblaze/Makefile
+@@ -35,6 +35,8 @@ endif
+ CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_DIV) += -mno-xl-soft-div
+ CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_BARREL) += -mxl-barrel-shift
+ CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR) += -mxl-pattern-compare
++CPUFLAGS-$(CONFIG_BIG_ENDIAN) += -mbig-endian
++CPUFLAGS-$(CONFIG_LITTLE_ENDIAN) += -mlittle-endian
  
- 	np->badlun_sa = cpu_to_scr(SCRIPTB_BA(np, resel_bad_lun));
--	for (i = 0 ; i < 64 ; i++)	/* 64 luns/target, no less */
--		np->badluntbl[i] = cpu_to_scr(vtobus(&np->badlun_sa));
-+	memset32(np->badluntbl, cpu_to_scr(vtobus(&np->badlun_sa)), 64);
+ CPUFLAGS-1 += $(call cc-option,-mcpu=v$(CPU_VER))
  
- 	/*
- 	 *  Prepare the bus address array that contains the bus 
 _
