@@ -1,72 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [patch 040/126] mm: fadvise: avoid fadvise for fs without
- backing device
-Date: Fri, 08 Sep 2017 16:13:05 -0700
-Message-ID: <20170908231305.Yg-XWq2Yc%akpm@linux-foundation.org>
+Subject: [patch 036/126] mm: update NUMA counter threshold size
+Date: Fri, 08 Sep 2017 16:12:52 -0700
+Message-ID: <20170908231252.mexcMItb4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXNH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:07 -0400
+        with ESMTP id S932561AbdIHXMy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, mgorman@suse.de, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: aaron.lu@intel.com, akpm@linux-foundation.org, andi.kleen@intel.com, brouer@redhat.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: fadvise: avoid fadvise for fs without backing device
+From: Kemi Wang <kemi.wang@intel.com>
+Subject: mm: update NUMA counter threshold size
 
-The fadvise() manpage is silent on fadvise()'s effect on memory-based
-filesystems (shmem, hugetlbfs & ramfs) and pseudo file systems (procfs,
-sysfs, kernfs).  The current implementaion of fadvise is mostly a noop
-for such filesystems except for FADV_DONTNEED which will trigger
-expensive remote LRU cache draining.  This patch makes the noop of
-fadvise() on such file systems very explicit.
+There is significant overhead in cache bouncing caused by zone counters
+(NUMA associated counters) update in parallel in multi-threaded page
+allocation (suggested by Dave Hansen).
 
-However this change has two side effects for ramfs and one for tmpfs. 
-First fadvise(FADV_DONTNEED) could remove the unmapped clean zero'ed
-pages of ramfs (allocated through read, readahead & read fault) and
-tmpfs (allocated through read fault).  Also fadvise(FADV_WILLNEED)
-could create such clean zero'ed pages for ramfs.  This change removes
-those possibilities.
+This patch updates NUMA counter threshold to a fixed size of MAX_U16 - 2,
+as a small threshold greatly increases the update frequency of the global
+counter from local per cpu counter(suggested by Ying Huang).
 
-One of our generic libraries does fadvise(FADV_DONTNEED).  Recently we
-observed high latency in fadvise() and noticed that the users have
-started using tmpfs files and the latency was due to expensive remote
-LRU cache draining.  For normal tmpfs files (have data written on
-them), fadvise(FADV_DONTNEED) will always trigger the unneeded remote
-cache draining.
+The rationality is that these statistics counters don't affect the
+kernel's decision, unlike other VM counters, so it's not a problem to use
+a large threshold.
 
-Link: http://lkml.kernel.org/r/20170818011023.181465-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
+With this patchset, we see 31.3% drop of CPU cycles(537-->369) for per
+single page allocation and reclaim on Jesper's page_bench03 benchmark.
+
+Benchmark provided by Jesper D Brouer(increase loop times to 10000000):
+https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/
+bench
+
+ Threshold   CPU cycles    Throughput(88 threads)
+     32          799         241760478
+     64          640         301628829
+     125         537         358906028 <==> system by default (base)
+     256         468         412397590
+     512         428         450550704
+     4096        399         482520943
+     20000       394         489009617
+     30000       395         488017817
+     65533       369(-31.3%) 521661345(+45.3%) <==> with this patchset
+     N/A         342(-36.3%) 562900157(+56.8%) <==> disable zone_statistics
+
+Link: http://lkml.kernel.org/r/1503568801-21305-3-git-send-email-kemi.wang@intel.com
+Signed-off-by: Kemi Wang <kemi.wang@intel.com>
+Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Suggested-by: Dave Hansen <dave.hansen@intel.com>
+Suggested-by: Ying Huang <ying.huang@intel.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Christopher Lameter <cl@linux.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Greg Thelen <gthelen@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    3 +--
+ mm/vmstat.c            |   28 ++++++++++------------------
+ 2 files changed, 11 insertions(+), 20 deletions(-)
 
-diff -puN mm/fadvise.c~mm-fadvise-avoid-fadvise-for-fs-without-backing-device mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-avoid-fadvise-for-fs-without-backing-device
-+++ a/mm/fadvise.c
-@@ -52,7 +52,9 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		goto out;
- 	}
+diff -puN include/linux/mmzone.h~mm-update-numa-counter-threshold-size include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-update-numa-counter-threshold-size
++++ a/include/linux/mmzone.h
+@@ -282,8 +282,7 @@ struct per_cpu_pageset {
+ 	struct per_cpu_pages pcp;
+ #ifdef CONFIG_NUMA
+ 	s8 expire;
+-	s8 numa_stat_threshold;
+-	s8 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
++	u16 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
+ #endif
+ #ifdef CONFIG_SMP
+ 	s8 stat_threshold;
+diff -puN mm/vmstat.c~mm-update-numa-counter-threshold-size mm/vmstat.c
+--- a/mm/vmstat.c~mm-update-numa-counter-threshold-size
++++ a/mm/vmstat.c
+@@ -30,6 +30,8 @@
  
--	if (IS_DAX(inode)) {
-+	bdi = inode_to_bdi(mapping->host);
+ #include "internal.h"
+ 
++#define NUMA_STATS_THRESHOLD (U16_MAX - 2)
 +
-+	if (IS_DAX(inode) || (bdi == &noop_backing_dev_info)) {
- 		switch (advice) {
- 		case POSIX_FADV_NORMAL:
- 		case POSIX_FADV_RANDOM:
-@@ -75,8 +77,6 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 	else
- 		endbyte--;		/* inclusive */
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+ EXPORT_PER_CPU_SYMBOL(vm_event_states);
+@@ -194,10 +196,7 @@ void refresh_zone_stat_thresholds(void)
  
--	bdi = inode_to_bdi(mapping->host);
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
+-#ifdef CONFIG_NUMA
+-			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
+-							= threshold;
+-#endif
++
+ 			/* Base nodestat threshold on the largest populated zone. */
+ 			pgdat_threshold = per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold;
+ 			per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold
+@@ -231,14 +230,9 @@ void set_pgdat_percpu_threshold(pg_data_
+ 			continue;
+ 
+ 		threshold = (*calculate_pressure)(zone);
+-		for_each_online_cpu(cpu) {
++		for_each_online_cpu(cpu)
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
+-#ifdef CONFIG_NUMA
+-			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
+-							= threshold;
+-#endif
+-		}
+ 	}
+ }
+ 
+@@ -874,16 +868,14 @@ void __inc_numa_state(struct zone *zone,
+ 				 enum numa_stat_item item)
+ {
+ 	struct per_cpu_pageset __percpu *pcp = zone->pageset;
+-	s8 __percpu *p = pcp->vm_numa_stat_diff + item;
+-	s8 v, t;
++	u16 __percpu *p = pcp->vm_numa_stat_diff + item;
++	u16 v;
+ 
+ 	v = __this_cpu_inc_return(*p);
+-	t = __this_cpu_read(pcp->numa_stat_threshold);
+-	if (unlikely(v > t)) {
+-		s8 overstep = t >> 1;
+ 
+-		zone_numa_state_add(v + overstep, zone, item);
+-		__this_cpu_write(*p, -overstep);
++	if (unlikely(v > NUMA_STATS_THRESHOLD)) {
++		zone_numa_state_add(v, zone, item);
++		__this_cpu_write(*p, 0);
+ 	}
+ }
+ 
+@@ -1798,7 +1790,7 @@ static bool need_update(int cpu)
+ 
+ 		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
+ #ifdef CONFIG_NUMA
+-		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 1);
++		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
+ #endif
+ 		/*
+ 		 * The fast way of checking if there are any vmstat diffs.
+_
