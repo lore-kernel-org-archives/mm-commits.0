@@ -1,99 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch removed from -mm tree
-Date: Fri, 08 Sep 2017 15:56:49 -0700
-Message-ID: <59b32031.KBzOQS0Ie7TyAcAy%akpm@linux-foundation.org>
+ mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
+ removed from -mm tree
+Date: Fri, 08 Sep 2017 15:57:24 -0700
+Message-ID: <59b32054.gDaVVsdRDr5n5KF5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752952AbdIHW4v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:56:51 -0400
+        with ESMTP id S1752952AbdIHW5Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:57:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: arnd@arndb.de, jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix
+     Subject: mm: swap: make free_swap_and_cache()/swapcache_prepare() inline functions
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix.patch
+     mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
 
-This patch was dropped because it was folded into mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
+This patch was dropped because it was folded into mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
 
 ------------------------------------------------------
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: swap: make free_swap_and_cache()/swapcache_prepare() inline functions
 
-fix hmm for "mmu_notifier kill invalidate_page callback"
+We get a build warning from a boolean expression that is never used:
 
-Link: http://lkml.kernel.org/r/20170830231955.GD9445@redhat.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+mm/madvise.c: In function 'madvise_free_pte_range':
+include/linux/swap.h:490:55: error: value computed is not used [-Werror=unused-value]
+ #define free_swap_and_cache(e) (is_migration_entry(e) || is_device_private_entry(e))
+                                                       ^~
+mm/madvise.c:353:4: note: in expansion of macro 'free_swap_and_cache'
+    free_swap_and_cache(entry);
+
+This changes the two macros to a compound expression that gcc does not
+warn about.  Changing them to inline functions would have been nicer but
+is not possible here because that would introduce a recursive header file
+dependency.
+
+Link: http://lkml.kernel.org/r/20170823133213.712917-1-arnd@arndb.de
+Fixes: mmotm ("mm/ZONE_DEVICE: new type of ZONE_DEVICE for unaddressable memory")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ include/linux/swap.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hmm.c~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix mm/hmm.c
---- a/mm/hmm.c~mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3-fix
-+++ a/mm/hmm.c
-@@ -120,20 +120,6 @@ static void hmm_invalidate_range(struct
- 	up_read(&hmm->mirrors_sem);
+diff -puN include/linux/swap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix include/linux/swap.h
+--- a/include/linux/swap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix
++++ a/include/linux/swap.h
+@@ -487,8 +487,8 @@ static inline void show_swap_cache_info(
+ {
  }
  
--static void hmm_invalidate_page(struct mmu_notifier *mn,
--				struct mm_struct *mm,
--				unsigned long addr)
--{
--	unsigned long start = addr & PAGE_MASK;
--	unsigned long end = start + PAGE_SIZE;
--	struct hmm *hmm = mm->hmm;
--
--	VM_BUG_ON(!hmm);
--
--	atomic_inc(&hmm->sequence);
--	hmm_invalidate_range(mm->hmm, HMM_UPDATE_INVALIDATE, start, end);
--}
--
- static void hmm_invalidate_range_start(struct mmu_notifier *mn,
- 				       struct mm_struct *mm,
- 				       unsigned long start,
-@@ -159,7 +145,6 @@ static void hmm_invalidate_range_end(str
- }
+-#define free_swap_and_cache(e) (is_migration_entry(e) || is_device_private_entry(e))
+-#define swapcache_prepare(e) (is_migration_entry(e) || is_device_private_entry(e))
++#define free_swap_and_cache(e) ({(is_migration_entry(e) || is_device_private_entry(e));})
++#define swapcache_prepare(e) ({(is_migration_entry(e) || is_device_private_entry(e));})
  
- static const struct mmu_notifier_ops hmm_mmu_notifier_ops = {
--	.invalidate_page	= hmm_invalidate_page,
- 	.invalidate_range_start	= hmm_invalidate_range_start,
- 	.invalidate_range_end	= hmm_invalidate_range_end,
- };
+ static inline int add_swap_count_continuation(swp_entry_t swp, gfp_t gfp_mask)
+ {
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-hmm-heterogeneous-memory-management-documentation-v3.patch
-mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
-mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
-mm-hmm-mirror-device-page-fault-handler.patch
 mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
-mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
-mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
-mm-memcontrol-support-memory_device_private-v4.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device-v7.patch
-mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
-mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
-mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
-mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
-mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry-v4.patch
-mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
-mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3.patch
-mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
-mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2.patch
-mm-hmm-fix-build-when-hmm-is-disabled.patch
-lib-interval_tree-fast-overlap-detection-fix.patch
+fs-proc-remove-priv-argument-from-is_stack-fix.patch
 
