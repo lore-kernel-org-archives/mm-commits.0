@@ -1,82 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- lib-interval_tree-fast-overlap-detection-fix.patch removed from -mm tree
-Date: Fri, 08 Sep 2017 16:02:16 -0700
-Message-ID: <59b32178.nf/+bto/5v4yt28n%akpm@linux-foundation.org>
+Subject: [folded-merged] mem-memcg-cache-rightmost-node-fix.patch removed
+ from -mm tree
+Date: Fri, 08 Sep 2017 16:02:53 -0700
+Message-ID: <59b3219d.8sqMGHRGpJZkoN4B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49806 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757289AbdIHXCR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:02:17 -0400
+        with ESMTP id S932926AbdIHXCz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:02:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, dbueso@suse.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmu_notifier: fix deadlock from typo vm_lock_anon_vma()
+     Subject: mem-memcg-cache-rightmost-node-fix
 has been removed from the -mm tree.  Its filename was
-     lib-interval_tree-fast-overlap-detection-fix.patch
+     mem-memcg-cache-rightmost-node-fix.patch
 
-This patch was dropped because it was folded into lib-interval_tree-fast-overlap-detection.patch
+This patch was dropped because it was folded into mem-memcg-cache-rightmost-node.patch
 
 ------------------------------------------------------
-From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/mmu_notifier: fix deadlock from typo vm_lock_anon_vma()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mem-memcg-cache-rightmost-node-fix
 
-Fix typo introduced by 0c67e6038580e343bd ("lib/interval_tree: fast
-overlap detection") which result in deadlock when mm_take_all_locks() is
-call (only user being mmu_notifier at this time).
+Brain fart #2, please fold.
 
-Link: http://lkml.kernel.org/r/20170808225719.20723-1-jglisse@redhat.com
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+index fdc25b3f9421..309f36522bdb 100644
+Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~lib-interval_tree-fast-overlap-detection-fix mm/mmap.c
---- a/mm/mmap.c~lib-interval_tree-fast-overlap-detection-fix
-+++ a/mm/mmap.c
-@@ -3340,7 +3340,7 @@ static DEFINE_MUTEX(mm_all_locks_mutex);
+diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix
++++ a/mm/memcontrol.c
+@@ -427,7 +427,7 @@ static void __mem_cgroup_remove_exceeded
+ 		return;
  
- static void vm_lock_anon_vma(struct mm_struct *mm, struct anon_vma *anon_vma)
- {
--	if (!test_bit(0, (unsigned long *) &anon_vma->rb_root.rb_root.rb_node)) {
-+	if (!test_bit(0, (unsigned long *) &anon_vma->root->rb_root.rb_root.rb_node)) {
- 		/*
- 		 * The LSB of head.next can't change from under us
- 		 * because we hold the mm_all_locks_mutex.
+ 	if (&mz->tree_node == mctz->rb_rightmost)
+-		mctz->rb_rightmost = rb_next(&mz->tree_node);
++		mctz->rb_rightmost = rb_prev(&mz->tree_node);
+ 
+ 	rb_erase(&mz->tree_node, &mctz->rb_root);
+ 	mz->on_tree = false;
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-hmm-heterogeneous-memory-management-documentation-v3.patch
-mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
-mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
-mm-hmm-mirror-device-page-fault-handler.patch
-mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
-mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
-mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
-mm-memcontrol-support-memory_device_private-v4.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device-v7.patch
-mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
-mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
-mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
-mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
-mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry-v4.patch
-mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
-mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3.patch
-mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
-mm-hmm-fix-build-when-hmm-is-disabled.patch
+rbtree-cache-leftmost-node-internally.patch
+rbtree-optimize-root-check-during-rebalancing-loop.patch
+rbtree-add-some-additional-comments-for-rebalancing-cases.patch
+lib-rbtree_testc-make-input-module-parameters.patch
+lib-rbtree_testc-add-inorder-traversal-test.patch
+lib-rbtree_testc-support-rb_root_cached.patch
+sched-fair-replace-cfs_rq-rb_leftmost.patch
+sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
+locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+block-cfq-replace-cfq_rb_root-leftmost-caching.patch
 lib-interval_tree-fast-overlap-detection.patch
+lib-interval-tree-correct-comment-wrt-generic-flavor.patch
+procfs-use-faster-rb_first_cached.patch
+fs-epoll-use-faster-rb_first_cached.patch
+mem-memcg-cache-rightmost-node.patch
+block-cfq-cache-rightmost-rb_node.patch
+block-cfq-cache-rightmost-rb_node-fix.patch
+lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+ipc-sem-drop-sem_checkid-helper.patch
+ipc-sem-play-nicer-with-large-nsops-allocations.patch
 
