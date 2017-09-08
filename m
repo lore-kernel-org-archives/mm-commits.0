@@ -1,89 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 063/126] arch/microblaze: add choice for endianness
- and update Makefile
-Date: Fri, 08 Sep 2017 16:14:25 -0700
-Message-ID: <20170908231425.255zyyRDC%akpm@linux-foundation.org>
+Subject: [patch 065/126] bitops: avoid integer overflow in
+ GENMASK(_ULL)
+Date: Fri, 08 Sep 2017 16:14:33 -0700
+Message-ID: <20170908231433.-mL7TEqMl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52650 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXO1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:27 -0400
+        with ESMTP id S1753026AbdIHXOe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, babu.moger@oracle.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, jejb@parisc-linux.org, jonas@southpole.se, mingo@elte.hu, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, mka@chromium.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Babu Moger <babu.moger@oracle.com>
-Subject: arch/microblaze: add choice for endianness and update Makefile
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: bitops: avoid integer overflow in GENMASK(_ULL)
 
-microblaze architectures can be configured for either little or big endian
-formats.  Add a choice option for the user to select the correct endian
-format(default to big endian).
+GENMASK(_ULL) performs a left-shift of ~0UL(L), which technically results
+in an integer overflow.  clang raises a warning if the overflow occurs in
+a preprocessor expression.  Clear the low-order bits through a
+substraction instead of the left-shift to avoid the overflow.
 
-Also update the Makefile so toolchain can compile for the format it is
-configured for.
+(akpm: no change in .text size in my testing)
 
-Link: http://lkml.kernel.org/r/1499358861-179979-3-git-send-email-babu.moger@oracle.com
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: http://lkml.kernel.org/r/20170803212020.24939-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/Kconfig  |   16 ++++++++++++++++
- arch/microblaze/Makefile |    2 ++
- 2 files changed, 18 insertions(+)
+ include/linux/bitops.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/microblaze/Kconfig~arch-microblaze-add-choice-for-endianness-and-update-makefile arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~arch-microblaze-add-choice-for-endianness-and-update-makefile
-+++ a/arch/microblaze/Kconfig
-@@ -36,6 +36,22 @@ config MICROBLAZE
- 	select VIRT_TO_BUS
- 	select CPU_NO_EFFICIENT_FFS
+diff -puN include/linux/bitops.h~bitops-avoid-integer-overflow-in-genmask_ull include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-avoid-integer-overflow-in-genmask_ull
++++ a/include/linux/bitops.h
+@@ -19,10 +19,11 @@
+  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
+  */
+ #define GENMASK(h, l) \
+-	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
++	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
  
-+# Endianness selection
-+choice
-+	prompt "Endianness selection"
-+	default CPU_BIG_ENDIAN
-+	help
-+	  microblaze architectures can be configured for either little or
-+	  big endian formats. Be sure to select the appropriate mode.
-+
-+config CPU_BIG_ENDIAN
-+	bool "Big endian"
-+
-+config CPU_LITTLE_ENDIAN
-+	bool "Little endian"
-+
-+endchoice
-+
- config SWAP
- 	def_bool n
+ #define GENMASK_ULL(h, l) \
+-	(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
++	(((~0ULL) - (1ULL << (l)) + 1) & \
++	 (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
  
-diff -puN arch/microblaze/Makefile~arch-microblaze-add-choice-for-endianness-and-update-makefile arch/microblaze/Makefile
---- a/arch/microblaze/Makefile~arch-microblaze-add-choice-for-endianness-and-update-makefile
-+++ a/arch/microblaze/Makefile
-@@ -35,6 +35,8 @@ endif
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_DIV) += -mno-xl-soft-div
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_BARREL) += -mxl-barrel-shift
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR) += -mxl-pattern-compare
-+CPUFLAGS-$(CONFIG_BIG_ENDIAN) += -mbig-endian
-+CPUFLAGS-$(CONFIG_LITTLE_ENDIAN) += -mlittle-endian
- 
- CPUFLAGS-1 += $(call cc-option,-mcpu=v$(CPU_VER))
- 
+ extern unsigned int __sw_hweight8(unsigned int w);
+ extern unsigned int __sw_hweight16(unsigned int w);
 _
