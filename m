@@ -1,125 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/126] lib/test_bitmap.c: add test for
- bitmap_parselist()
-Date: Fri, 08 Sep 2017 16:15:38 -0700
-Message-ID: <20170908231538.ZhKnz6-cJ%akpm@linux-foundation.org>
+Subject: [patch 082/126] lib/hexdump.c: return -EINVAL in case of
+ error in hex2bin()
+Date: Fri, 08 Sep 2017 16:15:28 -0700
+Message-ID: <20170908231528.B0gFDbLVf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXPj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:39 -0400
+        with ESMTP id S1753026AbdIHXP3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, mm-commits@vger.kernel.org, noamca@mellanox.com, torvalds@linux-foundation.org, ynorov@caviumnetworks.com
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: lib/test_bitmap.c: add test for bitmap_parselist()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/hexdump.c: return -EINVAL in case of error in hex2bin()
 
-Do some basic checks for bitmap_parselist().
+In some cases caller would like to use error code directly without
+shadowing.
 
-[akpm@linux-foundation.org: fix printk warning]
-Link: http://lkml.kernel.org/r/20170807225438.16161-2-ynorov@caviumnetworks.com
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Noam Camus <noamca@mellanox.com>
+-EINVAL feels a rightful code to return in case of error in hex2bin().
+
+Link: http://lkml.kernel.org/r/20170731135510.68023-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   74 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+ lib/hexdump.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN lib/test_bitmap.c~lib-add-test-for-bitmap_parselist lib/test_bitmap.c
---- a/lib/test_bitmap.c~lib-add-test-for-bitmap_parselist
-+++ a/lib/test_bitmap.c
-@@ -165,6 +165,79 @@ static void __init test_zero_fill_copy(v
- 	expect_eq_pbl("128-1023", bmap2, 1024);
- }
+diff -puN lib/hexdump.c~lib-hexdump-return-einval-in-case-of-error-in-hex2bin lib/hexdump.c
+--- a/lib/hexdump.c~lib-hexdump-return-einval-in-case-of-error-in-hex2bin
++++ a/lib/hexdump.c
+@@ -9,6 +9,7 @@
  
-+#define PARSE_TIME 0x1
-+
-+struct test_bitmap_parselist{
-+	const int errno;
-+	const char *in;
-+	const unsigned long *expected;
-+	const int nbits;
-+	const int flags;
-+};
-+
-+static const unsigned long exp[] = {1, 2, 0x0000ffff, 0xffff0000, 0x55555555,
-+				0xaaaaaaaa, 0x11111111, 0x22222222, 0xffffffff,
-+				0xfffffffe, 0x3333333311111111, 0xffffffff77777777};
-+static const unsigned long exp2[] = {0x3333333311111111, 0xffffffff77777777};
-+
-+static const struct test_bitmap_parselist parselist_tests[] __initconst = {
-+	{0, "0",			&exp[0], 8, 0},
-+	{0, "1",			&exp[1], 8, 0},
-+	{0, "0-15",			&exp[2], 32, 0},
-+	{0, "16-31",			&exp[3], 32, 0},
-+	{0, "0-31:1/2",			&exp[4], 32, 0},
-+	{0, "1-31:1/2",			&exp[5], 32, 0},
-+	{0, "0-31:1/4",			&exp[6], 32, 0},
-+	{0, "1-31:1/4",			&exp[7], 32, 0},
-+	{0, "0-31:4/4",			&exp[8], 32, 0},
-+	{0, "1-31:4/4",			&exp[9], 32, 0},
-+	{0, "0-31:1/4,32-63:2/4",	&exp[10], 64, 0},
-+	{0, "0-31:3/4,32-63:4/4",	&exp[11], 64, 0},
-+
-+	{0, "0-31:1/4,32-63:2/4,64-95:3/4,96-127:4/4",	exp2, 128, 0},
-+
-+	{0, "0-2047:128/256", NULL, 2048, PARSE_TIME},
-+
-+	{-EINVAL, "-1",	NULL, 8, 0},
-+	{-EINVAL, "-0",	NULL, 8, 0},
-+	{-EINVAL, "10-1", NULL, 8, 0},
-+	{-EINVAL, "0-31:10/1", NULL, 8, 0},
-+};
-+
-+static void __init test_bitmap_parselist(void)
-+{
-+	int i;
-+	int err;
-+	cycles_t cycles;
-+	DECLARE_BITMAP(bmap, 2048);
-+
-+	for (i = 0; i < ARRAY_SIZE(parselist_tests); i++) {
-+#define ptest parselist_tests[i]
-+
-+		cycles = get_cycles();
-+		err = bitmap_parselist(ptest.in, bmap, ptest.nbits);
-+		cycles = get_cycles() - cycles;
-+
-+		if (err != ptest.errno) {
-+			pr_err("test %d: input is %s, errno is %d, expected %d\n",
-+					i, ptest.in, err, ptest.errno);
-+			continue;
-+		}
-+
-+		if (!err && ptest.expected
-+			 && !__bitmap_equal(bmap, ptest.expected, ptest.nbits)) {
-+			pr_err("test %d: input is %s, result is 0x%lx, expected 0x%lx\n",
-+					i, ptest.in, bmap[0], *ptest.expected);
-+			continue;
-+		}
-+
-+		if (ptest.flags & PARSE_TIME)
-+			pr_err("test %d: input is '%s' OK, Time: %llu\n",
-+					i, ptest.in,
-+					(unsigned long long)cycles);
-+	}
-+}
-+
- static void __init test_bitmap_u32_array_conversions(void)
+ #include <linux/types.h>
+ #include <linux/ctype.h>
++#include <linux/errno.h>
+ #include <linux/kernel.h>
+ #include <linux/export.h>
+ #include <asm/unaligned.h>
+@@ -42,7 +43,7 @@ EXPORT_SYMBOL(hex_to_bin);
+  * @src: ascii hexadecimal string
+  * @count: result length
+  *
+- * Return 0 on success, -1 in case of bad input.
++ * Return 0 on success, -EINVAL in case of bad input.
+  */
+ int hex2bin(u8 *dst, const char *src, size_t count)
  {
- 	DECLARE_BITMAP(bmap1, 1024);
-@@ -365,6 +438,7 @@ static int __init test_bitmap_init(void)
- {
- 	test_zero_fill_copy();
- 	test_bitmap_u32_array_conversions();
-+	test_bitmap_parselist();
- 	test_mem_optimisations();
+@@ -51,7 +52,7 @@ int hex2bin(u8 *dst, const char *src, si
+ 		int lo = hex_to_bin(*src++);
  
- 	if (failed_tests == 0)
+ 		if ((hi < 0) || (lo < 0))
+-			return -1;
++			return -EINVAL;
+ 
+ 		*dst++ = (hi << 4) | lo;
+ 	}
 _
