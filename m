@@ -1,76 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
+ mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
  removed from -mm tree
-Date: Fri, 08 Sep 2017 15:57:24 -0700
-Message-ID: <59b32054.gDaVVsdRDr5n5KF5%akpm@linux-foundation.org>
+Date: Fri, 08 Sep 2017 15:58:36 -0700
+Message-ID: <59b3209c.yuA9ZeIhcUHkOtCF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48530 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752952AbdIHW5Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:57:25 -0400
+        with ESMTP id S1752999AbdIHW6h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, jglisse@redhat.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, arnd@arndb.de, jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: make free_swap_and_cache()/swapcache_prepare() inline functions
+     Subject: mm/hmm: struct hmm is only use by HMM mirror functionality v2 fix
 has been removed from the -mm tree.  Its filename was
-     mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix.patch
+     mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix.patch
 
-This patch was dropped because it was folded into mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
+This patch was dropped because it was folded into mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: swap: make free_swap_and_cache()/swapcache_prepare() inline functions
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm/hmm: struct hmm is only use by HMM mirror functionality v2 fix
 
-We get a build warning from a boolean expression that is never used:
+fix build (arm multi_v7_defconfig)
 
-mm/madvise.c: In function 'madvise_free_pte_range':
-include/linux/swap.h:490:55: error: value computed is not used [-Werror=unused-value]
- #define free_swap_and_cache(e) (is_migration_entry(e) || is_device_private_entry(e))
-                                                       ^~
-mm/madvise.c:353:4: note: in expansion of macro 'free_swap_and_cache'
-    free_swap_and_cache(entry);
-
-This changes the two macros to a compound expression that gcc does not
-warn about.  Changing them to inline functions would have been nicer but
-is not possible here because that would introduce a recursive header file
-dependency.
-
-Link: http://lkml.kernel.org/r/20170823133213.712917-1-arnd@arndb.de
-Fixes: mmotm ("mm/ZONE_DEVICE: new type of ZONE_DEVICE for unaddressable memory")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+Link: http://lkml.kernel.org/r/20170828181849.323ab81b@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/hmm.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/swap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix include/linux/swap.h
---- a/include/linux/swap.h~mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-fix
-+++ a/include/linux/swap.h
-@@ -487,8 +487,8 @@ static inline void show_swap_cache_info(
- {
- }
+diff -puN include/linux/hmm.h~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix include/linux/hmm.h
+--- a/include/linux/hmm.h~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2-fix
++++ a/include/linux/hmm.h
+@@ -514,5 +514,8 @@ static inline void hmm_mm_init(struct mm
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
  
--#define free_swap_and_cache(e) (is_migration_entry(e) || is_device_private_entry(e))
--#define swapcache_prepare(e) (is_migration_entry(e) || is_device_private_entry(e))
-+#define free_swap_and_cache(e) ({(is_migration_entry(e) || is_device_private_entry(e));})
-+#define swapcache_prepare(e) ({(is_migration_entry(e) || is_device_private_entry(e));})
  
- static inline int add_swap_count_continuation(swp_entry_t swp, gfp_t gfp_mask)
- {
++#else /* IS_ENABLED(CONFIG_HMM) */
++static inline void hmm_mm_destroy(struct mm_struct *mm) {}
++static inline void hmm_mm_init(struct mm_struct *mm) {}
+ #endif /* IS_ENABLED(CONFIG_HMM) */
+ #endif /* LINUX_HMM_H */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
-fs-proc-remove-priv-argument-from-is_stack-fix.patch
+mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
 
