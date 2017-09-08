@@ -1,120 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/126] lib: add test module for
- CONFIG_DEBUG_VIRTUAL
-Date: Fri, 08 Sep 2017 16:15:31 -0700
-Message-ID: <20170908231531.esqDvFPoZ%akpm@linux-foundation.org>
+Subject: [patch 081/126] block/cfq: cache rightmost rb_node
+Date: Fri, 08 Sep 2017 16:15:25 -0700
+Message-ID: <20170908231525.wWPJQ0Nzs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53016 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXPc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:32 -0400
+        with ESMTP id S1753026AbdIHXP0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, f.fainelli@gmail.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, axboe@fb.com, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: block/cfq: cache rightmost rb_node
 
-Add a test module that allows testing that CONFIG_DEBUG_VIRTUAL works
-correctly, at least that it can catch invalid calls to virt_to_phys()
-against the non-linear kernel virtual address map.
+For the same reasons we already cache the leftmost pointer, apply the same
+optimization for rb_last() calls.  Users must explicitly do this as
+rb_root_cached only deals with the smallest node.
 
-Link: http://lkml.kernel.org/r/20170808164035.26725-1-f.fainelli@gmail.com
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
+[dave@stgolabs.net: brain fart #1]
+  Link: http://lkml.kernel.org/r/20170731155955.GD21328@linux-80c1.suse
+Link: http://lkml.kernel.org/r/20170719014603.19029-18-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |   11 ++++++++
- lib/Makefile             |    1 
- lib/test_debug_virtual.c |   49 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ block/cfq-iosched.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual
-+++ a/lib/Kconfig.debug
-@@ -1930,6 +1930,17 @@ config TEST_KMOD
+diff -puN block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node
++++ a/block/cfq-iosched.c
+@@ -94,11 +94,13 @@ struct cfq_ttime {
+  */
+ struct cfq_rb_root {
+ 	struct rb_root_cached rb;
++	struct rb_node *rb_rightmost;
+ 	unsigned count;
+ 	u64 min_vdisktime;
+ 	struct cfq_ttime ttime;
+ };
+ #define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT_CACHED, \
++			.rb_rightmost = NULL,			     \
+ 			.ttime = {.last_end_request = ktime_get_ns(),},}
  
- 	  If unsure, say N.
+ /*
+@@ -1180,6 +1182,9 @@ static struct cfq_group *cfq_rb_first_gr
  
-+config TEST_DEBUG_VIRTUAL
-+	tristate "Test CONFIG_DEBUG_VIRTUAL feature"
-+	depends on DEBUG_VIRTUAL
-+	help
-+	  Test the kernel's ability to detect incorrect calls to
-+	  virt_to_phys() done against the non-linear part of the
-+	  kernel's virtual address map.
+ static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+ {
++	if (root->rb_rightmost == n)
++		root->rb_rightmost = rb_prev(n);
 +
-+	  If unsure, say N.
-+
-+
- source "samples/Kconfig"
+ 	rb_erase_cached(n, &root->rb);
+ 	RB_CLEAR_NODE(n);
  
- source "lib/Kconfig.kgdb"
-diff -puN lib/Makefile~lib-add-test-module-for-config_debug_virtual lib/Makefile
---- a/lib/Makefile~lib-add-test-module-for-config_debug_virtual
-+++ a/lib/Makefile
-@@ -62,6 +62,7 @@ obj-$(CONFIG_TEST_BITMAP) += test_bitmap
- obj-$(CONFIG_TEST_UUID) += test_uuid.o
- obj-$(CONFIG_TEST_PARMAN) += test_parman.o
- obj-$(CONFIG_TEST_KMOD) += test_kmod.o
-+obj-$(CONFIG_TEST_DEBUG_VIRTUAL) += test_debug_virtual.o
+@@ -1236,20 +1241,24 @@ __cfq_group_service_tree_add(struct cfq_
+ 	struct rb_node *parent = NULL;
+ 	struct cfq_group *__cfqg;
+ 	s64 key = cfqg_key(st, cfqg);
+-	bool leftmost = true;
++	bool leftmost = true, rightmost = true;
  
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
-diff -puN /dev/null lib/test_debug_virtual.c
---- /dev/null
-+++ a/lib/test_debug_virtual.c
-@@ -0,0 +1,49 @@
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/export.h>
-+#include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/slab.h>
-+#include <linux/sizes.h>
+ 	while (*node != NULL) {
+ 		parent = *node;
+ 		__cfqg = rb_entry_cfqg(parent);
+ 
+-		if (key < cfqg_key(st, __cfqg))
++		if (key < cfqg_key(st, __cfqg)) {
+ 			node = &parent->rb_left;
+-		else {
++			rightmost = false;
++		} else {
+ 			node = &parent->rb_right;
+ 			leftmost = false;
+ 		}
+ 	}
+ 
++	if (rightmost)
++		st->rb_rightmost = &cfqg->rb_node;
 +
-+#include <asm/page.h>
-+#ifdef CONFIG_MIPS
-+#include <asm/bootinfo.h>
-+#endif
-+
-+struct foo {
-+	unsigned int bar;
-+};
-+
-+struct foo *foo;
-+
-+static int __init test_debug_virtual_init(void)
-+{
-+	phys_addr_t pa;
-+	void *va;
-+
-+	va = (void *)VMALLOC_START;
-+	pa = virt_to_phys(va);
-+
-+	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
-+
-+	foo = kzalloc(sizeof(*foo), GFP_KERNEL);
-+	if (!foo)
-+		return -ENOMEM;
-+
-+	pa = virt_to_phys(foo);
-+	va = foo;
-+	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
-+
-+	return 0;
-+}
-+module_init(test_debug_virtual_init);
-+
-+static void __exit test_debug_virtual_exit(void)
-+{
-+	kfree(foo);
-+}
-+module_exit(test_debug_virtual_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Test module for CONFIG_DEBUG_VIRTUAL");
+ 	rb_link_node(&cfqg->rb_node, parent, node);
+ 	rb_insert_color_cached(&cfqg->rb_node, &st->rb, leftmost);
+ }
+@@ -1352,7 +1361,7 @@ cfq_group_notify_queue_add(struct cfq_da
+ 	 * so that groups get lesser vtime based on their weights, so that
+ 	 * if group does not loose all if it was not continuously backlogged.
+ 	 */
+-	n = rb_last(&st->rb.rb_root);
++	n = st->rb_rightmost;
+ 	if (n) {
+ 		__cfqg = rb_entry_cfqg(n);
+ 		cfqg->vdisktime = __cfqg->vdisktime +
+@@ -2201,7 +2210,7 @@ static void cfq_service_tree_add(struct
+ 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
+ 	if (cfq_class_idle(cfqq)) {
+ 		rb_key = CFQ_IDLE_DELAY;
+-		parent = rb_last(&st->rb.rb_root);
++		parent = st->rb_rightmost;
+ 		if (parent && parent != &cfqq->rb_node) {
+ 			__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
+ 			rb_key += __cfqq->rb_key;
 _
