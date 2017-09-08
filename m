@@ -1,25 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [patch 111/126] MAINTAINERS: clarify kmod is just a kernel
- module loader
-Date: Fri, 08 Sep 2017 16:17:04 -0700
-Message-ID: <20170908231704.KABVnNIZC%akpm@linux-foundation.org>
+Subject: [patch 112/126] kmod: split off umh headers into its own
+ file
+Date: Fri, 08 Sep 2017 16:17:08 -0700
+Message-ID: <20170908231708.UqmRSYaEA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53654 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932381AbdIHXRG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:17:06 -0400
+        with ESMTP id S1752999AbdIHXRK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, colin.king@canonical.com, dan.carpenter@oracle.com, danielmentz@google.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, gregkh@linuxfoundation.org, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, linux@roeck-us.net, matt.redfearn@imgtec.com, mbenes@suse.cz, mcgrof@kernel.org, mm-commits@vger.kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, torvalds@linux-foundation.org
 
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: MAINTAINERS: clarify kmod is just a kernel module loader
+Subject: kmod: split off umh headers into its own file
 
-This should make it clearer what the kmod code is now that
-the umh code is split out separately.
+In the future usermode helper users do not need to carry in all the of
+kmod headers declarations.
 
-Link: http://lkml.kernel.org/r/20170810180618.22457-3-mcgrof@kernel.org
+Since kmod.h still includes umh.h this change has no functional changes,
+each umh user can be cleaned up separately later and with time.
+
+Link: http://lkml.kernel.org/r/20170810180618.22457-4-mcgrof@kernel.org
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
@@ -40,19 +43,168 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS          |    1 
+ include/linux/kmod.h |   60 -----------------------------------
+ include/linux/umh.h  |   69 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 71 insertions(+), 59 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-clarify-kmod-is-just-a-kernel-module-loader MAINTAINERS
---- a/MAINTAINERS~maintainers-clarify-kmod-is-just-a-kernel-module-loader
+diff -puN MAINTAINERS~kmod-split-off-umh-headers-into-its-own-file MAINTAINERS
+--- a/MAINTAINERS~kmod-split-off-umh-headers-into-its-own-file
 +++ a/MAINTAINERS
-@@ -7623,7 +7623,7 @@ F:	include/linux/kmemleak.h
- F:	mm/kmemleak.c
- F:	mm/kmemleak-test.c
- 
--KMOD MODULE USERMODE HELPER
-+KMOD KERNEL MODULE LOADER - USERMODE HELPER
- M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
+@@ -7462,6 +7462,7 @@ M:	"Luis R. Rodriguez" <mcgrof@kernel.or
  L:	linux-kernel@vger.kernel.org
  S:	Maintained
+ F:	kernel/umh.c
++F:	include/linux/umh.h
+ 
+ KERNEL VIRTUAL MACHINE (KVM)
+ M:	Paolo Bonzini <pbonzini@redhat.com>
+diff -puN include/linux/kmod.h~kmod-split-off-umh-headers-into-its-own-file include/linux/kmod.h
+--- a/include/linux/kmod.h~kmod-split-off-umh-headers-into-its-own-file
++++ a/include/linux/kmod.h
+@@ -19,6 +19,7 @@
+  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#include <linux/umh.h>
+ #include <linux/gfp.h>
+ #include <linux/stddef.h>
+ #include <linux/errno.h>
+@@ -44,63 +45,4 @@ static inline int request_module_nowait(
+ #define try_then_request_module(x, mod...) (x)
+ #endif
+ 
+-
+-struct cred;
+-struct file;
+-
+-#define UMH_NO_WAIT	0	/* don't wait at all */
+-#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
+-#define UMH_WAIT_PROC	2	/* wait for the process to complete */
+-#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
+-
+-struct subprocess_info {
+-	struct work_struct work;
+-	struct completion *complete;
+-	const char *path;
+-	char **argv;
+-	char **envp;
+-	int wait;
+-	int retval;
+-	int (*init)(struct subprocess_info *info, struct cred *new);
+-	void (*cleanup)(struct subprocess_info *info);
+-	void *data;
+-} __randomize_layout;
+-
+-extern int
+-call_usermodehelper(const char *path, char **argv, char **envp, int wait);
+-
+-extern struct subprocess_info *
+-call_usermodehelper_setup(const char *path, char **argv, char **envp,
+-			  gfp_t gfp_mask,
+-			  int (*init)(struct subprocess_info *info, struct cred *new),
+-			  void (*cleanup)(struct subprocess_info *), void *data);
+-
+-extern int
+-call_usermodehelper_exec(struct subprocess_info *info, int wait);
+-
+-extern struct ctl_table usermodehelper_table[];
+-
+-enum umh_disable_depth {
+-	UMH_ENABLED = 0,
+-	UMH_FREEZING,
+-	UMH_DISABLED,
+-};
+-
+-extern int __usermodehelper_disable(enum umh_disable_depth depth);
+-extern void __usermodehelper_set_disable_depth(enum umh_disable_depth depth);
+-
+-static inline int usermodehelper_disable(void)
+-{
+-	return __usermodehelper_disable(UMH_DISABLED);
+-}
+-
+-static inline void usermodehelper_enable(void)
+-{
+-	__usermodehelper_set_disable_depth(UMH_ENABLED);
+-}
+-
+-extern int usermodehelper_read_trylock(void);
+-extern long usermodehelper_read_lock_wait(long timeout);
+-extern void usermodehelper_read_unlock(void);
+-
+ #endif /* __LINUX_KMOD_H__ */
+diff -puN /dev/null include/linux/umh.h
+--- /dev/null
++++ a/include/linux/umh.h
+@@ -0,0 +1,69 @@
++#ifndef __LINUX_UMH_H__
++#define __LINUX_UMH_H__
++
++#include <linux/gfp.h>
++#include <linux/stddef.h>
++#include <linux/errno.h>
++#include <linux/compiler.h>
++#include <linux/workqueue.h>
++#include <linux/sysctl.h>
++
++struct cred;
++struct file;
++
++#define UMH_NO_WAIT	0	/* don't wait at all */
++#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
++#define UMH_WAIT_PROC	2	/* wait for the process to complete */
++#define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
++
++struct subprocess_info {
++	struct work_struct work;
++	struct completion *complete;
++	const char *path;
++	char **argv;
++	char **envp;
++	int wait;
++	int retval;
++	int (*init)(struct subprocess_info *info, struct cred *new);
++	void (*cleanup)(struct subprocess_info *info);
++	void *data;
++} __randomize_layout;
++
++extern int
++call_usermodehelper(const char *path, char **argv, char **envp, int wait);
++
++extern struct subprocess_info *
++call_usermodehelper_setup(const char *path, char **argv, char **envp,
++			  gfp_t gfp_mask,
++			  int (*init)(struct subprocess_info *info, struct cred *new),
++			  void (*cleanup)(struct subprocess_info *), void *data);
++
++extern int
++call_usermodehelper_exec(struct subprocess_info *info, int wait);
++
++extern struct ctl_table usermodehelper_table[];
++
++enum umh_disable_depth {
++	UMH_ENABLED = 0,
++	UMH_FREEZING,
++	UMH_DISABLED,
++};
++
++extern int __usermodehelper_disable(enum umh_disable_depth depth);
++extern void __usermodehelper_set_disable_depth(enum umh_disable_depth depth);
++
++static inline int usermodehelper_disable(void)
++{
++	return __usermodehelper_disable(UMH_DISABLED);
++}
++
++static inline void usermodehelper_enable(void)
++{
++	__usermodehelper_set_disable_depth(UMH_ENABLED);
++}
++
++extern int usermodehelper_read_trylock(void);
++extern long usermodehelper_read_lock_wait(long timeout);
++extern void usermodehelper_read_unlock(void);
++
++#endif /* __LINUX_UMH_H__ */
 _
