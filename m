@@ -1,77 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-cfq-cache-rightmost-rb_node-fix.patch
+Subject: [folded-merged] lib-add-test-for-bitmap_parselist-fix.patch
  removed from -mm tree
-Date: Fri, 08 Sep 2017 16:03:28 -0700
-Message-ID: <59b321c0.PnyBoiDeKBZGHWcm%akpm@linux-foundation.org>
+Date: Fri, 08 Sep 2017 16:04:06 -0700
+Message-ID: <59b321e6.a1pMhdgLM06rTluC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49970 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932954AbdIHXD3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:03:29 -0400
+        with ESMTP id S932730AbdIHXEH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:04:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, noamca@mellanox.com, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-cfq-cache-rightmost-rb_node-fix
+     Subject: lib-add-test-for-bitmap_parselist-fix
 has been removed from the -mm tree.  Its filename was
-     block-cfq-cache-rightmost-rb_node-fix.patch
+     lib-add-test-for-bitmap_parselist-fix.patch
 
-This patch was dropped because it was folded into block-cfq-cache-rightmost-rb_node.patch
+This patch was dropped because it was folded into lib-add-test-for-bitmap_parselist.patch
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: block-cfq-cache-rightmost-rb_node-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-add-test-for-bitmap_parselist-fix
 
-Brain fart #1, please fold.
+fix printk warning
 
-index 57ec45fd4590..4992e9acddad 100644
-Link: http://lkml.kernel.org/r/20170731155955.GD21328@linux-80c1.suse
-
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Noam Camus <noamca@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Yury Norov <ynorov@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_bitmap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node-fix block/cfq-iosched.c
---- a/block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node-fix
-+++ a/block/cfq-iosched.c
-@@ -1186,7 +1186,7 @@ static struct cfq_group *cfq_rb_first_gr
- static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
- {
- 	if (root->rb_rightmost == n)
--		root->rb_rightmost = rb_next(n);
-+		root->rb_rightmost = rb_prev(n);
+diff -puN lib/test_bitmap.c~lib-add-test-for-bitmap_parselist-fix lib/test_bitmap.c
+--- a/lib/test_bitmap.c~lib-add-test-for-bitmap_parselist-fix
++++ a/lib/test_bitmap.c
+@@ -232,8 +232,9 @@ static void __init test_bitmap_parselist
+ 		}
  
- 	rb_erase_cached(n, &root->rb);
- 	RB_CLEAR_NODE(n);
+ 		if (ptest.flags & PARSE_TIME)
+-			pr_err("test %d: input is '%s' OK, Time: %lu\n",
+-					i, ptest.in, cycles);
++			pr_err("test %d: input is '%s' OK, Time: %llu\n",
++					i, ptest.in,
++					(unsigned long long)cycles);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rbtree-cache-leftmost-node-internally.patch
-rbtree-optimize-root-check-during-rebalancing-loop.patch
-rbtree-add-some-additional-comments-for-rebalancing-cases.patch
-lib-rbtree_testc-make-input-module-parameters.patch
-lib-rbtree_testc-add-inorder-traversal-test.patch
-lib-rbtree_testc-support-rb_root_cached.patch
-sched-fair-replace-cfs_rq-rb_leftmost.patch
-sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
-locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
-block-cfq-replace-cfq_rb_root-leftmost-caching.patch
-lib-interval_tree-fast-overlap-detection.patch
-lib-interval-tree-correct-comment-wrt-generic-flavor.patch
-procfs-use-faster-rb_first_cached.patch
-fs-epoll-use-faster-rb_first_cached.patch
-mem-memcg-cache-rightmost-node.patch
-block-cfq-cache-rightmost-rb_node.patch
-lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
-ipc-sem-drop-sem_checkid-helper.patch
-ipc-sem-play-nicer-with-large-nsops-allocations.patch
+lib-add-test-for-bitmap_parselist.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
 
