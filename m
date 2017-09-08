@@ -1,60 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 034/126] mm/memory.c: remove reduntant check for
- write access
-Date: Fri, 08 Sep 2017 16:12:45 -0700
-Message-ID: <20170908231245.MzEQA7Ixn%akpm@linux-foundation.org>
+Subject: [patch 032/126] mm: remove useless vma parameter to
+ offset_il_node
+Date: Fri, 08 Sep 2017 16:12:39 -0700
+Message-ID: <20170908231239.Fa5qgzyPC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932716AbdIHXMq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:46 -0400
+        with ESMTP id S932716AbdIHXMk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ldufour@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/memory.c: remove reduntant check for write access
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Subject: mm: remove useless vma parameter to offset_il_node
 
-Flags argument has been copied into vmf.flags and it is not changed in
-between.  Hence a single write access check can be used for both PUD and
-PMD.
+While reading the code I found that offset_il_node() has a vm_area_struct
+pointer parameter which is unused.
 
-Link: http://lkml.kernel.org/r/20170823082839.1812-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1502899755-23146-1-git-send-email-ldufour@linux.vnet.ibm.com
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-page_fault-remove-reduntant-check-for-write-access mm/memory.c
---- a/mm/memory.c~mm-page_fault-remove-reduntant-check-for-write-access
-+++ a/mm/memory.c
-@@ -3961,6 +3961,7 @@ static int __handle_mm_fault(struct vm_a
- 		.pgoff = linear_page_index(vma, address),
- 		.gfp_mask = __get_fault_gfp_mask(vma),
- 	};
-+	unsigned int dirty = flags & FAULT_FLAG_WRITE;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -3983,7 +3984,6 @@ static int __handle_mm_fault(struct vm_a
+diff -puN mm/mempolicy.c~mm-remove-useless-vma-parameter-to-offset_il_node mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-remove-useless-vma-parameter-to-offset_il_node
++++ a/mm/mempolicy.c
+@@ -1745,8 +1745,7 @@ unsigned int mempolicy_slab_node(void)
+  * node in pol->v.nodes (starting from n=0), wrapping around if n exceeds the
+  * number of present nodes.
+  */
+-static unsigned offset_il_node(struct mempolicy *pol,
+-			       struct vm_area_struct *vma, unsigned long n)
++static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
+ {
+ 	unsigned nnodes = nodes_weight(pol->v.nodes);
+ 	unsigned target;
+@@ -1779,7 +1778,7 @@ static inline unsigned interleave_nid(st
+ 		BUG_ON(shift < PAGE_SHIFT);
+ 		off = vma->vm_pgoff >> (shift - PAGE_SHIFT);
+ 		off += (addr - vma->vm_start) >> shift;
+-		return offset_il_node(pol, vma, off);
++		return offset_il_node(pol, off);
+ 	} else
+ 		return interleave_nodes(pol);
+ }
+@@ -2247,7 +2246,7 @@ int mpol_misplaced(struct page *page, st
  
- 		barrier();
- 		if (pud_trans_huge(orig_pud) || pud_devmap(orig_pud)) {
--			unsigned int dirty = flags & FAULT_FLAG_WRITE;
+ 		pgoff = vma->vm_pgoff;
+ 		pgoff += (addr - vma->vm_start) >> PAGE_SHIFT;
+-		polnid = offset_il_node(pol, vma, pgoff);
++		polnid = offset_il_node(pol, pgoff);
+ 		break;
  
- 			/* NUMA case for anonymous PUDs would go here */
- 
-@@ -4020,8 +4020,7 @@ static int __handle_mm_fault(struct vm_a
- 			if (pmd_protnone(orig_pmd) && vma_is_accessible(vma))
- 				return do_huge_pmd_numa_page(&vmf, orig_pmd);
- 
--			if ((vmf.flags & FAULT_FLAG_WRITE) &&
--					!pmd_write(orig_pmd)) {
-+			if (dirty && !pmd_write(orig_pmd)) {
- 				ret = wp_huge_pmd(&vmf, orig_pmd);
- 				if (!(ret & VM_FAULT_FALLBACK))
- 					return ret;
+ 	case MPOL_PREFERRED:
 _
