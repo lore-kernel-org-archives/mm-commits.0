@@ -1,70 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 106/126] autofs: use unsigned int/long instead of
- uint/ulong for ioctl args
-Date: Fri, 08 Sep 2017 16:16:47 -0700
-Message-ID: <20170908231647.zt8GYwz1S%akpm@linux-foundation.org>
+Subject: [patch 109/126] test_kmod: flip INT checks to be
+ consistent
+Date: Fri, 08 Sep 2017 16:16:57 -0700
+Message-ID: <20170908231657.mDsJVM2au%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53538 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757209AbdIHXQs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:16:48 -0400
+        with ESMTP id S932381AbdIHXQ6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:16:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, raven@themaw.net, tkusumi@tuxera.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, colin.king@canonical.com, dan.carpenter@oracle.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mm-commits@vger.kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org, torvalds@linux-foundation.org
 
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: use unsigned int/long instead of uint/ulong for ioctl args
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: test_kmod: flip INT checks to be consistent
 
-The standard types unsigned int and unsigned long should be used for
-.compat_ioctl.  autofs is the only fs using uing/ulong for this, and these
-are even the only uint/ulong in the entire autofs code.
+Most checks will check for min and then max, except the int check.  Flip
+the checks to be consistent with the other code.
 
-Drop unneeded long cast in return value of autofs_dev_ioctl_compat(). 
-It's already long.
-
-Link: http://lkml.kernel.org/r/150285069709.4670.3884827966280147529.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+[mcgrof@kernel.org: massaged commit log]
+Link: http://lkml.kernel.org/r/20170802211707.28020-3-mcgrof@kernel.org
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jessica Yu <jeyu@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/test_kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-use-unsigned-int-long-instead-of-uint-ulong-for-ioctl-args
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -93,7 +93,7 @@ static int check_dev_ioctl_version(int c
-  * at the end of the struct.
-  */
- static struct autofs_dev_ioctl *
--		copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
-+copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
- {
- 	struct autofs_dev_ioctl tmp, *res;
+diff -puN lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent lib/test_kmod.c
+--- a/lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent
++++ a/lib/test_kmod.c
+@@ -946,7 +946,7 @@ static int test_dev_config_update_int(st
+ 	if (ret)
+ 		return ret;
  
-@@ -705,7 +705,8 @@ out:
- 	return err;
- }
+-	if (new > INT_MAX || new < INT_MIN)
++	if (new < INT_MIN || new > INT_MAX)
+ 		return -EINVAL;
  
--static long autofs_dev_ioctl(struct file *file, uint command, ulong u)
-+static long autofs_dev_ioctl(struct file *file, unsigned int command,
-+			     unsigned long u)
- {
- 	int err;
- 
-@@ -714,9 +715,10 @@ static long autofs_dev_ioctl(struct file
- }
- 
- #ifdef CONFIG_COMPAT
--static long autofs_dev_ioctl_compat(struct file *file, uint command, ulong u)
-+static long autofs_dev_ioctl_compat(struct file *file, unsigned int command,
-+				    unsigned long u)
- {
--	return (long) autofs_dev_ioctl(file, command, (ulong) compat_ptr(u));
-+	return autofs_dev_ioctl(file, command, (unsigned long) compat_ptr(u));
- }
- #else
- #define autofs_dev_ioctl_compat NULL
+ 	mutex_lock(&test_dev->config_mutex);
 _
