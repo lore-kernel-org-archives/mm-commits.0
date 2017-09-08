@@ -1,132 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
- removed from -mm tree
-Date: Fri, 08 Sep 2017 16:00:01 -0700
-Message-ID: <59b320f1.ZZNknCro26mS3Oh7%akpm@linux-foundation.org>
+ fs-proc-remove-priv-argument-from-is_stack-fix.patch removed from -mm tree
+Date: Fri, 08 Sep 2017 16:00:33 -0700
+Message-ID: <59b32111.TTCbEz15fYd6Yetz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49436 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757210AbdIHXAC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:00:02 -0400
+        with ESMTP id S1757210AbdIHXAe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kemi.wang@intel.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mhocko@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
+     Subject: fs, proc: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+     fs-proc-remove-priv-argument-from-is_stack-fix.patch
 
-This patch was dropped because it was folded into mm-change-the-call-sites-of-numa-statistics-items.patch
+This patch was dropped because it was folded into fs-proc-remove-priv-argument-from-is_stack.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fs, proc: remove unused variable
 
-ERROR: "foo * bar" should be "foo *bar"
-#249: FILE: include/linux/vmstat.h:222:
-+extern void __inc_numa_state(struct zone * zone,
+The last cleanup can go a little further, as shown by this warning:
 
-WARNING: line over 80 characters
-#402: FILE: mm/vmstat.c:768:
-+	changes += fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
+fs/proc/task_mmu.c: In function 'show_map_vma':
+fs/proc/task_mmu.c:285:28: error: unused variable 'priv' [-Werror=unused-variable]
 
-WARNING: Missing a blank line after declarations
-#459: FILE: mm/vmstat.c:862:
-+			int v = pset->vm_numa_stat_diff[i];
-+			pset->vm_numa_stat_diff[i] = 0;
-
-ERROR: space required before the open parenthesis '('
-#571: FILE: mm/vmstat.c:1641:
-+	for(i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-
-WARNING: line over 80 characters
-#588: FILE: mm/vmstat.c:1752:
-+				__func__, vmstat_text[i + NR_VM_ZONE_STAT_ITEMS], val);
-
-total: 2 errors, 4 warnings, 460 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-change-the-call-sites-of-numa-statistics-items.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Kemi Wang <kemi.wang@intel.com>
+Link: http://lkml.kernel.org/r/20170801120150.1520051-1-arnd@arndb.de
+Fixes: 14ccc3193225 ("fs, proc: remove priv argument from is_stack")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    8 +++-----
- mm/vmstat.c            |    6 ++++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/proc/task_mmu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
-+++ a/include/linux/vmstat.h
-@@ -219,12 +219,10 @@ static inline unsigned long node_page_st
- 
- 
- #ifdef CONFIG_NUMA
--extern void __inc_numa_state(struct zone * zone,
--						enum numa_stat_item item);
-+extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
- extern unsigned long sum_zone_node_page_state(int node,
--						enum zone_stat_item item);
--extern unsigned long sum_zone_numa_state(int node,
--						enum numa_stat_item item);
-+					      enum zone_stat_item item);
-+extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
- extern unsigned long node_page_state(struct pglist_data *pgdat,
- 						enum node_stat_item item);
- #else
-diff -puN mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes mm/vmstat.c
---- a/mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
-+++ a/mm/vmstat.c
-@@ -765,7 +765,8 @@ static int refresh_cpu_vm_stats(bool do_
- 	}
- 
- #ifdef CONFIG_NUMA
--	changes += fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
-+	changes += fold_diff(global_zone_diff, global_numa_diff,
-+			     global_node_diff);
- #else
- 	changes += fold_diff(global_zone_diff, global_node_diff);
- #endif
-@@ -859,6 +860,7 @@ void drain_zonestat(struct zone *zone, s
- 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
- 		if (pset->vm_numa_stat_diff[i]) {
- 			int v = pset->vm_numa_stat_diff[i];
-+
- 			pset->vm_numa_stat_diff[i] = 0;
- 			atomic_long_add(v, &zone->vm_numa_stat[i]);
- 			atomic_long_add(v, &vm_numa_stat[i]);
-@@ -1638,7 +1640,7 @@ static void *vmstat_start(struct seq_fil
- 	v += NR_VM_ZONE_STAT_ITEMS;
- 
- #ifdef CONFIG_NUMA
--	for(i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
-+	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
- 		v[i] = global_numa_state(i);
- 	v += NR_VM_NUMA_STAT_ITEMS;
- #endif
+diff -puN fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack-fix
++++ a/fs/proc/task_mmu.c
+@@ -301,7 +301,6 @@ show_map_vma(struct seq_file *m, struct
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct file *file = vma->vm_file;
+-	struct proc_maps_private *priv = m->private;
+ 	vm_flags_t flags = vma->vm_flags;
+ 	unsigned long ino = 0;
+ 	unsigned long long pgoff = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-change-the-call-sites-of-numa-statistics-items.patch
-add-testcases-for-memset16-32-64-fix.patch
-vga-optimise-console-scrolling-fix.patch
-lib-add-test-for-bitmap_parselist-fix.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
-bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
+fs-proc-remove-priv-argument-from-is_stack.patch
 
