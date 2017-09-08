@@ -1,54 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [patch 097/126] init: move stack canary initialization
- after setup_arch
-Date: Fri, 08 Sep 2017 16:16:17 -0700
-Message-ID: <20170908231617.WgTAIt3If%akpm@linux-foundation.org>
+Subject: [patch 101/126] autofs: make dev ioctl version and
+ ismountpoint user accessible
+Date: Fri, 08 Sep 2017 16:16:30 -0700
+Message-ID: <20170908231630.jSKUfB79H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53338 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757261AbdIHXQS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:16:18 -0400
+        with ESMTP id S1757210AbdIHXQc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, danielmicay@gmail.com, keescook@chromium.org, labbott@redhat.com, lauraa@codeaurora.org, mm-commits@vger.kernel.org, nnk@google.com, torvalds@linux-foundation.org, tytso@mit.edu
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org, oholy@redhat.com, raven@themaw.net, torvalds@linux-foundation.org, walters@redhat.com
 
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: init: move stack canary initialization after setup_arch
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: make dev ioctl version and ismountpoint user accessible
 
-Patch series "Command line randomness", v3.
+Some of the autofs miscellaneous device ioctls need to be accessable to
+user space applications without CAP_SYS_ADMIN to get information about
+autofs mounts.
 
-A series to add the kernel command line as a source of randomness.
-
-This patch (of 2):
-
-Stack canary intialization involves getting a random number.  Getting this
-random number may involve accessing caches or other architectural specific
-features which are not available until after the architecture is setup. 
-Move the stack canary initialization later to accommodate this.
-
-Link: http://lkml.kernel.org/r/20170816231458.2299-2-labbott@redhat.com
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Nick Kralevich <nnk@google.com>
+Link: http://lkml.kernel.org/r/150216642517.11652.2338933266137331637.stgit@pluto.themaw.net
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Colin Walters <walters@redhat.com>
+Cc: Ondrej Holy <oholy@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/autofs4/dev-ioctl.c              |   12 ++++++++----
+ include/uapi/linux/auto_dev-ioctl.h |    2 +-
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN init/main.c~init-move-stack-canary-initialization-after-setup_arch init/main.c
---- a/init/main.c~init-move-stack-canary-initialization-after-setup_arch
-+++ a/init/main.c
-@@ -515,12 +515,6 @@ asmlinkage __visible void __init start_k
- 	smp_setup_processor_id();
- 	debug_objects_early_init();
+diff -puN fs/autofs4/dev-ioctl.c~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible
++++ a/fs/autofs4/dev-ioctl.c
+@@ -628,10 +628,6 @@ static int _autofs_dev_ioctl(unsigned in
+ 	ioctl_fn fn = NULL;
+ 	int err = 0;
  
--	/*
--	 * Set up the initial canary ASAP:
--	 */
--	add_latent_entropy();
--	boot_init_stack_canary();
+-	/* only root can play with this */
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+ 	cmd_first = _IOC_NR(AUTOFS_DEV_IOCTL_IOC_FIRST);
+ 	cmd = _IOC_NR(command);
+ 
+@@ -640,6 +636,14 @@ static int _autofs_dev_ioctl(unsigned in
+ 		return -ENOTTY;
+ 	}
+ 
++	/* Only root can use ioctls other than AUTOFS_DEV_IOCTL_VERSION_CMD
++	 * and AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD
++	 */
++	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
++	    cmd != AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD &&
++	    !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
+ 	/* Copy the parameters into kernel space. */
+ 	param = copy_dev_ioctl(user);
+ 	if (IS_ERR(param))
+diff -puN include/uapi/linux/auto_dev-ioctl.h~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible include/uapi/linux/auto_dev-ioctl.h
+--- a/include/uapi/linux/auto_dev-ioctl.h~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible
++++ a/include/uapi/linux/auto_dev-ioctl.h
+@@ -16,7 +16,7 @@
+ #define AUTOFS_DEVICE_NAME		"autofs"
+ 
+ #define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
+-#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
++#define AUTOFS_DEV_IOCTL_VERSION_MINOR	1
+ 
+ #define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
+ 
+_
