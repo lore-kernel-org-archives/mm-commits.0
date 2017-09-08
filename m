@@ -1,153 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [patch 062/126] arch: define CPU_BIG_ENDIAN for all fixed
- big endian archs
-Date: Fri, 08 Sep 2017 16:14:22 -0700
-Message-ID: <20170908231422.apE5UYKn6%akpm@linux-foundation.org>
+Subject: [patch 059/126] drivers/scsi/sym53c8xx_2/sym_hipd.c:
+ convert to use memset32
+Date: Fri, 08 Sep 2017 16:14:11 -0700
+Message-ID: <20170908231411.Sy_O1DoE1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXOY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:24 -0400
+        with ESMTP id S1757173AbdIHXON (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, babu.moger@oracle.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, jejb@parisc-linux.org, jonas@southpole.se, mingo@elte.hu, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Babu Moger <babu.moger@oracle.com>
-Subject: arch: define CPU_BIG_ENDIAN for all fixed big endian archs
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: drivers/scsi/sym53c8xx_2/sym_hipd.c: convert to use memset32
 
-Patch series "Define CPU_BIG_ENDIAN or warn for inconsistencies", v3.
+memset32() can be used to initialise these three arrays.  Minor code
+footprint reduction.
 
-While working on enabling queued rwlock on SPARC, found this following
-code in include/asm-generic/qrwlock.h which uses CONFIG_CPU_BIG_ENDIAN to
-clear a byte.
-
-static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
- {
-	return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
- }
-
-Problem is many of the fixed big endian architectures don't define
-CPU_BIG_ENDIAN and clears the wrong byte.
-
-Define CPU_BIG_ENDIAN for all the fixed big endian architecture to fix it.
-
-Also found few more references of this config parameter in
-drivers/of/base.c
-drivers/of/fdt.c
-drivers/tty/serial/earlycon.c
-drivers/tty/serial/serial_core.c
-Be aware that this may cause regressions if someone has worked-around
-problems in the above code already. Remove the work-around.
-
-Here is our original discussion
-https://lkml.org/lkml/2017/5/24/620
-
-Link: http://lkml.kernel.org/r/1499358861-179979-2-git-send-email-babu.moger@oracle.com
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Stafford Horne <shorne@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/20170720184539.31609-8-willy@infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: David Miller <davem@davemloft.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/Kconfig      |    3 +++
- arch/h8300/Kconfig    |    3 +++
- arch/m68k/Kconfig     |    3 +++
- arch/openrisc/Kconfig |    3 +++
- arch/parisc/Kconfig   |    3 +++
- arch/sparc/Kconfig    |    3 +++
- 6 files changed, 18 insertions(+)
+ drivers/scsi/sym53c8xx_2/sym_hipd.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN arch/frv/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs arch/frv/Kconfig
---- a/arch/frv/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs
-+++ a/arch/frv/Kconfig
-@@ -17,6 +17,9 @@ config FRV
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select ARCH_NO_COHERENT_DMA_MMAP
+diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~sym53c8xx_2-convert-to-use-memset32 drivers/scsi/sym53c8xx_2/sym_hipd.c
+--- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~sym53c8xx_2-convert-to-use-memset32
++++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
+@@ -4985,13 +4985,10 @@ struct sym_lcb *sym_alloc_lcb (struct sy
+ 	 *  Compute the bus address of this table.
+ 	 */
+ 	if (ln && !tp->luntbl) {
+-		int i;
+-
+ 		tp->luntbl = sym_calloc_dma(256, "LUNTBL");
+ 		if (!tp->luntbl)
+ 			goto fail;
+-		for (i = 0 ; i < 64 ; i++)
+-			tp->luntbl[i] = cpu_to_scr(vtobus(&np->badlun_sa));
++		memset32(tp->luntbl, cpu_to_scr(vtobus(&np->badlun_sa)), 64);
+ 		tp->head.luntbl_sa = cpu_to_scr(vtobus(tp->luntbl));
+ 	}
  
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config ZONE_DMA
- 	bool
- 	default y
-diff -puN arch/h8300/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs
-+++ a/arch/h8300/Kconfig
-@@ -23,6 +23,9 @@ config H8300
- 	select HAVE_ARCH_HASH
- 	select CPU_NO_EFFICIENT_FFS
+@@ -5077,8 +5074,7 @@ static void sym_alloc_lcb_tags (struct s
+ 	/*
+ 	 *  Initialize the task table with invalid entries.
+ 	 */
+-	for (i = 0 ; i < SYM_CONF_MAX_TASK ; i++)
+-		lp->itlq_tbl[i] = cpu_to_scr(np->notask_ba);
++	memset32(lp->itlq_tbl, cpu_to_scr(np->notask_ba), SYM_CONF_MAX_TASK);
  
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config RWSEM_GENERIC_SPINLOCK
- 	def_bool y
+ 	/*
+ 	 *  Fill up the tag buffer with tag numbers.
+@@ -5764,8 +5760,7 @@ int sym_hcb_attach(struct Scsi_Host *sho
+ 		goto attach_failed;
  
-diff -puN arch/m68k/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs
-+++ a/arch/m68k/Kconfig
-@@ -24,6 +24,9 @@ config M68K
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
+ 	np->badlun_sa = cpu_to_scr(SCRIPTB_BA(np, resel_bad_lun));
+-	for (i = 0 ; i < 64 ; i++)	/* 64 luns/target, no less */
+-		np->badluntbl[i] = cpu_to_scr(vtobus(&np->badlun_sa));
++	memset32(np->badluntbl, cpu_to_scr(vtobus(&np->badlun_sa)), 64);
  
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config RWSEM_GENERIC_SPINLOCK
- 	bool
- 	default y
-diff -puN arch/openrisc/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs arch/openrisc/Kconfig
---- a/arch/openrisc/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs
-+++ a/arch/openrisc/Kconfig
-@@ -29,6 +29,9 @@ config OPENRISC
- 	select CPU_NO_EFFICIENT_FFS if !OPENRISC_HAVE_INST_FF1
- 	select NO_BOOTMEM
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config MMU
- 	def_bool y
- 
-diff -puN arch/parisc/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs
-+++ a/arch/parisc/Kconfig
-@@ -59,6 +59,9 @@ config PARISC
- config CPU_BIG_ENDIAN
- 	def_bool y
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config MMU
- 	def_bool y
- 
-diff -puN arch/sparc/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~arch-define-cpu_big_endian-for-all-fixed-big-endian-archs
-+++ a/arch/sparc/Kconfig
-@@ -97,6 +97,9 @@ config ARCH_PROC_KCORE_TEXT
- config CPU_BIG_ENDIAN
- 	def_bool y
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config ARCH_ATU
- 	bool
- 	default y if SPARC64
+ 	/*
+ 	 *  Prepare the bus address array that contains the bus 
 _
