@@ -1,85 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 098/126] init/main.c: extract early boot entropy
- from the passed cmdline
-Date: Fri, 08 Sep 2017 16:16:20 -0700
-Message-ID: <20170908231620.6sXikneH7%akpm@linux-foundation.org>
+Subject: [patch 099/126] autofs: fix AT_NO_AUTOMOUNT not being
+ honored
+Date: Fri, 08 Sep 2017 16:16:24 -0700
+Message-ID: <20170908231624.pWjiP-3F4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757261AbdIHXQW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:16:22 -0400
+        with ESMTP id S1757210AbdIHXQZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, danielmicay@gmail.com, keescook@chromium.org, labbott@redhat.com, lauraa@codeaurora.org, mm-commits@vger.kernel.org, nnk@google.com, torvalds@linux-foundation.org, tytso@mit.edu
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org, oholy@redhat.com, raven@themaw.net, torvalds@linux-foundation.org, walters@redhat.com
 
-From: Daniel Micay <danielmicay@gmail.com>
-Subject: init/main.c: extract early boot entropy from the passed cmdline
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: fix AT_NO_AUTOMOUNT not being honored
 
-Feed the boot command-line as to the /dev/random entropy pool
+The fstatat(2) and statx() calls can pass the flag AT_NO_AUTOMOUNT which
+is meant to clear the LOOKUP_AUTOMOUNT flag and prevent triggering of an
+automount by the call.  But this flag is unconditionally cleared for all
+stat family system calls except statx().
 
-Existing Android bootloaders usually pass data which may not be known by
-an external attacker on the kernel command-line.  It may also be the case
-on other embedded systems.  Sample command-line from a Google Pixel
-running CopperheadOS....
+stat family system calls have always triggered mount requests for the
+negative dentry case in follow_automount() which is intended but prevents
+the fstatat(2) and statx() AT_NO_AUTOMOUNT case from being handled.
 
-    console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0
-    androidboot.hardware=sailfish user_debug=31 ehci-hcd.park=3
-    lpm_levels.sleep_disabled=1 cma=32M@0-0xffffffff buildvariant=user
-    veritykeyid=id:dfcb9db0089e5b3b4090a592415c28e1cb4545ab
-    androidboot.bootdevice=624000.ufshc androidboot.verifiedbootstate=yellow
-    androidboot.veritymode=enforcing androidboot.keymaster=1
-    androidboot.serialno=FA6CE0305299 androidboot.baseband=msm
-    mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_samsung_ea8064tg_1080p_cmd:1:none:cfg:single_dsi
-    androidboot.slot_suffix=_b fpsimd.fpsimd_settings=0
-    app_setting.use_app_setting=0 kernelflag=0x00000000 debugflag=0x00000000
-    androidboot.hardware.revision=PVT radioflag=0x00000000
-    radioflagex1=0x00000000 radioflagex2=0x00000000 cpumask=0x00000000
-    androidboot.hardware.ddr=4096MB,Hynix,LPDDR4 androidboot.ddrinfo=00000006
-    androidboot.ddrsize=4GB androidboot.hardware.color=GRA00
-    androidboot.hardware.ufs=32GB,Samsung androidboot.msm.hw_ver_id=268824801
-    androidboot.qf.st=2 androidboot.cid=11111111 androidboot.mid=G-2PW4100
-    androidboot.bootloader=8996-012001-1704121145
-    androidboot.oem_unlock_support=1 androidboot.fp_src=1
-    androidboot.htc.hrdump=detected androidboot.ramdump.opt=mem@2g:2g,mem@4g:2g
-    androidboot.bootreason=reboot androidboot.ramdump_enable=0 ro
-    root=/dev/dm-0 dm="system none ro,0 1 android-verity /dev/sda34"
-    rootwait skip_initramfs init=/init androidboot.wificountrycode=US
-    androidboot.boottime=1BLL:85,1BLE:669,2BLL:0,2BLE:1777,SW:6,KL:8136
+In order to handle the AT_NO_AUTOMOUNT for both system calls the negative
+dentry case in follow_automount() needs to be changed to return ENOENT
+when the LOOKUP_AUTOMOUNT flag is clear (and the other required flags are
+clear).
 
-Among other things, it contains a value unique to the device
-(androidboot.serialno=FA6CE0305299), unique to the OS builds for the
-device variant (veritykeyid=id:dfcb9db0089e5b3b4090a592415c28e1cb4545ab)
-and timings from the bootloader stages in milliseconds
-(androidboot.boottime=1BLL:85,1BLE:669,2BLL:0,2BLE:1777,SW:6,KL:8136).
+AFAICT this change doesn't have any noticable side effects and may, in
+some use cases (although I didn't see it in testing) prevent unnecessary
+callbacks to the automount daemon.
 
-[tytso@mit.edu: changelog tweak]
-[labbott@redhat.com: line-wrapped command line]
-Link: http://lkml.kernel.org/r/20170816231458.2299-3-labbott@redhat.com
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
-Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Nick Kralevich <nnk@google.com>
+It's also possible that a stat family call has been made with a path that
+is in the process of being mounted by some other process.  But stat family
+calls should return the automount state of the path as it is "now" so it
+shouldn't wait for mount completion.
+
+This is the same semantic as the positive dentry case already handled.
+
+Link: http://lkml.kernel.org/r/150216641255.11652.4204561328197919771.stgit@pluto.themaw.net
+Fixes: deccf497d804a4c5fca ("Make stat/lstat/fstatat pass AT_NO_AUTOMOUNT to vfs_statx()")
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Colin Walters <walters@redhat.com>
+Cc: Ondrej Holy <oholy@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/namei.c         |   15 ++++++++++++---
+ include/linux/fs.h |    3 +--
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN init/main.c~extract-early-boot-entropy-from-the-passed-cmdline init/main.c
---- a/init/main.c~extract-early-boot-entropy-from-the-passed-cmdline
-+++ a/init/main.c
-@@ -530,8 +530,10 @@ asmlinkage __visible void __init start_k
- 	setup_arch(&command_line);
- 	/*
- 	 * Set up the the initial canary and entropy after arch
-+	 * and after adding latent and command line entropy.
+diff -puN fs/namei.c~autofs-fix-at_no_automount-not-being-honored fs/namei.c
+--- a/fs/namei.c~autofs-fix-at_no_automount-not-being-honored
++++ a/fs/namei.c
+@@ -1129,9 +1129,18 @@ static int follow_automount(struct path
+ 	 * of the daemon to instantiate them before they can be used.
  	 */
- 	add_latent_entropy();
-+	add_device_randomness(command_line, strlen(command_line));
- 	boot_init_stack_canary();
- 	mm_init_cpumask(&init_mm);
- 	setup_command_line(command_line);
+ 	if (!(nd->flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
+-			   LOOKUP_OPEN | LOOKUP_CREATE | LOOKUP_AUTOMOUNT)) &&
+-	    path->dentry->d_inode)
+-		return -EISDIR;
++			   LOOKUP_OPEN | LOOKUP_CREATE |
++			   LOOKUP_AUTOMOUNT))) {
++		/* Positive dentry that isn't meant to trigger an
++		 * automount, EISDIR will allow it to be used,
++		 * otherwise there's no mount here "now" so return
++		 * ENOENT.
++		 */
++		if (path->dentry->d_inode)
++			return -EISDIR;
++		else
++			return -ENOENT;
++	}
+ 
+ 	if (path->dentry->d_sb->s_user_ns != &init_user_ns)
+ 		return -EACCES;
+diff -puN include/linux/fs.h~autofs-fix-at_no_automount-not-being-honored include/linux/fs.h
+--- a/include/linux/fs.h~autofs-fix-at_no_automount-not-being-honored
++++ a/include/linux/fs.h
+@@ -3043,8 +3043,7 @@ static inline int vfs_lstat(const char _
+ static inline int vfs_fstatat(int dfd, const char __user *filename,
+ 			      struct kstat *stat, int flags)
+ {
+-	return vfs_statx(dfd, filename, flags | AT_NO_AUTOMOUNT,
+-			 stat, STATX_BASIC_STATS);
++	return vfs_statx(dfd, filename, flags, stat, STATX_BASIC_STATS);
+ }
+ static inline int vfs_fstat(int fd, struct kstat *stat)
+ {
 _
