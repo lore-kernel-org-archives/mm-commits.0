@@ -1,264 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: [patch 074/126] locking/rtmutex: replace top-waiter and
- pi_waiters leftmost caching
-Date: Fri, 08 Sep 2017 16:15:01 -0700
-Message-ID: <20170908231501.8PLGNgMAG%akpm@linux-foundation.org>
+Subject: [patch 071/126] lib/rbtree_test.c: support rb_root_cached
+Date: Fri, 08 Sep 2017 16:14:52 -0700
+Message-ID: <20170908231452.He39HzMLk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52814 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXPD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:03 -0400
+        with ESMTP id S1753026AbdIHXOx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: locking/rtmutex: replace top-waiter and pi_waiters leftmost caching
+Subject: lib/rbtree_test.c: support rb_root_cached
 
-... with the generic rbtree flavor instead. No changes
-in semantics whatsoever.
+We can work with a single rb_root_cached root to test both cached and
+non-cached rbtrees.  In addition, also add a test to measure latencies
+between rb_first and its fast counterpart.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-10-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-7-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h       |    5 +---
- include/linux/rtmutex.h         |   11 ++++-----
- include/linux/sched.h           |    3 --
- kernel/fork.c                   |    3 --
- kernel/locking/rtmutex-debug.c  |    2 -
- kernel/locking/rtmutex.c        |   35 +++++++++---------------------
- kernel/locking/rtmutex_common.h |   12 +++++-----
- 7 files changed, 27 insertions(+), 44 deletions(-)
+ lib/rbtree_test.c |  156 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 137 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/init_task.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/init_task.h
---- a/include/linux/init_task.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/init_task.h
-@@ -175,9 +175,8 @@ extern struct cred init_cred;
+diff -puN lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached lib/rbtree_test.c
+--- a/lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached
++++ a/lib/rbtree_test.c
+@@ -23,14 +23,14 @@ struct test_node {
+ 	u32 augmented;
+ };
  
- #ifdef CONFIG_RT_MUTEXES
- # define INIT_RT_MUTEXES(tsk)						\
--	.pi_waiters = RB_ROOT,						\
--	.pi_top_task = NULL,						\
--	.pi_waiters_leftmost = NULL,
-+	.pi_waiters = RB_ROOT_CACHED,					\
-+	.pi_top_task = NULL,
- #else
- # define INIT_RT_MUTEXES(tsk)
- #endif
-diff -puN include/linux/rtmutex.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/rtmutex.h
---- a/include/linux/rtmutex.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/rtmutex.h
-@@ -22,18 +22,17 @@ extern int max_lock_depth; /* for sysctl
-  * The rt_mutex structure
-  *
-  * @wait_lock:	spinlock to protect the structure
-- * @waiters:	rbtree root to enqueue waiters in priority order
-- * @waiters_leftmost: top waiter
-+ * @waiters:	rbtree root to enqueue waiters in priority order;
-+ *              caches top-waiter (leftmost node).
-  * @owner:	the mutex owner
-  */
- struct rt_mutex {
- 	raw_spinlock_t		wait_lock;
--	struct rb_root          waiters;
--	struct rb_node          *waiters_leftmost;
-+	struct rb_root_cached   waiters;
- 	struct task_struct	*owner;
- #ifdef CONFIG_DEBUG_RT_MUTEXES
- 	int			save_state;
--	const char 		*name, *file;
-+	const char		*name, *file;
- 	int			line;
- 	void			*magic;
- #endif
-@@ -84,7 +83,7 @@ do { \
+-static struct rb_root root = RB_ROOT;
++static struct rb_root_cached root = RB_ROOT_CACHED;
+ static struct test_node *nodes = NULL;
  
- #define __RT_MUTEX_INITIALIZER(mutexname) \
- 	{ .wait_lock = __RAW_SPIN_LOCK_UNLOCKED(mutexname.wait_lock) \
--	, .waiters = RB_ROOT \
-+	, .waiters = RB_ROOT_CACHED \
- 	, .owner = NULL \
- 	__DEBUG_RT_MUTEX_INITIALIZER(mutexname) \
- 	__DEP_MAP_RT_MUTEX_INITIALIZER(mutexname)}
-diff -puN include/linux/sched.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/sched.h
---- a/include/linux/sched.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/sched.h
-@@ -812,8 +812,7 @@ struct task_struct {
+ static struct rnd_state rnd;
  
- #ifdef CONFIG_RT_MUTEXES
- 	/* PI waiters blocked on a rt_mutex held by this task: */
--	struct rb_root			pi_waiters;
--	struct rb_node			*pi_waiters_leftmost;
-+	struct rb_root_cached		pi_waiters;
- 	/* Updated under owner's pi_lock and rq lock */
- 	struct task_struct		*pi_top_task;
- 	/* Deadlock detection and priority inheritance handling: */
-diff -puN kernel/fork.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/fork.c
---- a/kernel/fork.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/fork.c
-@@ -1462,8 +1462,7 @@ static void rt_mutex_init_task(struct ta
+-static void insert(struct test_node *node, struct rb_root *root)
++static void insert(struct test_node *node, struct rb_root_cached *root)
  {
- 	raw_spin_lock_init(&p->pi_lock);
- #ifdef CONFIG_RT_MUTEXES
--	p->pi_waiters = RB_ROOT;
--	p->pi_waiters_leftmost = NULL;
-+	p->pi_waiters = RB_ROOT_CACHED;
- 	p->pi_top_task = NULL;
- 	p->pi_blocked_on = NULL;
- #endif
-diff -puN kernel/locking/rtmutex-debug.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex-debug.c
---- a/kernel/locking/rtmutex-debug.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex-debug.c
-@@ -58,7 +58,7 @@ static void printk_lock(struct rt_mutex
+-	struct rb_node **new = &root->rb_node, *parent = NULL;
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
+ 	u32 key = node->key;
  
- void rt_mutex_debug_task_free(struct task_struct *task)
- {
--	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters));
-+	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters.rb_root));
- 	DEBUG_LOCKS_WARN_ON(task->pi_blocked_on);
- }
- 
-diff -puN kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex.c
---- a/kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex.c
-@@ -271,10 +271,10 @@ rt_mutex_waiter_equal(struct rt_mutex_wa
- static void
- rt_mutex_enqueue(struct rt_mutex *lock, struct rt_mutex_waiter *waiter)
- {
--	struct rb_node **link = &lock->waiters.rb_node;
-+	struct rb_node **link = &lock->waiters.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct rt_mutex_waiter *entry;
--	int leftmost = 1;
-+	bool leftmost = true;
- 
- 	while (*link) {
- 		parent = *link;
-@@ -283,15 +283,12 @@ rt_mutex_enqueue(struct rt_mutex *lock,
- 			link = &parent->rb_left;
- 		} else {
- 			link = &parent->rb_right;
--			leftmost = 0;
-+			leftmost = false;
- 		}
+ 	while (*new) {
+@@ -42,14 +42,40 @@ static void insert(struct test_node *nod
  	}
  
--	if (leftmost)
--		lock->waiters_leftmost = &waiter->tree_entry;
--
- 	rb_link_node(&waiter->tree_entry, parent, link);
--	rb_insert_color(&waiter->tree_entry, &lock->waiters);
-+	rb_insert_color_cached(&waiter->tree_entry, &lock->waiters, leftmost);
+ 	rb_link_node(&node->rb, parent, new);
+-	rb_insert_color(&node->rb, root);
++	rb_insert_color(&node->rb, &root->rb_root);
  }
  
- static void
-@@ -300,20 +297,17 @@ rt_mutex_dequeue(struct rt_mutex *lock,
- 	if (RB_EMPTY_NODE(&waiter->tree_entry))
- 		return;
- 
--	if (lock->waiters_leftmost == &waiter->tree_entry)
--		lock->waiters_leftmost = rb_next(&waiter->tree_entry);
--
--	rb_erase(&waiter->tree_entry, &lock->waiters);
-+	rb_erase_cached(&waiter->tree_entry, &lock->waiters);
- 	RB_CLEAR_NODE(&waiter->tree_entry);
- }
- 
- static void
- rt_mutex_enqueue_pi(struct task_struct *task, struct rt_mutex_waiter *waiter)
+-static inline void erase(struct test_node *node, struct rb_root *root)
++static void insert_cached(struct test_node *node, struct rb_root_cached *root)
  {
--	struct rb_node **link = &task->pi_waiters.rb_node;
-+	struct rb_node **link = &task->pi_waiters.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct rt_mutex_waiter *entry;
--	int leftmost = 1;
+-	rb_erase(&node->rb, root);
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
++	u32 key = node->key;
 +	bool leftmost = true;
- 
- 	while (*link) {
- 		parent = *link;
-@@ -322,15 +316,12 @@ rt_mutex_enqueue_pi(struct task_struct *
- 			link = &parent->rb_left;
- 		} else {
- 			link = &parent->rb_right;
--			leftmost = 0;
++
++	while (*new) {
++		parent = *new;
++		if (key < rb_entry(parent, struct test_node, rb)->key)
++			new = &parent->rb_left;
++		else {
++			new = &parent->rb_right;
 +			leftmost = false;
- 		}
++		}
++	}
++
++	rb_link_node(&node->rb, parent, new);
++	rb_insert_color_cached(&node->rb, root, leftmost);
+ }
+ 
++static inline void erase(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase(&node->rb, &root->rb_root);
++}
++
++static inline void erase_cached(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase_cached(&node->rb, root);
++}
++
++
+ static inline u32 augment_recompute(struct test_node *node)
+ {
+ 	u32 max = node->val, child_augmented;
+@@ -71,9 +97,10 @@ static inline u32 augment_recompute(stru
+ RB_DECLARE_CALLBACKS(static, augment_callbacks, struct test_node, rb,
+ 		     u32, augmented, augment_recompute)
+ 
+-static void insert_augmented(struct test_node *node, struct rb_root *root)
++static void insert_augmented(struct test_node *node,
++			     struct rb_root_cached *root)
+ {
+-	struct rb_node **new = &root->rb_node, *rb_parent = NULL;
++	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
+ 	u32 key = node->key;
+ 	u32 val = node->val;
+ 	struct test_node *parent;
+@@ -91,12 +118,47 @@ static void insert_augmented(struct test
+ 
+ 	node->augmented = val;
+ 	rb_link_node(&node->rb, rb_parent, new);
+-	rb_insert_augmented(&node->rb, root, &augment_callbacks);
++	rb_insert_augmented(&node->rb, &root->rb_root, &augment_callbacks);
++}
++
++static void insert_augmented_cached(struct test_node *node,
++				    struct rb_root_cached *root)
++{
++	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
++	u32 key = node->key;
++	u32 val = node->val;
++	struct test_node *parent;
++	bool leftmost = true;
++
++	while (*new) {
++		rb_parent = *new;
++		parent = rb_entry(rb_parent, struct test_node, rb);
++		if (parent->augmented < val)
++			parent->augmented = val;
++		if (key < parent->key)
++			new = &parent->rb.rb_left;
++		else {
++			new = &parent->rb.rb_right;
++			leftmost = false;
++		}
++	}
++
++	node->augmented = val;
++	rb_link_node(&node->rb, rb_parent, new);
++	rb_insert_augmented_cached(&node->rb, root,
++				   leftmost, &augment_callbacks);
++}
++
++
++static void erase_augmented(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase_augmented(&node->rb, &root->rb_root, &augment_callbacks);
+ }
+ 
+-static void erase_augmented(struct test_node *node, struct rb_root *root)
++static void erase_augmented_cached(struct test_node *node,
++				   struct rb_root_cached *root)
+ {
+-	rb_erase_augmented(&node->rb, root, &augment_callbacks);
++	rb_erase_augmented_cached(&node->rb, root, &augment_callbacks);
+ }
+ 
+ static void init(void)
+@@ -125,7 +187,7 @@ static void check_postorder_foreach(int
+ {
+ 	struct test_node *cur, *n;
+ 	int count = 0;
+-	rbtree_postorder_for_each_entry_safe(cur, n, &root, rb)
++	rbtree_postorder_for_each_entry_safe(cur, n, &root.rb_root, rb)
+ 		count++;
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+@@ -135,7 +197,7 @@ static void check_postorder(int nr_nodes
+ {
+ 	struct rb_node *rb;
+ 	int count = 0;
+-	for (rb = rb_first_postorder(&root); rb; rb = rb_next_postorder(rb))
++	for (rb = rb_first_postorder(&root.rb_root); rb; rb = rb_next_postorder(rb))
+ 		count++;
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+@@ -147,7 +209,7 @@ static void check(int nr_nodes)
+ 	int count = 0, blacks = 0;
+ 	u32 prev_key = 0;
+ 
+-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
+ 		struct test_node *node = rb_entry(rb, struct test_node, rb);
+ 		WARN_ON_ONCE(node->key < prev_key);
+ 		WARN_ON_ONCE(is_red(rb) &&
+@@ -162,7 +224,7 @@ static void check(int nr_nodes)
  	}
  
--	if (leftmost)
--		task->pi_waiters_leftmost = &waiter->pi_tree_entry;
--
- 	rb_link_node(&waiter->pi_tree_entry, parent, link);
--	rb_insert_color(&waiter->pi_tree_entry, &task->pi_waiters);
-+	rb_insert_color_cached(&waiter->pi_tree_entry, &task->pi_waiters, leftmost);
- }
+ 	WARN_ON_ONCE(count != nr_nodes);
+-	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
++	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root.rb_root))) - 1);
  
- static void
-@@ -339,10 +330,7 @@ rt_mutex_dequeue_pi(struct task_struct *
- 	if (RB_EMPTY_NODE(&waiter->pi_tree_entry))
- 		return;
+ 	check_postorder(nr_nodes);
+ 	check_postorder_foreach(nr_nodes);
+@@ -173,7 +235,7 @@ static void check_augmented(int nr_nodes
+ 	struct rb_node *rb;
  
--	if (task->pi_waiters_leftmost == &waiter->pi_tree_entry)
--		task->pi_waiters_leftmost = rb_next(&waiter->pi_tree_entry);
--
--	rb_erase(&waiter->pi_tree_entry, &task->pi_waiters);
-+	rb_erase_cached(&waiter->pi_tree_entry, &task->pi_waiters);
- 	RB_CLEAR_NODE(&waiter->pi_tree_entry);
- }
+ 	check(nr_nodes);
+-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
+ 		struct test_node *node = rb_entry(rb, struct test_node, rb);
+ 		WARN_ON_ONCE(node->augmented != augment_recompute(node));
+ 	}
+@@ -207,7 +269,24 @@ static int __init rbtree_test_init(void)
+ 	time = time2 - time1;
  
-@@ -1657,8 +1645,7 @@ void __rt_mutex_init(struct rt_mutex *lo
- {
- 	lock->owner = NULL;
- 	raw_spin_lock_init(&lock->wait_lock);
--	lock->waiters = RB_ROOT;
--	lock->waiters_leftmost = NULL;
-+	lock->waiters = RB_ROOT_CACHED;
+ 	time = div_u64(time, perf_loops);
+-	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
++	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n",
++	       (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
++			insert_cached(nodes + j, &root);
++		for (j = 0; j < nnodes; j++)
++			erase_cached(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n",
++	       (unsigned long long)time);
  
- 	if (name && key)
- 		debug_rt_mutex_init(lock, name, key);
-diff -puN kernel/locking/rtmutex_common.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex_common.h
---- a/kernel/locking/rtmutex_common.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex_common.h
-@@ -45,7 +45,7 @@ struct rt_mutex_waiter {
+ 	for (i = 0; i < nnodes; i++)
+ 		insert(nodes + i, &root);
+@@ -215,7 +294,7 @@ static int __init rbtree_test_init(void)
+ 	time1 = get_cycles();
  
- static inline int rt_mutex_has_waiters(struct rt_mutex *lock)
- {
--	return !RB_EMPTY_ROOT(&lock->waiters);
-+	return !RB_EMPTY_ROOT(&lock->waiters.rb_root);
- }
+ 	for (i = 0; i < perf_loops; i++) {
+-		for (node = rb_first(&root); node; node = rb_next(node))
++		for (node = rb_first(&root.rb_root); node; node = rb_next(node))
+ 			;
+ 	}
  
- static inline struct rt_mutex_waiter *
-@@ -53,8 +53,8 @@ rt_mutex_top_waiter(struct rt_mutex *loc
- {
- 	struct rt_mutex_waiter *w;
+@@ -223,7 +302,31 @@ static int __init rbtree_test_init(void)
+ 	time = time2 - time1;
  
--	w = rb_entry(lock->waiters_leftmost, struct rt_mutex_waiter,
--		     tree_entry);
-+	w = rb_entry(lock->waiters.rb_leftmost,
-+		     struct rt_mutex_waiter, tree_entry);
- 	BUG_ON(w->lock != lock);
+ 	time = div_u64(time, perf_loops);
+-	printk(" -> test 2 (latency of inorder traversal): %llu cycles\n", (unsigned long long)time);
++	printk(" -> test 3 (latency of inorder traversal): %llu cycles\n",
++	       (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++)
++		node = rb_first(&root.rb_root);
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 4 (latency to fetch first node)\n");
++	printk("        non-cached: %llu cycles\n", (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++)
++		node = rb_first_cached(&root);
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk("        cached: %llu cycles\n", (unsigned long long)time);
  
- 	return w;
-@@ -62,14 +62,14 @@ rt_mutex_top_waiter(struct rt_mutex *loc
+ 	for (i = 0; i < nnodes; i++)
+ 		erase(nodes + i, &root);
+@@ -261,6 +364,21 @@ static int __init rbtree_test_init(void)
+ 	time = div_u64(time, perf_loops);
+ 	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
  
- static inline int task_has_pi_waiters(struct task_struct *p)
- {
--	return !RB_EMPTY_ROOT(&p->pi_waiters);
-+	return !RB_EMPTY_ROOT(&p->pi_waiters.rb_root);
- }
- 
- static inline struct rt_mutex_waiter *
- task_top_pi_waiter(struct task_struct *p)
- {
--	return rb_entry(p->pi_waiters_leftmost, struct rt_mutex_waiter,
--			pi_tree_entry);
-+	return rb_entry(p->pi_waiters.rb_leftmost,
-+			struct rt_mutex_waiter, pi_tree_entry);
- }
- 
- #else
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
++			insert_augmented_cached(nodes + j, &root);
++		for (j = 0; j < nnodes; j++)
++			erase_augmented_cached(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n", (unsigned long long)time);
++
+ 	for (i = 0; i < check_loops; i++) {
+ 		init();
+ 		for (j = 0; j < nnodes; j++) {
 _
