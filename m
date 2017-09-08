@@ -1,63 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- fs-proc-remove-priv-argument-from-is_stack-fix.patch removed from -mm tree
-Date: Fri, 08 Sep 2017 16:00:33 -0700
-Message-ID: <59b32111.TTCbEz15fYd6Yetz%akpm@linux-foundation.org>
+Subject: [folded-merged] add-testcases-for-memset16-32-64-fix.patch
+ removed from -mm tree
+Date: Fri, 08 Sep 2017 16:01:16 -0700
+Message-ID: <59b3213c.brnYarHRlmTWQTfh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757210AbdIHXAe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:00:34 -0400
+        with ESMTP id S1757283AbdIHXBS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:01:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mhocko@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, proc: remove unused variable
+     Subject: add-testcases-for-memset16-32-64-fix
 has been removed from the -mm tree.  Its filename was
-     fs-proc-remove-priv-argument-from-is_stack-fix.patch
+     add-testcases-for-memset16-32-64-fix.patch
 
-This patch was dropped because it was folded into fs-proc-remove-priv-argument-from-is_stack.patch
+This patch was dropped because it was folded into add-testcases-for-memset16-32-64.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: fs, proc: remove unused variable
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: add-testcases-for-memset16-32-64-fix
 
-The last cleanup can go a little further, as shown by this warning:
+minor tweaks
 
-fs/proc/task_mmu.c: In function 'show_map_vma':
-fs/proc/task_mmu.c:285:28: error: unused variable 'priv' [-Werror=unused-variable]
-
-Link: http://lkml.kernel.org/r/20170801120150.1520051-1-arnd@arndb.de
-Fixes: 14ccc3193225 ("fs, proc: remove priv argument from is_stack")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/string.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack-fix
-+++ a/fs/proc/task_mmu.c
-@@ -301,7 +301,6 @@ show_map_vma(struct seq_file *m, struct
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
--	struct proc_maps_private *priv = m->private;
- 	vm_flags_t flags = vma->vm_flags;
- 	unsigned long ino = 0;
- 	unsigned long long pgoff = 0;
+diff -puN lib/string.c~add-testcases-for-memset16-32-64-fix lib/string.c
+--- a/lib/string.c~add-testcases-for-memset16-32-64-fix
++++ a/lib/string.c
+@@ -1150,7 +1150,6 @@ fail:
+ 	if (i < 256)
+ 		return (i << 24) | (j << 16) | k;
+ 	return 0;
+-	return 0;
+ }
+ 
+ static __init int string_selftest_init(void)
+@@ -1180,4 +1179,4 @@ fail:
+ }
+ 
+ module_init(string_selftest_init);
+-#endif
++#endif	/* CONFIG_STRING_SELFTEST */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-proc-remove-priv-argument-from-is_stack.patch
+add-testcases-for-memset16-32-64.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
 
