@@ -1,64 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [patch 051/126] fs, proc: unconditional cond_resched when
- reading smaps
-Date: Fri, 08 Sep 2017 16:13:41 -0700
-Message-ID: <20170908231341.ED01bYIUQ%akpm@linux-foundation.org>
+Subject: [patch 053/126] lib/string.c: add multibyte memset
+ functions
+Date: Fri, 08 Sep 2017 16:13:48 -0700
+Message-ID: <20170908231348.oRcUIDwTZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52238 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXNn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:43 -0400
+        with ESMTP id S1757003AbdIHXNu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: David Rientjes <rientjes@google.com>
-Subject: fs, proc: unconditional cond_resched when reading smaps
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: lib/string.c: add multibyte memset functions
 
-If there are large numbers of hugepages to iterate while reading
-/proc/pid/smaps, the page walk never does cond_resched().  On archs
-without split pmd locks, there can be significant and observable
-contention on mm->page_table_lock which cause lengthy delays without
-rescheduling.
+Patch series "Multibyte memset variations", v4.
 
-Always reschedule in smaps_pte_range() if necessary since the pagewalk
-iteration can be expensive.
+A relatively common idiom we're missing is a function to fill an area of
+memory with a pattern which is larger than a single byte.  I first noticed
+this with a zram patch which wanted to fill a page with an 'unsigned long'
+value.  There turn out to be quite a few places in the kernel which can
+benefit from using an optimised function rather than a loop; sometimes
+text size, sometimes speed, and sometimes both.  The optimised PowerPC
+version (not included here) improves performance by about 30% on POWER8 on
+just the raw memset_l().
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708211405520.131071@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
+Most of the extra lines of code come from the three testcases I added.
+
+
+This patch (of 8):
+
+memset16(), memset32() and memset64() are like memset(), but allow the
+caller to fill the destination with a value larger than a single byte. 
+memset_l() and memset_p() allow the caller to use unsigned long and
+pointer values respectively.
+
+Link: http://lkml.kernel.org/r/20170720184539.31609-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/string.h |   30 +++++++++++++++++
+ lib/string.c           |   66 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 96 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -611,11 +611,11 @@ static int smaps_pte_range(pmd_t *pmd, u
- 		if (pmd_present(*pmd))
- 			smaps_pmd_entry(pmd, addr, walk);
- 		spin_unlock(ptl);
--		return 0;
-+		goto out;
- 	}
- 
- 	if (pmd_trans_unstable(pmd))
--		return 0;
-+		goto out;
- 	/*
- 	 * The mmap_sem held all the way back in m_start() is what
- 	 * keeps khugepaged out of here and from collapsing things
-@@ -625,6 +625,7 @@ static int smaps_pte_range(pmd_t *pmd, u
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
- 		smaps_pte_entry(pte, addr, walk);
- 	pte_unmap_unlock(pte - 1, ptl);
-+out:
- 	cond_resched();
- 	return 0;
+diff -puN include/linux/string.h~add-multibyte-memset-functions include/linux/string.h
+--- a/include/linux/string.h~add-multibyte-memset-functions
++++ a/include/linux/string.h
+@@ -99,6 +99,36 @@ extern __kernel_size_t strcspn(const cha
+ #ifndef __HAVE_ARCH_MEMSET
+ extern void * memset(void *,int,__kernel_size_t);
+ #endif
++
++#ifndef __HAVE_ARCH_MEMSET16
++extern void *memset16(uint16_t *, uint16_t, __kernel_size_t);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET32
++extern void *memset32(uint32_t *, uint32_t, __kernel_size_t);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET64
++extern void *memset64(uint64_t *, uint64_t, __kernel_size_t);
++#endif
++
++static inline void *memset_l(unsigned long *p, unsigned long v,
++		__kernel_size_t n)
++{
++	if (BITS_PER_LONG == 32)
++		return memset32((uint32_t *)p, v, n);
++	else
++		return memset64((uint64_t *)p, v, n);
++}
++
++static inline void *memset_p(void **p, void *v, __kernel_size_t n)
++{
++	if (BITS_PER_LONG == 32)
++		return memset32((uint32_t *)p, (uintptr_t)v, n);
++	else
++		return memset64((uint64_t *)p, (uintptr_t)v, n);
++}
++
+ #ifndef __HAVE_ARCH_MEMCPY
+ extern void * memcpy(void *,const void *,__kernel_size_t);
+ #endif
+diff -puN lib/string.c~add-multibyte-memset-functions lib/string.c
+--- a/lib/string.c~add-multibyte-memset-functions
++++ a/lib/string.c
+@@ -723,6 +723,72 @@ void memzero_explicit(void *s, size_t co
  }
+ EXPORT_SYMBOL(memzero_explicit);
+ 
++#ifndef __HAVE_ARCH_MEMSET16
++/**
++ * memset16() - Fill a memory area with a uint16_t
++ * @s: Pointer to the start of the area.
++ * @v: The value to fill the area with
++ * @count: The number of values to store
++ *
++ * Differs from memset() in that it fills with a uint16_t instead
++ * of a byte.  Remember that @count is the number of uint16_ts to
++ * store, not the number of bytes.
++ */
++void *memset16(uint16_t *s, uint16_t v, size_t count)
++{
++	uint16_t *xs = s;
++
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++EXPORT_SYMBOL(memset16);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET32
++/**
++ * memset32() - Fill a memory area with a uint32_t
++ * @s: Pointer to the start of the area.
++ * @v: The value to fill the area with
++ * @count: The number of values to store
++ *
++ * Differs from memset() in that it fills with a uint32_t instead
++ * of a byte.  Remember that @count is the number of uint32_ts to
++ * store, not the number of bytes.
++ */
++void *memset32(uint32_t *s, uint32_t v, size_t count)
++{
++	uint32_t *xs = s;
++
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++EXPORT_SYMBOL(memset32);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET64
++/**
++ * memset64() - Fill a memory area with a uint64_t
++ * @s: Pointer to the start of the area.
++ * @v: The value to fill the area with
++ * @count: The number of values to store
++ *
++ * Differs from memset() in that it fills with a uint64_t instead
++ * of a byte.  Remember that @count is the number of uint64_ts to
++ * store, not the number of bytes.
++ */
++void *memset64(uint64_t *s, uint64_t v, size_t count)
++{
++	uint64_t *xs = s;
++
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++EXPORT_SYMBOL(memset64);
++#endif
++
+ #ifndef __HAVE_ARCH_MEMCPY
+ /**
+  * memcpy - Copy one area of memory to another
 _
