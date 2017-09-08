@@ -1,71 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 050/126] proc: uninline proc_create()
-Date: Fri, 08 Sep 2017 16:13:38 -0700
-Message-ID: <20170908231338.7NiisPmPr%akpm@linux-foundation.org>
+Subject: [patch 051/126] fs, proc: unconditional cond_resched when
+ reading smaps
+Date: Fri, 08 Sep 2017 16:13:41 -0700
+Message-ID: <20170908231341.ED01bYIUQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52186 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757307AbdIHXNk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:40 -0400
+        with ESMTP id S1757173AbdIHXNn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: uninline proc_create()
+From: David Rientjes <rientjes@google.com>
+Subject: fs, proc: unconditional cond_resched when reading smaps
 
-Save some code from ~320 invocations all clearing last argument.
+If there are large numbers of hugepages to iterate while reading
+/proc/pid/smaps, the page walk never does cond_resched().  On archs
+without split pmd locks, there can be significant and observable
+contention on mm->page_table_lock which cause lengthy delays without
+rescheduling.
 
-	add/remove: 3/0 grow/shrink: 0/158 up/down: 45/-702 (-657)
-	function                                     old     new   delta
-	proc_create                                    -      17     +17
-	__ksymtab_proc_create                          -      16     +16
-	__kstrtab_proc_create                          -      12     +12
-	yam_init_driver                              301     298      -3
+Always reschedule in smaps_pte_range() if necessary since the pagewalk
+iteration can be expensive.
 
-		...
-
-	cifs_proc_init                               249     228     -21
-	via_fb_pci_probe                            2304    2280     -24
-
-Link: http://lkml.kernel.org/r/20170819094702.GA27864@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708211405520.131071@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c       |    8 ++++++++
- include/linux/proc_fs.h |    8 +-------
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ fs/proc/task_mmu.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-uninline-proc_create fs/proc/generic.c
---- a/fs/proc/generic.c~proc-uninline-proc_create
-+++ a/fs/proc/generic.c
-@@ -499,6 +499,14 @@ out:
- }
- EXPORT_SYMBOL(proc_create_data);
-  
-+struct proc_dir_entry *proc_create(const char *name, umode_t mode,
-+				   struct proc_dir_entry *parent,
-+				   const struct file_operations *proc_fops)
-+{
-+	return proc_create_data(name, mode, parent, proc_fops, NULL);
-+}
-+EXPORT_SYMBOL(proc_create);
-+
- void proc_set_size(struct proc_dir_entry *de, loff_t size)
- {
- 	de->size = size;
-diff -puN include/linux/proc_fs.h~proc-uninline-proc_create include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-uninline-proc_create
-+++ a/include/linux/proc_fs.h
-@@ -28,13 +28,7 @@ extern struct proc_dir_entry *proc_creat
- 					       const struct file_operations *,
- 					       void *);
+diff -puN fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps
++++ a/fs/proc/task_mmu.c
+@@ -611,11 +611,11 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 		if (pmd_present(*pmd))
+ 			smaps_pmd_entry(pmd, addr, walk);
+ 		spin_unlock(ptl);
+-		return 0;
++		goto out;
+ 	}
  
--static inline struct proc_dir_entry *proc_create(
--	const char *name, umode_t mode, struct proc_dir_entry *parent,
--	const struct file_operations *proc_fops)
--{
--	return proc_create_data(name, mode, parent, proc_fops, NULL);
--}
+ 	if (pmd_trans_unstable(pmd))
+-		return 0;
++		goto out;
+ 	/*
+ 	 * The mmap_sem held all the way back in m_start() is what
+ 	 * keeps khugepaged out of here and from collapsing things
+@@ -625,6 +625,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+ 		smaps_pte_entry(pte, addr, walk);
+ 	pte_unmap_unlock(pte - 1, ptl);
++out:
+ 	cond_resched();
+ 	return 0;
+ }
+_
