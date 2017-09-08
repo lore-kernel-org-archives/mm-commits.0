@@ -1,460 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: [patch 015/126] mm/hmm/mirror: device page fault handler
-Date: Fri, 08 Sep 2017 16:11:35 -0700
-Message-ID: <20170908231135.Nj2V8kaHg%akpm@linux-foundation.org>
+Subject: [patch 020/126] mm/memcontrol: support
+ MEMORY_DEVICE_PRIVATE
+Date: Fri, 08 Sep 2017 16:11:54 -0700
+Message-ID: <20170908231154.f-xoDU9fO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51538 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756895AbdIHXLh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:11:37 -0400
+        with ESMTP id S1752952AbdIHXL4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:11:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
 
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm/mirror: device page fault handler
+Subject: mm/memcontrol: support MEMORY_DEVICE_PRIVATE
 
-This handles page fault on behalf of device driver, unlike
-handle_mm_fault() it does not trigger migration back to system memory for
-device memory.
+HMM pages (private or public device pages) are ZONE_DEVICE page and thus
+need special handling when it comes to lru or refcount.  This patch make
+sure that memcontrol properly handle those when it face them.  Those pages
+are use like regular pages in a process address space either as anonymous
+page or as file back page.  So from memcg point of view we want to handle
+them like regular page for now at least.
 
-Link: http://lkml.kernel.org/r/20170817000548.32038-6-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170817000548.32038-11-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
 Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |   27 ++++
- mm/hmm.c            |  256 ++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 271 insertions(+), 12 deletions(-)
+ kernel/memremap.c |    1 
+ mm/memcontrol.c   |   52 ++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 49 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-mirror-device-page-fault-handler include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-mirror-device-page-fault-handler
-+++ a/include/linux/hmm.h
-@@ -292,6 +292,33 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 		     unsigned long end,
- 		     hmm_pfn_t *pfns);
- bool hmm_vma_range_done(struct vm_area_struct *vma, struct hmm_range *range);
-+
-+
-+/*
-+ * Fault memory on behalf of device driver. Unlike handle_mm_fault(), this will
-+ * not migrate any device memory back to system memory. The hmm_pfn_t array will
-+ * be updated with the fault result and current snapshot of the CPU page table
-+ * for the range.
-+ *
-+ * The mmap_sem must be taken in read mode before entering and it might be
-+ * dropped by the function if the block argument is false. In that case, the
-+ * function returns -EAGAIN.
-+ *
-+ * Return value does not reflect if the fault was successful for every single
-+ * address or not. Therefore, the caller must to inspect the hmm_pfn_t array to
-+ * determine fault status for each address.
-+ *
-+ * Trying to fault inside an invalid vma will result in -EINVAL.
-+ *
-+ * See the function description in mm/hmm.c for further documentation.
-+ */
-+int hmm_vma_fault(struct vm_area_struct *vma,
-+		  struct hmm_range *range,
-+		  unsigned long start,
-+		  unsigned long end,
-+		  hmm_pfn_t *pfns,
-+		  bool write,
-+		  bool block);
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+diff -puN kernel/memremap.c~mm-memcontrol-support-memory_device_private-v4 kernel/memremap.c
+--- a/kernel/memremap.c~mm-memcontrol-support-memory_device_private-v4
++++ a/kernel/memremap.c
+@@ -516,6 +516,7 @@ void put_zone_device_private_page(struct
+ 		__ClearPageWaiters(page);
  
+ 		page->mapping = NULL;
++		mem_cgroup_uncharge(page);
  
-diff -puN mm/hmm.c~mm-hmm-mirror-device-page-fault-handler mm/hmm.c
---- a/mm/hmm.c~mm-hmm-mirror-device-page-fault-handler
-+++ a/mm/hmm.c
-@@ -221,6 +221,36 @@ void hmm_mirror_unregister(struct hmm_mi
+ 		page->pgmap->page_free(page, page->pgmap->data);
+ 	} else if (!count)
+diff -puN mm/memcontrol.c~mm-memcontrol-support-memory_device_private-v4 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-support-memory_device_private-v4
++++ a/mm/memcontrol.c
+@@ -4414,12 +4414,13 @@ enum mc_target_type {
+ 	MC_TARGET_NONE = 0,
+ 	MC_TARGET_PAGE,
+ 	MC_TARGET_SWAP,
++	MC_TARGET_DEVICE,
+ };
+ 
+ static struct page *mc_handle_present_pte(struct vm_area_struct *vma,
+ 						unsigned long addr, pte_t ptent)
+ {
+-	struct page *page = vm_normal_page(vma, addr, ptent);
++	struct page *page = _vm_normal_page(vma, addr, ptent, true);
+ 
+ 	if (!page || !page_mapped(page))
+ 		return NULL;
+@@ -4436,7 +4437,7 @@ static struct page *mc_handle_present_pt
+ 	return page;
  }
- EXPORT_SYMBOL(hmm_mirror_unregister);
  
-+struct hmm_vma_walk {
-+	struct hmm_range	*range;
-+	unsigned long		last;
-+	bool			fault;
-+	bool			block;
-+	bool			write;
-+};
+-#ifdef CONFIG_SWAP
++#if defined(CONFIG_SWAP) || defined(CONFIG_DEVICE_PRIVATE)
+ static struct page *mc_handle_swap_pte(struct vm_area_struct *vma,
+ 			pte_t ptent, swp_entry_t *entry)
+ {
+@@ -4445,6 +4446,23 @@ static struct page *mc_handle_swap_pte(s
+ 
+ 	if (!(mc.flags & MOVE_ANON) || non_swap_entry(ent))
+ 		return NULL;
 +
-+static int hmm_vma_do_fault(struct mm_walk *walk,
-+			    unsigned long addr,
-+			    hmm_pfn_t *pfn)
-+{
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_REMOTE;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+	int r;
-+
-+	flags |= hmm_vma_walk->block ? 0 : FAULT_FLAG_ALLOW_RETRY;
-+	flags |= hmm_vma_walk->write ? FAULT_FLAG_WRITE : 0;
-+	r = handle_mm_fault(vma, addr, flags);
-+	if (r & VM_FAULT_RETRY)
-+		return -EBUSY;
-+	if (r & VM_FAULT_ERROR) {
-+		*pfn = HMM_PFN_ERROR;
-+		return -EFAULT;
++	/*
++	 * Handle MEMORY_DEVICE_PRIVATE which are ZONE_DEVICE page belonging to
++	 * a device and because they are not accessible by CPU they are store
++	 * as special swap entry in the CPU page table.
++	 */
++	if (is_device_private_entry(ent)) {
++		page = device_private_entry_to_page(ent);
++		/*
++		 * MEMORY_DEVICE_PRIVATE means ZONE_DEVICE page and which have
++		 * a refcount of 1 when free (unlike normal page)
++		 */
++		if (!page_ref_add_unless(page, 1, 1))
++			return NULL;
++		return page;
 +	}
 +
-+	return -EAGAIN;
-+}
-+
- static void hmm_pfns_special(hmm_pfn_t *pfns,
- 			     unsigned long addr,
- 			     unsigned long end)
-@@ -244,34 +274,62 @@ static int hmm_pfns_bad(unsigned long ad
- 	return 0;
- }
- 
-+static void hmm_pfns_clear(hmm_pfn_t *pfns,
-+			   unsigned long addr,
-+			   unsigned long end)
-+{
-+	for (; addr < end; addr += PAGE_SIZE, pfns++)
-+		*pfns = 0;
-+}
-+
- static int hmm_vma_walk_hole(unsigned long addr,
- 			     unsigned long end,
- 			     struct mm_walk *walk)
- {
--	struct hmm_range *range = walk->private;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct hmm_range *range = hmm_vma_walk->range;
- 	hmm_pfn_t *pfns = range->pfns;
- 	unsigned long i;
- 
-+	hmm_vma_walk->last = addr;
- 	i = (addr - range->start) >> PAGE_SHIFT;
--	for (; addr < end; addr += PAGE_SIZE, i++)
-+	for (; addr < end; addr += PAGE_SIZE, i++) {
- 		pfns[i] = HMM_PFN_EMPTY;
-+		if (hmm_vma_walk->fault) {
-+			int ret;
- 
--	return 0;
-+			ret = hmm_vma_do_fault(walk, addr, &pfns[i]);
-+			if (ret != -EAGAIN)
-+				return ret;
-+		}
-+	}
-+
-+	return hmm_vma_walk->fault ? -EAGAIN : 0;
- }
- 
- static int hmm_vma_walk_clear(unsigned long addr,
- 			      unsigned long end,
- 			      struct mm_walk *walk)
- {
--	struct hmm_range *range = walk->private;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct hmm_range *range = hmm_vma_walk->range;
- 	hmm_pfn_t *pfns = range->pfns;
- 	unsigned long i;
- 
-+	hmm_vma_walk->last = addr;
- 	i = (addr - range->start) >> PAGE_SHIFT;
--	for (; addr < end; addr += PAGE_SIZE, i++)
-+	for (; addr < end; addr += PAGE_SIZE, i++) {
- 		pfns[i] = 0;
-+		if (hmm_vma_walk->fault) {
-+			int ret;
- 
--	return 0;
-+			ret = hmm_vma_do_fault(walk, addr, &pfns[i]);
-+			if (ret != -EAGAIN)
-+				return ret;
-+		}
-+	}
-+
-+	return hmm_vma_walk->fault ? -EAGAIN : 0;
- }
- 
- static int hmm_vma_walk_pmd(pmd_t *pmdp,
-@@ -279,15 +337,18 @@ static int hmm_vma_walk_pmd(pmd_t *pmdp,
- 			    unsigned long end,
- 			    struct mm_walk *walk)
- {
--	struct hmm_range *range = walk->private;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct hmm_range *range = hmm_vma_walk->range;
- 	struct vm_area_struct *vma = walk->vma;
- 	hmm_pfn_t *pfns = range->pfns;
- 	unsigned long addr = start, i;
-+	bool write_fault;
- 	hmm_pfn_t flag;
- 	pte_t *ptep;
- 
- 	i = (addr - range->start) >> PAGE_SHIFT;
- 	flag = vma->vm_flags & VM_READ ? HMM_PFN_READ : 0;
-+	write_fault = hmm_vma_walk->fault & hmm_vma_walk->write;
- 
- again:
- 	if (pmd_none(*pmdp))
-@@ -316,6 +377,9 @@ again:
- 		if (pmd_protnone(pmd))
- 			return hmm_vma_walk_clear(start, end, walk);
- 
-+		if (write_fault && !pmd_write(pmd))
-+			return hmm_vma_walk_clear(start, end, walk);
-+
- 		pfn = pmd_pfn(pmd) + pte_index(addr);
- 		flag |= pmd_write(pmd) ? HMM_PFN_WRITE : 0;
- 		for (; addr < end; addr += PAGE_SIZE, i++, pfn++)
-@@ -332,13 +396,55 @@ again:
- 
- 		pfns[i] = 0;
- 
--		if (pte_none(pte) || !pte_present(pte)) {
-+		if (pte_none(pte)) {
- 			pfns[i] = HMM_PFN_EMPTY;
-+			if (hmm_vma_walk->fault)
-+				goto fault;
- 			continue;
+ 	/*
+ 	 * Because lookup_swap_cache() updates some statistics counter,
+ 	 * we call find_get_page() with swapper_space directly.
+@@ -4605,6 +4623,12 @@ out:
+  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
+  *     target for charge migration. if @target is not NULL, the entry is stored
+  *     in target->ent.
++ *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PRIVATE
++ *     (so ZONE_DEVICE page and thus not on the lru). For now we such page is
++ *     charge like a regular page would be as for all intent and purposes it is
++ *     just special memory taking the place of a regular page.
++ *
++ *     See Documentations/vm/hmm.txt and include/linux/hmm.h
+  *
+  * Called with pte lock held.
+  */
+@@ -4633,6 +4657,8 @@ static enum mc_target_type get_mctgt_typ
+ 		 */
+ 		if (page->mem_cgroup == mc.from) {
+ 			ret = MC_TARGET_PAGE;
++			if (is_device_private_page(page))
++				ret = MC_TARGET_DEVICE;
+ 			if (target)
+ 				target->page = page;
  		}
+@@ -4700,6 +4726,11 @@ static int mem_cgroup_count_precharge_pt
  
-+		if (!pte_present(pte)) {
-+			swp_entry_t entry;
-+
-+			if (!non_swap_entry(entry)) {
-+				if (hmm_vma_walk->fault)
-+					goto fault;
-+				continue;
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
++		/*
++		 * Note their can not be MC_TARGET_DEVICE for now as we do not
++		 * support transparent huge page with MEMORY_DEVICE_PUBLIC or
++		 * MEMORY_DEVICE_PRIVATE but this might change.
++		 */
+ 		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
+ 			mc.precharge += HPAGE_PMD_NR;
+ 		spin_unlock(ptl);
+@@ -4915,6 +4946,14 @@ static int mem_cgroup_move_charge_pte_ra
+ 				putback_lru_page(page);
+ 			}
+ 			put_page(page);
++		} else if (target_type == MC_TARGET_DEVICE) {
++			page = target.page;
++			if (!mem_cgroup_move_account(page, true,
++						     mc.from, mc.to)) {
++				mc.precharge -= HPAGE_PMD_NR;
++				mc.moved_charge += HPAGE_PMD_NR;
 +			}
-+
-+			entry = pte_to_swp_entry(pte);
-+
-+			/*
-+			 * This is a special swap entry, ignore migration, use
-+			 * device and report anything else as error.
-+			 */
-+			if (is_migration_entry(entry)) {
-+				if (hmm_vma_walk->fault) {
-+					pte_unmap(ptep);
-+					hmm_vma_walk->last = addr;
-+					migration_entry_wait(vma->vm_mm,
-+							     pmdp, addr);
-+					return -EAGAIN;
-+				}
-+				continue;
-+			} else {
-+				/* Report error for everything else */
-+				pfns[i] = HMM_PFN_ERROR;
-+			}
-+			continue;
-+		}
-+
-+		if (write_fault && !pte_write(pte))
-+			goto fault;
-+
- 		pfns[i] = hmm_pfn_t_from_pfn(pte_pfn(pte)) | flag;
- 		pfns[i] |= pte_write(pte) ? HMM_PFN_WRITE : 0;
-+		continue;
-+
-+fault:
-+		pte_unmap(ptep);
-+		/* Fault all pages in range */
-+		return hmm_vma_walk_clear(start, end, walk);
- 	}
- 	pte_unmap(ptep - 1);
++			put_page(page);
+ 		}
+ 		spin_unlock(ptl);
+ 		return 0;
+@@ -4926,12 +4965,16 @@ retry:
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		pte_t ptent = *(pte++);
++		bool device = false;
+ 		swp_entry_t ent;
  
-@@ -371,6 +477,7 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 		     unsigned long end,
- 		     hmm_pfn_t *pfns)
- {
-+	struct hmm_vma_walk hmm_vma_walk;
- 	struct mm_walk mm_walk;
- 	struct hmm *hmm;
+ 		if (!mc.precharge)
+ 			break;
  
-@@ -402,9 +509,12 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 	list_add_rcu(&range->list, &hmm->ranges);
- 	spin_unlock(&hmm->lock);
- 
-+	hmm_vma_walk.fault = false;
-+	hmm_vma_walk.range = range;
-+	mm_walk.private = &hmm_vma_walk;
-+
- 	mm_walk.vma = vma;
- 	mm_walk.mm = vma->vm_mm;
--	mm_walk.private = range;
- 	mm_walk.pte_entry = NULL;
- 	mm_walk.test_walk = NULL;
- 	mm_walk.hugetlb_entry = NULL;
-@@ -412,7 +522,6 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 	mm_walk.pte_hole = hmm_vma_walk_hole;
- 
- 	walk_page_range(start, end, &mm_walk);
--
- 	return 0;
- }
- EXPORT_SYMBOL(hmm_vma_get_pfns);
-@@ -439,7 +548,7 @@ EXPORT_SYMBOL(hmm_vma_get_pfns);
-  *
-  * There are two ways to use this :
-  * again:
-- *   hmm_vma_get_pfns(vma, range, start, end, pfns);
-+ *   hmm_vma_get_pfns(vma, range, start, end, pfns); or hmm_vma_fault(...);
-  *   trans = device_build_page_table_update_transaction(pfns);
-  *   device_page_table_lock();
-  *   if (!hmm_vma_range_done(vma, range)) {
-@@ -450,7 +559,7 @@ EXPORT_SYMBOL(hmm_vma_get_pfns);
-  *   device_page_table_unlock();
-  *
-  * Or:
-- *   hmm_vma_get_pfns(vma, range, start, end, pfns);
-+ *   hmm_vma_get_pfns(vma, range, start, end, pfns); or hmm_vma_fault(...);
-  *   device_page_table_lock();
-  *   hmm_vma_range_done(vma, range);
-  *   device_update_page_table(pfns);
-@@ -479,4 +588,127 @@ bool hmm_vma_range_done(struct vm_area_s
- 	return range->valid;
- }
- EXPORT_SYMBOL(hmm_vma_range_done);
-+
-+/*
-+ * hmm_vma_fault() - try to fault some address in a virtual address range
-+ * @vma: virtual memory area containing the virtual address range
-+ * @range: use to track pfns array content validity
-+ * @start: fault range virtual start address (inclusive)
-+ * @end: fault range virtual end address (exclusive)
-+ * @pfns: array of hmm_pfn_t, only entry with fault flag set will be faulted
-+ * @write: is it a write fault
-+ * @block: allow blocking on fault (if true it sleeps and do not drop mmap_sem)
-+ * Returns: 0 success, error otherwise (-EAGAIN means mmap_sem have been drop)
-+ *
-+ * This is similar to a regular CPU page fault except that it will not trigger
-+ * any memory migration if the memory being faulted is not accessible by CPUs.
-+ *
-+ * On error, for one virtual address in the range, the function will set the
-+ * hmm_pfn_t error flag for the corresponding pfn entry.
-+ *
-+ * Expected use pattern:
-+ * retry:
-+ *   down_read(&mm->mmap_sem);
-+ *   // Find vma and address device wants to fault, initialize hmm_pfn_t
-+ *   // array accordingly
-+ *   ret = hmm_vma_fault(vma, start, end, pfns, allow_retry);
-+ *   switch (ret) {
-+ *   case -EAGAIN:
-+ *     hmm_vma_range_done(vma, range);
-+ *     // You might want to rate limit or yield to play nicely, you may
-+ *     // also commit any valid pfn in the array assuming that you are
-+ *     // getting true from hmm_vma_range_monitor_end()
-+ *     goto retry;
-+ *   case 0:
-+ *     break;
-+ *   default:
-+ *     // Handle error !
-+ *     up_read(&mm->mmap_sem)
-+ *     return;
-+ *   }
-+ *   // Take device driver lock that serialize device page table update
-+ *   driver_lock_device_page_table_update();
-+ *   hmm_vma_range_done(vma, range);
-+ *   // Commit pfns we got from hmm_vma_fault()
-+ *   driver_unlock_device_page_table_update();
-+ *   up_read(&mm->mmap_sem)
-+ *
-+ * YOU MUST CALL hmm_vma_range_done() AFTER THIS FUNCTION RETURN SUCCESS (0)
-+ * BEFORE FREEING THE range struct OR YOU WILL HAVE SERIOUS MEMORY CORRUPTION !
-+ *
-+ * YOU HAVE BEEN WARNED !
-+ */
-+int hmm_vma_fault(struct vm_area_struct *vma,
-+		  struct hmm_range *range,
-+		  unsigned long start,
-+		  unsigned long end,
-+		  hmm_pfn_t *pfns,
-+		  bool write,
-+		  bool block)
-+{
-+	struct hmm_vma_walk hmm_vma_walk;
-+	struct mm_walk mm_walk;
-+	struct hmm *hmm;
-+	int ret;
-+
-+	/* Sanity check, this really should not happen ! */
-+	if (start < vma->vm_start || start >= vma->vm_end)
-+		return -EINVAL;
-+	if (end < vma->vm_start || end > vma->vm_end)
-+		return -EINVAL;
-+
-+	hmm = hmm_register(vma->vm_mm);
-+	if (!hmm) {
-+		hmm_pfns_clear(pfns, start, end);
-+		return -ENOMEM;
-+	}
-+	/* Caller must have registered a mirror using hmm_mirror_register() */
-+	if (!hmm->mmu_notifier.ops)
-+		return -EINVAL;
-+
-+	/* Initialize range to track CPU page table update */
-+	range->start = start;
-+	range->pfns = pfns;
-+	range->end = end;
-+	spin_lock(&hmm->lock);
-+	range->valid = true;
-+	list_add_rcu(&range->list, &hmm->ranges);
-+	spin_unlock(&hmm->lock);
-+
-+	/* FIXME support hugetlb fs */
-+	if (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)) {
-+		hmm_pfns_special(pfns, start, end);
-+		return 0;
-+	}
-+
-+	hmm_vma_walk.fault = true;
-+	hmm_vma_walk.write = write;
-+	hmm_vma_walk.block = block;
-+	hmm_vma_walk.range = range;
-+	mm_walk.private = &hmm_vma_walk;
-+	hmm_vma_walk.last = range->start;
-+
-+	mm_walk.vma = vma;
-+	mm_walk.mm = vma->vm_mm;
-+	mm_walk.pte_entry = NULL;
-+	mm_walk.test_walk = NULL;
-+	mm_walk.hugetlb_entry = NULL;
-+	mm_walk.pmd_entry = hmm_vma_walk_pmd;
-+	mm_walk.pte_hole = hmm_vma_walk_hole;
-+
-+	do {
-+		ret = walk_page_range(start, end, &mm_walk);
-+		start = hmm_vma_walk.last;
-+	} while (ret == -EAGAIN);
-+
-+	if (ret) {
-+		unsigned long i;
-+
-+		i = (hmm_vma_walk.last - range->start) >> PAGE_SHIFT;
-+		hmm_pfns_clear(&pfns[i], hmm_vma_walk.last, end);
-+		hmm_vma_range_done(vma, range);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(hmm_vma_fault);
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+ 		switch (get_mctgt_type(vma, addr, ptent, &target)) {
++		case MC_TARGET_DEVICE:
++			device = true;
++			/* fall through */
+ 		case MC_TARGET_PAGE:
+ 			page = target.page;
+ 			/*
+@@ -4942,7 +4985,7 @@ retry:
+ 			 */
+ 			if (PageTransCompound(page))
+ 				goto put;
+-			if (isolate_lru_page(page))
++			if (!device && isolate_lru_page(page))
+ 				goto put;
+ 			if (!mem_cgroup_move_account(page, false,
+ 						mc.from, mc.to)) {
+@@ -4950,7 +4993,8 @@ retry:
+ 				/* we uncharge from mc.from later. */
+ 				mc.moved_charge++;
+ 			}
+-			putback_lru_page(page);
++			if (!device)
++				putback_lru_page(page);
+ put:			/* get_mctgt_type() gets the page */
+ 			put_page(page);
+ 			break;
 _
