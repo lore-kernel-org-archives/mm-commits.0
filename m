@@ -1,197 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [patch 060/126] vga: optimise console scrolling
-Date: Fri, 08 Sep 2017 16:14:15 -0700
-Message-ID: <20170908231415.cW-eSQPey%akpm@linux-foundation.org>
+Subject: [patch 057/126] alpha: add support for memset16
+Date: Fri, 08 Sep 2017 16:14:04 -0700
+Message-ID: <20170908231404.JXpCjAZco%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757173AbdIHXOR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:17 -0400
+        with ESMTP id S1757173AbdIHXOF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
 
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: vga: optimise console scrolling
+Subject: alpha: add support for memset16
 
-Where possible, call memset16(), memmove() or memcpy() instead of using
-open-coded loops.  I don't like the calling convention that uses a byte
-count instead of a count of u16s, but it's a little late to change that.
-Reduces code size of fbcon.o by almost 400 bytes on my laptop build.
+Alpha already had an optimised fill-memory-with-16-bit-quantity assembler
+routine called memsetw().  It has a slightly different calling convention
+from memset16() in that it takes a byte count, not a count of words. 
+That's the same convention used by ARM's __memset routines, so rename
+Alpha's routine to match and add a memset16() wrapper around it.  Then
+convert Alpha's scr_memsetw() to call memset16() instead of memsetw().
 
-[akpm@linux-foundation.org: fix build]
-Link: http://lkml.kernel.org/r/20170720184539.31609-9-willy@infradead.org
+Link: http://lkml.kernel.org/r/20170720184539.31609-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
 Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: David Miller <davem@davemloft.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/vga.h    |    7 +++++++
- arch/powerpc/include/asm/vga.h |    8 ++++++++
- arch/sparc/include/asm/vga.h   |   25 +++++++++++++++++++++++++
- include/linux/vt_buffer.h      |   13 +++++++++++++
- 4 files changed, 53 insertions(+)
+ arch/alpha/include/asm/string.h |   15 ++++++++-------
+ arch/alpha/include/asm/vga.h    |    2 +-
+ arch/alpha/lib/memset.S         |   10 +++++-----
+ 3 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN arch/mips/include/asm/vga.h~vga-optimise-console-scrolling arch/mips/include/asm/vga.h
---- a/arch/mips/include/asm/vga.h~vga-optimise-console-scrolling
-+++ a/arch/mips/include/asm/vga.h
-@@ -6,6 +6,7 @@
- #ifndef _ASM_VGA_H
- #define _ASM_VGA_H
+diff -puN arch/alpha/include/asm/string.h~alpha-add-support-for-memset16 arch/alpha/include/asm/string.h
+--- a/arch/alpha/include/asm/string.h~alpha-add-support-for-memset16
++++ a/arch/alpha/include/asm/string.h
+@@ -65,13 +65,14 @@ extern void * memchr(const void *, int,
+    aligned values.  The DEST and COUNT parameters must be even for 
+    correct operation.  */
  
-+#include <linux/string.h>
- #include <asm/addrspace.h>
- #include <asm/byteorder.h>
- 
-@@ -40,9 +41,15 @@ static inline u16 scr_readw(volatile con
- 	return le16_to_cpu(*addr);
- }
- 
-+static inline void scr_memsetw(u16 *s, u16 v, unsigned int count)
+-#define __HAVE_ARCH_MEMSETW
+-extern void * __memsetw(void *dest, unsigned short, size_t count);
+-
+-#define memsetw(s, c, n)						 \
+-(__builtin_constant_p(c)						 \
+- ? __constant_c_memset((s),0x0001000100010001UL*(unsigned short)(c),(n)) \
+- : __memsetw((s),(c),(n)))
++#define __HAVE_ARCH_MEMSET16
++extern void * __memset16(void *dest, unsigned short, size_t count);
++static inline void *memset16(uint16_t *p, uint16_t v, size_t n)
 +{
-+	memset16(s, cpu_to_le16(v), count / 2);
++	if (__builtin_constant_p(v))
++		return __constant_c_memset(p, 0x0001000100010001UL * v, n * 2);
++	return __memset16(p, v, n * 2);
 +}
-+
- #define scr_memcpyw(d, s, c) memcpy(d, s, c)
- #define scr_memmovew(d, s, c) memmove(d, s, c)
- #define VT_BUF_HAVE_MEMCPYW
- #define VT_BUF_HAVE_MEMMOVEW
-+#define VT_BUF_HAVE_MEMSETW
  
- #endif /* _ASM_VGA_H */
-diff -puN arch/powerpc/include/asm/vga.h~vga-optimise-console-scrolling arch/powerpc/include/asm/vga.h
---- a/arch/powerpc/include/asm/vga.h~vga-optimise-console-scrolling
-+++ a/arch/powerpc/include/asm/vga.h
-@@ -33,8 +33,16 @@ static inline u16 scr_readw(volatile con
- 	return le16_to_cpu(*addr);
+ #endif /* __KERNEL__ */
+ 
+diff -puN arch/alpha/include/asm/vga.h~alpha-add-support-for-memset16 arch/alpha/include/asm/vga.h
+--- a/arch/alpha/include/asm/vga.h~alpha-add-support-for-memset16
++++ a/arch/alpha/include/asm/vga.h
+@@ -34,7 +34,7 @@ static inline void scr_memsetw(u16 *s, u
+ 	if (__is_ioaddr(s))
+ 		memsetw_io((u16 __iomem *) s, c, count);
+ 	else
+-		memsetw(s, c, count);
++		memset16(s, c, count / 2);
  }
  
-+#define VT_BUF_HAVE_MEMSETW
-+static inline void scr_memsetw(u16 *s, u16 v, unsigned int n)
-+{
-+	memset16(s, cpu_to_le16(v), n / 2);
-+}
-+
- #define VT_BUF_HAVE_MEMCPYW
-+#define VT_BUF_HAVE_MEMMOVEW
- #define scr_memcpyw	memcpy
-+#define scr_memmovew	memmove
+ /* Do not trust that the usage will be correct; analyze the arguments.  */
+diff -puN arch/alpha/lib/memset.S~alpha-add-support-for-memset16 arch/alpha/lib/memset.S
+--- a/arch/alpha/lib/memset.S~alpha-add-support-for-memset16
++++ a/arch/alpha/lib/memset.S
+@@ -20,7 +20,7 @@
+ 	.globl memset
+ 	.globl __memset
+ 	.globl ___memset
+-	.globl __memsetw
++	.globl __memset16
+ 	.globl __constant_c_memset
  
- #endif /* !CONFIG_VGA_CONSOLE && !CONFIG_MDA_CONSOLE */
+ 	.ent ___memset
+@@ -110,8 +110,8 @@ EXPORT_SYMBOL(___memset)
+ EXPORT_SYMBOL(__constant_c_memset)
  
-diff -puN arch/sparc/include/asm/vga.h~vga-optimise-console-scrolling arch/sparc/include/asm/vga.h
---- a/arch/sparc/include/asm/vga.h~vga-optimise-console-scrolling
-+++ a/arch/sparc/include/asm/vga.h
-@@ -8,9 +8,13 @@
- #define _LINUX_ASM_VGA_H_
+ 	.align 5
+-	.ent __memsetw
+-__memsetw:
++	.ent __memset16
++__memset16:
+ 	.prologue 0
  
- #include <linux/bug.h>
-+#include <linux/string.h>
- #include <asm/types.h>
+ 	inswl $17,0,$1		/* E0 */
+@@ -123,8 +123,8 @@ __memsetw:
+ 	or $1,$4,$17		/* E0 */
+ 	br __constant_c_memset	/* .. E1 */
  
- #define VT_BUF_HAVE_RW
-+#define VT_BUF_HAVE_MEMSETW
-+#define VT_BUF_HAVE_MEMCPYW
-+#define VT_BUF_HAVE_MEMMOVEW
+-	.end __memsetw
+-EXPORT_SYMBOL(__memsetw)
++	.end __memset16
++EXPORT_SYMBOL(__memset16)
  
- #undef scr_writew
- #undef scr_readw
-@@ -29,6 +33,27 @@ static inline u16 scr_readw(const u16 *a
- 	return *addr;
- }
- 
-+static inline void scr_memsetw(u16 *p, u16 v, unsigned int n)
-+{
-+	BUG_ON((long) p >= 0);
-+
-+	memset16(p, cpu_to_le16(v), n / 2);
-+}
-+
-+static inline void scr_memcpyw(u16 *d, u16 *s, unsigned int n)
-+{
-+	BUG_ON((long) d >= 0);
-+
-+	memcpy(d, s, n);
-+}
-+
-+static inline void scr_memmovew(u16 *d, u16 *s, unsigned int n)
-+{
-+	BUG_ON((long) d >= 0);
-+
-+	memmove(d, s, n);
-+}
-+
- #define VGA_MAP_MEM(x,s) (x)
- 
- #endif
-diff -puN include/linux/vt_buffer.h~vga-optimise-console-scrolling include/linux/vt_buffer.h
---- a/include/linux/vt_buffer.h~vga-optimise-console-scrolling
-+++ a/include/linux/vt_buffer.h
-@@ -13,6 +13,7 @@
- #ifndef _LINUX_VT_BUFFER_H_
- #define _LINUX_VT_BUFFER_H_
- 
-+#include <linux/string.h>
- 
- #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_MDA_CONSOLE)
- #include <asm/vga.h>
-@@ -26,24 +27,33 @@
- #ifndef VT_BUF_HAVE_MEMSETW
- static inline void scr_memsetw(u16 *s, u16 c, unsigned int count)
- {
-+#ifdef VT_BUF_HAVE_RW
- 	count /= 2;
- 	while (count--)
- 		scr_writew(c, s++);
-+#else
-+	memset16(s, c, count / 2);
-+#endif
- }
- #endif
- 
- #ifndef VT_BUF_HAVE_MEMCPYW
- static inline void scr_memcpyw(u16 *d, const u16 *s, unsigned int count)
- {
-+#ifdef VT_BUF_HAVE_RW
- 	count /= 2;
- 	while (count--)
- 		scr_writew(scr_readw(s++), d++);
-+#else
-+	memcpy(d, s, count);
-+#endif
- }
- #endif
- 
- #ifndef VT_BUF_HAVE_MEMMOVEW
- static inline void scr_memmovew(u16 *d, const u16 *s, unsigned int count)
- {
-+#ifdef VT_BUF_HAVE_RW
- 	if (d < s)
- 		scr_memcpyw(d, s, count);
- 	else {
-@@ -53,6 +63,9 @@ static inline void scr_memmovew(u16 *d,
- 		while (count--)
- 			scr_writew(scr_readw(--s), --d);
- 	}
-+#else
-+	memmove(d, s, count);
-+#endif
- }
- #endif
- 
+ memset = ___memset
+ __memset = ___memset
 _
