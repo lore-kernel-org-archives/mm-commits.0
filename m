@@ -1,80 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/126] radix-tree: must check
- __radix_tree_preload() return value
-Date: Fri, 08 Sep 2017 16:15:54 -0700
-Message-ID: <20170908231554.FJ8gMFfA6%akpm@linux-foundation.org>
+Subject: [patch 091/126] lib/oid_registry.c: X.509: fix the buffer
+ overflow in the utility function for OID string
+Date: Fri, 08 Sep 2017 16:15:58 -0700
+Message-ID: <20170908231558.8vAZQrmxG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53228 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXP4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:56 -0400
+        with ESMTP id S1753026AbdIHXP7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, edumazet@google.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, jlee@suse.com, mm-commits@vger.kernel.org, pwieczorkiewicz@suse.com, rusty@rustcorp.com.au, tiwai@suse.de, torvalds@linux-foundation.org
 
-From: Eric Dumazet <edumazet@google.com>
-Subject: radix-tree: must check __radix_tree_preload() return value
+From: Takashi Iwai <tiwai@suse.de>
+Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
 
-__radix_tree_preload() only disables preemption if no error is returned.
+The sprint_oid() utility function doesn't properly check the buffer size
+that it causes that the warning in vsnprintf() be triggered.  For example
+on v4.1 kernel:
 
-So we really need to make sure callers always check the return value.
+[   49.612536] ------------[ cut here ]------------
+[   49.612543] WARNING: CPU: 0 PID: 2357 at lib/vsprintf.c:1867 vsnprintf+0x5a7/0x5c0()
+...
 
-idr_preload() contract is to always disable preemption, so we need
-to add a missing preempt_disable() if an error happened.
+We can trigger this issue by injecting maliciously crafted x509 cert in
+DER format.  Just using hex editor to change the length of OID to over the
+length of the SEQUENCE container.  For example:
 
-Similarly, ida_pre_get() only needs to call preempt_enable() in the
-case no error happened.
+    0:d=0  hl=4 l= 980 cons: SEQUENCE
+    4:d=1  hl=4 l= 700 cons:  SEQUENCE
+    8:d=2  hl=2 l=   3 cons:   cont [ 0 ]
+   10:d=3  hl=2 l=   1 prim:    INTEGER           :02
+   13:d=2  hl=2 l=   9 prim:   INTEGER           :9B47FAF791E7D1E3
+   24:d=2  hl=2 l=  13 cons:   SEQUENCE
+   26:d=3  hl=2 l=   9 prim:    OBJECT            :sha256WithRSAEncryption
+   37:d=3  hl=2 l=   0 prim:    NULL
+   39:d=2  hl=2 l= 121 cons:   SEQUENCE
+   41:d=3  hl=2 l=  22 cons:    SET
+   43:d=4  hl=2 l=  20 cons:     SEQUENCE      <=== the SEQ length is 20
+   45:d=5  hl=2 l=   3 prim:      OBJECT            :organizationName
+	<=== the original length is 3, change the length of OID to over the length of SEQUENCE
 
-Link: http://lkml.kernel.org/r/1504637190.15310.62.camel@edumazet-glaptop3.roam.corp.google.com
-Fixes: 0a835c4f090a ("Reimplement IDR and IDA using the radix tree")
-Fixes: 7ad3d4d85c7a ("ida: Move ida_bitmap to a percpu variable")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>    [4.11+]
+Pawel Wieczorkiewicz reported this problem and Takashi Iwai provided patch
+to fix it by checking the bufsize in sprint_oid().
+
+Link: http://lkml.kernel.org/r/20170903021646.2080-1-jlee@suse.com
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
+Reported-by: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ lib/oid_registry.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-must-check-__radix_tree_preload-return-value lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-must-check-__radix_tree_preload-return-value
-+++ a/lib/radix-tree.c
-@@ -463,7 +463,7 @@ radix_tree_node_free(struct radix_tree_n
-  * To make use of this facility, the radix tree must be initialised without
-  * __GFP_DIRECT_RECLAIM being passed to INIT_RADIX_TREE().
-  */
--static int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
-+static __must_check int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
- {
- 	struct radix_tree_preload *rtp;
- 	struct radix_tree_node *node;
-@@ -2104,7 +2104,8 @@ EXPORT_SYMBOL(radix_tree_tagged);
-  */
- void idr_preload(gfp_t gfp_mask)
- {
--	__radix_tree_preload(gfp_mask, IDR_PRELOAD_SIZE);
-+	if (__radix_tree_preload(gfp_mask, IDR_PRELOAD_SIZE))
-+		preempt_disable();
- }
- EXPORT_SYMBOL(idr_preload);
+diff -puN lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string lib/oid_registry.c
+--- a/lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string
++++ a/lib/oid_registry.c
+@@ -142,9 +142,9 @@ int sprint_oid(const void *data, size_t
+ 		}
+ 		ret += count = snprintf(buffer, bufsize, ".%lu", num);
+ 		buffer += count;
+-		bufsize -= count;
+-		if (bufsize == 0)
++		if (bufsize <= count)
+ 			return -ENOBUFS;
++		bufsize -= count;
+ 	}
  
-@@ -2118,13 +2119,13 @@ EXPORT_SYMBOL(idr_preload);
-  */
- int ida_pre_get(struct ida *ida, gfp_t gfp)
- {
--	__radix_tree_preload(gfp, IDA_PRELOAD_SIZE);
- 	/*
- 	 * The IDA API has no preload_end() equivalent.  Instead,
- 	 * ida_get_new() can return -EAGAIN, prompting the caller
- 	 * to return to the ida_pre_get() step.
- 	 */
--	preempt_enable();
-+	if (!__radix_tree_preload(gfp, IDA_PRELOAD_SIZE))
-+		preempt_enable();
- 
- 	if (!this_cpu_read(ida_bitmap)) {
- 		struct ida_bitmap *bitmap = kmalloc(sizeof(*bitmap), gfp);
+ 	return ret;
 _
