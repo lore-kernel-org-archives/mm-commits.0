@@ -1,59 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-thp-enable-thp-migration-in-generic-path-fix.patch removed from -mm tree
-Date: Fri, 08 Sep 2017 15:56:02 -0700
-Message-ID: <59b32002.tFjvULOyXoO9XJ6u%akpm@linux-foundation.org>
+ mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch removed from -mm
+ tree
+Date: Fri, 08 Sep 2017 15:56:05 -0700
+Message-ID: <59b32005.S6TwWdsqEgA7ugTZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752952AbdIHW4D (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:56:03 -0400
+        with ESMTP id S1753011AbdIHW4G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:56:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-enable-thp-migration-in-generic-path-fix
+     Subject: mm-thp-enable-thp-migration-in-generic-path-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-thp-enable-thp-migration-in-generic-path-fix.patch
+     mm-thp-enable-thp-migration-in-generic-path-fix-fix.patch
 
 This patch was dropped because it was folded into mm-thp-enable-thp-migration-in-generic-path.patch
 
 ------------------------------------------------------
-From: "Zi Yan" <zi.yan@cs.rutgers.edu>
-Subject: mm-thp-enable-thp-migration-in-generic-path-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-thp-enable-thp-migration-in-generic-path-fix-fix
 
-fix gcc-4.9.0 -Wmissing-braces warning
+fix x86_64 allnoconfig warning
 
-Link: http://lkml.kernel.org/r/A0ABA698-7486-46C3-B209-E95A9048B22C@cs.rutgers.edu
+mm/page_vma_mapped.c: In function 'page_vma_mapped_walk':
+mm/page_vma_mapped.c:154:18: warning: unused variable 'entry' [-Wunused-variable
 
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swapops.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path-fix include/linux/swapops.h
---- a/include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path-fix
+diff -puN include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path-fix-fix include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path-fix-fix
 +++ a/include/linux/swapops.h
-@@ -217,7 +217,7 @@ static inline swp_entry_t pmd_to_swp_ent
- 
- static inline pmd_t swp_entry_to_pmd(swp_entry_t entry)
+@@ -149,7 +149,11 @@ static inline int is_migration_entry(swp
  {
--	return (pmd_t){ 0 };
-+	return __pmd(0);
+ 	return 0;
  }
- 
- static inline int is_pmd_migration_entry(pmd_t pmd)
+-#define migration_entry_to_page(swp) NULL
++static inline struct page *migration_entry_to_page(swp_entry_t entry)
++{
++	return NULL;
++}
++
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+ 					spinlock_t *ptl) { }
 _
 
-Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-thp-enable-thp-migration-in-generic-path.patch
-mm-thp-check-pmd-migration-entry-in-common-path.patch
+mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+add-testcases-for-memset16-32-64-fix.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
 
