@@ -1,80 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: [patch 070/126] lib/rbtree_test.c: add (inorder) traversal
- test
-Date: Fri, 08 Sep 2017 16:14:49 -0700
-Message-ID: <20170908231449.QI2LJY_Xo%akpm@linux-foundation.org>
+Subject: [patch 073/126] sched/deadline: replace earliest dl and rq
+ leftmost caching
+Date: Fri, 08 Sep 2017 16:14:58 -0700
+Message-ID: <20170908231458.ZbguZLYMg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXOu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:50 -0400
+        with ESMTP id S1753026AbdIHXPA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
 
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/rbtree_test.c: add (inorder) traversal test
+Subject: sched/deadline: replace earliest dl and rq leftmost caching
 
-This adds a second test for regular rb-tree testing in that there is no
-need to repeat it for the augmented flavor.
+... with the generic rbtree flavor instead. No changes
+in semantics whatsoever.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-6-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-9-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree_test.c |   25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ kernel/sched/deadline.c |   50 ++++++++++++++------------------------
+ kernel/sched/sched.h    |    6 +---
+ 2 files changed, 21 insertions(+), 35 deletions(-)
 
-diff -puN lib/rbtree_test.c~lib-rbtree_testc-add-inorder-traversal-test lib/rbtree_test.c
---- a/lib/rbtree_test.c~lib-rbtree_testc-add-inorder-traversal-test
-+++ a/lib/rbtree_test.c
-@@ -183,6 +183,7 @@ static int __init rbtree_test_init(void)
+diff -puN kernel/sched/deadline.c~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching kernel/sched/deadline.c
+--- a/kernel/sched/deadline.c~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching
++++ a/kernel/sched/deadline.c
+@@ -296,7 +296,7 @@ static inline int is_leftmost(struct tas
  {
- 	int i, j;
- 	cycles_t time1, time2, time;
-+	struct rb_node *node;
+ 	struct sched_dl_entity *dl_se = &p->dl;
  
- 	nodes = kmalloc(nnodes * sizeof(*nodes), GFP_KERNEL);
- 	if (!nodes)
-@@ -206,8 +207,28 @@ static int __init rbtree_test_init(void)
- 	time = time2 - time1;
+-	return dl_rq->rb_leftmost == &dl_se->rb_node;
++	return dl_rq->root.rb_leftmost == &dl_se->rb_node;
+ }
  
- 	time = div_u64(time, perf_loops);
--	printk(" -> %llu cycles\n", (unsigned long long)time);
-+	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
+ void init_dl_bandwidth(struct dl_bandwidth *dl_b, u64 period, u64 runtime)
+@@ -320,7 +320,7 @@ void init_dl_bw(struct dl_bw *dl_b)
  
-+	for (i = 0; i < nnodes; i++)
-+		insert(nodes + i, &root);
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < perf_loops; i++) {
-+		for (node = rb_first(&root); node; node = rb_next(node))
-+			;
-+	}
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, perf_loops);
-+	printk(" -> test 2 (latency of inorder traversal): %llu cycles\n", (unsigned long long)time);
-+
-+	for (i = 0; i < nnodes; i++)
-+		erase(nodes + i, &root);
-+
-+	/* run checks */
- 	for (i = 0; i < check_loops; i++) {
- 		init();
- 		for (j = 0; j < nnodes; j++) {
-@@ -238,7 +259,7 @@ static int __init rbtree_test_init(void)
- 	time = time2 - time1;
+ void init_dl_rq(struct dl_rq *dl_rq)
+ {
+-	dl_rq->rb_root = RB_ROOT;
++	dl_rq->root = RB_ROOT_CACHED;
  
- 	time = div_u64(time, perf_loops);
--	printk(" -> %llu cycles\n", (unsigned long long)time);
-+	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
+ #ifdef CONFIG_SMP
+ 	/* zero means no -deadline tasks */
+@@ -328,7 +328,7 @@ void init_dl_rq(struct dl_rq *dl_rq)
  
- 	for (i = 0; i < check_loops; i++) {
- 		init();
+ 	dl_rq->dl_nr_migratory = 0;
+ 	dl_rq->overloaded = 0;
+-	dl_rq->pushable_dl_tasks_root = RB_ROOT;
++	dl_rq->pushable_dl_tasks_root = RB_ROOT_CACHED;
+ #else
+ 	init_dl_bw(&dl_rq->dl_bw);
+ #endif
+@@ -410,10 +410,10 @@ static void dec_dl_migration(struct sche
+ static void enqueue_pushable_dl_task(struct rq *rq, struct task_struct *p)
+ {
+ 	struct dl_rq *dl_rq = &rq->dl;
+-	struct rb_node **link = &dl_rq->pushable_dl_tasks_root.rb_node;
++	struct rb_node **link = &dl_rq->pushable_dl_tasks_root.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct task_struct *entry;
+-	int leftmost = 1;
++	bool leftmost = true;
+ 
+ 	BUG_ON(!RB_EMPTY_NODE(&p->pushable_dl_tasks));
+ 
+@@ -425,17 +425,16 @@ static void enqueue_pushable_dl_task(str
+ 			link = &parent->rb_left;
+ 		else {
+ 			link = &parent->rb_right;
+-			leftmost = 0;
++			leftmost = false;
+ 		}
+ 	}
+ 
+-	if (leftmost) {
+-		dl_rq->pushable_dl_tasks_leftmost = &p->pushable_dl_tasks;
++	if (leftmost)
+ 		dl_rq->earliest_dl.next = p->dl.deadline;
+-	}
+ 
+ 	rb_link_node(&p->pushable_dl_tasks, parent, link);
+-	rb_insert_color(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
++	rb_insert_color_cached(&p->pushable_dl_tasks,
++			       &dl_rq->pushable_dl_tasks_root, leftmost);
+ }
+ 
+ static void dequeue_pushable_dl_task(struct rq *rq, struct task_struct *p)
+@@ -445,24 +444,23 @@ static void dequeue_pushable_dl_task(str
+ 	if (RB_EMPTY_NODE(&p->pushable_dl_tasks))
+ 		return;
+ 
+-	if (dl_rq->pushable_dl_tasks_leftmost == &p->pushable_dl_tasks) {
++	if (dl_rq->pushable_dl_tasks_root.rb_leftmost == &p->pushable_dl_tasks) {
+ 		struct rb_node *next_node;
+ 
+ 		next_node = rb_next(&p->pushable_dl_tasks);
+-		dl_rq->pushable_dl_tasks_leftmost = next_node;
+ 		if (next_node) {
+ 			dl_rq->earliest_dl.next = rb_entry(next_node,
+ 				struct task_struct, pushable_dl_tasks)->dl.deadline;
+ 		}
+ 	}
+ 
+-	rb_erase(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
++	rb_erase_cached(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
+ 	RB_CLEAR_NODE(&p->pushable_dl_tasks);
+ }
+ 
+ static inline int has_pushable_dl_tasks(struct rq *rq)
+ {
+-	return !RB_EMPTY_ROOT(&rq->dl.pushable_dl_tasks_root);
++	return !RB_EMPTY_ROOT(&rq->dl.pushable_dl_tasks_root.rb_root);
+ }
+ 
+ static int push_dl_task(struct rq *rq);
+@@ -1266,7 +1264,7 @@ static void dec_dl_deadline(struct dl_rq
+ 		dl_rq->earliest_dl.next = 0;
+ 		cpudl_clear(&rq->rd->cpudl, rq->cpu);
+ 	} else {
+-		struct rb_node *leftmost = dl_rq->rb_leftmost;
++		struct rb_node *leftmost = dl_rq->root.rb_leftmost;
+ 		struct sched_dl_entity *entry;
+ 
+ 		entry = rb_entry(leftmost, struct sched_dl_entity, rb_node);
+@@ -1313,7 +1311,7 @@ void dec_dl_tasks(struct sched_dl_entity
+ static void __enqueue_dl_entity(struct sched_dl_entity *dl_se)
+ {
+ 	struct dl_rq *dl_rq = dl_rq_of_se(dl_se);
+-	struct rb_node **link = &dl_rq->rb_root.rb_node;
++	struct rb_node **link = &dl_rq->root.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct sched_dl_entity *entry;
+ 	int leftmost = 1;
+@@ -1331,11 +1329,8 @@ static void __enqueue_dl_entity(struct s
+ 		}
+ 	}
+ 
+-	if (leftmost)
+-		dl_rq->rb_leftmost = &dl_se->rb_node;
+-
+ 	rb_link_node(&dl_se->rb_node, parent, link);
+-	rb_insert_color(&dl_se->rb_node, &dl_rq->rb_root);
++	rb_insert_color_cached(&dl_se->rb_node, &dl_rq->root, leftmost);
+ 
+ 	inc_dl_tasks(dl_se, dl_rq);
+ }
+@@ -1347,14 +1342,7 @@ static void __dequeue_dl_entity(struct s
+ 	if (RB_EMPTY_NODE(&dl_se->rb_node))
+ 		return;
+ 
+-	if (dl_rq->rb_leftmost == &dl_se->rb_node) {
+-		struct rb_node *next_node;
+-
+-		next_node = rb_next(&dl_se->rb_node);
+-		dl_rq->rb_leftmost = next_node;
+-	}
+-
+-	rb_erase(&dl_se->rb_node, &dl_rq->rb_root);
++	rb_erase_cached(&dl_se->rb_node, &dl_rq->root);
+ 	RB_CLEAR_NODE(&dl_se->rb_node);
+ 
+ 	dec_dl_tasks(dl_se, dl_rq);
+@@ -1647,7 +1635,7 @@ static void start_hrtick_dl(struct rq *r
+ static struct sched_dl_entity *pick_next_dl_entity(struct rq *rq,
+ 						   struct dl_rq *dl_rq)
+ {
+-	struct rb_node *left = dl_rq->rb_leftmost;
++	struct rb_node *left = rb_first_cached(&dl_rq->root);
+ 
+ 	if (!left)
+ 		return NULL;
+@@ -1771,7 +1759,7 @@ static int pick_dl_task(struct rq *rq, s
+  */
+ static struct task_struct *pick_earliest_pushable_dl_task(struct rq *rq, int cpu)
+ {
+-	struct rb_node *next_node = rq->dl.pushable_dl_tasks_leftmost;
++	struct rb_node *next_node = rq->dl.pushable_dl_tasks_root.rb_leftmost;
+ 	struct task_struct *p = NULL;
+ 
+ 	if (!has_pushable_dl_tasks(rq))
+@@ -1945,7 +1933,7 @@ static struct task_struct *pick_next_pus
+ 	if (!has_pushable_dl_tasks(rq))
+ 		return NULL;
+ 
+-	p = rb_entry(rq->dl.pushable_dl_tasks_leftmost,
++	p = rb_entry(rq->dl.pushable_dl_tasks_root.rb_leftmost,
+ 		     struct task_struct, pushable_dl_tasks);
+ 
+ 	BUG_ON(rq->cpu != task_cpu(p));
+diff -puN kernel/sched/sched.h~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching kernel/sched/sched.h
+--- a/kernel/sched/sched.h~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching
++++ a/kernel/sched/sched.h
+@@ -549,8 +549,7 @@ struct rt_rq {
+ /* Deadline class' related fields in a runqueue */
+ struct dl_rq {
+ 	/* runqueue is an rbtree, ordered by deadline */
+-	struct rb_root rb_root;
+-	struct rb_node *rb_leftmost;
++	struct rb_root_cached root;
+ 
+ 	unsigned long dl_nr_running;
+ 
+@@ -574,8 +573,7 @@ struct dl_rq {
+ 	 * an rb-tree, ordered by tasks' deadlines, with caching
+ 	 * of the leftmost (earliest deadline) element.
+ 	 */
+-	struct rb_root pushable_dl_tasks_root;
+-	struct rb_node *pushable_dl_tasks_leftmost;
++	struct rb_root_cached pushable_dl_tasks_root;
+ #else
+ 	struct dl_bw dl_bw;
+ #endif
 _
