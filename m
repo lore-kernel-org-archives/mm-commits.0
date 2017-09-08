@@ -1,180 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/126] lib/string.c: add multibyte memset
- functions
-Date: Fri, 08 Sep 2017 16:13:48 -0700
-Message-ID: <20170908231348.oRcUIDwTZ%akpm@linux-foundation.org>
+Subject: [patch 049/126] fs, proc: remove priv argument from
+ is_stack
+Date: Fri, 08 Sep 2017 16:13:35 -0700
+Message-ID: <20170908231335.kkIVeuh5H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52162 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757003AbdIHXNu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:50 -0400
+        with ESMTP id S1757173AbdIHXNh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:13:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arnd@arndb.de, luto@amacapital.net, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: lib/string.c: add multibyte memset functions
+From: Michal Hocko <mhocko@suse.com>
+Subject: fs, proc: remove priv argument from is_stack
 
-Patch series "Multibyte memset variations", v4.
+b18cb64ead40 ("fs/proc: Stop trying to report thread stacks") removed the
+priv parameter user in is_stack so the argument is redundant.  Drop it.
 
-A relatively common idiom we're missing is a function to fill an area of
-memory with a pattern which is larger than a single byte.  I first noticed
-this with a zram patch which wanted to fill a page with an 'unsigned long'
-value.  There turn out to be quite a few places in the kernel which can
-benefit from using an optimised function rather than a loop; sometimes
-text size, sometimes speed, and sometimes both.  The optimised PowerPC
-version (not included here) improves performance by about 30% on POWER8 on
-just the raw memset_l().
-
-Most of the extra lines of code come from the three testcases I added.
-
-
-This patch (of 8):
-
-memset16(), memset32() and memset64() are like memset(), but allow the
-caller to fill the destination with a value larger than a single byte. 
-memset_l() and memset_p() allow the caller to use unsigned long and
-pointer values respectively.
-
-Link: http://lkml.kernel.org/r/20170720184539.31609-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+[arnd@arndb.de: remove unused variable]
+  Link: http://lkml.kernel.org/r/20170801120150.1520051-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170728075833.7241-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |   30 +++++++++++++++++
- lib/string.c           |   66 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 96 insertions(+)
+ fs/proc/task_mmu.c   |    8 +++-----
+ fs/proc/task_nommu.c |    5 ++---
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/string.h~add-multibyte-memset-functions include/linux/string.h
---- a/include/linux/string.h~add-multibyte-memset-functions
-+++ a/include/linux/string.h
-@@ -99,6 +99,36 @@ extern __kernel_size_t strcspn(const cha
- #ifndef __HAVE_ARCH_MEMSET
- extern void * memset(void *,int,__kernel_size_t);
- #endif
-+
-+#ifndef __HAVE_ARCH_MEMSET16
-+extern void *memset16(uint16_t *, uint16_t, __kernel_size_t);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET32
-+extern void *memset32(uint32_t *, uint32_t, __kernel_size_t);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET64
-+extern void *memset64(uint64_t *, uint64_t, __kernel_size_t);
-+#endif
-+
-+static inline void *memset_l(unsigned long *p, unsigned long v,
-+		__kernel_size_t n)
-+{
-+	if (BITS_PER_LONG == 32)
-+		return memset32((uint32_t *)p, v, n);
-+	else
-+		return memset64((uint64_t *)p, v, n);
-+}
-+
-+static inline void *memset_p(void **p, void *v, __kernel_size_t n)
-+{
-+	if (BITS_PER_LONG == 32)
-+		return memset32((uint32_t *)p, (uintptr_t)v, n);
-+	else
-+		return memset64((uint64_t *)p, (uintptr_t)v, n);
-+}
-+
- #ifndef __HAVE_ARCH_MEMCPY
- extern void * memcpy(void *,const void *,__kernel_size_t);
- #endif
-diff -puN lib/string.c~add-multibyte-memset-functions lib/string.c
---- a/lib/string.c~add-multibyte-memset-functions
-+++ a/lib/string.c
-@@ -723,6 +723,72 @@ void memzero_explicit(void *s, size_t co
- }
- EXPORT_SYMBOL(memzero_explicit);
+diff -puN fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack
++++ a/fs/proc/task_mmu.c
+@@ -268,8 +268,7 @@ static int do_maps_open(struct inode *in
+  * Indicate if the VMA is a stack for the given task; for
+  * /proc/PID/maps that is the stack of the main task.
+  */
+-static int is_stack(struct proc_maps_private *priv,
+-		    struct vm_area_struct *vma)
++static int is_stack(struct vm_area_struct *vma)
+ {
+ 	/*
+ 	 * We make no effort to guess what a given thread considers to be
+@@ -302,7 +301,6 @@ show_map_vma(struct seq_file *m, struct
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct file *file = vma->vm_file;
+-	struct proc_maps_private *priv = m->private;
+ 	vm_flags_t flags = vma->vm_flags;
+ 	unsigned long ino = 0;
+ 	unsigned long long pgoff = 0;
+@@ -350,7 +348,7 @@ show_map_vma(struct seq_file *m, struct
+ 			goto done;
+ 		}
  
-+#ifndef __HAVE_ARCH_MEMSET16
-+/**
-+ * memset16() - Fill a memory area with a uint16_t
-+ * @s: Pointer to the start of the area.
-+ * @v: The value to fill the area with
-+ * @count: The number of values to store
-+ *
-+ * Differs from memset() in that it fills with a uint16_t instead
-+ * of a byte.  Remember that @count is the number of uint16_ts to
-+ * store, not the number of bytes.
-+ */
-+void *memset16(uint16_t *s, uint16_t v, size_t count)
-+{
-+	uint16_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+EXPORT_SYMBOL(memset16);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET32
-+/**
-+ * memset32() - Fill a memory area with a uint32_t
-+ * @s: Pointer to the start of the area.
-+ * @v: The value to fill the area with
-+ * @count: The number of values to store
-+ *
-+ * Differs from memset() in that it fills with a uint32_t instead
-+ * of a byte.  Remember that @count is the number of uint32_ts to
-+ * store, not the number of bytes.
-+ */
-+void *memset32(uint32_t *s, uint32_t v, size_t count)
-+{
-+	uint32_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+EXPORT_SYMBOL(memset32);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET64
-+/**
-+ * memset64() - Fill a memory area with a uint64_t
-+ * @s: Pointer to the start of the area.
-+ * @v: The value to fill the area with
-+ * @count: The number of values to store
-+ *
-+ * Differs from memset() in that it fills with a uint64_t instead
-+ * of a byte.  Remember that @count is the number of uint64_ts to
-+ * store, not the number of bytes.
-+ */
-+void *memset64(uint64_t *s, uint64_t v, size_t count)
-+{
-+	uint64_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+EXPORT_SYMBOL(memset64);
-+#endif
-+
- #ifndef __HAVE_ARCH_MEMCPY
- /**
-  * memcpy - Copy one area of memory to another
+-		if (is_stack(priv, vma))
++		if (is_stack(vma))
+ 			name = "[stack]";
+ 	}
+ 
+@@ -1768,7 +1766,7 @@ static int show_numa_map(struct seq_file
+ 		seq_file_path(m, file, "\n\t= ");
+ 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
+ 		seq_puts(m, " heap");
+-	} else if (is_stack(proc_priv, vma)) {
++	} else if (is_stack(vma)) {
+ 		seq_puts(m, " stack");
+ 	}
+ 
+diff -puN fs/proc/task_nommu.c~fs-proc-remove-priv-argument-from-is_stack fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-remove-priv-argument-from-is_stack
++++ a/fs/proc/task_nommu.c
+@@ -125,8 +125,7 @@ unsigned long task_statm(struct mm_struc
+ 	return size;
+ }
+ 
+-static int is_stack(struct proc_maps_private *priv,
+-		    struct vm_area_struct *vma)
++static int is_stack(struct vm_area_struct *vma)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+@@ -178,7 +177,7 @@ static int nommu_vma_show(struct seq_fil
+ 	if (file) {
+ 		seq_pad(m, ' ');
+ 		seq_file_path(m, file, "");
+-	} else if (mm && is_stack(priv, vma)) {
++	} else if (mm && is_stack(vma)) {
+ 		seq_pad(m, ' ');
+ 		seq_printf(m, "[stack]");
+ 	}
 _
