@@ -1,129 +1,132 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2.patch removed
- from -mm tree
-Date: Fri, 08 Sep 2017 15:58:33 -0700
-Message-ID: <59b32099.C8oqQiY0wKH7c+CX%akpm@linux-foundation.org>
+ mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Fri, 08 Sep 2017 16:00:01 -0700
+Message-ID: <59b320f1.ZZNknCro26mS3Oh7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49388 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752952AbdIHW6e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 18:58:34 -0400
+        with ESMTP id S1757210AbdIHXAC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:00:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, arnd@arndb.de, ebaskakov@nvidia.com, liubo95@huawei.com, sfr@canb.auug.org.au, sgutti@nvidia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kemi.wang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm: struct hmm is only use by HMM mirror functionality v2
+     Subject: mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2.patch
+     mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
+This patch was dropped because it was folded into mm-change-the-call-sites-of-numa-statistics-items.patch
 
 ------------------------------------------------------
-From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm: struct hmm is only use by HMM mirror functionality v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
 
-The struct hmm is only used if the HMM mirror functionality is enabled
-move associated code behind CONFIG_HMM_MIRROR to avoid build error if one
-enable some of the HMM memory configuration without the mirror feature.
+ERROR: "foo * bar" should be "foo *bar"
+#249: FILE: include/linux/vmstat.h:222:
++extern void __inc_numa_state(struct zone * zone,
 
-Link: http://lkml.kernel.org/r/20170825213133.27286-1-jglisse@redhat.com
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Subhash Gutti <sgutti@nvidia.com>
-Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
-Cc: Bob Liu <liubo95@huawei.com>
+WARNING: line over 80 characters
+#402: FILE: mm/vmstat.c:768:
++	changes += fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
+
+WARNING: Missing a blank line after declarations
+#459: FILE: mm/vmstat.c:862:
++			int v = pset->vm_numa_stat_diff[i];
++			pset->vm_numa_stat_diff[i] = 0;
+
+ERROR: space required before the open parenthesis '('
+#571: FILE: mm/vmstat.c:1641:
++	for(i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+
+WARNING: line over 80 characters
+#588: FILE: mm/vmstat.c:1752:
++				__func__, vmstat_text[i + NR_VM_ZONE_STAT_ITEMS], val);
+
+total: 2 errors, 4 warnings, 460 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-change-the-call-sites-of-numa-statistics-items.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Kemi Wang <kemi.wang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |    8 ++++----
- mm/hmm.c            |    7 +++----
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ include/linux/vmstat.h |    8 +++-----
+ mm/vmstat.c            |    6 ++++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2 include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2
-+++ a/include/linux/hmm.h
-@@ -501,18 +501,18 @@ void hmm_device_put(struct hmm_device *h
+diff -puN include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
++++ a/include/linux/vmstat.h
+@@ -219,12 +219,10 @@ static inline unsigned long node_page_st
  
  
- /* Below are for HMM internal use only! Not to be used by device driver! */
-+#if IS_ENABLED(CONFIG_HMM_MIRROR)
- void hmm_mm_destroy(struct mm_struct *mm);
+ #ifdef CONFIG_NUMA
+-extern void __inc_numa_state(struct zone * zone,
+-						enum numa_stat_item item);
++extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+-						enum zone_stat_item item);
+-extern unsigned long sum_zone_numa_state(int node,
+-						enum numa_stat_item item);
++					      enum zone_stat_item item);
++extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
+ extern unsigned long node_page_state(struct pglist_data *pgdat,
+ 						enum node_stat_item item);
+ #else
+diff -puN mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes mm/vmstat.c
+--- a/mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items-checkpatch-fixes
++++ a/mm/vmstat.c
+@@ -765,7 +765,8 @@ static int refresh_cpu_vm_stats(bool do_
+ 	}
  
- static inline void hmm_mm_init(struct mm_struct *mm)
- {
- 	mm->hmm = NULL;
- }
--
--#else /* IS_ENABLED(CONFIG_HMM) */
--
--/* Below are for HMM internal use only! Not to be used by device driver! */
-+#else /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- static inline void hmm_mm_destroy(struct mm_struct *mm) {}
- static inline void hmm_mm_init(struct mm_struct *mm) {}
-+#endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+ #ifdef CONFIG_NUMA
+-	changes += fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
++	changes += fold_diff(global_zone_diff, global_numa_diff,
++			     global_node_diff);
+ #else
+ 	changes += fold_diff(global_zone_diff, global_node_diff);
+ #endif
+@@ -859,6 +860,7 @@ void drain_zonestat(struct zone *zone, s
+ 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+ 		if (pset->vm_numa_stat_diff[i]) {
+ 			int v = pset->vm_numa_stat_diff[i];
 +
+ 			pset->vm_numa_stat_diff[i] = 0;
+ 			atomic_long_add(v, &zone->vm_numa_stat[i]);
+ 			atomic_long_add(v, &vm_numa_stat[i]);
+@@ -1638,7 +1640,7 @@ static void *vmstat_start(struct seq_fil
+ 	v += NR_VM_ZONE_STAT_ITEMS;
  
- #endif /* IS_ENABLED(CONFIG_HMM) */
- #endif /* LINUX_HMM_H */
-diff -puN mm/hmm.c~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2 mm/hmm.c
---- a/mm/hmm.c~mm-hmm-struct-hmm-is-only-use-by-hmm-mirror-functionality-v2
-+++ a/mm/hmm.c
-@@ -41,11 +41,12 @@
-  */
- DEFINE_STATIC_KEY_FALSE(device_private_key);
- EXPORT_SYMBOL(device_private_key);
--static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- 
- 
--#ifdef CONFIG_HMM
-+#if IS_ENABLED(CONFIG_HMM_MIRROR)
-+static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
-+
- /*
-  * struct hmm - HMM per mm struct
-  *
-@@ -128,9 +129,7 @@ void hmm_mm_destroy(struct mm_struct *mm
- {
- 	kfree(mm->hmm);
- }
--#endif /* CONFIG_HMM */
- 
--#if IS_ENABLED(CONFIG_HMM_MIRROR)
- static void hmm_invalidate_range(struct hmm *hmm,
- 				 enum hmm_update_type action,
- 				 unsigned long start,
+ #ifdef CONFIG_NUMA
+-	for(i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+ 		v[i] = global_numa_state(i);
+ 	v += NR_VM_NUMA_STAT_ITEMS;
+ #endif
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hmm-heterogeneous-memory-management-documentation-v3.patch
-mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers-v3.patch
-mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
-mm-hmm-mirror-device-page-fault-handler.patch
-mm-zone_device-new-type-of-zone_device-for-unaddressable-memory-v5.patch
-mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
-mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
-mm-memcontrol-support-memory_device_private-v4.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device-v7.patch
-mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v3.patch
-mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
-mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
-mm-migrate-support-un-addressable-zone_device-page-in-migration-v3.patch
-mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry-v4.patch
-mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
-mm-hmm-add-new-helper-to-hotplug-cdm-memory-region-v3.patch
-mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
-mm-hmm-fix-build-when-hmm-is-disabled.patch
-lib-interval_tree-fast-overlap-detection-fix.patch
+mm-change-the-call-sites-of-numa-statistics-items.patch
+add-testcases-for-memset16-32-64-fix.patch
+vga-optimise-console-scrolling-fix.patch
+lib-add-test-for-bitmap_parselist-fix.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes.patch
+bitmap-introduce-bitmap_from_u64-checkpatch-fixes-fix.patch
 
