@@ -1,555 +1,625 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/126] mm/device-public-memory: device memory
- cache coherent with CPU
-Date: Fri, 08 Sep 2017 16:12:24 -0700
-Message-ID: <20170908231224.uncnv9p2o%akpm@linux-foundation.org>
+Subject: [patch 035/126] mm: change the call sites of numa
+ statistics items
+Date: Fri, 08 Sep 2017 16:12:48 -0700
+Message-ID: <20170908231248.g5qF_SKAX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51930 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753011AbdIHXM1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:27 -0400
+        with ESMTP id S932658AbdIHXMu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:12:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: aaron.lu@intel.com, akpm@linux-foundation.org, andi.kleen@intel.com, brouer@redhat.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/device-public-memory: device memory cache coherent with CPU
+From: Kemi Wang <kemi.wang@intel.com>
+Subject: mm: change the call sites of numa statistics items
 
-Platform with advance system bus (like CAPI or CCIX) allow device memory
-to be accessible from CPU in a cache coherent fashion.  Add a new type of
-ZONE_DEVICE to represent such memory.  The use case are the same as for
-the un-addressable device memory but without all the corners cases.
+Patch series "Separate NUMA statistics from zone statistics", v2.
 
-Link: http://lkml.kernel.org/r/20170817000548.32038-19-jglisse@redhat.com
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Nellans <dnellans@nvidia.com>
-Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Each page allocation updates a set of per-zone statistics with a call to
+zone_statistics().  As discussed in 2017 MM summit, these are a
+substantial source of overhead in the page allocator and are very rarely
+consumed.  This significant overhead in cache bouncing caused by zone
+counters (NUMA associated counters) update in parallel in multi-threaded
+page allocation (pointed out by Dave Hansen).
+
+A link to the MM summit slides:
+http://people.netfilter.org/hawk/presentations/MM-summit2017/MM-summit2017
+-JesperBrouer.pdf
+
+To mitigate this overhead, this patchset separates NUMA statistics from
+zone statistics framework, and update NUMA counter threshold to a fixed
+size of MAX_U16 - 2, as a small threshold greatly increases the update
+frequency of the global counter from local per cpu counter (suggested by
+Ying Huang).  The rationality is that these statistics counters don't need
+to be read often, unlike other VM counters, so it's not a problem to use a
+large threshold and make readers more expensive.
+
+With this patchset, we see 31.3% drop of CPU cycles(537-->369, see below)
+for per single page allocation and reclaim on Jesper's page_bench03
+benchmark.  Meanwhile, this patchset keeps the same style of virtual
+memory statistics with little end-user-visible effects (only move the numa
+stats to show behind zone page stats, see the first patch for details).
+
+I did an experiment of single page allocation and reclaim concurrently
+using Jesper's page_bench03 benchmark on a 2-Socket Broadwell-based server
+(88 processors with 126G memory) with different size of threshold of pcp
+counter.
+
+Benchmark provided by Jesper D Brouer(increase loop times to 10000000):
+https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/
+bench
+
+   Threshold   CPU cycles    Throughput(88 threads)
+      32        799         241760478
+      64        640         301628829
+      125       537         358906028 <==> system by default
+      256       468         412397590
+      512       428         450550704
+      4096      399         482520943
+      20000     394         489009617
+      30000     395         488017817
+      65533     369(-31.3%) 521661345(+45.3%) <==> with this patchset
+      N/A       342(-36.3%) 562900157(+56.8%) <==> disable zone_statistics
+
+
+This patch (of 3):
+
+In this patch, NUMA statistics is separated from zone statistics
+framework, all the call sites of NUMA stats are changed to use
+numa-stats-specific functions, it does not have any functionality change
+except that the number of NUMA stats is shown behind zone page stats when
+users *read* the zone info.
+
+E.g. cat /proc/zoneinfo
+    ***Base***                           ***With this patch***
+nr_free_pages 3976                         nr_free_pages 3976
+nr_zone_inactive_anon 0                    nr_zone_inactive_anon 0
+nr_zone_active_anon 0                      nr_zone_active_anon 0
+nr_zone_inactive_file 0                    nr_zone_inactive_file 0
+nr_zone_active_file 0                      nr_zone_active_file 0
+nr_zone_unevictable 0                      nr_zone_unevictable 0
+nr_zone_write_pending 0                    nr_zone_write_pending 0
+nr_mlock     0                             nr_mlock     0
+nr_page_table_pages 0                      nr_page_table_pages 0
+nr_kernel_stack 0                          nr_kernel_stack 0
+nr_bounce    0                             nr_bounce    0
+nr_zspages   0                             nr_zspages   0
+numa_hit 0                                *nr_free_cma  0*
+numa_miss 0                                numa_hit     0
+numa_foreign 0                             numa_miss    0
+numa_interleave 0                          numa_foreign 0
+numa_local   0                             numa_interleave 0
+numa_other   0                             numa_local   0
+*nr_free_cma 0*                            numa_other 0
+    ...                                        ...
+vm stats threshold: 10                     vm stats threshold: 10
+    ...                                        ...
+
+The next patch updates the numa stats counter size and threshold.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1503568801-21305-2-git-send-email-kemi.wang@intel.com
+Signed-off-by: Kemi Wang <kemi.wang@intel.com>
+Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mark Hairgrove <mhairgrove@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sherry Cheung <SCheung@nvidia.com>
-Cc: Subhash Gutti <sgutti@nvidia.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Bob Liu <liubo95@huawei.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Ying Huang <ying.huang@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c       |    2 -
- include/linux/hmm.h      |    4 +-
- include/linux/ioport.h   |    1 
- include/linux/memremap.h |   21 ++++++++++++++
- include/linux/mm.h       |   20 ++++++++-----
- kernel/memremap.c        |    8 ++---
- mm/Kconfig               |   11 +++++++
- mm/gup.c                 |    7 ++++
- mm/hmm.c                 |    4 +-
- mm/madvise.c             |    2 -
- mm/memcontrol.c          |   12 ++++----
- mm/memory.c              |   46 +++++++++++++++++++++++++++---
- mm/migrate.c             |   55 ++++++++++++++++++++++++-------------
- mm/swap.c                |   11 +++++++
- 14 files changed, 158 insertions(+), 46 deletions(-)
+ drivers/base/node.c    |   22 +++--
+ include/linux/mmzone.h |   25 ++++--
+ include/linux/vmstat.h |   29 ++++++-
+ mm/page_alloc.c        |   10 +-
+ mm/vmstat.c            |  161 +++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 220 insertions(+), 27 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/fs/proc/task_mmu.c
-@@ -1267,7 +1267,7 @@ static pagemap_entry_t pte_to_pagemap_en
- 		if (pm->show_pfn)
- 			frame = pte_pfn(pte);
- 		flags |= PM_PRESENT;
--		page = vm_normal_page(vma, addr, pte);
-+		page = _vm_normal_page(vma, addr, pte, true);
- 		if (pte_soft_dirty(pte))
- 			flags |= PM_SOFT_DIRTY;
- 	} else if (is_swap_pte(pte)) {
-diff -puN include/linux/hmm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/hmm.h
---- a/include/linux/hmm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/hmm.h
-@@ -327,7 +327,7 @@ int hmm_vma_fault(struct vm_area_struct
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+diff -puN drivers/base/node.c~mm-change-the-call-sites-of-numa-statistics-items drivers/base/node.c
+--- a/drivers/base/node.c~mm-change-the-call-sites-of-numa-statistics-items
++++ a/drivers/base/node.c
+@@ -160,12 +160,12 @@ static ssize_t node_read_numastat(struct
+ 		       "interleave_hit %lu\n"
+ 		       "local_node %lu\n"
+ 		       "other_node %lu\n",
+-		       sum_zone_node_page_state(dev->id, NUMA_HIT),
+-		       sum_zone_node_page_state(dev->id, NUMA_MISS),
+-		       sum_zone_node_page_state(dev->id, NUMA_FOREIGN),
+-		       sum_zone_node_page_state(dev->id, NUMA_INTERLEAVE_HIT),
+-		       sum_zone_node_page_state(dev->id, NUMA_LOCAL),
+-		       sum_zone_node_page_state(dev->id, NUMA_OTHER));
++		       sum_zone_numa_state(dev->id, NUMA_HIT),
++		       sum_zone_numa_state(dev->id, NUMA_MISS),
++		       sum_zone_numa_state(dev->id, NUMA_FOREIGN),
++		       sum_zone_numa_state(dev->id, NUMA_INTERLEAVE_HIT),
++		       sum_zone_numa_state(dev->id, NUMA_LOCAL),
++		       sum_zone_numa_state(dev->id, NUMA_OTHER));
+ }
+ static DEVICE_ATTR(numastat, S_IRUGO, node_read_numastat, NULL);
  
+@@ -181,9 +181,17 @@ static ssize_t node_read_vmstat(struct d
+ 		n += sprintf(buf+n, "%s %lu\n", vmstat_text[i],
+ 			     sum_zone_node_page_state(nid, i));
  
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
- struct hmm_devmem;
+-	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
++#ifdef CONFIG_NUMA
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
+ 		n += sprintf(buf+n, "%s %lu\n",
+ 			     vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
++			     sum_zone_numa_state(nid, i));
++#endif
++
++	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
++		n += sprintf(buf+n, "%s %lu\n",
++			     vmstat_text[i + NR_VM_ZONE_STAT_ITEMS +
++			     NR_VM_NUMA_STAT_ITEMS],
+ 			     node_page_state(pgdat, i));
  
- struct page *hmm_vma_alloc_locked_page(struct vm_area_struct *vma,
-@@ -494,7 +494,7 @@ struct hmm_device {
+ 	return n;
+diff -puN include/linux/mmzone.h~mm-change-the-call-sites-of-numa-statistics-items include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-change-the-call-sites-of-numa-statistics-items
++++ a/include/linux/mmzone.h
+@@ -114,6 +114,20 @@ struct zone_padding {
+ #define ZONE_PADDING(name)
+ #endif
+ 
++#ifdef CONFIG_NUMA
++enum numa_stat_item {
++	NUMA_HIT,		/* allocated in intended node */
++	NUMA_MISS,		/* allocated in non intended node */
++	NUMA_FOREIGN,		/* was intended here, hit elsewhere */
++	NUMA_INTERLEAVE_HIT,	/* interleaver preferred this zone */
++	NUMA_LOCAL,		/* allocation from local node */
++	NUMA_OTHER,		/* allocation from other node */
++	NR_VM_NUMA_STAT_ITEMS
++};
++#else
++#define NR_VM_NUMA_STAT_ITEMS 0
++#endif
++
+ enum zone_stat_item {
+ 	/* First 128 byte cacheline (assuming 64 bit words) */
+ 	NR_FREE_PAGES,
+@@ -132,14 +146,6 @@ enum zone_stat_item {
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	NR_ZSPAGES,		/* allocated in zsmalloc */
+ #endif
+-#ifdef CONFIG_NUMA
+-	NUMA_HIT,		/* allocated in intended node */
+-	NUMA_MISS,		/* allocated in non intended node */
+-	NUMA_FOREIGN,		/* was intended here, hit elsewhere */
+-	NUMA_INTERLEAVE_HIT,	/* interleaver preferred this zone */
+-	NUMA_LOCAL,		/* allocation from local node */
+-	NUMA_OTHER,		/* allocation from other node */
+-#endif
+ 	NR_FREE_CMA_PAGES,
+ 	NR_VM_ZONE_STAT_ITEMS };
+ 
+@@ -276,6 +282,8 @@ struct per_cpu_pageset {
+ 	struct per_cpu_pages pcp;
+ #ifdef CONFIG_NUMA
+ 	s8 expire;
++	s8 numa_stat_threshold;
++	s8 vm_numa_stat_diff[NR_VM_NUMA_STAT_ITEMS];
+ #endif
+ #ifdef CONFIG_SMP
+ 	s8 stat_threshold;
+@@ -496,6 +504,7 @@ struct zone {
+ 	ZONE_PADDING(_pad3_)
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
++	atomic_long_t		vm_numa_stat[NR_VM_NUMA_STAT_ITEMS];
+ } ____cacheline_internodealigned_in_smp;
+ 
+ enum pgdat_flags {
+diff -puN include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-change-the-call-sites-of-numa-statistics-items
++++ a/include/linux/vmstat.h
+@@ -107,8 +107,33 @@ static inline void vm_events_fold_cpu(in
+  * Zone and node-based page accounting with per cpu differentials.
   */
- struct hmm_device *hmm_device_new(void *drvdata);
- void hmm_device_put(struct hmm_device *hmm_device);
--#endif /* IS_ENABLED(CONFIG_DEVICE_PRIVATE) */
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ extern atomic_long_t vm_zone_stat[NR_VM_ZONE_STAT_ITEMS];
++extern atomic_long_t vm_numa_stat[NR_VM_NUMA_STAT_ITEMS];
+ extern atomic_long_t vm_node_stat[NR_VM_NODE_STAT_ITEMS];
+ 
++#ifdef CONFIG_NUMA
++static inline void zone_numa_state_add(long x, struct zone *zone,
++				 enum numa_stat_item item)
++{
++	atomic_long_add(x, &zone->vm_numa_stat[item]);
++	atomic_long_add(x, &vm_numa_stat[item]);
++}
++
++static inline unsigned long global_numa_state(enum numa_stat_item item)
++{
++	long x = atomic_long_read(&vm_numa_stat[item]);
++
++	return x;
++}
++
++static inline unsigned long zone_numa_state(struct zone *zone,
++					enum numa_stat_item item)
++{
++	long x = atomic_long_read(&zone->vm_numa_stat[item]);
++
++	return x;
++}
++#endif /* CONFIG_NUMA */
++
+ static inline void zone_page_state_add(long x, struct zone *zone,
+ 				 enum zone_stat_item item)
+ {
+@@ -194,8 +219,10 @@ static inline unsigned long node_page_st
  
  
- /* Below are for HMM internal use only! Not to be used by device driver! */
-diff -puN include/linux/ioport.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/ioport.h
---- a/include/linux/ioport.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/ioport.h
-@@ -131,6 +131,7 @@ enum {
- 	IORES_DESC_PERSISTENT_MEMORY		= 4,
- 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
- 	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
-+	IORES_DESC_DEVICE_PUBLIC_MEMORY		= 7,
- };
+ #ifdef CONFIG_NUMA
++extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+-						enum zone_stat_item item);
++					      enum zone_stat_item item);
++extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
+ extern unsigned long node_page_state(struct pglist_data *pgdat,
+ 						enum node_stat_item item);
+ #else
+diff -puN mm/page_alloc.c~mm-change-the-call-sites-of-numa-statistics-items mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-change-the-call-sites-of-numa-statistics-items
++++ a/mm/page_alloc.c
+@@ -2741,18 +2741,18 @@ int __isolate_free_page(struct page *pag
+ static inline void zone_statistics(struct zone *preferred_zone, struct zone *z)
+ {
+ #ifdef CONFIG_NUMA
+-	enum zone_stat_item local_stat = NUMA_LOCAL;
++	enum numa_stat_item local_stat = NUMA_LOCAL;
  
- /* helpers to define resources */
-diff -puN include/linux/memremap.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/memremap.h
---- a/include/linux/memremap.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/memremap.h
-@@ -57,10 +57,18 @@ static inline struct vmem_altmap *to_vme
-  *
-  * A more complete discussion of unaddressable memory may be found in
-  * include/linux/hmm.h and Documentation/vm/hmm.txt.
-+ *
-+ * MEMORY_DEVICE_PUBLIC:
-+ * Device memory that is cache coherent from device and CPU point of view. This
-+ * is use on platform that have an advance system bus (like CAPI or CCIX). A
-+ * driver can hotplug the device memory using ZONE_DEVICE and with that memory
-+ * type. Any page of a process can be migrated to such memory. However no one
-+ * should be allow to pin such memory so that it can always be evicted.
+ 	if (z->node != numa_node_id())
+ 		local_stat = NUMA_OTHER;
+ 
+ 	if (z->node == preferred_zone->node)
+-		__inc_zone_state(z, NUMA_HIT);
++		__inc_numa_state(z, NUMA_HIT);
+ 	else {
+-		__inc_zone_state(z, NUMA_MISS);
+-		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
++		__inc_numa_state(z, NUMA_MISS);
++		__inc_numa_state(preferred_zone, NUMA_FOREIGN);
+ 	}
+-	__inc_zone_state(z, local_stat);
++	__inc_numa_state(z, local_stat);
+ #endif
+ }
+ 
+diff -puN mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items mm/vmstat.c
+--- a/mm/vmstat.c~mm-change-the-call-sites-of-numa-statistics-items
++++ a/mm/vmstat.c
+@@ -87,8 +87,10 @@ void vm_events_fold_cpu(int cpu)
+  * vm_stat contains the global counters
   */
- enum memory_type {
- 	MEMORY_DEVICE_HOST = 0,
- 	MEMORY_DEVICE_PRIVATE,
-+	MEMORY_DEVICE_PUBLIC,
- };
+ atomic_long_t vm_zone_stat[NR_VM_ZONE_STAT_ITEMS] __cacheline_aligned_in_smp;
++atomic_long_t vm_numa_stat[NR_VM_NUMA_STAT_ITEMS] __cacheline_aligned_in_smp;
+ atomic_long_t vm_node_stat[NR_VM_NODE_STAT_ITEMS] __cacheline_aligned_in_smp;
+ EXPORT_SYMBOL(vm_zone_stat);
++EXPORT_SYMBOL(vm_numa_stat);
+ EXPORT_SYMBOL(vm_node_stat);
+ 
+ #ifdef CONFIG_SMP
+@@ -192,7 +194,10 @@ void refresh_zone_stat_thresholds(void)
+ 
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
+-
++#ifdef CONFIG_NUMA
++			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
++							= threshold;
++#endif
+ 			/* Base nodestat threshold on the largest populated zone. */
+ 			pgdat_threshold = per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold;
+ 			per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->stat_threshold
+@@ -226,9 +231,14 @@ void set_pgdat_percpu_threshold(pg_data_
+ 			continue;
+ 
+ 		threshold = (*calculate_pressure)(zone);
+-		for_each_online_cpu(cpu)
++		for_each_online_cpu(cpu) {
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
++#ifdef CONFIG_NUMA
++			per_cpu_ptr(zone->pageset, cpu)->numa_stat_threshold
++							= threshold;
++#endif
++		}
+ 	}
+ }
+ 
+@@ -604,6 +614,32 @@ EXPORT_SYMBOL(dec_node_page_state);
+  * Fold a differential into the global counters.
+  * Returns the number of counters updated.
+  */
++#ifdef CONFIG_NUMA
++static int fold_diff(int *zone_diff, int *numa_diff, int *node_diff)
++{
++	int i;
++	int changes = 0;
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		if (zone_diff[i]) {
++			atomic_long_add(zone_diff[i], &vm_zone_stat[i]);
++			changes++;
++	}
++
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++		if (numa_diff[i]) {
++			atomic_long_add(numa_diff[i], &vm_numa_stat[i]);
++			changes++;
++	}
++
++	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
++		if (node_diff[i]) {
++			atomic_long_add(node_diff[i], &vm_node_stat[i]);
++			changes++;
++	}
++	return changes;
++}
++#else
+ static int fold_diff(int *zone_diff, int *node_diff)
+ {
+ 	int i;
+@@ -622,6 +658,7 @@ static int fold_diff(int *zone_diff, int
+ 	}
+ 	return changes;
+ }
++#endif /* CONFIG_NUMA */
  
  /*
-@@ -92,6 +100,8 @@ enum memory_type {
-  * The page_free() callback is called once the page refcount reaches 1
-  * (ZONE_DEVICE pages never reach 0 refcount unless there is a refcount bug.
-  * This allows the device driver to implement its own memory management.)
-+ *
-+ * For MEMORY_DEVICE_PUBLIC only the page_free() callback matter.
-  */
- typedef int (*dev_page_fault_t)(struct vm_area_struct *vma,
- 				unsigned long addr,
-@@ -134,6 +144,12 @@ static inline bool is_device_private_pag
- 	return is_zone_device_page(page) &&
- 		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
- }
-+
-+static inline bool is_device_public_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
-+}
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct resource *res, struct percpu_ref *ref,
-@@ -157,6 +173,11 @@ static inline bool is_device_private_pag
- {
- 	return false;
- }
-+
-+static inline bool is_device_public_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif
+  * Update the zone counters for the current cpu.
+@@ -645,6 +682,9 @@ static int refresh_cpu_vm_stats(bool do_
+ 	struct zone *zone;
+ 	int i;
+ 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
++#ifdef CONFIG_NUMA
++	int global_numa_diff[NR_VM_NUMA_STAT_ITEMS] = { 0, };
++#endif
+ 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
+ 	int changes = 0;
  
- /**
-diff -puN include/linux/mm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/mm.h
---- a/include/linux/mm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/mm.h
-@@ -800,15 +800,16 @@ static inline bool is_zone_device_page(c
- }
- #endif
- 
--#ifdef CONFIG_DEVICE_PRIVATE
--void put_zone_device_private_page(struct page *page);
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
-+void put_zone_device_private_or_public_page(struct page *page);
- #else
--static inline void put_zone_device_private_page(struct page *page)
-+static inline void put_zone_device_private_or_public_page(struct page *page)
- {
- }
--#endif
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- 
- static inline bool is_device_private_page(const struct page *page);
-+static inline bool is_device_public_page(const struct page *page);
- 
- DECLARE_STATIC_KEY_FALSE(device_private_key);
- 
-@@ -834,8 +835,9 @@ static inline void put_page(struct page
- 	 * include/linux/memremap.h and HMM for details.
- 	 */
- 	if (static_branch_unlikely(&device_private_key) &&
--	    unlikely(is_device_private_page(page))) {
--		put_zone_device_private_page(page);
-+	    unlikely(is_device_private_page(page) ||
-+		     is_device_public_page(page))) {
-+		put_zone_device_private_or_public_page(page);
- 		return;
- 	}
- 
-@@ -1224,8 +1226,10 @@ struct zap_details {
- 	pgoff_t last_index;			/* Highest page->index to unmap */
- };
- 
--struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
--		pte_t pte);
-+struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t pte, bool with_public_device);
-+#define vm_normal_page(vma, addr, pte) _vm_normal_page(vma, addr, pte, false)
-+
- struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				pmd_t pmd);
- 
-diff -puN kernel/memremap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 kernel/memremap.c
---- a/kernel/memremap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/kernel/memremap.c
-@@ -501,8 +501,8 @@ struct vmem_altmap *to_vmem_altmap(unsig
- #endif /* CONFIG_ZONE_DEVICE */
- 
- 
--#ifdef CONFIG_DEVICE_PRIVATE
--void put_zone_device_private_page(struct page *page)
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
-+void put_zone_device_private_or_public_page(struct page *page)
- {
- 	int count = page_ref_dec_return(page);
- 
-@@ -522,5 +522,5 @@ void put_zone_device_private_page(struct
- 	} else if (!count)
- 		__put_page(page);
- }
--EXPORT_SYMBOL(put_zone_device_private_page);
--#endif /* CONFIG_DEVICE_PRIVATE */
-+EXPORT_SYMBOL(put_zone_device_private_or_public_page);
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
-diff -puN mm/Kconfig~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/Kconfig
---- a/mm/Kconfig~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/Kconfig
-@@ -720,12 +720,23 @@ config HMM_MIRROR
- config DEVICE_PRIVATE
- 	bool "Unaddressable device memory (GPU memory, ...)"
- 	depends on ARCH_HAS_HMM
-+	select HMM
- 
- 	help
- 	  Allows creation of struct pages to represent unaddressable device
- 	  memory; i.e., memory that is only accessible from the device (or
- 	  group of devices). You likely also want to select HMM_MIRROR.
- 
-+config DEVICE_PUBLIC
-+	bool "Addressable device memory (like GPU memory)"
-+	depends on ARCH_HAS_HMM
-+	select HMM
-+
-+	help
-+	  Allows creation of struct pages to represent addressable device
-+	  memory; i.e., memory that is accessible from both the device and
-+	  the CPU
-+
- config FRAME_VECTOR
- 	bool
- 
-diff -puN mm/gup.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/gup.c
---- a/mm/gup.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/gup.c
-@@ -456,6 +456,13 @@ static int get_gate_page(struct mm_struc
- 		if ((gup_flags & FOLL_DUMP) || !is_zero_pfn(pte_pfn(*pte)))
- 			goto unmap;
- 		*page = pte_page(*pte);
-+
-+		/*
-+		 * This should never happen (a device public page in the gate
-+		 * area).
-+		 */
-+		if (is_device_public_page(*page))
-+			goto unmap;
- 	}
- 	get_page(*page);
- out:
-diff -puN mm/hmm.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/hmm.c
---- a/mm/hmm.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/hmm.c
-@@ -737,7 +737,7 @@ EXPORT_SYMBOL(hmm_vma_fault);
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
- 
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
- struct page *hmm_vma_alloc_locked_page(struct vm_area_struct *vma,
- 				       unsigned long addr)
- {
-@@ -1177,4 +1177,4 @@ static int __init hmm_init(void)
- }
- 
- device_initcall(hmm_init);
--#endif /* IS_ENABLED(CONFIG_DEVICE_PRIVATE) */
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
-diff -puN mm/madvise.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/madvise.c
---- a/mm/madvise.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/madvise.c
-@@ -355,7 +355,7 @@ static int madvise_free_pte_range(pmd_t
- 			continue;
+@@ -666,6 +706,18 @@ static int refresh_cpu_vm_stats(bool do_
+ 			}
  		}
+ #ifdef CONFIG_NUMA
++		for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
++			int v;
++
++			v = this_cpu_xchg(p->vm_numa_stat_diff[i], 0);
++			if (v) {
++
++				atomic_long_add(v, &zone->vm_numa_stat[i]);
++				global_numa_diff[i] += v;
++				__this_cpu_write(p->expire, 3);
++			}
++		}
++
+ 		if (do_pagesets) {
+ 			cond_resched();
+ 			/*
+@@ -712,7 +764,12 @@ static int refresh_cpu_vm_stats(bool do_
+ 		}
+ 	}
  
--		page = vm_normal_page(vma, addr, ptent);
-+		page = _vm_normal_page(vma, addr, ptent, true);
- 		if (!page)
- 			continue;
++#ifdef CONFIG_NUMA
++	changes += fold_diff(global_zone_diff, global_numa_diff,
++			     global_node_diff);
++#else
+ 	changes += fold_diff(global_zone_diff, global_node_diff);
++#endif
+ 	return changes;
+ }
  
-diff -puN mm/memcontrol.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/memcontrol.c
-@@ -4623,10 +4623,11 @@ out:
-  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
-  *     target for charge migration. if @target is not NULL, the entry is stored
-  *     in target->ent.
-- *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PRIVATE
-- *     (so ZONE_DEVICE page and thus not on the lru). For now we such page is
-- *     charge like a regular page would be as for all intent and purposes it is
-- *     just special memory taking the place of a regular page.
-+ *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PUBLIC
-+ *     or MEMORY_DEVICE_PRIVATE (so ZONE_DEVICE page and thus not on the lru).
-+ *     For now we such page is charge like a regular page would be as for all
-+ *     intent and purposes it is just special memory taking the place of a
-+ *     regular page.
-  *
-  *     See Documentations/vm/hmm.txt and include/linux/hmm.h
-  *
-@@ -4657,7 +4658,8 @@ static enum mc_target_type get_mctgt_typ
- 		 */
- 		if (page->mem_cgroup == mc.from) {
- 			ret = MC_TARGET_PAGE;
--			if (is_device_private_page(page))
-+			if (is_device_private_page(page) ||
-+			    is_device_public_page(page))
- 				ret = MC_TARGET_DEVICE;
- 			if (target)
- 				target->page = page;
-diff -puN mm/memory.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/memory.c
---- a/mm/memory.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/memory.c
-@@ -818,8 +818,8 @@ static void print_bad_pte(struct vm_area
- #else
- # define HAVE_PTE_SPECIAL 0
+@@ -727,6 +784,9 @@ void cpu_vm_stats_fold(int cpu)
+ 	struct zone *zone;
+ 	int i;
+ 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
++#ifdef CONFIG_NUMA
++	int global_numa_diff[NR_VM_NUMA_STAT_ITEMS] = { 0, };
++#endif
+ 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
+ 
+ 	for_each_populated_zone(zone) {
+@@ -743,6 +803,18 @@ void cpu_vm_stats_fold(int cpu)
+ 				atomic_long_add(v, &zone->vm_stat[i]);
+ 				global_zone_diff[i] += v;
+ 			}
++
++#ifdef CONFIG_NUMA
++		for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++			if (p->vm_numa_stat_diff[i]) {
++				int v;
++
++				v = p->vm_numa_stat_diff[i];
++				p->vm_numa_stat_diff[i] = 0;
++				atomic_long_add(v, &zone->vm_numa_stat[i]);
++				global_numa_diff[i] += v;
++			}
++#endif
+ 	}
+ 
+ 	for_each_online_pgdat(pgdat) {
+@@ -761,7 +833,11 @@ void cpu_vm_stats_fold(int cpu)
+ 			}
+ 	}
+ 
++#ifdef CONFIG_NUMA
++	fold_diff(global_zone_diff, global_numa_diff, global_node_diff);
++#else
+ 	fold_diff(global_zone_diff, global_node_diff);
++#endif
+ }
+ 
+ /*
+@@ -779,10 +855,38 @@ void drain_zonestat(struct zone *zone, s
+ 			atomic_long_add(v, &zone->vm_stat[i]);
+ 			atomic_long_add(v, &vm_zone_stat[i]);
+ 		}
++
++#ifdef CONFIG_NUMA
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++		if (pset->vm_numa_stat_diff[i]) {
++			int v = pset->vm_numa_stat_diff[i];
++
++			pset->vm_numa_stat_diff[i] = 0;
++			atomic_long_add(v, &zone->vm_numa_stat[i]);
++			atomic_long_add(v, &vm_numa_stat[i]);
++		}
++#endif
+ }
  #endif
--struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
--				pte_t pte)
-+struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t pte, bool with_public_device)
- {
- 	unsigned long pfn = pte_pfn(pte);
  
-@@ -830,8 +830,31 @@ struct page *vm_normal_page(struct vm_ar
- 			return vma->vm_ops->find_special_page(vma, addr);
- 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 			return NULL;
--		if (!is_zero_pfn(pfn))
--			print_bad_pte(vma, addr, pte, NULL);
-+		if (is_zero_pfn(pfn))
-+			return NULL;
+ #ifdef CONFIG_NUMA
++void __inc_numa_state(struct zone *zone,
++				 enum numa_stat_item item)
++{
++	struct per_cpu_pageset __percpu *pcp = zone->pageset;
++	s8 __percpu *p = pcp->vm_numa_stat_diff + item;
++	s8 v, t;
 +
-+		/*
-+		 * Device public pages are special pages (they are ZONE_DEVICE
-+		 * pages but different from persistent memory). They behave
-+		 * allmost like normal pages. The difference is that they are
-+		 * not on the lru and thus should never be involve with any-
-+		 * thing that involve lru manipulation (mlock, numa balancing,
-+		 * ...).
-+		 *
-+		 * This is why we still want to return NULL for such page from
-+		 * vm_normal_page() so that we do not have to special case all
-+		 * call site of vm_normal_page().
-+		 */
-+		if (likely(pfn < highest_memmap_pfn)) {
-+			struct page *page = pfn_to_page(pfn);
++	v = __this_cpu_inc_return(*p);
++	t = __this_cpu_read(pcp->numa_stat_threshold);
++	if (unlikely(v > t)) {
++		s8 overstep = t >> 1;
 +
-+			if (is_device_public_page(page)) {
-+				if (with_public_device)
-+					return page;
-+				return NULL;
-+			}
-+		}
-+		print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
- 	}
- 
-@@ -1012,6 +1035,19 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		get_page(page);
- 		page_dup_rmap(page, false);
- 		rss[mm_counter(page)]++;
-+	} else if (pte_devmap(pte)) {
-+		page = pte_page(pte);
++		zone_numa_state_add(v + overstep, zone, item);
++		__this_cpu_write(*p, -overstep);
++	}
++}
 +
-+		/*
-+		 * Cache coherent device memory behave like regular page and
-+		 * not like persistent memory page. For more informations see
-+		 * MEMORY_DEVICE_CACHE_COHERENT in memory_hotplug.h
-+		 */
-+		if (is_device_public_page(page)) {
-+			get_page(page);
-+			page_dup_rmap(page, false);
-+			rss[mm_counter(page)]++;
-+		}
- 	}
+ /*
+  * Determine the per node value of a stat item. This function
+  * is called frequently in a NUMA machine, so try to be as
+@@ -801,6 +905,19 @@ unsigned long sum_zone_node_page_state(i
+ 	return count;
+ }
  
- out_set_pte:
-@@ -1267,7 +1303,7 @@ again:
- 		if (pte_present(ptent)) {
- 			struct page *page;
++unsigned long sum_zone_numa_state(int node,
++				 enum numa_stat_item item)
++{
++	struct zone *zones = NODE_DATA(node)->node_zones;
++	int i;
++	unsigned long count = 0;
++
++	for (i = 0; i < MAX_NR_ZONES; i++)
++		count += zone_numa_state(zones + i, item);
++
++	return count;
++}
++
+ /*
+  * Determine the per node value of a stat item.
+  */
+@@ -937,6 +1054,9 @@ const char * const vmstat_text[] = {
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	"nr_zspages",
+ #endif
++	"nr_free_cma",
++
++	/* enum numa_stat_item counters */
+ #ifdef CONFIG_NUMA
+ 	"numa_hit",
+ 	"numa_miss",
+@@ -945,7 +1065,6 @@ const char * const vmstat_text[] = {
+ 	"numa_local",
+ 	"numa_other",
+ #endif
+-	"nr_free_cma",
  
--			page = vm_normal_page(vma, addr, ptent);
-+			page = _vm_normal_page(vma, addr, ptent, true);
- 			if (unlikely(details) && page) {
- 				/*
- 				 * unmap_shared_mapping_pages() wants to
-diff -puN mm/migrate.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/migrate.c
---- a/mm/migrate.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/migrate.c
-@@ -36,6 +36,7 @@
- #include <linux/hugetlb.h>
- #include <linux/hugetlb_cgroup.h>
- #include <linux/gfp.h>
-+#include <linux/pfn_t.h>
- #include <linux/memremap.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/balloon_compaction.h>
-@@ -239,10 +240,14 @@ static bool remove_migration_pte(struct
- 		if (is_write_migration_entry(entry))
- 			pte = maybe_mkwrite(pte, vma);
- 
--		if (unlikely(is_zone_device_page(new)) &&
--		    is_device_private_page(new)) {
--			entry = make_device_private_entry(new, pte_write(pte));
--			pte = swp_entry_to_pte(entry);
-+		if (unlikely(is_zone_device_page(new))) {
-+			if (is_device_private_page(new)) {
-+				entry = make_device_private_entry(new, pte_write(pte));
-+				pte = swp_entry_to_pte(entry);
-+			} else if (is_device_public_page(new)) {
-+				pte = pte_mkdevmap(pte);
-+				flush_dcache_page(new);
-+			}
- 		} else
- 			flush_dcache_page(new);
- 
-@@ -437,12 +442,11 @@ int migrate_page_move_mapping(struct add
- 	void **pslot;
- 
- 	/*
--	 * ZONE_DEVICE pages have 1 refcount always held by their device
--	 *
--	 * Note that DAX memory will never reach that point as it does not have
--	 * the MEMORY_DEVICE_ALLOW_MIGRATE flag set (see memory_hotplug.h).
-+	 * Device public or private pages have an extra refcount as they are
-+	 * ZONE_DEVICE pages.
- 	 */
--	expected_count += is_zone_device_page(page);
-+	expected_count += is_device_private_page(page);
-+	expected_count += is_device_public_page(page);
- 
- 	if (!mapping) {
- 		/* Anonymous page without mapping */
-@@ -2123,7 +2127,6 @@ out_unlock:
- 
- #endif /* CONFIG_NUMA */
+ 	/* Node-based counters */
+ 	"nr_inactive_anon",
+@@ -1106,7 +1225,6 @@ const char * const vmstat_text[] = {
+ };
+ #endif /* CONFIG_PROC_FS || CONFIG_SYSFS || CONFIG_NUMA */
  
 -
- struct migrate_vma {
- 	struct vm_area_struct	*vma;
- 	unsigned long		*dst;
-@@ -2263,7 +2266,7 @@ again:
- 				pfn = 0;
- 				goto next;
- 			}
--			page = vm_normal_page(migrate->vma, addr, pte);
-+			page = _vm_normal_page(migrate->vma, addr, pte, true);
- 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
- 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
+ #if (defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)) || \
+      defined(CONFIG_PROC_FS)
+ static void *frag_start(struct seq_file *m, loff_t *pos)
+@@ -1384,7 +1502,8 @@ static void zoneinfo_show_print(struct s
+ 		seq_printf(m, "\n  per-node stats");
+ 		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+ 			seq_printf(m, "\n      %-12s %lu",
+-				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
++				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS +
++				NR_VM_NUMA_STAT_ITEMS],
+ 				node_page_state(pgdat, i));
  		}
-@@ -2406,10 +2409,19 @@ static bool migrate_vma_check_page(struc
- 		if (is_device_private_page(page))
- 			return true;
- 
--		/* Other ZONE_DEVICE memory type are not supported */
--		return false;
-+		/*
-+		 * Only allow device public page to be migrated and account for
-+		 * the extra reference count imply by ZONE_DEVICE pages.
-+		 */
-+		if (!is_device_public_page(page))
-+			return false;
-+		extra++;
  	}
+@@ -1421,6 +1540,13 @@ static void zoneinfo_show_print(struct s
+ 		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
+ 				zone_page_state(zone, i));
  
-+	/* For file back page */
-+	if (page_mapping(page))
-+		extra += 1 + page_has_private(page);
++#ifdef CONFIG_NUMA
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++		seq_printf(m, "\n      %-12s %lu",
++				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
++				zone_numa_state(zone, i));
++#endif
 +
- 	if ((page_count(page) - extra) > page_mapcount(page))
- 		return false;
+ 	seq_printf(m, "\n  pagesets");
+ 	for_each_online_cpu(i) {
+ 		struct per_cpu_pageset *pageset;
+@@ -1497,6 +1623,7 @@ static void *vmstat_start(struct seq_fil
+ 	if (*pos >= ARRAY_SIZE(vmstat_text))
+ 		return NULL;
+ 	stat_items_size = NR_VM_ZONE_STAT_ITEMS * sizeof(unsigned long) +
++			  NR_VM_NUMA_STAT_ITEMS * sizeof(unsigned long) +
+ 			  NR_VM_NODE_STAT_ITEMS * sizeof(unsigned long) +
+ 			  NR_VM_WRITEBACK_STAT_ITEMS * sizeof(unsigned long);
  
-@@ -2647,11 +2659,18 @@ static void migrate_vma_insert_page(stru
- 	 */
- 	__SetPageUptodate(page);
+@@ -1512,6 +1639,12 @@ static void *vmstat_start(struct seq_fil
+ 		v[i] = global_zone_page_state(i);
+ 	v += NR_VM_ZONE_STAT_ITEMS;
  
--	if (is_zone_device_page(page) && is_device_private_page(page)) {
--		swp_entry_t swp_entry;
-+	if (is_zone_device_page(page)) {
-+		if (is_device_private_page(page)) {
-+			swp_entry_t swp_entry;
- 
--		swp_entry = make_device_private_entry(page, vma->vm_flags & VM_WRITE);
--		entry = swp_entry_to_pte(swp_entry);
-+			swp_entry = make_device_private_entry(page, vma->vm_flags & VM_WRITE);
-+			entry = swp_entry_to_pte(swp_entry);
-+		} else if (is_device_public_page(page)) {
-+			entry = pte_mkold(mk_pte(page, READ_ONCE(vma->vm_page_prot)));
-+			if (vma->vm_flags & VM_WRITE)
-+				entry = pte_mkwrite(pte_mkdirty(entry));
-+			entry = pte_mkdevmap(entry);
-+		}
- 	} else {
- 		entry = mk_pte(page, vma->vm_page_prot);
- 		if (vma->vm_flags & VM_WRITE)
-@@ -2768,7 +2787,7 @@ static void migrate_vma_pages(struct mig
- 					migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
- 					continue;
- 				}
--			} else {
-+			} else if (!is_device_public_page(newpage)) {
- 				/*
- 				 * Other types of ZONE_DEVICE page are not
- 				 * supported.
-diff -puN mm/swap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/swap.c
---- a/mm/swap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/swap.c
-@@ -765,6 +765,17 @@ void release_pages(struct page **pages,
- 		if (is_huge_zero_page(page))
- 			continue;
- 
-+		/* Device public page can not be huge page */
-+		if (is_device_public_page(page)) {
-+			if (locked_pgdat) {
-+				spin_unlock_irqrestore(&locked_pgdat->lru_lock,
-+						       flags);
-+				locked_pgdat = NULL;
-+			}
-+			put_zone_device_private_or_public_page(page);
-+			continue;
-+		}
++#ifdef CONFIG_NUMA
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
++		v[i] = global_numa_state(i);
++	v += NR_VM_NUMA_STAT_ITEMS;
++#endif
 +
- 		page = compound_head(page);
- 		if (!put_page_testzero(page))
- 			continue;
-_
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 		v[i] = global_node_page_state(i);
+ 	v += NR_VM_NODE_STAT_ITEMS;
+@@ -1613,6 +1746,16 @@ int vmstat_refresh(struct ctl_table *tab
+ 			err = -EINVAL;
+ 		}
+ 	}
++#ifdef CONFIG_NUMA
++	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
++		val = atomic_long_read(&vm_numa_stat[i]);
++		if (val < 0) {
++			pr_warn("%s: %s %ld\n",
++				__func__, vmstat_text[i + NR_VM_ZONE_STAT_ITEMS], val);
++			err = -EINVAL;
++		}
++	}
++#endif
+ 	if (err)
+ 		return err;
+ 	if (write)
+@@ -1654,13 +1797,19 @@ static bool need_update(int cpu)
+ 		struct per_cpu_pageset *p = per_cpu_ptr(zone->pageset, cpu);
+ 
+ 		BUILD_BUG_ON(sizeof(p->vm_stat_diff[0]) != 1);
++#ifdef CONFIG_NUMA
++		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 1);
++#endif
+ 		/*
+ 		 * The fast way of checking if there are any vmstat diffs.
+ 		 * This works because the diffs are byte sized items.
+ 		 */
+ 		if (memchr_inv(p->vm_stat_diff, 0, NR_VM_ZONE_STAT_ITEMS))
+ 			return true;
