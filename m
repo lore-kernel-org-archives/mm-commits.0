@@ -1,56 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mem-memcg-cache-rightmost-node-fix.patch removed
- from -mm tree
-Date: Fri, 08 Sep 2017 16:02:53 -0700
-Message-ID: <59b3219d.8sqMGHRGpJZkoN4B%akpm@linux-foundation.org>
+Subject: [folded-merged] block-cfq-cache-rightmost-rb_node-fix.patch
+ removed from -mm tree
+Date: Fri, 08 Sep 2017 16:03:28 -0700
+Message-ID: <59b321c0.PnyBoiDeKBZGHWcm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49806 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49924 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932926AbdIHXCz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:02:55 -0400
+        with ESMTP id S932954AbdIHXD3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:03:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-memcg-cache-rightmost-node-fix
+     Subject: block-cfq-cache-rightmost-rb_node-fix
 has been removed from the -mm tree.  Its filename was
-     mem-memcg-cache-rightmost-node-fix.patch
+     block-cfq-cache-rightmost-rb_node-fix.patch
 
-This patch was dropped because it was folded into mem-memcg-cache-rightmost-node.patch
+This patch was dropped because it was folded into block-cfq-cache-rightmost-rb_node.patch
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mem-memcg-cache-rightmost-node-fix
+Subject: block-cfq-cache-rightmost-rb_node-fix
 
-Brain fart #2, please fold.
+Brain fart #1, please fold.
 
-index fdc25b3f9421..309f36522bdb 100644
-Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
+index 57ec45fd4590..4992e9acddad 100644
+Link: http://lkml.kernel.org/r/20170731155955.GD21328@linux-80c1.suse
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ block/cfq-iosched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node-fix
-+++ a/mm/memcontrol.c
-@@ -427,7 +427,7 @@ static void __mem_cgroup_remove_exceeded
- 		return;
+diff -puN block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node-fix block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node-fix
++++ a/block/cfq-iosched.c
+@@ -1186,7 +1186,7 @@ static struct cfq_group *cfq_rb_first_gr
+ static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+ {
+ 	if (root->rb_rightmost == n)
+-		root->rb_rightmost = rb_next(n);
++		root->rb_rightmost = rb_prev(n);
  
- 	if (&mz->tree_node == mctz->rb_rightmost)
--		mctz->rb_rightmost = rb_next(&mz->tree_node);
-+		mctz->rb_rightmost = rb_prev(&mz->tree_node);
- 
- 	rb_erase(&mz->tree_node, &mctz->rb_root);
- 	mz->on_tree = false;
+ 	rb_erase_cached(n, &root->rb);
+ 	RB_CLEAR_NODE(n);
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
@@ -71,7 +71,6 @@ procfs-use-faster-rb_first_cached.patch
 fs-epoll-use-faster-rb_first_cached.patch
 mem-memcg-cache-rightmost-node.patch
 block-cfq-cache-rightmost-rb_node.patch
-block-cfq-cache-rightmost-rb_node-fix.patch
 lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
 ipc-sem-drop-sem_checkid-helper.patch
 ipc-sem-play-nicer-with-large-nsops-allocations.patch
