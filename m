@@ -1,294 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [patch 071/126] lib/rbtree_test.c: support rb_root_cached
-Date: Fri, 08 Sep 2017 16:14:52 -0700
-Message-ID: <20170908231452.He39HzMLk%akpm@linux-foundation.org>
+Subject: [patch 075/126] block/cfq: replace cfq_rb_root leftmost
+ caching
+Date: Fri, 08 Sep 2017 16:15:05 -0700
+Message-ID: <20170908231505.jDA7EtPVH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52814 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52888 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdIHXOx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:14:53 -0400
+        with ESMTP id S1757289AbdIHXPG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Sep 2017 19:15:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, axboe@fb.com, dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org
 
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/rbtree_test.c: support rb_root_cached
+Subject: block/cfq: replace cfq_rb_root leftmost caching
 
-We can work with a single rb_root_cached root to test both cached and
-non-cached rbtrees.  In addition, also add a test to measure latencies
-between rb_first and its fast counterpart.
+... with the generic rbtree flavor instead. No changes
+in semantics whatsoever.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-7-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-11-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree_test.c |  156 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 137 insertions(+), 19 deletions(-)
+ block/cfq-iosched.c |   70 ++++++++++++------------------------------
+ 1 file changed, 20 insertions(+), 50 deletions(-)
 
-diff -puN lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached lib/rbtree_test.c
---- a/lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached
-+++ a/lib/rbtree_test.c
-@@ -23,14 +23,14 @@ struct test_node {
- 	u32 augmented;
+diff -puN block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching
++++ a/block/cfq-iosched.c
+@@ -93,13 +93,12 @@ struct cfq_ttime {
+  * move this into the elevator for the rq sorting as well.
+  */
+ struct cfq_rb_root {
+-	struct rb_root rb;
+-	struct rb_node *left;
++	struct rb_root_cached rb;
+ 	unsigned count;
+ 	u64 min_vdisktime;
+ 	struct cfq_ttime ttime;
  };
+-#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT, \
++#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT_CACHED, \
+ 			.ttime = {.last_end_request = ktime_get_ns(),},}
  
--static struct rb_root root = RB_ROOT;
-+static struct rb_root_cached root = RB_ROOT_CACHED;
- static struct test_node *nodes = NULL;
+ /*
+@@ -981,10 +980,9 @@ static inline u64 max_vdisktime(u64 min_
  
- static struct rnd_state rnd;
- 
--static void insert(struct test_node *node, struct rb_root *root)
-+static void insert(struct test_node *node, struct rb_root_cached *root)
+ static void update_min_vdisktime(struct cfq_rb_root *st)
  {
--	struct rb_node **new = &root->rb_node, *parent = NULL;
-+	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
- 	u32 key = node->key;
+-	struct cfq_group *cfqg;
++	if (!RB_EMPTY_ROOT(&st->rb.rb_root)) {
++		struct cfq_group *cfqg = rb_entry_cfqg(st->rb.rb_leftmost);
  
- 	while (*new) {
-@@ -42,14 +42,40 @@ static void insert(struct test_node *nod
+-	if (st->left) {
+-		cfqg = rb_entry_cfqg(st->left);
+ 		st->min_vdisktime = max_vdisktime(st->min_vdisktime,
+ 						  cfqg->vdisktime);
  	}
- 
- 	rb_link_node(&node->rb, parent, new);
--	rb_insert_color(&node->rb, root);
-+	rb_insert_color(&node->rb, &root->rb_root);
+@@ -1166,46 +1164,25 @@ cfq_choose_req(struct cfq_data *cfqd, st
+ 	}
  }
  
--static inline void erase(struct test_node *node, struct rb_root *root)
-+static void insert_cached(struct test_node *node, struct rb_root_cached *root)
+-/*
+- * The below is leftmost cache rbtree addon
+- */
+ static struct cfq_queue *cfq_rb_first(struct cfq_rb_root *root)
  {
--	rb_erase(&node->rb, root);
-+	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
-+	u32 key = node->key;
+ 	/* Service tree is empty */
+ 	if (!root->count)
+ 		return NULL;
+ 
+-	if (!root->left)
+-		root->left = rb_first(&root->rb);
+-
+-	if (root->left)
+-		return rb_entry(root->left, struct cfq_queue, rb_node);
+-
+-	return NULL;
++	return rb_entry(rb_first_cached(&root->rb), struct cfq_queue, rb_node);
+ }
+ 
+ static struct cfq_group *cfq_rb_first_group(struct cfq_rb_root *root)
+ {
+-	if (!root->left)
+-		root->left = rb_first(&root->rb);
+-
+-	if (root->left)
+-		return rb_entry_cfqg(root->left);
+-
+-	return NULL;
++	return rb_entry_cfqg(rb_first_cached(&root->rb));
+ }
+ 
+-static void rb_erase_init(struct rb_node *n, struct rb_root *root)
++static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+ {
+-	rb_erase(n, root);
++	rb_erase_cached(n, &root->rb);
+ 	RB_CLEAR_NODE(n);
+-}
+ 
+-static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+-{
+-	if (root->left == n)
+-		root->left = NULL;
+-	rb_erase_init(n, &root->rb);
+ 	--root->count;
+ }
+ 
+@@ -1255,11 +1232,11 @@ cfqg_key(struct cfq_rb_root *st, struct
+ static void
+ __cfq_group_service_tree_add(struct cfq_rb_root *st, struct cfq_group *cfqg)
+ {
+-	struct rb_node **node = &st->rb.rb_node;
++	struct rb_node **node = &st->rb.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct cfq_group *__cfqg;
+ 	s64 key = cfqg_key(st, cfqg);
+-	int left = 1;
 +	bool leftmost = true;
-+
-+	while (*new) {
-+		parent = *new;
-+		if (key < rb_entry(parent, struct test_node, rb)->key)
-+			new = &parent->rb_left;
-+		else {
-+			new = &parent->rb_right;
+ 
+ 	while (*node != NULL) {
+ 		parent = *node;
+@@ -1269,15 +1246,12 @@ __cfq_group_service_tree_add(struct cfq_
+ 			node = &parent->rb_left;
+ 		else {
+ 			node = &parent->rb_right;
+-			left = 0;
 +			leftmost = false;
-+		}
-+	}
-+
-+	rb_link_node(&node->rb, parent, new);
-+	rb_insert_color_cached(&node->rb, root, leftmost);
+ 		}
+ 	}
+ 
+-	if (left)
+-		st->left = &cfqg->rb_node;
+-
+ 	rb_link_node(&cfqg->rb_node, parent, node);
+-	rb_insert_color(&cfqg->rb_node, &st->rb);
++	rb_insert_color_cached(&cfqg->rb_node, &st->rb, leftmost);
  }
  
-+static inline void erase(struct test_node *node, struct rb_root_cached *root)
-+{
-+	rb_erase(&node->rb, &root->rb_root);
-+}
-+
-+static inline void erase_cached(struct test_node *node, struct rb_root_cached *root)
-+{
-+	rb_erase_cached(&node->rb, root);
-+}
-+
-+
- static inline u32 augment_recompute(struct test_node *node)
- {
- 	u32 max = node->val, child_augmented;
-@@ -71,9 +97,10 @@ static inline u32 augment_recompute(stru
- RB_DECLARE_CALLBACKS(static, augment_callbacks, struct test_node, rb,
- 		     u32, augmented, augment_recompute)
- 
--static void insert_augmented(struct test_node *node, struct rb_root *root)
-+static void insert_augmented(struct test_node *node,
-+			     struct rb_root_cached *root)
- {
--	struct rb_node **new = &root->rb_node, *rb_parent = NULL;
-+	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
- 	u32 key = node->key;
- 	u32 val = node->val;
- 	struct test_node *parent;
-@@ -91,12 +118,47 @@ static void insert_augmented(struct test
- 
- 	node->augmented = val;
- 	rb_link_node(&node->rb, rb_parent, new);
--	rb_insert_augmented(&node->rb, root, &augment_callbacks);
-+	rb_insert_augmented(&node->rb, &root->rb_root, &augment_callbacks);
-+}
-+
-+static void insert_augmented_cached(struct test_node *node,
-+				    struct rb_root_cached *root)
-+{
-+	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
-+	u32 key = node->key;
-+	u32 val = node->val;
-+	struct test_node *parent;
+ /*
+@@ -1378,7 +1352,7 @@ cfq_group_notify_queue_add(struct cfq_da
+ 	 * so that groups get lesser vtime based on their weights, so that
+ 	 * if group does not loose all if it was not continuously backlogged.
+ 	 */
+-	n = rb_last(&st->rb);
++	n = rb_last(&st->rb.rb_root);
+ 	if (n) {
+ 		__cfqg = rb_entry_cfqg(n);
+ 		cfqg->vdisktime = __cfqg->vdisktime +
+@@ -2220,14 +2194,14 @@ static void cfq_service_tree_add(struct
+ 	struct cfq_queue *__cfqq;
+ 	u64 rb_key;
+ 	struct cfq_rb_root *st;
+-	int left;
 +	bool leftmost = true;
-+
-+	while (*new) {
-+		rb_parent = *new;
-+		parent = rb_entry(rb_parent, struct test_node, rb);
-+		if (parent->augmented < val)
-+			parent->augmented = val;
-+		if (key < parent->key)
-+			new = &parent->rb.rb_left;
-+		else {
-+			new = &parent->rb.rb_right;
+ 	int new_cfqq = 1;
+ 	u64 now = ktime_get_ns();
+ 
+ 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
+ 	if (cfq_class_idle(cfqq)) {
+ 		rb_key = CFQ_IDLE_DELAY;
+-		parent = rb_last(&st->rb);
++		parent = rb_last(&st->rb.rb_root);
+ 		if (parent && parent != &cfqq->rb_node) {
+ 			__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
+ 			rb_key += __cfqq->rb_key;
+@@ -2261,10 +2235,9 @@ static void cfq_service_tree_add(struct
+ 		cfqq->service_tree = NULL;
+ 	}
+ 
+-	left = 1;
+ 	parent = NULL;
+ 	cfqq->service_tree = st;
+-	p = &st->rb.rb_node;
++	p = &st->rb.rb_root.rb_node;
+ 	while (*p) {
+ 		parent = *p;
+ 		__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
+@@ -2276,16 +2249,13 @@ static void cfq_service_tree_add(struct
+ 			p = &parent->rb_left;
+ 		else {
+ 			p = &parent->rb_right;
+-			left = 0;
 +			leftmost = false;
-+		}
-+	}
-+
-+	node->augmented = val;
-+	rb_link_node(&node->rb, rb_parent, new);
-+	rb_insert_augmented_cached(&node->rb, root,
-+				   leftmost, &augment_callbacks);
-+}
-+
-+
-+static void erase_augmented(struct test_node *node, struct rb_root_cached *root)
-+{
-+	rb_erase_augmented(&node->rb, &root->rb_root, &augment_callbacks);
+ 		}
+ 	}
+ 
+-	if (left)
+-		st->left = &cfqq->rb_node;
+-
+ 	cfqq->rb_key = rb_key;
+ 	rb_link_node(&cfqq->rb_node, parent, p);
+-	rb_insert_color(&cfqq->rb_node, &st->rb);
++	rb_insert_color_cached(&cfqq->rb_node, &st->rb, leftmost);
+ 	st->count++;
+ 	if (add_front || !new_cfqq)
+ 		return;
+@@ -2732,7 +2702,7 @@ static struct cfq_queue *cfq_get_next_qu
+ 	/* There is nothing to dispatch */
+ 	if (!st)
+ 		return NULL;
+-	if (RB_EMPTY_ROOT(&st->rb))
++	if (RB_EMPTY_ROOT(&st->rb.rb_root))
+ 		return NULL;
+ 	return cfq_rb_first(st);
  }
+@@ -3219,7 +3189,7 @@ static struct cfq_group *cfq_get_next_cf
+ 	struct cfq_rb_root *st = &cfqd->grp_service_tree;
+ 	struct cfq_group *cfqg;
  
--static void erase_augmented(struct test_node *node, struct rb_root *root)
-+static void erase_augmented_cached(struct test_node *node,
-+				   struct rb_root_cached *root)
- {
--	rb_erase_augmented(&node->rb, root, &augment_callbacks);
-+	rb_erase_augmented_cached(&node->rb, root, &augment_callbacks);
- }
- 
- static void init(void)
-@@ -125,7 +187,7 @@ static void check_postorder_foreach(int
- {
- 	struct test_node *cur, *n;
- 	int count = 0;
--	rbtree_postorder_for_each_entry_safe(cur, n, &root, rb)
-+	rbtree_postorder_for_each_entry_safe(cur, n, &root.rb_root, rb)
- 		count++;
- 
- 	WARN_ON_ONCE(count != nr_nodes);
-@@ -135,7 +197,7 @@ static void check_postorder(int nr_nodes
- {
- 	struct rb_node *rb;
- 	int count = 0;
--	for (rb = rb_first_postorder(&root); rb; rb = rb_next_postorder(rb))
-+	for (rb = rb_first_postorder(&root.rb_root); rb; rb = rb_next_postorder(rb))
- 		count++;
- 
- 	WARN_ON_ONCE(count != nr_nodes);
-@@ -147,7 +209,7 @@ static void check(int nr_nodes)
- 	int count = 0, blacks = 0;
- 	u32 prev_key = 0;
- 
--	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-+	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
- 		struct test_node *node = rb_entry(rb, struct test_node, rb);
- 		WARN_ON_ONCE(node->key < prev_key);
- 		WARN_ON_ONCE(is_red(rb) &&
-@@ -162,7 +224,7 @@ static void check(int nr_nodes)
- 	}
- 
- 	WARN_ON_ONCE(count != nr_nodes);
--	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
-+	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root.rb_root))) - 1);
- 
- 	check_postorder(nr_nodes);
- 	check_postorder_foreach(nr_nodes);
-@@ -173,7 +235,7 @@ static void check_augmented(int nr_nodes
- 	struct rb_node *rb;
- 
- 	check(nr_nodes);
--	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-+	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
- 		struct test_node *node = rb_entry(rb, struct test_node, rb);
- 		WARN_ON_ONCE(node->augmented != augment_recompute(node));
- 	}
-@@ -207,7 +269,24 @@ static int __init rbtree_test_init(void)
- 	time = time2 - time1;
- 
- 	time = div_u64(time, perf_loops);
--	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
-+	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n",
-+	       (unsigned long long)time);
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < perf_loops; i++) {
-+		for (j = 0; j < nnodes; j++)
-+			insert_cached(nodes + j, &root);
-+		for (j = 0; j < nnodes; j++)
-+			erase_cached(nodes + j, &root);
-+	}
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, perf_loops);
-+	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n",
-+	       (unsigned long long)time);
- 
- 	for (i = 0; i < nnodes; i++)
- 		insert(nodes + i, &root);
-@@ -215,7 +294,7 @@ static int __init rbtree_test_init(void)
- 	time1 = get_cycles();
- 
- 	for (i = 0; i < perf_loops; i++) {
--		for (node = rb_first(&root); node; node = rb_next(node))
-+		for (node = rb_first(&root.rb_root); node; node = rb_next(node))
- 			;
- 	}
- 
-@@ -223,7 +302,31 @@ static int __init rbtree_test_init(void)
- 	time = time2 - time1;
- 
- 	time = div_u64(time, perf_loops);
--	printk(" -> test 2 (latency of inorder traversal): %llu cycles\n", (unsigned long long)time);
-+	printk(" -> test 3 (latency of inorder traversal): %llu cycles\n",
-+	       (unsigned long long)time);
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < perf_loops; i++)
-+		node = rb_first(&root.rb_root);
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, perf_loops);
-+	printk(" -> test 4 (latency to fetch first node)\n");
-+	printk("        non-cached: %llu cycles\n", (unsigned long long)time);
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < perf_loops; i++)
-+		node = rb_first_cached(&root);
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, perf_loops);
-+	printk("        cached: %llu cycles\n", (unsigned long long)time);
- 
- 	for (i = 0; i < nnodes; i++)
- 		erase(nodes + i, &root);
-@@ -261,6 +364,21 @@ static int __init rbtree_test_init(void)
- 	time = div_u64(time, perf_loops);
- 	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
- 
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < perf_loops; i++) {
-+		for (j = 0; j < nnodes; j++)
-+			insert_augmented_cached(nodes + j, &root);
-+		for (j = 0; j < nnodes; j++)
-+			erase_augmented_cached(nodes + j, &root);
-+	}
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, perf_loops);
-+	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n", (unsigned long long)time);
-+
- 	for (i = 0; i < check_loops; i++) {
- 		init();
- 		for (j = 0; j < nnodes; j++) {
+-	if (RB_EMPTY_ROOT(&st->rb))
++	if (RB_EMPTY_ROOT(&st->rb.rb_root))
+ 		return NULL;
+ 	cfqg = cfq_rb_first_group(st);
+ 	update_min_vdisktime(st);
 _
