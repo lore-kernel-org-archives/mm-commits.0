@@ -1,300 +1,696 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:39:40 -0700
-Message-ID: <20170911193940.f-V_nCk5K%akpm@linux-foundation.org>
+ mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:39:21 -0700
+Message-ID: <20170911193921._RkLSD4HT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751076AbdIKTjl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:41 -0400
+        with ESMTP id S1751028AbdIKTjX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, dan.j.williams@intel.com, jglisse@redhat.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/hmm: avoid bloating arch that do not make use of HMM
+     Subject: mm/migrate: new memory migration helper for use with device memory
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
+     mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm: avoid bloating arch that do not make use of HMM
+Subject: mm/migrate: new memory migration helper for use with device memory
 
-This moves all new code including new page migration helper behind kernel
-Kconfig option so that there is no codee bloat for arch or user that do
-not want to use HMM or any of its associated features.
+This patch add a new memory migration helpers, which migrate memory
+backing a range of virtual address of a process to different memory (which
+can be allocated through special allocator).  It differs from numa
+migration by working on a range of virtual address and thus by doing
+migration in chunk that can be large enough to use DMA engine or special
+copy offloading engine.
 
-arm allyesconfig (without all the patchset, then with and this patch):
-   text	   data	    bss	    dec	    hex	filename
-83721896	46511131	27582964	157815991	96814b7	../without/vmlinux
-83722364	46511131	27582964	157816459	968168b	vmlinux
+Expected users are any one with heterogeneous memory where different
+memory have different characteristics (latency, bandwidth, ...).  As an
+example IBM platform with CAPI bus can make use of this feature to migrate
+between regular memory and CAPI device memory.  New CPU architecture with
+a pool of high performance memory not manage as cache but presented as
+regular memory (while being faster and with lower latency than DDR) will
+also be prime user of this patch.
 
-[jglisse@redhat.com: struct hmm is only use by HMM mirror functionality]
-  Link: http://lkml.kernel.org/r/20170825213133.27286-1-jglisse@redhat.com
-[sfr@canb.auug.org.au: fix build (arm multi_v7_defconfig)]
-  Link: http://lkml.kernel.org/r/20170828181849.323ab81b@canb.auug.org.au
-Link: http://lkml.kernel.org/r/20170818032858.7447-1-jglisse@redhat.com
+Migration to private device memory will be useful for device that have
+large pool of such like GPU, NVidia plans to use HMM for that.
+
+Link: http://lkml.kernel.org/r/20170817000548.32038-15-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
+Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
+Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Nellans <dnellans@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h      |    9 ++++++---
- include/linux/memremap.h |   22 +++++++---------------
- include/linux/migrate.h  |   13 +++++++++++++
- include/linux/mm.h       |   26 +++++++++++++++++---------
- mm/Kconfig               |    4 ++++
- mm/Makefile              |    3 ++-
- mm/hmm.c                 |    7 +++----
- mm/migrate.c             |    2 ++
- 8 files changed, 54 insertions(+), 32 deletions(-)
+ include/linux/migrate.h |  104 ++++++++
+ mm/migrate.c            |  492 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 596 insertions(+)
 
-diff -puN include/linux/hmm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
-+++ a/include/linux/hmm.h
-@@ -501,18 +501,21 @@ void hmm_device_put(struct hmm_device *h
- 
- 
- /* Below are for HMM internal use only! Not to be used by device driver! */
-+#if IS_ENABLED(CONFIG_HMM_MIRROR)
- void hmm_mm_destroy(struct mm_struct *mm);
- 
- static inline void hmm_mm_init(struct mm_struct *mm)
- {
- 	mm->hmm = NULL;
- }
-+#else /* IS_ENABLED(CONFIG_HMM_MIRROR) */
-+static inline void hmm_mm_destroy(struct mm_struct *mm) {}
-+static inline void hmm_mm_init(struct mm_struct *mm) {}
-+#endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
--#else /* IS_ENABLED(CONFIG_HMM) */
- 
--/* Below are for HMM internal use only! Not to be used by device driver! */
-+#else /* IS_ENABLED(CONFIG_HMM) */
- static inline void hmm_mm_destroy(struct mm_struct *mm) {}
- static inline void hmm_mm_init(struct mm_struct *mm) {}
--
- #endif /* IS_ENABLED(CONFIG_HMM) */
- #endif /* LINUX_HMM_H */
-diff -puN include/linux/memremap.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/memremap.h
---- a/include/linux/memremap.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
-+++ a/include/linux/memremap.h
-@@ -138,18 +138,6 @@ void *devm_memremap_pages(struct device
- struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
- 
- static inline bool is_zone_device_page(const struct page *page);
--
--static inline bool is_device_private_page(const struct page *page)
--{
--	return is_zone_device_page(page) &&
--		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
--}
--
--static inline bool is_device_public_page(const struct page *page)
--{
--	return is_zone_device_page(page) &&
--		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
--}
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct resource *res, struct percpu_ref *ref,
-@@ -168,17 +156,21 @@ static inline struct dev_pagemap *find_d
- {
- 	return NULL;
- }
-+#endif
- 
-+#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
- static inline bool is_device_private_page(const struct page *page)
- {
--	return false;
-+	return is_zone_device_page(page) &&
-+		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
- }
- 
- static inline bool is_device_public_page(const struct page *page)
- {
--	return false;
-+	return is_zone_device_page(page) &&
-+		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
- }
--#endif
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- 
- /**
-  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
-diff -puN include/linux/migrate.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/migrate.h
---- a/include/linux/migrate.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
+diff -puN include/linux/migrate.h~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5 include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5
 +++ a/include/linux/migrate.h
-@@ -265,6 +265,7 @@ struct migrate_vma_ops {
- 				 void *private);
- };
- 
-+#if defined(CONFIG_MIGRATE_VMA_HELPER)
- int migrate_vma(const struct migrate_vma_ops *ops,
- 		struct vm_area_struct *vma,
- 		unsigned long start,
-@@ -272,6 +273,18 @@ int migrate_vma(const struct migrate_vma
- 		unsigned long *src,
- 		unsigned long *dst,
- 		void *private);
-+#else
-+static inline int migrate_vma(const struct migrate_vma_ops *ops,
-+			      struct vm_area_struct *vma,
-+			      unsigned long start,
-+			      unsigned long end,
-+			      unsigned long *src,
-+			      unsigned long *dst,
-+			      void *private)
-+{
-+	return -EINVAL;
-+}
-+#endif /* IS_ENABLED(CONFIG_MIGRATE_VMA_HELPER) */
- 
- #endif /* CONFIG_MIGRATION */
- 
-diff -puN include/linux/mm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/mm.h
---- a/include/linux/mm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
-+++ a/include/linux/mm.h
-@@ -800,18 +800,27 @@ static inline bool is_zone_device_page(c
+@@ -156,4 +156,108 @@ static inline int migrate_misplaced_tran
  }
- #endif
+ #endif /* CONFIG_NUMA_BALANCING && CONFIG_TRANSPARENT_HUGEPAGE*/
  
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
-+#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
- void put_zone_device_private_or_public_page(struct page *page);
--#else
-+DECLARE_STATIC_KEY_FALSE(device_private_key);
-+#define IS_HMM_ENABLED static_branch_unlikely(&device_private_key)
-+static inline bool is_device_private_page(const struct page *page);
-+static inline bool is_device_public_page(const struct page *page);
-+#else /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- static inline void put_zone_device_private_or_public_page(struct page *page)
- {
- }
-+#define IS_HMM_ENABLED 0
-+static inline bool is_device_private_page(const struct page *page)
-+{
-+	return false;
-+}
-+static inline bool is_device_public_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- 
--static inline bool is_device_private_page(const struct page *page);
--static inline bool is_device_public_page(const struct page *page);
--
--DECLARE_STATIC_KEY_FALSE(device_private_key);
- 
- static inline void get_page(struct page *page)
- {
-@@ -834,9 +843,8 @@ static inline void put_page(struct page
- 	 * free and we need to inform the device driver through callback. See
- 	 * include/linux/memremap.h and HMM for details.
- 	 */
--	if (static_branch_unlikely(&device_private_key) &&
--	    unlikely(is_device_private_page(page) ||
--		     is_device_public_page(page))) {
-+	if (IS_HMM_ENABLED && unlikely(is_device_private_page(page) ||
-+	    unlikely(is_device_public_page(page)))) {
- 		put_zone_device_private_or_public_page(page);
- 		return;
- 	}
-diff -puN mm/Kconfig~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/Kconfig
---- a/mm/Kconfig~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
-+++ a/mm/Kconfig
-@@ -702,8 +702,12 @@ config ARCH_HAS_HMM
- 	depends on MEMORY_HOTREMOVE
- 	depends on SPARSEMEM_VMEMMAP
- 
-+config MIGRATE_VMA_HELPER
-+	bool
 +
- config HMM
- 	bool
-+	select MIGRATE_VMA_HELPER
- 
- config HMM_MIRROR
- 	bool "HMM mirror CPU page table into a device page table"
-diff -puN mm/Makefile~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/Makefile
---- a/mm/Makefile~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
-+++ a/mm/Makefile
-@@ -39,7 +39,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   mm_init.o mmu_context.o percpu.o slab_common.o \
- 			   compaction.o vmacache.o swap_slots.o \
- 			   interval_tree.o list_lru.o workingset.o \
--			   debug.o hmm.o $(mmu-y)
-+			   debug.o $(mmu-y)
- 
- obj-y += init-mm.o
- 
-@@ -104,3 +104,4 @@ obj-$(CONFIG_FRAME_VECTOR) += frame_vect
- obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
- obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
- obj-$(CONFIG_PERCPU_STATS) += percpu-stats.o
-+obj-$(CONFIG_HMM) += hmm.o
-diff -puN mm/hmm.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/hmm.c
---- a/mm/hmm.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
-+++ a/mm/hmm.c
-@@ -35,15 +35,16 @@
- 
- #define PA_SECTION_SIZE (1UL << PA_SECTION_SHIFT)
- 
--
-+#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
- /*
-  * Device private memory see HMM (Documentation/vm/hmm.txt) or hmm.h
-  */
- DEFINE_STATIC_KEY_FALSE(device_private_key);
- EXPORT_SYMBOL(device_private_key);
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- 
- 
--#ifdef CONFIG_HMM
-+#if IS_ENABLED(CONFIG_HMM_MIRROR)
- static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
- 
- /*
-@@ -128,9 +129,7 @@ void hmm_mm_destroy(struct mm_struct *mm
- {
- 	kfree(mm->hmm);
- }
--#endif /* CONFIG_HMM */
- 
--#if IS_ENABLED(CONFIG_HMM_MIRROR)
- static void hmm_invalidate_range(struct hmm *hmm,
- 				 enum hmm_update_type action,
- 				 unsigned long start,
-diff -puN mm/migrate.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/migrate.c
---- a/mm/migrate.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++#ifdef CONFIG_MIGRATION
++
++#define MIGRATE_PFN_VALID	(1UL << 0)
++#define MIGRATE_PFN_MIGRATE	(1UL << 1)
++#define MIGRATE_PFN_LOCKED	(1UL << 2)
++#define MIGRATE_PFN_WRITE	(1UL << 3)
++#define MIGRATE_PFN_ERROR	(1UL << 4)
++#define MIGRATE_PFN_SHIFT	5
++
++static inline struct page *migrate_pfn_to_page(unsigned long mpfn)
++{
++	if (!(mpfn & MIGRATE_PFN_VALID))
++		return NULL;
++	return pfn_to_page(mpfn >> MIGRATE_PFN_SHIFT);
++}
++
++static inline unsigned long migrate_pfn(unsigned long pfn)
++{
++	return (pfn << MIGRATE_PFN_SHIFT) | MIGRATE_PFN_VALID;
++}
++
++/*
++ * struct migrate_vma_ops - migrate operation callback
++ *
++ * @alloc_and_copy: alloc destination memory and copy source memory to it
++ * @finalize_and_map: allow caller to map the successfully migrated pages
++ *
++ *
++ * The alloc_and_copy() callback happens once all source pages have been locked,
++ * unmapped and checked (checked whether pinned or not). All pages that can be
++ * migrated will have an entry in the src array set with the pfn value of the
++ * page and with the MIGRATE_PFN_VALID and MIGRATE_PFN_MIGRATE flag set (other
++ * flags might be set but should be ignored by the callback).
++ *
++ * The alloc_and_copy() callback can then allocate destination memory and copy
++ * source memory to it for all those entries (ie with MIGRATE_PFN_VALID and
++ * MIGRATE_PFN_MIGRATE flag set). Once these are allocated and copied, the
++ * callback must update each corresponding entry in the dst array with the pfn
++ * value of the destination page and with the MIGRATE_PFN_VALID and
++ * MIGRATE_PFN_LOCKED flags set (destination pages must have their struct pages
++ * locked, via lock_page()).
++ *
++ * At this point the alloc_and_copy() callback is done and returns.
++ *
++ * Note that the callback does not have to migrate all the pages that are
++ * marked with MIGRATE_PFN_MIGRATE flag in src array unless this is a migration
++ * from device memory to system memory (ie the MIGRATE_PFN_DEVICE flag is also
++ * set in the src array entry). If the device driver cannot migrate a device
++ * page back to system memory, then it must set the corresponding dst array
++ * entry to MIGRATE_PFN_ERROR. This will trigger a SIGBUS if CPU tries to
++ * access any of the virtual addresses originally backed by this page. Because
++ * a SIGBUS is such a severe result for the userspace process, the device
++ * driver should avoid setting MIGRATE_PFN_ERROR unless it is really in an
++ * unrecoverable state.
++ *
++ * THE alloc_and_copy() CALLBACK MUST NOT CHANGE ANY OF THE SRC ARRAY ENTRIES
++ * OR BAD THINGS WILL HAPPEN !
++ *
++ *
++ * The finalize_and_map() callback happens after struct page migration from
++ * source to destination (destination struct pages are the struct pages for the
++ * memory allocated by the alloc_and_copy() callback).  Migration can fail, and
++ * thus the finalize_and_map() allows the driver to inspect which pages were
++ * successfully migrated, and which were not. Successfully migrated pages will
++ * have the MIGRATE_PFN_MIGRATE flag set for their src array entry.
++ *
++ * It is safe to update device page table from within the finalize_and_map()
++ * callback because both destination and source page are still locked, and the
++ * mmap_sem is held in read mode (hence no one can unmap the range being
++ * migrated).
++ *
++ * Once callback is done cleaning up things and updating its page table (if it
++ * chose to do so, this is not an obligation) then it returns. At this point,
++ * the HMM core will finish up the final steps, and the migration is complete.
++ *
++ * THE finalize_and_map() CALLBACK MUST NOT CHANGE ANY OF THE SRC OR DST ARRAY
++ * ENTRIES OR BAD THINGS WILL HAPPEN !
++ */
++struct migrate_vma_ops {
++	void (*alloc_and_copy)(struct vm_area_struct *vma,
++			       const unsigned long *src,
++			       unsigned long *dst,
++			       unsigned long start,
++			       unsigned long end,
++			       void *private);
++	void (*finalize_and_map)(struct vm_area_struct *vma,
++				 const unsigned long *src,
++				 const unsigned long *dst,
++				 unsigned long start,
++				 unsigned long end,
++				 void *private);
++};
++
++int migrate_vma(const struct migrate_vma_ops *ops,
++		struct vm_area_struct *vma,
++		unsigned long start,
++		unsigned long end,
++		unsigned long *src,
++		unsigned long *dst,
++		void *private);
++
++#endif /* CONFIG_MIGRATION */
++
+ #endif /* _LINUX_MIGRATE_H */
+diff -puN mm/migrate.c~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5 mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v5
 +++ a/mm/migrate.c
-@@ -2127,6 +2127,7 @@ out_unlock:
+@@ -428,6 +428,14 @@ int migrate_page_move_mapping(struct add
+ 	int expected_count = 1 + extra_count;
+ 	void **pslot;
+ 
++	/*
++	 * ZONE_DEVICE pages have 1 refcount always held by their device
++	 *
++	 * Note that DAX memory will never reach that point as it does not have
++	 * the MEMORY_DEVICE_ALLOW_MIGRATE flag set (see memory_hotplug.h).
++	 */
++	expected_count += is_zone_device_page(page);
++
+ 	if (!mapping) {
+ 		/* Anonymous page without mapping */
+ 		if (page_count(page) != expected_count)
+@@ -2106,3 +2114,487 @@ out_unlock:
+ #endif /* CONFIG_NUMA_BALANCING */
  
  #endif /* CONFIG_NUMA */
- 
-+#if defined(CONFIG_MIGRATE_VMA_HELPER)
- struct migrate_vma {
- 	struct vm_area_struct	*vma;
- 	unsigned long		*dst;
-@@ -2980,3 +2981,4 @@ int migrate_vma(const struct migrate_vma
- 	return 0;
- }
- EXPORT_SYMBOL(migrate_vma);
-+#endif /* defined(MIGRATE_VMA_HELPER) */
++
++
++struct migrate_vma {
++	struct vm_area_struct	*vma;
++	unsigned long		*dst;
++	unsigned long		*src;
++	unsigned long		cpages;
++	unsigned long		npages;
++	unsigned long		start;
++	unsigned long		end;
++};
++
++static int migrate_vma_collect_hole(unsigned long start,
++				    unsigned long end,
++				    struct mm_walk *walk)
++{
++	struct migrate_vma *migrate = walk->private;
++	unsigned long addr;
++
++	for (addr = start & PAGE_MASK; addr < end; addr += PAGE_SIZE) {
++		migrate->dst[migrate->npages] = 0;
++		migrate->src[migrate->npages++] = 0;
++	}
++
++	return 0;
++}
++
++static int migrate_vma_collect_pmd(pmd_t *pmdp,
++				   unsigned long start,
++				   unsigned long end,
++				   struct mm_walk *walk)
++{
++	struct migrate_vma *migrate = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long addr = start;
++	spinlock_t *ptl;
++	pte_t *ptep;
++
++again:
++	if (pmd_none(*pmdp))
++		return migrate_vma_collect_hole(start, end, walk);
++
++	if (pmd_trans_huge(*pmdp)) {
++		struct page *page;
++
++		ptl = pmd_lock(mm, pmdp);
++		if (unlikely(!pmd_trans_huge(*pmdp))) {
++			spin_unlock(ptl);
++			goto again;
++		}
++
++		page = pmd_page(*pmdp);
++		if (is_huge_zero_page(page)) {
++			spin_unlock(ptl);
++			split_huge_pmd(vma, pmdp, addr);
++			if (pmd_trans_unstable(pmdp))
++				return migrate_vma_collect_hole(start, end,
++								walk);
++		} else {
++			int ret;
++
++			get_page(page);
++			spin_unlock(ptl);
++			if (unlikely(!trylock_page(page)))
++				return migrate_vma_collect_hole(start, end,
++								walk);
++			ret = split_huge_page(page);
++			unlock_page(page);
++			put_page(page);
++			if (ret || pmd_none(*pmdp))
++				return migrate_vma_collect_hole(start, end,
++								walk);
++		}
++	}
++
++	if (unlikely(pmd_bad(*pmdp)))
++		return migrate_vma_collect_hole(start, end, walk);
++
++	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	for (; addr < end; addr += PAGE_SIZE, ptep++) {
++		unsigned long mpfn, pfn;
++		struct page *page;
++		pte_t pte;
++
++		pte = *ptep;
++		pfn = pte_pfn(pte);
++
++		if (!pte_present(pte)) {
++			mpfn = pfn = 0;
++			goto next;
++		}
++
++		/* FIXME support THP */
++		page = vm_normal_page(migrate->vma, addr, pte);
++		if (!page || !page->mapping || PageTransCompound(page)) {
++			mpfn = pfn = 0;
++			goto next;
++		}
++
++		/*
++		 * By getting a reference on the page we pin it and that blocks
++		 * any kind of migration. Side effect is that it "freezes" the
++		 * pte.
++		 *
++		 * We drop this reference after isolating the page from the lru
++		 * for non device page (device page are not on the lru and thus
++		 * can't be dropped from it).
++		 */
++		get_page(page);
++		migrate->cpages++;
++		mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
++		mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
++
++next:
++		migrate->src[migrate->npages++] = mpfn;
++	}
++	pte_unmap_unlock(ptep - 1, ptl);
++
++	return 0;
++}
++
++/*
++ * migrate_vma_collect() - collect pages over a range of virtual addresses
++ * @migrate: migrate struct containing all migration information
++ *
++ * This will walk the CPU page table. For each virtual address backed by a
++ * valid page, it updates the src array and takes a reference on the page, in
++ * order to pin the page until we lock it and unmap it.
++ */
++static void migrate_vma_collect(struct migrate_vma *migrate)
++{
++	struct mm_walk mm_walk;
++
++	mm_walk.pmd_entry = migrate_vma_collect_pmd;
++	mm_walk.pte_entry = NULL;
++	mm_walk.pte_hole = migrate_vma_collect_hole;
++	mm_walk.hugetlb_entry = NULL;
++	mm_walk.test_walk = NULL;
++	mm_walk.vma = migrate->vma;
++	mm_walk.mm = migrate->vma->vm_mm;
++	mm_walk.private = migrate;
++
++	walk_page_range(migrate->start, migrate->end, &mm_walk);
++
++	migrate->end = migrate->start + (migrate->npages << PAGE_SHIFT);
++}
++
++/*
++ * migrate_vma_check_page() - check if page is pinned or not
++ * @page: struct page to check
++ *
++ * Pinned pages cannot be migrated. This is the same test as in
++ * migrate_page_move_mapping(), except that here we allow migration of a
++ * ZONE_DEVICE page.
++ */
++static bool migrate_vma_check_page(struct page *page)
++{
++	/*
++	 * One extra ref because caller holds an extra reference, either from
++	 * isolate_lru_page() for a regular page, or migrate_vma_collect() for
++	 * a device page.
++	 */
++	int extra = 1;
++
++	/*
++	 * FIXME support THP (transparent huge page), it is bit more complex to
++	 * check them than regular pages, because they can be mapped with a pmd
++	 * or with a pte (split pte mapping).
++	 */
++	if (PageCompound(page))
++		return false;
++
++	if ((page_count(page) - extra) > page_mapcount(page))
++		return false;
++
++	return true;
++}
++
++/*
++ * migrate_vma_prepare() - lock pages and isolate them from the lru
++ * @migrate: migrate struct containing all migration information
++ *
++ * This locks pages that have been collected by migrate_vma_collect(). Once each
++ * page is locked it is isolated from the lru (for non-device pages). Finally,
++ * the ref taken by migrate_vma_collect() is dropped, as locked pages cannot be
++ * migrated by concurrent kernel threads.
++ */
++static void migrate_vma_prepare(struct migrate_vma *migrate)
++{
++	const unsigned long npages = migrate->npages;
++	bool allow_drain = true;
++	unsigned long i;
++
++	lru_add_drain();
++
++	for (i = 0; (i < npages) && migrate->cpages; i++) {
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++
++		if (!page)
++			continue;
++
++		/*
++		 * Because we are migrating several pages there can be
++		 * a deadlock between 2 concurrent migration where each
++		 * are waiting on each other page lock.
++		 *
++		 * Make migrate_vma() a best effort thing and backoff
++		 * for any page we can not lock right away.
++		 */
++		if (!trylock_page(page)) {
++			migrate->src[i] = 0;
++			migrate->cpages--;
++			put_page(page);
++			continue;
++		}
++		migrate->src[i] |= MIGRATE_PFN_LOCKED;
++
++		if (!PageLRU(page) && allow_drain) {
++			/* Drain CPU's pagevec */
++			lru_add_drain_all();
++			allow_drain = false;
++		}
++
++		if (isolate_lru_page(page)) {
++			migrate->src[i] = 0;
++			unlock_page(page);
++			migrate->cpages--;
++			put_page(page);
++			continue;
++		}
++
++		if (!migrate_vma_check_page(page)) {
++			migrate->src[i] = 0;
++			unlock_page(page);
++			migrate->cpages--;
++
++			putback_lru_page(page);
++		}
++	}
++}
++
++/*
++ * migrate_vma_unmap() - replace page mapping with special migration pte entry
++ * @migrate: migrate struct containing all migration information
++ *
++ * Replace page mapping (CPU page table pte) with a special migration pte entry
++ * and check again if it has been pinned. Pinned pages are restored because we
++ * cannot migrate them.
++ *
++ * This is the last step before we call the device driver callback to allocate
++ * destination memory and copy contents of original page over to new page.
++ */
++static void migrate_vma_unmap(struct migrate_vma *migrate)
++{
++	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
++	const unsigned long npages = migrate->npages;
++	const unsigned long start = migrate->start;
++	unsigned long addr, i, restore = 0;
++
++	for (i = 0; i < npages; i++) {
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++
++		if (!page || !(migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		try_to_unmap(page, flags);
++		if (page_mapped(page) || !migrate_vma_check_page(page)) {
++			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++			migrate->cpages--;
++			restore++;
++		}
++	}
++
++	for (addr = start, i = 0; i < npages && restore; addr += PAGE_SIZE, i++) {
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++
++		if (!page || (migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		remove_migration_ptes(page, page, false);
++
++		migrate->src[i] = 0;
++		unlock_page(page);
++		restore--;
++
++		putback_lru_page(page);
++	}
++}
++
++/*
++ * migrate_vma_pages() - migrate meta-data from src page to dst page
++ * @migrate: migrate struct containing all migration information
++ *
++ * This migrates struct page meta-data from source struct page to destination
++ * struct page. This effectively finishes the migration from source page to the
++ * destination page.
++ */
++static void migrate_vma_pages(struct migrate_vma *migrate)
++{
++	const unsigned long npages = migrate->npages;
++	const unsigned long start = migrate->start;
++	unsigned long addr, i;
++
++	for (i = 0, addr = start; i < npages; addr += PAGE_SIZE, i++) {
++		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		struct address_space *mapping;
++		int r;
++
++		if (!page || !newpage)
++			continue;
++		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		mapping = page_mapping(page);
++
++		r = migrate_page(mapping, newpage, page, MIGRATE_SYNC_NO_COPY);
++		if (r != MIGRATEPAGE_SUCCESS)
++			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++	}
++}
++
++/*
++ * migrate_vma_finalize() - restore CPU page table entry
++ * @migrate: migrate struct containing all migration information
++ *
++ * This replaces the special migration pte entry with either a mapping to the
++ * new page if migration was successful for that page, or to the original page
++ * otherwise.
++ *
++ * This also unlocks the pages and puts them back on the lru, or drops the extra
++ * refcount, for device pages.
++ */
++static void migrate_vma_finalize(struct migrate_vma *migrate)
++{
++	const unsigned long npages = migrate->npages;
++	unsigned long i;
++
++	for (i = 0; i < npages; i++) {
++		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++
++		if (!page)
++			continue;
++		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE) || !newpage) {
++			if (newpage) {
++				unlock_page(newpage);
++				put_page(newpage);
++			}
++			newpage = page;
++		}
++
++		remove_migration_ptes(page, newpage, false);
++		unlock_page(page);
++		migrate->cpages--;
++
++		putback_lru_page(page);
++
++		if (newpage != page) {
++			unlock_page(newpage);
++			putback_lru_page(newpage);
++		}
++	}
++}
++
++/*
++ * migrate_vma() - migrate a range of memory inside vma
++ *
++ * @ops: migration callback for allocating destination memory and copying
++ * @vma: virtual memory area containing the range to be migrated
++ * @start: start address of the range to migrate (inclusive)
++ * @end: end address of the range to migrate (exclusive)
++ * @src: array of hmm_pfn_t containing source pfns
++ * @dst: array of hmm_pfn_t containing destination pfns
++ * @private: pointer passed back to each of the callback
++ * Returns: 0 on success, error code otherwise
++ *
++ * This function tries to migrate a range of memory virtual address range, using
++ * callbacks to allocate and copy memory from source to destination. First it
++ * collects all the pages backing each virtual address in the range, saving this
++ * inside the src array. Then it locks those pages and unmaps them. Once the pages
++ * are locked and unmapped, it checks whether each page is pinned or not. Pages
++ * that aren't pinned have the MIGRATE_PFN_MIGRATE flag set (by this function)
++ * in the corresponding src array entry. It then restores any pages that are
++ * pinned, by remapping and unlocking those pages.
++ *
++ * At this point it calls the alloc_and_copy() callback. For documentation on
++ * what is expected from that callback, see struct migrate_vma_ops comments in
++ * include/linux/migrate.h
++ *
++ * After the alloc_and_copy() callback, this function goes over each entry in
++ * the src array that has the MIGRATE_PFN_VALID and MIGRATE_PFN_MIGRATE flag
++ * set. If the corresponding entry in dst array has MIGRATE_PFN_VALID flag set,
++ * then the function tries to migrate struct page information from the source
++ * struct page to the destination struct page. If it fails to migrate the struct
++ * page information, then it clears the MIGRATE_PFN_MIGRATE flag in the src
++ * array.
++ *
++ * At this point all successfully migrated pages have an entry in the src
++ * array with MIGRATE_PFN_VALID and MIGRATE_PFN_MIGRATE flag set and the dst
++ * array entry with MIGRATE_PFN_VALID flag set.
++ *
++ * It then calls the finalize_and_map() callback. See comments for "struct
++ * migrate_vma_ops", in include/linux/migrate.h for details about
++ * finalize_and_map() behavior.
++ *
++ * After the finalize_and_map() callback, for successfully migrated pages, this
++ * function updates the CPU page table to point to new pages, otherwise it
++ * restores the CPU page table to point to the original source pages.
++ *
++ * Function returns 0 after the above steps, even if no pages were migrated
++ * (The function only returns an error if any of the arguments are invalid.)
++ *
++ * Both src and dst array must be big enough for (end - start) >> PAGE_SHIFT
++ * unsigned long entries.
++ */
++int migrate_vma(const struct migrate_vma_ops *ops,
++		struct vm_area_struct *vma,
++		unsigned long start,
++		unsigned long end,
++		unsigned long *src,
++		unsigned long *dst,
++		void *private)
++{
++	struct migrate_vma migrate;
++
++	/* Sanity check the arguments */
++	start &= PAGE_MASK;
++	end &= PAGE_MASK;
++	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
++		return -EINVAL;
++	if (start < vma->vm_start || start >= vma->vm_end)
++		return -EINVAL;
++	if (end <= vma->vm_start || end > vma->vm_end)
++		return -EINVAL;
++	if (!ops || !src || !dst || start >= end)
++		return -EINVAL;
++
++	memset(src, 0, sizeof(*src) * ((end - start) >> PAGE_SHIFT));
++	migrate.src = src;
++	migrate.dst = dst;
++	migrate.start = start;
++	migrate.npages = 0;
++	migrate.cpages = 0;
++	migrate.end = end;
++	migrate.vma = vma;
++
++	/* Collect, and try to unmap source pages */
++	migrate_vma_collect(&migrate);
++	if (!migrate.cpages)
++		return 0;
++
++	/* Lock and isolate page */
++	migrate_vma_prepare(&migrate);
++	if (!migrate.cpages)
++		return 0;
++
++	/* Unmap pages */
++	migrate_vma_unmap(&migrate);
++	if (!migrate.cpages)
++		return 0;
++
++	/*
++	 * At this point pages are locked and unmapped, and thus they have
++	 * stable content and can safely be copied to destination memory that
++	 * is allocated by the callback.
++	 *
++	 * Note that migration can fail in migrate_vma_struct_page() for each
++	 * individual page.
++	 */
++	ops->alloc_and_copy(vma, src, dst, start, end, private);
++
++	/* This does the real migration of struct page */
++	migrate_vma_pages(&migrate);
++
++	ops->finalize_and_map(vma, src, dst, start, end, private);
++
++	/* Unlock and remap pages */
++	migrate_vma_finalize(&migrate);
++
++	return 0;
++}
++EXPORT_SYMBOL(migrate_vma);
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
