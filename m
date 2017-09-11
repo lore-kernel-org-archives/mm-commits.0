@@ -1,118 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-consider-the-number-in-local-cpus-when-reads-numa-stats.patch removed
- from -mm tree
-Date: Mon, 11 Sep 2017 12:40:01 -0700
-Message-ID: <20170911194001.3_2PgYXjp%akpm@linux-foundation.org>
+ mm-mlock-use-page_zone-instead-of-page_zone_id.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:40:04 -0700
+Message-ID: <20170911194004.KuNYOD5RF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49292 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTkC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:02 -0400
+        with ESMTP id S1751028AbdIKTkF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aaron.lu@intel.com, andi.kleen@intel.com, brouer@redhat.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, ying.huang@intel.com
+To: iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: consider the number in local CPUs when reading NUMA stats
+     Subject: mm/mlock.c: use page_zone() instead of page_zone_id()
 has been removed from the -mm tree.  Its filename was
-     mm-consider-the-number-in-local-cpus-when-reads-numa-stats.patch
+     mm-mlock-use-page_zone-instead-of-page_zone_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kemi Wang <kemi.wang@intel.com>
-Subject: mm: consider the number in local CPUs when reading NUMA stats
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/mlock.c: use page_zone() instead of page_zone_id()
 
-To avoid deviation, the per cpu number of NUMA stats in
-vm_numa_stat_diff[] is included when a user *reads* the NUMA stats.
+page_zone_id() is a specialized function to compare the zone for the pages
+that are within the section range.  If the section of the pages are
+different, page_zone_id() can be different even if their zone is the same.
+This wrong usage doesn't cause any actual problem since
+__munlock_pagevec_fill() would be called again with failed index. 
+However, it's better to use more appropriate function here.
 
-Since NUMA stats does not be read by users frequently, and kernel does not
-need it to make a decision, it will not be a problem to make the readers
-more expensive.
-
-Link: http://lkml.kernel.org/r/1503568801-21305-4-git-send-email-kemi.wang@intel.com
-Signed-off-by: Kemi Wang <kemi.wang@intel.com>
-Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Ying Huang <ying.huang@intel.com>
+Link: http://lkml.kernel.org/r/1503559211-10259-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    6 +++++-
- mm/vmstat.c            |    9 +++++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ mm/mlock.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-consider-the-number-in-local-cpus-when-reads-numa-stats include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-consider-the-number-in-local-cpus-when-reads-numa-stats
-+++ a/include/linux/vmstat.h
-@@ -125,10 +125,14 @@ static inline unsigned long global_numa_
- 	return x;
- }
- 
--static inline unsigned long zone_numa_state(struct zone *zone,
-+static inline unsigned long zone_numa_state_snapshot(struct zone *zone,
- 					enum numa_stat_item item)
+diff -puN mm/mlock.c~mm-mlock-use-page_zone-instead-of-page_zone_id mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-use-page_zone-instead-of-page_zone_id
++++ a/mm/mlock.c
+@@ -365,8 +365,8 @@ static void __munlock_pagevec(struct pag
+  * @start + PAGE_SIZE when no page could be added by the pte walk.
+  */
+ static unsigned long __munlock_pagevec_fill(struct pagevec *pvec,
+-		struct vm_area_struct *vma, int zoneid,	unsigned long start,
+-		unsigned long end)
++			struct vm_area_struct *vma, struct zone *zone,
++			unsigned long start, unsigned long end)
  {
- 	long x = atomic_long_read(&zone->vm_numa_stat[item]);
-+	int cpu;
-+
-+	for_each_online_cpu(cpu)
-+		x += per_cpu_ptr(zone->pageset, cpu)->vm_numa_stat_diff[item];
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+@@ -394,7 +394,7 @@ static unsigned long __munlock_pagevec_f
+ 		 * Break if page could not be obtained or the page's node+zone does not
+ 		 * match
+ 		 */
+-		if (!page || page_zone_id(page) != zoneid)
++		if (!page || page_zone(page) != zone)
+ 			break;
  
- 	return x;
- }
-diff -puN mm/vmstat.c~mm-consider-the-number-in-local-cpus-when-reads-numa-stats mm/vmstat.c
---- a/mm/vmstat.c~mm-consider-the-number-in-local-cpus-when-reads-numa-stats
-+++ a/mm/vmstat.c
-@@ -897,6 +897,10 @@ unsigned long sum_zone_node_page_state(i
- 	return count;
- }
- 
-+/*
-+ * Determine the per node value of a numa stat item. To avoid deviation,
-+ * the per cpu stat number in vm_numa_stat_diff[] is also included.
-+ */
- unsigned long sum_zone_numa_state(int node,
- 				 enum numa_stat_item item)
- {
-@@ -905,7 +909,7 @@ unsigned long sum_zone_numa_state(int no
- 	unsigned long count = 0;
- 
- 	for (i = 0; i < MAX_NR_ZONES; i++)
--		count += zone_numa_state(zones + i, item);
-+		count += zone_numa_state_snapshot(zones + i, item);
- 
- 	return count;
- }
-@@ -1536,7 +1540,7 @@ static void zoneinfo_show_print(struct s
- 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++)
- 		seq_printf(m, "\n      %-12s %lu",
- 				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
--				zone_numa_state(zone, i));
-+				zone_numa_state_snapshot(zone, i));
- #endif
- 
- 	seq_printf(m, "\n  pagesets");
-@@ -1792,6 +1796,7 @@ static bool need_update(int cpu)
- #ifdef CONFIG_NUMA
- 		BUILD_BUG_ON(sizeof(p->vm_numa_stat_diff[0]) != 2);
- #endif
-+
  		/*
- 		 * The fast way of checking if there are any vmstat diffs.
- 		 * This works because the diffs are byte sized items.
+@@ -446,7 +446,6 @@ void munlock_vma_pages_range(struct vm_a
+ 		unsigned long page_increm;
+ 		struct pagevec pvec;
+ 		struct zone *zone;
+-		int zoneid;
+ 
+ 		pagevec_init(&pvec, 0);
+ 		/*
+@@ -481,7 +480,6 @@ void munlock_vma_pages_range(struct vm_a
+ 				 */
+ 				pagevec_add(&pvec, page);
+ 				zone = page_zone(page);
+-				zoneid = page_zone_id(page);
+ 
+ 				/*
+ 				 * Try to fill the rest of pagevec using fast
+@@ -490,7 +488,7 @@ void munlock_vma_pages_range(struct vm_a
+ 				 * pagevec.
+ 				 */
+ 				start = __munlock_pagevec_fill(&pvec, vma,
+-						zoneid, start, end);
++						zone, start, end);
+ 				__munlock_pagevec(&pvec, zone);
+ 				goto next;
+ 			}
 _
 
-Patches currently in -mm which might be from kemi.wang@intel.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
+mm-cma-remove-alloc_cma.patch
+arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
 
