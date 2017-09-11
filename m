@@ -1,285 +1,221 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
+ mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
  removed from -mm tree
-Date: Mon, 11 Sep 2017 12:39:06 -0700
-Message-ID: <20170911193906.PoWSwQPct%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:39:03 -0700
+Message-ID: <20170911193903.39GGsQKNB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48844 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751020AbdIKTjI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:08 -0400
+        with ESMTP id S1751020AbdIKTjF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/memcontrol: allow to uncharge page without using page->lru field
+     Subject: mm/ZONE_DEVICE: special case put_page() for device private pages
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
+     mm-zone_device-special-case-put_page-for-device-private-pages-v4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/memcontrol: allow to uncharge page without using page->lru field
+Subject: mm/ZONE_DEVICE: special case put_page() for device private pages
 
-HMM pages (private or public device pages) are ZONE_DEVICE page and
-thus you can not use page->lru fields of those pages. This patch
-re-arrange the uncharge to allow single page to be uncharge without
-modifying the lru field of the struct page.
+A ZONE_DEVICE page that reach a refcount of 1 is free ie no longer have
+any user.  For device private pages this is important to catch and thus we
+need to special case put_page() for this.
 
-There is no change to memcontrol logic, it is the same as it was
-before this patch.
-
-Link: http://lkml.kernel.org/r/20170817000548.32038-10-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170817000548.32038-9-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
 Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mark Hairgrove <mhairgrove@nvidia.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Sherry Cheung <SCheung@nvidia.com>
 Cc: Subhash Gutti <sgutti@nvidia.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  168 +++++++++++++++++++++++++---------------------
- 1 file changed, 92 insertions(+), 76 deletions(-)
+ include/linux/memremap.h |   13 +++++++++++++
+ include/linux/mm.h       |   31 ++++++++++++++++++++++---------
+ kernel/memremap.c        |   25 ++++++++++++++++++++++++-
+ mm/hmm.c                 |    8 ++++++++
+ 4 files changed, 67 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field
-+++ a/mm/memcontrol.c
-@@ -5540,48 +5540,102 @@ void mem_cgroup_cancel_charge(struct pag
- 	cancel_charge(memcg, nr_pages);
- }
- 
--static void uncharge_batch(struct mem_cgroup *memcg, unsigned long pgpgout,
--			   unsigned long nr_anon, unsigned long nr_file,
--			   unsigned long nr_kmem, unsigned long nr_huge,
--			   unsigned long nr_shmem, struct page *dummy_page)
-+struct uncharge_gather {
-+	struct mem_cgroup *memcg;
-+	unsigned long pgpgout;
-+	unsigned long nr_anon;
-+	unsigned long nr_file;
-+	unsigned long nr_kmem;
-+	unsigned long nr_huge;
-+	unsigned long nr_shmem;
-+	struct page *dummy_page;
-+};
+diff -puN include/linux/memremap.h~mm-zone_device-special-case-put_page-for-device-private-pages-v4 include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-zone_device-special-case-put_page-for-device-private-pages-v4
++++ a/include/linux/memremap.h
+@@ -126,6 +126,14 @@ struct dev_pagemap {
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap);
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
 +
-+static inline void uncharge_gather_clear(struct uncharge_gather *ug)
++static inline bool is_zone_device_page(const struct page *page);
++
++static inline bool is_device_private_page(const struct page *page)
 +{
-+	memset(ug, 0, sizeof(*ug));
++	return is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
 +}
-+
-+static void uncharge_batch(const struct uncharge_gather *ug)
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct resource *res, struct percpu_ref *ref,
+@@ -144,6 +152,11 @@ static inline struct dev_pagemap *find_d
  {
--	unsigned long nr_pages = nr_anon + nr_file + nr_kmem;
-+	unsigned long nr_pages = ug->nr_anon + ug->nr_file + ug->nr_kmem;
- 	unsigned long flags;
- 
--	if (!mem_cgroup_is_root(memcg)) {
--		page_counter_uncharge(&memcg->memory, nr_pages);
-+	if (!mem_cgroup_is_root(ug->memcg)) {
-+		page_counter_uncharge(&ug->memcg->memory, nr_pages);
- 		if (do_memsw_account())
--			page_counter_uncharge(&memcg->memsw, nr_pages);
--		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && nr_kmem)
--			page_counter_uncharge(&memcg->kmem, nr_kmem);
--		memcg_oom_recover(memcg);
-+			page_counter_uncharge(&ug->memcg->memsw, nr_pages);
-+		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && ug->nr_kmem)
-+			page_counter_uncharge(&ug->memcg->kmem, ug->nr_kmem);
-+		memcg_oom_recover(ug->memcg);
- 	}
- 
- 	local_irq_save(flags);
--	__this_cpu_sub(memcg->stat->count[MEMCG_RSS], nr_anon);
--	__this_cpu_sub(memcg->stat->count[MEMCG_CACHE], nr_file);
--	__this_cpu_sub(memcg->stat->count[MEMCG_RSS_HUGE], nr_huge);
--	__this_cpu_sub(memcg->stat->count[NR_SHMEM], nr_shmem);
--	__this_cpu_add(memcg->stat->events[PGPGOUT], pgpgout);
--	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
--	memcg_check_events(memcg, dummy_page);
-+	__this_cpu_sub(ug->memcg->stat->count[MEMCG_RSS], ug->nr_anon);
-+	__this_cpu_sub(ug->memcg->stat->count[MEMCG_CACHE], ug->nr_file);
-+	__this_cpu_sub(ug->memcg->stat->count[MEMCG_RSS_HUGE], ug->nr_huge);
-+	__this_cpu_sub(ug->memcg->stat->count[NR_SHMEM], ug->nr_shmem);
-+	__this_cpu_add(ug->memcg->stat->events[PGPGOUT], ug->pgpgout);
-+	__this_cpu_add(ug->memcg->stat->nr_page_events, nr_pages);
-+	memcg_check_events(ug->memcg, ug->dummy_page);
- 	local_irq_restore(flags);
- 
--	if (!mem_cgroup_is_root(memcg))
--		css_put_many(&memcg->css, nr_pages);
-+	if (!mem_cgroup_is_root(ug->memcg))
-+		css_put_many(&ug->memcg->css, nr_pages);
-+}
+ 	return NULL;
+ }
 +
-+static void uncharge_page(struct page *page, struct uncharge_gather *ug)
++static inline bool is_device_private_page(const struct page *page)
 +{
-+	VM_BUG_ON_PAGE(PageLRU(page), page);
-+	VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
++	return false;
++}
+ #endif
+ 
+ /**
+diff -puN include/linux/mm.h~mm-zone_device-special-case-put_page-for-device-private-pages-v4 include/linux/mm.h
+--- a/include/linux/mm.h~mm-zone_device-special-case-put_page-for-device-private-pages-v4
++++ a/include/linux/mm.h
+@@ -23,6 +23,7 @@
+ #include <linux/page_ext.h>
+ #include <linux/err.h>
+ #include <linux/page_ref.h>
++#include <linux/memremap.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -792,25 +793,25 @@ static inline bool is_zone_device_page(c
+ {
+ 	return page_zonenum(page) == ZONE_DEVICE;
+ }
+-
+-static inline bool is_device_private_page(const struct page *page)
+-{
+-	/* See MEMORY_DEVICE_PRIVATE in include/linux/memory_hotplug.h */
+-	return ((page_zonenum(page) == ZONE_DEVICE) &&
+-		(page->pgmap->type == MEMORY_DEVICE_PRIVATE));
+-}
+ #else
+ static inline bool is_zone_device_page(const struct page *page)
+ {
+ 	return false;
+ }
++#endif
+ 
+-static inline bool is_device_private_page(const struct page *page)
++#ifdef CONFIG_DEVICE_PRIVATE
++void put_zone_device_private_page(struct page *page);
++#else
++static inline void put_zone_device_private_page(struct page *page)
+ {
+-	return false;
+ }
+ #endif
+ 
++static inline bool is_device_private_page(const struct page *page);
 +
-+	if (!page->mem_cgroup)
++DECLARE_STATIC_KEY_FALSE(device_private_key);
++
+ static inline void get_page(struct page *page)
+ {
+ 	page = compound_head(page);
+@@ -826,6 +827,18 @@ static inline void put_page(struct page
+ {
+ 	page = compound_head(page);
+ 
++	/*
++	 * For private device pages we need to catch refcount transition from
++	 * 2 to 1, when refcount reach one it means the private device page is
++	 * free and we need to inform the device driver through callback. See
++	 * include/linux/memremap.h and HMM for details.
++	 */
++	if (static_branch_unlikely(&device_private_key) &&
++	    unlikely(is_device_private_page(page))) {
++		put_zone_device_private_page(page);
 +		return;
++	}
++
+ 	if (put_page_testzero(page))
+ 		__put_page(page);
+ }
+diff -puN kernel/memremap.c~mm-zone_device-special-case-put_page-for-device-private-pages-v4 kernel/memremap.c
+--- a/kernel/memremap.c~mm-zone_device-special-case-put_page-for-device-private-pages-v4
++++ a/kernel/memremap.c
+@@ -11,7 +11,6 @@
+  * General Public License for more details.
+  */
+ #include <linux/radix-tree.h>
+-#include <linux/memremap.h>
+ #include <linux/device.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+@@ -500,3 +499,27 @@ struct vmem_altmap *to_vmem_altmap(unsig
+ 	return pgmap ? pgmap->altmap : NULL;
+ }
+ #endif /* CONFIG_ZONE_DEVICE */
++
++
++#ifdef CONFIG_DEVICE_PRIVATE
++void put_zone_device_private_page(struct page *page)
++{
++	int count = page_ref_dec_return(page);
 +
 +	/*
-+	 * Nobody should be changing or seriously looking at
-+	 * page->mem_cgroup at this point, we have fully
-+	 * exclusive access to the page.
++	 * If refcount is 1 then page is freed and refcount is stable as nobody
++	 * holds a reference on the page.
 +	 */
++	if (count == 1) {
++		/* Clear Active bit in case of parallel mark_page_accessed */
++		__ClearPageActive(page);
++		__ClearPageWaiters(page);
 +
-+	if (ug->memcg != page->mem_cgroup) {
-+		if (ug->memcg) {
-+			uncharge_batch(ug);
-+			uncharge_gather_clear(ug);
-+		}
-+		ug->memcg = page->mem_cgroup;
-+	}
++		page->mapping = NULL;
 +
-+	if (!PageKmemcg(page)) {
-+		unsigned int nr_pages = 1;
++		page->pgmap->page_free(page, page->pgmap->data);
++	} else if (!count)
++		__put_page(page);
++}
++EXPORT_SYMBOL(put_zone_device_private_page);
++#endif /* CONFIG_DEVICE_PRIVATE */
+diff -puN mm/hmm.c~mm-zone_device-special-case-put_page-for-device-private-pages-v4 mm/hmm.c
+--- a/mm/hmm.c~mm-zone_device-special-case-put_page-for-device-private-pages-v4
++++ a/mm/hmm.c
+@@ -25,9 +25,17 @@
+ #include <linux/sched.h>
+ #include <linux/swapops.h>
+ #include <linux/hugetlb.h>
++#include <linux/jump_label.h>
+ #include <linux/mmu_notifier.h>
+ 
+ 
++/*
++ * Device private memory see HMM (Documentation/vm/hmm.txt) or hmm.h
++ */
++DEFINE_STATIC_KEY_FALSE(device_private_key);
++EXPORT_SYMBOL(device_private_key);
 +
-+		if (PageTransHuge(page)) {
-+			nr_pages <<= compound_order(page);
-+			ug->nr_huge += nr_pages;
-+		}
-+		if (PageAnon(page))
-+			ug->nr_anon += nr_pages;
-+		else {
-+			ug->nr_file += nr_pages;
-+			if (PageSwapBacked(page))
-+				ug->nr_shmem += nr_pages;
-+		}
-+		ug->pgpgout++;
-+	} else {
-+		ug->nr_kmem += 1 << compound_order(page);
-+		__ClearPageKmemcg(page);
-+	}
 +
-+	ug->dummy_page = page;
-+	page->mem_cgroup = NULL;
- }
+ #ifdef CONFIG_HMM
+ static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
  
- static void uncharge_list(struct list_head *page_list)
- {
--	struct mem_cgroup *memcg = NULL;
--	unsigned long nr_shmem = 0;
--	unsigned long nr_anon = 0;
--	unsigned long nr_file = 0;
--	unsigned long nr_huge = 0;
--	unsigned long nr_kmem = 0;
--	unsigned long pgpgout = 0;
-+	struct uncharge_gather ug;
- 	struct list_head *next;
--	struct page *page;
-+
-+	uncharge_gather_clear(&ug);
- 
- 	/*
- 	 * Note that the list can be a single page->lru; hence the
-@@ -5589,57 +5643,16 @@ static void uncharge_list(struct list_he
- 	 */
- 	next = page_list->next;
- 	do {
-+		struct page *page;
-+
- 		page = list_entry(next, struct page, lru);
- 		next = page->lru.next;
- 
--		VM_BUG_ON_PAGE(PageLRU(page), page);
--		VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
--
--		if (!page->mem_cgroup)
--			continue;
--
--		/*
--		 * Nobody should be changing or seriously looking at
--		 * page->mem_cgroup at this point, we have fully
--		 * exclusive access to the page.
--		 */
--
--		if (memcg != page->mem_cgroup) {
--			if (memcg) {
--				uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
--					       nr_kmem, nr_huge, nr_shmem, page);
--				pgpgout = nr_anon = nr_file = nr_kmem = 0;
--				nr_huge = nr_shmem = 0;
--			}
--			memcg = page->mem_cgroup;
--		}
--
--		if (!PageKmemcg(page)) {
--			unsigned int nr_pages = 1;
--
--			if (PageTransHuge(page)) {
--				nr_pages <<= compound_order(page);
--				nr_huge += nr_pages;
--			}
--			if (PageAnon(page))
--				nr_anon += nr_pages;
--			else {
--				nr_file += nr_pages;
--				if (PageSwapBacked(page))
--					nr_shmem += nr_pages;
--			}
--			pgpgout++;
--		} else {
--			nr_kmem += 1 << compound_order(page);
--			__ClearPageKmemcg(page);
--		}
--
--		page->mem_cgroup = NULL;
-+		uncharge_page(page, &ug);
- 	} while (next != page_list);
- 
--	if (memcg)
--		uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
--			       nr_kmem, nr_huge, nr_shmem, page);
-+	if (ug.memcg)
-+		uncharge_batch(&ug);
- }
- 
- /**
-@@ -5651,6 +5664,8 @@ static void uncharge_list(struct list_he
-  */
- void mem_cgroup_uncharge(struct page *page)
- {
-+	struct uncharge_gather ug;
-+
- 	if (mem_cgroup_disabled())
- 		return;
- 
-@@ -5658,8 +5673,9 @@ void mem_cgroup_uncharge(struct page *pa
- 	if (!page->mem_cgroup)
- 		return;
- 
--	INIT_LIST_HEAD(&page->lru);
--	uncharge_list(&page->lru);
-+	uncharge_gather_clear(&ug);
-+	uncharge_page(page, &ug);
-+	uncharge_batch(&ug);
- }
- 
- /**
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
