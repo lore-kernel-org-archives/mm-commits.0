@@ -1,172 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-rbtree_testc-make-input-module-parameters.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:41:37 -0700
-Message-ID: <20170911194137.AqRWnqwf0%akpm@linux-foundation.org>
+Subject: [merged] procfs-use-faster-rb_first_cached.patch removed
+ from -mm tree
+Date: Mon, 11 Sep 2017 12:42:04 -0700
+Message-ID: <20170911194204.7GG1BMN-D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50090 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTli (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:38 -0400
+        with ESMTP id S1750877AbdIKTmF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: lib/rbtree_test.c: make input module parameters
+     Subject: procfs: use faster rb_first_cached()
 has been removed from the -mm tree.  Its filename was
-     lib-rbtree_testc-make-input-module-parameters.patch
+     procfs-use-faster-rb_first_cached.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/rbtree_test.c: make input module parameters
+Subject: procfs: use faster rb_first_cached()
 
-Allows for more flexible debugging.
+...  such that we can avoid the tree walks to get the node with the
+smallest key.  Semantically the same, as the previously used rb_first(),
+but O(1).  The main overhead is the extra footprint for the cached rb_node
+pointer, which should not matter for procfs.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-5-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-14-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree_test.c |   55 +++++++++++++++++++++++++++-----------------
- 1 file changed, 34 insertions(+), 21 deletions(-)
+ fs/proc/generic.c  |   26 ++++++++++++++------------
+ fs/proc/internal.h |    2 +-
+ fs/proc/proc_net.c |    2 +-
+ fs/proc/root.c     |    2 +-
+ 4 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN lib/rbtree_test.c~lib-rbtree_testc-make-input-module-parameters lib/rbtree_test.c
---- a/lib/rbtree_test.c~lib-rbtree_testc-make-input-module-parameters
-+++ a/lib/rbtree_test.c
-@@ -1,11 +1,18 @@
- #include <linux/module.h>
-+#include <linux/moduleparam.h>
- #include <linux/rbtree_augmented.h>
- #include <linux/random.h>
-+#include <linux/slab.h>
- #include <asm/timex.h>
+diff -puN fs/proc/generic.c~procfs-use-faster-rb_first_cached fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-use-faster-rb_first_cached
++++ a/fs/proc/generic.c
+@@ -40,8 +40,8 @@ static int proc_match(unsigned int len,
  
--#define NODES       100
--#define PERF_LOOPS  100000
--#define CHECK_LOOPS 100
-+#define __param(type, name, init, msg)		\
-+	static type name = init;		\
-+	module_param(name, type, 0444);		\
-+	MODULE_PARM_DESC(name, msg);
-+
-+__param(int, nnodes, 100, "Number of nodes in the rb-tree");
-+__param(int, perf_loops, 100000, "Number of iterations modifying the rb-tree");
-+__param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
- 
- struct test_node {
- 	u32 key;
-@@ -17,7 +24,7 @@ struct test_node {
- };
- 
- static struct rb_root root = RB_ROOT;
--static struct test_node nodes[NODES];
-+static struct test_node *nodes = NULL;
- 
- static struct rnd_state rnd;
- 
-@@ -95,7 +102,7 @@ static void erase_augmented(struct test_
- static void init(void)
+ static struct proc_dir_entry *pde_subdir_first(struct proc_dir_entry *dir)
  {
- 	int i;
--	for (i = 0; i < NODES; i++) {
-+	for (i = 0; i < nnodes; i++) {
- 		nodes[i].key = prandom_u32_state(&rnd);
- 		nodes[i].val = prandom_u32_state(&rnd);
- 	}
-@@ -177,6 +184,10 @@ static int __init rbtree_test_init(void)
- 	int i, j;
- 	cycles_t time1, time2, time;
- 
-+	nodes = kmalloc(nnodes * sizeof(*nodes), GFP_KERNEL);
-+	if (!nodes)
-+		return -ENOMEM;
-+
- 	printk(KERN_ALERT "rbtree testing");
- 
- 	prandom_seed_state(&rnd, 3141592653589793238ULL);
-@@ -184,27 +195,27 @@ static int __init rbtree_test_init(void)
- 
- 	time1 = get_cycles();
- 
--	for (i = 0; i < PERF_LOOPS; i++) {
--		for (j = 0; j < NODES; j++)
-+	for (i = 0; i < perf_loops; i++) {
-+		for (j = 0; j < nnodes; j++)
- 			insert(nodes + j, &root);
--		for (j = 0; j < NODES; j++)
-+		for (j = 0; j < nnodes; j++)
- 			erase(nodes + j, &root);
- 	}
- 
- 	time2 = get_cycles();
- 	time = time2 - time1;
- 
--	time = div_u64(time, PERF_LOOPS);
-+	time = div_u64(time, perf_loops);
- 	printk(" -> %llu cycles\n", (unsigned long long)time);
- 
--	for (i = 0; i < CHECK_LOOPS; i++) {
-+	for (i = 0; i < check_loops; i++) {
- 		init();
--		for (j = 0; j < NODES; j++) {
-+		for (j = 0; j < nnodes; j++) {
- 			check(j);
- 			insert(nodes + j, &root);
- 		}
--		for (j = 0; j < NODES; j++) {
--			check(NODES - j);
-+		for (j = 0; j < nnodes; j++) {
-+			check(nnodes - j);
- 			erase(nodes + j, &root);
- 		}
- 		check(0);
-@@ -216,32 +227,34 @@ static int __init rbtree_test_init(void)
- 
- 	time1 = get_cycles();
- 
--	for (i = 0; i < PERF_LOOPS; i++) {
--		for (j = 0; j < NODES; j++)
-+	for (i = 0; i < perf_loops; i++) {
-+		for (j = 0; j < nnodes; j++)
- 			insert_augmented(nodes + j, &root);
--		for (j = 0; j < NODES; j++)
-+		for (j = 0; j < nnodes; j++)
- 			erase_augmented(nodes + j, &root);
- 	}
- 
- 	time2 = get_cycles();
- 	time = time2 - time1;
- 
--	time = div_u64(time, PERF_LOOPS);
-+	time = div_u64(time, perf_loops);
- 	printk(" -> %llu cycles\n", (unsigned long long)time);
- 
--	for (i = 0; i < CHECK_LOOPS; i++) {
-+	for (i = 0; i < check_loops; i++) {
- 		init();
--		for (j = 0; j < NODES; j++) {
-+		for (j = 0; j < nnodes; j++) {
- 			check_augmented(j);
- 			insert_augmented(nodes + j, &root);
- 		}
--		for (j = 0; j < NODES; j++) {
--			check_augmented(NODES - j);
-+		for (j = 0; j < nnodes; j++) {
-+			check_augmented(nnodes - j);
- 			erase_augmented(nodes + j, &root);
- 		}
- 		check_augmented(0);
- 	}
- 
-+	kfree(nodes);
-+
- 	return -EAGAIN; /* Fail will directly unload the module */
+-	return rb_entry_safe(rb_first(&dir->subdir), struct proc_dir_entry,
+-			     subdir_node);
++	return rb_entry_safe(rb_first_cached(&dir->subdir),
++			     struct proc_dir_entry, subdir_node);
  }
+ 
+ static struct proc_dir_entry *pde_subdir_next(struct proc_dir_entry *dir)
+@@ -54,7 +54,7 @@ static struct proc_dir_entry *pde_subdir
+ 					      const char *name,
+ 					      unsigned int len)
+ {
+-	struct rb_node *node = dir->subdir.rb_node;
++	struct rb_node *node = dir->subdir.rb_root.rb_node;
+ 
+ 	while (node) {
+ 		struct proc_dir_entry *de = rb_entry(node,
+@@ -75,8 +75,9 @@ static struct proc_dir_entry *pde_subdir
+ static bool pde_subdir_insert(struct proc_dir_entry *dir,
+ 			      struct proc_dir_entry *de)
+ {
+-	struct rb_root *root = &dir->subdir;
+-	struct rb_node **new = &root->rb_node, *parent = NULL;
++	struct rb_root_cached *root = &dir->subdir;
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
++	bool leftmost = true;
+ 
+ 	/* Figure out where to put new node */
+ 	while (*new) {
+@@ -88,15 +89,16 @@ static bool pde_subdir_insert(struct pro
+ 		parent = *new;
+ 		if (result < 0)
+ 			new = &(*new)->rb_left;
+-		else if (result > 0)
++		else if (result > 0) {
+ 			new = &(*new)->rb_right;
+-		else
++			leftmost = false;
++		} else
+ 			return false;
+ 	}
+ 
+ 	/* Add new node and rebalance tree. */
+ 	rb_link_node(&de->subdir_node, parent, new);
+-	rb_insert_color(&de->subdir_node, root);
++	rb_insert_color_cached(&de->subdir_node, root, leftmost);
+ 	return true;
+ }
+ 
+@@ -369,7 +371,7 @@ static struct proc_dir_entry *__proc_cre
+ 	ent->namelen = qstr.len;
+ 	ent->mode = mode;
+ 	ent->nlink = nlink;
+-	ent->subdir = RB_ROOT;
++	ent->subdir = RB_ROOT_CACHED;
+ 	atomic_set(&ent->count, 1);
+ 	spin_lock_init(&ent->pde_unload_lock);
+ 	INIT_LIST_HEAD(&ent->pde_openers);
+@@ -553,7 +555,7 @@ void remove_proc_entry(const char *name,
+ 
+ 	de = pde_subdir_find(parent, fn, len);
+ 	if (de)
+-		rb_erase(&de->subdir_node, &parent->subdir);
++		rb_erase_cached(&de->subdir_node, &parent->subdir);
+ 	write_unlock(&proc_subdir_lock);
+ 	if (!de) {
+ 		WARN(1, "name '%s'\n", name);
+@@ -590,13 +592,13 @@ int remove_proc_subtree(const char *name
+ 		write_unlock(&proc_subdir_lock);
+ 		return -ENOENT;
+ 	}
+-	rb_erase(&root->subdir_node, &parent->subdir);
++	rb_erase_cached(&root->subdir_node, &parent->subdir);
+ 
+ 	de = root;
+ 	while (1) {
+ 		next = pde_subdir_first(de);
+ 		if (next) {
+-			rb_erase(&next->subdir_node, &de->subdir);
++			rb_erase_cached(&next->subdir_node, &de->subdir);
+ 			de = next;
+ 			continue;
+ 		}
+diff -puN fs/proc/internal.h~procfs-use-faster-rb_first_cached fs/proc/internal.h
+--- a/fs/proc/internal.h~procfs-use-faster-rb_first_cached
++++ a/fs/proc/internal.h
+@@ -40,7 +40,7 @@ struct proc_dir_entry {
+ 	const struct inode_operations *proc_iops;
+ 	const struct file_operations *proc_fops;
+ 	struct proc_dir_entry *parent;
+-	struct rb_root subdir;
++	struct rb_root_cached subdir;
+ 	struct rb_node subdir_node;
+ 	void *data;
+ 	atomic_t count;		/* use count */
+diff -puN fs/proc/proc_net.c~procfs-use-faster-rb_first_cached fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~procfs-use-faster-rb_first_cached
++++ a/fs/proc/proc_net.c
+@@ -196,7 +196,7 @@ static __net_init int proc_net_ns_init(s
+ 	if (!netd)
+ 		goto out;
+ 
+-	netd->subdir = RB_ROOT;
++	netd->subdir = RB_ROOT_CACHED;
+ 	netd->data = net;
+ 	netd->nlink = 2;
+ 	netd->namelen = 3;
+diff -puN fs/proc/root.c~procfs-use-faster-rb_first_cached fs/proc/root.c
+--- a/fs/proc/root.c~procfs-use-faster-rb_first_cached
++++ a/fs/proc/root.c
+@@ -210,7 +210,7 @@ struct proc_dir_entry proc_root = {
+ 	.proc_iops	= &proc_root_inode_operations, 
+ 	.proc_fops	= &proc_root_operations,
+ 	.parent		= &proc_root,
+-	.subdir		= RB_ROOT,
++	.subdir		= RB_ROOT_CACHED,
+ 	.name		= "/proc",
+ };
  
 _
 
