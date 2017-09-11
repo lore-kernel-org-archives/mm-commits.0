@@ -1,65 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:40:28 -0700
-Message-ID: <20170911194028.unHw2eEg9%akpm__46126.7149461948$1505158855$gmane$org@linux-foundation.org>
+ fs-proc-unconditional-cond_resched-when-reading-smaps.patch removed from
+ -mm tree
+Date: Mon, 11 Sep 2017 12:40:43 -0700
+Message-ID: <20170911194043.2NlSyGm4E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49452 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751026AbdIKTk3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:29 -0400
+        with ESMTP id S1751119AbdIKTko (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, hughd@google.com, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, ying.huang@intel.com
+To: hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm: kvfree the swap cluster info if the swap file is unsatisfactory
+     Subject: fs, proc: unconditional cond_resched when reading smaps
 has been removed from the -mm tree.  Its filename was
-     mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory.patch
+     fs-proc-unconditional-cond_resched-when-reading-smaps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: mm: kvfree the swap cluster info if the swap file is unsatisfactory
+From: David Rientjes <rientjes@google.com>
+Subject: fs, proc: unconditional cond_resched when reading smaps
 
-If initializing a small swap file fails because the swap file has a
-problem (holes, etc.) then we need to free the cluster info as part of
-cleanup.  Unfortunately a previous patch changed the code to use kvzalloc
-but did not change all the vfree calls to use kvfree.
+If there are large numbers of hugepages to iterate while reading
+/proc/pid/smaps, the page walk never does cond_resched().  On archs
+without split pmd locks, there can be significant and observable
+contention on mm->page_table_lock which cause lengthy delays without
+rescheduling.
 
-Found by running generic/357 from xfstests.
+Always reschedule in smaps_pte_range() if necessary since the pagewalk
+iteration can be expensive.
 
-Link: http://lkml.kernel.org/r/20170831233515.GR3775@magnolia
-Fixes: 54f180d3c181 ("mm, swap: use kvzalloc to allocate some swap data structures")
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708211405520.131071@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.12+]
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/swapfile.c~mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory mm/swapfile.c
---- a/mm/swapfile.c~mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory
-+++ a/mm/swapfile.c
-@@ -3290,7 +3290,7 @@ bad_swap:
- 	p->flags = 0;
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
--	vfree(cluster_info);
-+	kvfree(cluster_info);
- 	if (swap_file) {
- 		if (inode && S_ISREG(inode->i_mode)) {
- 			inode_unlock(inode);
+diff -puN fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-unconditional-cond_resched-when-reading-smaps
++++ a/fs/proc/task_mmu.c
+@@ -611,11 +611,11 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 		if (pmd_present(*pmd))
+ 			smaps_pmd_entry(pmd, addr, walk);
+ 		spin_unlock(ptl);
+-		return 0;
++		goto out;
+ 	}
+ 
+ 	if (pmd_trans_unstable(pmd))
+-		return 0;
++		goto out;
+ 	/*
+ 	 * The mmap_sem held all the way back in m_start() is what
+ 	 * keeps khugepaged out of here and from collapsing things
+@@ -625,6 +625,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+ 		smaps_pte_entry(pte, addr, walk);
+ 	pte_unmap_unlock(pte - 1, ptl);
++out:
+ 	cond_resched();
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from darrick.wong@oracle.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 
