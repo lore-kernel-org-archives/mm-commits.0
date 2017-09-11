@@ -1,422 +1,652 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-thp-enable-thp-migration-in-generic-path.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:38:23 -0700
-Message-ID: <20170911193823.up4omucWm%akpm@linux-foundation.org>
+Subject: [merged]
+ hmm-heterogeneous-memory-management-documentation-v3.patch removed from -mm
+ tree
+Date: Mon, 11 Sep 2017 12:38:41 -0700
+Message-ID: <20170911193841.HLB8_OiwU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751052AbdIKTi3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:29 -0400
+        with ESMTP id S1751110AbdIKTin (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm: thp: enable thp migration in generic path
+     Subject: hmm: heterogeneous memory management documentation
 has been removed from the -mm tree.  Its filename was
-     mm-thp-enable-thp-migration-in-generic-path.patch
+     hmm-heterogeneous-memory-management-documentation-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zi Yan <zi.yan@cs.rutgers.edu>
-Subject: mm: thp: enable thp migration in generic path
+From: Jérôme Glisse <jglisse@redhat.com>
+Subject: hmm: heterogeneous memory management documentation
 
-Add thp migration's core code, including conversions between a PMD entry
-and a swap entry, setting PMD migration entry, removing PMD migration
-entry, and waiting on PMD migration entries.
+Patch series "HMM (Heterogeneous Memory Management)", v25.
 
-This patch makes it possible to support thp migration.  If you fail to
-allocate a destination page as a thp, you just split the source thp as we
-do now, and then enter the normal page migration.  If you succeed to
-allocate destination thp, you enter thp migration.  Subsequent patches
-actually enable thp migration for each caller of page migration by
-allowing its get_new_page() callback to allocate thps.
+Heterogeneous Memory Management (HMM) (description and justification)
 
-[zi.yan@cs.rutgers.edu: fix gcc-4.9.0 -Wmissing-braces warning]
-  Link: http://lkml.kernel.org/r/A0ABA698-7486-46C3-B209-E95A9048B22C@cs.rutgers.edu
-[akpm@linux-foundation.org: fix x86_64 allnoconfig warning]
-Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Today device driver expose dedicated memory allocation API through their
+device file, often relying on a combination of IOCTL and mmap calls.  The
+device can only access and use memory allocated through this API.  This
+effectively split the program address space into object allocated for the
+device and useable by the device and other regular memory (malloc, mmap of
+a file, share memory, Ã¢) only accessible by CPU (or in a very limited way
+by a device by pinning memory).
+
+Allowing different isolated component of a program to use a device thus
+require duplication of the input data structure using device memory
+allocator.  This is reasonable for simple data structure (array, grid,
+image, Ã¢) but this get extremely complex with advance data structure
+(list, tree, graph, Ã¢) that rely on a web of memory pointers.  This is
+becoming a serious limitation on the kind of work load that can be
+offloaded to device like GPU.
+
+New industry standard like C++, OpenCL or CUDA are pushing to remove this
+barrier.  This require a shared address space between GPU device and CPU
+so that GPU can access any memory of a process (while still obeying memory
+protection like read only).  This kind of feature is also appearing in
+various other operating systems.
+
+HMM is a set of helpers to facilitate several aspects of address space
+sharing and device memory management.  Unlike existing sharing mechanism
+that rely on pining pages use by a device, HMM relies on mmu_notifier to
+propagate CPU page table update to device page table.
+
+Duplicating CPU page table is only one aspect necessary for efficiently
+using device like GPU.  GPU local memory have bandwidth in the TeraBytes/
+second range but they are connected to main memory through a system bus
+like PCIE that is limited to 32GigaBytes/second (PCIE 4.0 16x).  Thus it
+is necessary to allow migration of process memory from main system memory
+to device memory.  Issue is that on platform that only have PCIE the
+device memory is not accessible by the CPU with the same properties as
+main memory (cache coherency, atomic operations, ...).
+
+To allow migration from main memory to device memory HMM provides a set of
+helper to hotplug device memory as a new type of ZONE_DEVICE memory which
+is un-addressable by CPU but still has struct page representing it.  This
+allow most of the core kernel logic that deals with a process memory to
+stay oblivious of the peculiarity of device memory.
+
+When page backing an address of a process is migrated to device memory the
+CPU page table entry is set to a new specific swap entry.  CPU access to
+such address triggers a migration back to system memory, just like if the
+page was swap on disk.  HMM also blocks any one from pinning a ZONE_DEVICE
+page so that it can always be migrated back to system memory if CPU access
+it.  Conversely HMM does not migrate to device memory any page that is pin
+in system memory.
+
+To allow efficient migration between device memory and main memory a new
+migrate_vma() helpers is added with this patchset.  It allows to leverage
+device DMA engine to perform the copy operation.
+
+This feature will be use by upstream driver like nouveau mlx5 and probably
+other in the future (amdgpu is next suspect in line).  We are actively
+working on nouveau and mlx5 support.  To test this patchset we also worked
+with NVidia close source driver team, they have more resources than us to
+test this kind of infrastructure and also a bigger and better userspace
+eco-system with various real industry workload they can be use to test and
+profile HMM.
+
+The expected workload is a program builds a data set on the CPU (from
+disk, from network, from sensors, Ã¢).  Program uses GPU API (OpenCL,
+CUDA, ...) to give hint on memory placement for the input data and also
+for the output buffer.  Program call GPU API to schedule a GPU job, this
+happens using device driver specific ioctl.  All this is hidden from
+programmer point of view in case of C++ compiler that transparently
+offload some part of a program to GPU.  Program can keep doing other stuff
+on the CPU while the GPU is crunching numbers.
+
+It is expected that CPU will not access the same data set as the GPU while
+GPU is working on it, but this is not mandatory.  In fact we expect some
+small memory object to be actively access by both GPU and CPU concurrently
+as synchronization channel and/or for monitoring purposes.  Such object
+will stay in system memory and should not be bottlenecked by system bus
+bandwidth (rare write and read access from both CPU and GPU).
+
+As we are relying on device driver API, HMM does not introduce any new
+syscall nor does it modify any existing ones.  It does not change any
+POSIX semantics or behaviors.  For instance the child after a fork of a
+process that is using HMM will not be impacted in anyway, nor is there any
+data hazard between child COW or parent COW of memory that was migrated to
+device prior to fork.
+
+HMM assume a numbers of hardware features.  Device must allow device page
+table to be updated at any time (ie device job must be preemptable). 
+Device page table must provides memory protection such as read only. 
+Device must track write access (dirty bit).  Device must have a minimum
+granularity that match PAGE_SIZE (ie 4k).
+
+
+Reviewer (just hint):
+Patch 1  HMM documentation
+Patch 2  introduce core infrastructure and definition of HMM, pretty
+         small patch and easy to review
+Patch 3  introduce the mirror functionality of HMM, it relies on
+         mmu_notifier and thus someone familiar with that part would be
+         in better position to review
+Patch 4  is an helper to snapshot CPU page table while synchronizing with
+         concurrent page table update. Understanding mmu_notifier makes
+         review easier.
+Patch 5  is mostly a wrapper around handle_mm_fault()
+Patch 6  add new add_pages() helper to avoid modifying each arch memory
+         hot plug function
+Patch 7  add a new memory type for ZONE_DEVICE and also add all the logic
+         in various core mm to support this new type. Dan Williams and
+         any core mm contributor are best people to review each half of
+         this patchset
+Patch 8  special case HMM ZONE_DEVICE pages inside put_page() Kirill and
+         Dan Williams are best person to review this
+Patch 9  allow to uncharge a page from memory group without using the lru
+         list field of struct page (best reviewer: Johannes Weiner or
+         Vladimir Davydov or Michal Hocko)
+Patch 10 Add support to uncharge ZONE_DEVICE page from a memory cgroup (best
+         reviewer: Johannes Weiner or Vladimir Davydov or Michal Hocko)
+Patch 11 add helper to hotplug un-addressable device memory as new type
+         of ZONE_DEVICE memory (new type introducted in patch 3 of this
+         serie). This is boiler plate code around memory hotplug and it
+         also pick a free range of physical address for the device memory.
+         Note that the physical address do not point to anything (at least
+         as far as the kernel knows).
+Patch 12 introduce a new hmm_device class as an helper for device driver
+         that want to expose multiple device memory under a common fake
+         device driver. This is usefull for multi-gpu configuration.
+         Anyone familiar with device driver infrastructure can review
+         this. Boiler plate code really.
+Patch 13 add a new migrate mode. Any one familiar with page migration is
+         welcome to review.
+Patch 14 introduce a new migration helper (migrate_vma()) that allow to
+         migrate a range of virtual address of a process using device DMA
+         engine to perform the copy. It is not limited to do copy from and
+         to device but can also do copy between any kind of source and
+         destination memory. Again anyone familiar with migration code
+         should be able to verify the logic.
+Patch 15 optimize the new migrate_vma() by unmapping pages while we are
+         collecting them. This can be review by any mm folks.
+Patch 16 add unaddressable memory migration to helper introduced in patch
+         7, this can be review by anyone familiar with migration code
+Patch 17 add a feature that allow device to allocate non-present page on
+         the GPU when migrating a range of address to device memory. This
+         is an helper for device driver to avoid having to first allocate
+         system memory before migration to device memory
+Patch 18 add a new kind of ZONE_DEVICE memory for cache coherent device
+         memory (CDM)
+Patch 19 add an helper to hotplug CDM memory
+
+
+Previous patchset posting :
+v1 http://lwn.net/Articles/597289/
+v2 https://lkml.org/lkml/2014/6/12/559
+v3 https://lkml.org/lkml/2014/6/13/633
+v4 https://lkml.org/lkml/2014/8/29/423
+v5 https://lkml.org/lkml/2014/11/3/759
+v6 http://lwn.net/Articles/619737/
+v7 http://lwn.net/Articles/627316/
+v8 https://lwn.net/Articles/645515/
+v9 https://lwn.net/Articles/651553/
+v10 https://lwn.net/Articles/654430/
+v11 http://www.gossamer-threads.com/lists/linux/kernel/2286424
+v12 http://www.kernelhub.org/?msg=972982&p=2
+v13 https://lwn.net/Articles/706856/
+v14 https://lkml.org/lkml/2016/12/8/344
+v15 http://www.mail-archive.com/linux-kernel@xxxxxxxxxxxxxxx/msg1304107.html
+v16 http://www.spinics.net/lists/linux-mm/msg119814.html
+v17 https://lkml.org/lkml/2017/1/27/847
+v18 https://lkml.org/lkml/2017/3/16/596
+v19 https://lkml.org/lkml/2017/4/5/831
+v20 https://lwn.net/Articles/720715/
+v21 https://lkml.org/lkml/2017/4/24/747
+v22 http://lkml.iu.edu/hypermail/linux/kernel/1705.2/05176.html
+v23 https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1404788.html
+v24 https://lwn.net/Articles/726691/
+
+
+This patch (of 19):
+
+This adds documentation for HMM (Heterogeneous Memory Management).  It
+presents the motivation behind it, the features necessary for it to be
+useful and and gives an overview of how this is implemented.
+
+Link: http://lkml.kernel.org/r/20170817000548.32038-2-jglisse@redhat.com
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_64.h |    2 
- include/linux/swapops.h           |   73 +++++++++++++++++++++++-
- mm/huge_memory.c                  |   84 ++++++++++++++++++++++++++--
- mm/migrate.c                      |   32 ++++++++++
- mm/page_vma_mapped.c              |   18 +++++-
- mm/pgtable-generic.c              |    3 -
- mm/rmap.c                         |   13 ++++
- 7 files changed, 212 insertions(+), 13 deletions(-)
+ Documentation/vm/hmm.txt |  384 +++++++++++++++++++++++++++++++++++++
+ MAINTAINERS              |    7 
+ 2 files changed, 391 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable_64.h~mm-thp-enable-thp-migration-in-generic-path arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~mm-thp-enable-thp-migration-in-generic-path
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -210,7 +210,9 @@ static inline int pgd_large(pgd_t pgd) {
- 					 ((type) << (SWP_TYPE_FIRST_BIT)) \
- 					 | ((offset) << SWP_OFFSET_FIRST_BIT) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
-+#define __pmd_to_swp_entry(pmd)		((swp_entry_t) { pmd_val((pmd)) })
- #define __swp_entry_to_pte(x)		((pte_t) { .pte = (x).val })
-+#define __swp_entry_to_pmd(x)		((pmd_t) { .pmd = (x).val })
+diff -puN /dev/null Documentation/vm/hmm.txt
+--- /dev/null
++++ a/Documentation/vm/hmm.txt
+@@ -0,0 +1,384 @@
++Heterogeneous Memory Management (HMM)
++
++Transparently allow any component of a program to use any memory region of said
++program with a device without using device specific memory allocator. This is
++becoming a requirement to simplify the use of advance heterogeneous computing
++where GPU, DSP or FPGA are use to perform various computations.
++
++This document is divided as follow, in the first section i expose the problems
++related to the use of a device specific allocator. The second section i expose
++the hardware limitations that are inherent to many platforms. The third section
++gives an overview of HMM designs. The fourth section explains how CPU page-
++table mirroring works and what is HMM purpose in this context. Fifth section
++deals with how device memory is represented inside the kernel. Finaly the last
++section present the new migration helper that allow to leverage the device DMA
++engine.
++
++
++1) Problems of using device specific memory allocator:
++2) System bus, device memory characteristics
++3) Share address space and migration
++4) Address space mirroring implementation and API
++5) Represent and manage device memory from core kernel point of view
++6) Migrate to and from device memory
++7) Memory cgroup (memcg) and rss accounting
++
++
++-------------------------------------------------------------------------------
++
++1) Problems of using device specific memory allocator:
++
++Device with large amount of on board memory (several giga bytes) like GPU have
++historically manage their memory through dedicated driver specific API. This
++creates a disconnect between memory allocated and managed by device driver and
++regular application memory (private anonymous, share memory or regular file
++back memory). From here on i will refer to this aspect as split address space.
++I use share address space to refer to the opposite situation ie one in which
++any memory region can be use by device transparently.
++
++Split address space because device can only access memory allocated through the
++device specific API. This imply that all memory object in a program are not
++equal from device point of view which complicate large program that rely on a
++wide set of libraries.
++
++Concretly this means that code that wants to leverage device like GPU need to
++copy object between genericly allocated memory (malloc, mmap private/share/)
++and memory allocated through the device driver API (this still end up with an
++mmap but of the device file).
++
++For flat dataset (array, grid, image, ...) this isn't too hard to achieve but
++complex data-set (list, tree, ...) are hard to get right. Duplicating a complex
++data-set need to re-map all the pointer relations between each of its elements.
++This is error prone and program gets harder to debug because of the duplicate
++data-set.
++
++Split address space also means that library can not transparently use data they
++are getting from core program or other library and thus each library might have
++to duplicate its input data-set using specific memory allocator. Large project
++suffer from this and waste resources because of the various memory copy.
++
++Duplicating each library API to accept as input or output memory allocted by
++each device specific allocator is not a viable option. It would lead to a
++combinatorial explosions in the library entry points.
++
++Finaly with the advance of high level language constructs (in C++ but in other
++language too) it is now possible for compiler to leverage GPU or other devices
++without even the programmer knowledge. Some of compiler identified patterns are
++only do-able with a share address. It is as well more reasonable to use a share
++address space for all the other patterns.
++
++
++-------------------------------------------------------------------------------
++
++2) System bus, device memory characteristics
++
++System bus cripple share address due to few limitations. Most system bus only
++allow basic memory access from device to main memory, even cache coherency is
++often optional. Access to device memory from CPU is even more limited, most
++often than not it is not cache coherent.
++
++If we only consider the PCIE bus than device can access main memory (often
++through an IOMMU) and be cache coherent with the CPUs. However it only allows
++a limited set of atomic operation from device on main memory. This is worse
++in the other direction the CPUs can only access a limited range of the device
++memory and can not perform atomic operations on it. Thus device memory can not
++be consider like regular memory from kernel point of view.
++
++Another crippling factor is the limited bandwidth (~32GBytes/s with PCIE 4.0
++and 16 lanes). This is 33 times less that fastest GPU memory (1 TBytes/s).
++The final limitation is latency, access to main memory from the device has an
++order of magnitude higher latency than when the device access its own memory.
++
++Some platform are developing new system bus or additions/modifications to PCIE
++to address some of those limitations (OpenCAPI, CCIX). They mainly allow two
++way cache coherency between CPU and device and allow all atomic operations the
++architecture supports. Saddly not all platform are following this trends and
++some major architecture are left without hardware solutions to those problems.
++
++So for share address space to make sense not only we must allow device to
++access any memory memory but we must also permit any memory to be migrated to
++device memory while device is using it (blocking CPU access while it happens).
++
++
++-------------------------------------------------------------------------------
++
++3) Share address space and migration
++
++HMM intends to provide two main features. First one is to share the address
++space by duplication the CPU page table into the device page table so same
++address point to same memory and this for any valid main memory address in
++the process address space.
++
++To achieve this, HMM offer a set of helpers to populate the device page table
++while keeping track of CPU page table updates. Device page table updates are
++not as easy as CPU page table updates. To update the device page table you must
++allow a buffer (or use a pool of pre-allocated buffer) and write GPU specifics
++commands in it to perform the update (unmap, cache invalidations and flush,
++...). This can not be done through common code for all device. Hence why HMM
++provides helpers to factor out everything that can be while leaving the gory
++details to the device driver.
++
++The second mechanism HMM provide is a new kind of ZONE_DEVICE memory that does
++allow to allocate a struct page for each page of the device memory. Those page
++are special because the CPU can not map them. They however allow to migrate
++main memory to device memory using exhisting migration mechanism and everything
++looks like if page was swap out to disk from CPU point of view. Using a struct
++page gives the easiest and cleanest integration with existing mm mechanisms.
++Again here HMM only provide helpers, first to hotplug new ZONE_DEVICE memory
++for the device memory and second to perform migration. Policy decision of what
++and when to migrate things is left to the device driver.
++
++Note that any CPU access to a device page trigger a page fault and a migration
++back to main memory ie when a page backing an given address A is migrated from
++a main memory page to a device page then any CPU access to address A trigger a
++page fault and initiate a migration back to main memory.
++
++
++With this two features, HMM not only allow a device to mirror a process address
++space and keeps both CPU and device page table synchronize, but also allow to
++leverage device memory by migrating part of data-set that is actively use by a
++device.
++
++
++-------------------------------------------------------------------------------
++
++4) Address space mirroring implementation and API
++
++Address space mirroring main objective is to allow to duplicate range of CPU
++page table into a device page table and HMM helps keeping both synchronize. A
++device driver that want to mirror a process address space must start with the
++registration of an hmm_mirror struct:
++
++ int hmm_mirror_register(struct hmm_mirror *mirror,
++                         struct mm_struct *mm);
++ int hmm_mirror_register_locked(struct hmm_mirror *mirror,
++                                struct mm_struct *mm);
++
++The locked variant is to be use when the driver is already holding the mmap_sem
++of the mm in write mode. The mirror struct has a set of callback that are use
++to propagate CPU page table:
++
++ struct hmm_mirror_ops {
++     /* sync_cpu_device_pagetables() - synchronize page tables
++      *
++      * @mirror: pointer to struct hmm_mirror
++      * @update_type: type of update that occurred to the CPU page table
++      * @start: virtual start address of the range to update
++      * @end: virtual end address of the range to update
++      *
++      * This callback ultimately originates from mmu_notifiers when the CPU
++      * page table is updated. The device driver must update its page table
++      * in response to this callback. The update argument tells what action
++      * to perform.
++      *
++      * The device driver must not return from this callback until the device
++      * page tables are completely updated (TLBs flushed, etc); this is a
++      * synchronous call.
++      */
++      void (*update)(struct hmm_mirror *mirror,
++                     enum hmm_update action,
++                     unsigned long start,
++                     unsigned long end);
++ };
++
++Device driver must perform update to the range following action (turn range
++read only, or fully unmap, ...). Once driver callback returns the device must
++be done with the update.
++
++
++When device driver wants to populate a range of virtual address it can use
++either:
++ int hmm_vma_get_pfns(struct vm_area_struct *vma,
++                      struct hmm_range *range,
++                      unsigned long start,
++                      unsigned long end,
++                      hmm_pfn_t *pfns);
++ int hmm_vma_fault(struct vm_area_struct *vma,
++                   struct hmm_range *range,
++                   unsigned long start,
++                   unsigned long end,
++                   hmm_pfn_t *pfns,
++                   bool write,
++                   bool block);
++
++First one (hmm_vma_get_pfns()) will only fetch present CPU page table entry and
++will not trigger a page fault on missing or non present entry. The second one
++do trigger page fault on missing or read only entry if write parameter is true.
++Page fault use the generic mm page fault code path just like a CPU page fault.
++
++Both function copy CPU page table into their pfns array argument. Each entry in
++that array correspond to an address in the virtual range. HMM provide a set of
++flags to help driver identify special CPU page table entries.
++
++Locking with the update() callback is the most important aspect the driver must
++respect in order to keep things properly synchronize. The usage pattern is :
++
++ int driver_populate_range(...)
++ {
++      struct hmm_range range;
++      ...
++ again:
++      ret = hmm_vma_get_pfns(vma, &range, start, end, pfns);
++      if (ret)
++          return ret;
++      take_lock(driver->update);
++      if (!hmm_vma_range_done(vma, &range)) {
++          release_lock(driver->update);
++          goto again;
++      }
++
++      // Use pfns array content to update device page table
++
++      release_lock(driver->update);
++      return 0;
++ }
++
++The driver->update lock is the same lock that driver takes inside its update()
++callback. That lock must be call before hmm_vma_range_done() to avoid any race
++with a concurrent CPU page table update.
++
++HMM implements all this on top of the mmu_notifier API because we wanted to a
++simpler API and also to be able to perform optimization latter own like doing
++concurrent device update in multi-devices scenario.
++
++HMM also serve as an impedence missmatch between how CPU page table update are
++done (by CPU write to the page table and TLB flushes) from how device update
++their own page table. Device update is a multi-step process, first appropriate
++commands are write to a buffer, then this buffer is schedule for execution on
++the device. It is only once the device has executed commands in the buffer that
++the update is done. Creating and scheduling update command buffer can happen
++concurrently for multiple devices. Waiting for each device to report commands
++as executed is serialize (there is no point in doing this concurrently).
++
++
++-------------------------------------------------------------------------------
++
++5) Represent and manage device memory from core kernel point of view
++
++Several differents design were try to support device memory. First one use
++device specific data structure to keep information about migrated memory and
++HMM hooked itself in various place of mm code to handle any access to address
++that were back by device memory. It turns out that this ended up replicating
++most of the fields of struct page and also needed many kernel code path to be
++updated to understand this new kind of memory.
++
++Thing is most kernel code path never try to access the memory behind a page
++but only care about struct page contents. Because of this HMM switchted to
++directly using struct page for device memory which left most kernel code path
++un-aware of the difference. We only need to make sure that no one ever try to
++map those page from the CPU side.
++
++HMM provide a set of helpers to register and hotplug device memory as a new
++region needing struct page. This is offer through a very simple API:
++
++ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
++                                   struct device *device,
++                                   unsigned long size);
++ void hmm_devmem_remove(struct hmm_devmem *devmem);
++
++The hmm_devmem_ops is where most of the important things are:
++
++ struct hmm_devmem_ops {
++     void (*free)(struct hmm_devmem *devmem, struct page *page);
++     int (*fault)(struct hmm_devmem *devmem,
++                  struct vm_area_struct *vma,
++                  unsigned long addr,
++                  struct page *page,
++                  unsigned flags,
++                  pmd_t *pmdp);
++ };
++
++The first callback (free()) happens when the last reference on a device page is
++drop. This means the device page is now free and no longer use by anyone. The
++second callback happens whenever CPU try to access a device page which it can
++not do. This second callback must trigger a migration back to system memory.
++
++
++-------------------------------------------------------------------------------
++
++6) Migrate to and from device memory
++
++Because CPU can not access device memory, migration must use device DMA engine
++to perform copy from and to device memory. For this we need a new migration
++helper:
++
++ int migrate_vma(const struct migrate_vma_ops *ops,
++                 struct vm_area_struct *vma,
++                 unsigned long mentries,
++                 unsigned long start,
++                 unsigned long end,
++                 unsigned long *src,
++                 unsigned long *dst,
++                 void *private);
++
++Unlike other migration function it works on a range of virtual address, there
++is two reasons for that. First device DMA copy has a high setup overhead cost
++and thus batching multiple pages is needed as otherwise the migration overhead
++make the whole excersie pointless. The second reason is because driver trigger
++such migration base on range of address the device is actively accessing.
++
++The migrate_vma_ops struct define two callbacks. First one (alloc_and_copy())
++control destination memory allocation and copy operation. Second one is there
++to allow device driver to perform cleanup operation after migration.
++
++ struct migrate_vma_ops {
++     void (*alloc_and_copy)(struct vm_area_struct *vma,
++                            const unsigned long *src,
++                            unsigned long *dst,
++                            unsigned long start,
++                            unsigned long end,
++                            void *private);
++     void (*finalize_and_map)(struct vm_area_struct *vma,
++                              const unsigned long *src,
++                              const unsigned long *dst,
++                              unsigned long start,
++                              unsigned long end,
++                              void *private);
++ };
++
++It is important to stress that this migration helpers allow for hole in the
++virtual address range. Some pages in the range might not be migrated for all
++the usual reasons (page is pin, page is lock, ...). This helper does not fail
++but just skip over those pages.
++
++The alloc_and_copy() might as well decide to not migrate all pages in the
++range (for reasons under the callback control). For those the callback just
++have to leave the corresponding dst entry empty.
++
++Finaly the migration of the struct page might fails (for file back page) for
++various reasons (failure to freeze reference, or update page cache, ...). If
++that happens then the finalize_and_map() can catch any pages that was not
++migrated. Note those page were still copied to new page and thus we wasted
++bandwidth but this is considered as a rare event and a price that we are
++willing to pay to keep all the code simpler.
++
++
++-------------------------------------------------------------------------------
++
++7) Memory cgroup (memcg) and rss accounting
++
++For now device memory is accounted as any regular page in rss counters (either
++anonymous if device page is use for anonymous, file if device page is use for
++file back page or shmem if device page is use for share memory). This is a
++deliberate choice to keep existing application that might start using device
++memory without knowing about it to keep runing unimpacted.
++
++Drawbacks is that OOM killer might kill an application using a lot of device
++memory and not a lot of regular system memory and thus not freeing much system
++memory. We want to gather more real world experience on how application and
++system react under memory pressure in the presence of device memory before
++deciding to account device memory differently.
++
++
++Same decision was made for memory cgroup. Device memory page are accounted
++against same memory cgroup a regular page would be accounted to. This does
++simplify migration to and from device memory. This also means that migration
++back from device memory to regular memory can not fail because it would
++go above memory cgroup limit. We might revisit this choice latter on once we
++get more experience in how device memory is use and its impact on memory
++resource control.
++
++
++Note that device memory can never be pin nor by device driver nor through GUP
++and thus such memory is always free upon process exit. Or when last reference
++is drop in case of share memory or file back memory.
+diff -puN MAINTAINERS~hmm-heterogeneous-memory-management-documentation-v3 MAINTAINERS
+--- a/MAINTAINERS~hmm-heterogeneous-memory-management-documentation-v3
++++ a/MAINTAINERS
+@@ -7775,6 +7775,13 @@ M:	Sasha Levin <alexander.levin@verizon.
+ S:	Maintained
+ F:	tools/lib/lockdep/
  
- extern int kern_addr_valid(unsigned long addr);
- extern void cleanup_highmap(void);
-diff -puN include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path include/linux/swapops.h
---- a/include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path
-+++ a/include/linux/swapops.h
-@@ -103,7 +103,8 @@ static inline void *swp_to_radix_entry(s
- #ifdef CONFIG_MIGRATION
- static inline swp_entry_t make_migration_entry(struct page *page, int write)
- {
--	BUG_ON(!PageLocked(page));
-+	BUG_ON(!PageLocked(compound_head(page)));
++HMM - Heterogeneous Memory Management
++M:	JÃ©rÃ´me Glisse <jglisse@redhat.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	mm/hmm*
++F:	include/linux/hmm*
 +
- 	return swp_entry(write ? SWP_MIGRATION_WRITE : SWP_MIGRATION_READ,
- 			page_to_pfn(page));
- }
-@@ -126,7 +127,7 @@ static inline struct page *migration_ent
- 	 * Any use of migration entries may only occur while the
- 	 * corresponding page is locked
- 	 */
--	BUG_ON(!PageLocked(p));
-+	BUG_ON(!PageLocked(compound_head(p)));
- 	return p;
- }
- 
-@@ -148,7 +149,11 @@ static inline int is_migration_entry(swp
- {
- 	return 0;
- }
--#define migration_entry_to_page(swp) NULL
-+static inline struct page *migration_entry_to_page(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
- static inline void make_migration_entry_read(swp_entry_t *entryp) { }
- static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
- 					spinlock_t *ptl) { }
-@@ -163,6 +168,68 @@ static inline int is_write_migration_ent
- 
- #endif
- 
-+struct page_vma_mapped_walk;
-+
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+extern void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+		struct page *page);
-+
-+extern void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
-+		struct page *new);
-+
-+extern void pmd_migration_entry_wait(struct mm_struct *mm, pmd_t *pmd);
-+
-+static inline swp_entry_t pmd_to_swp_entry(pmd_t pmd)
-+{
-+	swp_entry_t arch_entry;
-+
-+	arch_entry = __pmd_to_swp_entry(pmd);
-+	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
-+}
-+
-+static inline pmd_t swp_entry_to_pmd(swp_entry_t entry)
-+{
-+	swp_entry_t arch_entry;
-+
-+	arch_entry = __swp_entry(swp_type(entry), swp_offset(entry));
-+	return __swp_entry_to_pmd(arch_entry);
-+}
-+
-+static inline int is_pmd_migration_entry(pmd_t pmd)
-+{
-+	return !pmd_present(pmd) && is_migration_entry(pmd_to_swp_entry(pmd));
-+}
-+#else
-+static inline void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+		struct page *page)
-+{
-+	BUILD_BUG();
-+}
-+
-+static inline void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
-+		struct page *new)
-+{
-+	BUILD_BUG();
-+}
-+
-+static inline void pmd_migration_entry_wait(struct mm_struct *m, pmd_t *p) { }
-+
-+static inline swp_entry_t pmd_to_swp_entry(pmd_t pmd)
-+{
-+	return swp_entry(0, 0);
-+}
-+
-+static inline pmd_t swp_entry_to_pmd(swp_entry_t entry)
-+{
-+	return __pmd(0);
-+}
-+
-+static inline int is_pmd_migration_entry(pmd_t pmd)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_MEMORY_FAILURE
- 
- extern atomic_long_t num_poisoned_pages __read_mostly;
-diff -puN mm/huge_memory.c~mm-thp-enable-thp-migration-in-generic-path mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-enable-thp-migration-in-generic-path
-+++ a/mm/huge_memory.c
-@@ -1684,10 +1684,24 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		spin_unlock(ptl);
- 		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else {
--		struct page *page = pmd_page(orig_pmd);
--		page_remove_rmap(page, true);
--		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
--		VM_BUG_ON_PAGE(!PageHead(page), page);
-+		struct page *page = NULL;
-+		int flush_needed = 1;
-+
-+		if (pmd_present(orig_pmd)) {
-+			page = pmd_page(orig_pmd);
-+			page_remove_rmap(page, true);
-+			VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
-+			VM_BUG_ON_PAGE(!PageHead(page), page);
-+		} else if (thp_migration_supported()) {
-+			swp_entry_t entry;
-+
-+			VM_BUG_ON(!is_pmd_migration_entry(orig_pmd));
-+			entry = pmd_to_swp_entry(orig_pmd);
-+			page = pfn_to_page(swp_offset(entry));
-+			flush_needed = 0;
-+		} else
-+			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
-+
- 		if (PageAnon(page)) {
- 			zap_deposited_table(tlb->mm, pmd);
- 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
-@@ -1696,8 +1710,10 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 				zap_deposited_table(tlb->mm, pmd);
- 			add_mm_counter(tlb->mm, MM_FILEPAGES, -HPAGE_PMD_NR);
- 		}
-+
- 		spin_unlock(ptl);
--		tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
-+		if (flush_needed)
-+			tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
- 	}
- 	return 1;
- }
-@@ -2745,3 +2761,61 @@ static int __init split_huge_pages_debug
- }
- late_initcall(split_huge_pages_debugfs);
- #endif
-+
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+		struct page *page)
-+{
-+	struct vm_area_struct *vma = pvmw->vma;
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long address = pvmw->address;
-+	pmd_t pmdval;
-+	swp_entry_t entry;
-+
-+	if (!(pvmw->pmd && !pvmw->pte))
-+		return;
-+
-+	mmu_notifier_invalidate_range_start(mm, address,
-+			address + HPAGE_PMD_SIZE);
-+
-+	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
-+	pmdval = *pvmw->pmd;
-+	pmdp_invalidate(vma, address, pvmw->pmd);
-+	if (pmd_dirty(pmdval))
-+		set_page_dirty(page);
-+	entry = make_migration_entry(page, pmd_write(pmdval));
-+	pmdval = swp_entry_to_pmd(entry);
-+	set_pmd_at(mm, address, pvmw->pmd, pmdval);
-+	page_remove_rmap(page, true);
-+	put_page(page);
-+
-+	mmu_notifier_invalidate_range_end(mm, address,
-+			address + HPAGE_PMD_SIZE);
-+}
-+
-+void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
-+{
-+	struct vm_area_struct *vma = pvmw->vma;
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long address = pvmw->address;
-+	unsigned long mmun_start = address & HPAGE_PMD_MASK;
-+	pmd_t pmde;
-+	swp_entry_t entry;
-+
-+	if (!(pvmw->pmd && !pvmw->pte))
-+		return;
-+
-+	entry = pmd_to_swp_entry(*pvmw->pmd);
-+	get_page(new);
-+	pmde = pmd_mkold(mk_huge_pmd(new, vma->vm_page_prot));
-+	if (is_write_migration_entry(entry))
-+		pmde = maybe_pmd_mkwrite(pmde, vma);
-+
-+	flush_cache_range(vma, mmun_start, mmun_start + HPAGE_PMD_SIZE);
-+	page_add_anon_rmap(new, vma, mmun_start, true);
-+	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
-+	if (vma->vm_flags & VM_LOCKED)
-+		mlock_vma_page(new);
-+	update_mmu_cache_pmd(vma, address, pvmw->pmd);
-+}
-+#endif
-diff -puN mm/migrate.c~mm-thp-enable-thp-migration-in-generic-path mm/migrate.c
---- a/mm/migrate.c~mm-thp-enable-thp-migration-in-generic-path
-+++ a/mm/migrate.c
-@@ -216,6 +216,15 @@ static bool remove_migration_pte(struct
- 			new = page - pvmw.page->index +
- 				linear_page_index(vma, pvmw.address);
- 
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+		/* PMD-mapped THP migration entry */
-+		if (!pvmw.pte) {
-+			VM_BUG_ON_PAGE(PageHuge(page) || !PageTransCompound(page), page);
-+			remove_migration_pmd(&pvmw, new);
-+			continue;
-+		}
-+#endif
-+
- 		get_page(new);
- 		pte = pte_mkold(mk_pte(new, READ_ONCE(vma->vm_page_prot)));
- 		if (pte_swp_soft_dirty(*pvmw.pte))
-@@ -330,6 +339,27 @@ void migration_entry_wait_huge(struct vm
- 	__migration_entry_wait(mm, pte, ptl);
- }
- 
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+void pmd_migration_entry_wait(struct mm_struct *mm, pmd_t *pmd)
-+{
-+	spinlock_t *ptl;
-+	struct page *page;
-+
-+	ptl = pmd_lock(mm, pmd);
-+	if (!is_pmd_migration_entry(*pmd))
-+		goto unlock;
-+	page = migration_entry_to_page(pmd_to_swp_entry(*pmd));
-+	if (!get_page_unless_zero(page))
-+		goto unlock;
-+	spin_unlock(ptl);
-+	wait_on_page_locked(page);
-+	put_page(page);
-+	return;
-+unlock:
-+	spin_unlock(ptl);
-+}
-+#endif
-+
- #ifdef CONFIG_BLOCK
- /* Returns true if all buffers are successfully locked */
- static bool buffer_migrate_lock_buffers(struct buffer_head *head,
-@@ -1088,7 +1118,7 @@ static ICE_noinline int unmap_and_move(n
- 		goto out;
- 	}
- 
--	if (unlikely(PageTransHuge(page))) {
-+	if (unlikely(PageTransHuge(page) && !PageTransHuge(newpage))) {
- 		lock_page(page);
- 		rc = split_huge_page(page);
- 		unlock_page(page);
-diff -puN mm/page_vma_mapped.c~mm-thp-enable-thp-migration-in-generic-path mm/page_vma_mapped.c
---- a/mm/page_vma_mapped.c~mm-thp-enable-thp-migration-in-generic-path
-+++ a/mm/page_vma_mapped.c
-@@ -138,16 +138,28 @@ restart:
- 	if (!pud_present(*pud))
- 		return false;
- 	pvmw->pmd = pmd_offset(pud, pvmw->address);
--	if (pmd_trans_huge(*pvmw->pmd)) {
-+	if (pmd_trans_huge(*pvmw->pmd) || is_pmd_migration_entry(*pvmw->pmd)) {
- 		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
--		if (!pmd_present(*pvmw->pmd))
--			return not_found(pvmw);
- 		if (likely(pmd_trans_huge(*pvmw->pmd))) {
- 			if (pvmw->flags & PVMW_MIGRATION)
- 				return not_found(pvmw);
- 			if (pmd_page(*pvmw->pmd) != page)
- 				return not_found(pvmw);
- 			return true;
-+		} else if (!pmd_present(*pvmw->pmd)) {
-+			if (thp_migration_supported()) {
-+				if (!(pvmw->flags & PVMW_MIGRATION))
-+					return not_found(pvmw);
-+				if (is_migration_entry(pmd_to_swp_entry(*pvmw->pmd))) {
-+					swp_entry_t entry = pmd_to_swp_entry(*pvmw->pmd);
-+
-+					if (migration_entry_to_page(entry) != page)
-+						return not_found(pvmw);
-+					return true;
-+				}
-+			} else
-+				WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
-+			return not_found(pvmw);
- 		} else {
- 			/* THP pmd was split under us: handle on pte level */
- 			spin_unlock(pvmw->ptl);
-diff -puN mm/pgtable-generic.c~mm-thp-enable-thp-migration-in-generic-path mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-thp-enable-thp-migration-in-generic-path
-+++ a/mm/pgtable-generic.c
-@@ -124,7 +124,8 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
- {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
-+			   !pmd_devmap(*pmdp)) || !pmd_present(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
-diff -puN mm/rmap.c~mm-thp-enable-thp-migration-in-generic-path mm/rmap.c
---- a/mm/rmap.c~mm-thp-enable-thp-migration-in-generic-path
-+++ a/mm/rmap.c
-@@ -1360,6 +1360,19 @@ static bool try_to_unmap_one(struct page
- 	mmu_notifier_invalidate_range_start(vma->vm_mm, start, end);
- 
- 	while (page_vma_mapped_walk(&pvmw)) {
-+#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+		/* PMD-mapped THP migration entry */
-+		if (!pvmw.pte && (flags & TTU_MIGRATION)) {
-+			VM_BUG_ON_PAGE(PageHuge(page) || !PageTransCompound(page), page);
-+
-+			if (!PageAnon(page))
-+				continue;
-+
-+			set_pmd_migration_entry(&pvmw, page);
-+			continue;
-+		}
-+#endif
-+
- 		/*
- 		 * If the page is mlock()d, we cannot swap it out.
- 		 * If it's recently referenced (perhaps page_referenced
+ LIBNVDIMM BLK: MMIO-APERTURE DRIVER
+ M:	Ross Zwisler <ross.zwisler@linux.intel.com>
+ L:	linux-nvdimm@lists.01.org
 _
 
-Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
+Patches currently in -mm which might be from jglisse@redhat.com are
 
 
