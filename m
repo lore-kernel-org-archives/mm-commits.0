@@ -1,276 +1,234 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:41:52 -0700
-Message-ID: <20170911194152.oBgRmWqV9%akpm@linux-foundation.org>
+ sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch removed
+ from -mm tree
+Date: Mon, 11 Sep 2017 12:41:49 -0700
+Message-ID: <20170911194149.7ePcIN08R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50034 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50026 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTlx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:53 -0400
+        with ESMTP id S1751151AbdIKTlu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: locking/rtmutex: replace top-waiter and pi_waiters leftmost caching
+     Subject: sched/deadline: replace earliest dl and rq leftmost caching
 has been removed from the -mm tree.  Its filename was
-     locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching.patch
+     sched-deadline-replace-earliest-dl-and-rq-leftmost-caching.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: locking/rtmutex: replace top-waiter and pi_waiters leftmost caching
+Subject: sched/deadline: replace earliest dl and rq leftmost caching
 
 ... with the generic rbtree flavor instead. No changes
 in semantics whatsoever.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-10-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-9-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h       |    5 +---
- include/linux/rtmutex.h         |   11 ++++-----
- include/linux/sched.h           |    3 --
- kernel/fork.c                   |    3 --
- kernel/locking/rtmutex-debug.c  |    2 -
- kernel/locking/rtmutex.c        |   35 +++++++++---------------------
- kernel/locking/rtmutex_common.h |   12 +++++-----
- 7 files changed, 27 insertions(+), 44 deletions(-)
+ kernel/sched/deadline.c |   50 ++++++++++++++------------------------
+ kernel/sched/sched.h    |    6 +---
+ 2 files changed, 21 insertions(+), 35 deletions(-)
 
-diff -puN include/linux/init_task.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/init_task.h
---- a/include/linux/init_task.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/init_task.h
-@@ -175,9 +175,8 @@ extern struct cred init_cred;
+diff -puN kernel/sched/deadline.c~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching kernel/sched/deadline.c
+--- a/kernel/sched/deadline.c~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching
++++ a/kernel/sched/deadline.c
+@@ -296,7 +296,7 @@ static inline int is_leftmost(struct tas
+ {
+ 	struct sched_dl_entity *dl_se = &p->dl;
  
- #ifdef CONFIG_RT_MUTEXES
- # define INIT_RT_MUTEXES(tsk)						\
--	.pi_waiters = RB_ROOT,						\
--	.pi_top_task = NULL,						\
--	.pi_waiters_leftmost = NULL,
-+	.pi_waiters = RB_ROOT_CACHED,					\
-+	.pi_top_task = NULL,
+-	return dl_rq->rb_leftmost == &dl_se->rb_node;
++	return dl_rq->root.rb_leftmost == &dl_se->rb_node;
+ }
+ 
+ void init_dl_bandwidth(struct dl_bandwidth *dl_b, u64 period, u64 runtime)
+@@ -320,7 +320,7 @@ void init_dl_bw(struct dl_bw *dl_b)
+ 
+ void init_dl_rq(struct dl_rq *dl_rq)
+ {
+-	dl_rq->rb_root = RB_ROOT;
++	dl_rq->root = RB_ROOT_CACHED;
+ 
+ #ifdef CONFIG_SMP
+ 	/* zero means no -deadline tasks */
+@@ -328,7 +328,7 @@ void init_dl_rq(struct dl_rq *dl_rq)
+ 
+ 	dl_rq->dl_nr_migratory = 0;
+ 	dl_rq->overloaded = 0;
+-	dl_rq->pushable_dl_tasks_root = RB_ROOT;
++	dl_rq->pushable_dl_tasks_root = RB_ROOT_CACHED;
  #else
- # define INIT_RT_MUTEXES(tsk)
+ 	init_dl_bw(&dl_rq->dl_bw);
  #endif
-diff -puN include/linux/rtmutex.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/rtmutex.h
---- a/include/linux/rtmutex.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/rtmutex.h
-@@ -22,18 +22,17 @@ extern int max_lock_depth; /* for sysctl
-  * The rt_mutex structure
-  *
-  * @wait_lock:	spinlock to protect the structure
-- * @waiters:	rbtree root to enqueue waiters in priority order
-- * @waiters_leftmost: top waiter
-+ * @waiters:	rbtree root to enqueue waiters in priority order;
-+ *              caches top-waiter (leftmost node).
-  * @owner:	the mutex owner
+@@ -410,10 +410,10 @@ static void dec_dl_migration(struct sche
+ static void enqueue_pushable_dl_task(struct rq *rq, struct task_struct *p)
+ {
+ 	struct dl_rq *dl_rq = &rq->dl;
+-	struct rb_node **link = &dl_rq->pushable_dl_tasks_root.rb_node;
++	struct rb_node **link = &dl_rq->pushable_dl_tasks_root.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct task_struct *entry;
+-	int leftmost = 1;
++	bool leftmost = true;
+ 
+ 	BUG_ON(!RB_EMPTY_NODE(&p->pushable_dl_tasks));
+ 
+@@ -425,17 +425,16 @@ static void enqueue_pushable_dl_task(str
+ 			link = &parent->rb_left;
+ 		else {
+ 			link = &parent->rb_right;
+-			leftmost = 0;
++			leftmost = false;
+ 		}
+ 	}
+ 
+-	if (leftmost) {
+-		dl_rq->pushable_dl_tasks_leftmost = &p->pushable_dl_tasks;
++	if (leftmost)
+ 		dl_rq->earliest_dl.next = p->dl.deadline;
+-	}
+ 
+ 	rb_link_node(&p->pushable_dl_tasks, parent, link);
+-	rb_insert_color(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
++	rb_insert_color_cached(&p->pushable_dl_tasks,
++			       &dl_rq->pushable_dl_tasks_root, leftmost);
+ }
+ 
+ static void dequeue_pushable_dl_task(struct rq *rq, struct task_struct *p)
+@@ -445,24 +444,23 @@ static void dequeue_pushable_dl_task(str
+ 	if (RB_EMPTY_NODE(&p->pushable_dl_tasks))
+ 		return;
+ 
+-	if (dl_rq->pushable_dl_tasks_leftmost == &p->pushable_dl_tasks) {
++	if (dl_rq->pushable_dl_tasks_root.rb_leftmost == &p->pushable_dl_tasks) {
+ 		struct rb_node *next_node;
+ 
+ 		next_node = rb_next(&p->pushable_dl_tasks);
+-		dl_rq->pushable_dl_tasks_leftmost = next_node;
+ 		if (next_node) {
+ 			dl_rq->earliest_dl.next = rb_entry(next_node,
+ 				struct task_struct, pushable_dl_tasks)->dl.deadline;
+ 		}
+ 	}
+ 
+-	rb_erase(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
++	rb_erase_cached(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
+ 	RB_CLEAR_NODE(&p->pushable_dl_tasks);
+ }
+ 
+ static inline int has_pushable_dl_tasks(struct rq *rq)
+ {
+-	return !RB_EMPTY_ROOT(&rq->dl.pushable_dl_tasks_root);
++	return !RB_EMPTY_ROOT(&rq->dl.pushable_dl_tasks_root.rb_root);
+ }
+ 
+ static int push_dl_task(struct rq *rq);
+@@ -1266,7 +1264,7 @@ static void dec_dl_deadline(struct dl_rq
+ 		dl_rq->earliest_dl.next = 0;
+ 		cpudl_clear(&rq->rd->cpudl, rq->cpu);
+ 	} else {
+-		struct rb_node *leftmost = dl_rq->rb_leftmost;
++		struct rb_node *leftmost = dl_rq->root.rb_leftmost;
+ 		struct sched_dl_entity *entry;
+ 
+ 		entry = rb_entry(leftmost, struct sched_dl_entity, rb_node);
+@@ -1313,7 +1311,7 @@ void dec_dl_tasks(struct sched_dl_entity
+ static void __enqueue_dl_entity(struct sched_dl_entity *dl_se)
+ {
+ 	struct dl_rq *dl_rq = dl_rq_of_se(dl_se);
+-	struct rb_node **link = &dl_rq->rb_root.rb_node;
++	struct rb_node **link = &dl_rq->root.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct sched_dl_entity *entry;
+ 	int leftmost = 1;
+@@ -1331,11 +1329,8 @@ static void __enqueue_dl_entity(struct s
+ 		}
+ 	}
+ 
+-	if (leftmost)
+-		dl_rq->rb_leftmost = &dl_se->rb_node;
+-
+ 	rb_link_node(&dl_se->rb_node, parent, link);
+-	rb_insert_color(&dl_se->rb_node, &dl_rq->rb_root);
++	rb_insert_color_cached(&dl_se->rb_node, &dl_rq->root, leftmost);
+ 
+ 	inc_dl_tasks(dl_se, dl_rq);
+ }
+@@ -1347,14 +1342,7 @@ static void __dequeue_dl_entity(struct s
+ 	if (RB_EMPTY_NODE(&dl_se->rb_node))
+ 		return;
+ 
+-	if (dl_rq->rb_leftmost == &dl_se->rb_node) {
+-		struct rb_node *next_node;
+-
+-		next_node = rb_next(&dl_se->rb_node);
+-		dl_rq->rb_leftmost = next_node;
+-	}
+-
+-	rb_erase(&dl_se->rb_node, &dl_rq->rb_root);
++	rb_erase_cached(&dl_se->rb_node, &dl_rq->root);
+ 	RB_CLEAR_NODE(&dl_se->rb_node);
+ 
+ 	dec_dl_tasks(dl_se, dl_rq);
+@@ -1647,7 +1635,7 @@ static void start_hrtick_dl(struct rq *r
+ static struct sched_dl_entity *pick_next_dl_entity(struct rq *rq,
+ 						   struct dl_rq *dl_rq)
+ {
+-	struct rb_node *left = dl_rq->rb_leftmost;
++	struct rb_node *left = rb_first_cached(&dl_rq->root);
+ 
+ 	if (!left)
+ 		return NULL;
+@@ -1771,7 +1759,7 @@ static int pick_dl_task(struct rq *rq, s
   */
- struct rt_mutex {
- 	raw_spinlock_t		wait_lock;
--	struct rb_root          waiters;
--	struct rb_node          *waiters_leftmost;
-+	struct rb_root_cached   waiters;
- 	struct task_struct	*owner;
- #ifdef CONFIG_DEBUG_RT_MUTEXES
- 	int			save_state;
--	const char 		*name, *file;
-+	const char		*name, *file;
- 	int			line;
- 	void			*magic;
- #endif
-@@ -84,7 +83,7 @@ do { \
- 
- #define __RT_MUTEX_INITIALIZER(mutexname) \
- 	{ .wait_lock = __RAW_SPIN_LOCK_UNLOCKED(mutexname.wait_lock) \
--	, .waiters = RB_ROOT \
-+	, .waiters = RB_ROOT_CACHED \
- 	, .owner = NULL \
- 	__DEBUG_RT_MUTEX_INITIALIZER(mutexname) \
- 	__DEP_MAP_RT_MUTEX_INITIALIZER(mutexname)}
-diff -puN include/linux/sched.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching include/linux/sched.h
---- a/include/linux/sched.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/include/linux/sched.h
-@@ -812,8 +812,7 @@ struct task_struct {
- 
- #ifdef CONFIG_RT_MUTEXES
- 	/* PI waiters blocked on a rt_mutex held by this task: */
--	struct rb_root			pi_waiters;
--	struct rb_node			*pi_waiters_leftmost;
-+	struct rb_root_cached		pi_waiters;
- 	/* Updated under owner's pi_lock and rq lock */
- 	struct task_struct		*pi_top_task;
- 	/* Deadlock detection and priority inheritance handling: */
-diff -puN kernel/fork.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/fork.c
---- a/kernel/fork.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/fork.c
-@@ -1462,8 +1462,7 @@ static void rt_mutex_init_task(struct ta
+ static struct task_struct *pick_earliest_pushable_dl_task(struct rq *rq, int cpu)
  {
- 	raw_spin_lock_init(&p->pi_lock);
- #ifdef CONFIG_RT_MUTEXES
--	p->pi_waiters = RB_ROOT;
--	p->pi_waiters_leftmost = NULL;
-+	p->pi_waiters = RB_ROOT_CACHED;
- 	p->pi_top_task = NULL;
- 	p->pi_blocked_on = NULL;
- #endif
-diff -puN kernel/locking/rtmutex-debug.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex-debug.c
---- a/kernel/locking/rtmutex-debug.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex-debug.c
-@@ -58,7 +58,7 @@ static void printk_lock(struct rt_mutex
+-	struct rb_node *next_node = rq->dl.pushable_dl_tasks_leftmost;
++	struct rb_node *next_node = rq->dl.pushable_dl_tasks_root.rb_leftmost;
+ 	struct task_struct *p = NULL;
  
- void rt_mutex_debug_task_free(struct task_struct *task)
- {
--	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters));
-+	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters.rb_root));
- 	DEBUG_LOCKS_WARN_ON(task->pi_blocked_on);
- }
+ 	if (!has_pushable_dl_tasks(rq))
+@@ -1945,7 +1933,7 @@ static struct task_struct *pick_next_pus
+ 	if (!has_pushable_dl_tasks(rq))
+ 		return NULL;
  
-diff -puN kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex.c
---- a/kernel/locking/rtmutex.c~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex.c
-@@ -271,10 +271,10 @@ rt_mutex_waiter_equal(struct rt_mutex_wa
- static void
- rt_mutex_enqueue(struct rt_mutex *lock, struct rt_mutex_waiter *waiter)
- {
--	struct rb_node **link = &lock->waiters.rb_node;
-+	struct rb_node **link = &lock->waiters.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct rt_mutex_waiter *entry;
--	int leftmost = 1;
-+	bool leftmost = true;
+-	p = rb_entry(rq->dl.pushable_dl_tasks_leftmost,
++	p = rb_entry(rq->dl.pushable_dl_tasks_root.rb_leftmost,
+ 		     struct task_struct, pushable_dl_tasks);
  
- 	while (*link) {
- 		parent = *link;
-@@ -283,15 +283,12 @@ rt_mutex_enqueue(struct rt_mutex *lock,
- 			link = &parent->rb_left;
- 		} else {
- 			link = &parent->rb_right;
--			leftmost = 0;
-+			leftmost = false;
- 		}
- 	}
+ 	BUG_ON(rq->cpu != task_cpu(p));
+diff -puN kernel/sched/sched.h~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching kernel/sched/sched.h
+--- a/kernel/sched/sched.h~sched-deadline-replace-earliest-dl-and-rq-leftmost-caching
++++ a/kernel/sched/sched.h
+@@ -549,8 +549,7 @@ struct rt_rq {
+ /* Deadline class' related fields in a runqueue */
+ struct dl_rq {
+ 	/* runqueue is an rbtree, ordered by deadline */
+-	struct rb_root rb_root;
+-	struct rb_node *rb_leftmost;
++	struct rb_root_cached root;
  
--	if (leftmost)
--		lock->waiters_leftmost = &waiter->tree_entry;
--
- 	rb_link_node(&waiter->tree_entry, parent, link);
--	rb_insert_color(&waiter->tree_entry, &lock->waiters);
-+	rb_insert_color_cached(&waiter->tree_entry, &lock->waiters, leftmost);
- }
+ 	unsigned long dl_nr_running;
  
- static void
-@@ -300,20 +297,17 @@ rt_mutex_dequeue(struct rt_mutex *lock,
- 	if (RB_EMPTY_NODE(&waiter->tree_entry))
- 		return;
- 
--	if (lock->waiters_leftmost == &waiter->tree_entry)
--		lock->waiters_leftmost = rb_next(&waiter->tree_entry);
--
--	rb_erase(&waiter->tree_entry, &lock->waiters);
-+	rb_erase_cached(&waiter->tree_entry, &lock->waiters);
- 	RB_CLEAR_NODE(&waiter->tree_entry);
- }
- 
- static void
- rt_mutex_enqueue_pi(struct task_struct *task, struct rt_mutex_waiter *waiter)
- {
--	struct rb_node **link = &task->pi_waiters.rb_node;
-+	struct rb_node **link = &task->pi_waiters.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct rt_mutex_waiter *entry;
--	int leftmost = 1;
-+	bool leftmost = true;
- 
- 	while (*link) {
- 		parent = *link;
-@@ -322,15 +316,12 @@ rt_mutex_enqueue_pi(struct task_struct *
- 			link = &parent->rb_left;
- 		} else {
- 			link = &parent->rb_right;
--			leftmost = 0;
-+			leftmost = false;
- 		}
- 	}
- 
--	if (leftmost)
--		task->pi_waiters_leftmost = &waiter->pi_tree_entry;
--
- 	rb_link_node(&waiter->pi_tree_entry, parent, link);
--	rb_insert_color(&waiter->pi_tree_entry, &task->pi_waiters);
-+	rb_insert_color_cached(&waiter->pi_tree_entry, &task->pi_waiters, leftmost);
- }
- 
- static void
-@@ -339,10 +330,7 @@ rt_mutex_dequeue_pi(struct task_struct *
- 	if (RB_EMPTY_NODE(&waiter->pi_tree_entry))
- 		return;
- 
--	if (task->pi_waiters_leftmost == &waiter->pi_tree_entry)
--		task->pi_waiters_leftmost = rb_next(&waiter->pi_tree_entry);
--
--	rb_erase(&waiter->pi_tree_entry, &task->pi_waiters);
-+	rb_erase_cached(&waiter->pi_tree_entry, &task->pi_waiters);
- 	RB_CLEAR_NODE(&waiter->pi_tree_entry);
- }
- 
-@@ -1657,8 +1645,7 @@ void __rt_mutex_init(struct rt_mutex *lo
- {
- 	lock->owner = NULL;
- 	raw_spin_lock_init(&lock->wait_lock);
--	lock->waiters = RB_ROOT;
--	lock->waiters_leftmost = NULL;
-+	lock->waiters = RB_ROOT_CACHED;
- 
- 	if (name && key)
- 		debug_rt_mutex_init(lock, name, key);
-diff -puN kernel/locking/rtmutex_common.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching kernel/locking/rtmutex_common.h
---- a/kernel/locking/rtmutex_common.h~locking-rtmutex-replace-top-waiter-and-pi_waiters-leftmost-caching
-+++ a/kernel/locking/rtmutex_common.h
-@@ -45,7 +45,7 @@ struct rt_mutex_waiter {
- 
- static inline int rt_mutex_has_waiters(struct rt_mutex *lock)
- {
--	return !RB_EMPTY_ROOT(&lock->waiters);
-+	return !RB_EMPTY_ROOT(&lock->waiters.rb_root);
- }
- 
- static inline struct rt_mutex_waiter *
-@@ -53,8 +53,8 @@ rt_mutex_top_waiter(struct rt_mutex *loc
- {
- 	struct rt_mutex_waiter *w;
- 
--	w = rb_entry(lock->waiters_leftmost, struct rt_mutex_waiter,
--		     tree_entry);
-+	w = rb_entry(lock->waiters.rb_leftmost,
-+		     struct rt_mutex_waiter, tree_entry);
- 	BUG_ON(w->lock != lock);
- 
- 	return w;
-@@ -62,14 +62,14 @@ rt_mutex_top_waiter(struct rt_mutex *loc
- 
- static inline int task_has_pi_waiters(struct task_struct *p)
- {
--	return !RB_EMPTY_ROOT(&p->pi_waiters);
-+	return !RB_EMPTY_ROOT(&p->pi_waiters.rb_root);
- }
- 
- static inline struct rt_mutex_waiter *
- task_top_pi_waiter(struct task_struct *p)
- {
--	return rb_entry(p->pi_waiters_leftmost, struct rt_mutex_waiter,
--			pi_tree_entry);
-+	return rb_entry(p->pi_waiters.rb_leftmost,
-+			struct rt_mutex_waiter, pi_tree_entry);
- }
- 
+@@ -574,8 +573,7 @@ struct dl_rq {
+ 	 * an rb-tree, ordered by tasks' deadlines, with caching
+ 	 * of the leftmost (earliest deadline) element.
+ 	 */
+-	struct rb_root pushable_dl_tasks_root;
+-	struct rb_node *pushable_dl_tasks_leftmost;
++	struct rb_root_cached pushable_dl_tasks_root;
  #else
+ 	struct dl_bw dl_bw;
+ #endif
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
