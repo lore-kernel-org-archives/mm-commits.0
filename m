@@ -1,50 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-add-support-for-memset16.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:41:01 -0700
-Message-ID: <20170911194101.HO88YikeO%akpm@linux-foundation.org>
+Subject: [merged] add-testcases-for-memset16-32-64.patch removed
+ from -mm tree
+Date: Mon, 11 Sep 2017 12:40:52 -0700
+Message-ID: <20170911194052.N_g1hxg_S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49554 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751022AbdIKTlC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:02 -0400
+        with ESMTP id S1751022AbdIKTky (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: alpha: add support for memset16
+     Subject: lib/string.c: add testcases for memset16/32/64
 has been removed from the -mm tree.  Its filename was
-     alpha-add-support-for-memset16.patch
+     add-testcases-for-memset16-32-64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: alpha: add support for memset16
+Subject: lib/string.c: add testcases for memset16/32/64
 
-Alpha already had an optimised fill-memory-with-16-bit-quantity assembler
-routine called memsetw().  It has a slightly different calling convention
-from memset16() in that it takes a byte count, not a count of words. 
-That's the same convention used by ARM's __memset routines, so rename
-Alpha's routine to match and add a memset16() wrapper around it.  Then
-convert Alpha's scr_memsetw() to call memset16() instead of memsetw().
-
-Link: http://lkml.kernel.org/r/20170720184539.31609-6-willy@infradead.org
+[akpm@linux-foundation.org: minor tweaks]
+Link: http://lkml.kernel.org/r/20170720184539.31609-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
 Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
 Cc: David Miller <davem@davemloft.net>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
 Cc: Russell King <rmk+kernel@armlinux.org.uk>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
@@ -52,82 +46,157 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/string.h |   15 ++++++++-------
- arch/alpha/include/asm/vga.h    |    2 +-
- arch/alpha/lib/memset.S         |   10 +++++-----
- 3 files changed, 14 insertions(+), 13 deletions(-)
+ lib/Kconfig  |    3 +
+ lib/string.c |  129 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 132 insertions(+)
 
-diff -puN arch/alpha/include/asm/string.h~alpha-add-support-for-memset16 arch/alpha/include/asm/string.h
---- a/arch/alpha/include/asm/string.h~alpha-add-support-for-memset16
-+++ a/arch/alpha/include/asm/string.h
-@@ -65,13 +65,14 @@ extern void * memchr(const void *, int,
-    aligned values.  The DEST and COUNT parameters must be even for 
-    correct operation.  */
+diff -puN lib/Kconfig~add-testcases-for-memset16-32-64 lib/Kconfig
+--- a/lib/Kconfig~add-testcases-for-memset16-32-64
++++ a/lib/Kconfig
+@@ -575,4 +575,7 @@ config PARMAN
+ config PRIME_NUMBERS
+ 	tristate
  
--#define __HAVE_ARCH_MEMSETW
--extern void * __memsetw(void *dest, unsigned short, size_t count);
--
--#define memsetw(s, c, n)						 \
--(__builtin_constant_p(c)						 \
-- ? __constant_c_memset((s),0x0001000100010001UL*(unsigned short)(c),(n)) \
-- : __memsetw((s),(c),(n)))
-+#define __HAVE_ARCH_MEMSET16
-+extern void * __memset16(void *dest, unsigned short, size_t count);
-+static inline void *memset16(uint16_t *p, uint16_t v, size_t n)
-+{
-+	if (__builtin_constant_p(v))
-+		return __constant_c_memset(p, 0x0001000100010001UL * v, n * 2);
-+	return __memset16(p, v, n * 2);
-+}
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/alpha/include/asm/vga.h~alpha-add-support-for-memset16 arch/alpha/include/asm/vga.h
---- a/arch/alpha/include/asm/vga.h~alpha-add-support-for-memset16
-+++ a/arch/alpha/include/asm/vga.h
-@@ -34,7 +34,7 @@ static inline void scr_memsetw(u16 *s, u
- 	if (__is_ioaddr(s))
- 		memsetw_io((u16 __iomem *) s, c, count);
- 	else
--		memsetw(s, c, count);
-+		memset16(s, c, count / 2);
++config STRING_SELFTEST
++	bool "Test string functions"
++
+ endmenu
+diff -puN lib/string.c~add-testcases-for-memset16-32-64 lib/string.c
+--- a/lib/string.c~add-testcases-for-memset16-32-64
++++ a/lib/string.c
+@@ -1051,3 +1051,132 @@ void fortify_panic(const char *name)
+ 	BUG();
  }
- 
- /* Do not trust that the usage will be correct; analyze the arguments.  */
-diff -puN arch/alpha/lib/memset.S~alpha-add-support-for-memset16 arch/alpha/lib/memset.S
---- a/arch/alpha/lib/memset.S~alpha-add-support-for-memset16
-+++ a/arch/alpha/lib/memset.S
-@@ -20,7 +20,7 @@
- 	.globl memset
- 	.globl __memset
- 	.globl ___memset
--	.globl __memsetw
-+	.globl __memset16
- 	.globl __constant_c_memset
- 
- 	.ent ___memset
-@@ -110,8 +110,8 @@ EXPORT_SYMBOL(___memset)
- EXPORT_SYMBOL(__constant_c_memset)
- 
- 	.align 5
--	.ent __memsetw
--__memsetw:
-+	.ent __memset16
-+__memset16:
- 	.prologue 0
- 
- 	inswl $17,0,$1		/* E0 */
-@@ -123,8 +123,8 @@ __memsetw:
- 	or $1,$4,$17		/* E0 */
- 	br __constant_c_memset	/* .. E1 */
- 
--	.end __memsetw
--EXPORT_SYMBOL(__memsetw)
-+	.end __memset16
-+EXPORT_SYMBOL(__memset16)
- 
- memset = ___memset
- __memset = ___memset
+ EXPORT_SYMBOL(fortify_panic);
++
++#ifdef CONFIG_STRING_SELFTEST
++#include <linux/slab.h>
++#include <linux/module.h>
++
++static __init int memset16_selftest(void)
++{
++	unsigned i, j, k;
++	u16 v, *p = kmalloc(256 * 2 * 2, GFP_KERNEL);
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 256; j++) {
++			memset(p, 0xa1, 256 * 2 * sizeof(v));
++			memset16(p + i, 0xb1b2, j);
++			for (k = 0; k < 512; k++) {
++				v = p[k];
++				if (k < i) {
++					if (v != 0xa1a1)
++						goto fail;
++				} else if (k < i + j) {
++					if (v != 0xb1b2)
++						goto fail;
++				} else {
++					if (v != 0xa1a1)
++						goto fail;
++				}
++			}
++		}
++	}
++
++fail:
++	kfree(p);
++	if (i < 256)
++		return (i << 24) | (j << 16) | k;
++	return 0;
++}
++
++static __init int memset32_selftest(void)
++{
++	unsigned i, j, k;
++	u32 v, *p = kmalloc(256 * 2 * 4, GFP_KERNEL);
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 256; j++) {
++			memset(p, 0xa1, 256 * 2 * sizeof(v));
++			memset32(p + i, 0xb1b2b3b4, j);
++			for (k = 0; k < 512; k++) {
++				v = p[k];
++				if (k < i) {
++					if (v != 0xa1a1a1a1)
++						goto fail;
++				} else if (k < i + j) {
++					if (v != 0xb1b2b3b4)
++						goto fail;
++				} else {
++					if (v != 0xa1a1a1a1)
++						goto fail;
++				}
++			}
++		}
++	}
++
++fail:
++	kfree(p);
++	if (i < 256)
++		return (i << 24) | (j << 16) | k;
++	return 0;
++}
++
++static __init int memset64_selftest(void)
++{
++	unsigned i, j, k;
++	u64 v, *p = kmalloc(256 * 2 * 8, GFP_KERNEL);
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 256; j++) {
++			memset(p, 0xa1, 256 * 2 * sizeof(v));
++			memset64(p + i, 0xb1b2b3b4b5b6b7b8ULL, j);
++			for (k = 0; k < 512; k++) {
++				v = p[k];
++				if (k < i) {
++					if (v != 0xa1a1a1a1a1a1a1a1ULL)
++						goto fail;
++				} else if (k < i + j) {
++					if (v != 0xb1b2b3b4b5b6b7b8ULL)
++						goto fail;
++				} else {
++					if (v != 0xa1a1a1a1a1a1a1a1ULL)
++						goto fail;
++				}
++			}
++		}
++	}
++
++fail:
++	kfree(p);
++	if (i < 256)
++		return (i << 24) | (j << 16) | k;
++	return 0;
++}
++
++static __init int string_selftest_init(void)
++{
++	int test, subtest;
++
++	test = 1;
++	subtest = memset16_selftest();
++	if (subtest)
++		goto fail;
++
++	test = 2;
++	subtest = memset32_selftest();
++	if (subtest)
++		goto fail;
++
++	test = 3;
++	subtest = memset64_selftest();
++	if (subtest)
++		goto fail;
++
++	pr_info("String selftests succeeded\n");
++	return 0;
++fail:
++	pr_crit("String selftest failure %d.%08x\n", test, subtest);
++	return 0;
++}
++
++module_init(string_selftest_init);
++#endif	/* CONFIG_STRING_SELFTEST */
 _
 
 Patches currently in -mm which might be from mawilcox@microsoft.com are
