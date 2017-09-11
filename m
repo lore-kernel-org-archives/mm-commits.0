@@ -1,650 +1,471 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hmm-heterogeneous-memory-management-documentation-v3.patch removed from -mm
+ mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch removed from -mm
  tree
-Date: Mon, 11 Sep 2017 12:38:41 -0700
-Message-ID: <20170911193841.HLB8_OiwU%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:38:51 -0700
+Message-ID: <20170911193851.7wk0SGIBb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48728 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTin (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:43 -0400
+        with ESMTP id S1751110AbdIKTix (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: hmm: heterogeneous memory management documentation
+     Subject: mm/hmm/mirror: helper to snapshot CPU page table
 has been removed from the -mm tree.  Its filename was
-     hmm-heterogeneous-memory-management-documentation-v3.patch
+     mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: hmm: heterogeneous memory management documentation
+Subject: mm/hmm/mirror: helper to snapshot CPU page table
 
-Patch series "HMM (Heterogeneous Memory Management)", v25.
+This does not use existing page table walker because we want to share
+same code for our page fault handler.
 
-Heterogeneous Memory Management (HMM) (description and justification)
-
-Today device driver expose dedicated memory allocation API through their
-device file, often relying on a combination of IOCTL and mmap calls.  The
-device can only access and use memory allocated through this API.  This
-effectively split the program address space into object allocated for the
-device and useable by the device and other regular memory (malloc, mmap of
-a file, share memory, Ã¢) only accessible by CPU (or in a very limited way
-by a device by pinning memory).
-
-Allowing different isolated component of a program to use a device thus
-require duplication of the input data structure using device memory
-allocator.  This is reasonable for simple data structure (array, grid,
-image, Ã¢) but this get extremely complex with advance data structure
-(list, tree, graph, Ã¢) that rely on a web of memory pointers.  This is
-becoming a serious limitation on the kind of work load that can be
-offloaded to device like GPU.
-
-New industry standard like C++, OpenCL or CUDA are pushing to remove this
-barrier.  This require a shared address space between GPU device and CPU
-so that GPU can access any memory of a process (while still obeying memory
-protection like read only).  This kind of feature is also appearing in
-various other operating systems.
-
-HMM is a set of helpers to facilitate several aspects of address space
-sharing and device memory management.  Unlike existing sharing mechanism
-that rely on pining pages use by a device, HMM relies on mmu_notifier to
-propagate CPU page table update to device page table.
-
-Duplicating CPU page table is only one aspect necessary for efficiently
-using device like GPU.  GPU local memory have bandwidth in the TeraBytes/
-second range but they are connected to main memory through a system bus
-like PCIE that is limited to 32GigaBytes/second (PCIE 4.0 16x).  Thus it
-is necessary to allow migration of process memory from main system memory
-to device memory.  Issue is that on platform that only have PCIE the
-device memory is not accessible by the CPU with the same properties as
-main memory (cache coherency, atomic operations, ...).
-
-To allow migration from main memory to device memory HMM provides a set of
-helper to hotplug device memory as a new type of ZONE_DEVICE memory which
-is un-addressable by CPU but still has struct page representing it.  This
-allow most of the core kernel logic that deals with a process memory to
-stay oblivious of the peculiarity of device memory.
-
-When page backing an address of a process is migrated to device memory the
-CPU page table entry is set to a new specific swap entry.  CPU access to
-such address triggers a migration back to system memory, just like if the
-page was swap on disk.  HMM also blocks any one from pinning a ZONE_DEVICE
-page so that it can always be migrated back to system memory if CPU access
-it.  Conversely HMM does not migrate to device memory any page that is pin
-in system memory.
-
-To allow efficient migration between device memory and main memory a new
-migrate_vma() helpers is added with this patchset.  It allows to leverage
-device DMA engine to perform the copy operation.
-
-This feature will be use by upstream driver like nouveau mlx5 and probably
-other in the future (amdgpu is next suspect in line).  We are actively
-working on nouveau and mlx5 support.  To test this patchset we also worked
-with NVidia close source driver team, they have more resources than us to
-test this kind of infrastructure and also a bigger and better userspace
-eco-system with various real industry workload they can be use to test and
-profile HMM.
-
-The expected workload is a program builds a data set on the CPU (from
-disk, from network, from sensors, Ã¢).  Program uses GPU API (OpenCL,
-CUDA, ...) to give hint on memory placement for the input data and also
-for the output buffer.  Program call GPU API to schedule a GPU job, this
-happens using device driver specific ioctl.  All this is hidden from
-programmer point of view in case of C++ compiler that transparently
-offload some part of a program to GPU.  Program can keep doing other stuff
-on the CPU while the GPU is crunching numbers.
-
-It is expected that CPU will not access the same data set as the GPU while
-GPU is working on it, but this is not mandatory.  In fact we expect some
-small memory object to be actively access by both GPU and CPU concurrently
-as synchronization channel and/or for monitoring purposes.  Such object
-will stay in system memory and should not be bottlenecked by system bus
-bandwidth (rare write and read access from both CPU and GPU).
-
-As we are relying on device driver API, HMM does not introduce any new
-syscall nor does it modify any existing ones.  It does not change any
-POSIX semantics or behaviors.  For instance the child after a fork of a
-process that is using HMM will not be impacted in anyway, nor is there any
-data hazard between child COW or parent COW of memory that was migrated to
-device prior to fork.
-
-HMM assume a numbers of hardware features.  Device must allow device page
-table to be updated at any time (ie device job must be preemptable). 
-Device page table must provides memory protection such as read only. 
-Device must track write access (dirty bit).  Device must have a minimum
-granularity that match PAGE_SIZE (ie 4k).
-
-
-Reviewer (just hint):
-Patch 1  HMM documentation
-Patch 2  introduce core infrastructure and definition of HMM, pretty
-         small patch and easy to review
-Patch 3  introduce the mirror functionality of HMM, it relies on
-         mmu_notifier and thus someone familiar with that part would be
-         in better position to review
-Patch 4  is an helper to snapshot CPU page table while synchronizing with
-         concurrent page table update. Understanding mmu_notifier makes
-         review easier.
-Patch 5  is mostly a wrapper around handle_mm_fault()
-Patch 6  add new add_pages() helper to avoid modifying each arch memory
-         hot plug function
-Patch 7  add a new memory type for ZONE_DEVICE and also add all the logic
-         in various core mm to support this new type. Dan Williams and
-         any core mm contributor are best people to review each half of
-         this patchset
-Patch 8  special case HMM ZONE_DEVICE pages inside put_page() Kirill and
-         Dan Williams are best person to review this
-Patch 9  allow to uncharge a page from memory group without using the lru
-         list field of struct page (best reviewer: Johannes Weiner or
-         Vladimir Davydov or Michal Hocko)
-Patch 10 Add support to uncharge ZONE_DEVICE page from a memory cgroup (best
-         reviewer: Johannes Weiner or Vladimir Davydov or Michal Hocko)
-Patch 11 add helper to hotplug un-addressable device memory as new type
-         of ZONE_DEVICE memory (new type introducted in patch 3 of this
-         serie). This is boiler plate code around memory hotplug and it
-         also pick a free range of physical address for the device memory.
-         Note that the physical address do not point to anything (at least
-         as far as the kernel knows).
-Patch 12 introduce a new hmm_device class as an helper for device driver
-         that want to expose multiple device memory under a common fake
-         device driver. This is usefull for multi-gpu configuration.
-         Anyone familiar with device driver infrastructure can review
-         this. Boiler plate code really.
-Patch 13 add a new migrate mode. Any one familiar with page migration is
-         welcome to review.
-Patch 14 introduce a new migration helper (migrate_vma()) that allow to
-         migrate a range of virtual address of a process using device DMA
-         engine to perform the copy. It is not limited to do copy from and
-         to device but can also do copy between any kind of source and
-         destination memory. Again anyone familiar with migration code
-         should be able to verify the logic.
-Patch 15 optimize the new migrate_vma() by unmapping pages while we are
-         collecting them. This can be review by any mm folks.
-Patch 16 add unaddressable memory migration to helper introduced in patch
-         7, this can be review by anyone familiar with migration code
-Patch 17 add a feature that allow device to allocate non-present page on
-         the GPU when migrating a range of address to device memory. This
-         is an helper for device driver to avoid having to first allocate
-         system memory before migration to device memory
-Patch 18 add a new kind of ZONE_DEVICE memory for cache coherent device
-         memory (CDM)
-Patch 19 add an helper to hotplug CDM memory
-
-
-Previous patchset posting :
-v1 http://lwn.net/Articles/597289/
-v2 https://lkml.org/lkml/2014/6/12/559
-v3 https://lkml.org/lkml/2014/6/13/633
-v4 https://lkml.org/lkml/2014/8/29/423
-v5 https://lkml.org/lkml/2014/11/3/759
-v6 http://lwn.net/Articles/619737/
-v7 http://lwn.net/Articles/627316/
-v8 https://lwn.net/Articles/645515/
-v9 https://lwn.net/Articles/651553/
-v10 https://lwn.net/Articles/654430/
-v11 http://www.gossamer-threads.com/lists/linux/kernel/2286424
-v12 http://www.kernelhub.org/?msg=972982&p=2
-v13 https://lwn.net/Articles/706856/
-v14 https://lkml.org/lkml/2016/12/8/344
-v15 http://www.mail-archive.com/linux-kernel@xxxxxxxxxxxxxxx/msg1304107.html
-v16 http://www.spinics.net/lists/linux-mm/msg119814.html
-v17 https://lkml.org/lkml/2017/1/27/847
-v18 https://lkml.org/lkml/2017/3/16/596
-v19 https://lkml.org/lkml/2017/4/5/831
-v20 https://lwn.net/Articles/720715/
-v21 https://lkml.org/lkml/2017/4/24/747
-v22 http://lkml.iu.edu/hypermail/linux/kernel/1705.2/05176.html
-v23 https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1404788.html
-v24 https://lwn.net/Articles/726691/
-
-
-This patch (of 19):
-
-This adds documentation for HMM (Heterogeneous Memory Management).  It
-presents the motivation behind it, the features necessary for it to be
-useful and and gives an overview of how this is implemented.
-
-Link: http://lkml.kernel.org/r/20170817000548.32038-2-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/20170817000548.32038-5-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
+Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
+Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mark Hairgrove <mhairgrove@nvidia.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Sherry Cheung <SCheung@nvidia.com>
-Cc: Subhash Gutti <sgutti@nvidia.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hmm.txt |  384 +++++++++++++++++++++++++++++++++++++
- MAINTAINERS              |    7 
- 2 files changed, 391 insertions(+)
+ include/linux/hmm.h |   55 +++++++-
+ mm/hmm.c            |  285 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 338 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/vm/hmm.txt
---- /dev/null
-+++ a/Documentation/vm/hmm.txt
-@@ -0,0 +1,384 @@
-+Heterogeneous Memory Management (HMM)
-+
-+Transparently allow any component of a program to use any memory region of said
-+program with a device without using device specific memory allocator. This is
-+becoming a requirement to simplify the use of advance heterogeneous computing
-+where GPU, DSP or FPGA are use to perform various computations.
-+
-+This document is divided as follow, in the first section i expose the problems
-+related to the use of a device specific allocator. The second section i expose
-+the hardware limitations that are inherent to many platforms. The third section
-+gives an overview of HMM designs. The fourth section explains how CPU page-
-+table mirroring works and what is HMM purpose in this context. Fifth section
-+deals with how device memory is represented inside the kernel. Finaly the last
-+section present the new migration helper that allow to leverage the device DMA
-+engine.
-+
-+
-+1) Problems of using device specific memory allocator:
-+2) System bus, device memory characteristics
-+3) Share address space and migration
-+4) Address space mirroring implementation and API
-+5) Represent and manage device memory from core kernel point of view
-+6) Migrate to and from device memory
-+7) Memory cgroup (memcg) and rss accounting
-+
-+
-+-------------------------------------------------------------------------------
-+
-+1) Problems of using device specific memory allocator:
-+
-+Device with large amount of on board memory (several giga bytes) like GPU have
-+historically manage their memory through dedicated driver specific API. This
-+creates a disconnect between memory allocated and managed by device driver and
-+regular application memory (private anonymous, share memory or regular file
-+back memory). From here on i will refer to this aspect as split address space.
-+I use share address space to refer to the opposite situation ie one in which
-+any memory region can be use by device transparently.
-+
-+Split address space because device can only access memory allocated through the
-+device specific API. This imply that all memory object in a program are not
-+equal from device point of view which complicate large program that rely on a
-+wide set of libraries.
-+
-+Concretly this means that code that wants to leverage device like GPU need to
-+copy object between genericly allocated memory (malloc, mmap private/share/)
-+and memory allocated through the device driver API (this still end up with an
-+mmap but of the device file).
-+
-+For flat dataset (array, grid, image, ...) this isn't too hard to achieve but
-+complex data-set (list, tree, ...) are hard to get right. Duplicating a complex
-+data-set need to re-map all the pointer relations between each of its elements.
-+This is error prone and program gets harder to debug because of the duplicate
-+data-set.
-+
-+Split address space also means that library can not transparently use data they
-+are getting from core program or other library and thus each library might have
-+to duplicate its input data-set using specific memory allocator. Large project
-+suffer from this and waste resources because of the various memory copy.
-+
-+Duplicating each library API to accept as input or output memory allocted by
-+each device specific allocator is not a viable option. It would lead to a
-+combinatorial explosions in the library entry points.
-+
-+Finaly with the advance of high level language constructs (in C++ but in other
-+language too) it is now possible for compiler to leverage GPU or other devices
-+without even the programmer knowledge. Some of compiler identified patterns are
-+only do-able with a share address. It is as well more reasonable to use a share
-+address space for all the other patterns.
-+
-+
-+-------------------------------------------------------------------------------
-+
-+2) System bus, device memory characteristics
-+
-+System bus cripple share address due to few limitations. Most system bus only
-+allow basic memory access from device to main memory, even cache coherency is
-+often optional. Access to device memory from CPU is even more limited, most
-+often than not it is not cache coherent.
-+
-+If we only consider the PCIE bus than device can access main memory (often
-+through an IOMMU) and be cache coherent with the CPUs. However it only allows
-+a limited set of atomic operation from device on main memory. This is worse
-+in the other direction the CPUs can only access a limited range of the device
-+memory and can not perform atomic operations on it. Thus device memory can not
-+be consider like regular memory from kernel point of view.
-+
-+Another crippling factor is the limited bandwidth (~32GBytes/s with PCIE 4.0
-+and 16 lanes). This is 33 times less that fastest GPU memory (1 TBytes/s).
-+The final limitation is latency, access to main memory from the device has an
-+order of magnitude higher latency than when the device access its own memory.
-+
-+Some platform are developing new system bus or additions/modifications to PCIE
-+to address some of those limitations (OpenCAPI, CCIX). They mainly allow two
-+way cache coherency between CPU and device and allow all atomic operations the
-+architecture supports. Saddly not all platform are following this trends and
-+some major architecture are left without hardware solutions to those problems.
-+
-+So for share address space to make sense not only we must allow device to
-+access any memory memory but we must also permit any memory to be migrated to
-+device memory while device is using it (blocking CPU access while it happens).
-+
-+
-+-------------------------------------------------------------------------------
-+
-+3) Share address space and migration
-+
-+HMM intends to provide two main features. First one is to share the address
-+space by duplication the CPU page table into the device page table so same
-+address point to same memory and this for any valid main memory address in
-+the process address space.
-+
-+To achieve this, HMM offer a set of helpers to populate the device page table
-+while keeping track of CPU page table updates. Device page table updates are
-+not as easy as CPU page table updates. To update the device page table you must
-+allow a buffer (or use a pool of pre-allocated buffer) and write GPU specifics
-+commands in it to perform the update (unmap, cache invalidations and flush,
-+...). This can not be done through common code for all device. Hence why HMM
-+provides helpers to factor out everything that can be while leaving the gory
-+details to the device driver.
-+
-+The second mechanism HMM provide is a new kind of ZONE_DEVICE memory that does
-+allow to allocate a struct page for each page of the device memory. Those page
-+are special because the CPU can not map them. They however allow to migrate
-+main memory to device memory using exhisting migration mechanism and everything
-+looks like if page was swap out to disk from CPU point of view. Using a struct
-+page gives the easiest and cleanest integration with existing mm mechanisms.
-+Again here HMM only provide helpers, first to hotplug new ZONE_DEVICE memory
-+for the device memory and second to perform migration. Policy decision of what
-+and when to migrate things is left to the device driver.
-+
-+Note that any CPU access to a device page trigger a page fault and a migration
-+back to main memory ie when a page backing an given address A is migrated from
-+a main memory page to a device page then any CPU access to address A trigger a
-+page fault and initiate a migration back to main memory.
-+
-+
-+With this two features, HMM not only allow a device to mirror a process address
-+space and keeps both CPU and device page table synchronize, but also allow to
-+leverage device memory by migrating part of data-set that is actively use by a
-+device.
-+
-+
-+-------------------------------------------------------------------------------
-+
-+4) Address space mirroring implementation and API
-+
-+Address space mirroring main objective is to allow to duplicate range of CPU
-+page table into a device page table and HMM helps keeping both synchronize. A
-+device driver that want to mirror a process address space must start with the
-+registration of an hmm_mirror struct:
-+
-+ int hmm_mirror_register(struct hmm_mirror *mirror,
-+                         struct mm_struct *mm);
-+ int hmm_mirror_register_locked(struct hmm_mirror *mirror,
-+                                struct mm_struct *mm);
-+
-+The locked variant is to be use when the driver is already holding the mmap_sem
-+of the mm in write mode. The mirror struct has a set of callback that are use
-+to propagate CPU page table:
-+
-+ struct hmm_mirror_ops {
-+     /* sync_cpu_device_pagetables() - synchronize page tables
-+      *
-+      * @mirror: pointer to struct hmm_mirror
-+      * @update_type: type of update that occurred to the CPU page table
-+      * @start: virtual start address of the range to update
-+      * @end: virtual end address of the range to update
-+      *
-+      * This callback ultimately originates from mmu_notifiers when the CPU
-+      * page table is updated. The device driver must update its page table
-+      * in response to this callback. The update argument tells what action
-+      * to perform.
-+      *
-+      * The device driver must not return from this callback until the device
-+      * page tables are completely updated (TLBs flushed, etc); this is a
-+      * synchronous call.
-+      */
-+      void (*update)(struct hmm_mirror *mirror,
-+                     enum hmm_update action,
-+                     unsigned long start,
-+                     unsigned long end);
-+ };
-+
-+Device driver must perform update to the range following action (turn range
-+read only, or fully unmap, ...). Once driver callback returns the device must
-+be done with the update.
-+
-+
-+When device driver wants to populate a range of virtual address it can use
-+either:
-+ int hmm_vma_get_pfns(struct vm_area_struct *vma,
-+                      struct hmm_range *range,
-+                      unsigned long start,
-+                      unsigned long end,
-+                      hmm_pfn_t *pfns);
-+ int hmm_vma_fault(struct vm_area_struct *vma,
-+                   struct hmm_range *range,
-+                   unsigned long start,
-+                   unsigned long end,
-+                   hmm_pfn_t *pfns,
-+                   bool write,
-+                   bool block);
-+
-+First one (hmm_vma_get_pfns()) will only fetch present CPU page table entry and
-+will not trigger a page fault on missing or non present entry. The second one
-+do trigger page fault on missing or read only entry if write parameter is true.
-+Page fault use the generic mm page fault code path just like a CPU page fault.
-+
-+Both function copy CPU page table into their pfns array argument. Each entry in
-+that array correspond to an address in the virtual range. HMM provide a set of
-+flags to help driver identify special CPU page table entries.
-+
-+Locking with the update() callback is the most important aspect the driver must
-+respect in order to keep things properly synchronize. The usage pattern is :
-+
-+ int driver_populate_range(...)
-+ {
-+      struct hmm_range range;
-+      ...
-+ again:
-+      ret = hmm_vma_get_pfns(vma, &range, start, end, pfns);
-+      if (ret)
-+          return ret;
-+      take_lock(driver->update);
-+      if (!hmm_vma_range_done(vma, &range)) {
-+          release_lock(driver->update);
-+          goto again;
-+      }
-+
-+      // Use pfns array content to update device page table
-+
-+      release_lock(driver->update);
-+      return 0;
-+ }
-+
-+The driver->update lock is the same lock that driver takes inside its update()
-+callback. That lock must be call before hmm_vma_range_done() to avoid any race
-+with a concurrent CPU page table update.
-+
-+HMM implements all this on top of the mmu_notifier API because we wanted to a
-+simpler API and also to be able to perform optimization latter own like doing
-+concurrent device update in multi-devices scenario.
-+
-+HMM also serve as an impedence missmatch between how CPU page table update are
-+done (by CPU write to the page table and TLB flushes) from how device update
-+their own page table. Device update is a multi-step process, first appropriate
-+commands are write to a buffer, then this buffer is schedule for execution on
-+the device. It is only once the device has executed commands in the buffer that
-+the update is done. Creating and scheduling update command buffer can happen
-+concurrently for multiple devices. Waiting for each device to report commands
-+as executed is serialize (there is no point in doing this concurrently).
-+
-+
-+-------------------------------------------------------------------------------
-+
-+5) Represent and manage device memory from core kernel point of view
-+
-+Several differents design were try to support device memory. First one use
-+device specific data structure to keep information about migrated memory and
-+HMM hooked itself in various place of mm code to handle any access to address
-+that were back by device memory. It turns out that this ended up replicating
-+most of the fields of struct page and also needed many kernel code path to be
-+updated to understand this new kind of memory.
-+
-+Thing is most kernel code path never try to access the memory behind a page
-+but only care about struct page contents. Because of this HMM switchted to
-+directly using struct page for device memory which left most kernel code path
-+un-aware of the difference. We only need to make sure that no one ever try to
-+map those page from the CPU side.
-+
-+HMM provide a set of helpers to register and hotplug device memory as a new
-+region needing struct page. This is offer through a very simple API:
-+
-+ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
-+                                   struct device *device,
-+                                   unsigned long size);
-+ void hmm_devmem_remove(struct hmm_devmem *devmem);
-+
-+The hmm_devmem_ops is where most of the important things are:
-+
-+ struct hmm_devmem_ops {
-+     void (*free)(struct hmm_devmem *devmem, struct page *page);
-+     int (*fault)(struct hmm_devmem *devmem,
-+                  struct vm_area_struct *vma,
-+                  unsigned long addr,
-+                  struct page *page,
-+                  unsigned flags,
-+                  pmd_t *pmdp);
-+ };
-+
-+The first callback (free()) happens when the last reference on a device page is
-+drop. This means the device page is now free and no longer use by anyone. The
-+second callback happens whenever CPU try to access a device page which it can
-+not do. This second callback must trigger a migration back to system memory.
-+
-+
-+-------------------------------------------------------------------------------
-+
-+6) Migrate to and from device memory
-+
-+Because CPU can not access device memory, migration must use device DMA engine
-+to perform copy from and to device memory. For this we need a new migration
-+helper:
-+
-+ int migrate_vma(const struct migrate_vma_ops *ops,
-+                 struct vm_area_struct *vma,
-+                 unsigned long mentries,
-+                 unsigned long start,
-+                 unsigned long end,
-+                 unsigned long *src,
-+                 unsigned long *dst,
-+                 void *private);
-+
-+Unlike other migration function it works on a range of virtual address, there
-+is two reasons for that. First device DMA copy has a high setup overhead cost
-+and thus batching multiple pages is needed as otherwise the migration overhead
-+make the whole excersie pointless. The second reason is because driver trigger
-+such migration base on range of address the device is actively accessing.
-+
-+The migrate_vma_ops struct define two callbacks. First one (alloc_and_copy())
-+control destination memory allocation and copy operation. Second one is there
-+to allow device driver to perform cleanup operation after migration.
-+
-+ struct migrate_vma_ops {
-+     void (*alloc_and_copy)(struct vm_area_struct *vma,
-+                            const unsigned long *src,
-+                            unsigned long *dst,
-+                            unsigned long start,
-+                            unsigned long end,
-+                            void *private);
-+     void (*finalize_and_map)(struct vm_area_struct *vma,
-+                              const unsigned long *src,
-+                              const unsigned long *dst,
-+                              unsigned long start,
-+                              unsigned long end,
-+                              void *private);
-+ };
-+
-+It is important to stress that this migration helpers allow for hole in the
-+virtual address range. Some pages in the range might not be migrated for all
-+the usual reasons (page is pin, page is lock, ...). This helper does not fail
-+but just skip over those pages.
-+
-+The alloc_and_copy() might as well decide to not migrate all pages in the
-+range (for reasons under the callback control). For those the callback just
-+have to leave the corresponding dst entry empty.
-+
-+Finaly the migration of the struct page might fails (for file back page) for
-+various reasons (failure to freeze reference, or update page cache, ...). If
-+that happens then the finalize_and_map() can catch any pages that was not
-+migrated. Note those page were still copied to new page and thus we wasted
-+bandwidth but this is considered as a rare event and a price that we are
-+willing to pay to keep all the code simpler.
-+
-+
-+-------------------------------------------------------------------------------
-+
-+7) Memory cgroup (memcg) and rss accounting
-+
-+For now device memory is accounted as any regular page in rss counters (either
-+anonymous if device page is use for anonymous, file if device page is use for
-+file back page or shmem if device page is use for share memory). This is a
-+deliberate choice to keep existing application that might start using device
-+memory without knowing about it to keep runing unimpacted.
-+
-+Drawbacks is that OOM killer might kill an application using a lot of device
-+memory and not a lot of regular system memory and thus not freeing much system
-+memory. We want to gather more real world experience on how application and
-+system react under memory pressure in the presence of device memory before
-+deciding to account device memory differently.
-+
-+
-+Same decision was made for memory cgroup. Device memory page are accounted
-+against same memory cgroup a regular page would be accounted to. This does
-+simplify migration to and from device memory. This also means that migration
-+back from device memory to regular memory can not fail because it would
-+go above memory cgroup limit. We might revisit this choice latter on once we
-+get more experience in how device memory is use and its impact on memory
-+resource control.
-+
-+
-+Note that device memory can never be pin nor by device driver nor through GUP
-+and thus such memory is always free upon process exit. Or when last reference
-+is drop in case of share memory or file back memory.
-diff -puN MAINTAINERS~hmm-heterogeneous-memory-management-documentation-v3 MAINTAINERS
---- a/MAINTAINERS~hmm-heterogeneous-memory-management-documentation-v3
-+++ a/MAINTAINERS
-@@ -7775,6 +7775,13 @@ M:	Sasha Levin <alexander.levin@verizon.
- S:	Maintained
- F:	tools/lib/lockdep/
+diff -puN include/linux/hmm.h~mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4 include/linux/hmm.h
+--- a/include/linux/hmm.h~mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4
++++ a/include/linux/hmm.h
+@@ -79,13 +79,26 @@ struct hmm;
+  *
+  * Flags:
+  * HMM_PFN_VALID: pfn is valid
++ * HMM_PFN_READ:  CPU page table has read permission set
+  * HMM_PFN_WRITE: CPU page table has write permission set
++ * HMM_PFN_ERROR: corresponding CPU page table entry points to poisoned memory
++ * HMM_PFN_EMPTY: corresponding CPU page table entry is pte_none()
++ * HMM_PFN_SPECIAL: corresponding CPU page table entry is special; i.e., the
++ *      result of vm_insert_pfn() or vm_insert_page(). Therefore, it should not
++ *      be mirrored by a device, because the entry will never have HMM_PFN_VALID
++ *      set and the pfn value is undefined.
++ * HMM_PFN_DEVICE_UNADDRESSABLE: unaddressable device memory (ZONE_DEVICE)
+  */
+ typedef unsigned long hmm_pfn_t;
  
-+HMM - Heterogeneous Memory Management
-+M:	JÃ©rÃ´me Glisse <jglisse@redhat.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	mm/hmm*
-+F:	include/linux/hmm*
+ #define HMM_PFN_VALID (1 << 0)
+-#define HMM_PFN_WRITE (1 << 1)
+-#define HMM_PFN_SHIFT 2
++#define HMM_PFN_READ (1 << 1)
++#define HMM_PFN_WRITE (1 << 2)
++#define HMM_PFN_ERROR (1 << 3)
++#define HMM_PFN_EMPTY (1 << 4)
++#define HMM_PFN_SPECIAL (1 << 5)
++#define HMM_PFN_DEVICE_UNADDRESSABLE (1 << 6)
++#define HMM_PFN_SHIFT 7
+ 
+ /*
+  * hmm_pfn_t_to_page() - return struct page pointed to by a valid hmm_pfn_t
+@@ -241,6 +254,44 @@ struct hmm_mirror {
+ 
+ int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm);
+ void hmm_mirror_unregister(struct hmm_mirror *mirror);
 +
- LIBNVDIMM BLK: MMIO-APERTURE DRIVER
- M:	Ross Zwisler <ross.zwisler@linux.intel.com>
- L:	linux-nvdimm@lists.01.org
++
++/*
++ * struct hmm_range - track invalidation lock on virtual address range
++ *
++ * @list: all range lock are on a list
++ * @start: range virtual start address (inclusive)
++ * @end: range virtual end address (exclusive)
++ * @pfns: array of pfns (big enough for the range)
++ * @valid: pfns array did not change since it has been fill by an HMM function
++ */
++struct hmm_range {
++	struct list_head	list;
++	unsigned long		start;
++	unsigned long		end;
++	hmm_pfn_t		*pfns;
++	bool			valid;
++};
++
++/*
++ * To snapshot the CPU page table, call hmm_vma_get_pfns(), then take a device
++ * driver lock that serializes device page table updates, then call
++ * hmm_vma_range_done(), to check if the snapshot is still valid. The same
++ * device driver page table update lock must also be used in the
++ * hmm_mirror_ops.sync_cpu_device_pagetables() callback, so that CPU page
++ * table invalidation serializes on it.
++ *
++ * YOU MUST CALL hmm_vma_range_done() ONCE AND ONLY ONCE EACH TIME YOU CALL
++ * hmm_vma_get_pfns() WITHOUT ERROR !
++ *
++ * IF YOU DO NOT FOLLOW THE ABOVE RULE THE SNAPSHOT CONTENT MIGHT BE INVALID !
++ */
++int hmm_vma_get_pfns(struct vm_area_struct *vma,
++		     struct hmm_range *range,
++		     unsigned long start,
++		     unsigned long end,
++		     hmm_pfn_t *pfns);
++bool hmm_vma_range_done(struct vm_area_struct *vma, struct hmm_range *range);
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+ 
+ 
+diff -puN mm/hmm.c~mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4 mm/hmm.c
+--- a/mm/hmm.c~mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v4
++++ a/mm/hmm.c
+@@ -19,8 +19,12 @@
+  */
+ #include <linux/mm.h>
+ #include <linux/hmm.h>
++#include <linux/rmap.h>
++#include <linux/swap.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/swapops.h>
++#include <linux/hugetlb.h>
+ #include <linux/mmu_notifier.h>
+ 
+ 
+@@ -31,14 +35,18 @@ static const struct mmu_notifier_ops hmm
+  * struct hmm - HMM per mm struct
+  *
+  * @mm: mm struct this HMM struct is bound to
++ * @lock: lock protecting ranges list
+  * @sequence: we track updates to the CPU page table with a sequence number
++ * @ranges: list of range being snapshotted
+  * @mirrors: list of mirrors for this mm
+  * @mmu_notifier: mmu notifier to track updates to CPU page table
+  * @mirrors_sem: read/write semaphore protecting the mirrors list
+  */
+ struct hmm {
+ 	struct mm_struct	*mm;
++	spinlock_t		lock;
+ 	atomic_t		sequence;
++	struct list_head	ranges;
+ 	struct list_head	mirrors;
+ 	struct mmu_notifier	mmu_notifier;
+ 	struct rw_semaphore	mirrors_sem;
+@@ -72,6 +80,8 @@ static struct hmm *hmm_register(struct m
+ 	init_rwsem(&hmm->mirrors_sem);
+ 	atomic_set(&hmm->sequence, 0);
+ 	hmm->mmu_notifier.ops = NULL;
++	INIT_LIST_HEAD(&hmm->ranges);
++	spin_lock_init(&hmm->lock);
+ 	hmm->mm = mm;
+ 
+ 	/*
+@@ -112,6 +122,22 @@ static void hmm_invalidate_range(struct
+ 				 unsigned long end)
+ {
+ 	struct hmm_mirror *mirror;
++	struct hmm_range *range;
++
++	spin_lock(&hmm->lock);
++	list_for_each_entry(range, &hmm->ranges, list) {
++		unsigned long addr, idx, npages;
++
++		if (end < range->start || start >= range->end)
++			continue;
++
++		range->valid = false;
++		addr = max(start, range->start);
++		idx = (addr - range->start) >> PAGE_SHIFT;
++		npages = (min(range->end, end) - addr) >> PAGE_SHIFT;
++		memset(&range->pfns[idx], 0, sizeof(*range->pfns) * npages);
++	}
++	spin_unlock(&hmm->lock);
+ 
+ 	down_read(&hmm->mirrors_sem);
+ 	list_for_each_entry(mirror, &hmm->mirrors, list)
+@@ -194,4 +220,263 @@ void hmm_mirror_unregister(struct hmm_mi
+ 	up_write(&hmm->mirrors_sem);
+ }
+ EXPORT_SYMBOL(hmm_mirror_unregister);
++
++static void hmm_pfns_special(hmm_pfn_t *pfns,
++			     unsigned long addr,
++			     unsigned long end)
++{
++	for (; addr < end; addr += PAGE_SIZE, pfns++)
++		*pfns = HMM_PFN_SPECIAL;
++}
++
++static int hmm_pfns_bad(unsigned long addr,
++			unsigned long end,
++			struct mm_walk *walk)
++{
++	struct hmm_range *range = walk->private;
++	hmm_pfn_t *pfns = range->pfns;
++	unsigned long i;
++
++	i = (addr - range->start) >> PAGE_SHIFT;
++	for (; addr < end; addr += PAGE_SIZE, i++)
++		pfns[i] = HMM_PFN_ERROR;
++
++	return 0;
++}
++
++static int hmm_vma_walk_hole(unsigned long addr,
++			     unsigned long end,
++			     struct mm_walk *walk)
++{
++	struct hmm_range *range = walk->private;
++	hmm_pfn_t *pfns = range->pfns;
++	unsigned long i;
++
++	i = (addr - range->start) >> PAGE_SHIFT;
++	for (; addr < end; addr += PAGE_SIZE, i++)
++		pfns[i] = HMM_PFN_EMPTY;
++
++	return 0;
++}
++
++static int hmm_vma_walk_clear(unsigned long addr,
++			      unsigned long end,
++			      struct mm_walk *walk)
++{
++	struct hmm_range *range = walk->private;
++	hmm_pfn_t *pfns = range->pfns;
++	unsigned long i;
++
++	i = (addr - range->start) >> PAGE_SHIFT;
++	for (; addr < end; addr += PAGE_SIZE, i++)
++		pfns[i] = 0;
++
++	return 0;
++}
++
++static int hmm_vma_walk_pmd(pmd_t *pmdp,
++			    unsigned long start,
++			    unsigned long end,
++			    struct mm_walk *walk)
++{
++	struct hmm_range *range = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++	hmm_pfn_t *pfns = range->pfns;
++	unsigned long addr = start, i;
++	hmm_pfn_t flag;
++	pte_t *ptep;
++
++	i = (addr - range->start) >> PAGE_SHIFT;
++	flag = vma->vm_flags & VM_READ ? HMM_PFN_READ : 0;
++
++again:
++	if (pmd_none(*pmdp))
++		return hmm_vma_walk_hole(start, end, walk);
++
++	if (pmd_huge(*pmdp) && vma->vm_flags & VM_HUGETLB)
++		return hmm_pfns_bad(start, end, walk);
++
++	if (pmd_devmap(*pmdp) || pmd_trans_huge(*pmdp)) {
++		unsigned long pfn;
++		pmd_t pmd;
++
++		/*
++		 * No need to take pmd_lock here, even if some other threads
++		 * is splitting the huge pmd we will get that event through
++		 * mmu_notifier callback.
++		 *
++		 * So just read pmd value and check again its a transparent
++		 * huge or device mapping one and compute corresponding pfn
++		 * values.
++		 */
++		pmd = pmd_read_atomic(pmdp);
++		barrier();
++		if (!pmd_devmap(pmd) && !pmd_trans_huge(pmd))
++			goto again;
++		if (pmd_protnone(pmd))
++			return hmm_vma_walk_clear(start, end, walk);
++
++		pfn = pmd_pfn(pmd) + pte_index(addr);
++		flag |= pmd_write(pmd) ? HMM_PFN_WRITE : 0;
++		for (; addr < end; addr += PAGE_SIZE, i++, pfn++)
++			pfns[i] = hmm_pfn_t_from_pfn(pfn) | flag;
++		return 0;
++	}
++
++	if (pmd_bad(*pmdp))
++		return hmm_pfns_bad(start, end, walk);
++
++	ptep = pte_offset_map(pmdp, addr);
++	for (; addr < end; addr += PAGE_SIZE, ptep++, i++) {
++		pte_t pte = *ptep;
++
++		pfns[i] = 0;
++
++		if (pte_none(pte) || !pte_present(pte)) {
++			pfns[i] = HMM_PFN_EMPTY;
++			continue;
++		}
++
++		pfns[i] = hmm_pfn_t_from_pfn(pte_pfn(pte)) | flag;
++		pfns[i] |= pte_write(pte) ? HMM_PFN_WRITE : 0;
++	}
++	pte_unmap(ptep - 1);
++
++	return 0;
++}
++
++/*
++ * hmm_vma_get_pfns() - snapshot CPU page table for a range of virtual addresses
++ * @vma: virtual memory area containing the virtual address range
++ * @range: used to track snapshot validity
++ * @start: range virtual start address (inclusive)
++ * @end: range virtual end address (exclusive)
++ * @entries: array of hmm_pfn_t: provided by the caller, filled in by function
++ * Returns: -EINVAL if invalid argument, -ENOMEM out of memory, 0 success
++ *
++ * This snapshots the CPU page table for a range of virtual addresses. Snapshot
++ * validity is tracked by range struct. See hmm_vma_range_done() for further
++ * information.
++ *
++ * The range struct is initialized here. It tracks the CPU page table, but only
++ * if the function returns success (0), in which case the caller must then call
++ * hmm_vma_range_done() to stop CPU page table update tracking on this range.
++ *
++ * NOT CALLING hmm_vma_range_done() IF FUNCTION RETURNS 0 WILL LEAD TO SERIOUS
++ * MEMORY CORRUPTION ! YOU HAVE BEEN WARNED !
++ */
++int hmm_vma_get_pfns(struct vm_area_struct *vma,
++		     struct hmm_range *range,
++		     unsigned long start,
++		     unsigned long end,
++		     hmm_pfn_t *pfns)
++{
++	struct mm_walk mm_walk;
++	struct hmm *hmm;
++
++	/* FIXME support hugetlb fs */
++	if (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)) {
++		hmm_pfns_special(pfns, start, end);
++		return -EINVAL;
++	}
++
++	/* Sanity check, this really should not happen ! */
++	if (start < vma->vm_start || start >= vma->vm_end)
++		return -EINVAL;
++	if (end < vma->vm_start || end > vma->vm_end)
++		return -EINVAL;
++
++	hmm = hmm_register(vma->vm_mm);
++	if (!hmm)
++		return -ENOMEM;
++	/* Caller must have registered a mirror, via hmm_mirror_register() ! */
++	if (!hmm->mmu_notifier.ops)
++		return -EINVAL;
++
++	/* Initialize range to track CPU page table update */
++	range->start = start;
++	range->pfns = pfns;
++	range->end = end;
++	spin_lock(&hmm->lock);
++	range->valid = true;
++	list_add_rcu(&range->list, &hmm->ranges);
++	spin_unlock(&hmm->lock);
++
++	mm_walk.vma = vma;
++	mm_walk.mm = vma->vm_mm;
++	mm_walk.private = range;
++	mm_walk.pte_entry = NULL;
++	mm_walk.test_walk = NULL;
++	mm_walk.hugetlb_entry = NULL;
++	mm_walk.pmd_entry = hmm_vma_walk_pmd;
++	mm_walk.pte_hole = hmm_vma_walk_hole;
++
++	walk_page_range(start, end, &mm_walk);
++
++	return 0;
++}
++EXPORT_SYMBOL(hmm_vma_get_pfns);
++
++/*
++ * hmm_vma_range_done() - stop tracking change to CPU page table over a range
++ * @vma: virtual memory area containing the virtual address range
++ * @range: range being tracked
++ * Returns: false if range data has been invalidated, true otherwise
++ *
++ * Range struct is used to track updates to the CPU page table after a call to
++ * either hmm_vma_get_pfns() or hmm_vma_fault(). Once the device driver is done
++ * using the data,  or wants to lock updates to the data it got from those
++ * functions, it must call the hmm_vma_range_done() function, which will then
++ * stop tracking CPU page table updates.
++ *
++ * Note that device driver must still implement general CPU page table update
++ * tracking either by using hmm_mirror (see hmm_mirror_register()) or by using
++ * the mmu_notifier API directly.
++ *
++ * CPU page table update tracking done through hmm_range is only temporary and
++ * to be used while trying to duplicate CPU page table contents for a range of
++ * virtual addresses.
++ *
++ * There are two ways to use this :
++ * again:
++ *   hmm_vma_get_pfns(vma, range, start, end, pfns);
++ *   trans = device_build_page_table_update_transaction(pfns);
++ *   device_page_table_lock();
++ *   if (!hmm_vma_range_done(vma, range)) {
++ *     device_page_table_unlock();
++ *     goto again;
++ *   }
++ *   device_commit_transaction(trans);
++ *   device_page_table_unlock();
++ *
++ * Or:
++ *   hmm_vma_get_pfns(vma, range, start, end, pfns);
++ *   device_page_table_lock();
++ *   hmm_vma_range_done(vma, range);
++ *   device_update_page_table(pfns);
++ *   device_page_table_unlock();
++ */
++bool hmm_vma_range_done(struct vm_area_struct *vma, struct hmm_range *range)
++{
++	unsigned long npages = (range->end - range->start) >> PAGE_SHIFT;
++	struct hmm *hmm;
++
++	if (range->end <= range->start) {
++		BUG();
++		return false;
++	}
++
++	hmm = hmm_register(vma->vm_mm);
++	if (!hmm) {
++		memset(range->pfns, 0, sizeof(*range->pfns) * npages);
++		return false;
++	}
++
++	spin_lock(&hmm->lock);
++	list_del_rcu(&range->list);
++	spin_unlock(&hmm->lock);
++
++	return range->valid;
++}
++EXPORT_SYMBOL(hmm_vma_range_done);
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
