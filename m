@@ -1,148 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- io_getevents-use-timespec64-to-represent-timeouts.patch removed from -mm
- tree
-Date: Mon, 11 Sep 2017 12:38:08 -0700
-Message-ID: <20170911193808.cW2xoICpQ%akpm@linux-foundation.org>
+Subject: [merged] zram-mm-vs-block.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:38:02 -0700
+Message-ID: <20170911193802.ZSzfcJpfL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47978 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751020AbdIKTiJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:09 -0400
+        with ESMTP id S1750999AbdIKTiD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bcrl@kvack.org, deepa.kernel@gmail.com, mm-commits@vger.kernel.org, tglx@linutronix.de, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de, minchan@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: io_getevents: use timespec64 to represent timeouts
+     Subject: zram-mm-vs-block
 has been removed from the -mm tree.  Its filename was
-     io_getevents-use-timespec64-to-represent-timeouts.patch
+     zram-mm-vs-block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: io_getevents: use timespec64 to represent timeouts
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zram-mm-vs-block
 
-struct timespec is not y2038 safe.  Use y2038 safe struct timespec64 to
-represent timeouts.  The system call interface itself will be changed as
-part of different series.
+resolve interface changes from block tree
 
-Timeouts will not really need more than 32 bits.  But, replacing these
-with timespec64 helps verification of a y2038 safe kernel by getting rid
-of timespec internally.
-
-Link: http://lkml.kernel.org/r/20170805041232.20875-3-deepa.kernel@gmail.com
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   55 ++++++++++++++++++++++++++++-------------------------
- 1 file changed, 30 insertions(+), 25 deletions(-)
+ drivers/block/zram/zram_drv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~io_getevents-use-timespec64-to-represent-timeouts fs/aio.c
---- a/fs/aio.c~io_getevents-use-timespec64-to-represent-timeouts
-+++ a/fs/aio.c
-@@ -1297,20 +1297,10 @@ static bool aio_read_events(struct kioct
+diff -puN drivers/block/zram/zram_drv.c~zram-mm-vs-block drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-mm-vs-block
++++ a/drivers/block/zram/zram_drv.c
+@@ -458,7 +458,7 @@ static int read_from_bdev_async(struct z
+ 		return -ENOMEM;
  
- static long read_events(struct kioctx *ctx, long min_nr, long nr,
- 			struct io_event __user *event,
--			struct timespec __user *timeout)
-+			ktime_t until)
- {
--	ktime_t until = KTIME_MAX;
- 	long ret = 0;
- 
--	if (timeout) {
--		struct timespec	ts;
--
--		if (unlikely(copy_from_user(&ts, timeout, sizeof(ts))))
--			return -EFAULT;
--
--		until = timespec_to_ktime(ts);
--	}
--
- 	/*
- 	 * Note that aio_read_events() is being called as the conditional - i.e.
- 	 * we're calling it after prepare_to_wait() has set task state to
-@@ -1832,6 +1822,25 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
- 	return ret;
- }
- 
-+static long do_io_getevents(aio_context_t ctx_id,
-+		long min_nr,
-+		long nr,
-+		struct io_event __user *events,
-+		struct timespec64 *ts)
-+{
-+	ktime_t until = ts ? timespec64_to_ktime(*ts) : KTIME_MAX;
-+	struct kioctx *ioctx = lookup_ioctx(ctx_id);
-+	long ret = -EINVAL;
-+
-+	if (likely(ioctx)) {
-+		if (likely(min_nr <= nr && min_nr >= 0))
-+			ret = read_events(ioctx, min_nr, nr, events, until);
-+		percpu_ref_put(&ioctx->users);
-+	}
-+
-+	return ret;
-+}
-+
- /* io_getevents:
-  *	Attempts to read at least min_nr events and up to nr events from
-  *	the completion queue for the aio_context specified by ctx_id. If
-@@ -1850,15 +1859,14 @@ SYSCALL_DEFINE5(io_getevents, aio_contex
- 		struct io_event __user *, events,
- 		struct timespec __user *, timeout)
- {
--	struct kioctx *ioctx = lookup_ioctx(ctx_id);
--	long ret = -EINVAL;
-+	struct timespec64	ts;
- 
--	if (likely(ioctx)) {
--		if (likely(min_nr <= nr && min_nr >= 0))
--			ret = read_events(ioctx, min_nr, nr, events, timeout);
--		percpu_ref_put(&ioctx->users);
-+	if (timeout) {
-+		if (unlikely(get_timespec64(&ts, timeout)))
-+			return -EFAULT;
+ 	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
+-	bio->bi_bdev = zram->bdev;
++	bio_set_dev(bio, zram->bdev);
+ 	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len, bvec->bv_offset)) {
+ 		bio_put(bio);
+ 		return -EIO;
+@@ -552,7 +552,7 @@ static int write_to_bdev(struct zram *zr
  	}
--	return ret;
-+
-+	return do_io_getevents(ctx_id, min_nr, nr, events, timeout ? &ts : NULL);
- }
  
- #ifdef CONFIG_COMPAT
-@@ -1868,17 +1876,14 @@ COMPAT_SYSCALL_DEFINE5(io_getevents, com
- 		       struct io_event __user *, events,
- 		       struct compat_timespec __user *, timeout)
- {
--	struct timespec t;
--	struct timespec __user *ut = NULL;
-+	struct timespec64 t;
- 
- 	if (timeout) {
--		if (compat_get_timespec(&t, timeout))
-+		if (compat_get_timespec64(&t, timeout))
- 			return -EFAULT;
- 
--		ut = compat_alloc_user_space(sizeof(*ut));
--		if (copy_to_user(ut, &t, sizeof(t)))
--			return -EFAULT;
- 	}
--	return sys_io_getevents(ctx_id, min_nr, nr, events, ut);
-+
-+	return do_io_getevents(ctx_id, min_nr, nr, events, timeout ? &t : NULL);
- }
- #endif
+ 	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
+-	bio->bi_bdev = zram->bdev;
++	bio_set_dev(bio, zram->bdev);
+ 	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len,
+ 					bvec->bv_offset)) {
+ 		bio_put(bio);
 _
 
-Patches currently in -mm which might be from deepa.kernel@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-git-rejects.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
