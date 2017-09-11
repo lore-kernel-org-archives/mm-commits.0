@@ -1,98 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-make-bitmap_parselist-thread-safe-and-much-faster.patch removed from
+ radix-tree-must-check-__radix_tree_preload-return-value.patch removed from
  -mm tree
-Date: Mon, 11 Sep 2017 12:42:22 -0700
-Message-ID: <20170911194222.Dmgii5xpV%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:42:40 -0700
+Message-ID: <20170911194240.wlVo640zu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50286 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751079AbdIKTmX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:23 -0400
+        with ESMTP id S1751110AbdIKTml (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, mm-commits@vger.kernel.org, noamca@mellanox.com, ynorov@caviumnetworks.com
+To: edumazet@google.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
+     Subject: radix-tree: must check __radix_tree_preload() return value
 has been removed from the -mm tree.  Its filename was
-     lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
+     radix-tree-must-check-__radix_tree_preload-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
+From: Eric Dumazet <edumazet@google.com>
+Subject: radix-tree: must check __radix_tree_preload() return value
 
-Current implementation of bitmap_parselist() uses a static variable to
-save local state while setting bits in the bitmap.  It is obviously wrong
-if we assume execution in multiprocessor environment.  Fortunately, it's
-possible to rewrite this portion of code to avoid using the static
-variable.
+__radix_tree_preload() only disables preemption if no error is returned.
 
-It is also possible to set bits in the mask per-range with bitmap_set(),
-not per-bit, as it is implemented now, with set_bit(); which is way
-faster.
+So we really need to make sure callers always check the return value.
 
-The important side effect of this change is that setting bits in this
-function from now is not per-bit atomic and less memory-ordered.  This is
-because set_bit() guarantees the order of memory accesses, while
-bitmap_set() does not.  I think that it is the advantage of the new
-approach, because the bitmap_parselist() is intended to initialise bit
-arrays, and user should protect the whole bitmap during initialisation if
-needed.  So protecting individual bits looks expensive and useless.  Also,
-other range-oriented functions in lib/bitmap.c don't worry much about
-atomicity.
+idr_preload() contract is to always disable preemption, so we need
+to add a missing preempt_disable() if an error happened.
 
-With all that, setting 2k bits in map with the pattern like 0-2047:128/256
-becomes ~50 times faster after applying the patch in my testing
-environment (arm64 hosted on qemu).
+Similarly, ida_pre_get() only needs to call preempt_enable() in the
+case no error happened.
 
-The second patch of the series adds the test for bitmap_parselist().  It's
-not intended to cover all tricky cases, just to make sure that I didn't
-screw up during rework.
-
-Link: http://lkml.kernel.org/r/20170807225438.16161-1-ynorov@caviumnetworks.com
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Noam Camus <noamca@mellanox.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: http://lkml.kernel.org/r/1504637190.15310.62.camel@edumazet-glaptop3.roam.corp.google.com
+Fixes: 0a835c4f090a ("Reimplement IDR and IDA using the radix tree")
+Fixes: 7ad3d4d85c7a ("ida: Move ida_bitmap to a percpu variable")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>    [4.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ lib/radix-tree.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster lib/bitmap.c
---- a/lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster
-+++ a/lib/bitmap.c
-@@ -513,7 +513,7 @@ static int __bitmap_parselist(const char
- 		int nmaskbits)
+diff -puN lib/radix-tree.c~radix-tree-must-check-__radix_tree_preload-return-value lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-must-check-__radix_tree_preload-return-value
++++ a/lib/radix-tree.c
+@@ -463,7 +463,7 @@ radix_tree_node_free(struct radix_tree_n
+  * To make use of this facility, the radix tree must be initialised without
+  * __GFP_DIRECT_RECLAIM being passed to INIT_RADIX_TREE().
+  */
+-static int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
++static __must_check int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
  {
- 	unsigned int a, b, old_a, old_b;
--	unsigned int group_size, used_size;
-+	unsigned int group_size, used_size, off;
- 	int c, old_c, totaldigits, ndigits;
- 	const char __user __force *ubuf = (const char __user __force *)buf;
- 	int at_start, in_range, in_partial_range;
-@@ -599,6 +599,8 @@ static int __bitmap_parselist(const char
- 			a = old_a;
- 			b = old_b;
- 			old_a = old_b = 0;
-+		} else {
-+			used_size = group_size = b - a + 1;
- 		}
- 		/* if no digit is after '-', it's wrong*/
- 		if (at_start && in_range)
-@@ -608,17 +610,9 @@ static int __bitmap_parselist(const char
- 		if (b >= nmaskbits)
- 			return -ERANGE;
- 		while (a <= b) {
--			if (in_partial_range) {
--				static int pos_in_group = 1;
--
--				if (pos_in_group <= used_size)
--					set_bit(a, maskp);
+ 	struct radix_tree_preload *rtp;
+ 	struct radix_tree_node *node;
+@@ -2104,7 +2104,8 @@ EXPORT_SYMBOL(radix_tree_tagged);
+  */
+ void idr_preload(gfp_t gfp_mask)
+ {
+-	__radix_tree_preload(gfp_mask, IDR_PRELOAD_SIZE);
++	if (__radix_tree_preload(gfp_mask, IDR_PRELOAD_SIZE))
++		preempt_disable();
+ }
+ EXPORT_SYMBOL(idr_preload);
+ 
+@@ -2118,13 +2119,13 @@ EXPORT_SYMBOL(idr_preload);
+  */
+ int ida_pre_get(struct ida *ida, gfp_t gfp)
+ {
+-	__radix_tree_preload(gfp, IDA_PRELOAD_SIZE);
+ 	/*
+ 	 * The IDA API has no preload_end() equivalent.  Instead,
+ 	 * ida_get_new() can return -EAGAIN, prompting the caller
+ 	 * to return to the ida_pre_get() step.
+ 	 */
+-	preempt_enable();
++	if (!__radix_tree_preload(gfp, IDA_PRELOAD_SIZE))
++		preempt_enable();
+ 
+ 	if (!this_cpu_read(ida_bitmap)) {
+ 		struct ida_bitmap *bitmap = kmalloc(sizeof(*bitmap), gfp);
+_
+
+Patches currently in -mm which might be from edumazet@google.com are
+
+
