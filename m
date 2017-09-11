@@ -1,64 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- init-move-stack-canary-initialization-after-setup_arch.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:42:58 -0700
-Message-ID: <20170911194258.81O5JS9qy%akpm@linux-foundation.org>
+ autofs-fix-at_no_automount-not-being-honored.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:43:04 -0700
+Message-ID: <20170911194304.bKwgBFzyU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTm7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:59 -0400
+        with ESMTP id S1751110AbdIKTnF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danielmicay@gmail.com, keescook@chromium.org, labbott@redhat.com, lauraa@codeaurora.org, mm-commits@vger.kernel.org, nnk@google.com, tytso@mit.edu
+To: dhowells@redhat.com, mm-commits@vger.kernel.org, oholy@redhat.com, raven@themaw.net, walters@redhat.com
 
 
 The patch titled
-     Subject: init: move stack canary initialization after setup_arch
+     Subject: autofs: fix AT_NO_AUTOMOUNT not being honored
 has been removed from the -mm tree.  Its filename was
-     init-move-stack-canary-initialization-after-setup_arch.patch
+     autofs-fix-at_no_automount-not-being-honored.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: init: move stack canary initialization after setup_arch
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: fix AT_NO_AUTOMOUNT not being honored
 
-Patch series "Command line randomness", v3.
+The fstatat(2) and statx() calls can pass the flag AT_NO_AUTOMOUNT which
+is meant to clear the LOOKUP_AUTOMOUNT flag and prevent triggering of an
+automount by the call.  But this flag is unconditionally cleared for all
+stat family system calls except statx().
 
-A series to add the kernel command line as a source of randomness.
+stat family system calls have always triggered mount requests for the
+negative dentry case in follow_automount() which is intended but prevents
+the fstatat(2) and statx() AT_NO_AUTOMOUNT case from being handled.
 
-This patch (of 2):
+In order to handle the AT_NO_AUTOMOUNT for both system calls the negative
+dentry case in follow_automount() needs to be changed to return ENOENT
+when the LOOKUP_AUTOMOUNT flag is clear (and the other required flags are
+clear).
 
-Stack canary intialization involves getting a random number.  Getting this
-random number may involve accessing caches or other architectural specific
-features which are not available until after the architecture is setup. 
-Move the stack canary initialization later to accommodate this.
+AFAICT this change doesn't have any noticable side effects and may, in
+some use cases (although I didn't see it in testing) prevent unnecessary
+callbacks to the automount daemon.
 
-Link: http://lkml.kernel.org/r/20170816231458.2299-2-labbott@redhat.com
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Nick Kralevich <nnk@google.com>
+It's also possible that a stat family call has been made with a path that
+is in the process of being mounted by some other process.  But stat family
+calls should return the automount state of the path as it is "now" so it
+shouldn't wait for mount completion.
+
+This is the same semantic as the positive dentry case already handled.
+
+Link: http://lkml.kernel.org/r/150216641255.11652.4204561328197919771.stgit@pluto.themaw.net
+Fixes: deccf497d804a4c5fca ("Make stat/lstat/fstatat pass AT_NO_AUTOMOUNT to vfs_statx()")
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Colin Walters <walters@redhat.com>
+Cc: Ondrej Holy <oholy@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/namei.c         |   15 ++++++++++++---
+ include/linux/fs.h |    3 +--
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN init/main.c~init-move-stack-canary-initialization-after-setup_arch init/main.c
---- a/init/main.c~init-move-stack-canary-initialization-after-setup_arch
-+++ a/init/main.c
-@@ -515,12 +515,6 @@ asmlinkage __visible void __init start_k
- 	smp_setup_processor_id();
- 	debug_objects_early_init();
+diff -puN fs/namei.c~autofs-fix-at_no_automount-not-being-honored fs/namei.c
+--- a/fs/namei.c~autofs-fix-at_no_automount-not-being-honored
++++ a/fs/namei.c
+@@ -1129,9 +1129,18 @@ static int follow_automount(struct path
+ 	 * of the daemon to instantiate them before they can be used.
+ 	 */
+ 	if (!(nd->flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
+-			   LOOKUP_OPEN | LOOKUP_CREATE | LOOKUP_AUTOMOUNT)) &&
+-	    path->dentry->d_inode)
+-		return -EISDIR;
++			   LOOKUP_OPEN | LOOKUP_CREATE |
++			   LOOKUP_AUTOMOUNT))) {
++		/* Positive dentry that isn't meant to trigger an
++		 * automount, EISDIR will allow it to be used,
++		 * otherwise there's no mount here "now" so return
++		 * ENOENT.
++		 */
++		if (path->dentry->d_inode)
++			return -EISDIR;
++		else
++			return -ENOENT;
++	}
  
--	/*
--	 * Set up the initial canary ASAP:
--	 */
--	add_latent_entropy();
--	boot_init_stack_canary();
+ 	if (path->dentry->d_sb->s_user_ns != &init_user_ns)
+ 		return -EACCES;
+diff -puN include/linux/fs.h~autofs-fix-at_no_automount-not-being-honored include/linux/fs.h
+--- a/include/linux/fs.h~autofs-fix-at_no_automount-not-being-honored
++++ a/include/linux/fs.h
+@@ -3043,8 +3043,7 @@ static inline int vfs_lstat(const char _
+ static inline int vfs_fstatat(int dfd, const char __user *filename,
+ 			      struct kstat *stat, int flags)
+ {
+-	return vfs_statx(dfd, filename, flags | AT_NO_AUTOMOUNT,
+-			 stat, STATX_BASIC_STATS);
++	return vfs_statx(dfd, filename, flags, stat, STATX_BASIC_STATS);
+ }
+ static inline int vfs_fstat(int fd, struct kstat *stat)
+ {
+_
+
+Patches currently in -mm which might be from raven@themaw.net are
+
+
