@@ -1,90 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+Subject: [merged] lib-stringc-check-for-kmalloc-failure.patch
  removed from -mm tree
-Date: Mon, 11 Sep 2017 12:42:43 -0700
-Message-ID: <20170911194243.LROYzMcy7%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:42:34 -0700
+Message-ID: <20170911194234.toHbNcKiH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50254 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTmo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:44 -0400
+        with ESMTP id S1751079AbdIKTmf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, jlee@suse.com, mm-commits@vger.kernel.org, pwieczorkiewicz@suse.com, rusty@rustcorp.com.au, tiwai@suse.de
+To: bhelgaas@google.com, dan.carpenter@oracle.com, danielmicay@gmail.com, heikki.krogerus@linux.intel.com, keescook@chromium.org, mawilcox@microsoft.com, mchehab@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
+     Subject: lib/string.c: check for kmalloc() failure
 has been removed from the -mm tree.  Its filename was
-     x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string.patch
+     lib-stringc-check-for-kmalloc-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: lib/oid_registry.c: X.509: fix the buffer overflow in the utility function for OID string
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: lib/string.c: check for kmalloc() failure
 
-The sprint_oid() utility function doesn't properly check the buffer size
-that it causes that the warning in vsnprintf() be triggered.  For example
-on v4.1 kernel:
+This is mostly to keep the number of static checker warnings down so we
+can spot new bugs instead of them being drowned in noise.  This function
+doesn't return normal kernel error codes but instead the return value is
+used to display exactly which memory failed.  I chose -1 as hopefully
+that's a helpful thing to print.
 
-[   49.612536] ------------[ cut here ]------------
-[   49.612543] WARNING: CPU: 0 PID: 2357 at lib/vsprintf.c:1867 vsnprintf+0x5a7/0x5c0()
-...
-
-We can trigger this issue by injecting maliciously crafted x509 cert in
-DER format.  Just using hex editor to change the length of OID to over the
-length of the SEQUENCE container.  For example:
-
-    0:d=0  hl=4 l= 980 cons: SEQUENCE
-    4:d=1  hl=4 l= 700 cons:  SEQUENCE
-    8:d=2  hl=2 l=   3 cons:   cont [ 0 ]
-   10:d=3  hl=2 l=   1 prim:    INTEGER           :02
-   13:d=2  hl=2 l=   9 prim:   INTEGER           :9B47FAF791E7D1E3
-   24:d=2  hl=2 l=  13 cons:   SEQUENCE
-   26:d=3  hl=2 l=   9 prim:    OBJECT            :sha256WithRSAEncryption
-   37:d=3  hl=2 l=   0 prim:    NULL
-   39:d=2  hl=2 l= 121 cons:   SEQUENCE
-   41:d=3  hl=2 l=  22 cons:    SET
-   43:d=4  hl=2 l=  20 cons:     SEQUENCE      <=== the SEQ length is 20
-   45:d=5  hl=2 l=   3 prim:      OBJECT            :organizationName
-	<=== the original length is 3, change the length of OID to over the length of SEQUENCE
-
-Pawel Wieczorkiewicz reported this problem and Takashi Iwai provided patch
-to fix it by checking the bufsize in sprint_oid().
-
-Link: http://lkml.kernel.org/r/20170903021646.2080-1-jlee@suse.com
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
-Reported-by: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Pawel Wieczorkiewicz <pwieczorkiewicz@suse.com>
+Link: http://lkml.kernel.org/r/20170817115420.uikisjvfmtrqkzjn@mwanda
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/oid_registry.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/string.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string lib/oid_registry.c
---- a/lib/oid_registry.c~x509-fix-the-buffer-overflow-in-the-utility-function-for-oid-string
-+++ a/lib/oid_registry.c
-@@ -142,9 +142,9 @@ int sprint_oid(const void *data, size_t
- 		}
- 		ret += count = snprintf(buffer, bufsize, ".%lu", num);
- 		buffer += count;
--		bufsize -= count;
--		if (bufsize == 0)
-+		if (bufsize <= count)
- 			return -ENOBUFS;
-+		bufsize -= count;
- 	}
+diff -puN lib/string.c~lib-stringc-check-for-kmalloc-failure lib/string.c
+--- a/lib/string.c~lib-stringc-check-for-kmalloc-failure
++++ a/lib/string.c
+@@ -1059,7 +1059,11 @@ EXPORT_SYMBOL(fortify_panic);
+ static __init int memset16_selftest(void)
+ {
+ 	unsigned i, j, k;
+-	u16 v, *p = kmalloc(256 * 2 * 2, GFP_KERNEL);
++	u16 v, *p;
++
++	p = kmalloc(256 * 2 * 2, GFP_KERNEL);
++	if (!p)
++		return -1;
  
- 	return ret;
+ 	for (i = 0; i < 256; i++) {
+ 		for (j = 0; j < 256; j++) {
+@@ -1091,7 +1095,11 @@ fail:
+ static __init int memset32_selftest(void)
+ {
+ 	unsigned i, j, k;
+-	u32 v, *p = kmalloc(256 * 2 * 4, GFP_KERNEL);
++	u32 v, *p;
++
++	p = kmalloc(256 * 2 * 4, GFP_KERNEL);
++	if (!p)
++		return -1;
+ 
+ 	for (i = 0; i < 256; i++) {
+ 		for (j = 0; j < 256; j++) {
+@@ -1123,7 +1131,11 @@ fail:
+ static __init int memset64_selftest(void)
+ {
+ 	unsigned i, j, k;
+-	u64 v, *p = kmalloc(256 * 2 * 8, GFP_KERNEL);
++	u64 v, *p;
++
++	p = kmalloc(256 * 2 * 8, GFP_KERNEL);
++	if (!p)
++		return -1;
+ 
+ 	for (i = 0; i < 256; i++) {
+ 		for (j = 0; j < 256; j++) {
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 
