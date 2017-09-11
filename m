@@ -1,121 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch removed from -mm
- tree
-Date: Mon, 11 Sep 2017 12:38:14 -0700
-Message-ID: <20170911193814.zLVJgISG-%akpm@linux-foundation.org>
+Subject: [merged] mm-mempolicy-add-queue_pages_required.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:38:11 -0700
+Message-ID: <20170911193811.d-DR4CnX4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48078 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTiQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:16 -0400
+        with ESMTP id S1751026AbdIKTiM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: mm: x86: move _PAGE_SWP_SOFT_DIRTY from bit 7 to bit 1
+     Subject: mm: mempolicy: add queue_pages_required()
 has been removed from the -mm tree.  Its filename was
-     mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
+     mm-mempolicy-add-queue_pages_required.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: x86: move _PAGE_SWP_SOFT_DIRTY from bit 7 to bit 1
+Subject: mm: mempolicy: add queue_pages_required()
 
-_PAGE_PSE is used to distinguish between a truly non-present
-(_PAGE_PRESENT=0) PMD, and a PMD which is undergoing a THP split and
-should be treated as present.
+Patch series "mm: page migration enhancement for thp", v9.
 
-But _PAGE_SWP_SOFT_DIRTY currently uses the _PAGE_PSE bit, which would
-cause confusion between one of those PMDs undergoing a THP split, and a
-soft-dirty PMD.  Dropping _PAGE_PSE check in pmd_present() does not work
-well, because it can hurt optimization of tlb handling in thp split.
+Motivations
+===========================================
 
-Thus, we need to move the bit.
+1. THP migration becomes important in the upcoming heterogeneous
+   memory systems.  As David Nellans from NVIDIA pointed out from other
+   threads
+   (http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1349227.html),
+   future GPUs or other accelerators will have their memory managed by
+   operating systems.  Moving data into and out of these memory nodes
+   efficiently is critical to applications that use GPUs or other
+   accelerators.  Existing page migration only supports base pages, which
+   has a very low memory bandwidth utilization.  My experiments (see
+   below) show THP migration can migrate pages more efficiently.
 
-In the current kernel, bits 1-4 are not used in non-present format since
-commit 00839ee3b299 ("x86/mm: Move swap offset/type up in PTE to work
-around erratum").  So let's move _PAGE_SWP_SOFT_DIRTY to bit 1.  Bit 7 is
-used as reserved (always clear), so please don't use it for other purpose.
+2. Base page migration vs THP migration throughput.
 
-Link: http://lkml.kernel.org/r/20170717193955.20207-3-zi.yan@sent.com
+Here are cross-socket page migration results from calling move_pages()
+syscall:
+
+In x86_64, a Intel two-socket E5-2640v3 box,
+single 4KB base page migration takes 62.47 us, using 0.06 GB/s BW,
+single 2MB THP migration takes 658.54 us, using 2.97 GB/s BW,
+512 4KB base page migration takes 1987.38 us, using 0.98 GB/s BW.
+
+In ppc64, a two-socket Power8 box,
+single 64KB base page migration takes 49.3 us, using 1.24 GB/s BW,
+single 16MB THP migration takes 2202.17 us, using 7.10 GB/s BW,
+256 64KB base page migration takes 2543.65 us, using 6.14 GB/s BW.
+
+THP migration can give us 3x and 1.15x throughput over base page migration
+in x86_64 and ppc64 respectivley.
+
+You can test it out by using the code here:
+https://github.com/x-y-z/thp-migration-bench
+
+3. Existing page migration splits THP before migration and cannot
+   guarantee the migrated pages are still contiguous.  Contiguity is
+   always what GPUs and accelerators look for.  Without THP migration,
+   khugepaged needs to do extra work to reassemble the migrated pages back
+   to THPs.
+
+
+
+This patch (of 10):
+
+Introduce a separate check routine related to MPOL_MF_INVERT flag.  This
+patch just does cleanup, no behavioral change.
+
+Link: http://lkml.kernel.org/r/20170717193955.20207-2-zi.yan@sent.com
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Acked-by: Dave Hansen <dave.hansen@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: David Nellans <dnellans@nvidia.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Nellans <dnellans@nvidia.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_64.h    |   12 +++++++++---
- arch/x86/include/asm/pgtable_types.h |   10 +++++-----
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ mm/mempolicy.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable_64.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1 arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -180,15 +180,21 @@ static inline int pgd_large(pgd_t pgd) {
+diff -puN mm/mempolicy.c~mm-mempolicy-add-queue_pages_required mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-add-queue_pages_required
++++ a/mm/mempolicy.c
+@@ -412,6 +412,21 @@ struct queue_pages {
+ };
+ 
  /*
-  * Encode and de-code a swap entry
-  *
-- * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2|1|0| <- bit number
-- * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U|W|P| <- bit names
-- * | OFFSET (14->63) | TYPE (9-13)  |0|X|X|X| X| X|X|X|0| <- swp entry
-+ * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2| 1|0| <- bit number
-+ * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U| W|P| <- bit names
-+ * | OFFSET (14->63) | TYPE (9-13)  |0|0|X|X| X| X|X|SD|0| <- swp entry
-  *
-  * G (8) is aliased and used as a PROT_NONE indicator for
-  * !present ptes.  We need to start storing swap entries above
-  * there.  We also need to avoid using A and D because of an
-  * erratum where they can be incorrectly set by hardware on
-  * non-present PTEs.
++ * Check if the page's nid is in qp->nmask.
 + *
-+ * SD (1) in swp entry is used to store soft dirty bit, which helps us
-+ * remember soft dirty over page migration
-+ *
-+ * Bit 7 in swp entry should be 0 because pmd_present checks not only P,
-+ * but also L and G.
++ * If MPOL_MF_INVERT is set in qp->flags, check if the nid is
++ * in the invert of qp->nmask.
++ */
++static inline bool queue_pages_required(struct page *page,
++					struct queue_pages *qp)
++{
++	int nid = page_to_nid(page);
++	unsigned long flags = qp->flags;
++
++	return node_isset(nid, *qp->nmask) == !(flags & MPOL_MF_INVERT);
++}
++
++/*
+  * Scan through pages checking if pages follow certain conditions,
+  * and move them to the pagelist if they do.
   */
- #define SWP_TYPE_FIRST_BIT (_PAGE_BIT_PROTNONE + 1)
- #define SWP_TYPE_BITS 5
-diff -puN arch/x86/include/asm/pgtable_types.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1 arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -99,15 +99,15 @@
- /*
-  * Tracking soft dirty bit when a page goes to a swap is tricky.
-  * We need a bit which can be stored in pte _and_ not conflict
-- * with swap entry format. On x86 bits 6 and 7 are *not* involved
-- * into swap entry computation, but bit 6 is used for nonlinear
-- * file mapping, so we borrow bit 7 for soft dirty tracking.
-+ * with swap entry format. On x86 bits 1-4 are *not* involved
-+ * into swap entry computation, but bit 7 is used for thp migration,
-+ * so we borrow bit 1 for soft dirty tracking.
-  *
-  * Please note that this bit must be treated as swap dirty page
-- * mark if and only if the PTE has present bit clear!
-+ * mark if and only if the PTE/PMD has present bit clear!
-  */
- #ifdef CONFIG_MEM_SOFT_DIRTY
--#define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
-+#define _PAGE_SWP_SOFT_DIRTY	_PAGE_RW
- #else
- #define _PAGE_SWP_SOFT_DIRTY	(_AT(pteval_t, 0))
- #endif
+@@ -464,8 +479,7 @@ retry:
+ 		 */
+ 		if (PageReserved(page))
+ 			continue;
+-		nid = page_to_nid(page);
+-		if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
++		if (!queue_pages_required(page, qp))
+ 			continue;
+ 		if (PageTransCompound(page)) {
+ 			get_page(page);
+@@ -497,7 +511,6 @@ static int queue_pages_hugetlb(pte_t *pt
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	struct queue_pages *qp = walk->private;
+ 	unsigned long flags = qp->flags;
+-	int nid;
+ 	struct page *page;
+ 	spinlock_t *ptl;
+ 	pte_t entry;
+@@ -507,8 +520,7 @@ static int queue_pages_hugetlb(pte_t *pt
+ 	if (!pte_present(entry))
+ 		goto unlock;
+ 	page = pte_page(entry);
+-	nid = page_to_nid(page);
+-	if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
++	if (!queue_pages_required(page, qp))
+ 		goto unlock;
+ 	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
+ 	if (flags & (MPOL_MF_MOVE_ALL) ||
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
