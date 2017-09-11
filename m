@@ -1,77 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch removed from
+Subject: [merged] mem-memcg-cache-rightmost-node.patch removed from
  -mm tree
-Date: Mon, 11 Sep 2017 12:42:16 -0700
-Message-ID: <20170911194216.wJXZj-Ol5%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:42:10 -0700
+Message-ID: <20170911194210.BQDdrXRM8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751079AbdIKTmR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:17 -0400
+        with ESMTP id S1751022AbdIKTmL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: lib/hexdump.c: return -EINVAL in case of error in hex2bin()
+     Subject: mem/memcg: cache rightmost node
 has been removed from the -mm tree.  Its filename was
-     lib-hexdump-return-einval-in-case-of-error-in-hex2bin.patch
+     mem-memcg-cache-rightmost-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/hexdump.c: return -EINVAL in case of error in hex2bin()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mem/memcg: cache rightmost node
 
-In some cases caller would like to use error code directly without
-shadowing.
+Such that we can optimize __mem_cgroup_largest_soft_limit_node().  The
+only overhead is the extra footprint for the cached pointer, but this
+should not be an issue for mem_cgroup_tree_per_node.
 
--EINVAL feels a rightful code to return in case of error in hex2bin().
-
-Link: http://lkml.kernel.org/r/20170731135510.68023-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+[dave@stgolabs.net: brain fart #2]
+  Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
+Link: http://lkml.kernel.org/r/20170719014603.19029-17-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN lib/hexdump.c~lib-hexdump-return-einval-in-case-of-error-in-hex2bin lib/hexdump.c
---- a/lib/hexdump.c~lib-hexdump-return-einval-in-case-of-error-in-hex2bin
-+++ a/lib/hexdump.c
-@@ -9,6 +9,7 @@
+diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node mm/memcontrol.c
+--- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node
++++ a/mm/memcontrol.c
+@@ -119,6 +119,7 @@ static const char *const mem_cgroup_lru_
  
- #include <linux/types.h>
- #include <linux/ctype.h>
-+#include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/export.h>
- #include <asm/unaligned.h>
-@@ -42,7 +43,7 @@ EXPORT_SYMBOL(hex_to_bin);
-  * @src: ascii hexadecimal string
-  * @count: result length
-  *
-- * Return 0 on success, -1 in case of bad input.
-+ * Return 0 on success, -EINVAL in case of bad input.
-  */
- int hex2bin(u8 *dst, const char *src, size_t count)
+ struct mem_cgroup_tree_per_node {
+ 	struct rb_root rb_root;
++	struct rb_node *rb_rightmost;
+ 	spinlock_t lock;
+ };
+ 
+@@ -386,6 +387,7 @@ static void __mem_cgroup_insert_exceeded
+ 	struct rb_node **p = &mctz->rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct mem_cgroup_per_node *mz_node;
++	bool rightmost = true;
+ 
+ 	if (mz->on_tree)
+ 		return;
+@@ -397,8 +399,11 @@ static void __mem_cgroup_insert_exceeded
+ 		parent = *p;
+ 		mz_node = rb_entry(parent, struct mem_cgroup_per_node,
+ 					tree_node);
+-		if (mz->usage_in_excess < mz_node->usage_in_excess)
++		if (mz->usage_in_excess < mz_node->usage_in_excess) {
+ 			p = &(*p)->rb_left;
++			rightmost = false;
++		}
++
+ 		/*
+ 		 * We can't avoid mem cgroups that are over their soft
+ 		 * limit by the same amount
+@@ -406,6 +411,10 @@ static void __mem_cgroup_insert_exceeded
+ 		else if (mz->usage_in_excess >= mz_node->usage_in_excess)
+ 			p = &(*p)->rb_right;
+ 	}
++
++	if (rightmost)
++		mctz->rb_rightmost = &mz->tree_node;
++
+ 	rb_link_node(&mz->tree_node, parent, p);
+ 	rb_insert_color(&mz->tree_node, &mctz->rb_root);
+ 	mz->on_tree = true;
+@@ -416,6 +425,10 @@ static void __mem_cgroup_remove_exceeded
  {
-@@ -51,7 +52,7 @@ int hex2bin(u8 *dst, const char *src, si
- 		int lo = hex_to_bin(*src++);
+ 	if (!mz->on_tree)
+ 		return;
++
++	if (&mz->tree_node == mctz->rb_rightmost)
++		mctz->rb_rightmost = rb_prev(&mz->tree_node);
++
+ 	rb_erase(&mz->tree_node, &mctz->rb_root);
+ 	mz->on_tree = false;
+ }
+@@ -496,16 +509,15 @@ static void mem_cgroup_remove_from_trees
+ static struct mem_cgroup_per_node *
+ __mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_node *mctz)
+ {
+-	struct rb_node *rightmost = NULL;
+ 	struct mem_cgroup_per_node *mz;
  
- 		if ((hi < 0) || (lo < 0))
--			return -1;
-+			return -EINVAL;
+ retry:
+ 	mz = NULL;
+-	rightmost = rb_last(&mctz->rb_root);
+-	if (!rightmost)
++	if (!mctz->rb_rightmost)
+ 		goto done;		/* Nothing to reclaim from */
  
- 		*dst++ = (hi << 4) | lo;
+-	mz = rb_entry(rightmost, struct mem_cgroup_per_node, tree_node);
++	mz = rb_entry(mctz->rb_rightmost,
++		      struct mem_cgroup_per_node, tree_node);
+ 	/*
+ 	 * Remove the node now but someone else can add it back,
+ 	 * we will to add it back at the end of reclaim to its correct
+@@ -5945,6 +5957,7 @@ static int __init mem_cgroup_init(void)
+ 				    node_online(node) ? node : NUMA_NO_NODE);
+ 
+ 		rtpn->rb_root = RB_ROOT;
++		rtpn->rb_rightmost = NULL;
+ 		spin_lock_init(&rtpn->lock);
+ 		soft_limit_tree.rb_tree_per_node[node] = rtpn;
  	}
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
