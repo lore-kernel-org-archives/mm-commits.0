@@ -1,167 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-epoll-use-faster-rb_first_cached.patch removed
- from -mm tree
-Date: Mon, 11 Sep 2017 12:42:07 -0700
-Message-ID: <20170911194207.yW0WFmPnt%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-rename-variables-to-avoid-confusion.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:42:49 -0700
+Message-ID: <20170911194249.vTuW9UnFo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50330 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751022AbdIKTmI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:08 -0400
+        with ESMTP id S1751110AbdIKTmu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org
+To: jdelvare@suse.de, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/epoll: use faster rb_first_cached()
+     Subject: checkpatch: rename variables to avoid confusion
 has been removed from the -mm tree.  Its filename was
-     fs-epoll-use-faster-rb_first_cached.patch
+     checkpatch-rename-variables-to-avoid-confusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: fs/epoll: use faster rb_first_cached()
+From: Jean Delvare <jdelvare@suse.de>
+Subject: checkpatch: rename variables to avoid confusion
 
-...  such that we can avoid the tree walks to get the node with the
-smallest key.  Semantically the same, as the previously used rb_first(),
-but O(1).  The main overhead is the extra footprint for the cached rb_node
-pointer, which should not matter for epoll.
+The variable name "$msg_type" is sometimes used to set the message type,
+and sometimes used to set the message level.  This works but is kind of
+confusing.  Use "$msg_level" in the latter case instead, to make the code
+clearer.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-15-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20170902175345.175db33a@endymion
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ scripts/checkpatch.pl |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached fs/eventpoll.c
---- a/fs/eventpoll.c~fs-epoll-use-faster-rb_first_cached
-+++ a/fs/eventpoll.c
-@@ -205,7 +205,7 @@ struct eventpoll {
- 	struct list_head rdllist;
+diff -puN scripts/checkpatch.pl~checkpatch-rename-variables-to-avoid-confusion scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-rename-variables-to-avoid-confusion
++++ a/scripts/checkpatch.pl
+@@ -2715,10 +2715,10 @@ sub process {
+ 				my $typo_fix = $spelling_fix{lc($typo)};
+ 				$typo_fix = ucfirst($typo_fix) if ($typo =~ /^[A-Z]/);
+ 				$typo_fix = uc($typo_fix) if ($typo =~ /^[A-Z]+$/);
+-				my $msg_type = \&WARN;
+-				$msg_type = \&CHK if ($file);
+-				if (&{$msg_type}("TYPO_SPELLING",
+-						 "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $herecurr) &&
++				my $msg_level = \&WARN;
++				$msg_level = \&CHK if ($file);
++				if (&{$msg_level}("TYPO_SPELLING",
++						  "'$typo' may be misspelled - perhaps '$typo_fix'?\n" . $herecurr) &&
+ 				    $fix) {
+ 					$fixed[$fixlinenr] =~ s/(^|[^A-Za-z@])($typo)($|[^A-Za-z@])/$1$typo_fix$3/;
+ 				}
+@@ -2753,10 +2753,10 @@ sub process {
+ 		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
+ 		    $rawline =~ /\b51\s+Franklin\s+St/i) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+-			my $msg_type = \&ERROR;
+-			$msg_type = \&CHK if ($file);
+-			&{$msg_type}("FSF_MAILING_ADDRESS",
+-				     "Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
++			my $msg_level = \&ERROR;
++			$msg_level = \&CHK if ($file);
++			&{$msg_level}("FSF_MAILING_ADDRESS",
++				      "Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
+ 		}
  
- 	/* RB tree root used to store monitored fd structs */
--	struct rb_root rbr;
-+	struct rb_root_cached rbr;
+ # check for Kconfig help text having a real description
+@@ -3810,10 +3810,10 @@ sub process {
  
- 	/*
- 	 * This is a single linked list that chains all the "struct epitem" that
-@@ -796,7 +796,7 @@ static int ep_remove(struct eventpoll *e
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&file->f_lock);
+ # avoid BUG() or BUG_ON()
+ 		if ($line =~ /\b(?:BUG|BUG_ON)\b/) {
+-			my $msg_type = \&WARN;
+-			$msg_type = \&CHK if ($file);
+-			&{$msg_type}("AVOID_BUG",
+-				     "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
++			my $msg_level = \&WARN;
++			$msg_level = \&CHK if ($file);
++			&{$msg_level}("AVOID_BUG",
++				      "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
+ 		}
  
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
+ # avoid LINUX_VERSION_CODE
+@@ -4339,11 +4339,11 @@ sub process {
  
- 	spin_lock_irqsave(&ep->lock, flags);
- 	if (ep_is_linked(&epi->rdllink))
-@@ -840,7 +840,7 @@ static void ep_free(struct eventpoll *ep
- 	/*
- 	 * Walks through the whole tree by unregistering poll callbacks.
- 	 */
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
+ 					# messages are ERROR, but ?: are CHK
+ 					if ($ok == 0) {
+-						my $msg_type = \&ERROR;
+-						$msg_type = \&CHK if (($op eq '?:' || $op eq '?' || $op eq ':') && $ctx =~ /VxV/);
++						my $msg_level = \&ERROR;
++						$msg_level = \&CHK if (($op eq '?:' || $op eq '?' || $op eq ':') && $ctx =~ /VxV/);
  
- 		ep_unregister_pollwait(ep, epi);
-@@ -856,7 +856,7 @@ static void ep_free(struct eventpoll *ep
- 	 * a lockdep warning.
- 	 */
- 	mutex_lock(&ep->mtx);
--	while ((rbp = rb_first(&ep->rbr)) != NULL) {
-+	while ((rbp = rb_first_cached(&ep->rbr)) != NULL) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		ep_remove(ep, epi);
- 		cond_resched();
-@@ -963,7 +963,7 @@ static void ep_show_fdinfo(struct seq_fi
- 	struct rb_node *rbp;
- 
- 	mutex_lock(&ep->mtx);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
- 		struct inode *inode = file_inode(epi->ffd.file);
- 
-@@ -1040,7 +1040,7 @@ static int ep_alloc(struct eventpoll **p
- 	init_waitqueue_head(&ep->wq);
- 	init_waitqueue_head(&ep->poll_wait);
- 	INIT_LIST_HEAD(&ep->rdllist);
--	ep->rbr = RB_ROOT;
-+	ep->rbr = RB_ROOT_CACHED;
- 	ep->ovflist = EP_UNACTIVE_PTR;
- 	ep->user = user;
- 
-@@ -1066,7 +1066,7 @@ static struct epitem *ep_find(struct eve
- 	struct epoll_filefd ffd;
- 
- 	ep_set_ffd(&ffd, file, fd);
--	for (rbp = ep->rbr.rb_node; rbp; ) {
-+	for (rbp = ep->rbr.rb_root.rb_node; rbp; ) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&ffd, &epi->ffd);
- 		if (kcmp > 0)
-@@ -1088,7 +1088,7 @@ static struct epitem *ep_find_tfd(struct
- 	struct rb_node *rbp;
- 	struct epitem *epi;
- 
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (epi->ffd.fd == tfd) {
- 			if (toff == 0)
-@@ -1273,20 +1273,22 @@ static void ep_ptable_queue_proc(struct
- static void ep_rbtree_insert(struct eventpoll *ep, struct epitem *epi)
- {
- 	int kcmp;
--	struct rb_node **p = &ep->rbr.rb_node, *parent = NULL;
-+	struct rb_node **p = &ep->rbr.rb_root.rb_node, *parent = NULL;
- 	struct epitem *epic;
-+	bool leftmost = true;
- 
- 	while (*p) {
- 		parent = *p;
- 		epic = rb_entry(parent, struct epitem, rbn);
- 		kcmp = ep_cmp_ffd(&epi->ffd, &epic->ffd);
--		if (kcmp > 0)
-+		if (kcmp > 0) {
- 			p = &parent->rb_right;
--		else
-+			leftmost = false;
-+		} else
- 			p = &parent->rb_left;
- 	}
- 	rb_link_node(&epi->rbn, parent, p);
--	rb_insert_color(&epi->rbn, &ep->rbr);
-+	rb_insert_color_cached(&epi->rbn, &ep->rbr, leftmost);
- }
- 
- 
-@@ -1530,7 +1532,7 @@ error_remove_epi:
- 	list_del_rcu(&epi->fllink);
- 	spin_unlock(&tfile->f_lock);
- 
--	rb_erase(&epi->rbn, &ep->rbr);
-+	rb_erase_cached(&epi->rbn, &ep->rbr);
- 
- error_unregister:
- 	ep_unregister_pollwait(ep, epi);
-@@ -1878,7 +1880,7 @@ static int ep_loop_check_proc(void *priv
- 	mutex_lock_nested(&ep->mtx, call_nests + 1);
- 	ep->visited = 1;
- 	list_add(&ep->visited_list_link, &visited_list);
--	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (unlikely(is_file_epoll(epi->ffd.file))) {
- 			ep_tovisit = epi->ffd.file->private_data;
+-						if (&{$msg_type}("SPACING",
+-								 "spaces required around that '$op' $at\n" . $hereptr)) {
++						if (&{$msg_level}("SPACING",
++								  "spaces required around that '$op' $at\n" . $hereptr)) {
+ 							$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
+ 							if (defined $fix_elements[$n + 2]) {
+ 								$fix_elements[$n + 2] =~ s/^\s+//;
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
 
