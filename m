@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- autofs-non-functional-header-inclusion-cleanup.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:43:16 -0700
-Message-ID: <20170911194316.BDH12-ixO%akpm@linux-foundation.org>
+ autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:43:10 -0700
+Message-ID: <20170911194310.Z6qCp6Xfi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50432 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTnR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:17 -0400
+        with ESMTP id S1751028AbdIKTnL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, raven@themaw.net, tkusumi@tuxera.com
+To: dhowells@redhat.com, mm-commits@vger.kernel.org, oholy@redhat.com, raven@themaw.net, walters@redhat.com
 
 
 The patch titled
-     Subject: autofs: non functional header inclusion cleanup
+     Subject: autofs: make dev ioctl version and ismountpoint user accessible
 has been removed from the -mm tree.  Its filename was
-     autofs-non-functional-header-inclusion-cleanup.patch
+     autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: non functional header inclusion cleanup
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: make dev ioctl version and ismountpoint user accessible
 
-Having header includes before any macro (without any dependency) simply
-looks normal.  No reason to have these macros in between.
+Some of the autofs miscellaneous device ioctls need to be accessable to
+user space applications without CAP_SYS_ADMIN to get information about
+autofs mounts.
 
-Link: http://lkml.kernel.org/r/150285068011.4670.10271483982093996996.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
+Link: http://lkml.kernel.org/r/150216642517.11652.2338933266137331637.stgit@pluto.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Colin Walters <walters@redhat.com>
+Cc: Ondrej Holy <oholy@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/autofs4/dev-ioctl.c              |   12 ++++++++----
+ include/uapi/linux/auto_dev-ioctl.h |    2 +-
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs-non-functional-header-inclusion-cleanup fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs-non-functional-header-inclusion-cleanup
-+++ a/fs/autofs4/autofs_i.h
-@@ -11,10 +11,21 @@
+diff -puN fs/autofs4/dev-ioctl.c~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible
++++ a/fs/autofs4/dev-ioctl.c
+@@ -628,10 +628,6 @@ static int _autofs_dev_ioctl(unsigned in
+ 	ioctl_fn fn = NULL;
+ 	int err = 0;
  
- #include <linux/auto_fs4.h>
- #include <linux/auto_dev-ioctl.h>
+-	/* only root can play with this */
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+ 	cmd_first = _IOC_NR(AUTOFS_DEV_IOCTL_IOC_FIRST);
+ 	cmd = _IOC_NR(command);
+ 
+@@ -640,6 +636,14 @@ static int _autofs_dev_ioctl(unsigned in
+ 		return -ENOTTY;
+ 	}
+ 
++	/* Only root can use ioctls other than AUTOFS_DEV_IOCTL_VERSION_CMD
++	 * and AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD
++	 */
++	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
++	    cmd != AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD &&
++	    !capable(CAP_SYS_ADMIN))
++		return -EPERM;
 +
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/time.h>
-+#include <linux/string.h>
-+#include <linux/wait.h>
-+#include <linux/sched.h>
-+#include <linux/mount.h>
-+#include <linux/namei.h>
-+#include <linux/uaccess.h>
- #include <linux/mutex.h>
- #include <linux/spinlock.h>
- #include <linux/list.h>
- #include <linux/completion.h>
-+#include <asm/current.h>
+ 	/* Copy the parameters into kernel space. */
+ 	param = copy_dev_ioctl(user);
+ 	if (IS_ERR(param))
+diff -puN include/uapi/linux/auto_dev-ioctl.h~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible include/uapi/linux/auto_dev-ioctl.h
+--- a/include/uapi/linux/auto_dev-ioctl.h~autofs-make-dev-ioctl-version-and-ismountpoint-user-accessible
++++ a/include/uapi/linux/auto_dev-ioctl.h
+@@ -16,7 +16,7 @@
+ #define AUTOFS_DEVICE_NAME		"autofs"
  
- /* This is the range of ioctl() numbers we claim as ours */
- #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
-@@ -24,17 +35,6 @@
- #define AUTOFS_DEV_IOCTL_IOC_COUNT \
- 	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
+ #define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
+-#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
++#define AUTOFS_DEV_IOCTL_VERSION_MINOR	1
  
--#include <linux/kernel.h>
--#include <linux/slab.h>
--#include <linux/time.h>
--#include <linux/string.h>
--#include <linux/wait.h>
--#include <linux/sched.h>
--#include <linux/mount.h>
--#include <linux/namei.h>
--#include <asm/current.h>
--#include <linux/uaccess.h>
+ #define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
+ 
+_
+
+Patches currently in -mm which might be from raven@themaw.net are
+
+
