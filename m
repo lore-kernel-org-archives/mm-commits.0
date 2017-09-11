@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-migrate-move_pages-supports-thp-migration.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:38:35 -0700
-Message-ID: <20170911193835.Xo0LwzV8N%akpm@linux-foundation.org>
+ mm-memory_hotplug-memory-hotremove-supports-thp-migration.patch removed
+ from -mm tree
+Date: Mon, 11 Sep 2017 12:38:38 -0700
+Message-ID: <20170911193838.IajMGHfYd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTig (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:36 -0400
+        with ESMTP id S1751110AbdIKTij (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: mm: migrate: move_pages() supports thp migration
+     Subject: mm: memory_hotplug: memory hotremove supports thp migration
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-move_pages-supports-thp-migration.patch
+     mm-memory_hotplug-memory-hotremove-supports-thp-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: migrate: move_pages() supports thp migration
+Subject: mm: memory_hotplug: memory hotremove supports thp migration
 
-This patch enables thp migration for move_pages(2).
+This patch enables thp migration for memory hotremove.
 
-Link: http://lkml.kernel.org/r/20170717193955.20207-10-zi.yan@sent.com
+Link: http://lkml.kernel.org/r/20170717193955.20207-11-zi.yan@sent.com
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -45,111 +46,57 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   45 ++++++++++++++++++++++++++++++++-------------
- 1 file changed, 32 insertions(+), 13 deletions(-)
+ include/linux/migrate.h |   15 ++++++++++++++-
+ mm/memory_hotplug.c     |    4 +++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-move_pages-supports-thp-migration mm/migrate.c
---- a/mm/migrate.c~mm-migrate-move_pages-supports-thp-migration
-+++ a/mm/migrate.c
-@@ -185,8 +185,8 @@ void putback_movable_pages(struct list_h
- 			unlock_page(page);
- 			put_page(page);
- 		} else {
--			dec_node_page_state(page, NR_ISOLATED_ANON +
--					page_is_file_cache(page));
-+			mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON +
-+					page_is_file_cache(page), -hpage_nr_pages(page));
- 			putback_lru_page(page);
- 		}
- 	}
-@@ -1146,8 +1146,8 @@ out:
- 		 * as __PageMovable
- 		 */
- 		if (likely(!__PageMovable(page)))
--			dec_node_page_state(page, NR_ISOLATED_ANON +
--					page_is_file_cache(page));
-+			mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON +
-+					page_is_file_cache(page), -hpage_nr_pages(page));
- 	}
+diff -puN include/linux/migrate.h~mm-memory_hotplug-memory-hotremove-supports-thp-migration include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-memory_hotplug-memory-hotremove-supports-thp-migration
++++ a/include/linux/migrate.h
+@@ -35,15 +35,28 @@ static inline struct page *new_page_node
+ 				int preferred_nid, nodemask_t *nodemask)
+ {
+ 	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
++	unsigned int order = 0;
++	struct page *new_page = NULL;
  
- 	/*
-@@ -1421,7 +1421,17 @@ static struct page *new_page_node(struct
- 	if (PageHuge(p))
- 		return alloc_huge_page_node(page_hstate(compound_head(p)),
- 					pm->node);
--	else
-+	else if (thp_migration_supported() && PageTransHuge(p)) {
-+		struct page *thp;
+ 	if (PageHuge(page))
+ 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
+ 				preferred_nid, nodemask);
+ 
++	if (thp_migration_supported() && PageTransHuge(page)) {
++		order = HPAGE_PMD_ORDER;
++		gfp_mask |= GFP_TRANSHUGE;
++	}
 +
-+		thp = alloc_pages_node(pm->node,
-+			(GFP_TRANSHUGE | __GFP_THISNODE) & ~__GFP_RECLAIM,
-+			HPAGE_PMD_ORDER);
-+		if (!thp)
-+			return NULL;
-+		prep_transhuge_page(thp);
-+		return thp;
-+	} else
- 		return __alloc_pages_node(pm->node,
- 				GFP_HIGHUSER_MOVABLE | __GFP_THISNODE, 0);
+ 	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
+ 
+-	return __alloc_pages_nodemask(gfp_mask, 0, preferred_nid, nodemask);
++	new_page = __alloc_pages_nodemask(gfp_mask, order,
++				preferred_nid, nodemask);
++
++	if (new_page && PageTransHuge(page))
++		prep_transhuge_page(new_page);
++
++	return new_page;
  }
-@@ -1448,6 +1458,8 @@ static int do_move_page_to_node_array(st
- 	for (pp = pm; pp->node != MAX_NUMNODES; pp++) {
- 		struct vm_area_struct *vma;
- 		struct page *page;
-+		struct page *head;
-+		unsigned int follflags;
  
- 		err = -EFAULT;
- 		vma = find_vma(mm, pp->addr);
-@@ -1455,8 +1467,10 @@ static int do_move_page_to_node_array(st
- 			goto set_status;
+ #ifdef CONFIG_MIGRATION
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-memory-hotremove-supports-thp-migration mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-memory-hotremove-supports-thp-migration
++++ a/mm/memory_hotplug.c
+@@ -1380,7 +1380,9 @@ do_migrate_range(unsigned long start_pfn
+ 			if (isolate_huge_page(page, &source))
+ 				move_pages -= 1 << compound_order(head);
+ 			continue;
+-		}
++		} else if (thp_migration_supported() && PageTransHuge(page))
++			pfn = page_to_pfn(compound_head(page))
++				+ hpage_nr_pages(page) - 1;
  
- 		/* FOLL_DUMP to ignore special (like zero) pages */
--		page = follow_page(vma, pp->addr,
--				FOLL_GET | FOLL_SPLIT | FOLL_DUMP);
-+		follflags = FOLL_GET | FOLL_DUMP;
-+		if (!thp_migration_supported())
-+			follflags |= FOLL_SPLIT;
-+		page = follow_page(vma, pp->addr, follflags);
- 
- 		err = PTR_ERR(page);
- 		if (IS_ERR(page))
-@@ -1466,7 +1480,6 @@ static int do_move_page_to_node_array(st
- 		if (!page)
- 			goto set_status;
- 
--		pp->page = page;
- 		err = page_to_nid(page);
- 
- 		if (err == pp->node)
-@@ -1481,16 +1494,22 @@ static int do_move_page_to_node_array(st
- 			goto put_and_set;
- 
- 		if (PageHuge(page)) {
--			if (PageHead(page))
-+			if (PageHead(page)) {
- 				isolate_huge_page(page, &pagelist);
-+				err = 0;
-+				pp->page = page;
-+			}
- 			goto put_and_set;
- 		}
- 
--		err = isolate_lru_page(page);
-+		pp->page = compound_head(page);
-+		head = compound_head(page);
-+		err = isolate_lru_page(head);
- 		if (!err) {
--			list_add_tail(&page->lru, &pagelist);
--			inc_node_page_state(page, NR_ISOLATED_ANON +
--					    page_is_file_cache(page));
-+			list_add_tail(&head->lru, &pagelist);
-+			mod_node_page_state(page_pgdat(head),
-+				NR_ISOLATED_ANON + page_is_file_cache(head),
-+				hpage_nr_pages(head));
- 		}
- put_and_set:
- 		/*
+ 		if (!get_page_unless_zero(page))
+ 			continue;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
