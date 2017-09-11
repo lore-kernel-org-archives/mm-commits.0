@@ -1,567 +1,300 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:39:34 -0700
-Message-ID: <20170911193934.nymBM0Dwg%akpm@linux-foundation.org>
+ mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch removed from
+ -mm tree
+Date: Mon, 11 Sep 2017 12:39:40 -0700
+Message-ID: <20170911193940.f-V_nCk5K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49168 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751022AbdIKTjg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:36 -0400
+        with ESMTP id S1751076AbdIKTjl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
+To: arnd@arndb.de, dan.j.williams@intel.com, jglisse@redhat.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm/device-public-memory: device memory cache coherent with CPU
+     Subject: mm/hmm: avoid bloating arch that do not make use of HMM
 has been removed from the -mm tree.  Its filename was
-     mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5.patch
+     mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/device-public-memory: device memory cache coherent with CPU
+Subject: mm/hmm: avoid bloating arch that do not make use of HMM
 
-Platform with advance system bus (like CAPI or CCIX) allow device memory
-to be accessible from CPU in a cache coherent fashion.  Add a new type of
-ZONE_DEVICE to represent such memory.  The use case are the same as for
-the un-addressable device memory but without all the corners cases.
+This moves all new code including new page migration helper behind kernel
+Kconfig option so that there is no codee bloat for arch or user that do
+not want to use HMM or any of its associated features.
 
-Link: http://lkml.kernel.org/r/20170817000548.32038-19-jglisse@redhat.com
+arm allyesconfig (without all the patchset, then with and this patch):
+   text	   data	    bss	    dec	    hex	filename
+83721896	46511131	27582964	157815991	96814b7	../without/vmlinux
+83722364	46511131	27582964	157816459	968168b	vmlinux
+
+[jglisse@redhat.com: struct hmm is only use by HMM mirror functionality]
+  Link: http://lkml.kernel.org/r/20170825213133.27286-1-jglisse@redhat.com
+[sfr@canb.auug.org.au: fix build (arm multi_v7_defconfig)]
+  Link: http://lkml.kernel.org/r/20170828181849.323ab81b@canb.auug.org.au
+Link: http://lkml.kernel.org/r/20170818032858.7447-1-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Nellans <dnellans@nvidia.com>
-Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mark Hairgrove <mhairgrove@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sherry Cheung <SCheung@nvidia.com>
-Cc: Subhash Gutti <sgutti@nvidia.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Bob Liu <liubo95@huawei.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c       |    2 -
- include/linux/hmm.h      |    4 +-
- include/linux/ioport.h   |    1 
- include/linux/memremap.h |   21 ++++++++++++++
- include/linux/mm.h       |   20 ++++++++-----
- kernel/memremap.c        |    8 ++---
- mm/Kconfig               |   11 +++++++
- mm/gup.c                 |    7 ++++
- mm/hmm.c                 |    4 +-
- mm/madvise.c             |    2 -
- mm/memcontrol.c          |   12 ++++----
- mm/memory.c              |   46 +++++++++++++++++++++++++++---
- mm/migrate.c             |   55 ++++++++++++++++++++++++-------------
- mm/swap.c                |   11 +++++++
- 14 files changed, 158 insertions(+), 46 deletions(-)
+ include/linux/hmm.h      |    9 ++++++---
+ include/linux/memremap.h |   22 +++++++---------------
+ include/linux/migrate.h  |   13 +++++++++++++
+ include/linux/mm.h       |   26 +++++++++++++++++---------
+ mm/Kconfig               |    4 ++++
+ mm/Makefile              |    3 ++-
+ mm/hmm.c                 |    7 +++----
+ mm/migrate.c             |    2 ++
+ 8 files changed, 54 insertions(+), 32 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/fs/proc/task_mmu.c
-@@ -1267,7 +1267,7 @@ static pagemap_entry_t pte_to_pagemap_en
- 		if (pm->show_pfn)
- 			frame = pte_pfn(pte);
- 		flags |= PM_PRESENT;
--		page = vm_normal_page(vma, addr, pte);
-+		page = _vm_normal_page(vma, addr, pte, true);
- 		if (pte_soft_dirty(pte))
- 			flags |= PM_SOFT_DIRTY;
- 	} else if (is_swap_pte(pte)) {
-diff -puN include/linux/hmm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/hmm.h
---- a/include/linux/hmm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
+diff -puN include/linux/hmm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/hmm.h
+--- a/include/linux/hmm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
 +++ a/include/linux/hmm.h
-@@ -327,7 +327,7 @@ int hmm_vma_fault(struct vm_area_struct
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
- 
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
- struct hmm_devmem;
- 
- struct page *hmm_vma_alloc_locked_page(struct vm_area_struct *vma,
-@@ -494,7 +494,7 @@ struct hmm_device {
-  */
- struct hmm_device *hmm_device_new(void *drvdata);
- void hmm_device_put(struct hmm_device *hmm_device);
--#endif /* IS_ENABLED(CONFIG_DEVICE_PRIVATE) */
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+@@ -501,18 +501,21 @@ void hmm_device_put(struct hmm_device *h
  
  
  /* Below are for HMM internal use only! Not to be used by device driver! */
-diff -puN include/linux/ioport.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/ioport.h
---- a/include/linux/ioport.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/ioport.h
-@@ -131,6 +131,7 @@ enum {
- 	IORES_DESC_PERSISTENT_MEMORY		= 4,
- 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
- 	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
-+	IORES_DESC_DEVICE_PUBLIC_MEMORY		= 7,
- };
++#if IS_ENABLED(CONFIG_HMM_MIRROR)
+ void hmm_mm_destroy(struct mm_struct *mm);
  
- /* helpers to define resources */
-diff -puN include/linux/memremap.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/memremap.h
---- a/include/linux/memremap.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/memremap.h
-@@ -57,10 +57,18 @@ static inline struct vmem_altmap *to_vme
-  *
-  * A more complete discussion of unaddressable memory may be found in
-  * include/linux/hmm.h and Documentation/vm/hmm.txt.
-+ *
-+ * MEMORY_DEVICE_PUBLIC:
-+ * Device memory that is cache coherent from device and CPU point of view. This
-+ * is use on platform that have an advance system bus (like CAPI or CCIX). A
-+ * driver can hotplug the device memory using ZONE_DEVICE and with that memory
-+ * type. Any page of a process can be migrated to such memory. However no one
-+ * should be allow to pin such memory so that it can always be evicted.
-  */
- enum memory_type {
- 	MEMORY_DEVICE_HOST = 0,
- 	MEMORY_DEVICE_PRIVATE,
-+	MEMORY_DEVICE_PUBLIC,
- };
- 
- /*
-@@ -92,6 +100,8 @@ enum memory_type {
-  * The page_free() callback is called once the page refcount reaches 1
-  * (ZONE_DEVICE pages never reach 0 refcount unless there is a refcount bug.
-  * This allows the device driver to implement its own memory management.)
-+ *
-+ * For MEMORY_DEVICE_PUBLIC only the page_free() callback matter.
-  */
- typedef int (*dev_page_fault_t)(struct vm_area_struct *vma,
- 				unsigned long addr,
-@@ -134,6 +144,12 @@ static inline bool is_device_private_pag
- 	return is_zone_device_page(page) &&
- 		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+ static inline void hmm_mm_init(struct mm_struct *mm)
+ {
+ 	mm->hmm = NULL;
  }
-+
-+static inline bool is_device_public_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
-+}
++#else /* IS_ENABLED(CONFIG_HMM_MIRROR) */
++static inline void hmm_mm_destroy(struct mm_struct *mm) {}
++static inline void hmm_mm_init(struct mm_struct *mm) {}
++#endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+ 
+-#else /* IS_ENABLED(CONFIG_HMM) */
+ 
+-/* Below are for HMM internal use only! Not to be used by device driver! */
++#else /* IS_ENABLED(CONFIG_HMM) */
+ static inline void hmm_mm_destroy(struct mm_struct *mm) {}
+ static inline void hmm_mm_init(struct mm_struct *mm) {}
+-
+ #endif /* IS_ENABLED(CONFIG_HMM) */
+ #endif /* LINUX_HMM_H */
+diff -puN include/linux/memremap.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/include/linux/memremap.h
+@@ -138,18 +138,6 @@ void *devm_memremap_pages(struct device
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
+ 
+ static inline bool is_zone_device_page(const struct page *page);
+-
+-static inline bool is_device_private_page(const struct page *page)
+-{
+-	return is_zone_device_page(page) &&
+-		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+-}
+-
+-static inline bool is_device_public_page(const struct page *page)
+-{
+-	return is_zone_device_page(page) &&
+-		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+-}
  #else
  static inline void *devm_memremap_pages(struct device *dev,
  		struct resource *res, struct percpu_ref *ref,
-@@ -157,6 +173,11 @@ static inline bool is_device_private_pag
+@@ -168,17 +156,21 @@ static inline struct dev_pagemap *find_d
  {
- 	return false;
+ 	return NULL;
  }
-+
-+static inline bool is_device_public_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif
++#endif
  
- /**
-diff -puN include/linux/mm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 include/linux/mm.h
---- a/include/linux/mm.h~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/include/linux/mm.h
-@@ -800,15 +800,16 @@ static inline bool is_zone_device_page(c
- }
- #endif
- 
--#ifdef CONFIG_DEVICE_PRIVATE
--void put_zone_device_private_page(struct page *page);
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
-+void put_zone_device_private_or_public_page(struct page *page);
- #else
--static inline void put_zone_device_private_page(struct page *page)
-+static inline void put_zone_device_private_or_public_page(struct page *page)
++#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ static inline bool is_device_private_page(const struct page *page)
  {
+-	return false;
++	return is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+ }
+ 
+ static inline bool is_device_public_page(const struct page *page)
+ {
+-	return false;
++	return is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
  }
 -#endif
 +#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
  
- static inline bool is_device_private_page(const struct page *page);
-+static inline bool is_device_public_page(const struct page *page);
- 
- DECLARE_STATIC_KEY_FALSE(device_private_key);
- 
-@@ -834,8 +835,9 @@ static inline void put_page(struct page
- 	 * include/linux/memremap.h and HMM for details.
- 	 */
- 	if (static_branch_unlikely(&device_private_key) &&
--	    unlikely(is_device_private_page(page))) {
--		put_zone_device_private_page(page);
-+	    unlikely(is_device_private_page(page) ||
-+		     is_device_public_page(page))) {
-+		put_zone_device_private_or_public_page(page);
- 		return;
- 	}
- 
-@@ -1224,8 +1226,10 @@ struct zap_details {
- 	pgoff_t last_index;			/* Highest page->index to unmap */
+ /**
+  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
+diff -puN include/linux/migrate.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/include/linux/migrate.h
+@@ -265,6 +265,7 @@ struct migrate_vma_ops {
+ 				 void *private);
  };
  
--struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
--		pte_t pte);
-+struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t pte, bool with_public_device);
-+#define vm_normal_page(vma, addr, pte) _vm_normal_page(vma, addr, pte, false)
-+
- struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				pmd_t pmd);
++#if defined(CONFIG_MIGRATE_VMA_HELPER)
+ int migrate_vma(const struct migrate_vma_ops *ops,
+ 		struct vm_area_struct *vma,
+ 		unsigned long start,
+@@ -272,6 +273,18 @@ int migrate_vma(const struct migrate_vma
+ 		unsigned long *src,
+ 		unsigned long *dst,
+ 		void *private);
++#else
++static inline int migrate_vma(const struct migrate_vma_ops *ops,
++			      struct vm_area_struct *vma,
++			      unsigned long start,
++			      unsigned long end,
++			      unsigned long *src,
++			      unsigned long *dst,
++			      void *private)
++{
++	return -EINVAL;
++}
++#endif /* IS_ENABLED(CONFIG_MIGRATE_VMA_HELPER) */
  
-diff -puN kernel/memremap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 kernel/memremap.c
---- a/kernel/memremap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/kernel/memremap.c
-@@ -501,8 +501,8 @@ struct vmem_altmap *to_vmem_altmap(unsig
- #endif /* CONFIG_ZONE_DEVICE */
+ #endif /* CONFIG_MIGRATION */
  
- 
--#ifdef CONFIG_DEVICE_PRIVATE
--void put_zone_device_private_page(struct page *page)
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
-+void put_zone_device_private_or_public_page(struct page *page)
- {
- 	int count = page_ref_dec_return(page);
- 
-@@ -522,5 +522,5 @@ void put_zone_device_private_page(struct
- 	} else if (!count)
- 		__put_page(page);
+diff -puN include/linux/mm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm include/linux/mm.h
+--- a/include/linux/mm.h~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/include/linux/mm.h
+@@ -800,18 +800,27 @@ static inline bool is_zone_device_page(c
  }
--EXPORT_SYMBOL(put_zone_device_private_page);
--#endif /* CONFIG_DEVICE_PRIVATE */
-+EXPORT_SYMBOL(put_zone_device_private_or_public_page);
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
-diff -puN mm/Kconfig~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/Kconfig
---- a/mm/Kconfig~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/Kconfig
-@@ -720,12 +720,23 @@ config HMM_MIRROR
- config DEVICE_PRIVATE
- 	bool "Unaddressable device memory (GPU memory, ...)"
- 	depends on ARCH_HAS_HMM
-+	select HMM
- 
- 	help
- 	  Allows creation of struct pages to represent unaddressable device
- 	  memory; i.e., memory that is only accessible from the device (or
- 	  group of devices). You likely also want to select HMM_MIRROR.
- 
-+config DEVICE_PUBLIC
-+	bool "Addressable device memory (like GPU memory)"
-+	depends on ARCH_HAS_HMM
-+	select HMM
-+
-+	help
-+	  Allows creation of struct pages to represent addressable device
-+	  memory; i.e., memory that is accessible from both the device and
-+	  the CPU
-+
- config FRAME_VECTOR
- 	bool
- 
-diff -puN mm/gup.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/gup.c
---- a/mm/gup.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/gup.c
-@@ -456,6 +456,13 @@ static int get_gate_page(struct mm_struc
- 		if ((gup_flags & FOLL_DUMP) || !is_zero_pfn(pte_pfn(*pte)))
- 			goto unmap;
- 		*page = pte_page(*pte);
-+
-+		/*
-+		 * This should never happen (a device public page in the gate
-+		 * area).
-+		 */
-+		if (is_device_public_page(*page))
-+			goto unmap;
- 	}
- 	get_page(*page);
- out:
-diff -puN mm/hmm.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/hmm.c
---- a/mm/hmm.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/hmm.c
-@@ -737,7 +737,7 @@ EXPORT_SYMBOL(hmm_vma_fault);
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
- 
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
-+#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
- struct page *hmm_vma_alloc_locked_page(struct vm_area_struct *vma,
- 				       unsigned long addr)
- {
-@@ -1177,4 +1177,4 @@ static int __init hmm_init(void)
- }
- 
- device_initcall(hmm_init);
--#endif /* IS_ENABLED(CONFIG_DEVICE_PRIVATE) */
-+#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
-diff -puN mm/madvise.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/madvise.c
---- a/mm/madvise.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/madvise.c
-@@ -355,7 +355,7 @@ static int madvise_free_pte_range(pmd_t
- 			continue;
- 		}
- 
--		page = vm_normal_page(vma, addr, ptent);
-+		page = _vm_normal_page(vma, addr, ptent, true);
- 		if (!page)
- 			continue;
- 
-diff -puN mm/memcontrol.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/memcontrol.c
-@@ -4623,10 +4623,11 @@ out:
-  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
-  *     target for charge migration. if @target is not NULL, the entry is stored
-  *     in target->ent.
-- *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PRIVATE
-- *     (so ZONE_DEVICE page and thus not on the lru). For now we such page is
-- *     charge like a regular page would be as for all intent and purposes it is
-- *     just special memory taking the place of a regular page.
-+ *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PUBLIC
-+ *     or MEMORY_DEVICE_PRIVATE (so ZONE_DEVICE page and thus not on the lru).
-+ *     For now we such page is charge like a regular page would be as for all
-+ *     intent and purposes it is just special memory taking the place of a
-+ *     regular page.
-  *
-  *     See Documentations/vm/hmm.txt and include/linux/hmm.h
-  *
-@@ -4657,7 +4658,8 @@ static enum mc_target_type get_mctgt_typ
- 		 */
- 		if (page->mem_cgroup == mc.from) {
- 			ret = MC_TARGET_PAGE;
--			if (is_device_private_page(page))
-+			if (is_device_private_page(page) ||
-+			    is_device_public_page(page))
- 				ret = MC_TARGET_DEVICE;
- 			if (target)
- 				target->page = page;
-diff -puN mm/memory.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/memory.c
---- a/mm/memory.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/memory.c
-@@ -818,8 +818,8 @@ static void print_bad_pte(struct vm_area
- #else
- # define HAVE_PTE_SPECIAL 0
  #endif
--struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
--				pte_t pte)
-+struct page *_vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t pte, bool with_public_device)
+ 
+-#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
++#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ void put_zone_device_private_or_public_page(struct page *page);
+-#else
++DECLARE_STATIC_KEY_FALSE(device_private_key);
++#define IS_HMM_ENABLED static_branch_unlikely(&device_private_key)
++static inline bool is_device_private_page(const struct page *page);
++static inline bool is_device_public_page(const struct page *page);
++#else /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ static inline void put_zone_device_private_or_public_page(struct page *page)
  {
- 	unsigned long pfn = pte_pfn(pte);
+ }
++#define IS_HMM_ENABLED 0
++static inline bool is_device_private_page(const struct page *page)
++{
++	return false;
++}
++static inline bool is_device_public_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
  
-@@ -830,8 +830,31 @@ struct page *vm_normal_page(struct vm_ar
- 			return vma->vm_ops->find_special_page(vma, addr);
- 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 			return NULL;
--		if (!is_zero_pfn(pfn))
--			print_bad_pte(vma, addr, pte, NULL);
-+		if (is_zero_pfn(pfn))
-+			return NULL;
-+
-+		/*
-+		 * Device public pages are special pages (they are ZONE_DEVICE
-+		 * pages but different from persistent memory). They behave
-+		 * allmost like normal pages. The difference is that they are
-+		 * not on the lru and thus should never be involve with any-
-+		 * thing that involve lru manipulation (mlock, numa balancing,
-+		 * ...).
-+		 *
-+		 * This is why we still want to return NULL for such page from
-+		 * vm_normal_page() so that we do not have to special case all
-+		 * call site of vm_normal_page().
-+		 */
-+		if (likely(pfn < highest_memmap_pfn)) {
-+			struct page *page = pfn_to_page(pfn);
-+
-+			if (is_device_public_page(page)) {
-+				if (with_public_device)
-+					return page;
-+				return NULL;
-+			}
-+		}
-+		print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
- 	}
+-static inline bool is_device_private_page(const struct page *page);
+-static inline bool is_device_public_page(const struct page *page);
+-
+-DECLARE_STATIC_KEY_FALSE(device_private_key);
  
-@@ -1012,6 +1035,19 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		get_page(page);
- 		page_dup_rmap(page, false);
- 		rss[mm_counter(page)]++;
-+	} else if (pte_devmap(pte)) {
-+		page = pte_page(pte);
-+
-+		/*
-+		 * Cache coherent device memory behave like regular page and
-+		 * not like persistent memory page. For more informations see
-+		 * MEMORY_DEVICE_CACHE_COHERENT in memory_hotplug.h
-+		 */
-+		if (is_device_public_page(page)) {
-+			get_page(page);
-+			page_dup_rmap(page, false);
-+			rss[mm_counter(page)]++;
-+		}
- 	}
- 
- out_set_pte:
-@@ -1267,7 +1303,7 @@ again:
- 		if (pte_present(ptent)) {
- 			struct page *page;
- 
--			page = vm_normal_page(vma, addr, ptent);
-+			page = _vm_normal_page(vma, addr, ptent, true);
- 			if (unlikely(details) && page) {
- 				/*
- 				 * unmap_shared_mapping_pages() wants to
-diff -puN mm/migrate.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/migrate.c
---- a/mm/migrate.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/migrate.c
-@@ -36,6 +36,7 @@
- #include <linux/hugetlb.h>
- #include <linux/hugetlb_cgroup.h>
- #include <linux/gfp.h>
-+#include <linux/pfn_t.h>
- #include <linux/memremap.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/balloon_compaction.h>
-@@ -239,10 +240,14 @@ static bool remove_migration_pte(struct
- 		if (is_write_migration_entry(entry))
- 			pte = maybe_mkwrite(pte, vma);
- 
--		if (unlikely(is_zone_device_page(new)) &&
--		    is_device_private_page(new)) {
--			entry = make_device_private_entry(new, pte_write(pte));
--			pte = swp_entry_to_pte(entry);
-+		if (unlikely(is_zone_device_page(new))) {
-+			if (is_device_private_page(new)) {
-+				entry = make_device_private_entry(new, pte_write(pte));
-+				pte = swp_entry_to_pte(entry);
-+			} else if (is_device_public_page(new)) {
-+				pte = pte_mkdevmap(pte);
-+				flush_dcache_page(new);
-+			}
- 		} else
- 			flush_dcache_page(new);
- 
-@@ -437,12 +442,11 @@ int migrate_page_move_mapping(struct add
- 	void **pslot;
- 
- 	/*
--	 * ZONE_DEVICE pages have 1 refcount always held by their device
--	 *
--	 * Note that DAX memory will never reach that point as it does not have
--	 * the MEMORY_DEVICE_ALLOW_MIGRATE flag set (see memory_hotplug.h).
-+	 * Device public or private pages have an extra refcount as they are
-+	 * ZONE_DEVICE pages.
+ static inline void get_page(struct page *page)
+ {
+@@ -834,9 +843,8 @@ static inline void put_page(struct page
+ 	 * free and we need to inform the device driver through callback. See
+ 	 * include/linux/memremap.h and HMM for details.
  	 */
--	expected_count += is_zone_device_page(page);
-+	expected_count += is_device_private_page(page);
-+	expected_count += is_device_public_page(page);
+-	if (static_branch_unlikely(&device_private_key) &&
+-	    unlikely(is_device_private_page(page) ||
+-		     is_device_public_page(page))) {
++	if (IS_HMM_ENABLED && unlikely(is_device_private_page(page) ||
++	    unlikely(is_device_public_page(page)))) {
+ 		put_zone_device_private_or_public_page(page);
+ 		return;
+ 	}
+diff -puN mm/Kconfig~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/Kconfig
+--- a/mm/Kconfig~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/Kconfig
+@@ -702,8 +702,12 @@ config ARCH_HAS_HMM
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
  
- 	if (!mapping) {
- 		/* Anonymous page without mapping */
-@@ -2123,7 +2127,6 @@ out_unlock:
++config MIGRATE_VMA_HELPER
++	bool
++
+ config HMM
+ 	bool
++	select MIGRATE_VMA_HELPER
+ 
+ config HMM_MIRROR
+ 	bool "HMM mirror CPU page table into a device page table"
+diff -puN mm/Makefile~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/Makefile
+--- a/mm/Makefile~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/Makefile
+@@ -39,7 +39,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
+ 			   mm_init.o mmu_context.o percpu.o slab_common.o \
+ 			   compaction.o vmacache.o swap_slots.o \
+ 			   interval_tree.o list_lru.o workingset.o \
+-			   debug.o hmm.o $(mmu-y)
++			   debug.o $(mmu-y)
+ 
+ obj-y += init-mm.o
+ 
+@@ -104,3 +104,4 @@ obj-$(CONFIG_FRAME_VECTOR) += frame_vect
+ obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
+ obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
+ obj-$(CONFIG_PERCPU_STATS) += percpu-stats.o
++obj-$(CONFIG_HMM) += hmm.o
+diff -puN mm/hmm.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/hmm.c
+--- a/mm/hmm.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/hmm.c
+@@ -35,15 +35,16 @@
+ 
+ #define PA_SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+ 
+-
++#if defined(CONFIG_DEVICE_PRIVATE) || defined(CONFIG_DEVICE_PUBLIC)
+ /*
+  * Device private memory see HMM (Documentation/vm/hmm.txt) or hmm.h
+  */
+ DEFINE_STATIC_KEY_FALSE(device_private_key);
+ EXPORT_SYMBOL(device_private_key);
++#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ 
+ 
+-#ifdef CONFIG_HMM
++#if IS_ENABLED(CONFIG_HMM_MIRROR)
+ static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
+ 
+ /*
+@@ -128,9 +129,7 @@ void hmm_mm_destroy(struct mm_struct *mm
+ {
+ 	kfree(mm->hmm);
+ }
+-#endif /* CONFIG_HMM */
+ 
+-#if IS_ENABLED(CONFIG_HMM_MIRROR)
+ static void hmm_invalidate_range(struct hmm *hmm,
+ 				 enum hmm_update_type action,
+ 				 unsigned long start,
+diff -puN mm/migrate.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm mm/migrate.c
+--- a/mm/migrate.c~mm-hmm-avoid-bloating-arch-that-do-not-make-use-of-hmm
++++ a/mm/migrate.c
+@@ -2127,6 +2127,7 @@ out_unlock:
  
  #endif /* CONFIG_NUMA */
  
--
++#if defined(CONFIG_MIGRATE_VMA_HELPER)
  struct migrate_vma {
  	struct vm_area_struct	*vma;
  	unsigned long		*dst;
-@@ -2263,7 +2266,7 @@ again:
- 				pfn = 0;
- 				goto next;
- 			}
--			page = vm_normal_page(migrate->vma, addr, pte);
-+			page = _vm_normal_page(migrate->vma, addr, pte, true);
- 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
- 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
- 		}
-@@ -2406,10 +2409,19 @@ static bool migrate_vma_check_page(struc
- 		if (is_device_private_page(page))
- 			return true;
- 
--		/* Other ZONE_DEVICE memory type are not supported */
--		return false;
-+		/*
-+		 * Only allow device public page to be migrated and account for
-+		 * the extra reference count imply by ZONE_DEVICE pages.
-+		 */
-+		if (!is_device_public_page(page))
-+			return false;
-+		extra++;
- 	}
- 
-+	/* For file back page */
-+	if (page_mapping(page))
-+		extra += 1 + page_has_private(page);
-+
- 	if ((page_count(page) - extra) > page_mapcount(page))
- 		return false;
- 
-@@ -2647,11 +2659,18 @@ static void migrate_vma_insert_page(stru
- 	 */
- 	__SetPageUptodate(page);
- 
--	if (is_zone_device_page(page) && is_device_private_page(page)) {
--		swp_entry_t swp_entry;
-+	if (is_zone_device_page(page)) {
-+		if (is_device_private_page(page)) {
-+			swp_entry_t swp_entry;
- 
--		swp_entry = make_device_private_entry(page, vma->vm_flags & VM_WRITE);
--		entry = swp_entry_to_pte(swp_entry);
-+			swp_entry = make_device_private_entry(page, vma->vm_flags & VM_WRITE);
-+			entry = swp_entry_to_pte(swp_entry);
-+		} else if (is_device_public_page(page)) {
-+			entry = pte_mkold(mk_pte(page, READ_ONCE(vma->vm_page_prot)));
-+			if (vma->vm_flags & VM_WRITE)
-+				entry = pte_mkwrite(pte_mkdirty(entry));
-+			entry = pte_mkdevmap(entry);
-+		}
- 	} else {
- 		entry = mk_pte(page, vma->vm_page_prot);
- 		if (vma->vm_flags & VM_WRITE)
-@@ -2768,7 +2787,7 @@ static void migrate_vma_pages(struct mig
- 					migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
- 					continue;
- 				}
--			} else {
-+			} else if (!is_device_public_page(newpage)) {
- 				/*
- 				 * Other types of ZONE_DEVICE page are not
- 				 * supported.
-diff -puN mm/swap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5 mm/swap.c
---- a/mm/swap.c~mm-device-public-memory-device-memory-cache-coherent-with-cpu-v5
-+++ a/mm/swap.c
-@@ -765,6 +765,17 @@ void release_pages(struct page **pages,
- 		if (is_huge_zero_page(page))
- 			continue;
- 
-+		/* Device public page can not be huge page */
-+		if (is_device_public_page(page)) {
-+			if (locked_pgdat) {
-+				spin_unlock_irqrestore(&locked_pgdat->lru_lock,
-+						       flags);
-+				locked_pgdat = NULL;
-+			}
-+			put_zone_device_private_or_public_page(page);
-+			continue;
-+		}
-+
- 		page = compound_head(page);
- 		if (!put_page_testzero(page))
- 			continue;
+@@ -2980,3 +2981,4 @@ int migrate_vma(const struct migrate_vma
+ 	return 0;
+ }
+ EXPORT_SYMBOL(migrate_vma);
++#endif /* defined(MIGRATE_VMA_HELPER) */
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
