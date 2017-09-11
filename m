@@ -1,66 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-sparse-fix-typo-in-online_mem_sections.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:40:19 -0700
-Message-ID: <20170911194019.emEVfqKiT%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fadvise-avoid-fadvise-for-fs-without-backing-device.patch removed from
+ -mm tree
+Date: Mon, 11 Sep 2017 12:40:10 -0700
+Message-ID: <20170911194010.4jORfNOcC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49322 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751015AbdIKTkU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:20 -0400
+        with ESMTP id S1751015AbdIKTkL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
+To: gthelen@google.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, mgorman@suse.de, mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm/sparse.c: fix typo in online_mem_sections
+     Subject: mm: fadvise: avoid fadvise for fs without backing device
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-typo-in-online_mem_sections.patch
+     mm-fadvise-avoid-fadvise-for-fs-without-backing-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm/sparse.c: fix typo in online_mem_sections
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: fadvise: avoid fadvise for fs without backing device
 
-online_mem_sections() accidentally marks online only the first section in
-the given range.  This is a typo which hasn't been noticed because I
-haven't tested large 2GB blocks previously.  All users of
-pfn_to_online_page would get confused on the the rest of the pfn range in
-the block.
+The fadvise() manpage is silent on fadvise()'s effect on memory-based
+filesystems (shmem, hugetlbfs & ramfs) and pseudo file systems (procfs,
+sysfs, kernfs).  The current implementaion of fadvise is mostly a noop
+for such filesystems except for FADV_DONTNEED which will trigger
+expensive remote LRU cache draining.  This patch makes the noop of
+fadvise() on such file systems very explicit.
 
-All we need to fix this is to use iterator (pfn) rather than start_pfn.
+However this change has two side effects for ramfs and one for tmpfs. 
+First fadvise(FADV_DONTNEED) could remove the unmapped clean zero'ed
+pages of ramfs (allocated through read, readahead & read fault) and
+tmpfs (allocated through read fault).  Also fadvise(FADV_WILLNEED)
+could create such clean zero'ed pages for ramfs.  This change removes
+those possibilities.
 
-Link: http://lkml.kernel.org/r/20170904112210.3401-1-mhocko@kernel.org
-Fixes: 2d070eab2e82 ("mm: consider zone which is not fully populated to have holes")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+One of our generic libraries does fadvise(FADV_DONTNEED).  Recently we
+observed high latency in fadvise() and noticed that the users have
+started using tmpfs files and the latency was due to expensive remote
+LRU cache draining.  For normal tmpfs files (have data written on
+them), fadvise(FADV_DONTNEED) will always trigger the unneeded remote
+cache draining.
+
+Link: http://lkml.kernel.org/r/20170818011023.181465-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/fadvise.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparse-fix-typo-in-online_mem_sections mm/sparse.c
---- a/mm/sparse.c~mm-sparse-fix-typo-in-online_mem_sections
-+++ a/mm/sparse.c
-@@ -626,7 +626,7 @@ void online_mem_sections(unsigned long s
- 	unsigned long pfn;
+diff -puN mm/fadvise.c~mm-fadvise-avoid-fadvise-for-fs-without-backing-device mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-avoid-fadvise-for-fs-without-backing-device
++++ a/mm/fadvise.c
+@@ -52,7 +52,9 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 		goto out;
+ 	}
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
--		unsigned long section_nr = pfn_to_section_nr(start_pfn);
-+		unsigned long section_nr = pfn_to_section_nr(pfn);
- 		struct mem_section *ms;
+-	if (IS_DAX(inode)) {
++	bdi = inode_to_bdi(mapping->host);
++
++	if (IS_DAX(inode) || (bdi == &noop_backing_dev_info)) {
+ 		switch (advice) {
+ 		case POSIX_FADV_NORMAL:
+ 		case POSIX_FADV_RANDOM:
+@@ -75,8 +77,6 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 	else
+ 		endbyte--;		/* inclusive */
  
- 		/* onlining code should never touch invalid ranges */
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-treewide-remove-gfp_temporary-allocation-flag.patch
-
+-	bdi = inode_to_bdi(mapping->host);
