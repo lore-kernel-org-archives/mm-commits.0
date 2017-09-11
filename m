@@ -1,131 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mem-memcg-cache-rightmost-node.patch removed from
+Subject: [merged]
+ lib-make-bitmap_parselist-thread-safe-and-much-faster.patch removed from
  -mm tree
-Date: Mon, 11 Sep 2017 12:42:10 -0700
-Message-ID: <20170911194210.BQDdrXRM8%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:42:22 -0700
+Message-ID: <20170911194222.Dmgii5xpV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751022AbdIKTmL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:11 -0400
+        with ESMTP id S1751079AbdIKTmX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, mm-commits@vger.kernel.org, noamca@mellanox.com, ynorov@caviumnetworks.com
 
 
 The patch titled
-     Subject: mem/memcg: cache rightmost node
+     Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
 has been removed from the -mm tree.  Its filename was
-     mem-memcg-cache-rightmost-node.patch
+     lib-make-bitmap_parselist-thread-safe-and-much-faster.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mem/memcg: cache rightmost node
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: lib/bitmap.c: make bitmap_parselist() thread-safe and much faster
 
-Such that we can optimize __mem_cgroup_largest_soft_limit_node().  The
-only overhead is the extra footprint for the cached pointer, but this
-should not be an issue for mem_cgroup_tree_per_node.
+Current implementation of bitmap_parselist() uses a static variable to
+save local state while setting bits in the bitmap.  It is obviously wrong
+if we assume execution in multiprocessor environment.  Fortunately, it's
+possible to rewrite this portion of code to avoid using the static
+variable.
 
-[dave@stgolabs.net: brain fart #2]
-  Link: http://lkml.kernel.org/r/20170731160114.GE21328@linux-80c1.suse
-Link: http://lkml.kernel.org/r/20170719014603.19029-17-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+It is also possible to set bits in the mask per-range with bitmap_set(),
+not per-bit, as it is implemented now, with set_bit(); which is way
+faster.
+
+The important side effect of this change is that setting bits in this
+function from now is not per-bit atomic and less memory-ordered.  This is
+because set_bit() guarantees the order of memory accesses, while
+bitmap_set() does not.  I think that it is the advantage of the new
+approach, because the bitmap_parselist() is intended to initialise bit
+arrays, and user should protect the whole bitmap during initialisation if
+needed.  So protecting individual bits looks expensive and useless.  Also,
+other range-oriented functions in lib/bitmap.c don't worry much about
+atomicity.
+
+With all that, setting 2k bits in map with the pattern like 0-2047:128/256
+becomes ~50 times faster after applying the patch in my testing
+environment (arm64 hosted on qemu).
+
+The second patch of the series adds the test for bitmap_parselist().  It's
+not intended to cover all tricky cases, just to make sure that I didn't
+screw up during rework.
+
+Link: http://lkml.kernel.org/r/20170807225438.16161-1-ynorov@caviumnetworks.com
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Noam Camus <noamca@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ lib/bitmap.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~mem-memcg-cache-rightmost-node mm/memcontrol.c
---- a/mm/memcontrol.c~mem-memcg-cache-rightmost-node
-+++ a/mm/memcontrol.c
-@@ -119,6 +119,7 @@ static const char *const mem_cgroup_lru_
- 
- struct mem_cgroup_tree_per_node {
- 	struct rb_root rb_root;
-+	struct rb_node *rb_rightmost;
- 	spinlock_t lock;
- };
- 
-@@ -386,6 +387,7 @@ static void __mem_cgroup_insert_exceeded
- 	struct rb_node **p = &mctz->rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct mem_cgroup_per_node *mz_node;
-+	bool rightmost = true;
- 
- 	if (mz->on_tree)
- 		return;
-@@ -397,8 +399,11 @@ static void __mem_cgroup_insert_exceeded
- 		parent = *p;
- 		mz_node = rb_entry(parent, struct mem_cgroup_per_node,
- 					tree_node);
--		if (mz->usage_in_excess < mz_node->usage_in_excess)
-+		if (mz->usage_in_excess < mz_node->usage_in_excess) {
- 			p = &(*p)->rb_left;
-+			rightmost = false;
-+		}
-+
- 		/*
- 		 * We can't avoid mem cgroups that are over their soft
- 		 * limit by the same amount
-@@ -406,6 +411,10 @@ static void __mem_cgroup_insert_exceeded
- 		else if (mz->usage_in_excess >= mz_node->usage_in_excess)
- 			p = &(*p)->rb_right;
- 	}
-+
-+	if (rightmost)
-+		mctz->rb_rightmost = &mz->tree_node;
-+
- 	rb_link_node(&mz->tree_node, parent, p);
- 	rb_insert_color(&mz->tree_node, &mctz->rb_root);
- 	mz->on_tree = true;
-@@ -416,6 +425,10 @@ static void __mem_cgroup_remove_exceeded
+diff -puN lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster lib/bitmap.c
+--- a/lib/bitmap.c~lib-make-bitmap_parselist-thread-safe-and-much-faster
++++ a/lib/bitmap.c
+@@ -513,7 +513,7 @@ static int __bitmap_parselist(const char
+ 		int nmaskbits)
  {
- 	if (!mz->on_tree)
- 		return;
-+
-+	if (&mz->tree_node == mctz->rb_rightmost)
-+		mctz->rb_rightmost = rb_prev(&mz->tree_node);
-+
- 	rb_erase(&mz->tree_node, &mctz->rb_root);
- 	mz->on_tree = false;
- }
-@@ -496,16 +509,15 @@ static void mem_cgroup_remove_from_trees
- static struct mem_cgroup_per_node *
- __mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_node *mctz)
- {
--	struct rb_node *rightmost = NULL;
- 	struct mem_cgroup_per_node *mz;
- 
- retry:
- 	mz = NULL;
--	rightmost = rb_last(&mctz->rb_root);
--	if (!rightmost)
-+	if (!mctz->rb_rightmost)
- 		goto done;		/* Nothing to reclaim from */
- 
--	mz = rb_entry(rightmost, struct mem_cgroup_per_node, tree_node);
-+	mz = rb_entry(mctz->rb_rightmost,
-+		      struct mem_cgroup_per_node, tree_node);
- 	/*
- 	 * Remove the node now but someone else can add it back,
- 	 * we will to add it back at the end of reclaim to its correct
-@@ -5945,6 +5957,7 @@ static int __init mem_cgroup_init(void)
- 				    node_online(node) ? node : NUMA_NO_NODE);
- 
- 		rtpn->rb_root = RB_ROOT;
-+		rtpn->rb_rightmost = NULL;
- 		spin_lock_init(&rtpn->lock);
- 		soft_limit_tree.rb_tree_per_node[node] = rtpn;
- 	}
-_
-
-Patches currently in -mm which might be from dave@stgolabs.net are
-
-
+ 	unsigned int a, b, old_a, old_b;
+-	unsigned int group_size, used_size;
++	unsigned int group_size, used_size, off;
+ 	int c, old_c, totaldigits, ndigits;
+ 	const char __user __force *ubuf = (const char __user __force *)buf;
+ 	int at_start, in_range, in_partial_range;
+@@ -599,6 +599,8 @@ static int __bitmap_parselist(const char
+ 			a = old_a;
+ 			b = old_b;
+ 			old_a = old_b = 0;
++		} else {
++			used_size = group_size = b - a + 1;
+ 		}
+ 		/* if no digit is after '-', it's wrong*/
+ 		if (at_start && in_range)
+@@ -608,17 +610,9 @@ static int __bitmap_parselist(const char
+ 		if (b >= nmaskbits)
+ 			return -ERANGE;
+ 		while (a <= b) {
+-			if (in_partial_range) {
+-				static int pos_in_group = 1;
+-
+-				if (pos_in_group <= used_size)
+-					set_bit(a, maskp);
