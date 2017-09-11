@@ -1,122 +1,140 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t.patch removed
- from -mm tree
-Date: Mon, 11 Sep 2017 12:44:10 -0700
-Message-ID: <20170911194410.RLSuHAoqI%akpm@linux-foundation.org>
+ mn10300-defconfig-cleanup-from-old-kconfig-options.patch removed from -mm
+ tree
+Date: Mon, 11 Sep 2017 12:44:01 -0700
+Message-ID: <20170911194401.kSsqOsg9G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50854 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751151AbdIKToL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:44:11 -0400
+        with ESMTP id S1751045AbdIKToC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:44:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, arozansk@redhat.com, dave@stgolabs.net, dwindsor@gmail.com, ebiederm@xmission.com, elena.reshetova@intel.com, gregkh@linuxfoundation.org, ishkamiel@gmail.com, keescook@chromium.org, manfred@colorfullife.com, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, serge@hallyn.com
+To: krzk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: convert ipc_namespace.count from atomic_t to refcount_t
+     Subject: mn10300: defconfig: cleanup from old Kconfig options
 has been removed from the -mm tree.  Its filename was
-     ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t.patch
+     mn10300-defconfig-cleanup-from-old-kconfig-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: ipc: convert ipc_namespace.count from atomic_t to refcount_t
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: mn10300: defconfig: cleanup from old Kconfig options
 
-refcount_t type and corresponding API should be used instead of atomic_t
-when the variable is used as a reference counter.  This allows to avoid
-accidental refcounter overflows that might lead to use-after-free
-situations.
+Remove old, dead Kconfig options (in order appearing in this commit):
+ - EXPERIMENTAL is gone since v3.9;
+ - INET_LRO: commit 7bbf3cae65b6 ("ipv4: Remove inet_lro library");
+ - MTD_PARTITIONS: commit 6a8a98b22b10 ("mtd: kill
+   CONFIG_MTD_PARTITIONS");
+ - MTD_CHAR: commit 660685d9d1b4 ("mtd: merge mtdchar module with
+   mtdcore");
+ - NETDEV_1000 and NETDEV_10000: commit f860b0522f65 ("drivers/net:
+   Kconfig and Makefile cleanup"); NET_ETHERNET should be replaced with
+   just ETHERNET but that is separate change;
+ - HID_SUPPORT: commit 1f41a6a99476 ("HID: Fix the generic Kconfig
+   options");
+ - RCU_CPU_STALL_DETECTOR: commit a00e0d714fbd ("rcu: Remove conditional
+   compilation for RCU CPU stall warnings");
 
-Link: http://lkml.kernel.org/r/1499417992-3238-2-git-send-email-elena.reshetova@intel.com
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: <arozansk@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Link: http://lkml.kernel.org/r/1500526786-3789-1-git-send-email-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    5 +++--
- ipc/msgutil.c                 |    2 +-
- ipc/namespace.c               |    4 ++--
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ arch/mn10300/configs/asb2303_defconfig |    6 ------
+ arch/mn10300/configs/asb2364_defconfig |    8 --------
+ 2 files changed, 14 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t
-+++ a/include/linux/ipc_namespace.h
-@@ -7,6 +7,7 @@
- #include <linux/notifier.h>
- #include <linux/nsproxy.h>
- #include <linux/ns_common.h>
-+#include <linux/refcount.h>
- 
- struct user_namespace;
- 
-@@ -19,7 +20,7 @@ struct ipc_ids {
- };
- 
- struct ipc_namespace {
--	atomic_t	count;
-+	refcount_t	count;
- 	struct ipc_ids	ids[3];
- 
- 	int		sem_ctls[4];
-@@ -118,7 +119,7 @@ extern struct ipc_namespace *copy_ipcs(u
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
- {
- 	if (ns)
--		atomic_inc(&ns->count);
-+		refcount_inc(&ns->count);
- 	return ns;
- }
- 
-diff -puN ipc/msgutil.c~ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t
-+++ a/ipc/msgutil.c
-@@ -29,7 +29,7 @@ DEFINE_SPINLOCK(mq_lock);
-  * and not CONFIG_IPC_NS.
-  */
- struct ipc_namespace init_ipc_ns = {
--	.count		= ATOMIC_INIT(1),
-+	.count		= REFCOUNT_INIT(1),
- 	.user_ns = &init_user_ns,
- 	.ns.inum = PROC_IPC_INIT_INO,
- #ifdef CONFIG_IPC_NS
-diff -puN ipc/namespace.c~ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t ipc/namespace.c
---- a/ipc/namespace.c~ipc-convert-ipc_namespacecount-from-atomic_t-to-refcount_t
-+++ a/ipc/namespace.c
-@@ -50,7 +50,7 @@ static struct ipc_namespace *create_ipc_
- 		goto fail_free;
- 	ns->ns.ops = &ipcns_operations;
- 
--	atomic_set(&ns->count, 1);
-+	refcount_set(&ns->count, 1);
- 	ns->user_ns = get_user_ns(user_ns);
- 	ns->ucounts = ucounts;
- 
-@@ -144,7 +144,7 @@ static void free_ipc_ns(struct ipc_names
-  */
- void put_ipc_ns(struct ipc_namespace *ns)
- {
--	if (atomic_dec_and_lock(&ns->count, &mq_lock)) {
-+	if (refcount_dec_and_lock(&ns->count, &mq_lock)) {
- 		mq_clear_sbinfo(ns);
- 		spin_unlock(&mq_lock);
- 		mq_put_mnt(ns);
+diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options arch/mn10300/configs/asb2303_defconfig
+--- a/arch/mn10300/configs/asb2303_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/mn10300/configs/asb2303_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_TINY_RCU=y
+@@ -28,16 +27,13 @@ CONFIG_IP_PNP_BOOTP=y
+ # CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+ # CONFIG_INET_XFRM_MODE_TUNNEL is not set
+ # CONFIG_INET_XFRM_MODE_BEET is not set
+-# CONFIG_INET_LRO is not set
+ # CONFIG_INET_DIAG is not set
+ # CONFIG_IPV6 is not set
+ # CONFIG_WIRELESS is not set
+ CONFIG_MTD=y
+ CONFIG_MTD_DEBUG=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_CFI=y
+ CONFIG_MTD_JEDECPROBE=y
+ CONFIG_MTD_CFI_ADV_OPTIONS=y
+@@ -48,8 +44,6 @@ CONFIG_MTD_PHYSMAP=y
+ CONFIG_NETDEVICES=y
+ CONFIG_NET_ETHERNET=y
+ CONFIG_SMC91X=y
+-# CONFIG_NETDEV_1000 is not set
+-# CONFIG_NETDEV_10000 is not set
+ # CONFIG_WLAN is not set
+ # CONFIG_INPUT is not set
+ # CONFIG_SERIO is not set
+diff -puN arch/mn10300/configs/asb2364_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options arch/mn10300/configs/asb2364_defconfig
+--- a/arch/mn10300/configs/asb2364_defconfig~mn10300-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/mn10300/configs/asb2364_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+ CONFIG_BSD_PROCESS_ACCT=y
+@@ -40,7 +39,6 @@ CONFIG_IP_PNP_BOOTP=y
+ # CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+ # CONFIG_INET_XFRM_MODE_TUNNEL is not set
+ # CONFIG_INET_XFRM_MODE_BEET is not set
+-# CONFIG_INET_LRO is not set
+ # CONFIG_INET_DIAG is not set
+ CONFIG_IPV6=y
+ # CONFIG_INET6_XFRM_MODE_TRANSPORT is not set
+@@ -50,10 +48,8 @@ CONFIG_IPV6=y
+ CONFIG_CONNECTOR=y
+ CONFIG_MTD=y
+ CONFIG_MTD_DEBUG=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_CFI=y
+ CONFIG_MTD_JEDECPROBE=y
+ CONFIG_MTD_CFI_ADV_OPTIONS=y
+@@ -64,8 +60,6 @@ CONFIG_MTD_PHYSMAP=y
+ CONFIG_NETDEVICES=y
+ CONFIG_NET_ETHERNET=y
+ CONFIG_SMSC911X=y
+-# CONFIG_NETDEV_1000 is not set
+-# CONFIG_NETDEV_10000 is not set
+ # CONFIG_INPUT_MOUSEDEV is not set
+ # CONFIG_INPUT_KEYBOARD is not set
+ # CONFIG_INPUT_MOUSE is not set
+@@ -77,7 +71,6 @@ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+ # CONFIG_HW_RANDOM is not set
+ # CONFIG_HWMON is not set
+-# CONFIG_HID_SUPPORT is not set
+ # CONFIG_USB_SUPPORT is not set
+ CONFIG_PROC_KCORE=y
+ # CONFIG_PROC_PAGE_MONITOR is not set
+@@ -93,4 +86,3 @@ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+ CONFIG_DEBUG_INFO=y
+-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
 _
 
-Patches currently in -mm which might be from elena.reshetova@intel.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
 
