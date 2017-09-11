@@ -1,73 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-convert-to-using-memset_l.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:41:04 -0700
-Message-ID: <20170911194104.BuFIBtJ_x%akpm@linux-foundation.org>
+Subject: [merged] fs-proc-remove-priv-argument-from-is_stack.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:40:37 -0700
+Message-ID: <20170911194037.GVquY4dDr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751020AbdIKTlF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:05 -0400
+        with ESMTP id S1750999AbdIKTki (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de
+To: arnd@arndb.de, luto@amacapital.net, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/block/zram/zram_drv.c: convert to using memset_l
+     Subject: fs, proc: remove priv argument from is_stack
 has been removed from the -mm tree.  Its filename was
-     zram-convert-to-using-memset_l.patch
+     fs-proc-remove-priv-argument-from-is_stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: drivers/block/zram/zram_drv.c: convert to using memset_l
+From: Michal Hocko <mhocko@suse.com>
+Subject: fs, proc: remove priv argument from is_stack
 
-zram was the motivation for creating memset_l().  Minchan Kim sees a 7%
-performance improvement on x86 with 100MB of non-zero deduplicatable data:
+b18cb64ead40 ("fs/proc: Stop trying to report thread stacks") removed the
+priv parameter user in is_stack so the argument is redundant.  Drop it.
 
-        perf stat -r 10 dd if=/dev/zram0 of=/dev/null
-
-vanilla:        0.232050465 seconds time elapsed ( +-  0.51% )
-memset_l:	0.217219387 seconds time elapsed ( +-  0.07% )
-
-Link: http://lkml.kernel.org/r/20170720184539.31609-7-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Tested-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+[arnd@arndb.de: remove unused variable]
+  Link: http://lkml.kernel.org/r/20170801120150.1520051-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170728075833.7241-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ fs/proc/task_mmu.c   |    8 +++-----
+ fs/proc/task_nommu.c |    5 ++---
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-convert-to-using-memset_l drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-convert-to-using-memset_l
-+++ a/drivers/block/zram/zram_drv.c
-@@ -175,20 +175,11 @@ static inline void update_used_max(struc
- 	} while (old_max != cur_max);
+diff -puN fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-remove-priv-argument-from-is_stack
++++ a/fs/proc/task_mmu.c
+@@ -268,8 +268,7 @@ static int do_maps_open(struct inode *in
+  * Indicate if the VMA is a stack for the given task; for
+  * /proc/PID/maps that is the stack of the main task.
+  */
+-static int is_stack(struct proc_maps_private *priv,
+-		    struct vm_area_struct *vma)
++static int is_stack(struct vm_area_struct *vma)
+ {
+ 	/*
+ 	 * We make no effort to guess what a given thread considers to be
+@@ -302,7 +301,6 @@ show_map_vma(struct seq_file *m, struct
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct file *file = vma->vm_file;
+-	struct proc_maps_private *priv = m->private;
+ 	vm_flags_t flags = vma->vm_flags;
+ 	unsigned long ino = 0;
+ 	unsigned long long pgoff = 0;
+@@ -350,7 +348,7 @@ show_map_vma(struct seq_file *m, struct
+ 			goto done;
+ 		}
+ 
+-		if (is_stack(priv, vma))
++		if (is_stack(vma))
+ 			name = "[stack]";
+ 	}
+ 
+@@ -1768,7 +1766,7 @@ static int show_numa_map(struct seq_file
+ 		seq_file_path(m, file, "\n\t= ");
+ 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
+ 		seq_puts(m, " heap");
+-	} else if (is_stack(proc_priv, vma)) {
++	} else if (is_stack(vma)) {
+ 		seq_puts(m, " stack");
+ 	}
+ 
+diff -puN fs/proc/task_nommu.c~fs-proc-remove-priv-argument-from-is_stack fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fs-proc-remove-priv-argument-from-is_stack
++++ a/fs/proc/task_nommu.c
+@@ -125,8 +125,7 @@ unsigned long task_statm(struct mm_struc
+ 	return size;
  }
  
--static inline void zram_fill_page(char *ptr, unsigned long len,
-+static inline void zram_fill_page(void *ptr, unsigned long len,
- 					unsigned long value)
+-static int is_stack(struct proc_maps_private *priv,
+-		    struct vm_area_struct *vma)
++static int is_stack(struct vm_area_struct *vma)
  {
--	int i;
--	unsigned long *page = (unsigned long *)ptr;
--
- 	WARN_ON_ONCE(!IS_ALIGNED(len, sizeof(unsigned long)));
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+@@ -178,7 +177,7 @@ static int nommu_vma_show(struct seq_fil
+ 	if (file) {
+ 		seq_pad(m, ' ');
+ 		seq_file_path(m, file, "");
+-	} else if (mm && is_stack(priv, vma)) {
++	} else if (mm && is_stack(vma)) {
+ 		seq_pad(m, ' ');
+ 		seq_printf(m, "[stack]");
+ 	}
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+treewide-remove-gfp_temporary-allocation-flag.patch
+
