@@ -1,217 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] select-use-get-put_timespec64.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:38:05 -0700
-Message-ID: <20170911193805.dLcyRGReO%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch removed from -mm
+ tree
+Date: Mon, 11 Sep 2017 12:38:14 -0700
+Message-ID: <20170911193814.zLVJgISG-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48126 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751004AbdIKTiG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:06 -0400
+        with ESMTP id S1751028AbdIKTiQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bcrl@kvack.org, deepa.kernel@gmail.com, mm-commits@vger.kernel.org, tglx@linutronix.de, viro@zeniv.linux.org.uk
+To: aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: select: use get/put_timespec64
+     Subject: mm: x86: move _PAGE_SWP_SOFT_DIRTY from bit 7 to bit 1
 has been removed from the -mm tree.  Its filename was
-     select-use-get-put_timespec64.patch
+     mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: select: use get/put_timespec64
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: x86: move _PAGE_SWP_SOFT_DIRTY from bit 7 to bit 1
 
-Usage of these apis and their compat versions makes the syscalls: select
-family of syscalls and their compat implementations simpler.
+_PAGE_PSE is used to distinguish between a truly non-present
+(_PAGE_PRESENT=0) PMD, and a PMD which is undergoing a THP split and
+should be treated as present.
 
-This is a preparatory patch to isolate data conversions to struct
-timespec64 at userspace boundaries.  This helps contain the changes needed
-to transition to new y2038 safe types.
+But _PAGE_SWP_SOFT_DIRTY currently uses the _PAGE_PSE bit, which would
+cause confusion between one of those PMDs undergoing a THP split, and a
+soft-dirty PMD.  Dropping _PAGE_PSE check in pmd_present() does not work
+well, because it can hurt optimization of tlb handling in thp split.
 
-Link: http://lkml.kernel.org/r/20170805041232.20875-2-deepa.kernel@gmail.com
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Thus, we need to move the bit.
+
+In the current kernel, bits 1-4 are not used in non-present format since
+commit 00839ee3b299 ("x86/mm: Move swap offset/type up in PTE to work
+around erratum").  So let's move _PAGE_SWP_SOFT_DIRTY to bit 1.  Bit 7 is
+used as reserved (always clear), so please don't use it for other purpose.
+
+Link: http://lkml.kernel.org/r/20170717193955.20207-3-zi.yan@sent.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: David Nellans <dnellans@nvidia.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |   60 ++++++++++++++++++++------------------------------
- 1 file changed, 24 insertions(+), 36 deletions(-)
+ arch/x86/include/asm/pgtable_64.h    |   12 +++++++++---
+ arch/x86/include/asm/pgtable_types.h |   10 +++++-----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN fs/select.c~select-use-get-put_timespec64 fs/select.c
---- a/fs/select.c~select-use-get-put_timespec64
-+++ a/fs/select.c
-@@ -291,8 +291,7 @@ static int poll_select_copy_remaining(st
- 				      void __user *p,
- 				      int timeval, int ret)
- {
--	struct timespec64 rts64;
--	struct timespec rts;
-+	struct timespec64 rts;
- 	struct timeval rtv;
- 
- 	if (!p)
-@@ -305,23 +304,22 @@ static int poll_select_copy_remaining(st
- 	if (!end_time->tv_sec && !end_time->tv_nsec)
- 		return ret;
- 
--	ktime_get_ts64(&rts64);
--	rts64 = timespec64_sub(*end_time, rts64);
--	if (rts64.tv_sec < 0)
--		rts64.tv_sec = rts64.tv_nsec = 0;
-+	ktime_get_ts64(&rts);
-+	rts = timespec64_sub(*end_time, rts);
-+	if (rts.tv_sec < 0)
-+		rts.tv_sec = rts.tv_nsec = 0;
- 
--	rts = timespec64_to_timespec(rts64);
- 
- 	if (timeval) {
- 		if (sizeof(rtv) > sizeof(rtv.tv_sec) + sizeof(rtv.tv_usec))
- 			memset(&rtv, 0, sizeof(rtv));
--		rtv.tv_sec = rts64.tv_sec;
--		rtv.tv_usec = rts64.tv_nsec / NSEC_PER_USEC;
-+		rtv.tv_sec = rts.tv_sec;
-+		rtv.tv_usec = rts.tv_nsec / NSEC_PER_USEC;
- 
- 		if (!copy_to_user(p, &rtv, sizeof(rtv)))
- 			return ret;
- 
--	} else if (!copy_to_user(p, &rts, sizeof(rts)))
-+	} else if (!put_timespec64(&rts, p))
- 		return ret;
- 
- 	/*
-@@ -704,17 +702,15 @@ static long do_pselect(int n, fd_set __u
- 		       const sigset_t __user *sigmask, size_t sigsetsize)
- {
- 	sigset_t ksigmask, sigsaved;
--	struct timespec ts;
--	struct timespec64 ts64, end_time, *to = NULL;
-+	struct timespec64 ts, end_time, *to = NULL;
- 	int ret;
- 
- 	if (tsp) {
--		if (copy_from_user(&ts, tsp, sizeof(ts)))
-+		if (get_timespec64(&ts, tsp))
- 			return -EFAULT;
--		ts64 = timespec_to_timespec64(ts);
- 
- 		to = &end_time;
--		if (poll_select_set_timeout(to, ts64.tv_sec, ts64.tv_nsec))
-+		if (poll_select_set_timeout(to, ts.tv_sec, ts.tv_nsec))
- 			return -EINVAL;
- 	}
- 
-@@ -1051,12 +1047,11 @@ SYSCALL_DEFINE5(ppoll, struct pollfd __u
- 		size_t, sigsetsize)
- {
- 	sigset_t ksigmask, sigsaved;
--	struct timespec ts;
--	struct timespec64 end_time, *to = NULL;
-+	struct timespec64 ts, end_time, *to = NULL;
- 	int ret;
- 
- 	if (tsp) {
--		if (copy_from_user(&ts, tsp, sizeof(ts)))
-+		if (get_timespec64(&ts, tsp))
- 			return -EFAULT;
- 
- 		to = &end_time;
-@@ -1102,10 +1097,10 @@ SYSCALL_DEFINE5(ppoll, struct pollfd __u
- #define __COMPAT_NFDBITS       (8 * sizeof(compat_ulong_t))
- 
- static
--int compat_poll_select_copy_remaining(struct timespec *end_time, void __user *p,
-+int compat_poll_select_copy_remaining(struct timespec64 *end_time, void __user *p,
- 				      int timeval, int ret)
- {
--	struct timespec ts;
-+	struct timespec64 ts;
- 
- 	if (!p)
- 		return ret;
-@@ -1117,8 +1112,8 @@ int compat_poll_select_copy_remaining(st
- 	if (!end_time->tv_sec && !end_time->tv_nsec)
- 		return ret;
- 
--	ktime_get_ts(&ts);
--	ts = timespec_sub(*end_time, ts);
-+	ktime_get_ts64(&ts);
-+	ts = timespec64_sub(*end_time, ts);
- 	if (ts.tv_sec < 0)
- 		ts.tv_sec = ts.tv_nsec = 0;
- 
-@@ -1131,12 +1126,7 @@ int compat_poll_select_copy_remaining(st
- 		if (!copy_to_user(p, &rtv, sizeof(rtv)))
- 			return ret;
- 	} else {
--		struct compat_timespec rts;
--
--		rts.tv_sec = ts.tv_sec;
--		rts.tv_nsec = ts.tv_nsec;
--
--		if (!copy_to_user(p, &rts, sizeof(rts)))
-+		if (!compat_put_timespec64(&ts, p))
- 			return ret;
- 	}
- 	/*
-@@ -1194,7 +1184,7 @@ int compat_set_fd_set(unsigned long nr,
+diff -puN arch/x86/include/asm/pgtable_64.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1 arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -180,15 +180,21 @@ static inline int pgd_large(pgd_t pgd) {
+ /*
+  * Encode and de-code a swap entry
+  *
+- * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2|1|0| <- bit number
+- * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U|W|P| <- bit names
+- * | OFFSET (14->63) | TYPE (9-13)  |0|X|X|X| X| X|X|X|0| <- swp entry
++ * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2| 1|0| <- bit number
++ * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U| W|P| <- bit names
++ * | OFFSET (14->63) | TYPE (9-13)  |0|0|X|X| X| X|X|SD|0| <- swp entry
+  *
+  * G (8) is aliased and used as a PROT_NONE indicator for
+  * !present ptes.  We need to start storing swap entries above
+  * there.  We also need to avoid using A and D because of an
+  * erratum where they can be incorrectly set by hardware on
+  * non-present PTEs.
++ *
++ * SD (1) in swp entry is used to store soft dirty bit, which helps us
++ * remember soft dirty over page migration
++ *
++ * Bit 7 in swp entry should be 0 because pmd_present checks not only P,
++ * but also L and G.
   */
- static int compat_core_sys_select(int n, compat_ulong_t __user *inp,
- 	compat_ulong_t __user *outp, compat_ulong_t __user *exp,
--	struct timespec *end_time)
-+	struct timespec64 *end_time)
- {
- 	fd_set_bits fds;
- 	void *bits;
-@@ -1267,7 +1257,7 @@ COMPAT_SYSCALL_DEFINE5(select, int, n, c
- 	compat_ulong_t __user *, outp, compat_ulong_t __user *, exp,
- 	struct compat_timeval __user *, tvp)
- {
--	struct timespec end_time, *to = NULL;
-+	struct timespec64 end_time, *to = NULL;
- 	struct compat_timeval tv;
- 	int ret;
- 
-@@ -1313,12 +1303,11 @@ static long do_compat_pselect(int n, com
- {
- 	compat_sigset_t ss32;
- 	sigset_t ksigmask, sigsaved;
--	struct compat_timespec ts;
--	struct timespec end_time, *to = NULL;
-+	struct timespec64 ts, end_time, *to = NULL;
- 	int ret;
- 
- 	if (tsp) {
--		if (copy_from_user(&ts, tsp, sizeof(ts)))
-+		if (compat_get_timespec64(&ts, tsp))
- 			return -EFAULT;
- 
- 		to = &end_time;
-@@ -1382,12 +1371,11 @@ COMPAT_SYSCALL_DEFINE5(ppoll, struct pol
- {
- 	compat_sigset_t ss32;
- 	sigset_t ksigmask, sigsaved;
--	struct compat_timespec ts;
--	struct timespec end_time, *to = NULL;
-+	struct timespec64 ts, end_time, *to = NULL;
- 	int ret;
- 
- 	if (tsp) {
--		if (copy_from_user(&ts, tsp, sizeof(ts)))
-+		if (compat_get_timespec64(&ts, tsp))
- 			return -EFAULT;
- 
- 		to = &end_time;
+ #define SWP_TYPE_FIRST_BIT (_PAGE_BIT_PROTNONE + 1)
+ #define SWP_TYPE_BITS 5
+diff -puN arch/x86/include/asm/pgtable_types.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1 arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~mm-x86-move-_page_swp_soft_dirty-from-bit-7-to-bit-1
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -99,15 +99,15 @@
+ /*
+  * Tracking soft dirty bit when a page goes to a swap is tricky.
+  * We need a bit which can be stored in pte _and_ not conflict
+- * with swap entry format. On x86 bits 6 and 7 are *not* involved
+- * into swap entry computation, but bit 6 is used for nonlinear
+- * file mapping, so we borrow bit 7 for soft dirty tracking.
++ * with swap entry format. On x86 bits 1-4 are *not* involved
++ * into swap entry computation, but bit 7 is used for thp migration,
++ * so we borrow bit 1 for soft dirty tracking.
+  *
+  * Please note that this bit must be treated as swap dirty page
+- * mark if and only if the PTE has present bit clear!
++ * mark if and only if the PTE/PMD has present bit clear!
+  */
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-#define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
++#define _PAGE_SWP_SOFT_DIRTY	_PAGE_RW
+ #else
+ #define _PAGE_SWP_SOFT_DIRTY	(_AT(pteval_t, 0))
+ #endif
 _
 
-Patches currently in -mm which might be from deepa.kernel@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 
