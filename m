@@ -1,69 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] test_kmod-flip-int-checks-to-be-consistent.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:43:34 -0700
-Message-ID: <20170911194334.-j5NKlstN%akpm@linux-foundation.org>
+Subject: [merged]
+ autofs-non-functional-header-inclusion-cleanup.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:43:16 -0700
+Message-ID: <20170911194316.BDH12-ixO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50474 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750999AbdIKTnf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:35 -0400
+        with ESMTP id S1751028AbdIKTnR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, dan.carpenter@oracle.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mm-commits@vger.kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
+To: mm-commits@vger.kernel.org, raven@themaw.net, tkusumi@tuxera.com
 
 
 The patch titled
-     Subject: test_kmod: flip INT checks to be consistent
+     Subject: autofs: non functional header inclusion cleanup
 has been removed from the -mm tree.  Its filename was
-     test_kmod-flip-int-checks-to-be-consistent.patch
+     autofs-non-functional-header-inclusion-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: test_kmod: flip INT checks to be consistent
+From: Tomohiro Kusumi <tkusumi@tuxera.com>
+Subject: autofs: non functional header inclusion cleanup
 
-Most checks will check for min and then max, except the int check.  Flip
-the checks to be consistent with the other code.
+Having header includes before any macro (without any dependency) simply
+looks normal.  No reason to have these macros in between.
 
-[mcgrof@kernel.org: massaged commit log]
-Link: http://lkml.kernel.org/r/20170802211707.28020-3-mcgrof@kernel.org
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: David Binderman <dcb314@hotmail.com>
+Link: http://lkml.kernel.org/r/150285068011.4670.10271483982093996996.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/autofs_i.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent lib/test_kmod.c
---- a/lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent
-+++ a/lib/test_kmod.c
-@@ -946,7 +946,7 @@ static int test_dev_config_update_int(st
- 	if (ret)
- 		return ret;
+diff -puN fs/autofs4/autofs_i.h~autofs-non-functional-header-inclusion-cleanup fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs-non-functional-header-inclusion-cleanup
++++ a/fs/autofs4/autofs_i.h
+@@ -11,10 +11,21 @@
  
--	if (new > INT_MAX || new < INT_MIN)
-+	if (new < INT_MIN || new > INT_MAX)
- 		return -EINVAL;
+ #include <linux/auto_fs4.h>
+ #include <linux/auto_dev-ioctl.h>
++
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++#include <linux/string.h>
++#include <linux/wait.h>
++#include <linux/sched.h>
++#include <linux/mount.h>
++#include <linux/namei.h>
++#include <linux/uaccess.h>
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/completion.h>
++#include <asm/current.h>
  
- 	mutex_lock(&test_dev->config_mutex);
-_
-
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
-
-
+ /* This is the range of ioctl() numbers we claim as ours */
+ #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
+@@ -24,17 +35,6 @@
+ #define AUTOFS_DEV_IOCTL_IOC_COUNT \
+ 	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
+ 
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/time.h>
+-#include <linux/string.h>
+-#include <linux/wait.h>
+-#include <linux/sched.h>
+-#include <linux/mount.h>
+-#include <linux/namei.h>
+-#include <asm/current.h>
+-#include <linux/uaccess.h>
