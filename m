@@ -1,335 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rbtree-cache-leftmost-node-internally.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:41:28 -0700
-Message-ID: <20170911194128.ZqJiPy58h%akpm@linux-foundation.org>
+Subject: [merged]
+ block-cfq-replace-cfq_rb_root-leftmost-caching.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:41:55 -0700
+Message-ID: <20170911194155.1HsYHoTaU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49942 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50042 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTl3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:29 -0400
+        with ESMTP id S1751028AbdIKTl4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org
+To: axboe@fb.com, dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: rbtree: cache leftmost node internally
+     Subject: block/cfq: replace cfq_rb_root leftmost caching
 has been removed from the -mm tree.  Its filename was
-     rbtree-cache-leftmost-node-internally.patch
+     block-cfq-replace-cfq_rb_root-leftmost-caching.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: rbtree: cache leftmost node internally
+Subject: block/cfq: replace cfq_rb_root leftmost caching
 
-Patch series "rbtree: Cache leftmost node internally", v4.
+... with the generic rbtree flavor instead. No changes
+in semantics whatsoever.
 
-A series to extending rbtrees to internally cache the leftmost node such
-that we can have fast overlap check optimization for all interval tree
-users[1].  The benefits of this series are that:
-
-(i)   Unify users that do internal leftmost node caching.
-(ii)  Optimize all interval tree users.
-(iii) Convert at least two new users (epoll and procfs) to the new interface.
-
-This patch (of 16):
-
-Red-black tree semantics imply that nodes with smaller or greater (or
-equal for duplicates) keys always be to the left and right, respectively. 
-For the kernel this is extremely evident when considering our rb_first()
-semantics.  Enabling lookups for the smallest node in the tree in O(1) can
-save a good chunk of cycles in not having to walk down the tree each time.
-To this end there are a few core users that explicitly do this, such as
-the scheduler and rtmutexes.  There is also the desire for interval trees
-to have this optimization allowing faster overlap checking.
-
-This patch introduces a new 'struct rb_root_cached' which is just the root
-with a cached pointer to the leftmost node.  The reason why the regular
-rb_root was not extended instead of adding a new structure was that this
-allows the user to have the choice between memory footprint and actual
-tree performance.  The new wrappers on top of the regular rb_root calls
-are:
-
-- rb_first_cached(cached_root) -- which is a fast replacement
-     for rb_first.
-
-- rb_insert_color_cached(node, cached_root, new)
-
-- rb_erase_cached(node, cached_root)
-
-In addition, augmented cached interfaces are also added for basic
-insertion and deletion operations; which becomes important for the
-interval tree changes.
-
-With the exception of the inserts, which adds a bool for updating the new
-leftmost, the interfaces are kept the same.  To this end, porting rb users
-to the cached version becomes really trivial, and keeping current rbtree
-semantics for users that don't care about the optimization requires zero
-overhead.
-
-Link: http://lkml.kernel.org/r/20170719014603.19029-2-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-11-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rbtree.txt         |   33 ++++++++++++++++++++++++++++
- include/linux/rbtree.h           |   21 +++++++++++++++++
- include/linux/rbtree_augmented.h |   33 +++++++++++++++++++++++++---
- lib/rbtree.c                     |   34 ++++++++++++++++++++++++-----
- 4 files changed, 113 insertions(+), 8 deletions(-)
+ block/cfq-iosched.c |   70 ++++++++++++------------------------------
+ 1 file changed, 20 insertions(+), 50 deletions(-)
 
-diff -puN Documentation/rbtree.txt~rbtree-cache-leftmost-node-internally Documentation/rbtree.txt
---- a/Documentation/rbtree.txt~rbtree-cache-leftmost-node-internally
-+++ a/Documentation/rbtree.txt
-@@ -193,6 +193,39 @@ Example::
-   for (node = rb_first(&mytree); node; node = rb_next(node))
- 	printk("key=%s\n", rb_entry(node, struct mytype, node)->keystring);
- 
-+Cached rbtrees
-+--------------
-+
-+Computing the leftmost (smallest) node is quite a common task for binary
-+search trees, such as for traversals or users relying on a the particular
-+order for their own logic. To this end, users can use 'struct rb_root_cached'
-+to optimize O(logN) rb_first() calls to a simple pointer fetch avoiding
-+potentially expensive tree iterations. This is done at negligible runtime
-+overhead for maintanence; albeit larger memory footprint.
-+
-+Similar to the rb_root structure, cached rbtrees are initialized to be
-+empty via:
-+
-+  struct rb_root_cached mytree = RB_ROOT_CACHED;
-+
-+Cached rbtree is simply a regular rb_root with an extra pointer to cache the
-+leftmost node. This allows rb_root_cached to exist wherever rb_root does,
-+which permits augmented trees to be supported as well as only a few extra
-+interfaces:
-+
-+  struct rb_node *rb_first_cached(struct rb_root_cached *tree);
-+  void rb_insert_color_cached(struct rb_node *, struct rb_root_cached *, bool);
-+  void rb_erase_cached(struct rb_node *node, struct rb_root_cached *);
-+
-+Both insert and erase calls have their respective counterpart of augmented
-+trees:
-+
-+  void rb_insert_augmented_cached(struct rb_node *node, struct rb_root_cached *,
-+				  bool, struct rb_augment_callbacks *);
-+  void rb_erase_augmented_cached(struct rb_node *, struct rb_root_cached *,
-+				 struct rb_augment_callbacks *);
-+
-+
- Support for Augmented rbtrees
- -----------------------------
- 
-diff -puN include/linux/rbtree.h~rbtree-cache-leftmost-node-internally include/linux/rbtree.h
---- a/include/linux/rbtree.h~rbtree-cache-leftmost-node-internally
-+++ a/include/linux/rbtree.h
-@@ -44,10 +44,25 @@ struct rb_root {
- 	struct rb_node *rb_node;
- };
- 
-+/*
-+ * Leftmost-cached rbtrees.
-+ *
-+ * We do not cache the rightmost node based on footprint
-+ * size vs number of potential users that could benefit
-+ * from O(1) rb_last(). Just not worth it, users that want
-+ * this feature can always implement the logic explicitly.
-+ * Furthermore, users that want to cache both pointers may
-+ * find it a bit asymmetric, but that's ok.
-+ */
-+struct rb_root_cached {
-+	struct rb_root rb_root;
-+	struct rb_node *rb_leftmost;
-+};
- 
- #define rb_parent(r)   ((struct rb_node *)((r)->__rb_parent_color & ~3))
- 
- #define RB_ROOT	(struct rb_root) { NULL, }
-+#define RB_ROOT_CACHED (struct rb_root_cached) { {NULL, }, NULL }
- #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
- 
- #define RB_EMPTY_ROOT(root)  (READ_ONCE((root)->rb_node) == NULL)
-@@ -69,6 +84,12 @@ extern struct rb_node *rb_prev(const str
- extern struct rb_node *rb_first(const struct rb_root *);
- extern struct rb_node *rb_last(const struct rb_root *);
- 
-+extern void rb_insert_color_cached(struct rb_node *,
-+				   struct rb_root_cached *, bool);
-+extern void rb_erase_cached(struct rb_node *node, struct rb_root_cached *);
-+/* Same as rb_first(), but O(1) */
-+#define rb_first_cached(root) (root)->rb_leftmost
-+
- /* Postorder iteration - always visit the parent after its children */
- extern struct rb_node *rb_first_postorder(const struct rb_root *);
- extern struct rb_node *rb_next_postorder(const struct rb_node *);
-diff -puN include/linux/rbtree_augmented.h~rbtree-cache-leftmost-node-internally include/linux/rbtree_augmented.h
---- a/include/linux/rbtree_augmented.h~rbtree-cache-leftmost-node-internally
-+++ a/include/linux/rbtree_augmented.h
-@@ -41,7 +41,9 @@ struct rb_augment_callbacks {
- 	void (*rotate)(struct rb_node *old, struct rb_node *new);
- };
- 
--extern void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
-+extern void __rb_insert_augmented(struct rb_node *node,
-+				  struct rb_root *root,
-+				  bool newleft, struct rb_node **leftmost,
- 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new));
- /*
-  * Fixup the rbtree and update the augmented information when rebalancing.
-@@ -57,7 +59,16 @@ static inline void
- rb_insert_augmented(struct rb_node *node, struct rb_root *root,
- 		    const struct rb_augment_callbacks *augment)
- {
--	__rb_insert_augmented(node, root, augment->rotate);
-+	__rb_insert_augmented(node, root, false, NULL, augment->rotate);
-+}
-+
-+static inline void
-+rb_insert_augmented_cached(struct rb_node *node,
-+			   struct rb_root_cached *root, bool newleft,
-+			   const struct rb_augment_callbacks *augment)
-+{
-+	__rb_insert_augmented(node, &root->rb_root,
-+			      newleft, &root->rb_leftmost, augment->rotate);
- }
- 
- #define RB_DECLARE_CALLBACKS(rbstatic, rbname, rbstruct, rbfield,	\
-@@ -150,6 +161,7 @@ extern void __rb_erase_color(struct rb_n
- 
- static __always_inline struct rb_node *
- __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
-+		     struct rb_node **leftmost,
- 		     const struct rb_augment_callbacks *augment)
- {
- 	struct rb_node *child = node->rb_right;
-@@ -157,6 +169,9 @@ __rb_erase_augmented(struct rb_node *nod
- 	struct rb_node *parent, *rebalance;
- 	unsigned long pc;
- 
-+	if (leftmost && node == *leftmost)
-+		*leftmost = rb_next(node);
-+
- 	if (!tmp) {
- 		/*
- 		 * Case 1: node to erase has no more than 1 child (easy!)
-@@ -256,9 +271,21 @@ static __always_inline void
- rb_erase_augmented(struct rb_node *node, struct rb_root *root,
- 		   const struct rb_augment_callbacks *augment)
- {
--	struct rb_node *rebalance = __rb_erase_augmented(node, root, augment);
-+	struct rb_node *rebalance = __rb_erase_augmented(node, root,
-+							 NULL, augment);
- 	if (rebalance)
- 		__rb_erase_color(rebalance, root, augment->rotate);
- }
- 
-+static __always_inline void
-+rb_erase_augmented_cached(struct rb_node *node, struct rb_root_cached *root,
-+			  const struct rb_augment_callbacks *augment)
-+{
-+	struct rb_node *rebalance = __rb_erase_augmented(node, &root->rb_root,
-+							 &root->rb_leftmost,
-+							 augment);
-+	if (rebalance)
-+		__rb_erase_color(rebalance, &root->rb_root, augment->rotate);
-+}
-+
- #endif	/* _LINUX_RBTREE_AUGMENTED_H */
-diff -puN lib/rbtree.c~rbtree-cache-leftmost-node-internally lib/rbtree.c
---- a/lib/rbtree.c~rbtree-cache-leftmost-node-internally
-+++ a/lib/rbtree.c
-@@ -95,10 +95,14 @@ __rb_rotate_set_parents(struct rb_node *
- 
- static __always_inline void
- __rb_insert(struct rb_node *node, struct rb_root *root,
-+	    bool newleft, struct rb_node **leftmost,
- 	    void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
- {
- 	struct rb_node *parent = rb_red_parent(node), *gparent, *tmp;
- 
-+	if (newleft)
-+		*leftmost = node;
-+
- 	while (true) {
- 		/*
- 		 * Loop invariant: node is red
-@@ -434,19 +438,38 @@ static const struct rb_augment_callbacks
- 
- void rb_insert_color(struct rb_node *node, struct rb_root *root)
- {
--	__rb_insert(node, root, dummy_rotate);
-+	__rb_insert(node, root, false, NULL, dummy_rotate);
- }
- EXPORT_SYMBOL(rb_insert_color);
- 
- void rb_erase(struct rb_node *node, struct rb_root *root)
- {
- 	struct rb_node *rebalance;
--	rebalance = __rb_erase_augmented(node, root, &dummy_callbacks);
-+	rebalance = __rb_erase_augmented(node, root,
-+					 NULL, &dummy_callbacks);
- 	if (rebalance)
- 		____rb_erase_color(rebalance, root, dummy_rotate);
- }
- EXPORT_SYMBOL(rb_erase);
- 
-+void rb_insert_color_cached(struct rb_node *node,
-+			    struct rb_root_cached *root, bool leftmost)
-+{
-+	__rb_insert(node, &root->rb_root, leftmost,
-+		    &root->rb_leftmost, dummy_rotate);
-+}
-+EXPORT_SYMBOL(rb_insert_color_cached);
-+
-+void rb_erase_cached(struct rb_node *node, struct rb_root_cached *root)
-+{
-+	struct rb_node *rebalance;
-+	rebalance = __rb_erase_augmented(node, &root->rb_root,
-+					 &root->rb_leftmost, &dummy_callbacks);
-+	if (rebalance)
-+		____rb_erase_color(rebalance, &root->rb_root, dummy_rotate);
-+}
-+EXPORT_SYMBOL(rb_erase_cached);
-+
- /*
-  * Augmented rbtree manipulation functions.
-  *
-@@ -455,9 +478,10 @@ EXPORT_SYMBOL(rb_erase);
+diff -puN block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching
++++ a/block/cfq-iosched.c
+@@ -93,13 +93,12 @@ struct cfq_ttime {
+  * move this into the elevator for the rq sorting as well.
   */
+ struct cfq_rb_root {
+-	struct rb_root rb;
+-	struct rb_node *left;
++	struct rb_root_cached rb;
+ 	unsigned count;
+ 	u64 min_vdisktime;
+ 	struct cfq_ttime ttime;
+ };
+-#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT, \
++#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT_CACHED, \
+ 			.ttime = {.last_end_request = ktime_get_ns(),},}
  
- void __rb_insert_augmented(struct rb_node *node, struct rb_root *root,
-+			   bool newleft, struct rb_node **leftmost,
- 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
+ /*
+@@ -981,10 +980,9 @@ static inline u64 max_vdisktime(u64 min_
+ 
+ static void update_min_vdisktime(struct cfq_rb_root *st)
  {
--	__rb_insert(node, root, augment_rotate);
-+	__rb_insert(node, root, newleft, leftmost, augment_rotate);
- }
- EXPORT_SYMBOL(__rb_insert_augmented);
+-	struct cfq_group *cfqg;
++	if (!RB_EMPTY_ROOT(&st->rb.rb_root)) {
++		struct cfq_group *cfqg = rb_entry_cfqg(st->rb.rb_leftmost);
  
-@@ -502,7 +526,7 @@ struct rb_node *rb_next(const struct rb_
- 	 * as we can.
+-	if (st->left) {
+-		cfqg = rb_entry_cfqg(st->left);
+ 		st->min_vdisktime = max_vdisktime(st->min_vdisktime,
+ 						  cfqg->vdisktime);
+ 	}
+@@ -1166,46 +1164,25 @@ cfq_choose_req(struct cfq_data *cfqd, st
+ 	}
+ }
+ 
+-/*
+- * The below is leftmost cache rbtree addon
+- */
+ static struct cfq_queue *cfq_rb_first(struct cfq_rb_root *root)
+ {
+ 	/* Service tree is empty */
+ 	if (!root->count)
+ 		return NULL;
+ 
+-	if (!root->left)
+-		root->left = rb_first(&root->rb);
+-
+-	if (root->left)
+-		return rb_entry(root->left, struct cfq_queue, rb_node);
+-
+-	return NULL;
++	return rb_entry(rb_first_cached(&root->rb), struct cfq_queue, rb_node);
+ }
+ 
+ static struct cfq_group *cfq_rb_first_group(struct cfq_rb_root *root)
+ {
+-	if (!root->left)
+-		root->left = rb_first(&root->rb);
+-
+-	if (root->left)
+-		return rb_entry_cfqg(root->left);
+-
+-	return NULL;
++	return rb_entry_cfqg(rb_first_cached(&root->rb));
+ }
+ 
+-static void rb_erase_init(struct rb_node *n, struct rb_root *root)
++static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+ {
+-	rb_erase(n, root);
++	rb_erase_cached(n, &root->rb);
+ 	RB_CLEAR_NODE(n);
+-}
+ 
+-static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+-{
+-	if (root->left == n)
+-		root->left = NULL;
+-	rb_erase_init(n, &root->rb);
+ 	--root->count;
+ }
+ 
+@@ -1255,11 +1232,11 @@ cfqg_key(struct cfq_rb_root *st, struct
+ static void
+ __cfq_group_service_tree_add(struct cfq_rb_root *st, struct cfq_group *cfqg)
+ {
+-	struct rb_node **node = &st->rb.rb_node;
++	struct rb_node **node = &st->rb.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct cfq_group *__cfqg;
+ 	s64 key = cfqg_key(st, cfqg);
+-	int left = 1;
++	bool leftmost = true;
+ 
+ 	while (*node != NULL) {
+ 		parent = *node;
+@@ -1269,15 +1246,12 @@ __cfq_group_service_tree_add(struct cfq_
+ 			node = &parent->rb_left;
+ 		else {
+ 			node = &parent->rb_right;
+-			left = 0;
++			leftmost = false;
+ 		}
+ 	}
+ 
+-	if (left)
+-		st->left = &cfqg->rb_node;
+-
+ 	rb_link_node(&cfqg->rb_node, parent, node);
+-	rb_insert_color(&cfqg->rb_node, &st->rb);
++	rb_insert_color_cached(&cfqg->rb_node, &st->rb, leftmost);
+ }
+ 
+ /*
+@@ -1378,7 +1352,7 @@ cfq_group_notify_queue_add(struct cfq_da
+ 	 * so that groups get lesser vtime based on their weights, so that
+ 	 * if group does not loose all if it was not continuously backlogged.
  	 */
- 	if (node->rb_right) {
--		node = node->rb_right; 
-+		node = node->rb_right;
- 		while (node->rb_left)
- 			node=node->rb_left;
- 		return (struct rb_node *)node;
-@@ -534,7 +558,7 @@ struct rb_node *rb_prev(const struct rb_
- 	 * as we can.
- 	 */
- 	if (node->rb_left) {
--		node = node->rb_left; 
-+		node = node->rb_left;
- 		while (node->rb_right)
- 			node=node->rb_right;
- 		return (struct rb_node *)node;
+-	n = rb_last(&st->rb);
++	n = rb_last(&st->rb.rb_root);
+ 	if (n) {
+ 		__cfqg = rb_entry_cfqg(n);
+ 		cfqg->vdisktime = __cfqg->vdisktime +
+@@ -2220,14 +2194,14 @@ static void cfq_service_tree_add(struct
+ 	struct cfq_queue *__cfqq;
+ 	u64 rb_key;
+ 	struct cfq_rb_root *st;
+-	int left;
++	bool leftmost = true;
+ 	int new_cfqq = 1;
+ 	u64 now = ktime_get_ns();
+ 
+ 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
+ 	if (cfq_class_idle(cfqq)) {
+ 		rb_key = CFQ_IDLE_DELAY;
+-		parent = rb_last(&st->rb);
++		parent = rb_last(&st->rb.rb_root);
+ 		if (parent && parent != &cfqq->rb_node) {
+ 			__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
+ 			rb_key += __cfqq->rb_key;
+@@ -2261,10 +2235,9 @@ static void cfq_service_tree_add(struct
+ 		cfqq->service_tree = NULL;
+ 	}
+ 
+-	left = 1;
+ 	parent = NULL;
+ 	cfqq->service_tree = st;
+-	p = &st->rb.rb_node;
++	p = &st->rb.rb_root.rb_node;
+ 	while (*p) {
+ 		parent = *p;
+ 		__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
+@@ -2276,16 +2249,13 @@ static void cfq_service_tree_add(struct
+ 			p = &parent->rb_left;
+ 		else {
+ 			p = &parent->rb_right;
+-			left = 0;
++			leftmost = false;
+ 		}
+ 	}
+ 
+-	if (left)
+-		st->left = &cfqq->rb_node;
+-
+ 	cfqq->rb_key = rb_key;
+ 	rb_link_node(&cfqq->rb_node, parent, p);
+-	rb_insert_color(&cfqq->rb_node, &st->rb);
++	rb_insert_color_cached(&cfqq->rb_node, &st->rb, leftmost);
+ 	st->count++;
+ 	if (add_front || !new_cfqq)
+ 		return;
+@@ -2732,7 +2702,7 @@ static struct cfq_queue *cfq_get_next_qu
+ 	/* There is nothing to dispatch */
+ 	if (!st)
+ 		return NULL;
+-	if (RB_EMPTY_ROOT(&st->rb))
++	if (RB_EMPTY_ROOT(&st->rb.rb_root))
+ 		return NULL;
+ 	return cfq_rb_first(st);
+ }
+@@ -3219,7 +3189,7 @@ static struct cfq_group *cfq_get_next_cf
+ 	struct cfq_rb_root *st = &cfqd->grp_service_tree;
+ 	struct cfq_group *cfqg;
+ 
+-	if (RB_EMPTY_ROOT(&st->rb))
++	if (RB_EMPTY_ROOT(&st->rb.rb_root))
+ 		return NULL;
+ 	cfqg = cfq_rb_first_group(st);
+ 	update_min_vdisktime(st);
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
