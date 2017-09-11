@@ -1,103 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arch-microblaze-add-choice-for-endianness-and-update-makefile.patch removed
+ rbtree-add-some-additional-comments-for-rebalancing-cases.patch removed
  from -mm tree
-Date: Mon, 11 Sep 2017 12:41:19 -0700
-Message-ID: <20170911194119._meXAg4rA%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:41:34 -0700
+Message-ID: <20170911194134.j5od9vnxJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49964 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751027AbdIKTlV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:21 -0400
+        with ESMTP id S1751028AbdIKTlf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, babu.moger@oracle.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, jejb@parisc-linux.org, jonas@southpole.se, mingo@elte.hu, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/microblaze: add choice for endianness and update Makefile
+     Subject: rbtree: add some additional comments for rebalancing cases
 has been removed from the -mm tree.  Its filename was
-     arch-microblaze-add-choice-for-endianness-and-update-makefile.patch
+     rbtree-add-some-additional-comments-for-rebalancing-cases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Babu Moger <babu.moger@oracle.com>
-Subject: arch/microblaze: add choice for endianness and update Makefile
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: rbtree: add some additional comments for rebalancing cases
 
-microblaze architectures can be configured for either little or big endian
-formats.  Add a choice option for the user to select the correct endian
-format(default to big endian).
+While overall the code is very nicely commented, it might not be
+immediately obvious from the diagrams what is going on.  Add a very brief
+summary of each case.  Opposite cases where the node is the left child are
+left untouched.
 
-Also update the Makefile so toolchain can compile for the format it is
-configured for.
-
-Link: http://lkml.kernel.org/r/1499358861-179979-3-git-send-email-babu.moger@oracle.com
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: http://lkml.kernel.org/r/20170719014603.19029-4-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/Kconfig  |   16 ++++++++++++++++
- arch/microblaze/Makefile |    2 ++
- 2 files changed, 18 insertions(+)
+ lib/rbtree.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/microblaze/Kconfig~arch-microblaze-add-choice-for-endianness-and-update-makefile arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~arch-microblaze-add-choice-for-endianness-and-update-makefile
-+++ a/arch/microblaze/Kconfig
-@@ -36,6 +36,22 @@ config MICROBLAZE
- 	select VIRT_TO_BUS
- 	select CPU_NO_EFFICIENT_FFS
+diff -puN lib/rbtree.c~rbtree-add-some-additional-comments-for-rebalancing-cases lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-add-some-additional-comments-for-rebalancing-cases
++++ a/lib/rbtree.c
+@@ -132,7 +132,7 @@ __rb_insert(struct rb_node *node, struct
+ 		if (parent != tmp) {	/* parent == gparent->rb_left */
+ 			if (tmp && rb_is_red(tmp)) {
+ 				/*
+-				 * Case 1 - color flips
++				 * Case 1 - node's uncle is red (color flips).
+ 				 *
+ 				 *       G            g
+ 				 *      / \          / \
+@@ -155,7 +155,8 @@ __rb_insert(struct rb_node *node, struct
+ 			tmp = parent->rb_right;
+ 			if (node == tmp) {
+ 				/*
+-				 * Case 2 - left rotate at parent
++				 * Case 2 - node's uncle is black and node is
++				 * the parent's right child (left rotate at parent).
+ 				 *
+ 				 *      G             G
+ 				 *     / \           / \
+@@ -179,7 +180,8 @@ __rb_insert(struct rb_node *node, struct
+ 			}
  
-+# Endianness selection
-+choice
-+	prompt "Endianness selection"
-+	default CPU_BIG_ENDIAN
-+	help
-+	  microblaze architectures can be configured for either little or
-+	  big endian formats. Be sure to select the appropriate mode.
-+
-+config CPU_BIG_ENDIAN
-+	bool "Big endian"
-+
-+config CPU_LITTLE_ENDIAN
-+	bool "Little endian"
-+
-+endchoice
-+
- config SWAP
- 	def_bool n
- 
-diff -puN arch/microblaze/Makefile~arch-microblaze-add-choice-for-endianness-and-update-makefile arch/microblaze/Makefile
---- a/arch/microblaze/Makefile~arch-microblaze-add-choice-for-endianness-and-update-makefile
-+++ a/arch/microblaze/Makefile
-@@ -35,6 +35,8 @@ endif
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_DIV) += -mno-xl-soft-div
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_BARREL) += -mxl-barrel-shift
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR) += -mxl-pattern-compare
-+CPUFLAGS-$(CONFIG_BIG_ENDIAN) += -mbig-endian
-+CPUFLAGS-$(CONFIG_LITTLE_ENDIAN) += -mlittle-endian
- 
- CPUFLAGS-1 += $(call cc-option,-mcpu=v$(CPU_VER))
- 
+ 			/*
+-			 * Case 3 - right rotate at gparent
++			 * Case 3 - node's uncle is black and node is
++			 * the parent's left child (right rotate at gparent).
+ 			 *
+ 			 *        G           P
+ 			 *       / \         / \
 _
 
-Patches currently in -mm which might be from babu.moger@oracle.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
