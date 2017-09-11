@@ -1,236 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- block-cfq-replace-cfq_rb_root-leftmost-caching.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:41:55 -0700
-Message-ID: <20170911194155.1HsYHoTaU%akpm@linux-foundation.org>
+ include-warn-for-inconsistent-endian-config-definition.patch removed from
+ -mm tree
+Date: Mon, 11 Sep 2017 12:41:22 -0700
+Message-ID: <20170911194122.z-u-xcyMk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49910 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTl4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:56 -0400
+        with ESMTP id S1751027AbdIKTlY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@fb.com, dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org, peterz@infradead.org
+To: arnd@arndb.de, babu.moger@oracle.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, jejb@parisc-linux.org, jonas@southpole.se, mingo@elte.hu, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: block/cfq: replace cfq_rb_root leftmost caching
+     Subject: include: warn for inconsistent endian config definition
 has been removed from the -mm tree.  Its filename was
-     block-cfq-replace-cfq_rb_root-leftmost-caching.patch
+     include-warn-for-inconsistent-endian-config-definition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: block/cfq: replace cfq_rb_root leftmost caching
+From: Babu Moger <babu.moger@oracle.com>
+Subject: include: warn for inconsistent endian config definition
 
-... with the generic rbtree flavor instead. No changes
-in semantics whatsoever.
+We have seen some generic code use config parameter CONFIG_CPU_BIG_ENDIAN
+to decide the endianness.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-11-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Jens Axboe <axboe@fb.com>
+Here are the few examples.
+include/asm-generic/qrwlock.h
+drivers/of/base.c
+drivers/of/fdt.c
+drivers/tty/serial/earlycon.c
+drivers/tty/serial/serial_core.c
+
+Display warning if CPU_BIG_ENDIAN is not defined on big endian
+architecture and also warn if it defined on little endian architectures.
+
+Here is our original discussion
+https://lkml.org/lkml/2017/5/24/620
+
+Link: http://lkml.kernel.org/r/1499358861-179979-4-git-send-email-babu.moger@oracle.com
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |   70 ++++++++++++------------------------------
- 1 file changed, 20 insertions(+), 50 deletions(-)
+ include/linux/byteorder/big_endian.h    |    4 ++++
+ include/linux/byteorder/little_endian.h |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching block/cfq-iosched.c
---- a/block/cfq-iosched.c~block-cfq-replace-cfq_rb_root-leftmost-caching
-+++ a/block/cfq-iosched.c
-@@ -93,13 +93,12 @@ struct cfq_ttime {
-  * move this into the elevator for the rq sorting as well.
-  */
- struct cfq_rb_root {
--	struct rb_root rb;
--	struct rb_node *left;
-+	struct rb_root_cached rb;
- 	unsigned count;
- 	u64 min_vdisktime;
- 	struct cfq_ttime ttime;
- };
--#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT, \
-+#define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT_CACHED, \
- 			.ttime = {.last_end_request = ktime_get_ns(),},}
+diff -puN include/linux/byteorder/big_endian.h~include-warn-for-inconsistent-endian-config-definition include/linux/byteorder/big_endian.h
+--- a/include/linux/byteorder/big_endian.h~include-warn-for-inconsistent-endian-config-definition
++++ a/include/linux/byteorder/big_endian.h
+@@ -3,5 +3,9 @@
  
- /*
-@@ -981,10 +980,9 @@ static inline u64 max_vdisktime(u64 min_
+ #include <uapi/linux/byteorder/big_endian.h>
  
- static void update_min_vdisktime(struct cfq_rb_root *st)
- {
--	struct cfq_group *cfqg;
-+	if (!RB_EMPTY_ROOT(&st->rb.rb_root)) {
-+		struct cfq_group *cfqg = rb_entry_cfqg(st->rb.rb_leftmost);
++#ifndef CONFIG_CPU_BIG_ENDIAN
++#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
++#endif
++
+ #include <linux/byteorder/generic.h>
+ #endif /* _LINUX_BYTEORDER_BIG_ENDIAN_H */
+diff -puN include/linux/byteorder/little_endian.h~include-warn-for-inconsistent-endian-config-definition include/linux/byteorder/little_endian.h
+--- a/include/linux/byteorder/little_endian.h~include-warn-for-inconsistent-endian-config-definition
++++ a/include/linux/byteorder/little_endian.h
+@@ -3,5 +3,9 @@
  
--	if (st->left) {
--		cfqg = rb_entry_cfqg(st->left);
- 		st->min_vdisktime = max_vdisktime(st->min_vdisktime,
- 						  cfqg->vdisktime);
- 	}
-@@ -1166,46 +1164,25 @@ cfq_choose_req(struct cfq_data *cfqd, st
- 	}
- }
+ #include <uapi/linux/byteorder/little_endian.h>
  
--/*
-- * The below is leftmost cache rbtree addon
-- */
- static struct cfq_queue *cfq_rb_first(struct cfq_rb_root *root)
- {
- 	/* Service tree is empty */
- 	if (!root->count)
- 		return NULL;
- 
--	if (!root->left)
--		root->left = rb_first(&root->rb);
--
--	if (root->left)
--		return rb_entry(root->left, struct cfq_queue, rb_node);
--
--	return NULL;
-+	return rb_entry(rb_first_cached(&root->rb), struct cfq_queue, rb_node);
- }
- 
- static struct cfq_group *cfq_rb_first_group(struct cfq_rb_root *root)
- {
--	if (!root->left)
--		root->left = rb_first(&root->rb);
--
--	if (root->left)
--		return rb_entry_cfqg(root->left);
--
--	return NULL;
-+	return rb_entry_cfqg(rb_first_cached(&root->rb));
- }
- 
--static void rb_erase_init(struct rb_node *n, struct rb_root *root)
-+static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
- {
--	rb_erase(n, root);
-+	rb_erase_cached(n, &root->rb);
- 	RB_CLEAR_NODE(n);
--}
- 
--static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
--{
--	if (root->left == n)
--		root->left = NULL;
--	rb_erase_init(n, &root->rb);
- 	--root->count;
- }
- 
-@@ -1255,11 +1232,11 @@ cfqg_key(struct cfq_rb_root *st, struct
- static void
- __cfq_group_service_tree_add(struct cfq_rb_root *st, struct cfq_group *cfqg)
- {
--	struct rb_node **node = &st->rb.rb_node;
-+	struct rb_node **node = &st->rb.rb_root.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct cfq_group *__cfqg;
- 	s64 key = cfqg_key(st, cfqg);
--	int left = 1;
-+	bool leftmost = true;
- 
- 	while (*node != NULL) {
- 		parent = *node;
-@@ -1269,15 +1246,12 @@ __cfq_group_service_tree_add(struct cfq_
- 			node = &parent->rb_left;
- 		else {
- 			node = &parent->rb_right;
--			left = 0;
-+			leftmost = false;
- 		}
- 	}
- 
--	if (left)
--		st->left = &cfqg->rb_node;
--
- 	rb_link_node(&cfqg->rb_node, parent, node);
--	rb_insert_color(&cfqg->rb_node, &st->rb);
-+	rb_insert_color_cached(&cfqg->rb_node, &st->rb, leftmost);
- }
- 
- /*
-@@ -1378,7 +1352,7 @@ cfq_group_notify_queue_add(struct cfq_da
- 	 * so that groups get lesser vtime based on their weights, so that
- 	 * if group does not loose all if it was not continuously backlogged.
- 	 */
--	n = rb_last(&st->rb);
-+	n = rb_last(&st->rb.rb_root);
- 	if (n) {
- 		__cfqg = rb_entry_cfqg(n);
- 		cfqg->vdisktime = __cfqg->vdisktime +
-@@ -2220,14 +2194,14 @@ static void cfq_service_tree_add(struct
- 	struct cfq_queue *__cfqq;
- 	u64 rb_key;
- 	struct cfq_rb_root *st;
--	int left;
-+	bool leftmost = true;
- 	int new_cfqq = 1;
- 	u64 now = ktime_get_ns();
- 
- 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
- 	if (cfq_class_idle(cfqq)) {
- 		rb_key = CFQ_IDLE_DELAY;
--		parent = rb_last(&st->rb);
-+		parent = rb_last(&st->rb.rb_root);
- 		if (parent && parent != &cfqq->rb_node) {
- 			__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
- 			rb_key += __cfqq->rb_key;
-@@ -2261,10 +2235,9 @@ static void cfq_service_tree_add(struct
- 		cfqq->service_tree = NULL;
- 	}
- 
--	left = 1;
- 	parent = NULL;
- 	cfqq->service_tree = st;
--	p = &st->rb.rb_node;
-+	p = &st->rb.rb_root.rb_node;
- 	while (*p) {
- 		parent = *p;
- 		__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
-@@ -2276,16 +2249,13 @@ static void cfq_service_tree_add(struct
- 			p = &parent->rb_left;
- 		else {
- 			p = &parent->rb_right;
--			left = 0;
-+			leftmost = false;
- 		}
- 	}
- 
--	if (left)
--		st->left = &cfqq->rb_node;
--
- 	cfqq->rb_key = rb_key;
- 	rb_link_node(&cfqq->rb_node, parent, p);
--	rb_insert_color(&cfqq->rb_node, &st->rb);
-+	rb_insert_color_cached(&cfqq->rb_node, &st->rb, leftmost);
- 	st->count++;
- 	if (add_front || !new_cfqq)
- 		return;
-@@ -2732,7 +2702,7 @@ static struct cfq_queue *cfq_get_next_qu
- 	/* There is nothing to dispatch */
- 	if (!st)
- 		return NULL;
--	if (RB_EMPTY_ROOT(&st->rb))
-+	if (RB_EMPTY_ROOT(&st->rb.rb_root))
- 		return NULL;
- 	return cfq_rb_first(st);
- }
-@@ -3219,7 +3189,7 @@ static struct cfq_group *cfq_get_next_cf
- 	struct cfq_rb_root *st = &cfqd->grp_service_tree;
- 	struct cfq_group *cfqg;
- 
--	if (RB_EMPTY_ROOT(&st->rb))
-+	if (RB_EMPTY_ROOT(&st->rb.rb_root))
- 		return NULL;
- 	cfqg = cfq_rb_first_group(st);
- 	update_min_vdisktime(st);
++#ifdef CONFIG_CPU_BIG_ENDIAN
++#warning inconsistent configuration, CONFIG_CPU_BIG_ENDIAN is set
++#endif
++
+ #include <linux/byteorder/generic.h>
+ #endif /* _LINUX_BYTEORDER_LITTLE_ENDIAN_H */
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from babu.moger@oracle.com are
 
 
