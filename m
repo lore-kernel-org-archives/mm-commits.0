@@ -1,51 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-drop-wrong-comment.patch removed from -mm
+Subject: [merged] vfat-deduplicate-hex2bin.patch removed from -mm
  tree
-Date: Mon, 11 Sep 2017 12:43:22 -0700
-Message-ID: <20170911194322.9g4rMqhew%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:43:28 -0700
+Message-ID: <20170911194328.GYF3dgUx1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50518 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTnX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:23 -0400
+        with ESMTP id S1751028AbdIKTn3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, raven@themaw.net, tkusumi@tuxera.com
+To: andriy.shevchenko@linux.intel.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: drop wrong comment
+     Subject: vfat: deduplicate hex2bin()
 has been removed from the -mm tree.  Its filename was
-     autofs-drop-wrong-comment.patch
+     vfat-deduplicate-hex2bin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: drop wrong comment
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: vfat: deduplicate hex2bin()
 
-This comment was correct when it was added in 8d7b48e0 ("autofs4: add
-miscellaneous device for ioctls") in 2008, but not after 4e44b685 "Get rid
-of path_lookup in autofs4" in 2009 which introduced find_autofs_mount().
+We may use hex2bin() instead of custom approach.
 
-Link: http://lkml.kernel.org/r/150285069148.4670.17959501481201077445.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Link: http://lkml.kernel.org/r/87zibktpil.fsf@devron
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/fat/namei_vfat.c |   35 ++++++++++++-----------------------
+ 1 file changed, 12 insertions(+), 23 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-drop-wrong-comment fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-drop-wrong-comment
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -258,11 +258,6 @@ static int autofs_dev_ioctl_open_mountpo
- 		if (err)
- 			goto out;
+diff -puN fs/fat/namei_vfat.c~vfat-deduplicate-hex2bin fs/fat/namei_vfat.c
+--- a/fs/fat/namei_vfat.c~vfat-deduplicate-hex2bin
++++ a/fs/fat/namei_vfat.c
+@@ -19,6 +19,8 @@
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+ #include <linux/namei.h>
++#include <linux/kernel.h>
++
+ #include "fat.h"
  
--		/*
--		 * Find autofs super block that has the device number
--		 * corresponding to the autofs fs we want to open.
--		 */
+ static inline unsigned long vfat_d_version(struct dentry *dentry)
+@@ -510,10 +512,8 @@ xlate_to_uni(const unsigned char *name,
+ 	     struct nls_table *nls)
+ {
+ 	const unsigned char *ip;
+-	unsigned char nc;
+ 	unsigned char *op;
+-	unsigned int ec;
+-	int i, k, fill;
++	int i, fill;
+ 	int charlen;
+ 
+ 	if (utf8) {
+@@ -530,33 +530,22 @@ xlate_to_uni(const unsigned char *name,
+ 			 i < len && *outlen < FAT_LFN_LEN;
+ 			 *outlen += 1) {
+ 			if (escape && (*ip == ':')) {
++				u8 uc[2];
++
+ 				if (i > len - 5)
+ 					return -EINVAL;
+-				ec = 0;
+-				for (k = 1; k < 5; k++) {
+-					nc = ip[k];
+-					ec <<= 4;
+-					if (nc >= '0' && nc <= '9') {
+-						ec |= nc - '0';
+-						continue;
+-					}
+-					if (nc >= 'a' && nc <= 'f') {
+-						ec |= nc - ('a' - 10);
+-						continue;
+-					}
+-					if (nc >= 'A' && nc <= 'F') {
+-						ec |= nc - ('A' - 10);
+-						continue;
+-					}
++
++				if (hex2bin(uc, ip + 1, 2) < 0)
+ 					return -EINVAL;
+-				}
+-				*op++ = ec & 0xFF;
+-				*op++ = ec >> 8;
++
++				*(wchar_t *)op = uc[0] << 8 | uc[1];
++
++				op += 2;
+ 				ip += 5;
+ 				i += 5;
+ 			} else {
+ 				charlen = nls->char2uni(ip, len - i,
+-									(wchar_t *)op);
++							(wchar_t *)op);
+ 				if (charlen < 0)
+ 					return -EINVAL;
+ 				ip += charlen;
+_
+
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+
+
