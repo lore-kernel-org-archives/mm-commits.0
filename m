@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error.patch removed
- from -mm tree
-Date: Mon, 11 Sep 2017 12:40:31 -0700
-Message-ID: <20170911194031.D-ezg_ugz%akpm@linux-foundation.org>
+ mm-zsmalloc-change-stat-type-parameter-to-int.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:40:07 -0700
+Message-ID: <20170911194007.i82j4zIPk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49308 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751026AbdIKTkc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:32 -0400
+        with ESMTP id S1750999AbdIKTkI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, hughd@google.com, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, ying.huang@intel.com
+To: dianders@chromium.org, minchan@kernel.org, mka@chromium.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: fix swapon frontswap_map memory leak on error
+     Subject: mm/zsmalloc.c: change stat type parameter to int
 has been removed from the -mm tree.  Its filename was
-     mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error.patch
+     mm-zsmalloc-change-stat-type-parameter-to-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm/swapfile.c: fix swapon frontswap_map memory leak on error
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: mm/zsmalloc.c: change stat type parameter to int
 
-Free frontswap_map if an error is encountered before enable_swap_info().
+zs_stat_inc/dec/get() uses enum zs_stat_type for the stat type, however
+some callers pass an enum fullness_group value.  Change the type to int to
+reflect the actual use of the functions and get rid of 'enum-conversion'
+warnings
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.12+]
+Link: http://lkml.kernel.org/r/20170731175000.56538-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Doug Anderson <dianders@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zsmalloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error mm/swapfile.c
---- a/mm/swapfile.c~mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error
-+++ a/mm/swapfile.c
-@@ -3291,6 +3291,7 @@ bad_swap:
- 	spin_unlock(&swap_lock);
- 	vfree(swap_map);
- 	kvfree(cluster_info);
-+	kvfree(frontswap_map);
- 	if (swap_file) {
- 		if (inode && S_ISREG(inode->i_mode)) {
- 			inode_unlock(inode);
+diff -puN mm/zsmalloc.c~mm-zsmalloc-change-stat-type-parameter-to-int mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-change-stat-type-parameter-to-int
++++ a/mm/zsmalloc.c
+@@ -551,20 +551,23 @@ static int get_size_class_index(int size
+ 	return min_t(int, ZS_SIZE_CLASSES - 1, idx);
+ }
+ 
++/* type can be of enum type zs_stat_type or fullness_group */
+ static inline void zs_stat_inc(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
++				int type, unsigned long cnt)
+ {
+ 	class->stats.objs[type] += cnt;
+ }
+ 
++/* type can be of enum type zs_stat_type or fullness_group */
+ static inline void zs_stat_dec(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
++				int type, unsigned long cnt)
+ {
+ 	class->stats.objs[type] -= cnt;
+ }
+ 
++/* type can be of enum type zs_stat_type or fullness_group */
+ static inline unsigned long zs_stat_get(struct size_class *class,
+-				enum zs_stat_type type)
++				int type)
+ {
+ 	return class->stats.objs[type];
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from mka@chromium.org are
 
-mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
-mm-compaction-persistently-skip-hugetlbfs-pageblocks.patch
-mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 
