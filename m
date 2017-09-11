@@ -1,108 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- autofs-fix-at_no_automount-not-being-honored.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:43:04 -0700
-Message-ID: <20170911194304.bKwgBFzyU%akpm@linux-foundation.org>
+Subject: [merged] autofs-drop-wrong-comment.patch removed from -mm
+ tree
+Date: Mon, 11 Sep 2017 12:43:22 -0700
+Message-ID: <20170911194322.9g4rMqhew%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTnF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:05 -0400
+        with ESMTP id S1751028AbdIKTnX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org, oholy@redhat.com, raven@themaw.net, walters@redhat.com
+To: mm-commits@vger.kernel.org, raven@themaw.net, tkusumi@tuxera.com
 
 
 The patch titled
-     Subject: autofs: fix AT_NO_AUTOMOUNT not being honored
+     Subject: autofs: drop wrong comment
 has been removed from the -mm tree.  Its filename was
-     autofs-fix-at_no_automount-not-being-honored.patch
+     autofs-drop-wrong-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ian Kent <raven@themaw.net>
-Subject: autofs: fix AT_NO_AUTOMOUNT not being honored
+From: Tomohiro Kusumi <tkusumi@tuxera.com>
+Subject: autofs: drop wrong comment
 
-The fstatat(2) and statx() calls can pass the flag AT_NO_AUTOMOUNT which
-is meant to clear the LOOKUP_AUTOMOUNT flag and prevent triggering of an
-automount by the call.  But this flag is unconditionally cleared for all
-stat family system calls except statx().
+This comment was correct when it was added in 8d7b48e0 ("autofs4: add
+miscellaneous device for ioctls") in 2008, but not after 4e44b685 "Get rid
+of path_lookup in autofs4" in 2009 which introduced find_autofs_mount().
 
-stat family system calls have always triggered mount requests for the
-negative dentry case in follow_automount() which is intended but prevents
-the fstatat(2) and statx() AT_NO_AUTOMOUNT case from being handled.
-
-In order to handle the AT_NO_AUTOMOUNT for both system calls the negative
-dentry case in follow_automount() needs to be changed to return ENOENT
-when the LOOKUP_AUTOMOUNT flag is clear (and the other required flags are
-clear).
-
-AFAICT this change doesn't have any noticable side effects and may, in
-some use cases (although I didn't see it in testing) prevent unnecessary
-callbacks to the automount daemon.
-
-It's also possible that a stat family call has been made with a path that
-is in the process of being mounted by some other process.  But stat family
-calls should return the automount state of the path as it is "now" so it
-shouldn't wait for mount completion.
-
-This is the same semantic as the positive dentry case already handled.
-
-Link: http://lkml.kernel.org/r/150216641255.11652.4204561328197919771.stgit@pluto.themaw.net
-Fixes: deccf497d804a4c5fca ("Make stat/lstat/fstatat pass AT_NO_AUTOMOUNT to vfs_statx()")
+Link: http://lkml.kernel.org/r/150285069148.4670.17959501481201077445.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Colin Walters <walters@redhat.com>
-Cc: Ondrej Holy <oholy@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c         |   15 ++++++++++++---
- include/linux/fs.h |    3 +--
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ fs/autofs4/dev-ioctl.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/namei.c~autofs-fix-at_no_automount-not-being-honored fs/namei.c
---- a/fs/namei.c~autofs-fix-at_no_automount-not-being-honored
-+++ a/fs/namei.c
-@@ -1129,9 +1129,18 @@ static int follow_automount(struct path
- 	 * of the daemon to instantiate them before they can be used.
- 	 */
- 	if (!(nd->flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
--			   LOOKUP_OPEN | LOOKUP_CREATE | LOOKUP_AUTOMOUNT)) &&
--	    path->dentry->d_inode)
--		return -EISDIR;
-+			   LOOKUP_OPEN | LOOKUP_CREATE |
-+			   LOOKUP_AUTOMOUNT))) {
-+		/* Positive dentry that isn't meant to trigger an
-+		 * automount, EISDIR will allow it to be used,
-+		 * otherwise there's no mount here "now" so return
-+		 * ENOENT.
-+		 */
-+		if (path->dentry->d_inode)
-+			return -EISDIR;
-+		else
-+			return -ENOENT;
-+	}
+diff -puN fs/autofs4/dev-ioctl.c~autofs-drop-wrong-comment fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-drop-wrong-comment
++++ a/fs/autofs4/dev-ioctl.c
+@@ -258,11 +258,6 @@ static int autofs_dev_ioctl_open_mountpo
+ 		if (err)
+ 			goto out;
  
- 	if (path->dentry->d_sb->s_user_ns != &init_user_ns)
- 		return -EACCES;
-diff -puN include/linux/fs.h~autofs-fix-at_no_automount-not-being-honored include/linux/fs.h
---- a/include/linux/fs.h~autofs-fix-at_no_automount-not-being-honored
-+++ a/include/linux/fs.h
-@@ -3043,8 +3043,7 @@ static inline int vfs_lstat(const char _
- static inline int vfs_fstatat(int dfd, const char __user *filename,
- 			      struct kstat *stat, int flags)
- {
--	return vfs_statx(dfd, filename, flags | AT_NO_AUTOMOUNT,
--			 stat, STATX_BASIC_STATS);
-+	return vfs_statx(dfd, filename, flags, stat, STATX_BASIC_STATS);
- }
- static inline int vfs_fstat(int fd, struct kstat *stat)
- {
-_
-
-Patches currently in -mm which might be from raven@themaw.net are
-
-
+-		/*
+-		 * Find autofs super block that has the device number
+-		 * corresponding to the autofs fs we want to open.
+-		 */
