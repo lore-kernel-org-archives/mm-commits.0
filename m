@@ -1,76 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-useless-vma-parameter-to-offset_il_node.patch removed from -mm
- tree
-Date: Mon, 11 Sep 2017 12:39:46 -0700
-Message-ID: <20170911193946.UWWhbo7kq%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mmpage=5Falloc-apply-gfp=5Fallowed=5Fmask-before-the-first-?=
+ =?US-ASCII?Q?allocation-attempt.patch?= removed from -mm tree
+Date: Mon, 11 Sep 2017 12:40:25 -0700
+Message-ID: <20170911194025.zgZRDgFaw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49394 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751031AbdIKTjr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:47 -0400
+        with ESMTP id S1751004AbdIKTk0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ldufour@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: brouer@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: remove useless vma parameter to offset_il_node
+     Subject: mm/page_alloc.c: apply gfp_allowed_mask before the first allocation attempt
 has been removed from the -mm tree.  Its filename was
-     mm-remove-useless-vma-parameter-to-offset_il_node.patch
+     mmpage_alloc-apply-gfp_allowed_mask-before-the-first-allocation-attempt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Subject: mm: remove useless vma parameter to offset_il_node
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm/page_alloc.c: apply gfp_allowed_mask before the first allocation attempt
 
-While reading the code I found that offset_il_node() has a vm_area_struct
-pointer parameter which is unused.
+We are by error initializing alloc_flags before gfp_allowed_mask is
+applied.  This could cause problems after pm_restrict_gfp_mask() is called
+during suspend operation.  Apply gfp_allowed_mask before initializing
+alloc_flags so that the first allocation attempt uses correct flags.
 
-Link: http://lkml.kernel.org/r/1502899755-23146-1-git-send-email-ldufour@linux.vnet.ibm.com
-Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/201709020016.ADJ21342.OFLJHOOSMFVtFQ@I-love.SAKURA.ne.jp
+Fixes: 83d4ca8148fd9092 ("mm, page_alloc: move __GFP_HARDWALL modifications out of the fastpath")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mm-remove-useless-vma-parameter-to-offset_il_node mm/mempolicy.c
---- a/mm/mempolicy.c~mm-remove-useless-vma-parameter-to-offset_il_node
-+++ a/mm/mempolicy.c
-@@ -1745,8 +1745,7 @@ unsigned int mempolicy_slab_node(void)
-  * node in pol->v.nodes (starting from n=0), wrapping around if n exceeds the
-  * number of present nodes.
-  */
--static unsigned offset_il_node(struct mempolicy *pol,
--			       struct vm_area_struct *vma, unsigned long n)
-+static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
+diff -puN mm/page_alloc.c~mmpage_alloc-apply-gfp_allowed_mask-before-the-first-allocation-attempt mm/page_alloc.c
+--- a/mm/page_alloc.c~mmpage_alloc-apply-gfp_allowed_mask-before-the-first-allocation-attempt
++++ a/mm/page_alloc.c
+@@ -4183,10 +4183,11 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
  {
- 	unsigned nnodes = nodes_weight(pol->v.nodes);
- 	unsigned target;
-@@ -1779,7 +1778,7 @@ static inline unsigned interleave_nid(st
- 		BUG_ON(shift < PAGE_SHIFT);
- 		off = vma->vm_pgoff >> (shift - PAGE_SHIFT);
- 		off += (addr - vma->vm_start) >> shift;
--		return offset_il_node(pol, vma, off);
-+		return offset_il_node(pol, off);
- 	} else
- 		return interleave_nodes(pol);
- }
-@@ -2247,7 +2246,7 @@ int mpol_misplaced(struct page *page, st
+ 	struct page *page;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
++	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
+ 	struct alloc_context ac = { };
  
- 		pgoff = vma->vm_pgoff;
- 		pgoff += (addr - vma->vm_start) >> PAGE_SHIFT;
--		polnid = offset_il_node(pol, vma, pgoff);
-+		polnid = offset_il_node(pol, pgoff);
- 		break;
+ 	gfp_mask &= gfp_allowed_mask;
++	alloc_mask = gfp_mask;
+ 	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac, &alloc_mask, &alloc_flags))
+ 		return NULL;
  
- 	case MPOL_PREFERRED:
 _
 
-Patches currently in -mm which might be from ldufour@linux.vnet.ibm.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-mm-skip-hwpoisoned-pages-when-onlining-pages.patch
 
