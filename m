@@ -1,68 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:43:13 -0700
-Message-ID: <20170911194313.-WMcDgPaZ%akpm@linux-foundation.org>
+Subject: [merged] test_kmod-flip-int-checks-to-be-consistent.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:43:34 -0700
+Message-ID: <20170911194334.-j5NKlstN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50588 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751020AbdIKTnO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:14 -0400
+        with ESMTP id S1750999AbdIKTnf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, raven@themaw.net, tkusumi@tuxera.com
+To: colin.king@canonical.com, dan.carpenter@oracle.com, dcb314@hotmail.com, dmitry.torokhov@gmail.com, ebiederm@xmission.com, jeyu@redhat.com, jpoimboe@redhat.com, keescook@chromium.org, mbenes@suse.cz, mcgrof@kernel.org, mm-commits@vger.kernel.org, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org
 
 
 The patch titled
-     Subject: autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
+     Subject: test_kmod: flip INT checks to be consistent
 has been removed from the -mm tree.  Its filename was
-     autofs-remove-unused-autofs_ioc_expire_direct-indirect.patch
+     test_kmod-flip-int-checks-to-be-consistent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: test_kmod: flip INT checks to be consistent
 
-These are not used by either kernel or userspace, although
-AUTOFS_IOC_EXPIRE_DIRECT once seems to have been used by userspace in
-around 2006-2008, which was technically just an alias of the existing
-ioctl AUTOFS_IOC_EXPIRE_MULTI.
+Most checks will check for min and then max, except the int check.  Flip
+the checks to be consistent with the other code.
 
-ioctls for autofs are already complicated enough that they could be
-removed unless these are staying here to be able to compile userspace code
-of certain period of time from a decade ago.
-
-Edit: raven@themaw.net
-Yes, this is indeed very old and anything that still uses must
-be updated becuase it will be using broken functionality.
-End edit: raven@themaw.net
-
-Link: http://lkml.kernel.org/r/150285067347.4670.11494624644273072003.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+[mcgrof@kernel.org: massaged commit log]
+Link: http://lkml.kernel.org/r/20170802211707.28020-3-mcgrof@kernel.org
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jessica Yu <jeyu@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/auto_fs4.h |    2 --
- 1 file changed, 2 deletions(-)
+ lib/test_kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/uapi/linux/auto_fs4.h~autofs-remove-unused-autofs_ioc_expire_direct-indirect include/uapi/linux/auto_fs4.h
---- a/include/uapi/linux/auto_fs4.h~autofs-remove-unused-autofs_ioc_expire_direct-indirect
-+++ a/include/uapi/linux/auto_fs4.h
-@@ -155,8 +155,6 @@ enum {
- };
+diff -puN lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent lib/test_kmod.c
+--- a/lib/test_kmod.c~test_kmod-flip-int-checks-to-be-consistent
++++ a/lib/test_kmod.c
+@@ -946,7 +946,7 @@ static int test_dev_config_update_int(st
+ 	if (ret)
+ 		return ret;
  
- #define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
--#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
- #define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
- #define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
+-	if (new > INT_MAX || new < INT_MIN)
++	if (new < INT_MIN || new > INT_MAX)
+ 		return -EINVAL;
  
+ 	mutex_lock(&test_dev->config_mutex);
 _
 
-Patches currently in -mm which might be from tkusumi@tuxera.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 
