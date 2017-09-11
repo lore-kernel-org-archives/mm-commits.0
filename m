@@ -1,472 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hmm-mirror-device-page-fault-handler.patch
+Subject: [merged]
+ mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
  removed from -mm tree
-Date: Mon, 11 Sep 2017 12:38:54 -0700
-Message-ID: <20170911193854.kQfKz20HE%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:39:06 -0700
+Message-ID: <20170911193906.PoWSwQPct%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48766 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48884 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTi4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:56 -0400
+        with ESMTP id S1751020AbdIKTjI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/hmm/mirror: device page fault handler
+     Subject: mm/memcontrol: allow to uncharge page without using page->lru field
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-mirror-device-page-fault-handler.patch
+     mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm/mirror: device page fault handler
+Subject: mm/memcontrol: allow to uncharge page without using page->lru field
 
-This handles page fault on behalf of device driver, unlike
-handle_mm_fault() it does not trigger migration back to system memory for
-device memory.
+HMM pages (private or public device pages) are ZONE_DEVICE page and
+thus you can not use page->lru fields of those pages. This patch
+re-arrange the uncharge to allow single page to be uncharge without
+modifying the lru field of the struct page.
 
-Link: http://lkml.kernel.org/r/20170817000548.32038-6-jglisse@redhat.com
+There is no change to memcontrol logic, it is the same as it was
+before this patch.
+
+Link: http://lkml.kernel.org/r/20170817000548.32038-10-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
 Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |   27 ++++
- mm/hmm.c            |  256 ++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 271 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |  168 +++++++++++++++++++++++++---------------------
+ 1 file changed, 92 insertions(+), 76 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-mirror-device-page-fault-handler include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-mirror-device-page-fault-handler
-+++ a/include/linux/hmm.h
-@@ -292,6 +292,33 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 		     unsigned long end,
- 		     hmm_pfn_t *pfns);
- bool hmm_vma_range_done(struct vm_area_struct *vma, struct hmm_range *range);
-+
-+
-+/*
-+ * Fault memory on behalf of device driver. Unlike handle_mm_fault(), this will
-+ * not migrate any device memory back to system memory. The hmm_pfn_t array will
-+ * be updated with the fault result and current snapshot of the CPU page table
-+ * for the range.
-+ *
-+ * The mmap_sem must be taken in read mode before entering and it might be
-+ * dropped by the function if the block argument is false. In that case, the
-+ * function returns -EAGAIN.
-+ *
-+ * Return value does not reflect if the fault was successful for every single
-+ * address or not. Therefore, the caller must to inspect the hmm_pfn_t array to
-+ * determine fault status for each address.
-+ *
-+ * Trying to fault inside an invalid vma will result in -EINVAL.
-+ *
-+ * See the function description in mm/hmm.c for further documentation.
-+ */
-+int hmm_vma_fault(struct vm_area_struct *vma,
-+		  struct hmm_range *range,
-+		  unsigned long start,
-+		  unsigned long end,
-+		  hmm_pfn_t *pfns,
-+		  bool write,
-+		  bool block);
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
- 
-diff -puN mm/hmm.c~mm-hmm-mirror-device-page-fault-handler mm/hmm.c
---- a/mm/hmm.c~mm-hmm-mirror-device-page-fault-handler
-+++ a/mm/hmm.c
-@@ -221,6 +221,36 @@ void hmm_mirror_unregister(struct hmm_mi
+diff -puN mm/memcontrol.c~mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-allow-to-uncharge-page-without-using-page-lru-field
++++ a/mm/memcontrol.c
+@@ -5540,48 +5540,102 @@ void mem_cgroup_cancel_charge(struct pag
+ 	cancel_charge(memcg, nr_pages);
  }
- EXPORT_SYMBOL(hmm_mirror_unregister);
  
-+struct hmm_vma_walk {
-+	struct hmm_range	*range;
-+	unsigned long		last;
-+	bool			fault;
-+	bool			block;
-+	bool			write;
+-static void uncharge_batch(struct mem_cgroup *memcg, unsigned long pgpgout,
+-			   unsigned long nr_anon, unsigned long nr_file,
+-			   unsigned long nr_kmem, unsigned long nr_huge,
+-			   unsigned long nr_shmem, struct page *dummy_page)
++struct uncharge_gather {
++	struct mem_cgroup *memcg;
++	unsigned long pgpgout;
++	unsigned long nr_anon;
++	unsigned long nr_file;
++	unsigned long nr_kmem;
++	unsigned long nr_huge;
++	unsigned long nr_shmem;
++	struct page *dummy_page;
 +};
 +
-+static int hmm_vma_do_fault(struct mm_walk *walk,
-+			    unsigned long addr,
-+			    hmm_pfn_t *pfn)
++static inline void uncharge_gather_clear(struct uncharge_gather *ug)
 +{
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_REMOTE;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+	int r;
-+
-+	flags |= hmm_vma_walk->block ? 0 : FAULT_FLAG_ALLOW_RETRY;
-+	flags |= hmm_vma_walk->write ? FAULT_FLAG_WRITE : 0;
-+	r = handle_mm_fault(vma, addr, flags);
-+	if (r & VM_FAULT_RETRY)
-+		return -EBUSY;
-+	if (r & VM_FAULT_ERROR) {
-+		*pfn = HMM_PFN_ERROR;
-+		return -EFAULT;
-+	}
-+
-+	return -EAGAIN;
++	memset(ug, 0, sizeof(*ug));
 +}
 +
- static void hmm_pfns_special(hmm_pfn_t *pfns,
- 			     unsigned long addr,
- 			     unsigned long end)
-@@ -244,34 +274,62 @@ static int hmm_pfns_bad(unsigned long ad
- 	return 0;
- }
- 
-+static void hmm_pfns_clear(hmm_pfn_t *pfns,
-+			   unsigned long addr,
-+			   unsigned long end)
-+{
-+	for (; addr < end; addr += PAGE_SIZE, pfns++)
-+		*pfns = 0;
-+}
-+
- static int hmm_vma_walk_hole(unsigned long addr,
- 			     unsigned long end,
- 			     struct mm_walk *walk)
++static void uncharge_batch(const struct uncharge_gather *ug)
  {
--	struct hmm_range *range = walk->private;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct hmm_range *range = hmm_vma_walk->range;
- 	hmm_pfn_t *pfns = range->pfns;
- 	unsigned long i;
+-	unsigned long nr_pages = nr_anon + nr_file + nr_kmem;
++	unsigned long nr_pages = ug->nr_anon + ug->nr_file + ug->nr_kmem;
+ 	unsigned long flags;
  
-+	hmm_vma_walk->last = addr;
- 	i = (addr - range->start) >> PAGE_SHIFT;
--	for (; addr < end; addr += PAGE_SIZE, i++)
-+	for (; addr < end; addr += PAGE_SIZE, i++) {
- 		pfns[i] = HMM_PFN_EMPTY;
-+		if (hmm_vma_walk->fault) {
-+			int ret;
- 
--	return 0;
-+			ret = hmm_vma_do_fault(walk, addr, &pfns[i]);
-+			if (ret != -EAGAIN)
-+				return ret;
-+		}
-+	}
-+
-+	return hmm_vma_walk->fault ? -EAGAIN : 0;
- }
- 
- static int hmm_vma_walk_clear(unsigned long addr,
- 			      unsigned long end,
- 			      struct mm_walk *walk)
- {
--	struct hmm_range *range = walk->private;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct hmm_range *range = hmm_vma_walk->range;
- 	hmm_pfn_t *pfns = range->pfns;
- 	unsigned long i;
- 
-+	hmm_vma_walk->last = addr;
- 	i = (addr - range->start) >> PAGE_SHIFT;
--	for (; addr < end; addr += PAGE_SIZE, i++)
-+	for (; addr < end; addr += PAGE_SIZE, i++) {
- 		pfns[i] = 0;
-+		if (hmm_vma_walk->fault) {
-+			int ret;
- 
--	return 0;
-+			ret = hmm_vma_do_fault(walk, addr, &pfns[i]);
-+			if (ret != -EAGAIN)
-+				return ret;
-+		}
-+	}
-+
-+	return hmm_vma_walk->fault ? -EAGAIN : 0;
- }
- 
- static int hmm_vma_walk_pmd(pmd_t *pmdp,
-@@ -279,15 +337,18 @@ static int hmm_vma_walk_pmd(pmd_t *pmdp,
- 			    unsigned long end,
- 			    struct mm_walk *walk)
- {
--	struct hmm_range *range = walk->private;
-+	struct hmm_vma_walk *hmm_vma_walk = walk->private;
-+	struct hmm_range *range = hmm_vma_walk->range;
- 	struct vm_area_struct *vma = walk->vma;
- 	hmm_pfn_t *pfns = range->pfns;
- 	unsigned long addr = start, i;
-+	bool write_fault;
- 	hmm_pfn_t flag;
- 	pte_t *ptep;
- 
- 	i = (addr - range->start) >> PAGE_SHIFT;
- 	flag = vma->vm_flags & VM_READ ? HMM_PFN_READ : 0;
-+	write_fault = hmm_vma_walk->fault & hmm_vma_walk->write;
- 
- again:
- 	if (pmd_none(*pmdp))
-@@ -316,6 +377,9 @@ again:
- 		if (pmd_protnone(pmd))
- 			return hmm_vma_walk_clear(start, end, walk);
- 
-+		if (write_fault && !pmd_write(pmd))
-+			return hmm_vma_walk_clear(start, end, walk);
-+
- 		pfn = pmd_pfn(pmd) + pte_index(addr);
- 		flag |= pmd_write(pmd) ? HMM_PFN_WRITE : 0;
- 		for (; addr < end; addr += PAGE_SIZE, i++, pfn++)
-@@ -332,13 +396,55 @@ again:
- 
- 		pfns[i] = 0;
- 
--		if (pte_none(pte) || !pte_present(pte)) {
-+		if (pte_none(pte)) {
- 			pfns[i] = HMM_PFN_EMPTY;
-+			if (hmm_vma_walk->fault)
-+				goto fault;
- 			continue;
- 		}
- 
-+		if (!pte_present(pte)) {
-+			swp_entry_t entry;
-+
-+			if (!non_swap_entry(entry)) {
-+				if (hmm_vma_walk->fault)
-+					goto fault;
-+				continue;
-+			}
-+
-+			entry = pte_to_swp_entry(pte);
-+
-+			/*
-+			 * This is a special swap entry, ignore migration, use
-+			 * device and report anything else as error.
-+			 */
-+			if (is_migration_entry(entry)) {
-+				if (hmm_vma_walk->fault) {
-+					pte_unmap(ptep);
-+					hmm_vma_walk->last = addr;
-+					migration_entry_wait(vma->vm_mm,
-+							     pmdp, addr);
-+					return -EAGAIN;
-+				}
-+				continue;
-+			} else {
-+				/* Report error for everything else */
-+				pfns[i] = HMM_PFN_ERROR;
-+			}
-+			continue;
-+		}
-+
-+		if (write_fault && !pte_write(pte))
-+			goto fault;
-+
- 		pfns[i] = hmm_pfn_t_from_pfn(pte_pfn(pte)) | flag;
- 		pfns[i] |= pte_write(pte) ? HMM_PFN_WRITE : 0;
-+		continue;
-+
-+fault:
-+		pte_unmap(ptep);
-+		/* Fault all pages in range */
-+		return hmm_vma_walk_clear(start, end, walk);
+-	if (!mem_cgroup_is_root(memcg)) {
+-		page_counter_uncharge(&memcg->memory, nr_pages);
++	if (!mem_cgroup_is_root(ug->memcg)) {
++		page_counter_uncharge(&ug->memcg->memory, nr_pages);
+ 		if (do_memsw_account())
+-			page_counter_uncharge(&memcg->memsw, nr_pages);
+-		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && nr_kmem)
+-			page_counter_uncharge(&memcg->kmem, nr_kmem);
+-		memcg_oom_recover(memcg);
++			page_counter_uncharge(&ug->memcg->memsw, nr_pages);
++		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && ug->nr_kmem)
++			page_counter_uncharge(&ug->memcg->kmem, ug->nr_kmem);
++		memcg_oom_recover(ug->memcg);
  	}
- 	pte_unmap(ptep - 1);
  
-@@ -371,6 +477,7 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 		     unsigned long end,
- 		     hmm_pfn_t *pfns)
- {
-+	struct hmm_vma_walk hmm_vma_walk;
- 	struct mm_walk mm_walk;
- 	struct hmm *hmm;
+ 	local_irq_save(flags);
+-	__this_cpu_sub(memcg->stat->count[MEMCG_RSS], nr_anon);
+-	__this_cpu_sub(memcg->stat->count[MEMCG_CACHE], nr_file);
+-	__this_cpu_sub(memcg->stat->count[MEMCG_RSS_HUGE], nr_huge);
+-	__this_cpu_sub(memcg->stat->count[NR_SHMEM], nr_shmem);
+-	__this_cpu_add(memcg->stat->events[PGPGOUT], pgpgout);
+-	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
+-	memcg_check_events(memcg, dummy_page);
++	__this_cpu_sub(ug->memcg->stat->count[MEMCG_RSS], ug->nr_anon);
++	__this_cpu_sub(ug->memcg->stat->count[MEMCG_CACHE], ug->nr_file);
++	__this_cpu_sub(ug->memcg->stat->count[MEMCG_RSS_HUGE], ug->nr_huge);
++	__this_cpu_sub(ug->memcg->stat->count[NR_SHMEM], ug->nr_shmem);
++	__this_cpu_add(ug->memcg->stat->events[PGPGOUT], ug->pgpgout);
++	__this_cpu_add(ug->memcg->stat->nr_page_events, nr_pages);
++	memcg_check_events(ug->memcg, ug->dummy_page);
+ 	local_irq_restore(flags);
  
-@@ -402,9 +509,12 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 	list_add_rcu(&range->list, &hmm->ranges);
- 	spin_unlock(&hmm->lock);
- 
-+	hmm_vma_walk.fault = false;
-+	hmm_vma_walk.range = range;
-+	mm_walk.private = &hmm_vma_walk;
-+
- 	mm_walk.vma = vma;
- 	mm_walk.mm = vma->vm_mm;
--	mm_walk.private = range;
- 	mm_walk.pte_entry = NULL;
- 	mm_walk.test_walk = NULL;
- 	mm_walk.hugetlb_entry = NULL;
-@@ -412,7 +522,6 @@ int hmm_vma_get_pfns(struct vm_area_stru
- 	mm_walk.pte_hole = hmm_vma_walk_hole;
- 
- 	walk_page_range(start, end, &mm_walk);
--
- 	return 0;
- }
- EXPORT_SYMBOL(hmm_vma_get_pfns);
-@@ -439,7 +548,7 @@ EXPORT_SYMBOL(hmm_vma_get_pfns);
-  *
-  * There are two ways to use this :
-  * again:
-- *   hmm_vma_get_pfns(vma, range, start, end, pfns);
-+ *   hmm_vma_get_pfns(vma, range, start, end, pfns); or hmm_vma_fault(...);
-  *   trans = device_build_page_table_update_transaction(pfns);
-  *   device_page_table_lock();
-  *   if (!hmm_vma_range_done(vma, range)) {
-@@ -450,7 +559,7 @@ EXPORT_SYMBOL(hmm_vma_get_pfns);
-  *   device_page_table_unlock();
-  *
-  * Or:
-- *   hmm_vma_get_pfns(vma, range, start, end, pfns);
-+ *   hmm_vma_get_pfns(vma, range, start, end, pfns); or hmm_vma_fault(...);
-  *   device_page_table_lock();
-  *   hmm_vma_range_done(vma, range);
-  *   device_update_page_table(pfns);
-@@ -479,4 +588,127 @@ bool hmm_vma_range_done(struct vm_area_s
- 	return range->valid;
- }
- EXPORT_SYMBOL(hmm_vma_range_done);
-+
-+/*
-+ * hmm_vma_fault() - try to fault some address in a virtual address range
-+ * @vma: virtual memory area containing the virtual address range
-+ * @range: use to track pfns array content validity
-+ * @start: fault range virtual start address (inclusive)
-+ * @end: fault range virtual end address (exclusive)
-+ * @pfns: array of hmm_pfn_t, only entry with fault flag set will be faulted
-+ * @write: is it a write fault
-+ * @block: allow blocking on fault (if true it sleeps and do not drop mmap_sem)
-+ * Returns: 0 success, error otherwise (-EAGAIN means mmap_sem have been drop)
-+ *
-+ * This is similar to a regular CPU page fault except that it will not trigger
-+ * any memory migration if the memory being faulted is not accessible by CPUs.
-+ *
-+ * On error, for one virtual address in the range, the function will set the
-+ * hmm_pfn_t error flag for the corresponding pfn entry.
-+ *
-+ * Expected use pattern:
-+ * retry:
-+ *   down_read(&mm->mmap_sem);
-+ *   // Find vma and address device wants to fault, initialize hmm_pfn_t
-+ *   // array accordingly
-+ *   ret = hmm_vma_fault(vma, start, end, pfns, allow_retry);
-+ *   switch (ret) {
-+ *   case -EAGAIN:
-+ *     hmm_vma_range_done(vma, range);
-+ *     // You might want to rate limit or yield to play nicely, you may
-+ *     // also commit any valid pfn in the array assuming that you are
-+ *     // getting true from hmm_vma_range_monitor_end()
-+ *     goto retry;
-+ *   case 0:
-+ *     break;
-+ *   default:
-+ *     // Handle error !
-+ *     up_read(&mm->mmap_sem)
-+ *     return;
-+ *   }
-+ *   // Take device driver lock that serialize device page table update
-+ *   driver_lock_device_page_table_update();
-+ *   hmm_vma_range_done(vma, range);
-+ *   // Commit pfns we got from hmm_vma_fault()
-+ *   driver_unlock_device_page_table_update();
-+ *   up_read(&mm->mmap_sem)
-+ *
-+ * YOU MUST CALL hmm_vma_range_done() AFTER THIS FUNCTION RETURN SUCCESS (0)
-+ * BEFORE FREEING THE range struct OR YOU WILL HAVE SERIOUS MEMORY CORRUPTION !
-+ *
-+ * YOU HAVE BEEN WARNED !
-+ */
-+int hmm_vma_fault(struct vm_area_struct *vma,
-+		  struct hmm_range *range,
-+		  unsigned long start,
-+		  unsigned long end,
-+		  hmm_pfn_t *pfns,
-+		  bool write,
-+		  bool block)
-+{
-+	struct hmm_vma_walk hmm_vma_walk;
-+	struct mm_walk mm_walk;
-+	struct hmm *hmm;
-+	int ret;
-+
-+	/* Sanity check, this really should not happen ! */
-+	if (start < vma->vm_start || start >= vma->vm_end)
-+		return -EINVAL;
-+	if (end < vma->vm_start || end > vma->vm_end)
-+		return -EINVAL;
-+
-+	hmm = hmm_register(vma->vm_mm);
-+	if (!hmm) {
-+		hmm_pfns_clear(pfns, start, end);
-+		return -ENOMEM;
-+	}
-+	/* Caller must have registered a mirror using hmm_mirror_register() */
-+	if (!hmm->mmu_notifier.ops)
-+		return -EINVAL;
-+
-+	/* Initialize range to track CPU page table update */
-+	range->start = start;
-+	range->pfns = pfns;
-+	range->end = end;
-+	spin_lock(&hmm->lock);
-+	range->valid = true;
-+	list_add_rcu(&range->list, &hmm->ranges);
-+	spin_unlock(&hmm->lock);
-+
-+	/* FIXME support hugetlb fs */
-+	if (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)) {
-+		hmm_pfns_special(pfns, start, end);
-+		return 0;
-+	}
-+
-+	hmm_vma_walk.fault = true;
-+	hmm_vma_walk.write = write;
-+	hmm_vma_walk.block = block;
-+	hmm_vma_walk.range = range;
-+	mm_walk.private = &hmm_vma_walk;
-+	hmm_vma_walk.last = range->start;
-+
-+	mm_walk.vma = vma;
-+	mm_walk.mm = vma->vm_mm;
-+	mm_walk.pte_entry = NULL;
-+	mm_walk.test_walk = NULL;
-+	mm_walk.hugetlb_entry = NULL;
-+	mm_walk.pmd_entry = hmm_vma_walk_pmd;
-+	mm_walk.pte_hole = hmm_vma_walk_hole;
-+
-+	do {
-+		ret = walk_page_range(start, end, &mm_walk);
-+		start = hmm_vma_walk.last;
-+	} while (ret == -EAGAIN);
-+
-+	if (ret) {
-+		unsigned long i;
-+
-+		i = (hmm_vma_walk.last - range->start) >> PAGE_SHIFT;
-+		hmm_pfns_clear(&pfns[i], hmm_vma_walk.last, end);
-+		hmm_vma_range_done(vma, range);
-+	}
-+	return ret;
+-	if (!mem_cgroup_is_root(memcg))
+-		css_put_many(&memcg->css, nr_pages);
++	if (!mem_cgroup_is_root(ug->memcg))
++		css_put_many(&ug->memcg->css, nr_pages);
 +}
-+EXPORT_SYMBOL(hmm_vma_fault);
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
++
++static void uncharge_page(struct page *page, struct uncharge_gather *ug)
++{
++	VM_BUG_ON_PAGE(PageLRU(page), page);
++	VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
++
++	if (!page->mem_cgroup)
++		return;
++
++	/*
++	 * Nobody should be changing or seriously looking at
++	 * page->mem_cgroup at this point, we have fully
++	 * exclusive access to the page.
++	 */
++
++	if (ug->memcg != page->mem_cgroup) {
++		if (ug->memcg) {
++			uncharge_batch(ug);
++			uncharge_gather_clear(ug);
++		}
++		ug->memcg = page->mem_cgroup;
++	}
++
++	if (!PageKmemcg(page)) {
++		unsigned int nr_pages = 1;
++
++		if (PageTransHuge(page)) {
++			nr_pages <<= compound_order(page);
++			ug->nr_huge += nr_pages;
++		}
++		if (PageAnon(page))
++			ug->nr_anon += nr_pages;
++		else {
++			ug->nr_file += nr_pages;
++			if (PageSwapBacked(page))
++				ug->nr_shmem += nr_pages;
++		}
++		ug->pgpgout++;
++	} else {
++		ug->nr_kmem += 1 << compound_order(page);
++		__ClearPageKmemcg(page);
++	}
++
++	ug->dummy_page = page;
++	page->mem_cgroup = NULL;
+ }
+ 
+ static void uncharge_list(struct list_head *page_list)
+ {
+-	struct mem_cgroup *memcg = NULL;
+-	unsigned long nr_shmem = 0;
+-	unsigned long nr_anon = 0;
+-	unsigned long nr_file = 0;
+-	unsigned long nr_huge = 0;
+-	unsigned long nr_kmem = 0;
+-	unsigned long pgpgout = 0;
++	struct uncharge_gather ug;
+ 	struct list_head *next;
+-	struct page *page;
++
++	uncharge_gather_clear(&ug);
+ 
+ 	/*
+ 	 * Note that the list can be a single page->lru; hence the
+@@ -5589,57 +5643,16 @@ static void uncharge_list(struct list_he
+ 	 */
+ 	next = page_list->next;
+ 	do {
++		struct page *page;
++
+ 		page = list_entry(next, struct page, lru);
+ 		next = page->lru.next;
+ 
+-		VM_BUG_ON_PAGE(PageLRU(page), page);
+-		VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
+-
+-		if (!page->mem_cgroup)
+-			continue;
+-
+-		/*
+-		 * Nobody should be changing or seriously looking at
+-		 * page->mem_cgroup at this point, we have fully
+-		 * exclusive access to the page.
+-		 */
+-
+-		if (memcg != page->mem_cgroup) {
+-			if (memcg) {
+-				uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
+-					       nr_kmem, nr_huge, nr_shmem, page);
+-				pgpgout = nr_anon = nr_file = nr_kmem = 0;
+-				nr_huge = nr_shmem = 0;
+-			}
+-			memcg = page->mem_cgroup;
+-		}
+-
+-		if (!PageKmemcg(page)) {
+-			unsigned int nr_pages = 1;
+-
+-			if (PageTransHuge(page)) {
+-				nr_pages <<= compound_order(page);
+-				nr_huge += nr_pages;
+-			}
+-			if (PageAnon(page))
+-				nr_anon += nr_pages;
+-			else {
+-				nr_file += nr_pages;
+-				if (PageSwapBacked(page))
+-					nr_shmem += nr_pages;
+-			}
+-			pgpgout++;
+-		} else {
+-			nr_kmem += 1 << compound_order(page);
+-			__ClearPageKmemcg(page);
+-		}
+-
+-		page->mem_cgroup = NULL;
++		uncharge_page(page, &ug);
+ 	} while (next != page_list);
+ 
+-	if (memcg)
+-		uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
+-			       nr_kmem, nr_huge, nr_shmem, page);
++	if (ug.memcg)
++		uncharge_batch(&ug);
+ }
+ 
+ /**
+@@ -5651,6 +5664,8 @@ static void uncharge_list(struct list_he
+  */
+ void mem_cgroup_uncharge(struct page *page)
+ {
++	struct uncharge_gather ug;
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+@@ -5658,8 +5673,9 @@ void mem_cgroup_uncharge(struct page *pa
+ 	if (!page->mem_cgroup)
+ 		return;
+ 
+-	INIT_LIST_HEAD(&page->lru);
+-	uncharge_list(&page->lru);
++	uncharge_gather_clear(&ug);
++	uncharge_page(page, &ug);
++	uncharge_batch(&ug);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
