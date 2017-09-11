@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mmpage=5Falloc-apply-gfp=5Fallowed=5Fmask-before-the-first-?=
- =?US-ASCII?Q?allocation-attempt.patch?= removed from -mm tree
-Date: Mon, 11 Sep 2017 12:40:25 -0700
-Message-ID: <20170911194025.zgZRDgFaw%akpm@linux-foundation.org>
+ mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:40:28 -0700
+Message-ID: <20170911194028.unHw2eEg9%akpm__46126.7149461948$1505158855$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751004AbdIKTk0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:26 -0400
+        with ESMTP id S1751026AbdIKTk3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz
+To: darrick.wong@oracle.com, hughd@google.com, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/page_alloc.c: apply gfp_allowed_mask before the first allocation attempt
+     Subject: mm: kvfree the swap cluster info if the swap file is unsatisfactory
 has been removed from the -mm tree.  Its filename was
-     mmpage_alloc-apply-gfp_allowed_mask-before-the-first-allocation-attempt.patch
+     mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm/page_alloc.c: apply gfp_allowed_mask before the first allocation attempt
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: mm: kvfree the swap cluster info if the swap file is unsatisfactory
 
-We are by error initializing alloc_flags before gfp_allowed_mask is
-applied.  This could cause problems after pm_restrict_gfp_mask() is called
-during suspend operation.  Apply gfp_allowed_mask before initializing
-alloc_flags so that the first allocation attempt uses correct flags.
+If initializing a small swap file fails because the swap file has a
+problem (holes, etc.) then we need to free the cluster info as part of
+cleanup.  Unfortunately a previous patch changed the code to use kvzalloc
+but did not change all the vfree calls to use kvfree.
 
-Link: http://lkml.kernel.org/r/201709020016.ADJ21342.OFLJHOOSMFVtFQ@I-love.SAKURA.ne.jp
-Fixes: 83d4ca8148fd9092 ("mm, page_alloc: move __GFP_HARDWALL modifications out of the fastpath")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Found by running generic/357 from xfstests.
+
+Link: http://lkml.kernel.org/r/20170831233515.GR3775@magnolia
+Fixes: 54f180d3c181 ("mm, swap: use kvzalloc to allocate some swap data structures")
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[4.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mmpage_alloc-apply-gfp_allowed_mask-before-the-first-allocation-attempt mm/page_alloc.c
---- a/mm/page_alloc.c~mmpage_alloc-apply-gfp_allowed_mask-before-the-first-allocation-attempt
-+++ a/mm/page_alloc.c
-@@ -4183,10 +4183,11 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- {
- 	struct page *page;
- 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
--	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
-+	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
- 	struct alloc_context ac = { };
- 
- 	gfp_mask &= gfp_allowed_mask;
-+	alloc_mask = gfp_mask;
- 	if (!prepare_alloc_pages(gfp_mask, order, preferred_nid, nodemask, &ac, &alloc_mask, &alloc_flags))
- 		return NULL;
- 
+diff -puN mm/swapfile.c~mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory mm/swapfile.c
+--- a/mm/swapfile.c~mm-kvfree-the-swap-cluster-info-if-the-swap-file-is-unsatisfactory
++++ a/mm/swapfile.c
+@@ -3290,7 +3290,7 @@ bad_swap:
+ 	p->flags = 0;
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
+-	vfree(cluster_info);
++	kvfree(cluster_info);
+ 	if (swap_file) {
+ 		if (inode && S_ISREG(inode->i_mode)) {
+ 			inode_unlock(inode);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from darrick.wong@oracle.com are
 
 
