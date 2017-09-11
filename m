@@ -1,156 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bitmap-introduce-bitmap_from_u64.patch removed
- from -mm tree
-Date: Mon, 11 Sep 2017 12:42:28 -0700
-Message-ID: <20170911194228.kFB7hYszR%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-rhashtable-fix-comment-on-locks_mul-default-value.patch removed from
+ -mm tree
+Date: Mon, 11 Sep 2017 12:42:31 -0700
+Message-ID: <20170911194231.Oh6G0NPi5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50234 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751079AbdIKTm3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:29 -0400
+        with ESMTP id S1751079AbdIKTmc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mchehab@kernel.org, mm-commits@vger.kernel.org, noamca@mellanox.com, ynorov@caviumnetworks.com
+To: dave@stgolabs.net, dbueso@suse.de, fw@strlen.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitmap: introduce BITMAP_FROM_U64()
+     Subject: lib/rhashtable: fix comment on locks_mul default value
 has been removed from the -mm tree.  Its filename was
-     bitmap-introduce-bitmap_from_u64.patch
+     lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: bitmap: introduce BITMAP_FROM_U64()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/rhashtable: fix comment on locks_mul default value
 
-The macro is the compile-time analogue of bitmap_from_u64() with the same
-purpose: convert the 64-bit number to the properly ordered pair of 32-bit
-parts, suitable for filling the bitmap in 32-bit BE environment.
+As of 4cf0b354d92 ("rhashtable: avoid large lock-array allocations"), the
+default value for the locks multiplier was reduced from 128 to 32.  Update
+the header file to reflect this.
 
-Use it to make test_bitmap_parselist() correct for 32-bit BE ABIs.
-
-Tested on BE mips/qemu.
-
-[akpm@linux-foundation.org: tweak code comment]
-Link: http://lkml.kernel.org/r/20170810172916.24144-1-ynorov@caviumnetworks.com
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Noam Camus <noamca@mellanox.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Link: http://lkml.kernel.org/r/20170815215401.30745-1-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Florian Westphal <fw@strlen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |   32 ++++++++++++++++++++++++++
- lib/test_bitmap.c      |   47 ++++++++++++++++++++++++++-------------
- 2 files changed, 64 insertions(+), 15 deletions(-)
+ include/linux/rhashtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bitmap.h~bitmap-introduce-bitmap_from_u64 include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-introduce-bitmap_from_u64
-+++ a/include/linux/bitmap.h
-@@ -361,6 +361,38 @@ static inline int bitmap_parse(const cha
- }
- 
- /*
-+ * BITMAP_FROM_U64() - Represent u64 value in the format suitable for bitmap.
-+ *
-+ * Linux bitmaps are internally arrays of unsigned longs, i.e. 32-bit
-+ * integers in 32-bit environment, and 64-bit integers in 64-bit one.
-+ *
-+ * There are four combinations of endianness and length of the word in linux
-+ * ABIs: LE64, BE64, LE32 and BE32.
-+ *
-+ * On 64-bit kernels 64-bit LE and BE numbers are naturally ordered in
-+ * bitmaps and therefore don't require any special handling.
-+ *
-+ * On 32-bit kernels 32-bit LE ABI orders lo word of 64-bit number in memory
-+ * prior to hi, and 32-bit BE orders hi word prior to lo. The bitmap on the
-+ * other hand is represented as an array of 32-bit words and the position of
-+ * bit N may therefore be calculated as: word #(N/32) and bit #(N%32) in that
-+ * word.  For example, bit #42 is located at 10th position of 2nd word.
-+ * It matches 32-bit LE ABI, and we can simply let the compiler store 64-bit
-+ * values in memory as it usually does. But for BE we need to swap hi and lo
-+ * words manually.
-+ *
-+ * With all that, the macro BITMAP_FROM_U64() does explicit reordering of hi and
-+ * lo parts of u64.  For LE32 it does nothing, and for BE environment it swaps
-+ * hi and lo words, as is expected by bitmap.
-+ */
-+#if __BITS_PER_LONG == 64
-+#define BITMAP_FROM_U64(n) (n)
-+#else
-+#define BITMAP_FROM_U64(n) ((unsigned long) ((u64)(n) & ULONG_MAX)), \
-+				((unsigned long) ((u64)(n) >> 32))
-+#endif
-+
-+/*
-  * bitmap_from_u64 - Check and swap words within u64.
-  *  @mask: source bitmap
-  *  @dst:  destination bitmap
-diff -puN lib/test_bitmap.c~bitmap-introduce-bitmap_from_u64 lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-introduce-bitmap_from_u64
-+++ a/lib/test_bitmap.c
-@@ -175,24 +175,41 @@ struct test_bitmap_parselist{
- 	const int flags;
- };
- 
--static const unsigned long exp[] = {1, 2, 0x0000ffff, 0xffff0000, 0x55555555,
--				0xaaaaaaaa, 0x11111111, 0x22222222, 0xffffffff,
--				0xfffffffe, 0x3333333311111111, 0xffffffff77777777};
--static const unsigned long exp2[] = {0x3333333311111111, 0xffffffff77777777};
-+static const unsigned long exp[] __initconst = {
-+	BITMAP_FROM_U64(1),
-+	BITMAP_FROM_U64(2),
-+	BITMAP_FROM_U64(0x0000ffff),
-+	BITMAP_FROM_U64(0xffff0000),
-+	BITMAP_FROM_U64(0x55555555),
-+	BITMAP_FROM_U64(0xaaaaaaaa),
-+	BITMAP_FROM_U64(0x11111111),
-+	BITMAP_FROM_U64(0x22222222),
-+	BITMAP_FROM_U64(0xffffffff),
-+	BITMAP_FROM_U64(0xfffffffe),
-+	BITMAP_FROM_U64(0x3333333311111111),
-+	BITMAP_FROM_U64(0xffffffff77777777)
-+};
-+
-+static const unsigned long exp2[] __initconst = {
-+	BITMAP_FROM_U64(0x3333333311111111),
-+	BITMAP_FROM_U64(0xffffffff77777777)
-+};
- 
- static const struct test_bitmap_parselist parselist_tests[] __initconst = {
-+#define step (sizeof(u64) / sizeof(unsigned long))
-+
- 	{0, "0",			&exp[0], 8, 0},
--	{0, "1",			&exp[1], 8, 0},
--	{0, "0-15",			&exp[2], 32, 0},
--	{0, "16-31",			&exp[3], 32, 0},
--	{0, "0-31:1/2",			&exp[4], 32, 0},
--	{0, "1-31:1/2",			&exp[5], 32, 0},
--	{0, "0-31:1/4",			&exp[6], 32, 0},
--	{0, "1-31:1/4",			&exp[7], 32, 0},
--	{0, "0-31:4/4",			&exp[8], 32, 0},
--	{0, "1-31:4/4",			&exp[9], 32, 0},
--	{0, "0-31:1/4,32-63:2/4",	&exp[10], 64, 0},
--	{0, "0-31:3/4,32-63:4/4",	&exp[11], 64, 0},
-+	{0, "1",			&exp[1 * step], 8, 0},
-+	{0, "0-15",			&exp[2 * step], 32, 0},
-+	{0, "16-31",			&exp[3 * step], 32, 0},
-+	{0, "0-31:1/2",			&exp[4 * step], 32, 0},
-+	{0, "1-31:1/2",			&exp[5 * step], 32, 0},
-+	{0, "0-31:1/4",			&exp[6 * step], 32, 0},
-+	{0, "1-31:1/4",			&exp[7 * step], 32, 0},
-+	{0, "0-31:4/4",			&exp[8 * step], 32, 0},
-+	{0, "1-31:4/4",			&exp[9 * step], 32, 0},
-+	{0, "0-31:1/4,32-63:2/4",	&exp[10 * step], 64, 0},
-+	{0, "0-31:3/4,32-63:4/4",	&exp[11 * step], 64, 0},
- 
- 	{0, "0-31:1/4,32-63:2/4,64-95:3/4,96-127:4/4",	exp2, 128, 0},
- 
+diff -puN include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value include/linux/rhashtable.h
+--- a/include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value
++++ a/include/linux/rhashtable.h
+@@ -127,7 +127,7 @@ struct rhashtable;
+  * @head_offset: Offset of rhash_head in struct to be hashed
+  * @max_size: Maximum size while expanding
+  * @min_size: Minimum size while shrinking
+- * @locks_mul: Number of bucket locks to allocate per cpu (default: 128)
++ * @locks_mul: Number of bucket locks to allocate per cpu (default: 32)
+  * @automatic_shrinking: Enable automatic shrinking of tables
+  * @nulls_base: Base value to generate nulls marker
+  * @hashfn: Hash function (default: jhash2 if !(key_len % 4), or jhash)
 _
 
-Patches currently in -mm which might be from ynorov@caviumnetworks.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
