@@ -1,64 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bitops-avoid-integer-overflow-in-genmask_ull.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:41:25 -0700
-Message-ID: <20170911194125.SE5MrM935%akpm@linux-foundation.org>
+ rbtree-optimize-root-check-during-rebalancing-loop.patch removed from -mm
+ tree
+Date: Mon, 11 Sep 2017 12:41:31 -0700
+Message-ID: <20170911194131.LWuXLfpqN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49960 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751027AbdIKTl0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:26 -0400
+        with ESMTP id S1751028AbdIKTlc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mka@chromium.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitops: avoid integer overflow in GENMASK(_ULL)
+     Subject: rbtree: optimize root-check during rebalancing loop
 has been removed from the -mm tree.  Its filename was
-     bitops-avoid-integer-overflow-in-genmask_ull.patch
+     rbtree-optimize-root-check-during-rebalancing-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: bitops: avoid integer overflow in GENMASK(_ULL)
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: rbtree: optimize root-check during rebalancing loop
 
-GENMASK(_ULL) performs a left-shift of ~0UL(L), which technically results
-in an integer overflow.  clang raises a warning if the overflow occurs in
-a preprocessor expression.  Clear the low-order bits through a
-substraction instead of the left-shift to avoid the overflow.
+The only times the nil-parent (root node) condition is true is when the
+node is the first in the tree, or after fixing rbtree rule #4 and the case
+1 rebalancing made the node the root.  Such conditions do not apply most
+of the time:
 
-(akpm: no change in .text size in my testing)
+(i) The common case in an rbtree is to have more than a single node,
+    so this is only true for the first rb_insert().
 
-Link: http://lkml.kernel.org/r/20170803212020.24939-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+(ii) While there is a chance only one first rotation is needed, cases
+    where the node's uncle is black (cases 2,3) are more common as we can
+    have the following scenarios during the rotation looping:
+
+    case1 only, case1+1, case2+3, case1+2+3, case3 only, etc.
+
+This patch, therefore, adds an unlikely() optimization to this
+conditional.  When profiling with CONFIG_PROFILE_ANNOTATED_BRANCHES, a
+kernel build shows that the incorrect rate is less than 15%, and for
+workloads that involve insert mostly trees overtime tend to have less than
+2% incorrect rate.
+
+Link: http://lkml.kernel.org/r/20170719014603.19029-3-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/rbtree.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/bitops.h~bitops-avoid-integer-overflow-in-genmask_ull include/linux/bitops.h
---- a/include/linux/bitops.h~bitops-avoid-integer-overflow-in-genmask_ull
-+++ a/include/linux/bitops.h
-@@ -19,10 +19,11 @@
-  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
-  */
- #define GENMASK(h, l) \
--	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
-+	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+diff -puN lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop
++++ a/lib/rbtree.c
+@@ -105,16 +105,25 @@ __rb_insert(struct rb_node *node, struct
  
- #define GENMASK_ULL(h, l) \
--	(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
-+	(((~0ULL) - (1ULL << (l)) + 1) & \
-+	 (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
+ 	while (true) {
+ 		/*
+-		 * Loop invariant: node is red
+-		 *
+-		 * If there is a black parent, we are done.
+-		 * Otherwise, take some corrective action as we don't
+-		 * want a red root or two consecutive red nodes.
++		 * Loop invariant: node is red.
+ 		 */
+-		if (!parent) {
++		if (unlikely(!parent)) {
++			/*
++			 * The inserted node is root. Either this is the
++			 * first node, or we recursed at Case 1 below and
++			 * are no longer violating 4).
++			 */
+ 			rb_set_parent_color(node, NULL, RB_BLACK);
+ 			break;
+-		} else if (rb_is_black(parent))
++		}
++
++		/*
++		 * If there is a black parent, we are done.
++		 * Otherwise, take some corrective action as,
++		 * per 4), we don't want a red root or two
++		 * consecutive red nodes.
++		 */
++		if(rb_is_black(parent))
+ 			break;
  
- extern unsigned int __sw_hweight8(unsigned int w);
- extern unsigned int __sw_hweight16(unsigned int w);
+ 		gparent = rb_red_parent(parent);
 _
 
-Patches currently in -mm which might be from mka@chromium.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
