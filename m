@@ -1,174 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-use-faster-rb_first_cached.patch removed
- from -mm tree
-Date: Mon, 11 Sep 2017 12:42:04 -0700
-Message-ID: <20170911194204.7GG1BMN-D%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-add-test-module-for-config_debug_virtual.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:42:19 -0700
+Message-ID: <20170911194219.fgKJvTuqz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50172 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750877AbdIKTmF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:05 -0400
+        with ESMTP id S1751079AbdIKTmU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org
+To: f.fainelli@gmail.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: use faster rb_first_cached()
+     Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
 has been removed from the -mm tree.  Its filename was
-     procfs-use-faster-rb_first_cached.patch
+     lib-add-test-module-for-config_debug_virtual.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: procfs: use faster rb_first_cached()
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
 
-...  such that we can avoid the tree walks to get the node with the
-smallest key.  Semantically the same, as the previously used rb_first(),
-but O(1).  The main overhead is the extra footprint for the cached rb_node
-pointer, which should not matter for procfs.
+Add a test module that allows testing that CONFIG_DEBUG_VIRTUAL works
+correctly, at least that it can catch invalid calls to virt_to_phys()
+against the non-linear kernel virtual address map.
 
-Link: http://lkml.kernel.org/r/20170719014603.19029-14-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/20170808164035.26725-1-f.fainelli@gmail.com
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   26 ++++++++++++++------------
- fs/proc/internal.h |    2 +-
- fs/proc/proc_net.c |    2 +-
- fs/proc/root.c     |    2 +-
- 4 files changed, 17 insertions(+), 15 deletions(-)
+ lib/Kconfig.debug        |   11 ++++++++
+ lib/Makefile             |    1 
+ lib/test_debug_virtual.c |   49 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 61 insertions(+)
 
-diff -puN fs/proc/generic.c~procfs-use-faster-rb_first_cached fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/generic.c
-@@ -40,8 +40,8 @@ static int proc_match(unsigned int len,
+diff -puN lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual
++++ a/lib/Kconfig.debug
+@@ -1930,6 +1930,17 @@ config TEST_KMOD
  
- static struct proc_dir_entry *pde_subdir_first(struct proc_dir_entry *dir)
- {
--	return rb_entry_safe(rb_first(&dir->subdir), struct proc_dir_entry,
--			     subdir_node);
-+	return rb_entry_safe(rb_first_cached(&dir->subdir),
-+			     struct proc_dir_entry, subdir_node);
- }
+ 	  If unsure, say N.
  
- static struct proc_dir_entry *pde_subdir_next(struct proc_dir_entry *dir)
-@@ -54,7 +54,7 @@ static struct proc_dir_entry *pde_subdir
- 					      const char *name,
- 					      unsigned int len)
- {
--	struct rb_node *node = dir->subdir.rb_node;
-+	struct rb_node *node = dir->subdir.rb_root.rb_node;
++config TEST_DEBUG_VIRTUAL
++	tristate "Test CONFIG_DEBUG_VIRTUAL feature"
++	depends on DEBUG_VIRTUAL
++	help
++	  Test the kernel's ability to detect incorrect calls to
++	  virt_to_phys() done against the non-linear part of the
++	  kernel's virtual address map.
++
++	  If unsure, say N.
++
++
+ source "samples/Kconfig"
  
- 	while (node) {
- 		struct proc_dir_entry *de = rb_entry(node,
-@@ -75,8 +75,9 @@ static struct proc_dir_entry *pde_subdir
- static bool pde_subdir_insert(struct proc_dir_entry *dir,
- 			      struct proc_dir_entry *de)
- {
--	struct rb_root *root = &dir->subdir;
--	struct rb_node **new = &root->rb_node, *parent = NULL;
-+	struct rb_root_cached *root = &dir->subdir;
-+	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
-+	bool leftmost = true;
+ source "lib/Kconfig.kgdb"
+diff -puN lib/Makefile~lib-add-test-module-for-config_debug_virtual lib/Makefile
+--- a/lib/Makefile~lib-add-test-module-for-config_debug_virtual
++++ a/lib/Makefile
+@@ -62,6 +62,7 @@ obj-$(CONFIG_TEST_BITMAP) += test_bitmap
+ obj-$(CONFIG_TEST_UUID) += test_uuid.o
+ obj-$(CONFIG_TEST_PARMAN) += test_parman.o
+ obj-$(CONFIG_TEST_KMOD) += test_kmod.o
++obj-$(CONFIG_TEST_DEBUG_VIRTUAL) += test_debug_virtual.o
  
- 	/* Figure out where to put new node */
- 	while (*new) {
-@@ -88,15 +89,16 @@ static bool pde_subdir_insert(struct pro
- 		parent = *new;
- 		if (result < 0)
- 			new = &(*new)->rb_left;
--		else if (result > 0)
-+		else if (result > 0) {
- 			new = &(*new)->rb_right;
--		else
-+			leftmost = false;
-+		} else
- 			return false;
- 	}
- 
- 	/* Add new node and rebalance tree. */
- 	rb_link_node(&de->subdir_node, parent, new);
--	rb_insert_color(&de->subdir_node, root);
-+	rb_insert_color_cached(&de->subdir_node, root, leftmost);
- 	return true;
- }
- 
-@@ -369,7 +371,7 @@ static struct proc_dir_entry *__proc_cre
- 	ent->namelen = qstr.len;
- 	ent->mode = mode;
- 	ent->nlink = nlink;
--	ent->subdir = RB_ROOT;
-+	ent->subdir = RB_ROOT_CACHED;
- 	atomic_set(&ent->count, 1);
- 	spin_lock_init(&ent->pde_unload_lock);
- 	INIT_LIST_HEAD(&ent->pde_openers);
-@@ -553,7 +555,7 @@ void remove_proc_entry(const char *name,
- 
- 	de = pde_subdir_find(parent, fn, len);
- 	if (de)
--		rb_erase(&de->subdir_node, &parent->subdir);
-+		rb_erase_cached(&de->subdir_node, &parent->subdir);
- 	write_unlock(&proc_subdir_lock);
- 	if (!de) {
- 		WARN(1, "name '%s'\n", name);
-@@ -590,13 +592,13 @@ int remove_proc_subtree(const char *name
- 		write_unlock(&proc_subdir_lock);
- 		return -ENOENT;
- 	}
--	rb_erase(&root->subdir_node, &parent->subdir);
-+	rb_erase_cached(&root->subdir_node, &parent->subdir);
- 
- 	de = root;
- 	while (1) {
- 		next = pde_subdir_first(de);
- 		if (next) {
--			rb_erase(&next->subdir_node, &de->subdir);
-+			rb_erase_cached(&next->subdir_node, &de->subdir);
- 			de = next;
- 			continue;
- 		}
-diff -puN fs/proc/internal.h~procfs-use-faster-rb_first_cached fs/proc/internal.h
---- a/fs/proc/internal.h~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/internal.h
-@@ -40,7 +40,7 @@ struct proc_dir_entry {
- 	const struct inode_operations *proc_iops;
- 	const struct file_operations *proc_fops;
- 	struct proc_dir_entry *parent;
--	struct rb_root subdir;
-+	struct rb_root_cached subdir;
- 	struct rb_node subdir_node;
- 	void *data;
- 	atomic_t count;		/* use count */
-diff -puN fs/proc/proc_net.c~procfs-use-faster-rb_first_cached fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/proc_net.c
-@@ -196,7 +196,7 @@ static __net_init int proc_net_ns_init(s
- 	if (!netd)
- 		goto out;
- 
--	netd->subdir = RB_ROOT;
-+	netd->subdir = RB_ROOT_CACHED;
- 	netd->data = net;
- 	netd->nlink = 2;
- 	netd->namelen = 3;
-diff -puN fs/proc/root.c~procfs-use-faster-rb_first_cached fs/proc/root.c
---- a/fs/proc/root.c~procfs-use-faster-rb_first_cached
-+++ a/fs/proc/root.c
-@@ -210,7 +210,7 @@ struct proc_dir_entry proc_root = {
- 	.proc_iops	= &proc_root_inode_operations, 
- 	.proc_fops	= &proc_root_operations,
- 	.parent		= &proc_root,
--	.subdir		= RB_ROOT,
-+	.subdir		= RB_ROOT_CACHED,
- 	.name		= "/proc",
- };
- 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN /dev/null lib/test_debug_virtual.c
+--- /dev/null
++++ a/lib/test_debug_virtual.c
+@@ -0,0 +1,49 @@
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/export.h>
++#include <linux/mm.h>
++#include <linux/vmalloc.h>
++#include <linux/slab.h>
++#include <linux/sizes.h>
++
++#include <asm/page.h>
++#ifdef CONFIG_MIPS
++#include <asm/bootinfo.h>
++#endif
++
++struct foo {
++	unsigned int bar;
++};
++
++struct foo *foo;
++
++static int __init test_debug_virtual_init(void)
++{
++	phys_addr_t pa;
++	void *va;
++
++	va = (void *)VMALLOC_START;
++	pa = virt_to_phys(va);
++
++	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
++
++	foo = kzalloc(sizeof(*foo), GFP_KERNEL);
++	if (!foo)
++		return -ENOMEM;
++
++	pa = virt_to_phys(foo);
++	va = foo;
++	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
++
++	return 0;
++}
++module_init(test_debug_virtual_init);
++
++static void __exit test_debug_virtual_exit(void)
++{
++	kfree(foo);
++}
++module_exit(test_debug_virtual_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Test module for CONFIG_DEBUG_VIRTUAL");
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from f.fainelli@gmail.com are
 
 
