@@ -1,65 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-add-6-missing-types-to-list-types.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:42:52 -0700
-Message-ID: <20170911194252.2GbrVLD7s%akpm@linux-foundation.org>
+Subject: [merged] block-cfq-cache-rightmost-rb_node.patch removed
+ from -mm tree
+Date: Mon, 11 Sep 2017 12:42:13 -0700
+Message-ID: <20170911194213.rxSCDc6Eu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50132 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTmx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:53 -0400
+        with ESMTP id S1751015AbdIKTmO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, joe@perches.com, mm-commits@vger.kernel.org
+To: axboe@fb.com, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add 6 missing types to --list-types
+     Subject: block/cfq: cache rightmost rb_node
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-6-missing-types-to-list-types.patch
+     block-cfq-cache-rightmost-rb_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: checkpatch: add 6 missing types to --list-types
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: block/cfq: cache rightmost rb_node
 
-Unlike all other types, LONG_LINE, LONG_LINE_COMMENT and LONG_LINE_STRING
-are passed to WARN() through a variable.  This causes the parser in
-list_types() to miss them and consequently they are not present in the
-output of --list-types.
+For the same reasons we already cache the leftmost pointer, apply the same
+optimization for rb_last() calls.  Users must explicitly do this as
+rb_root_cached only deals with the smallest node.
 
-Additionally, types TYPO_SPELLING, FSF_MAILING_ADDRESS and AVOID_BUG are
-passed with a variable level, causing the parser to miss them too.
-
-So modify the regex to also catch these special cases.
-
-Link: http://lkml.kernel.org/r/20170902175610.7e4a7c9d@endymion
-Fixes: 3beb42eced39 ("checkpatch: add --list-types to show message types to show or ignore")
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Acked-by: Joe Perches <joe@perches.com>
+[dave@stgolabs.net: brain fart #1]
+  Link: http://lkml.kernel.org/r/20170731155955.GD21328@linux-80c1.suse
+Link: http://lkml.kernel.org/r/20170719014603.19029-18-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ block/cfq-iosched.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-6-missing-types-to-list-types scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-6-missing-types-to-list-types
-+++ a/scripts/checkpatch.pl
-@@ -145,7 +145,8 @@ sub list_types {
- 	close($script);
+diff -puN block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node block/cfq-iosched.c
+--- a/block/cfq-iosched.c~block-cfq-cache-rightmost-rb_node
++++ a/block/cfq-iosched.c
+@@ -94,11 +94,13 @@ struct cfq_ttime {
+  */
+ struct cfq_rb_root {
+ 	struct rb_root_cached rb;
++	struct rb_node *rb_rightmost;
+ 	unsigned count;
+ 	u64 min_vdisktime;
+ 	struct cfq_ttime ttime;
+ };
+ #define CFQ_RB_ROOT	(struct cfq_rb_root) { .rb = RB_ROOT_CACHED, \
++			.rb_rightmost = NULL,			     \
+ 			.ttime = {.last_end_request = ktime_get_ns(),},}
  
- 	my @types = ();
--	for ($text =~ /\b(?:(?:CHK|WARN|ERROR)\s*\(\s*"([^"]+)")/g) {
-+	# Also catch when type or level is passed through a variable
-+	for ($text =~ /(?:(?:\bCHK|\bWARN|\bERROR|&\{\$msg_level})\s*\(|\$msg_type\s*=)\s*"([^"]+)"/g) {
- 		push (@types, $_);
+ /*
+@@ -1180,6 +1182,9 @@ static struct cfq_group *cfq_rb_first_gr
+ 
+ static void cfq_rb_erase(struct rb_node *n, struct cfq_rb_root *root)
+ {
++	if (root->rb_rightmost == n)
++		root->rb_rightmost = rb_prev(n);
++
+ 	rb_erase_cached(n, &root->rb);
+ 	RB_CLEAR_NODE(n);
+ 
+@@ -1236,20 +1241,24 @@ __cfq_group_service_tree_add(struct cfq_
+ 	struct rb_node *parent = NULL;
+ 	struct cfq_group *__cfqg;
+ 	s64 key = cfqg_key(st, cfqg);
+-	bool leftmost = true;
++	bool leftmost = true, rightmost = true;
+ 
+ 	while (*node != NULL) {
+ 		parent = *node;
+ 		__cfqg = rb_entry_cfqg(parent);
+ 
+-		if (key < cfqg_key(st, __cfqg))
++		if (key < cfqg_key(st, __cfqg)) {
+ 			node = &parent->rb_left;
+-		else {
++			rightmost = false;
++		} else {
+ 			node = &parent->rb_right;
+ 			leftmost = false;
+ 		}
  	}
- 	@types = sort(uniq(@types));
+ 
++	if (rightmost)
++		st->rb_rightmost = &cfqg->rb_node;
++
+ 	rb_link_node(&cfqg->rb_node, parent, node);
+ 	rb_insert_color_cached(&cfqg->rb_node, &st->rb, leftmost);
+ }
+@@ -1352,7 +1361,7 @@ cfq_group_notify_queue_add(struct cfq_da
+ 	 * so that groups get lesser vtime based on their weights, so that
+ 	 * if group does not loose all if it was not continuously backlogged.
+ 	 */
+-	n = rb_last(&st->rb.rb_root);
++	n = st->rb_rightmost;
+ 	if (n) {
+ 		__cfqg = rb_entry_cfqg(n);
+ 		cfqg->vdisktime = __cfqg->vdisktime +
+@@ -2201,7 +2210,7 @@ static void cfq_service_tree_add(struct
+ 	st = st_for(cfqq->cfqg, cfqq_class(cfqq), cfqq_type(cfqq));
+ 	if (cfq_class_idle(cfqq)) {
+ 		rb_key = CFQ_IDLE_DELAY;
+-		parent = rb_last(&st->rb.rb_root);
++		parent = st->rb_rightmost;
+ 		if (parent && parent != &cfqq->rb_node) {
+ 			__cfqq = rb_entry(parent, struct cfq_queue, rb_node);
+ 			rb_key += __cfqq->rb_key;
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
