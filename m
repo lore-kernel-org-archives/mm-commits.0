@@ -1,131 +1,331 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
- removed from -mm tree
-Date: Mon, 11 Sep 2017 12:43:55 -0700
-Message-ID: <20170911194355.K3eLg8a09%akpm@linux-foundation.org>
+ m32r-defconfig-cleanup-from-old-kconfig-options.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:43:58 -0700
+Message-ID: <20170911194358.fs251hUeq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50848 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751045AbdIKTn4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:56 -0400
+        with ESMTP id S1751045AbdIKTn7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@enneenne.com, mm-commits@vger.kernel.org, rpjday@crashcourse.ca
+To: krzk@kernel.org, mm-commits@vger.kernel.org, sudipm.mukherjee@gmail.com
 
 
 The patch titled
-     Subject: drivers/pps: use surrounding "if PPS" to remove numerous dependency checks
+     Subject: m32r: defconfig: cleanup from old Kconfig options
 has been removed from the -mm tree.  Its filename was
-     pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks.patch
+     m32r-defconfig-cleanup-from-old-kconfig-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: drivers/pps: use surrounding "if PPS" to remove numerous dependency checks
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: m32r: defconfig: cleanup from old Kconfig options
 
-Adding high-level "if PPS" makes lower-level dependency tests superfluous.
+Remove old, dead Kconfig options (in order appearing in this commit):
+ - EXPERIMENTAL is gone since v3.9;
+ - IP_NF_QUEUE: commit 3dd6664fac7e ("netfilter: remove unused "config
+   IP_NF_QUEUE"");
+ - IP_NF_TARGET_ULOG: commit d4da843e6fad ("netfilter: kill remnants of
+   ulog targets");
+ - VIDEO_OUTPUT_CONTROL: commit f167a64e9d67 ("video / output: Drop
+   display output class support");
+ - MTD_PARTITIONS: commit 6a8a98b22b10 ("mtd: kill
+   CONFIG_MTD_PARTITIONS");
+ - MTD_CHAR: commit 660685d9d1b4 ("mtd: merge mtdchar module with
+   mtdcore");
+ - MTD_CONCAT: commit f53fdebcc3e1 ("mtd: drop MTD_CONCAT from Kconfig
+   entirely");
 
-Link: http://lkml.kernel.org/r/alpine.LFD.2.20.1708261050500.8156@localhost.localdomain
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Link: http://lkml.kernel.org/r/1500527065-4575-1-git-send-email-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Acked-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/Kconfig            |    7 +++++--
- drivers/pps/clients/Kconfig    |    7 ++-----
- drivers/pps/generators/Kconfig |    3 +--
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ arch/m32r/configs/m32104ut_defconfig     |    4 ----
+ arch/m32r/configs/m32700ut.smp_defconfig |    3 ---
+ arch/m32r/configs/m32700ut.up_defconfig  |    3 ---
+ arch/m32r/configs/mappi.nommu_defconfig  |    2 --
+ arch/m32r/configs/mappi.smp_defconfig    |    4 ----
+ arch/m32r/configs/mappi.up_defconfig     |    4 ----
+ arch/m32r/configs/mappi2.opsp_defconfig  |    2 --
+ arch/m32r/configs/mappi2.vdec2_defconfig |    2 --
+ arch/m32r/configs/mappi3.smp_defconfig   |    4 ----
+ arch/m32r/configs/oaks32r_defconfig      |    2 --
+ arch/m32r/configs/opsput_defconfig       |    2 --
+ arch/m32r/configs/usrv_defconfig         |    5 -----
+ 12 files changed, 37 deletions(-)
 
-diff -puN drivers/pps/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks
-+++ a/drivers/pps/Kconfig
-@@ -19,9 +19,10 @@ menuconfig PPS
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called pps_core.ko.
- 
-+if PPS
-+
- config PPS_DEBUG
- 	bool "PPS debugging messages"
--	depends on PPS
- 	help
- 	  Say Y here if you want the PPS support to produce a bunch of debug
- 	  messages to the system log.  Select this if you are having a
-@@ -29,7 +30,7 @@ config PPS_DEBUG
- 
- config NTP_PPS
- 	bool "PPS kernel consumer support"
--	depends on PPS && !NO_HZ_COMMON
-+	depends on !NO_HZ_COMMON
- 	help
- 	  This option adds support for direct in-kernel time
- 	  synchronization using an external PPS signal.
-@@ -39,3 +40,5 @@ config NTP_PPS
- source drivers/pps/clients/Kconfig
- 
- source drivers/pps/generators/Kconfig
-+
-+endif # PPS
-diff -puN drivers/pps/clients/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks
-+++ a/drivers/pps/clients/Kconfig
-@@ -3,11 +3,9 @@
- #
- 
- comment "PPS clients support"
--	depends on PPS
- 
- config PPS_CLIENT_KTIMER
- 	tristate "Kernel timer client (Testing client, use for debug)"
--	depends on PPS
- 	help
- 	  If you say yes here you get support for a PPS debugging client
- 	  which uses a kernel timer to generate the PPS signal.
-@@ -17,21 +15,20 @@ config PPS_CLIENT_KTIMER
- 
- config PPS_CLIENT_LDISC
- 	tristate "PPS line discipline"
--	depends on PPS && TTY
-+	depends on TTY
- 	help
- 	  If you say yes here you get support for a PPS source connected
- 	  with the CD (Carrier Detect) pin of your serial port.
- 
- config PPS_CLIENT_PARPORT
- 	tristate "Parallel port PPS client"
--	depends on PPS && PARPORT
-+	depends on PARPORT
- 	help
- 	  If you say yes here you get support for a PPS source connected
- 	  with the interrupt pin of your parallel port.
- 
- config PPS_CLIENT_GPIO
- 	tristate "PPS client using GPIO"
--	depends on PPS
- 	help
- 	  If you say yes here you get support for a PPS source using
- 	  GPIO. To be useful you must also register a platform device
-diff -puN drivers/pps/generators/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks drivers/pps/generators/Kconfig
---- a/drivers/pps/generators/Kconfig~pps-use-surrounding-if-pps-to-remove-numerous-dependency-checks
-+++ a/drivers/pps/generators/Kconfig
-@@ -3,11 +3,10 @@
- #
- 
- comment "PPS generators support"
--	depends on PPS
- 
- config PPS_GENERATOR_PARPORT
- 	tristate "Parallel port PPS signal generator"
--	depends on PPS && PARPORT && BROKEN
-+	depends on PARPORT && BROKEN
- 	help
- 	  If you say yes here you get support for a PPS signal generator which
- 	  utilizes STROBE pin of a parallel port to send PPS signals. It uses
+diff -puN arch/m32r/configs/m32104ut_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/m32104ut_defconfig
+--- a/arch/m32r/configs/m32104ut_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/m32104ut_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -40,7 +39,6 @@ CONFIG_NETFILTER_XT_MATCH_REALM=m
+ CONFIG_NETFILTER_XT_MATCH_SCTP=m
+ CONFIG_NETFILTER_XT_MATCH_STRING=m
+ CONFIG_NETFILTER_XT_MATCH_TCPMSS=m
+-CONFIG_IP_NF_QUEUE=m
+ CONFIG_IP_NF_IPTABLES=m
+ CONFIG_IP_NF_MATCH_ADDRTYPE=m
+ CONFIG_IP_NF_MATCH_ECN=m
+@@ -48,7 +46,6 @@ CONFIG_IP_NF_MATCH_TTL=m
+ CONFIG_IP_NF_FILTER=m
+ CONFIG_IP_NF_TARGET_REJECT=m
+ CONFIG_IP_NF_TARGET_LOG=m
+-CONFIG_IP_NF_TARGET_ULOG=m
+ CONFIG_IP_NF_MANGLE=m
+ CONFIG_IP_NF_TARGET_ECN=m
+ CONFIG_IP_NF_TARGET_TTL=m
+@@ -106,7 +103,6 @@ CONFIG_SENSORS_SMSC47M1=m
+ CONFIG_SENSORS_W83781D=m
+ CONFIG_SENSORS_W83L785TS=m
+ CONFIG_SENSORS_W83627HF=m
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_POSIX_ACL=y
+diff -puN arch/m32r/configs/m32700ut.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/m32700ut.smp_defconfig
+--- a/arch/m32r/configs/m32700ut.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/m32700ut.smp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -30,7 +29,6 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_MTD_CFI=m
+@@ -63,7 +61,6 @@ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_SERIAL_M32R_PLDSIO=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_DS1302=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_S1D13XXX=y
+diff -puN arch/m32r/configs/m32700ut.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/m32700ut.up_defconfig
+--- a/arch/m32r/configs/m32700ut.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/m32700ut.up_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -29,7 +28,6 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_MTD_CFI=m
+@@ -62,7 +60,6 @@ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_SERIAL_M32R_PLDSIO=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_DS1302=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_S1D13XXX=y
+diff -puN arch/m32r/configs/mappi.nommu_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi.nommu_defconfig
+--- a/arch/m32r/configs/mappi.nommu_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi.nommu_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+ CONFIG_LOG_BUF_SHIFT=14
+@@ -39,7 +38,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_NFS_FS=y
+diff -puN arch/m32r/configs/mappi.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi.smp_defconfig
+--- a/arch/m32r/configs/mappi.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi.smp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -31,9 +30,7 @@ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ # CONFIG_STANDALONE is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+@@ -50,7 +47,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=y
+diff -puN arch/m32r/configs/mappi.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi.up_defconfig
+--- a/arch/m32r/configs/mappi.up_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi.up_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -29,9 +28,7 @@ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ # CONFIG_STANDALONE is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+@@ -48,7 +45,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=y
+diff -puN arch/m32r/configs/mappi2.opsp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi2.opsp_defconfig
+--- a/arch/m32r/configs/mappi2.opsp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi2.opsp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -50,7 +49,6 @@ CONFIG_SMC91X=y
+ # CONFIG_SERIO_I8042 is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+diff -puN arch/m32r/configs/mappi2.vdec2_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi2.vdec2_defconfig
+--- a/arch/m32r/configs/mappi2.vdec2_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi2.vdec2_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -49,7 +48,6 @@ CONFIG_SMC91X=y
+ # CONFIG_SERIO_I8042 is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+diff -puN arch/m32r/configs/mappi3.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/mappi3.smp_defconfig
+--- a/arch/m32r/configs/mappi3.smp_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/mappi3.smp_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+@@ -29,9 +28,7 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_PARTITIONS=y
+ CONFIG_MTD_REDBOOT_PARTS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_NBD=m
+@@ -50,7 +47,6 @@ CONFIG_SMC91X=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=y
+diff -puN arch/m32r/configs/oaks32r_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/oaks32r_defconfig
+--- a/arch/m32r/configs/oaks32r_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/oaks32r_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_LOG_BUF_SHIFT=14
+ # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+@@ -37,7 +36,6 @@ CONFIG_NETDEVICES=y
+ # CONFIG_VT is not set
+ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+diff -puN arch/m32r/configs/opsput_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/opsput_defconfig
+--- a/arch/m32r/configs/opsput_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/opsput_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+@@ -46,7 +45,6 @@ CONFIG_SERIAL_M32R_SIO_CONSOLE=y
+ CONFIG_SERIAL_M32R_PLDSIO=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_DS1302=y
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_ISO9660_FS=m
+diff -puN arch/m32r/configs/usrv_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options arch/m32r/configs/usrv_defconfig
+--- a/arch/m32r/configs/usrv_defconfig~m32r-defconfig-cleanup-from-old-kconfig-options
++++ a/arch/m32r/configs/usrv_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+ CONFIG_BSD_PROCESS_ACCT=y
+@@ -34,9 +33,6 @@ CONFIG_INET_ESP=y
+ CONFIG_INET_IPCOMP=y
+ # CONFIG_IPV6 is not set
+ CONFIG_MTD=y
+-CONFIG_MTD_CONCAT=y
+-CONFIG_MTD_PARTITIONS=y
+-CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_MTD_CFI=y
+ CONFIG_MTD_CFI_ADV_OPTIONS=y
+@@ -62,7 +58,6 @@ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+ # CONFIG_SERIAL_M32R_SIO is not set
+ # CONFIG_HWMON is not set
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from krzk@kernel.org are
 
 
