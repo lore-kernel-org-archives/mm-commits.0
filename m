@@ -1,115 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch removed
+ mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error.patch removed
  from -mm tree
-Date: Mon, 11 Sep 2017 12:40:13 -0700
-Message-ID: <20170911194013.-y-zy35ty%akpm@linux-foundation.org>
+Date: Mon, 11 Sep 2017 12:40:31 -0700
+Message-ID: <20170911194031.D-ezg_ugz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49418 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751015AbdIKTkO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:14 -0400
+        with ESMTP id S1751026AbdIKTkc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: darrick.wong@oracle.com, hughd@google.com, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm: memcontrol: use per-cpu stocks for socket memory uncharging
+     Subject: mm/swapfile.c: fix swapon frontswap_map memory leak on error
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging.patch
+     mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcontrol: use per-cpu stocks for socket memory uncharging
+From: David Rientjes <rientjes@google.com>
+Subject: mm/swapfile.c: fix swapon frontswap_map memory leak on error
 
-We've noticed a quite sensible performance overhead on some hosts with
-significant network traffic when socket memory accounting is enabled.
+Free frontswap_map if an error is encountered before enable_swap_info().
 
-Perf top shows that socket memory uncharging path is hot:
-  2.13%  [kernel]                [k] page_counter_cancel
-  1.14%  [kernel]                [k] __sk_mem_reduce_allocated
-  1.14%  [kernel]                [k] _raw_spin_lock
-  0.87%  [kernel]                [k] _raw_spin_lock_irqsave
-  0.84%  [kernel]                [k] tcp_ack
-  0.84%  [kernel]                [k] ixgbe_poll
-  0.83%  < workload >
-  0.82%  [kernel]                [k] enqueue_entity
-  0.68%  [kernel]                [k] __fget
-  0.68%  [kernel]                [k] tcp_delack_timer_handler
-  0.67%  [kernel]                [k] __schedule
-  0.60%  < workload >
-  0.59%  [kernel]                [k] __inet6_lookup_established
-  0.55%  [kernel]                [k] __switch_to
-  0.55%  [kernel]                [k] menu_select
-  0.54%  libc-2.20.so            [.] __memcpy_avx_unaligned
-
-To address this issue, the existing per-cpu stock infrastructure can be
-used.
-
-refill_stock() can be called from mem_cgroup_uncharge_skmem() to move
-charge to a per-cpu stock instead of calling atomic
-page_counter_uncharge().
-
-To prevent the uncontrolled growth of per-cpu stocks, refill_stock() will
-explicitly drain the cached charge, if the cached value exceeds
-CHARGE_BATCH.
-
-This allows significantly optimize the load:
-  1.21%  [kernel]                [k] _raw_spin_lock
-  1.01%  [kernel]                [k] ixgbe_poll
-  0.92%  [kernel]                [k] _raw_spin_lock_irqsave
-  0.90%  [kernel]                [k] enqueue_entity
-  0.86%  [kernel]                [k] tcp_ack
-  0.85%  < workload >
-  0.74%  perf-11120.map          [.] 0x000000000061bf24
-  0.73%  [kernel]                [k] __schedule
-  0.67%  [kernel]                [k] __fget
-  0.63%  [kernel]                [k] __inet6_lookup_established
-  0.62%  [kernel]                [k] menu_select
-  0.59%  < workload >
-  0.59%  [kernel]                [k] __switch_to
-  0.57%  libc-2.20.so            [.] __memcpy_avx_unaligned
-
-Link: http://lkml.kernel.org/r/20170829100150.4580-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[4.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-use-per-cpu-stocks-for-socket-memory-uncharging
-+++ a/mm/memcontrol.c
-@@ -1792,6 +1792,9 @@ static void refill_stock(struct mem_cgro
- 	}
- 	stock->nr_pages += nr_pages;
- 
-+	if (stock->nr_pages > CHARGE_BATCH)
-+		drain_stock(stock);
-+
- 	local_irq_restore(flags);
- }
- 
-@@ -5886,8 +5889,7 @@ void mem_cgroup_uncharge_skmem(struct me
- 
- 	this_cpu_sub(memcg->stat->count[MEMCG_SOCK], nr_pages);
- 
--	page_counter_uncharge(&memcg->memory, nr_pages);
--	css_put_many(&memcg->css, nr_pages);
-+	refill_stock(memcg, nr_pages);
- }
- 
- static int __init cgroup_memory(char *s)
+diff -puN mm/swapfile.c~mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error mm/swapfile.c
+--- a/mm/swapfile.c~mm-swapfile-fix-swapon-frontswap_map-memory-leak-on-error
++++ a/mm/swapfile.c
+@@ -3291,6 +3291,7 @@ bad_swap:
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
+ 	kvfree(cluster_info);
++	kvfree(frontswap_map);
+ 	if (swap_file) {
+ 		if (inode && S_ISREG(inode->i_mode)) {
+ 			inode_unlock(inode);
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks.patch
+mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
 
