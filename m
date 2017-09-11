@@ -1,211 +1,308 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vga-optimise-console-scrolling.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:41:10 -0700
-Message-ID: <20170911194110.lkTDjiLI6%akpm@linux-foundation.org>
+Subject: [merged] lib-rbtree_testc-support-rb_root_cached.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:41:43 -0700
+Message-ID: <20170911194143.pv1LxH84_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49994 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751015AbdIKTlL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:11 -0400
+        with ESMTP id S1751028AbdIKTlo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mattst88@gmail.com, mawilcox@microsoft.com, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, ralf@linux-mips.org, rmk+kernel@armlinux.org.uk, rth@twiddle.net, sam@ravnborg.org, sergey.senozhatsky@gmail.com, tglx@linutronix.de
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vga: optimise console scrolling
+     Subject: lib/rbtree_test.c: support rb_root_cached
 has been removed from the -mm tree.  Its filename was
-     vga-optimise-console-scrolling.patch
+     lib-rbtree_testc-support-rb_root_cached.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: vga: optimise console scrolling
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/rbtree_test.c: support rb_root_cached
 
-Where possible, call memset16(), memmove() or memcpy() instead of using
-open-coded loops.  I don't like the calling convention that uses a byte
-count instead of a count of u16s, but it's a little late to change that.
-Reduces code size of fbcon.o by almost 400 bytes on my laptop build.
+We can work with a single rb_root_cached root to test both cached and
+non-cached rbtrees.  In addition, also add a test to measure latencies
+between rb_first and its fast counterpart.
 
-[akpm@linux-foundation.org: fix build]
-Link: http://lkml.kernel.org/r/20170720184539.31609-9-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20170719014603.19029-7-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/vga.h    |    7 +++++++
- arch/powerpc/include/asm/vga.h |    8 ++++++++
- arch/sparc/include/asm/vga.h   |   25 +++++++++++++++++++++++++
- include/linux/vt_buffer.h      |   13 +++++++++++++
- 4 files changed, 53 insertions(+)
+ lib/rbtree_test.c |  156 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 137 insertions(+), 19 deletions(-)
 
-diff -puN arch/mips/include/asm/vga.h~vga-optimise-console-scrolling arch/mips/include/asm/vga.h
---- a/arch/mips/include/asm/vga.h~vga-optimise-console-scrolling
-+++ a/arch/mips/include/asm/vga.h
-@@ -6,6 +6,7 @@
- #ifndef _ASM_VGA_H
- #define _ASM_VGA_H
+diff -puN lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached lib/rbtree_test.c
+--- a/lib/rbtree_test.c~lib-rbtree_testc-support-rb_root_cached
++++ a/lib/rbtree_test.c
+@@ -23,14 +23,14 @@ struct test_node {
+ 	u32 augmented;
+ };
  
-+#include <linux/string.h>
- #include <asm/addrspace.h>
- #include <asm/byteorder.h>
+-static struct rb_root root = RB_ROOT;
++static struct rb_root_cached root = RB_ROOT_CACHED;
+ static struct test_node *nodes = NULL;
  
-@@ -40,9 +41,15 @@ static inline u16 scr_readw(volatile con
- 	return le16_to_cpu(*addr);
- }
+ static struct rnd_state rnd;
  
-+static inline void scr_memsetw(u16 *s, u16 v, unsigned int count)
-+{
-+	memset16(s, cpu_to_le16(v), count / 2);
-+}
-+
- #define scr_memcpyw(d, s, c) memcpy(d, s, c)
- #define scr_memmovew(d, s, c) memmove(d, s, c)
- #define VT_BUF_HAVE_MEMCPYW
- #define VT_BUF_HAVE_MEMMOVEW
-+#define VT_BUF_HAVE_MEMSETW
- 
- #endif /* _ASM_VGA_H */
-diff -puN arch/powerpc/include/asm/vga.h~vga-optimise-console-scrolling arch/powerpc/include/asm/vga.h
---- a/arch/powerpc/include/asm/vga.h~vga-optimise-console-scrolling
-+++ a/arch/powerpc/include/asm/vga.h
-@@ -33,8 +33,16 @@ static inline u16 scr_readw(volatile con
- 	return le16_to_cpu(*addr);
- }
- 
-+#define VT_BUF_HAVE_MEMSETW
-+static inline void scr_memsetw(u16 *s, u16 v, unsigned int n)
-+{
-+	memset16(s, cpu_to_le16(v), n / 2);
-+}
-+
- #define VT_BUF_HAVE_MEMCPYW
-+#define VT_BUF_HAVE_MEMMOVEW
- #define scr_memcpyw	memcpy
-+#define scr_memmovew	memmove
- 
- #endif /* !CONFIG_VGA_CONSOLE && !CONFIG_MDA_CONSOLE */
- 
-diff -puN arch/sparc/include/asm/vga.h~vga-optimise-console-scrolling arch/sparc/include/asm/vga.h
---- a/arch/sparc/include/asm/vga.h~vga-optimise-console-scrolling
-+++ a/arch/sparc/include/asm/vga.h
-@@ -8,9 +8,13 @@
- #define _LINUX_ASM_VGA_H_
- 
- #include <linux/bug.h>
-+#include <linux/string.h>
- #include <asm/types.h>
- 
- #define VT_BUF_HAVE_RW
-+#define VT_BUF_HAVE_MEMSETW
-+#define VT_BUF_HAVE_MEMCPYW
-+#define VT_BUF_HAVE_MEMMOVEW
- 
- #undef scr_writew
- #undef scr_readw
-@@ -29,6 +33,27 @@ static inline u16 scr_readw(const u16 *a
- 	return *addr;
- }
- 
-+static inline void scr_memsetw(u16 *p, u16 v, unsigned int n)
-+{
-+	BUG_ON((long) p >= 0);
-+
-+	memset16(p, cpu_to_le16(v), n / 2);
-+}
-+
-+static inline void scr_memcpyw(u16 *d, u16 *s, unsigned int n)
-+{
-+	BUG_ON((long) d >= 0);
-+
-+	memcpy(d, s, n);
-+}
-+
-+static inline void scr_memmovew(u16 *d, u16 *s, unsigned int n)
-+{
-+	BUG_ON((long) d >= 0);
-+
-+	memmove(d, s, n);
-+}
-+
- #define VGA_MAP_MEM(x,s) (x)
- 
- #endif
-diff -puN include/linux/vt_buffer.h~vga-optimise-console-scrolling include/linux/vt_buffer.h
---- a/include/linux/vt_buffer.h~vga-optimise-console-scrolling
-+++ a/include/linux/vt_buffer.h
-@@ -13,6 +13,7 @@
- #ifndef _LINUX_VT_BUFFER_H_
- #define _LINUX_VT_BUFFER_H_
- 
-+#include <linux/string.h>
- 
- #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_MDA_CONSOLE)
- #include <asm/vga.h>
-@@ -26,24 +27,33 @@
- #ifndef VT_BUF_HAVE_MEMSETW
- static inline void scr_memsetw(u16 *s, u16 c, unsigned int count)
+-static void insert(struct test_node *node, struct rb_root *root)
++static void insert(struct test_node *node, struct rb_root_cached *root)
  {
-+#ifdef VT_BUF_HAVE_RW
- 	count /= 2;
- 	while (count--)
- 		scr_writew(c, s++);
-+#else
-+	memset16(s, c, count / 2);
-+#endif
- }
- #endif
+-	struct rb_node **new = &root->rb_node, *parent = NULL;
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
+ 	u32 key = node->key;
  
- #ifndef VT_BUF_HAVE_MEMCPYW
- static inline void scr_memcpyw(u16 *d, const u16 *s, unsigned int count)
- {
-+#ifdef VT_BUF_HAVE_RW
- 	count /= 2;
- 	while (count--)
- 		scr_writew(scr_readw(s++), d++);
-+#else
-+	memcpy(d, s, count);
-+#endif
- }
- #endif
- 
- #ifndef VT_BUF_HAVE_MEMMOVEW
- static inline void scr_memmovew(u16 *d, const u16 *s, unsigned int count)
- {
-+#ifdef VT_BUF_HAVE_RW
- 	if (d < s)
- 		scr_memcpyw(d, s, count);
- 	else {
-@@ -53,6 +63,9 @@ static inline void scr_memmovew(u16 *d,
- 		while (count--)
- 			scr_writew(scr_readw(--s), --d);
+ 	while (*new) {
+@@ -42,14 +42,40 @@ static void insert(struct test_node *nod
  	}
-+#else
-+	memmove(d, s, count);
-+#endif
- }
- #endif
  
+ 	rb_link_node(&node->rb, parent, new);
+-	rb_insert_color(&node->rb, root);
++	rb_insert_color(&node->rb, &root->rb_root);
+ }
+ 
+-static inline void erase(struct test_node *node, struct rb_root *root)
++static void insert_cached(struct test_node *node, struct rb_root_cached *root)
+ {
+-	rb_erase(&node->rb, root);
++	struct rb_node **new = &root->rb_root.rb_node, *parent = NULL;
++	u32 key = node->key;
++	bool leftmost = true;
++
++	while (*new) {
++		parent = *new;
++		if (key < rb_entry(parent, struct test_node, rb)->key)
++			new = &parent->rb_left;
++		else {
++			new = &parent->rb_right;
++			leftmost = false;
++		}
++	}
++
++	rb_link_node(&node->rb, parent, new);
++	rb_insert_color_cached(&node->rb, root, leftmost);
+ }
+ 
++static inline void erase(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase(&node->rb, &root->rb_root);
++}
++
++static inline void erase_cached(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase_cached(&node->rb, root);
++}
++
++
+ static inline u32 augment_recompute(struct test_node *node)
+ {
+ 	u32 max = node->val, child_augmented;
+@@ -71,9 +97,10 @@ static inline u32 augment_recompute(stru
+ RB_DECLARE_CALLBACKS(static, augment_callbacks, struct test_node, rb,
+ 		     u32, augmented, augment_recompute)
+ 
+-static void insert_augmented(struct test_node *node, struct rb_root *root)
++static void insert_augmented(struct test_node *node,
++			     struct rb_root_cached *root)
+ {
+-	struct rb_node **new = &root->rb_node, *rb_parent = NULL;
++	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
+ 	u32 key = node->key;
+ 	u32 val = node->val;
+ 	struct test_node *parent;
+@@ -91,12 +118,47 @@ static void insert_augmented(struct test
+ 
+ 	node->augmented = val;
+ 	rb_link_node(&node->rb, rb_parent, new);
+-	rb_insert_augmented(&node->rb, root, &augment_callbacks);
++	rb_insert_augmented(&node->rb, &root->rb_root, &augment_callbacks);
++}
++
++static void insert_augmented_cached(struct test_node *node,
++				    struct rb_root_cached *root)
++{
++	struct rb_node **new = &root->rb_root.rb_node, *rb_parent = NULL;
++	u32 key = node->key;
++	u32 val = node->val;
++	struct test_node *parent;
++	bool leftmost = true;
++
++	while (*new) {
++		rb_parent = *new;
++		parent = rb_entry(rb_parent, struct test_node, rb);
++		if (parent->augmented < val)
++			parent->augmented = val;
++		if (key < parent->key)
++			new = &parent->rb.rb_left;
++		else {
++			new = &parent->rb.rb_right;
++			leftmost = false;
++		}
++	}
++
++	node->augmented = val;
++	rb_link_node(&node->rb, rb_parent, new);
++	rb_insert_augmented_cached(&node->rb, root,
++				   leftmost, &augment_callbacks);
++}
++
++
++static void erase_augmented(struct test_node *node, struct rb_root_cached *root)
++{
++	rb_erase_augmented(&node->rb, &root->rb_root, &augment_callbacks);
+ }
+ 
+-static void erase_augmented(struct test_node *node, struct rb_root *root)
++static void erase_augmented_cached(struct test_node *node,
++				   struct rb_root_cached *root)
+ {
+-	rb_erase_augmented(&node->rb, root, &augment_callbacks);
++	rb_erase_augmented_cached(&node->rb, root, &augment_callbacks);
+ }
+ 
+ static void init(void)
+@@ -125,7 +187,7 @@ static void check_postorder_foreach(int
+ {
+ 	struct test_node *cur, *n;
+ 	int count = 0;
+-	rbtree_postorder_for_each_entry_safe(cur, n, &root, rb)
++	rbtree_postorder_for_each_entry_safe(cur, n, &root.rb_root, rb)
+ 		count++;
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+@@ -135,7 +197,7 @@ static void check_postorder(int nr_nodes
+ {
+ 	struct rb_node *rb;
+ 	int count = 0;
+-	for (rb = rb_first_postorder(&root); rb; rb = rb_next_postorder(rb))
++	for (rb = rb_first_postorder(&root.rb_root); rb; rb = rb_next_postorder(rb))
+ 		count++;
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+@@ -147,7 +209,7 @@ static void check(int nr_nodes)
+ 	int count = 0, blacks = 0;
+ 	u32 prev_key = 0;
+ 
+-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
+ 		struct test_node *node = rb_entry(rb, struct test_node, rb);
+ 		WARN_ON_ONCE(node->key < prev_key);
+ 		WARN_ON_ONCE(is_red(rb) &&
+@@ -162,7 +224,7 @@ static void check(int nr_nodes)
+ 	}
+ 
+ 	WARN_ON_ONCE(count != nr_nodes);
+-	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
++	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root.rb_root))) - 1);
+ 
+ 	check_postorder(nr_nodes);
+ 	check_postorder_foreach(nr_nodes);
+@@ -173,7 +235,7 @@ static void check_augmented(int nr_nodes
+ 	struct rb_node *rb;
+ 
+ 	check(nr_nodes);
+-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++	for (rb = rb_first(&root.rb_root); rb; rb = rb_next(rb)) {
+ 		struct test_node *node = rb_entry(rb, struct test_node, rb);
+ 		WARN_ON_ONCE(node->augmented != augment_recompute(node));
+ 	}
+@@ -207,7 +269,24 @@ static int __init rbtree_test_init(void)
+ 	time = time2 - time1;
+ 
+ 	time = div_u64(time, perf_loops);
+-	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
++	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n",
++	       (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
++			insert_cached(nodes + j, &root);
++		for (j = 0; j < nnodes; j++)
++			erase_cached(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n",
++	       (unsigned long long)time);
+ 
+ 	for (i = 0; i < nnodes; i++)
+ 		insert(nodes + i, &root);
+@@ -215,7 +294,7 @@ static int __init rbtree_test_init(void)
+ 	time1 = get_cycles();
+ 
+ 	for (i = 0; i < perf_loops; i++) {
+-		for (node = rb_first(&root); node; node = rb_next(node))
++		for (node = rb_first(&root.rb_root); node; node = rb_next(node))
+ 			;
+ 	}
+ 
+@@ -223,7 +302,31 @@ static int __init rbtree_test_init(void)
+ 	time = time2 - time1;
+ 
+ 	time = div_u64(time, perf_loops);
+-	printk(" -> test 2 (latency of inorder traversal): %llu cycles\n", (unsigned long long)time);
++	printk(" -> test 3 (latency of inorder traversal): %llu cycles\n",
++	       (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++)
++		node = rb_first(&root.rb_root);
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 4 (latency to fetch first node)\n");
++	printk("        non-cached: %llu cycles\n", (unsigned long long)time);
++
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++)
++		node = rb_first_cached(&root);
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk("        cached: %llu cycles\n", (unsigned long long)time);
+ 
+ 	for (i = 0; i < nnodes; i++)
+ 		erase(nodes + i, &root);
+@@ -261,6 +364,21 @@ static int __init rbtree_test_init(void)
+ 	time = div_u64(time, perf_loops);
+ 	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
+ 
++	time1 = get_cycles();
++
++	for (i = 0; i < perf_loops; i++) {
++		for (j = 0; j < nnodes; j++)
++			insert_augmented_cached(nodes + j, &root);
++		for (j = 0; j < nnodes; j++)
++			erase_augmented_cached(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, perf_loops);
++	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n", (unsigned long long)time);
++
+ 	for (i = 0; i < check_loops; i++) {
+ 		init();
+ 		for (j = 0; j < nnodes; j++) {
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
