@@ -1,393 +1,422 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:38:45 -0700
-Message-ID: <20170911193845.AmVtC_GFi%akpm@linux-foundation.org>
+Subject: [merged] mm-thp-enable-thp-migration-in-generic-path.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:38:23 -0700
+Message-ID: <20170911193823.up4omucWm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48410 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdIKTir (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:47 -0400
+        with ESMTP id S1751052AbdIKTi3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, liubo95@huawei.com, mhairgrove@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, ross.zwisler@linux.intel.com, SCheung@nvidia.com, sgutti@nvidia.com, vdavydov.dev@gmail.com
+To: aarcange@redhat.com, dave.hansen@intel.com, dnellans@nvidia.com, hpa@zytor.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: mm/hmm: heterogeneous memory management (HMM for short)
+     Subject: mm: thp: enable thp migration in generic path
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-heterogeneous-memory-management-hmm-for-short-v5.patch
+     mm-thp-enable-thp-migration-in-generic-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm: heterogeneous memory management (HMM for short)
+From: Zi Yan <zi.yan@cs.rutgers.edu>
+Subject: mm: thp: enable thp migration in generic path
 
-HMM provides 3 separate types of functionality:
-    - Mirroring: synchronize CPU page table and device page table
-    - Device memory: allocating struct page for device memory
-    - Migration: migrating regular memory to device memory
+Add thp migration's core code, including conversions between a PMD entry
+and a swap entry, setting PMD migration entry, removing PMD migration
+entry, and waiting on PMD migration entries.
 
-This patch introduces some common helpers and definitions to all of
-those 3 functionality.
+This patch makes it possible to support thp migration.  If you fail to
+allocate a destination page as a thp, you just split the source thp as we
+do now, and then enter the normal page migration.  If you succeed to
+allocate destination thp, you enter thp migration.  Subsequent patches
+actually enable thp migration for each caller of page migration by
+allowing its get_new_page() callback to allocate thps.
 
-Link: http://lkml.kernel.org/r/20170817000548.32038-3-jglisse@redhat.com
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+[zi.yan@cs.rutgers.edu: fix gcc-4.9.0 -Wmissing-braces warning]
+  Link: http://lkml.kernel.org/r/A0ABA698-7486-46C3-B209-E95A9048B22C@cs.rutgers.edu
+[akpm@linux-foundation.org: fix x86_64 allnoconfig warning]
+Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: David Nellans <dnellans@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Bob Liu <liubo95@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h      |  152 +++++++++++++++++++++++++++++++++++++
- include/linux/mm_types.h |    6 +
- kernel/fork.c            |    3 
- mm/Kconfig               |   13 +++
- mm/Makefile              |    2 
- mm/hmm.c                 |   74 ++++++++++++++++++
- 6 files changed, 249 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/pgtable_64.h |    2 
+ include/linux/swapops.h           |   73 +++++++++++++++++++++++-
+ mm/huge_memory.c                  |   84 ++++++++++++++++++++++++++--
+ mm/migrate.c                      |   32 ++++++++++
+ mm/page_vma_mapped.c              |   18 +++++-
+ mm/pgtable-generic.c              |    3 -
+ mm/rmap.c                         |   13 ++++
+ 7 files changed, 212 insertions(+), 13 deletions(-)
 
-diff -puN /dev/null include/linux/hmm.h
---- /dev/null
-+++ a/include/linux/hmm.h
-@@ -0,0 +1,152 @@
-+/*
-+ * Copyright 2013 Red Hat Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Authors: JÃ©rÃ´me Glisse <jglisse@redhat.com>
-+ */
-+/*
-+ * Heterogeneous Memory Management (HMM)
-+ *
-+ * See Documentation/vm/hmm.txt for reasons and overview of what HMM is and it
-+ * is for. Here we focus on the HMM API description, with some explanation of
-+ * the underlying implementation.
-+ *
-+ * Short description: HMM provides a set of helpers to share a virtual address
-+ * space between CPU and a device, so that the device can access any valid
-+ * address of the process (while still obeying memory protection). HMM also
-+ * provides helpers to migrate process memory to device memory, and back. Each
-+ * set of functionality (address space mirroring, and migration to and from
-+ * device memory) can be used independently of the other.
-+ *
-+ *
-+ * HMM address space mirroring API:
-+ *
-+ * Use HMM address space mirroring if you want to mirror range of the CPU page
-+ * table of a process into a device page table. Here, "mirror" means "keep
-+ * synchronized". Prerequisites: the device must provide the ability to write-
-+ * protect its page tables (at PAGE_SIZE granularity), and must be able to
-+ * recover from the resulting potential page faults.
-+ *
-+ * HMM guarantees that at any point in time, a given virtual address points to
-+ * either the same memory in both CPU and device page tables (that is: CPU and
-+ * device page tables each point to the same pages), or that one page table (CPU
-+ * or device) points to no entry, while the other still points to the old page
-+ * for the address. The latter case happens when the CPU page table update
-+ * happens first, and then the update is mirrored over to the device page table.
-+ * This does not cause any issue, because the CPU page table cannot start
-+ * pointing to a new page until the device page table is invalidated.
-+ *
-+ * HMM uses mmu_notifiers to monitor the CPU page tables, and forwards any
-+ * updates to each device driver that has registered a mirror. It also provides
-+ * some API calls to help with taking a snapshot of the CPU page table, and to
-+ * synchronize with any updates that might happen concurrently.
-+ *
-+ *
-+ * HMM migration to and from device memory:
-+ *
-+ * HMM provides a set of helpers to hotplug device memory as ZONE_DEVICE, with
-+ * a new MEMORY_DEVICE_PRIVATE type. This provides a struct page for each page
-+ * of the device memory, and allows the device driver to manage its memory
-+ * using those struct pages. Having struct pages for device memory makes
-+ * migration easier. Because that memory is not addressable by the CPU it must
-+ * never be pinned to the device; in other words, any CPU page fault can always
-+ * cause the device memory to be migrated (copied/moved) back to regular memory.
-+ *
-+ * A new migrate helper (migrate_vma()) has been added (see mm/migrate.c) that
-+ * allows use of a device DMA engine to perform the copy operation between
-+ * regular system memory and device memory.
-+ */
-+#ifndef LINUX_HMM_H
-+#define LINUX_HMM_H
-+
-+#include <linux/kconfig.h>
-+
-+#if IS_ENABLED(CONFIG_HMM)
-+
-+
-+/*
-+ * hmm_pfn_t - HMM uses its own pfn type to keep several flags per page
-+ *
-+ * Flags:
-+ * HMM_PFN_VALID: pfn is valid
-+ * HMM_PFN_WRITE: CPU page table has write permission set
-+ */
-+typedef unsigned long hmm_pfn_t;
-+
-+#define HMM_PFN_VALID (1 << 0)
-+#define HMM_PFN_WRITE (1 << 1)
-+#define HMM_PFN_SHIFT 2
-+
-+/*
-+ * hmm_pfn_t_to_page() - return struct page pointed to by a valid hmm_pfn_t
-+ * @pfn: hmm_pfn_t to convert to struct page
-+ * Returns: struct page pointer if pfn is a valid hmm_pfn_t, NULL otherwise
-+ *
-+ * If the hmm_pfn_t is valid (ie valid flag set) then return the struct page
-+ * matching the pfn value stored in the hmm_pfn_t. Otherwise return NULL.
-+ */
-+static inline struct page *hmm_pfn_t_to_page(hmm_pfn_t pfn)
-+{
-+	if (!(pfn & HMM_PFN_VALID))
-+		return NULL;
-+	return pfn_to_page(pfn >> HMM_PFN_SHIFT);
-+}
-+
-+/*
-+ * hmm_pfn_t_to_pfn() - return pfn value store in a hmm_pfn_t
-+ * @pfn: hmm_pfn_t to extract pfn from
-+ * Returns: pfn value if hmm_pfn_t is valid, -1UL otherwise
-+ */
-+static inline unsigned long hmm_pfn_t_to_pfn(hmm_pfn_t pfn)
-+{
-+	if (!(pfn & HMM_PFN_VALID))
-+		return -1UL;
-+	return (pfn >> HMM_PFN_SHIFT);
-+}
-+
-+/*
-+ * hmm_pfn_t_from_page() - create a valid hmm_pfn_t value from struct page
-+ * @page: struct page pointer for which to create the hmm_pfn_t
-+ * Returns: valid hmm_pfn_t for the page
-+ */
-+static inline hmm_pfn_t hmm_pfn_t_from_page(struct page *page)
-+{
-+	return (page_to_pfn(page) << HMM_PFN_SHIFT) | HMM_PFN_VALID;
-+}
-+
-+/*
-+ * hmm_pfn_t_from_pfn() - create a valid hmm_pfn_t value from pfn
-+ * @pfn: pfn value for which to create the hmm_pfn_t
-+ * Returns: valid hmm_pfn_t for the pfn
-+ */
-+static inline hmm_pfn_t hmm_pfn_t_from_pfn(unsigned long pfn)
-+{
-+	return (pfn << HMM_PFN_SHIFT) | HMM_PFN_VALID;
-+}
-+
-+
-+/* Below are for HMM internal use only! Not to be used by device driver! */
-+void hmm_mm_destroy(struct mm_struct *mm);
-+
-+static inline void hmm_mm_init(struct mm_struct *mm)
-+{
-+	mm->hmm = NULL;
-+}
-+
-+#else /* IS_ENABLED(CONFIG_HMM) */
-+
-+/* Below are for HMM internal use only! Not to be used by device driver! */
-+static inline void hmm_mm_destroy(struct mm_struct *mm) {}
-+static inline void hmm_mm_init(struct mm_struct *mm) {}
-+
-+#endif /* IS_ENABLED(CONFIG_HMM) */
-+#endif /* LINUX_HMM_H */
-diff -puN include/linux/mm_types.h~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5 include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5
-+++ a/include/linux/mm_types.h
-@@ -23,6 +23,7 @@
+diff -puN arch/x86/include/asm/pgtable_64.h~mm-thp-enable-thp-migration-in-generic-path arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~mm-thp-enable-thp-migration-in-generic-path
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -210,7 +210,9 @@ static inline int pgd_large(pgd_t pgd) {
+ 					 ((type) << (SWP_TYPE_FIRST_BIT)) \
+ 					 | ((offset) << SWP_OFFSET_FIRST_BIT) })
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
++#define __pmd_to_swp_entry(pmd)		((swp_entry_t) { pmd_val((pmd)) })
+ #define __swp_entry_to_pte(x)		((pte_t) { .pte = (x).val })
++#define __swp_entry_to_pmd(x)		((pmd_t) { .pmd = (x).val })
  
- struct address_space;
- struct mem_cgroup;
-+struct hmm;
+ extern int kern_addr_valid(unsigned long addr);
+ extern void cleanup_highmap(void);
+diff -puN include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-thp-enable-thp-migration-in-generic-path
++++ a/include/linux/swapops.h
+@@ -103,7 +103,8 @@ static inline void *swp_to_radix_entry(s
+ #ifdef CONFIG_MIGRATION
+ static inline swp_entry_t make_migration_entry(struct page *page, int write)
+ {
+-	BUG_ON(!PageLocked(page));
++	BUG_ON(!PageLocked(compound_head(page)));
++
+ 	return swp_entry(write ? SWP_MIGRATION_WRITE : SWP_MIGRATION_READ,
+ 			page_to_pfn(page));
+ }
+@@ -126,7 +127,7 @@ static inline struct page *migration_ent
+ 	 * Any use of migration entries may only occur while the
+ 	 * corresponding page is locked
+ 	 */
+-	BUG_ON(!PageLocked(p));
++	BUG_ON(!PageLocked(compound_head(p)));
+ 	return p;
+ }
  
- /*
-  * Each physical page in the system has a struct page associated with
-@@ -503,6 +504,11 @@ struct mm_struct {
- 	atomic_long_t hugetlb_usage;
+@@ -148,7 +149,11 @@ static inline int is_migration_entry(swp
+ {
+ 	return 0;
+ }
+-#define migration_entry_to_page(swp) NULL
++static inline struct page *migration_entry_to_page(swp_entry_t entry)
++{
++	return NULL;
++}
++
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+ 					spinlock_t *ptl) { }
+@@ -163,6 +168,68 @@ static inline int is_write_migration_ent
+ 
  #endif
- 	struct work_struct async_put_work;
+ 
++struct page_vma_mapped_walk;
 +
-+#if IS_ENABLED(CONFIG_HMM)
-+	/* HMM needs to track a few things per mm */
-+	struct hmm *hmm;
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++extern void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
++		struct page *page);
++
++extern void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
++		struct page *new);
++
++extern void pmd_migration_entry_wait(struct mm_struct *mm, pmd_t *pmd);
++
++static inline swp_entry_t pmd_to_swp_entry(pmd_t pmd)
++{
++	swp_entry_t arch_entry;
++
++	arch_entry = __pmd_to_swp_entry(pmd);
++	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
++}
++
++static inline pmd_t swp_entry_to_pmd(swp_entry_t entry)
++{
++	swp_entry_t arch_entry;
++
++	arch_entry = __swp_entry(swp_type(entry), swp_offset(entry));
++	return __swp_entry_to_pmd(arch_entry);
++}
++
++static inline int is_pmd_migration_entry(pmd_t pmd)
++{
++	return !pmd_present(pmd) && is_migration_entry(pmd_to_swp_entry(pmd));
++}
++#else
++static inline void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
++		struct page *page)
++{
++	BUILD_BUG();
++}
++
++static inline void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
++		struct page *new)
++{
++	BUILD_BUG();
++}
++
++static inline void pmd_migration_entry_wait(struct mm_struct *m, pmd_t *p) { }
++
++static inline swp_entry_t pmd_to_swp_entry(pmd_t pmd)
++{
++	return swp_entry(0, 0);
++}
++
++static inline pmd_t swp_entry_to_pmd(swp_entry_t entry)
++{
++	return __pmd(0);
++}
++
++static inline int is_pmd_migration_entry(pmd_t pmd)
++{
++	return 0;
++}
 +#endif
- } __randomize_layout;
- 
- extern struct mm_struct init_mm;
-diff -puN kernel/fork.c~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5 kernel/fork.c
---- a/kernel/fork.c~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5
-+++ a/kernel/fork.c
-@@ -37,6 +37,7 @@
- #include <linux/binfmts.h>
- #include <linux/mman.h>
- #include <linux/mmu_notifier.h>
-+#include <linux/hmm.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/vmacache.h>
-@@ -824,6 +825,7 @@ static struct mm_struct *mm_init(struct
- 	mm_init_owner(mm, p);
- 	RCU_INIT_POINTER(mm->exe_file, NULL);
- 	mmu_notifier_mm_init(mm);
-+	hmm_mm_init(mm);
- 	init_tlb_flush_pending(mm);
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
- 	mm->pmd_huge_pte = NULL;
-@@ -903,6 +905,7 @@ void __mmdrop(struct mm_struct *mm)
- 	BUG_ON(mm == &init_mm);
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
-+	hmm_mm_destroy(mm);
- 	mmu_notifier_mm_destroy(mm);
- 	check_mm(mm);
- 	put_user_ns(mm->user_ns);
-diff -puN mm/Kconfig~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5 mm/Kconfig
---- a/mm/Kconfig~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5
-+++ a/mm/Kconfig
-@@ -692,6 +692,19 @@ config ZONE_DEVICE
- 
- 	  If FS_DAX is enabled, then say Y.
- 
-+config ARCH_HAS_HMM
-+	bool
-+	default y
-+	depends on (X86_64 || PPC64)
-+	depends on ZONE_DEVICE
-+	depends on MMU && 64BIT
-+	depends on MEMORY_HOTPLUG
-+	depends on MEMORY_HOTREMOVE
-+	depends on SPARSEMEM_VMEMMAP
 +
-+config HMM
-+	bool
-+
- config FRAME_VECTOR
- 	bool
+ #ifdef CONFIG_MEMORY_FAILURE
  
-diff -puN mm/Makefile~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5 mm/Makefile
---- a/mm/Makefile~mm-hmm-heterogeneous-memory-management-hmm-for-short-v5
-+++ a/mm/Makefile
-@@ -39,7 +39,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   mm_init.o mmu_context.o percpu.o slab_common.o \
- 			   compaction.o vmacache.o swap_slots.o \
- 			   interval_tree.o list_lru.o workingset.o \
--			   debug.o $(mmu-y)
-+			   debug.o hmm.o $(mmu-y)
- 
- obj-y += init-mm.o
- 
-diff -puN /dev/null mm/hmm.c
---- /dev/null
-+++ a/mm/hmm.c
-@@ -0,0 +1,74 @@
-+/*
-+ * Copyright 2013 Red Hat Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Authors: JÃ©rÃ´me Glisse <jglisse@redhat.com>
-+ */
-+/*
-+ * Refer to include/linux/hmm.h for information about heterogeneous memory
-+ * management or HMM for short.
-+ */
-+#include <linux/mm.h>
-+#include <linux/hmm.h>
-+#include <linux/slab.h>
-+#include <linux/sched.h>
+ extern atomic_long_t num_poisoned_pages __read_mostly;
+diff -puN mm/huge_memory.c~mm-thp-enable-thp-migration-in-generic-path mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-enable-thp-migration-in-generic-path
++++ a/mm/huge_memory.c
+@@ -1684,10 +1684,24 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		spin_unlock(ptl);
+ 		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+ 	} else {
+-		struct page *page = pmd_page(orig_pmd);
+-		page_remove_rmap(page, true);
+-		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
+-		VM_BUG_ON_PAGE(!PageHead(page), page);
++		struct page *page = NULL;
++		int flush_needed = 1;
 +
++		if (pmd_present(orig_pmd)) {
++			page = pmd_page(orig_pmd);
++			page_remove_rmap(page, true);
++			VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
++			VM_BUG_ON_PAGE(!PageHead(page), page);
++		} else if (thp_migration_supported()) {
++			swp_entry_t entry;
 +
-+#ifdef CONFIG_HMM
-+/*
-+ * struct hmm - HMM per mm struct
-+ *
-+ * @mm: mm struct this HMM struct is bound to
-+ */
-+struct hmm {
-+	struct mm_struct	*mm;
-+};
++			VM_BUG_ON(!is_pmd_migration_entry(orig_pmd));
++			entry = pmd_to_swp_entry(orig_pmd);
++			page = pfn_to_page(swp_offset(entry));
++			flush_needed = 0;
++		} else
++			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
 +
-+/*
-+ * hmm_register - register HMM against an mm (HMM internal)
-+ *
-+ * @mm: mm struct to attach to
-+ *
-+ * This is not intended to be used directly by device drivers. It allocates an
-+ * HMM struct if mm does not have one, and initializes it.
-+ */
-+static struct hmm *hmm_register(struct mm_struct *mm)
+ 		if (PageAnon(page)) {
+ 			zap_deposited_table(tlb->mm, pmd);
+ 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+@@ -1696,8 +1710,10 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 				zap_deposited_table(tlb->mm, pmd);
+ 			add_mm_counter(tlb->mm, MM_FILEPAGES, -HPAGE_PMD_NR);
+ 		}
++
+ 		spin_unlock(ptl);
+-		tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
++		if (flush_needed)
++			tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
+ 	}
+ 	return 1;
+ }
+@@ -2745,3 +2761,61 @@ static int __init split_huge_pages_debug
+ }
+ late_initcall(split_huge_pages_debugfs);
+ #endif
++
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
++		struct page *page)
 +{
-+	if (!mm->hmm) {
-+		struct hmm *hmm = NULL;
++	struct vm_area_struct *vma = pvmw->vma;
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long address = pvmw->address;
++	pmd_t pmdval;
++	swp_entry_t entry;
 +
-+		hmm = kmalloc(sizeof(*hmm), GFP_KERNEL);
-+		if (!hmm)
-+			return NULL;
-+		hmm->mm = mm;
++	if (!(pvmw->pmd && !pvmw->pte))
++		return;
 +
-+		spin_lock(&mm->page_table_lock);
-+		if (!mm->hmm)
-+			mm->hmm = hmm;
-+		else
-+			kfree(hmm);
-+		spin_unlock(&mm->page_table_lock);
-+	}
++	mmu_notifier_invalidate_range_start(mm, address,
++			address + HPAGE_PMD_SIZE);
 +
-+	/*
-+	 * The hmm struct can only be freed once the mm_struct goes away,
-+	 * hence we should always have pre-allocated an new hmm struct
-+	 * above.
-+	 */
-+	return mm->hmm;
++	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
++	pmdval = *pvmw->pmd;
++	pmdp_invalidate(vma, address, pvmw->pmd);
++	if (pmd_dirty(pmdval))
++		set_page_dirty(page);
++	entry = make_migration_entry(page, pmd_write(pmdval));
++	pmdval = swp_entry_to_pmd(entry);
++	set_pmd_at(mm, address, pvmw->pmd, pmdval);
++	page_remove_rmap(page, true);
++	put_page(page);
++
++	mmu_notifier_invalidate_range_end(mm, address,
++			address + HPAGE_PMD_SIZE);
 +}
 +
-+void hmm_mm_destroy(struct mm_struct *mm)
++void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
 +{
-+	kfree(mm->hmm);
++	struct vm_area_struct *vma = pvmw->vma;
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long address = pvmw->address;
++	unsigned long mmun_start = address & HPAGE_PMD_MASK;
++	pmd_t pmde;
++	swp_entry_t entry;
++
++	if (!(pvmw->pmd && !pvmw->pte))
++		return;
++
++	entry = pmd_to_swp_entry(*pvmw->pmd);
++	get_page(new);
++	pmde = pmd_mkold(mk_huge_pmd(new, vma->vm_page_prot));
++	if (is_write_migration_entry(entry))
++		pmde = maybe_pmd_mkwrite(pmde, vma);
++
++	flush_cache_range(vma, mmun_start, mmun_start + HPAGE_PMD_SIZE);
++	page_add_anon_rmap(new, vma, mmun_start, true);
++	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
++	if (vma->vm_flags & VM_LOCKED)
++		mlock_vma_page(new);
++	update_mmu_cache_pmd(vma, address, pvmw->pmd);
 +}
-+#endif /* CONFIG_HMM */
++#endif
+diff -puN mm/migrate.c~mm-thp-enable-thp-migration-in-generic-path mm/migrate.c
+--- a/mm/migrate.c~mm-thp-enable-thp-migration-in-generic-path
++++ a/mm/migrate.c
+@@ -216,6 +216,15 @@ static bool remove_migration_pte(struct
+ 			new = page - pvmw.page->index +
+ 				linear_page_index(vma, pvmw.address);
+ 
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++		/* PMD-mapped THP migration entry */
++		if (!pvmw.pte) {
++			VM_BUG_ON_PAGE(PageHuge(page) || !PageTransCompound(page), page);
++			remove_migration_pmd(&pvmw, new);
++			continue;
++		}
++#endif
++
+ 		get_page(new);
+ 		pte = pte_mkold(mk_pte(new, READ_ONCE(vma->vm_page_prot)));
+ 		if (pte_swp_soft_dirty(*pvmw.pte))
+@@ -330,6 +339,27 @@ void migration_entry_wait_huge(struct vm
+ 	__migration_entry_wait(mm, pte, ptl);
+ }
+ 
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++void pmd_migration_entry_wait(struct mm_struct *mm, pmd_t *pmd)
++{
++	spinlock_t *ptl;
++	struct page *page;
++
++	ptl = pmd_lock(mm, pmd);
++	if (!is_pmd_migration_entry(*pmd))
++		goto unlock;
++	page = migration_entry_to_page(pmd_to_swp_entry(*pmd));
++	if (!get_page_unless_zero(page))
++		goto unlock;
++	spin_unlock(ptl);
++	wait_on_page_locked(page);
++	put_page(page);
++	return;
++unlock:
++	spin_unlock(ptl);
++}
++#endif
++
+ #ifdef CONFIG_BLOCK
+ /* Returns true if all buffers are successfully locked */
+ static bool buffer_migrate_lock_buffers(struct buffer_head *head,
+@@ -1088,7 +1118,7 @@ static ICE_noinline int unmap_and_move(n
+ 		goto out;
+ 	}
+ 
+-	if (unlikely(PageTransHuge(page))) {
++	if (unlikely(PageTransHuge(page) && !PageTransHuge(newpage))) {
+ 		lock_page(page);
+ 		rc = split_huge_page(page);
+ 		unlock_page(page);
+diff -puN mm/page_vma_mapped.c~mm-thp-enable-thp-migration-in-generic-path mm/page_vma_mapped.c
+--- a/mm/page_vma_mapped.c~mm-thp-enable-thp-migration-in-generic-path
++++ a/mm/page_vma_mapped.c
+@@ -138,16 +138,28 @@ restart:
+ 	if (!pud_present(*pud))
+ 		return false;
+ 	pvmw->pmd = pmd_offset(pud, pvmw->address);
+-	if (pmd_trans_huge(*pvmw->pmd)) {
++	if (pmd_trans_huge(*pvmw->pmd) || is_pmd_migration_entry(*pvmw->pmd)) {
+ 		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+-		if (!pmd_present(*pvmw->pmd))
+-			return not_found(pvmw);
+ 		if (likely(pmd_trans_huge(*pvmw->pmd))) {
+ 			if (pvmw->flags & PVMW_MIGRATION)
+ 				return not_found(pvmw);
+ 			if (pmd_page(*pvmw->pmd) != page)
+ 				return not_found(pvmw);
+ 			return true;
++		} else if (!pmd_present(*pvmw->pmd)) {
++			if (thp_migration_supported()) {
++				if (!(pvmw->flags & PVMW_MIGRATION))
++					return not_found(pvmw);
++				if (is_migration_entry(pmd_to_swp_entry(*pvmw->pmd))) {
++					swp_entry_t entry = pmd_to_swp_entry(*pvmw->pmd);
++
++					if (migration_entry_to_page(entry) != page)
++						return not_found(pvmw);
++					return true;
++				}
++			} else
++				WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
++			return not_found(pvmw);
+ 		} else {
+ 			/* THP pmd was split under us: handle on pte level */
+ 			spin_unlock(pvmw->ptl);
+diff -puN mm/pgtable-generic.c~mm-thp-enable-thp-migration-in-generic-path mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-thp-enable-thp-migration-in-generic-path
++++ a/mm/pgtable-generic.c
+@@ -124,7 +124,8 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
+ {
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
++	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
++			   !pmd_devmap(*pmdp)) || !pmd_present(*pmdp));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
+diff -puN mm/rmap.c~mm-thp-enable-thp-migration-in-generic-path mm/rmap.c
+--- a/mm/rmap.c~mm-thp-enable-thp-migration-in-generic-path
++++ a/mm/rmap.c
+@@ -1360,6 +1360,19 @@ static bool try_to_unmap_one(struct page
+ 	mmu_notifier_invalidate_range_start(vma->vm_mm, start, end);
+ 
+ 	while (page_vma_mapped_walk(&pvmw)) {
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++		/* PMD-mapped THP migration entry */
++		if (!pvmw.pte && (flags & TTU_MIGRATION)) {
++			VM_BUG_ON_PAGE(PageHuge(page) || !PageTransCompound(page), page);
++
++			if (!PageAnon(page))
++				continue;
++
++			set_pmd_migration_entry(&pvmw, page);
++			continue;
++		}
++#endif
++
+ 		/*
+ 		 * If the page is mlock()d, we cannot swap it out.
+ 		 * If it's recently referenced (perhaps page_referenced
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
 
 
