@@ -1,95 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rbtree-optimize-root-check-during-rebalancing-loop.patch removed from -mm
- tree
-Date: Mon, 11 Sep 2017 12:41:31 -0700
-Message-ID: <20170911194131.LWuXLfpqN%akpm@linux-foundation.org>
+Subject: [merged] sched-fair-replace-cfs_rq-rb_leftmost.patch
+ removed from -mm tree
+Date: Mon, 11 Sep 2017 12:41:46 -0700
+Message-ID: <20170911194146.m3mRqvyVg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50004 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdIKTlc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:32 -0400
+        with ESMTP id S1751015AbdIKTlr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:41:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: rbtree: optimize root-check during rebalancing loop
+     Subject: sched/fair: replace cfs_rq->rb_leftmost
 has been removed from the -mm tree.  Its filename was
-     rbtree-optimize-root-check-during-rebalancing-loop.patch
+     sched-fair-replace-cfs_rq-rb_leftmost.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: rbtree: optimize root-check during rebalancing loop
+Subject: sched/fair: replace cfs_rq->rb_leftmost
 
-The only times the nil-parent (root node) condition is true is when the
-node is the first in the tree, or after fixing rbtree rule #4 and the case
-1 rebalancing made the node the root.  Such conditions do not apply most
-of the time:
+... with the generic rbtree flavor instead. No changes
+in semantics whatsoever.
 
-(i) The common case in an rbtree is to have more than a single node,
-    so this is only true for the first rb_insert().
-
-(ii) While there is a chance only one first rotation is needed, cases
-    where the node's uncle is black (cases 2,3) are more common as we can
-    have the following scenarios during the rotation looping:
-
-    case1 only, case1+1, case2+3, case1+2+3, case3 only, etc.
-
-This patch, therefore, adds an unlikely() optimization to this
-conditional.  When profiling with CONFIG_PROFILE_ANNOTATED_BRANCHES, a
-kernel build shows that the incorrect rate is less than 15%, and for
-workloads that involve insert mostly trees overtime tend to have less than
-2% incorrect rate.
-
-Link: http://lkml.kernel.org/r/20170719014603.19029-3-dave@stgolabs.net
+Link: http://lkml.kernel.org/r/20170719014603.19029-8-dave@stgolabs.net
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ kernel/sched/debug.c |    2 +-
+ kernel/sched/fair.c  |   39 +++++++++++++--------------------------
+ kernel/sched/sched.h |    3 +--
+ 3 files changed, 15 insertions(+), 29 deletions(-)
 
-diff -puN lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop lib/rbtree.c
---- a/lib/rbtree.c~rbtree-optimize-root-check-during-rebalancing-loop
-+++ a/lib/rbtree.c
-@@ -105,16 +105,25 @@ __rb_insert(struct rb_node *node, struct
+diff -puN kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/debug.c
+--- a/kernel/sched/debug.c~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/debug.c
+@@ -530,7 +530,7 @@ void print_cfs_rq(struct seq_file *m, in
+ 			SPLIT_NS(cfs_rq->exec_clock));
  
- 	while (true) {
- 		/*
--		 * Loop invariant: node is red
--		 *
--		 * If there is a black parent, we are done.
--		 * Otherwise, take some corrective action as we don't
--		 * want a red root or two consecutive red nodes.
-+		 * Loop invariant: node is red.
- 		 */
--		if (!parent) {
-+		if (unlikely(!parent)) {
-+			/*
-+			 * The inserted node is root. Either this is the
-+			 * first node, or we recursed at Case 1 below and
-+			 * are no longer violating 4).
-+			 */
- 			rb_set_parent_color(node, NULL, RB_BLACK);
- 			break;
--		} else if (rb_is_black(parent))
-+		}
-+
-+		/*
-+		 * If there is a black parent, we are done.
-+		 * Otherwise, take some corrective action as,
-+		 * per 4), we don't want a red root or two
-+		 * consecutive red nodes.
-+		 */
-+		if(rb_is_black(parent))
- 			break;
+ 	raw_spin_lock_irqsave(&rq->lock, flags);
+-	if (cfs_rq->rb_leftmost)
++	if (rb_first_cached(&cfs_rq->tasks_timeline))
+ 		MIN_vruntime = (__pick_first_entity(cfs_rq))->vruntime;
+ 	last = __pick_last_entity(cfs_rq);
+ 	if (last)
+diff -puN kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/fair.c
+@@ -513,6 +513,7 @@ static inline int entity_before(struct s
+ static void update_min_vruntime(struct cfs_rq *cfs_rq)
+ {
+ 	struct sched_entity *curr = cfs_rq->curr;
++	struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
  
- 		gparent = rb_red_parent(parent);
+ 	u64 vruntime = cfs_rq->min_vruntime;
+ 
+@@ -523,10 +524,9 @@ static void update_min_vruntime(struct c
+ 			curr = NULL;
+ 	}
+ 
+-	if (cfs_rq->rb_leftmost) {
+-		struct sched_entity *se = rb_entry(cfs_rq->rb_leftmost,
+-						   struct sched_entity,
+-						   run_node);
++	if (leftmost) { /* non-empty tree */
++		struct sched_entity *se;
++		se = rb_entry(leftmost, struct sched_entity, run_node);
+ 
+ 		if (!curr)
+ 			vruntime = se->vruntime;
+@@ -547,10 +547,10 @@ static void update_min_vruntime(struct c
+  */
+ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
+ {
+-	struct rb_node **link = &cfs_rq->tasks_timeline.rb_node;
++	struct rb_node **link = &cfs_rq->tasks_timeline.rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct sched_entity *entry;
+-	int leftmost = 1;
++	bool leftmost = true;
+ 
+ 	/*
+ 	 * Find the right place in the rbtree:
+@@ -566,36 +566,23 @@ static void __enqueue_entity(struct cfs_
+ 			link = &parent->rb_left;
+ 		} else {
+ 			link = &parent->rb_right;
+-			leftmost = 0;
++			leftmost = false;
+ 		}
+ 	}
+ 
+-	/*
+-	 * Maintain a cache of leftmost tree entries (it is frequently
+-	 * used):
+-	 */
+-	if (leftmost)
+-		cfs_rq->rb_leftmost = &se->run_node;
+-
+ 	rb_link_node(&se->run_node, parent, link);
+-	rb_insert_color(&se->run_node, &cfs_rq->tasks_timeline);
++	rb_insert_color_cached(&se->run_node,
++			       &cfs_rq->tasks_timeline, leftmost);
+ }
+ 
+ static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
+ {
+-	if (cfs_rq->rb_leftmost == &se->run_node) {
+-		struct rb_node *next_node;
+-
+-		next_node = rb_next(&se->run_node);
+-		cfs_rq->rb_leftmost = next_node;
+-	}
+-
+-	rb_erase(&se->run_node, &cfs_rq->tasks_timeline);
++	rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
+ }
+ 
+ struct sched_entity *__pick_first_entity(struct cfs_rq *cfs_rq)
+ {
+-	struct rb_node *left = cfs_rq->rb_leftmost;
++	struct rb_node *left = rb_first_cached(&cfs_rq->tasks_timeline);
+ 
+ 	if (!left)
+ 		return NULL;
+@@ -616,7 +603,7 @@ static struct sched_entity *__pick_next_
+ #ifdef CONFIG_SCHED_DEBUG
+ struct sched_entity *__pick_last_entity(struct cfs_rq *cfs_rq)
+ {
+-	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline);
++	struct rb_node *last = rb_last(&cfs_rq->tasks_timeline.rb_root);
+ 
+ 	if (!last)
+ 		return NULL;
+@@ -9312,7 +9299,7 @@ static void set_curr_task_fair(struct rq
+ 
+ void init_cfs_rq(struct cfs_rq *cfs_rq)
+ {
+-	cfs_rq->tasks_timeline = RB_ROOT;
++	cfs_rq->tasks_timeline = RB_ROOT_CACHED;
+ 	cfs_rq->min_vruntime = (u64)(-(1LL << 20));
+ #ifndef CONFIG_64BIT
+ 	cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
+diff -puN kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost kernel/sched/sched.h
+--- a/kernel/sched/sched.h~sched-fair-replace-cfs_rq-rb_leftmost
++++ a/kernel/sched/sched.h
+@@ -426,8 +426,7 @@ struct cfs_rq {
+ 	u64 min_vruntime_copy;
+ #endif
+ 
+-	struct rb_root tasks_timeline;
+-	struct rb_node *rb_leftmost;
++	struct rb_root_cached tasks_timeline;
+ 
+ 	/*
+ 	 * 'curr' points to currently running entity on this cfs_rq.
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
