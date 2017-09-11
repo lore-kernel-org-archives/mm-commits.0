@@ -1,58 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-rhashtable-fix-comment-on-locks_mul-default-value.patch removed from
- -mm tree
-Date: Mon, 11 Sep 2017 12:42:31 -0700
-Message-ID: <20170911194231.Oh6G0NPi5%akpm@linux-foundation.org>
+ lib-cmldinec-clean-up-the-meaningless-comment.patch removed from -mm tree
+Date: Mon, 11 Sep 2017 12:42:37 -0700
+Message-ID: <20170911194237.hmHjU40XK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50234 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50274 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751079AbdIKTmc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:32 -0400
+        with ESMTP id S1751110AbdIKTmi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, fw@strlen.de, mm-commits@vger.kernel.org
+To: bhe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rhashtable: fix comment on locks_mul default value
+     Subject: lib/cmdline.c: remove meaningless comment
 has been removed from the -mm tree.  Its filename was
-     lib-rhashtable-fix-comment-on-locks_mul-default-value.patch
+     lib-cmldinec-clean-up-the-meaningless-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/rhashtable: fix comment on locks_mul default value
+From: Baoquan He <bhe@redhat.com>
+Subject: lib/cmdline.c: remove meaningless comment
 
-As of 4cf0b354d92 ("rhashtable: avoid large lock-array allocations"), the
-default value for the locks multiplier was reduced from 128 to 32.  Update
-the header file to reflect this.
+One line of code was commented out by c++ style comment for debugging, but
+forgot removing it.
 
-Link: http://lkml.kernel.org/r/20170815215401.30745-1-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Florian Westphal <fw@strlen.de>
+Clean it up.
+
+Link: http://lkml.kernel.org/r/1503312113-11843-1-git-send-email-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rhashtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/cmdline.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value include/linux/rhashtable.h
---- a/include/linux/rhashtable.h~lib-rhashtable-fix-comment-on-locks_mul-default-value
-+++ a/include/linux/rhashtable.h
-@@ -127,7 +127,7 @@ struct rhashtable;
-  * @head_offset: Offset of rhash_head in struct to be hashed
-  * @max_size: Maximum size while expanding
-  * @min_size: Minimum size while shrinking
-- * @locks_mul: Number of bucket locks to allocate per cpu (default: 128)
-+ * @locks_mul: Number of bucket locks to allocate per cpu (default: 32)
-  * @automatic_shrinking: Enable automatic shrinking of tables
-  * @nulls_base: Base value to generate nulls marker
-  * @hashfn: Hash function (default: jhash2 if !(key_len % 4), or jhash)
+diff -puN lib/cmdline.c~lib-cmldinec-clean-up-the-meaningless-comment lib/cmdline.c
+--- a/lib/cmdline.c~lib-cmldinec-clean-up-the-meaningless-comment
++++ a/lib/cmdline.c
+@@ -244,5 +244,4 @@ char *next_arg(char *args, char **param,
+ 
+ 	/* Chew up trailing spaces. */
+ 	return skip_spaces(next);
+-	//return next;
+ }
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from bhe@redhat.com are
 
 
