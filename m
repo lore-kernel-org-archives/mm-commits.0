@@ -1,133 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-add-test-module-for-config_debug_virtual.patch removed from -mm tree
-Date: Mon, 11 Sep 2017 12:42:19 -0700
-Message-ID: <20170911194219.fgKJvTuqz%akpm@linux-foundation.org>
+ lib-interval-tree-correct-comment-wrt-generic-flavor.patch removed from -mm
+ tree
+Date: Mon, 11 Sep 2017 12:42:01 -0700
+Message-ID: <20170911194201.PIWLc4Jqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50084 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751079AbdIKTmU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:20 -0400
+        with ESMTP id S1751028AbdIKTmC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2017 15:42:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
+     Subject: lib/interval-tree: correct comment wrt generic flavor
 has been removed from the -mm tree.  Its filename was
-     lib-add-test-module-for-config_debug_virtual.patch
+     lib-interval-tree-correct-comment-wrt-generic-flavor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: lib: add test module for CONFIG_DEBUG_VIRTUAL
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/interval-tree: correct comment wrt generic flavor
 
-Add a test module that allows testing that CONFIG_DEBUG_VIRTUAL works
-correctly, at least that it can catch invalid calls to virt_to_phys()
-against the non-linear kernel virtual address map.
+interval_tree.h _is_ the generic flavor.
 
-Link: http://lkml.kernel.org/r/20170808164035.26725-1-f.fainelli@gmail.com
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20170719014603.19029-13-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |   11 ++++++++
- lib/Makefile             |    1 
- lib/test_debug_virtual.c |   49 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ include/linux/interval_tree_generic.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-add-test-module-for-config_debug_virtual
-+++ a/lib/Kconfig.debug
-@@ -1930,6 +1930,17 @@ config TEST_KMOD
+diff -puN include/linux/interval_tree_generic.h~lib-interval-tree-correct-comment-wrt-generic-flavor include/linux/interval_tree_generic.h
+--- a/include/linux/interval_tree_generic.h~lib-interval-tree-correct-comment-wrt-generic-flavor
++++ a/include/linux/interval_tree_generic.h
+@@ -33,7 +33,7 @@
+  * ITSTATIC:   'static' or empty
+  * ITPREFIX:   prefix to use for the inline tree definitions
+  *
+- * Note - before using this, please consider if non-generic version
++ * Note - before using this, please consider if generic version
+  * (interval_tree.h) would work for you...
+  */
  
- 	  If unsure, say N.
- 
-+config TEST_DEBUG_VIRTUAL
-+	tristate "Test CONFIG_DEBUG_VIRTUAL feature"
-+	depends on DEBUG_VIRTUAL
-+	help
-+	  Test the kernel's ability to detect incorrect calls to
-+	  virt_to_phys() done against the non-linear part of the
-+	  kernel's virtual address map.
-+
-+	  If unsure, say N.
-+
-+
- source "samples/Kconfig"
- 
- source "lib/Kconfig.kgdb"
-diff -puN lib/Makefile~lib-add-test-module-for-config_debug_virtual lib/Makefile
---- a/lib/Makefile~lib-add-test-module-for-config_debug_virtual
-+++ a/lib/Makefile
-@@ -62,6 +62,7 @@ obj-$(CONFIG_TEST_BITMAP) += test_bitmap
- obj-$(CONFIG_TEST_UUID) += test_uuid.o
- obj-$(CONFIG_TEST_PARMAN) += test_parman.o
- obj-$(CONFIG_TEST_KMOD) += test_kmod.o
-+obj-$(CONFIG_TEST_DEBUG_VIRTUAL) += test_debug_virtual.o
- 
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
-diff -puN /dev/null lib/test_debug_virtual.c
---- /dev/null
-+++ a/lib/test_debug_virtual.c
-@@ -0,0 +1,49 @@
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/export.h>
-+#include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/slab.h>
-+#include <linux/sizes.h>
-+
-+#include <asm/page.h>
-+#ifdef CONFIG_MIPS
-+#include <asm/bootinfo.h>
-+#endif
-+
-+struct foo {
-+	unsigned int bar;
-+};
-+
-+struct foo *foo;
-+
-+static int __init test_debug_virtual_init(void)
-+{
-+	phys_addr_t pa;
-+	void *va;
-+
-+	va = (void *)VMALLOC_START;
-+	pa = virt_to_phys(va);
-+
-+	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
-+
-+	foo = kzalloc(sizeof(*foo), GFP_KERNEL);
-+	if (!foo)
-+		return -ENOMEM;
-+
-+	pa = virt_to_phys(foo);
-+	va = foo;
-+	pr_info("PA: %pa for VA: 0x%lx\n", &pa, (unsigned long)va);
-+
-+	return 0;
-+}
-+module_init(test_debug_virtual_init);
-+
-+static void __exit test_debug_virtual_exit(void)
-+{
-+	kfree(foo);
-+}
-+module_exit(test_debug_virtual_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Test module for CONFIG_DEBUG_VIRTUAL");
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
