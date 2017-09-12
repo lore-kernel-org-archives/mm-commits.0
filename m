@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch added to -mm tree
-Date: Tue, 12 Sep 2017 13:58:42 -0700
-Message-ID: <59b84a82.RUnzPw3aDYR2pLG1%akpm@linux-foundation.org>
+ sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration.patch
+ added to -mm tree
+Date: Tue, 12 Sep 2017 16:11:37 -0700
+Message-ID: <59b869a9.uXF4C95clx5wQMDA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52852 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750991AbdILU6n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2017 16:58:43 -0400
+        with ESMTP id S1751003AbdILXLj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2017 19:11:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 00moses.alexander00@gmail.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, mm-commits@vger.kernel.org
+To: geert+renesas@glider.be, dalias@libc.org, jacopo+renesas@jmondi.org, laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com, yoshihiro.shimoda.uh@renesas.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb, soft_offline: save compound page order before page migration
+     Subject: sh: sh7722: remove nonexistent GPIO_PTQ7 to fix pinctrl registration
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch
+     sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +40,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandru Moise <00moses.alexander00@gmail.com>
-Subject: mm, hugetlb, soft_offline: save compound page order before page migration
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: sh: sh7722: remove nonexistent GPIO_PTQ7 to fix pinctrl registration
 
-This fixes a bug in madvise() where if you'd try to soft offline a
-hugepage via madvise(), while walking the address range you'd end up,
-using the wrong page offset due to attempting to get the compound order of
-a former but presently not compound page, due to dissolving the huge page
-(since c3114a8).
+Patch series "sh: sh7722/sh7757i/sh7264/sh7269: Fix pinctrl registration",
+v2.
 
-Link: http://lkml.kernel.org/r/20170912204306.GA12053@gmail.com
-Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Magnus Damm reported that on sh7722/Migo-R, pinctrl registration fails
+with:
+
+    sh-pfc pfc-sh7722: pin 0 already registered
+    sh-pfc pfc-sh7722: error during pin registration
+    sh-pfc pfc-sh7722: could not register: -22
+    sh-pfc: probe of pfc-sh7722 failed with error -22
+
+pinmux_pins[] is initialized through PINMUX_GPIO(), using designated array
+initializers, where the GPIO_* enums serve as indices.  Apparently
+GPIO_PTQ7 was defined in the enum, but never used.  If enum values are
+defined, but never used, pinmux_pins[] contains (zero-filled) holes. 
+Hence such entries are treated as pin zero, which was registered before,
+and pinctrl registration fails.
+
+I can't see how this ever worked, as at the time of f5e25ae52feff2dc
+("sh-pfc: Add sh7722 pinmux support"), pinmux_gpios[] in
+drivers/pinctrl/sh-pfc/pfc-sh7722.c already had the hole, and
+drivers/pinctrl/core.c already had the check.
+
+Some scripting revealed a few more broken drivers:
+  - sh7757 has four holes, due to nonexistent GPIO_PT[JLNQ]7_RESV.
+  - sh7264 and sh7269 define GPIO_PH[0-7], but don't use it with
+    PINMUX_GPIO().
+
+Patch 1 fixes the issue on sh7722, and was tested.  Patches 3-4 should fix
+the issue on the other 3 SoCs, but was untested due to lack of hardware.
+
+
+This patch (of 4):
+
+On sh7722/Migo-R, pinctrl registration fails with:
+
+    sh-pfc pfc-sh7722: pin 0 already registered
+    sh-pfc pfc-sh7722: error during pin registration
+    sh-pfc pfc-sh7722: could not register: -22
+    sh-pfc: probe of pfc-sh7722 failed with error -22
+
+pinmux_pins[] is initialized through PINMUX_GPIO(), using designated array
+initializers, where the GPIO_* enums serve as indices.  As GPIO_PTQ7 is
+defined in the enum, but never used, pinmux_pins[] contains a
+(zero-filled) hole.  Hence this entry is treated as pin zero, which was
+registered before, and pinctrl registration fails.
+
+According to the datasheet, port PTQ7 does not exist.  Hence remove
+GPIO_PTQ7 from the enum to fix this.
+
+Link: http://lkml.kernel.org/r/1505205657-18012-2-git-send-email-geert+renesas@glider.be
+Fixes: 8d7b5b0af7e070b9 ("sh: Add sh7722 pinmux code")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reported-by: Magnus Damm <magnus.damm@gmail.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/sh/include/cpu-sh4/cpu/sh7722.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration mm/madvise.c
---- a/mm/madvise.c~mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration
-+++ a/mm/madvise.c
-@@ -625,18 +625,26 @@ static int madvise_inject_error(int beha
- {
- 	struct page *page;
- 	struct zone *zone;
-+	unsigned int order;
+diff -puN arch/sh/include/cpu-sh4/cpu/sh7722.h~sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration arch/sh/include/cpu-sh4/cpu/sh7722.h
+--- a/arch/sh/include/cpu-sh4/cpu/sh7722.h~sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration
++++ a/arch/sh/include/cpu-sh4/cpu/sh7722.h
+@@ -67,7 +67,7 @@ enum {
+ 	GPIO_PTN3, GPIO_PTN2, GPIO_PTN1, GPIO_PTN0,
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+ 	/* PTQ */
+-	GPIO_PTQ7, GPIO_PTQ6, GPIO_PTQ5, GPIO_PTQ4,
++	GPIO_PTQ6, GPIO_PTQ5, GPIO_PTQ4,
+ 	GPIO_PTQ3, GPIO_PTQ2, GPIO_PTQ1, GPIO_PTQ0,
  
--	for (; start < end; start += PAGE_SIZE <<
--				compound_order(compound_head(page))) {
-+
-+	for (; start < end; start += PAGE_SIZE << order) {
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &page);
- 		if (ret != 1)
- 			return ret;
- 
-+		/*
-+		 * When soft offlining hugepages, after migrating the page
-+		 * we dissolve it, therefore in the second loop "page" will
-+		 * no longer be a compound page, and order will be 0.
-+		 */
-+		order = compound_order(compound_head(page));
-+
- 		if (PageHWPoison(page)) {
- 			put_page(page);
- 			continue;
+ 	/* PTR */
 _
 
-Patches currently in -mm which might be from 00moses.alexander00@gmail.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
-mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch
+sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration.patch
+sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration.patch
+sh-sh7264-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
+sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
 
