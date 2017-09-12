@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
- added to -mm tree
-Date: Tue, 12 Sep 2017 16:11:45 -0700
-Message-ID: <59b869b1.Z9fNSztGbYoMoBnF%akpm@linux-foundation.org>
+ sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration.patch added to -mm tree
+Date: Tue, 12 Sep 2017 16:11:40 -0700
+Message-ID: <59b869ac.l+5oVz9XXeh5p9Af%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52878 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751017AbdILXLq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2017 19:11:46 -0400
+        with ESMTP id S1751017AbdILXLl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2017 19:11:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: geert+renesas@glider.be, dalias@libc.org, jacopo+renesas@jmondi.org, laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com, yoshihiro.shimoda.uh@renesas.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: sh7269: remove nonexistent GPIO_PH[0-7] to fix pinctrl registration
+     Subject: sh: sh7757: remove nonexistent GPIO_PT[JLNQ]7_RESV to fix pinctrl registration
 has been added to the -mm tree.  Its filename is
-     sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
+     sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,50 +40,79 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: sh: sh7269: remove nonexistent GPIO_PH[0-7] to fix pinctrl registration
+Subject: sh: sh7757: remove nonexistent GPIO_PT[JLNQ]7_RESV to fix pinctrl registration
 
-Pinmux_pins[] is initialized through PINMUX_GPIO(), using designated array
-initializers, where the GPIO_* enums serve as indices.  If enum values are
-defined, but never used, pinmux_pins[] contains (zero-filled) holes.  Such
-entries are treated as pin zero, which was registered before, thus leading
-to pinctrl registration failures, as seen on sh7722:
+3810e96056ffddf6 ("sh: modify pinmux for SH7757 2nd cut") renamed
+GPIO_PT[JLNQ]7 to GPIO_PT[JLNQ]7_RESV, and removed the existing users from
+the pinmux_pins[] array.
+
+However, pinmux_pins[] is initialized through PINMUX_GPIO(), using
+designated array initializers, where the GPIO_* enums serve as indices. 
+Hence entries were not really removed, but replaced by (zero-filled)
+holes.  Such entries are treated as pin zero, which was registered before,
+thus leading to pinctrl registration failures, as seen on sh7722:
 
     sh-pfc pfc-sh7722: pin 0 already registered
     sh-pfc pfc-sh7722: error during pin registration
     sh-pfc pfc-sh7722: could not register: -22
     sh-pfc: probe of pfc-sh7722 failed with error -22
 
-Remove GPIO_PH[0-7] from the enum to fix this.
+Remove GPIO_PT[JLNQ]7_RESV from the enum to fix this.
 
-Link: http://lkml.kernel.org/r/1505205657-18012-5-git-send-email-geert+renesas@glider.be
-Fixes: ef0fa5331a73e479 ("sh: Add pinmux for sh7269")
+Link: http://lkml.kernel.org/r/1505205657-18012-3-git-send-email-geert+renesas@glider.be
+Fixes: 3810e96056ffddf6 ("sh: modify pinmux for SH7757 2nd cut")
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/cpu-sh2a/cpu/sh7269.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/sh/include/cpu-sh4/cpu/sh7757.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/sh/include/cpu-sh2a/cpu/sh7269.h~sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration arch/sh/include/cpu-sh2a/cpu/sh7269.h
---- a/arch/sh/include/cpu-sh2a/cpu/sh7269.h~sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration
-+++ a/arch/sh/include/cpu-sh2a/cpu/sh7269.h
-@@ -45,9 +45,7 @@ enum {
- 	GPIO_PG7, GPIO_PG6, GPIO_PG5, GPIO_PG4,
- 	GPIO_PG3, GPIO_PG2, GPIO_PG1, GPIO_PG0,
+diff -puN arch/sh/include/cpu-sh4/cpu/sh7757.h~sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration arch/sh/include/cpu-sh4/cpu/sh7757.h
+--- a/arch/sh/include/cpu-sh4/cpu/sh7757.h~sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration
++++ a/arch/sh/include/cpu-sh4/cpu/sh7757.h
+@@ -40,7 +40,7 @@ enum {
  
--	/* Port H */
--	GPIO_PH7, GPIO_PH6, GPIO_PH5, GPIO_PH4,
--	GPIO_PH3, GPIO_PH2, GPIO_PH1, GPIO_PH0,
-+	/* Port H - Port H does not have a Data Register */
+ 	/* PTJ */
+ 	GPIO_PTJ0, GPIO_PTJ1, GPIO_PTJ2, GPIO_PTJ3,
+-	GPIO_PTJ4, GPIO_PTJ5, GPIO_PTJ6, GPIO_PTJ7_RESV,
++	GPIO_PTJ4, GPIO_PTJ5, GPIO_PTJ6,
  
- 	/* Port I - not on device */
+ 	/* PTK */
+ 	GPIO_PTK0, GPIO_PTK1, GPIO_PTK2, GPIO_PTK3,
+@@ -48,7 +48,7 @@ enum {
  
+ 	/* PTL */
+ 	GPIO_PTL0, GPIO_PTL1, GPIO_PTL2, GPIO_PTL3,
+-	GPIO_PTL4, GPIO_PTL5, GPIO_PTL6, GPIO_PTL7_RESV,
++	GPIO_PTL4, GPIO_PTL5, GPIO_PTL6,
+ 
+ 	/* PTM */
+ 	GPIO_PTM0, GPIO_PTM1, GPIO_PTM2, GPIO_PTM3,
+@@ -56,7 +56,7 @@ enum {
+ 
+ 	/* PTN */
+ 	GPIO_PTN0, GPIO_PTN1, GPIO_PTN2, GPIO_PTN3,
+-	GPIO_PTN4, GPIO_PTN5, GPIO_PTN6, GPIO_PTN7_RESV,
++	GPIO_PTN4, GPIO_PTN5, GPIO_PTN6,
+ 
+ 	/* PTO */
+ 	GPIO_PTO0, GPIO_PTO1, GPIO_PTO2, GPIO_PTO3,
+@@ -68,7 +68,7 @@ enum {
+ 
+ 	/* PTQ */
+ 	GPIO_PTQ0, GPIO_PTQ1, GPIO_PTQ2, GPIO_PTQ3,
+-	GPIO_PTQ4, GPIO_PTQ5, GPIO_PTQ6, GPIO_PTQ7_RESV,
++	GPIO_PTQ4, GPIO_PTQ5, GPIO_PTQ6,
+ 
+ 	/* PTR */
+ 	GPIO_PTR0, GPIO_PTR1, GPIO_PTR2, GPIO_PTR3,
 _
 
 Patches currently in -mm which might be from geert+renesas@glider.be are
