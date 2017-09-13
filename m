@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + z3fold-fix-potential-race-in-z3fold_reclaim_page.patch added to -mm tree
-Date: Wed, 13 Sep 2017 14:45:12 -0700
-Message-ID: <59b9a6e8.r5DvOcWHBYba7/mb%akpm@linux-foundation.org>
+Subject: +
+ mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+ added to -mm tree
+Date: Wed, 13 Sep 2017 14:48:58 -0700
+Message-ID: <59b9a7ca.IbfQodDxEAhioRTD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47480 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751465AbdIMVpN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 17:45:13 -0400
+        with ESMTP id S1751810AbdIMVs7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 17:48:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, Oleksiy.Avramchenko@sony.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: fix potential race in z3fold_reclaim_page
+     Subject: mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     z3fold-fix-potential-race-in-z3fold_reclaim_page.patch
+     mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-fix-potential-race-in-z3fold_reclaim_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-fix-potential-race-in-z3fold_reclaim_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,54 +40,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: fix potential race in z3fold_reclaim_page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes
 
-It is possible that on a (partially) unsuccessful page reclaim, kref_put()
-called in z3fold_reclaim_page() does not yield page release, but the page
-is released shortly afterwards by another thread.  Then
-z3fold_reclaim_page() would try to list_add() that (released) page again
-which is obviously a bug.
+WARNING: line over 80 characters
+#79: FILE: mm/oom_kill.c:501:
++	 * what they do is basically undeterministic. So let's have a short sleep
 
-To avoid that, spin_lock() has to be taken earlier, before the kref_put()
-call mentioned earlier.
+total: 0 errors, 1 warnings, 39 lines checked
 
-Link: http://lkml.kernel.org/r/20170913162937.bfff21c7d12b12a5f47639fd@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: <Oleksiy.Avramchenko@sony.com>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-fix-potential-race-in-z3fold_reclaim_page mm/z3fold.c
---- a/mm/z3fold.c~z3fold-fix-potential-race-in-z3fold_reclaim_page
-+++ a/mm/z3fold.c
-@@ -875,16 +875,18 @@ static int z3fold_reclaim_page(struct z3
- 				goto next;
- 		}
- next:
-+		spin_lock(&pool->lock);
- 		if (test_bit(PAGE_HEADLESS, &page->private)) {
- 			if (ret == 0) {
-+				spin_unlock(&pool->lock);
- 				free_z3fold_page(page);
- 				return 0;
- 			}
- 		} else if (kref_put(&zhdr->refcount, release_z3fold_page)) {
- 			atomic64_dec(&pool->pages_nr);
-+			spin_unlock(&pool->lock);
- 			return 0;
- 		}
--		spin_lock(&pool->lock);
- 
- 		/*
- 		 * Add to the beginning of LRU.
+diff -puN include/linux/mmu_notifier.h~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes include/linux/mmu_notifier.h
+diff -puN mm/oom_kill.c~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes
++++ a/mm/oom_kill.c
+@@ -498,8 +498,8 @@ static bool __oom_reap_task_mm(struct ta
+ 	/*
+ 	 * If the mm has notifiers then we would need to invalidate them around
+ 	 * unmap_page_range and that is risky because notifiers can sleep and
+-	 * what they do is basically undeterministic. So let's have a short sleep
+-	 * to give the oom victim some more time.
++	 * what they do is basically undeterministic.  So let's have a short
++	 * sleep to give the oom victim some more time.
+ 	 * TODO: we really want to get rid of this ugly hack and make sure that
+ 	 * notifiers cannot block for unbounded amount of time and add
+ 	 * mmu_notifier_invalidate_range_{start,end} around unmap_page_range
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-z3fold-fix-potential-race-in-z3fold_reclaim_page.patch
+i-need-old-gcc.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
