@@ -1,48 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/9] procfs: remove unused variable
-Date: Wed, 13 Sep 2017 16:28:17 -0700
-Message-ID: <59b9bf11.4++OcvwWvNP1Y/g0%akpm@linux-foundation.org>
+Subject: [patch 4/9] lib/test_bitmap.c: use ULL suffix for 64-bit
+ constants
+Date: Wed, 13 Sep 2017 16:28:20 -0700
+Message-ID: <59b9bf14.IT03OQ2Po1Ole8WI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751125AbdIMX2S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 19:28:18 -0400
+        with ESMTP id S1751125AbdIMX2V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 19:28:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org, ynorov@caviumnetworks.com
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: procfs: remove unused variable
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: lib/test_bitmap.c: use ULL suffix for 64-bit constants
 
-In NOMMU configurations, we get a warning about a variable that has become
-unused:
+With gcc 4.1.2:
 
-fs/proc/task_nommu.c: In function 'nommu_vma_show':
-fs/proc/task_nommu.c:148:28: error: unused variable 'priv' [-Werror=unused-variable]
+    lib/test_bitmap.c:189: warning: integer constant is too large for `long' type
+    lib/test_bitmap.c:190: warning: integer constant is too large for `long' type
+    lib/test_bitmap.c:194: warning: integer constant is too large for `long' type
+    lib/test_bitmap.c:195: warning: integer constant is too large for `long' type
 
-Link: http://lkml.kernel.org/r/20170911200231.3171415-1-arnd@arndb.de
-Fixes: 1240ea0dc3bb ("fs, proc: remove priv argument from is_stack")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Add the missing "ULL" suffix to fix this.
+
+Link: http://lkml.kernel.org/r/1505040523-31230-1-git-send-email-geert@linux-m68k.org
+Fixes: 60ef690018b262dd ("bitmap: introduce BITMAP_FROM_U64()")
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Yury Norov <ynorov@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/test_bitmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_nommu.c~procfs-remove-unused-variable fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~procfs-remove-unused-variable
-+++ a/fs/proc/task_nommu.c
-@@ -145,7 +145,6 @@ static int nommu_vma_show(struct seq_fil
- 			  int is_pid)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	struct proc_maps_private *priv = m->private;
- 	unsigned long ino = 0;
- 	struct file *file;
- 	dev_t dev = 0;
+diff -puN lib/test_bitmap.c~test_bitmap-use-ull-suffix-for-64-bit-constants lib/test_bitmap.c
+--- a/lib/test_bitmap.c~test_bitmap-use-ull-suffix-for-64-bit-constants
++++ a/lib/test_bitmap.c
+@@ -186,13 +186,13 @@ static const unsigned long exp[] __initc
+ 	BITMAP_FROM_U64(0x22222222),
+ 	BITMAP_FROM_U64(0xffffffff),
+ 	BITMAP_FROM_U64(0xfffffffe),
+-	BITMAP_FROM_U64(0x3333333311111111),
+-	BITMAP_FROM_U64(0xffffffff77777777)
++	BITMAP_FROM_U64(0x3333333311111111ULL),
++	BITMAP_FROM_U64(0xffffffff77777777ULL)
+ };
+ 
+ static const unsigned long exp2[] __initconst = {
+-	BITMAP_FROM_U64(0x3333333311111111),
+-	BITMAP_FROM_U64(0xffffffff77777777)
++	BITMAP_FROM_U64(0x3333333311111111ULL),
++	BITMAP_FROM_U64(0xffffffff77777777ULL)
+ };
+ 
+ static const struct test_bitmap_parselist parselist_tests[] __initconst = {
 _
