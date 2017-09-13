@@ -1,117 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 13 Sep 2017 15:30:52 -0700
-Message-ID: <20170913223052.sZV2vZIvA%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-add-strict-check-for-ifs-with-unnecessary-parentheses.patch
+ removed from -mm tree
+Date: Wed, 13 Sep 2017 15:43:36 -0700
+Message-ID: <59b9b498.+FQ7XGcV792SEqtI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52538 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751148AbdIMWax (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 18:30:53 -0400
+        with ESMTP id S1751125AbdIMWni (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 18:43:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: checkpatch: add --strict check for ifs with unnecessary parentheses
+has been removed from the -mm tree.  Its filename was
+     checkpatch-add-strict-check-for-ifs-with-unnecessary-parentheses.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --strict check for ifs with unnecessary parentheses
 
+An if statement test like
+	if ((foo == bar) && (baz != qux))
+can arguably be better written without the parentheses as
+	if (foo == bar && baz != qux)
+
+Add a test to find these cases.
+
+Link: http://lkml.kernel.org/r/dcd0561ddd0fa43c51a420d53b550d738bf42001.1502734458.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ scripts/checkpatch.pl |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN fs/f2fs/checkpoint.c~linux-next-git-rejects fs/f2fs/checkpoint.c
---- a/fs/f2fs/checkpoint.c~linux-next-git-rejects
-+++ a/fs/f2fs/checkpoint.c
-@@ -594,24 +594,14 @@ int recover_orphan_inodes(struct f2fs_sb
- 	if (!is_set_ckpt_flags(sbi, CP_ORPHAN_PRESENT_FLAG))
- 		return 0;
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-check-for-ifs-with-unnecessary-parentheses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-check-for-ifs-with-unnecessary-parentheses
++++ a/scripts/checkpatch.pl
+@@ -4521,6 +4521,30 @@ sub process {
+ 			}
+ 		}
  
--<<<<<<< HEAD
--	if (s_flags & MS_RDONLY) {
--		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
--		sbi->sb->s_flags &= ~MS_RDONLY;
--=======
- 	if (s_flags & SB_RDONLY) {
- 		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
- 		sbi->sb->s_flags &= ~SB_RDONLY;
-->>>>>>> linux-next/akpm-base
- 	}
- 
- #ifdef CONFIG_QUOTA
- 	/* Needed for iput() to work correctly and not trash data */
--<<<<<<< HEAD
--	sbi->sb->s_flags |= MS_ACTIVE;
--=======
- 	sbi->sb->s_flags |= SB_ACTIVE;
-->>>>>>> linux-next/akpm-base
- 	/* Turn on quotas so that they are updated correctly */
- 	f2fs_enable_quota_files(sbi);
- #endif
-diff -puN fs/f2fs/recovery.c~linux-next-git-rejects fs/f2fs/recovery.c
---- a/fs/f2fs/recovery.c~linux-next-git-rejects
-+++ a/fs/f2fs/recovery.c
-@@ -595,24 +595,14 @@ int recover_fsync_data(struct f2fs_sb_in
- 	unsigned long s_flags = sbi->sb->s_flags;
- 	bool need_writecp = false;
- 
--<<<<<<< HEAD
--	if (s_flags & MS_RDONLY) {
--		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
--		sbi->sb->s_flags &= ~MS_RDONLY;
--=======
- 	if (s_flags & SB_RDONLY) {
- 		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
- 		sbi->sb->s_flags &= ~SB_RDONLY;
-->>>>>>> linux-next/akpm-base
- 	}
- 
- #ifdef CONFIG_QUOTA
- 	/* Needed for iput() to work correctly and not trash data */
--<<<<<<< HEAD
--	sbi->sb->s_flags |= MS_ACTIVE;
--=======
- 	sbi->sb->s_flags |= SB_ACTIVE;
-->>>>>>> linux-next/akpm-base
- 	/* Turn on quotas so that they are updated correctly */
- 	f2fs_enable_quota_files(sbi);
- #endif
++# check for unnecessary parentheses around comparisons in if uses
++		if ($^V && $^V ge 5.10.0 && defined($stat) &&
++		    $stat =~ /(^.\s*if\s*($balanced_parens))/) {
++			my $if_stat = $1;
++			my $test = substr($2, 1, -1);
++			my $herectx;
++			while ($test =~ /(?:^|[^\w\&\!\~])+\s*\(\s*([\&\!\~]?\s*$Lval\s*(?:$Compare\s*$FuncArg)?)\s*\)/g) {
++				my $match = $1;
++				# avoid parentheses around potential macro args
++				next if ($match =~ /^\s*\w+\s*$/);
++				if (!defined($herectx)) {
++					$herectx = $here . "\n";
++					my $cnt = statement_rawlines($if_stat);
++					for (my $n = 0; $n < $cnt; $n++) {
++						my $rl = raw_line($linenr, $n);
++						$herectx .=  $rl . "\n";
++						last if $rl =~ /^[ \+].*\{/;
++					}
++				}
++				CHK("UNNECESSARY_PARENTHESES",
++				    "Unnecessary parentheses around '$match'\n" . $herectx);
++			}
++		}
++
+ #goto labels aren't indented, allow a single space however
+ 		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
+ 		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-i-need-old-gcc.patch
-drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
-mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-fix.patch
-treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+parse-maintainers-add-ability-to-specify-filenames.patch
 
