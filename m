@@ -1,31 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + test_bitmap-use-ull-suffix-for-64-bit-constants.patch added to
- -mm tree
-Date: Tue, 12 Sep 2017 16:15:09 -0700
-Message-ID: <59b86a7d.pUlwq5akUdhsFIKl%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 13 Sep 2017 15:30:52 -0700
+Message-ID: <20170913223052.sZV2vZIvA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50948 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751003AbdILXPK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2017 19:15:10 -0400
+        with ESMTP id S1751148AbdIMWax (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 18:30:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_bitmap.c: use ULL suffix for 64-bit constants
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     test_bitmap-use-ull-suffix-for-64-bit-constants.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_bitmap-use-ull-suffix-for-64-bit-constants.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_bitmap-use-ull-suffix-for-64-bit-constants.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +35,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib/test_bitmap.c: use ULL suffix for 64-bit constants
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-With gcc 4.1.2:
-
-    lib/test_bitmap.c:189: warning: integer constant is too large for `long' type
-    lib/test_bitmap.c:190: warning: integer constant is too large for `long' type
-    lib/test_bitmap.c:194: warning: integer constant is too large for `long' type
-    lib/test_bitmap.c:195: warning: integer constant is too large for `long' type
-
-Add the missing "ULL" suffix to fix this.
-
-Link: http://lkml.kernel.org/r/1505040523-31230-1-git-send-email-geert@linux-m68k.org
-Fixes: 60ef690018b262dd ("bitmap: introduce BITMAP_FROM_U64()")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Yury Norov <ynorov@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_bitmap.c~test_bitmap-use-ull-suffix-for-64-bit-constants lib/test_bitmap.c
---- a/lib/test_bitmap.c~test_bitmap-use-ull-suffix-for-64-bit-constants
-+++ a/lib/test_bitmap.c
-@@ -186,13 +186,13 @@ static const unsigned long exp[] __initc
- 	BITMAP_FROM_U64(0x22222222),
- 	BITMAP_FROM_U64(0xffffffff),
- 	BITMAP_FROM_U64(0xfffffffe),
--	BITMAP_FROM_U64(0x3333333311111111),
--	BITMAP_FROM_U64(0xffffffff77777777)
-+	BITMAP_FROM_U64(0x3333333311111111ULL),
-+	BITMAP_FROM_U64(0xffffffff77777777ULL)
- };
+diff -puN fs/f2fs/checkpoint.c~linux-next-git-rejects fs/f2fs/checkpoint.c
+--- a/fs/f2fs/checkpoint.c~linux-next-git-rejects
++++ a/fs/f2fs/checkpoint.c
+@@ -594,24 +594,14 @@ int recover_orphan_inodes(struct f2fs_sb
+ 	if (!is_set_ckpt_flags(sbi, CP_ORPHAN_PRESENT_FLAG))
+ 		return 0;
  
- static const unsigned long exp2[] __initconst = {
--	BITMAP_FROM_U64(0x3333333311111111),
--	BITMAP_FROM_U64(0xffffffff77777777)
-+	BITMAP_FROM_U64(0x3333333311111111ULL),
-+	BITMAP_FROM_U64(0xffffffff77777777ULL)
- };
+-<<<<<<< HEAD
+-	if (s_flags & MS_RDONLY) {
+-		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
+-		sbi->sb->s_flags &= ~MS_RDONLY;
+-=======
+ 	if (s_flags & SB_RDONLY) {
+ 		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
+ 		sbi->sb->s_flags &= ~SB_RDONLY;
+->>>>>>> linux-next/akpm-base
+ 	}
  
- static const struct test_bitmap_parselist parselist_tests[] __initconst = {
+ #ifdef CONFIG_QUOTA
+ 	/* Needed for iput() to work correctly and not trash data */
+-<<<<<<< HEAD
+-	sbi->sb->s_flags |= MS_ACTIVE;
+-=======
+ 	sbi->sb->s_flags |= SB_ACTIVE;
+->>>>>>> linux-next/akpm-base
+ 	/* Turn on quotas so that they are updated correctly */
+ 	f2fs_enable_quota_files(sbi);
+ #endif
+diff -puN fs/f2fs/recovery.c~linux-next-git-rejects fs/f2fs/recovery.c
+--- a/fs/f2fs/recovery.c~linux-next-git-rejects
++++ a/fs/f2fs/recovery.c
+@@ -595,24 +595,14 @@ int recover_fsync_data(struct f2fs_sb_in
+ 	unsigned long s_flags = sbi->sb->s_flags;
+ 	bool need_writecp = false;
+ 
+-<<<<<<< HEAD
+-	if (s_flags & MS_RDONLY) {
+-		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
+-		sbi->sb->s_flags &= ~MS_RDONLY;
+-=======
+ 	if (s_flags & SB_RDONLY) {
+ 		f2fs_msg(sbi->sb, KERN_INFO, "orphan cleanup on readonly fs");
+ 		sbi->sb->s_flags &= ~SB_RDONLY;
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ #ifdef CONFIG_QUOTA
+ 	/* Needed for iput() to work correctly and not trash data */
+-<<<<<<< HEAD
+-	sbi->sb->s_flags |= MS_ACTIVE;
+-=======
+ 	sbi->sb->s_flags |= SB_ACTIVE;
+->>>>>>> linux-next/akpm-base
+ 	/* Turn on quotas so that they are updated correctly */
+ 	f2fs_enable_quota_files(sbi);
+ #endif
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-test_bitmap-use-ull-suffix-for-64-bit-constants.patch
+i-need-old-gcc.patch
+drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
+mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-fix.patch
+treewide-remove-gfp_temporary-allocation-flag-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
