@@ -1,154 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2017-09-13-16-59 uploaded
-Date: Wed, 13 Sep 2017 16:59:44 -0700
-Message-ID: <59b9c670.0hfoecHT32h4pDA2%akpm__4616.2546765574$1505347196$gmane$org@linux-foundation.org>
+Subject: + mm-memcg-avoid-page-count-check-for-zone-device.patch added to
+ -mm tree
+Date: Thu, 14 Sep 2017 12:54:16 -0700
+Message-ID: <59bade68.cCjiykG5IZBY77Uc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38862 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751279AbdIMX7p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2017 19:59:45 -0400
+        with ESMTP id S1751277AbdINTyR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2017 15:54:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2017-09-13-16-59 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: jglisse@redhat.com, ebaskakov@nvidia.com, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: mm/memcg: avoid page count check for zone device
+has been added to the -mm tree.  Its filename is
+     mm-memcg-avoid-page-count-check-for-zone-device.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-avoid-page-count-check-for-zone-device.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-avoid-page-count-check-for-zone-device.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Jérôme Glisse <jglisse@redhat.com>
+Subject: mm/memcg: avoid page count check for zone device
 
+Fix for 4.14, zone device page always have an elevated refcount of one and
+thus page count sanity check in uncharge_page() is inappropriate for them.
 
+Link: http://lkml.kernel.org/r/20170914190011.5217-1-jglisse@redhat.com
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Reported-by: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+diff -puN mm/memcontrol.c~mm-memcg-avoid-page-count-check-for-zone-device mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-avoid-page-count-check-for-zone-device
++++ a/mm/memcontrol.c
+@@ -5658,7 +5658,8 @@ static void uncharge_batch(const struct
+ static void uncharge_page(struct page *page, struct uncharge_gather *ug)
+ {
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+-	VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
++	VM_BUG_ON_PAGE(!PageHWPoison(page) && !is_zone_device_page(page) &&
++			page_count(page), page);
+ 
+ 	if (!page->mem_cgroup)
+ 		return;
+_
 
-A git copy of this tree is available at
+Patches currently in -mm which might be from jglisse@redhat.com are
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+mm-memcg-avoid-page-count-check-for-zone-device.patch
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.13:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  i-need-old-gcc.patch
-* idr-remove-warn_on_once-when-trying-to-replace-negative-id.patch
-* drivers-media-cec-cec-adapc-fix-build-with-gcc-444.patch
-* procfs-remove-unused-variable.patch
-* test_bitmap-use-ull-suffix-for-64-bit-constants.patch
-* fscache-fix-fscache_objlist_show-format-processing.patch
-* ib-mlx4-fix-sprintf-format-warning.patch
-* treewide-remove-gfp_temporary-allocation-flag.patch
-* arm64-stacktrace-avoid-listing-stacktrace-functions-in-stacktrace.patch
-* mm-page_owner-skip-unnecessary-stack_trace-entries.patch
-* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
-* ksm-fix-unlocked-iteration-over-vmas-in-cmp_and_merge_page.patch
-* mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch
-* sh-sh7722-remove-nonexistent-gpio_ptq7-to-fix-pinctrl-registration.patch
-* sh-sh7757-remove-nonexistent-gpio_pt7_resv-to-fix-pinctrl-registration.patch
-* sh-sh7264-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
-* sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
-* z3fold-fix-potential-race-in-z3fold_reclaim_page.patch
-* mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch
-* mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
-* mm-memcg-remove-hotplug-locking-from-try_charge.patch
-* mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
-* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
-* ocfs2-move-some-definitions-to-header-file.patch
-* ocfs2-fix-some-small-problems.patch
-* ocfs2-add-kobject-for-online-file-check.patch
-* ocfs2-add-duplicative-ino-number-check.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* dentry-fix-kmemcheck-splat-at-take_dentry_name_snapshot.patch
-  mm.patch
-* mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
-* mm-compaction-persistently-skip-hugetlbfs-pageblocks.patch
-* mm-compaction-persistently-skip-hugetlbfs-pageblocks-fix.patch
-* mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
-* mm-cma-remove-alloc_cma.patch
-* arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
-* mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
-* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* parse-maintainers-add-ability-to-specify-filenames.patch
-* seq_file-delete-small-value-optimization.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* rapidio-remove-global-irq-spinlocks-from-the-subsystem.patch
-* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
-* kernel-reboot-add-devm_register_reboot_notifier.patch
-* kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-  linux-next.patch
-  linux-next-git-rejects.patch
-* iopoll-avoid-wint-in-bool-context-warning.patch
-* sparc64-ng4-memset-32-bits-overflow.patch
-* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  workaround-for-a-pci-restoring-bug.patch
