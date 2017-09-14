@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + android-binder-drop-lru-lock-in-isolate-callback.patch added to -mm tree
-Date: Thu, 14 Sep 2017 13:15:03 -0700
-Message-ID: <59bae347.ffRJtCFkZdR02Tpj%akpm@linux-foundation.org>
+Subject: + include-linux-sched-mmh-uninline-mmdrop_async-etc.patch added
+ to -mm tree
+Date: Thu, 14 Sep 2017 13:19:38 -0700
+Message-ID: <59bae45a.Fmr8uSXzjRP94/2V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44072 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751330AbdINUPF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2017 16:15:05 -0400
+        with ESMTP id S1751342AbdINUTj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2017 16:19:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sherryy@android.com, aarcange@redhat.com, arve@android.com, cl@linux.com, fweisbec@gmail.com, gregkh@linuxfoundation.org, hillf.zj@alibaba-inc.com, hoeun.ryu@gmail.com, kyan@codeaurora.org, luto@kernel.org, maco@google.com, mhocko@suse.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, riandrews@android.com, tglx@linutronix.de, tkjos@google.com, vbabka@suse.cz, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: android: binder: drop lru lock in isolate callback
+     Subject: include/linux/sched/mm.h: uninline mmdrop_async(), etc
 has been added to the -mm tree.  Its filename is
-     android-binder-drop-lru-lock-in-isolate-callback.patch
+     include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/android-binder-drop-lru-lock-in-isolate-callback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/android-binder-drop-lru-lock-in-isolate-callback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,153 +39,552 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sherry Yang <sherryy@android.com>
-Subject: android: binder: drop lru lock in isolate callback
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/sched/mm.h: uninline mmdrop_async(), etc
 
-Drop the global lru lock in isolate callback before calling zap_page_range
-which calls cond_resched, and re-acquire the global lru lock before
-returning.  Also change return code to LRU_REMOVED_RETRY.
+mmdrop_async() is only used in fork.c.  Move that and its support
+functions into fork.c, uninline it all.
 
-Use mmput_async when fail to acquire mmap sem in an atomic context.
-
-Fix "BUG: sleeping function called from invalid context"
-errors when CONFIG_DEBUG_ATOMIC_SLEEP is enabled.
-
-Also restore mmput_async, which was initially introduced in ec8d7c14e
-("mm, oom_reaper: do not mmput synchronously from the oom reaper
-context"), and was removed in 212925802 ("mm: oom: let oom_reap_task and
-exit_mmap run concurrently").
-
-Link: http://lkml.kernel.org/r/20170914182231.90908-1-sherryy@android.com
-Fixes: f2517eb76f1f2 ("android: binder: Add global lru shrinker to binder")
-Signed-off-by: Sherry Yang <sherryy@android.com>
-Reported-by: Kyle Yan <kyan@codeaurora.org>
-Acked-by: Arve Hjønnevåg <arve@android.com>
-Cc: Martijn Coenen <maco@google.com>
-Cc: Todd Kjos <tkjos@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Riley Andrews <riandrews@android.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hoeun Ryu <hoeun.ryu@gmail.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/android/binder_alloc.c |   18 ++++++++++++------
- include/linux/sched/mm.h       |    6 ++++++
- kernel/fork.c                  |   18 ++++++++++++++++++
- 3 files changed, 36 insertions(+), 6 deletions(-)
+ include/linux/sched/mm.h |   24 -
+ kernel/fork.c            |  455 +++++++++++++++++++------------------
+ 2 files changed, 241 insertions(+), 238 deletions(-)
 
-diff -puN drivers/android/binder_alloc.c~android-binder-drop-lru-lock-in-isolate-callback drivers/android/binder_alloc.c
---- a/drivers/android/binder_alloc.c~android-binder-drop-lru-lock-in-isolate-callback
-+++ a/drivers/android/binder_alloc.c
-@@ -913,6 +913,7 @@ enum lru_status binder_alloc_free_page(s
- 	struct binder_alloc *alloc;
- 	uintptr_t page_addr;
- 	size_t index;
-+	struct vm_area_struct *vma;
- 
- 	alloc = page->alloc;
- 	if (!mutex_trylock(&alloc->mutex))
-@@ -923,16 +924,22 @@ enum lru_status binder_alloc_free_page(s
- 
- 	index = page - alloc->pages;
- 	page_addr = (uintptr_t)alloc->buffer + index * PAGE_SIZE;
--	if (alloc->vma) {
-+	vma = alloc->vma;
-+	if (vma) {
- 		mm = get_task_mm(alloc->tsk);
- 		if (!mm)
- 			goto err_get_task_mm_failed;
- 		if (!down_write_trylock(&mm->mmap_sem))
- 			goto err_down_write_mmap_sem_failed;
-+	}
-+
-+	list_lru_isolate(lru, item);
-+	spin_unlock(lock);
- 
-+	if (vma) {
- 		trace_binder_unmap_user_start(alloc, index);
- 
--		zap_page_range(alloc->vma,
-+		zap_page_range(vma,
- 			       page_addr + alloc->user_buffer_offset,
- 			       PAGE_SIZE);
- 
-@@ -950,13 +957,12 @@ enum lru_status binder_alloc_free_page(s
- 
- 	trace_binder_unmap_kernel_end(alloc, index);
- 
--	list_lru_isolate(lru, item);
--
-+	spin_lock(lock);
- 	mutex_unlock(&alloc->mutex);
--	return LRU_REMOVED;
-+	return LRU_REMOVED_RETRY;
- 
- err_down_write_mmap_sem_failed:
--	mmput(mm);
-+	mmput_async(mm);
- err_get_task_mm_failed:
- err_page_already_freed:
- 	mutex_unlock(&alloc->mutex);
-diff -puN include/linux/sched/mm.h~android-binder-drop-lru-lock-in-isolate-callback include/linux/sched/mm.h
---- a/include/linux/sched/mm.h~android-binder-drop-lru-lock-in-isolate-callback
+diff -puN include/linux/sched/mm.h~include-linux-sched-mmh-uninline-mmdrop_async-etc include/linux/sched/mm.h
+--- a/include/linux/sched/mm.h~include-linux-sched-mmh-uninline-mmdrop_async-etc
 +++ a/include/linux/sched/mm.h
-@@ -84,6 +84,12 @@ static inline bool mmget_not_zero(struct
+@@ -10,7 +10,7 @@
+ /*
+  * Routines for handling mm_structs
+  */
+-extern struct mm_struct * mm_alloc(void);
++extern struct mm_struct *mm_alloc(void);
  
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
-+#ifdef CONFIG_MMU
-+/* same as above but performs the slow path from the async context. Can
-+ * be called from the atomic context as well
-+ */
-+void mmput_async(struct mm_struct *);
-+#endif
- 
- /* Grab a reference to a task's mm, if it is not already going away */
- extern struct mm_struct *get_task_mm(struct task_struct *task);
-diff -puN kernel/fork.c~android-binder-drop-lru-lock-in-isolate-callback kernel/fork.c
---- a/kernel/fork.c~android-binder-drop-lru-lock-in-isolate-callback
-+++ a/kernel/fork.c
-@@ -946,6 +946,24 @@ void mmput(struct mm_struct *mm)
+ /**
+  * mmgrab() - Pin a &struct mm_struct.
+@@ -34,27 +34,7 @@ static inline void mmgrab(struct mm_stru
+ 	atomic_inc(&mm->mm_count);
  }
- EXPORT_SYMBOL_GPL(mmput);
+ 
+-/* mmdrop drops the mm and the page tables */
+-extern void __mmdrop(struct mm_struct *);
+-static inline void mmdrop(struct mm_struct *mm)
+-{
+-	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+-		__mmdrop(mm);
+-}
+-
+-static inline void mmdrop_async_fn(struct work_struct *work)
+-{
+-	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
+-	__mmdrop(mm);
+-}
+-
+-static inline void mmdrop_async(struct mm_struct *mm)
+-{
+-	if (unlikely(atomic_dec_and_test(&mm->mm_count))) {
+-		INIT_WORK(&mm->async_put_work, mmdrop_async_fn);
+-		schedule_work(&mm->async_put_work);
+-	}
+-}
++extern void mmdrop(struct mm_struct *mm);
+ 
+ /**
+  * mmget() - Pin the address space associated with a &struct mm_struct.
+diff -puN kernel/fork.c~include-linux-sched-mmh-uninline-mmdrop_async-etc kernel/fork.c
+--- a/kernel/fork.c~include-linux-sched-mmh-uninline-mmdrop_async-etc
++++ a/kernel/fork.c
+@@ -77,6 +77,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/fs_struct.h>
+ #include <linux/magic.h>
++#include <linux/sched/mm.h>
+ #include <linux/perf_event.h>
+ #include <linux/posix-timers.h>
+ #include <linux/user-return-notifier.h>
+@@ -386,6 +387,244 @@ void free_task(struct task_struct *tsk)
+ }
+ EXPORT_SYMBOL(free_task);
  
 +#ifdef CONFIG_MMU
-+static void mmput_async_fn(struct work_struct *work)
++static __latent_entropy int dup_mmap(struct mm_struct *mm,
++					struct mm_struct *oldmm)
 +{
-+	struct mm_struct *mm = container_of(work, struct mm_struct,
-+					    async_put_work);
++	struct vm_area_struct *mpnt, *tmp, *prev, **pprev;
++	struct rb_node **rb_link, *rb_parent;
++	int retval;
++	unsigned long charge;
++	LIST_HEAD(uf);
 +
-+	__mmput(mm);
++	uprobe_start_dup_mmap();
++	if (down_write_killable(&oldmm->mmap_sem)) {
++		retval = -EINTR;
++		goto fail_uprobe_end;
++	}
++	flush_cache_dup_mm(oldmm);
++	uprobe_dup_mmap(oldmm, mm);
++	/*
++	 * Not linked in yet - no deadlock potential:
++	 */
++	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
++
++	/* No ordering required: file already has been exposed. */
++	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
++
++	mm->total_vm = oldmm->total_vm;
++	mm->data_vm = oldmm->data_vm;
++	mm->exec_vm = oldmm->exec_vm;
++	mm->stack_vm = oldmm->stack_vm;
++
++	rb_link = &mm->mm_rb.rb_node;
++	rb_parent = NULL;
++	pprev = &mm->mmap;
++	retval = ksm_fork(mm, oldmm);
++	if (retval)
++		goto out;
++	retval = khugepaged_fork(mm, oldmm);
++	if (retval)
++		goto out;
++
++	prev = NULL;
++	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
++		struct file *file;
++
++		if (mpnt->vm_flags & VM_DONTCOPY) {
++			vm_stat_account(mm, mpnt->vm_flags, -vma_pages(mpnt));
++			continue;
++		}
++		charge = 0;
++		if (mpnt->vm_flags & VM_ACCOUNT) {
++			unsigned long len = vma_pages(mpnt);
++
++			if (security_vm_enough_memory_mm(oldmm, len)) /* sic */
++				goto fail_nomem;
++			charge = len;
++		}
++		tmp = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
++		if (!tmp)
++			goto fail_nomem;
++		*tmp = *mpnt;
++		INIT_LIST_HEAD(&tmp->anon_vma_chain);
++		retval = vma_dup_policy(mpnt, tmp);
++		if (retval)
++			goto fail_nomem_policy;
++		tmp->vm_mm = mm;
++		retval = dup_userfaultfd(tmp, &uf);
++		if (retval)
++			goto fail_nomem_anon_vma_fork;
++		if (tmp->vm_flags & VM_WIPEONFORK) {
++			/* VM_WIPEONFORK gets a clean slate in the child. */
++			tmp->anon_vma = NULL;
++			if (anon_vma_prepare(tmp))
++				goto fail_nomem_anon_vma_fork;
++		} else if (anon_vma_fork(tmp, mpnt))
++			goto fail_nomem_anon_vma_fork;
++		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
++		tmp->vm_next = tmp->vm_prev = NULL;
++		file = tmp->vm_file;
++		if (file) {
++			struct inode *inode = file_inode(file);
++			struct address_space *mapping = file->f_mapping;
++
++			get_file(file);
++			if (tmp->vm_flags & VM_DENYWRITE)
++				atomic_dec(&inode->i_writecount);
++			i_mmap_lock_write(mapping);
++			if (tmp->vm_flags & VM_SHARED)
++				atomic_inc(&mapping->i_mmap_writable);
++			flush_dcache_mmap_lock(mapping);
++			/* insert tmp into the share list, just after mpnt */
++			vma_interval_tree_insert_after(tmp, mpnt,
++					&mapping->i_mmap);
++			flush_dcache_mmap_unlock(mapping);
++			i_mmap_unlock_write(mapping);
++		}
++
++		/*
++		 * Clear hugetlb-related page reserves for children. This only
++		 * affects MAP_PRIVATE mappings. Faults generated by the child
++		 * are not guaranteed to succeed, even if read-only
++		 */
++		if (is_vm_hugetlb_page(tmp))
++			reset_vma_resv_huge_pages(tmp);
++
++		/*
++		 * Link in the new vma and copy the page table entries.
++		 */
++		*pprev = tmp;
++		pprev = &tmp->vm_next;
++		tmp->vm_prev = prev;
++		prev = tmp;
++
++		__vma_link_rb(mm, tmp, rb_link, rb_parent);
++		rb_link = &tmp->vm_rb.rb_right;
++		rb_parent = &tmp->vm_rb;
++
++		mm->map_count++;
++		if (!(tmp->vm_flags & VM_WIPEONFORK))
++			retval = copy_page_range(mm, oldmm, mpnt);
++
++		if (tmp->vm_ops && tmp->vm_ops->open)
++			tmp->vm_ops->open(tmp);
++
++		if (retval)
++			goto out;
++	}
++	/* a new mm has just been created */
++	arch_dup_mmap(oldmm, mm);
++	retval = 0;
++out:
++	up_write(&mm->mmap_sem);
++	flush_tlb_mm(oldmm);
++	up_write(&oldmm->mmap_sem);
++	dup_userfaultfd_complete(&uf);
++fail_uprobe_end:
++	uprobe_end_dup_mmap();
++	return retval;
++fail_nomem_anon_vma_fork:
++	mpol_put(vma_policy(tmp));
++fail_nomem_policy:
++	kmem_cache_free(vm_area_cachep, tmp);
++fail_nomem:
++	retval = -ENOMEM;
++	vm_unacct_memory(charge);
++	goto out;
 +}
 +
-+void mmput_async(struct mm_struct *mm)
++static inline int mm_alloc_pgd(struct mm_struct *mm)
 +{
-+	if (atomic_dec_and_test(&mm->mm_users)) {
-+		INIT_WORK(&mm->async_put_work, mmput_async_fn);
++	mm->pgd = pgd_alloc(mm);
++	if (unlikely(!mm->pgd))
++		return -ENOMEM;
++	return 0;
++}
++
++static inline void mm_free_pgd(struct mm_struct *mm)
++{
++	pgd_free(mm, mm->pgd);
++}
++#else
++static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
++{
++	down_write(&oldmm->mmap_sem);
++	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
++	up_write(&oldmm->mmap_sem);
++	return 0;
++}
++#define mm_alloc_pgd(mm)	(0)
++#define mm_free_pgd(mm)
++#endif /* CONFIG_MMU */
++
++static void check_mm(struct mm_struct *mm)
++{
++	int i;
++
++	for (i = 0; i < NR_MM_COUNTERS; i++) {
++		long x = atomic_long_read(&mm->rss_stat.count[i]);
++
++		if (unlikely(x))
++			printk(KERN_ALERT "BUG: Bad rss-counter state "
++					  "mm:%p idx:%d val:%ld\n", mm, i, x);
++	}
++
++	if (atomic_long_read(&mm->nr_ptes))
++		pr_alert("BUG: non-zero nr_ptes on freeing mm: %ld\n",
++				atomic_long_read(&mm->nr_ptes));
++	if (mm_nr_pmds(mm))
++		pr_alert("BUG: non-zero nr_pmds on freeing mm: %ld\n",
++				mm_nr_pmds(mm));
++
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
++	VM_BUG_ON_MM(mm->pmd_huge_pte, mm);
++#endif
++}
++
++#define allocate_mm()	(kmem_cache_alloc(mm_cachep, GFP_KERNEL))
++#define free_mm(mm)	(kmem_cache_free(mm_cachep, (mm)))
++
++/*
++ * Called when the last reference to the mm
++ * is dropped: either by a lazy thread or by
++ * mmput. Free the page directory and the mm.
++ */
++static void __mmdrop(struct mm_struct *mm)
++{
++	BUG_ON(mm == &init_mm);
++	mm_free_pgd(mm);
++	destroy_context(mm);
++	hmm_mm_destroy(mm);
++	mmu_notifier_mm_destroy(mm);
++	check_mm(mm);
++	put_user_ns(mm->user_ns);
++	free_mm(mm);
++}
++
++void mmdrop(struct mm_struct *mm)
++{
++	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
++		__mmdrop(mm);
++}
++EXPORT_SYMBOL_GPL(mmdrop);
++
++static void mmdrop_async_fn(struct work_struct *work)
++{
++	struct mm_struct *mm;
++
++	mm = container_of(work, struct mm_struct, async_put_work);
++	__mmdrop(mm);
++}
++
++static void mmdrop_async(struct mm_struct *mm)
++{
++	if (unlikely(atomic_dec_and_test(&mm->mm_count))) {
++		INIT_WORK(&mm->async_put_work, mmdrop_async_fn);
 +		schedule_work(&mm->async_put_work);
 +	}
 +}
-+#endif
 +
- /**
-  * set_mm_exe_file - change a reference to the mm's executable file
-  *
-_
-
-Patches currently in -mm which might be from sherryy@android.com are
-
-android-binder-drop-lru-lock-in-isolate-callback.patch
-
+ static inline void free_signal_struct(struct signal_struct *sig)
+ {
+ 	taskstats_tgid_free(sig);
+@@ -590,182 +829,8 @@ free_tsk:
+ 	return NULL;
+ }
+ 
+-#ifdef CONFIG_MMU
+-static __latent_entropy int dup_mmap(struct mm_struct *mm,
+-					struct mm_struct *oldmm)
+-{
+-	struct vm_area_struct *mpnt, *tmp, *prev, **pprev;
+-	struct rb_node **rb_link, *rb_parent;
+-	int retval;
+-	unsigned long charge;
+-	LIST_HEAD(uf);
+-
+-	uprobe_start_dup_mmap();
+-	if (down_write_killable(&oldmm->mmap_sem)) {
+-		retval = -EINTR;
+-		goto fail_uprobe_end;
+-	}
+-	flush_cache_dup_mm(oldmm);
+-	uprobe_dup_mmap(oldmm, mm);
+-	/*
+-	 * Not linked in yet - no deadlock potential:
+-	 */
+-	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
+-
+-	/* No ordering required: file already has been exposed. */
+-	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
+-
+-	mm->total_vm = oldmm->total_vm;
+-	mm->data_vm = oldmm->data_vm;
+-	mm->exec_vm = oldmm->exec_vm;
+-	mm->stack_vm = oldmm->stack_vm;
+-
+-	rb_link = &mm->mm_rb.rb_node;
+-	rb_parent = NULL;
+-	pprev = &mm->mmap;
+-	retval = ksm_fork(mm, oldmm);
+-	if (retval)
+-		goto out;
+-	retval = khugepaged_fork(mm, oldmm);
+-	if (retval)
+-		goto out;
+-
+-	prev = NULL;
+-	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
+-		struct file *file;
+-
+-		if (mpnt->vm_flags & VM_DONTCOPY) {
+-			vm_stat_account(mm, mpnt->vm_flags, -vma_pages(mpnt));
+-			continue;
+-		}
+-		charge = 0;
+-		if (mpnt->vm_flags & VM_ACCOUNT) {
+-			unsigned long len = vma_pages(mpnt);
+-
+-			if (security_vm_enough_memory_mm(oldmm, len)) /* sic */
+-				goto fail_nomem;
+-			charge = len;
+-		}
+-		tmp = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+-		if (!tmp)
+-			goto fail_nomem;
+-		*tmp = *mpnt;
+-		INIT_LIST_HEAD(&tmp->anon_vma_chain);
+-		retval = vma_dup_policy(mpnt, tmp);
+-		if (retval)
+-			goto fail_nomem_policy;
+-		tmp->vm_mm = mm;
+-		retval = dup_userfaultfd(tmp, &uf);
+-		if (retval)
+-			goto fail_nomem_anon_vma_fork;
+-		if (tmp->vm_flags & VM_WIPEONFORK) {
+-			/* VM_WIPEONFORK gets a clean slate in the child. */
+-			tmp->anon_vma = NULL;
+-			if (anon_vma_prepare(tmp))
+-				goto fail_nomem_anon_vma_fork;
+-		} else if (anon_vma_fork(tmp, mpnt))
+-			goto fail_nomem_anon_vma_fork;
+-		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
+-		tmp->vm_next = tmp->vm_prev = NULL;
+-		file = tmp->vm_file;
+-		if (file) {
+-			struct inode *inode = file_inode(file);
+-			struct address_space *mapping = file->f_mapping;
+-
+-			get_file(file);
+-			if (tmp->vm_flags & VM_DENYWRITE)
+-				atomic_dec(&inode->i_writecount);
+-			i_mmap_lock_write(mapping);
+-			if (tmp->vm_flags & VM_SHARED)
+-				atomic_inc(&mapping->i_mmap_writable);
+-			flush_dcache_mmap_lock(mapping);
+-			/* insert tmp into the share list, just after mpnt */
+-			vma_interval_tree_insert_after(tmp, mpnt,
+-					&mapping->i_mmap);
+-			flush_dcache_mmap_unlock(mapping);
+-			i_mmap_unlock_write(mapping);
+-		}
+-
+-		/*
+-		 * Clear hugetlb-related page reserves for children. This only
+-		 * affects MAP_PRIVATE mappings. Faults generated by the child
+-		 * are not guaranteed to succeed, even if read-only
+-		 */
+-		if (is_vm_hugetlb_page(tmp))
+-			reset_vma_resv_huge_pages(tmp);
+-
+-		/*
+-		 * Link in the new vma and copy the page table entries.
+-		 */
+-		*pprev = tmp;
+-		pprev = &tmp->vm_next;
+-		tmp->vm_prev = prev;
+-		prev = tmp;
+-
+-		__vma_link_rb(mm, tmp, rb_link, rb_parent);
+-		rb_link = &tmp->vm_rb.rb_right;
+-		rb_parent = &tmp->vm_rb;
+-
+-		mm->map_count++;
+-		if (!(tmp->vm_flags & VM_WIPEONFORK))
+-			retval = copy_page_range(mm, oldmm, mpnt);
+-
+-		if (tmp->vm_ops && tmp->vm_ops->open)
+-			tmp->vm_ops->open(tmp);
+-
+-		if (retval)
+-			goto out;
+-	}
+-	/* a new mm has just been created */
+-	arch_dup_mmap(oldmm, mm);
+-	retval = 0;
+-out:
+-	up_write(&mm->mmap_sem);
+-	flush_tlb_mm(oldmm);
+-	up_write(&oldmm->mmap_sem);
+-	dup_userfaultfd_complete(&uf);
+-fail_uprobe_end:
+-	uprobe_end_dup_mmap();
+-	return retval;
+-fail_nomem_anon_vma_fork:
+-	mpol_put(vma_policy(tmp));
+-fail_nomem_policy:
+-	kmem_cache_free(vm_area_cachep, tmp);
+-fail_nomem:
+-	retval = -ENOMEM;
+-	vm_unacct_memory(charge);
+-	goto out;
+-}
+-
+-static inline int mm_alloc_pgd(struct mm_struct *mm)
+-{
+-	mm->pgd = pgd_alloc(mm);
+-	if (unlikely(!mm->pgd))
+-		return -ENOMEM;
+-	return 0;
+-}
+-
+-static inline void mm_free_pgd(struct mm_struct *mm)
+-{
+-	pgd_free(mm, mm->pgd);
+-}
+-#else
+-static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+-{
+-	down_write(&oldmm->mmap_sem);
+-	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
+-	up_write(&oldmm->mmap_sem);
+-	return 0;
+-}
+-#define mm_alloc_pgd(mm)	(0)
+-#define mm_free_pgd(mm)
+-#endif /* CONFIG_MMU */
+-
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(mmlist_lock);
+ 
+-#define allocate_mm()	(kmem_cache_alloc(mm_cachep, GFP_KERNEL))
+-#define free_mm(mm)	(kmem_cache_free(mm_cachep, (mm)))
+-
+ static unsigned long default_dump_filter = MMF_DUMP_FILTER_DEFAULT;
+ 
+ static int __init coredump_filter_setup(char *s)
+@@ -856,30 +921,6 @@ fail_nopgd:
+ 	return NULL;
+ }
+ 
+-static void check_mm(struct mm_struct *mm)
+-{
+-	int i;
+-
+-	for (i = 0; i < NR_MM_COUNTERS; i++) {
+-		long x = atomic_long_read(&mm->rss_stat.count[i]);
+-
+-		if (unlikely(x))
+-			printk(KERN_ALERT "BUG: Bad rss-counter state "
+-					  "mm:%p idx:%d val:%ld\n", mm, i, x);
+-	}
+-
+-	if (atomic_long_read(&mm->nr_ptes))
+-		pr_alert("BUG: non-zero nr_ptes on freeing mm: %ld\n",
+-				atomic_long_read(&mm->nr_ptes));
+-	if (mm_nr_pmds(mm))
+-		pr_alert("BUG: non-zero nr_pmds on freeing mm: %ld\n",
+-				mm_nr_pmds(mm));
+-
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+-	VM_BUG_ON_MM(mm->pmd_huge_pte, mm);
+-#endif
+-}
+-
+ /*
+  * Allocate and initialize an mm_struct.
+  */
+@@ -895,24 +936,6 @@ struct mm_struct *mm_alloc(void)
+ 	return mm_init(mm, current, current_user_ns());
+ }
+ 
+-/*
+- * Called when the last reference to the mm
+- * is dropped: either by a lazy thread or by
+- * mmput. Free the page directory and the mm.
+- */
+-void __mmdrop(struct mm_struct *mm)
+-{
+-	BUG_ON(mm == &init_mm);
+-	mm_free_pgd(mm);
+-	destroy_context(mm);
+-	hmm_mm_destroy(mm);
+-	mmu_notifier_mm_destroy(mm);
+-	check_mm(mm);
+-	put_user_ns(mm->user_ns);
+-	free_mm(mm);
+-}
+-EXPORT_SYMBOL_GPL(__mmdrop);
