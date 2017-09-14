@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch
+Subject: + mmcompaction-serialize-waitqueue_active-checks-for-real.patch
  added to -mm tree
-Date: Thu, 14 Sep 2017 14:18:50 -0700
-Message-ID: <59baf23a.Y6CANpJVV4ypxbvL%akpm@linux-foundation.org>
+Date: Thu, 14 Sep 2017 14:23:13 -0700
+Message-ID: <59baf341.yAoqPKOY3h8AU4RI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751366AbdINVSw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2017 17:18:52 -0400
+        with ESMTP id S1751330AbdINVXO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2017 17:23:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.ogness@linutronix.de, keescook@chromium.org, luto@kernel.org, marco.felsch@preh.de, mingo@kernel.org, stable@vger.kernel.org, tglx@linutronix.de, tycho.andersen@canonical.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, parri.andrea@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc: report eip/esp in /prod/PID/stat for coredumping
+     Subject: mm,compaction: serialize waitqueue_active() checks (for real)
 has been added to the -mm tree.  Its filename is
-     fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch
+     mmcompaction-serialize-waitqueue_active-checks-for-real.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmcompaction-serialize-waitqueue_active-checks-for-real.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmcompaction-serialize-waitqueue_active-checks-for-real.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Ogness <john.ogness@linutronix.de>
-Subject: fs/proc: report eip/esp in /prod/PID/stat for coredumping
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm,compaction: serialize waitqueue_active() checks (for real)
 
-0a1eb2d474ed ("fs/proc: Stop reporting eip and esp in /proc/PID/stat")
-stopped reporting eip/esp because it is racy and dangerous for executing
-tasks.  The comment adds:
+Andrea brought to my attention that the L->{L,S} guarantees are completely
+bogus for this case.  I was looking at the diagram, from the offending
+commit, when that _is_ the race, we had the load reordered already.
 
-    As far as I know, there are no use programs that make any
-    material use of these fields, so just get rid of them.
+What we need is at least S->L semantics, thus simply use wq_has_sleeper()
+to serialize the call for good.
 
-However, existing userspace core-dump-handler applications (for example,
-minicoredumper) are using these fields since they provide an excellent
-cross-platform interface to these valuable pointers.  So that commit
-introduced a user space visible regression.
-
-Partially revert the change and make the readout possible for tasks with
-the proper permissions and only if the target task has the PF_DUMPCORE
-flag set.
-
-Link: http://lkml.kernel.org/r/87poatfwg6.fsf@linutronix.de
-Fixes: 0a1eb2d474ed ("fs/proc: Stop reporting eip and esp in> /proc/PID/stat")
-Signed-off-by: John Ogness <john.ogness@linutronix.de>
-Reported-by: Marco Felsch <marco.felsch@preh.de>
-Reviewed-by: Andy Lutomirski <luto@kernel.org>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tycho Andersen <tycho.andersen@canonical.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170914175313.GB811@linux-80c1.suse
+Fixes: 46acef048a6 (mm,compaction: serialize waitqueue_active() checks)
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Reported-by: Andrea Parri <parri.andrea@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/compaction.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/array.c~fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping fs/proc/array.c
---- a/fs/proc/array.c~fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping
-+++ a/fs/proc/array.c
-@@ -421,7 +421,15 @@ static int do_task_stat(struct seq_file
- 		 * esp and eip are intentionally zeroed out.  There is no
- 		 * non-racy way to read them without freezing the task.
- 		 * Programs that need reliable values can use ptrace(2).
-+		 *
-+		 * The only exception is if the task is core dumping because
-+		 * a program is not able to use ptrace(2) in that case. It is
-+		 * safe because the task has stopped executing permanently.
- 		 */
-+		if (permitted && (task->flags & PF_DUMPCORE)) {
-+			eip = KSTK_EIP(task);
-+			esp = KSTK_ESP(task);
-+		}
- 	}
+diff -puN mm/compaction.c~mmcompaction-serialize-waitqueue_active-checks-for-real mm/compaction.c
+--- a/mm/compaction.c~mmcompaction-serialize-waitqueue_active-checks-for-real
++++ a/mm/compaction.c
+@@ -1999,17 +1999,14 @@ void wakeup_kcompactd(pg_data_t *pgdat,
+ 	if (pgdat->kcompactd_max_order < order)
+ 		pgdat->kcompactd_max_order = order;
  
- 	get_task_comm(tcomm, task);
-_
-
-Patches currently in -mm which might be from john.ogness@linutronix.de are
-
-fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch
-
+-	/*
+-	 * Pairs with implicit barrier in wait_event_freezable()
+-	 * such that wakeups are not missed in the lockless
+-	 * waitqueue_active() call.
+-	 */
+-	smp_acquire__after_ctrl_dep();
