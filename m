@@ -1,72 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- test_bitmap-use-ull-suffix-for-64-bit-constants.patch removed from -mm tree
-Date: Fri, 15 Sep 2017 10:51:19 -0700
-Message-ID: <20170915175119.Yxm2MzFBT%akpm@linux-foundation.org>
+ fscache-fix-fscache_objlist_show-format-processing.patch removed from -mm
+ tree
+Date: Fri, 15 Sep 2017 10:51:22 -0700
+Message-ID: <20170915175122.JLf-dOdFF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35386 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35392 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751479AbdIORvU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2017 13:51:20 -0400
+        with ESMTP id S1751479AbdIORvX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2017 13:51:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, mm-commits@vger.kernel.org, ynorov@caviumnetworks.com
+To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_bitmap.c: use ULL suffix for 64-bit constants
+     Subject: fscache: fix fscache_objlist_show format processing
 has been removed from the -mm tree.  Its filename was
-     test_bitmap-use-ull-suffix-for-64-bit-constants.patch
+     fscache-fix-fscache_objlist_show-format-processing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib/test_bitmap.c: use ULL suffix for 64-bit constants
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fscache: fix fscache_objlist_show format processing
 
-With gcc 4.1.2:
+gcc points out a minor bug in the handling of unknown
+cookie types, which could result in a string overflow
+when the integer is copied into a 3-byte string:
 
-    lib/test_bitmap.c:189: warning: integer constant is too large for `long' type
-    lib/test_bitmap.c:190: warning: integer constant is too large for `long' type
-    lib/test_bitmap.c:194: warning: integer constant is too large for `long' type
-    lib/test_bitmap.c:195: warning: integer constant is too large for `long' type
+fs/fscache/object-list.c: In function 'fscache_objlist_show':
+fs/fscache/object-list.c:265:19: error: 'sprintf' may write a terminating nul past the end of the destination [-Werror=format-overflow=]
+ sprintf(_type, "%02u", cookie->def->type);
+                ^~~~~~
+fs/fscache/object-list.c:265:4: note: 'sprintf' output between 3 and 4 bytes into a destination of size 3
 
-Add the missing "ULL" suffix to fix this.
+This is currently harmless as no code sets a type other
+than 0 or 1, but it makes sense to use snprintf() here
+to avoid overflowing the array if that changes.
 
-Link: http://lkml.kernel.org/r/1505040523-31230-1-git-send-email-geert@linux-m68k.org
-Fixes: 60ef690018b262dd ("bitmap: introduce BITMAP_FROM_U64()")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Yury Norov <ynorov@caviumnetworks.com>
+Link: http://lkml.kernel.org/r/20170714120720.906842-22-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/fscache/object-list.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/test_bitmap.c~test_bitmap-use-ull-suffix-for-64-bit-constants lib/test_bitmap.c
---- a/lib/test_bitmap.c~test_bitmap-use-ull-suffix-for-64-bit-constants
-+++ a/lib/test_bitmap.c
-@@ -186,13 +186,13 @@ static const unsigned long exp[] __initc
- 	BITMAP_FROM_U64(0x22222222),
- 	BITMAP_FROM_U64(0xffffffff),
- 	BITMAP_FROM_U64(0xfffffffe),
--	BITMAP_FROM_U64(0x3333333311111111),
--	BITMAP_FROM_U64(0xffffffff77777777)
-+	BITMAP_FROM_U64(0x3333333311111111ULL),
-+	BITMAP_FROM_U64(0xffffffff77777777ULL)
- };
- 
- static const unsigned long exp2[] __initconst = {
--	BITMAP_FROM_U64(0x3333333311111111),
--	BITMAP_FROM_U64(0xffffffff77777777)
-+	BITMAP_FROM_U64(0x3333333311111111ULL),
-+	BITMAP_FROM_U64(0xffffffff77777777ULL)
- };
- 
- static const struct test_bitmap_parselist parselist_tests[] __initconst = {
+diff -puN fs/fscache/object-list.c~fscache-fix-fscache_objlist_show-format-processing fs/fscache/object-list.c
+--- a/fs/fscache/object-list.c~fscache-fix-fscache_objlist_show-format-processing
++++ a/fs/fscache/object-list.c
+@@ -262,7 +262,8 @@ static int fscache_objlist_show(struct s
+ 			type = "DT";
+ 			break;
+ 		default:
+-			sprintf(_type, "%02u", cookie->def->type);
++			snprintf(_type, sizeof(_type), "%02u",
++				 cookie->def->type);
+ 			type = _type;
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+iopoll-avoid-wint-in-bool-context-warning.patch
 
