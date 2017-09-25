@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-define-cpu_big_endian.patch added to -mm tree
-Date: Mon, 25 Sep 2017 15:40:46 -0700
-Message-ID: <59c985ee.0b1/n0QuJrp0oPa5%akpm@linux-foundation.org>
+Subject: +
+ mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch added to -mm tree
+Date: Mon, 25 Sep 2017 16:09:59 -0700
+Message-ID: <59c98cc7.xhI23w6bmVnN8bC4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59200 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934254AbdIYWkr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 18:40:47 -0400
+        with ESMTP id S935357AbdIYXKA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 19:10:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, eguan@redhat.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: define CPU_BIG_ENDIAN
+     Subject: mm: have filemap_check_and_advance_wb_err clear AS_EIO/AS_ENOSPC
 has been added to the -mm tree.  Its filename is
-     m32r-define-cpu_big_endian.patch
+     mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m32r-define-cpu_big_endian.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-define-cpu_big_endian.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: define CPU_BIG_ENDIAN
+From: Jeff Layton <jlayton@redhat.com>
+Subject: mm: have filemap_check_and_advance_wb_err clear AS_EIO/AS_ENOSPC
 
-The build of m32r allmodconfig is giving lots of build warnings about:
-include/linux/byteorder/big_endian.h:7:2:
-	warning: #warning inconsistent configuration,
-		needs CONFIG_CPU_BIG_ENDIAN [-Wcpp]
-	#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
+Eryu noticed that he could sometimes get a leftover error reported when it
+shouldn't be on fsync with ext2 and non-journalled ext4.  The problem is
+that writeback_single_inode still uses filemap_fdatawait.  That picks up a
+previously set AS_EIO flag, which would ordinarily have been cleared
+before.
 
-Define CPU_BIG_ENDIAN like the way CPU_LITTLE_ENDIAN is defined.
+Since we're mostly using this function as a replacement for
+filemap_check_errors, have filemap_check_and_advance_wb_err clear AS_EIO
+and AS_ENOSPC when reporting an error.  That should allow the new function
+to better emulate the behavior of the old with respect to these flags.
 
-Link: http://lkml.kernel.org/r/1505678083-10320-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Link: http://lkml.kernel.org/r/20170922133331.28812-1-jlayton@kernel.org
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Reported-by: Eryu Guan <eguan@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/filemap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/m32r/Kconfig~m32r-define-cpu_big_endian arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-define-cpu_big_endian
-+++ a/arch/m32r/Kconfig
-@@ -194,6 +194,10 @@ config TIMER_DIVIDE
- 	int "Timer divider (integer)"
- 	default "128"
- 
-+config CPU_BIG_ENDIAN
-+        bool "Generate big endian code"
-+	default n
+diff -puN mm/filemap.c~mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc mm/filemap.c
+--- a/mm/filemap.c~mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc
++++ a/mm/filemap.c
+@@ -620,6 +620,14 @@ int file_check_and_advance_wb_err(struct
+ 		trace_file_check_and_advance_wb_err(file, old);
+ 		spin_unlock(&file->f_lock);
+ 	}
 +
- config CPU_LITTLE_ENDIAN
-         bool "Generate little endian code"
- 	default n
++	/*
++	 * We're mostly using this function as a drop in replacement for
++	 * filemap_check_errors. Clear AS_EIO/AS_ENOSPC to emulate the effect
++	 * that the legacy code would have had on these flags.
++	 */
++	clear_bit(AS_EIO, &mapping->flags);
++	clear_bit(AS_ENOSPC, &mapping->flags);
+ 	return err;
+ }
+ EXPORT_SYMBOL(file_check_and_advance_wb_err);
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-m32r-define-cpu_big_endian.patch
+mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch
 
