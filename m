@@ -1,74 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Mon, 25 Sep 2017 13:57:58 -0700
-Message-ID: <20170925205758.9Epd6fTmg%akpm@linux-foundation.org>
+Subject: [merged]
+ objtool-do-not-retrieve-data-from-empty-sections.patch removed from -mm
+ tree
+Date: Mon, 25 Sep 2017 13:58:20 -0700
+Message-ID: <20170925205820.3HqH3oI65%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45330 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45334 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964935AbdIYU57 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 16:57:59 -0400
+        with ESMTP id S964935AbdIYU6V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 16:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jpoimboe@redhat.com, mm-commits@vger.kernel.org, petr@vandrovec.name
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: objtool: do not retrieve data from empty sections
+has been removed from the -mm tree.  Its filename was
+     objtool-do-not-retrieve-data-from-empty-sections.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Petr Vandrovec <petr@vandrovec.name>
+Subject: objtool: do not retrieve data from empty sections
 
+Binutils 2.29-9 in Debian returns an error when elf_getdata is invoked on
+empty section (.note.GNU-stack in all kernel files), causing immediate
+failure of kernel build with:
+
+elf_getdata: can't manipulate null section
+
+As nothing is done with sections that have zero size, just do not retrieve
+their data at all.
+
+Link: http://lkml.kernel.org/r/20170914191111.embq3bfkppem3l5u@petr-dev3.eng.vmware.com
+Signed-off-by: Petr Vandrovec <petr@vandrovec.name>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ tools/objtool/elf.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN kernel/fork.c~linux-next-rejects kernel/fork.c
---- a/kernel/fork.c~linux-next-rejects
-+++ a/kernel/fork.c
-@@ -604,6 +604,11 @@ static void __mmdrop(struct mm_struct *m
+diff -puN tools/objtool/elf.c~objtool-do-not-retrieve-data-from-empty-sections tools/objtool/elf.c
+--- a/tools/objtool/elf.c~objtool-do-not-retrieve-data-from-empty-sections
++++ a/tools/objtool/elf.c
+@@ -175,19 +175,20 @@ static int read_sections(struct elf *elf
+ 			return -1;
+ 		}
  
- void mmdrop(struct mm_struct *mm)
- {
-+	/*
-+	 * The implicit full barrier implied by atomic_dec_and_test is
-+	 * required by the membarrier system call before returning to
-+	 * user-space, after storing to rq->curr.
-+	 */
- 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
- 		__mmdrop(mm);
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+-		sec->data = elf_getdata(s, NULL);
+-		if (!sec->data) {
+-			WARN_ELF("elf_getdata");
+-			return -1;
++		if (sec->sh.sh_size != 0) {
++			sec->data = elf_getdata(s, NULL);
++			if (!sec->data) {
++				WARN_ELF("elf_getdata");
++				return -1;
++			}
++			if (sec->data->d_off != 0 ||
++			    sec->data->d_size != sec->sh.sh_size) {
++				WARN("unexpected data attributes for %s",
++				     sec->name);
++				return -1;
++			}
+ 		}
+-
+-		if (sec->data->d_off != 0 ||
+-		    sec->data->d_size != sec->sh.sh_size) {
+-			WARN("unexpected data attributes for %s", sec->name);
+-			return -1;
+-		}
