@@ -1,76 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- objtool-do-not-retrieve-data-from-empty-sections.patch removed from -mm
- tree
-Date: Mon, 25 Sep 2017 13:58:20 -0700
-Message-ID: <20170925205820.3HqH3oI65%akpm@linux-foundation.org>
+ fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch removed from
+ -mm tree
+Date: Mon, 25 Sep 2017 13:58:23 -0700
+Message-ID: <20170925205823.lYv6jUukh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45342 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964935AbdIYU6V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 16:58:21 -0400
+        with ESMTP id S964935AbdIYU6Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 16:58:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpoimboe@redhat.com, mm-commits@vger.kernel.org, petr@vandrovec.name
+To: john.ogness@linutronix.de, keescook@chromium.org, luto@kernel.org, marco.felsch@preh.de, mingo@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: objtool: do not retrieve data from empty sections
+     Subject: fs/proc: report eip/esp in /prod/PID/stat for coredumping
 has been removed from the -mm tree.  Its filename was
-     objtool-do-not-retrieve-data-from-empty-sections.patch
+     fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Vandrovec <petr@vandrovec.name>
-Subject: objtool: do not retrieve data from empty sections
+From: John Ogness <john.ogness@linutronix.de>
+Subject: fs/proc: report eip/esp in /prod/PID/stat for coredumping
 
-Binutils 2.29-9 in Debian returns an error when elf_getdata is invoked on
-empty section (.note.GNU-stack in all kernel files), causing immediate
-failure of kernel build with:
+0a1eb2d474ed ("fs/proc: Stop reporting eip and esp in /proc/PID/stat")
+stopped reporting eip/esp because it is racy and dangerous for executing
+tasks.  The comment adds:
 
-elf_getdata: can't manipulate null section
+    As far as I know, there are no use programs that make any
+    material use of these fields, so just get rid of them.
 
-As nothing is done with sections that have zero size, just do not retrieve
-their data at all.
+However, existing userspace core-dump-handler applications (for example,
+minicoredumper) are using these fields since they provide an excellent
+cross-platform interface to these valuable pointers.  So that commit
+introduced a user space visible regression.
 
-Link: http://lkml.kernel.org/r/20170914191111.embq3bfkppem3l5u@petr-dev3.eng.vmware.com
-Signed-off-by: Petr Vandrovec <petr@vandrovec.name>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Partially revert the change and make the readout possible for tasks with
+the proper permissions and only if the target task has the PF_DUMPCORE
+flag set.
+
+Link: http://lkml.kernel.org/r/87poatfwg6.fsf@linutronix.de
+Fixes: 0a1eb2d474ed ("fs/proc: Stop reporting eip and esp in> /proc/PID/stat")
+Signed-off-by: John Ogness <john.ogness@linutronix.de>
+Reported-by: Marco Felsch <marco.felsch@preh.de>
+Reviewed-by: Andy Lutomirski <luto@kernel.org>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/objtool/elf.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ fs/proc/array.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN tools/objtool/elf.c~objtool-do-not-retrieve-data-from-empty-sections tools/objtool/elf.c
---- a/tools/objtool/elf.c~objtool-do-not-retrieve-data-from-empty-sections
-+++ a/tools/objtool/elf.c
-@@ -175,19 +175,20 @@ static int read_sections(struct elf *elf
- 			return -1;
- 		}
+diff -puN fs/proc/array.c~fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping fs/proc/array.c
+--- a/fs/proc/array.c~fs-proc-report-eip-esp-in-prod-pid-stat-for-coredumping
++++ a/fs/proc/array.c
+@@ -421,7 +421,15 @@ static int do_task_stat(struct seq_file
+ 		 * esp and eip are intentionally zeroed out.  There is no
+ 		 * non-racy way to read them without freezing the task.
+ 		 * Programs that need reliable values can use ptrace(2).
++		 *
++		 * The only exception is if the task is core dumping because
++		 * a program is not able to use ptrace(2) in that case. It is
++		 * safe because the task has stopped executing permanently.
+ 		 */
++		if (permitted && (task->flags & PF_DUMPCORE)) {
++			eip = KSTK_EIP(task);
++			esp = KSTK_ESP(task);
++		}
+ 	}
  
--		sec->data = elf_getdata(s, NULL);
--		if (!sec->data) {
--			WARN_ELF("elf_getdata");
--			return -1;
-+		if (sec->sh.sh_size != 0) {
-+			sec->data = elf_getdata(s, NULL);
-+			if (!sec->data) {
-+				WARN_ELF("elf_getdata");
-+				return -1;
-+			}
-+			if (sec->data->d_off != 0 ||
-+			    sec->data->d_size != sec->sh.sh_size) {
-+				WARN("unexpected data attributes for %s",
-+				     sec->name);
-+				return -1;
-+			}
- 		}
--
--		if (sec->data->d_off != 0 ||
--		    sec->data->d_size != sec->sh.sh_size) {
--			WARN("unexpected data attributes for %s", sec->name);
--			return -1;
--		}
+ 	get_task_comm(tcomm, task);
+_
+
+Patches currently in -mm which might be from john.ogness@linutronix.de are
+
+
