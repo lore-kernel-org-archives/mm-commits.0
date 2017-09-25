@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-fix-null-dereference-of-handle.patch added to -mm tree
-Date: Mon, 25 Sep 2017 15:16:37 -0700
-Message-ID: <59c98045.olse0Du16ETMS/Bl%akpm@linux-foundation.org>
+Subject: + m32r-define-cpu_big_endian.patch added to -mm tree
+Date: Mon, 25 Sep 2017 15:40:46 -0700
+Message-ID: <59c985ee.0b1/n0QuJrp0oPa5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52594 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935505AbdIYWQl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 18:16:41 -0400
+        with ESMTP id S934254AbdIYWkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2017 18:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix null dereference of handle
+     Subject: m32r: define CPU_BIG_ENDIAN
 has been added to the -mm tree.  Its filename is
-     zram-fix-null-dereference-of-handle.patch
+     m32r-define-cpu_big_endian.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-null-dereference-of-handle.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m32r-define-cpu_big_endian.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-null-dereference-of-handle.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-define-cpu_big_endian.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,60 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix null dereference of handle
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: define CPU_BIG_ENDIAN
 
-In testing I found handle passed to zs_map_object in __zram_bvec_read is
-NULL so eh kernel goes oops in pin_object().
+The build of m32r allmodconfig is giving lots of build warnings about:
+include/linux/byteorder/big_endian.h:7:2:
+	warning: #warning inconsistent configuration,
+		needs CONFIG_CPU_BIG_ENDIAN [-Wcpp]
+	#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
 
-The reason is there is no routine to check the slot's freeing after
-getting the slot's lock.  This patch fixes it.
+Define CPU_BIG_ENDIAN like the way CPU_LITTLE_ENDIAN is defined.
 
-Link: http://lkml.kernel.org/r/1505788488-26723-1-git-send-email-minchan@kernel.org
-Fixes: 1f7319c74275 ("zram: partial IO refactoring")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1505678083-10320-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   34 +++++++++-----------------------
- 1 file changed, 10 insertions(+), 24 deletions(-)
+ arch/m32r/Kconfig |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-null-dereference-of-handle drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-null-dereference-of-handle
-+++ a/drivers/block/zram/zram_drv.c
-@@ -766,27 +766,6 @@ static void zram_slot_unlock(struct zram
- 	bit_spin_unlock(ZRAM_ACCESS, &zram->table[index].value);
- }
+diff -puN arch/m32r/Kconfig~m32r-define-cpu_big_endian arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-define-cpu_big_endian
++++ a/arch/m32r/Kconfig
+@@ -194,6 +194,10 @@ config TIMER_DIVIDE
+ 	int "Timer divider (integer)"
+ 	default "128"
  
--static bool zram_same_page_read(struct zram *zram, u32 index,
--				struct page *page,
--				unsigned int offset, unsigned int len)
--{
--	zram_slot_lock(zram, index);
--	if (unlikely(!zram_get_handle(zram, index) ||
--			zram_test_flag(zram, index, ZRAM_SAME))) {
--		void *mem;
--
--		zram_slot_unlock(zram, index);
--		mem = kmap_atomic(page);
--		zram_fill_page(mem + offset, len,
--					zram_get_element(zram, index));
--		kunmap_atomic(mem);
--		return true;
--	}
--	zram_slot_unlock(zram, index);
--
--	return false;
--}
--
- static void zram_meta_free(struct zram *zram, u64 disksize)
- {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -884,11 +863,18 @@ static int __zram_bvec_read(struct zram
- 		zram_slot_unlock(zram, index);
- 	}
- 
--	if (zram_same_page_read(zram, index, page, 0, PAGE_SIZE))
--		return 0;
++config CPU_BIG_ENDIAN
++        bool "Generate big endian code"
++	default n
++
+ config CPU_LITTLE_ENDIAN
+         bool "Generate little endian code"
+ 	default n
+_
+
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+
+m32r-define-cpu_big_endian.patch
+
