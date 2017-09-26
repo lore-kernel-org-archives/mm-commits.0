@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-non-cooperative-fix-fork-use-after-free.patch added to -mm tree
-Date: Tue, 26 Sep 2017 16:40:30 -0700
-Message-ID: <59cae56e.+Gl/wjPXrHsFJHNA%akpm@linux-foundation.org>
+Subject: + exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node.patch
+ added to -mm tree
+Date: Tue, 26 Sep 2017 16:49:04 -0700
+Message-ID: <59cae770.K8tBEAnbp8sZL/X5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40122 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964845AbdIZXkb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2017 19:40:31 -0400
+        with ESMTP id S936342AbdIZXtF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2017 19:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mark.rutland@arm.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, stable@vger.kernel.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, foraker1@llnl.gov, James.Bottomley@HansenPartnership.com, keescook@chromium.org, tdhooge@llnl.gov, tgummels@redhat.com, viro@zeniv.linux.org.uk, woodard@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: fix fork use after free
+     Subject: exec: binfmt_misc: don't nullify Node->dentry in kill_node()
 has been added to the -mm tree.  Its filename is
-     userfaultfd-non-cooperative-fix-fork-use-after-free.patch
+     exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-fix-fork-use-after-free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-fix-fork-use-after-free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,152 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: non-cooperative: fix fork use after free
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exec: binfmt_misc: don't nullify Node->dentry in kill_node()
 
-When reading the event from the uffd, we put it on a temporary fork_event
-list to detect if we can still access it after releasing and retaking the
-event_wqh.lock.
+kill_node() nullifies/checks Node->dentry to avoid double free.  This
+complicates the next changes and this is very confusing:
 
-If fork aborts and removes the event from the fork_event all is fine as
-long as we're still in the userfault read context and fork_event head is
-still alive.
+- we do not need to check dentry != NULL under entries_lock, kill_node()
+  is always called under inode_lock(d_inode(root)) and we rely on this
+  inode_lock() anyway, without this lock the MISC_FMT_OPEN_FILE cleanup
+  could race with itself.
 
-We've to put the event allocated in the fork kernel stack, back from
-fork_event list-head to the event_wqh head, before returning from
-userfaultfd_ctx_read, because the fork_event head lifetime is limited to
-the userfaultfd_ctx_read stack lifetime.
+- if kill_inode() was already called and ->dentry == NULL we should not
+  even try to close e->interp_file.
 
-Forgetting to move the event back to its event_wqh place then results in
-__remove_wait_queue(&ctx->event_wqh, &ewq->wq); in
-userfaultfd_event_wait_completion to remove it from a head that has been
-already freed from the reader stack.
+We can change bm_entry_write() to simply check !list_empty(list) before
+kill_node.  Again, we rely on inode_lock(), in particular it saves us from
+the race with bm_status_write(), another caller of kill_node().
 
-This could only happen if resolve_userfault_fork failed (for example if
-there are no file descriptors available to allocate the fork uffd).  If it
-succeeded it was put back correctly.
-
-Furthermore, after find_userfault_evt receives a fork event, the forked
-userfault context in fork_nctx and uwq->msg.arg.reserved.reserved1 can be
-released by the fork thread as soon as the event_wqh.lock is released. 
-Taking a reference on the fork_nctx before dropping the lock prevents an
-use after free in resolve_userfault_fork().
-
-If the fork side aborted and it already released everything, we still try
-to succeed resolve_userfault_fork(), if possible.
-
-Fixes: 893e26e61d04eac9 ("userfaultfd: non-cooperative: Add fork() event")
-Link: http://lkml.kernel.org/r/20170920180413.26713-1-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Mark Rutland <mark.rutland@arm.com>
-Tested-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170922143641.GA17210@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ben Woodard <woodard@redhat.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jim Foraker <foraker1@llnl.gov>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: <tdhooge@llnl.gov>
+Cc: Travis Gummels <tgummels@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   66 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 56 insertions(+), 10 deletions(-)
+ fs/binfmt_misc.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-fix-fork-use-after-free fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-fix-fork-use-after-free
-+++ a/fs/userfaultfd.c
-@@ -588,6 +588,12 @@ static void userfaultfd_event_wait_compl
- 			break;
- 		if (ACCESS_ONCE(ctx->released) ||
- 		    fatal_signal_pending(current)) {
-+			/*
-+			 * &ewq->wq may be queued in fork_event, but
-+			 * __remove_wait_queue ignores the head
-+			 * parameter. It would be a problem if it
-+			 * didn't.
-+			 */
- 			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
- 			if (ewq->msg.event == UFFD_EVENT_FORK) {
- 				struct userfaultfd_ctx *new;
-@@ -1061,6 +1067,12 @@ static ssize_t userfaultfd_ctx_read(stru
- 					(unsigned long)
- 					uwq->msg.arg.reserved.reserved1;
- 				list_move(&uwq->wq.entry, &fork_event);
-+				/*
-+				 * fork_nctx can be freed as soon as
-+				 * we drop the lock, unless we take a
-+				 * reference on it.
-+				 */
-+				userfaultfd_ctx_get(fork_nctx);
- 				spin_unlock(&ctx->event_wqh.lock);
- 				ret = 0;
- 				break;
-@@ -1091,19 +1103,53 @@ static ssize_t userfaultfd_ctx_read(stru
+diff -puN fs/binfmt_misc.c~exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node
++++ a/fs/binfmt_misc.c
+@@ -603,11 +603,7 @@ static void kill_node(Node *e)
+ 	struct dentry *dentry;
  
- 	if (!ret && msg->event == UFFD_EVENT_FORK) {
- 		ret = resolve_userfault_fork(ctx, fork_nctx, msg);
-+		spin_lock(&ctx->event_wqh.lock);
-+		if (!list_empty(&fork_event)) {
-+			/*
-+			 * The fork thread didn't abort, so we can
-+			 * drop the temporary refcount.
-+			 */
-+			userfaultfd_ctx_put(fork_nctx);
-+
-+			uwq = list_first_entry(&fork_event,
-+					       typeof(*uwq),
-+					       wq.entry);
-+			/*
-+			 * If fork_event list wasn't empty and in turn
-+			 * the event wasn't already released by fork
-+			 * (the event is allocated on fork kernel
-+			 * stack), put the event back to its place in
-+			 * the event_wq. fork_event head will be freed
-+			 * as soon as we return so the event cannot
-+			 * stay queued there no matter the current
-+			 * "ret" value.
-+			 */
-+			list_del(&uwq->wq.entry);
-+			__add_wait_queue(&ctx->event_wqh, &uwq->wq);
+ 	write_lock(&entries_lock);
+-	dentry = e->dentry;
+-	if (dentry) {
+-		list_del_init(&e->list);
+-		e->dentry = NULL;
+-	}
++	list_del_init(&e->list);
+ 	write_unlock(&entries_lock);
  
--		if (!ret) {
--			spin_lock(&ctx->event_wqh.lock);
--			if (!list_empty(&fork_event)) {
--				uwq = list_first_entry(&fork_event,
--						       typeof(*uwq),
--						       wq.entry);
--				list_del(&uwq->wq.entry);
--				__add_wait_queue(&ctx->event_wqh, &uwq->wq);
-+			/*
-+			 * Leave the event in the waitqueue and report
-+			 * error to userland if we failed to resolve
-+			 * the userfault fork.
-+			 */
-+			if (likely(!ret))
- 				userfaultfd_event_complete(ctx, uwq);
--			}
--			spin_unlock(&ctx->event_wqh.lock);
-+		} else {
-+			/*
-+			 * Here the fork thread aborted and the
-+			 * refcount from the fork thread on fork_nctx
-+			 * has already been released. We still hold
-+			 * the reference we took before releasing the
-+			 * lock above. If resolve_userfault_fork
-+			 * failed we've to drop it because the
-+			 * fork_nctx has to be freed in such case. If
-+			 * it succeeded we'll hold it because the new
-+			 * uffd references it.
-+			 */
-+			if (ret)
-+				userfaultfd_ctx_put(fork_nctx);
- 		}
-+		spin_unlock(&ctx->event_wqh.lock);
+ 	if ((e->flags & MISC_FMT_OPEN_FILE) && e->interp_file) {
+@@ -615,12 +611,11 @@ static void kill_node(Node *e)
+ 		e->interp_file = NULL;
  	}
  
- 	return ret;
+-	if (dentry) {
+-		drop_nlink(d_inode(dentry));
+-		d_drop(dentry);
+-		dput(dentry);
+-		simple_release_fs(&bm_mnt, &entry_count);
+-	}
++	dentry = e->dentry;
++	drop_nlink(d_inode(dentry));
++	d_drop(dentry);
++	dput(dentry);
++	simple_release_fs(&bm_mnt, &entry_count);
+ }
+ 
+ /* /<entry> */
+@@ -665,7 +660,8 @@ static ssize_t bm_entry_write(struct fil
+ 		root = file_inode(file)->i_sb->s_root;
+ 		inode_lock(d_inode(root));
+ 
+-		kill_node(e);
++		if (!list_empty(&e->list))
++			kill_node(e);
+ 
+ 		inode_unlock(d_inode(root));
+ 		break;
+@@ -794,7 +790,7 @@ static ssize_t bm_status_write(struct fi
+ 		inode_lock(d_inode(root));
+ 
+ 		while (!list_empty(&entries))
+-			kill_node(list_entry(entries.next, Node, list));
++			kill_node(list_first_entry(&entries, Node, list));
+ 
+ 		inode_unlock(d_inode(root));
+ 		break;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-userfaultfd-non-cooperative-fix-fork-use-after-free.patch
+exec-load_script-kill-the-onstack-interp-array.patch
+exec-binfmt_misc-dont-nullify-node-dentry-in-kill_node.patch
+exec-binfmt_misc-shift-filp_closeinterp_file-from-kill_node-to-bm_evict_inode.patch
+exec-binfmt_misc-remove-the-confusing-e-interp_file-=-null-checks.patch
+exec-binfmt_misc-fix-race-between-load_misc_binary-and-kill_node.patch
+exec-binfmt_misc-kill-the-onstack-iname-array.patch
 
