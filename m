@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- init-version-include-linux-exporth-instead-of-linux-moduleh.patch added to
- -mm tree
-Date: Tue, 26 Sep 2017 17:23:43 -0700
-Message-ID: <59caef8f.s9vhv+v0aYpecdKJ%akpm@linux-foundation.org>
+Subject: + mm-add-kmalloc_array_node-and-kcalloc_node.patch added to -mm
+ tree
+Date: Wed, 27 Sep 2017 12:48:50 -0700
+Message-ID: <59cc00a2.z1T6qaYT2qsybfNr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56294 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964956AbdI0AXo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2017 20:23:44 -0400
+        with ESMTP id S1751345AbdI0Tsw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 15:48:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
+To: jthumshirn@suse.de, axboe@kernel.dk, cl@linux.com, damien.lemoal@wdc.com, davem@davemloft.net, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, iamjoonsoo.kim@lge.com, infinipath@intel.com, penberg@kernel.org, rientjes@google.com, santosh.shilimkar@oracle.com, sean.hefty@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/version.c: include <linux/export.h> instead of <linux/module.h>
+     Subject: include/linux/slab.h: add kmalloc_array_node() and kcalloc_node()
 has been added to the -mm tree.  Its filename is
-     init-version-include-linux-exporth-instead-of-linux-moduleh.patch
+     mm-add-kmalloc_array_node-and-kcalloc_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-version-include-linux-exporth-instead-of-linux-moduleh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-kmalloc_array_node-and-kcalloc_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-version-include-linux-exporth-instead-of-linux-moduleh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-kmalloc_array_node-and-kcalloc_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +39,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: init/version.c: include <linux/export.h> instead of <linux/module.h>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: include/linux/slab.h: add kmalloc_array_node() and kcalloc_node()
 
-init/version.c has nothing to do with modules, so remove the
-<linux/modude.h>.
+Patch series "Add kmalloc_array_node() and kcalloc_node()".
 
-Instead, include <linux/export.h> for EXPORT_SYMBOL_GPL.
+Our current memeory allocation routines suffer form an API imbalance,
+for one we have kmalloc_array() and kcalloc() which check for
+overflows in size multiplication and we have kmalloc_node() and
+kzalloc_node() which allow for memory allocation on a certain NUMA
+node but don't check for eventual overflows.
 
-This cuts off a lot of unnecessary header parsing.
 
-Link: http://lkml.kernel.org/r/1505920984-8523-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+This patch (of 6):
+
+We have kmalloc_array() and kcalloc() wrappers on top of kmalloc() which
+ensure us overflow free multiplication for the size of a memory allocation
+but these implementations are not NUMA-aware.
+
+Likewise we have kmalloc_node() which is a NUMA-aware version of kmalloc()
+but the implementation is not aware of any possible overflows in eventual
+size calculations.
+
+Introduce a combination of the two above cases to have a NUMA-node aware
+version of kmalloc_array() and kcalloc().
+
+Link: http://lkml.kernel.org/r/20170927082038.3782-2-jthumshirn@suse.de
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Damien Le Moal <damien.lemoal@wdc.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/version.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/slab.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN init/version.c~init-version-include-linux-exporth-instead-of-linux-moduleh init/version.c
---- a/init/version.c~init-version-include-linux-exporth-instead-of-linux-moduleh
-+++ a/init/version.c
-@@ -7,7 +7,7 @@
-  */
+diff -puN include/linux/slab.h~mm-add-kmalloc_array_node-and-kcalloc_node include/linux/slab.h
+--- a/include/linux/slab.h~mm-add-kmalloc_array_node-and-kcalloc_node
++++ a/include/linux/slab.h
+@@ -635,6 +635,22 @@ extern void *__kmalloc_track_caller(size
+ #define kmalloc_track_caller(size, flags) \
+ 	__kmalloc_track_caller(size, flags, _RET_IP_)
  
- #include <generated/compile.h>
--#include <linux/module.h>
-+#include <linux/export.h>
- #include <linux/uts.h>
- #include <linux/utsname.h>
- #include <generated/utsrelease.h>
++static inline void *kmalloc_array_node(size_t n, size_t size, gfp_t flags,
++				       int node)
++{
++	if (size != 0 && n > SIZE_MAX / size)
++		return NULL;
++	if (__builtin_constant_p(n) && __builtin_constant_p(size))
++		return kmalloc_node(n * size, flags, node);
++	return __kmalloc_node(n * size, flags, node);
++}
++
++static inline void *kcalloc_node(size_t n, size_t size, gfp_t flags, int node)
++{
++	return kmalloc_array_node(n, size, flags | __GFP_ZERO, node);
++}
++
++
+ #ifdef CONFIG_NUMA
+ extern void *__kmalloc_node_track_caller(size_t, gfp_t, int, unsigned long);
+ #define kmalloc_node_track_caller(size, flags, node) \
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from jthumshirn@suse.de are
 
-bitfieldh-remove-32bit-from-field_get-comment-block.patch
-init-version-include-linux-exporth-instead-of-linux-moduleh.patch
+mm-add-kmalloc_array_node-and-kcalloc_node.patch
+block-use-kmalloc_array_node.patch
+ib-qib-use-kmalloc_array_node.patch
+ib-rdmavt-use-kmalloc_array_node.patch
+mm-mempool-use-kmalloc_array_node.patch
+rds-ib-use-kmalloc_array_node.patch
 
