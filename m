@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+Subject: +
+ scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
  added to -mm tree
-Date: Wed, 27 Sep 2017 15:40:29 -0700
-Message-ID: <59cc28dd.pX+e0kyr6oFjI7CV%akpm@linux-foundation.org>
+Date: Wed, 27 Sep 2017 15:41:57 -0700
+Message-ID: <59cc2935.pVXLEY2PBEKWyue2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55914 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751671AbdI0Wka (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:40:30 -0400
+        with ESMTP id S1751970AbdI0Wl7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, colin.king@canonical.com, joe@perches.com, keescook@chromium.org, ross.zwisler@linux.intel.com, sboyd@codeaurora.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: remove timeout from __offline_memory
+     Subject: scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+     scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +40,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: remove timeout from __offline_memory
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
 
-We have a hardcoded 120s timeout after which the memory offline fails
-basically since the hot remove has been introduced.  This is essentially a
-policy implemented in the kernel.  Moreover there is no way to adjust the
-timeout and so we are sometimes facing memory offline failures if the
-system is under a heavy memory pressure or very intensive CPU workload on
-large machines.
+s/|/||/, per Joe
 
-It is not very clear what purpose the timeout actually serves.  The
-offline operation is interruptible by a signal so if userspace wants some
-timeout based termination this can be done trivially by sending a signal.
-
-If there is a strong usecase to do this from the kernel then we should do
-it properly and have a it tunable from the userspace with the timeout
-disabled by default along with the explanation who uses it and for what
-purporse.
-
-Link: http://lkml.kernel.org/r/20170918070834.13083-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ scripts/spelling.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory
-+++ a/mm/memory_hotplug.c
-@@ -1594,9 +1594,9 @@ static void node_states_clear_node(int n
- }
- 
- static int __ref __offline_pages(unsigned long start_pfn,
--		  unsigned long end_pfn, unsigned long timeout)
-+		  unsigned long end_pfn)
- {
--	unsigned long pfn, nr_pages, expire;
-+	unsigned long pfn, nr_pages;
- 	long offlined_pages;
- 	int ret, node;
- 	unsigned long flags;
-@@ -1634,12 +1634,8 @@ static int __ref __offline_pages(unsigne
- 		goto failed_removal;
- 
- 	pfn = start_pfn;
--	expire = jiffies + timeout;
- repeat:
- 	/* start memory hot removal */
--	ret = -EBUSY;
--	if (time_after(jiffies, expire))
--		goto failed_removal;
- 	ret = -EINTR;
- 	if (signal_pending(current))
- 		goto failed_removal;
-@@ -1712,7 +1708,7 @@ failed_removal:
- /* Must be protected by mem_hotplug_begin() or a device_lock */
- int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
--	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
-+	return __offline_pages(start_pfn, start_pfn + nr_pages);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
++++ a/scripts/spelling.txt
+@@ -492,7 +492,7 @@ failied||failed
+ faillure||failure
+ failue||failure
+ failuer||failure
+-failng|failing
++failng||failing
+ faireness||fairness
+ falied||failed
+ faliure||failure
+@@ -1118,7 +1118,7 @@ swithced||switched
+ swithcing||switching
+ swithed||switched
+ swithing||switching
+-swtich|switch
++swtich||switch
+ symetric||symmetric
+ synax||syntax
+ synchonized||synchronized
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch
-mm-memcg-remove-hotplug-locking-from-try_charge.patch
-mm-memory_hotplug-add-scheduling-point-to-__add_pages.patch
-mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
-memremap-add-scheduling-point-to-devm_memremap_pages.patch
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-memory_hotplug-do-not-fail-offlining-too-early.patch
-mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+i-need-old-gcc.patch
+scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
