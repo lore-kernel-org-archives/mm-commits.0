@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + bitfieldh-include-linux-build_bugh-instead-of-linux-bugh.patch
- added to -mm tree
-Date: Wed, 27 Sep 2017 15:47:01 -0700
-Message-ID: <59cc2a65.xn/gdtRlkUZxP2Gt%akpm@linux-foundation.org>
+Subject: + kcmp-drop-branch-leftover-typo.patch added to -mm tree
+Date: Wed, 27 Sep 2017 15:49:02 -0700
+Message-ID: <59cc2ade.+YrDnjz8C+YOF5Fc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752050AbdI0WrC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:47:02 -0400
+        with ESMTP id S1751671AbdI0WtE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, abbotti@mev.co.uk, dinan.gunawardena@netronome.com, jakub.kicinski@netronome.com, kvalo@codeaurora.org, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, avagin@virtuozzo.com, esyr@redhat.com, gorcunov@openvz.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/bitfield.h: include <linux/build_bug.h> instead of <linux/bug.h>
+     Subject: kernel/kcmp.c: drop branch leftover typo
 has been added to the -mm tree.  Its filename is
-     bitfieldh-include-linux-build_bugh-instead-of-linux-bugh.patch
+     kcmp-drop-branch-leftover-typo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitfieldh-include-linux-build_bugh-instead-of-linux-bugh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kcmp-drop-branch-leftover-typo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitfieldh-include-linux-build_bugh-instead-of-linux-bugh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kcmp-drop-branch-leftover-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: include/linux/bitfield.h: include <linux/build_bug.h> instead of <linux/bug.h>
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: kernel/kcmp.c: drop branch leftover typo
 
-Since bc6245e5efd7 ("bug: split BUILD_BUG stuff out into
-<linux/build_bug.h>"), #include <linux/build_bug.h> is better to pull
-minimal headers needed for BUILG_BUG() family.
+The else branch been left over and escaped the source code refresh.  Not a
+problem but better clean it up.
 
-Link: http://lkml.kernel.org/r/1505700775-19826-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc: Dinan Gunawardena <dinan.gunawardena@netronome.com>
-Cc: Kalle Valo <kvalo@codeaurora.org>
-Cc: Ian Abbott <abbotti@mev.co.uk>
+Fixes: 0791e3644e5e ("kcmp: add KCMP_EPOLL_TFD mode to compare epoll target files")
+Link: http://lkml.kernel.org/r/20170917165838.GA1887@uranus.lan
+Reported-by: Eugene Syromiatnikov <esyr@redhat.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Andrei Vagin <avagin@virtuozzo.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitfield.h |    2 +-
+ kernel/kcmp.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bitfield.h~bitfieldh-include-linux-build_bugh-instead-of-linux-bugh include/linux/bitfield.h
---- a/include/linux/bitfield.h~bitfieldh-include-linux-build_bugh-instead-of-linux-bugh
-+++ a/include/linux/bitfield.h
-@@ -15,7 +15,7 @@
- #ifndef _LINUX_BITFIELD_H
- #define _LINUX_BITFIELD_H
+diff -puN kernel/kcmp.c~kcmp-drop-branch-leftover-typo kernel/kcmp.c
+--- a/kernel/kcmp.c~kcmp-drop-branch-leftover-typo
++++ a/kernel/kcmp.c
+@@ -131,7 +131,7 @@ static int kcmp_epoll_target(struct task
+ 	if (filp_epoll) {
+ 		filp_tgt = get_epoll_tfile_raw_ptr(filp_epoll, slot.tfd, slot.toff);
+ 		fput(filp_epoll);
+-	} else
++	}
  
--#include <linux/bug.h>
-+#include <linux/build_bug.h>
- 
- /*
-  * Bitfield access macros
+ 	if (IS_ERR(filp_tgt))
+ 		return PTR_ERR(filp_tgt);
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-bitfieldh-remove-32bit-from-field_get-comment-block.patch
-bitfieldh-include-linux-build_bugh-instead-of-linux-bugh.patch
-init-version-include-linux-exporth-instead-of-linux-moduleh.patch
+kcmp-drop-branch-leftover-typo.patch
 
