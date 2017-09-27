@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
- added to -mm tree
-Date: Wed, 27 Sep 2017 14:06:01 -0700
-Message-ID: <59cc12b9.kI4Fq44Kjra5C05i%akpm@linux-foundation.org>
+Subject: + mm-make-count-list_lru_one-nr_items-lockless.patch added to -mm tree
+Date: Wed, 27 Sep 2017 14:19:58 -0700
+Message-ID: <59cc15fe.XeUSUjBEjAQ5qAKb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751580AbdI0VGC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 17:06:02 -0400
+        with ESMTP id S1751628AbdI0VT7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 17:19:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, axboe@kernel.dk, dan.j.williams@intel.com, hch@lst.de, hughd@google.com, idryomov@gmail.com, ross.zwisler@linux.intel.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: ktkhai@virtuozzo.com, apolyakov@beget.ru, aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap: skip swapcache for swapin of synchronous device
+     Subject: mm: make counting of list_lru_one::nr_items lockless
 has been added to the -mm tree.  Its filename is
-     mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
+     mm-make-count-list_lru_one-nr_items-lockless.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-count-list_lru_one-nr_items-lockless.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-count-list_lru_one-nr_items-lockless.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,254 +38,208 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm, swap: skip swapcache for swapin of synchronous device
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: mm: make counting of list_lru_one::nr_items lockless
 
-With fast swap storage, the platforms want to use swap more aggressively
-and swap-in is crucial to application latency.
+During the reclaiming slab of a memcg, shrink_slab iterates over all
+registered shrinkers in the system, and tries to count and consume objects
+related to the cgroup.  In case of memory pressure, this behaves bad: I
+observe high system time and time spent in list_lru_count_one() for many
+processes on RHEL7 kernel (collected via $perf record --call-graph fp -j k
+-a):
 
-The rw_page() based synchronous devices like zram, pmem and btt are such
-fast storage.  When I profile swapin performance with zram lz4 decompress
-test, S/W overhead is more than 70%.  Maybe, it would be bigger in nvdimm.
+0,50%  nixstatsagent  [kernel.vmlinux]  [k] _raw_spin_lock                [k] _raw_spin_lock
+0,26%  nixstatsagent  [kernel.vmlinux]  [k] shrink_slab                   [k] shrink_slab
+0,23%  nixstatsagent  [kernel.vmlinux]  [k] super_cache_count             [k] super_cache_count
+0,15%  nixstatsagent  [kernel.vmlinux]  [k] __list_lru_count_one.isra.2   [k] _raw_spin_lock
+0,15%  nixstatsagent  [kernel.vmlinux]  [k] list_lru_count_one            [k] __list_lru_count_one.isra.2
 
-This patch aims to reduce swap-in latency by skipping swapcache if the
-swap device is synchronous device like rw_page based device.  It enhances
-45% my swapin test(5G sequential swapin, no readahead, from 2.41sec to
-1.64sec).
+0,94%  mysqld         [kernel.vmlinux]  [k] _raw_spin_lock                [k] _raw_spin_lock
+0,57%  mysqld         [kernel.vmlinux]  [k] shrink_slab                   [k] shrink_slab
+0,51%  mysqld         [kernel.vmlinux]  [k] super_cache_count             [k] super_cache_count
+0,32%  mysqld         [kernel.vmlinux]  [k] __list_lru_count_one.isra.2   [k] _raw_spin_lock
+0,32%  mysqld         [kernel.vmlinux]  [k] list_lru_count_one            [k] __list_lru_count_one.isra.2
 
-Link: http://lkml.kernel.org/r/1505886205-9671-5-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+0,73%  sshd           [kernel.vmlinux]  [k] _raw_spin_lock                [k] _raw_spin_lock
+0,35%  sshd           [kernel.vmlinux]  [k] shrink_slab                   [k] shrink_slab
+0,32%  sshd           [kernel.vmlinux]  [k] super_cache_count             [k] super_cache_count
+0,21%  sshd           [kernel.vmlinux]  [k] __list_lru_count_one.isra.2   [k] _raw_spin_lock
+0,21%  sshd           [kernel.vmlinux]  [k] list_lru_count_one            [k] __list_lru_count_one.isra.2
+
+This patch aims to make super_cache_count() (and other functions, which
+count LRU nr_items) more effective.  It allows list_lru_node::memcg_lrus
+to be RCU-accessed, and makes __list_lru_count_one() count nr_items
+lockless to minimize overhead introduced by locking operation, and to make
+parallel reclaims more scalable.
+
+Link: http://lkml.kernel.org/r/150583358557.26700.8490036563698102569.stgit@localhost.localdomain
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Alexander Polakov <apolyakov@beget.ru>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   11 ++++++++
- mm/memory.c          |   52 ++++++++++++++++++++++++++++-------------
- mm/page_io.c         |    6 ++--
- mm/swapfile.c        |   11 +++++---
- 4 files changed, 57 insertions(+), 23 deletions(-)
+ include/linux/list_lru.h |    3 +
+ mm/list_lru.c            |   59 +++++++++++++++++++++++--------------
+ 2 files changed, 39 insertions(+), 23 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-skip-swapcache-for-swapin-of-synchronous-device include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-skip-swapcache-for-swapin-of-synchronous-device
-+++ a/include/linux/swap.h
-@@ -461,6 +461,7 @@ extern int page_swapcount(struct page *)
- extern int __swp_swapcount(swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
-+extern struct swap_info_struct *swp_swap_info(swp_entry_t entry);
- extern bool reuse_swap_page(struct page *, int *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
-@@ -469,6 +470,16 @@ extern void exit_swap_address_space(unsi
+diff -puN include/linux/list_lru.h~mm-make-count-list_lru_one-nr_items-lockless include/linux/list_lru.h
+--- a/include/linux/list_lru.h~mm-make-count-list_lru_one-nr_items-lockless
++++ a/include/linux/list_lru.h
+@@ -31,6 +31,7 @@ struct list_lru_one {
+ };
  
- #else /* CONFIG_SWAP */
- 
-+static inline int swap_readpage(struct page *page, bool do_poll)
-+{
-+	return 0;
-+}
-+
-+static inline struct swap_info_struct *swp_swap_info(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
- #define swap_address_space(entry)		(NULL)
- #define get_nr_swap_pages()			0L
- #define total_swap_pages			0L
-diff -puN mm/memory.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device mm/memory.c
---- a/mm/memory.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device
-+++ a/mm/memory.c
-@@ -2842,7 +2842,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
- int do_swap_page(struct vm_fault *vmf)
+ struct list_lru_memcg {
++	struct rcu_head		rcu;
+ 	/* array of per cgroup lists, indexed by memcg_cache_id */
+ 	struct list_lru_one	*lru[0];
+ };
+@@ -42,7 +43,7 @@ struct list_lru_node {
+ 	struct list_lru_one	lru;
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
+ 	/* for cgroup aware lrus points to per cgroup lists, otherwise NULL */
+-	struct list_lru_memcg	*memcg_lrus;
++	struct list_lru_memcg	__rcu *memcg_lrus;
+ #endif
+ 	long nr_items;
+ } ____cacheline_aligned_in_smp;
+diff -puN mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless mm/list_lru.c
+--- a/mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless
++++ a/mm/list_lru.c
+@@ -52,14 +52,15 @@ static inline bool list_lru_memcg_aware(
+ static inline struct list_lru_one *
+ list_lru_from_memcg_idx(struct list_lru_node *nlru, int idx)
  {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *page = NULL, *swapcache;
-+	struct page *page = NULL, *swapcache = NULL;
- 	struct mem_cgroup *memcg;
- 	struct vma_swap_readahead swap_ra;
- 	swp_entry_t entry;
-@@ -2881,17 +2881,35 @@ int do_swap_page(struct vm_fault *vmf)
- 		}
- 		goto out;
- 	}
-+
-+
- 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
- 	if (!page)
- 		page = lookup_swap_cache(entry, vma_readahead ? vma : NULL,
- 					 vmf->address);
- 	if (!page) {
--		if (vma_readahead)
--			page = do_swap_page_readahead(entry,
--				GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
--		else
--			page = swapin_readahead(entry,
--				GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+		struct swap_info_struct *si = swp_swap_info(entry);
-+
-+		if (!(si->flags & SWP_SYNCHRONOUS_IO)) {
-+			if (vma_readahead)
-+				page = do_swap_page_readahead(entry,
-+					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
-+			else
-+				page = swapin_readahead(entry,
-+					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			swapcache = page;
-+		} else {
-+			/* skip swapcache */
-+			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			if (page) {
-+				__SetPageLocked(page);
-+				__SetPageSwapBacked(page);
-+				set_page_private(page, entry.val);
-+				lru_cache_add_anon(page);
-+				swap_readpage(page, true);
-+			}
-+		}
-+
- 		if (!page) {
- 			/*
- 			 * Back out if somebody else faulted in this pte
-@@ -2920,7 +2938,6 @@ int do_swap_page(struct vm_fault *vmf)
- 		goto out_release;
- 	}
- 
--	swapcache = page;
- 	locked = lock_page_or_retry(page, vma->vm_mm, vmf->flags);
- 
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-@@ -2935,7 +2952,8 @@ int do_swap_page(struct vm_fault *vmf)
- 	 * test below, are not enough to exclude that.  Even if it is still
- 	 * swapcache, we need to check that the page's swap has not changed.
++	struct list_lru_memcg *memcg_lrus;
+ 	/*
+-	 * The lock protects the array of per cgroup lists from relocation
+-	 * (see memcg_update_list_lru_node).
++	 * Either lock or RCU protects the array of per cgroup lists
++	 * from relocation (see memcg_update_list_lru_node).
  	 */
--	if (unlikely(!PageSwapCache(page) || page_private(page) != entry.val))
-+	if (unlikely((!PageSwapCache(page) ||
-+			page_private(page) != entry.val)) && swapcache)
- 		goto out_page;
+-	lockdep_assert_held(&nlru->lock);
+-	if (nlru->memcg_lrus && idx >= 0)
+-		return nlru->memcg_lrus->lru[idx];
+-
++	memcg_lrus = rcu_dereference_check(nlru->memcg_lrus,
++					   lockdep_is_held(&nlru->lock));
++	if (memcg_lrus && idx >= 0)
++		return memcg_lrus->lru[idx];
+ 	return &nlru->lru;
+ }
  
- 	page = ksm_might_need_to_copy(page, vma, vmf->address);
-@@ -2988,14 +3006,16 @@ int do_swap_page(struct vm_fault *vmf)
- 		pte = pte_mksoft_dirty(pte);
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	vmf->orig_pte = pte;
--	if (page == swapcache) {
--		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
--		mem_cgroup_commit_charge(page, memcg, true, false);
--		activate_page(page);
--	} else { /* ksm created a completely new copy */
-+
-+	/* ksm created a completely new copy */
-+	if (unlikely(page != swapcache && swapcache)) {
- 		page_add_new_anon_rmap(page, vma, vmf->address, false);
- 		mem_cgroup_commit_charge(page, memcg, false, false);
- 		lru_cache_add_active_or_unevictable(page, vma);
-+	} else {
-+		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
-+		mem_cgroup_commit_charge(page, memcg, true, false);
-+		activate_page(page);
+@@ -168,10 +169,10 @@ static unsigned long __list_lru_count_on
+ 	struct list_lru_one *l;
+ 	unsigned long count;
+ 
+-	spin_lock(&nlru->lock);
++	rcu_read_lock();
+ 	l = list_lru_from_memcg_idx(nlru, memcg_idx);
+ 	count = l->nr_items;
+-	spin_unlock(&nlru->lock);
++	rcu_read_unlock();
+ 
+ 	return count;
+ }
+@@ -323,24 +324,33 @@ fail:
+ 
+ static int memcg_init_list_lru_node(struct list_lru_node *nlru)
+ {
++	struct list_lru_memcg *memcg_lrus;
+ 	int size = memcg_nr_cache_ids;
+ 
+-	nlru->memcg_lrus = kmalloc(size * sizeof(void *), GFP_KERNEL);
+-	if (!nlru->memcg_lrus)
++	memcg_lrus = kmalloc(sizeof(*memcg_lrus) +
++			     size * sizeof(void *), GFP_KERNEL);
++	if (!memcg_lrus)
+ 		return -ENOMEM;
+ 
+-	if (__memcg_init_list_lru_node(nlru->memcg_lrus, 0, size)) {
+-		kfree(nlru->memcg_lrus);
++	if (__memcg_init_list_lru_node(memcg_lrus, 0, size)) {
++		kfree(memcg_lrus);
+ 		return -ENOMEM;
+ 	}
++	RCU_INIT_POINTER(nlru->memcg_lrus, memcg_lrus);
+ 
+ 	return 0;
+ }
+ 
+ static void memcg_destroy_list_lru_node(struct list_lru_node *nlru)
+ {
+-	__memcg_destroy_list_lru_node(nlru->memcg_lrus, 0, memcg_nr_cache_ids);
+-	kfree(nlru->memcg_lrus);
++	struct list_lru_memcg *memcg_lrus;
++	/*
++	 * This is called when shrinker has already been unregistered,
++	 * and nobody can use it. So, there is no need to use kfree_rcu().
++	 */
++	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus, true);
++	__memcg_destroy_list_lru_node(memcg_lrus, 0, memcg_nr_cache_ids);
++	kfree(memcg_lrus);
+ }
+ 
+ static int memcg_update_list_lru_node(struct list_lru_node *nlru,
+@@ -350,8 +360,9 @@ static int memcg_update_list_lru_node(st
+ 
+ 	BUG_ON(old_size > new_size);
+ 
+-	old = nlru->memcg_lrus;
+-	new = kmalloc(new_size * sizeof(void *), GFP_KERNEL);
++	old = rcu_dereference_protected(nlru->memcg_lrus,
++					lockdep_is_held(&list_lrus_mutex));
++	new = kmalloc(sizeof(*new) + new_size * sizeof(void *), GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+@@ -360,29 +371,33 @@ static int memcg_update_list_lru_node(st
+ 		return -ENOMEM;
  	}
  
- 	swap_free(entry);
-@@ -3003,7 +3023,7 @@ int do_swap_page(struct vm_fault *vmf)
- 	    (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
- 		try_to_free_swap(page);
- 	unlock_page(page);
--	if (page != swapcache) {
-+	if (page != swapcache && swapcache) {
- 		/*
- 		 * Hold the lock to avoid the swap entry to be reused
- 		 * until we take the PT lock for the pte_same() check
-@@ -3036,7 +3056,7 @@ out_page:
- 	unlock_page(page);
- out_release:
- 	put_page(page);
--	if (page != swapcache) {
-+	if (page != swapcache && swapcache) {
- 		unlock_page(swapcache);
- 		put_page(swapcache);
- 	}
-diff -puN mm/page_io.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device mm/page_io.c
---- a/mm/page_io.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device
-+++ a/mm/page_io.c
-@@ -346,7 +346,7 @@ out:
- 	return ret;
+-	memcpy(new, old, old_size * sizeof(void *));
++	memcpy(&new->lru, &old->lru, old_size * sizeof(void *));
+ 
+ 	/*
+-	 * The lock guarantees that we won't race with a reader
+-	 * (see list_lru_from_memcg_idx).
++	 * The locking below allows readers that hold nlru->lock avoid taking
++	 * rcu_read_lock (see list_lru_from_memcg_idx).
+ 	 *
+ 	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
+ 	 * we have to use IRQ-safe primitives here to avoid deadlock.
+ 	 */
+ 	spin_lock_irq(&nlru->lock);
+-	nlru->memcg_lrus = new;
++	rcu_assign_pointer(nlru->memcg_lrus, new);
+ 	spin_unlock_irq(&nlru->lock);
+ 
+-	kfree(old);
++	kfree_rcu(old, rcu);
+ 	return 0;
  }
  
--int swap_readpage(struct page *page, bool do_poll)
-+int swap_readpage(struct page *page, bool synchronous)
+ static void memcg_cancel_update_list_lru_node(struct list_lru_node *nlru,
+ 					      int old_size, int new_size)
  {
- 	struct bio *bio;
- 	int ret = 0;
-@@ -354,7 +354,7 @@ int swap_readpage(struct page *page, boo
- 	blk_qc_t qc;
- 	struct gendisk *disk;
- 
--	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
-+	VM_BUG_ON_PAGE(!PageSwapCache(page) && !synchronous, page);
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageUptodate(page), page);
- 	if (frontswap_load(page) == 0) {
-@@ -402,7 +402,7 @@ int swap_readpage(struct page *page, boo
- 	count_vm_event(PSWPIN);
- 	bio_get(bio);
- 	qc = submit_bio(bio);
--	while (do_poll) {
-+	while (synchronous) {
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		if (!READ_ONCE(bio->bi_private))
- 			break;
-diff -puN mm/swapfile.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device
-+++ a/mm/swapfile.c
-@@ -3454,10 +3454,15 @@ int swapcache_prepare(swp_entry_t entry)
- 	return __swap_duplicate(entry, SWAP_HAS_CACHE);
- }
- 
-+struct swap_info_struct *swp_swap_info(swp_entry_t entry)
-+{
-+	return swap_info[swp_type(entry)];
-+}
++	struct list_lru_memcg *memcg_lrus;
 +
- struct swap_info_struct *page_swap_info(struct page *page)
- {
--	swp_entry_t swap = { .val = page_private(page) };
--	return swap_info[swp_type(swap)];
-+	swp_entry_t entry = { .val = page_private(page) };
-+	return swp_swap_info(entry);
++	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus,
++					       lockdep_is_held(&list_lrus_mutex));
+ 	/* do not bother shrinking the array back to the old size, because we
+ 	 * cannot handle allocation failures here */
+-	__memcg_destroy_list_lru_node(nlru->memcg_lrus, old_size, new_size);
++	__memcg_destroy_list_lru_node(memcg_lrus, old_size, new_size);
  }
  
- /*
-@@ -3465,7 +3470,6 @@ struct swap_info_struct *page_swap_info(
-  */
- struct address_space *__page_file_mapping(struct page *page)
- {
--	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
- 	return page_swap_info(page)->swap_file->f_mapping;
- }
- EXPORT_SYMBOL_GPL(__page_file_mapping);
-@@ -3473,7 +3477,6 @@ EXPORT_SYMBOL_GPL(__page_file_mapping);
- pgoff_t __page_file_index(struct page *page)
- {
- 	swp_entry_t swap = { .val = page_private(page) };
--	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
- 	return swp_offset(swap);
- }
- EXPORT_SYMBOL_GPL(__page_file_index);
+ static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ktkhai@virtuozzo.com are
 
-zram-fix-null-dereference-of-handle.patch
-zram-fix-null-dereference-of-handle-v2.patch
-zram-set-bdi_cap_stable_writes-once.patch
-bdi-introduce-bdi_cap_synchronous_io.patch
-mm-swap-introduce-swp_synchronous_io.patch
-mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
+ksm-fix-unlocked-iteration-over-vmas-in-cmp_and_merge_page.patch
+mm-make-count-list_lru_one-nr_items-lockless.patch
 
