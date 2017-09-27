@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
- added to -mm tree
-Date: Wed, 27 Sep 2017 15:32:37 -0700
-Message-ID: <59cc2705.KyuK54qXpi8aIxZ+%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-do-not-fail-offlining-too-early.patch added
+ to -mm tree
+Date: Wed, 27 Sep 2017 15:40:26 -0700
+Message-ID: <59cc28da.CLCU/Orl+2/wHV3C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55042 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751355AbdI0Wci (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:32:38 -0400
+        with ESMTP id S1751671AbdI0Wk1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, dan.j.williams@gmail.com, jthumshirn@suse.de, mm-commits@vger.kernel.org
+To: mhocko@suse.com, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: add scheduling point to memmap_init_zone
+     Subject: mm, memory_hotplug: do not fail offlining too early
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
+     mm-memory_hotplug-do-not-fail-offlining-too-early.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-do-not-fail-offlining-too-early.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-do-not-fail-offlining-too-early.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,56 +40,162 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: add scheduling point to memmap_init_zone
+Subject: mm, memory_hotplug: do not fail offlining too early
 
-memmap_init_zone gets a pfn range to intialize and it can be really large
-resulting in a soft lockup on non-preemptible kernels
+Patch series "mm, memory_hotplug: redefine memory offline retry logic", v2.
 
-[   65.585596] NMI watchdog: BUG: soft lockup - CPU#31 stuck for 23s! [kworker/u642:5:1720]
-[...]
-[   65.585818] task: ffff88ecd7e902c0 ti: ffff88eca4e50000 task.ti: ffff88eca4e50000
-[   65.585819] RIP: 0010:[<ffffffff815ff545>]  [<ffffffff815ff545>] move_pfn_range_to_zone+0x185/0x1d0
-[...]
-[   65.585843] Call Trace:
-[   65.585853]  [<ffffffff8118b657>] devm_memremap_pages+0x2c7/0x430
-[   65.585862]  [<ffffffffa02d650d>] pmem_attach_disk+0x2fd/0x3f0 [nd_pmem]
-[   65.585893]  [<ffffffffa14bb984>] nvdimm_bus_probe+0x64/0x110 [libnvdimm]
-[   65.585904]  [<ffffffff8146b257>] driver_probe_device+0x1f7/0x420
-[   65.585910]  [<ffffffff81469212>] bus_for_each_drv+0x52/0x80
-[   65.585913]  [<ffffffff8146af40>] __device_attach+0xb0/0x130
-[   65.585916]  [<ffffffff8146a367>] bus_probe_device+0x87/0xa0
-[   65.585919]  [<ffffffff814682fc>] device_add+0x3fc/0x5f0
-[   65.585924]  [<ffffffffa14baffe>] nd_async_device_register+0xe/0x40 [libnvdimm]
-[   65.585927]  [<ffffffff8109e413>] async_run_entry_fn+0x43/0x150
-[   65.585933]  [<ffffffff81095b8e>] process_one_work+0x14e/0x410
-[   65.585937]  [<ffffffff810963f6>] worker_thread+0x116/0x490
-[   65.585939]  [<ffffffff8109b8c7>] kthread+0xc7/0xe0
-[   65.585943]  [<ffffffff8160a57f>] ret_from_fork+0x3f/0x70
+While testing memory hotplug on a large 4TB machine we have noticed that
+memory offlining is just too eager to fail.  The primary reason is that
+the retry logic is just too easy to give up.  We have 4 ways out of the
+offline
 
-Fix this by adding a scheduling point once per page block.
+	- we have a permanent failure (isolation or memory notifiers fail,
+	  or hugetlb pages cannot be dropped)
+	- userspace sends a signal
+	- a hardcoded 120s timeout expires
+	- page migration fails 5 times
 
-Link: http://lkml.kernel.org/r/20170918121410.24466-3-mhocko@kernel.org
+This is way too convoluted and it doesn't scale very well.  We have seen
+both temporary migration failures as well as 120s being triggered.  After
+removing those restrictions we were able to pass stress testing during
+memory hot remove without any other negative side effects observed. 
+Therefore I suggest dropping both hard coded policies.  I couldn't have
+found any specific reason for them in the changelog.  I neither didn't get
+any response [1] from Kamezawa.  If we need some upper bound - e.g. 
+timeout based - then we should have a proper and user defined policy for
+that.  In any case there should be a clear use case when introducing it. 
+
+
+This patch (of 2):
+
+Memory offlining can fail too eagerly under heavy memory pressure.
+
+[ 5410.336792] page:ffffea22a646bd00 count:255 mapcount:252 mapping:ffff88ff926c9f38 index:0x3
+[ 5410.336809] flags: 0x9855fe40010048(uptodate|active|mappedtodisk)
+[ 5410.336811] page dumped because: isolation failed
+[ 5410.336813] page->mem_cgroup:ffff8801cd662000
+[ 5420.655030] memory offlining [mem 0x18b580000000-0x18b5ffffffff] failed
+
+Isolation has failed here because the page is not on LRU.  Most probably
+because it was on the pcp LRU cache or it has been removed from the LRU
+already but it hasn't been freed yet.  In both cases the page doesn't look
+non-migrable so retrying more makes sense.
+
+__offline_pages seems rather cluttered when it comes to the retry logic. 
+We have 5 retries at maximum and a timeout.  We could argue whether the
+timeout makes sense but failing just because of a race when somebody
+isoltes a page from LRU or puts it on a pcp LRU lists is just wrong.  It
+only takes it to race with a process which unmaps some pages and remove
+them from the LRU list and we can fail the whole offline because of
+something that is a temporary condition and actually not harmful for the
+offline.
+
+Please note that unmovable pages should be already excluded during
+start_isolate_page_range.  We could argue that has_unmovable_pages is racy
+and MIGRATE_MOVABLE check doesn't provide any hard guarantee either but
+kernel zones (aka < ZONE_MOVABLE) will very likely detect unmovable pages
+in most cases and movable zone shouldn't contain unmovable pages at all. 
+Some of those pages might be pinned but not for ever because that would be
+a bug on its own.  In any case the context is still interruptible and so
+the userspace can easily bail out when the operation takes too long.  This
+is certainly better behavior than a hardcoded retry loop which is racy.
+
+Fix this by removing the max retry count and only rely on the timeout
+resp.  interruption by a signal from the userspace.  Also retry rather
+than fail when check_pages_isolated sees some !free pages because those
+could be a result of the race as well.
+
+Link: http://lkml.kernel.org/r/20170918070834.13083-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
-Tested-by: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Dan Williams <dan.j.williams@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory_hotplug.c |   40 ++++++++++------------------------------
+ 1 file changed, 10 insertions(+), 30 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-add-scheduling-point-to-memmap_init_zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-add-scheduling-point-to-memmap_init_zone
-+++ a/mm/page_alloc.c
-@@ -5367,6 +5367,7 @@ not_early:
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early
++++ a/mm/memory_hotplug.c
+@@ -1598,7 +1598,7 @@ static int __ref __offline_pages(unsigne
+ {
+ 	unsigned long pfn, nr_pages, expire;
+ 	long offlined_pages;
+-	int ret, drain, retry_max, node;
++	int ret, node;
+ 	unsigned long flags;
+ 	unsigned long valid_start, valid_end;
+ 	struct zone *zone;
+@@ -1635,43 +1635,25 @@ static int __ref __offline_pages(unsigne
  
- 			__init_single_page(page, pfn, zone, nid);
- 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+			cond_resched();
- 		} else {
- 			__init_single_pfn(pfn, zone, nid);
- 		}
+ 	pfn = start_pfn;
+ 	expire = jiffies + timeout;
+-	drain = 0;
+-	retry_max = 5;
+ repeat:
+ 	/* start memory hot removal */
+-	ret = -EAGAIN;
++	ret = -EBUSY;
+ 	if (time_after(jiffies, expire))
+ 		goto failed_removal;
+ 	ret = -EINTR;
+ 	if (signal_pending(current))
+ 		goto failed_removal;
+-	ret = 0;
+-	if (drain) {
+-		lru_add_drain_all_cpuslocked();
+-		cond_resched();
+-		drain_all_pages(zone);
+-	}
++
++	cond_resched();
++	lru_add_drain_all_cpuslocked();
++	drain_all_pages(zone);
+ 
+ 	pfn = scan_movable_pages(start_pfn, end_pfn);
+ 	if (pfn) { /* We have movable pages */
+ 		ret = do_migrate_range(pfn, end_pfn);
+-		if (!ret) {
+-			drain = 1;
+-			goto repeat;
+-		} else {
+-			if (ret < 0)
+-				if (--retry_max == 0)
+-					goto failed_removal;
+-			yield();
+-			drain = 1;
+-			goto repeat;
+-		}
++		goto repeat;
+ 	}
+-	/* drain all zone's lru pagevec, this is asynchronous... */
+-	lru_add_drain_all_cpuslocked();
+-	yield();
+-	/* drain pcp pages, this is synchronous. */
+-	drain_all_pages(zone);
++
+ 	/*
+ 	 * dissolve free hugepages in the memory block before doing offlining
+ 	 * actually in order to make hugetlbfs's object counting consistent.
+@@ -1681,10 +1663,8 @@ repeat:
+ 		goto failed_removal;
+ 	/* check again */
+ 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
+-	if (offlined_pages < 0) {
+-		ret = -EBUSY;
+-		goto failed_removal;
+-	}
++	if (offlined_pages < 0)
++		goto repeat;
+ 	pr_info("Offlined Pages %ld\n", offlined_pages);
+ 	/* Ok, all of our target is isolated.
+ 	   We cannot do rollback at this point. */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
@@ -100,4 +206,6 @@ mm-memory_hotplug-add-scheduling-point-to-__add_pages.patch
 mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
 memremap-add-scheduling-point-to-devm_memremap_pages.patch
 mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
 
