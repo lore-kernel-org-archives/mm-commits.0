@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-do-not-fail-offlining-too-early.patch added
- to -mm tree
-Date: Wed, 27 Sep 2017 15:40:26 -0700
-Message-ID: <59cc28da.CLCU/Orl+2/wHV3C%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+ added to -mm tree
+Date: Wed, 27 Sep 2017 15:40:29 -0700
+Message-ID: <59cc28dd.pX+e0kyr6oFjI7CV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751671AbdI0Wk1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:40:27 -0400
+        with ESMTP id S1751671AbdI0Wka (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2017 18:40:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: do not fail offlining too early
+     Subject: mm, memory_hotplug: remove timeout from __offline_memory
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+     mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,72 +40,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: do not fail offlining too early
+Subject: mm, memory_hotplug: remove timeout from __offline_memory
 
-Patch series "mm, memory_hotplug: redefine memory offline retry logic", v2.
+We have a hardcoded 120s timeout after which the memory offline fails
+basically since the hot remove has been introduced.  This is essentially a
+policy implemented in the kernel.  Moreover there is no way to adjust the
+timeout and so we are sometimes facing memory offline failures if the
+system is under a heavy memory pressure or very intensive CPU workload on
+large machines.
 
-While testing memory hotplug on a large 4TB machine we have noticed that
-memory offlining is just too eager to fail.  The primary reason is that
-the retry logic is just too easy to give up.  We have 4 ways out of the
-offline
+It is not very clear what purpose the timeout actually serves.  The
+offline operation is interruptible by a signal so if userspace wants some
+timeout based termination this can be done trivially by sending a signal.
 
-	- we have a permanent failure (isolation or memory notifiers fail,
-	  or hugetlb pages cannot be dropped)
-	- userspace sends a signal
-	- a hardcoded 120s timeout expires
-	- page migration fails 5 times
+If there is a strong usecase to do this from the kernel then we should do
+it properly and have a it tunable from the userspace with the timeout
+disabled by default along with the explanation who uses it and for what
+purporse.
 
-This is way too convoluted and it doesn't scale very well.  We have seen
-both temporary migration failures as well as 120s being triggered.  After
-removing those restrictions we were able to pass stress testing during
-memory hot remove without any other negative side effects observed. 
-Therefore I suggest dropping both hard coded policies.  I couldn't have
-found any specific reason for them in the changelog.  I neither didn't get
-any response [1] from Kamezawa.  If we need some upper bound - e.g. 
-timeout based - then we should have a proper and user defined policy for
-that.  In any case there should be a clear use case when introducing it. 
-
-
-This patch (of 2):
-
-Memory offlining can fail too eagerly under heavy memory pressure.
-
-[ 5410.336792] page:ffffea22a646bd00 count:255 mapcount:252 mapping:ffff88ff926c9f38 index:0x3
-[ 5410.336809] flags: 0x9855fe40010048(uptodate|active|mappedtodisk)
-[ 5410.336811] page dumped because: isolation failed
-[ 5410.336813] page->mem_cgroup:ffff8801cd662000
-[ 5420.655030] memory offlining [mem 0x18b580000000-0x18b5ffffffff] failed
-
-Isolation has failed here because the page is not on LRU.  Most probably
-because it was on the pcp LRU cache or it has been removed from the LRU
-already but it hasn't been freed yet.  In both cases the page doesn't look
-non-migrable so retrying more makes sense.
-
-__offline_pages seems rather cluttered when it comes to the retry logic. 
-We have 5 retries at maximum and a timeout.  We could argue whether the
-timeout makes sense but failing just because of a race when somebody
-isoltes a page from LRU or puts it on a pcp LRU lists is just wrong.  It
-only takes it to race with a process which unmaps some pages and remove
-them from the LRU list and we can fail the whole offline because of
-something that is a temporary condition and actually not harmful for the
-offline.
-
-Please note that unmovable pages should be already excluded during
-start_isolate_page_range.  We could argue that has_unmovable_pages is racy
-and MIGRATE_MOVABLE check doesn't provide any hard guarantee either but
-kernel zones (aka < ZONE_MOVABLE) will very likely detect unmovable pages
-in most cases and movable zone shouldn't contain unmovable pages at all. 
-Some of those pages might be pinned but not for ever because that would be
-a bug on its own.  In any case the context is still interruptible and so
-the userspace can easily bail out when the operation takes too long.  This
-is certainly better behavior than a hardcoded retry loop which is racy.
-
-Fix this by removing the max retry count and only rely on the timeout
-resp.  interruption by a signal from the userspace.  Also retry rather
-than fail when check_pages_isolated sees some !free pages because those
-could be a result of the race as well.
-
-Link: http://lkml.kernel.org/r/20170918070834.13083-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170918070834.13083-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -117,85 +70,46 @@ Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   40 ++++++++++------------------------------
- 1 file changed, 10 insertions(+), 30 deletions(-)
+ mm/memory_hotplug.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory
 +++ a/mm/memory_hotplug.c
-@@ -1598,7 +1598,7 @@ static int __ref __offline_pages(unsigne
+@@ -1594,9 +1594,9 @@ static void node_states_clear_node(int n
+ }
+ 
+ static int __ref __offline_pages(unsigned long start_pfn,
+-		  unsigned long end_pfn, unsigned long timeout)
++		  unsigned long end_pfn)
  {
- 	unsigned long pfn, nr_pages, expire;
+-	unsigned long pfn, nr_pages, expire;
++	unsigned long pfn, nr_pages;
  	long offlined_pages;
--	int ret, drain, retry_max, node;
-+	int ret, node;
+ 	int ret, node;
  	unsigned long flags;
- 	unsigned long valid_start, valid_end;
- 	struct zone *zone;
-@@ -1635,43 +1635,25 @@ static int __ref __offline_pages(unsigne
+@@ -1634,12 +1634,8 @@ static int __ref __offline_pages(unsigne
+ 		goto failed_removal;
  
  	pfn = start_pfn;
- 	expire = jiffies + timeout;
--	drain = 0;
--	retry_max = 5;
+-	expire = jiffies + timeout;
  repeat:
  	/* start memory hot removal */
--	ret = -EAGAIN;
-+	ret = -EBUSY;
- 	if (time_after(jiffies, expire))
- 		goto failed_removal;
+-	ret = -EBUSY;
+-	if (time_after(jiffies, expire))
+-		goto failed_removal;
  	ret = -EINTR;
  	if (signal_pending(current))
  		goto failed_removal;
--	ret = 0;
--	if (drain) {
--		lru_add_drain_all_cpuslocked();
--		cond_resched();
--		drain_all_pages(zone);
--	}
-+
-+	cond_resched();
-+	lru_add_drain_all_cpuslocked();
-+	drain_all_pages(zone);
+@@ -1712,7 +1708,7 @@ failed_removal:
+ /* Must be protected by mem_hotplug_begin() or a device_lock */
+ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ {
+-	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
++	return __offline_pages(start_pfn, start_pfn + nr_pages);
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  
- 	pfn = scan_movable_pages(start_pfn, end_pfn);
- 	if (pfn) { /* We have movable pages */
- 		ret = do_migrate_range(pfn, end_pfn);
--		if (!ret) {
--			drain = 1;
--			goto repeat;
--		} else {
--			if (ret < 0)
--				if (--retry_max == 0)
--					goto failed_removal;
--			yield();
--			drain = 1;
--			goto repeat;
--		}
-+		goto repeat;
- 	}
--	/* drain all zone's lru pagevec, this is asynchronous... */
--	lru_add_drain_all_cpuslocked();
--	yield();
--	/* drain pcp pages, this is synchronous. */
--	drain_all_pages(zone);
-+
- 	/*
- 	 * dissolve free hugepages in the memory block before doing offlining
- 	 * actually in order to make hugetlbfs's object counting consistent.
-@@ -1681,10 +1663,8 @@ repeat:
- 		goto failed_removal;
- 	/* check again */
- 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
--	if (offlined_pages < 0) {
--		ret = -EBUSY;
--		goto failed_removal;
--	}
-+	if (offlined_pages < 0)
-+		goto repeat;
- 	pr_info("Offlined Pages %ld\n", offlined_pages);
- 	/* Ok, all of our target is isolated.
- 	   We cannot do rollback at this point. */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
