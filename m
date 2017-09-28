@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch added to -mm tree
-Date: Thu, 28 Sep 2017 14:43:24 -0700
-Message-ID: <59cd6cfc.gjq2hAb82xF6wYrU%akpm@linux-foundation.org>
+Subject: + proc-uninline-name_to_int.patch added to -mm tree
+Date: Thu, 28 Sep 2017 14:44:52 -0700
+Message-ID: <59cd6d54.FH46OOxEKQWWQjEI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750819AbdI1VnZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:43:25 -0400
+        with ESMTP id S1750947AbdI1Vox (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:44:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 00moses.alexander00@gmail.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, khandual@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: enable soft offline of HugeTLB pages at PUD level
+     Subject: proc: : uninline name_to_int()
 has been added to the -mm tree.  Its filename is
-     mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
+     proc-uninline-name_to_int.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-uninline-name_to_int.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-uninline-name_to_int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +38,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandru Moise <00moses.alexander00@gmail.com>
-Subject: mm/madvise: enable soft offline of HugeTLB pages at PUD level
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: : uninline name_to_int()
 
-Since 94310cbcaa3c2 ("mm/madvise: enable (soft|hard) offline of HugeTLB
-pages at PGD level") we've been able to soft offline 1G hugepages at the
-PGD level, however x86_64 gigantic hugepages are at the PUD level so we
-should add an extra check to account for hstate order at PUD level.
+Save ~360 bytes.
 
-I'm not sure if this also applies to 5 level page tables on x86_64
-however. Tested with 4 level pagetable.
+	add/remove: 1/0 grow/shrink: 0/4 up/down: 104/-463 (-359)
+	function                                     old     new   delta
+	name_to_int                                    -     104    +104
+	proc_pid_lookup                              217     126     -91
+	proc_lookupfd_common                         212     121     -91
+	proc_task_lookup                             289     194     -95
+	__proc_create                                588     402    -186
 
-Link: http://lkml.kernel.org/r/20170913101047.GA13026@gmail.com
-Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Link: http://lkml.kernel.org/r/20170912194850.GA17730@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/Makefile   |    1 +
+ fs/proc/internal.h |   23 +----------------------
+ fs/proc/util.c     |   23 +++++++++++++++++++++++
+ 3 files changed, 25 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level
-+++ a/include/linux/hugetlb.h
-@@ -480,6 +480,7 @@ static inline bool hugepage_migration_su
- {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	if ((huge_page_shift(h) == PMD_SHIFT) ||
-+		(huge_page_shift(h) == PUD_SHIFT) ||
- 		(huge_page_shift(h) == PGDIR_SHIFT))
- 		return true;
- 	else
+diff -puN fs/proc/internal.h~proc-uninline-name_to_int fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-uninline-name_to_int
++++ a/fs/proc/internal.h
+@@ -103,28 +103,7 @@ static inline struct task_struct *get_pr
+ void task_dump_owner(struct task_struct *task, mode_t mode,
+ 		     kuid_t *ruid, kgid_t *rgid);
+ 
+-static inline unsigned name_to_int(const struct qstr *qstr)
+-{
+-	const char *name = qstr->name;
+-	int len = qstr->len;
+-	unsigned n = 0;
+-
+-	if (len > 1 && *name == '0')
+-		goto out;
+-	while (len-- > 0) {
+-		unsigned c = *name++ - '0';
+-		if (c > 9)
+-			goto out;
+-		if (n >= (~0U-9)/10)
+-			goto out;
+-		n *= 10;
+-		n += c;
+-	}
+-	return n;
+-out:
+-	return ~0U;
+-}
+-
++unsigned name_to_int(const struct qstr *qstr);
+ /*
+  * Offset of the first process in the /proc root directory..
+  */
+diff -puN fs/proc/Makefile~proc-uninline-name_to_int fs/proc/Makefile
+--- a/fs/proc/Makefile~proc-uninline-name_to_int
++++ a/fs/proc/Makefile
+@@ -20,6 +20,7 @@ proc-y	+= loadavg.o
+ proc-y	+= meminfo.o
+ proc-y	+= stat.o
+ proc-y	+= uptime.o
++proc-y	+= util.o
+ proc-y	+= version.o
+ proc-y	+= softirqs.o
+ proc-y	+= namespaces.o
+diff -puN /dev/null fs/proc/util.c
+--- /dev/null
++++ a/fs/proc/util.c
+@@ -0,0 +1,23 @@
++#include <linux/dcache.h>
++
++unsigned name_to_int(const struct qstr *qstr)
++{
++	const char *name = qstr->name;
++	int len = qstr->len;
++	unsigned n = 0;
++
++	if (len > 1 && *name == '0')
++		goto out;
++	while (len-- > 0) {
++		unsigned c = *name++ - '0';
++		if (c > 9)
++			goto out;
++		if (n >= (~0U-9)/10)
++			goto out;
++		n *= 10;
++		n += c;
++	}
++	return n;
++out:
++	return ~0U;
++}
 _
 
-Patches currently in -mm which might be from 00moses.alexander00@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration.patch
-mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
+proc-uninline-name_to_int.patch
+proc-use-do-while-in-name_to_int.patch
+seq_file-delete-small-value-optimization.patch
 
