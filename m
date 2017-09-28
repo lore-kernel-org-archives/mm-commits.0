@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-use-do-while-in-name_to_int.patch added to -mm tree
-Date: Thu, 28 Sep 2017 14:44:55 -0700
-Message-ID: <59cd6d57./83utZdNi42ew27q%akpm@linux-foundation.org>
+Subject: + zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
+ added to -mm tree
+Date: Thu, 28 Sep 2017 14:47:58 -0700
+Message-ID: <59cd6e0e.QibheXQJ6Jt57p6I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751263AbdI1Vo4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:44:56 -0400
+        with ESMTP id S1750805AbdI1Vr7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:47:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: use do-while in name_to_int()
+     Subject: zram: remove zlib from the list of recommended algorithms
 has been added to the -mm tree.  Its filename is
-     proc-use-do-while-in-name_to_int.patch
+     zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-use-do-while-in-name_to_int.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-use-do-while-in-name_to_int.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,50 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: use do-while in name_to_int()
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zram: remove zlib from the list of recommended algorithms
 
-Gcc doesn't know that "len" is guaranteed to be >=1 by dcache and
-generates standard while-loop prologue duplicating loop condition.
+ZSTD tends to outperform deflate/inflate, thus we remove zlib from the
+list of recommended algorithms and recommend zstd instead.
 
-	add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-27 (-27)
-	function                                     old     new   delta
-	name_to_int                                  104      77     -27
-
-Link: http://lkml.kernel.org/r/20170912195213.GB17730@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/20170912050005.3247-2-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/util.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zcomp.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/proc/util.c~proc-use-do-while-in-name_to_int fs/proc/util.c
---- a/fs/proc/util.c~proc-use-do-while-in-name_to_int
-+++ a/fs/proc/util.c
-@@ -8,7 +8,7 @@ unsigned name_to_int(const struct qstr *
- 
- 	if (len > 1 && *name == '0')
- 		goto out;
--	while (len-- > 0) {
-+	do {
- 		unsigned c = *name++ - '0';
- 		if (c > 9)
- 			goto out;
-@@ -16,7 +16,7 @@ unsigned name_to_int(const struct qstr *
- 			goto out;
- 		n *= 10;
- 		n += c;
--	}
-+	} while (--len > 0);
- 	return n;
- out:
- 	return ~0U;
+diff -puN drivers/block/zram/zcomp.c~zram-remove-zlib-from-the-list-of-recommended-algorithms drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-remove-zlib-from-the-list-of-recommended-algorithms
++++ a/drivers/block/zram/zcomp.c
+@@ -23,9 +23,6 @@ static const char * const backends[] = {
+ #if IS_ENABLED(CONFIG_CRYPTO_LZ4)
+ 	"lz4",
+ #endif
+-#if IS_ENABLED(CONFIG_CRYPTO_DEFLATE)
+-	"deflate",
+-#endif
+ #if IS_ENABLED(CONFIG_CRYPTO_LZ4HC)
+ 	"lz4hc",
+ #endif
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-proc-uninline-name_to_int.patch
-proc-use-do-while-in-name_to_int.patch
-seq_file-delete-small-value-optimization.patch
+zram-add-zstd-to-the-supported-algorithms-list.patch
+zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
 
