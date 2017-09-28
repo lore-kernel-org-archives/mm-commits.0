@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch added
- to -mm tree
-Date: Thu, 28 Sep 2017 13:40:12 -0700
-Message-ID: <59cd5e2c.jnE9zedmWefgpsUZ%akpm@linux-foundation.org>
+ bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch added to -mm tree
+Date: Thu, 28 Sep 2017 13:42:34 -0700
+Message-ID: <59cd5eba.KUM+U7XM5ZISsifN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45792 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751484AbdI1UkN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:40:13 -0400
+        with ESMTP id S1750821AbdI1Umf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will.deacon@arm.com, Dave.Martin@arm.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: maninder1.s@samsung.com, andi@firstfloor.org, a.sahrawat@samsung.com, mmarek@suse.cz, pankaj.m@samsung.com, v.narang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/decodecode: fix decoding for AArch64 (arm64) instructions
+     Subject: bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
 has been added to the -mm tree.  Its filename is
-     scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
+     bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +39,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: scripts/decodecode: fix decoding for AArch64 (arm64) instructions
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
 
-There are a couple of problems with the decodecode script and arm64:
+v1 -> v2
+1) Incorporated missed changes between 4.1 and latest version.
+2) Removed extra noise of "#####" after each section print.
+3) Removed extra parentheses from if and else caluse.
 
-1. AArch64 objdump refuses to disassemble .4byte directives as instructions,
-   insisting that they are data values and displaying them as:
-
-	a94153f3	.word	0xa94153f3		<-- trapping instruction
-
-   This is resolved by using the .inst directive instead.
-
-2. Disassembly of branch instructions attempts to provide the target as
-   an offset from a symbol, e.g.:
-
-   0:	34000082	cbz	w2, 10 <.text+0x10>
-
-  however this falls foul of the grep -v, which matches lines containing
-  ".text" and ends up removing all branch instructions from the dump.
-
-This patch resolves both issues by using the .inst directive for 4-byte
-quantities on arm64 and stripping the resulting binaries (as is done on
-arm already) to remove the mapping symbols.
-
-Link: http://lkml.kernel.org/r/1506596147-23630-1-git-send-email-will.deacon@arm.com
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Reviewed-by: Dave Martin <Dave.Martin@arm.com>
+Link: http://lkml.kernel.org/r/1506569402-24787-1-git-send-email-maninder1.s@samsung.com
+Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Michal Marek <mmarek@suse.cz>
+Cc: <pankaj.m@samsung.com>
+Cc: <a.sahrawat@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/bloat-o-meter |   51 +++++++++++++++++-----------------------
+ 1 file changed, 22 insertions(+), 29 deletions(-)
 
-diff -puN scripts/decodecode~scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions scripts/decodecode
---- a/scripts/decodecode~scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions
-+++ a/scripts/decodecode
-@@ -58,6 +58,14 @@ disas() {
- 		${CROSS_COMPILE}strip $1.o
- 	fi
+diff -puN scripts/bloat-o-meter~bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2 scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
++++ a/scripts/bloat-o-meter
+@@ -13,7 +13,7 @@ from signal import signal, SIGPIPE, SIG_
+ signal(SIGPIPE, SIG_DFL)
  
-+	if [ "$ARCH" = "arm64" ]; then
-+		if [ $width -eq 4 ]; then
-+			type=inst
-+		fi
-+
-+		${CROSS_COMPILE}strip $1.o
-+	fi
-+
- 	${CROSS_COMPILE}objdump $OBJDUMPFLAGS -S $1.o | \
- 		grep -v "/tmp\|Disassembly\|\.text\|^$" > $1.dis 2>&1
- }
-_
-
-Patches currently in -mm which might be from will.deacon@arm.com are
-
-scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
-
+ if len(sys.argv) < 3:
+-    sys.stderr.write("usage: %s [option] file1 file2 \n" % sys.argv[0])
++    sys.stderr.write("usage: %s [option] file1 file2\n" % sys.argv[0])
+     sys.stderr.write("The options are:\n")
+     sys.stderr.write("-c	cateogrize output based on symbole type\n")
+     sys.stderr.write("-d	Show delta of Data Section\n")
+@@ -22,23 +22,24 @@ if len(sys.argv) < 3:
+ 
+ re_NUMBER = re.compile(r'\.[0-9]+')
+ 
+-def getsizes(file, format) :
+-    func_sym = {}
+-    for l in os.popen("nm --size-sort " + file).readlines():
+-        size, type, name = l[:-1].split()
+-        if type in format:
+-            # strip generated symbols
+-            if name.startswith("__mod_"): continue
+-            if name.startswith("SyS_"): continue
+-            if name.startswith("compat_SyS_"): continue
+-            if name == "linux_banner": continue
+-            # statics and some other optimizations adds random .NUMBER
+-            name = re_NUMBER.sub('', name)
+-            func_sym[name] = func_sym.get(name, 0) + int(size, 16)
+-    return func_sym
++def getsizes(file, format):
++    sym = {}
++    with os.popen("nm --size-sort " + file) as f:
++        for line in f:
++            size, type, name = line.split()
++            if type in format:
++                # strip generated symbols
++                if name.startswith("__mod_"): continue
++                if name.startswith("SyS_"): continue
++                if name.startswith("compat_SyS_"): continue
++                if name == "linux_banner": continue
++                # statics and some other optimizations adds random .NUMBER
++                name = re_NUMBER.sub('', name)
++                sym[name] = sym.get(name, 0) + int(size, 16)
++    return sym
+ 
+ def calc(oldfile, newfile, format):
+-    old = getsizes(oldfile , format)
++    old = getsizes(oldfile, format)
+     new = getsizes(newfile, format)
+     grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
+     delta, common = [], {}
+@@ -79,27 +80,19 @@ def print_result(symboltype, symbolforma
+     print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
+           (add, remove, grow, shrink, up, -down, up-down))
+     print("%-40s %7s %7s %+7s" % (symboltype, "old", "new", "delta"))
+-
+     for d, n in delta:
+-        if d: print "%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d)
++        if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
+ 
+     print("Total: Before=%d, After=%d, chg %+.2f%%" % \
+-          (otot, ntot, (ntot - otot)*100.0/otot))
++        (otot, ntot, (ntot - otot)*100.0/otot))
+ 
+-if(sys.argv[1] == "-c"):
++if sys.argv[1] == "-c":
+     print_result("Function", "tT", 3)
+-    print("##########################################################")
+-
+     print_result("Data", "dDbB", 3)
+-    print("##########################################################")
+-
+     print_result("RO Data", "rR", 3)
+-
+-elif(sys.argv[1] == "-d"):
++elif sys.argv[1] == "-d":
+     print_result("Data", "dDbBrR", 3)
+-
+-elif(sys.argv[1] == "-t"):
++elif sys.argv[1] == "-t":
+     print_result("Function", "tT", 3)
