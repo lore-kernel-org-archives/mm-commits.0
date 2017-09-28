@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch added to -mm tree
-Date: Thu, 28 Sep 2017 13:42:34 -0700
-Message-ID: <59cd5eba.KUM+U7XM5ZISsifN%akpm@linux-foundation.org>
+Subject: + params-improve-standard_param_def-readability.patch added to
+ -mm tree
+Date: Thu, 28 Sep 2017 13:46:53 -0700
+Message-ID: <59cd5fbd.c2z4QtIdN9eLFQPI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45860 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750821AbdI1Umf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:42:35 -0400
+        with ESMTP id S1751567AbdI1Uqy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:46:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maninder1.s@samsung.com, andi@firstfloor.org, a.sahrawat@samsung.com, mmarek@suse.cz, pankaj.m@samsung.com, v.narang@samsung.com, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, bhe@redhat.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
+     Subject: kernel/params.c: improve STANDARD_PARAM_DEF readability
 has been added to the -mm tree.  Its filename is
-     bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
+     params-improve-standard_param_def-readability.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/params-improve-standard_param_def-readability.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/params-improve-standard_param_def-readability.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,107 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
+From: Jean Delvare <jdelvare@suse.de>
+Subject: kernel/params.c: improve STANDARD_PARAM_DEF readability
 
-v1 -> v2
-1) Incorporated missed changes between 4.1 and latest version.
-2) Removed extra noise of "#####" after each section print.
-3) Removed extra parentheses from if and else caluse.
+Align the parameters passed to STANDARD_PARAM_DEF for clarity.
 
-Link: http://lkml.kernel.org/r/1506569402-24787-1-git-send-email-maninder1.s@samsung.com
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Cc: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: <pankaj.m@samsung.com>
-Cc: <a.sahrawat@samsung.com>
+Link: http://lkml.kernel.org/r/20170928162728.756143cc@endymion
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Suggested-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |   51 +++++++++++++++++-----------------------
- 1 file changed, 22 insertions(+), 29 deletions(-)
+ kernel/params.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN scripts/bloat-o-meter~bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2 scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
-+++ a/scripts/bloat-o-meter
-@@ -13,7 +13,7 @@ from signal import signal, SIGPIPE, SIG_
- signal(SIGPIPE, SIG_DFL)
+diff -puN kernel/params.c~params-improve-standard_param_def-readability kernel/params.c
+--- a/kernel/params.c~params-improve-standard_param_def-readability
++++ a/kernel/params.c
+@@ -236,14 +236,14 @@ char *parse_args(const char *doing,
+ 	EXPORT_SYMBOL(param_ops_##name)
  
- if len(sys.argv) < 3:
--    sys.stderr.write("usage: %s [option] file1 file2 \n" % sys.argv[0])
-+    sys.stderr.write("usage: %s [option] file1 file2\n" % sys.argv[0])
-     sys.stderr.write("The options are:\n")
-     sys.stderr.write("-c	cateogrize output based on symbole type\n")
-     sys.stderr.write("-d	Show delta of Data Section\n")
-@@ -22,23 +22,24 @@ if len(sys.argv) < 3:
  
- re_NUMBER = re.compile(r'\.[0-9]+')
+-STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", kstrtou8);
+-STANDARD_PARAM_DEF(short, short, "%hi", kstrtos16);
+-STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", kstrtou16);
+-STANDARD_PARAM_DEF(int, int, "%i", kstrtoint);
+-STANDARD_PARAM_DEF(uint, unsigned int, "%u", kstrtouint);
+-STANDARD_PARAM_DEF(long, long, "%li", kstrtol);
+-STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", kstrtoul);
+-STANDARD_PARAM_DEF(ullong, unsigned long long, "%llu", kstrtoull);
++STANDARD_PARAM_DEF(byte,	unsigned char,		"%hhu", kstrtou8);
++STANDARD_PARAM_DEF(short,	short,			"%hi",  kstrtos16);
++STANDARD_PARAM_DEF(ushort,	unsigned short,		"%hu",  kstrtou16);
++STANDARD_PARAM_DEF(int,		int,			"%i",   kstrtoint);
++STANDARD_PARAM_DEF(uint,	unsigned int,		"%u",   kstrtouint);
++STANDARD_PARAM_DEF(long,	long,			"%li",  kstrtol);
++STANDARD_PARAM_DEF(ulong,	unsigned long,		"%lu",  kstrtoul);
++STANDARD_PARAM_DEF(ullong,	unsigned long long,	"%llu", kstrtoull);
  
--def getsizes(file, format) :
--    func_sym = {}
--    for l in os.popen("nm --size-sort " + file).readlines():
--        size, type, name = l[:-1].split()
--        if type in format:
--            # strip generated symbols
--            if name.startswith("__mod_"): continue
--            if name.startswith("SyS_"): continue
--            if name.startswith("compat_SyS_"): continue
--            if name == "linux_banner": continue
--            # statics and some other optimizations adds random .NUMBER
--            name = re_NUMBER.sub('', name)
--            func_sym[name] = func_sym.get(name, 0) + int(size, 16)
--    return func_sym
-+def getsizes(file, format):
-+    sym = {}
-+    with os.popen("nm --size-sort " + file) as f:
-+        for line in f:
-+            size, type, name = line.split()
-+            if type in format:
-+                # strip generated symbols
-+                if name.startswith("__mod_"): continue
-+                if name.startswith("SyS_"): continue
-+                if name.startswith("compat_SyS_"): continue
-+                if name == "linux_banner": continue
-+                # statics and some other optimizations adds random .NUMBER
-+                name = re_NUMBER.sub('', name)
-+                sym[name] = sym.get(name, 0) + int(size, 16)
-+    return sym
- 
- def calc(oldfile, newfile, format):
--    old = getsizes(oldfile , format)
-+    old = getsizes(oldfile, format)
-     new = getsizes(newfile, format)
-     grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
-     delta, common = [], {}
-@@ -79,27 +80,19 @@ def print_result(symboltype, symbolforma
-     print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
-           (add, remove, grow, shrink, up, -down, up-down))
-     print("%-40s %7s %7s %+7s" % (symboltype, "old", "new", "delta"))
--
-     for d, n in delta:
--        if d: print "%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d)
-+        if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
- 
-     print("Total: Before=%d, After=%d, chg %+.2f%%" % \
--          (otot, ntot, (ntot - otot)*100.0/otot))
-+        (otot, ntot, (ntot - otot)*100.0/otot))
- 
--if(sys.argv[1] == "-c"):
-+if sys.argv[1] == "-c":
-     print_result("Function", "tT", 3)
--    print("##########################################################")
--
-     print_result("Data", "dDbB", 3)
--    print("##########################################################")
--
-     print_result("RO Data", "rR", 3)
--
--elif(sys.argv[1] == "-d"):
-+elif sys.argv[1] == "-d":
-     print_result("Data", "dDbBrR", 3)
--
--elif(sys.argv[1] == "-t"):
-+elif sys.argv[1] == "-t":
-     print_result("Function", "tT", 3)
+ int param_set_charp(const char *val, const struct kernel_param *kp)
+ {
+_
+
+Patches currently in -mm which might be from jdelvare@suse.de are
+
+params-align-add_sysfs_param-documentation-with-code.patch
+params-fix-the-maximum-length-in-param_get_string.patch
+params-fix-an-overflow-in-param_attr_show.patch
+params-improve-standard_param_def-readability.patch
+
