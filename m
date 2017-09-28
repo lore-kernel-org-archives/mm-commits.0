@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-pipec-implement-minimum-pipe-size-for-arg==0.patch added to
- -mm tree
-Date: Thu, 28 Sep 2017 14:49:15 -0700
-Message-ID: <59cd6e5b./9Lf2GP37G9iXL1X%akpm@linux-foundation.org>
+Subject: + pcmcia-badge4-avoid-unused-function-warning.patch added to -mm
+ tree
+Date: Thu, 28 Sep 2017 14:56:20 -0700
+Message-ID: <59cd7004./Gwg54TL/9i+OTBy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751088AbdI1VtQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:49:16 -0400
+        with ESMTP id S1750805AbdI1V4V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:56:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, mtk.manpages@gmail.com, sp3485@columbia.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: arnd@arndb.de, rmk@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/pipe.c: implement minimum pipe size for arg==0
+     Subject: drivers/pcmcia/sa1111_badge4.c: avoid unused function warning
 has been added to the -mm tree.  Its filename is
-     fs-pipec-implement-minimum-pipe-size-for-arg==0.patch
+     pcmcia-badge4-avoid-unused-function-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-pipec-implement-minimum-pipe-size-for-arg%3D%3D0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pcmcia-badge4-avoid-unused-function-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-pipec-implement-minimum-pipe-size-for-arg%3D%3D0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pcmcia-badge4-avoid-unused-function-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: fs/pipe.c: implement minimum pipe size for arg==0
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/pcmcia/sa1111_badge4.c: avoid unused function warning
 
-Shankara reports that running Syskaller with UBSAN causes this message:
-  UBSAN: Undefined behaviour in ./include/linux/log2.h:57:13
+pcmv_setup() is only used when the badge4 driver is built-in, but not when
+it is a loadable module:
 
-Syzkaller is trying to set the pipe size to 0UL. The call chain is:
-	pipe_set_size(pipe, 0UL)
-	...
-	size = round_pipe_size(arg); // arg == 0UL
-which does
-	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT; // = 0UL
-	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
-which is undefined when the argument is 0... and which calls
-	fls_long(-1) // == 64
-and then returns 1UL << 64. This is where UBSAN kicks in.
+drivers/pcmcia/sa1111_badge4.c:153:122: error: 'pcmv_setup' defined but not used [-Werror=unused-function]
 
-The fcntl() man page [http://man7.org/linux/man-pages/man2/fcntl.2.html]
-says that:
-	Attempts to set the pipe capacity below the page size are
-	silently rounded up to the page size.
+This adds an #ifdef to avoid the definition of the unused function in the
+modular case.
 
-We could try to fix the basic low-level functions to handle 0 (where
-<linux/log2.h> says the result is undefined when n == 0), but the safest
-path for now is probably just to patch fs/pipe.c to make the documented
-default happen when arg is 0.
-
-Link: http://lkml.kernel.org/r/b1c6b6fa-1917-da84-f1f4-0fafd6cac732@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Shankara Pailoor <sp3485@columbia.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Link: http://lkml.kernel.org/r/20170911201133.3421636-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <rmk@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    2 ++
+ drivers/pcmcia/sa1111_badge4.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN fs/pipe.c~fs-pipec-implement-minimum-pipe-size-for-arg==0 fs/pipe.c
---- a/fs/pipe.c~fs-pipec-implement-minimum-pipe-size-for-arg==0
-+++ a/fs/pipe.c
-@@ -1038,6 +1038,8 @@ static long pipe_set_size(struct pipe_in
- 	unsigned long user_bufs;
- 	long ret = 0;
+diff -puN drivers/pcmcia/sa1111_badge4.c~pcmcia-badge4-avoid-unused-function-warning drivers/pcmcia/sa1111_badge4.c
+--- a/drivers/pcmcia/sa1111_badge4.c~pcmcia-badge4-avoid-unused-function-warning
++++ a/drivers/pcmcia/sa1111_badge4.c
+@@ -144,6 +144,7 @@ int pcmcia_badge4_init(struct sa1111_dev
+ 				 sa11xx_drv_pcmcia_add_one);
+ }
  
-+	if (!arg)
-+		arg = PAGE_SIZE;
- 	size = round_pipe_size(arg);
- 	nr_pages = size >> PAGE_SHIFT;
++#ifndef MODULE
+ static int __init pcmv_setup(char *s)
+ {
+ 	int v[4];
+@@ -158,3 +159,4 @@ static int __init pcmv_setup(char *s)
+ }
  
+ __setup("pcmv=", pcmv_setup);
++#endif
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-fs-pipec-implement-minimum-pipe-size-for-arg==0.patch
+mm-meminit-mark-init_reserved_page-as-__meminit.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
+pcmcia-badge4-avoid-unused-function-warning.patch
 
