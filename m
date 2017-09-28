@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch added
- to -mm tree
-Date: Thu, 28 Sep 2017 13:54:43 -0700
-Message-ID: <59cd6193.iEoAIPSjyDZ/rtE8%akpm@linux-foundation.org>
+Subject: + mm-sysctl-make-numa-stats-configurable-fix.patch added to -mm
+ tree
+Date: Thu, 28 Sep 2017 14:30:05 -0700
+Message-ID: <59cd69dd.7KCa5XGrJvsnA8N7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751008AbdI1Uyo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:54:44 -0400
+        with ESMTP id S1751490AbdI1VaH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 17:30:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laoar.shao@gmail.com, jack@suse.cz, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaron.lu@intel.com, andi.kleen@intel.com, bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, keescook@chromium.org, kemi.wang@intel.com, mcgrof@kernel.org, mgorman@techsingularity.net, mhocko@suse.com, tim.c.chen@intel.com, vbabka@suse.cz, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
+     Subject: mm-sysctl-make-numa-stats-configurable-fix
 has been added to the -mm tree.  Its filename is
-     mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+     mm-sysctl-make-numa-stats-configurable-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sysctl-make-numa-stats-configurable-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sysctl-make-numa-stats-configurable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,67 +39,178 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-sysctl-make-numa-stats-configurable-fix
 
-The vm direct limit setting must be set greater than vm background limit
-setting.  Otherwise print a warning to help the operator to figure out
-that the vm dirtiness settings is in illogical state.
+- tweak documentation
 
-Link: http://lkml.kernel.org/r/1506592464-30962-1-git-send-email-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
+- move advisory message from start_kernel() into mm_init() (I'm not sure
+  we really need this message)
+
+- use strcasecmp() in __parse_vm_numa_stats_mode()
+
+- clean up coding style amd nessages in sysctl_vm_numa_stats_mode_handler()
+
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kemi Wang <kemi.wang@intel.com>
+Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ying Huang <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    7 +++++++
- mm/page-writeback.c         |    5 ++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ Documentation/sysctl/vm.txt |   15 ++++++-------
+ init/main.c                 |    6 ++---
+ mm/vmstat.c                 |   39 +++++++++++++++-------------------
+ 3 files changed, 29 insertions(+), 31 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
+diff -puN Documentation/sysctl/vm.txt~mm-sysctl-make-numa-stats-configurable-fix Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-sysctl-make-numa-stats-configurable-fix
 +++ a/Documentation/sysctl/vm.txt
-@@ -157,6 +157,10 @@ Note: the minimum value allowed for dirt
- value lower than this limit will be ignored and the old configuration will be
- retained.
+@@ -853,7 +853,7 @@ ten times more freeable objects than the
  
-+Note: the value of dirty_bytes also must be set greater than
-+dirty_background_bytes or the amount of memory corresponding to
-+dirty_background_ratio.
+ numa_stats_mode
+ 
+-This interface allows numa statistics configurable.
++This interface allows runtime configuration or numa statistics.
+ 
+ When page allocation performance becomes a bottleneck and you can tolerate
+ some possible tool breakage and decreased numa counter precision, you can
+@@ -864,13 +864,14 @@ When page allocation performance is not
+ tooling to work, you can do:
+ 	echo [S|s]trict > /proc/sys/vm/numa_stat_mode
+ 
+-We recommend automatic detection of numa statistics by system, because numa
+-statistics does not affect system's decision and it is very rarely
+-consumed. you can do:
++We recommend automatic detection of numa statistics by system, because
++numa statistics do not affect system decisions and it is very rarely
++consumed.  In this case you can do:
+ 	echo [A|a]uto > /proc/sys/vm/numa_stats_mode
+-This is also system default configuration, with this default setting, numa
+-counters update is skipped unless the counter is *read* by users at least
+-once.
 +
++This is the system default configuration.  With this default setting, numa
++counter updates are skipped until the counter is *read* by userspace at
++least once.
+ 
  ==============================================================
  
- dirty_expire_centisecs
-@@ -176,6 +180,9 @@ generating disk writes will itself start
+diff -puN init/main.c~mm-sysctl-make-numa-stats-configurable-fix init/main.c
+--- a/init/main.c~mm-sysctl-make-numa-stats-configurable-fix
++++ a/init/main.c
+@@ -504,6 +504,9 @@ static void __init mm_init(void)
+ 	pgtable_init();
+ 	vmalloc_init();
+ 	ioremap_huge_init();
++#ifdef CONFIG_NUMA
++	pr_info("vmstat: NUMA stat updates are skipped unless they have been used\n");
++#endif
+ }
  
- The total available memory is not equal to total system memory.
+ asmlinkage __visible void __init start_kernel(void)
+@@ -567,9 +570,6 @@ asmlinkage __visible void __init start_k
+ 	sort_main_extable();
+ 	trap_init();
+ 	mm_init();
+-#ifdef CONFIG_NUMA
+-	pr_info("vmstat: NUMA stats is skipped unless it has been consumed\n");
+-#endif
  
-+Note: dirty_ratio must be set greater than dirty_background_ratio or
-+ratio corresponding to dirty_background_bytes.
-+
- ==============================================================
+ 	ftrace_init();
  
- dirty_writeback_centisecs
-diff -puN mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
---- a/mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
-+++ a/mm/page-writeback.c
-@@ -433,8 +433,11 @@ static void domain_dirty_limits(struct d
- 	else
- 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
+diff -puN mm/vmstat.c~mm-sysctl-make-numa-stats-configurable-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-sysctl-make-numa-stats-configurable-fix
++++ a/mm/vmstat.c
+@@ -40,13 +40,11 @@ static DEFINE_MUTEX(vm_numa_stats_mode_l
  
--	if (bg_thresh >= thresh)
-+	if (unlikely(bg_thresh >= thresh)) {
-+		pr_warn("vm direct limit must be set greater than background limit.\n");
- 		bg_thresh = thresh / 2;
-+	}
-+
- 	tsk = current;
- 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
- 		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
+ static int __parse_vm_numa_stats_mode(char *s)
+ {
+-	const char *str = s;
+-
+-	if (strcmp(str, "auto") == 0 || strcmp(str, "Auto") == 0)
++	if (strcasecmp(s, "auto"))
+ 		vm_numa_stats_mode = VM_NUMA_STAT_AUTO_MODE;
+-	else if (strcmp(str, "strict") == 0 || strcmp(str, "Strict") == 0)
++	else if (strcasecmp(s, "strict") == 0)
+ 		vm_numa_stats_mode = VM_NUMA_STAT_STRICT_MODE;
+-	else if (strcmp(str, "coarse") == 0 || strcmp(str, "Coarse") == 0)
++	else if (strcasecmp(s, "coarse"))
+ 		vm_numa_stats_mode = VM_NUMA_STAT_COARSE_MODE;
+ 	else {
+ 		pr_warn("Ignoring invalid vm_numa_stats_mode value: %s\n", s);
+@@ -86,30 +84,29 @@ int sysctl_vm_numa_stats_mode_handler(st
+ 			/* no change */
+ 			mutex_unlock(&vm_numa_stats_mode_lock);
+ 			return 0;
+-		} else if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE)
++		} else if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE) {
+ 			/*
+-			 * Keep the branch selection in last time when numa stats
+-			 * is changed to auto mode.
++			 * Keep the branch selection in last time when numa
++			 * stats is changed to auto mode.
+ 			 */
+-			pr_info("numa stats changes from %s mode to auto mode\n",
+-					vm_numa_stats_mode_name[oldval]);
+-		else if (vm_numa_stats_mode == VM_NUMA_STAT_STRICT_MODE) {
++			pr_info("numa stats changed from %s to auto mode\n",
++				 vm_numa_stats_mode_name[oldval]);
++		} else if (vm_numa_stats_mode == VM_NUMA_STAT_STRICT_MODE) {
+ 			static_branch_enable(&vm_numa_stats_mode_key);
+-			pr_info("numa stats changes from %s mode to strict mode\n",
+-					vm_numa_stats_mode_name[oldval]);
++			pr_info("numa stats changes from %s to strict mode\n",
++				 vm_numa_stats_mode_name[oldval]);
+ 		} else if (vm_numa_stats_mode == VM_NUMA_STAT_COARSE_MODE) {
+ 			static_branch_disable(&vm_numa_stats_mode_key);
+ 			/*
+-			 * Invalidate numa counters when vmstat mode is set to coarse
+-			 * mode, because users can't tell the difference between the
+-			 * dead state and when allocator activity is quiet once
+-			 * zone_statistics() is turned off.
++			 * Invalidate numa counters when vmstat mode is set to
++			 * coarse mode, because users can't tell the difference
++			 * between the dead state and when allocator activity is
++			 * quiet once zone_statistics() is turned off.
+ 			 */
+ 			invalid_numa_statistics();
+-			pr_info("numa stats changes from %s mode to coarse mode\n",
+-					vm_numa_stats_mode_name[oldval]);
+-		} else
+-			pr_warn("invalid vm_numa_stats_mode:%d\n", vm_numa_stats_mode);
++			pr_info("numa stats changes from %s to coarse mode\n",
++				 vm_numa_stats_mode_name[oldval]);
++		}
+ 	}
+ 
+ 	mutex_unlock(&vm_numa_stats_mode_lock);
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+i-need-old-gcc.patch
+scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-sysctl-make-numa-stats-configurable-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
