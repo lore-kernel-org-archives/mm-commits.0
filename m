@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + proc-coredump-add-coredumping-flag-to-proc-pid-status-fix.patch added to -mm tree
-Date: Thu, 28 Sep 2017 13:48:51 -0700
-Message-ID: <59cd6033.95LX7f5GlcflQ/ER%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-remove-unused-function-ocfs2_publish_get_mount_state.patch added to
+ -mm tree
+Date: Thu, 28 Sep 2017 13:49:26 -0700
+Message-ID: <59cd6056.vjPZSUDMOx2Qhuf2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46620 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751008AbdI1Usw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:48:52 -0400
+        with ESMTP id S1751008AbdI1Ut1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2017 16:49:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, koct9i@gmail.com, mingo@kernel.org, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: guozhonghua@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: document CoreDumping flag in /proc/<pid>/status
+     Subject: ocfs2: remove unused declaration ocfs2_publish_get_mount_state()
 has been added to the -mm tree.  Its filename is
-     proc-coredump-add-coredumping-flag-to-proc-pid-status-fix.patch
+     ocfs2-remove-unused-function-ocfs2_publish_get_mount_state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-coredump-add-coredumping-flag-to-proc-pid-status-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-unused-function-ocfs2_publish_get_mount_state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-coredump-add-coredumping-flag-to-proc-pid-status-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-unused-function-ocfs2_publish_get_mount_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +40,27 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: proc: document CoreDumping flag in /proc/<pid>/status
+From: Guozhonghua <guozhonghua@h3c.com>
+Subject: ocfs2: remove unused declaration ocfs2_publish_get_mount_state()
 
-Add description for the CoreDumping flag in /proc/<pid>/status.
-
-The flag is intended to be used to avoid killing processes
-during the generation of the coredump files and avoid getting
-corrupted coredump files.
-
-Link: http://lkml.kernel.org/r/20170928135357.GA8470@castle.DHCP.thefacebook.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4D0743232@H3CMLB12-EX.srv.huawei-3com.com
+Signed-off-by: guozhonghua <guozhonghua@h3c.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/super.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-coredump-add-coredumping-flag-to-proc-pid-status-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-coredump-add-coredumping-flag-to-proc-pid-status-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -181,6 +181,7 @@ read the file /proc/PID/status:
-   VmPTE:        20 kb
-   VmSwap:        0 kB
-   HugetlbPages:          0 kB
-+  CoreDumping:    0
-   Threads:        1
-   SigQ:   0/28578
-   SigPnd: 0000000000000000
-@@ -254,6 +255,8 @@ Table 1-2: Contents of the status files
-  VmSwap                      amount of swap used by anonymous private data
-                              (shmem swap usage is not included)
-  HugetlbPages                size of hugetlb memory portions
-+ CoreDumping                 process's memory is currently being dumped
-+                             (killing the process may lead to a corrupted core)
-  Threads                     number of threads
-  SigQ                        number of signals queued/max. number for queue
-  SigPnd                      bitmap of pending signals for the thread
-_
-
-Patches currently in -mm which might be from guro@fb.com are
-
-proc-coredump-add-coredumping-flag-to-proc-pid-status.patch
-proc-coredump-add-coredumping-flag-to-proc-pid-status-fix.patch
-
+diff -puN fs/ocfs2/super.h~ocfs2-remove-unused-function-ocfs2_publish_get_mount_state fs/ocfs2/super.h
+--- a/fs/ocfs2/super.h~ocfs2-remove-unused-function-ocfs2_publish_get_mount_state
++++ a/fs/ocfs2/super.h
+@@ -26,9 +26,6 @@
+ #ifndef OCFS2_SUPER_H
+ #define OCFS2_SUPER_H
+ 
+-int ocfs2_publish_get_mount_state(struct ocfs2_super *osb,
+-				  int node_num);
