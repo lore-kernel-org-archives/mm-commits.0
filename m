@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch added to -mm tree
-Date: Fri, 29 Sep 2017 15:08:35 -0700
-Message-ID: <59cec463.Ig7uI5alVtqTDslx%akpm@linux-foundation.org>
+Subject: + kcov-remove-pointless-current-=-null-check.patch added to -mm
+ tree
+Date: Fri, 29 Sep 2017 15:32:51 -0700
+Message-ID: <59ceca13.5b6aSQk4/3r6d3SC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37018 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752042AbdI2WIg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2017 18:08:36 -0400
+        with ESMTP id S1752316AbdI2Wcw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2017 18:32:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, andreyknvl@google.com, dvyukov@google.com, mark.rutland@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: remove redundant -ENIVAL return from hugetlbfs_setattr()
+     Subject: kcov: remove pointless current != NULL check
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
+     kcov-remove-pointless-current-=-null-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kcov-remove-pointless-current-%3D-null-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-remove-pointless-current-%3D-null-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: fs/hugetlbfs/inode.c: remove redundant -ENIVAL return from hugetlbfs_setattr()
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kcov: remove pointless current != NULL check
 
-There is no need to have a local return code set with -EINVAL when both
-the conditions following it return error codes appropriately.  Just remove
-the redundant one.
+__sanitizer_cov_trace_pc() is a hot code, so it's worth to remove
+pointless '!current' check.  Current is never NULL.
 
-Link: http://lkml.kernel.org/r/20170929145444.17611-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20170929162221.32500-1-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/kcov.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr
-+++ a/fs/hugetlbfs/inode.c
-@@ -668,7 +668,6 @@ static int hugetlbfs_setattr(struct dent
- 		return error;
- 
- 	if (ia_valid & ATTR_SIZE) {
--		error = -EINVAL;
- 		if (attr->ia_size & ~huge_page_mask(h))
- 			return -EINVAL;
- 		error = hugetlb_vmtruncate(inode, attr->ia_size);
+diff -puN kernel/kcov.c~kcov-remove-pointless-current-=-null-check kernel/kcov.c
+--- a/kernel/kcov.c~kcov-remove-pointless-current-=-null-check
++++ a/kernel/kcov.c
+@@ -61,7 +61,7 @@ void notrace __sanitizer_cov_trace_pc(vo
+ 	 * We are interested in code coverage as a function of a syscall inputs,
+ 	 * so we ignore code executed in interrupts.
+ 	 */
+-	if (!t || !in_task())
++	if (!in_task())
+ 		return;
+ 	mode = READ_ONCE(t->kcov_mode);
+ 	if (mode == KCOV_MODE_TRACE) {
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
+kcov-remove-pointless-current-=-null-check.patch
 
