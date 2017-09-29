@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sysctl-make-numa-stats-configurable-fix-fix.patch added to
- -mm tree
-Date: Fri, 29 Sep 2017 15:04:53 -0700
-Message-ID: <59cec385.gRrMDs3nfKlF0PXJ%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch added to -mm tree
+Date: Fri, 29 Sep 2017 15:08:35 -0700
+Message-ID: <59cec463.Ig7uI5alVtqTDslx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752042AbdI2WEy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2017 18:04:54 -0400
+        with ESMTP id S1752042AbdI2WIg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2017 18:08:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kemi.wang@intel.com, mm-commits@vger.kernel.org
+To: khandual@linux.vnet.ibm.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-sysctl-make-numa-stats-configurable-fix-fix
+     Subject: fs/hugetlbfs/inode.c: remove redundant -ENIVAL return from hugetlbfs_setattr()
 has been added to the -mm tree.  Its filename is
-     mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+     mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-sysctl-make-numa-stats-configurable-fix-fix
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: fs/hugetlbfs/inode.c: remove redundant -ENIVAL return from hugetlbfs_setattr()
 
-fix typo
+There is no need to have a local return code set with -EINVAL when both
+the conditions following it return error codes appropriately.  Just remove
+the redundant one.
 
-Cc: Kemi Wang <kemi.wang@intel.com>
+Link: http://lkml.kernel.org/r/20170929145444.17611-1-khandual@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-sysctl-make-numa-stats-configurable-fix-fix Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-sysctl-make-numa-stats-configurable-fix-fix
-+++ a/Documentation/sysctl/vm.txt
-@@ -853,7 +853,7 @@ ten times more freeable objects than the
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr
++++ a/fs/hugetlbfs/inode.c
+@@ -668,7 +668,6 @@ static int hugetlbfs_setattr(struct dent
+ 		return error;
  
- numa_stats_mode
- 
--This interface allows runtime configuration or numa statistics.
-+This interface allows runtime configuration of numa statistics.
- 
- When page allocation performance becomes a bottleneck and you can tolerate
- some possible tool breakage and decreased numa counter precision, you can
-diff -puN init/main.c~mm-sysctl-make-numa-stats-configurable-fix-fix init/main.c
-diff -puN mm/vmstat.c~mm-sysctl-make-numa-stats-configurable-fix-fix mm/vmstat.c
+ 	if (ia_valid & ATTR_SIZE) {
+-		error = -EINVAL;
+ 		if (attr->ia_size & ~huge_page_mask(h))
+ 			return -EINVAL;
+ 		error = hugetlb_vmtruncate(inode, attr->ia_size);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
 
-i-need-old-gcc.patch
-scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
-mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-sysctl-make-numa-stats-configurable-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr.patch
 
