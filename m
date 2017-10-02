@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch added to -mm tree
-Date: Mon, 02 Oct 2017 15:28:41 -0700
-Message-ID: <59d2bd99.1UFgmJFf4+KgFsuC%akpm@linux-foundation.org>
+Subject: +
+ dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch added to
+ -mm tree
+Date: Mon, 02 Oct 2017 15:48:04 -0700
+Message-ID: <59d2c224.Dz2J5wPMZ9BPpdVt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdJBW2m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:28:42 -0400
+        with ESMTP id S1750949AbdJBWsF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:48:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, jmoyer@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: calling zs_map_object() from irq is a bug
+     Subject: dax: disable filesystem dax on devices that do not map pages
 has been added to the -mm tree.  Its filename is
-     zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
+     dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,66 +40,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: zsmalloc: calling zs_map_object() from irq is a bug
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dax: disable filesystem dax on devices that do not map pages
 
-Use BUG_ON(in_interrupt()) in zs_map_object().  This is not a new
-BUG_ON(), it's always been there, but was recently changed to VM_BUG_ON().
-There are several problems there.  First, we use use per-CPU mappings
-both in zsmalloc and in zram, and interrupt may easily corrupt those
-buffers.  Second, and more importantly, we believe it's possible to start
-leaking sensitive information.  Consider the following case:
+If a dax buffer from a device that does not map pages is passed to read(2)
+or write(2) as a target for direct-I/O it triggers SIGBUS.  If gdb
+attempts to examine the contents of a dax buffer from a device that does
+not map pages it triggers SIGBUS.  If fork(2) is called on a process with
+a dax mapping from a device that does not map pages it triggers SIGBUS. 
+'struct page' is required otherwise several kernel code paths break in
+surprising ways.  Disable filesystem-dax on devices that do not map pages.
 
--> process P
-	swap out
-	 zram
-	  per-cpu mapping CPU1
-	   compress page A
--> IRQ
-
-	swap out
-	 zram
-	  per-cpu mapping CPU1
-	   compress page B
-	    write page from per-cpu mapping CPU1 to zsmalloc pool
-	iret
-
--> process P
-	    write page from per-cpu mapping CPU1 to zsmalloc pool  [*]
-	return
-
-* so we store overwritten data that actually belongs to another
-  page (task) and potentially contains sensitive data. And when
-  process P will page fault it's going to read (swap in) that
-  other task's data.
-
-Link: http://lkml.kernel.org/r/20170929045140.4055-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/150664807247.36094.11168730579639072446.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/dax/super.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug
-+++ a/mm/zsmalloc.c
-@@ -1349,7 +1349,7 @@ void *zs_map_object(struct zs_pool *pool
- 	 * pools/users, we can't allow mapping in interrupt context
- 	 * because it can corrupt another users mappings.
- 	 */
--	WARN_ON_ONCE(in_interrupt());
-+	BUG_ON(in_interrupt());
+diff -puN drivers/dax/super.c~dax-disable-filesystem-dax-on-devices-that-do-not-map-pages drivers/dax/super.c
+--- a/drivers/dax/super.c~dax-disable-filesystem-dax-on-devices-that-do-not-map-pages
++++ a/drivers/dax/super.c
+@@ -15,6 +15,7 @@
+ #include <linux/mount.h>
+ #include <linux/magic.h>
+ #include <linux/genhd.h>
++#include <linux/pfn_t.h>
+ #include <linux/cdev.h>
+ #include <linux/hash.h>
+ #include <linux/slab.h>
+@@ -123,6 +124,12 @@ int __bdev_dax_supported(struct super_bl
+ 		return len < 0 ? len : -EIO;
+ 	}
  
- 	/* From now on, migration cannot move the object */
- 	pin_tag(handle);
++	if (!pfn_t_has_page(pfn)) {
++		pr_debug("VFS (%s): error: dax support not enabled\n",
++				sb->s_id);
++		return -EOPNOTSUPP;
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__bdev_dax_supported);
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-ratelimit-use-deferred-printk-version.patch
-zram-add-zstd-to-the-supported-algorithms-list.patch
-zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
-zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
+dax-quiet-bdev_dax_supported.patch
+dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch
+dax-stop-using-vm_mixedmap-for-dax.patch
+dax-stop-using-vm_hugepage-for-dax.patch
 
