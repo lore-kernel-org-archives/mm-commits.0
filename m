@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pid-delete-struct-pidmap-nr_free.patch added to -mm tree
-Date: Mon, 02 Oct 2017 16:13:31 -0700
-Message-ID: <59d2c81b.sN3iiDcgxwFHtFRg%akpm@linux-foundation.org>
+Subject: + prctl-add-pr_et_pdeathsig_proc.patch added to -mm tree
+Date: Mon, 02 Oct 2017 16:20:55 -0700
+Message-ID: <59d2c9d7.KoQqdLG+B0tDhGXl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751104AbdJBXNc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 19:13:32 -0400
+        with ESMTP id S1751059AbdJBXU4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 19:20:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, ebiederm@xmission.com, keescook@chromium.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: j@bitron.ch, alphaetapi@hotmail.com, davidvsthegiant@gmail.com, ebiederm@xmission.com, filbranden@google.com, hansecke@gmail.com, linux-api@vger.kernel.org, mtk.manpages@gmail.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid: delete struct pidmap::nr_free
+     From: Jürg Billeter <j@bitron.ch>
 has been added to the -mm tree.  Its filename is
-     pid-delete-struct-pidmap-nr_free.patch
+     prctl-add-pr_et_pdeathsig_proc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pid-delete-struct-pidmap-nr_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-add-pr_et_pdeathsig_proc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pid-delete-struct-pidmap-nr_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-add-pr_et_pdeathsig_proc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,120 +38,170 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: pid: delete struct pidmap::nr_free
+From: Jürg Billeter <j@bitron.ch>
+Subject: prctl: add PR_[GS]ET_PDEATHSIG_PROC
 
-There is a check in pid allocation code to skip a full page:
+PR_SET_PDEATHSIG sets a parent death signal that the calling process will
+get when its parent thread dies, even when the result of getppid() doesn't
+change because the calling process is reparented to a different thread in
+the same parent process.  When managing multiple processes, a
+process-based parent death signal is much more useful.  E.g., to avoid
+stray child processes.
 
-	if (likely(atomic_read(&map->nr_free))) {
-		...
+PR_SET_PDEATHSIG_PROC sets a process-based death signal.  Unlike
+PR_SET_PDEATHSIG, this is inherited across fork to allow killing a whole
+subtree without race conditions.
 
-In practice it doesn't do anything.  To skip a pidmap page one has to have
-32K consecutive pids allocated at the same time which doesn't happen.
+This can be used for sandboxing when combined with a seccomp filter.
 
-Currently the price is _every_ fork/exit on every system being slower than
-necessary.
+There have been previous attempts to support this by changing the behavior
+of PR_SET_PDEATHSIG.  However, that would break existing applications. 
+See https://marc.info/?l=linux-kernel&m=117621804801689 and
+https://bugzilla.kernel.org/show_bug.cgi?id=43300
 
-Link: http://lkml.kernel.org/r/20170909203649.GB4791@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20170929123058.48924-1-j@bitron.ch
+Signed-off-by: Jürg Billeter <j@bitron.ch>
 Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Filipe Brandenburger <filbranden@google.com>
+Cc: David Wilcox <davidvsthegiant@gmail.com>
+Cc: "Adam H . Peterson" <alphaetapi@hotmail.com>
+Cc: <hansecke@gmail.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    1 -
- kernel/pid.c                  |   28 ++++++++++------------------
- kernel/pid_namespace.c        |    6 ------
- 3 files changed, 10 insertions(+), 25 deletions(-)
+ fs/exec.c                    |    1 +
+ include/linux/sched/signal.h |    3 +++
+ include/uapi/linux/prctl.h   |    4 ++++
+ kernel/cred.c                |    1 +
+ kernel/exit.c                |    4 ++++
+ kernel/fork.c                |    2 ++
+ kernel/sys.c                 |   11 +++++++++++
+ security/apparmor/lsm.c      |    1 +
+ security/selinux/hooks.c     |    1 +
+ 9 files changed, 28 insertions(+)
 
-diff -puN include/linux/pid_namespace.h~pid-delete-struct-pidmap-nr_free include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pid-delete-struct-pidmap-nr_free
-+++ a/include/linux/pid_namespace.h
-@@ -11,7 +11,6 @@
- #include <linux/ns_common.h>
+diff -puN fs/exec.c~prctl-add-pr_et_pdeathsig_proc fs/exec.c
+--- a/fs/exec.c~prctl-add-pr_et_pdeathsig_proc
++++ a/fs/exec.c
+@@ -1334,6 +1334,7 @@ void setup_new_exec(struct linux_binprm
+ 	if (bprm->secureexec) {
+ 		/* Make sure parent cannot signal privileged process. */
+ 		current->pdeath_signal = 0;
++		current->signal->pdeath_signal_proc = 0;
  
- struct pidmap {
--       atomic_t nr_free;
-        void *page;
- };
+ 		/*
+ 		 * For secureexec, reset the stack limit to sane default to
+diff -puN include/linux/sched/signal.h~prctl-add-pr_et_pdeathsig_proc include/linux/sched/signal.h
+--- a/include/linux/sched/signal.h~prctl-add-pr_et_pdeathsig_proc
++++ a/include/linux/sched/signal.h
+@@ -103,6 +103,9 @@ struct signal_struct {
+ 	int			group_stop_count;
+ 	unsigned int		flags; /* see SIGNAL_* flags below */
  
-diff -puN kernel/pid.c~pid-delete-struct-pidmap-nr_free kernel/pid.c
---- a/kernel/pid.c~pid-delete-struct-pidmap-nr_free
-+++ a/kernel/pid.c
-@@ -68,9 +68,6 @@ static inline int mk_pid(struct pid_name
-  */
- struct pid_namespace init_pid_ns = {
- 	.kref = KREF_INIT(2),
--	.pidmap = {
--		[ 0 ... PIDMAP_ENTRIES-1] = { ATOMIC_INIT(BITS_PER_PAGE), NULL }
--	},
- 	.last_pid = 0,
- 	.nr_hashed = PIDNS_HASH_ADDING,
- 	.level = 0,
-@@ -106,7 +103,6 @@ static void free_pidmap(struct upid *upi
- 	int offset = nr & BITS_PER_PAGE_MASK;
++	/* The signal sent when the parent dies: */
++	int			pdeath_signal_proc;
++
+ 	/*
+ 	 * PR_SET_CHILD_SUBREAPER marks a process, like a service
+ 	 * manager, to re-parent orphan (double-forking) child processes
+diff -puN include/uapi/linux/prctl.h~prctl-add-pr_et_pdeathsig_proc include/uapi/linux/prctl.h
+--- a/include/uapi/linux/prctl.h~prctl-add-pr_et_pdeathsig_proc
++++ a/include/uapi/linux/prctl.h
+@@ -197,4 +197,8 @@ struct prctl_mm_map {
+ # define PR_CAP_AMBIENT_LOWER		3
+ # define PR_CAP_AMBIENT_CLEAR_ALL	4
  
- 	clear_bit(offset, map->page);
--	atomic_inc(&map->nr_free);
++/* Process-based variant of PDEATHSIG */
++#define PR_SET_PDEATHSIG_PROC		48
++#define PR_GET_PDEATHSIG_PROC		49
++
+ #endif /* _LINUX_PRCTL_H */
+diff -puN kernel/cred.c~prctl-add-pr_et_pdeathsig_proc kernel/cred.c
+--- a/kernel/cred.c~prctl-add-pr_et_pdeathsig_proc
++++ a/kernel/cred.c
+@@ -448,6 +448,7 @@ int commit_creds(struct cred *new)
+ 		if (task->mm)
+ 			set_dumpable(task->mm, suid_dumpable);
+ 		task->pdeath_signal = 0;
++		task->signal->pdeath_signal_proc = 0;
+ 		smp_wmb();
+ 	}
+ 
+diff -puN kernel/exit.c~prctl-add-pr_et_pdeathsig_proc kernel/exit.c
+--- a/kernel/exit.c~prctl-add-pr_et_pdeathsig_proc
++++ a/kernel/exit.c
+@@ -635,6 +635,10 @@ static void reparent_leader(struct task_
+ 	if (unlikely(p->exit_state == EXIT_DEAD))
+ 		return;
+ 
++	if (p->signal->pdeath_signal_proc)
++		group_send_sig_info(p->signal->pdeath_signal_proc,
++				    SEND_SIG_NOINFO, p);
++
+ 	/* We don't want people slaying init. */
+ 	p->exit_signal = SIGCHLD;
+ 
+diff -puN kernel/fork.c~prctl-add-pr_et_pdeathsig_proc kernel/fork.c
+--- a/kernel/fork.c~prctl-add-pr_et_pdeathsig_proc
++++ a/kernel/fork.c
+@@ -1433,6 +1433,8 @@ static int copy_signal(unsigned long clo
+ 
+ 	mutex_init(&sig->cred_guard_mutex);
+ 
++	sig->pdeath_signal_proc = current->signal->pdeath_signal_proc;
++
+ 	return 0;
  }
  
- /*
-@@ -181,20 +177,17 @@ static int alloc_pidmap(struct pid_names
- 			if (unlikely(!map->page))
- 				return -ENOMEM;
- 		}
--		if (likely(atomic_read(&map->nr_free))) {
--			for ( ; ; ) {
--				if (!test_and_set_bit(offset, map->page)) {
--					atomic_dec(&map->nr_free);
--					set_last_pid(pid_ns, last, pid);
--					return pid;
--				}
--				offset = find_next_offset(map, offset);
--				if (offset >= BITS_PER_PAGE)
--					break;
--				pid = mk_pid(pid_ns, map, offset);
--				if (pid >= pid_max)
--					break;
-+		for (;;) {
-+			if (!test_and_set_bit(offset, map->page)) {
-+				set_last_pid(pid_ns, last, pid);
-+				return pid;
- 			}
-+			offset = find_next_offset(map, offset);
-+			if (offset >= BITS_PER_PAGE)
-+				break;
-+			pid = mk_pid(pid_ns, map, offset);
-+			if (pid >= pid_max)
-+				break;
- 		}
- 		if (map < &pid_ns->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
- 			++map;
-@@ -591,7 +584,6 @@ void __init pidmap_init(void)
- 	init_pid_ns.pidmap[0].page = kzalloc(PAGE_SIZE, GFP_KERNEL);
- 	/* Reserve PID 0. We never call free_pidmap(0) */
- 	set_bit(0, init_pid_ns.pidmap[0].page);
--	atomic_dec(&init_pid_ns.pidmap[0].nr_free);
+diff -puN kernel/sys.c~prctl-add-pr_et_pdeathsig_proc kernel/sys.c
+--- a/kernel/sys.c~prctl-add-pr_et_pdeathsig_proc
++++ a/kernel/sys.c
+@@ -2206,6 +2206,17 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 	case PR_GET_PDEATHSIG:
+ 		error = put_user(me->pdeath_signal, (int __user *)arg2);
+ 		break;
++	case PR_SET_PDEATHSIG_PROC:
++		if (!valid_signal(arg2)) {
++			error = -EINVAL;
++			break;
++		}
++		me->signal->pdeath_signal_proc = arg2;
++		break;
++	case PR_GET_PDEATHSIG_PROC:
++		error = put_user(me->signal->pdeath_signal_proc,
++				 (int __user *)arg2);
++		break;
+ 	case PR_GET_DUMPABLE:
+ 		error = get_dumpable(me->mm);
+ 		break;
+diff -puN security/apparmor/lsm.c~prctl-add-pr_et_pdeathsig_proc security/apparmor/lsm.c
+--- a/security/apparmor/lsm.c~prctl-add-pr_et_pdeathsig_proc
++++ a/security/apparmor/lsm.c
+@@ -689,6 +689,7 @@ static void apparmor_bprm_committing_cre
+ 	aa_inherit_files(bprm->cred, current->files);
  
- 	init_pid_ns.pid_cachep = KMEM_CACHE(pid,
- 			SLAB_HWCACHE_ALIGN | SLAB_PANIC | SLAB_ACCOUNT);
-diff -puN kernel/pid_namespace.c~pid-delete-struct-pidmap-nr_free kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pid-delete-struct-pidmap-nr_free
-+++ a/kernel/pid_namespace.c
-@@ -98,7 +98,6 @@ static struct pid_namespace *create_pid_
- 	struct pid_namespace *ns;
- 	unsigned int level = parent_pid_ns->level + 1;
- 	struct ucounts *ucounts;
--	int i;
- 	int err;
+ 	current->pdeath_signal = 0;
++	current->signal->pdeath_signal_proc = 0;
  
- 	err = -EINVAL;
-@@ -139,11 +138,6 @@ static struct pid_namespace *create_pid_
- 	INIT_WORK(&ns->proc_work, proc_cleanup_work);
+ 	/* reset soft limits and set hard limits for the new label */
+ 	__aa_transition_rlimits(label, new_ctx->label);
+diff -puN security/selinux/hooks.c~prctl-add-pr_et_pdeathsig_proc security/selinux/hooks.c
+--- a/security/selinux/hooks.c~prctl-add-pr_et_pdeathsig_proc
++++ a/security/selinux/hooks.c
+@@ -2547,6 +2547,7 @@ static void selinux_bprm_committing_cred
  
- 	set_bit(0, ns->pidmap[0].page);
--	atomic_set(&ns->pidmap[0].nr_free, BITS_PER_PAGE - 1);
--
--	for (i = 1; i < PIDMAP_ENTRIES; i++)
--		atomic_set(&ns->pidmap[i].nr_free, BITS_PER_PAGE);
+ 	/* Always clear parent death signal on SID transitions. */
+ 	current->pdeath_signal = 0;
++	current->signal->pdeath_signal_proc = 0;
+ 
+ 	/* Check whether the new SID can inherit resource limits from the old
+ 	 * SID.  If not, reset all soft limits to the lower of the current
+_
+
+Patches currently in -mm which might be from j@bitron.ch are
+
+prctl-add-pr_et_pdeathsig_proc.patch
+
