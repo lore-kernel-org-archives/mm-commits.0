@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sh-boot-add-static-stack-protector-to-pre-kernel.patch added to -mm tree
-Date: Mon, 02 Oct 2017 14:43:53 -0700
-Message-ID: <59d2b319.Jq/08EKJLgq0GgJd%akpm@linux-foundation.org>
+Subject: + makefile-move-stackprotector-availability-out-of-kconfig.patch
+ added to -mm tree
+Date: Mon, 02 Oct 2017 14:43:56 -0700
+Message-ID: <59d2b31c.aPBk1YmnP6PAcur0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41304 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbdJBVnz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 17:43:55 -0400
+        with ESMTP id S1750770AbdJBVn5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 17:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, dalias@libc.org, labbott@redhat.com, mingo@kernel.org, mmarek@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, yamada.masahiro@socionext.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh/boot: add static stack-protector to pre-kernel
+     Subject: Makefile: move stackprotector availability out of Kconfig
 has been added to the -mm tree.  Its filename is
-     sh-boot-add-static-stack-protector-to-pre-kernel.patch
+     makefile-move-stackprotector-availability-out-of-kconfig.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-boot-add-static-stack-protector-to-pre-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/makefile-move-stackprotector-availability-out-of-kconfig.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-boot-add-static-stack-protector-to-pre-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-move-stackprotector-availability-out-of-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +40,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: sh/boot: add static stack-protector to pre-kernel
+Subject: Makefile: move stackprotector availability out of Kconfig
 
-The sh decompressor code triggers stack-protector code generation when
-using CONFIG_CC_STACKPROTECTOR_STRONG.  As done for arm and mips, add a
-simple static stack-protector canary.  As this wasn't protected before,
-the risk of using a weak canary is minimized.  Once the kernel is actually
-up, a better canary is chosen.
+Various portions of the kernel, especially per-architecture pieces, need
+to know if the compiler is building it with the stack protector.  This was
+done in the arch/Kconfig with 'select', but this doesn't allow a way to do
+auto-detected compiler support.  In preparation for creating an
+on-if-available default, move the logic for the definition of
+CONFIG_CC_STACKPROTECTOR into the Makefile.
 
-Link: http://lkml.kernel.org/r/1506972007-80614-2-git-send-email-keescook@chromium.org
+Link: http://lkml.kernel.org/r/1506972007-80614-3-git-send-email-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laura Abbott <labbott@redhat.com>
 Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: Michal Marek <mmarek@suse.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Laura Abbott <labbott@redhat.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boot/compressed/misc.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ Makefile     |    7 +++++--
+ arch/Kconfig |    8 --------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN arch/sh/boot/compressed/misc.c~sh-boot-add-static-stack-protector-to-pre-kernel arch/sh/boot/compressed/misc.c
---- a/arch/sh/boot/compressed/misc.c~sh-boot-add-static-stack-protector-to-pre-kernel
-+++ a/arch/sh/boot/compressed/misc.c
-@@ -103,6 +103,18 @@ static void error(char *x)
- 	while(1);	/* Halt */
- }
+diff -puN arch/Kconfig~makefile-move-stackprotector-availability-out-of-kconfig arch/Kconfig
+--- a/arch/Kconfig~makefile-move-stackprotector-availability-out-of-kconfig
++++ a/arch/Kconfig
+@@ -523,12 +523,6 @@ config HAVE_CC_STACKPROTECTOR
+ 	  - its compiler supports the -fstack-protector option
+ 	  - it has implemented a stack canary (e.g. __stack_chk_guard)
  
-+unsigned long __stack_chk_guard;
-+
-+void __stack_chk_guard_setup(void)
-+{
-+	__stack_chk_guard = 0x000a0dff;
-+}
-+
-+void __stack_chk_fail(void)
-+{
-+	error("stack-protector: Kernel stack is corrupted\n");
-+}
-+
- #ifdef CONFIG_SUPERH64
- #define stackalign	8
- #else
-@@ -117,6 +129,8 @@ void decompress_kernel(void)
- {
- 	unsigned long output_addr;
+-config CC_STACKPROTECTOR
+-	def_bool n
+-	help
+-	  Set when a stack-protector mode is enabled, so that the build
+-	  can enable kernel-side support for the GCC feature.
+-
+ choice
+ 	prompt "Stack Protector buffer overflow detection"
+ 	depends on HAVE_CC_STACKPROTECTOR
+@@ -549,7 +543,6 @@ config CC_STACKPROTECTOR_NONE
  
-+	__stack_chk_guard_setup();
-+
- #ifdef CONFIG_SUPERH64
- 	output_addr = (CONFIG_MEMORY_START + 0x2000);
- #else
+ config CC_STACKPROTECTOR_REGULAR
+ 	bool "Regular"
+-	select CC_STACKPROTECTOR
+ 	help
+ 	  Functions will have the stack-protector canary logic added if they
+ 	  have an 8-byte or larger character array on the stack.
+@@ -563,7 +556,6 @@ config CC_STACKPROTECTOR_REGULAR
+ 
+ config CC_STACKPROTECTOR_STRONG
+ 	bool "Strong"
+-	select CC_STACKPROTECTOR
+ 	help
+ 	  Functions will have the stack-protector canary logic added in any
+ 	  of the following conditions:
+diff -puN Makefile~makefile-move-stackprotector-availability-out-of-kconfig Makefile
+--- a/Makefile~makefile-move-stackprotector-availability-out-of-kconfig
++++ a/Makefile
+@@ -688,8 +688,11 @@ else
+   stackp-flag := $(call cc-option, -fno-stack-protector)
+ endif
+ endif
+-# Find arch-specific stack protector compiler sanity-checking script.
+-ifdef CONFIG_CC_STACKPROTECTOR
++ifdef stackp-name
++  # If the stack protector has been selected, inform the rest of the build.
++  KBUILD_CFLAGS += -DCONFIG_CC_STACKPROTECTOR
++  KBUILD_AFLAGS += -DCONFIG_CC_STACKPROTECTOR
++  # Find arch-specific stack protector compiler sanity-checking script.
+   stackp-path := $(srctree)/scripts/gcc-$(SRCARCH)_$(BITS)-has-stack-protector.sh
+   stackp-check := $(wildcard $(stackp-path))
+ endif
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
