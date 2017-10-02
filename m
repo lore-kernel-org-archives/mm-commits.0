@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
+Subject: + of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
  added to -mm tree
-Date: Mon, 02 Oct 2017 15:50:04 -0700
-Message-ID: <59d2c29c.turHmgQylHvUA8Wa%akpm@linux-foundation.org>
+Date: Mon, 02 Oct 2017 15:57:33 -0700
+Message-ID: <59d2c45d.nqZjEIlDxsp9SNRc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45108 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbdJBWuF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:50:05 -0400
+        with ESMTP id S1751181AbdJBW5e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:57:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.s@alibaba-inc.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, ben.dooks@codethink.co.uk, bhelgaas@google.com, damm@opensource.se, frank.rowand@sony.com, geert+renesas@glider.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise.c: add description for MADV_WIPEONFORK and MADV_KEEPONFORK
+     Subject: include/linux/of.h: provide of_n_{addr,size}_cells wrappers for !CONFIG_OF
 has been added to the -mm tree.  Its filename is
-     mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
+     of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,51 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: mm/madvise.c: add description for MADV_WIPEONFORK and MADV_KEEPONFORK
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: include/linux/of.h: provide of_n_{addr,size}_cells wrappers for !CONFIG_OF
 
-mm/madvise.c has a brief description about all MADV_ flags.  Add a
-description for the newly added MADV_WIPEONFORK and MADV_KEEPONFORK.
+The pci-rcar driver is enabled for compile tests, and this has shown that
+the driver cannot build without CONFIG_OF, following the inclusion of
+f8f2fe7355fb "PCI: rcar: Use new OF interrupt mapping when possible":
 
-Although man page has the similar information, but it'd better to keep the
-consistent with other flags.
+drivers/pci/host/pcie-rcar.c: In function 'pci_dma_range_parser_init':
+drivers/pci/host/pcie-rcar.c:1039:2: error: implicit declaration of function 'of_n_addr_cells' [-Werror=implicit-function-declaration]
+  parser->pna = of_n_addr_cells(node);
+  ^
 
-Link: http://lkml.kernel.org/r/1506117328-88228-1-git-send-email-yang.s@alibaba-inc.com
-Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+As pointed out by Ben Dooks and Geert Uytterhoeven, this is actually
+supposed to build fine, which we can achieve if we make the declaration of
+of_irq_parse_and_map_pci conditional on CONFIG_OF and provide an empty
+inline function otherwise, as we do for a lot of other of interfaces.
+
+This lets us build the rcar_pci driver again without CONFIG_OF for build
+testing.  All platforms using this driver select OF, so this doesn't
+change anything for the users.
+
+Link: http://lkml.kernel.org/r/20170911200805.3363318-1-arnd@arndb.de
+Fixes: c25da4778803 ("PCI: rcar: Add Renesas R-Car PCIe driver")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Frank Rowand <frank.rowand@sony.com>
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Magnus Damm <damm@opensource.se>
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/of.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/madvise.c~mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork mm/madvise.c
---- a/mm/madvise.c~mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork
-+++ a/mm/madvise.c
-@@ -757,6 +757,9 @@ madvise_behavior_valid(int behavior)
-  *  MADV_DONTFORK - omit this area from child's address space when forking:
-  *		typically, to avoid COWing pages pinned by get_user_pages().
-  *  MADV_DOFORK - cancel MADV_DONTFORK: no longer omit this area when forking.
-+ *  MADV_WIPEONFORK - present the child process with zero-filled memory in this
-+ *              range after a fork.
-+ *  MADV_KEEPONFORK - undo the effect of MADV_WIPEONFORK
-  *  MADV_HWPOISON - trigger memory error handler as if the given memory range
-  *		were corrupted by unrecoverable hardware memory failure.
-  *  MADV_SOFT_OFFLINE - try to soft-offline the given range of memory.
-@@ -777,7 +780,9 @@ madvise_behavior_valid(int behavior)
-  *  zero    - success
-  *  -EINVAL - start + len < 0, start is not page-aligned,
-  *		"behavior" is not a valid value, or application
-- *		is attempting to release locked or shared pages.
-+ *		is attempting to release locked or shared pages,
-+ *		or the specified address range includes file, Huge TLB,
-+ *		MAP_SHARED or VMPFNMAP range.
-  *  -ENOMEM - addresses in the specified range are not currently
-  *		mapped, or are outside the AS of the process.
-  *  -EIO    - an I/O error occurred while paging in data.
+diff -puN include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of include/linux/of.h
+--- a/include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of
++++ a/include/linux/of.h
+@@ -734,6 +734,9 @@ static inline struct device_node *of_get
+ 	return NULL;
+ }
+ 
++static inline int of_n_addr_cells(struct device_node *np) { return 0; }
++static inline int of_n_size_cells(struct device_node *np) { return 0; }
++
+ static inline int of_property_read_u64(const struct device_node *np,
+ 				       const char *propname, u64 *out_value)
+ {
 _
 
-Patches currently in -mm which might be from yang.s@alibaba-inc.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
+mm-meminit-mark-init_reserved_page-as-__meminit.patch
+of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
+pcmcia-badge4-avoid-unused-function-warning.patch
 
