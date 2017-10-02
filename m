@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-build-failure.patch added to -mm tree
-Date: Mon, 02 Oct 2017 14:01:12 -0700
-Message-ID: <59d2a918.6j6jLxKBhYTluLJU%akpm@linux-foundation.org>
+Subject: +
+ mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access.patch
+ added to -mm tree
+Date: Mon, 02 Oct 2017 14:39:24 -0700
+Message-ID: <59d2b20c.Lnxr8XoLT86whPtq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41080 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751106AbdJBVBN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 17:01:13 -0400
+        with ESMTP id S1751084AbdJBVjZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 17:39:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
+To: mhairgrove@nvidia.com, jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix build failure
+     Subject: mm/migrate: fix indexing bug (off by one) and avoid out of bound access
 has been added to the -mm tree.  Its filename is
-     m32r-fix-build-failure.patch
+     mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m32r-fix-build-failure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-fix-build-failure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +40,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix build failure
+From: Mark Hairgrove <mhairgrove@nvidia.com>
+Subject: mm/migrate: fix indexing bug (off by one) and avoid out of bound access
 
-The allmodconfig build of m32r is failing with the error:
-lib/mpi/mpih-div.o: In function 'mpihelp_divrem':
-mpih-div.c:(.text+0x40): undefined reference to 'abort'
-mpih-div.c:(.text+0x40): relocation truncated to fit:
-	R_M32R_26_PCREL_RELA against undefined symbol 'abort'
+Index was incremented before last use and thus the second array could
+dereference to an invalid address (not mentioning the fact that it did not
+properly clear the entry we intended to clear).
 
-The function 'abort' was never defined for the m32r architecture.
-
-Create 'abort' as is done in other arch like 'arm' and 'unicore32'.
-
-Link: http://lkml.kernel.org/r/1506727220-6108-1-git-send-email-sudip.mukherjee@codethink.co.uk
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Link: http://lkml.kernel.org/r/1506973525-16491-1-git-send-email-jglisse@redhat.com
+Fixes: 8315ada7f095bf ("mm/migrate: allow migrate_vma() to alloc new page on empty entry")
+Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/traps.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/migrate.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/traps.c~m32r-fix-build-failure arch/m32r/kernel/traps.c
---- a/arch/m32r/kernel/traps.c~m32r-fix-build-failure
-+++ a/arch/m32r/kernel/traps.c
-@@ -114,6 +114,15 @@ static void set_eit_vector_entries(void)
- 	_flush_cache_copyback_all();
- }
+diff -puN mm/migrate.c~mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access
++++ a/mm/migrate.c
+@@ -2146,8 +2146,9 @@ static int migrate_vma_collect_hole(unsi
+ 	unsigned long addr;
  
-+void abort(void)
-+{
-+	BUG();
-+
-+	/* if that doesn't kill us, halt */
-+	panic("Oops failed to kill thread");
-+}
-+EXPORT_SYMBOL(abort);
-+
- void __init trap_init(void)
- {
- 	set_eit_vector_entries();
+ 	for (addr = start & PAGE_MASK; addr < end; addr += PAGE_SIZE) {
+-		migrate->src[migrate->npages++] = MIGRATE_PFN_MIGRATE;
++		migrate->src[migrate->npages] = MIGRATE_PFN_MIGRATE;
+ 		migrate->dst[migrate->npages] = 0;
++		migrate->npages++;
+ 		migrate->cpages++;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from mhairgrove@nvidia.com are
 
-alpha-fix-build-failures.patch
-m32r-define-cpu_big_endian.patch
-m32r-fix-build-failure.patch
+mm-migrate-fix-indexing-bug-off-by-one-and-avoid-out-of-bound-access.patch
 
