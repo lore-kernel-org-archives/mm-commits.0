@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + dax-stop-using-vm_hugepage-for-dax.patch added to -mm tree
-Date: Mon, 02 Oct 2017 15:48:10 -0700
-Message-ID: <59d2c22a.0KA+RJWdq8YcozRe%akpm@linux-foundation.org>
+Subject: +
+ mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
+ added to -mm tree
+Date: Mon, 02 Oct 2017 15:50:04 -0700
+Message-ID: <59d2c29c.turHmgQylHvUA8Wa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750949AbdJBWsL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:48:11 -0400
+        with ESMTP id S1750770AbdJBWuF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, jmoyer@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: yang.s@alibaba-inc.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: stop using VM_HUGEPAGE for dax
+     Subject: mm/madvise.c: add description for MADV_WIPEONFORK and MADV_KEEPONFORK
 has been added to the -mm tree.  Its filename is
-     dax-stop-using-vm_hugepage-for-dax.patch
+     mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-stop-using-vm_hugepage-for-dax.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-stop-using-vm_hugepage-for-dax.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +40,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: dax: stop using VM_HUGEPAGE for dax
+From: "Yang Shi" <yang.s@alibaba-inc.com>
+Subject: mm/madvise.c: add description for MADV_WIPEONFORK and MADV_KEEPONFORK
 
-This flag is deprecated in favor of the vma_is_dax() check in
-transparent_hugepage_enabled() added in commit baabda261424 "mm: always
-enable thp for dax mappings"
+mm/madvise.c has a brief description about all MADV_ flags.  Add a
+description for the newly added MADV_WIPEONFORK and MADV_KEEPONFORK.
 
-Link: http://lkml.kernel.org/r/150664808322.36094.377701515526275078.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Although man page has the similar information, but it'd better to keep the
+consistent with other flags.
+
+Link: http://lkml.kernel.org/r/1506117328-88228-1-git-send-email-yang.s@alibaba-inc.com
+Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |    1 -
- fs/ext4/file.c       |    1 -
- fs/xfs/xfs_file.c    |    2 --
- 3 files changed, 4 deletions(-)
+ mm/madvise.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/dax/device.c~dax-stop-using-vm_hugepage-for-dax drivers/dax/device.c
---- a/drivers/dax/device.c~dax-stop-using-vm_hugepage-for-dax
-+++ a/drivers/dax/device.c
-@@ -450,7 +450,6 @@ static int dax_mmap(struct file *filp, s
- 		return rc;
- 
- 	vma->vm_ops = &dax_vm_ops;
--	vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
- }
- 
-diff -puN fs/ext4/file.c~dax-stop-using-vm_hugepage-for-dax fs/ext4/file.c
---- a/fs/ext4/file.c~dax-stop-using-vm_hugepage-for-dax
-+++ a/fs/ext4/file.c
-@@ -352,7 +352,6 @@ static int ext4_file_mmap(struct file *f
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
--		vma->vm_flags |= VM_HUGEPAGE;
- 	} else {
- 		vma->vm_ops = &ext4_file_vm_ops;
- 	}
-diff -puN fs/xfs/xfs_file.c~dax-stop-using-vm_hugepage-for-dax fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~dax-stop-using-vm_hugepage-for-dax
-+++ a/fs/xfs/xfs_file.c
-@@ -1133,8 +1133,6 @@ xfs_file_mmap(
- {
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
--	if (IS_DAX(file_inode(filp)))
--		vma->vm_flags |= VM_HUGEPAGE;
- 	return 0;
- }
- 
+diff -puN mm/madvise.c~mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork
++++ a/mm/madvise.c
+@@ -757,6 +757,9 @@ madvise_behavior_valid(int behavior)
+  *  MADV_DONTFORK - omit this area from child's address space when forking:
+  *		typically, to avoid COWing pages pinned by get_user_pages().
+  *  MADV_DOFORK - cancel MADV_DONTFORK: no longer omit this area when forking.
++ *  MADV_WIPEONFORK - present the child process with zero-filled memory in this
++ *              range after a fork.
++ *  MADV_KEEPONFORK - undo the effect of MADV_WIPEONFORK
+  *  MADV_HWPOISON - trigger memory error handler as if the given memory range
+  *		were corrupted by unrecoverable hardware memory failure.
+  *  MADV_SOFT_OFFLINE - try to soft-offline the given range of memory.
+@@ -777,7 +780,9 @@ madvise_behavior_valid(int behavior)
+  *  zero    - success
+  *  -EINVAL - start + len < 0, start is not page-aligned,
+  *		"behavior" is not a valid value, or application
+- *		is attempting to release locked or shared pages.
++ *		is attempting to release locked or shared pages,
++ *		or the specified address range includes file, Huge TLB,
++ *		MAP_SHARED or VMPFNMAP range.
+  *  -ENOMEM - addresses in the specified range are not currently
+  *		mapped, or are outside the AS of the process.
+  *  -EIO    - an I/O error occurred while paging in data.
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from yang.s@alibaba-inc.com are
 
-dax-quiet-bdev_dax_supported.patch
-dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch
-dax-stop-using-vm_mixedmap-for-dax.patch
-dax-stop-using-vm_hugepage-for-dax.patch
+mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
 
