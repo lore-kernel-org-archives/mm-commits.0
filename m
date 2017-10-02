@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-hacking-menu-runtime-testing-keep-tests-together.patch
- added to -mm tree
-Date: Mon, 02 Oct 2017 14:45:46 -0700
-Message-ID: <59d2b38a.WRMiLmackmCM/GjY%akpm@linux-foundation.org>
+Subject: + mm-only-dispaly-online-cpus-of-the-numa-node.patch added to -mm tree
+Date: Mon, 02 Oct 2017 14:53:57 -0700
+Message-ID: <59d2b575.GX8Lnkimux85WBtb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750806AbdJBVpr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 17:45:47 -0400
+        with ESMTP id S1751710AbdJBVx6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 17:53:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, dave.hansen@intel.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: thunder.leizhen@huawei.com, catalin.marinas@arm.com, dingtianhong@huawei.com, gregkh@linuxfoundation.org, guohanjun@huawei.com, huawei.libin@huawei.com, mhocko@suse.com, wangkefeng.wang@huawei.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: kernel hacking menu: runtime testing: keep tests together
+     Subject: mm: only display online cpus of the numa node
 has been added to the -mm tree.  Its filename is
-     kernel-hacking-menu-runtime-testing-keep-tests-together.patch
+     mm-only-dispaly-online-cpus-of-the-numa-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hacking-menu-runtime-testing-keep-tests-together.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-only-dispaly-online-cpus-of-the-numa-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hacking-menu-runtime-testing-keep-tests-together.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-only-dispaly-online-cpus-of-the-numa-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,210 +38,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib/Kconfig.debug: kernel hacking menu: runtime testing: keep tests together
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: mm: only display online cpus of the numa node
 
-Expand the "Runtime testing" menu by including more entries inside it
-instead of after it.  This is just Kconfig symbol movement.
+When I executed numactl -H(which read
+/sys/devices/system/node/nodeX/cpumap and display cpumask_of_node for each
+node), but I got different result on X86 and arm64.  For each numa node,
+the former only displayed online CPUs, and the latter displayed all
+possible CPUs.  Unfortunately, both Linux documentation and numactl manual
+have not described it clear.
 
-This causes the (arch-independent) Runtime tests to be presented (listed)
-all in one place instead of in multiple places.
+I sent a mail to ask for help, and Michal Hocko replied that he preferred
+to print online cpus because it doesn't really make much sense to bind
+anything on offline nodes.
 
-Link: http://lkml.kernel.org/r/c194e5c4-2042-bf94-a2d8-7aa13756e257@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Link: http://lkml.kernel.org/r/1506678805-15392-2-git-send-email-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tianhong Ding <dingtianhong@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Libin <huawei.libin@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |  143 +++++++++++++++++++++-----------------------
- 1 file changed, 71 insertions(+), 72 deletions(-)
+ drivers/base/node.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN lib/Kconfig.debug~kernel-hacking-menu-runtime-testing-keep-tests-together lib/Kconfig.debug
---- a/lib/Kconfig.debug~kernel-hacking-menu-runtime-testing-keep-tests-together
-+++ a/lib/Kconfig.debug
-@@ -1590,6 +1590,54 @@ config LATENCYTOP
+diff -puN drivers/base/node.c~mm-only-dispaly-online-cpus-of-the-numa-node drivers/base/node.c
+--- a/drivers/base/node.c~mm-only-dispaly-online-cpus-of-the-numa-node
++++ a/drivers/base/node.c
+@@ -27,13 +27,21 @@ static struct bus_type node_subsys = {
  
- source kernel/trace/Kconfig
+ static ssize_t node_read_cpumap(struct device *dev, bool list, char *buf)
+ {
++	ssize_t n;
++	cpumask_var_t mask;
+ 	struct node *node_dev = to_node(dev);
+-	const struct cpumask *mask = cpumask_of_node(node_dev->dev.id);
  
-+config PROVIDE_OHCI1394_DMA_INIT
-+	bool "Remote debugging over FireWire early on boot"
-+	depends on PCI && X86
-+	help
-+	  If you want to debug problems which hang or crash the kernel early
-+	  on boot and the crashing machine has a FireWire port, you can use
-+	  this feature to remotely access the memory of the crashed machine
-+	  over FireWire. This employs remote DMA as part of the OHCI1394
-+	  specification which is now the standard for FireWire controllers.
-+
-+	  With remote DMA, you can monitor the printk buffer remotely using
-+	  firescope and access all memory below 4GB using fireproxy from gdb.
-+	  Even controlling a kernel debugger is possible using remote DMA.
-+
-+	  Usage:
-+
-+	  If ohci1394_dma=early is used as boot parameter, it will initialize
-+	  all OHCI1394 controllers which are found in the PCI config space.
-+
-+	  As all changes to the FireWire bus such as enabling and disabling
-+	  devices cause a bus reset and thereby disable remote DMA for all
-+	  devices, be sure to have the cable plugged and FireWire enabled on
-+	  the debugging host before booting the debug target for debugging.
-+
-+	  This code (~1k) is freed after boot. By then, the firewire stack
-+	  in charge of the OHCI-1394 controllers should be used instead.
-+
-+	  See Documentation/debugging-via-ohci1394.txt for more information.
-+
-+config DMA_API_DEBUG
-+	bool "Enable debugging of DMA-API usage"
-+	depends on HAVE_DMA_API_DEBUG
-+	help
-+	  Enable this option to debug the use of the DMA API by device drivers.
-+	  With this option you will be able to detect common bugs in device
-+	  drivers like double-freeing of DMA mappings or freeing mappings that
-+	  were never allocated.
-+
-+	  This also attempts to catch cases where a page owned by DMA is
-+	  accessed by the cpu in a way that could cause data corruption.  For
-+	  example, this enables cow_user_page() to check that the source page is
-+	  not undergoing DMA.
-+
-+	  This option causes a performance degradation.  Use only if you want to
-+	  debug device drivers and dma interactions.
-+
-+	  If unsure, say N.
-+
- menu "Runtime Testing"
+ 	/* 2008/04/07: buf currently PAGE_SIZE, need 9 chars per 32 bits. */
+ 	BUILD_BUG_ON((NR_CPUS/32 * 9) > (PAGE_SIZE-1));
  
- config LKDTM
-@@ -1749,56 +1797,6 @@ config TEST_PARMAN
- 
- 	  If unsure, say N.
- 
--endmenu # runtime tests
--
--config PROVIDE_OHCI1394_DMA_INIT
--	bool "Remote debugging over FireWire early on boot"
--	depends on PCI && X86
--	help
--	  If you want to debug problems which hang or crash the kernel early
--	  on boot and the crashing machine has a FireWire port, you can use
--	  this feature to remotely access the memory of the crashed machine
--	  over FireWire. This employs remote DMA as part of the OHCI1394
--	  specification which is now the standard for FireWire controllers.
--
--	  With remote DMA, you can monitor the printk buffer remotely using
--	  firescope and access all memory below 4GB using fireproxy from gdb.
--	  Even controlling a kernel debugger is possible using remote DMA.
--
--	  Usage:
--
--	  If ohci1394_dma=early is used as boot parameter, it will initialize
--	  all OHCI1394 controllers which are found in the PCI config space.
--
--	  As all changes to the FireWire bus such as enabling and disabling
--	  devices cause a bus reset and thereby disable remote DMA for all
--	  devices, be sure to have the cable plugged and FireWire enabled on
--	  the debugging host before booting the debug target for debugging.
--
--	  This code (~1k) is freed after boot. By then, the firewire stack
--	  in charge of the OHCI-1394 controllers should be used instead.
--
--	  See Documentation/debugging-via-ohci1394.txt for more information.
--
--config DMA_API_DEBUG
--	bool "Enable debugging of DMA-API usage"
--	depends on HAVE_DMA_API_DEBUG
--	help
--	  Enable this option to debug the use of the DMA API by device drivers.
--	  With this option you will be able to detect common bugs in device
--	  drivers like double-freeing of DMA mappings or freeing mappings that
--	  were never allocated.
--
--	  This also attempts to catch cases where a page owned by DMA is
--	  accessed by the cpu in a way that could cause data corruption.  For
--	  example, this enables cow_user_page() to check that the source page is
--	  not undergoing DMA.
--
--	  This option causes a performance degradation.  Use only if you want to
--	  debug device drivers and dma interactions.
--
--	  If unsure, say N.
--
- config TEST_LKM
- 	tristate "Test module loading with 'hello world' module"
- 	default n
-@@ -1873,18 +1871,6 @@ config TEST_UDELAY
- 
- 	  If unsure, say N.
- 
--config MEMTEST
--	bool "Memtest"
--	depends on HAVE_MEMBLOCK
--	---help---
--	  This option adds a kernel parameter 'memtest', which allows memtest
--	  to be set.
--	        memtest=0, mean disabled; -- default
--	        memtest=1, mean do 1 test pattern;
--	        ...
--	        memtest=17, mean do 17 test patterns.
--	  If you are unsure how to answer this question, answer N.
--
- config TEST_STATIC_KEYS
- 	tristate "Test static keys"
- 	default n
-@@ -1894,16 +1880,6 @@ config TEST_STATIC_KEYS
- 
- 	  If unsure, say N.
- 
--config BUG_ON_DATA_CORRUPTION
--	bool "Trigger a BUG when data corruption is detected"
--	select DEBUG_LIST
--	help
--	  Select this option if the kernel should BUG when it encounters
--	  data corruption in kernel memory structures when they get checked
--	  for validity.
--
--	  If unsure, say N.
--
- config TEST_KMOD
- 	tristate "kmod stress tester"
- 	default n
-@@ -1941,6 +1917,29 @@ config TEST_DEBUG_VIRTUAL
- 
- 	  If unsure, say N.
- 
-+endmenu # runtime tests
+-	return cpumap_print_to_pagebuf(list, buf, mask);
++	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
++		return 0;
 +
-+config MEMTEST
-+	bool "Memtest"
-+	depends on HAVE_MEMBLOCK
-+	---help---
-+	  This option adds a kernel parameter 'memtest', which allows memtest
-+	  to be set.
-+	        memtest=0, mean disabled; -- default
-+	        memtest=1, mean do 1 test pattern;
-+	        ...
-+	        memtest=17, mean do 17 test patterns.
-+	  If you are unsure how to answer this question, answer N.
++	cpumask_and(mask, cpumask_of_node(node_dev->dev.id), cpu_online_mask);
++	n = cpumap_print_to_pagebuf(list, buf, mask);
++	free_cpumask_var(mask);
 +
-+config BUG_ON_DATA_CORRUPTION
-+	bool "Trigger a BUG when data corruption is detected"
-+	select DEBUG_LIST
-+	help
-+	  Select this option if the kernel should BUG when it encounters
-+	  data corruption in kernel memory structures when they get checked
-+	  for validity.
-+
-+	  If unsure, say N.
++	return n;
+ }
  
- source "samples/Kconfig"
- 
+ static inline ssize_t node_read_cpumask(struct device *dev,
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
-kernel-hacking-menu-runtime-testing-keep-tests-together.patch
+mm-only-dispaly-online-cpus-of-the-numa-node.patch
 
