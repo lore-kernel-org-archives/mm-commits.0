@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch added
- to -mm tree
-Date: Mon, 02 Oct 2017 15:26:06 -0700
-Message-ID: <59d2bcfe.VheGjaxLURMYo42D%akpm@linux-foundation.org>
+Subject: + zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch added to -mm tree
+Date: Mon, 02 Oct 2017 15:28:41 -0700
+Message-ID: <59d2bd99.1UFgmJFf4+KgFsuC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43648 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43760 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdJBW0H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:26:07 -0400
+        with ESMTP id S1750927AbdJBW2m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2017 18:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, klondike@xiscosoft.net, npiggin@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
+     Subject: zsmalloc: calling zs_map_object() from irq is a bug
 has been added to the -mm tree.  Its filename is
-     initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
+     zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,86 +38,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zsmalloc: calling zs_map_object() from irq is a bug
 
-This is a follow-up to commit 57ddfdaa9a72 ("initramfs: fix disabling of
-initramfs (and its compression)").  This particular commit fixed the use
-case where we build the kernel with an initramfs with no compression, and
-then we build the kernel with no initramfs.
+Use BUG_ON(in_interrupt()) in zs_map_object().  This is not a new
+BUG_ON(), it's always been there, but was recently changed to VM_BUG_ON().
+There are several problems there.  First, we use use per-CPU mappings
+both in zsmalloc and in zram, and interrupt may easily corrupt those
+buffers.  Second, and more importantly, we believe it's possible to start
+leaking sensitive information.  Consider the following case:
 
-Now this still left us with the same case as described here:
-http://lkml.kernel.org/r/20170521033337.6197-1-f.fainelli@gmail.com not
-working with initramfs compression.  This can be seen by the following
-steps/timestamps:
+-> process P
+	swap out
+	 zram
+	  per-cpu mapping CPU1
+	   compress page A
+-> IRQ
 
-https://www.spinics.net/lists/kernel/msg2598153.html
+	swap out
+	 zram
+	  per-cpu mapping CPU1
+	   compress page B
+	    write page from per-cpu mapping CPU1 to zsmalloc pool
+	iret
 
-.initramfs_data.cpio.gz.cmd is correct:
+-> process P
+	    write page from per-cpu mapping CPU1 to zsmalloc pool  [*]
+	return
 
-cmd_usr/initramfs_data.cpio.gz := /bin/bash
-./scripts/gen_initramfs_list.sh -o usr/initramfs_data.cpio.gz  -u 1000
--g 1000  /home/fainelli/work/uclinux-rootfs/romfs
-/home/fainelli/work/uclinux-rootfs/misc/initramfs.dev
+* so we store overwritten data that actually belongs to another
+  page (task) and potentially contains sensitive data. And when
+  process P will page fault it's going to read (swap in) that
+  other task's data.
 
-and was generated the first time we did generate the gzip initramfs, so
-the command has not changed, nor its arguments, so we just don't call it,
-no initramfs cpio is re-generated as a consequence.
-
-The fix for this problem is just to properly keep track of the
-.initramfs_cpio_data.d file by suffixing it with the compression
-extension.  This takes care of properly tracking dependencies such that
-the initramfs get (re)generated any time files are added/deleted etc.
-
-Link: http://lkml.kernel.org/r/20170930033936.6722-1-f.fainelli@gmail.com
-Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initramfs compression algorithm")
-Fixes: 9e3596b0c653 ("kbuild: initramfs cleanup, set target from Kconfig")
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: "Francisco Blas Izquierdo Riera (klondike)" <klondike@xiscosoft.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: http://lkml.kernel.org/r/20170929045140.4055-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Makefile |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling usr/Makefile
---- a/usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling
-+++ a/usr/Makefile
-@@ -7,6 +7,7 @@ PHONY += klibcdirs
+diff -puN mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug
++++ a/mm/zsmalloc.c
+@@ -1349,7 +1349,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	 * pools/users, we can't allow mapping in interrupt context
+ 	 * because it can corrupt another users mappings.
+ 	 */
+-	WARN_ON_ONCE(in_interrupt());
++	BUG_ON(in_interrupt());
  
- suffix_y = $(subst $\",,$(CONFIG_INITRAMFS_COMPRESSION))
- datafile_y = initramfs_data.cpio$(suffix_y)
-+datafile_d_y = .$(datafile_y).d
- AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/$(datafile_y)"
- 
- 
-@@ -29,12 +30,12 @@ ramfs-args  := \
-         $(if $(CONFIG_INITRAMFS_ROOT_UID), -u $(CONFIG_INITRAMFS_ROOT_UID)) \
-         $(if $(CONFIG_INITRAMFS_ROOT_GID), -g $(CONFIG_INITRAMFS_ROOT_GID))
- 
--# .initramfs_data.cpio.d is used to identify all files included
-+# $(datafile_d_y) is used to identify all files included
- # in initramfs and to detect if any files are added/removed.
- # Removed files are identified by directory timestamp being updated
- # The dependency list is generated by gen_initramfs.sh -l
--ifneq ($(wildcard $(obj)/.initramfs_data.cpio.d),)
--	include $(obj)/.initramfs_data.cpio.d
-+ifneq ($(wildcard $(obj)/$(datafile_d_y)),)
-+	include $(obj)/$(datafile_d_y)
- endif
- 
- quiet_cmd_initfs = GEN     $@
-@@ -52,5 +53,5 @@ $(deps_initramfs): klibcdirs
- # 3) If gen_init_cpio are newer than initramfs_data.cpio
- # 4) arguments to gen_initramfs.sh changes
- $(obj)/$(datafile_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
--	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
-+	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/$(datafile_d_y)
- 	$(call if_changed,initfs)
+ 	/* From now on, migration cannot move the object */
+ 	pin_tag(handle);
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
+ratelimit-use-deferred-printk-version.patch
+zram-add-zstd-to-the-supported-algorithms-list.patch
+zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
+zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
 
