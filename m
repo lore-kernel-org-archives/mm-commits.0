@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-printks-always-need-a-kern_level.patch added to -mm
- tree
-Date: Tue, 03 Oct 2017 14:37:43 -0700
-Message-ID: <59d40327.i/nNSoz/Eq0JEOsF%akpm@linux-foundation.org>
+Subject: + mm-remove-unused-pgdat-inactive_ratio.patch added to -mm tree
+Date: Tue, 03 Oct 2017 14:38:21 -0700
+Message-ID: <59d4034d.7L7eHDhMRv9hlhgi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbdJCVho (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 17:37:44 -0400
+        with ESMTP id S1750841AbdJCViW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 17:38:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: printks always need a KERN_<LEVEL>
+     Subject: mm: remove unused pgdat->inactive_ratio
 has been added to the -mm tree.  Its filename is
-     checkpatch-printks-always-need-a-kern_level.patch
+     mm-remove-unused-pgdat-inactive_ratio.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-printks-always-need-a-kern_level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unused-pgdat-inactive_ratio.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-printks-always-need-a-kern_level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unused-pgdat-inactive_ratio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: printks always need a KERN_<LEVEL>
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm: remove unused pgdat->inactive_ratio
 
-There was code in checkpatch that allowed continuation printks to be used
-without KERN_CONT.  Remove the continuation check and always require a
-KERN_<LEVEL>.
+Since 59dc76b0d4df ("mm: vmscan: reduce size of inactive file list")
+'pgdat->inactive_ratio' is not used, except for printing
+"node_inactive_ratio: 0" in /proc/zoneinfo output.
 
-Link: http://lkml.kernel.org/r/61980ef41d5b9b6543da1c49055042e0ab74d308.1507047008.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Remove it.
+
+Link: http://lkml.kernel.org/r/20171003152611.27483-1-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   26 ++++----------------------
- 1 file changed, 4 insertions(+), 22 deletions(-)
+ include/linux/mmzone.h |    6 ------
+ mm/vmscan.c            |    2 +-
+ mm/vmstat.c            |    6 ++----
+ 3 files changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-printks-always-need-a-kern_level scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-printks-always-need-a-kern_level
-+++ a/scripts/checkpatch.pl
-@@ -3829,28 +3829,10 @@ sub process {
- 			     "Prefer printk_ratelimited or pr_<level>_ratelimited to printk_ratelimit\n" . $herecurr);
- 		}
+diff -puN include/linux/mmzone.h~mm-remove-unused-pgdat-inactive_ratio include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-remove-unused-pgdat-inactive_ratio
++++ a/include/linux/mmzone.h
+@@ -711,12 +711,6 @@ typedef struct pglist_data {
+ 	/* Fields commonly accessed by the page reclaim scanner */
+ 	struct lruvec		lruvec;
  
--# printk should use KERN_* levels.  Note that follow on printk's on the
--# same line do not need a level, so we use the current block context
--# to try and find and validate the current printk.  In summary the current
--# printk includes all preceding printk's which have no newline on the end.
--# we assume the first bad printk is the one to report.
--		if ($line =~ /\bprintk\((?!KERN_)\s*"/) {
--			my $ok = 0;
--			for (my $ln = $linenr - 1; $ln >= $first_line; $ln--) {
--				#print "CHECK<$lines[$ln - 1]\n";
--				# we have a preceding printk if it ends
--				# with "\n" ignore it, else it is to blame
--				if ($lines[$ln - 1] =~ m{\bprintk\(}) {
--					if ($rawlines[$ln - 1] !~ m{\\n"}) {
--						$ok = 1;
--					}
--					last;
--				}
--			}
--			if ($ok == 0) {
--				WARN("PRINTK_WITHOUT_KERN_LEVEL",
--				     "printk() should include KERN_ facility level\n" . $herecurr);
--			}
-+# printk should use KERN_* levels
-+		if ($line =~ /\bprintk\s*\(\s*(?!KERN_[A-Z]+\b)/) {
-+			WARN("PRINTK_WITHOUT_KERN_LEVEL",
-+			     "printk() should include KERN_<LEVEL> facility level\n" . $herecurr);
- 		}
+-	/*
+-	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
+-	 * this node's LRU.  Maintained by the pageout code.
+-	 */
+-	unsigned int inactive_ratio;
+-
+ 	unsigned long		flags;
  
- 		if ($line =~ /\bprintk\s*\(\s*KERN_([A-Z]+)/) {
+ 	ZONE_PADDING(_pad2_)
+diff -puN mm/vmscan.c~mm-remove-unused-pgdat-inactive_ratio mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-unused-pgdat-inactive_ratio
++++ a/mm/vmscan.c
+@@ -2081,7 +2081,7 @@ static void shrink_active_list(unsigned
+  * If that fails and refaulting is observed, the inactive list grows.
+  *
+  * The inactive_ratio is the target ratio of ACTIVE to INACTIVE pages
+- * on this LRU, maintained by the pageout code. A zone->inactive_ratio
++ * on this LRU, maintained by the pageout code. An inactive_ratio
+  * of 3 means 3:1 or 25% of the pages are kept on the inactive list.
+  *
+  * total     target    max
+diff -puN mm/vmstat.c~mm-remove-unused-pgdat-inactive_ratio mm/vmstat.c
+--- a/mm/vmstat.c~mm-remove-unused-pgdat-inactive_ratio
++++ a/mm/vmstat.c
+@@ -1682,11 +1682,9 @@ static void zoneinfo_show_print(struct s
+ 	}
+ 	seq_printf(m,
+ 		   "\n  node_unreclaimable:  %u"
+-		   "\n  start_pfn:           %lu"
+-		   "\n  node_inactive_ratio: %u",
++		   "\n  start_pfn:           %lu",
+ 		   pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES,
+-		   zone->zone_start_pfn,
+-		   zone->zone_pgdat->inactive_ratio);
++		   zone->zone_start_pfn);
+ 	seq_putc(m, '\n');
+ }
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-spellingtxt-add-unnecessary-typo-variants.patch
-parse-maintainers-add-ability-to-specify-filenames.patch
-checkpatch-printks-always-need-a-kern_level.patch
+mm-mempolicy-fix-numa_interleave_hit-counter.patch
+mm-remove-unused-pgdat-inactive_ratio.patch
+kcov-remove-pointless-current-=-null-check.patch
 
