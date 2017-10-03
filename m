@@ -1,79 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 41/51] memremap: add scheduling point to
- devm_memremap_pages
-Date: Tue, 03 Oct 2017 16:16:23 -0700
-Message-ID: <59d41a47.qTkyyS7QV2VwYjp8%akpm@linux-foundation.org>
+Subject: [patch 42/51] kernel/kcmp.c: drop branch leftover typo
+Date: Tue, 03 Oct 2017 16:16:26 -0700
+Message-ID: <59d41a4a.7EmlAP2kTNJB9Fsl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58842 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXQY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:24 -0400
+        with ESMTP id S1750865AbdJCXQ1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, dan.j.williams@gmail.com, jthumshirn@suse.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gorcunov@gmail.com, avagin@virtuozzo.com, esyr@redhat.com, gorcunov@openvz.org, xemul@virtuozzo.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: memremap: add scheduling point to devm_memremap_pages
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: kernel/kcmp.c: drop branch leftover typo
 
-devm_memremap_pages is initializing struct pages in for_each_device_pfn
-and that can take quite some time.  We have even seen a soft lockup
-triggering on a non preemptive kernel
+The else branch been left over and escaped the source code refresh.  Not a
+problem but better clean it up.
 
-[  125.583233] NMI watchdog: BUG: soft lockup - CPU#61 stuck for 22s! [kworker/u641:11:1808]
-[...]
-[  125.583467] RIP: 0010:[<ffffffff8118b6b7>]  [<ffffffff8118b6b7>] devm_memremap_pages+0x327/0x430
-[...]
-[  125.583488] Call Trace:
-[  125.583496]  [<ffffffffa016550d>] pmem_attach_disk+0x2fd/0x3f0 [nd_pmem]
-[  125.583528]  [<ffffffffa14ae984>] nvdimm_bus_probe+0x64/0x110 [libnvdimm]
-[  125.583536]  [<ffffffff8146b257>] driver_probe_device+0x1f7/0x420
-[  125.583540]  [<ffffffff81469212>] bus_for_each_drv+0x52/0x80
-[  125.583543]  [<ffffffff8146af40>] __device_attach+0xb0/0x130
-[  125.583546]  [<ffffffff8146a367>] bus_probe_device+0x87/0xa0
-[  125.583548]  [<ffffffff814682fc>] device_add+0x3fc/0x5f0
-[  125.583553]  [<ffffffffa14adffe>] nd_async_device_register+0xe/0x40 [libnvdimm]
-[  125.583556]  [<ffffffff8109e413>] async_run_entry_fn+0x43/0x150
-[  125.583561]  [<ffffffff81095b8e>] process_one_work+0x14e/0x410
-[  125.583563]  [<ffffffff810963f6>] worker_thread+0x116/0x490
-[  125.583565]  [<ffffffff8109b8c7>] kthread+0xc7/0xe0
-[  125.583569]  [<ffffffff8160a57f>] ret_from_fork+0x3f/0x70
-
-fix this by adding cond_resched every 1024 pages.
-
-Link: http://lkml.kernel.org/r/20170918121410.24466-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
-Tested-by: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Dan Williams <dan.j.williams@gmail.com>
+Fixes: 0791e3644e5e ("kcmp: add KCMP_EPOLL_TFD mode to compare epoll target files")
+Link: http://lkml.kernel.org/r/20170917165838.GA1887@uranus.lan
+Reported-by: Eugene Syromiatnikov <esyr@redhat.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Andrei Vagin <avagin@virtuozzo.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/kcmp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/memremap.c~memremap-add-scheduling-point-to-devm_memremap_pages kernel/memremap.c
---- a/kernel/memremap.c~memremap-add-scheduling-point-to-devm_memremap_pages
-+++ a/kernel/memremap.c
-@@ -350,7 +350,7 @@ void *devm_memremap_pages(struct device
- 	pgprot_t pgprot = PAGE_KERNEL;
- 	struct dev_pagemap *pgmap;
- 	struct page_map *page_map;
--	int error, nid, is_ram;
-+	int error, nid, is_ram, i = 0;
+diff -puN kernel/kcmp.c~kcmp-drop-branch-leftover-typo kernel/kcmp.c
+--- a/kernel/kcmp.c~kcmp-drop-branch-leftover-typo
++++ a/kernel/kcmp.c
+@@ -131,7 +131,7 @@ static int kcmp_epoll_target(struct task
+ 	if (filp_epoll) {
+ 		filp_tgt = get_epoll_tfile_raw_ptr(filp_epoll, slot.tfd, slot.toff);
+ 		fput(filp_epoll);
+-	} else
++	}
  
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-@@ -448,6 +448,8 @@ void *devm_memremap_pages(struct device
- 		list_del(&page->lru);
- 		page->pgmap = pgmap;
- 		percpu_ref_get(ref);
-+		if (!(++i % 1024))
-+			cond_resched();
- 	}
- 	devres_add(dev, page_map);
- 	return __va(res->start);
+ 	if (IS_ERR(filp_tgt))
+ 		return PTR_ERR(filp_tgt);
 _
