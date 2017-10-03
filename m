@@ -1,74 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch added to -mm tree
-Date: Tue, 03 Oct 2017 15:30:33 -0700
-Message-ID: <59d40f89.T82gliSAxWNq4/X2%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+ removed from -mm tree
+Date: Tue, 03 Oct 2017 16:08:21 -0700
+Message-ID: <59d41865.vG0XHju0nr5E0+8M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56904 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbdJCWae (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:30:34 -0400
+        with ESMTP id S1751090AbdJCXIX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:08:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, colin.king@canonical.com, joe@perches.com, keescook@chromium.org, ross.zwisler@linux.intel.com, sboyd@codeaurora.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+     Subject: scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
+has been removed from the -mm tree.  Its filename was
+     scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix
+Subject: scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
 
-fix spello in comment
+s/|/||/, per Joe
 
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/spelling.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix mm/swap_slots.c
---- a/mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix
-+++ a/mm/swap_slots.c
-@@ -149,7 +149,7 @@ static int alloc_swap_slot_cache(unsigne
- 	cache->cur = 0;
- 	cache->n_ret = 0;
- 	/*
--	 * We intialized alloc_lock and free_lock earlier.  We use
-+	 * We initialized alloc_lock and free_lock earlier.  We use
- 	 * !cache->slots or !cache->slots_ret to know if it is safe to acquire
- 	 * the corresponding lock and use the cache.  Memory barrier below
- 	 * ensures the assumption.
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
++++ a/scripts/spelling.txt
+@@ -492,7 +492,7 @@ failied||failed
+ faillure||failure
+ failue||failure
+ failuer||failure
+-failng|failing
++failng||failing
+ faireness||fairness
+ falied||failed
+ faliure||failure
+@@ -1118,7 +1118,7 @@ swithced||switched
+ swithcing||switching
+ swithed||switched
+ swithing||switching
+-swtich|switch
++swtich||switch
+ symetric||symmetric
+ synax||syntax
+ synchonized||synchronized
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt.patch
 mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
 of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
