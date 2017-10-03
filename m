@@ -1,53 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [patch 51/51] include/linux/fs.h: fix comment about struct
- address_space
-Date: Tue, 03 Oct 2017 16:16:54 -0700
-Message-ID: <59d41a66.lVEEuI1bDxZ5zvGt%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-use-sc-priority-for-slab-shrink-targets-fix.patch removed from -mm tree
+Date: Tue, 03 Oct 2017 16:34:35 -0700
+Message-ID: <59d41e8b.rRMU6DFK3ak0/gYD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXQ4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:56 -0400
+        with ESMTP id S1750865AbdJCXeh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:34:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, mhocko@suse.com
+To: hannes@cmpxchg.org, aryabinin@virtuozzo.com, david@fromorbit.com, jbacik@fb.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: include/linux/fs.h: fix comment about struct address_space
 
-Before 9c5d760b8d22 ("mm: split gfp_mask and mapping flags into separate
-fields") the private_* fields of struct adrress_space were grouped
-together and using "ditto" in comments describing the last fields was
-correct.
+The patch titled
+     Subject: mm: use sc->priority for slab shrink targets fix
+has been removed from the -mm tree.  Its filename was
+     mm-use-sc-priority-for-slab-shrink-targets-fix.patch
 
-With introduction of gpf_mask between private_lock and private_list
-"ditto" references the wrong description.
+This patch was dropped because it was folded into mm-use-sc-priority-for-slab-shrink-targets.patch
 
-Fix it by using the elaborate description.
+------------------------------------------------------
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: use sc->priority for slab shrink targets fix
 
-Link: http://lkml.kernel.org/r/1507009987-8746-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
+The slab shrinker code was the only user of the lru_pages counter in
+get_scan_count() and shrink_node_memcg().  Now that it's switched its
+pressure notion to sc->priority, the counter is dead code.  Remove it.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/fs.h~include-linux-fsh-fix-comment-about-struct-address_space include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-fix-comment-about-struct-address_space
-+++ a/include/linux/fs.h
-@@ -403,7 +403,7 @@ struct address_space {
- 	unsigned long		flags;		/* error bits */
- 	spinlock_t		private_lock;	/* for use by the address_space */
- 	gfp_t			gfp_mask;	/* implicit gfp mask for allocations */
--	struct list_head	private_list;	/* ditto */
-+	struct list_head	private_list;	/* for use by the address_space */
- 	void			*private_data;	/* ditto */
- 	errseq_t		wb_err;
- } __attribute__((aligned(sizeof(long)))) __randomize_layout;
+diff -puN mm/vmscan.c~mm-use-sc-priority-for-slab-shrink-targets-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-use-sc-priority-for-slab-shrink-targets-fix
++++ a/mm/vmscan.c
+@@ -2163,8 +2163,7 @@ enum scan_balance {
+  * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
+  */
+ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
+-			   struct scan_control *sc, unsigned long *nr,
+-			   unsigned long *lru_pages)
++			   struct scan_control *sc, unsigned long *nr)
+ {
+ 	int swappiness = mem_cgroup_swappiness(memcg);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+@@ -2315,7 +2314,6 @@ static void get_scan_count(struct lruvec
+ 	fraction[1] = fp;
+ 	denominator = ap + fp + 1;
+ out:
+-	*lru_pages = 0;
+ 	for_each_evictable_lru(lru) {
+ 		int file = is_file_lru(lru);
+ 		unsigned long size;
+@@ -2345,17 +2343,14 @@ out:
+ 		case SCAN_FILE:
+ 		case SCAN_ANON:
+ 			/* Scan one type exclusively */
+-			if ((scan_balance == SCAN_FILE) != file) {
+-				size = 0;
++			if ((scan_balance == SCAN_FILE) != file)
+ 				scan = 0;
+-			}
+ 			break;
+ 		default:
+ 			/* Look ma, no brain */
+ 			BUG();
+ 		}
+ 
+-		*lru_pages += size;
+ 		nr[lru] = scan;
+ 	}
+ }
+@@ -2364,7 +2359,7 @@ out:
+  * This is a basic per-node page freer.  Used by both kswapd and direct reclaim.
+  */
+ static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memcg,
+-			      struct scan_control *sc, unsigned long *lru_pages)
++			      struct scan_control *sc)
+ {
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(pgdat, memcg);
+ 	unsigned long nr[NR_LRU_LISTS];
+@@ -2376,7 +2371,7 @@ static void shrink_node_memcg(struct pgl
+ 	struct blk_plug plug;
+ 	bool scan_adjusted;
+ 
+-	get_scan_count(lruvec, memcg, sc, nr, lru_pages);
++	get_scan_count(lruvec, memcg, sc, nr);
+ 
+ 	/* Record the original scan target for proportional adjustments later */
+ 	memcpy(targets, nr, sizeof(nr));
+@@ -2575,7 +2570,6 @@ static bool shrink_node(pg_data_t *pgdat
+ 			.pgdat = pgdat,
+ 			.priority = sc->priority,
+ 		};
+-		unsigned long node_lru_pages = 0;
+ 		struct mem_cgroup *memcg;
+ 
+ 		nr_reclaimed = sc->nr_reclaimed;
+@@ -2583,7 +2577,6 @@ static bool shrink_node(pg_data_t *pgdat
+ 
+ 		memcg = mem_cgroup_iter(root, NULL, &reclaim);
+ 		do {
+-			unsigned long lru_pages;
+ 			unsigned long reclaimed;
+ 			unsigned long scanned;
+ 
+@@ -2598,8 +2591,7 @@ static bool shrink_node(pg_data_t *pgdat
+ 			reclaimed = sc->nr_reclaimed;
+ 			scanned = sc->nr_scanned;
+ 
+-			shrink_node_memcg(pgdat, memcg, sc, &lru_pages);
+-			node_lru_pages += lru_pages;
++			shrink_node_memcg(pgdat, memcg, sc);
+ 
+ 			if (memcg)
+ 				shrink_slab(sc->gfp_mask, pgdat->node_id,
+@@ -3070,7 +3062,6 @@ unsigned long mem_cgroup_shrink_node(str
+ 		.reclaim_idx = MAX_NR_ZONES - 1,
+ 		.may_swap = !noswap,
+ 	};
+-	unsigned long lru_pages;
+ 
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+@@ -3087,7 +3078,7 @@ unsigned long mem_cgroup_shrink_node(str
+ 	 * will pick up pages from other mem cgroup's as well. We hack
+ 	 * the priority and make it zero.
+ 	 */
+-	shrink_node_memcg(pgdat, memcg, &sc, &lru_pages);
++	shrink_node_memcg(pgdat, memcg, &sc);
+ 
+ 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
+ 
 _
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays.patch
+mm-use-sc-priority-for-slab-shrink-targets.patch
+
