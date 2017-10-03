@@ -1,162 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [patch 27/51] userfaultfd: non-cooperative: fix fork use after
- free
-Date: Tue, 03 Oct 2017 16:15:38 -0700
-Message-ID: <59d41a1a.XPaeRaUY4UTrcWSN%akpm@linux-foundation.org>
+Subject: [patch 28/51] exec: load_script: kill the onstack
+ interp[BINPRM_BUF_SIZE] array
+Date: Tue, 03 Oct 2017 16:15:42 -0700
+Message-ID: <59d41a1e.ElFCGHmqwcckS28C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58676 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXPk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:40 -0400
+        with ESMTP id S1750865AbdJCXPn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, dgilbert@redhat.com, mark.rutland@arm.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, stable@vger.kernel.org, xemul@virtuozzo.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, oleg@redhat.com, foraker1@llnl.gov, James.Bottomley@HansenPartnership.com, keescook@chromium.org, tdhooge@llnl.gov, tgummels@redhat.com, viro@zeniv.linux.org.uk, woodard@redhat.com
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: non-cooperative: fix fork use after free
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exec: load_script: kill the onstack interp[BINPRM_BUF_SIZE] array
 
-When reading the event from the uffd, we put it on a temporary fork_event
-list to detect if we can still access it after releasing and retaking the
-event_wqh.lock.
+Patch series "exec: binfmt_misc: fix use-after-free, kill
+iname[BINPRM_BUF_SIZE]".
 
-If fork aborts and removes the event from the fork_event all is fine as
-long as we're still in the userfault read context and fork_event head is
-still alive.
+Looks like this code was always wrong, then 948b701a607f ("binfmt_misc:
+add persistent opened binary handler for containers") added more problems.
 
-We've to put the event allocated in the fork kernel stack, back from
-fork_event list-head to the event_wqh head, before returning from
-userfaultfd_ctx_read, because the fork_event head lifetime is limited to
-the userfaultfd_ctx_read stack lifetime.
+This patch (of 6):
 
-Forgetting to move the event back to its event_wqh place then results in
-__remove_wait_queue(&ctx->event_wqh, &ewq->wq); in
-userfaultfd_event_wait_completion to remove it from a head that has been
-already freed from the reader stack.
+load_script() can simply use i_name instead, it points into bprm->buf[]
+and nobody can change this memory until we call prepare_binprm().
 
-This could only happen if resolve_userfault_fork failed (for example if
-there are no file descriptors available to allocate the fork uffd).  If it
-succeeded it was put back correctly.
+The only complication is that we need to also change the signature of
+bprm_change_interp() but this change looks good too.
 
-Furthermore, after find_userfault_evt receives a fork event, the forked
-userfault context in fork_nctx and uwq->msg.arg.reserved.reserved1 can be
-released by the fork thread as soon as the event_wqh.lock is released. 
-Taking a reference on the fork_nctx before dropping the lock prevents an
-use after free in resolve_userfault_fork().
+While at it, do whitespace/style cleanups.
 
-If the fork side aborted and it already released everything, we still try
-to succeed resolve_userfault_fork(), if possible.
+NOTE: the real motivation for this change is that people want to increase
+BINPRM_BUF_SIZE, we need to change load_misc_binary() too but this looks
+more complicated because afaics it is very buggy.
 
-Fixes: 893e26e61d04eac9 ("userfaultfd: non-cooperative: Add fork() event")
-Link: http://lkml.kernel.org/r/20170920180413.26713-1-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Mark Rutland <mark.rutland@arm.com>
-Tested-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170918163446.GA26793@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Travis Gummels <tgummels@redhat.com>
+Cc: Ben Woodard <woodard@redhat.com>
+Cc: Jim Foraker <foraker1@llnl.gov>
+Cc: <tdhooge@llnl.gov>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   66 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 56 insertions(+), 10 deletions(-)
+ fs/binfmt_script.c      |   17 +++++++++--------
+ fs/exec.c               |    2 +-
+ include/linux/binfmts.h |    2 +-
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-fix-fork-use-after-free fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-fix-fork-use-after-free
-+++ a/fs/userfaultfd.c
-@@ -588,6 +588,12 @@ static void userfaultfd_event_wait_compl
+diff -puN fs/binfmt_script.c~exec-load_script-kill-the-onstack-interp-array fs/binfmt_script.c
+--- a/fs/binfmt_script.c~exec-load_script-kill-the-onstack-interp-array
++++ a/fs/binfmt_script.c
+@@ -19,7 +19,6 @@ static int load_script(struct linux_binp
+ 	const char *i_arg, *i_name;
+ 	char *cp;
+ 	struct file *file;
+-	char interp[BINPRM_BUF_SIZE];
+ 	int retval;
+ 
+ 	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
+@@ -55,7 +54,7 @@ static int load_script(struct linux_binp
  			break;
- 		if (ACCESS_ONCE(ctx->released) ||
- 		    fatal_signal_pending(current)) {
-+			/*
-+			 * &ewq->wq may be queued in fork_event, but
-+			 * __remove_wait_queue ignores the head
-+			 * parameter. It would be a problem if it
-+			 * didn't.
-+			 */
- 			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
- 			if (ewq->msg.event == UFFD_EVENT_FORK) {
- 				struct userfaultfd_ctx *new;
-@@ -1061,6 +1067,12 @@ static ssize_t userfaultfd_ctx_read(stru
- 					(unsigned long)
- 					uwq->msg.arg.reserved.reserved1;
- 				list_move(&uwq->wq.entry, &fork_event);
-+				/*
-+				 * fork_nctx can be freed as soon as
-+				 * we drop the lock, unless we take a
-+				 * reference on it.
-+				 */
-+				userfaultfd_ctx_get(fork_nctx);
- 				spin_unlock(&ctx->event_wqh.lock);
- 				ret = 0;
- 				break;
-@@ -1091,19 +1103,53 @@ static ssize_t userfaultfd_ctx_read(stru
- 
- 	if (!ret && msg->event == UFFD_EVENT_FORK) {
- 		ret = resolve_userfault_fork(ctx, fork_nctx, msg);
-+		spin_lock(&ctx->event_wqh.lock);
-+		if (!list_empty(&fork_event)) {
-+			/*
-+			 * The fork thread didn't abort, so we can
-+			 * drop the temporary refcount.
-+			 */
-+			userfaultfd_ctx_put(fork_nctx);
-+
-+			uwq = list_first_entry(&fork_event,
-+					       typeof(*uwq),
-+					       wq.entry);
-+			/*
-+			 * If fork_event list wasn't empty and in turn
-+			 * the event wasn't already released by fork
-+			 * (the event is allocated on fork kernel
-+			 * stack), put the event back to its place in
-+			 * the event_wq. fork_event head will be freed
-+			 * as soon as we return so the event cannot
-+			 * stay queued there no matter the current
-+			 * "ret" value.
-+			 */
-+			list_del(&uwq->wq.entry);
-+			__add_wait_queue(&ctx->event_wqh, &uwq->wq);
- 
--		if (!ret) {
--			spin_lock(&ctx->event_wqh.lock);
--			if (!list_empty(&fork_event)) {
--				uwq = list_first_entry(&fork_event,
--						       typeof(*uwq),
--						       wq.entry);
--				list_del(&uwq->wq.entry);
--				__add_wait_queue(&ctx->event_wqh, &uwq->wq);
-+			/*
-+			 * Leave the event in the waitqueue and report
-+			 * error to userland if we failed to resolve
-+			 * the userfault fork.
-+			 */
-+			if (likely(!ret))
- 				userfaultfd_event_complete(ctx, uwq);
--			}
--			spin_unlock(&ctx->event_wqh.lock);
-+		} else {
-+			/*
-+			 * Here the fork thread aborted and the
-+			 * refcount from the fork thread on fork_nctx
-+			 * has already been released. We still hold
-+			 * the reference we took before releasing the
-+			 * lock above. If resolve_userfault_fork
-+			 * failed we've to drop it because the
-+			 * fork_nctx has to be freed in such case. If
-+			 * it succeeded we'll hold it because the new
-+			 * uffd references it.
-+			 */
-+			if (ret)
-+				userfaultfd_ctx_put(fork_nctx);
- 		}
-+		spin_unlock(&ctx->event_wqh.lock);
  	}
+ 	for (cp = bprm->buf+2; (*cp == ' ') || (*cp == '\t'); cp++);
+-	if (*cp == '\0') 
++	if (*cp == '\0')
+ 		return -ENOEXEC; /* No interpreter name found */
+ 	i_name = cp;
+ 	i_arg = NULL;
+@@ -65,7 +64,6 @@ static int load_script(struct linux_binp
+ 		*cp++ = '\0';
+ 	if (*cp)
+ 		i_arg = cp;
+-	strcpy (interp, i_name);
+ 	/*
+ 	 * OK, we've parsed out the interpreter name and
+ 	 * (optional) argument.
+@@ -80,24 +78,27 @@ static int load_script(struct linux_binp
+ 	if (retval)
+ 		return retval;
+ 	retval = copy_strings_kernel(1, &bprm->interp, bprm);
+-	if (retval < 0) return retval; 
++	if (retval < 0)
++		return retval;
+ 	bprm->argc++;
+ 	if (i_arg) {
+ 		retval = copy_strings_kernel(1, &i_arg, bprm);
+-		if (retval < 0) return retval; 
++		if (retval < 0)
++			return retval;
+ 		bprm->argc++;
+ 	}
+ 	retval = copy_strings_kernel(1, &i_name, bprm);
+-	if (retval) return retval; 
++	if (retval)
++		return retval;
+ 	bprm->argc++;
+-	retval = bprm_change_interp(interp, bprm);
++	retval = bprm_change_interp(i_name, bprm);
+ 	if (retval < 0)
+ 		return retval;
  
- 	return ret;
+ 	/*
+ 	 * OK, now restart the process with the interpreter's dentry.
+ 	 */
+-	file = open_exec(interp);
++	file = open_exec(i_name);
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
+ 
+diff -puN fs/exec.c~exec-load_script-kill-the-onstack-interp-array fs/exec.c
+--- a/fs/exec.c~exec-load_script-kill-the-onstack-interp-array
++++ a/fs/exec.c
+@@ -1410,7 +1410,7 @@ static void free_bprm(struct linux_binpr
+ 	kfree(bprm);
+ }
+ 
+-int bprm_change_interp(char *interp, struct linux_binprm *bprm)
++int bprm_change_interp(const char *interp, struct linux_binprm *bprm)
+ {
+ 	/* If a binfmt changed the interp, free it first. */
+ 	if (bprm->interp != bprm->filename)
+diff -puN include/linux/binfmts.h~exec-load_script-kill-the-onstack-interp-array include/linux/binfmts.h
+--- a/include/linux/binfmts.h~exec-load_script-kill-the-onstack-interp-array
++++ a/include/linux/binfmts.h
+@@ -131,7 +131,7 @@ extern int setup_arg_pages(struct linux_
+ 			   int executable_stack);
+ extern int transfer_args_to_stack(struct linux_binprm *bprm,
+ 				  unsigned long *sp_location);
+-extern int bprm_change_interp(char *interp, struct linux_binprm *bprm);
++extern int bprm_change_interp(const char *interp, struct linux_binprm *bprm);
+ extern int copy_strings_kernel(int argc, const char *const *argv,
+ 			       struct linux_binprm *bprm);
+ extern int prepare_bprm_creds(struct linux_binprm *bprm);
 _
