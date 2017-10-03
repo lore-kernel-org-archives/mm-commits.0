@@ -1,73 +1,79 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged] zram-fix-null-dereference-of-handle-v2.patch
- removed from -mm tree
-Date: Tue, 03 Oct 2017 16:09:45 -0700
-Message-ID: <59d418b9.kywA5+6542JRiaPw%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Tue, 3 Oct 2017 16:14:03 -0700
+Message-ID: <20171003161403.377e2a73e37005cf1f187f3c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58282 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751135AbdJCXJq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:09:46 -0400
+        with ESMTP id S1750865AbdJCXOE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: zram-fix-null-dereference-of-handle-v2
-has been removed from the -mm tree.  Its filename was
-     zram-fix-null-dereference-of-handle-v2.patch
+A lot of stuff, sorry about that.  A week on a beach, then a bunch of
+time catching up then more time letting it bake in -next.  Shan't do
+that again!
 
-This patch was dropped because it was folded into zram-fix-null-dereference-of-handle.patch
+51 fixes, based on d81fa669e3de7eb8a631d7d95dac5fbcb2bf9d4e:
 
-------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram-fix-null-dereference-of-handle-v2
+Subject: alpha: fix build failures
+Subject: kernel/params.c: align add_sysfs_param documentation with code
+Subject: scripts/spelling.txt: add more spelling mistakes to spelling.txt
+Subject: include/linux/mm.h: fix typo in VM_MPX definition
+Subject: ksm: fix unlocked iteration over vmas in cmp_and_merge_page()
+Subject: mm, hugetlb, soft_offline: save compound page order before page migration
+Subject: sh: sh7722: remove nonexistent GPIO_PTQ7 to fix pinctrl registration
+Subject: sh: sh7757: remove nonexistent GPIO_PT[JLNQ]7_RESV to fix pinctrl registration
+Subject: sh: sh7264: remove nonexistent GPIO_PH[0-7] to fix pinctrl registration
+Subject: sh: sh7269: remove nonexistent GPIO_PH[0-7] to fix pinctrl registration
+Subject: z3fold: fix potential race in z3fold_reclaim_page
+Subject: mm, oom_reaper: skip mm structs with mmu notifiers
+Subject: mm, memcg: remove hotplug locking from try_charge
+Subject: mm/memcg: avoid page count check for zone device
+Subject: android: binder: drop lru lock in isolate callback
+Subject: mm,compaction: serialize waitqueue_active() checks (for real)
+Subject: z3fold: fix stale list handling
+Subject: mm: meminit: mark init_reserved_page as __meminit
+Subject: rapidio: remove global irq spinlocks from the subsystem
+Subject: mm: fix RODATA_TEST failure "rodata_test: test data was not read only"
+Subject: zram: fix null dereference of handle
+Subject: m32r: define CPU_BIG_ENDIAN
+Subject: mm: have filemap_check_and_advance_wb_err clear AS_EIO/AS_ENOSPC
+Subject: mm: avoid marking swap cached page as lazyfree
+Subject: mm: fix data corruption caused by lazyfree page
+Subject: mm/device-public-memory: fix edge case in _vm_normal_page()
+Subject: userfaultfd: non-cooperative: fix fork use after free
+Subject: exec: load_script: kill the onstack interp[BINPRM_BUF_SIZE] array
+Subject: exec: binfmt_misc: don't nullify Node->dentry in kill_node()
+Subject: exec: binfmt_misc: shift filp_close(interp_file) from kill_node() to bm_evict_inode()
+Subject: exec: binfmt_misc: remove the confusing e->interp_file != NULL checks
+Subject: exec: binfmt_misc: fix race between load_misc_binary() and kill_node()
+Subject: exec: binfmt_misc: kill the onstack iname[BINPRM_BUF_SIZE] array
+Subject: lib/lz4: make arrays static const, reduces object code size
+Subject: include/linux/bitfield.h: remove 32bit from FIELD_GET comment block
+Subject: kernel/sysctl.c: remove duplicate UINT_MAX check on do_proc_douintvec_conv()
+Subject: mm: memcontrol: use vmalloc fallback for large kmem memcg arrays
+Subject: lib/idr.c: fix comment for idr_replace()
+Subject: mm, memory_hotplug: add scheduling point to __add_pages
+Subject: mm, page_alloc: add scheduling point to memmap_init_zone
+Subject: memremap: add scheduling point to devm_memremap_pages
+Subject: kernel/kcmp.c: drop branch leftover typo
+Subject: mm/memory_hotplug: change pfn_to_section_nr/section_nr_to_pfn macro to inline function
+Subject: mm/memory_hotplug: define find_{smallest|biggest}_section_pfn as unsigned long
+Subject: kernel/params.c: fix the maximum length in param_get_string
+Subject: kernel/params.c: fix an overflow in param_attr_show
+Subject: kernel/params.c: improve STANDARD_PARAM_DEF readability
+Subject: lib/ratelimit.c: use deferred printk() version
+Subject: m32r: fix build failure
+Subject: checkpatch: fix ignoring cover-letter logic
+Subject: include/linux/fs.h: fix comment about struct address_space
 
-* From v1:
-  * remove unlikely branch - Sergey
-  * In !handle case, use 0 instead of zram_get_element - Sergey
 
-Link: http://lkml.kernel.org/r/1505887347-10881-1-git-send-email-minchan@kernel.org
-Fixes: 1f7319c74275 ("zram: partial IO refactoring")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/block/zram/zram_drv.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-null-dereference-of-handle-v2 drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-null-dereference-of-handle-v2
-+++ a/drivers/block/zram/zram_drv.c
-@@ -865,11 +865,13 @@ static int __zram_bvec_read(struct zram
- 
- 	zram_slot_lock(zram, index);
- 	handle = zram_get_handle(zram, index);
--	if (unlikely(!handle || zram_test_flag(zram, index, ZRAM_SAME))) {
-+	if (!handle || zram_test_flag(zram, index, ZRAM_SAME)) {
-+		unsigned long value;
- 		void *mem;
- 
-+		value = handle ? zram_get_element(zram, index) : 0;
- 		mem = kmap_atomic(page);
--		zram_fill_page(mem, PAGE_SIZE, zram_get_element(zram, index));
-+		zram_fill_page(mem, PAGE_SIZE, value);
- 		kunmap_atomic(mem);
- 		zram_slot_unlock(zram, index);
- 		return 0;
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-zram-fix-null-dereference-of-handle.patch
-zram-set-bdi_cap_stable_writes-once.patch
-bdi-introduce-bdi_cap_synchronous_io.patch
-mm-swap-introduce-swp_synchronous_io.patch
-mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
 
