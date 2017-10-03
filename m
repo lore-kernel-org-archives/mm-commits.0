@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-sc-priority-for-slab-shrink-targets-fix.patch added to
- -mm tree
-Date: Tue, 03 Oct 2017 15:12:04 -0700
-Message-ID: <59d40b34.9LFFt3pBCODR6C6r%akpm@linux-foundation.org>
+Subject: + mm-swap-fix-race-conditions-in-swap_slots-cache-init.patch
+ added to -mm tree
+Date: Tue, 03 Oct 2017 15:28:41 -0700
+Message-ID: <59d40f19.gwxU5wTh+IZiLbYr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56844 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751115AbdJCWMF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:12:05 -0400
+        with ESMTP id S1750841AbdJCW2m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, aryabinin@virtuozzo.com, david@fromorbit.com, jbacik@fb.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: tim.c.chen@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, wenwei.tww@alibaba-inc.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use sc->priority for slab shrink targets fix
+     Subject: mm/swap_slots.c: fix race conditions in swap_slots cache init
 has been added to the -mm tree.  Its filename is
-     mm-use-sc-priority-for-slab-shrink-targets-fix.patch
+     mm-swap-fix-race-conditions-in-swap_slots-cache-init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-sc-priority-for-slab-shrink-targets-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-race-conditions-in-swap_slots-cache-init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-sc-priority-for-slab-shrink-targets-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-race-conditions-in-swap_slots-cache-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,130 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: use sc->priority for slab shrink targets fix
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: mm/swap_slots.c: fix race conditions in swap_slots cache init
 
-The slab shrinker code was the only user of the lru_pages counter in
-get_scan_count() and shrink_node_memcg().  Now that it's switched its
-pressure notion to sc->priority, the counter is dead code.  Remove it.
+Memory allocations can happen before the swap_slots cache initialization
+is completed during cpu bring up.  If we are low on memory, we could call
+get_swap_page() and access swap_slots_cache before it is fully
+initialized.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Add a check in get_swap_page() for initialized swap_slots_cache to prevent
+this condition.  Similar check already exists in free_swap_slot.  Also
+annotate the checks to indicate the likely condition.
+
+We also added a memory barrier to make sure that the locks initialization
+are done before the assignment of cache->slots and cache->slots_ret
+pointers.  This ensures the assumption that it is safe to acquire the
+slots cache locks and use the slots cache when the corresponding
+cache->slots or cache->slots_ret pointers are non null.
+
+Link: http://lkml.kernel.org/r/65a9d0f133f63e66bba37b53b2fd0464b7cae771.1500677066.git.tim.c.chen@linux.intel.com
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
+Acked-by: Ying Huang <ying.huang@intel.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ mm/swap_slots.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-use-sc-priority-for-slab-shrink-targets-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-use-sc-priority-for-slab-shrink-targets-fix
-+++ a/mm/vmscan.c
-@@ -2163,8 +2163,7 @@ enum scan_balance {
-  * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
-  */
- static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
--			   struct scan_control *sc, unsigned long *nr,
--			   unsigned long *lru_pages)
-+			   struct scan_control *sc, unsigned long *nr)
- {
- 	int swappiness = mem_cgroup_swappiness(memcg);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-@@ -2315,7 +2314,6 @@ static void get_scan_count(struct lruvec
- 	fraction[1] = fp;
- 	denominator = ap + fp + 1;
- out:
--	*lru_pages = 0;
- 	for_each_evictable_lru(lru) {
- 		int file = is_file_lru(lru);
- 		unsigned long size;
-@@ -2345,17 +2343,14 @@ out:
- 		case SCAN_FILE:
- 		case SCAN_ANON:
- 			/* Scan one type exclusively */
--			if ((scan_balance == SCAN_FILE) != file) {
--				size = 0;
-+			if ((scan_balance == SCAN_FILE) != file)
- 				scan = 0;
--			}
- 			break;
- 		default:
- 			/* Look ma, no brain */
- 			BUG();
- 		}
+diff -puN mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init mm/swap_slots.c
+--- a/mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init
++++ a/mm/swap_slots.c
+@@ -148,6 +148,14 @@ static int alloc_swap_slot_cache(unsigne
+ 	cache->nr = 0;
+ 	cache->cur = 0;
+ 	cache->n_ret = 0;
++	/*
++	 * We intialized alloc_lock and free_lock earlier.
++	 * We use !cache->slots or !cache->slots_ret
++	 * to know if it is safe to acquire the corresponding
++	 * lock and use the cache.  Memory barrier
++	 * below ensures the assumption.
++	 */
++	mb();
+ 	cache->slots = slots;
+ 	slots = NULL;
+ 	cache->slots_ret = slots_ret;
+@@ -274,7 +282,7 @@ int free_swap_slot(swp_entry_t entry)
+ 	struct swap_slots_cache *cache;
  
--		*lru_pages += size;
- 		nr[lru] = scan;
- 	}
- }
-@@ -2364,7 +2359,7 @@ out:
-  * This is a basic per-node page freer.  Used by both kswapd and direct reclaim.
-  */
- static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memcg,
--			      struct scan_control *sc, unsigned long *lru_pages)
-+			      struct scan_control *sc)
- {
- 	struct lruvec *lruvec = mem_cgroup_lruvec(pgdat, memcg);
- 	unsigned long nr[NR_LRU_LISTS];
-@@ -2376,7 +2371,7 @@ static void shrink_node_memcg(struct pgl
- 	struct blk_plug plug;
- 	bool scan_adjusted;
- 
--	get_scan_count(lruvec, memcg, sc, nr, lru_pages);
-+	get_scan_count(lruvec, memcg, sc, nr);
- 
- 	/* Record the original scan target for proportional adjustments later */
- 	memcpy(targets, nr, sizeof(nr));
-@@ -2575,7 +2570,6 @@ static bool shrink_node(pg_data_t *pgdat
- 			.pgdat = pgdat,
- 			.priority = sc->priority,
- 		};
--		unsigned long node_lru_pages = 0;
- 		struct mem_cgroup *memcg;
- 
- 		nr_reclaimed = sc->nr_reclaimed;
-@@ -2583,7 +2577,6 @@ static bool shrink_node(pg_data_t *pgdat
- 
- 		memcg = mem_cgroup_iter(root, NULL, &reclaim);
- 		do {
--			unsigned long lru_pages;
- 			unsigned long reclaimed;
- 			unsigned long scanned;
- 
-@@ -2598,8 +2591,7 @@ static bool shrink_node(pg_data_t *pgdat
- 			reclaimed = sc->nr_reclaimed;
- 			scanned = sc->nr_scanned;
- 
--			shrink_node_memcg(pgdat, memcg, sc, &lru_pages);
--			node_lru_pages += lru_pages;
-+			shrink_node_memcg(pgdat, memcg, sc);
- 
- 			if (memcg)
- 				shrink_slab(sc->gfp_mask, pgdat->node_id,
-@@ -3070,7 +3062,6 @@ unsigned long mem_cgroup_shrink_node(str
- 		.reclaim_idx = MAX_NR_ZONES - 1,
- 		.may_swap = !noswap,
- 	};
--	unsigned long lru_pages;
- 
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
-@@ -3087,7 +3078,7 @@ unsigned long mem_cgroup_shrink_node(str
- 	 * will pick up pages from other mem cgroup's as well. We hack
- 	 * the priority and make it zero.
+ 	cache = raw_cpu_ptr(&swp_slots);
+-	if (use_swap_slot_cache && cache->slots_ret) {
++	if (likely(use_swap_slot_cache && cache->slots_ret)) {
+ 		spin_lock_irq(&cache->free_lock);
+ 		/* Swap slots cache may be deactivated before acquiring lock */
+ 		if (!use_swap_slot_cache || !cache->slots_ret) {
+@@ -325,7 +333,7 @@ swp_entry_t get_swap_page(struct page *p
  	 */
--	shrink_node_memcg(pgdat, memcg, &sc, &lru_pages);
-+	shrink_node_memcg(pgdat, memcg, &sc);
+ 	cache = raw_cpu_ptr(&swp_slots);
  
- 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
- 
+-	if (check_cache_active()) {
++	if (likely(check_cache_active() && cache->slots)) {
+ 		mutex_lock(&cache->alloc_lock);
+ 		if (cache->slots) {
+ repeat:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
 
-mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays.patch
-mm-use-sc-priority-for-slab-shrink-targets-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init.patch
+mm-swap-remove-lock_initialized-flag-from-swap_slots_cache.patch
 
