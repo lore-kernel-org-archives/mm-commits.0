@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-swap-remove-lock_initialized-flag-from-swap_slots_cache.patch added to
- -mm tree
-Date: Tue, 03 Oct 2017 15:28:45 -0700
-Message-ID: <59d40f1d.MIsqUBlUberTa98P%akpm@linux-foundation.org>
+ mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch added to -mm tree
+Date: Tue, 03 Oct 2017 15:30:33 -0700
+Message-ID: <59d40f89.T82gliSAxWNq4/X2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56904 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750841AbdJCW2q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:28:46 -0400
+        with ESMTP id S1750841AbdJCWae (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.c.chen@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, wenwei.tww@alibaba-inc.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap_slots.c: remove lock_initialized flag from swap_slots_cache
+     Subject: mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-swap-remove-lock_initialized-flag-from-swap_slots_cache.patch
+     mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-remove-lock_initialized-flag-from-swap_slots_cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-remove-lock_initialized-flag-from-swap_slots_cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,67 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: mm/swap_slots.c: remove lock_initialized flag from swap_slots_cache
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix
 
-We will only reach the lock initialization code in alloc_swap_slot_cache
-when the cpu's swap_slots_cache's slots have not been allocated and
-swap_slots_cache has not been initialized previously.  So the
-lock_initialized check is redundant and unnecessary.  Remove
-lock_initialized flag from swap_slots_cache to save memory.
+fix spello in comment
 
-Link: http://lkml.kernel.org/r/867d1fb070644e6d5f0ac7780f63e75259b82cc3.1500677066.git.tim.c.chen@linux.intel.com
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
-Cc: Ying Huang <ying.huang@intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap_slots.h |    1 -
- mm/swap_slots.c            |    9 ++++-----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ mm/swap_slots.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap_slots.h~mm-swap-remove-lock_initialized-flag-from-swap_slots_cache include/linux/swap_slots.h
---- a/include/linux/swap_slots.h~mm-swap-remove-lock_initialized-flag-from-swap_slots_cache
-+++ a/include/linux/swap_slots.h
-@@ -10,7 +10,6 @@
- #define THRESHOLD_DEACTIVATE_SWAP_SLOTS_CACHE	(2*SWAP_SLOTS_CACHE_SIZE)
- 
- struct swap_slots_cache {
--	bool		lock_initialized;
- 	struct mutex	alloc_lock; /* protects slots, nr, cur */
- 	swp_entry_t	*slots;
- 	int		nr;
-diff -puN mm/swap_slots.c~mm-swap-remove-lock_initialized-flag-from-swap_slots_cache mm/swap_slots.c
---- a/mm/swap_slots.c~mm-swap-remove-lock_initialized-flag-from-swap_slots_cache
+diff -puN mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix mm/swap_slots.c
+--- a/mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix
 +++ a/mm/swap_slots.c
-@@ -140,11 +140,10 @@ static int alloc_swap_slot_cache(unsigne
- 	if (cache->slots || cache->slots_ret)
- 		/* cache already allocated */
- 		goto out;
--	if (!cache->lock_initialized) {
--		mutex_init(&cache->alloc_lock);
--		spin_lock_init(&cache->free_lock);
--		cache->lock_initialized = true;
--	}
-+
-+	mutex_init(&cache->alloc_lock);
-+	spin_lock_init(&cache->free_lock);
-+
- 	cache->nr = 0;
+@@ -149,7 +149,7 @@ static int alloc_swap_slot_cache(unsigne
  	cache->cur = 0;
  	cache->n_ret = 0;
+ 	/*
+-	 * We intialized alloc_lock and free_lock earlier.  We use
++	 * We initialized alloc_lock and free_lock earlier.  We use
+ 	 * !cache->slots or !cache->slots_ret to know if it is safe to acquire
+ 	 * the corresponding lock and use the cache.  Memory barrier below
+ 	 * ensures the assumption.
 _
 
-Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swap-fix-race-conditions-in-swap_slots-cache-init.patch
-mm-swap-remove-lock_initialized-flag-from-swap_slots_cache.patch
+i-need-old-gcc.patch
+scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-sysctl-make-numa-stats-configurable-fix.patch
+mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
