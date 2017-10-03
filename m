@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
- added to -mm tree
-Date: Tue, 03 Oct 2017 15:04:42 -0700
-Message-ID: <59d4097a.8b2W43fqTT4ELfin%akpm@linux-foundation.org>
+Subject: + sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 03 Oct 2017 15:04:45 -0700
+Message-ID: <59d4097d.6O5bxMxEbowSA8Ln%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53798 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751265AbdJCWEn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:04:43 -0400
+        with ESMTP id S1751265AbdJCWEq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 18:04:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes
+     Subject: sysvipc-make-get_maxid-o1-again-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+     sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,35 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes
+Subject: sysvipc-make-get_maxid-o1-again-checkpatch-fixes
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#14: 
-03f595668017f ("ipc: add sysctl to specify desired next object id"). 
+ERROR: space required before the open parenthesis '('
+#110: FILE: ipc/util.c:439:
++			if(lid == -1)
 
-WARNING: macros should not use a trailing semicolon
-#75: FILE: ipc/util.c:224:
-+#define ipc_idr_alloc(ids, new)						\
-+	idr_alloc(&(ids)->ipcs_idr, (new),				\
-+		  (ids)->next_id < 0 ? 0: ipcid_to_idx((ids)->next_id), \
-+		  0, GFP_NOWAIT);
-
-ERROR: spaces required around that ':' (ctx:VxW)
-#77: FILE: ipc/util.c:226:
-+		  (ids)->next_id < 0 ? 0: ipcid_to_idx((ids)->next_id), \
- 		                        ^
-
-WARNING: macros should not use a trailing semicolon
-#96: FILE: ipc/util.c:245:
-+#define ipc_idr_alloc(ids, new)					\
-+	idr_alloc(&(ids)->ipcs_idr, (new), 0, 0, GFP_NOWAIT);
-
-total: 2 errors, 2 warnings, 117 lines checked
+total: 1 errors, 0 warnings, 113 lines checked
 
 NOTE: For some of the reported defects, checkpatch may be able to
       mechanically convert to the typical style using --fix or --fix-inplace.
 
-./patches/sysvipc-unteach-ids-next_id-for-checkpoint_restore.patch has style problems, please review.
+./patches/sysvipc-make-get_maxid-o1-again.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -80,32 +61,21 @@ Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/util.c~sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes ipc/util.c
---- a/ipc/util.c~sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes
+diff -puN ipc/util.c~sysvipc-make-get_maxid-o1-again-checkpatch-fixes ipc/util.c
+--- a/ipc/util.c~sysvipc-make-get_maxid-o1-again-checkpatch-fixes
 +++ a/ipc/util.c
-@@ -223,8 +223,8 @@ int ipc_get_maxid(struct ipc_ids *ids)
-  */
- #define ipc_idr_alloc(ids, new)						\
- 	idr_alloc(&(ids)->ipcs_idr, (new),				\
--		  (ids)->next_id < 0 ? 0: ipcid_to_idx((ids)->next_id), \
--		  0, GFP_NOWAIT);
-+		  (ids)->next_id < 0 ? 0 : ipcid_to_idx((ids)->next_id),\
-+		  0, GFP_NOWAIT)
- 
- static inline int ipc_buildid(int id, struct ipc_ids *ids,
- 			      struct kern_ipc_perm *new)
-@@ -243,7 +243,7 @@ static inline int ipc_buildid(int id, st
- 
- #else
- #define ipc_idr_alloc(ids, new)					\
--	idr_alloc(&(ids)->ipcs_idr, (new), 0, 0, GFP_NOWAIT);
-+	idr_alloc(&(ids)->ipcs_idr, (new), 0, 0, GFP_NOWAIT)
- 
- static inline int ipc_buildid(int id, struct ipc_ids *ids,
- 			      struct kern_ipc_perm *new)
+@@ -436,7 +436,7 @@ void ipc_rmid(struct ipc_ids *ids, struc
+ 	if (unlikely(lid == ids->max_id)) {
+ 		do {
+ 			lid--;
+-			if(lid == -1)
++			if (lid == -1)
+ 				break;
+ 		} while (!idr_find(&ids->ipcs_idr, lid));
+ 		ids->max_id = lid;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
