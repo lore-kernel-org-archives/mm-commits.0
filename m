@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 47/51] kernel/params.c: improve STANDARD_PARAM_DEF
- readability
-Date: Tue, 03 Oct 2017 16:16:41 -0700
-Message-ID: <59d41a59.P0MlAnNrFmeG6JNw%akpm@linux-foundation.org>
+Subject: [patch 49/51] m32r: fix build failure
+Date: Tue, 03 Oct 2017 16:16:49 -0700
+Message-ID: <59d41a61.Qn7Jvhjtm5hNvSrz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58940 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXQm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:42 -0400
+        with ESMTP id S1750865AbdJCXQu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jdelvare@suse.de, bhe@redhat.com, mhocko@suse.com, mingo@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com
 
-From: Jean Delvare <jdelvare@suse.de>
-Subject: kernel/params.c: improve STANDARD_PARAM_DEF readability
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: fix build failure
 
-Align the parameters passed to STANDARD_PARAM_DEF for clarity.
+The allmodconfig build of m32r is failing with the error:
+lib/mpi/mpih-div.o: In function 'mpihelp_divrem':
+mpih-div.c:(.text+0x40): undefined reference to 'abort'
+mpih-div.c:(.text+0x40): relocation truncated to fit:
+	R_M32R_26_PCREL_RELA against undefined symbol 'abort'
 
-Link: http://lkml.kernel.org/r/20170928162728.756143cc@endymion
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Suggested-by: Ingo Molnar <mingo@kernel.org>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
+The function 'abort' was never defined for the m32r architecture.
+
+Create 'abort' as is done in other arch like 'arm' and 'unicore32'.
+
+Link: http://lkml.kernel.org/r/1506727220-6108-1-git-send-email-sudip.mukherjee@codethink.co.uk
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/params.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/m32r/kernel/traps.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN kernel/params.c~params-improve-standard_param_def-readability kernel/params.c
---- a/kernel/params.c~params-improve-standard_param_def-readability
-+++ a/kernel/params.c
-@@ -236,14 +236,14 @@ char *parse_args(const char *doing,
- 	EXPORT_SYMBOL(param_ops_##name)
+diff -puN arch/m32r/kernel/traps.c~m32r-fix-build-failure arch/m32r/kernel/traps.c
+--- a/arch/m32r/kernel/traps.c~m32r-fix-build-failure
++++ a/arch/m32r/kernel/traps.c
+@@ -114,6 +114,15 @@ static void set_eit_vector_entries(void)
+ 	_flush_cache_copyback_all();
+ }
  
- 
--STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", kstrtou8);
--STANDARD_PARAM_DEF(short, short, "%hi", kstrtos16);
--STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", kstrtou16);
--STANDARD_PARAM_DEF(int, int, "%i", kstrtoint);
--STANDARD_PARAM_DEF(uint, unsigned int, "%u", kstrtouint);
--STANDARD_PARAM_DEF(long, long, "%li", kstrtol);
--STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", kstrtoul);
--STANDARD_PARAM_DEF(ullong, unsigned long long, "%llu", kstrtoull);
-+STANDARD_PARAM_DEF(byte,	unsigned char,		"%hhu", kstrtou8);
-+STANDARD_PARAM_DEF(short,	short,			"%hi",  kstrtos16);
-+STANDARD_PARAM_DEF(ushort,	unsigned short,		"%hu",  kstrtou16);
-+STANDARD_PARAM_DEF(int,		int,			"%i",   kstrtoint);
-+STANDARD_PARAM_DEF(uint,	unsigned int,		"%u",   kstrtouint);
-+STANDARD_PARAM_DEF(long,	long,			"%li",  kstrtol);
-+STANDARD_PARAM_DEF(ulong,	unsigned long,		"%lu",  kstrtoul);
-+STANDARD_PARAM_DEF(ullong,	unsigned long long,	"%llu", kstrtoull);
- 
- int param_set_charp(const char *val, const struct kernel_param *kp)
++void abort(void)
++{
++	BUG();
++
++	/* if that doesn't kill us, halt */
++	panic("Oops failed to kill thread");
++}
++EXPORT_SYMBOL(abort);
++
+ void __init trap_init(void)
  {
+ 	set_eit_vector_entries();
 _
