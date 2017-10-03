@@ -1,72 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 24/51] mm: avoid marking swap cached page as lazyfree
-Date: Tue, 03 Oct 2017 16:15:29 -0700
-Message-ID: <59d41a11.ax18kSm9quXYfL+/%akpm@linux-foundation.org>
+Subject: [patch 25/51] mm: fix data corruption caused by lazyfree page
+Date: Tue, 03 Oct 2017 16:15:32 -0700
+Message-ID: <59d41a14.n1RTQhMOHOfRBvZL%akpm__35253.4526413821$1507072537$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58638 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXPa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:30 -0400
+        with ESMTP id S1750865AbdJCXPd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, shli@fb.com, asavkov@redhat.com, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org
 
 From: Shaohua Li <shli@fb.com>
-Subject: mm: avoid marking swap cached page as lazyfree
+Subject: mm: fix data corruption caused by lazyfree page
 
 MADV_FREE clears pte dirty bit and then marks the page lazyfree (clear
 SwapBacked).  There is no lock to prevent the page is added to swap cache
-between these two steps by page reclaim.  Page reclaim could add the page
-to swap cache and unmap the page.  After page reclaim, the page is added
-back to lru.  At that time, we probably start draining per-cpu pagevec and
-mark the page lazyfree.  So the page could be in a state with SwapBacked
-cleared and PG_swapcache set.  Next time there is a refault in the virtual
-address, do_swap_page can find the page from swap cache but the page has
-PageSwapCache false because SwapBacked isn't set, so do_swap_page will
-bail out and do nothing.  The task will keep running into fault handler.
+between these two steps by page reclaim.  If page reclaim finds such page,
+it will simply add the page to swap cache without pageout the page to swap
+because the page is marked as clean.  Next time, page fault will read data
+from the swap slot which doesn't have the original data, so we have a data
+corruption.  To fix issue, we mark the page dirty and pageout the page.
+
+However, we shouldn't dirty all pages which is clean and in swap cache. 
+swapin page is swap cache and clean too.  So we only dirty page which is
+added into swap cache in page reclaim, which shouldn't be swapin page.  As
+Minchan suggested, simply dirty the page in add_to_swap can do the job.
 
 Fixes: 802a3a92ad7a ("mm: reclaim MADV_FREE pages")
-Link: http://lkml.kernel.org/r/6537ef3814398c0073630b03f176263bc81f0902.1506446061.git.shli@fb.com
+Link: http://lkml.kernel.org/r/08c84256b007bf3f63c91d94383bd9eb6fee2daa.1506446061.git.shli@fb.com
 Signed-off-by: Shaohua Li <shli@fb.com>
 Reported-by: Artem Savkov <asavkov@redhat.com>
-Tested-by: Artem Savkov <asavkov@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: <stable@vger.kernel.org>	[4.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swap_state.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/swap.c~mm-avoid-marking-swap-cached-page-as-lazyfree mm/swap.c
---- a/mm/swap.c~mm-avoid-marking-swap-cached-page-as-lazyfree
-+++ a/mm/swap.c
-@@ -575,7 +575,7 @@ static void lru_lazyfree_fn(struct page
- 			    void *arg)
- {
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
--	    !PageUnevictable(page)) {
-+	    !PageSwapCache(page) && !PageUnevictable(page)) {
- 		bool active = PageActive(page);
+diff -puN mm/swap_state.c~mm-fix-data-corruption-caused-by-lazyfree-page mm/swap_state.c
+--- a/mm/swap_state.c~mm-fix-data-corruption-caused-by-lazyfree-page
++++ a/mm/swap_state.c
+@@ -242,6 +242,17 @@ int add_to_swap(struct page *page)
+ 		 * clear SWAP_HAS_CACHE flag.
+ 		 */
+ 		goto fail;
++	/*
++	 * Normally the page will be dirtied in unmap because its pte should be
++	 * dirty. A special case is MADV_FREE page. The page'e pte could have
++	 * dirty bit cleared but the page's SwapBacked bit is still set because
++	 * clearing the dirty bit and SwapBacked bit has no lock protected. For
++	 * such page, unmap will not set dirty bit for it, so page reclaim will
++	 * not write the page out. This can cause data corruption when the page
++	 * is swap in later. Always setting the dirty bit for the page solves
++	 * the problem.
++	 */
++	set_page_dirty(page);
  
- 		del_page_from_lru_list(page, lruvec,
-@@ -665,7 +665,7 @@ void deactivate_file_page(struct page *p
- void mark_page_lazyfree(struct page *page)
- {
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
--	    !PageUnevictable(page)) {
-+	    !PageSwapCache(page) && !PageUnevictable(page)) {
- 		struct pagevec *pvec = &get_cpu_var(lru_lazyfree_pvecs);
+ 	return 1;
  
- 		get_page(page);
 _
