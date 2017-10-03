@@ -1,77 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 39/51] mm, memory_hotplug: add scheduling point to
- __add_pages
-Date: Tue, 03 Oct 2017 16:16:16 -0700
-Message-ID: <59d41a40.aZOtg+iRxbFCs+YQ%akpm@linux-foundation.org>
+Subject: [patch 40/51] mm, page_alloc: add scheduling point to
+ memmap_init_zone
+Date: Tue, 03 Oct 2017 16:16:19 -0700
+Message-ID: <59d41a43.o6GgJRBIvdTpXoEJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58822 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXQS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:18 -0400
+        with ESMTP id S1750865AbdJCXQV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, dan.j.williams@gmail.com, jthumshirn@suse.de
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: add scheduling point to __add_pages
+Subject: mm, page_alloc: add scheduling point to memmap_init_zone
 
-Patch series "mm, memory_hotplug: fix few soft lockups in memory hotadd".
+memmap_init_zone gets a pfn range to initialize and it can be really large
+resulting in a soft lockup on non-preemptible kernels
 
-Johannes has noticed few soft lockups when adding a large nvdimm device. 
-All of them were caused by a long loop without any explicit cond_resched
-which is a problem for !PREEMPT kernels.  The fix is quite
-straightforward.  Just make sure that cond_resched gets called from time
-to time.
-
-
-This patch (of 3):
-
-__add_pages gets a pfn range to add and there is no upper bound for a
-single call.  This is usually a memory block aligned size for the regular
-memory hotplug - smaller sizes are usual for memory balloning drivers, or
-the whole NUMA node for physical memory online.  There is no explicit
-scheduling point in that code path though.
-
-This can lead to long latencies while __add_pages is executed and we have
-even seen a soft lockup report during nvdimm initialization with !PREEMPT
-kernel
-
-[   33.588806] NMI watchdog: BUG: soft lockup - CPU#11 stuck for 23s! [kworker/u641:3:832]
+[   65.585596] NMI watchdog: BUG: soft lockup - CPU#31 stuck for 23s! [kworker/u642:5:1720]
 [...]
-[   33.588875] Workqueue: events_unbound async_run_entry_fn
-[   33.588876] task: ffff881809270f40 ti: ffff881809274000 task.ti: ffff881809274000
-[   33.588878] RIP: 0010:[<ffffffff81608c01>]  [<ffffffff81608c01>] _raw_spin_unlock_irqrestore+0x11/0x20
-[   33.588883] RSP: 0018:ffff881809277b10  EFLAGS: 00000286
+[   65.585818] task: ffff88ecd7e902c0 ti: ffff88eca4e50000 task.ti: ffff88eca4e50000
+[   65.585819] RIP: 0010:[<ffffffff815ff545>]  [<ffffffff815ff545>] move_pfn_range_to_zone+0x185/0x1d0
 [...]
-[   33.588900] Call Trace:
-[   33.588906]  [<ffffffff81603a45>] sparse_add_one_section+0x13d/0x18e
-[   33.588909]  [<ffffffff815fde8a>] __add_pages+0x10a/0x1d0
-[   33.588916]  [<ffffffff810634ca>] arch_add_memory+0x4a/0xc0
-[   33.588920]  [<ffffffff8118b22d>] devm_memremap_pages+0x29d/0x430
-[   33.588931]  [<ffffffffa042e50d>] pmem_attach_disk+0x2fd/0x3f0 [nd_pmem]
-[   33.589001]  [<ffffffffa14ad984>] nvdimm_bus_probe+0x64/0x110 [libnvdimm]
-[   33.589008]  [<ffffffff8146a337>] driver_probe_device+0x1f7/0x420
-[   33.589012]  [<ffffffff814682f2>] bus_for_each_drv+0x52/0x80
-[   33.589014]  [<ffffffff8146a020>] __device_attach+0xb0/0x130
-[   33.589017]  [<ffffffff81469447>] bus_probe_device+0x87/0xa0
-[   33.589020]  [<ffffffff8146741c>] device_add+0x3fc/0x5f0
-[   33.589029]  [<ffffffffa14acffe>] nd_async_device_register+0xe/0x40 [libnvdimm]
-[   33.589047]  [<ffffffff8109e1c3>] async_run_entry_fn+0x43/0x150
-[   33.589073]  [<ffffffff8109594e>] process_one_work+0x14e/0x410
-[   33.589086]  [<ffffffff810961a6>] worker_thread+0x116/0x490
-[   33.589089]  [<ffffffff8109b677>] kthread+0xc7/0xe0
-[   33.589119]  [<ffffffff816094bf>] ret_from_fork+0x3f/0x70
-[   33.590756] DWARF2 unwinder stuck at ret_from_fork+0x3f/0x70
+[   65.585843] Call Trace:
+[   65.585853]  [<ffffffff8118b657>] devm_memremap_pages+0x2c7/0x430
+[   65.585862]  [<ffffffffa02d650d>] pmem_attach_disk+0x2fd/0x3f0 [nd_pmem]
+[   65.585893]  [<ffffffffa14bb984>] nvdimm_bus_probe+0x64/0x110 [libnvdimm]
+[   65.585904]  [<ffffffff8146b257>] driver_probe_device+0x1f7/0x420
+[   65.585910]  [<ffffffff81469212>] bus_for_each_drv+0x52/0x80
+[   65.585913]  [<ffffffff8146af40>] __device_attach+0xb0/0x130
+[   65.585916]  [<ffffffff8146a367>] bus_probe_device+0x87/0xa0
+[   65.585919]  [<ffffffff814682fc>] device_add+0x3fc/0x5f0
+[   65.585924]  [<ffffffffa14baffe>] nd_async_device_register+0xe/0x40 [libnvdimm]
+[   65.585927]  [<ffffffff8109e413>] async_run_entry_fn+0x43/0x150
+[   65.585933]  [<ffffffff81095b8e>] process_one_work+0x14e/0x410
+[   65.585937]  [<ffffffff810963f6>] worker_thread+0x116/0x490
+[   65.585939]  [<ffffffff8109b8c7>] kthread+0xc7/0xe0
+[   65.585943]  [<ffffffff8160a57f>] ret_from_fork+0x3f/0x70
 
-Fix this by adding cond_resched once per each memory section in the
-given pfn range. Each section is constant amount of work which itself is
-not too expensive but many of them will just add up.
+Fix this by adding a scheduling point once per page block.
 
-Link: http://lkml.kernel.org/r/20170918121410.24466-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170918121410.24466-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
 Tested-by: Johannes Thumshirn <jthumshirn@suse.de>
@@ -79,18 +53,18 @@ Cc: Dan Williams <dan.j.williams@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 +
+ mm/page_alloc.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-add-scheduling-point-to-__add_pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-add-scheduling-point-to-__add_pages
-+++ a/mm/memory_hotplug.c
-@@ -328,6 +328,7 @@ int __ref __add_pages(int nid, unsigned
- 		if (err && (err != -EEXIST))
- 			break;
- 		err = 0;
-+		cond_resched();
- 	}
- 	vmemmap_populate_print_last();
- out:
+diff -puN mm/page_alloc.c~mm-page_alloc-add-scheduling-point-to-memmap_init_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-add-scheduling-point-to-memmap_init_zone
++++ a/mm/page_alloc.c
+@@ -5367,6 +5367,7 @@ not_early:
+ 
+ 			__init_single_page(page, pfn, zone, nid);
+ 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++			cond_resched();
+ 		} else {
+ 			__init_single_pfn(pfn, zone, nid);
+ 		}
 _
