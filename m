@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch added
- to -mm tree
-Date: Tue, 03 Oct 2017 14:47:47 -0700
-Message-ID: <59d40583.YB6icv801AliaWtZ%akpm@linux-foundation.org>
+Subject: + include-linux-fsh-fix-comment-about-struct-address_space.patch
+ added to -mm tree
+Date: Tue, 03 Oct 2017 14:49:19 -0700
+Message-ID: <59d405df.fVAPQYnFYMmaa2ZH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53628 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751120AbdJCVrs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 17:47:48 -0400
+        with ESMTP id S1751120AbdJCVtU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 17:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, 00moses.alexander00@gmail.com, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: remove hugepages_treat_as_movable sysctl
+     Subject: include/linux/fs.h: fix comment about struct address_space
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+     include-linux-fsh-fix-comment-about-struct-address_space.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-fsh-fix-comment-about-struct-address_space.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-fsh-fix-comment-about-struct-address_space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,153 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: remove hugepages_treat_as_movable sysctl
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: include/linux/fs.h: fix comment about struct address_space
 
-hugepages_treat_as_movable has been introduced by 396faf0303d2 ("Allow
-huge page allocations to use GFP_HIGH_MOVABLE") to allow hugetlb
-allocations from ZONE_MOVABLE even when hugetlb pages were not
-migrateable.  The purpose of the movable zone was different at the time. 
-It aimed at reducing memory fragmentation and hugetlb pages being long
-lived and large werre not contributing to the fragmentation so it was
-acceptable to use the zone back then.
+Before 9c5d760b8d22 ("mm: split gfp_mask and mapping flags into separate
+fields") the private_* fields of struct adrress_space were grouped
+together and using "ditto" in comments describing the last fields was
+correct.
 
-Things have changed though and the primary purpose of the zone became
-migratability guarantee.  If we allow non migrateable hugetlb pages to be
-in ZONE_MOVABLE memory hotplug might fail to offline the memory.
+With introduction of gpf_mask between private_lock and private_list
+"ditto" references the wrong description.
 
-Remove the knob and only rely on hugepage_migration_supported to allow
-movable zones.
+Fix it by using the elaborate description.
 
-Mel said:
-
-: Primarily it was aimed at allowing the hugetlb pool to safely shrink with
-: the ability to grow it again.  The use case was for batched jobs, some of
-: which needed huge pages and others that did not but didn't want the memory
-: useless pinned in the huge pages pool.
-: 
-: I suspect that more users rely on THP than hugetlbfs for flexible use of
-: huge pages with fallback options so I think that removing the option
-: should be ok.
-
-Link: http://lkml.kernel.org/r/20171003072619.8654-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Alexandru Moise <00moses.alexander00@gmail.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Alexandru Moise <00moses.alexander00@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/1507009987-8746-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   25 -------------------------
- include/linux/hugetlb.h     |    1 -
- kernel/sysctl.c             |    7 -------
- mm/hugetlb.c                |    4 +---
- 4 files changed, 1 insertion(+), 36 deletions(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/Documentation/sysctl/vm.txt
-@@ -30,7 +30,6 @@ Currently, these files are in /proc/sys/
- - dirty_writeback_centisecs
- - drop_caches
- - extfrag_threshold
--- hugepages_treat_as_movable
- - hugetlb_shm_group
- - laptop_mode
- - legacy_va_layout
-@@ -268,30 +267,6 @@ any throttling.
- 
- ==============================================================
- 
--hugepages_treat_as_movable
--
--This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
--or not. If set to non-zero, hugepages can be allocated from ZONE_MOVABLE.
--ZONE_MOVABLE is created when kernel boot parameter kernelcore= is specified,
--so this parameter has no effect if used without kernelcore=.
--
--Hugepage migration is now available in some situations which depend on the
--architecture and/or the hugepage size. If a hugepage supports migration,
--allocation from ZONE_MOVABLE is always enabled for the hugepage regardless
--of the value of this parameter.
--IOW, this parameter affects only non-migratable hugepages.
--
--Assuming that hugepages are not migratable in your system, one usecase of
--this parameter is that users can make hugepage pool more extensible by
--enabling the allocation from ZONE_MOVABLE. This is because on ZONE_MOVABLE
--page reclaim/migration/compaction work more and you can get contiguous
--memory more likely. Note that using ZONE_MOVABLE for non-migratable
--hugepages can do harm to other features like memory hotremove (because
--memory hotremove expects that memory blocks on ZONE_MOVABLE are always
--removable,) so it's a trade-off responsible for the users.
--
--==============================================================
--
- hugetlb_shm_group
- 
- hugetlb_shm_group contains group id that is allowed to create SysV
-diff -puN include/linux/hugetlb.h~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/include/linux/hugetlb.h
-@@ -128,7 +128,6 @@ u32 hugetlb_fault_mutex_hash(struct hsta
- 
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
- 
--extern int hugepages_treat_as_movable;
- extern int sysctl_hugetlb_shm_group;
- extern struct list_head huge_boot_pages;
- 
-diff -puN kernel/sysctl.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/kernel/sysctl.c
-@@ -1390,13 +1390,6 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 	 },
--	 {
--		.procname	= "hugepages_treat_as_movable",
--		.data		= &hugepages_treat_as_movable,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
--	},
- 	{
- 		.procname	= "nr_overcommit_hugepages",
- 		.data		= NULL,
-diff -puN mm/hugetlb.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/mm/hugetlb.c
-@@ -36,8 +36,6 @@
- #include <linux/userfaultfd_k.h>
- #include "internal.h"
- 
--int hugepages_treat_as_movable;
--
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
-@@ -926,7 +924,7 @@ retry_cpuset:
- /* Movability of hugepages depends on migration support. */
- static inline gfp_t htlb_alloc_mask(struct hstate *h)
- {
--	if (hugepages_treat_as_movable || hugepage_migration_supported(h))
-+	if (hugepage_migration_supported(h))
- 		return GFP_HIGHUSER_MOVABLE;
- 	else
- 		return GFP_HIGHUSER;
+diff -puN include/linux/fs.h~include-linux-fsh-fix-comment-about-struct-address_space include/linux/fs.h
+--- a/include/linux/fs.h~include-linux-fsh-fix-comment-about-struct-address_space
++++ a/include/linux/fs.h
+@@ -403,7 +403,7 @@ struct address_space {
+ 	unsigned long		flags;		/* error bits */
+ 	spinlock_t		private_lock;	/* for use by the address_space */
+ 	gfp_t			gfp_mask;	/* implicit gfp mask for allocations */
+-	struct list_head	private_list;	/* ditto */
++	struct list_head	private_list;	/* for use by the address_space */
+ 	void			*private_data;	/* ditto */
+ 	errseq_t		wb_err;
+ } __attribute__((aligned(sizeof(long)))) __randomize_layout;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch
-mm-memcg-remove-hotplug-locking-from-try_charge.patch
-mm-memcg-avoid-page-count-check-for-zone-device-fix.patch
-mm-memory_hotplug-add-scheduling-point-to-__add_pages.patch
-mm-page_alloc-add-scheduling-point-to-memmap_init_zone.patch
-memremap-add-scheduling-point-to-devm_memremap_pages.patch
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-memory_hotplug-do-not-fail-offlining-too-early.patch
-mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
-mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+include-linux-fsh-fix-comment-about-struct-address_space.patch
 
