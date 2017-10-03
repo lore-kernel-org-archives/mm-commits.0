@@ -1,76 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+ mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
  removed from -mm tree
-Date: Tue, 03 Oct 2017 16:08:21 -0700
-Message-ID: <59d41865.vG0XHju0nr5E0+8M%akpm@linux-foundation.org>
+Date: Tue, 03 Oct 2017 16:08:46 -0700
+Message-ID: <59d4187e.lGPtK6WS6iBwCneY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58238 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751090AbdJCXIX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:08:23 -0400
+        with ESMTP id S1751148AbdJCXIs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:08:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, colin.king@canonical.com, joe@perches.com, keescook@chromium.org, ross.zwisler@linux.intel.com, sboyd@codeaurora.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
+     Subject: mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix.patch
+     mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt.patch
+This patch was dropped because it was folded into mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
+Subject: mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes
 
-s/|/||/, per Joe
+WARNING: line over 80 characters
+#79: FILE: mm/oom_kill.c:501:
++	 * what they do is basically undeterministic. So let's have a short sleep
 
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+total: 0 errors, 1 warnings, 39 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    4 ++--
+ mm/oom_kill.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt-fix
-+++ a/scripts/spelling.txt
-@@ -492,7 +492,7 @@ failied||failed
- faillure||failure
- failue||failure
- failuer||failure
--failng|failing
-+failng||failing
- faireness||fairness
- falied||failed
- faliure||failure
-@@ -1118,7 +1118,7 @@ swithced||switched
- swithcing||switching
- swithed||switched
- swithing||switching
--swtich|switch
-+swtich||switch
- symetric||symmetric
- synax||syntax
- synchonized||synchronized
+diff -puN mm/oom_kill.c~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes
++++ a/mm/oom_kill.c
+@@ -498,8 +498,8 @@ static bool __oom_reap_task_mm(struct ta
+ 	/*
+ 	 * If the mm has notifiers then we would need to invalidate them around
+ 	 * unmap_page_range and that is risky because notifiers can sleep and
+-	 * what they do is basically undeterministic. So let's have a short sleep
+-	 * to give the oom victim some more time.
++	 * what they do is basically undeterministic.  So let's have a short
++	 * sleep to give the oom victim some more time.
+ 	 * TODO: we really want to get rid of this ugly hack and make sure that
+ 	 * notifiers cannot block for unbounded amount of time and add
+ 	 * mmu_notifier_invalidate_range_{start,end} around unmap_page_range
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-scripts-spellingtxt-add-more-spelling-mistakes-to-spellingtxt.patch
-mm-oom_reaper-skip-mm-structs-with-mmu-notifiers-checkpatch-fixes.patch
+mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch
 of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
