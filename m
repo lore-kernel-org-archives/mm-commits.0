@@ -1,65 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 17/51] z3fold: fix stale list handling
-Date: Tue, 03 Oct 2017 16:15:06 -0700
-Message-ID: <59d419fa.sM2QRwh314C0e4OA%akpm@linux-foundation.org>
+Subject: [patch 18/51] mm: meminit: mark init_reserved_page as __meminit
+Date: Tue, 03 Oct 2017 16:15:10 -0700
+Message-ID: <59d419fe.HjSTfEbgrvfumO7i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58548 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXPI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:08 -0400
+        with ESMTP id S1750865AbdJCXPL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vitalywool@gmail.com, ddstreet@ieee.org, Oleksiy.Avramchenko@sony.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, mgorman@techsingularity.net
 
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: fix stale list handling
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: meminit: mark init_reserved_page as __meminit
 
-Fix the situation when clear_bit() is called for page->private before the
-page pointer is actually assigned.  While at it, remove work_busy() check
-because it is costly and does not give 100% guarantee anyway.
+The function is called from __meminit context and calls other __meminit
+functions but isn't it self mark as such today:
 
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: <Oleksiy.Avramchenko@sony.com>
+WARNING: vmlinux.o(.text.unlikely+0x4516): Section mismatch in reference from the function init_reserved_page() to the function .meminit.text:early_pfn_to_nid()
+The function init_reserved_page() references
+the function __meminit early_pfn_to_nid().
+This is often because init_reserved_page lacks a __meminit
+annotation or the annotation of early_pfn_to_nid is wrong.
+
+On most compilers, we don't notice this because the function gets inlined
+all the time.  Adding __meminit here fixes the harmless warning for the
+old versions and is generally the correct annotation.
+
+Link: http://lkml.kernel.org/r/20170915193149.901180-1-arnd@arndb.de
+Fixes: 7e18adb4f80b ("mm: meminit: initialise remaining struct pages in parallel with kswapd")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/z3fold.c~z3fold-fix-stale-list-handling mm/z3fold.c
---- a/mm/z3fold.c~z3fold-fix-stale-list-handling
-+++ a/mm/z3fold.c
-@@ -250,6 +250,7 @@ static void __release_z3fold_page(struct
+diff -puN mm/page_alloc.c~mm-meminit-mark-init_reserved_page-as-__meminit mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-mark-init_reserved_page-as-__meminit
++++ a/mm/page_alloc.c
+@@ -1190,7 +1190,7 @@ static void __meminit __init_single_pfn(
+ }
  
- 	WARN_ON(!list_empty(&zhdr->buddy));
- 	set_bit(PAGE_STALE, &page->private);
-+	clear_bit(NEEDS_COMPACTING, &page->private);
- 	spin_lock(&pool->lock);
- 	if (!list_empty(&page->lru))
- 		list_del(&page->lru);
-@@ -303,7 +304,6 @@ static void free_pages_work(struct work_
- 		list_del(&zhdr->buddy);
- 		if (WARN_ON(!test_bit(PAGE_STALE, &page->private)))
- 			continue;
--		clear_bit(NEEDS_COMPACTING, &page->private);
- 		spin_unlock(&pool->stale_lock);
- 		cancel_work_sync(&zhdr->work);
- 		free_z3fold_page(page);
-@@ -624,10 +624,8 @@ lookup:
- 	 * stale pages list. cancel_work_sync() can sleep so we must make
- 	 * sure it won't be called in case we're in atomic context.
- 	 */
--	if (zhdr && (can_sleep || !work_pending(&zhdr->work) ||
--	    !unlikely(work_busy(&zhdr->work)))) {
-+	if (zhdr && (can_sleep || !work_pending(&zhdr->work))) {
- 		list_del(&zhdr->buddy);
--		clear_bit(NEEDS_COMPACTING, &page->private);
- 		spin_unlock(&pool->stale_lock);
- 		if (can_sleep)
- 			cancel_work_sync(&zhdr->work);
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+-static void init_reserved_page(unsigned long pfn)
++static void __meminit init_reserved_page(unsigned long pfn)
+ {
+ 	pg_data_t *pgdat;
+ 	int nid, zid;
 _
