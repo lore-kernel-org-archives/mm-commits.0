@@ -1,84 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/51] mm, hugetlb, soft_offline: save compound page order before page migration
-Date: Tue, 03 Oct 2017 16:14:31 -0700
-Message-ID: <59d419d7.4h+Q6aDuhFNCUnQB%akpm@linux-foundation.org>
+Subject: [patch 05/51] ksm: fix unlocked iteration over vmas in
+ cmp_and_merge_page()
+Date: Tue, 03 Oct 2017 16:14:27 -0700
+Message-ID: <59d419d3.8kV0dpEAQJwl+4No%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58340 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXOc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:14:32 -0400
+        with ESMTP id S1750865AbdJCXO3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:14:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, 00moses.alexander00@gmail.com, aarcange@redhat.com, hdanton@sina.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ktkhai@virtuozzo.com, aarcange@redhat.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mingo@kernel.org, stable@vger.kernel.org, zhongjiang@huawei.com
 
-From: Alexandru Moise <00moses.alexander00@gmail.com>
-Subject: mm, hugetlb, soft_offline: save compound page order before page migration
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: ksm: fix unlocked iteration over vmas in cmp_and_merge_page()
 
-This fixes a bug in madvise() where if you'd try to soft offline a
-hugepage via madvise(), while walking the address range you'd end up,
-using the wrong page offset due to attempting to get the compound order of
-a former but presently not compound page, due to dissolving the huge page
-(since c3114a8).
+In this place mm is unlocked, so vmas or list may change.  Down read
+mmap_sem to protect them from modifications.
 
-As a result I ended up with all my free pages except one being
-offlined.
-
-Link: http://lkml.kernel.org/r/20170912204306.GA12053@gmail.com
-Fixes: c3114a84f7f9 ("mm: hugetlb: soft-offline: dissolve source hugepage after successful migration")
-Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/150512788393.10691.8868381099691121308.stgit@localhost.localdomain
+Fixes: e86c59b1b12d ("mm/ksm: improve deduplication of zero pages with colouring")
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/ksm.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration mm/madvise.c
---- a/mm/madvise.c~mm-hugetlb-soft_offline-save-compound-page-order-before-page-migration
-+++ a/mm/madvise.c
-@@ -625,18 +625,26 @@ static int madvise_inject_error(int beha
+diff -puN mm/ksm.c~ksm-fix-unlocked-iteration-over-vmas-in-cmp_and_merge_page mm/ksm.c
+--- a/mm/ksm.c~ksm-fix-unlocked-iteration-over-vmas-in-cmp_and_merge_page
++++ a/mm/ksm.c
+@@ -1990,6 +1990,7 @@ static void stable_tree_append(struct rm
+  */
+ static void cmp_and_merge_page(struct page *page, struct rmap_item *rmap_item)
  {
- 	struct page *page;
- 	struct zone *zone;
-+	unsigned int order;
++	struct mm_struct *mm = rmap_item->mm;
+ 	struct rmap_item *tree_rmap_item;
+ 	struct page *tree_page = NULL;
+ 	struct stable_node *stable_node;
+@@ -2062,9 +2063,11 @@ static void cmp_and_merge_page(struct pa
+ 	if (ksm_use_zero_pages && (checksum == zero_checksum)) {
+ 		struct vm_area_struct *vma;
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	for (; start < end; start += PAGE_SIZE <<
--				compound_order(compound_head(page))) {
-+
-+	for (; start < end; start += PAGE_SIZE << order) {
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &page);
- 		if (ret != 1)
- 			return ret;
- 
-+		/*
-+		 * When soft offlining hugepages, after migrating the page
-+		 * we dissolve it, therefore in the second loop "page" will
-+		 * no longer be a compound page, and order will be 0.
-+		 */
-+		order = compound_order(compound_head(page));
-+
- 		if (PageHWPoison(page)) {
- 			put_page(page);
- 			continue;
+-		vma = find_mergeable_vma(rmap_item->mm, rmap_item->address);
++		down_read(&mm->mmap_sem);
++		vma = find_mergeable_vma(mm, rmap_item->address);
+ 		err = try_to_merge_one_page(vma, page,
+ 					    ZERO_PAGE(rmap_item->address));
++		up_read(&mm->mmap_sem);
+ 		/*
+ 		 * In case of failure, the page was not really empty, so we
+ 		 * need to continue. Otherwise we're done.
 _
