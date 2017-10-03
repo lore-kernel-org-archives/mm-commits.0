@@ -1,69 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [patch 26/51] mm/device-public-memory: fix edge case in
- _vm_normal_page()
-Date: Tue, 03 Oct 2017 16:15:35 -0700
-Message-ID: <59d41a17.AviUJQczN/dbBpvU%akpm@linux-foundation.org>
+Subject: [patch 27/51] userfaultfd: non-cooperative: fix fork use after
+ free
+Date: Tue, 03 Oct 2017 16:15:38 -0700
+Message-ID: <59d41a1a.XPaeRaUY4UTrcWSN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58662 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdJCXPg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:36 -0400
+        with ESMTP id S1750865AbdJCXPk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2017 19:15:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, jglisse@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, dgilbert@redhat.com, mark.rutland@arm.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, stable@vger.kernel.org, xemul@virtuozzo.com
 
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: mm/device-public-memory: fix edge case in _vm_normal_page()
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: non-cooperative: fix fork use after free
 
-With device public pages at the end of my memory space, I'm getting output
-from _vm_normal_page():
+When reading the event from the uffd, we put it on a temporary fork_event
+list to detect if we can still access it after releasing and retaking the
+event_wqh.lock.
 
-BUG: Bad page map in process migrate_pages  pte:c0800001ffff0d06 pmd:f95d3000
-addr:00007fff89330000 vm_flags:00100073 anon_vma:c0000000fa899320 mapping:          (null) index:7fff8933
-file:          (null) fault:          (null) mmap:          (null) readpage:          (null)
-CPU: 0 PID: 13963 Comm: migrate_pages Tainted: P    B      OE 4.14.0-rc1-wip #155
-Call Trace:
-[c0000000f965f910] [c00000000094d55c] dump_stack+0xb0/0xf4 (unreliable)
-[c0000000f965f950] [c0000000002b269c] print_bad_pte+0x28c/0x340
-[c0000000f965fa00] [c0000000002b59c0] _vm_normal_page+0xc0/0x140
-[c0000000f965fa20] [c0000000002b6e64] zap_pte_range+0x664/0xc10
-[c0000000f965fb00] [c0000000002b7858] unmap_page_range+0x318/0x670
-[c0000000f965fbd0] [c0000000002b8074] unmap_vmas+0x74/0xe0
-[c0000000f965fc20] [c0000000002c4a18] exit_mmap+0xe8/0x1f0
-[c0000000f965fce0] [c0000000000ecbdc] mmput+0xac/0x1f0
-[c0000000f965fd10] [c0000000000f62e8] do_exit+0x348/0xcd0
-[c0000000f965fdd0] [c0000000000f6d2c] do_group_exit+0x5c/0xf0
-[c0000000f965fe10] [c0000000000f6ddc] SyS_exit_group+0x1c/0x20
-[c0000000f965fe30] [c00000000000b184] system_call+0x58/0x6c
+If fork aborts and removes the event from the fork_event all is fine as
+long as we're still in the userfault read context and fork_event head is
+still alive.
 
-The pfn causing this is the very last one.  Correct the bounds check
-accordingly.
+We've to put the event allocated in the fork kernel stack, back from
+fork_event list-head to the event_wqh head, before returning from
+userfaultfd_ctx_read, because the fork_event head lifetime is limited to
+the userfaultfd_ctx_read stack lifetime.
 
-Fixes: df6ad69838fc ("mm/device-public-memory: device memory cache coherent with CPU")
-Link: http://lkml.kernel.org/r/1506092178-20351-1-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
-Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Forgetting to move the event back to its event_wqh place then results in
+__remove_wait_queue(&ctx->event_wqh, &ewq->wq); in
+userfaultfd_event_wait_completion to remove it from a head that has been
+already freed from the reader stack.
+
+This could only happen if resolve_userfault_fork failed (for example if
+there are no file descriptors available to allocate the fork uffd).  If it
+succeeded it was put back correctly.
+
+Furthermore, after find_userfault_evt receives a fork event, the forked
+userfault context in fork_nctx and uwq->msg.arg.reserved.reserved1 can be
+released by the fork thread as soon as the event_wqh.lock is released. 
+Taking a reference on the fork_nctx before dropping the lock prevents an
+use after free in resolve_userfault_fork().
+
+If the fork side aborted and it already released everything, we still try
+to succeed resolve_userfault_fork(), if possible.
+
+Fixes: 893e26e61d04eac9 ("userfaultfd: non-cooperative: Add fork() event")
+Link: http://lkml.kernel.org/r/20170920180413.26713-1-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Mark Rutland <mark.rutland@arm.com>
+Tested-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/userfaultfd.c |   66 ++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 56 insertions(+), 10 deletions(-)
 
-diff -puN mm/memory.c~mm-device-public-memory-fix-edge-case-in-_vm_normal_page mm/memory.c
---- a/mm/memory.c~mm-device-public-memory-fix-edge-case-in-_vm_normal_page
-+++ a/mm/memory.c
-@@ -845,7 +845,7 @@ struct page *_vm_normal_page(struct vm_a
- 		 * vm_normal_page() so that we do not have to special case all
- 		 * call site of vm_normal_page().
- 		 */
--		if (likely(pfn < highest_memmap_pfn)) {
-+		if (likely(pfn <= highest_memmap_pfn)) {
- 			struct page *page = pfn_to_page(pfn);
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-fix-fork-use-after-free fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-fix-fork-use-after-free
++++ a/fs/userfaultfd.c
+@@ -588,6 +588,12 @@ static void userfaultfd_event_wait_compl
+ 			break;
+ 		if (ACCESS_ONCE(ctx->released) ||
+ 		    fatal_signal_pending(current)) {
++			/*
++			 * &ewq->wq may be queued in fork_event, but
++			 * __remove_wait_queue ignores the head
++			 * parameter. It would be a problem if it
++			 * didn't.
++			 */
+ 			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
+ 			if (ewq->msg.event == UFFD_EVENT_FORK) {
+ 				struct userfaultfd_ctx *new;
+@@ -1061,6 +1067,12 @@ static ssize_t userfaultfd_ctx_read(stru
+ 					(unsigned long)
+ 					uwq->msg.arg.reserved.reserved1;
+ 				list_move(&uwq->wq.entry, &fork_event);
++				/*
++				 * fork_nctx can be freed as soon as
++				 * we drop the lock, unless we take a
++				 * reference on it.
++				 */
++				userfaultfd_ctx_get(fork_nctx);
+ 				spin_unlock(&ctx->event_wqh.lock);
+ 				ret = 0;
+ 				break;
+@@ -1091,19 +1103,53 @@ static ssize_t userfaultfd_ctx_read(stru
  
- 			if (is_device_public_page(page)) {
+ 	if (!ret && msg->event == UFFD_EVENT_FORK) {
+ 		ret = resolve_userfault_fork(ctx, fork_nctx, msg);
++		spin_lock(&ctx->event_wqh.lock);
++		if (!list_empty(&fork_event)) {
++			/*
++			 * The fork thread didn't abort, so we can
++			 * drop the temporary refcount.
++			 */
++			userfaultfd_ctx_put(fork_nctx);
++
++			uwq = list_first_entry(&fork_event,
++					       typeof(*uwq),
++					       wq.entry);
++			/*
++			 * If fork_event list wasn't empty and in turn
++			 * the event wasn't already released by fork
++			 * (the event is allocated on fork kernel
++			 * stack), put the event back to its place in
++			 * the event_wq. fork_event head will be freed
++			 * as soon as we return so the event cannot
++			 * stay queued there no matter the current
++			 * "ret" value.
++			 */
++			list_del(&uwq->wq.entry);
++			__add_wait_queue(&ctx->event_wqh, &uwq->wq);
+ 
+-		if (!ret) {
+-			spin_lock(&ctx->event_wqh.lock);
+-			if (!list_empty(&fork_event)) {
+-				uwq = list_first_entry(&fork_event,
+-						       typeof(*uwq),
+-						       wq.entry);
+-				list_del(&uwq->wq.entry);
+-				__add_wait_queue(&ctx->event_wqh, &uwq->wq);
++			/*
++			 * Leave the event in the waitqueue and report
++			 * error to userland if we failed to resolve
++			 * the userfault fork.
++			 */
++			if (likely(!ret))
+ 				userfaultfd_event_complete(ctx, uwq);
+-			}
+-			spin_unlock(&ctx->event_wqh.lock);
++		} else {
++			/*
++			 * Here the fork thread aborted and the
++			 * refcount from the fork thread on fork_nctx
++			 * has already been released. We still hold
++			 * the reference we took before releasing the
++			 * lock above. If resolve_userfault_fork
++			 * failed we've to drop it because the
++			 * fork_nctx has to be freed in such case. If
++			 * it succeeded we'll hold it because the new
++			 * uffd references it.
++			 */
++			if (ret)
++				userfaultfd_ctx_put(fork_nctx);
+ 		}
++		spin_unlock(&ctx->event_wqh.lock);
+ 	}
+ 
+ 	return ret;
 _
