@@ -1,75 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
- removed from -mm tree
-Date: Wed, 04 Oct 2017 12:40:19 -0700
-Message-ID: <20171004194019.4gJlrM1t2%akpm@linux-foundation.org>
+ z3fold-fix-potential-race-in-z3fold_reclaim_page.patch removed from -mm
+ tree
+Date: Wed, 04 Oct 2017 12:40:22 -0700
+Message-ID: <20171004194022.gDB06tJav%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33364 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751209AbdJDTkU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:20 -0400
+        with ESMTP id S1751209AbdJDTkX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dalias@libc.org, geert+renesas@glider.be, jacopo+renesas@jmondi.org, laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com, mm-commits@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, ysato@users.sourceforge.jp
+To: ddstreet@ieee.org, mm-commits@vger.kernel.org, Oleksiy.Avramchenko@sony.com, vitalywool@gmail.com
 
 
 The patch titled
-     Subject: sh: sh7269: remove nonexistent GPIO_PH[0-7] to fix pinctrl registration
+     Subject: z3fold: fix potential race in z3fold_reclaim_page
 has been removed from the -mm tree.  Its filename was
-     sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration.patch
+     z3fold-fix-potential-race-in-z3fold_reclaim_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: sh: sh7269: remove nonexistent GPIO_PH[0-7] to fix pinctrl registration
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: fix potential race in z3fold_reclaim_page
 
-Pinmux_pins[] is initialized through PINMUX_GPIO(), using designated array
-initializers, where the GPIO_* enums serve as indices.  If enum values are
-defined, but never used, pinmux_pins[] contains (zero-filled) holes.  Such
-entries are treated as pin zero, which was registered before, thus leading
-to pinctrl registration failures, as seen on sh7722:
+It is possible that on a (partially) unsuccessful page reclaim, kref_put()
+called in z3fold_reclaim_page() does not yield page release, but the page
+is released shortly afterwards by another thread.  Then
+z3fold_reclaim_page() would try to list_add() that (released) page again
+which is obviously a bug.
 
-    sh-pfc pfc-sh7722: pin 0 already registered
-    sh-pfc pfc-sh7722: error during pin registration
-    sh-pfc pfc-sh7722: could not register: -22
-    sh-pfc: probe of pfc-sh7722 failed with error -22
+To avoid that, spin_lock() has to be taken earlier, before the kref_put()
+call mentioned earlier.
 
-Remove GPIO_PH[0-7] from the enum to fix this.
-
-Link: http://lkml.kernel.org/r/1505205657-18012-5-git-send-email-geert+renesas@glider.be
-Fixes: ef0fa5331a73e479 ("sh: Add pinmux for sh7269")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Link: http://lkml.kernel.org/r/20170913162937.bfff21c7d12b12a5f47639fd@gmail.com
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: <Oleksiy.Avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/cpu-sh2a/cpu/sh7269.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/z3fold.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/include/cpu-sh2a/cpu/sh7269.h~sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration arch/sh/include/cpu-sh2a/cpu/sh7269.h
---- a/arch/sh/include/cpu-sh2a/cpu/sh7269.h~sh-sh7269-remove-nonexistent-gpio_ph-to-fix-pinctrl-registration
-+++ a/arch/sh/include/cpu-sh2a/cpu/sh7269.h
-@@ -45,9 +45,7 @@ enum {
- 	GPIO_PG7, GPIO_PG6, GPIO_PG5, GPIO_PG4,
- 	GPIO_PG3, GPIO_PG2, GPIO_PG1, GPIO_PG0,
+diff -puN mm/z3fold.c~z3fold-fix-potential-race-in-z3fold_reclaim_page mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-fix-potential-race-in-z3fold_reclaim_page
++++ a/mm/z3fold.c
+@@ -875,16 +875,18 @@ static int z3fold_reclaim_page(struct z3
+ 				goto next;
+ 		}
+ next:
++		spin_lock(&pool->lock);
+ 		if (test_bit(PAGE_HEADLESS, &page->private)) {
+ 			if (ret == 0) {
++				spin_unlock(&pool->lock);
+ 				free_z3fold_page(page);
+ 				return 0;
+ 			}
+ 		} else if (kref_put(&zhdr->refcount, release_z3fold_page)) {
+ 			atomic64_dec(&pool->pages_nr);
++			spin_unlock(&pool->lock);
+ 			return 0;
+ 		}
+-		spin_lock(&pool->lock);
  
--	/* Port H */
--	GPIO_PH7, GPIO_PH6, GPIO_PH5, GPIO_PH4,
--	GPIO_PH3, GPIO_PH2, GPIO_PH1, GPIO_PH0,
-+	/* Port H - Port H does not have a Data Register */
- 
- 	/* Port I - not on device */
- 
+ 		/*
+ 		 * Add to the beginning of LRU.
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
 
