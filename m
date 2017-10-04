@@ -1,110 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-fix-null-dereference-of-handle.patch removed
- from -mm tree
-Date: Wed, 04 Oct 2017 12:40:52 -0700
-Message-ID: <20171004194052.Kzy78t0Fw%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only.patch
+ removed from -mm tree
+Date: Wed, 04 Oct 2017 12:40:49 -0700
+Message-ID: <20171004194049.ug2fo4ANi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33476 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTkx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:53 -0400
+        with ESMTP id S1751132AbdJDTku (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org
+To: christophe.leroy@c-s.fr, David.Laight@ACULAB.COM, jinb.park7@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org, segher@kernel.crashing.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix null dereference of handle
+     Subject: mm: fix RODATA_TEST failure "rodata_test: test data was not read only"
 has been removed from the -mm tree.  Its filename was
-     zram-fix-null-dereference-of-handle.patch
+     mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix null dereference of handle
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: mm: fix RODATA_TEST failure "rodata_test: test data was not read only"
 
-In testing I found handle passed to zs_map_object in __zram_bvec_read is
-NULL so eh kernel goes oops in pin_object().
+On powerpc, RODATA_TEST fails with message the following messages:
 
-The reason is there is no routine to check the slot's freeing after
-getting the slot's lock.  This patch fixes it.
+[    6.199505] Freeing unused kernel memory: 528K
+[    6.203935] rodata_test: test data was not read only
 
-[minchan@kernel.org: v2]
-  Link: http://lkml.kernel.org/r/1505887347-10881-1-git-send-email-minchan@kernel.org
-Link: http://lkml.kernel.org/r/1505788488-26723-1-git-send-email-minchan@kernel.org
-Fixes: 1f7319c74275 ("zram: partial IO refactoring")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+This is because GCC allocates it to .data section:
+
+c0695034 g     O .data	00000004 rodata_test_data
+
+Since 056b9d8a76924 ("mm: remove rodata_test_data export, add pr_fmt"),
+rodata_test_data is used only inside rodata_test.c By declaring it static,
+it gets properly allocated into .rodata section instead of .data:
+
+c04df710 l     O .rodata	00000004 rodata_test_data
+
+Fixes: 056b9d8a76924 ("mm: remove rodata_test_data export, add pr_fmt")
+Link: http://lkml.kernel.org/r/20170921093729.1080368AC1@po15668-vm-win7.idsi0.si.c-s.fr
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jinbum Park <jinb.park7@gmail.com>
+Cc: Segher Boessenkool <segher@kernel.crashing.org>
+Cc: David Laight <David.Laight@ACULAB.COM>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   36 ++++++++++----------------------
- 1 file changed, 12 insertions(+), 24 deletions(-)
+ mm/rodata_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-null-dereference-of-handle drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-null-dereference-of-handle
-+++ a/drivers/block/zram/zram_drv.c
-@@ -766,27 +766,6 @@ static void zram_slot_unlock(struct zram
- 	bit_spin_unlock(ZRAM_ACCESS, &zram->table[index].value);
- }
+diff -puN mm/rodata_test.c~mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only mm/rodata_test.c
+--- a/mm/rodata_test.c~mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only
++++ a/mm/rodata_test.c
+@@ -14,7 +14,7 @@
+ #include <linux/uaccess.h>
+ #include <asm/sections.h>
  
--static bool zram_same_page_read(struct zram *zram, u32 index,
--				struct page *page,
--				unsigned int offset, unsigned int len)
--{
--	zram_slot_lock(zram, index);
--	if (unlikely(!zram_get_handle(zram, index) ||
--			zram_test_flag(zram, index, ZRAM_SAME))) {
--		void *mem;
--
--		zram_slot_unlock(zram, index);
--		mem = kmap_atomic(page);
--		zram_fill_page(mem + offset, len,
--					zram_get_element(zram, index));
--		kunmap_atomic(mem);
--		return true;
--	}
--	zram_slot_unlock(zram, index);
--
--	return false;
--}
--
- static void zram_meta_free(struct zram *zram, u64 disksize)
+-const int rodata_test_data = 0xC3;
++static const int rodata_test_data = 0xC3;
+ 
+ void rodata_test(void)
  {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -884,11 +863,20 @@ static int __zram_bvec_read(struct zram
- 		zram_slot_unlock(zram, index);
- 	}
- 
--	if (zram_same_page_read(zram, index, page, 0, PAGE_SIZE))
--		return 0;
--
- 	zram_slot_lock(zram, index);
- 	handle = zram_get_handle(zram, index);
-+	if (!handle || zram_test_flag(zram, index, ZRAM_SAME)) {
-+		unsigned long value;
-+		void *mem;
-+
-+		value = handle ? zram_get_element(zram, index) : 0;
-+		mem = kmap_atomic(page);
-+		zram_fill_page(mem, PAGE_SIZE, value);
-+		kunmap_atomic(mem);
-+		zram_slot_unlock(zram, index);
-+		return 0;
-+	}
-+
- 	size = zram_get_obj_size(zram, index);
- 
- 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from christophe.leroy@c-s.fr are
 
-zram-set-bdi_cap_stable_writes-once.patch
-bdi-introduce-bdi_cap_synchronous_io.patch
-mm-swap-introduce-swp_synchronous_io.patch
-mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
 
