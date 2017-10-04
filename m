@@ -1,72 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch
- removed from -mm tree
-Date: Wed, 04 Oct 2017 12:40:58 -0700
-Message-ID: <20171004194058.oSQzObgZJ%akpm@linux-foundation.org>
+ mm-fix-data-corruption-caused-by-lazyfree-page.patch removed from -mm tree
+Date: Wed, 04 Oct 2017 12:41:04 -0700
+Message-ID: <20171004194104.pdZt3vUIW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTk7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:59 -0400
+        with ESMTP id S1751132AbdJDTlF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eguan@redhat.com, jack@suse.cz, jlayton@redhat.com, mm-commits@vger.kernel.org
+To: asavkov@redhat.com, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@fb.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: have filemap_check_and_advance_wb_err clear AS_EIO/AS_ENOSPC
+     Subject: mm: fix data corruption caused by lazyfree page
 has been removed from the -mm tree.  Its filename was
-     mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc.patch
+     mm-fix-data-corruption-caused-by-lazyfree-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@redhat.com>
-Subject: mm: have filemap_check_and_advance_wb_err clear AS_EIO/AS_ENOSPC
+From: Shaohua Li <shli@fb.com>
+Subject: mm: fix data corruption caused by lazyfree page
 
-Eryu noticed that he could sometimes get a leftover error reported when it
-shouldn't be on fsync with ext2 and non-journalled ext4.  The problem is
-that writeback_single_inode still uses filemap_fdatawait.  That picks up a
-previously set AS_EIO flag, which would ordinarily have been cleared
-before.
+MADV_FREE clears pte dirty bit and then marks the page lazyfree (clear
+SwapBacked).  There is no lock to prevent the page is added to swap cache
+between these two steps by page reclaim.  If page reclaim finds such page,
+it will simply add the page to swap cache without pageout the page to swap
+because the page is marked as clean.  Next time, page fault will read data
+from the swap slot which doesn't have the original data, so we have a data
+corruption.  To fix issue, we mark the page dirty and pageout the page.
 
-Since we're mostly using this function as a replacement for
-filemap_check_errors, have filemap_check_and_advance_wb_err clear AS_EIO
-and AS_ENOSPC when reporting an error.  That should allow the new function
-to better emulate the behavior of the old with respect to these flags.
+However, we shouldn't dirty all pages which is clean and in swap cache. 
+swapin page is swap cache and clean too.  So we only dirty page which is
+added into swap cache in page reclaim, which shouldn't be swapin page.  As
+Minchan suggested, simply dirty the page in add_to_swap can do the job.
 
-Link: http://lkml.kernel.org/r/20170922133331.28812-1-jlayton@kernel.org
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Reported-by: Eryu Guan <eguan@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Fixes: 802a3a92ad7a ("mm: reclaim MADV_FREE pages")
+Link: http://lkml.kernel.org/r/08c84256b007bf3f63c91d94383bd9eb6fee2daa.1506446061.git.shli@fb.com
+Signed-off-by: Shaohua Li <shli@fb.com>
+Reported-by: Artem Savkov <asavkov@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>	[4.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/swap_state.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/filemap.c~mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc mm/filemap.c
---- a/mm/filemap.c~mm-have-filemap_check_and_advance_wb_err-clear-as_eio-as_enospc
-+++ a/mm/filemap.c
-@@ -620,6 +620,14 @@ int file_check_and_advance_wb_err(struct
- 		trace_file_check_and_advance_wb_err(file, old);
- 		spin_unlock(&file->f_lock);
- 	}
-+
+diff -puN mm/swap_state.c~mm-fix-data-corruption-caused-by-lazyfree-page mm/swap_state.c
+--- a/mm/swap_state.c~mm-fix-data-corruption-caused-by-lazyfree-page
++++ a/mm/swap_state.c
+@@ -242,6 +242,17 @@ int add_to_swap(struct page *page)
+ 		 * clear SWAP_HAS_CACHE flag.
+ 		 */
+ 		goto fail;
 +	/*
-+	 * We're mostly using this function as a drop in replacement for
-+	 * filemap_check_errors. Clear AS_EIO/AS_ENOSPC to emulate the effect
-+	 * that the legacy code would have had on these flags.
++	 * Normally the page will be dirtied in unmap because its pte should be
++	 * dirty. A special case is MADV_FREE page. The page'e pte could have
++	 * dirty bit cleared but the page's SwapBacked bit is still set because
++	 * clearing the dirty bit and SwapBacked bit has no lock protected. For
++	 * such page, unmap will not set dirty bit for it, so page reclaim will
++	 * not write the page out. This can cause data corruption when the page
++	 * is swap in later. Always setting the dirty bit for the page solves
++	 * the problem.
 +	 */
-+	clear_bit(AS_EIO, &mapping->flags);
-+	clear_bit(AS_ENOSPC, &mapping->flags);
- 	return err;
- }
- EXPORT_SYMBOL(file_check_and_advance_wb_err);
++	set_page_dirty(page);
+ 
+ 	return 1;
+ 
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from shli@fb.com are
 
 
