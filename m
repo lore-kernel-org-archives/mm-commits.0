@@ -1,272 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] dax-stop-using-vm_mixedmap-for-dax.patch removed
+Subject: [to-be-updated] dax-stop-using-vm_hugepage-for-dax.patch removed
  from -mm tree
-Date: Wed, 04 Oct 2017 14:56:07 -0700
-Message-ID: <59d558f7.ejDDGYdyYi4zjUmH%akpm@linux-foundation.org>
+Date: Wed, 04 Oct 2017 14:56:10 -0700
+Message-ID: <59d558fa.Z5emFmOpwySOKVa7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751120AbdJDV4I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 17:56:08 -0400
+        with ESMTP id S1751120AbdJDV4L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 17:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, jmoyer@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: stop using VM_MIXEDMAP for dax
+     Subject: dax: stop using VM_HUGEPAGE for dax
 has been removed from the -mm tree.  Its filename was
-     dax-stop-using-vm_mixedmap-for-dax.patch
+     dax-stop-using-vm_hugepage-for-dax.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: dax: stop using VM_MIXEDMAP for dax
+Subject: dax: stop using VM_HUGEPAGE for dax
 
-VM_MIXEDMAP is used by dax to direct mm paths like vm_normal_page() that
-the memory page it is dealing with is not typical memory from the linear
-map.  The get_user_pages_fast() path, since it does not resolve the vma,
-is already using {pte,pmd}_devmap() as a stand-in for VM_MIXEDMAP, so we
-use that as a VM_MIXEDMAP replacement in some locations.  In the cases
-where there is no pte to consult we fallback to using vma_is_dax() to
-detect the VM_MIXEDMAP special case.
+This flag is deprecated in favor of the vma_is_dax() check in
+transparent_hugepage_enabled() added in commit baabda261424 "mm: always
+enable thp for dax mappings"
 
-Now that we always have pages for DAX we can stop setting VM_MIXEDMAP. 
-This also means we no longer need to worry about safely manipulating
-vm_flags in a future where we support dynamically changing the dax mode of
-a file.
-
-[akpm@linux-foundation.org: fix typo]
-Link: http://lkml.kernel.org/r/150664807800.36094.3685385297224300424.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: http://lkml.kernel.org/r/150664808322.36094.377701515526275078.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |    2 +-
- fs/ext2/file.c       |    1 -
- fs/ext4/file.c       |    2 +-
- fs/xfs/xfs_file.c    |    2 +-
- mm/huge_memory.c     |    8 ++++----
- mm/ksm.c             |    3 +++
- mm/madvise.c         |    2 +-
- mm/memory.c          |   20 ++++++++++++++++++--
- mm/migrate.c         |    3 ++-
- mm/mlock.c           |    3 ++-
- mm/mmap.c            |    3 ++-
- 11 files changed, 35 insertions(+), 14 deletions(-)
+ drivers/dax/device.c |    1 -
+ fs/ext4/file.c       |    1 -
+ fs/xfs/xfs_file.c    |    2 --
+ 3 files changed, 4 deletions(-)
 
-diff -puN drivers/dax/device.c~dax-stop-using-vm_mixedmap-for-dax drivers/dax/device.c
---- a/drivers/dax/device.c~dax-stop-using-vm_mixedmap-for-dax
+diff -puN drivers/dax/device.c~dax-stop-using-vm_hugepage-for-dax drivers/dax/device.c
+--- a/drivers/dax/device.c~dax-stop-using-vm_hugepage-for-dax
 +++ a/drivers/dax/device.c
-@@ -450,7 +450,7 @@ static int dax_mmap(struct file *filp, s
+@@ -450,7 +450,6 @@ static int dax_mmap(struct file *filp, s
  		return rc;
  
  	vma->vm_ops = &dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+	vma->vm_flags |= VM_HUGEPAGE;
+-	vma->vm_flags |= VM_HUGEPAGE;
  	return 0;
  }
  
-diff -puN fs/ext2/file.c~dax-stop-using-vm_mixedmap-for-dax fs/ext2/file.c
---- a/fs/ext2/file.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/fs/ext2/file.c
-@@ -125,7 +125,6 @@ static int ext2_file_mmap(struct file *f
- 
- 	file_accessed(file);
- 	vma->vm_ops = &ext2_dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP;
- 	return 0;
- }
- #else
-diff -puN fs/ext4/file.c~dax-stop-using-vm_mixedmap-for-dax fs/ext4/file.c
---- a/fs/ext4/file.c~dax-stop-using-vm_mixedmap-for-dax
+diff -puN fs/ext4/file.c~dax-stop-using-vm_hugepage-for-dax fs/ext4/file.c
+--- a/fs/ext4/file.c~dax-stop-using-vm_hugepage-for-dax
 +++ a/fs/ext4/file.c
-@@ -352,7 +352,7 @@ static int ext4_file_mmap(struct file *f
+@@ -352,7 +352,6 @@ static int ext4_file_mmap(struct file *f
  	file_accessed(file);
  	if (IS_DAX(file_inode(file))) {
  		vma->vm_ops = &ext4_dax_vm_ops;
--		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+		vma->vm_flags |= VM_HUGEPAGE;
+-		vma->vm_flags |= VM_HUGEPAGE;
  	} else {
  		vma->vm_ops = &ext4_file_vm_ops;
  	}
-diff -puN fs/xfs/xfs_file.c~dax-stop-using-vm_mixedmap-for-dax fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~dax-stop-using-vm_mixedmap-for-dax
+diff -puN fs/xfs/xfs_file.c~dax-stop-using-vm_hugepage-for-dax fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~dax-stop-using-vm_hugepage-for-dax
 +++ a/fs/xfs/xfs_file.c
-@@ -1134,7 +1134,7 @@ xfs_file_mmap(
+@@ -1133,8 +1133,6 @@ xfs_file_mmap(
+ {
  	file_accessed(filp);
  	vma->vm_ops = &xfs_file_vm_ops;
- 	if (IS_DAX(file_inode(filp)))
--		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+		vma->vm_flags |= VM_HUGEPAGE;
+-	if (IS_DAX(file_inode(filp)))
+-		vma->vm_flags |= VM_HUGEPAGE;
  	return 0;
  }
  
-diff -puN mm/huge_memory.c~dax-stop-using-vm_mixedmap-for-dax mm/huge_memory.c
---- a/mm/huge_memory.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/huge_memory.c
-@@ -765,11 +765,11 @@ int vmf_insert_pfn_pmd(struct vm_area_st
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON(!((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))
-+				|| pfn_t_devmap(pfn)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON(!pfn_t_devmap(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-@@ -824,11 +824,11 @@ int vmf_insert_pfn_pud(struct vm_area_st
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON(!((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))
-+				|| pfn_t_devmap(pfn)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON(!pfn_t_devmap(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-diff -puN mm/ksm.c~dax-stop-using-vm_mixedmap-for-dax mm/ksm.c
---- a/mm/ksm.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/ksm.c
-@@ -2361,6 +2361,9 @@ int ksm_madvise(struct vm_area_struct *v
- 				 VM_HUGETLB | VM_MIXEDMAP))
- 			return 0;		/* just ignore the advice */
- 
-+		if (vma_is_dax(vma))
-+			return 0;
-+
- #ifdef VM_SAO
- 		if (*vm_flags & VM_SAO)
- 			return 0;
-diff -puN mm/madvise.c~dax-stop-using-vm_mixedmap-for-dax mm/madvise.c
---- a/mm/madvise.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/madvise.c
-@@ -95,7 +95,7 @@ static long madvise_behavior(struct vm_a
- 		new_flags |= VM_DONTDUMP;
- 		break;
- 	case MADV_DODUMP:
--		if (new_flags & VM_SPECIAL) {
-+		if (vma_is_dax(vma) || (new_flags & VM_SPECIAL)) {
- 			error = -EINVAL;
- 			goto out;
- 		}
-diff -puN mm/memory.c~dax-stop-using-vm_mixedmap-for-dax mm/memory.c
---- a/mm/memory.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/memory.c
-@@ -830,6 +830,8 @@ struct page *_vm_normal_page(struct vm_a
- 			return vma->vm_ops->find_special_page(vma, addr);
- 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
- 			return NULL;
-+		if (pte_devmap(pte))
-+			return NULL;
- 		if (is_zero_pfn(pfn))
- 			return NULL;
- 
-@@ -917,6 +919,8 @@ struct page *vm_normal_page_pmd(struct v
- 		}
- 	}
- 
-+	if (pmd_devmap(pmd))
-+		return NULL;
- 	if (is_zero_pfn(pfn))
- 		return NULL;
- 	if (unlikely(pfn > highest_memmap_pfn))
-@@ -1227,7 +1231,7 @@ int copy_page_range(struct mm_struct *ds
- 	 * efficient than faulting.
- 	 */
- 	if (!(vma->vm_flags & (VM_HUGETLB | VM_PFNMAP | VM_MIXEDMAP)) &&
--			!vma->anon_vma)
-+			!vma->anon_vma && !vma_is_dax(vma))
- 		return 0;
- 
- 	if (is_vm_hugetlb_page(vma))
-@@ -1896,12 +1900,24 @@ int vm_insert_pfn_prot(struct vm_area_st
- }
- EXPORT_SYMBOL(vm_insert_pfn_prot);
- 
-+static bool vm_mixed_ok(struct vm_area_struct *vma, pfn_t pfn)
-+{
-+	/* these checks mirror the abort conditions in vm_normal_page */
-+	if (vma->vm_flags & VM_MIXEDMAP)
-+		return true;
-+	if (pfn_t_devmap(pfn))
-+		return true;
-+	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
-+		return true;
-+	return false;
-+}
-+
- static int __vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn, bool mkwrite)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
- 
--	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
-+	BUG_ON(!vm_mixed_ok(vma, pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
-diff -puN mm/migrate.c~dax-stop-using-vm_mixedmap-for-dax mm/migrate.c
---- a/mm/migrate.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/migrate.c
-@@ -2928,7 +2928,8 @@ int migrate_vma(const struct migrate_vma
- 	/* Sanity check the arguments */
- 	start &= PAGE_MASK;
- 	end &= PAGE_MASK;
--	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
-+	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)
-+			|| vma_is_dax(vma))
- 		return -EINVAL;
- 	if (start < vma->vm_start || start >= vma->vm_end)
- 		return -EINVAL;
-diff -puN mm/mlock.c~dax-stop-using-vm_mixedmap-for-dax mm/mlock.c
---- a/mm/mlock.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/mlock.c
-@@ -520,7 +520,8 @@ static int mlock_fixup(struct vm_area_st
- 	vm_flags_t old_flags = vma->vm_flags;
- 
- 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
--	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
-+	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
-+	    vma_is_dax(vma))
- 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
- 		goto out;
- 
-diff -puN mm/mmap.c~dax-stop-using-vm_mixedmap-for-dax mm/mmap.c
---- a/mm/mmap.c~dax-stop-using-vm_mixedmap-for-dax
-+++ a/mm/mmap.c
-@@ -1723,7 +1723,8 @@ out:
- 	vm_stat_account(mm, vm_flags, len >> PAGE_SHIFT);
- 	if (vm_flags & VM_LOCKED) {
- 		if (!((vm_flags & VM_SPECIAL) || is_vm_hugetlb_page(vma) ||
--					vma == get_gate_vma(current->mm)))
-+					vma == get_gate_vma(current->mm) ||
-+					vma_is_dax(vma)))
- 			mm->locked_vm += (len >> PAGE_SHIFT);
- 		else
- 			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-dax-stop-using-vm_hugepage-for-dax.patch
 
