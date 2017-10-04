@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
- added to -mm tree
-Date: Wed, 04 Oct 2017 15:06:21 -0700
-Message-ID: <59d55b5d.oJPhTyI39CLSjOk1%akpm@linux-foundation.org>
+Subject: + scripts-kallsyms-ignore-symbol-type-n.patch added to -mm tree
+Date: Wed, 04 Oct 2017 15:08:03 -0700
+Message-ID: <59d55bc3.eF5LLLuyr0xxmAgZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751135AbdJDWGW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 18:06:22 -0400
+        with ESMTP id S1751171AbdJDWIE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 18:08:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, shuah@kernel.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
+To: linux@roeck-us.net, ard.biesheuvel@linaro.org, jpoimboe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
+     Subject: scripts/kallsyms.c: ignore symbol type 'n'
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+     scripts-kallsyms-ignore-symbol-type-n.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-kallsyms-ignore-symbol-type-n.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-kallsyms-ignore-symbol-type-n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,114 +38,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: scripts/kallsyms.c: ignore symbol type 'n'
 
-I was stress testing some backports and with high load, after some time,
-the latest version of the selftest showed some false positive in
-connection with the uffdio_copy_retry.  This seems to fix it while still
-exercising -EEXIST in the background transfer once in a while.
+gcc on aarch64 may emit synbols of type 'n' if the kernel is built with
+'-frecord-gcc-switches'.  In most cases, those symbols are reported with
+nm as
 
-The fork child will quit after the last UFFDIO_COPY is run, so a repeated
-UFFDIO_COPY may not return -EEXIST.  This change restricts the -EEXIST
-stress to the background transfer where the memory can't go away from
-under it.
+	000000000000000e n $d
 
-Also updated uffdio_zeropage, so the interface is consistent.
+and with objdump as
 
-Link: http://lkml.kernel.org/r/20171004171541.1495-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
+	0000000000000000 l    d  .GCC.command.line	0000000000000000 .GCC.command.line
+	000000000000000e l       .GCC.command.line	0000000000000000 $d
+
+Those symbols are detected in is_arm_mapping_symbol() and ignored. 
+However, if "--prefix-symbols=<prefix>" is configured as well, the
+situation is different.  For example, in efi/libstub, arm64 images are
+built with
+
+	'--prefix-alloc-sections=.init --prefix-symbols=__efistub_'.
+
+In combination with '-frecord-gcc-switches', the symbols are now reported
+by nm as:
+
+	000000000000000e n __efistub_$d
+and by objdump as:
+	0000000000000000 l    d  .GCC.command.line	0000000000000000 .GCC.command.line
+	000000000000000e l       .GCC.command.line	0000000000000000 __efistub_$d
+
+Those symbols are no longer ignored and included in the base address
+calculation.  This results in a base address of 000000000000000e, which in
+turn causes kallsyms to abort with
+
+    kallsyms failure:
+	relative symbol value 0xffffff900800a000 out of range in relative mode
+
+The problem is seen in little endian arm64 builds with CONFIG_EFI enabled
+and with '-frecord-gcc-switches' set in KCFLAGS.
+
+Explicitly ignore symbols of type 'n' since those are clearly debug
+symbols.
+
+Link: http://lkml.kernel.org/r/1507136063-3139-1-git-send-email-linux@roeck-us.net
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   25 ++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+ scripts/kallsyms.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -397,7 +397,7 @@ static void retry_copy_page(int ufd, str
- 	}
- }
+diff -puN scripts/kallsyms.c~scripts-kallsyms-ignore-symbol-type-n scripts/kallsyms.c
+--- a/scripts/kallsyms.c~scripts-kallsyms-ignore-symbol-type-n
++++ a/scripts/kallsyms.c
+@@ -158,7 +158,7 @@ static int read_symbol(FILE *in, struct
+ 	else if (str[0] == '$')
+ 		return -1;
+ 	/* exclude debugging symbols */
+-	else if (stype == 'N')
++	else if (stype == 'N' || stype == 'n')
+ 		return -1;
  
--static int copy_page(int ufd, unsigned long offset)
-+static int __copy_page(int ufd, unsigned long offset, bool retry)
- {
- 	struct uffdio_copy uffdio_copy;
- 
-@@ -418,7 +418,7 @@ static int copy_page(int ufd, unsigned l
- 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
- 			uffdio_copy.copy), exit(1);
- 	} else {
--		if (test_uffdio_copy_eexist) {
-+		if (test_uffdio_copy_eexist && retry) {
- 			test_uffdio_copy_eexist = false;
- 			retry_copy_page(ufd, &uffdio_copy, offset);
- 		}
-@@ -427,6 +427,16 @@ static int copy_page(int ufd, unsigned l
- 	return 0;
- }
- 
-+static int copy_page_retry(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, true);
-+}
-+
-+static int copy_page(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, false);
-+}
-+
- static void *uffd_poll_thread(void *arg)
- {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -544,7 +554,7 @@ static void *background_thread(void *arg
- 	for (page_nr = cpu * nr_pages_per_cpu;
- 	     page_nr < (cpu+1) * nr_pages_per_cpu;
- 	     page_nr++)
--		copy_page(uffd, page_nr * page_size);
-+		copy_page_retry(uffd, page_nr * page_size);
- 
- 	return NULL;
- }
-@@ -779,7 +789,7 @@ static void retry_uffdio_zeropage(int uf
- 	}
- }
- 
--static int uffdio_zeropage(int ufd, unsigned long offset)
-+static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
- {
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
-@@ -814,7 +824,7 @@ static int uffdio_zeropage(int ufd, unsi
- 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
- 				uffdio_zeropage.zeropage), exit(1);
- 		} else {
--			if (test_uffdio_zeropage_eexist) {
-+			if (test_uffdio_zeropage_eexist && retry) {
- 				test_uffdio_zeropage_eexist = false;
- 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
- 						      offset);
-@@ -830,6 +840,11 @@ static int uffdio_zeropage(int ufd, unsi
- 	return 0;
- }
- 
-+static int uffdio_zeropage(int ufd, unsigned long offset)
-+{
-+	return __uffdio_zeropage(ufd, offset, false);
-+}
-+
- /* exercise UFFDIO_ZEROPAGE */
- static int userfaultfd_zeropage_test(void)
- {
+ 	/* include the type field in the symbol name, so that it gets
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
-userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+scripts-kallsyms-ignore-symbol-type-n.patch
 
