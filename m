@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch added to -mm tree
-Date: Wed, 04 Oct 2017 15:04:55 -0700
-Message-ID: <59d55b07.AtLA7SqSIGl6f/Cn%akpm@linux-foundation.org>
+ userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+ added to -mm tree
+Date: Wed, 04 Oct 2017 15:06:21 -0700
+Message-ID: <59d55b5d.oJPhTyI39CLSjOk1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44206 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDWE4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 18:04:56 -0400
+        with ESMTP id S1751135AbdJDWGW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 18:06:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.s@alibaba-inc.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, shuah@kernel.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: oom: show unreclaimable slab info when unreclaimable slabs > user memory
+     Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
 has been added to the -mm tree.  Its filename is
-     mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
+     userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,169 +40,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: mm: oom: show unreclaimable slab info when unreclaimable slabs > user memory
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
 
-Kernel may panic when oom happens without killable process sometimes it is
-caused by huge unreclaimable slabs used by kernel.
+I was stress testing some backports and with high load, after some time,
+the latest version of the selftest showed some false positive in
+connection with the uffdio_copy_retry.  This seems to fix it while still
+exercising -EEXIST in the background transfer once in a while.
 
-Although kdump could help debug such problem, however, kdump is not
-available on all architectures and it might be malfunction sometime.  And,
-since kernel already panic it is worthy capturing such information in
-dmesg to aid touble shooting.
+The fork child will quit after the last UFFDIO_COPY is run, so a repeated
+UFFDIO_COPY may not return -EEXIST.  This change restricts the -EEXIST
+stress to the background transfer where the memory can't go away from
+under it.
 
-Print out unreclaimable slab info (used size and total size) which actual
-memory usage is not zero (num_objs * size != 0) when unreclaimable slabs
-amount is greater than total user memory (LRU pages).
+Also updated uffdio_zeropage, so the interface is consistent.
 
-The output looks like:
-
-Unreclaimable slab info:
-Name                      Used          Total
-rpc_buffers               31KB         31KB
-rpc_tasks                  7KB          7KB
-ebitmap_node            1964KB       1964KB
-avtab_node              5024KB       5024KB
-xfs_buf                 1402KB       1402KB
-xfs_ili                  134KB        134KB
-xfs_efi_item             115KB        115KB
-xfs_efd_item             115KB        115KB
-xfs_buf_item             134KB        134KB
-xfs_log_item_desc        342KB        342KB
-xfs_trans               1412KB       1412KB
-xfs_ifork                212KB        212KB
-
-Link: http://lkml.kernel.org/r/1507152550-46205-4-git-send-email-yang.s@alibaba-inc.com
-Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
+Link: http://lkml.kernel.org/r/20171004171541.1495-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c    |   27 +++++++++++++++++++++++++--
- mm/slab.h        |    2 ++
- mm/slab_common.c |   35 +++++++++++++++++++++++++++++++++++
- 3 files changed, 62 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   25 ++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory
-+++ a/mm/oom_kill.c
-@@ -44,6 +44,7 @@
- 
- #include <asm/tlb.h>
- #include "internal.h"
-+#include "slab.h"
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/oom.h>
-@@ -161,6 +162,25 @@ static bool oom_unkillable_task(struct t
- 	return false;
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -397,7 +397,7 @@ static void retry_copy_page(int ufd, str
+ 	}
  }
  
-+/*
-+ * Print out unreclaimble slabs info when unreclaimable slabs amount is greater
-+ * than all user memory (LRU pages)
-+ */
-+static bool is_dump_unreclaim_slabs(void)
-+{
-+	unsigned long nr_lru;
-+
-+	nr_lru = global_node_page_state(NR_ACTIVE_ANON) +
-+		 global_node_page_state(NR_INACTIVE_ANON) +
-+		 global_node_page_state(NR_ACTIVE_FILE) +
-+		 global_node_page_state(NR_INACTIVE_FILE) +
-+		 global_node_page_state(NR_ISOLATED_ANON) +
-+		 global_node_page_state(NR_ISOLATED_FILE) +
-+		 global_node_page_state(NR_UNEVICTABLE);
-+
-+	return (global_node_page_state(NR_SLAB_UNRECLAIMABLE) > nr_lru);
-+}
-+
- /**
-  * oom_badness - heuristic function to determine which candidate task to kill
-  * @p: task struct of which task we should calculate
-@@ -420,10 +440,13 @@ static void dump_header(struct oom_contr
+-static int copy_page(int ufd, unsigned long offset)
++static int __copy_page(int ufd, unsigned long offset, bool retry)
+ {
+ 	struct uffdio_copy uffdio_copy;
  
- 	cpuset_print_current_mems_allowed();
- 	dump_stack();
--	if (oc->memcg)
-+	if (is_memcg_oom(oc))
- 		mem_cgroup_print_oom_info(oc->memcg, p);
--	else
-+	else {
- 		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
-+		if (is_dump_unreclaim_slabs())
-+			dump_unreclaimable_slab();
-+	}
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(oc->memcg, oc->nodemask);
- }
-diff -puN mm/slab_common.c~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory mm/slab_common.c
---- a/mm/slab_common.c~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory
-+++ a/mm/slab_common.c
-@@ -1278,6 +1278,41 @@ static int slab_show(struct seq_file *m,
+@@ -418,7 +418,7 @@ static int copy_page(int ufd, unsigned l
+ 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
+ 			uffdio_copy.copy), exit(1);
+ 	} else {
+-		if (test_uffdio_copy_eexist) {
++		if (test_uffdio_copy_eexist && retry) {
+ 			test_uffdio_copy_eexist = false;
+ 			retry_copy_page(ufd, &uffdio_copy, offset);
+ 		}
+@@ -427,6 +427,16 @@ static int copy_page(int ufd, unsigned l
  	return 0;
  }
  
-+void dump_unreclaimable_slab(void)
++static int copy_page_retry(int ufd, unsigned long offset)
 +{
-+	struct kmem_cache *s, *s2;
-+	struct slabinfo sinfo;
-+
-+	/*
-+	 * Here acquiring slab_mutex is risky since we don't prefer to get
-+	 * sleep in oom path. But, without mutex hold, it may introduce a
-+	 * risk of crash.
-+	 * Use mutex_trylock to protect the list traverse, dump nothing
-+	 * without acquiring the mutex.
-+	 */
-+	if (!mutex_trylock(&slab_mutex)) {
-+		pr_warn("excessive unreclaimable slab but cannot dump stats\n");
-+		return;
-+	}
-+
-+	pr_info("Unreclaimable slab info:\n");
-+	pr_info("Name                      Used          Total\n");
-+
-+	list_for_each_entry_safe(s, s2, &slab_caches, list) {
-+		if (!is_root_cache(s) || (s->flags & SLAB_RECLAIM_ACCOUNT))
-+			continue;
-+
-+		memset(&sinfo, 0, sizeof(sinfo));
-+		get_slabinfo(s, &sinfo);
-+
-+		if (sinfo.num_objs > 0)
-+			pr_info("%-17s %10luKB %10luKB\n", cache_name(s),
-+				(sinfo.active_objs * s->size) / 1024,
-+				(sinfo.num_objs * s->size) / 1024);
-+	}
-+	mutex_unlock(&slab_mutex);
++	return __copy_page(ufd, offset, true);
 +}
 +
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
- void *memcg_slab_start(struct seq_file *m, loff_t *pos)
- {
-diff -puN mm/slab.h~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory mm/slab.h
---- a/mm/slab.h~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory
-+++ a/mm/slab.h
-@@ -505,6 +505,8 @@ void *memcg_slab_next(struct seq_file *m
- void memcg_slab_stop(struct seq_file *m, void *p);
- int memcg_slab_show(struct seq_file *m, void *p);
- 
-+void dump_unreclaimable_slab(void);
++static int copy_page(int ufd, unsigned long offset)
++{
++	return __copy_page(ufd, offset, false);
++}
 +
- void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr);
+ static void *uffd_poll_thread(void *arg)
+ {
+ 	unsigned long cpu = (unsigned long) arg;
+@@ -544,7 +554,7 @@ static void *background_thread(void *arg
+ 	for (page_nr = cpu * nr_pages_per_cpu;
+ 	     page_nr < (cpu+1) * nr_pages_per_cpu;
+ 	     page_nr++)
+-		copy_page(uffd, page_nr * page_size);
++		copy_page_retry(uffd, page_nr * page_size);
  
- #ifdef CONFIG_SLAB_FREELIST_RANDOM
+ 	return NULL;
+ }
+@@ -779,7 +789,7 @@ static void retry_uffdio_zeropage(int uf
+ 	}
+ }
+ 
+-static int uffdio_zeropage(int ufd, unsigned long offset)
++static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
+ {
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+@@ -814,7 +824,7 @@ static int uffdio_zeropage(int ufd, unsi
+ 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
+ 				uffdio_zeropage.zeropage), exit(1);
+ 		} else {
+-			if (test_uffdio_zeropage_eexist) {
++			if (test_uffdio_zeropage_eexist && retry) {
+ 				test_uffdio_zeropage_eexist = false;
+ 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
+ 						      offset);
+@@ -830,6 +840,11 @@ static int uffdio_zeropage(int ufd, unsi
+ 	return 0;
+ }
+ 
++static int uffdio_zeropage(int ufd, unsigned long offset)
++{
++	return __uffdio_zeropage(ufd, offset, false);
++}
++
+ /* exercise UFFDIO_ZEROPAGE */
+ static int userfaultfd_zeropage_test(void)
+ {
 _
 
-Patches currently in -mm which might be from yang.s@alibaba-inc.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
-tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
-mm-slabinfo-dump-config_slabinfo.patch
-mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
+userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
 
