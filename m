@@ -1,74 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only.patch
- removed from -mm tree
-Date: Wed, 04 Oct 2017 12:40:49 -0700
-Message-ID: <20171004194049.ug2fo4ANi%akpm@linux-foundation.org>
+Subject: [merged] m32r-define-cpu_big_endian.patch removed from -mm
+ tree
+Date: Wed, 04 Oct 2017 12:40:55 -0700
+Message-ID: <20171004194055.eBwMG-2MX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33476 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33494 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTku (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:50 -0400
+        with ESMTP id S1751132AbdJDTk4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: christophe.leroy@c-s.fr, David.Laight@ACULAB.COM, jinb.park7@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org, segher@kernel.crashing.org, stable@vger.kernel.org
+To: mm-commits@vger.kernel.org, sudipm.mukherjee@gmail.com
 
 
 The patch titled
-     Subject: mm: fix RODATA_TEST failure "rodata_test: test data was not read only"
+     Subject: m32r: define CPU_BIG_ENDIAN
 has been removed from the -mm tree.  Its filename was
-     mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only.patch
+     m32r-define-cpu_big_endian.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@c-s.fr>
-Subject: mm: fix RODATA_TEST failure "rodata_test: test data was not read only"
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: define CPU_BIG_ENDIAN
 
-On powerpc, RODATA_TEST fails with message the following messages:
+The build of m32r allmodconfig is giving lots of build warnings about:
+include/linux/byteorder/big_endian.h:7:2:
+	warning: #warning inconsistent configuration,
+		needs CONFIG_CPU_BIG_ENDIAN [-Wcpp]
+	#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
 
-[    6.199505] Freeing unused kernel memory: 528K
-[    6.203935] rodata_test: test data was not read only
+Define CPU_BIG_ENDIAN like the way CPU_LITTLE_ENDIAN is defined.
 
-This is because GCC allocates it to .data section:
-
-c0695034 g     O .data	00000004 rodata_test_data
-
-Since 056b9d8a76924 ("mm: remove rodata_test_data export, add pr_fmt"),
-rodata_test_data is used only inside rodata_test.c By declaring it static,
-it gets properly allocated into .rodata section instead of .data:
-
-c04df710 l     O .rodata	00000004 rodata_test_data
-
-Fixes: 056b9d8a76924 ("mm: remove rodata_test_data export, add pr_fmt")
-Link: http://lkml.kernel.org/r/20170921093729.1080368AC1@po15668-vm-win7.idsi0.si.c-s.fr
-Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Jinbum Park <jinb.park7@gmail.com>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1505678083-10320-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rodata_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m32r/Kconfig |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/rodata_test.c~mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only mm/rodata_test.c
---- a/mm/rodata_test.c~mm-fix-rodata_test-failure-rodata_test-test-data-was-not-read-only
-+++ a/mm/rodata_test.c
-@@ -14,7 +14,7 @@
- #include <linux/uaccess.h>
- #include <asm/sections.h>
+diff -puN arch/m32r/Kconfig~m32r-define-cpu_big_endian arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-define-cpu_big_endian
++++ a/arch/m32r/Kconfig
+@@ -194,6 +194,10 @@ config TIMER_DIVIDE
+ 	int "Timer divider (integer)"
+ 	default "128"
  
--const int rodata_test_data = 0xC3;
-+static const int rodata_test_data = 0xC3;
- 
- void rodata_test(void)
- {
++config CPU_BIG_ENDIAN
++        bool "Generate big endian code"
++	default n
++
+ config CPU_LITTLE_ENDIAN
+         bool "Generate little endian code"
+ 	default n
 _
 
-Patches currently in -mm which might be from christophe.leroy@c-s.fr are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
 
