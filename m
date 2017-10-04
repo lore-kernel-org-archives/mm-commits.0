@@ -1,70 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- exec-binfmt_misc-remove-the-confusing-e-interp_file-=-null-checks.patch
+ exec-binfmt_misc-fix-race-between-load_misc_binary-and-kill_node.patch
  removed from -mm tree
-Date: Wed, 04 Oct 2017 12:41:22 -0700
-Message-ID: <20171004194122.eN1phxEhx%akpm@linux-foundation.org>
+Date: Wed, 04 Oct 2017 12:41:25 -0700
+Message-ID: <20171004194125.4CiFsvu6c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33618 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTlX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:23 -0400
+        with ESMTP id S1751132AbdJDTl0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: foraker1@llnl.gov, James.Bottomley@HansenPartnership.com, keescook@chromium.org, mm-commits@vger.kernel.org, oleg@redhat.com, tdhooge@llnl.gov, tgummels@redhat.com, viro@zeniv.linux.org.uk, woodard@redhat.com
 
 
 The patch titled
-     Subject: exec: binfmt_misc: remove the confusing e->interp_file != NULL checks
+     Subject: exec: binfmt_misc: fix race between load_misc_binary() and kill_node()
 has been removed from the -mm tree.  Its filename was
-     exec-binfmt_misc-remove-the-confusing-e-interp_file-=-null-checks.patch
+     exec-binfmt_misc-fix-race-between-load_misc_binary-and-kill_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: binfmt_misc: remove the confusing e->interp_file != NULL checks
+Subject: exec: binfmt_misc: fix race between load_misc_binary() and kill_node()
 
-If MISC_FMT_OPEN_FILE flag is set e->interp_file must be valid or we have
-a bug which should not be silently ignored.
+load_misc_binary() makes a local copy of fmt->interpreter under
+entries_lock to avoid the race with kill_node() but this is not enough;
+the whole Node can be freed after we drop entries_lock, not only the
+->interpreter string.
 
-Link: http://lkml.kernel.org/r/20170922143647.GA17222@redhat.com
+Add dget/dput(fmt->dentry) to ensure bm_evict_inode() can't destroy/free
+this Node.
+
+Link: http://lkml.kernel.org/r/20170922143650.GA17227@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Ben Woodard <woodard@redhat.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Jim Foraker <foraker1@llnl.gov>
-Cc: <tdhooge@llnl.gov>
 Cc: Travis Gummels <tgummels@redhat.com>
+Cc: <tdhooge@llnl.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_misc.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_misc.c~exec-binfmt_misc-remove-the-confusing-e-interp_file-=-null-checks fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~exec-binfmt_misc-remove-the-confusing-e-interp_file-=-null-checks
+diff -puN fs/binfmt_misc.c~exec-binfmt_misc-fix-race-between-load_misc_binary-and-kill_node fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~exec-binfmt_misc-fix-race-between-load_misc_binary-and-kill_node
 +++ a/fs/binfmt_misc.c
-@@ -205,7 +205,7 @@ static int load_misc_binary(struct linux
- 	if (retval < 0)
+@@ -138,20 +138,23 @@ static int load_misc_binary(struct linux
+ 
+ 	retval = -ENOEXEC;
+ 	if (!enabled)
+-		goto ret;
++		return retval;
+ 
+ 	/* to keep locking time low, we copy the interpreter string */
+ 	read_lock(&entries_lock);
+ 	fmt = check_file(bprm);
+-	if (fmt)
++	if (fmt) {
++		dget(fmt->dentry);
+ 		strlcpy(iname, fmt->interpreter, BINPRM_BUF_SIZE);
++	}
+ 	read_unlock(&entries_lock);
+ 	if (!fmt)
+-		goto ret;
++		return retval;
+ 
+ 	/* Need to be able to load the file after exec */
++	retval = -ENOENT;
+ 	if (bprm->interp_flags & BINPRM_FLAGS_PATH_INACCESSIBLE)
+-		return -ENOENT;
++		goto ret;
+ 
+ 	if (!(fmt->flags & MISC_FMT_PRESERVE_ARGV0)) {
+ 		retval = remove_arg_zero(bprm);
+@@ -238,6 +241,7 @@ static int load_misc_binary(struct linux
  		goto error;
  
--	if (fmt->flags & MISC_FMT_OPEN_FILE && fmt->interp_file) {
-+	if (fmt->flags & MISC_FMT_OPEN_FILE) {
- 		interp_file = filp_clone_open(fmt->interp_file);
- 		if (!IS_ERR(interp_file))
- 			deny_write_access(interp_file);
-@@ -596,7 +596,7 @@ static void bm_evict_inode(struct inode
- {
- 	Node *e = inode->i_private;
- 
--	if ((e->flags & MISC_FMT_OPEN_FILE) && e->interp_file)
-+	if (e->flags & MISC_FMT_OPEN_FILE)
- 		filp_close(e->interp_file, NULL);
- 
- 	clear_inode(inode);
+ ret:
++	dput(fmt->dentry);
+ 	return retval;
+ error:
+ 	if (fd_binary > 0)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
