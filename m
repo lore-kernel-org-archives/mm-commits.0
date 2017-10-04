@@ -1,69 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-fix-build-failure.patch removed from -mm
- tree
-Date: Wed, 04 Oct 2017 12:42:17 -0700
-Message-ID: <20171004194217.dolPFvsyu%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-fsh-fix-comment-about-struct-address_space.patch removed from
+ -mm tree
+Date: Wed, 04 Oct 2017 12:42:23 -0700
+Message-ID: <20171004194223.WIk7ezBFp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33810 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTmS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:42:18 -0400
+        with ESMTP id S1751132AbdJDTmY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:42:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sudipm.mukherjee@gmail.com
+To: mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: m32r: fix build failure
+     Subject: include/linux/fs.h: fix comment about struct address_space
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-build-failure.patch
+     include-linux-fsh-fix-comment-about-struct-address_space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix build failure
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: include/linux/fs.h: fix comment about struct address_space
 
-The allmodconfig build of m32r is failing with the error:
-lib/mpi/mpih-div.o: In function 'mpihelp_divrem':
-mpih-div.c:(.text+0x40): undefined reference to 'abort'
-mpih-div.c:(.text+0x40): relocation truncated to fit:
-	R_M32R_26_PCREL_RELA against undefined symbol 'abort'
+Before 9c5d760b8d22 ("mm: split gfp_mask and mapping flags into separate
+fields") the private_* fields of struct adrress_space were grouped
+together and using "ditto" in comments describing the last fields was
+correct.
 
-The function 'abort' was never defined for the m32r architecture.
+With introduction of gpf_mask between private_lock and private_list
+"ditto" references the wrong description.
 
-Create 'abort' as is done in other arch like 'arm' and 'unicore32'.
+Fix it by using the elaborate description.
 
-Link: http://lkml.kernel.org/r/1506727220-6108-1-git-send-email-sudip.mukherjee@codethink.co.uk
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Link: http://lkml.kernel.org/r/1507009987-8746-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/traps.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/traps.c~m32r-fix-build-failure arch/m32r/kernel/traps.c
---- a/arch/m32r/kernel/traps.c~m32r-fix-build-failure
-+++ a/arch/m32r/kernel/traps.c
-@@ -114,6 +114,15 @@ static void set_eit_vector_entries(void)
- 	_flush_cache_copyback_all();
- }
- 
-+void abort(void)
-+{
-+	BUG();
-+
-+	/* if that doesn't kill us, halt */
-+	panic("Oops failed to kill thread");
-+}
-+EXPORT_SYMBOL(abort);
-+
- void __init trap_init(void)
- {
- 	set_eit_vector_entries();
+diff -puN include/linux/fs.h~include-linux-fsh-fix-comment-about-struct-address_space include/linux/fs.h
+--- a/include/linux/fs.h~include-linux-fsh-fix-comment-about-struct-address_space
++++ a/include/linux/fs.h
+@@ -403,7 +403,7 @@ struct address_space {
+ 	unsigned long		flags;		/* error bits */
+ 	spinlock_t		private_lock;	/* for use by the address_space */
+ 	gfp_t			gfp_mask;	/* implicit gfp mask for allocations */
+-	struct list_head	private_list;	/* ditto */
++	struct list_head	private_list;	/* for use by the address_space */
+ 	void			*private_data;	/* ditto */
+ 	errseq_t		wb_err;
+ } __attribute__((aligned(sizeof(long)))) __randomize_layout;
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
 
