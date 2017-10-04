@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-fix-optimization-level-choice-default.patch added to -mm tree
-Date: Wed, 04 Oct 2017 15:25:31 -0700
-Message-ID: <59d55fdb.sOLBXfyS8iu95suV%akpm@linux-foundation.org>
+Subject: + revert-vmalloc-back-off-when-the-current-task-is-killed.patch
+ added to -mm tree
+Date: Wed, 04 Oct 2017 15:32:14 -0700
+Message-ID: <59d5616e.8aW+ekmDNxKdbnxZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44676 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44728 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751316AbdJDWZc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 18:25:32 -0400
+        with ESMTP id S1751171AbdJDWcQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 18:32:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ulfalizer@gmail.com, arnd@arndb.de, daniel@zonque.org, keescook@chromium.org, nicolas.pitre@linaro.org, paulmck@linux.vnet.ibm.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, alan@llwyncelyn.cymru, dvyukov@google.com, hch@lst.de, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: fix optimization level choice default
+     Subject: Revert "vmalloc: back off when the current task is killed"
 has been added to the -mm tree.  Its filename is
-     kbuild-fix-optimization-level-choice-default.patch
+     revert-vmalloc-back-off-when-the-current-task-is-killed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-fix-optimization-level-choice-default.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-vmalloc-back-off-when-the-current-task-is-killed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-fix-optimization-level-choice-default.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-vmalloc-back-off-when-the-current-task-is-killed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,50 +39,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ulf Magnusson <ulfalizer@gmail.com>
-Subject: kbuild: fix optimization level choice default
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Revert "vmalloc: back off when the current task is killed"
 
-The choice containing the CC_OPTIMIZE_FOR_PERFORMANCE symbol accidentally
-added a "CONFIG_" prefix when trying to make it the default, selecting an
-undefined symbol as the default.
+This reverts 5d17a73a2ebe ("vmalloc: back off when the current task is
+killed") and 171012f56127 ("mm: don't warn when vmalloc() fails due to a
+fatal signal").
 
-The mistake is harmless here: Since the default symbol is not visible, the
-choice falls back on using the visible symbol as the default instead,
-which is CC_OPTIMIZE_FOR_PERFORMANCE, as intended.
+5d17a73a2ebe ("vmalloc: back off when the current task is killed") made
+all vmalloc allocations from a signal-killed task fail.  We have seen
+crashes in the tty driver from this, where a killed task exiting tries to
+switch back to N_TTY, fails n_tty_open because of the vmalloc failing, and
+later crashes when dereferencing tty->disc_data.
 
-A patch that makes Kconfig print a warning in this case has been submitted
-separately: http://www.spinics.net/lists/linux-kbuild/msg15566.html
+Arguably, relying on a vmalloc() call to succeed in order to properly exit
+a task is not the most robust way of doing things.  There will be a
+follow-up patch to the tty code to fall back to the N_NULL ldisc.
 
-Link: http://lkml.kernel.org/r/1507074806-21577-1-git-send-email-ulfalizer@gmail.com
-Signed-off-by: Ulf Magnusson <ulfalizer@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul E . McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Daniel Mack <daniel@zonque.org>
+But the justification to make that vmalloc() call fail like this isn't
+convincing, either.  The patch mentions an OOM victim exhausting the
+memory reserves and thus deadlocking the machine.  But the OOM killer is
+only one, improbable source of fatal signals.  It doesn't make sense to
+fail allocations preemptively with plenty of memory in most cases.
+
+The patch doesn't mention real-life instances where vmalloc sites would
+exhaust memory, which makes it sound more like a theoretical issue to
+begin with.  But just in case, the OOM access to memory reserves has been
+restricted on the allocator side in cd04ae1e2dc8 ("mm, oom: do not rely on
+TIF_MEMDIE for memory reserves access"), which should take care of any
+theoretical concerns on that front.
+
+Revert this patch, and the follow-up that suppresses the allocation
+warnings when we fail the allocations due to a signal.
+
+Link: http://lkml.kernel.org/r/20171004185906.GB2136@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alan Cox <alan@llwyncelyn.cymru>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN init/Kconfig~kbuild-fix-optimization-level-choice-default init/Kconfig
---- a/init/Kconfig~kbuild-fix-optimization-level-choice-default
-+++ a/init/Kconfig
-@@ -1033,7 +1033,7 @@ endif
+diff -puN mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed mm/vmalloc.c
+--- a/mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed
++++ a/mm/vmalloc.c
+@@ -1695,11 +1695,6 @@ static void *__vmalloc_area_node(struct
+ 	for (i = 0; i < area->nr_pages; i++) {
+ 		struct page *page;
  
- choice
- 	prompt "Compiler optimization level"
--	default CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
-+	default CC_OPTIMIZE_FOR_PERFORMANCE
- 
- config CC_OPTIMIZE_FOR_PERFORMANCE
- 	bool "Optimize for performance"
-_
-
-Patches currently in -mm which might be from ulfalizer@gmail.com are
-
-kbuild-fix-optimization-level-choice-default.patch
-
+-		if (fatal_signal_pending(current)) {
+-			area->nr_pages = i;
+-			goto fail_no_warn;
+-		}
