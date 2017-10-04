@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bitfieldh-remove-32bit-from-field_get-comment-block.patch removed from -mm
- tree
-Date: Wed, 04 Oct 2017 12:41:34 -0700
-Message-ID: <20171004194134.m-zdLg5oq%akpm@linux-foundation.org>
+ sysctl-remove-duplicate-uint_max-check-on-do_proc_douintvec_conv.patch
+ removed from -mm tree
+Date: Wed, 04 Oct 2017 12:41:37 -0700
+Message-ID: <20171004194137.W0ASNrPvH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33666 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTlf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:35 -0400
+        with ESMTP id S1751132AbdJDTli (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jakub.kicinski@netronome.com, mm-commits@vger.kernel.org, yamada.masahiro@socionext.com
+To: dcb314@hotmail.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/bitfield.h: remove 32bit from FIELD_GET comment block
+     Subject: kernel/sysctl.c: remove duplicate UINT_MAX check on do_proc_douintvec_conv()
 has been removed from the -mm tree.  Its filename was
-     bitfieldh-remove-32bit-from-field_get-comment-block.patch
+     sysctl-remove-duplicate-uint_max-check-on-do_proc_douintvec_conv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: include/linux/bitfield.h: remove 32bit from FIELD_GET comment block
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: kernel/sysctl.c: remove duplicate UINT_MAX check on do_proc_douintvec_conv()
 
-I do not see anything that restricts this macro to 32 bit width.
+do_proc_douintvec_conv() has two UINT_MAX checks, we can remove one.  This
+has no functional changes other than fixing a compiler warning:
 
-Link: http://lkml.kernel.org/r/1505921975-23379-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+kernel/sysctl.c:2190]: (warning) Identical condition '*lvalp>UINT_MAX', second condition is always false
+
+Fixes: 4f2fec00afa60 ("sysctl: simplify unsigned int support")
+Link: http://lkml.kernel.org/r/20170919072918.12066-1-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Reported-by: David Binderman <dcb314@hotmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitfield.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/bitfield.h~bitfieldh-remove-32bit-from-field_get-comment-block include/linux/bitfield.h
---- a/include/linux/bitfield.h~bitfieldh-remove-32bit-from-field_get-comment-block
-+++ a/include/linux/bitfield.h
-@@ -92,7 +92,7 @@
- /**
-  * FIELD_GET() - extract a bitfield element
-  * @_mask: shifted mask defining the field's length and position
-- * @_reg:  32bit value of entire bitfield
-+ * @_reg:  value of entire bitfield
-  *
-  * FIELD_GET() extracts the field specified by @_mask from the
-  * bitfield passed in as @_reg by masking and shifting it down.
+diff -puN kernel/sysctl.c~sysctl-remove-duplicate-uint_max-check-on-do_proc_douintvec_conv kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-remove-duplicate-uint_max-check-on-do_proc_douintvec_conv
++++ a/kernel/sysctl.c
+@@ -2188,8 +2188,6 @@ static int do_proc_douintvec_conv(unsign
+ 	if (write) {
+ 		if (*lvalp > UINT_MAX)
+ 			return -EINVAL;
+-		if (*lvalp > UINT_MAX)
+-			return -EINVAL;
+ 		*valp = *lvalp;
+ 	} else {
+ 		unsigned int val = *valp;
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-bitfieldh-include-linux-build_bugh-instead-of-linux-bugh.patch
-radix-tree-remove-unneeded-include-linux-bugh.patch
-init-version-include-linux-exporth-instead-of-linux-moduleh.patch
 
