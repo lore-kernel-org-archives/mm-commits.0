@@ -1,75 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] dax-stop-using-vm_mixedmap-for-dax-fix.patch
- removed from -mm tree
-Date: Wed, 04 Oct 2017 14:55:26 -0700
-Message-ID: <59d558ce.WNcXIY+TgByaYwIG%akpm@linux-foundation.org>
+Subject: [to-be-updated] dax-quiet-bdev_dax_supported.patch removed from
+ -mm tree
+Date: Wed, 04 Oct 2017 14:56:01 -0700
+Message-ID: <59d558f1.RGep4kvOEt6fuuiI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751120AbdJDVz2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 17:55:28 -0400
+        with ESMTP id S1751120AbdJDV4C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 17:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, jmoyer@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax-stop-using-vm_mixedmap-for-dax-fix
+     Subject: dax: quiet bdev_dax_supported()
 has been removed from the -mm tree.  Its filename was
-     dax-stop-using-vm_mixedmap-for-dax-fix.patch
+     dax-quiet-bdev_dax_supported.patch
 
-This patch was dropped because it was folded into dax-stop-using-vm_mixedmap-for-dax.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dax-stop-using-vm_mixedmap-for-dax-fix
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dax: quiet bdev_dax_supported()
 
-fix typo
+Patch series "dax: require 'struct page' and other fixups", v2.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
+Prompted by a recent change to add more protection around setting up
+'vm_flags' for a dax vma [1], rework the implementation to remove the
+requirement to set VM_MIXEDMAP and VM_HUGEPAGE.
+
+VM_MIXEDMAP is used by dax to direct mm paths like vm_normal_page() that
+the memory page it is dealing with is not typical memory from the linear
+map.  The get_user_pages_fast() path, since it does not resolve the vma,
+is already using {pte,pmd}_devmap() as a stand-in for VM_MIXEDMAP, so we
+use that as a VM_MIXEDMAP replacement in some locations.  In the cases
+where there is no pte to consult we fallback to using vma_is_dax() to
+detect the VM_MIXEDMAP special case.
+
+This patch series passes a run of the ndctl unit test suite and the
+'mmap.sh' [2] test in particular.  'mmap.sh' tries to catch dependencies
+on VM_MIXEDMAP and {pte,pmd}_devmap().
+
+[1]: https://lkml.org/lkml/2017/9/25/638
+[2]: https://github.com/pmem/ndctl/blob/master/test/mmap.sh
+
+
+This patch (of 4):
+
+Leave it to the caller to decide if bdev_dax_supported() failures are
+errors worth emitting to the log.
+
+Link: http://lkml.kernel.org/r/150664806686.36094.15885850593435187213.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/dax/super.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/migrate.c~dax-stop-using-vm_mixedmap-for-dax-fix mm/migrate.c
---- a/mm/migrate.c~dax-stop-using-vm_mixedmap-for-dax-fix
-+++ a/mm/migrate.c
-@@ -2929,7 +2929,7 @@ int migrate_vma(const struct migrate_vma
- 	start &= PAGE_MASK;
- 	end &= PAGE_MASK;
- 	if (!vma || is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)
--			|| vma_is_dax(dma))
-+			|| vma_is_dax(vma))
+diff -puN drivers/dax/super.c~dax-quiet-bdev_dax_supported drivers/dax/super.c
+--- a/drivers/dax/super.c~dax-quiet-bdev_dax_supported
++++ a/drivers/dax/super.c
+@@ -92,21 +92,21 @@ int __bdev_dax_supported(struct super_bl
+ 	long len;
+ 
+ 	if (blocksize != PAGE_SIZE) {
+-		pr_err("VFS (%s): error: unsupported blocksize for dax\n",
++		pr_debug("VFS (%s): error: unsupported blocksize for dax\n",
+ 				sb->s_id);
  		return -EINVAL;
- 	if (start < vma->vm_start || start >= vma->vm_end)
- 		return -EINVAL;
+ 	}
+ 
+ 	err = bdev_dax_pgoff(bdev, 0, PAGE_SIZE, &pgoff);
+ 	if (err) {
+-		pr_err("VFS (%s): error: unaligned partition for dax\n",
++		pr_debug("VFS (%s): error: unaligned partition for dax\n",
+ 				sb->s_id);
+ 		return err;
+ 	}
+ 
+ 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+ 	if (!dax_dev) {
+-		pr_err("VFS (%s): error: device does not support dax\n",
++		pr_debug("VFS (%s): error: device does not support dax\n",
+ 				sb->s_id);
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -118,7 +118,7 @@ int __bdev_dax_supported(struct super_bl
+ 	put_dax(dax_dev);
+ 
+ 	if (len < 1) {
+-		pr_err("VFS (%s): error: dax access failed (%ld)",
++		pr_debug("VFS (%s): error: dax access failed (%ld)",
+ 				sb->s_id, len);
+ 		return len < 0 ? len : -EIO;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-i-need-old-gcc.patch
-of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+dax-disable-filesystem-dax-on-devices-that-do-not-map-pages.patch
 dax-stop-using-vm_mixedmap-for-dax.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-sysctl-make-numa-stats-configurable-fix.patch
-mm-sysctl-make-numa-stats-configurable-fix-fix.patch
-mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+dax-stop-using-vm_hugepage-for-dax.patch
 
