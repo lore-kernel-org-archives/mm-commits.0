@@ -1,201 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays.patch
- removed from -mm tree
-Date: Wed, 04 Oct 2017 12:41:40 -0700
-Message-ID: <20171004194140.QhiX7P7F7%akpm@linux-foundation.org>
+ mm-memory_hotplug-add-scheduling-point-to-__add_pages.patch removed from
+ -mm tree
+Date: Wed, 04 Oct 2017 12:41:46 -0700
+Message-ID: <20171004194146.H-C1UNRL0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33692 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTll (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:41 -0400
+        with ESMTP id S1751132AbdJDTlr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, jbacik@fb.com, mhocko@suse.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: dan.j.williams@gmail.com, jthumshirn@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: use vmalloc fallback for large kmem memcg arrays
+     Subject: mm, memory_hotplug: add scheduling point to __add_pages
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays.patch
+     mm-memory_hotplug-add-scheduling-point-to-__add_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: use vmalloc fallback for large kmem memcg arrays
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: add scheduling point to __add_pages
 
-For quick per-memcg indexing, slab caches and list_lru structures maintain
-linear arrays of descriptors.  As the number of concurrent memory cgroups
-in the system goes up, this requires large contiguous allocations (8k
-cgroups = order-5, 16k cgroups = order-6 etc.) for every existing slab
-cache and list_lru, which can easily fail on loaded systems.  E.g.:
+Patch series "mm, memory_hotplug: fix few soft lockups in memory hotadd".
 
-mkdir: page allocation failure: order:5, mode:0x14040c0(GFP_KERNEL|__GFP_COMP), nodemask=(null)
-CPU: 1 PID: 6399 Comm: mkdir Not tainted 4.13.0-mm1-00065-g720bbe532b7c-dirty #481
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-20170228_101828-anatol 04/01/2014
-Call Trace:
- dump_stack+0x70/0x9d
- warn_alloc+0xd6/0x170
- ? __alloc_pages_direct_compact+0x4c/0x110
- __alloc_pages_nodemask+0xf50/0x1430
- ? __lock_acquire+0xd19/0x1360
- ? memcg_update_all_list_lrus+0x2e/0x2e0
- ? __mutex_lock+0x7c/0x950
- ? memcg_update_all_list_lrus+0x2e/0x2e0
- alloc_pages_current+0x60/0xc0
- kmalloc_order_trace+0x29/0x1b0
- __kmalloc+0x1f4/0x320
- memcg_update_all_list_lrus+0xca/0x2e0
- mem_cgroup_css_alloc+0x612/0x670
- cgroup_apply_control_enable+0x19e/0x360
- cgroup_mkdir+0x322/0x490
- kernfs_iop_mkdir+0x55/0x80
- vfs_mkdir+0xd0/0x120
- SyS_mkdirat+0x6c/0xe0
- SyS_mkdir+0x14/0x20
- entry_SYSCALL_64_fastpath+0x18/0xad
-RIP: 0033:0x7f9ff36cee87
-RSP: 002b:00007ffc7612d758 EFLAGS: 00000202 ORIG_RAX: 0000000000000053
-RAX: ffffffffffffffda RBX: 00007ffc7612da48 RCX: 00007f9ff36cee87
-RDX: 00000000000001ff RSI: 00000000000001ff RDI: 00007ffc7612de86
-RBP: 0000000000000002 R08: 00000000000001ff R09: 0000000000401db0
-R10: 00000000000001e2 R11: 0000000000000202 R12: 0000000000000000
-R13: 00007ffc7612da40 R14: 0000000000000000 R15: 0000000000000000
-Mem-Info:
-active_anon:2965 inactive_anon:19 isolated_anon:0
- active_file:100270 inactive_file:98846 isolated_file:0
- unevictable:0 dirty:0 writeback:0 unstable:0
- slab_reclaimable:7328 slab_unreclaimable:16402
- mapped:771 shmem:52 pagetables:278 bounce:0
- free:13718 free_pcp:0 free_cma:0
+Johannes has noticed few soft lockups when adding a large nvdimm device. 
+All of them were caused by a long loop without any explicit cond_resched
+which is a problem for !PREEMPT kernels.  The fix is quite
+straightforward.  Just make sure that cond_resched gets called from time
+to time.
 
-This output is from an artificial reproducer, but we have repeatedly
-observed order-7 failures in production in the Facebook fleet.  These
-systems become useless as they cannot run more jobs, even though there is
-plenty of memory to allocate 128 individual pages.
 
-Use kvmalloc and kvzalloc to fall back to vmalloc space if these arrays
-prove too large for allocating them physically contiguous.
+This patch (of 3):
 
-Link: http://lkml.kernel.org/r/20170918184919.20644-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Josef Bacik <jbacik@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+__add_pages gets a pfn range to add and there is no upper bound for a
+single call.  This is usually a memory block aligned size for the regular
+memory hotplug - smaller sizes are usual for memory balloning drivers, or
+the whole NUMA node for physical memory online.  There is no explicit
+scheduling point in that code path though.
+
+This can lead to long latencies while __add_pages is executed and we have
+even seen a soft lockup report during nvdimm initialization with !PREEMPT
+kernel
+
+[   33.588806] NMI watchdog: BUG: soft lockup - CPU#11 stuck for 23s! [kworker/u641:3:832]
+[...]
+[   33.588875] Workqueue: events_unbound async_run_entry_fn
+[   33.588876] task: ffff881809270f40 ti: ffff881809274000 task.ti: ffff881809274000
+[   33.588878] RIP: 0010:[<ffffffff81608c01>]  [<ffffffff81608c01>] _raw_spin_unlock_irqrestore+0x11/0x20
+[   33.588883] RSP: 0018:ffff881809277b10  EFLAGS: 00000286
+[...]
+[   33.588900] Call Trace:
+[   33.588906]  [<ffffffff81603a45>] sparse_add_one_section+0x13d/0x18e
+[   33.588909]  [<ffffffff815fde8a>] __add_pages+0x10a/0x1d0
+[   33.588916]  [<ffffffff810634ca>] arch_add_memory+0x4a/0xc0
+[   33.588920]  [<ffffffff8118b22d>] devm_memremap_pages+0x29d/0x430
+[   33.588931]  [<ffffffffa042e50d>] pmem_attach_disk+0x2fd/0x3f0 [nd_pmem]
+[   33.589001]  [<ffffffffa14ad984>] nvdimm_bus_probe+0x64/0x110 [libnvdimm]
+[   33.589008]  [<ffffffff8146a337>] driver_probe_device+0x1f7/0x420
+[   33.589012]  [<ffffffff814682f2>] bus_for_each_drv+0x52/0x80
+[   33.589014]  [<ffffffff8146a020>] __device_attach+0xb0/0x130
+[   33.589017]  [<ffffffff81469447>] bus_probe_device+0x87/0xa0
+[   33.589020]  [<ffffffff8146741c>] device_add+0x3fc/0x5f0
+[   33.589029]  [<ffffffffa14acffe>] nd_async_device_register+0xe/0x40 [libnvdimm]
+[   33.589047]  [<ffffffff8109e1c3>] async_run_entry_fn+0x43/0x150
+[   33.589073]  [<ffffffff8109594e>] process_one_work+0x14e/0x410
+[   33.589086]  [<ffffffff810961a6>] worker_thread+0x116/0x490
+[   33.589089]  [<ffffffff8109b677>] kthread+0xc7/0xe0
+[   33.589119]  [<ffffffff816094bf>] ret_from_fork+0x3f/0x70
+[   33.590756] DWARF2 unwinder stuck at ret_from_fork+0x3f/0x70
+
+Fix this by adding cond_resched once per each memory section in the
+given pfn range. Each section is constant amount of work which itself is
+not too expensive but many of them will just add up.
+
+Link: http://lkml.kernel.org/r/20170918121410.24466-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Johannes Thumshirn <jthumshirn@suse.de>
+Tested-by: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Dan Williams <dan.j.williams@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c    |   12 ++++++------
- mm/slab_common.c |   22 +++++++++++++++-------
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ mm/memory_hotplug.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/list_lru.c~mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays mm/list_lru.c
---- a/mm/list_lru.c~mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays
-+++ a/mm/list_lru.c
-@@ -325,12 +325,12 @@ static int memcg_init_list_lru_node(stru
- {
- 	int size = memcg_nr_cache_ids;
- 
--	nlru->memcg_lrus = kmalloc(size * sizeof(void *), GFP_KERNEL);
-+	nlru->memcg_lrus = kvmalloc(size * sizeof(void *), GFP_KERNEL);
- 	if (!nlru->memcg_lrus)
- 		return -ENOMEM;
- 
- 	if (__memcg_init_list_lru_node(nlru->memcg_lrus, 0, size)) {
--		kfree(nlru->memcg_lrus);
-+		kvfree(nlru->memcg_lrus);
- 		return -ENOMEM;
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-add-scheduling-point-to-__add_pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-add-scheduling-point-to-__add_pages
++++ a/mm/memory_hotplug.c
+@@ -328,6 +328,7 @@ int __ref __add_pages(int nid, unsigned
+ 		if (err && (err != -EEXIST))
+ 			break;
+ 		err = 0;
++		cond_resched();
  	}
- 
-@@ -340,7 +340,7 @@ static int memcg_init_list_lru_node(stru
- static void memcg_destroy_list_lru_node(struct list_lru_node *nlru)
- {
- 	__memcg_destroy_list_lru_node(nlru->memcg_lrus, 0, memcg_nr_cache_ids);
--	kfree(nlru->memcg_lrus);
-+	kvfree(nlru->memcg_lrus);
- }
- 
- static int memcg_update_list_lru_node(struct list_lru_node *nlru,
-@@ -351,12 +351,12 @@ static int memcg_update_list_lru_node(st
- 	BUG_ON(old_size > new_size);
- 
- 	old = nlru->memcg_lrus;
--	new = kmalloc(new_size * sizeof(void *), GFP_KERNEL);
-+	new = kvmalloc(new_size * sizeof(void *), GFP_KERNEL);
- 	if (!new)
- 		return -ENOMEM;
- 
- 	if (__memcg_init_list_lru_node(new, old_size, new_size)) {
--		kfree(new);
-+		kvfree(new);
- 		return -ENOMEM;
- 	}
- 
-@@ -373,7 +373,7 @@ static int memcg_update_list_lru_node(st
- 	nlru->memcg_lrus = new;
- 	spin_unlock_irq(&nlru->lock);
- 
--	kfree(old);
-+	kvfree(old);
- 	return 0;
- }
- 
-diff -puN mm/slab_common.c~mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays mm/slab_common.c
---- a/mm/slab_common.c~mm-memcontrol-use-vmalloc-fallback-for-large-kmem-memcg-arrays
-+++ a/mm/slab_common.c
-@@ -165,9 +165,9 @@ static int init_memcg_params(struct kmem
- 	if (!memcg_nr_cache_ids)
- 		return 0;
- 
--	arr = kzalloc(sizeof(struct memcg_cache_array) +
--		      memcg_nr_cache_ids * sizeof(void *),
--		      GFP_KERNEL);
-+	arr = kvzalloc(sizeof(struct memcg_cache_array) +
-+		       memcg_nr_cache_ids * sizeof(void *),
-+		       GFP_KERNEL);
- 	if (!arr)
- 		return -ENOMEM;
- 
-@@ -178,15 +178,23 @@ static int init_memcg_params(struct kmem
- static void destroy_memcg_params(struct kmem_cache *s)
- {
- 	if (is_root_cache(s))
--		kfree(rcu_access_pointer(s->memcg_params.memcg_caches));
-+		kvfree(rcu_access_pointer(s->memcg_params.memcg_caches));
-+}
-+
-+static void free_memcg_params(struct rcu_head *rcu)
-+{
-+	struct memcg_cache_array *old;
-+
-+	old = container_of(rcu, struct memcg_cache_array, rcu);
-+	kvfree(old);
- }
- 
- static int update_memcg_params(struct kmem_cache *s, int new_array_size)
- {
- 	struct memcg_cache_array *old, *new;
- 
--	new = kzalloc(sizeof(struct memcg_cache_array) +
--		      new_array_size * sizeof(void *), GFP_KERNEL);
-+	new = kvzalloc(sizeof(struct memcg_cache_array) +
-+		       new_array_size * sizeof(void *), GFP_KERNEL);
- 	if (!new)
- 		return -ENOMEM;
- 
-@@ -198,7 +206,7 @@ static int update_memcg_params(struct km
- 
- 	rcu_assign_pointer(s->memcg_params.memcg_caches, new);
- 	if (old)
--		kfree_rcu(old, rcu);
-+		call_rcu(&old->rcu, free_memcg_params);
- 	return 0;
- }
- 
+ 	vmemmap_populate_print_last();
+ out:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
 
