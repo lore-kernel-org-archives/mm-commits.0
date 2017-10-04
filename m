@@ -1,122 +1,207 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch removed from -mm
- tree
-Date: Wed, 04 Oct 2017 12:40:25 -0700
-Message-ID: <20171004194025.k8NHd9dE1%akpm@linux-foundation.org>
+ mm-memcg-remove-hotplug-locking-from-try_charge.patch removed from -mm tree
+Date: Wed, 04 Oct 2017 12:40:28 -0700
+Message-ID: <20171004194028.oWlYhy_p1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33384 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751209AbdJDTk0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:26 -0400
+        with ESMTP id S1751135AbdJDTk3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:40:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: asavkov@redhat.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm, oom_reaper: skip mm structs with mmu notifiers
+     Subject: mm, memcg: remove hotplug locking from try_charge
 has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-skip-mm-structs-with-mmu-notifiers.patch
+     mm-memcg-remove-hotplug-locking-from-try_charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: skip mm structs with mmu notifiers
+Subject: mm, memcg: remove hotplug locking from try_charge
 
-Andrea has noticed that the oom_reaper doesn't invalidate the range via
-mmu notifiers (mmu_notifier_invalidate_range_start,
-mmu_notifier_invalidate_range_end) and that can corrupt the memory of the
-kvm guest for example.
+The following lockdep splat has been noticed during LTP testing
 
-tlb_flush_mmu_tlbonly already invokes mmu notifiers but that is not
-sufficient as per Andrea:
+[21002.630252] ======================================================
+[21002.637148] WARNING: possible circular locking dependency detected
+[21002.644045] 4.13.0-rc3-next-20170807 #12 Not tainted
+[21002.649583] ------------------------------------------------------
+[21002.656492] a.out/4771 is trying to acquire lock:
+[21002.661742]  (cpu_hotplug_lock.rw_sem){++++++}, at: [<ffffffff812b4668>] drain_all_stock.part.35+0x18/0x140
+[21002.672629]
+[21002.672629] but task is already holding lock:
+[21002.679137]  (&mm->mmap_sem){++++++}, at: [<ffffffff8106eb35>] __do_page_fault+0x175/0x530
+[21002.688371]
+[21002.688371] which lock already depends on the new lock.
+[21002.688371]
+[21002.697505]
+[21002.697505] the existing dependency chain (in reverse order) is:
+[21002.705856]
+[21002.705856] -> #3 (&mm->mmap_sem){++++++}:
+[21002.712080]        lock_acquire+0xc9/0x230
+[21002.716661]        __might_fault+0x70/0xa0
+[21002.721241]        _copy_to_user+0x23/0x70
+[21002.725814]        filldir+0xa7/0x110
+[21002.729988]        xfs_dir2_sf_getdents.isra.10+0x20c/0x2c0 [xfs]
+[21002.736840]        xfs_readdir+0x1fa/0x2c0 [xfs]
+[21002.742042]        xfs_file_readdir+0x30/0x40 [xfs]
+[21002.747485]        iterate_dir+0x17a/0x1a0
+[21002.752057]        SyS_getdents+0xb0/0x160
+[21002.756638]        entry_SYSCALL_64_fastpath+0x1f/0xbe
+[21002.762371]
+[21002.762371] -> #2 (&type->i_mutex_dir_key#3){++++++}:
+[21002.769661]        lock_acquire+0xc9/0x230
+[21002.774239]        down_read+0x51/0xb0
+[21002.778429]        lookup_slow+0xde/0x210
+[21002.782903]        walk_component+0x160/0x250
+[21002.787765]        link_path_walk+0x1a6/0x610
+[21002.792625]        path_openat+0xe4/0xd50
+[21002.797100]        do_filp_open+0x91/0x100
+[21002.801673]        file_open_name+0xf5/0x130
+[21002.806429]        filp_open+0x33/0x50
+[21002.810620]        kernel_read_file_from_path+0x39/0x80
+[21002.816459]        _request_firmware+0x39f/0x880
+[21002.821610]        request_firmware_direct+0x37/0x50
+[21002.827151]        request_microcode_fw+0x64/0xe0
+[21002.832401]        reload_store+0xf7/0x180
+[21002.836974]        dev_attr_store+0x18/0x30
+[21002.841641]        sysfs_kf_write+0x44/0x60
+[21002.846318]        kernfs_fop_write+0x113/0x1a0
+[21002.851374]        __vfs_write+0x37/0x170
+[21002.855849]        vfs_write+0xc7/0x1c0
+[21002.860128]        SyS_write+0x58/0xc0
+[21002.864313]        do_syscall_64+0x6c/0x1f0
+[21002.868973]        return_from_SYSCALL_64+0x0/0x7a
+[21002.874317]
+[21002.874317] -> #1 (microcode_mutex){+.+.+.}:
+[21002.880748]        lock_acquire+0xc9/0x230
+[21002.885322]        __mutex_lock+0x88/0x960
+[21002.889894]        mutex_lock_nested+0x1b/0x20
+[21002.894854]        microcode_init+0xbb/0x208
+[21002.899617]        do_one_initcall+0x51/0x1a9
+[21002.904481]        kernel_init_freeable+0x208/0x2a7
+[21002.909922]        kernel_init+0xe/0x104
+[21002.914298]        ret_from_fork+0x2a/0x40
+[21002.918867]
+[21002.918867] -> #0 (cpu_hotplug_lock.rw_sem){++++++}:
+[21002.926058]        __lock_acquire+0x153c/0x1550
+[21002.931112]        lock_acquire+0xc9/0x230
+[21002.935688]        cpus_read_lock+0x4b/0x90
+[21002.940353]        drain_all_stock.part.35+0x18/0x140
+[21002.945987]        try_charge+0x3ab/0x6e0
+[21002.950460]        mem_cgroup_try_charge+0x7f/0x2c0
+[21002.955902]        shmem_getpage_gfp+0x25f/0x1050
+[21002.961149]        shmem_fault+0x96/0x200
+[21002.965621]        __do_fault+0x1e/0xa0
+[21002.969905]        __handle_mm_fault+0x9c3/0xe00
+[21002.975056]        handle_mm_fault+0x16e/0x380
+[21002.980013]        __do_page_fault+0x24a/0x530
+[21002.984968]        do_page_fault+0x30/0x80
+[21002.989537]        page_fault+0x28/0x30
+[21002.993812]
+[21002.993812] other info that might help us debug this:
+[21002.993812]
+[21003.002744] Chain exists of:
+[21003.002744]   cpu_hotplug_lock.rw_sem --> &type->i_mutex_dir_key#3 --> &mm->mmap_sem
+[21003.002744]
+[21003.016238]  Possible unsafe locking scenario:
+[21003.016238]
+[21003.022843]        CPU0                    CPU1
+[21003.027896]        ----                    ----
+[21003.032948]   lock(&mm->mmap_sem);
+[21003.036741]                                lock(&type->i_mutex_dir_key#3);
+[21003.044419]                                lock(&mm->mmap_sem);
+[21003.051025]   lock(cpu_hotplug_lock.rw_sem);
+[21003.055788]
+[21003.055788]  *** DEADLOCK ***
+[21003.055788]
+[21003.062393] 2 locks held by a.out/4771:
+[21003.066675]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff8106eb35>] __do_page_fault+0x175/0x530
+[21003.076391]  #1:  (percpu_charge_mutex){+.+...}, at: [<ffffffff812b4c97>] try_charge+0x397/0x6e0
 
-: mmu_notifier_invalidate_range cannot be used in replacement of
-: mmu_notifier_invalidate_range_start/end. For KVM
-: mmu_notifier_invalidate_range is a noop and rightfully so. A MMU
-: notifier implementation has to implement either
-: ->invalidate_range method or the invalidate_range_start/end
-: methods, not both. And if you implement invalidate_range_start/end
-: like KVM is forced to do, calling mmu_notifier_invalidate_range in
-: common code is a noop for KVM.
-:
-: For those MMU notifiers that can get away only implementing
-: ->invalidate_range, the ->invalidate_range is implicitly called by
-: mmu_notifier_invalidate_range_end(). And only those secondary MMUs
-: that share the same pagetable with the primary MMU (like AMD
-: iommuv2) can get away only implementing ->invalidate_range.
+The problem is very similar to the one fixed by a459eeb7b852 ("mm,
+page_alloc: do not depend on cpu hotplug locks inside the allocator").  We
+are taking hotplug locks while we can be sitting on top of basically
+arbitrary locks.  This just calls for problems.
 
-As the callback is allowed to sleep and the implementation is out of hand
-of the MM it is safer to simply bail out if there is an mmu notifier
-registered.  In order to not fail too early make the mm_has_notifiers
-check under the oom_lock and have a little nap before failing to give the
-current oom victim some more time to exit.
+We can get rid of {get,put}_online_cpus, fortunately.  We do not have to
+be worried about races with memory hotplug because drain_local_stock,
+which is called from both the WQ draining and the memory hotplug contexts,
+is always operating on the local cpu stock with IRQs disabled.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170913113427.2291-1-mhocko@kernel.org
-Fixes: aac453635549 ("mm, oom: introduce oom reaper")
+The only thing to be careful about is that the target memcg doesn't vanish
+while we are still in drain_all_stock so take a reference on it.
+
+Link: http://lkml.kernel.org/r/20170913090023.28322-1-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Artem Savkov <asavkov@redhat.com>
+Tested-by: Artem Savkov <asavkov@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |    5 +++++
- mm/oom_kill.c                |   16 ++++++++++++++++
- 2 files changed, 21 insertions(+)
+ mm/memcontrol.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mmu_notifier.h~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers
-+++ a/include/linux/mmu_notifier.h
-@@ -400,6 +400,11 @@ extern void mmu_notifier_synchronize(voi
- 
- #else /* CONFIG_MMU_NOTIFIER */
- 
-+static inline int mm_has_notifiers(struct mm_struct *mm)
-+{
-+	return 0;
-+}
-+
- static inline void mmu_notifier_release(struct mm_struct *mm)
- {
- }
-diff -puN mm/oom_kill.c~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-skip-mm-structs-with-mmu-notifiers
-+++ a/mm/oom_kill.c
-@@ -40,6 +40,7 @@
- #include <linux/ratelimit.h>
- #include <linux/kthread.h>
- #include <linux/init.h>
-+#include <linux/mmu_notifier.h>
- 
- #include <asm/tlb.h>
- #include "internal.h"
-@@ -494,6 +495,21 @@ static bool __oom_reap_task_mm(struct ta
- 		goto unlock_oom;
- 	}
+diff -puN mm/memcontrol.c~mm-memcg-remove-hotplug-locking-from-try_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-hotplug-locking-from-try_charge
++++ a/mm/memcontrol.c
+@@ -1777,6 +1777,10 @@ static void drain_local_stock(struct wor
+ 	struct memcg_stock_pcp *stock;
+ 	unsigned long flags;
  
 +	/*
-+	 * If the mm has notifiers then we would need to invalidate them around
-+	 * unmap_page_range and that is risky because notifiers can sleep and
-+	 * what they do is basically undeterministic.  So let's have a short
-+	 * sleep to give the oom victim some more time.
-+	 * TODO: we really want to get rid of this ugly hack and make sure that
-+	 * notifiers cannot block for unbounded amount of time and add
-+	 * mmu_notifier_invalidate_range_{start,end} around unmap_page_range
++	 * The only protection from memory hotplug vs. drain_stock races is
++	 * that we always operate on local CPU stock here with IRQ disabled
 +	 */
-+	if (mm_has_notifiers(mm)) {
-+		up_read(&mm->mmap_sem);
-+		schedule_timeout_idle(HZ);
-+		goto unlock_oom;
-+	}
-+
- 	/*
- 	 * MMF_OOM_SKIP is set by exit_mmap when the OOM reaper can't
- 	 * work on the mm anymore. The check for MMF_OOM_SKIP must run
+ 	local_irq_save(flags);
+ 
+ 	stock = this_cpu_ptr(&memcg_stock);
+@@ -1821,27 +1825,33 @@ static void drain_all_stock(struct mem_c
+ 	/* If someone's already draining, avoid adding running more workers. */
+ 	if (!mutex_trylock(&percpu_charge_mutex))
+ 		return;
+-	/* Notify other cpus that system-wide "drain" is running */
+-	get_online_cpus();
++	/*
++	 * Notify other cpus that system-wide "drain" is running
++	 * We do not care about races with the cpu hotplug because cpu down
++	 * as well as workers from this path always operate on the local
++	 * per-cpu data. CPU up doesn't touch memcg_stock at all.
++	 */
+ 	curcpu = get_cpu();
+ 	for_each_online_cpu(cpu) {
+ 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
+ 		struct mem_cgroup *memcg;
+ 
+ 		memcg = stock->cached;
+-		if (!memcg || !stock->nr_pages)
++		if (!memcg || !stock->nr_pages || !css_tryget(&memcg->css))
+ 			continue;
+-		if (!mem_cgroup_is_descendant(memcg, root_memcg))
++		if (!mem_cgroup_is_descendant(memcg, root_memcg)) {
++			css_put(&memcg->css);
+ 			continue;
++		}
+ 		if (!test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags)) {
+ 			if (cpu == curcpu)
+ 				drain_local_stock(&stock->work);
+ 			else
+ 				schedule_work_on(cpu, &stock->work);
+ 		}
++		css_put(&memcg->css);
+ 	}
+ 	put_cpu();
+-	put_online_cpus();
+ 	mutex_unlock(&percpu_charge_mutex);
+ }
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
