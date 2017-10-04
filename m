@@ -1,83 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-avoid-marking-swap-cached-page-as-lazyfree.patch removed from -mm tree
-Date: Wed, 04 Oct 2017 12:41:01 -0700
-Message-ID: <20171004194101.rGZXtglBa%akpm__3344.43366523391$1507146065$gmane$org@linux-foundation.org>
+ mm-device-public-memory-fix-edge-case-in-_vm_normal_page.patch removed from
+ -mm tree
+Date: Wed, 04 Oct 2017 12:41:07 -0700
+Message-ID: <20171004194107.sHkx8zSrt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTlC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:02 -0400
+        with ESMTP id S1751132AbdJDTlI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: asavkov@redhat.com, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@fb.com, stable@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, bsingharora@gmail.com, jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid marking swap cached page as lazyfree
+     Subject: mm/device-public-memory: fix edge case in _vm_normal_page()
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-marking-swap-cached-page-as-lazyfree.patch
+     mm-device-public-memory-fix-edge-case-in-_vm_normal_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shaohua Li <shli@fb.com>
-Subject: mm: avoid marking swap cached page as lazyfree
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: mm/device-public-memory: fix edge case in _vm_normal_page()
 
-MADV_FREE clears pte dirty bit and then marks the page lazyfree (clear
-SwapBacked).  There is no lock to prevent the page is added to swap cache
-between these two steps by page reclaim.  Page reclaim could add the page
-to swap cache and unmap the page.  After page reclaim, the page is added
-back to lru.  At that time, we probably start draining per-cpu pagevec and
-mark the page lazyfree.  So the page could be in a state with SwapBacked
-cleared and PG_swapcache set.  Next time there is a refault in the virtual
-address, do_swap_page can find the page from swap cache but the page has
-PageSwapCache false because SwapBacked isn't set, so do_swap_page will
-bail out and do nothing.  The task will keep running into fault handler.
+With device public pages at the end of my memory space, I'm getting output
+from _vm_normal_page():
 
-Fixes: 802a3a92ad7a ("mm: reclaim MADV_FREE pages")
-Link: http://lkml.kernel.org/r/6537ef3814398c0073630b03f176263bc81f0902.1506446061.git.shli@fb.com
-Signed-off-by: Shaohua Li <shli@fb.com>
-Reported-by: Artem Savkov <asavkov@redhat.com>
-Tested-by: Artem Savkov <asavkov@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[4.12+]
+BUG: Bad page map in process migrate_pages  pte:c0800001ffff0d06 pmd:f95d3000
+addr:00007fff89330000 vm_flags:00100073 anon_vma:c0000000fa899320 mapping:          (null) index:7fff8933
+file:          (null) fault:          (null) mmap:          (null) readpage:          (null)
+CPU: 0 PID: 13963 Comm: migrate_pages Tainted: P    B      OE 4.14.0-rc1-wip #155
+Call Trace:
+[c0000000f965f910] [c00000000094d55c] dump_stack+0xb0/0xf4 (unreliable)
+[c0000000f965f950] [c0000000002b269c] print_bad_pte+0x28c/0x340
+[c0000000f965fa00] [c0000000002b59c0] _vm_normal_page+0xc0/0x140
+[c0000000f965fa20] [c0000000002b6e64] zap_pte_range+0x664/0xc10
+[c0000000f965fb00] [c0000000002b7858] unmap_page_range+0x318/0x670
+[c0000000f965fbd0] [c0000000002b8074] unmap_vmas+0x74/0xe0
+[c0000000f965fc20] [c0000000002c4a18] exit_mmap+0xe8/0x1f0
+[c0000000f965fce0] [c0000000000ecbdc] mmput+0xac/0x1f0
+[c0000000f965fd10] [c0000000000f62e8] do_exit+0x348/0xcd0
+[c0000000f965fdd0] [c0000000000f6d2c] do_group_exit+0x5c/0xf0
+[c0000000f965fe10] [c0000000000f6ddc] SyS_exit_group+0x1c/0x20
+[c0000000f965fe30] [c00000000000b184] system_call+0x58/0x6c
+
+The pfn causing this is the very last one.  Correct the bounds check
+accordingly.
+
+Fixes: df6ad69838fc ("mm/device-public-memory: device memory cache coherent with CPU")
+Link: http://lkml.kernel.org/r/1506092178-20351-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-avoid-marking-swap-cached-page-as-lazyfree mm/swap.c
---- a/mm/swap.c~mm-avoid-marking-swap-cached-page-as-lazyfree
-+++ a/mm/swap.c
-@@ -575,7 +575,7 @@ static void lru_lazyfree_fn(struct page
- 			    void *arg)
- {
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
--	    !PageUnevictable(page)) {
-+	    !PageSwapCache(page) && !PageUnevictable(page)) {
- 		bool active = PageActive(page);
+diff -puN mm/memory.c~mm-device-public-memory-fix-edge-case-in-_vm_normal_page mm/memory.c
+--- a/mm/memory.c~mm-device-public-memory-fix-edge-case-in-_vm_normal_page
++++ a/mm/memory.c
+@@ -845,7 +845,7 @@ struct page *_vm_normal_page(struct vm_a
+ 		 * vm_normal_page() so that we do not have to special case all
+ 		 * call site of vm_normal_page().
+ 		 */
+-		if (likely(pfn < highest_memmap_pfn)) {
++		if (likely(pfn <= highest_memmap_pfn)) {
+ 			struct page *page = pfn_to_page(pfn);
  
- 		del_page_from_lru_list(page, lruvec,
-@@ -665,7 +665,7 @@ void deactivate_file_page(struct page *p
- void mark_page_lazyfree(struct page *page)
- {
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
--	    !PageUnevictable(page)) {
-+	    !PageSwapCache(page) && !PageUnevictable(page)) {
- 		struct pagevec *pvec = &get_cpu_var(lru_lazyfree_pvecs);
- 
- 		get_page(page);
+ 			if (is_device_public_page(page)) {
 _
 
-Patches currently in -mm which might be from shli@fb.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
 
