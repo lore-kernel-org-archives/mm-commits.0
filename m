@@ -1,62 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-fix-build-failures.patch removed from -mm
+Subject: [merged]
+ params-align-add_sysfs_param-documentation-with-code.patch removed from -mm
  tree
-Date: Wed, 04 Oct 2017 12:39:51 -0700
-Message-ID: <20171004193951.bzkCIwB6Y%akpm@linux-foundation.org>
+Date: Wed, 04 Oct 2017 12:39:55 -0700
+Message-ID: <20171004193955.IoAgt3rXU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751132AbdJDTjx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:39:53 -0400
+        with ESMTP id S1751132AbdJDTj4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2017 15:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net, sudipm.mukherjee@gmail.com
+To: jdelvare@suse.de, mm-commits@vger.kernel.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     Subject: alpha: fix build failures
+     Subject: kernel/params.c: align add_sysfs_param documentation with code
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-build-failures.patch
+     params-align-add_sysfs_param-documentation-with-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: alpha: fix build failures
+From: Jean Delvare <jdelvare@suse.de>
+Subject: kernel/params.c: align add_sysfs_param documentation with code
 
-The build of alpha allmodconfig is giving error:
-arch/alpha/include/asm/mmu_context.h: In function 'ev5_switch_mm':
-arch/alpha/include/asm/mmu_context.h:160:2: error:
-	implicit declaration of function 'task_thread_info';
-	did you mean 'init_thread_info'? [-Werror=implicit-function-declaration]
+This parameter is named kp, so the documentation should use that.
 
-The file 'mmu_context.h' needed an extra header file.
-
-Link: http://lkml.kernel.org/r/1505668810-7497-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Fixes: 9b473de87209 ("param: Fix duplicate module prefixes")
+Link: http://lkml.kernel.org/r/20170919142656.64aea59e@endymion
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mmu_context.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/params.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/mmu_context.h~alpha-fix-build-failures arch/alpha/include/asm/mmu_context.h
---- a/arch/alpha/include/asm/mmu_context.h~alpha-fix-build-failures
-+++ a/arch/alpha/include/asm/mmu_context.h
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/mm_types.h>
-+#include <linux/sched.h>
- 
- #include <asm/machvec.h>
- #include <asm/compiler.h>
+diff -puN kernel/params.c~params-align-add_sysfs_param-documentation-with-code kernel/params.c
+--- a/kernel/params.c~params-align-add_sysfs_param-documentation-with-code
++++ a/kernel/params.c
+@@ -600,7 +600,7 @@ EXPORT_SYMBOL(kernel_param_unlock);
+ /*
+  * add_sysfs_param - add a parameter to sysfs
+  * @mk: struct module_kobject
+- * @kparam: the actual parameter definition to add to sysfs
++ * @kp: the actual parameter definition to add to sysfs
+  * @name: name of parameter
+  *
+  * Create a kobject if for a (per-module) parameter if mp NULL, and
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
 
