@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch added to
+Subject: + fs-mm-account-filp-and-names-caches-to-kmemcg.patch added to
  -mm tree
-Date: Tue, 10 Oct 2017 15:35:17 -0700
-Message-ID: <59dd4b25.sKnxCUe2kQWaqhc6%akpm@linux-foundation.org>
+Date: Tue, 10 Oct 2017 15:38:57 -0700
+Message-ID: <59dd4c01.ma9cyO3nsYUdsIAX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38638 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755552AbdJJWfT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 18:35:19 -0400
+        with ESMTP id S1753333AbdJJWi6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 18:38:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shakeelb@google.com, borntraeger@de.ibm.com, christoffer.dall@linaro.org, dgibson@redhat.com, gthelen@google.com, hpa@zytor.com, james.hogan@imgtec.com, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mingo@redhat.com, paulus@ozlabs.org, pbonzini@redhat.com, rkrcmar@redhat.com, tglx@linutronix.de, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: shakeelb@google.com, gthelen@google.com, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kvm, mm: account kvm related kmem slabs to kmemcg
+     Subject: fs, mm: account filp and names caches to kmemcg
 has been added to the -mm tree.  Its filename is
-     kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
+     fs-mm-account-filp-and-names-caches-to-kmemcg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-mm-account-filp-and-names-caches-to-kmemcg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-mm-account-filp-and-names-caches-to-kmemcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,74 +40,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeelb@google.com>
-Subject: kvm, mm: account kvm related kmem slabs to kmemcg
+Subject: fs, mm: account filp and names caches to kmemcg
 
-The kvm slabs can consume a significant amount of system memory and indeed
-in our production environment we have observed that a lot of machines are
-spending significant amount of memory that can not be left as system
-memory overhead.  Also the allocations from these slabs can be triggered
-directly by user space applications which has access to kvm and thus a
-buggy application can leak such memory.  So, these caches should be
-accounted to kmemcg.
+The allocations from filp and names kmem caches can be directly triggered
+by user space applications.  A buggy application can consume a significant
+amount of unaccounted system memory.  Though we have not noticed such
+buggy applications in our production but upon close inspection, we found
+that a lot of machines spend very significant amount of memory on these
+caches.  So, these caches should be accounted to kmemcg.
 
-Link: http://lkml.kernel.org/r/20171006010724.186563-1-shakeelb@google.com
+Link: http://lkml.kernel.org/r/20171005222144.123797-1-shakeelb@google.com
 Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Radim Krčmář <rkrcmar@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: David Gibson <dgibson@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c  |    4 ++--
- virt/kvm/kvm_main.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/dcache.c     |    2 +-
+ fs/file_table.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg
-+++ a/arch/x86/kvm/mmu.c
-@@ -5475,13 +5475,13 @@ int kvm_mmu_module_init(void)
+diff -puN fs/dcache.c~fs-mm-account-filp-and-names-caches-to-kmemcg fs/dcache.c
+--- a/fs/dcache.c~fs-mm-account-filp-and-names-caches-to-kmemcg
++++ a/fs/dcache.c
+@@ -3641,7 +3641,7 @@ void __init vfs_caches_init_early(void)
+ void __init vfs_caches_init(void)
+ {
+ 	names_cachep = kmem_cache_create("names_cache", PATH_MAX, 0,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
  
- 	pte_list_desc_cache = kmem_cache_create("pte_list_desc",
- 					    sizeof(struct pte_list_desc),
--					    0, 0, NULL);
-+					    0, SLAB_ACCOUNT, NULL);
- 	if (!pte_list_desc_cache)
- 		goto nomem;
+ 	dcache_init();
+ 	inode_init();
+diff -puN fs/file_table.c~fs-mm-account-filp-and-names-caches-to-kmemcg fs/file_table.c
+--- a/fs/file_table.c~fs-mm-account-filp-and-names-caches-to-kmemcg
++++ a/fs/file_table.c
+@@ -312,7 +312,7 @@ void put_filp(struct file *file)
+ void __init files_init(void)
+ {
+ 	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
+-			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
++			SLAB_HWCACHE_ALIGN | SLAB_PANIC | SLAB_ACCOUNT, NULL);
+ 	percpu_counter_init(&nr_files, 0, GFP_KERNEL);
+ }
  
- 	mmu_page_header_cache = kmem_cache_create("kvm_mmu_page_header",
- 						  sizeof(struct kvm_mmu_page),
--						  0, 0, NULL);
-+						  0, SLAB_ACCOUNT, NULL);
- 	if (!mmu_page_header_cache)
- 		goto nomem;
- 
-diff -puN virt/kvm/kvm_main.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg
-+++ a/virt/kvm/kvm_main.c
-@@ -4010,7 +4010,7 @@ int kvm_init(void *opaque, unsigned vcpu
- 	if (!vcpu_align)
- 		vcpu_align = __alignof__(struct kvm_vcpu);
- 	kvm_vcpu_cache = kmem_cache_create("kvm_vcpu", vcpu_size, vcpu_align,
--					   0, NULL);
-+					   SLAB_ACCOUNT, NULL);
- 	if (!kvm_vcpu_cache) {
- 		r = -ENOMEM;
- 		goto out_free_3;
 _
 
 Patches currently in -mm which might be from shakeelb@google.com are
 
 kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
+fs-mm-account-filp-and-names-caches-to-kmemcg.patch
 epoll-account-epitem-and-eppoll_entry-to-kmemcg.patch
 
