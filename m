@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
- added to -mm tree
-Date: Tue, 10 Oct 2017 13:48:27 -0700
-Message-ID: <59dd321b.exTug9pl8DFABmxF%akpm@linux-foundation.org>
+ mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 10 Oct 2017 13:49:19 -0700
+Message-ID: <59dd324f.ic+iZZbKYmiReYsy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57080 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755653AbdJJUs3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:48:29 -0400
+        with ESMTP id S1756891AbdJJUtU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, axboe@kernel.dk, dan.j.williams@intel.com, hch@lst.de, hughd@google.com, idryomov@gmail.com, ross.zwisler@linux.intel.com, sergey.senozhatsky@gmail.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: SWP_SYNCHRONOUS_IO: skip swapcache only if swapped page has no other reference
+     Subject: mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+     mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,118 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: swap: SWP_SYNCHRONOUS_IO: skip swapcache only if swapped page has no other reference
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
 
-When SWP_SYNCHRONOUS_IO swapped-in pages are shared by several processes,
-it can cause unnecessary memory wastage by skipping swap cache.  Because,
-with swapin fault by read, they could share a page if the page were in
-swap cache.  Thus, it avoids allocating same content new pages.
+WARNING: line over 80 characters
+#84: FILE: mm/memory.c:2910:
++					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
 
-This patch makes the swapcache skipping work only if the swap pte is
-non-sharable.
+total: 0 errors, 1 warnings, 62 lines checked
 
-Link: http://lkml.kernel.org/r/1507620825-5537-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++++++
- mm/memory.c          |   19 ++++++++++---------
- mm/swapfile.c        |    7 +++++++
- 3 files changed, 23 insertions(+), 9 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
-+++ a/include/linux/swap.h
-@@ -458,6 +458,7 @@ extern unsigned int count_swap_pages(int
- extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int page_swapcount(struct page *);
-+extern int __swap_count(struct swap_info_struct *si, swp_entry_t entry);
- extern int __swp_swapcount(swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
-@@ -583,6 +584,11 @@ static inline int page_swapcount(struct
- {
- 	return 0;
- }
-+
-+static inline int __swap_count(struct swap_info_struct *si, swp_entry_t entry)
-+{
-+	return 0;
-+}
- 
- static inline int __swp_swapcount(swp_entry_t entry)
- {
-diff -puN mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference mm/memory.c
---- a/mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
+diff -puN mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
 +++ a/mm/memory.c
-@@ -2890,15 +2890,8 @@ int do_swap_page(struct vm_fault *vmf)
- 	if (!page) {
- 		struct swap_info_struct *si = swp_swap_info(entry);
- 
--		if (!(si->flags & SWP_SYNCHRONOUS_IO)) {
--			if (vma_readahead)
--				page = do_swap_page_readahead(entry,
--					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
--			else
--				page = swapin_readahead(entry,
+@@ -2907,7 +2907,7 @@ int do_swap_page(struct vm_fault *vmf)
+ 					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
+ 			else
+ 				page = swapin_readahead(entry,
 -					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
--			swapcache = page;
--		} else {
-+		if (si->flags & SWP_SYNCHRONOUS_IO &&
-+				__swap_count(si, entry) == 1) {
- 			/* skip swapcache */
- 			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
- 			if (page) {
-@@ -2908,6 +2901,14 @@ int do_swap_page(struct vm_fault *vmf)
- 				lru_cache_add_anon(page);
- 				swap_readpage(page, true);
- 			}
-+		} else {
-+			if (vma_readahead)
-+				page = do_swap_page_readahead(entry,
-+					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
-+			else
-+				page = swapin_readahead(entry,
-+					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			swapcache = page;
++				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+ 			swapcache = page;
  		}
  
- 		if (!page) {
-diff -puN mm/swapfile.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
-+++ a/mm/swapfile.c
-@@ -1328,6 +1328,13 @@ int page_swapcount(struct page *page)
- 	return count;
- }
- 
-+int __swap_count(struct swap_info_struct *si, swp_entry_t entry)
-+{
-+	pgoff_t offset = swp_offset(entry);
-+
-+	return swap_count(si->swap_map[offset]);
-+}
-+
- static int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
- {
- 	int count = 0;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-set-bdi_cap_stable_writes-once.patch
-bdi-introduce-bdi_cap_synchronous_io.patch
-mm-swap-introduce-swp_synchronous_io.patch
-mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+i-need-old-gcc.patch
+of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-sysctl-make-numa-stats-configurable-fix.patch
+mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+pid-replace-pid-bitmap-implementation-with-idr-api-checkpatch-fixes.patch
+pid-remove-pidhash-checkpatch-fixes.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
