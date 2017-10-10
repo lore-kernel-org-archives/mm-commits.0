@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kmemcheck-remove-annotations.patch added to -mm tree
-Date: Tue, 10 Oct 2017 15:02:22 -0700
-Message-ID: <59dd436e.+tVH1o1qVcfntxOP%akpm@linux-foundation.org>
+Subject: + kmemcheck-stop-using-gfp_notrack-and-slab_notrack.patch added
+ to -mm tree
+Date: Tue, 10 Oct 2017 15:02:30 -0700
+Message-ID: <59dd4376.f72TcBZZ40AB95LZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35802 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755157AbdJJWCY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 18:02:24 -0400
+        with ESMTP id S1756506AbdJJWCb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 18:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.levin@verizon.com, devtimhansen@gmail.com, ebiederm@xmission.com, glider@google.com, mhocko@kernel.org, penberg@kernel.org, rostedt@goodmis.org, vegardno@ifi.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemcheck: remove annotations
+     Subject: kmemcheck: stop using GFP_NOTRACK and SLAB_NOTRACK
 has been added to the -mm tree.  Its filename is
-     kmemcheck-remove-annotations.patch
+     kmemcheck-stop-using-gfp_notrack-and-slab_notrack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemcheck-remove-annotations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmemcheck-stop-using-gfp_notrack-and-slab_notrack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemcheck-remove-annotations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmemcheck-stop-using-gfp_notrack-and-slab_notrack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>
-Subject: kmemcheck: remove annotations
+Subject: kmemcheck: stop using GFP_NOTRACK and SLAB_NOTRACK
 
-Patch series "kmemcheck: kill kmemcheck", v2.
+Convert all allocations that used a NOTRACK flag to stop using it.
 
-As discussed at LSF/MM, kill kmemcheck.
-
-KASan is a replacement that is able to work without the limitation of
-kmemcheck (single CPU, slow).  KASan is already upstream.
-
-We are also not aware of any users of kmemcheck (or users who don't
-consider KASan as a suitable replacement).
-
-The only objection was that since KASAN wasn't supported by all GCC
-versions provided by distros at that time we should hold off for 2 years,
-and try again.
-
-Now that 2 years have passed, and all distros provide gcc that supports
-KASAN, kill kmemcheck again for the very same reasons.
-
-
-This patch (of 4):
-
-Remove kmemcheck annotations, and calls to kmemcheck from the kernel.
-
-Link: http://lkml.kernel.org/r/20171007030159.22241-2-alexander.levin@verizon.com
+Link: http://lkml.kernel.org/r/20171007030159.22241-3-alexander.levin@verizon.com
 Signed-off-by: Sasha Levin <alexander.levin@verizon.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -75,815 +56,406 @@ Cc: Vegard Nossum <vegardno@ifi.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/dma-iommu.h        |    1 -
- arch/openrisc/include/asm/dma-mapping.h |    1 -
- arch/x86/Makefile                       |    5 -----
- arch/x86/include/asm/dma-mapping.h      |    1 -
- arch/x86/include/asm/xor.h              |    5 +----
- arch/x86/kernel/traps.c                 |    5 -----
- arch/x86/mm/fault.c                     |    6 ------
- drivers/char/random.c                   |    1 -
- drivers/misc/c2port/core.c              |    2 --
- fs/dcache.c                             |    2 --
- include/linux/c2port.h                  |    4 ----
- include/linux/dma-mapping.h             |    4 ----
- include/linux/filter.h                  |    2 --
- include/linux/mm_types.h                |    8 --------
- include/linux/net.h                     |    3 ---
- include/linux/ring_buffer.h             |    3 ---
- include/linux/skbuff.h                  |    3 ---
- include/net/inet_sock.h                 |    3 ---
- include/net/inet_timewait_sock.h        |    4 ----
- include/net/sock.h                      |    3 ---
- init/main.c                             |    1 -
- kernel/bpf/core.c                       |    6 ------
- kernel/locking/lockdep.c                |    3 ---
- kernel/trace/ring_buffer.c              |    3 ---
- mm/kmemleak.c                           |    9 ---------
- mm/page_alloc.c                         |   14 --------------
- mm/slab.c                               |   14 --------------
- mm/slab.h                               |    2 --
- mm/slub.c                               |   20 --------------------
- net/core/skbuff.c                       |    5 -----
- net/core/sock.c                         |    2 --
- net/ipv4/inet_timewait_sock.c           |    3 ---
- net/ipv4/tcp_input.c                    |    1 -
- net/socket.c                            |    1 -
- 34 files changed, 1 insertion(+), 149 deletions(-)
+ arch/arm/include/asm/pgalloc.h       |    2 +-
+ arch/arm64/include/asm/pgalloc.h     |    2 +-
+ arch/powerpc/include/asm/pgalloc.h   |    2 +-
+ arch/sh/kernel/dwarf.c               |    4 ++--
+ arch/sh/kernel/process.c             |    2 +-
+ arch/sparc/mm/init_64.c              |    4 ++--
+ arch/unicore32/include/asm/pgalloc.h |    2 +-
+ arch/x86/kernel/espfix_64.c          |    2 +-
+ arch/x86/mm/init.c                   |    3 +--
+ arch/x86/mm/init_64.c                |    2 +-
+ arch/x86/mm/pageattr.c               |   10 +++++-----
+ arch/x86/mm/pgtable.c                |    2 +-
+ arch/x86/platform/efi/efi_64.c       |    2 +-
+ crypto/xor.c                         |    7 +------
+ include/linux/thread_info.h          |    5 ++---
+ init/do_mounts.c                     |    3 +--
+ kernel/fork.c                        |   12 ++++++------
+ kernel/signal.c                      |    3 +--
+ mm/kmemcheck.c                       |    2 +-
+ mm/slab.c                            |    2 +-
+ mm/slab.h                            |    5 ++---
+ mm/slab_common.c                     |    2 +-
+ mm/slub.c                            |    4 +---
+ 23 files changed, 36 insertions(+), 48 deletions(-)
 
-diff -puN arch/arm/include/asm/dma-iommu.h~kmemcheck-remove-annotations arch/arm/include/asm/dma-iommu.h
---- a/arch/arm/include/asm/dma-iommu.h~kmemcheck-remove-annotations
-+++ a/arch/arm/include/asm/dma-iommu.h
-@@ -6,7 +6,6 @@
- #include <linux/mm_types.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-debug.h>
--#include <linux/kmemcheck.h>
- #include <linux/kref.h>
+diff -puN arch/arm64/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/arm64/include/asm/pgalloc.h
+--- a/arch/arm64/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/arm64/include/asm/pgalloc.h
+@@ -26,7 +26,7 @@
  
- #define ARM_MAPPING_ERROR		(~(dma_addr_t)0x0)
-diff -puN arch/openrisc/include/asm/dma-mapping.h~kmemcheck-remove-annotations arch/openrisc/include/asm/dma-mapping.h
---- a/arch/openrisc/include/asm/dma-mapping.h~kmemcheck-remove-annotations
-+++ a/arch/openrisc/include/asm/dma-mapping.h
-@@ -23,7 +23,6 @@
-  */
+ #define check_pgt_cache()		do { } while (0)
  
- #include <linux/dma-debug.h>
--#include <linux/kmemcheck.h>
- #include <linux/dma-mapping.h>
+-#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
++#define PGALLOC_GFP	(GFP_KERNEL | __GFP_ZERO)
+ #define PGD_SIZE	(PTRS_PER_PGD * sizeof(pgd_t))
  
- extern const struct dma_map_ops or1k_dma_map_ops;
-diff -puN arch/x86/include/asm/dma-mapping.h~kmemcheck-remove-annotations arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~kmemcheck-remove-annotations
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -6,7 +6,6 @@
-  * Documentation/DMA-API.txt for documentation.
-  */
+ #if CONFIG_PGTABLE_LEVELS > 2
+diff -puN arch/arm/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/arm/include/asm/pgalloc.h
+--- a/arch/arm/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/arm/include/asm/pgalloc.h
+@@ -57,7 +57,7 @@ static inline void pud_populate(struct m
+ extern pgd_t *pgd_alloc(struct mm_struct *mm);
+ extern void pgd_free(struct mm_struct *mm, pgd_t *pgd);
  
--#include <linux/kmemcheck.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-debug.h>
- #include <asm/io.h>
-diff -puN arch/x86/include/asm/xor.h~kmemcheck-remove-annotations arch/x86/include/asm/xor.h
---- a/arch/x86/include/asm/xor.h~kmemcheck-remove-annotations
-+++ a/arch/x86/include/asm/xor.h
-@@ -1,7 +1,4 @@
--#ifdef CONFIG_KMEMCHECK
--/* kmemcheck doesn't handle MMX/SSE/SSE2 instructions */
--# include <asm-generic/xor.h>
--#elif !defined(_ASM_X86_XOR_H)
-+#ifndef _ASM_X86_XOR_H
- #define _ASM_X86_XOR_H
+-#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
++#define PGALLOC_GFP	(GFP_KERNEL | __GFP_ZERO)
+ 
+ static inline void clean_pte_table(pte_t *pte)
+ {
+diff -puN arch/powerpc/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/powerpc/include/asm/pgalloc.h
+--- a/arch/powerpc/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/powerpc/include/asm/pgalloc.h
+@@ -17,7 +17,7 @@ static inline gfp_t pgtable_gfp_flags(st
+ }
+ #endif /* MODULE */
+ 
+-#define PGALLOC_GFP (GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
++#define PGALLOC_GFP (GFP_KERNEL | __GFP_ZERO)
+ 
+ #ifdef CONFIG_PPC_BOOK3S
+ #include <asm/book3s/pgalloc.h>
+diff -puN arch/sh/kernel/dwarf.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/sh/kernel/dwarf.c
+--- a/arch/sh/kernel/dwarf.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/sh/kernel/dwarf.c
+@@ -1172,11 +1172,11 @@ static int __init dwarf_unwinder_init(vo
+ 
+ 	dwarf_frame_cachep = kmem_cache_create("dwarf_frames",
+ 			sizeof(struct dwarf_frame), 0,
+-			SLAB_PANIC | SLAB_HWCACHE_ALIGN | SLAB_NOTRACK, NULL);
++			SLAB_PANIC | SLAB_HWCACHE_ALIGN, NULL);
+ 
+ 	dwarf_reg_cachep = kmem_cache_create("dwarf_regs",
+ 			sizeof(struct dwarf_reg), 0,
+-			SLAB_PANIC | SLAB_HWCACHE_ALIGN | SLAB_NOTRACK, NULL);
++			SLAB_PANIC | SLAB_HWCACHE_ALIGN, NULL);
+ 
+ 	dwarf_frame_pool = mempool_create_slab_pool(DWARF_FRAME_MIN_REQ,
+ 						    dwarf_frame_cachep);
+diff -puN arch/sh/kernel/process.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/sh/kernel/process.c
+--- a/arch/sh/kernel/process.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/sh/kernel/process.c
+@@ -58,7 +58,7 @@ void arch_task_cache_init(void)
+ 
+ 	task_xstate_cachep = kmem_cache_create("task_xstate", xstate_size,
+ 					       __alignof__(union thread_xstate),
+-					       SLAB_PANIC | SLAB_NOTRACK, NULL);
++					       SLAB_PANIC, NULL);
+ }
+ 
+ #ifdef CONFIG_SH_FPU_EMU
+diff -puN arch/sparc/mm/init_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/sparc/mm/init_64.c
+@@ -2926,7 +2926,7 @@ void __flush_tlb_all(void)
+ pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
+ 			    unsigned long address)
+ {
+-	struct page *page = alloc_page(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO);
++	struct page *page = alloc_page(GFP_KERNEL | __GFP_ZERO);
+ 	pte_t *pte = NULL;
+ 
+ 	if (page)
+@@ -2938,7 +2938,7 @@ pte_t *pte_alloc_one_kernel(struct mm_st
+ pgtable_t pte_alloc_one(struct mm_struct *mm,
+ 			unsigned long address)
+ {
+-	struct page *page = alloc_page(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO);
++	struct page *page = alloc_page(GFP_KERNEL | __GFP_ZERO);
+ 	if (!page)
+ 		return NULL;
+ 	if (!pgtable_page_ctor(page)) {
+diff -puN arch/unicore32/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/unicore32/include/asm/pgalloc.h
+--- a/arch/unicore32/include/asm/pgalloc.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/unicore32/include/asm/pgalloc.h
+@@ -28,7 +28,7 @@ extern void free_pgd_slow(struct mm_stru
+ #define pgd_alloc(mm)			get_pgd_slow(mm)
+ #define pgd_free(mm, pgd)		free_pgd_slow(mm, pgd)
+ 
+-#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
++#define PGALLOC_GFP	(GFP_KERNEL | __GFP_ZERO)
  
  /*
-diff -puN arch/x86/kernel/traps.c~kmemcheck-remove-annotations arch/x86/kernel/traps.c
---- a/arch/x86/kernel/traps.c~kmemcheck-remove-annotations
-+++ a/arch/x86/kernel/traps.c
-@@ -42,7 +42,6 @@
- #include <linux/edac.h>
+  * Allocate one PTE table.
+diff -puN arch/x86/kernel/espfix_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/x86/kernel/espfix_64.c
+--- a/arch/x86/kernel/espfix_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/x86/kernel/espfix_64.c
+@@ -57,7 +57,7 @@
+ # error "Need more virtual address space for the ESPFIX hack"
  #endif
  
--#include <asm/kmemcheck.h>
- #include <asm/stacktrace.h>
- #include <asm/processor.h>
- #include <asm/debugreg.h>
-@@ -740,10 +739,6 @@ dotraplinkage void do_debug(struct pt_re
- 	if (!dr6 && user_mode(regs))
- 		user_icebp = 1;
+-#define PGALLOC_GFP (GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
++#define PGALLOC_GFP (GFP_KERNEL | __GFP_ZERO)
  
--	/* Catch kmemcheck conditions! */
--	if ((dr6 & DR_STEP) && kmemcheck_trap(regs))
--		goto exit;
--
- 	/* Store the virtualized DR6 value */
- 	tsk->thread.debugreg6 = dr6;
+ /* This contains the *bottom* address of the espfix stack */
+ DEFINE_PER_CPU_READ_MOSTLY(unsigned long, espfix_stack);
+diff -puN arch/x86/mm/init_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/x86/mm/init_64.c
+@@ -184,7 +184,7 @@ static __ref void *spp_getpage(void)
+ 	void *ptr;
  
-diff -puN arch/x86/Makefile~kmemcheck-remove-annotations arch/x86/Makefile
---- a/arch/x86/Makefile~kmemcheck-remove-annotations
-+++ a/arch/x86/Makefile
-@@ -157,11 +157,6 @@ ifdef CONFIG_X86_X32
- endif
- export CONFIG_X86_X32_ABI
- 
--# Don't unroll struct assignments with kmemcheck enabled
--ifeq ($(CONFIG_KMEMCHECK),y)
--	KBUILD_CFLAGS += $(call cc-option,-fno-builtin-memcpy)
--endif
--
- #
- # If the function graph tracer is used with mcount instead of fentry,
- # '-maccumulate-outgoing-args' is needed to prevent a GCC bug
-diff -puN arch/x86/mm/fault.c~kmemcheck-remove-annotations arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~kmemcheck-remove-annotations
-+++ a/arch/x86/mm/fault.c
-@@ -19,7 +19,6 @@
- #include <asm/cpufeature.h>		/* boot_cpu_has, ...		*/
- #include <asm/traps.h>			/* dotraplinkage, ...		*/
- #include <asm/pgalloc.h>		/* pgd_*(), ...			*/
--#include <asm/kmemcheck.h>		/* kmemcheck_*(), ...		*/
- #include <asm/fixmap.h>			/* VSYSCALL_ADDR		*/
- #include <asm/vsyscall.h>		/* emulate_vsyscall		*/
- #include <asm/vm86.h>			/* struct vm86			*/
-@@ -1275,8 +1274,6 @@ __do_page_fault(struct pt_regs *regs, un
- 	 * Detect and handle instructions that would cause a page fault for
- 	 * both a tracked kernel page and a userspace page.
- 	 */
--	if (kmemcheck_active(regs))
--		kmemcheck_hide(regs);
- 	prefetchw(&mm->mmap_sem);
- 
- 	if (unlikely(kmmio_fault(regs, address)))
-@@ -1299,9 +1296,6 @@ __do_page_fault(struct pt_regs *regs, un
- 		if (!(error_code & (PF_RSVD | PF_USER | PF_PROT))) {
- 			if (vmalloc_fault(address) >= 0)
- 				return;
--
--			if (kmemcheck_fault(regs, address, error_code))
--				return;
- 		}
- 
- 		/* Can handle a stale RO->RW TLB: */
-diff -puN drivers/char/random.c~kmemcheck-remove-annotations drivers/char/random.c
---- a/drivers/char/random.c~kmemcheck-remove-annotations
-+++ a/drivers/char/random.c
-@@ -259,7 +259,6 @@
- #include <linux/cryptohash.h>
- #include <linux/fips.h>
- #include <linux/ptrace.h>
--#include <linux/kmemcheck.h>
- #include <linux/workqueue.h>
- #include <linux/irq.h>
- #include <linux/syscalls.h>
-diff -puN drivers/misc/c2port/core.c~kmemcheck-remove-annotations drivers/misc/c2port/core.c
---- a/drivers/misc/c2port/core.c~kmemcheck-remove-annotations
-+++ a/drivers/misc/c2port/core.c
-@@ -15,7 +15,6 @@
- #include <linux/errno.h>
- #include <linux/err.h>
- #include <linux/kernel.h>
--#include <linux/kmemcheck.h>
- #include <linux/ctype.h>
- #include <linux/delay.h>
- #include <linux/idr.h>
-@@ -904,7 +903,6 @@ struct c2port_device *c2port_device_regi
- 		return ERR_PTR(-EINVAL);
- 
- 	c2dev = kmalloc(sizeof(struct c2port_device), GFP_KERNEL);
--	kmemcheck_annotate_bitfield(c2dev, flags);
- 	if (unlikely(!c2dev))
- 		return ERR_PTR(-ENOMEM);
- 
-diff -puN fs/dcache.c~kmemcheck-remove-annotations fs/dcache.c
---- a/fs/dcache.c~kmemcheck-remove-annotations
-+++ a/fs/dcache.c
-@@ -2706,8 +2706,6 @@ static void swap_names(struct dentry *de
- 			 */
- 			unsigned int i;
- 			BUILD_BUG_ON(!IS_ALIGNED(DNAME_INLINE_LEN, sizeof(long)));
--			kmemcheck_mark_initialized(dentry->d_iname, DNAME_INLINE_LEN);
--			kmemcheck_mark_initialized(target->d_iname, DNAME_INLINE_LEN);
- 			for (i = 0; i < DNAME_INLINE_LEN / sizeof(long); i++) {
- 				swap(((long *) &dentry->d_iname)[i],
- 				     ((long *) &target->d_iname)[i]);
-diff -puN include/linux/c2port.h~kmemcheck-remove-annotations include/linux/c2port.h
---- a/include/linux/c2port.h~kmemcheck-remove-annotations
-+++ a/include/linux/c2port.h
-@@ -9,8 +9,6 @@
-  * the Free Software Foundation
-  */
- 
--#include <linux/kmemcheck.h>
--
- #define C2PORT_NAME_LEN			32
- 
- struct device;
-@@ -22,10 +20,8 @@ struct device;
- /* Main struct */
- struct c2port_ops;
- struct c2port_device {
--	kmemcheck_bitfield_begin(flags);
- 	unsigned int access:1;
- 	unsigned int flash_access:1;
--	kmemcheck_bitfield_end(flags);
- 
- 	int id;
- 	char name[C2PORT_NAME_LEN];
-diff -puN include/linux/dma-mapping.h~kmemcheck-remove-annotations include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~kmemcheck-remove-annotations
-+++ a/include/linux/dma-mapping.h
-@@ -8,7 +8,6 @@
- #include <linux/dma-debug.h>
- #include <linux/dma-direction.h>
- #include <linux/scatterlist.h>
--#include <linux/kmemcheck.h>
- #include <linux/bug.h>
- #include <linux/mem_encrypt.h>
- 
-@@ -229,7 +228,6 @@ static inline dma_addr_t dma_map_single_
- 	const struct dma_map_ops *ops = get_dma_ops(dev);
- 	dma_addr_t addr;
- 
--	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, virt_to_page(ptr),
- 			     offset_in_page(ptr), size,
-@@ -266,7 +264,6 @@ static inline int dma_map_sg_attrs(struc
- 	struct scatterlist *s;
- 
- 	for_each_sg(sg, s, nents, i)
--		kmemcheck_mark_initialized(sg_virt(s), s->length);
- 	BUG_ON(!valid_dma_direction(dir));
- 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 	BUG_ON(ents < 0);
-@@ -296,7 +293,6 @@ static inline dma_addr_t dma_map_page_at
- 	const struct dma_map_ops *ops = get_dma_ops(dev);
- 	dma_addr_t addr;
- 
--	kmemcheck_mark_initialized(page_address(page) + offset, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, page, offset, size, dir, attrs);
- 	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
-diff -puN include/linux/filter.h~kmemcheck-remove-annotations include/linux/filter.h
---- a/include/linux/filter.h~kmemcheck-remove-annotations
-+++ a/include/linux/filter.h
-@@ -453,13 +453,11 @@ struct bpf_binary_header {
- 
- struct bpf_prog {
- 	u16			pages;		/* Number of allocated pages */
--	kmemcheck_bitfield_begin(meta);
- 	u16			jited:1,	/* Is our filter JIT'ed? */
- 				locked:1,	/* Program image locked? */
- 				gpl_compatible:1, /* Is filter GPL compatible? */
- 				cb_access:1,	/* Is control block accessed? */
- 				dst_needed:1;	/* Do we need dst entry? */
--	kmemcheck_bitfield_end(meta);
- 	enum bpf_prog_type	type;		/* Type of BPF program */
- 	u32			len;		/* Number of filter blocks */
- 	u32			jited_len;	/* Size of jited insns in bytes */
-diff -puN include/linux/mm_types.h~kmemcheck-remove-annotations include/linux/mm_types.h
---- a/include/linux/mm_types.h~kmemcheck-remove-annotations
-+++ a/include/linux/mm_types.h
-@@ -208,14 +208,6 @@ struct page {
- 					   not kmapped, ie. highmem) */
- #endif /* WANT_PAGE_VIRTUAL */
- 
--#ifdef CONFIG_KMEMCHECK
--	/*
--	 * kmemcheck wants to track the status of each byte in a page; this
--	 * is a pointer to such a status block. NULL if not tracked.
--	 */
--	void *shadow;
--#endif
--
- #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
- 	int _last_cpupid;
- #endif
-diff -puN include/linux/net.h~kmemcheck-remove-annotations include/linux/net.h
---- a/include/linux/net.h~kmemcheck-remove-annotations
-+++ a/include/linux/net.h
-@@ -22,7 +22,6 @@
- #include <linux/random.h>
- #include <linux/wait.h>
- #include <linux/fcntl.h>	/* For O_CLOEXEC and O_NONBLOCK */
--#include <linux/kmemcheck.h>
- #include <linux/rcupdate.h>
- #include <linux/once.h>
- #include <linux/fs.h>
-@@ -111,9 +110,7 @@ struct socket_wq {
- struct socket {
- 	socket_state		state;
- 
--	kmemcheck_bitfield_begin(type);
- 	short			type;
--	kmemcheck_bitfield_end(type);
- 
- 	unsigned long		flags;
- 
-diff -puN include/linux/ring_buffer.h~kmemcheck-remove-annotations include/linux/ring_buffer.h
---- a/include/linux/ring_buffer.h~kmemcheck-remove-annotations
-+++ a/include/linux/ring_buffer.h
-@@ -1,7 +1,6 @@
- #ifndef _LINUX_RING_BUFFER_H
- #define _LINUX_RING_BUFFER_H
- 
--#include <linux/kmemcheck.h>
- #include <linux/mm.h>
- #include <linux/seq_file.h>
- #include <linux/poll.h>
-@@ -13,9 +12,7 @@ struct ring_buffer_iter;
-  * Don't refer to this struct directly, use functions below.
-  */
- struct ring_buffer_event {
--	kmemcheck_bitfield_begin(bitfield);
- 	u32		type_len:5, time_delta:27;
--	kmemcheck_bitfield_end(bitfield);
- 
- 	u32		array[];
- };
-diff -puN include/linux/skbuff.h~kmemcheck-remove-annotations include/linux/skbuff.h
---- a/include/linux/skbuff.h~kmemcheck-remove-annotations
-+++ a/include/linux/skbuff.h
-@@ -15,7 +15,6 @@
- #define _LINUX_SKBUFF_H
- 
- #include <linux/kernel.h>
--#include <linux/kmemcheck.h>
- #include <linux/compiler.h>
- #include <linux/time.h>
- #include <linux/bug.h>
-@@ -704,7 +703,6 @@ struct sk_buff {
- 	/* Following fields are _not_ copied in __copy_skb_header()
- 	 * Note that queue_mapping is here mostly to fill a hole.
- 	 */
--	kmemcheck_bitfield_begin(flags1);
- 	__u16			queue_mapping;
- 
- /* if you move cloned around you also must adapt those constants */
-@@ -723,7 +721,6 @@ struct sk_buff {
- 				head_frag:1,
- 				xmit_more:1,
- 				__unused:1; /* one bit hole */
--	kmemcheck_bitfield_end(flags1);
- 
- 	/* fields enclosed in headers_start/headers_end are copied
- 	 * using a single memcpy() in __copy_skb_header()
-diff -puN include/net/inet_sock.h~kmemcheck-remove-annotations include/net/inet_sock.h
---- a/include/net/inet_sock.h~kmemcheck-remove-annotations
-+++ a/include/net/inet_sock.h
-@@ -17,7 +17,6 @@
- #define _INET_SOCK_H
- 
- #include <linux/bitops.h>
--#include <linux/kmemcheck.h>
- #include <linux/string.h>
- #include <linux/types.h>
- #include <linux/jhash.h>
-@@ -84,7 +83,6 @@ struct inet_request_sock {
- #define ireq_state		req.__req_common.skc_state
- #define ireq_family		req.__req_common.skc_family
- 
--	kmemcheck_bitfield_begin(flags);
- 	u16			snd_wscale : 4,
- 				rcv_wscale : 4,
- 				tstamp_ok  : 1,
-@@ -93,7 +91,6 @@ struct inet_request_sock {
- 				ecn_ok	   : 1,
- 				acked	   : 1,
- 				no_srccheck: 1;
--	kmemcheck_bitfield_end(flags);
- 	u32                     ir_mark;
- 	union {
- 		struct ip_options_rcu	*opt;
-diff -puN include/net/inet_timewait_sock.h~kmemcheck-remove-annotations include/net/inet_timewait_sock.h
---- a/include/net/inet_timewait_sock.h~kmemcheck-remove-annotations
-+++ a/include/net/inet_timewait_sock.h
-@@ -15,8 +15,6 @@
- #ifndef _INET_TIMEWAIT_SOCK_
- #define _INET_TIMEWAIT_SOCK_
- 
--
--#include <linux/kmemcheck.h>
- #include <linux/list.h>
- #include <linux/timer.h>
- #include <linux/types.h>
-@@ -69,14 +67,12 @@ struct inet_timewait_sock {
- 	/* Socket demultiplex comparisons on incoming packets. */
- 	/* these three are in inet_sock */
- 	__be16			tw_sport;
--	kmemcheck_bitfield_begin(flags);
- 	/* And these are ours. */
- 	unsigned int		tw_kill		: 1,
- 				tw_transparent  : 1,
- 				tw_flowlabel	: 20,
- 				tw_pad		: 2,	/* 2 bits hole */
- 				tw_tos		: 8;
--	kmemcheck_bitfield_end(flags);
- 	struct timer_list	tw_timer;
- 	struct inet_bind_bucket	*tw_tb;
- };
-diff -puN include/net/sock.h~kmemcheck-remove-annotations include/net/sock.h
---- a/include/net/sock.h~kmemcheck-remove-annotations
-+++ a/include/net/sock.h
-@@ -436,7 +436,6 @@ struct sock {
- #define SK_FL_TYPE_MASK    0xffff0000
- #endif
- 
--	kmemcheck_bitfield_begin(flags);
- 	unsigned int		sk_padding : 1,
- 				sk_kern_sock : 1,
- 				sk_no_check_tx : 1,
-@@ -445,8 +444,6 @@ struct sock {
- 				sk_protocol  : 8,
- 				sk_type      : 16;
- #define SK_PROTOCOL_MAX U8_MAX
--	kmemcheck_bitfield_end(flags);
--
- 	u16			sk_gso_max_segs;
- 	unsigned long	        sk_lingertime;
- 	struct proto		*sk_prot_creator;
-diff -puN init/main.c~kmemcheck-remove-annotations init/main.c
---- a/init/main.c~kmemcheck-remove-annotations
-+++ a/init/main.c
-@@ -69,7 +69,6 @@
- #include <linux/kgdb.h>
- #include <linux/ftrace.h>
- #include <linux/async.h>
--#include <linux/kmemcheck.h>
- #include <linux/sfi.h>
- #include <linux/shmem_fs.h>
- #include <linux/slab.h>
-diff -puN kernel/bpf/core.c~kmemcheck-remove-annotations kernel/bpf/core.c
---- a/kernel/bpf/core.c~kmemcheck-remove-annotations
-+++ a/kernel/bpf/core.c
-@@ -85,8 +85,6 @@ struct bpf_prog *bpf_prog_alloc(unsigned
- 	if (fp == NULL)
- 		return NULL;
- 
--	kmemcheck_annotate_bitfield(fp, meta);
--
- 	aux = kzalloc(sizeof(*aux), GFP_KERNEL | gfp_extra_flags);
- 	if (aux == NULL) {
- 		vfree(fp);
-@@ -127,8 +125,6 @@ struct bpf_prog *bpf_prog_realloc(struct
- 	if (fp == NULL) {
- 		__bpf_prog_uncharge(fp_old->aux->user, delta);
- 	} else {
--		kmemcheck_annotate_bitfield(fp, meta);
--
- 		memcpy(fp, fp_old, fp_old->pages * PAGE_SIZE);
- 		fp->pages = pages;
- 		fp->aux->prog = fp;
-@@ -662,8 +658,6 @@ static struct bpf_prog *bpf_prog_clone_c
- 
- 	fp = __vmalloc(fp_other->pages * PAGE_SIZE, gfp_flags, PAGE_KERNEL);
- 	if (fp != NULL) {
--		kmemcheck_annotate_bitfield(fp, meta);
--
- 		/* aux->prog still points to the fp_other one, so
- 		 * when promoting the clone to the real program,
- 		 * this still needs to be adapted.
-diff -puN kernel/locking/lockdep.c~kmemcheck-remove-annotations kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~kmemcheck-remove-annotations
-+++ a/kernel/locking/lockdep.c
-@@ -47,7 +47,6 @@
- #include <linux/stringify.h>
- #include <linux/bitops.h>
- #include <linux/gfp.h>
--#include <linux/kmemcheck.h>
- #include <linux/random.h>
- #include <linux/jhash.h>
- 
-@@ -3233,8 +3232,6 @@ static void __lockdep_init_map(struct lo
- {
- 	int i;
- 
--	kmemcheck_mark_initialized(lock, sizeof(*lock));
--
- 	for (i = 0; i < NR_LOCKDEP_CACHING_CLASSES; i++)
- 		lock->class_cache[i] = NULL;
- 
-diff -puN kernel/trace/ring_buffer.c~kmemcheck-remove-annotations kernel/trace/ring_buffer.c
---- a/kernel/trace/ring_buffer.c~kmemcheck-remove-annotations
-+++ a/kernel/trace/ring_buffer.c
-@@ -13,7 +13,6 @@
- #include <linux/uaccess.h>
- #include <linux/hardirq.h>
- #include <linux/kthread.h>	/* for self test */
--#include <linux/kmemcheck.h>
- #include <linux/module.h>
- #include <linux/percpu.h>
- #include <linux/mutex.h>
-@@ -2055,7 +2054,6 @@ rb_reset_tail(struct ring_buffer_per_cpu
- 	}
- 
- 	event = __rb_page_index(tail_page, tail);
--	kmemcheck_annotate_bitfield(event, bitfield);
- 
- 	/* account for padding bytes */
- 	local_add(BUF_PAGE_SIZE - tail, &cpu_buffer->entries_bytes);
-@@ -2686,7 +2684,6 @@ __rb_reserve_next(struct ring_buffer_per
- 	/* We reserved something on the buffer */
- 
- 	event = __rb_page_index(tail_page, tail);
--	kmemcheck_annotate_bitfield(event, bitfield);
- 	rb_update_event(cpu_buffer, event, info);
- 
- 	local_inc(&tail_page->entries);
-diff -puN mm/kmemleak.c~kmemcheck-remove-annotations mm/kmemleak.c
---- a/mm/kmemleak.c~kmemcheck-remove-annotations
-+++ a/mm/kmemleak.c
-@@ -110,7 +110,6 @@
- #include <linux/atomic.h>
- 
- #include <linux/kasan.h>
--#include <linux/kmemcheck.h>
- #include <linux/kmemleak.h>
- #include <linux/memory_hotplug.h>
- 
-@@ -1238,9 +1237,6 @@ static bool update_checksum(struct kmeml
- {
- 	u32 old_csum = object->checksum;
- 
--	if (!kmemcheck_is_obj_initialized(object->pointer, object->size))
--		return false;
--
- 	kasan_disable_current();
- 	object->checksum = crc32(0, (void *)object->pointer, object->size);
- 	kasan_enable_current();
-@@ -1314,11 +1310,6 @@ static void scan_block(void *_start, voi
- 		if (scan_should_stop())
- 			break;
- 
--		/* don't scan uninitialized memory */
--		if (!kmemcheck_is_obj_initialized((unsigned long)ptr,
--						  BYTES_PER_POINTER))
--			continue;
--
- 		kasan_disable_current();
- 		pointer = *ptr;
- 		kasan_enable_current();
-diff -puN mm/page_alloc.c~kmemcheck-remove-annotations mm/page_alloc.c
---- a/mm/page_alloc.c~kmemcheck-remove-annotations
-+++ a/mm/page_alloc.c
-@@ -24,7 +24,6 @@
- #include <linux/memblock.h>
- #include <linux/compiler.h>
- #include <linux/kernel.h>
--#include <linux/kmemcheck.h>
- #include <linux/kasan.h>
- #include <linux/module.h>
- #include <linux/suspend.h>
-@@ -1015,7 +1014,6 @@ static __always_inline bool free_pages_p
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
- 	trace_mm_page_free(page, order);
--	kmemcheck_free_shadow(page, order);
- 
- 	/*
- 	 * Check tail pages before head page information is cleared to
-@@ -2667,15 +2665,6 @@ void split_page(struct page *page, unsig
- 	VM_BUG_ON_PAGE(PageCompound(page), page);
- 	VM_BUG_ON_PAGE(!page_count(page), page);
- 
--#ifdef CONFIG_KMEMCHECK
--	/*
--	 * Split shadow pages too, because free(page[0]) would
--	 * otherwise free the whole shadow.
--	 */
--	if (kmemcheck_page_is_tracked(page))
--		split_page(virt_to_page(page[0].shadow), order);
--#endif
--
- 	for (i = 1; i < (1 << order); i++)
- 		set_page_refcounted(page + i);
- 	split_page_owner(page, order);
-@@ -4229,9 +4218,6 @@ out:
- 		page = NULL;
- 	}
- 
--	if (kmemcheck_enabled && page)
--		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
--
- 	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
- 
- 	return page;
-diff -puN mm/slab.c~kmemcheck-remove-annotations mm/slab.c
---- a/mm/slab.c~kmemcheck-remove-annotations
-+++ a/mm/slab.c
-@@ -113,7 +113,6 @@
- #include	<linux/rtmutex.h>
- #include	<linux/reciprocal_div.h>
- #include	<linux/debugobjects.h>
--#include	<linux/kmemcheck.h>
- #include	<linux/memory.h>
- #include	<linux/prefetch.h>
- #include	<linux/sched/task_stack.h>
-@@ -1434,15 +1433,6 @@ static struct page *kmem_getpages(struct
- 	if (sk_memalloc_socks() && page_is_pfmemalloc(page))
- 		SetPageSlabPfmemalloc(page);
- 
--	if (kmemcheck_enabled && !(cachep->flags & SLAB_NOTRACK)) {
--		kmemcheck_alloc_shadow(page, cachep->gfporder, flags, nodeid);
--
--		if (cachep->ctor)
--			kmemcheck_mark_uninitialized_pages(page, nr_pages);
--		else
--			kmemcheck_mark_unallocated_pages(page, nr_pages);
--	}
--
- 	return page;
- }
- 
-@@ -1454,8 +1444,6 @@ static void kmem_freepages(struct kmem_c
- 	int order = cachep->gfporder;
- 	unsigned long nr_freed = (1 << order);
- 
--	kmemcheck_free_shadow(page, order);
--
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
- 		mod_lruvec_page_state(page, NR_SLAB_RECLAIMABLE, -nr_freed);
+ 	if (after_bootmem)
+-		ptr = (void *) get_zeroed_page(GFP_ATOMIC | __GFP_NOTRACK);
++		ptr = (void *) get_zeroed_page(GFP_ATOMIC);
  	else
-@@ -3515,8 +3503,6 @@ void ___cache_free(struct kmem_cache *ca
- 	kmemleak_free_recursive(objp, cachep->flags);
- 	objp = cache_free_debugcheck(cachep, objp, caller);
+ 		ptr = alloc_bootmem_pages(PAGE_SIZE);
  
--	kmemcheck_slab_free(cachep, objp, cachep->object_size);
--
+diff -puN arch/x86/mm/init.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/x86/mm/init.c
+@@ -92,8 +92,7 @@ __ref void *alloc_low_pages(unsigned int
+ 		unsigned int order;
+ 
+ 		order = get_order((unsigned long)num << PAGE_SHIFT);
+-		return (void *)__get_free_pages(GFP_ATOMIC | __GFP_NOTRACK |
+-						__GFP_ZERO, order);
++		return (void *)__get_free_pages(GFP_ATOMIC | __GFP_ZERO, order);
+ 	}
+ 
+ 	if ((pgt_buf_end + num) > pgt_buf_top || !can_use_brk_pgt) {
+diff -puN arch/x86/mm/pageattr.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/x86/mm/pageattr.c
+--- a/arch/x86/mm/pageattr.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/x86/mm/pageattr.c
+@@ -753,7 +753,7 @@ static int split_large_page(struct cpa_d
+ 
+ 	if (!debug_pagealloc_enabled())
+ 		spin_unlock(&cpa_lock);
+-	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
++	base = alloc_pages(GFP_KERNEL, 0);
+ 	if (!debug_pagealloc_enabled())
+ 		spin_lock(&cpa_lock);
+ 	if (!base)
+@@ -904,7 +904,7 @@ static void unmap_pud_range(p4d_t *p4d,
+ 
+ static int alloc_pte_page(pmd_t *pmd)
+ {
+-	pte_t *pte = (pte_t *)get_zeroed_page(GFP_KERNEL | __GFP_NOTRACK);
++	pte_t *pte = (pte_t *)get_zeroed_page(GFP_KERNEL);
+ 	if (!pte)
+ 		return -1;
+ 
+@@ -914,7 +914,7 @@ static int alloc_pte_page(pmd_t *pmd)
+ 
+ static int alloc_pmd_page(pud_t *pud)
+ {
+-	pmd_t *pmd = (pmd_t *)get_zeroed_page(GFP_KERNEL | __GFP_NOTRACK);
++	pmd_t *pmd = (pmd_t *)get_zeroed_page(GFP_KERNEL);
+ 	if (!pmd)
+ 		return -1;
+ 
+@@ -1120,7 +1120,7 @@ static int populate_pgd(struct cpa_data
+ 	pgd_entry = cpa->pgd + pgd_index(addr);
+ 
+ 	if (pgd_none(*pgd_entry)) {
+-		p4d = (p4d_t *)get_zeroed_page(GFP_KERNEL | __GFP_NOTRACK);
++		p4d = (p4d_t *)get_zeroed_page(GFP_KERNEL);
+ 		if (!p4d)
+ 			return -1;
+ 
+@@ -1132,7 +1132,7 @@ static int populate_pgd(struct cpa_data
+ 	 */
+ 	p4d = p4d_offset(pgd_entry, addr);
+ 	if (p4d_none(*p4d)) {
+-		pud = (pud_t *)get_zeroed_page(GFP_KERNEL | __GFP_NOTRACK);
++		pud = (pud_t *)get_zeroed_page(GFP_KERNEL);
+ 		if (!pud)
+ 			return -1;
+ 
+diff -puN arch/x86/mm/pgtable.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/x86/mm/pgtable.c
+@@ -6,7 +6,7 @@
+ #include <asm/fixmap.h>
+ #include <asm/mtrr.h>
+ 
+-#define PGALLOC_GFP (GFP_KERNEL_ACCOUNT | __GFP_NOTRACK | __GFP_ZERO)
++#define PGALLOC_GFP (GFP_KERNEL_ACCOUNT | __GFP_ZERO)
+ 
+ #ifdef CONFIG_HIGHPTE
+ #define PGALLOC_USER_GFP __GFP_HIGHMEM
+diff -puN arch/x86/platform/efi/efi_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack arch/x86/platform/efi/efi_64.c
+--- a/arch/x86/platform/efi/efi_64.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/arch/x86/platform/efi/efi_64.c
+@@ -205,7 +205,7 @@ int __init efi_alloc_page_tables(void)
+ 	if (efi_enabled(EFI_OLD_MEMMAP))
+ 		return 0;
+ 
+-	gfp_mask = GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO;
++	gfp_mask = GFP_KERNEL | __GFP_ZERO;
+ 	efi_pgd = (pgd_t *)__get_free_page(gfp_mask);
+ 	if (!efi_pgd)
+ 		return -ENOMEM;
+diff -puN crypto/xor.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack crypto/xor.c
+--- a/crypto/xor.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/crypto/xor.c
+@@ -122,12 +122,7 @@ calibrate_xor_blocks(void)
+ 		goto out;
+ 	}
+ 
+-	/*
+-	 * Note: Since the memory is not actually used for _anything_ but to
+-	 * test the XOR speed, we don't really want kmemcheck to warn about
+-	 * reading uninitialized bytes here.
+-	 */
+-	b1 = (void *) __get_free_pages(GFP_KERNEL | __GFP_NOTRACK, 2);
++	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
+ 	if (!b1) {
+ 		printk(KERN_WARNING "xor: Yikes!  No memory available.\n");
+ 		return -ENOMEM;
+diff -puN include/linux/thread_info.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack include/linux/thread_info.h
+--- a/include/linux/thread_info.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/include/linux/thread_info.h
+@@ -43,10 +43,9 @@ enum {
+ #endif
+ 
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+-# define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT | __GFP_NOTRACK | \
+-				 __GFP_ZERO)
++# define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT | __GFP_ZERO)
+ #else
+-# define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT | __GFP_NOTRACK)
++# define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT)
+ #endif
+ 
+ /*
+diff -puN init/do_mounts.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack init/do_mounts.c
+--- a/init/do_mounts.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/init/do_mounts.c
+@@ -380,8 +380,7 @@ static int __init do_mount_root(char *na
+ 
+ void __init mount_block_root(char *name, int flags)
+ {
+-	struct page *page = alloc_page(GFP_KERNEL |
+-					__GFP_NOTRACK_FALSE_POSITIVE);
++	struct page *page = alloc_page(GFP_KERNEL);
+ 	char *fs_names = page_address(page);
+ 	char *p;
+ #ifdef CONFIG_BLOCK
+diff -puN kernel/fork.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack kernel/fork.c
+--- a/kernel/fork.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/kernel/fork.c
+@@ -707,7 +707,7 @@ void __init fork_init(void)
+ 	/* create a slab on which task_structs can be allocated */
+ 	task_struct_cachep = kmem_cache_create("task_struct",
+ 			arch_task_struct_size, align,
+-			SLAB_PANIC|SLAB_NOTRACK|SLAB_ACCOUNT, NULL);
++			SLAB_PANIC|SLAB_ACCOUNT, NULL);
+ #endif
+ 
+ 	/* do the arch specific task caches init */
+@@ -2234,18 +2234,18 @@ void __init proc_caches_init(void)
+ 	sighand_cachep = kmem_cache_create("sighand_cache",
+ 			sizeof(struct sighand_struct), 0,
+ 			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_TYPESAFE_BY_RCU|
+-			SLAB_NOTRACK|SLAB_ACCOUNT, sighand_ctor);
++			SLAB_ACCOUNT, sighand_ctor);
+ 	signal_cachep = kmem_cache_create("signal_cache",
+ 			sizeof(struct signal_struct), 0,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_NOTRACK|SLAB_ACCOUNT,
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT,
+ 			NULL);
+ 	files_cachep = kmem_cache_create("files_cache",
+ 			sizeof(struct files_struct), 0,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_NOTRACK|SLAB_ACCOUNT,
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT,
+ 			NULL);
+ 	fs_cachep = kmem_cache_create("fs_cache",
+ 			sizeof(struct fs_struct), 0,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_NOTRACK|SLAB_ACCOUNT,
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT,
+ 			NULL);
  	/*
- 	 * Skip calling cache_free_alien() when the platform is not numa.
- 	 * This will avoid cache misses that happen while accessing slabp (which
-diff -puN mm/slab.h~kmemcheck-remove-annotations mm/slab.h
---- a/mm/slab.h~kmemcheck-remove-annotations
+ 	 * FIXME! The "sizeof(struct mm_struct)" currently includes the
+@@ -2256,7 +2256,7 @@ void __init proc_caches_init(void)
+ 	 */
+ 	mm_cachep = kmem_cache_create("mm_struct",
+ 			sizeof(struct mm_struct), ARCH_MIN_MMSTRUCT_ALIGN,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_NOTRACK|SLAB_ACCOUNT,
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT,
+ 			NULL);
+ 	vm_area_cachep = KMEM_CACHE(vm_area_struct, SLAB_PANIC|SLAB_ACCOUNT);
+ 	mmap_init();
+diff -puN kernel/signal.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack kernel/signal.c
+--- a/kernel/signal.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/kernel/signal.c
+@@ -1036,8 +1036,7 @@ static int __send_signal(int sig, struct
+ 	else
+ 		override_rlimit = 0;
+ 
+-	q = __sigqueue_alloc(sig, t, GFP_ATOMIC | __GFP_NOTRACK_FALSE_POSITIVE,
+-		override_rlimit);
++	q = __sigqueue_alloc(sig, t, GFP_ATOMIC, override_rlimit);
+ 	if (q) {
+ 		list_add_tail(&q->list, &pending->list);
+ 		switch ((unsigned long) info) {
+diff -puN mm/kmemcheck.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack mm/kmemcheck.c
+--- a/mm/kmemcheck.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/mm/kmemcheck.c
+@@ -17,7 +17,7 @@ void kmemcheck_alloc_shadow(struct page
+ 	 * With kmemcheck enabled, we need to allocate a memory area for the
+ 	 * shadow bits as well.
+ 	 */
+-	shadow = alloc_pages_node(node, flags | __GFP_NOTRACK, order);
++	shadow = alloc_pages_node(node, flags, order);
+ 	if (!shadow) {
+ 		if (printk_ratelimit())
+ 			pr_err("kmemcheck: failed to allocate shadow bitmap\n");
+diff -puN mm/slab.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack mm/slab.c
+--- a/mm/slab.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/mm/slab.c
+@@ -1411,7 +1411,7 @@ static struct page *kmem_getpages(struct
+ 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
+ 		flags |= __GFP_RECLAIMABLE;
+ 
+-	page = __alloc_pages_node(nodeid, flags | __GFP_NOTRACK, cachep->gfporder);
++	page = __alloc_pages_node(nodeid, flags, cachep->gfporder);
+ 	if (!page) {
+ 		slab_out_of_memory(cachep, flags, nodeid);
+ 		return NULL;
+diff -puN mm/slab_common.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack mm/slab_common.c
+--- a/mm/slab_common.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
++++ a/mm/slab_common.c
+@@ -43,7 +43,7 @@ static DECLARE_WORK(slab_caches_to_rcu_d
+ 		SLAB_FAILSLAB | SLAB_KASAN)
+ 
+ #define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | \
+-			 SLAB_NOTRACK | SLAB_ACCOUNT)
++			 SLAB_ACCOUNT)
+ 
+ /*
+  * Merge control. If this is set then no merging of slab caches will occur.
+diff -puN mm/slab.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack mm/slab.h
+--- a/mm/slab.h~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
 +++ a/mm/slab.h
-@@ -39,7 +39,6 @@ struct kmem_cache {
+@@ -140,10 +140,10 @@ static inline unsigned long kmem_cache_f
+ #if defined(CONFIG_SLAB)
+ #define SLAB_CACHE_FLAGS (SLAB_MEM_SPREAD | SLAB_NOLEAKTRACE | \
+ 			  SLAB_RECLAIM_ACCOUNT | SLAB_TEMPORARY | \
+-			  SLAB_NOTRACK | SLAB_ACCOUNT)
++			  SLAB_ACCOUNT)
+ #elif defined(CONFIG_SLUB)
+ #define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE | SLAB_RECLAIM_ACCOUNT | \
+-			  SLAB_TEMPORARY | SLAB_NOTRACK | SLAB_ACCOUNT)
++			  SLAB_TEMPORARY | SLAB_ACCOUNT)
+ #else
+ #define SLAB_CACHE_FLAGS (0)
+ #endif
+@@ -162,7 +162,6 @@ static inline unsigned long kmem_cache_f
+ 			      SLAB_NOLEAKTRACE | \
+ 			      SLAB_RECLAIM_ACCOUNT | \
+ 			      SLAB_TEMPORARY | \
+-			      SLAB_NOTRACK | \
+ 			      SLAB_ACCOUNT)
  
- #include <linux/memcontrol.h>
- #include <linux/fault-inject.h>
--#include <linux/kmemcheck.h>
- #include <linux/kasan.h>
- #include <linux/kmemleak.h>
- #include <linux/random.h>
-@@ -438,7 +437,6 @@ static inline void slab_post_alloc_hook(
- 	for (i = 0; i < size; i++) {
- 		void *object = p[i];
- 
--		kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
- 		kmemleak_alloc_recursive(object, s->object_size, 1,
- 					 s->flags, flags);
- 		kasan_slab_alloc(s, object, flags);
-diff -puN mm/slub.c~kmemcheck-remove-annotations mm/slub.c
---- a/mm/slub.c~kmemcheck-remove-annotations
+ int __kmem_cache_shutdown(struct kmem_cache *);
+diff -puN mm/slub.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack mm/slub.c
+--- a/mm/slub.c~kmemcheck-stop-using-gfp_notrack-and-slab_notrack
 +++ a/mm/slub.c
-@@ -21,7 +21,6 @@
- #include <linux/notifier.h>
- #include <linux/seq_file.h>
- #include <linux/kasan.h>
--#include <linux/kmemcheck.h>
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
- #include <linux/mempolicy.h>
-@@ -1374,7 +1373,6 @@ static inline void *slab_free_hook(struc
- 		unsigned long flags;
+@@ -1433,8 +1433,6 @@ static inline struct page *alloc_slab_pa
+ 	struct page *page;
+ 	int order = oo_order(oo);
  
- 		local_irq_save(flags);
--		kmemcheck_slab_free(s, x, s->object_size);
- 		debug_check_no_locks_freed(x, s->object_size);
- 		local_irq_restore(flags);
- 	}
-@@ -1595,22 +1593,6 @@ static struct page *allocate_slab(struct
- 		stat(s, ORDER_FALLBACK);
- 	}
- 
--	if (kmemcheck_enabled &&
--	    !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
--		int pages = 1 << oo_order(oo);
--
--		kmemcheck_alloc_shadow(page, oo_order(oo), alloc_gfp, node);
--
--		/*
--		 * Objects from caches that have a constructor don't get
--		 * cleared when they're allocated, so we need to do it here.
--		 */
--		if (s->ctor)
--			kmemcheck_mark_uninitialized_pages(page, pages);
--		else
--			kmemcheck_mark_unallocated_pages(page, pages);
--	}
--
- 	page->objects = oo_objects(oo);
- 
- 	order = compound_order(page);
-@@ -1686,8 +1668,6 @@ static void __free_slab(struct kmem_cach
- 			check_object(s, page, p, SLUB_RED_INACTIVE);
- 	}
- 
--	kmemcheck_free_shadow(page, compound_order(page));
--
- 	mod_lruvec_page_state(page,
- 		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
-diff -puN net/core/skbuff.c~kmemcheck-remove-annotations net/core/skbuff.c
---- a/net/core/skbuff.c~kmemcheck-remove-annotations
-+++ a/net/core/skbuff.c
-@@ -41,7 +41,6 @@
- #include <linux/module.h>
- #include <linux/types.h>
- #include <linux/kernel.h>
--#include <linux/kmemcheck.h>
- #include <linux/mm.h>
- #include <linux/interrupt.h>
- #include <linux/in.h>
-@@ -234,14 +233,12 @@ struct sk_buff *__alloc_skb(unsigned int
- 	shinfo = skb_shinfo(skb);
- 	memset(shinfo, 0, offsetof(struct skb_shared_info, dataref));
- 	atomic_set(&shinfo->dataref, 1);
--	kmemcheck_annotate_variable(shinfo->destructor_arg);
- 
- 	if (flags & SKB_ALLOC_FCLONE) {
- 		struct sk_buff_fclones *fclones;
- 
- 		fclones = container_of(skb, struct sk_buff_fclones, skb1);
- 
--		kmemcheck_annotate_bitfield(&fclones->skb2, flags1);
- 		skb->fclone = SKB_FCLONE_ORIG;
- 		refcount_set(&fclones->fclone_ref, 1);
- 
-@@ -301,7 +298,6 @@ struct sk_buff *__build_skb(void *data,
- 	shinfo = skb_shinfo(skb);
- 	memset(shinfo, 0, offsetof(struct skb_shared_info, dataref));
- 	atomic_set(&shinfo->dataref, 1);
--	kmemcheck_annotate_variable(shinfo->destructor_arg);
- 
- 	return skb;
- }
-@@ -1279,7 +1275,6 @@ struct sk_buff *skb_clone(struct sk_buff
- 		if (!n)
- 			return NULL;
- 
--		kmemcheck_annotate_bitfield(n, flags1);
- 		n->fclone = SKB_FCLONE_UNAVAILABLE;
- 	}
- 
-diff -puN net/core/sock.c~kmemcheck-remove-annotations net/core/sock.c
---- a/net/core/sock.c~kmemcheck-remove-annotations
-+++ a/net/core/sock.c
-@@ -1469,8 +1469,6 @@ static struct sock *sk_prot_alloc(struct
- 		sk = kmalloc(prot->obj_size, priority);
- 
- 	if (sk != NULL) {
--		kmemcheck_annotate_bitfield(sk, flags);
--
- 		if (security_sk_alloc(sk, family, priority))
- 			goto out_free;
- 
-diff -puN net/ipv4/inet_timewait_sock.c~kmemcheck-remove-annotations net/ipv4/inet_timewait_sock.c
---- a/net/ipv4/inet_timewait_sock.c~kmemcheck-remove-annotations
-+++ a/net/ipv4/inet_timewait_sock.c
-@@ -9,7 +9,6 @@
-  */
- 
- #include <linux/kernel.h>
--#include <linux/kmemcheck.h>
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <net/inet_hashtables.h>
-@@ -167,8 +166,6 @@ struct inet_timewait_sock *inet_twsk_all
- 	if (tw) {
- 		const struct inet_sock *inet = inet_sk(sk);
- 
--		kmemcheck_annotate_bitfield(tw, flags);
--
- 		tw->tw_dr	    = dr;
- 		/* Give us an identity. */
- 		tw->tw_daddr	    = inet->inet_daddr;
-diff -puN net/ipv4/tcp_input.c~kmemcheck-remove-annotations net/ipv4/tcp_input.c
---- a/net/ipv4/tcp_input.c~kmemcheck-remove-annotations
-+++ a/net/ipv4/tcp_input.c
-@@ -6195,7 +6195,6 @@ struct request_sock *inet_reqsk_alloc(co
- 	if (req) {
- 		struct inet_request_sock *ireq = inet_rsk(req);
- 
--		kmemcheck_annotate_bitfield(ireq, flags);
- 		ireq->opt = NULL;
- #if IS_ENABLED(CONFIG_IPV6)
- 		ireq->pktopts = NULL;
-diff -puN net/socket.c~kmemcheck-remove-annotations net/socket.c
---- a/net/socket.c~kmemcheck-remove-annotations
-+++ a/net/socket.c
-@@ -568,7 +568,6 @@ struct socket *sock_alloc(void)
- 
- 	sock = SOCKET_I(inode);
- 
--	kmemcheck_annotate_bitfield(sock, type);
- 	inode->i_ino = get_next_ino();
- 	inode->i_mode = S_IFSOCK | S_IRWXUGO;
- 	inode->i_uid = current_fsuid();
-_
-
-Patches currently in -mm which might be from alexander.levin@verizon.com are
-
-kmemcheck-remove-annotations.patch
-kmemcheck-stop-using-gfp_notrack-and-slab_notrack.patch
-kmemcheck-remove-whats-left-of-notrack-flags.patch
-kmemcheck-rip-it-out.patch
-
+-	flags |= __GFP_NOTRACK;
