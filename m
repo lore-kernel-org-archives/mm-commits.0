@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + f2fs-use-pagevec_lookup_range_tag.patch added to -mm tree
-Date: Tue, 10 Oct 2017 14:00:47 -0700
-Message-ID: <59dd34ff.jxuL/tEDo5sEv4It%akpm@linux-foundation.org>
+Subject: + ext4-use-pagevec_lookup_range_tag.patch added to -mm tree
+Date: Tue, 10 Oct 2017 14:00:44 -0700
+Message-ID: <59dd34fc.p8uucw/FeRRphhhg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60526 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932580AbdJJVA5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:00:57 -0400
+        with ESMTP id S933327AbdJJVAt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, daniel.m.jordan@oracle.com, jaegeuk@kernel.org, yuchao0@huawei.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, daniel.m.jordan@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: f2fs: use pagevec_lookup_range_tag()
+     Subject: ext4: use pagevec_lookup_range_tag()
 has been added to the -mm tree.  Its filename is
-     f2fs-use-pagevec_lookup_range_tag.patch
+     ext4-use-pagevec_lookup_range_tag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/f2fs-use-pagevec_lookup_range_tag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext4-use-pagevec_lookup_range_tag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/f2fs-use-pagevec_lookup_range_tag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-use-pagevec_lookup_range_tag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: f2fs: use pagevec_lookup_range_tag()
+Subject: ext4: use pagevec_lookup_range_tag()
 
-We want only pages from given range in f2fs_write_cache_pages().  Use
+We want only pages from given range in ext4_writepages().  Use
 pagevec_lookup_range_tag() instead of pagevec_lookup_tag() and remove
 unnecessary code.
 
-Link: http://lkml.kernel.org/r/20171009151359.31984-6-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171009151359.31984-5-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Chao Yu <yuchao0@huawei.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ fs/ext4/inode.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN fs/f2fs/data.c~f2fs-use-pagevec_lookup_range_tag fs/f2fs/data.c
---- a/fs/f2fs/data.c~f2fs-use-pagevec_lookup_range_tag
-+++ a/fs/f2fs/data.c
-@@ -1669,8 +1669,8 @@ retry:
- 	while (!done && (index <= end)) {
- 		int i;
- 
+diff -puN fs/ext4/inode.c~ext4-use-pagevec_lookup_range_tag fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-use-pagevec_lookup_range_tag
++++ a/fs/ext4/inode.c
+@@ -2619,8 +2619,8 @@ static int mpage_prepare_extent_to_map(s
+ 	mpd->map.m_len = 0;
+ 	mpd->next_page = index;
+ 	while (index <= end) {
 -		nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
--			      min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1);
+-			      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
 +		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
 +				tag, PAGEVEC_SIZE);
  		if (nr_pages == 0)
- 			break;
+ 			goto out;
  
-@@ -1678,11 +1678,6 @@ retry:
+@@ -2628,16 +2628,6 @@ static int mpage_prepare_extent_to_map(s
  			struct page *page = pvec.pages[i];
- 			bool submitted = false;
  
--			if (page->index > end) {
--				done = 1;
--				break;
--			}
+ 			/*
+-			 * At this point, the page may be truncated or
+-			 * invalidated (changing page->mapping to NULL), or
+-			 * even swizzled back from swapper_space to tmpfs file
+-			 * mapping. However, page->index will not change
+-			 * because we have a reference on the page.
+-			 */
+-			if (page->index > end)
+-				goto out;
 -
- 			done_index = page->index;
- retry_write:
- 			lock_page(page);
+-			/*
+ 			 * Accumulated enough dirty pages? This doesn't apply
+ 			 * to WB_SYNC_ALL mode. For integrity sync we have to
+ 			 * keep going because someone may be concurrently
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
