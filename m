@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_misc-node-could-be-null-when-evicting-inode.patch added
- to -mm tree
-Date: Tue, 10 Oct 2017 13:36:06 -0700
-Message-ID: <59dd2f36.aKhL1lvwScGr96l/%akpm@linux-foundation.org>
+Subject: + mm-reducing-page_owner-structure-size.patch added to -mm tree
+Date: Tue, 10 Oct 2017 13:42:33 -0700
+Message-ID: <59dd30b9.exPhvbQRCrCtOh5G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934012AbdJJUgH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:36:07 -0400
+        with ESMTP id S932304AbdJJUme (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eguan@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ayush.m@samsung.com, a.sahrawat@samsung.com, vbabka@suse.cz, vinmenon@codeaurora.org, v.narang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
+     Subject: mm/page_owner.c: reduce page_owner structure size
 has been added to the -mm tree.  Its filename is
-     binfmt_misc-node-could-be-null-when-evicting-inode.patch
+     mm-reducing-page_owner-structure-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-reducing-page_owner-structure-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-reducing-page_owner-structure-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eryu Guan <eguan@redhat.com>
-Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
+From: Ayush Mittal <ayush.m@samsung.com>
+Subject: mm/page_owner.c: reduce page_owner structure size
 
-inode->i_private is assigned by a Node pointer only after registering a
-new binary format, so it could be NULL if we only mount binfmt_misc but
-don't register any format, and this results in NULL pointer dereference at
-umount time.  e.g.
+Maximum page order can be at max 10 which can be accomodated in short data
+type(2 bytes).  last_migrate_reason is defined as enum type whose values
+can be accomodated in short data type (2 bytes).
 
-  mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
-  umount /proc/sys/fs/binfmt_misc
+Total structure size is currently 16 bytes but after changing structure
+size it goes to 12 bytes.
 
-[ 9379.678259] BUG: unable to handle kernel NULL pointer dereference at 0000000000000013
-[ 9379.985952] IP: bm_evict_inode+0x16/0x40 [binfmt_misc]
-...
-[ 9380.964911] Call Trace:
-[ 9380.977633]  evict+0xd3/0x1a0
-[ 9380.994449]  iput+0x17d/0x1d0
-[ 9381.010306]  dentry_unlink_inode+0xb9/0xf0
-[ 9381.034046]  __dentry_kill+0xc7/0x170
-[ 9381.055145]  shrink_dentry_list+0x122/0x280
-[ 9381.078908]  shrink_dcache_parent+0x39/0x90
-[ 9381.103082]  do_one_tree+0x12/0x40
-[ 9381.122005]  shrink_dcache_for_umount+0x2d/0x90
-[ 9381.146517]  generic_shutdown_super+0x1f/0x120
-[ 9381.171644]  kill_litter_super+0x29/0x40
-[ 9381.193513]  deactivate_locked_super+0x43/0x70
-[ 9381.219177]  deactivate_super+0x45/0x60
-[ 9381.240130]  cleanup_mnt+0x3f/0x70
-[ 9381.259064]  __cleanup_mnt+0x12/0x20
-[ 9381.279802]  task_work_run+0x86/0xa0
-[ 9381.299612]  exit_to_usermode_loop+0x6d/0x99
-[ 9381.323872]  syscall_return_slowpath+0xba/0xf0
-[ 9381.350464]  entry_SYSCALL_64_fastpath+0xa3/0xa
+Vlastimil said:
 
-Fix it by making sure Node (e) is not NULL.
+: Looks like it works, so why not.
+: Before:
+: [    0.001000] allocated 50331648 bytes of page_ext
+: After:
+: [    0.001000] allocated 41943040 bytes of page_ext
 
-Link: http://lkml.kernel.org/r/20171010100642.31786-1-eguan@redhat.com
-Fixes: 83f918274e4b ("exec: binfmt_misc: shift filp_close(interp_file) from kill_node() to bm_evict_inode()")
-Signed-off-by: Eryu Guan <eguan@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1507623917-37991-1-git-send-email-ayush.m@samsung.com
+Signed-off-by: Ayush Mittal <ayush.m@samsung.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: Vaneet Narang <v.narang@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode
-+++ a/fs/binfmt_misc.c
-@@ -596,7 +596,7 @@ static void bm_evict_inode(struct inode
- {
- 	Node *e = inode->i_private;
+diff -puN mm/page_owner.c~mm-reducing-page_owner-structure-size mm/page_owner.c
+--- a/mm/page_owner.c~mm-reducing-page_owner-structure-size
++++ a/mm/page_owner.c
+@@ -19,9 +19,9 @@
+ #define PAGE_OWNER_STACK_DEPTH (16)
  
--	if (e->flags & MISC_FMT_OPEN_FILE)
-+	if (e && e->flags & MISC_FMT_OPEN_FILE)
- 		filp_close(e->interp_file, NULL);
+ struct page_owner {
+-	unsigned int order;
++	unsigned short order;
++	short last_migrate_reason;
+ 	gfp_t gfp_mask;
+-	int last_migrate_reason;
+ 	depot_stack_handle_t handle;
+ };
  
- 	clear_inode(inode);
 _
 
-Patches currently in -mm which might be from eguan@redhat.com are
+Patches currently in -mm which might be from ayush.m@samsung.com are
 
-binfmt_misc-node-could-be-null-when-evicting-inode.patch
+mm-reducing-page_owner-structure-size.patch
 
