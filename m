@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-use-find_get_pages_range_tag.patch added to -mm tree
-Date: Tue, 10 Oct 2017 14:01:20 -0700
-Message-ID: <59dd3520.zVwVnIL68W6diyHh%akpm@linux-foundation.org>
+Subject: + afs-use-find_get_pages_range_tag.patch added to -mm tree
+Date: Tue, 10 Oct 2017 14:01:17 -0700
+Message-ID: <59dd351d.F7GqcAqWqZQxHcrL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32836 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933277AbdJJVBW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:01:22 -0400
+        with ESMTP id S933425AbdJJVBT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, daniel.m.jordan@oracle.com, sfrench@samba.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, daniel.m.jordan@oracle.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cifs: use find_get_pages_range_tag()
+     Subject: afs: use find_get_pages_range_tag()
 has been added to the -mm tree.  Its filename is
-     cifs-use-find_get_pages_range_tag.patch
+     afs-use-find_get_pages_range_tag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cifs-use-find_get_pages_range_tag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/afs-use-find_get_pages_range_tag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cifs-use-find_get_pages_range_tag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/afs-use-find_get_pages_range_tag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +39,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: cifs: use find_get_pages_range_tag()
+Subject: afs: use find_get_pages_range_tag()
 
-wdata_alloc_and_fillpages() needlessly iterates calls to
-find_get_pages_tag().  Also it wants only pages from given range.  Make it
-use find_get_pages_range_tag().
+Use find_get_pages_range_tag() in afs_writepages_region() as we are
+interested only in pages from given range.  Remove unnecessary code after
+this conversion.
 
-Link: http://lkml.kernel.org/r/20171009151359.31984-17-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171009151359.31984-16-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Suggested-by: Daniel Jordan <daniel.m.jordan@oracle.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Steve French <sfrench@samba.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/file.c |   21 ++-------------------
- 1 file changed, 2 insertions(+), 19 deletions(-)
+ fs/afs/write.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN fs/cifs/file.c~cifs-use-find_get_pages_range_tag fs/cifs/file.c
---- a/fs/cifs/file.c~cifs-use-find_get_pages_range_tag
-+++ a/fs/cifs/file.c
-@@ -1963,8 +1963,6 @@ wdata_alloc_and_fillpages(pgoff_t tofind
- 			  pgoff_t end, pgoff_t *index,
- 			  unsigned int *found_pages)
- {
--	unsigned int nr_pages;
--	struct page **pages;
- 	struct cifs_writedata *wdata;
+diff -puN fs/afs/write.c~afs-use-find_get_pages_range_tag fs/afs/write.c
+--- a/fs/afs/write.c~afs-use-find_get_pages_range_tag
++++ a/fs/afs/write.c
+@@ -497,20 +497,13 @@ static int afs_writepages_region(struct
+ 	_enter(",,%lx,%lx,", index, end);
  
- 	wdata = cifs_writedata_alloc((unsigned int)tofind,
-@@ -1972,23 +1970,8 @@ wdata_alloc_and_fillpages(pgoff_t tofind
- 	if (!wdata)
- 		return NULL;
+ 	do {
+-		n = find_get_pages_tag(mapping, &index, PAGECACHE_TAG_DIRTY,
+-				       1, &page);
++		n = find_get_pages_range_tag(mapping, &index, end,
++					PAGECACHE_TAG_DIRTY, 1, &page);
+ 		if (!n)
+ 			break;
  
--	/*
--	 * find_get_pages_tag seems to return a max of 256 on each
--	 * iteration, so we must call it several times in order to
--	 * fill the array or the wsize is effectively limited to
--	 * 256 * PAGE_SIZE.
--	 */
--	*found_pages = 0;
--	pages = wdata->pages;
--	do {
--		nr_pages = find_get_pages_tag(mapping, index,
--					      PAGECACHE_TAG_DIRTY, tofind,
--					      pages);
--		*found_pages += nr_pages;
--		tofind -= nr_pages;
--		pages += nr_pages;
--	} while (nr_pages && tofind && *index <= end);
+ 		_debug("wback %lx", page->index);
+ 
+-		if (page->index > end) {
+-			*_next = index;
+-			put_page(page);
+-			_leave(" = 0 [%lx]", *_next);
+-			return 0;
+-		}
 -
-+	*found_pages = find_get_pages_range_tag(mapping, index, end,
-+				PAGECACHE_TAG_DIRTY, tofind, wdata->pages);
- 	return wdata;
- }
- 
+ 		/* at this point we hold neither mapping->tree_lock nor lock on
+ 		 * the page itself: the page may be truncated or invalidated
+ 		 * (changing page->mapping to NULL), or even swizzled back from
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
