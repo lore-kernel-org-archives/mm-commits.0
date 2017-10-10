@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-consolidate-page-table-accounting.patch added to -mm tree
-Date: Tue, 10 Oct 2017 15:31:18 -0700
-Message-ID: <59dd4a36.IylB9M8fRT3Z5SMd%akpm@linux-foundation.org>
+Subject: + kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch added to
+ -mm tree
+Date: Tue, 10 Oct 2017 15:35:17 -0700
+Message-ID: <59dd4b25.sKnxCUe2kQWaqhc6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37460 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38446 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756347AbdJJWbU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 18:31:20 -0400
+        with ESMTP id S1755552AbdJJWfT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 18:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: shakeelb@google.com, borntraeger@de.ibm.com, christoffer.dall@linaro.org, dgibson@redhat.com, gthelen@google.com, hpa@zytor.com, james.hogan@imgtec.com, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mingo@redhat.com, paulus@ozlabs.org, pbonzini@redhat.com, rkrcmar@redhat.com, tglx@linutronix.de, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: consolidate page table accounting
+     Subject: kvm, mm: account kvm related kmem slabs to kmemcg
 has been added to the -mm tree.  Its filename is
-     mm-consolidate-page-table-accounting.patch
+     kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-page-table-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-page-table-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,369 +39,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: consolidate page table accounting
+From: Shakeel Butt <shakeelb@google.com>
+Subject: kvm, mm: account kvm related kmem slabs to kmemcg
 
-Currently, we account page tables separately for each page table level,
-but that's redundant -- we only make use of total memory allocated to page
-tables for oom_badness calculation.  We also provide the information to
-userspace, but it has dubious value there too.
+The kvm slabs can consume a significant amount of system memory and indeed
+in our production environment we have observed that a lot of machines are
+spending significant amount of memory that can not be left as system
+memory overhead.  Also the allocations from these slabs can be triggered
+directly by user space applications which has access to kvm and thus a
+buggy application can leak such memory.  So, these caches should be
+accounted to kmemcg.
 
-This patch switches page table accounting to single counter.
-
-mm->pgtables_bytes is now used to account all page table levels.  We use
-bytes, because page table size for different levels of page table tree may
-be different.
-
-The change has user-visible effect: we don't have VmPMD and VmPUD reported
-in /proc/[pid]/status.  Not sure if anybody uses them.  (As alternative,
-we can always report 0 kB for them.)
-
-OOM-killer report is also slightly changed: we now report pgtables_bytes
-instead of nr_ptes, nr_pmd, nr_puds.
-
-Apart from reducing number of counters per-mm, the benefit is that we now
-calculate oom_badness() more correctly for machines which have different
-size of page tables depending on level or where page tables are less than
-a page in size.
-
-The only downside can be debuggability because we do not know which page
-table level could leak.  But I do not remember many bugs that would be
-caught by separate counters so I wouldn't lose sleep over this.
-
-Link: http://lkml.kernel.org/r/20171006100651.44742-2-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20171006010724.186563-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Radim Krčmář <rkrcmar@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: David Gibson <dgibson@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    1 
- Documentation/sysctl/vm.txt        |    8 +--
- fs/proc/task_mmu.c                 |   11 -----
- include/linux/mm.h                 |   58 +++++----------------------
- include/linux/mm_types.h           |    8 ---
- kernel/fork.c                      |   16 +------
- mm/debug.c                         |    7 ---
- mm/oom_kill.c                      |   14 ++----
- 8 files changed, 31 insertions(+), 92 deletions(-)
+ arch/x86/kvm/mmu.c  |    4 ++--
+ virt/kvm/kvm_main.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-consolidate-page-table-accounting Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-consolidate-page-table-accounting
-+++ a/Documentation/filesystems/proc.txt
-@@ -250,7 +250,6 @@ Table 1-2: Contents of the status files
-  VmExe                       size of text segment
-  VmLib                       size of shared library code
-  VmPTE                       size of page table entries
-- VmPMD                       size of second level page tables
-  VmSwap                      amount of swap used by anonymous private data
-                              (shmem swap usage is not included)
-  HugetlbPages                size of hugetlb memory portions
-diff -puN Documentation/sysctl/vm.txt~mm-consolidate-page-table-accounting Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-consolidate-page-table-accounting
-+++ a/Documentation/sysctl/vm.txt
-@@ -605,10 +605,10 @@ oom_dump_tasks
+diff -puN arch/x86/kvm/mmu.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg arch/x86/kvm/mmu.c
+--- a/arch/x86/kvm/mmu.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg
++++ a/arch/x86/kvm/mmu.c
+@@ -5475,13 +5475,13 @@ int kvm_mmu_module_init(void)
  
- Enables a system-wide task dump (excluding kernel threads) to be produced
- when the kernel performs an OOM-killing and includes such information as
--pid, uid, tgid, vm size, rss, nr_ptes, nr_pmds, nr_puds, swapents,
--oom_score_adj score, and name.  This is helpful to determine why the OOM
--killer was invoked, to identify the rogue task that caused it, and to
--determine why the OOM killer chose the task it did to kill.
-+pid, uid, tgid, vm size, rss, pgtables_bytes, swapents, oom_score_adj
-+score, and name.  This is helpful to determine why the OOM killer was
-+invoked, to identify the rogue task that caused it, and to determine why
-+the OOM killer chose the task it did to kill.
+ 	pte_list_desc_cache = kmem_cache_create("pte_list_desc",
+ 					    sizeof(struct pte_list_desc),
+-					    0, 0, NULL);
++					    0, SLAB_ACCOUNT, NULL);
+ 	if (!pte_list_desc_cache)
+ 		goto nomem;
  
- If this is set to zero, this information is suppressed.  On very
- large systems with thousands of tasks it may not be feasible to dump
-diff -puN fs/proc/task_mmu.c~mm-consolidate-page-table-accounting fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-consolidate-page-table-accounting
-+++ a/fs/proc/task_mmu.c
-@@ -25,7 +25,7 @@
+ 	mmu_page_header_cache = kmem_cache_create("kvm_mmu_page_header",
+ 						  sizeof(struct kvm_mmu_page),
+-						  0, 0, NULL);
++						  0, SLAB_ACCOUNT, NULL);
+ 	if (!mmu_page_header_cache)
+ 		goto nomem;
  
- void task_mem(struct seq_file *m, struct mm_struct *mm)
- {
--	unsigned long text, lib, swap, ptes, pmds, puds, anon, file, shmem;
-+	unsigned long text, lib, swap, anon, file, shmem;
- 	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss;
- 
- 	anon = get_mm_counter(mm, MM_ANONPAGES);
-@@ -52,9 +52,6 @@ void task_mem(struct seq_file *m, struct
- 	lib = (mm->exec_vm << PAGE_SHIFT) - text;
- 
- 	swap = get_mm_counter(mm, MM_SWAPENTS);
--	ptes = PTRS_PER_PTE * sizeof(pte_t) * mm_nr_ptes(mm);
--	pmds = PTRS_PER_PMD * sizeof(pmd_t) * mm_nr_pmds(mm);
--	puds = PTRS_PER_PUD * sizeof(pud_t) * mm_nr_puds(mm);
- 	seq_printf(m,
- 		"VmPeak:\t%8lu kB\n"
- 		"VmSize:\t%8lu kB\n"
-@@ -70,8 +67,6 @@ void task_mem(struct seq_file *m, struct
- 		"VmExe:\t%8lu kB\n"
- 		"VmLib:\t%8lu kB\n"
- 		"VmPTE:\t%8lu kB\n"
--		"VmPMD:\t%8lu kB\n"
--		"VmPUD:\t%8lu kB\n"
- 		"VmSwap:\t%8lu kB\n",
- 		hiwater_vm << (PAGE_SHIFT-10),
- 		total_vm << (PAGE_SHIFT-10),
-@@ -86,9 +81,7 @@ void task_mem(struct seq_file *m, struct
- 		mm->stack_vm << (PAGE_SHIFT-10),
- 		text >> 10,
- 		lib >> 10,
--		ptes >> 10,
--		pmds >> 10,
--		puds >> 10,
-+		mm_pgtables_bytes(mm) >> 10,
- 		swap << (PAGE_SHIFT-10));
- 	hugetlb_report_usage(m, mm);
- }
-diff -puN include/linux/mm.h~mm-consolidate-page-table-accounting include/linux/mm.h
---- a/include/linux/mm.h~mm-consolidate-page-table-accounting
-+++ a/include/linux/mm.h
-@@ -1604,37 +1604,20 @@ static inline int __pud_alloc(struct mm_
- {
- 	return 0;
- }
--
--static inline unsigned long mm_nr_puds(const struct mm_struct *mm)
--{
--	return 0;
--}
--
--static inline void mm_nr_puds_init(struct mm_struct *mm) {}
- static inline void mm_inc_nr_puds(struct mm_struct *mm) {}
- static inline void mm_dec_nr_puds(struct mm_struct *mm) {}
- 
- #else
- int __pud_alloc(struct mm_struct *mm, p4d_t *p4d, unsigned long address);
- 
--static inline void mm_nr_puds_init(struct mm_struct *mm)
--{
--	atomic_long_set(&mm->nr_puds, 0);
--}
--
--static inline unsigned long mm_nr_puds(const struct mm_struct *mm)
--{
--	return atomic_long_read(&mm->nr_puds);
--}
--
- static inline void mm_inc_nr_puds(struct mm_struct *mm)
- {
--	atomic_long_inc(&mm->nr_puds);
-+	atomic_long_add(PTRS_PER_PUD * sizeof(pud_t), &mm->pgtables_bytes);
- }
- 
- static inline void mm_dec_nr_puds(struct mm_struct *mm)
- {
--	atomic_long_dec(&mm->nr_puds);
-+	atomic_long_sub(PTRS_PER_PUD * sizeof(pud_t), &mm->pgtables_bytes);
- }
- #endif
- 
-@@ -1645,64 +1628,47 @@ static inline int __pmd_alloc(struct mm_
- 	return 0;
- }
- 
--static inline void mm_nr_pmds_init(struct mm_struct *mm) {}
--
--static inline unsigned long mm_nr_pmds(const struct mm_struct *mm)
--{
--	return 0;
--}
--
- static inline void mm_inc_nr_pmds(struct mm_struct *mm) {}
- static inline void mm_dec_nr_pmds(struct mm_struct *mm) {}
- 
- #else
- int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address);
- 
--static inline void mm_nr_pmds_init(struct mm_struct *mm)
--{
--	atomic_long_set(&mm->nr_pmds, 0);
--}
--
--static inline unsigned long mm_nr_pmds(const struct mm_struct *mm)
--{
--	return atomic_long_read(&mm->nr_pmds);
--}
--
- static inline void mm_inc_nr_pmds(struct mm_struct *mm)
- {
--	atomic_long_inc(&mm->nr_pmds);
-+	atomic_long_add(PTRS_PER_PMD * sizeof(pmd_t), &mm->pgtables_bytes);
- }
- 
- static inline void mm_dec_nr_pmds(struct mm_struct *mm)
- {
--	atomic_long_dec(&mm->nr_pmds);
-+	atomic_long_sub(PTRS_PER_PMD * sizeof(pmd_t), &mm->pgtables_bytes);
- }
- #endif
- 
- #ifdef CONFIG_MMU
--static inline void mm_nr_ptes_init(struct mm_struct *mm)
-+static inline void mm_pgtables_bytes_init(struct mm_struct *mm)
- {
--	atomic_long_set(&mm->nr_ptes, 0);
-+	atomic_long_set(&mm->pgtables_bytes, 0);
- }
- 
--static inline unsigned long mm_nr_ptes(const struct mm_struct *mm)
-+static inline unsigned long mm_pgtables_bytes(const struct mm_struct *mm)
- {
--	return atomic_long_read(&mm->nr_ptes);
-+	return atomic_long_read(&mm->pgtables_bytes);
- }
- 
- static inline void mm_inc_nr_ptes(struct mm_struct *mm)
- {
--	atomic_long_inc(&mm->nr_ptes);
-+	atomic_long_add(PTRS_PER_PTE * sizeof(pte_t), &mm->pgtables_bytes);
- }
- 
- static inline void mm_dec_nr_ptes(struct mm_struct *mm)
- {
--	atomic_long_dec(&mm->nr_ptes);
-+	atomic_long_sub(PTRS_PER_PTE * sizeof(pte_t), &mm->pgtables_bytes);
- }
- #else
--static inline void mm_nr_ptes_init(struct mm_struct *mm) {}
- 
--static inline unsigned long mm_nr_ptes(const struct mm_struct *mm)
-+static inline void mm_pgtables_bytes_init(struct mm_struct *mm) {}
-+static inline unsigned long mm_pgtables_bytes(struct mm_struct *mm)
- {
- 	return 0;
- }
-diff -puN include/linux/mm_types.h~mm-consolidate-page-table-accounting include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-consolidate-page-table-accounting
-+++ a/include/linux/mm_types.h
-@@ -393,13 +393,7 @@ struct mm_struct {
- 	atomic_t mm_count;
- 
- #ifdef CONFIG_MMU
--	atomic_long_t nr_ptes;			/* PTE page table pages */
--#endif
--#if CONFIG_PGTABLE_LEVELS > 2
--	atomic_long_t nr_pmds;			/* PMD page table pages */
--#endif
--#if CONFIG_PGTABLE_LEVELS > 3
--	atomic_long_t nr_puds;			/* PUD page table pages */
-+	atomic_long_t pgtables_bytes;		/* PTE page table pages */
- #endif
- 	int map_count;				/* number of VMAs */
- 
-diff -puN kernel/fork.c~mm-consolidate-page-table-accounting kernel/fork.c
---- a/kernel/fork.c~mm-consolidate-page-table-accounting
-+++ a/kernel/fork.c
-@@ -574,15 +574,9 @@ static void check_mm(struct mm_struct *m
- 					  "mm:%p idx:%d val:%ld\n", mm, i, x);
- 	}
- 
--	if (mm_nr_ptes(mm))
--		pr_alert("BUG: non-zero nr_ptes on freeing mm: %ld\n",
--				mm_nr_ptes(mm));
--	if (mm_nr_pmds(mm))
--		pr_alert("BUG: non-zero nr_pmds on freeing mm: %ld\n",
--				mm_nr_pmds(mm));
--	if (mm_nr_puds(mm))
--		pr_alert("BUG: non-zero nr_puds on freeing mm: %ld\n",
--				mm_nr_puds(mm));
-+	if (mm_pgtables_bytes(mm))
-+		pr_alert("BUG: non-zero pgtables_bytes on freeing mm: %ld\n",
-+				mm_pgtables_bytes(mm));
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
- 	VM_BUG_ON_MM(mm->pmd_huge_pte, mm);
-@@ -885,9 +879,7 @@ static struct mm_struct *mm_init(struct
- 	init_rwsem(&mm->mmap_sem);
- 	INIT_LIST_HEAD(&mm->mmlist);
- 	mm->core_state = NULL;
--	mm_nr_ptes_init(mm);
--	mm_nr_pmds_init(mm);
--	mm_nr_puds_init(mm);
-+	mm_pgtables_bytes_init(mm);
- 	mm->map_count = 0;
- 	mm->locked_vm = 0;
- 	mm->pinned_vm = 0;
-diff -puN mm/debug.c~mm-consolidate-page-table-accounting mm/debug.c
---- a/mm/debug.c~mm-consolidate-page-table-accounting
-+++ a/mm/debug.c
-@@ -104,8 +104,7 @@ void dump_mm(const struct mm_struct *mm)
- 		"get_unmapped_area %p\n"
- #endif
- 		"mmap_base %lu mmap_legacy_base %lu highest_vm_end %lu\n"
--		"pgd %p mm_users %d mm_count %d\n"
--		"nr_ptes %lu nr_pmds %lu nr_puds %lu map_count %d\n"
-+		"pgd %p mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
- 		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
- 		"pinned_vm %lx data_vm %lx exec_vm %lx stack_vm %lx\n"
- 		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
-@@ -135,9 +134,7 @@ void dump_mm(const struct mm_struct *mm)
- 		mm->mmap_base, mm->mmap_legacy_base, mm->highest_vm_end,
- 		mm->pgd, atomic_read(&mm->mm_users),
- 		atomic_read(&mm->mm_count),
--		mm_nr_ptes(mm),
--		mm_nr_pmds(mm),
--		mm_nr_puds(mm),
-+		mm_pgtables_bytes(mm),
- 		mm->map_count,
- 		mm->hiwater_rss, mm->hiwater_vm, mm->total_vm, mm->locked_vm,
- 		mm->pinned_vm, mm->data_vm, mm->exec_vm, mm->stack_vm,
-diff -puN mm/oom_kill.c~mm-consolidate-page-table-accounting mm/oom_kill.c
---- a/mm/oom_kill.c~mm-consolidate-page-table-accounting
-+++ a/mm/oom_kill.c
-@@ -221,7 +221,7 @@ unsigned long oom_badness(struct task_st
- 	 * task's rss, pagetable and swap space use.
- 	 */
- 	points = get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS) +
--		mm_nr_ptes(p->mm) + mm_nr_pmds(p->mm) + mm_nr_puds(p->mm);
-+		mm_pgtables_bytes(p->mm) / PAGE_SIZE;
- 	task_unlock(p);
- 
- 	/*
-@@ -389,15 +389,15 @@ static void select_bad_process(struct oo
-  * Dumps the current memory state of all eligible tasks.  Tasks not in the same
-  * memcg, not in the same cpuset, or bound to a disjoint set of mempolicy nodes
-  * are not shown.
-- * State information includes task's pid, uid, tgid, vm size, rss, nr_ptes,
-- * swapents, oom_score_adj value, and name.
-+ * State information includes task's pid, uid, tgid, vm size, rss,
-+ * pgtables_bytes, swapents, oom_score_adj value, and name.
-  */
- static void dump_tasks(struct mem_cgroup *memcg, const nodemask_t *nodemask)
- {
- 	struct task_struct *p;
- 	struct task_struct *task;
- 
--	pr_info("[ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds nr_puds swapents oom_score_adj name\n");
-+	pr_info("[ pid ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name\n");
- 	rcu_read_lock();
- 	for_each_process(p) {
- 		if (oom_unkillable_task(p, memcg, nodemask))
-@@ -413,12 +413,10 @@ static void dump_tasks(struct mem_cgroup
- 			continue;
- 		}
- 
--		pr_info("[%5d] %5d %5d %8lu %8lu %7ld %7ld %7ld %8lu         %5hd %s\n",
-+		pr_info("[%5d] %5d %5d %8lu %8lu %8ld %8lu         %5hd %s\n",
- 			task->pid, from_kuid(&init_user_ns, task_uid(task)),
- 			task->tgid, task->mm->total_vm, get_mm_rss(task->mm),
--			mm_nr_ptes(task->mm),
--			mm_nr_pmds(task->mm),
--			mm_nr_puds(task->mm),
-+			mm_pgtables_bytes(task->mm),
- 			get_mm_counter(task->mm, MM_SWAPENTS),
- 			task->signal->oom_score_adj, task->comm);
- 		task_unlock(task);
+diff -puN virt/kvm/kvm_main.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg virt/kvm/kvm_main.c
+--- a/virt/kvm/kvm_main.c~kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg
++++ a/virt/kvm/kvm_main.c
+@@ -4010,7 +4010,7 @@ int kvm_init(void *opaque, unsigned vcpu
+ 	if (!vcpu_align)
+ 		vcpu_align = __alignof__(struct kvm_vcpu);
+ 	kvm_vcpu_cache = kmem_cache_create("kvm_vcpu", vcpu_size, vcpu_align,
+-					   0, NULL);
++					   SLAB_ACCOUNT, NULL);
+ 	if (!kvm_vcpu_cache) {
+ 		r = -ENOMEM;
+ 		goto out_free_3;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-account-pud-page-tables.patch
-mm-account-pud-page-tables-fix.patch
-mm-introduce-wrappers-to-access-mm-nr_ptes.patch
-mm-consolidate-page-table-accounting.patch
-mm-add-infrastructure-for-get_user_pages_fast-benchmarking.patch
+kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
+epoll-account-epitem-and-eppoll_entry-to-kmemcg.patch
 
