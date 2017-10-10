@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + afs-use-find_get_pages_range_tag.patch added to -mm tree
-Date: Tue, 10 Oct 2017 14:01:17 -0700
-Message-ID: <59dd351d.F7GqcAqWqZQxHcrL%akpm@linux-foundation.org>
+Subject: + nilfs2-use-pagevec_lookup_range_tag.patch added to -mm tree
+Date: Tue, 10 Oct 2017 14:00:59 -0700
+Message-ID: <59dd350b.wPjpjsGHC5MoDekS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60774 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933425AbdJJVBT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:01:19 -0400
+        with ESMTP id S933441AbdJJVBI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:01:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, daniel.m.jordan@oracle.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, daniel.m.jordan@oracle.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: afs: use find_get_pages_range_tag()
+     Subject: nilfs2: use pagevec_lookup_range_tag()
 has been added to the -mm tree.  Its filename is
-     afs-use-find_get_pages_range_tag.patch
+     nilfs2-use-pagevec_lookup_range_tag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/afs-use-find_get_pages_range_tag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-use-pagevec_lookup_range_tag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/afs-use-find_get_pages_range_tag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-use-pagevec_lookup_range_tag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: afs: use find_get_pages_range_tag()
+Subject: nilfs2: use pagevec_lookup_range_tag()
 
-Use find_get_pages_range_tag() in afs_writepages_region() as we are
-interested only in pages from given range.  Remove unnecessary code after
-this conversion.
+We want only pages from given range in nilfs_lookup_dirty_data_buffers(). 
+Use pagevec_lookup_range_tag() instead of pagevec_lookup_tag() and remove
+unnecessary code.
 
-Link: http://lkml.kernel.org/r/20171009151359.31984-16-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171009151359.31984-10-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ fs/nilfs2/segment.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/afs/write.c~afs-use-find_get_pages_range_tag fs/afs/write.c
---- a/fs/afs/write.c~afs-use-find_get_pages_range_tag
-+++ a/fs/afs/write.c
-@@ -497,20 +497,13 @@ static int afs_writepages_region(struct
- 	_enter(",,%lx,%lx,", index, end);
+diff -puN fs/nilfs2/segment.c~nilfs2-use-pagevec_lookup_range_tag fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-use-pagevec_lookup_range_tag
++++ a/fs/nilfs2/segment.c
+@@ -711,18 +711,14 @@ static size_t nilfs_lookup_dirty_data_bu
+ 	pagevec_init(&pvec, 0);
+  repeat:
+ 	if (unlikely(index > last) ||
+-	    !pagevec_lookup_tag(&pvec, mapping, &index, PAGECACHE_TAG_DIRTY,
+-				min_t(pgoff_t, last - index,
+-				      PAGEVEC_SIZE - 1) + 1))
++	    !pagevec_lookup_range_tag(&pvec, mapping, &index, last,
++				PAGECACHE_TAG_DIRTY, PAGEVEC_SIZE))
+ 		return ndirties;
  
- 	do {
--		n = find_get_pages_tag(mapping, &index, PAGECACHE_TAG_DIRTY,
--				       1, &page);
-+		n = find_get_pages_range_tag(mapping, &index, end,
-+					PAGECACHE_TAG_DIRTY, 1, &page);
- 		if (!n)
- 			break;
+ 	for (i = 0; i < pagevec_count(&pvec); i++) {
+ 		struct buffer_head *bh, *head;
+ 		struct page *page = pvec.pages[i];
  
- 		_debug("wback %lx", page->index);
- 
--		if (page->index > end) {
--			*_next = index;
--			put_page(page);
--			_leave(" = 0 [%lx]", *_next);
--			return 0;
--		}
+-		if (unlikely(page->index > last))
+-			break;
 -
- 		/* at this point we hold neither mapping->tree_lock nor lock on
- 		 * the page itself: the page may be truncated or invalidated
- 		 * (changing page->mapping to NULL), or even swizzled back from
+ 		lock_page(page);
+ 		if (!page_has_buffers(page))
+ 			create_empty_buffers(page, i_blocksize(inode), 0);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
