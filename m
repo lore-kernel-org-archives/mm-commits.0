@@ -1,38 +1,133 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: mmotm 2016-08-02-15-53 uploaded
-Date: Tue, 10 Oct 2017 12:37:49 -0700
-Message-ID: <20171010123749.2c59f3b762b3c0b33e80a67d__11462.0549059056$1507664285$gmane$org@linux-foundation.org>
-References: <57a124aa.eJmVCvd1SOHlQ1X8%akpm@linux-foundation.org>
-        <CAGF4SLgi6jgtxbqtTEjL8FGXUHHsSm6KeoVqANLt3LB6OTBboA@mail.gmail.com>
+From: akpm@linux-foundation.org
+Subject: + fix-mpage_writepage-for-pages-with-buffers.patch added to -mm
+ tree
+Date: Tue, 10 Oct 2017 12:43:27 -0700
+Message-ID: <59dd22df.GdYvvTJ9K3DZT5u8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751704AbdJJThw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 15:37:52 -0400
-In-Reply-To: <CAGF4SLgi6jgtxbqtTEjL8FGXUHHsSm6KeoVqANLt3LB6OTBboA@mail.gmail.com>
+        with ESMTP id S1755653AbdJJTn2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 15:43:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Vitaly Mayatskih <v.mayatskih@gmail.com>
-Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org, ocfs2-devel@oss.oracle.com, piaojun <piaojun@huawei.com>, Joseph Qi <joseph.qi@huawei.com>, Jiufei Xue <xuejiufei@huawei.com>, Mark Fasheh <mfasheh@suse.de>, Joel Becker <jlbec@evilplan.org>, Junxiao Bi <junxiao.bi@oracle.com>
+To: willy@infradead.org, hirofumi@mail.parknet.co.jp, jthumshirn@suse.de, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, toshi.kani@hpe.com, mm-commits@vger.kernel.org
 
-On Tue, 10 Oct 2017 14:06:41 -0400 Vitaly Mayatskih <v.mayatskih@gmail.com> wrote:
 
-> * ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery
-> -master-goes-down.patch
-> 
-> This one completely broke two node cluster use case: when one node dies,
-> the other one either eventually crashes (~4.14-rc4) or locks up (pre-4.14).
+The patch titled
+     Subject: fs/mpage.c: fix mpage_writepage() for pages with buffers
+has been added to the -mm tree.  Its filename is
+     fix-mpage_writepage-for-pages-with-buffers.patch
 
-Are you sure?
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-mpage_writepage-for-pages-with-buffers.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-mpage_writepage-for-pages-with-buffers.patch
 
-Are you able to confirm that reverting this patch (ee8f7fcbe638b07e8)
-and only this patch fixes up current mainline kernels?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Are you able to supply more info on the crashes and lockups so that the
-ocfs2 developers can understand the failures?
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-Thanks.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Matthew Wilcox <willy@infradead.org>
+Subject: fs/mpage.c: fix mpage_writepage() for pages with buffers
+
+When using FAT on a block device which supports rw_page, we can hit
+BUG_ON(!PageLocked(page)) in try_to_free_buffers().  This is because we
+call clean_buffers() after unlocking the page we've written.  Introduce a
+new clean_page_buffers() which cleans all buffers associated with a page
+and call it from within bdev_write_page().
+
+Link: http://lkml.kernel.org/r/20171006211541.GA7409@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Reported-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Tested-by: Toshi Kani <toshi.kani@hpe.com>
+Acked-by: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/block_dev.c              |    6 ++++--
+ fs/mpage.c                  |   14 +++++++++++---
+ include/linux/buffer_head.h |    1 +
+ 3 files changed, 16 insertions(+), 5 deletions(-)
+
+diff -puN fs/block_dev.c~fix-mpage_writepage-for-pages-with-buffers fs/block_dev.c
+--- a/fs/block_dev.c~fix-mpage_writepage-for-pages-with-buffers
++++ a/fs/block_dev.c
+@@ -716,10 +716,12 @@ int bdev_write_page(struct block_device
+ 
+ 	set_page_writeback(page);
+ 	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, true);
+-	if (result)
++	if (result) {
+ 		end_page_writeback(page);
+-	else
++	} else {
++		clean_page_buffers(page);
+ 		unlock_page(page);
++	}
+ 	blk_queue_exit(bdev->bd_queue);
+ 	return result;
+ }
+diff -puN fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers fs/mpage.c
+--- a/fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers
++++ a/fs/mpage.c
+@@ -468,6 +468,16 @@ static void clean_buffers(struct page *p
+ 		try_to_free_buffers(page);
+ }
+ 
++/*
++ * For situations where we want to clean all buffers attached to a page.
++ * We don't need to calculate how many buffers are attached to the page,
++ * we just need to specify a number larger than the maximum number of buffers.
++ */
++void clean_page_buffers(struct page *page)
++{
++	clean_buffers(page, PAGE_SIZE);
++}
++
+ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+ 		      void *data)
+ {
+@@ -605,10 +615,8 @@ alloc_new:
+ 	if (bio == NULL) {
+ 		if (first_unmapped == blocks_per_page) {
+ 			if (!bdev_write_page(bdev, blocks[0] << (blkbits - 9),
+-								page, wbc)) {
+-				clean_buffers(page, first_unmapped);
++								page, wbc))
+ 				goto out;
+-			}
+ 		}
+ 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+ 				BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
+diff -puN include/linux/buffer_head.h~fix-mpage_writepage-for-pages-with-buffers include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~fix-mpage_writepage-for-pages-with-buffers
++++ a/include/linux/buffer_head.h
+@@ -232,6 +232,7 @@ int generic_write_end(struct file *, str
+ 				loff_t, unsigned, unsigned,
+ 				struct page *, void *);
+ void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
++void clean_page_buffers(struct page *page);
+ int cont_write_begin(struct file *, struct address_space *, loff_t,
+ 			unsigned, unsigned, struct page **, void **,
+ 			get_block_t *, loff_t *);
+_
+
+Patches currently in -mm which might be from willy@infradead.org are
+
+fix-mpage_writepage-for-pages-with-buffers.patch
+
