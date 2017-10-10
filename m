@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slabinfo-dump-config_slabinfo-v11.patch added to -mm tree
-Date: Tue, 10 Oct 2017 13:05:21 -0700
-Message-ID: <59dd2801.Iwd0QHUIoGgM5lDe%akpm@linux-foundation.org>
+Subject: + cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch added to -mm tree
+Date: Tue, 10 Oct 2017 13:30:58 -0700
+Message-ID: <59dd2e02.UHMrZkg7y57e+80B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935001AbdJJUFX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:05:23 -0400
+        with ESMTP id S932791AbdJJUa7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:30:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.s@alibaba-inc.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: pintu.ping@gmail.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, jaewon31.kim@samsung.com, labbott@redhat.com, opendmb@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slabinfo-dump-config_slabinfo-v11
+     Subject: mm/cma.c: change pr_info to pr_err for cma_alloc fail log
 has been added to the -mm tree.  Its filename is
-     mm-slabinfo-dump-config_slabinfo-v11.patch
+     cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slabinfo-dump-config_slabinfo-v11.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slabinfo-dump-config_slabinfo-v11.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,95 +38,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: mm-slabinfo-dump-config_slabinfo-v11
+From: Pintu Agarwal <pintu.ping@gmail.com>
+Subject: mm/cma.c: change pr_info to pr_err for cma_alloc fail log
 
-Link: http://lkml.kernel.org/r/1507656303-103845-3-git-send-email-yang.s@alibaba-inc.com
-Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+It was observed that under cma_alloc fail log, pr_info was used instead of
+pr_err.  This will lead to problems if printk debug level is set to below
+7.  In this case the cma_alloc failure log will not be captured in the log
+and it will be difficult to debug.
+
+Simply replace the pr_info with pr_err to capture failure log.
+
+Link: http://lkml.kernel.org/r/1507650633-4430-1-git-send-email-pintu.ping@gmail.com
+Signed-off-by: Pintu Agarwal <pintu.ping@gmail.com>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jaewon Kim <jaewon31.kim@samsung.com>
+Cc: Doug Berger <opendmb@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c  |    2 ++
- mm/slab_common.c |    4 +++-
- mm/slub.c        |    2 ++
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-slabinfo-dump-config_slabinfo-v11 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-slabinfo-dump-config_slabinfo-v11
-+++ a/mm/memcontrol.c
-@@ -4049,6 +4049,7 @@ static struct cftype mem_cgroup_legacy_f
- 		.write = mem_cgroup_reset,
- 		.read_u64 = mem_cgroup_read_u64,
- 	},
-+#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG)
- 	{
- 		.name = "kmem.slabinfo",
- 		.seq_start = memcg_slab_start,
-@@ -4056,6 +4057,7 @@ static struct cftype mem_cgroup_legacy_f
- 		.seq_stop = memcg_slab_stop,
- 		.seq_show = memcg_slab_show,
- 	},
-+#endif
- 	{
- 		.name = "kmem.tcp.limit_in_bytes",
- 		.private = MEMFILE_PRIVATE(_TCP, RES_LIMIT),
-diff -puN mm/slab_common.c~mm-slabinfo-dump-config_slabinfo-v11 mm/slab_common.c
---- a/mm/slab_common.c~mm-slabinfo-dump-config_slabinfo-v11
-+++ a/mm/slab_common.c
-@@ -1183,6 +1183,7 @@ void cache_random_seq_destroy(struct kme
- }
- #endif /* CONFIG_SLAB_FREELIST_RANDOM */
+diff -puN mm/cma.c~cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log mm/cma.c
+--- a/mm/cma.c~cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log
++++ a/mm/cma.c
+@@ -461,7 +461,7 @@ struct page *cma_alloc(struct cma *cma,
+ 	trace_cma_alloc(pfn, page, count, align);
  
-+#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG)
- #ifdef CONFIG_SLAB
- #define SLABINFO_RIGHTS (S_IWUSR | S_IRUSR)
- #else
-@@ -1278,7 +1279,7 @@ static int slab_show(struct seq_file *m,
- 	return 0;
- }
- 
--#if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-+#if defined(CONFIG_MEMCG)
- void *memcg_slab_start(struct seq_file *m, loff_t *pos)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-@@ -1352,6 +1353,7 @@ static int __init slab_proc_init(void)
- 	return 0;
- }
- module_init(slab_proc_init);
-+#endif /* CONFIG_SLAB || CONFIG_SLUB_DEBUG */
- 
- static __always_inline void *__do_krealloc(const void *p, size_t new_size,
- 					   gfp_t flags)
-diff -puN mm/slub.c~mm-slabinfo-dump-config_slabinfo-v11 mm/slub.c
---- a/mm/slub.c~mm-slabinfo-dump-config_slabinfo-v11
-+++ a/mm/slub.c
-@@ -5851,6 +5851,7 @@ __initcall(slab_sysfs_init);
- /*
-  * The /proc/slabinfo ABI
-  */
-+#ifdef CONFIG_SLUB_DEBUG
- void get_slabinfo(struct kmem_cache *s, struct slabinfo *sinfo)
- {
- 	unsigned long nr_slabs = 0;
-@@ -5882,3 +5883,4 @@ ssize_t slabinfo_write(struct file *file
- {
- 	return -EIO;
- }
-+#endif /* CONFIG_SLUB_DEBUG */
+ 	if (ret && !(gfp_mask & __GFP_NOWARN)) {
+-		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
++		pr_err("%s: alloc failed, req-size: %zu pages, ret: %d\n",
+ 			__func__, count, ret);
+ 		cma_debug_show_areas(cma);
+ 	}
 _
 
-Patches currently in -mm which might be from yang.s@alibaba-inc.com are
+Patches currently in -mm which might be from pintu.ping@gmail.com are
 
-mm-madvise-add-description-for-madv_wipeonfork-and-madv_keeponfork.patch
-tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
-mm-slabinfo-dump-config_slabinfo.patch
-mm-slabinfo-dump-config_slabinfo-v11.patch
-mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
-mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11.patch
+cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
 
