@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch added to -mm tree
-Date: Tue, 10 Oct 2017 13:30:58 -0700
-Message-ID: <59dd2e02.UHMrZkg7y57e+80B%akpm@linux-foundation.org>
+Subject: + binfmt_misc-node-could-be-null-when-evicting-inode.patch added
+ to -mm tree
+Date: Tue, 10 Oct 2017 13:36:06 -0700
+Message-ID: <59dd2f36.aKhL1lvwScGr96l/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53470 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932791AbdJJUa7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:30:59 -0400
+        with ESMTP id S934012AbdJJUgH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 16:36:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pintu.ping@gmail.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, jaewon31.kim@samsung.com, labbott@redhat.com, opendmb@gmail.com, mm-commits@vger.kernel.org
+To: eguan@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma.c: change pr_info to pr_err for cma_alloc fail log
+     Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
 has been added to the -mm tree.  Its filename is
-     cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
+     binfmt_misc-node-could-be-null-when-evicting-inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,44 +39,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pintu Agarwal <pintu.ping@gmail.com>
-Subject: mm/cma.c: change pr_info to pr_err for cma_alloc fail log
+From: Eryu Guan <eguan@redhat.com>
+Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
 
-It was observed that under cma_alloc fail log, pr_info was used instead of
-pr_err.  This will lead to problems if printk debug level is set to below
-7.  In this case the cma_alloc failure log will not be captured in the log
-and it will be difficult to debug.
+inode->i_private is assigned by a Node pointer only after registering a
+new binary format, so it could be NULL if we only mount binfmt_misc but
+don't register any format, and this results in NULL pointer dereference at
+umount time.  e.g.
 
-Simply replace the pr_info with pr_err to capture failure log.
+  mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+  umount /proc/sys/fs/binfmt_misc
 
-Link: http://lkml.kernel.org/r/1507650633-4430-1-git-send-email-pintu.ping@gmail.com
-Signed-off-by: Pintu Agarwal <pintu.ping@gmail.com>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Doug Berger <opendmb@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+[ 9379.678259] BUG: unable to handle kernel NULL pointer dereference at 0000000000000013
+[ 9379.985952] IP: bm_evict_inode+0x16/0x40 [binfmt_misc]
+...
+[ 9380.964911] Call Trace:
+[ 9380.977633]  evict+0xd3/0x1a0
+[ 9380.994449]  iput+0x17d/0x1d0
+[ 9381.010306]  dentry_unlink_inode+0xb9/0xf0
+[ 9381.034046]  __dentry_kill+0xc7/0x170
+[ 9381.055145]  shrink_dentry_list+0x122/0x280
+[ 9381.078908]  shrink_dcache_parent+0x39/0x90
+[ 9381.103082]  do_one_tree+0x12/0x40
+[ 9381.122005]  shrink_dcache_for_umount+0x2d/0x90
+[ 9381.146517]  generic_shutdown_super+0x1f/0x120
+[ 9381.171644]  kill_litter_super+0x29/0x40
+[ 9381.193513]  deactivate_locked_super+0x43/0x70
+[ 9381.219177]  deactivate_super+0x45/0x60
+[ 9381.240130]  cleanup_mnt+0x3f/0x70
+[ 9381.259064]  __cleanup_mnt+0x12/0x20
+[ 9381.279802]  task_work_run+0x86/0xa0
+[ 9381.299612]  exit_to_usermode_loop+0x6d/0x99
+[ 9381.323872]  syscall_return_slowpath+0xba/0xf0
+[ 9381.350464]  entry_SYSCALL_64_fastpath+0xa3/0xa
+
+Fix it by making sure Node (e) is not NULL.
+
+Link: http://lkml.kernel.org/r/20171010100642.31786-1-eguan@redhat.com
+Fixes: 83f918274e4b ("exec: binfmt_misc: shift filp_close(interp_file) from kill_node() to bm_evict_inode()")
+Signed-off-by: Eryu Guan <eguan@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    2 +-
+ fs/binfmt_misc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/cma.c~cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log mm/cma.c
---- a/mm/cma.c~cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log
-+++ a/mm/cma.c
-@@ -461,7 +461,7 @@ struct page *cma_alloc(struct cma *cma,
- 	trace_cma_alloc(pfn, page, count, align);
+diff -puN fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode
++++ a/fs/binfmt_misc.c
+@@ -596,7 +596,7 @@ static void bm_evict_inode(struct inode
+ {
+ 	Node *e = inode->i_private;
  
- 	if (ret && !(gfp_mask & __GFP_NOWARN)) {
--		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
-+		pr_err("%s: alloc failed, req-size: %zu pages, ret: %d\n",
- 			__func__, count, ret);
- 		cma_debug_show_areas(cma);
- 	}
+-	if (e->flags & MISC_FMT_OPEN_FILE)
++	if (e && e->flags & MISC_FMT_OPEN_FILE)
+ 		filp_close(e->interp_file, NULL);
+ 
+ 	clear_inode(inode);
 _
 
-Patches currently in -mm which might be from pintu.ping@gmail.com are
+Patches currently in -mm which might be from eguan@redhat.com are
 
-cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
+binfmt_misc-node-could-be-null-when-evicting-inode.patch
 
