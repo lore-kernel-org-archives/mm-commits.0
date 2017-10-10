@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + btrfs-use-pagevec_lookup_range_tag.patch added to -mm tree
-Date: Tue, 10 Oct 2017 14:00:40 -0700
-Message-ID: <59dd34f8.TE5mInSDmrzTTQq1%akpm@linux-foundation.org>
+Subject: + f2fs-use-pagevec_lookup_range_tag.patch added to -mm tree
+Date: Tue, 10 Oct 2017 14:00:47 -0700
+Message-ID: <59dd34ff.jxuL/tEDo5sEv4It%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60234 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756721AbdJJVAp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:00:45 -0400
+        with ESMTP id S932580AbdJJVA5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2017 17:00:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, daniel.m.jordan@oracle.com, dsterba@suse.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, daniel.m.jordan@oracle.com, jaegeuk@kernel.org, yuchao0@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: btrfs: use pagevec_lookup_range_tag()
+     Subject: f2fs: use pagevec_lookup_range_tag()
 has been added to the -mm tree.  Its filename is
-     btrfs-use-pagevec_lookup_range_tag.patch
+     f2fs-use-pagevec_lookup_range_tag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/btrfs-use-pagevec_lookup_range_tag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/f2fs-use-pagevec_lookup_range_tag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/btrfs-use-pagevec_lookup_range_tag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/f2fs-use-pagevec_lookup_range_tag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +39,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: btrfs: use pagevec_lookup_range_tag()
+Subject: f2fs: use pagevec_lookup_range_tag()
 
-We want only pages from given range in btree_write_cache_pages() and
-extent_write_cache_pages().  Use pagevec_lookup_range_tag() instead of
-pagevec_lookup_tag() and remove unnecessary code.
+We want only pages from given range in f2fs_write_cache_pages().  Use
+pagevec_lookup_range_tag() instead of pagevec_lookup_tag() and remove
+unnecessary code.
 
-Link: http://lkml.kernel.org/r/20171009151359.31984-3-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171009151359.31984-6-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: David Sterba <dsterba@suse.com>
+Reviewed-by: Chao Yu <yuchao0@huawei.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: David Sterba <dsterba@suse.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/extent_io.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ fs/f2fs/data.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN fs/btrfs/extent_io.c~btrfs-use-pagevec_lookup_range_tag fs/btrfs/extent_io.c
---- a/fs/btrfs/extent_io.c~btrfs-use-pagevec_lookup_range_tag
-+++ a/fs/btrfs/extent_io.c
-@@ -3818,8 +3818,8 @@ retry:
- 	if (wbc->sync_mode == WB_SYNC_ALL)
- 		tag_pages_for_writeback(mapping, index, end);
- 	while (!done && !nr_to_write_done && (index <= end) &&
--	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
--			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
-+	       (nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
-+			tag, PAGEVEC_SIZE))) {
- 		unsigned i;
+diff -puN fs/f2fs/data.c~f2fs-use-pagevec_lookup_range_tag fs/f2fs/data.c
+--- a/fs/f2fs/data.c~f2fs-use-pagevec_lookup_range_tag
++++ a/fs/f2fs/data.c
+@@ -1669,8 +1669,8 @@ retry:
+ 	while (!done && (index <= end)) {
+ 		int i;
  
- 		scanned = 1;
-@@ -3829,11 +3829,6 @@ retry:
- 			if (!PagePrivate(page))
- 				continue;
+-		nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
+-			      min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1);
++		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
++				tag, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
  
--			if (!wbc->range_cyclic && page->index > end) {
+@@ -1678,11 +1678,6 @@ retry:
+ 			struct page *page = pvec.pages[i];
+ 			bool submitted = false;
+ 
+-			if (page->index > end) {
 -				done = 1;
 -				break;
 -			}
 -
- 			spin_lock(&mapping->private_lock);
- 			if (!PagePrivate(page)) {
- 				spin_unlock(&mapping->private_lock);
-@@ -3965,8 +3960,8 @@ retry:
- 		tag_pages_for_writeback(mapping, index, end);
- 	done_index = index;
- 	while (!done && !nr_to_write_done && (index <= end) &&
--	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
--			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
-+	       (nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
-+			tag, PAGEVEC_SIZE))) {
- 		unsigned i;
- 
- 		scanned = 1;
-@@ -3990,12 +3985,6 @@ retry:
- 				unlock_page(page);
- 				continue;
- 			}
--
--			if (!wbc->range_cyclic && page->index > end) {
--				done = 1;
--				unlock_page(page);
--				continue;
--			}
- 
- 			if (wbc->sync_mode != WB_SYNC_NONE) {
- 				if (PageWriteback(page))
+ 			done_index = page->index;
+ retry_write:
+ 			lock_page(page);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
