@@ -1,118 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + pid-replace-pid-bitmap-implementation-with-idr-api-v6.patch
- added to -mm tree
-Date: Wed, 11 Oct 2017 15:41:15 -0700
-Message-ID: <59de9e0b.iAcmgaSpw3vH9F3G%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ fs-mm-account-filp-and-names-caches-to-kmemcg.patch removed from -mm tree
+Date: Wed, 11 Oct 2017 15:44:05 -0700
+Message-ID: <59de9eb5.EoaSo60wT30zHaAb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40204 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750718AbdJKWlQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 18:41:16 -0400
+        with ESMTP id S1750718AbdJKWoH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 18:44:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gs051095@gmail.com, ebiederm@xmission.com, hch@infradead.org, julia.lawall@lip6.fr, ktkhai@virtuozzo.com, mingo@kernel.org, oleg@redhat.com, pasha.tatashin@oracle.com, mm-commits@vger.kernel.org
+To: shakeelb@google.com, gthelen@google.com, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid-replace-pid-bitmap-implementation-with-idr-api-v6
-has been added to the -mm tree.  Its filename is
-     pid-replace-pid-bitmap-implementation-with-idr-api-v6.patch
+     Subject: fs, mm: account filp and names caches to kmemcg
+has been removed from the -mm tree.  Its filename was
+     fs-mm-account-filp-and-names-caches-to-kmemcg.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pid-replace-pid-bitmap-implementation-with-idr-api-v6.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pid-replace-pid-bitmap-implementation-with-idr-api-v6.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Gargi Sharma <gs051095@gmail.com>
-Subject: pid-replace-pid-bitmap-implementation-with-idr-api-v6
+From: Shakeel Butt <shakeelb@google.com>
+Subject: fs, mm: account filp and names caches to kmemcg
 
-Link: http://lkml.kernel.org/r/1507760379-21662-2-git-send-email-gs051095@gmail.com
-Signed-off-by: Gargi Sharma <gs051095@gmail.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+The allocations from filp and names kmem caches can be directly triggered
+by user space applications.  A buggy application can consume a significant
+amount of unaccounted system memory.  Though we have not noticed such
+buggy applications in our production but upon close inspection, we found
+that a lot of machines spend very significant amount of memory on these
+caches.  So, these caches should be accounted to kmemcg.
+
+Link: http://lkml.kernel.org/r/20171005222144.123797-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c           |    6 ++++--
- kernel/pid_namespace.c |    2 ++
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ fs/dcache.c     |    2 +-
+ fs/file_table.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/pid.c~pid-replace-pid-bitmap-implementation-with-idr-api-v6 kernel/pid.c
---- a/kernel/pid.c~pid-replace-pid-bitmap-implementation-with-idr-api-v6
-+++ a/kernel/pid.c
-@@ -124,7 +124,7 @@ void free_pid(struct pid *pid)
- 		struct upid *upid = pid->numbers + i;
- 		struct pid_namespace *ns = upid->ns;
- 		hlist_del_rcu(&upid->pid_chain);
--		switch(--ns->nr_hashed) {
-+		switch (--ns->nr_hashed) {
- 		case 2:
- 		case 1:
- 			/* When all that is left in the pid namespace
-@@ -168,6 +168,7 @@ struct pid *alloc_pid(struct pid_namespa
+diff -puN fs/dcache.c~fs-mm-account-filp-and-names-caches-to-kmemcg fs/dcache.c
+--- a/fs/dcache.c~fs-mm-account-filp-and-names-caches-to-kmemcg
++++ a/fs/dcache.c
+@@ -3641,7 +3641,7 @@ void __init vfs_caches_init_early(void)
+ void __init vfs_caches_init(void)
+ {
+ 	names_cachep = kmem_cache_create("names_cache", PATH_MAX, 0,
+-			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
  
- 	for (i = ns->level; i >= 0; i--) {
- 		int pid_min = 1;
-+
- 		idr_preload(GFP_KERNEL);
- 		spin_lock_irq(&pidmap_lock);
+ 	dcache_init();
+ 	inode_init();
+diff -puN fs/file_table.c~fs-mm-account-filp-and-names-caches-to-kmemcg fs/file_table.c
+--- a/fs/file_table.c~fs-mm-account-filp-and-names-caches-to-kmemcg
++++ a/fs/file_table.c
+@@ -312,7 +312,7 @@ void put_filp(struct file *file)
+ void __init files_init(void)
+ {
+ 	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
+-			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
++			SLAB_HWCACHE_ALIGN | SLAB_PANIC | SLAB_ACCOUNT, NULL);
+ 	percpu_counter_init(&nr_files, 0, GFP_KERNEL);
+ }
  
-@@ -178,7 +179,8 @@ struct pid *alloc_pid(struct pid_namespa
- 		if (idr_get_cursor(&tmp->idr) > RESERVED_PIDS)
- 			pid_min = RESERVED_PIDS;
- 
--		/* Store a null pointer so find_pid_ns does not find             *
-+		/*
-+		 * Store a null pointer so find_pid_ns does not find
- 		 * a partially initialized PID (see below).
- 		 */
- 		nr = idr_alloc_cyclic(&tmp->idr, NULL, pid_min,
-diff -puN kernel/pid_namespace.c~pid-replace-pid-bitmap-implementation-with-idr-api-v6 kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pid-replace-pid-bitmap-implementation-with-idr-api-v6
-+++ a/kernel/pid_namespace.c
-@@ -229,6 +229,7 @@ void zap_pid_ns_processes(struct pid_nam
- 	 * 	  maintain a tasklist for each pid namespace.
- 	 *
- 	 */
-+	rcu_read_lock();
- 	read_lock(&tasklist_lock);
- 	nr = 2;
- 	idr_for_each_entry_continue(&pid_ns->idr, pid, nr) {
-@@ -237,6 +238,7 @@ void zap_pid_ns_processes(struct pid_nam
- 			send_sig_info(SIGKILL, SEND_SIG_FORCED, task);
- 	}
- 	read_unlock(&tasklist_lock);
-+	rcu_read_unlock();
- 
- 	/*
- 	 * Reap the EXIT_ZOMBIE children we had before we ignored SIGCHLD.
 _
 
-Patches currently in -mm which might be from gs051095@gmail.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-pid-replace-pid-bitmap-implementation-with-idr-api.patch
-pid-replace-pid-bitmap-implementation-with-idr-api-v6.patch
-pid-remove-pidhash.patch
-pid-remove-pidhash-v6.patch
+kvm-mm-account-kvm-related-kmem-slabs-to-kmemcg.patch
+fs-mm-account-filp-cache-to-kmemcg-v2.patch
+epoll-account-epitem-and-eppoll_entry-to-kmemcg.patch
 
