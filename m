@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fix-mpage_writepage-for-pages-with-buffers-fix.patch added to
- -mm tree
-Date: Wed, 11 Oct 2017 16:00:30 -0700
-Message-ID: <59dea28e.o+C0E50x6A+83kE/%akpm@linux-foundation.org>
+Subject: + binfmt_misc-node-could-be-null-when-evicting-inode.patch added
+ to -mm tree
+Date: Wed, 11 Oct 2017 16:08:49 -0700
+Message-ID: <59dea481.fne7CIbULiFxj/Ju%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40652 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750778AbdJKXAb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 19:00:31 -0400
+        with ESMTP id S1751285AbdJKXIu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 19:08:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, jthumshirn@suse.de, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, willy@infradead.org, mm-commits@vger.kernel.org
+To: eguan@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix-mpage_writepage-for-pages-with-buffers-fix
+     Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
 has been added to the -mm tree.  Its filename is
-     fix-mpage_writepage-for-pages-with-buffers-fix.patch
+     binfmt_misc-node-could-be-null-when-evicting-inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-mpage_writepage-for-pages-with-buffers-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-mpage_writepage-for-pages-with-buffers-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fix-mpage_writepage-for-pages-with-buffers-fix
+From: Eryu Guan <eguan@redhat.com>
+Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
 
-s/PAGE_SIZE/~0U/ per Linus and Matthew
+inode->i_private is assigned by a Node pointer only after registering a
+new binary format, so it could be NULL if inode was created by
+bm_fill_super() (or iput() was called by the error path in
+bm_register_write()), and this could result in NULL pointer dereference
+when evicting such an inode.  e.g.  mount binfmt_misc filesystem then
+umount it immediately:
 
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+  mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+  umount /proc/sys/fs/binfmt_misc
+
+[ 9379.678259] BUG: unable to handle kernel NULL pointer dereference at 0000000000000013
+[ 9379.985952] IP: bm_evict_inode+0x16/0x40 [binfmt_misc]
+...
+[ 9380.964911] Call Trace:
+[ 9380.977633]  evict+0xd3/0x1a0
+[ 9380.994449]  iput+0x17d/0x1d0
+[ 9381.010306]  dentry_unlink_inode+0xb9/0xf0
+[ 9381.034046]  __dentry_kill+0xc7/0x170
+[ 9381.055145]  shrink_dentry_list+0x122/0x280
+[ 9381.078908]  shrink_dcache_parent+0x39/0x90
+[ 9381.103082]  do_one_tree+0x12/0x40
+[ 9381.122005]  shrink_dcache_for_umount+0x2d/0x90
+[ 9381.146517]  generic_shutdown_super+0x1f/0x120
+[ 9381.171644]  kill_litter_super+0x29/0x40
+[ 9381.193513]  deactivate_locked_super+0x43/0x70
+[ 9381.219177]  deactivate_super+0x45/0x60
+[ 9381.240130]  cleanup_mnt+0x3f/0x70
+[ 9381.259064]  __cleanup_mnt+0x12/0x20
+[ 9381.279802]  task_work_run+0x86/0xa0
+[ 9381.299612]  exit_to_usermode_loop+0x6d/0x99
+[ 9381.323872]  syscall_return_slowpath+0xba/0xf0
+[ 9381.350464]  entry_SYSCALL_64_fastpath+0xa3/0xa
+
+Fix it by making sure Node (e) is not NULL.
+
+Link: http://lkml.kernel.org/r/20171010100642.31786-1-eguan@redhat.com
+Fixes: 83f918274e4b ("exec: binfmt_misc: shift filp_close(interp_file) from kill_node() to bm_evict_inode()")
+Signed-off-by: Eryu Guan <eguan@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    2 +-
+ fs/binfmt_misc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers-fix fs/mpage.c
---- a/fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers-fix
-+++ a/fs/mpage.c
-@@ -475,7 +475,7 @@ static void clean_buffers(struct page *p
-  */
- void clean_page_buffers(struct page *page)
+diff -puN fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode
++++ a/fs/binfmt_misc.c
+@@ -596,7 +596,7 @@ static void bm_evict_inode(struct inode
  {
--	clean_buffers(page, PAGE_SIZE);
-+	clean_buffers(page, ~0U);
- }
+ 	Node *e = inode->i_private;
  
- static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+-	if (e->flags & MISC_FMT_OPEN_FILE)
++	if (e && e->flags & MISC_FMT_OPEN_FILE)
+ 		filp_close(e->interp_file, NULL);
+ 
+ 	clear_inode(inode);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from eguan@redhat.com are
 
-i-need-old-gcc.patch
-of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
-fix-mpage_writepage-for-pages-with-buffers-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
-mm-sysctl-make-numa-stats-configurable-fix.patch
-mm-sysctl-make-numa-stats-configurable-fix-fix.patch
-mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+binfmt_misc-node-could-be-null-when-evicting-inode.patch
 
