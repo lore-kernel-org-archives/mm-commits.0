@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch added to -mm tree
-Date: Wed, 11 Oct 2017 15:56:36 -0700
-Message-ID: <59dea1a4.zD7FRc8zQdXq3ltx%akpm@linux-foundation.org>
+Subject: + mm-rmap-remove-redundant-variable-cend.patch added to -mm tree
+Date: Wed, 11 Oct 2017 15:57:21 -0700
+Message-ID: <59dea1d1.lr2ServwoLOVU0CY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750959AbdJKW4h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 18:56:37 -0400
+        with ESMTP id S1750959AbdJKW5W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 18:57:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laoar.shao@gmail.com, axboe@kernel.dk, jack@suse.cz, mm-commits@vger.kernel.org
+To: colin.king@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback.c: make changes of dirty_writeback_centisecs take effect immediately
+     Subject: mm/rmap.c: remove redundant variable cend
 has been added to the -mm tree.  Its filename is
-     writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch
+     mm-rmap-remove-redundant-variable-cend.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-remove-redundant-variable-cend.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-remove-redundant-variable-cend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/page-writeback.c: make changes of dirty_writeback_centisecs take effect immediately
+From: Colin Ian King <colin.king@canonical.com>
+Subject: mm/rmap.c: remove redundant variable cend
 
-Two problems with /proc/sys/vm/dirty_writeback_centisecs:
+Variable cend is set but never read, hence it is redundant and can be
+removed.
 
-- When the tunable is set to 0 (disable), writing a non-zero value
-  doesn't restart the flushing operations until the dirty background limit
-  is reached or sys_sync is executed or not enough free memory is
-  available or vmscan is triggered.
+Cleans up clang build warning: Value stored to 'cend' is never read
 
-- When the tunable was set to one hour and is reset to one second, the
-  new setting will not take effect for up to one hour.
-
-Kicking the flusher threads immediately fixes these issues.
-
-Link: http://lkml.kernel.org/r/1507746016-15344-1-git-send-email-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: http://lkml.kernel.org/r/20171011174942.1372-1-colin.king@canonical.com
+Fixes: 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic v2")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ mm/rmap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-change-of-dirty_writeback_interval-takes-effect-immediately mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-change-of-dirty_writeback_interval-takes-effect-immediately
-+++ a/mm/page-writeback.c
-@@ -1974,8 +1974,19 @@ bool wb_over_bg_thresh(struct bdi_writeb
- int dirty_writeback_centisecs_handler(struct ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
--	proc_dointvec(table, write, buffer, length, ppos);
--	return 0;
-+	int ret = proc_dointvec(table, write, buffer, length, ppos);
-+
-+	/*
-+	 * Writing 0 to dirty_writeback_interval will disable periodic writeback
-+	 * and a different non-zero value will wakeup the writeback threads.
-+	 * wb_wakeup_delayed() would be more appropriate, but it's a pain to
-+	 * iterate over all bdis and wbs.
-+	 * The reason we do this is to make the change take effect immediately.
-+	 */
-+	if (!ret && write && dirty_writeback_interval &&
-+			dirty_writeback_interval != old_interval)
-+		wakeup_flusher_threads(WB_REASON_PERIODIC);
-+	return ret;
- }
+diff -puN mm/rmap.c~mm-rmap-remove-redundant-variable-cend mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-remove-redundant-variable-cend
++++ a/mm/rmap.c
+@@ -899,7 +899,7 @@ static bool page_mkclean_one(struct page
+ 	mmu_notifier_invalidate_range_start(vma->vm_mm, start, end);
  
- #ifdef CONFIG_BLOCK
+ 	while (page_vma_mapped_walk(&pvmw)) {
+-		unsigned long cstart, cend;
++		unsigned long cstart;
+ 		int ret = 0;
+ 
+ 		cstart = address = pvmw.address;
+@@ -915,7 +915,6 @@ static bool page_mkclean_one(struct page
+ 			entry = pte_wrprotect(entry);
+ 			entry = pte_mkclean(entry);
+ 			set_pte_at(vma->vm_mm, address, pte, entry);
+-			cend = cstart + PAGE_SIZE;
+ 			ret = 1;
+ 		} else {
+ #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
+@@ -931,7 +930,6 @@ static bool page_mkclean_one(struct page
+ 			entry = pmd_mkclean(entry);
+ 			set_pmd_at(vma->vm_mm, address, pmd, entry);
+ 			cstart &= PMD_MASK;
+-			cend = cstart + PMD_SIZE;
+ 			ret = 1;
+ #else
+ 			/* unexpected pmd-mapped page? */
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
-writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch
+mm-rmap-remove-redundant-variable-cend.patch
 
