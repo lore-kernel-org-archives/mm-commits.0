@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_misc-node-could-be-null-when-evicting-inode.patch added
- to -mm tree
-Date: Wed, 11 Oct 2017 16:08:49 -0700
-Message-ID: <59dea481.fne7CIbULiFxj/Ju%akpm@linux-foundation.org>
+Subject: +
+ stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
+ added to -mm tree
+Date: Wed, 11 Oct 2017 16:13:01 -0700
+Message-ID: <59dea57d.ihUXa+KqlvbeEc+H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751285AbdJKXIu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 19:08:50 -0400
+        with ESMTP id S1751694AbdJKXNC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 19:13:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eguan@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: maninder1.s@samsung.com, a.sahrawat@samsung.com, chris@chris-wilson.co.uk, dvyukov@google.com, mark.rutland@arm.com, v.narang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
+     Subject: lib/stackdepot.c: ignore junk last entry in case of switch from user mode.
 has been added to the -mm tree.  Its filename is
-     binfmt_misc-node-could-be-null-when-evicting-inode.patch
+     stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_misc-node-could-be-null-when-evicting-inode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +40,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eryu Guan <eguan@redhat.com>
-Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: lib/stackdepot.c: ignore junk last entry in case of switch from user mode.
 
-inode->i_private is assigned by a Node pointer only after registering a
-new binary format, so it could be NULL if inode was created by
-bm_fill_super() (or iput() was called by the error path in
-bm_register_write()), and this could result in NULL pointer dereference
-when evicting such an inode.  e.g.  mount binfmt_misc filesystem then
-umount it immediately:
+Issue observed on ARM.
 
-  mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
-  umount /proc/sys/fs/binfmt_misc
+Whenever there is switch from user mode, we end up with invalid last entry
+with some user space address as below:-
 
-[ 9379.678259] BUG: unable to handle kernel NULL pointer dereference at 0000000000000013
-[ 9379.985952] IP: bm_evict_inode+0x16/0x40 [binfmt_misc]
-...
-[ 9380.964911] Call Trace:
-[ 9380.977633]  evict+0xd3/0x1a0
-[ 9380.994449]  iput+0x17d/0x1d0
-[ 9381.010306]  dentry_unlink_inode+0xb9/0xf0
-[ 9381.034046]  __dentry_kill+0xc7/0x170
-[ 9381.055145]  shrink_dentry_list+0x122/0x280
-[ 9381.078908]  shrink_dcache_parent+0x39/0x90
-[ 9381.103082]  do_one_tree+0x12/0x40
-[ 9381.122005]  shrink_dcache_for_umount+0x2d/0x90
-[ 9381.146517]  generic_shutdown_super+0x1f/0x120
-[ 9381.171644]  kill_litter_super+0x29/0x40
-[ 9381.193513]  deactivate_locked_super+0x43/0x70
-[ 9381.219177]  deactivate_super+0x45/0x60
-[ 9381.240130]  cleanup_mnt+0x3f/0x70
-[ 9381.259064]  __cleanup_mnt+0x12/0x20
-[ 9381.279802]  task_work_run+0x86/0xa0
-[ 9381.299612]  exit_to_usermode_loop+0x6d/0x99
-[ 9381.323872]  syscall_return_slowpath+0xba/0xf0
-[ 9381.350464]  entry_SYSCALL_64_fastpath+0xa3/0xa
+ save_stack+0x40/0xec
+ __set_page_owner+0x2c/0x64
+....
+....
+ __handle_domain_irq+0x9c/0x130
+ gic_handle_irq+0x40/0x80
+ __irq_usr+0x4c/0x60
+ 0xb6507818
 
-Fix it by making sure Node (e) is not NULL.
+So in this case last entry is not valid, which leads to allocated one more
+new frame for stackdepot although having all above frames exactly same.
 
-Link: http://lkml.kernel.org/r/20171010100642.31786-1-eguan@redhat.com
-Fixes: 83f918274e4b ("exec: binfmt_misc: shift filp_close(interp_file) from kill_node() to bm_evict_inode()")
-Signed-off-by: Eryu Guan <eguan@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+(It increases depot_index drastically)
+
+So its better to ignore that last frame in case of switch.
+ save_stack+0x40/0xec
+ __set_page_owner+0x2c/0x64
+....
+....
+ __handle_domain_irq+0x9c/0x130
+ gic_handle_irq+0x40/0x80
+ __irq_usr+0x4c/0x60
+
+Link: http://lkml.kernel.org/r/1507725802-44574-1-git-send-email-maninder1.s@samsung.com
+Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode
-+++ a/fs/binfmt_misc.c
-@@ -596,7 +596,7 @@ static void bm_evict_inode(struct inode
- {
- 	Node *e = inode->i_private;
+diff -puN lib/stackdepot.c~stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode lib/stackdepot.c
+--- a/lib/stackdepot.c~stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode
++++ a/lib/stackdepot.c
+@@ -214,6 +214,13 @@ depot_stack_handle_t depot_save_stack(st
+ 	if (unlikely(trace->nr_entries == 0))
+ 		goto fast_exit;
  
--	if (e->flags & MISC_FMT_OPEN_FILE)
-+	if (e && e->flags & MISC_FMT_OPEN_FILE)
- 		filp_close(e->interp_file, NULL);
++	/* 
++	 * Ignore last entry if it belongs to user space
++	 * in case of switch from user mode.
++	 */
++	if (!kernel_text_address(trace->entries[trace->nr_entries - 1]))
++		trace->nr_entries--;
++
+ 	hash = hash_stack(trace->entries, trace->nr_entries);
+ 	bucket = &stack_table[hash & STACK_HASH_MASK];
  
- 	clear_inode(inode);
 _
 
-Patches currently in -mm which might be from eguan@redhat.com are
+Patches currently in -mm which might be from maninder1.s@samsung.com are
 
-binfmt_misc-node-could-be-null-when-evicting-inode.patch
+bloat-o-meter-provide-3-different-arguments-for-data-function-and-all.patch
+bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
+stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
 
