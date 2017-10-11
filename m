@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rmap-remove-redundant-variable-cend.patch added to -mm tree
-Date: Wed, 11 Oct 2017 15:57:21 -0700
-Message-ID: <59dea1d1.lr2ServwoLOVU0CY%akpm@linux-foundation.org>
+Subject: + fix-mpage_writepage-for-pages-with-buffers-fix.patch added to
+ -mm tree
+Date: Wed, 11 Oct 2017 16:00:30 -0700
+Message-ID: <59dea28e.o+C0E50x6A+83kE/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40508 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750959AbdJKW5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 18:57:22 -0400
+        with ESMTP id S1750778AbdJKXAb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2017 19:00:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, jthumshirn@suse.de, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap.c: remove redundant variable cend
+     Subject: fix-mpage_writepage-for-pages-with-buffers-fix
 has been added to the -mm tree.  Its filename is
-     mm-rmap-remove-redundant-variable-cend.patch
+     fix-mpage_writepage-for-pages-with-buffers-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-remove-redundant-variable-cend.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-mpage_writepage-for-pages-with-buffers-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-remove-redundant-variable-cend.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-mpage_writepage-for-pages-with-buffers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,54 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/rmap.c: remove redundant variable cend
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix-mpage_writepage-for-pages-with-buffers-fix
 
-Variable cend is set but never read, hence it is redundant and can be
-removed.
+s/PAGE_SIZE/~0U/ per Linus and Matthew
 
-Cleans up clang build warning: Value stored to 'cend' is never read
-
-Link: http://lkml.kernel.org/r/20171011174942.1372-1-colin.king@canonical.com
-Fixes: 369ea8242c0f ("mm/rmap: update to new mmu_notifier semantic v2")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/mpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-rmap-remove-redundant-variable-cend mm/rmap.c
---- a/mm/rmap.c~mm-rmap-remove-redundant-variable-cend
-+++ a/mm/rmap.c
-@@ -899,7 +899,7 @@ static bool page_mkclean_one(struct page
- 	mmu_notifier_invalidate_range_start(vma->vm_mm, start, end);
+diff -puN fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers-fix fs/mpage.c
+--- a/fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers-fix
++++ a/fs/mpage.c
+@@ -475,7 +475,7 @@ static void clean_buffers(struct page *p
+  */
+ void clean_page_buffers(struct page *page)
+ {
+-	clean_buffers(page, PAGE_SIZE);
++	clean_buffers(page, ~0U);
+ }
  
- 	while (page_vma_mapped_walk(&pvmw)) {
--		unsigned long cstart, cend;
-+		unsigned long cstart;
- 		int ret = 0;
- 
- 		cstart = address = pvmw.address;
-@@ -915,7 +915,6 @@ static bool page_mkclean_one(struct page
- 			entry = pte_wrprotect(entry);
- 			entry = pte_mkclean(entry);
- 			set_pte_at(vma->vm_mm, address, pte, entry);
--			cend = cstart + PAGE_SIZE;
- 			ret = 1;
- 		} else {
- #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
-@@ -931,7 +930,6 @@ static bool page_mkclean_one(struct page
- 			entry = pmd_mkclean(entry);
- 			set_pmd_at(vma->vm_mm, address, pmd, entry);
- 			cstart &= PMD_MASK;
--			cend = cstart + PMD_SIZE;
- 			ret = 1;
- #else
- 			/* unexpected pmd-mapped page? */
+ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-rmap-remove-redundant-variable-cend.patch
+i-need-old-gcc.patch
+of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
+fix-mpage_writepage-for-pages-with-buffers-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-sysctl-make-numa-stats-configurable-fix.patch
+mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
