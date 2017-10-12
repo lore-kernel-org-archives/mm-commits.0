@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kmemcheck-remove-annotations-fix.patch added to -mm tree
-Date: Thu, 12 Oct 2017 13:30:30 -0700
-Message-ID: <59dfd0e6.DPQQS+F7wgE2H3Bv%akpm@linux-foundation.org>
+Subject: + mm-swap_statec-declare-a-few-variables-as-__read_mostly.patch
+ added to -mm tree
+Date: Thu, 12 Oct 2017 15:46:12 -0700
+Message-ID: <59dff0b4.+z6N+s9LXocRZxi4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49748 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33764 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755455AbdJLUab (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Oct 2017 16:30:31 -0400
+        with ESMTP id S1756330AbdJLWqO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Oct 2017 18:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.levin@verizon.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: changbin.du@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemcheck: correctly remove kmemcheck call from dma_map_sg_attrs
+     Subject: mm/swap_state.c: declare a few variables as __read_mostly
 has been added to the -mm tree.  Its filename is
-     kmemcheck-remove-annotations-fix.patch
+     mm-swap_statec-declare-a-few-variables-as-__read_mostly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemcheck-remove-annotations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap_statec-declare-a-few-variables-as-__read_mostly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemcheck-remove-annotations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap_statec-declare-a-few-variables-as-__read_mostly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,46 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>
-Subject: kmemcheck: correctly remove kmemcheck call from dma_map_sg_attrs
+From: Changbin Du <changbin.du@intel.com>
+Subject: mm/swap_state.c: declare a few variables as __read_mostly
 
-We have missed removing some code as part of removing the kmemcheck
-hooks.
+These global variables are only set during initialization or rarely
+change, so declare them as __read_mostly.
 
-Unfourtenatly this got missed during my review, and the code was
-still building.
-
-Link: http://lkml.kernel.org/r/20171012192151.26531-1-alexander.levin@verizon.com
-Signed-off-by: Sasha Levin <alexander.levin@verizon.com>
-Reported-by: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1507802349-5554-1-git-send-email-changbin.du@intel.com
+Signed-off-by: Changbin Du <changbin.du@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/swap_state.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/dma-mapping.h~kmemcheck-remove-annotations-fix include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~kmemcheck-remove-annotations-fix
-+++ a/include/linux/dma-mapping.h
-@@ -260,10 +260,8 @@ static inline int dma_map_sg_attrs(struc
- 				   unsigned long attrs)
- {
- 	const struct dma_map_ops *ops = get_dma_ops(dev);
--	int i, ents;
--	struct scatterlist *s;
-+	int ents;
+diff -puN mm/swap_state.c~mm-swap_statec-declare-a-few-variables-as-__read_mostly mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap_statec-declare-a-few-variables-as-__read_mostly
++++ a/mm/swap_state.c
+@@ -35,9 +35,9 @@ static const struct address_space_operat
+ #endif
+ };
  
--	for_each_sg(sg, s, nents, i)
- 	BUG_ON(!valid_dma_direction(dir));
- 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 	BUG_ON(ents < 0);
+-struct address_space *swapper_spaces[MAX_SWAPFILES];
+-static unsigned int nr_swapper_spaces[MAX_SWAPFILES];
+-bool swap_vma_readahead = true;
++struct address_space *swapper_spaces[MAX_SWAPFILES] __read_mostly;
++static unsigned int nr_swapper_spaces[MAX_SWAPFILES] __read_mostly;
++bool swap_vma_readahead __read_mostly = true;
+ 
+ #define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
+ #define SWAP_RA_HITS_MASK	((1UL << SWAP_RA_WIN_SHIFT) - 1)
 _
 
-Patches currently in -mm which might be from alexander.levin@verizon.com are
+Patches currently in -mm which might be from changbin.du@intel.com are
 
-kmemcheck-remove-annotations.patch
-kmemcheck-remove-annotations-fix.patch
-kmemcheck-stop-using-gfp_notrack-and-slab_notrack.patch
-kmemcheck-remove-whats-left-of-notrack-flags.patch
-kmemcheck-rip-it-out.patch
+mm-update-comments-for-struct-pagemapping.patch
+mm-swap_statec-declare-a-few-variables-as-__read_mostly.patch
 
