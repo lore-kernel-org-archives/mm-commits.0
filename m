@@ -1,251 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/18] linux/kernel.h: add/correct kernel-doc notation
-Date: Fri, 13 Oct 2017 15:58:11 -0700
-Message-ID: <59e14503.NMmBAa9xrZYuk9ZL%akpm@linux-foundation.org>
+Subject: [patch 17/18] mm: page_vma_mapped: ensure pmd is loaded with
+ READ_ONCE outside of lock
+Date: Fri, 13 Oct 2017 15:58:25 -0700
+Message-ID: <59e14511.eLRptBeL+6bECu9A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753080AbdJMW6N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:58:13 -0400
+        with ESMTP id S1753089AbdJMW61 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:58:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, will.deacon@arm.com, kirill.shutemov@linux.intel.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rruigrok@codeaurora.org, stable@vger.kernel.org, ynorov@caviumnetworks.com
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: linux/kernel.h: add/correct kernel-doc notation
+From: Will Deacon <will.deacon@arm.com>
+Subject: mm: page_vma_mapped: ensure pmd is loaded with READ_ONCE outside of lock
 
-Add kernel-doc notation for some macros.  Correct kernel-doc comments &
-typos for a few macros.
+Loading the pmd without holding the pmd_lock exposes us to races with
+concurrent updaters of the page tables but, worse still, it also allows
+the compiler to cache the pmd value in a register and reuse it later on,
+even if we've performed a READ_ONCE in between and seen a more recent
+value.
 
-Link: http://lkml.kernel.org/r/76fa1403-1511-be4c-e9c4-456b43edfad3@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+In the case of page_vma_mapped_walk, this leads to the following crash
+when the pmd loaded for the initial pmd_trans_huge check is all zeroes and
+a subsequent valid table entry is loaded by check_pmd.  We then proceed
+into map_pte, but the compiler re-uses the zero entry inside
+pte_offset_map, resulting in a junk pointer being installed in pvmw->pte:
+
+[  254.032812] PC is at check_pte+0x20/0x170
+[  254.032948] LR is at page_vma_mapped_walk+0x2e0/0x540
+[...]
+[  254.036114] Process doio (pid: 2463, stack limit = 0xffff00000f2e8000)
+[  254.036361] Call trace:
+[  254.038977] [<ffff000008233328>] check_pte+0x20/0x170
+[  254.039137] [<ffff000008233758>] page_vma_mapped_walk+0x2e0/0x540
+[  254.039332] [<ffff000008234adc>] page_mkclean_one+0xac/0x278
+[  254.039489] [<ffff000008234d98>] rmap_walk_file+0xf0/0x238
+[  254.039642] [<ffff000008236e74>] rmap_walk+0x64/0xa0
+[  254.039784] [<ffff0000082370c8>] page_mkclean+0x90/0xa8
+[  254.040029] [<ffff0000081f3c64>] clear_page_dirty_for_io+0x84/0x2a8
+[  254.040311] [<ffff00000832f984>] mpage_submit_page+0x34/0x98
+[  254.040518] [<ffff00000832fb4c>] mpage_process_page_bufs+0x164/0x170
+[  254.040743] [<ffff00000832fc8c>] mpage_prepare_extent_to_map+0x134/0x2b8
+[  254.040969] [<ffff00000833530c>] ext4_writepages+0x484/0xe30
+[  254.041175] [<ffff0000081f6ab4>] do_writepages+0x44/0xe8
+[  254.041372] [<ffff0000081e5bd4>] __filemap_fdatawrite_range+0xbc/0x110
+[  254.041568] [<ffff0000081e5e68>] file_write_and_wait_range+0x48/0xd8
+[  254.041739] [<ffff000008324310>] ext4_sync_file+0x80/0x4b8
+[  254.041907] [<ffff0000082bd434>] vfs_fsync_range+0x64/0xc0
+[  254.042106] [<ffff0000082332b4>] SyS_msync+0x194/0x1e8
+
+This patch fixes the problem by ensuring that READ_ONCE is used before the
+initial checks on the pmd, and this value is subsequently used when
+checking whether or not the pmd is present.  pmd_check is removed and the
+pmd_present check is inlined directly.
+
+Link: http://lkml.kernel.org/r/1507222630-5839-1-git-send-email-will.deacon@arm.com
+Fixes: f27176cfc363 ("mm: convert page_mkclean_one() to use page_vma_mapped_walk()")
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Tested-by: Yury Norov <ynorov@caviumnetworks.com>
+Tested-by: Richard Ruigrok <rruigrok@codeaurora.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   90 ++++++++++++++++++++++++++++++++-------
- 1 file changed, 74 insertions(+), 16 deletions(-)
+ mm/page_vma_mapped.c |   25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/kernel.h~linux-kernelh-add-correct-kernel-doc-notation include/linux/kernel.h
---- a/include/linux/kernel.h~linux-kernelh-add-correct-kernel-doc-notation
-+++ a/include/linux/kernel.h
-@@ -44,6 +44,12 @@
+diff -puN mm/page_vma_mapped.c~mm-page_vma_mapped-ensure-pmd-is-loaded-with-read_once-outside-of-lock mm/page_vma_mapped.c
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-ensure-pmd-is-loaded-with-read_once-outside-of-lock
++++ a/mm/page_vma_mapped.c
+@@ -6,17 +6,6 @@
  
- #define STACK_MAGIC	0xdeadbeef
+ #include "internal.h"
  
-+/**
-+ * REPEAT_BYTE - repeat the value @x multiple times as an unsigned long value
-+ * @x: value to repeat
-+ *
-+ * NOTE: @x is not checked for > 0xff; larger values produce odd results.
-+ */
- #define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
- 
- /* @a is a power of 2 value */
-@@ -57,6 +63,10 @@
- #define READ			0
- #define WRITE			1
- 
-+/**
-+ * ARRAY_SIZE - get the number of elements in array @arr
-+ * @arr: array to be sized
-+ */
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
- 
- #define u64_to_user_ptr(x) (		\
-@@ -76,7 +86,15 @@
- #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
- #define round_down(x, y) ((x) & ~__round_mask(x, y))
- 
-+/**
-+ * FIELD_SIZEOF - get the size of a struct's field
-+ * @t: the target struct
-+ * @f: the target struct's field
-+ * Return: the size of @f in the struct definition without having a
-+ * declared instance of @t.
-+ */
- #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
-+
- #define DIV_ROUND_UP __KERNEL_DIV_ROUND_UP
- 
- #define DIV_ROUND_DOWN_ULL(ll, d) \
-@@ -107,7 +125,7 @@
- /*
-  * Divide positive or negative dividend by positive or negative divisor
-  * and round to closest integer. Result is undefined for negative
-- * divisors if he dividend variable type is unsigned and for negative
-+ * divisors if the dividend variable type is unsigned and for negative
-  * dividends if the divisor variable type is unsigned.
-  */
- #define DIV_ROUND_CLOSEST(x, divisor)(			\
-@@ -247,13 +265,13 @@ extern int _cond_resched(void);
-  * @ep_ro: right open interval endpoint
-  *
-  * Perform a "reciprocal multiplication" in order to "scale" a value into
-- * range [0, ep_ro), where the upper interval endpoint is right-open.
-+ * range [0, @ep_ro), where the upper interval endpoint is right-open.
-  * This is useful, e.g. for accessing a index of an array containing
-- * ep_ro elements, for example. Think of it as sort of modulus, only that
-+ * @ep_ro elements, for example. Think of it as sort of modulus, only that
-  * the result isn't that of modulo. ;) Note that if initial input is a
-  * small value, then result will return 0.
-  *
-- * Return: a result based on val in interval [0, ep_ro).
-+ * Return: a result based on @val in interval [0, @ep_ro).
-  */
- static inline u32 reciprocal_scale(u32 val, u32 ep_ro)
+-static inline bool check_pmd(struct page_vma_mapped_walk *pvmw)
+-{
+-	pmd_t pmde;
+-	/*
+-	 * Make sure we don't re-load pmd between present and !trans_huge check.
+-	 * We need a consistent view.
+-	 */
+-	pmde = READ_ONCE(*pvmw->pmd);
+-	return pmd_present(pmde) && !pmd_trans_huge(pmde);
+-}
+-
+ static inline bool not_found(struct page_vma_mapped_walk *pvmw)
  {
-@@ -618,8 +636,8 @@ do {									\
-  * trace_printk - printf formatting in the ftrace buffer
-  * @fmt: the printf format for printing
-  *
-- * Note: __trace_printk is an internal function for trace_printk and
-- *       the @ip is passed in via the trace_printk macro.
-+ * Note: __trace_printk is an internal function for trace_printk() and
-+ *       the @ip is passed in via the trace_printk() macro.
-  *
-  * This function allows a kernel developer to debug fast path sections
-  * that printk is not appropriate for. By scattering in various
-@@ -629,7 +647,7 @@ do {									\
-  * This is intended as a debugging tool for the developer only.
-  * Please refrain from leaving trace_printks scattered around in
-  * your code. (Extra memory is used for special buffers that are
-- * allocated when trace_printk() is used)
-+ * allocated when trace_printk() is used.)
-  *
-  * A little optization trick is done here. If there's only one
-  * argument, there's no need to scan the string for printf formats.
-@@ -681,7 +699,7 @@ int __trace_printk(unsigned long ip, con
-  *       the @ip is passed in via the trace_puts macro.
-  *
-  * This is similar to trace_printk() but is made for those really fast
-- * paths that a developer wants the least amount of "Heisenbug" affects,
-+ * paths that a developer wants the least amount of "Heisenbug" effects,
-  * where the processing of the print format is still too much.
-  *
-  * This function allows a kernel developer to debug fast path sections
-@@ -692,7 +710,7 @@ int __trace_printk(unsigned long ip, con
-  * This is intended as a debugging tool for the developer only.
-  * Please refrain from leaving trace_puts scattered around in
-  * your code. (Extra memory is used for special buffers that are
-- * allocated when trace_puts() is used)
-+ * allocated when trace_puts() is used.)
-  *
-  * Returns: 0 if nothing was written, positive # if string was.
-  *  (1 when __trace_bputs is used, strlen(str) when __trace_puts is used)
-@@ -771,6 +789,12 @@ static inline void ftrace_dump(enum ftra
- 	t2 min2 = (y);					\
- 	(void) (&min1 == &min2);			\
- 	min1 < min2 ? min1 : min2; })
-+
-+/**
-+ * min - return minimum of two values of the same or compatible types
-+ * @x: first value
-+ * @y: second value
-+ */
- #define min(x, y)					\
- 	__min(typeof(x), typeof(y),			\
- 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
-@@ -781,12 +805,31 @@ static inline void ftrace_dump(enum ftra
- 	t2 max2 = (y);					\
- 	(void) (&max1 == &max2);			\
- 	max1 > max2 ? max1 : max2; })
-+
-+/**
-+ * max - return maximum of two values of the same or compatible types
-+ * @x: first value
-+ * @y: second value
-+ */
- #define max(x, y)					\
- 	__max(typeof(x), typeof(y),			\
- 	      __UNIQUE_ID(max1_), __UNIQUE_ID(max2_),	\
- 	      x, y)
+ 	page_vma_mapped_walk_done(pvmw);
+@@ -116,6 +105,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
++	pmd_t pmde;
  
-+/**
-+ * min3 - return minimum of three values
-+ * @x: first value
-+ * @y: second value
-+ * @z: third value
-+ */
- #define min3(x, y, z) min((typeof(x))min(x, y), z)
-+
-+/**
-+ * max3 - return maximum of three values
-+ * @x: first value
-+ * @y: second value
-+ * @z: third value
-+ */
- #define max3(x, y, z) max((typeof(x))max(x, y), z)
- 
- /**
-@@ -805,8 +848,8 @@ static inline void ftrace_dump(enum ftra
-  * @lo: lowest allowable value
-  * @hi: highest allowable value
-  *
-- * This macro does strict typechecking of lo/hi to make sure they are of the
-- * same type as val.  See the unnecessary pointer comparisons.
-+ * This macro does strict typechecking of @lo/@hi to make sure they are of the
-+ * same type as @val.  See the unnecessary pointer comparisons.
-  */
- #define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
- 
-@@ -816,11 +859,24 @@ static inline void ftrace_dump(enum ftra
-  *
-  * Or not use min/max/clamp at all, of course.
-  */
-+
-+/**
-+ * min_t - return minimum of two values, using the specified type
-+ * @type: data type to use
-+ * @x: first value
-+ * @y: second value
-+ */
- #define min_t(type, x, y)				\
- 	__min(type, type,				\
- 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
- 	      x, y)
- 
-+/**
-+ * max_t - return maximum of two values, using the specified type
-+ * @type: data type to use
-+ * @x: first value
-+ * @y: second value
-+ */
- #define max_t(type, x, y)				\
- 	__max(type, type,				\
- 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
-@@ -834,7 +890,7 @@ static inline void ftrace_dump(enum ftra
-  * @hi: maximum allowable value
-  *
-  * This macro does no typechecking and uses temporary variables of type
-- * 'type' to make all the comparisons.
-+ * @type to make all the comparisons.
-  */
- #define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
- 
-@@ -845,15 +901,17 @@ static inline void ftrace_dump(enum ftra
-  * @hi: maximum allowable value
-  *
-  * This macro does no typechecking and uses temporary variables of whatever
-- * type the input argument 'val' is.  This is useful when val is an unsigned
-- * type and min and max are literals that will otherwise be assigned a signed
-+ * type the input argument @val is.  This is useful when @val is an unsigned
-+ * type and @lo and @hi are literals that will otherwise be assigned a signed
-  * integer type.
-  */
- #define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
- 
- 
--/*
-- * swap - swap value of @a and @b
-+/**
-+ * swap - swap values of @a and @b
-+ * @a: first value
-+ * @b: second value
-  */
- #define swap(a, b) \
- 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+ 	/* The only possible pmd mapping has been handled on last iteration */
+ 	if (pvmw->pmd && !pvmw->pte)
+@@ -148,7 +138,13 @@ restart:
+ 	if (!pud_present(*pud))
+ 		return false;
+ 	pvmw->pmd = pmd_offset(pud, pvmw->address);
+-	if (pmd_trans_huge(*pvmw->pmd) || is_pmd_migration_entry(*pvmw->pmd)) {
++	/*
++	 * Make sure the pmd value isn't cached in a register by the
++	 * compiler and used as a stale value after we've observed a
++	 * subsequent update.
++	 */
++	pmde = READ_ONCE(*pvmw->pmd);
++	if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
+ 		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 		if (likely(pmd_trans_huge(*pvmw->pmd))) {
+ 			if (pvmw->flags & PVMW_MIGRATION)
+@@ -174,9 +170,8 @@ restart:
+ 			spin_unlock(pvmw->ptl);
+ 			pvmw->ptl = NULL;
+ 		}
+-	} else {
+-		if (!check_pmd(pvmw))
+-			return false;
++	} else if (!pmd_present(pmde)) {
++		return false;
+ 	}
+ 	if (!map_pte(pvmw))
+ 		goto next_pte;
 _
