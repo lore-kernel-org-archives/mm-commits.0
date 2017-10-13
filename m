@@ -1,58 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 05/18] mm/mempolicy: fix NUMA_INTERLEAVE_HIT counter
-Date: Fri, 13 Oct 2017 15:57:43 -0700
-Message-ID: <59e144e7.VJna3vrsowNWIx5S%akpm@linux-foundation.org>
+Subject: [patch 04/18] include/linux/of.h: provide of_n_{addr,size}_cells
+ wrappers for !CONFIG_OF
+Date: Fri, 13 Oct 2017 15:57:40 -0700
+Message-ID: <59e144e4.TsEC63snHF+gTZ1x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40050 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752687AbdJMW5p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:45 -0400
+        with ESMTP id S1752687AbdJMW5n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, kemi.wang@intel.com, mgorman@techsingularity.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, ben.dooks@codethink.co.uk, bhelgaas@google.com, damm@opensource.se, frank.rowand@sony.com, geert+renesas@glider.be
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/mempolicy: fix NUMA_INTERLEAVE_HIT counter
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: include/linux/of.h: provide of_n_{addr,size}_cells wrappers for !CONFIG_OF
 
-3a321d2a3dde81214 ("mm: change the call sites of numa statistics items")
-separated NUMA counters from zone counters, but the NUMA_INTERLEAVE_HIT
-call site wasn't updated to use the new interface.  So
-alloc_page_interleave() actually increments NR_ZONE_INACTIVE_FILE instead
-of NUMA_INTERLEAVE_HIT.
+The pci-rcar driver is enabled for compile tests, and this has shown that
+the driver cannot build without CONFIG_OF, following the inclusion of
+f8f2fe7355fb "PCI: rcar: Use new OF interrupt mapping when possible":
 
-Fix this by using __inc_numa_state() interface to increment
-NUMA_INTERLEAVE_HIT.
+drivers/pci/host/pcie-rcar.c: In function 'pci_dma_range_parser_init':
+drivers/pci/host/pcie-rcar.c:1039:2: error: implicit declaration of function 'of_n_addr_cells' [-Werror=implicit-function-declaration]
+  parser->pna = of_n_addr_cells(node);
+  ^
 
-Link: http://lkml.kernel.org/r/20171003191003.8573-1-aryabinin@virtuozzo.com
-Fixes: 3a321d2a3dde ("mm: change the call sites of numa statistics items")
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kemi Wang <kemi.wang@intel.com>
+As pointed out by Ben Dooks and Geert Uytterhoeven, this is actually
+supposed to build fine, which we can achieve if we make the declaration of
+of_irq_parse_and_map_pci conditional on CONFIG_OF and provide an empty
+inline function otherwise, as we do for a lot of other of interfaces.
+
+This lets us build the rcar_pci driver again without CONFIG_OF for build
+testing.  All platforms using this driver select OF, so this doesn't
+change anything for the users.
+
+[akpm@linux-foundation.org: be consistent with surrounding code]
+Link: http://lkml.kernel.org/r/20170911200805.3363318-1-arnd@arndb.de
+Fixes: c25da4778803 ("PCI: rcar: Add Renesas R-Car PCIe driver")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Frank Rowand <frank.rowand@sony.com>
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Magnus Damm <damm@opensource.se>
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/of.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-fix-numa_interleave_hit-counter mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-fix-numa_interleave_hit-counter
-+++ a/mm/mempolicy.c
-@@ -1920,8 +1920,11 @@ static struct page *alloc_page_interleav
- 	struct page *page;
- 
- 	page = __alloc_pages(gfp, order, nid);
--	if (page && page_to_nid(page) == nid)
--		inc_zone_page_state(page, NUMA_INTERLEAVE_HIT);
-+	if (page && page_to_nid(page) == nid) {
-+		preempt_disable();
-+		__inc_numa_state(page_zone(page), NUMA_INTERLEAVE_HIT);
-+		preempt_enable();
-+	}
- 	return page;
+diff -puN include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of include/linux/of.h
+--- a/include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of
++++ a/include/linux/of.h
+@@ -734,6 +734,16 @@ static inline struct device_node *of_get
+ 	return NULL;
  }
  
++static inline int of_n_addr_cells(struct device_node *np)
++{
++	return 0;
++
++}
++static inline int of_n_size_cells(struct device_node *np)
++{
++	return 0;
++}
++
+ static inline int of_property_read_u64(const struct device_node *np,
+ 				       const char *propname, u64 *out_value)
+ {
 _
