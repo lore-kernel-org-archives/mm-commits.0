@@ -1,96 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
- removed from -mm tree
-Date: Fri, 13 Oct 2017 14:21:44 -0700
-Message-ID: <59e12e68.jTC1rB5xpvmBjX7E%akpm@linux-foundation.org>
+Subject: + ocfs2-no-need-flush-workqueue-before-destroying-it.patch added
+ to -mm tree
+Date: Fri, 13 Oct 2017 14:27:46 -0700
+Message-ID: <59e12fd2.GL59qrp4bA/tm2e5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751339AbdJMVVp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 17:21:45 -0400
+        with ESMTP id S1751081AbdJMV1s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 17:27:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maninder1.s@samsung.com, a.sahrawat@samsung.com, chris@chris-wilson.co.uk, dvyukov@google.com, mark.rutland@arm.com, v.narang@samsung.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot.c: ignore junk last entry in case of switch from user mode.
-has been removed from the -mm tree.  Its filename was
-     stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode.patch
+     Subject: ocfs2: no need flush workqueue before destroying it
+has been added to the -mm tree.  Its filename is
+     ocfs2-no-need-flush-workqueue-before-destroying-it.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-no-need-flush-workqueue-before-destroying-it.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-no-need-flush-workqueue-before-destroying-it.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: lib/stackdepot.c: ignore junk last entry in case of switch from user mode.
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: no need flush workqueue before destroying it
 
-Issue observed on ARM.
+destroy_workqueue() will do flushing work for us.
 
-Whenever there is switch from user mode, we end up with invalid last entry
-with some user space address as below:-
-
- save_stack+0x40/0xec
- __set_page_owner+0x2c/0x64
-....
-....
- __handle_domain_irq+0x9c/0x130
- gic_handle_irq+0x40/0x80
- __irq_usr+0x4c/0x60
- 0xb6507818
-
-So in this case last entry is not valid, which leads to allocated one more
-new frame for stackdepot although having all above frames exactly same.
-
-(It increases depot_index drastically)
-
-So its better to ignore that last frame in case of switch.
- save_stack+0x40/0xec
- __set_page_owner+0x2c/0x64
-....
-....
- __handle_domain_irq+0x9c/0x130
- gic_handle_irq+0x40/0x80
- __irq_usr+0x4c/0x60
-
-Link: http://lkml.kernel.org/r/1507725802-44574-1-git-send-email-maninder1.s@samsung.com
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Link: http://lkml.kernel.org/r/59E06476.3090502@huawei.com
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/ocfs2/dlm/dlmdomain.c |    1 -
+ fs/ocfs2/dlmfs/dlmfs.c   |    1 -
+ fs/ocfs2/super.c         |    4 +---
+ 3 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN lib/stackdepot.c~stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode lib/stackdepot.c
---- a/lib/stackdepot.c~stackdepot-ignore-junk-last-entry-in-case-of-switch-from-user-mode
-+++ a/lib/stackdepot.c
-@@ -214,6 +214,13 @@ depot_stack_handle_t depot_save_stack(st
- 	if (unlikely(trace->nr_entries == 0))
- 		goto fast_exit;
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-no-need-flush-workqueue-before-destroying-it fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-no-need-flush-workqueue-before-destroying-it
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -394,7 +394,6 @@ int dlm_domain_fully_joined(struct dlm_c
+ static void dlm_destroy_dlm_worker(struct dlm_ctxt *dlm)
+ {
+ 	if (dlm->dlm_worker) {
+-		flush_workqueue(dlm->dlm_worker);
+ 		destroy_workqueue(dlm->dlm_worker);
+ 		dlm->dlm_worker = NULL;
+ 	}
+diff -puN fs/ocfs2/dlmfs/dlmfs.c~ocfs2-no-need-flush-workqueue-before-destroying-it fs/ocfs2/dlmfs/dlmfs.c
+--- a/fs/ocfs2/dlmfs/dlmfs.c~ocfs2-no-need-flush-workqueue-before-destroying-it
++++ a/fs/ocfs2/dlmfs/dlmfs.c
+@@ -670,7 +670,6 @@ static void __exit exit_dlmfs_fs(void)
+ {
+ 	unregister_filesystem(&dlmfs_fs_type);
  
-+	/*
-+	 * Ignore last entry if it belongs to user space
-+	 * in case of switch from user mode.
-+	 */
-+	if (!kernel_text_address(trace->entries[trace->nr_entries - 1]))
-+		trace->nr_entries--;
-+
- 	hash = hash_stack(trace->entries, trace->nr_entries);
- 	bucket = &stack_table[hash & STACK_HASH_MASK];
+-	flush_workqueue(user_dlm_worker);
+ 	destroy_workqueue(user_dlm_worker);
+ 
+ 	/*
+diff -puN fs/ocfs2/super.c~ocfs2-no-need-flush-workqueue-before-destroying-it fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-no-need-flush-workqueue-before-destroying-it
++++ a/fs/ocfs2/super.c
+@@ -2521,10 +2521,8 @@ static void ocfs2_delete_osb(struct ocfs
+ 	/* This function assumes that the caller has the main osb resource */
+ 
+ 	/* ocfs2_initializer_super have already created this workqueue */
+-	if (osb->ocfs2_wq) {
+-		flush_workqueue(osb->ocfs2_wq);
++	if (osb->ocfs2_wq)
+ 		destroy_workqueue(osb->ocfs2_wq);
+-	}
+ 
+ 	ocfs2_free_slot_info(osb);
  
 _
 
-Patches currently in -mm which might be from maninder1.s@samsung.com are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-bloat-o-meter-provide-3-different-arguments-for-data-function-and-all.patch
-bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
+ocfs2-no-need-flush-workqueue-before-destroying-it.patch
+ocfs2-cleanup-unused-func-declaration-and-assignment.patch
 
