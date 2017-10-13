@@ -1,70 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kbuild-fix-optimization-level-choice-default.patch removed from -mm tree
-Date: Fri, 13 Oct 2017 13:28:31 -0700
-Message-ID: <20171013202831.OuUf7eqy7%akpm@linux-foundation.org>
+ writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch
+ removed from -mm tree
+Date: Fri, 13 Oct 2017 13:28:35 -0700
+Message-ID: <20171013202835.vfj9N5Q2O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54906 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752085AbdJMU2d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 16:28:33 -0400
+        with ESMTP id S1752085AbdJMU2g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 16:28:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, daniel@zonque.org, keescook@chromium.org, mm-commits@vger.kernel.org, nicolas.pitre@linaro.org, paulmck@linux.vnet.ibm.com, tglx@linutronix.de, tj@kernel.org, ulfalizer@gmail.com
+To: axboe@kernel.dk, jack@suse.cz, laoar.shao@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: fix optimization level choice default
+     Subject: mm/page-writeback.c: make changes of dirty_writeback_centisecs take effect immediately
 has been removed from the -mm tree.  Its filename was
-     kbuild-fix-optimization-level-choice-default.patch
+     writeback-change-of-dirty_writeback_interval-takes-effect-immediately.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulf Magnusson <ulfalizer@gmail.com>
-Subject: kbuild: fix optimization level choice default
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm/page-writeback.c: make changes of dirty_writeback_centisecs take effect immediately
 
-The choice containing the CC_OPTIMIZE_FOR_PERFORMANCE symbol accidentally
-added a "CONFIG_" prefix when trying to make it the default, selecting an
-undefined symbol as the default.
+Two problems with /proc/sys/vm/dirty_writeback_centisecs:
 
-The mistake is harmless here: Since the default symbol is not visible, the
-choice falls back on using the visible symbol as the default instead,
-which is CC_OPTIMIZE_FOR_PERFORMANCE, as intended.
+- When the tunable is set to 0 (disable), writing a non-zero value
+  doesn't restart the flushing operations until the dirty background limit
+  is reached or sys_sync is executed or not enough free memory is
+  available or vmscan is triggered.
 
-A patch that makes Kconfig print a warning in this case has been submitted
-separately: http://www.spinics.net/lists/linux-kbuild/msg15566.html
+- When the tunable was set to one hour and is reset to one second, the
+  new setting will not take effect for up to one hour.
 
-Link: http://lkml.kernel.org/r/1507074806-21577-1-git-send-email-ulfalizer@gmail.com
-Signed-off-by: Ulf Magnusson <ulfalizer@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul E . McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Daniel Mack <daniel@zonque.org>
+Kicking the flusher threads immediately fixes these issues.
+
+Link: http://lkml.kernel.org/r/1507746016-15344-1-git-send-email-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page-writeback.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN init/Kconfig~kbuild-fix-optimization-level-choice-default init/Kconfig
---- a/init/Kconfig~kbuild-fix-optimization-level-choice-default
-+++ a/init/Kconfig
-@@ -1033,7 +1033,7 @@ endif
+diff -puN mm/page-writeback.c~writeback-change-of-dirty_writeback_interval-takes-effect-immediately mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-change-of-dirty_writeback_interval-takes-effect-immediately
++++ a/mm/page-writeback.c
+@@ -1974,8 +1974,19 @@ bool wb_over_bg_thresh(struct bdi_writeb
+ int dirty_writeback_centisecs_handler(struct ctl_table *table, int write,
+ 	void __user *buffer, size_t *length, loff_t *ppos)
+ {
+-	proc_dointvec(table, write, buffer, length, ppos);
+-	return 0;
++	int ret = proc_dointvec(table, write, buffer, length, ppos);
++
++	/*
++	 * Writing 0 to dirty_writeback_interval will disable periodic writeback
++	 * and a different non-zero value will wakeup the writeback threads.
++	 * wb_wakeup_delayed() would be more appropriate, but it's a pain to
++	 * iterate over all bdis and wbs.
++	 * The reason we do this is to make the change take effect immediately.
++	 */
++	if (!ret && write && dirty_writeback_interval &&
++			dirty_writeback_interval != old_interval)
++		wakeup_flusher_threads(WB_REASON_PERIODIC);
++	return ret;
+ }
  
- choice
- 	prompt "Compiler optimization level"
--	default CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
-+	default CC_OPTIMIZE_FOR_PERFORMANCE
- 
- config CC_OPTIMIZE_FOR_PERFORMANCE
- 	bool "Optimize for performance"
+ #ifdef CONFIG_BLOCK
 _
 
-Patches currently in -mm which might be from ulfalizer@gmail.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
+mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
 
