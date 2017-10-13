@@ -1,106 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/18] fs/mpage.c: fix mpage_writepage() for pages with
- buffers
-Date: Fri, 13 Oct 2017 15:58:15 -0700
-Message-ID: <59e14507.DjQrpCcukBb/JpyB%akpm__24588.9444988736$1507935499$gmane$org@linux-foundation.org>
+Subject: [patch 16/18] kmemleak: clear stale pointers from task stacks
+Date: Fri, 13 Oct 2017 15:58:22 -0700
+Message-ID: <59e1450e.h0sYoRrk0BSHL8Rm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753085AbdJMW6Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:58:16 -0400
+        with ESMTP id S1753089AbdJMW6X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:58:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@infradead.org, hirofumi@mail.parknet.co.jp, jthumshirn@suse.de, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, toshi.kani@hpe.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, khlebnikov@yandex-team.ru, catalin.marinas@arm.com
 
-From: Matthew Wilcox <willy@infradead.org>
-Subject: fs/mpage.c: fix mpage_writepage() for pages with buffers
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: kmemleak: clear stale pointers from task stacks
 
-When using FAT on a block device which supports rw_page, we can hit
-BUG_ON(!PageLocked(page)) in try_to_free_buffers().  This is because we
-call clean_buffers() after unlocking the page we've written.  Introduce a
-new clean_page_buffers() which cleans all buffers associated with a page
-and call it from within bdev_write_page().
+Kmemleak considers any pointers on task stacks as references.  This patch
+clears newly allocated and reused vmap stacks.
 
-[akpm@linux-foundation.org: s/PAGE_SIZE/~0U/ per Linus and Matthew]
-Link: http://lkml.kernel.org/r/20171006211541.GA7409@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
-Reported-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Tested-by: Toshi Kani <toshi.kani@hpe.com>
-Acked-by: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/150728990124.744199.8403409836394318684.stgit@buzz
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c              |    6 ++++--
- fs/mpage.c                  |   14 +++++++++++---
- include/linux/buffer_head.h |    1 +
- 3 files changed, 16 insertions(+), 5 deletions(-)
+ include/linux/thread_info.h |    2 +-
+ kernel/fork.c               |    4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/block_dev.c~fix-mpage_writepage-for-pages-with-buffers fs/block_dev.c
---- a/fs/block_dev.c~fix-mpage_writepage-for-pages-with-buffers
-+++ a/fs/block_dev.c
-@@ -716,10 +716,12 @@ int bdev_write_page(struct block_device
+diff -puN include/linux/thread_info.h~kmemleak-clear-stale-pointers-from-task-stacks include/linux/thread_info.h
+--- a/include/linux/thread_info.h~kmemleak-clear-stale-pointers-from-task-stacks
++++ a/include/linux/thread_info.h
+@@ -42,7 +42,7 @@ enum {
+ #define THREAD_ALIGN	THREAD_SIZE
+ #endif
  
- 	set_page_writeback(page);
- 	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, true);
--	if (result)
-+	if (result) {
- 		end_page_writeback(page);
--	else
-+	} else {
-+		clean_page_buffers(page);
- 		unlock_page(page);
-+	}
- 	blk_queue_exit(bdev->bd_queue);
- 	return result;
- }
-diff -puN fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers fs/mpage.c
---- a/fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers
-+++ a/fs/mpage.c
-@@ -468,6 +468,16 @@ static void clean_buffers(struct page *p
- 		try_to_free_buffers(page);
- }
+-#ifdef CONFIG_DEBUG_STACK_USAGE
++#if IS_ENABLED(CONFIG_DEBUG_STACK_USAGE) || IS_ENABLED(CONFIG_DEBUG_KMEMLEAK)
+ # define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT | __GFP_NOTRACK | \
+ 				 __GFP_ZERO)
+ #else
+diff -puN kernel/fork.c~kmemleak-clear-stale-pointers-from-task-stacks kernel/fork.c
+--- a/kernel/fork.c~kmemleak-clear-stale-pointers-from-task-stacks
++++ a/kernel/fork.c
+@@ -215,6 +215,10 @@ static unsigned long *alloc_thread_stack
+ 		if (!s)
+ 			continue;
  
-+/*
-+ * For situations where we want to clean all buffers attached to a page.
-+ * We don't need to calculate how many buffers are attached to the page,
-+ * we just need to specify a number larger than the maximum number of buffers.
-+ */
-+void clean_page_buffers(struct page *page)
-+{
-+	clean_buffers(page, ~0U);
-+}
-+
- static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
- 		      void *data)
- {
-@@ -605,10 +615,8 @@ alloc_new:
- 	if (bio == NULL) {
- 		if (first_unmapped == blocks_per_page) {
- 			if (!bdev_write_page(bdev, blocks[0] << (blkbits - 9),
--								page, wbc)) {
--				clean_buffers(page, first_unmapped);
-+								page, wbc))
- 				goto out;
--			}
- 		}
- 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
- 				BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
-diff -puN include/linux/buffer_head.h~fix-mpage_writepage-for-pages-with-buffers include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fix-mpage_writepage-for-pages-with-buffers
-+++ a/include/linux/buffer_head.h
-@@ -232,6 +232,7 @@ int generic_write_end(struct file *, str
- 				loff_t, unsigned, unsigned,
- 				struct page *, void *);
- void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
-+void clean_page_buffers(struct page *page);
- int cont_write_begin(struct file *, struct address_space *, loff_t,
- 			unsigned, unsigned, struct page **, void **,
- 			get_block_t *, loff_t *);
++#ifdef CONFIG_DEBUG_KMEMLEAK
++		/* Clear stale pointers from reused stack. */
++		memset(s->addr, 0, THREAD_SIZE);
++#endif
+ 		tsk->stack_vm_area = s;
+ 		return s->addr;
+ 	}
 _
