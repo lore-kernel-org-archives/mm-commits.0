@@ -1,124 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/18] userfaultfd: selftest: exercise -EEXIST only in
- background transfer
-Date: Fri, 13 Oct 2017 15:57:54 -0700
-Message-ID: <59e144f2.Kf8DX6vZ7Rz+JrO2%akpm@linux-foundation.org>
+Subject: [patch 07/18] mm: only display online cpus of the numa node
+Date: Fri, 13 Oct 2017 15:57:50 -0700
+Message-ID: <59e144ee.iYuL3GXWoeNbC0xJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752902AbdJMW54 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:56 -0400
+        with ESMTP id S1752898AbdJMW5w (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, shuah@kernel.org, xemul@virtuozzo.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, thunder.leizhen@huawei.com, catalin.marinas@arm.com, dingtianhong@huawei.com, gregkh@linuxfoundation.org, guohanjun@huawei.com, huawei.libin@huawei.com, mhocko@suse.com, wangkefeng.wang@huawei.com, will.deacon@arm.com
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: mm: only display online cpus of the numa node
 
-I was stress testing some backports and with high load, after some time,
-the latest version of the selftest showed some false positive in
-connection with the uffdio_copy_retry.  This seems to fix it while still
-exercising -EEXIST in the background transfer once in a while.
+When I executed numactl -H(which read
+/sys/devices/system/node/nodeX/cpumap and display cpumask_of_node for each
+node), but I got different result on X86 and arm64.  For each numa node,
+the former only displayed online CPUs, and the latter displayed all
+possible CPUs.  Unfortunately, both Linux documentation and numactl manual
+have not described it clear.
 
-The fork child will quit after the last UFFDIO_COPY is run, so a repeated
-UFFDIO_COPY may not return -EEXIST.  This change restricts the -EEXIST
-stress to the background transfer where the memory can't go away from
-under it.
+I sent a mail to ask for help, and Michal Hocko replied that he preferred
+to print online cpus because it doesn't really make much sense to bind
+anything on offline nodes.
 
-Also updated uffdio_zeropage, so the interface is consistent.
+Will said:
 
-Link: http://lkml.kernel.org/r/20171004171541.1495-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
+: I suspect the vast majority (if not all) code that reads this file was
+: developed for x86, so having the same behaviour for arm64 sounds like
+: something we should do ASAP before people try to special case with
+: things like #ifdef __aarch64__.  I'd rather have this in 4.14 if possible.
+
+Link: http://lkml.kernel.org/r/1506678805-15392-2-git-send-email-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tianhong Ding <dingtianhong@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Libin <huawei.libin@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   25 ++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+ drivers/base/node.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -397,7 +397,7 @@ static void retry_copy_page(int ufd, str
- 	}
- }
+diff -puN drivers/base/node.c~mm-only-dispaly-online-cpus-of-the-numa-node drivers/base/node.c
+--- a/drivers/base/node.c~mm-only-dispaly-online-cpus-of-the-numa-node
++++ a/drivers/base/node.c
+@@ -27,13 +27,21 @@ static struct bus_type node_subsys = {
  
--static int copy_page(int ufd, unsigned long offset)
-+static int __copy_page(int ufd, unsigned long offset, bool retry)
+ static ssize_t node_read_cpumap(struct device *dev, bool list, char *buf)
  {
- 	struct uffdio_copy uffdio_copy;
++	ssize_t n;
++	cpumask_var_t mask;
+ 	struct node *node_dev = to_node(dev);
+-	const struct cpumask *mask = cpumask_of_node(node_dev->dev.id);
  
-@@ -418,7 +418,7 @@ static int copy_page(int ufd, unsigned l
- 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
- 			uffdio_copy.copy), exit(1);
- 	} else {
--		if (test_uffdio_copy_eexist) {
-+		if (test_uffdio_copy_eexist && retry) {
- 			test_uffdio_copy_eexist = false;
- 			retry_copy_page(ufd, &uffdio_copy, offset);
- 		}
-@@ -427,6 +427,16 @@ static int copy_page(int ufd, unsigned l
- 	return 0;
- }
+ 	/* 2008/04/07: buf currently PAGE_SIZE, need 9 chars per 32 bits. */
+ 	BUILD_BUG_ON((NR_CPUS/32 * 9) > (PAGE_SIZE-1));
  
-+static int copy_page_retry(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, true);
-+}
+-	return cpumap_print_to_pagebuf(list, buf, mask);
++	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
++		return 0;
 +
-+static int copy_page(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, false);
-+}
++	cpumask_and(mask, cpumask_of_node(node_dev->dev.id), cpu_online_mask);
++	n = cpumap_print_to_pagebuf(list, buf, mask);
++	free_cpumask_var(mask);
 +
- static void *uffd_poll_thread(void *arg)
- {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -544,7 +554,7 @@ static void *background_thread(void *arg
- 	for (page_nr = cpu * nr_pages_per_cpu;
- 	     page_nr < (cpu+1) * nr_pages_per_cpu;
- 	     page_nr++)
--		copy_page(uffd, page_nr * page_size);
-+		copy_page_retry(uffd, page_nr * page_size);
- 
- 	return NULL;
- }
-@@ -779,7 +789,7 @@ static void retry_uffdio_zeropage(int uf
- 	}
++	return n;
  }
  
--static int uffdio_zeropage(int ufd, unsigned long offset)
-+static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
- {
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
-@@ -814,7 +824,7 @@ static int uffdio_zeropage(int ufd, unsi
- 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
- 				uffdio_zeropage.zeropage), exit(1);
- 		} else {
--			if (test_uffdio_zeropage_eexist) {
-+			if (test_uffdio_zeropage_eexist && retry) {
- 				test_uffdio_zeropage_eexist = false;
- 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
- 						      offset);
-@@ -830,6 +840,11 @@ static int uffdio_zeropage(int ufd, unsi
- 	return 0;
- }
- 
-+static int uffdio_zeropage(int ufd, unsigned long offset)
-+{
-+	return __uffdio_zeropage(ufd, offset, false);
-+}
-+
- /* exercise UFFDIO_ZEROPAGE */
- static int userfaultfd_zeropage_test(void)
- {
+ static inline ssize_t node_read_cpumask(struct device *dev,
 _
