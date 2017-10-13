@@ -1,77 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/18] Revert "vmalloc: back off when the current task is
- killed"
-Date: Fri, 13 Oct 2017 15:58:05 -0700
-Message-ID: <59e144fd.dhxQDiXaPb0wYCWp%akpm@linux-foundation.org>
+Subject: [patch 14/18] fs/mpage.c: fix mpage_writepage() for pages with
+ buffers
+Date: Fri, 13 Oct 2017 15:58:15 -0700
+Message-ID: <59e14507.DjQrpCcukBb/JpyB%akpm__24588.9444988736$1507935499$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40250 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752984AbdJMW6G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:58:06 -0400
+        with ESMTP id S1753085AbdJMW6Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:58:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, alan@llwyncelyn.cymru, dvyukov@google.com, hch@lst.de, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@infradead.org, hirofumi@mail.parknet.co.jp, jthumshirn@suse.de, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, toshi.kani@hpe.com
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Revert "vmalloc: back off when the current task is killed"
+From: Matthew Wilcox <willy@infradead.org>
+Subject: fs/mpage.c: fix mpage_writepage() for pages with buffers
 
-This reverts 5d17a73a2ebe ("vmalloc: back off when the current task is
-killed") and 171012f56127 ("mm: don't warn when vmalloc() fails due to a
-fatal signal").
+When using FAT on a block device which supports rw_page, we can hit
+BUG_ON(!PageLocked(page)) in try_to_free_buffers().  This is because we
+call clean_buffers() after unlocking the page we've written.  Introduce a
+new clean_page_buffers() which cleans all buffers associated with a page
+and call it from within bdev_write_page().
 
-5d17a73a2ebe ("vmalloc: back off when the current task is killed") made
-all vmalloc allocations from a signal-killed task fail.  We have seen
-crashes in the tty driver from this, where a killed task exiting tries to
-switch back to N_TTY, fails n_tty_open because of the vmalloc failing, and
-later crashes when dereferencing tty->disc_data.
-
-Arguably, relying on a vmalloc() call to succeed in order to properly exit
-a task is not the most robust way of doing things.  There will be a
-follow-up patch to the tty code to fall back to the N_NULL ldisc.
-
-But the justification to make that vmalloc() call fail like this isn't
-convincing, either.  The patch mentions an OOM victim exhausting the
-memory reserves and thus deadlocking the machine.  But the OOM killer is
-only one, improbable source of fatal signals.  It doesn't make sense to
-fail allocations preemptively with plenty of memory in most cases.
-
-The patch doesn't mention real-life instances where vmalloc sites would
-exhaust memory, which makes it sound more like a theoretical issue to
-begin with.  But just in case, the OOM access to memory reserves has been
-restricted on the allocator side in cd04ae1e2dc8 ("mm, oom: do not rely on
-TIF_MEMDIE for memory reserves access"), which should take care of any
-theoretical concerns on that front.
-
-Revert this patch, and the follow-up that suppresses the allocation
-warnings when we fail the allocations due to a signal.
-
-Link: http://lkml.kernel.org/r/20171004185906.GB2136@cmpxchg.org
-Fixes:  171012f56127 ("mm: don't warn when vmalloc() fails due to a fatal signal")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alan Cox <alan@llwyncelyn.cymru>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+[akpm@linux-foundation.org: s/PAGE_SIZE/~0U/ per Linus and Matthew]
+Link: http://lkml.kernel.org/r/20171006211541.GA7409@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Reported-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Tested-by: Toshi Kani <toshi.kani@hpe.com>
+Acked-by: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/block_dev.c              |    6 ++++--
+ fs/mpage.c                  |   14 +++++++++++---
+ include/linux/buffer_head.h |    1 +
+ 3 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed mm/vmalloc.c
---- a/mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed
-+++ a/mm/vmalloc.c
-@@ -1695,11 +1695,6 @@ static void *__vmalloc_area_node(struct
- 	for (i = 0; i < area->nr_pages; i++) {
- 		struct page *page;
+diff -puN fs/block_dev.c~fix-mpage_writepage-for-pages-with-buffers fs/block_dev.c
+--- a/fs/block_dev.c~fix-mpage_writepage-for-pages-with-buffers
++++ a/fs/block_dev.c
+@@ -716,10 +716,12 @@ int bdev_write_page(struct block_device
  
--		if (fatal_signal_pending(current)) {
--			area->nr_pages = i;
--			goto fail_no_warn;
--		}
+ 	set_page_writeback(page);
+ 	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page, true);
+-	if (result)
++	if (result) {
+ 		end_page_writeback(page);
+-	else
++	} else {
++		clean_page_buffers(page);
+ 		unlock_page(page);
++	}
+ 	blk_queue_exit(bdev->bd_queue);
+ 	return result;
+ }
+diff -puN fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers fs/mpage.c
+--- a/fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers
++++ a/fs/mpage.c
+@@ -468,6 +468,16 @@ static void clean_buffers(struct page *p
+ 		try_to_free_buffers(page);
+ }
+ 
++/*
++ * For situations where we want to clean all buffers attached to a page.
++ * We don't need to calculate how many buffers are attached to the page,
++ * we just need to specify a number larger than the maximum number of buffers.
++ */
++void clean_page_buffers(struct page *page)
++{
++	clean_buffers(page, ~0U);
++}
++
+ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+ 		      void *data)
+ {
+@@ -605,10 +615,8 @@ alloc_new:
+ 	if (bio == NULL) {
+ 		if (first_unmapped == blocks_per_page) {
+ 			if (!bdev_write_page(bdev, blocks[0] << (blkbits - 9),
+-								page, wbc)) {
+-				clean_buffers(page, first_unmapped);
++								page, wbc))
+ 				goto out;
+-			}
+ 		}
+ 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+ 				BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
+diff -puN include/linux/buffer_head.h~fix-mpage_writepage-for-pages-with-buffers include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~fix-mpage_writepage-for-pages-with-buffers
++++ a/include/linux/buffer_head.h
+@@ -232,6 +232,7 @@ int generic_write_end(struct file *, str
+ 				loff_t, unsigned, unsigned,
+ 				struct page *, void *);
+ void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
++void clean_page_buffers(struct page *page);
+ int cont_write_begin(struct file *, struct address_space *, loff_t,
+ 			unsigned, unsigned, struct page **, void **,
+ 			get_block_t *, loff_t *);
+_
