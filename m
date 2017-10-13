@@ -1,52 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/18] mm: remove unnecessary WARN_ONCE in
- page_vma_mapped_walk().
-Date: Fri, 13 Oct 2017 15:57:47 -0700
-Message-ID: <59e144eb.AY/0Pjl16QoDjsfn%akpm@linux-foundation.org>
+Subject: [patch 08/18] userfaultfd: selftest: exercise -EEXIST only in
+ background transfer
+Date: Fri, 13 Oct 2017 15:57:54 -0700
+Message-ID: <59e144f2.Kf8DX6vZ7Rz+JrO2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40164 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752687AbdJMW5t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:49 -0400
+        with ESMTP id S1752902AbdJMW54 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zi.yan@cs.rutgers.edu, abdhalee@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, shuah@kernel.org, xemul@virtuozzo.com
 
-From: Zi Yan <zi.yan@cs.rutgers.edu>
-Subject: mm: remove unnecessary WARN_ONCE in page_vma_mapped_walk().
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
 
-A non present pmd entry can appear after pmd_lock is taken in
-page_vma_mapped_walk(), even if THP migration is not enabled.  The
-WARN_ONCE is unnecessary.
+I was stress testing some backports and with high load, after some time,
+the latest version of the selftest showed some false positive in
+connection with the uffdio_copy_retry.  This seems to fix it while still
+exercising -EEXIST in the background transfer once in a while.
 
-Link: http://lkml.kernel.org/r/20171003142606.12324-1-zi.yan@sent.com
-Fixes: 616b8371539a ("mm: thp: enable thp migration in generic path")
-Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Reported-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-Tested-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+The fork child will quit after the last UFFDIO_COPY is run, so a repeated
+UFFDIO_COPY may not return -EEXIST.  This change restricts the -EEXIST
+stress to the background transfer where the memory can't go away from
+under it.
+
+Also updated uffdio_zeropage, so the interface is consistent.
+
+Link: http://lkml.kernel.org/r/20171004171541.1495-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   25 ++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_vma_mapped.c~mm-remove-unnecessary-warn_once-in-page_vma_mapped_walk mm/page_vma_mapped.c
---- a/mm/page_vma_mapped.c~mm-remove-unnecessary-warn_once-in-page_vma_mapped_walk
-+++ a/mm/page_vma_mapped.c
-@@ -167,8 +167,7 @@ restart:
- 						return not_found(pvmw);
- 					return true;
- 				}
--			} else
--				WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
-+			}
- 			return not_found(pvmw);
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -397,7 +397,7 @@ static void retry_copy_page(int ufd, str
+ 	}
+ }
+ 
+-static int copy_page(int ufd, unsigned long offset)
++static int __copy_page(int ufd, unsigned long offset, bool retry)
+ {
+ 	struct uffdio_copy uffdio_copy;
+ 
+@@ -418,7 +418,7 @@ static int copy_page(int ufd, unsigned l
+ 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
+ 			uffdio_copy.copy), exit(1);
+ 	} else {
+-		if (test_uffdio_copy_eexist) {
++		if (test_uffdio_copy_eexist && retry) {
+ 			test_uffdio_copy_eexist = false;
+ 			retry_copy_page(ufd, &uffdio_copy, offset);
+ 		}
+@@ -427,6 +427,16 @@ static int copy_page(int ufd, unsigned l
+ 	return 0;
+ }
+ 
++static int copy_page_retry(int ufd, unsigned long offset)
++{
++	return __copy_page(ufd, offset, true);
++}
++
++static int copy_page(int ufd, unsigned long offset)
++{
++	return __copy_page(ufd, offset, false);
++}
++
+ static void *uffd_poll_thread(void *arg)
+ {
+ 	unsigned long cpu = (unsigned long) arg;
+@@ -544,7 +554,7 @@ static void *background_thread(void *arg
+ 	for (page_nr = cpu * nr_pages_per_cpu;
+ 	     page_nr < (cpu+1) * nr_pages_per_cpu;
+ 	     page_nr++)
+-		copy_page(uffd, page_nr * page_size);
++		copy_page_retry(uffd, page_nr * page_size);
+ 
+ 	return NULL;
+ }
+@@ -779,7 +789,7 @@ static void retry_uffdio_zeropage(int uf
+ 	}
+ }
+ 
+-static int uffdio_zeropage(int ufd, unsigned long offset)
++static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
+ {
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+@@ -814,7 +824,7 @@ static int uffdio_zeropage(int ufd, unsi
+ 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
+ 				uffdio_zeropage.zeropage), exit(1);
  		} else {
- 			/* THP pmd was split under us: handle on pte level */
+-			if (test_uffdio_zeropage_eexist) {
++			if (test_uffdio_zeropage_eexist && retry) {
+ 				test_uffdio_zeropage_eexist = false;
+ 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
+ 						      offset);
+@@ -830,6 +840,11 @@ static int uffdio_zeropage(int ufd, unsi
+ 	return 0;
+ }
+ 
++static int uffdio_zeropage(int ufd, unsigned long offset)
++{
++	return __uffdio_zeropage(ufd, offset, false);
++}
++
+ /* exercise UFFDIO_ZEROPAGE */
+ static int userfaultfd_zeropage_test(void)
+ {
 _
