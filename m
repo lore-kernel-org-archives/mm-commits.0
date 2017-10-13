@@ -1,73 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch removed
- from -mm tree
-Date: Fri, 13 Oct 2017 15:51:54 -0700
-Message-ID: <59e1438a.5PsORv/fUROmsdUr%akpm@linux-foundation.org>
+ fix-mpage_writepage-for-pages-with-buffers-fix.patch removed from -mm tree
+Date: Fri, 13 Oct 2017 15:52:20 -0700
+Message-ID: <59e143a4.5rQvc81wgtNKP8fv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39154 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751339AbdJMWv4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:51:56 -0400
+        with ESMTP id S1751339AbdJMWwV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:52:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, frank.rowand@sony.com, geert+renesas@glider.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, jthumshirn@suse.de, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix
+     Subject: fix-mpage_writepage-for-pages-with-buffers-fix
 has been removed from the -mm tree.  Its filename was
-     of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix.patch
+     fix-mpage_writepage-for-pages-with-buffers-fix.patch
 
-This patch was dropped because it was folded into of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
+This patch was dropped because it was folded into fix-mpage_writepage-for-pages-with-buffers.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix
+Subject: fix-mpage_writepage-for-pages-with-buffers-fix
 
-be consistent with surrounding code
+s/PAGE_SIZE/~0U/ per Linus and Matthew
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Frank Rowand <frank.rowand@sony.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/of.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ fs/mpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix include/linux/of.h
---- a/include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of-fix
-+++ a/include/linux/of.h
-@@ -734,8 +734,15 @@ static inline struct device_node *of_get
- 	return NULL;
+diff -puN fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers-fix fs/mpage.c
+--- a/fs/mpage.c~fix-mpage_writepage-for-pages-with-buffers-fix
++++ a/fs/mpage.c
+@@ -475,7 +475,7 @@ static void clean_buffers(struct page *p
+  */
+ void clean_page_buffers(struct page *page)
+ {
+-	clean_buffers(page, PAGE_SIZE);
++	clean_buffers(page, ~0U);
  }
  
--static inline int of_n_addr_cells(struct device_node *np) { return 0; }
--static inline int of_n_size_cells(struct device_node *np) { return 0; }
-+static inline int of_n_addr_cells(struct device_node *np)
-+{
-+	return 0;
-+
-+}
-+static inline int of_n_size_cells(struct device_node *np)
-+{
-+	return 0;
-+}
- 
- static inline int of_property_read_u64(const struct device_node *np,
- 				       const char *propname, u64 *out_value)
+ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-of-provide-of_n_addrsize_cells-wrappers-for-config_of.patch
-fix-mpage_writepage-for-pages-with-buffers-fix.patch
+fix-mpage_writepage-for-pages-with-buffers.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
 mm.patch
