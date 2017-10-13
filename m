@@ -1,75 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/18] include/linux/of.h: provide of_n_{addr,size}_cells
- wrappers for !CONFIG_OF
-Date: Fri, 13 Oct 2017 15:57:40 -0700
-Message-ID: <59e144e4.TsEC63snHF+gTZ1x%akpm@linux-foundation.org>
+Subject: [patch 02/18] lib/Kconfig.debug: kernel hacking menu: runtime
+ testing: keep tests together
+Date: Fri, 13 Oct 2017 15:57:33 -0700
+Message-ID: <59e144dd.3r4d/wqR6siqtoIg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752687AbdJMW5n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:43 -0400
+        with ESMTP id S1752687AbdJMW5f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Oct 2017 18:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, ben.dooks@codethink.co.uk, bhelgaas@google.com, damm@opensource.se, frank.rowand@sony.com, geert+renesas@glider.be
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org, dave.hansen@intel.com, keescook@chromium.org, mcgrof@kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: include/linux/of.h: provide of_n_{addr,size}_cells wrappers for !CONFIG_OF
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib/Kconfig.debug: kernel hacking menu: runtime testing: keep tests together
 
-The pci-rcar driver is enabled for compile tests, and this has shown that
-the driver cannot build without CONFIG_OF, following the inclusion of
-f8f2fe7355fb "PCI: rcar: Use new OF interrupt mapping when possible":
+Expand the "Runtime testing" menu by including more entries inside it
+instead of after it.  This is just Kconfig symbol movement.
 
-drivers/pci/host/pcie-rcar.c: In function 'pci_dma_range_parser_init':
-drivers/pci/host/pcie-rcar.c:1039:2: error: implicit declaration of function 'of_n_addr_cells' [-Werror=implicit-function-declaration]
-  parser->pna = of_n_addr_cells(node);
-  ^
+This causes the (arch-independent) Runtime tests to be presented (listed)
+all in one place instead of in multiple places.
 
-As pointed out by Ben Dooks and Geert Uytterhoeven, this is actually
-supposed to build fine, which we can achieve if we make the declaration of
-of_irq_parse_and_map_pci conditional on CONFIG_OF and provide an empty
-inline function otherwise, as we do for a lot of other of interfaces.
-
-This lets us build the rcar_pci driver again without CONFIG_OF for build
-testing.  All platforms using this driver select OF, so this doesn't
-change anything for the users.
-
-[akpm@linux-foundation.org: be consistent with surrounding code]
-Link: http://lkml.kernel.org/r/20170911200805.3363318-1-arnd@arndb.de
-Fixes: c25da4778803 ("PCI: rcar: Add Renesas R-Car PCIe driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Frank Rowand <frank.rowand@sony.com>
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Magnus Damm <damm@opensource.se>
-Cc: Ben Dooks <ben.dooks@codethink.co.uk>
+Link: http://lkml.kernel.org/r/c194e5c4-2042-bf94-a2d8-7aa13756e257@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/of.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ lib/Kconfig.debug |  143 +++++++++++++++++++++-----------------------
+ 1 file changed, 71 insertions(+), 72 deletions(-)
 
-diff -puN include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of include/linux/of.h
---- a/include/linux/of.h~of-provide-of_n_addrsize_cells-wrappers-for-config_of
-+++ a/include/linux/of.h
-@@ -734,6 +734,16 @@ static inline struct device_node *of_get
- 	return NULL;
- }
+diff -puN lib/Kconfig.debug~kernel-hacking-menu-runtime-testing-keep-tests-together lib/Kconfig.debug
+--- a/lib/Kconfig.debug~kernel-hacking-menu-runtime-testing-keep-tests-together
++++ a/lib/Kconfig.debug
+@@ -1590,6 +1590,54 @@ config LATENCYTOP
  
-+static inline int of_n_addr_cells(struct device_node *np)
-+{
-+	return 0;
+ source kernel/trace/Kconfig
+ 
++config PROVIDE_OHCI1394_DMA_INIT
++	bool "Remote debugging over FireWire early on boot"
++	depends on PCI && X86
++	help
++	  If you want to debug problems which hang or crash the kernel early
++	  on boot and the crashing machine has a FireWire port, you can use
++	  this feature to remotely access the memory of the crashed machine
++	  over FireWire. This employs remote DMA as part of the OHCI1394
++	  specification which is now the standard for FireWire controllers.
 +
-+}
-+static inline int of_n_size_cells(struct device_node *np)
-+{
-+	return 0;
-+}
++	  With remote DMA, you can monitor the printk buffer remotely using
++	  firescope and access all memory below 4GB using fireproxy from gdb.
++	  Even controlling a kernel debugger is possible using remote DMA.
 +
- static inline int of_property_read_u64(const struct device_node *np,
- 				       const char *propname, u64 *out_value)
- {
++	  Usage:
++
++	  If ohci1394_dma=early is used as boot parameter, it will initialize
++	  all OHCI1394 controllers which are found in the PCI config space.
++
++	  As all changes to the FireWire bus such as enabling and disabling
++	  devices cause a bus reset and thereby disable remote DMA for all
++	  devices, be sure to have the cable plugged and FireWire enabled on
++	  the debugging host before booting the debug target for debugging.
++
++	  This code (~1k) is freed after boot. By then, the firewire stack
++	  in charge of the OHCI-1394 controllers should be used instead.
++
++	  See Documentation/debugging-via-ohci1394.txt for more information.
++
++config DMA_API_DEBUG
++	bool "Enable debugging of DMA-API usage"
++	depends on HAVE_DMA_API_DEBUG
++	help
++	  Enable this option to debug the use of the DMA API by device drivers.
++	  With this option you will be able to detect common bugs in device
++	  drivers like double-freeing of DMA mappings or freeing mappings that
++	  were never allocated.
++
++	  This also attempts to catch cases where a page owned by DMA is
++	  accessed by the cpu in a way that could cause data corruption.  For
++	  example, this enables cow_user_page() to check that the source page is
++	  not undergoing DMA.
++
++	  This option causes a performance degradation.  Use only if you want to
++	  debug device drivers and dma interactions.
++
++	  If unsure, say N.
++
+ menu "Runtime Testing"
+ 
+ config LKDTM
+@@ -1749,56 +1797,6 @@ config TEST_PARMAN
+ 
+ 	  If unsure, say N.
+ 
+-endmenu # runtime tests
+-
+-config PROVIDE_OHCI1394_DMA_INIT
+-	bool "Remote debugging over FireWire early on boot"
+-	depends on PCI && X86
+-	help
+-	  If you want to debug problems which hang or crash the kernel early
+-	  on boot and the crashing machine has a FireWire port, you can use
+-	  this feature to remotely access the memory of the crashed machine
+-	  over FireWire. This employs remote DMA as part of the OHCI1394
+-	  specification which is now the standard for FireWire controllers.
+-
+-	  With remote DMA, you can monitor the printk buffer remotely using
+-	  firescope and access all memory below 4GB using fireproxy from gdb.
+-	  Even controlling a kernel debugger is possible using remote DMA.
+-
+-	  Usage:
+-
+-	  If ohci1394_dma=early is used as boot parameter, it will initialize
+-	  all OHCI1394 controllers which are found in the PCI config space.
+-
+-	  As all changes to the FireWire bus such as enabling and disabling
+-	  devices cause a bus reset and thereby disable remote DMA for all
+-	  devices, be sure to have the cable plugged and FireWire enabled on
+-	  the debugging host before booting the debug target for debugging.
+-
+-	  This code (~1k) is freed after boot. By then, the firewire stack
+-	  in charge of the OHCI-1394 controllers should be used instead.
+-
+-	  See Documentation/debugging-via-ohci1394.txt for more information.
+-
+-config DMA_API_DEBUG
+-	bool "Enable debugging of DMA-API usage"
+-	depends on HAVE_DMA_API_DEBUG
+-	help
+-	  Enable this option to debug the use of the DMA API by device drivers.
+-	  With this option you will be able to detect common bugs in device
+-	  drivers like double-freeing of DMA mappings or freeing mappings that
+-	  were never allocated.
+-
+-	  This also attempts to catch cases where a page owned by DMA is
+-	  accessed by the cpu in a way that could cause data corruption.  For
+-	  example, this enables cow_user_page() to check that the source page is
+-	  not undergoing DMA.
+-
+-	  This option causes a performance degradation.  Use only if you want to
+-	  debug device drivers and dma interactions.
+-
+-	  If unsure, say N.
+-
+ config TEST_LKM
+ 	tristate "Test module loading with 'hello world' module"
+ 	default n
+@@ -1873,18 +1871,6 @@ config TEST_UDELAY
+ 
+ 	  If unsure, say N.
+ 
+-config MEMTEST
+-	bool "Memtest"
+-	depends on HAVE_MEMBLOCK
+-	---help---
+-	  This option adds a kernel parameter 'memtest', which allows memtest
+-	  to be set.
+-	        memtest=0, mean disabled; -- default
+-	        memtest=1, mean do 1 test pattern;
+-	        ...
+-	        memtest=17, mean do 17 test patterns.
+-	  If you are unsure how to answer this question, answer N.
+-
+ config TEST_STATIC_KEYS
+ 	tristate "Test static keys"
+ 	default n
+@@ -1894,16 +1880,6 @@ config TEST_STATIC_KEYS
+ 
+ 	  If unsure, say N.
+ 
+-config BUG_ON_DATA_CORRUPTION
+-	bool "Trigger a BUG when data corruption is detected"
+-	select DEBUG_LIST
+-	help
+-	  Select this option if the kernel should BUG when it encounters
+-	  data corruption in kernel memory structures when they get checked
+-	  for validity.
+-
+-	  If unsure, say N.
+-
+ config TEST_KMOD
+ 	tristate "kmod stress tester"
+ 	default n
+@@ -1941,6 +1917,29 @@ config TEST_DEBUG_VIRTUAL
+ 
+ 	  If unsure, say N.
+ 
++endmenu # runtime tests
++
++config MEMTEST
++	bool "Memtest"
++	depends on HAVE_MEMBLOCK
++	---help---
++	  This option adds a kernel parameter 'memtest', which allows memtest
++	  to be set.
++	        memtest=0, mean disabled; -- default
++	        memtest=1, mean do 1 test pattern;
++	        ...
++	        memtest=17, mean do 17 test patterns.
++	  If you are unsure how to answer this question, answer N.
++
++config BUG_ON_DATA_CORRUPTION
++	bool "Trigger a BUG when data corruption is detected"
++	select DEBUG_LIST
++	help
++	  Select this option if the kernel should BUG when it encounters
++	  data corruption in kernel memory structures when they get checked
++	  for validity.
++
++	  If unsure, say N.
+ 
+ source "samples/Kconfig"
+ 
 _
