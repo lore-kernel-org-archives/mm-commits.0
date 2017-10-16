@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch added to -mm tree
-Date: Mon, 16 Oct 2017 15:06:15 -0700
-Message-ID: <59e52d57.3Gm6M4ymo3Wen7zb%akpm@linux-foundation.org>
+ mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces.patch added to -mm tree
+Date: Mon, 16 Oct 2017 15:18:32 -0700
+Message-ID: <59e53038.OabLXsUf9dtieZco%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39426 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754302AbdJPWGQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 18:06:16 -0400
+        with ESMTP id S932428AbdJPWSe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 18:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe.lawrence@redhat.com, axboe@kernel.dk, mpatocka@redhat.com, mtk.manpages@gmail.com, rdunlap@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: changbin.du@intel.com, aarcange@redhat.com, corbet@lwn.net, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: add proc_dopipe_max_size() to safely assign pipe_max_size
+     Subject: mm, thp: introduce dedicated transparent huge page allocation interfaces
 has been added to the -mm tree.  Its filename is
-     pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch
+     mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,215 +39,325 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Lawrence <joe.lawrence@redhat.com>
-Subject: pipe: add proc_dopipe_max_size() to safely assign pipe_max_size
+From: Changbin Du <changbin.du@intel.com>
+Subject: mm, thp: introduce dedicated transparent huge page allocation interfaces
 
-pipe_max_size is assigned directly via procfs sysctl:
+This patch introduced 4 new interfaces to allocate a prepared
+transparent huge page.
+  - alloc_transhuge_page_vma
+  - alloc_transhuge_page_nodemask
+  - alloc_transhuge_page_node
+  - alloc_transhuge_page
 
-  static struct ctl_table fs_table[] = {
-          ...
-          {
-                  .procname       = "pipe-max-size",
-                  .data           = &pipe_max_size,
-                  .maxlen         = sizeof(int),
-                  .mode           = 0644,
-                  .proc_handler   = &pipe_proc_fn,
-                  .extra1         = &pipe_min_size,
-          },
-          ...
+The aim is to remove duplicated code and simplify transparent
+huge page allocation. These are similar to alloc_hugepage_xxx
+which are for hugetlbfs pages. This patch does below changes:
+  - define alloc_transhuge_page_xxx interfaces
+  - apply them to all existing code
+  - declare prep_transhuge_page as static since no others use it
+  - remove alloc_hugepage_vma definition since it no longer has users
 
-  int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
-                   size_t *lenp, loff_t *ppos)
-  {
-          ...
-          ret = proc_dointvec_minmax(table, write, buf, lenp, ppos)
-          ...
-
-and then later rounded in-place a few statements later:
-
-          ...
-          pipe_max_size = round_pipe_size(pipe_max_size);
-          ...
-
-This leaves a window of time between initial assignment and rounding that
-may be visible to other threads.  (For example, one thread sets a
-non-rounded value to pipe_max_size while another reads its value.)
-
-Similar reads of pipe_max_size are potentially racy:
-
-  pipe.c :: alloc_pipe_info()
-  pipe.c :: pipe_set_size()
-
-Add a new proc_dopipe_max_size() that consolidates reading the new value
-from the user buffer, verifying bounds, and calling round_pipe_size() with
-a single assignment to pipe_max_size.
-
-Link: http://lkml.kernel.org/r/1507658689-11669-4-git-send-email-joe.lawrence@redhat.com
-Signed-off-by: Joe Lawrence <joe.lawrence@redhat.com>
-Reported-by: Mikulas Patocka <mpatocka@redhat.com>
-Reviewed-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/1508145557-9944-2-git-send-email-changbin.du@intel.com
+Signed-off-by: Changbin Du <changbin.du@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |   18 ++-----------
- include/linux/pipe_fs_i.h |    1 
- include/linux/sysctl.h    |    3 ++
- kernel/sysctl.c           |   49 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 56 insertions(+), 15 deletions(-)
+ include/linux/gfp.h     |    4 ---
+ include/linux/huge_mm.h |   13 +++++++++
+ include/linux/migrate.h |   14 +++-------
+ mm/huge_memory.c        |   50 ++++++++++++++++++++++++++++++++------
+ mm/khugepaged.c         |   11 +-------
+ mm/mempolicy.c          |   10 ++-----
+ mm/migrate.c            |   12 +++------
+ mm/shmem.c              |    6 +---
+ 8 files changed, 71 insertions(+), 49 deletions(-)
 
-diff -puN fs/pipe.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size fs/pipe.c
---- a/fs/pipe.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/fs/pipe.c
-@@ -1019,7 +1019,7 @@ const struct file_operations pipefifo_fo
-  * Currently we rely on the pipe array holding a power-of-2 number
-  * of pages. Returns 0 on error.
-  */
--static inline unsigned int round_pipe_size(unsigned int size)
-+unsigned int round_pipe_size(unsigned int size)
- {
- 	unsigned long nr_pages;
- 
-@@ -1124,25 +1124,13 @@ out_revert_acct:
- }
- 
- /*
-- * This should work even if CONFIG_PROC_FS isn't set, as proc_dointvec_minmax
-+ * This should work even if CONFIG_PROC_FS isn't set, as proc_dopipe_max_size
-  * will return an error.
-  */
- int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
- 		 size_t *lenp, loff_t *ppos)
- {
--	unsigned int rounded_pipe_max_size;
--	int ret;
--
--	ret = proc_douintvec_minmax(table, write, buf, lenp, ppos);
--	if (ret < 0 || !write)
--		return ret;
--
--	rounded_pipe_max_size = round_pipe_size(pipe_max_size);
--	if (rounded_pipe_max_size == 0)
--		return -EINVAL;
--
--	pipe_max_size = rounded_pipe_max_size;
--	return ret;
-+	return proc_dopipe_max_size(table, write, buf, lenp, ppos);
- }
- 
- /*
-diff -puN include/linux/pipe_fs_i.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/include/linux/pipe_fs_i.h
-@@ -190,5 +190,6 @@ long pipe_fcntl(struct file *, unsigned
- struct pipe_inode_info *get_pipe_info(struct file *file);
- 
- int create_pipe_files(struct file **, int);
-+unsigned int round_pipe_size(unsigned int size);
- 
+diff -puN include/linux/gfp.h~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/include/linux/gfp.h
+@@ -498,15 +498,11 @@ alloc_pages(gfp_t gfp_mask, unsigned int
+ extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
+ 			struct vm_area_struct *vma, unsigned long addr,
+ 			int node, bool hugepage);
+-#define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
+-	alloc_pages_vma(gfp_mask, order, vma, addr, numa_node_id(), true)
+ #else
+ #define alloc_pages(gfp_mask, order) \
+ 		alloc_pages_node(numa_node_id(), gfp_mask, order)
+ #define alloc_pages_vma(gfp_mask, order, vma, addr, node, false)\
+ 	alloc_pages(gfp_mask, order)
+-#define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
+-	alloc_pages(gfp_mask, order)
  #endif
-diff -puN include/linux/sysctl.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size include/linux/sysctl.h
---- a/include/linux/sysctl.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/include/linux/sysctl.h
-@@ -50,6 +50,9 @@ extern int proc_dointvec_minmax(struct c
- extern int proc_douintvec_minmax(struct ctl_table *table, int write,
- 				 void __user *buffer, size_t *lenp,
- 				 loff_t *ppos);
-+extern int proc_dopipe_max_size(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp,
-+				loff_t *ppos);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/kernel/sysctl.c
-@@ -66,6 +66,7 @@
- #include <linux/kexec.h>
- #include <linux/bpf.h>
- #include <linux/mount.h>
-+#include <linux/pipe_fs_i.h>
+ #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
+ #define alloc_page_vma(gfp_mask, vma, addr)			\
+diff -puN include/linux/huge_mm.h~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/include/linux/huge_mm.h
+@@ -130,9 +130,20 @@ extern unsigned long thp_get_unmapped_ar
+ 		unsigned long addr, unsigned long len, unsigned long pgoff,
+ 		unsigned long flags);
  
- #include <linux/uaccess.h>
- #include <asm/processor.h>
-@@ -2616,6 +2617,47 @@ int proc_douintvec_minmax(struct ctl_tab
- 				 do_proc_douintvec_minmax_conv, &param);
+-extern void prep_transhuge_page(struct page *page);
+ extern void free_transhuge_page(struct page *page);
+ 
++struct page *alloc_transhuge_page_vma(gfp_t gfp_mask,
++		struct vm_area_struct *vma, unsigned long addr);
++struct page *alloc_transhuge_page_nodemask(gfp_t gfp_mask,
++		int preferred_nid, nodemask_t *nmask);
++
++static inline struct page *alloc_transhuge_page_node(int nid, gfp_t gfp_mask)
++{
++	return alloc_transhuge_page_nodemask(gfp_mask, nid, NULL);
++}
++
++struct page *alloc_transhuge_page(gfp_t gfp_mask);
++
+ bool can_split_huge_page(struct page *page, int *pextra_pins);
+ int split_huge_page_to_list(struct page *page, struct list_head *list);
+ static inline int split_huge_page(struct page *page)
+diff -puN include/linux/migrate.h~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/include/linux/migrate.h
+@@ -42,19 +42,15 @@ static inline struct page *new_page_node
+ 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
+ 				preferred_nid, nodemask);
+ 
+-	if (thp_migration_supported() && PageTransHuge(page)) {
+-		order = HPAGE_PMD_ORDER;
+-		gfp_mask |= GFP_TRANSHUGE;
+-	}
+-
+ 	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
+ 
+-	new_page = __alloc_pages_nodemask(gfp_mask, order,
++	if (thp_migration_supported() && PageTransHuge(page))
++		return alloc_transhuge_page_nodemask(gfp_mask | GFP_TRANSHUGE,
++				preferred_nid, nodemask);
++	else
++		return __alloc_pages_nodemask(gfp_mask, order,
+ 				preferred_nid, nodemask);
+-
+-	if (new_page && PageTransHuge(page))
+-		prep_transhuge_page(new_page);
+ 
+ 	return new_page;
+ }
+diff -puN mm/huge_memory.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/mm/huge_memory.c
+@@ -490,7 +490,7 @@ static inline struct list_head *page_def
+ 	return (struct list_head *)&page[2].mapping;
  }
  
-+struct do_proc_dopipe_max_size_conv_param {
-+	unsigned int *min;
-+};
-+
-+static int do_proc_dopipe_max_size_conv(unsigned long *lvalp,
-+					unsigned int *valp,
-+					int write, void *data)
-+{
-+	struct do_proc_dopipe_max_size_conv_param *param = data;
-+
-+	if (write) {
-+		unsigned int val = round_pipe_size(*lvalp);
-+
-+		if (val == 0)
-+			return -EINVAL;
-+
-+		if (param->min && *param->min > val)
-+			return -ERANGE;
-+
-+		if (*lvalp > UINT_MAX)
-+			return -EINVAL;
-+
-+		*valp = val;
-+	} else {
-+		unsigned int val = *valp;
-+		*lvalp = (unsigned long) val;
-+	}
-+
-+	return 0;
-+}
-+
-+int proc_dopipe_max_size(struct ctl_table *table, int write,
-+			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct do_proc_dopipe_max_size_conv_param param = {
-+		.min = (unsigned int *) table->extra1,
-+	};
-+	return do_proc_douintvec(table, write, buffer, lenp, ppos,
-+				 do_proc_dopipe_max_size_conv, &param);
-+}
-+
- static void validate_coredump_safety(void)
+-void prep_transhuge_page(struct page *page)
++static void prep_transhuge_page(struct page *page)
  {
- #ifdef CONFIG_COREDUMP
-@@ -3121,6 +3163,12 @@ int proc_douintvec_minmax(struct ctl_tab
- 	return -ENOSYS;
+ 	/*
+ 	 * we use page->mapping and page->indexlru in second tail page
+@@ -501,6 +501,45 @@ void prep_transhuge_page(struct page *pa
+ 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
  }
  
-+int proc_dopipe_max_size(struct ctl_table *table, int write,
-+			 void __user *buffer, size_t *lenp, loff_t *ppos)
++struct page *alloc_transhuge_page_vma(gfp_t gfp_mask,
++		struct vm_area_struct *vma, unsigned long addr)
 +{
-+	return -ENOSYS;
++	struct page *page;
++
++	page = alloc_pages_vma(gfp_mask | __GFP_COMP, HPAGE_PMD_ORDER,
++			       vma, addr, numa_node_id(), true);
++	if (unlikely(!page))
++		return NULL;
++	prep_transhuge_page(page);
++	return page;
 +}
 +
- int proc_dointvec_jiffies(struct ctl_table *table, int write,
- 		    void __user *buffer, size_t *lenp, loff_t *ppos)
++struct page *alloc_transhuge_page_nodemask(gfp_t gfp_mask,
++		int preferred_nid, nodemask_t *nmask)
++{
++	struct page *page;
++
++	page = __alloc_pages_nodemask(gfp_mask | __GFP_COMP, HPAGE_PMD_ORDER,
++				      preferred_nid, nmask);
++	if (unlikely(!page))
++		return NULL;
++	prep_transhuge_page(page);
++	return page;
++}
++
++struct page *alloc_transhuge_page(gfp_t gfp_mask)
++{
++	struct page *page;
++
++	VM_BUG_ON(!(gfp_mask & __GFP_COMP));
++
++	page = alloc_pages(gfp_mask | __GFP_COMP, HPAGE_PMD_ORDER);
++	if (unlikely(!page))
++		return NULL;
++	prep_transhuge_page(page);
++	return page;
++}
++
+ unsigned long __thp_get_unmapped_area(struct file *filp, unsigned long len,
+ 		loff_t off, unsigned long flags, unsigned long size)
  {
-@@ -3164,6 +3212,7 @@ EXPORT_SYMBOL(proc_douintvec);
- EXPORT_SYMBOL(proc_dointvec_jiffies);
- EXPORT_SYMBOL(proc_dointvec_minmax);
- EXPORT_SYMBOL_GPL(proc_douintvec_minmax);
-+EXPORT_SYMBOL_GPL(proc_dopipe_max_size);
- EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
- EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
- EXPORT_SYMBOL(proc_dostring);
+@@ -719,12 +758,11 @@ int do_huge_pmd_anonymous_page(struct vm
+ 		return ret;
+ 	}
+ 	gfp = alloc_hugepage_direct_gfpmask(vma);
+-	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
++	page = alloc_transhuge_page_vma(gfp, vma, haddr);
+ 	if (unlikely(!page)) {
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	prep_transhuge_page(page);
+ 	return __do_huge_pmd_anonymous_page(vmf, page, gfp);
+ }
+ 
+@@ -1295,13 +1333,11 @@ alloc:
+ 	if (transparent_hugepage_enabled(vma) &&
+ 	    !transparent_hugepage_debug_cow()) {
+ 		huge_gfp = alloc_hugepage_direct_gfpmask(vma);
+-		new_page = alloc_hugepage_vma(huge_gfp, vma, haddr, HPAGE_PMD_ORDER);
++		new_page = alloc_transhuge_page_vma(huge_gfp, vma, haddr);
+ 	} else
+ 		new_page = NULL;
+ 
+-	if (likely(new_page)) {
+-		prep_transhuge_page(new_page);
+-	} else {
++	if (unlikely(!new_page)) {
+ 		if (!page) {
+ 			split_huge_pmd(vma, vmf->pmd, vmf->address);
+ 			ret |= VM_FAULT_FALLBACK;
+diff -puN mm/khugepaged.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/mm/khugepaged.c
+@@ -745,14 +745,13 @@ khugepaged_alloc_page(struct page **hpag
+ {
+ 	VM_BUG_ON_PAGE(*hpage, *hpage);
+ 
+-	*hpage = __alloc_pages_node(node, gfp, HPAGE_PMD_ORDER);
++	*hpage = alloc_transhuge_page_node(node, gfp);
+ 	if (unlikely(!*hpage)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+ 		*hpage = ERR_PTR(-ENOMEM);
+ 		return NULL;
+ 	}
+ 
+-	prep_transhuge_page(*hpage);
+ 	count_vm_event(THP_COLLAPSE_ALLOC);
+ 	return *hpage;
+ }
+@@ -764,13 +763,7 @@ static int khugepaged_find_target_node(v
+ 
+ static inline struct page *alloc_khugepaged_hugepage(void)
+ {
+-	struct page *page;
+-
+-	page = alloc_pages(alloc_hugepage_khugepaged_gfpmask(),
+-			   HPAGE_PMD_ORDER);
+-	if (page)
+-		prep_transhuge_page(page);
+-	return page;
++	return alloc_transhuge_page(alloc_hugepage_khugepaged_gfpmask());
+ }
+ 
+ static struct page *khugepaged_alloc_hugepage(bool *wait)
+diff -puN mm/mempolicy.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/mm/mempolicy.c
+@@ -949,12 +949,10 @@ static struct page *new_node_page(struct
+ 	else if (thp_migration_supported() && PageTransHuge(page)) {
+ 		struct page *thp;
+ 
+-		thp = alloc_pages_node(node,
+-			(GFP_TRANSHUGE | __GFP_THISNODE),
+-			HPAGE_PMD_ORDER);
++		thp = alloc_transhuge_page_node(node,
++			(GFP_TRANSHUGE | __GFP_THISNODE));
+ 		if (!thp)
+ 			return NULL;
+-		prep_transhuge_page(thp);
+ 		return thp;
+ 	} else
+ 		return __alloc_pages_node(node, GFP_HIGHUSER_MOVABLE |
+@@ -1125,11 +1123,9 @@ static struct page *new_page(struct page
+ 	} else if (thp_migration_supported() && PageTransHuge(page)) {
+ 		struct page *thp;
+ 
+-		thp = alloc_hugepage_vma(GFP_TRANSHUGE, vma, address,
+-					 HPAGE_PMD_ORDER);
++		thp = alloc_transhuge_page_vma(GFP_TRANSHUGE, vma, address);
+ 		if (!thp)
+ 			return NULL;
+-		prep_transhuge_page(thp);
+ 		return thp;
+ 	}
+ 	/*
+diff -puN mm/migrate.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces mm/migrate.c
+--- a/mm/migrate.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/mm/migrate.c
+@@ -1472,12 +1472,10 @@ static struct page *new_page_node(struct
+ 	else if (thp_migration_supported() && PageTransHuge(p)) {
+ 		struct page *thp;
+ 
+-		thp = alloc_pages_node(pm->node,
+-			(GFP_TRANSHUGE | __GFP_THISNODE) & ~__GFP_RECLAIM,
+-			HPAGE_PMD_ORDER);
++		thp = alloc_transhuge_page_node(pm->node,
++			(GFP_TRANSHUGE | __GFP_THISNODE) & ~__GFP_RECLAIM);
+ 		if (!thp)
+ 			return NULL;
+-		prep_transhuge_page(thp);
+ 		return thp;
+ 	} else
+ 		return __alloc_pages_node(pm->node,
+@@ -2017,12 +2015,10 @@ int migrate_misplaced_transhuge_page(str
+ 	if (numamigrate_update_ratelimit(pgdat, HPAGE_PMD_NR))
+ 		goto out_dropref;
+ 
+-	new_page = alloc_pages_node(node,
+-		(GFP_TRANSHUGE_LIGHT | __GFP_THISNODE),
+-		HPAGE_PMD_ORDER);
++	new_page = alloc_transhuge_page_node(node,
++			(GFP_TRANSHUGE_LIGHT | __GFP_THISNODE));
+ 	if (!new_page)
+ 		goto out_fail;
+-	prep_transhuge_page(new_page);
+ 
+ 	isolated = numamigrate_isolate_page(pgdat, page);
+ 	if (!isolated) {
+diff -puN mm/shmem.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces mm/shmem.c
+--- a/mm/shmem.c~mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces
++++ a/mm/shmem.c
+@@ -1444,11 +1444,9 @@ static struct page *shmem_alloc_hugepage
+ 	rcu_read_unlock();
+ 
+ 	shmem_pseudo_vma_init(&pvma, info, hindex);
+-	page = alloc_pages_vma(gfp | __GFP_COMP | __GFP_NORETRY | __GFP_NOWARN,
+-			HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(), true);
++	gfp |= __GFP_COMP | __GFP_NORETRY | __GFP_NOWARN;
++	page = alloc_transhuge_page_vma(gfp, &pvma, 0);
+ 	shmem_pseudo_vma_destroy(&pvma);
+-	if (page)
+-		prep_transhuge_page(page);
+ 	return page;
+ }
+ 
 _
 
-Patches currently in -mm which might be from joe.lawrence@redhat.com are
+Patches currently in -mm which might be from changbin.du@intel.com are
 
-pipe-match-pipe_max_size-data-type-with-procfs.patch
-pipe-avoid-round_pipe_size-nr_pages-overflow-on-32-bit.patch
-pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch
-sysctl-check-for-uint_max-before-unsigned-int-min-max.patch
+mm-update-comments-for-struct-pagemapping.patch
+mm-swap_statec-declare-a-few-variables-as-__read_mostly.patch
+mm-thp-introduce-dedicated-transparent-huge-page-allocation-interfaces.patch
+mm-rename-page-dtor-functions-to-compoundhugetranshuge_page__dtor.patch
 
