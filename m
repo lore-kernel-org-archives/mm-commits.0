@@ -1,91 +1,135 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- binfmt_misc-node-could-be-null-when-evicting-inode.patch removed from -mm
- tree
-Date: Mon, 16 Oct 2017 12:55:55 -0700
-Message-ID: <20171016195555.rumgnFF4R%akpm@linux-foundation.org>
+ userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+ removed from -mm tree
+Date: Mon, 16 Oct 2017 12:55:33 -0700
+Message-ID: <20171016195533.j38PBZNzN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755892AbdJPTz4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:56 -0400
+        with ESMTP id S1755750AbdJPTze (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eguan@redhat.com, mm-commits@vger.kernel.org, oleg@redhat.com, viro@zeniv.linux.org.uk
+To: aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, shuah@kernel.org, xemul@virtuozzo.com
 
 
 The patch titled
-     Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
+     Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
 has been removed from the -mm tree.  Its filename was
-     binfmt_misc-node-could-be-null-when-evicting-inode.patch
+     userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eryu Guan <eguan@redhat.com>
-Subject: fs/binfmt_misc.c: node could be NULL when evicting inode
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
 
-inode->i_private is assigned by a Node pointer only after registering a
-new binary format, so it could be NULL if inode was created by
-bm_fill_super() (or iput() was called by the error path in
-bm_register_write()), and this could result in NULL pointer dereference
-when evicting such an inode.  e.g.  mount binfmt_misc filesystem then
-umount it immediately:
+I was stress testing some backports and with high load, after some time,
+the latest version of the selftest showed some false positive in
+connection with the uffdio_copy_retry.  This seems to fix it while still
+exercising -EEXIST in the background transfer once in a while.
 
-  mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
-  umount /proc/sys/fs/binfmt_misc
+The fork child will quit after the last UFFDIO_COPY is run, so a repeated
+UFFDIO_COPY may not return -EEXIST.  This change restricts the -EEXIST
+stress to the background transfer where the memory can't go away from
+under it.
 
-[ 9379.678259] BUG: unable to handle kernel NULL pointer dereference at 0000000000000013
-[ 9379.985952] IP: bm_evict_inode+0x16/0x40 [binfmt_misc]
-...
-[ 9380.964911] Call Trace:
-[ 9380.977633]  evict+0xd3/0x1a0
-[ 9380.994449]  iput+0x17d/0x1d0
-[ 9381.010306]  dentry_unlink_inode+0xb9/0xf0
-[ 9381.034046]  __dentry_kill+0xc7/0x170
-[ 9381.055145]  shrink_dentry_list+0x122/0x280
-[ 9381.078908]  shrink_dcache_parent+0x39/0x90
-[ 9381.103082]  do_one_tree+0x12/0x40
-[ 9381.122005]  shrink_dcache_for_umount+0x2d/0x90
-[ 9381.146517]  generic_shutdown_super+0x1f/0x120
-[ 9381.171644]  kill_litter_super+0x29/0x40
-[ 9381.193513]  deactivate_locked_super+0x43/0x70
-[ 9381.219177]  deactivate_super+0x45/0x60
-[ 9381.240130]  cleanup_mnt+0x3f/0x70
-[ 9381.259064]  __cleanup_mnt+0x12/0x20
-[ 9381.279802]  task_work_run+0x86/0xa0
-[ 9381.299612]  exit_to_usermode_loop+0x6d/0x99
-[ 9381.323872]  syscall_return_slowpath+0xba/0xf0
-[ 9381.350464]  entry_SYSCALL_64_fastpath+0xa3/0xa
+Also updated uffdio_zeropage, so the interface is consistent.
 
-Fix it by making sure Node (e) is not NULL.
-
-Link: http://lkml.kernel.org/r/20171010100642.31786-1-eguan@redhat.com
-Fixes: 83f918274e4b ("exec: binfmt_misc: shift filp_close(interp_file) from kill_node() to bm_evict_inode()")
-Signed-off-by: Eryu Guan <eguan@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20171004171541.1495-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |   25 ++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_misc-node-could-be-null-when-evicting-inode
-+++ a/fs/binfmt_misc.c
-@@ -596,7 +596,7 @@ static void bm_evict_inode(struct inode
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -397,7 +397,7 @@ static void retry_copy_page(int ufd, str
+ 	}
+ }
+ 
+-static int copy_page(int ufd, unsigned long offset)
++static int __copy_page(int ufd, unsigned long offset, bool retry)
  {
- 	Node *e = inode->i_private;
+ 	struct uffdio_copy uffdio_copy;
  
--	if (e->flags & MISC_FMT_OPEN_FILE)
-+	if (e && e->flags & MISC_FMT_OPEN_FILE)
- 		filp_close(e->interp_file, NULL);
+@@ -418,7 +418,7 @@ static int copy_page(int ufd, unsigned l
+ 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
+ 			uffdio_copy.copy), exit(1);
+ 	} else {
+-		if (test_uffdio_copy_eexist) {
++		if (test_uffdio_copy_eexist && retry) {
+ 			test_uffdio_copy_eexist = false;
+ 			retry_copy_page(ufd, &uffdio_copy, offset);
+ 		}
+@@ -427,6 +427,16 @@ static int copy_page(int ufd, unsigned l
+ 	return 0;
+ }
  
- 	clear_inode(inode);
++static int copy_page_retry(int ufd, unsigned long offset)
++{
++	return __copy_page(ufd, offset, true);
++}
++
++static int copy_page(int ufd, unsigned long offset)
++{
++	return __copy_page(ufd, offset, false);
++}
++
+ static void *uffd_poll_thread(void *arg)
+ {
+ 	unsigned long cpu = (unsigned long) arg;
+@@ -544,7 +554,7 @@ static void *background_thread(void *arg
+ 	for (page_nr = cpu * nr_pages_per_cpu;
+ 	     page_nr < (cpu+1) * nr_pages_per_cpu;
+ 	     page_nr++)
+-		copy_page(uffd, page_nr * page_size);
++		copy_page_retry(uffd, page_nr * page_size);
+ 
+ 	return NULL;
+ }
+@@ -779,7 +789,7 @@ static void retry_uffdio_zeropage(int uf
+ 	}
+ }
+ 
+-static int uffdio_zeropage(int ufd, unsigned long offset)
++static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
+ {
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+@@ -814,7 +824,7 @@ static int uffdio_zeropage(int ufd, unsi
+ 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
+ 				uffdio_zeropage.zeropage), exit(1);
+ 		} else {
+-			if (test_uffdio_zeropage_eexist) {
++			if (test_uffdio_zeropage_eexist && retry) {
+ 				test_uffdio_zeropage_eexist = false;
+ 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
+ 						      offset);
+@@ -830,6 +840,11 @@ static int uffdio_zeropage(int ufd, unsi
+ 	return 0;
+ }
+ 
++static int uffdio_zeropage(int ufd, unsigned long offset)
++{
++	return __uffdio_zeropage(ufd, offset, false);
++}
++
+ /* exercise UFFDIO_ZEROPAGE */
+ static int userfaultfd_zeropage_test(void)
+ {
 _
 
-Patches currently in -mm which might be from eguan@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 
