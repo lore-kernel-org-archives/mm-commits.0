@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size.patch added to -mm tree
-Date: Mon, 16 Oct 2017 16:14:51 -0700
-Message-ID: <59e53d6b.hhzEc0oohfMAkWyQ%akpm@linux-foundation.org>
+Subject: + writeback-convert-timers-to-use-timer_setup.patch added to -mm
+ tree
+Date: Mon, 16 Oct 2017 16:24:47 -0700
+Message-ID: <59e53fbf.5mmssaSnOAHd9E+S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757084AbdJPXOx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 19:14:53 -0400
+        with ESMTP id S932791AbdJPXYt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 19:24:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, hannes@cmpxchg.org, jack@suse.cz, jlayton@redhat.com, mawilcox@microsoft.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: prevent UFFDIO_COPY to fill beyond the end of i_size
+     Subject: mm/page-writeback.c: convert timers to use timer_setup()
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size.patch
+     writeback-convert-timers-to-use-timer_setup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/writeback-convert-timers-to-use-timer_setup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-convert-timers-to-use-timer_setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,106 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: prevent UFFDIO_COPY to fill beyond the end of i_size
+From: Kees Cook <keescook@chromium.org>
+Subject: mm/page-writeback.c: convert timers to use timer_setup()
 
-kernel BUG at fs/hugetlbfs/inode.c:484!
-RIP: 0010:[<ffffffff815f8520>]  [<ffffffff815f8520>] remove_inode_hugepages+0x3d0/0x410
-Call Trace:
- [<ffffffff815f95b9>] hugetlbfs_setattr+0xd9/0x130
- [<ffffffff81526312>] notify_change+0x292/0x410
- [<ffffffff816cc6b6>] ? security_inode_need_killpriv+0x16/0x20
- [<ffffffff81503c65>] do_truncate+0x65/0xa0
- [<ffffffff81504035>] ? do_sys_ftruncate.constprop.3+0xe5/0x180
- [<ffffffff8150406a>] do_sys_ftruncate.constprop.3+0x11a/0x180
- [<ffffffff8150410e>] SyS_ftruncate+0xe/0x10
- [<ffffffff81999f27>] tracesys+0xd9/0xde
+In preparation for unconditionally passing the struct timer_list pointer
+to all timer callbacks, switch to using the new timer_setup() and
+from_timer() to pass the timer pointer explicitly.
 
-This oops was caused by the lack of i_size check in
-hugetlb_mcopy_atomic_pte.  mmap() can still succeed beyond the end of the
-i_size after vmtruncate zapped vmas in those ranges, but the faults must
-not succeed, and that includes UFFDIO_COPY.
-
-We could differentiate the retval to userland to represent a SIGBUS like a
-page fault would do (vs SIGSEGV), but it doesn't seem very useful and we'd
-need to pick a random retval as there's no meaningful syscall retval that
-would differentiate from SIGSEGV and SIGBUS, there's just -EFAULT.
-
-Link: http://lkml.kernel.org/r/20171016223914.2421-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Link: http://lkml.kernel.org/r/20171016225913.GA99214@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   32 ++++++++++++++++++++++++++++++--
- 1 file changed, 30 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size
-+++ a/mm/hugetlb.c
-@@ -3984,6 +3984,9 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 			    unsigned long src_addr,
- 			    struct page **pagep)
+diff -puN mm/page-writeback.c~writeback-convert-timers-to-use-timer_setup mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-convert-timers-to-use-timer_setup
++++ a/mm/page-writeback.c
+@@ -628,9 +628,9 @@ EXPORT_SYMBOL_GPL(wb_writeout_inc);
+  * On idle system, we can be called long after we scheduled because we use
+  * deferred timers so count with missed periods.
+  */
+-static void writeout_period(unsigned long t)
++static void writeout_period(struct timer_list *t)
  {
-+	struct address_space *mapping;
-+	pgoff_t idx;
-+	unsigned long size;
- 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	struct hstate *h = hstate_vma(dst_vma);
- 	pte_t _dst_pte;
-@@ -4021,13 +4024,24 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	__SetPageUptodate(page);
- 	set_page_huge_active(page);
+-	struct wb_domain *dom = (void *)t;
++	struct wb_domain *dom = from_timer(dom, t, period_timer);
+ 	int miss_periods = (jiffies - dom->period_time) /
+ 						 VM_COMPLETIONS_PERIOD_LEN;
  
-+	mapping = dst_vma->vm_file->f_mapping;
-+	idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-+
- 	/*
- 	 * If shared, add to page cache
- 	 */
- 	if (vm_shared) {
--		struct address_space *mapping = dst_vma->vm_file->f_mapping;
--		pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-+		size = i_size_read(mapping->host) >> huge_page_shift(h);
-+		ret = -EFAULT;
-+		if (idx >= size)
-+			goto out_release_nounlock;
+@@ -653,8 +653,7 @@ int wb_domain_init(struct wb_domain *dom
  
-+		/*
-+		 * Serialization between remove_inode_hugepages() and
-+		 * huge_add_to_page_cache() below happens through the
-+		 * hugetlb_fault_mutex_table that here must be hold by
-+		 * the caller.
-+		 */
- 		ret = huge_add_to_page_cache(page, mapping, idx);
- 		if (ret)
- 			goto out_release_nounlock;
-@@ -4036,6 +4050,20 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
- 	spin_lock(ptl);
+ 	spin_lock_init(&dom->lock);
  
-+	/*
-+	 * Recheck the i_size after holding PT lock to make sure not
-+	 * to leave any page mapped (as page_mapped()) beyond the end
-+	 * of the i_size (remove_inode_hugepages() is strict about
-+	 * enforcing that). If we bail out here, we'll also leave a
-+	 * page in the radix tree in the vm_shared case beyond the end
-+	 * of the i_size, but remove_inode_hugepages() will take care
-+	 * of it as soon as we drop the hugetlb_fault_mutex_table.
-+	 */
-+	size = i_size_read(mapping->host) >> huge_page_shift(h);
-+	ret = -EFAULT;
-+	if (idx >= size)
-+		goto out_release_unlock;
-+
- 	ret = -EEXIST;
- 	if (!huge_pte_none(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
+-	setup_deferrable_timer(&dom->period_timer, writeout_period,
+-			       (unsigned long)dom);
++	timer_setup(&dom->period_timer, writeout_period, TIMER_DEFERRABLE);
+ 
+ 	dom->dirty_limit_tstamp = jiffies;
+ 
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size.patch
+writeback-convert-timers-to-use-timer_setup.patch
+sh-boot-add-static-stack-protector-to-pre-kernel.patch
+makefile-move-stackprotector-availability-out-of-kconfig.patch
+makefile-introduce-config_cc_stackprotector_auto.patch
+makefile-introduce-config_cc_stackprotector_auto-fix.patch
+makefile-introduce-config_cc_stackprotector_auto-fix-2.patch
+makefile-introduce-config_cc_stackprotector_auto-fix-3.patch
 
