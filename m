@@ -1,135 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
- removed from -mm tree
-Date: Mon, 16 Oct 2017 12:55:33 -0700
-Message-ID: <20171016195533.j38PBZNzN%akpm@linux-foundation.org>
+ revert-vmalloc-back-off-when-the-current-task-is-killed.patch removed from
+ -mm tree
+Date: Mon, 16 Oct 2017 12:55:43 -0700
+Message-ID: <20171016195543.8cyDukE5s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755750AbdJPTze (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:34 -0400
+        with ESMTP id S1755750AbdJPTzo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, shuah@kernel.org, xemul@virtuozzo.com
+To: alan@llwyncelyn.cymru, dvyukov@google.com, hannes@cmpxchg.org, hch@lst.de, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
+     Subject: Revert "vmalloc: back off when the current task is killed"
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftest-exercise-eexist-only-in-background-transfer.patch
+     revert-vmalloc-back-off-when-the-current-task-is-killed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: selftest: exercise -EEXIST only in background transfer
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Revert "vmalloc: back off when the current task is killed"
 
-I was stress testing some backports and with high load, after some time,
-the latest version of the selftest showed some false positive in
-connection with the uffdio_copy_retry.  This seems to fix it while still
-exercising -EEXIST in the background transfer once in a while.
+This reverts 5d17a73a2ebe ("vmalloc: back off when the current task is
+killed") and 171012f56127 ("mm: don't warn when vmalloc() fails due to a
+fatal signal").
 
-The fork child will quit after the last UFFDIO_COPY is run, so a repeated
-UFFDIO_COPY may not return -EEXIST.  This change restricts the -EEXIST
-stress to the background transfer where the memory can't go away from
-under it.
+5d17a73a2ebe ("vmalloc: back off when the current task is killed") made
+all vmalloc allocations from a signal-killed task fail.  We have seen
+crashes in the tty driver from this, where a killed task exiting tries to
+switch back to N_TTY, fails n_tty_open because of the vmalloc failing, and
+later crashes when dereferencing tty->disc_data.
 
-Also updated uffdio_zeropage, so the interface is consistent.
+Arguably, relying on a vmalloc() call to succeed in order to properly exit
+a task is not the most robust way of doing things.  There will be a
+follow-up patch to the tty code to fall back to the N_NULL ldisc.
 
-Link: http://lkml.kernel.org/r/20171004171541.1495-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
+But the justification to make that vmalloc() call fail like this isn't
+convincing, either.  The patch mentions an OOM victim exhausting the
+memory reserves and thus deadlocking the machine.  But the OOM killer is
+only one, improbable source of fatal signals.  It doesn't make sense to
+fail allocations preemptively with plenty of memory in most cases.
+
+The patch doesn't mention real-life instances where vmalloc sites would
+exhaust memory, which makes it sound more like a theoretical issue to
+begin with.  But just in case, the OOM access to memory reserves has been
+restricted on the allocator side in cd04ae1e2dc8 ("mm, oom: do not rely on
+TIF_MEMDIE for memory reserves access"), which should take care of any
+theoretical concerns on that front.
+
+Revert this patch, and the follow-up that suppresses the allocation
+warnings when we fail the allocations due to a signal.
+
+Link: http://lkml.kernel.org/r/20171004185906.GB2136@cmpxchg.org
+Fixes:  171012f56127 ("mm: don't warn when vmalloc() fails due to a fatal signal")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alan Cox <alan@llwyncelyn.cymru>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   25 ++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-exercise-eexist-only-in-background-transfer
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -397,7 +397,7 @@ static void retry_copy_page(int ufd, str
- 	}
- }
+diff -puN mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed mm/vmalloc.c
+--- a/mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed
++++ a/mm/vmalloc.c
+@@ -1695,11 +1695,6 @@ static void *__vmalloc_area_node(struct
+ 	for (i = 0; i < area->nr_pages; i++) {
+ 		struct page *page;
  
--static int copy_page(int ufd, unsigned long offset)
-+static int __copy_page(int ufd, unsigned long offset, bool retry)
- {
- 	struct uffdio_copy uffdio_copy;
- 
-@@ -418,7 +418,7 @@ static int copy_page(int ufd, unsigned l
- 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
- 			uffdio_copy.copy), exit(1);
- 	} else {
--		if (test_uffdio_copy_eexist) {
-+		if (test_uffdio_copy_eexist && retry) {
- 			test_uffdio_copy_eexist = false;
- 			retry_copy_page(ufd, &uffdio_copy, offset);
- 		}
-@@ -427,6 +427,16 @@ static int copy_page(int ufd, unsigned l
- 	return 0;
- }
- 
-+static int copy_page_retry(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, true);
-+}
-+
-+static int copy_page(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, false);
-+}
-+
- static void *uffd_poll_thread(void *arg)
- {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -544,7 +554,7 @@ static void *background_thread(void *arg
- 	for (page_nr = cpu * nr_pages_per_cpu;
- 	     page_nr < (cpu+1) * nr_pages_per_cpu;
- 	     page_nr++)
--		copy_page(uffd, page_nr * page_size);
-+		copy_page_retry(uffd, page_nr * page_size);
- 
- 	return NULL;
- }
-@@ -779,7 +789,7 @@ static void retry_uffdio_zeropage(int uf
- 	}
- }
- 
--static int uffdio_zeropage(int ufd, unsigned long offset)
-+static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
- {
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
-@@ -814,7 +824,7 @@ static int uffdio_zeropage(int ufd, unsi
- 			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
- 				uffdio_zeropage.zeropage), exit(1);
- 		} else {
--			if (test_uffdio_zeropage_eexist) {
-+			if (test_uffdio_zeropage_eexist && retry) {
- 				test_uffdio_zeropage_eexist = false;
- 				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
- 						      offset);
-@@ -830,6 +840,11 @@ static int uffdio_zeropage(int ufd, unsi
- 	return 0;
- }
- 
-+static int uffdio_zeropage(int ufd, unsigned long offset)
-+{
-+	return __uffdio_zeropage(ufd, offset, false);
-+}
-+
- /* exercise UFFDIO_ZEROPAGE */
- static int userfaultfd_zeropage_test(void)
- {
-_
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-
+-		if (fatal_signal_pending(current)) {
+-			area->nr_pages = i;
+-			goto fail_no_warn;
+-		}
