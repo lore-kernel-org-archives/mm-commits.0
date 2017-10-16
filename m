@@ -1,84 +1,262 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-vmalloc-back-off-when-the-current-task-is-killed.patch removed from
- -mm tree
-Date: Mon, 16 Oct 2017 12:55:43 -0700
-Message-ID: <20171016195543.8cyDukE5s%akpm@linux-foundation.org>
+ linux-kernelh-add-correct-kernel-doc-notation.patch removed from -mm tree
+Date: Mon, 16 Oct 2017 12:55:49 -0700
+Message-ID: <20171016195549.naPH_jL7g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55606 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755750AbdJPTzo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:44 -0400
+        with ESMTP id S1755892AbdJPTzu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@llwyncelyn.cymru, dvyukov@google.com, hannes@cmpxchg.org, hch@lst.de, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: Revert "vmalloc: back off when the current task is killed"
+     Subject: linux/kernel.h: add/correct kernel-doc notation
 has been removed from the -mm tree.  Its filename was
-     revert-vmalloc-back-off-when-the-current-task-is-killed.patch
+     linux-kernelh-add-correct-kernel-doc-notation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Revert "vmalloc: back off when the current task is killed"
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: linux/kernel.h: add/correct kernel-doc notation
 
-This reverts 5d17a73a2ebe ("vmalloc: back off when the current task is
-killed") and 171012f56127 ("mm: don't warn when vmalloc() fails due to a
-fatal signal").
+Add kernel-doc notation for some macros.  Correct kernel-doc comments &
+typos for a few macros.
 
-5d17a73a2ebe ("vmalloc: back off when the current task is killed") made
-all vmalloc allocations from a signal-killed task fail.  We have seen
-crashes in the tty driver from this, where a killed task exiting tries to
-switch back to N_TTY, fails n_tty_open because of the vmalloc failing, and
-later crashes when dereferencing tty->disc_data.
-
-Arguably, relying on a vmalloc() call to succeed in order to properly exit
-a task is not the most robust way of doing things.  There will be a
-follow-up patch to the tty code to fall back to the N_NULL ldisc.
-
-But the justification to make that vmalloc() call fail like this isn't
-convincing, either.  The patch mentions an OOM victim exhausting the
-memory reserves and thus deadlocking the machine.  But the OOM killer is
-only one, improbable source of fatal signals.  It doesn't make sense to
-fail allocations preemptively with plenty of memory in most cases.
-
-The patch doesn't mention real-life instances where vmalloc sites would
-exhaust memory, which makes it sound more like a theoretical issue to
-begin with.  But just in case, the OOM access to memory reserves has been
-restricted on the allocator side in cd04ae1e2dc8 ("mm, oom: do not rely on
-TIF_MEMDIE for memory reserves access"), which should take care of any
-theoretical concerns on that front.
-
-Revert this patch, and the follow-up that suppresses the allocation
-warnings when we fail the allocations due to a signal.
-
-Link: http://lkml.kernel.org/r/20171004185906.GB2136@cmpxchg.org
-Fixes:  171012f56127 ("mm: don't warn when vmalloc() fails due to a fatal signal")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alan Cox <alan@llwyncelyn.cymru>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/76fa1403-1511-be4c-e9c4-456b43edfad3@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/kernel.h |   90 ++++++++++++++++++++++++++++++++-------
+ 1 file changed, 74 insertions(+), 16 deletions(-)
 
-diff -puN mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed mm/vmalloc.c
---- a/mm/vmalloc.c~revert-vmalloc-back-off-when-the-current-task-is-killed
-+++ a/mm/vmalloc.c
-@@ -1695,11 +1695,6 @@ static void *__vmalloc_area_node(struct
- 	for (i = 0; i < area->nr_pages; i++) {
- 		struct page *page;
+diff -puN include/linux/kernel.h~linux-kernelh-add-correct-kernel-doc-notation include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-kernelh-add-correct-kernel-doc-notation
++++ a/include/linux/kernel.h
+@@ -44,6 +44,12 @@
  
--		if (fatal_signal_pending(current)) {
--			area->nr_pages = i;
--			goto fail_no_warn;
--		}
+ #define STACK_MAGIC	0xdeadbeef
+ 
++/**
++ * REPEAT_BYTE - repeat the value @x multiple times as an unsigned long value
++ * @x: value to repeat
++ *
++ * NOTE: @x is not checked for > 0xff; larger values produce odd results.
++ */
+ #define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
+ 
+ /* @a is a power of 2 value */
+@@ -57,6 +63,10 @@
+ #define READ			0
+ #define WRITE			1
+ 
++/**
++ * ARRAY_SIZE - get the number of elements in array @arr
++ * @arr: array to be sized
++ */
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+ 
+ #define u64_to_user_ptr(x) (		\
+@@ -76,7 +86,15 @@
+ #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
+ #define round_down(x, y) ((x) & ~__round_mask(x, y))
+ 
++/**
++ * FIELD_SIZEOF - get the size of a struct's field
++ * @t: the target struct
++ * @f: the target struct's field
++ * Return: the size of @f in the struct definition without having a
++ * declared instance of @t.
++ */
+ #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
++
+ #define DIV_ROUND_UP __KERNEL_DIV_ROUND_UP
+ 
+ #define DIV_ROUND_DOWN_ULL(ll, d) \
+@@ -107,7 +125,7 @@
+ /*
+  * Divide positive or negative dividend by positive or negative divisor
+  * and round to closest integer. Result is undefined for negative
+- * divisors if he dividend variable type is unsigned and for negative
++ * divisors if the dividend variable type is unsigned and for negative
+  * dividends if the divisor variable type is unsigned.
+  */
+ #define DIV_ROUND_CLOSEST(x, divisor)(			\
+@@ -247,13 +265,13 @@ extern int _cond_resched(void);
+  * @ep_ro: right open interval endpoint
+  *
+  * Perform a "reciprocal multiplication" in order to "scale" a value into
+- * range [0, ep_ro), where the upper interval endpoint is right-open.
++ * range [0, @ep_ro), where the upper interval endpoint is right-open.
+  * This is useful, e.g. for accessing a index of an array containing
+- * ep_ro elements, for example. Think of it as sort of modulus, only that
++ * @ep_ro elements, for example. Think of it as sort of modulus, only that
+  * the result isn't that of modulo. ;) Note that if initial input is a
+  * small value, then result will return 0.
+  *
+- * Return: a result based on val in interval [0, ep_ro).
++ * Return: a result based on @val in interval [0, @ep_ro).
+  */
+ static inline u32 reciprocal_scale(u32 val, u32 ep_ro)
+ {
+@@ -618,8 +636,8 @@ do {									\
+  * trace_printk - printf formatting in the ftrace buffer
+  * @fmt: the printf format for printing
+  *
+- * Note: __trace_printk is an internal function for trace_printk and
+- *       the @ip is passed in via the trace_printk macro.
++ * Note: __trace_printk is an internal function for trace_printk() and
++ *       the @ip is passed in via the trace_printk() macro.
+  *
+  * This function allows a kernel developer to debug fast path sections
+  * that printk is not appropriate for. By scattering in various
+@@ -629,7 +647,7 @@ do {									\
+  * This is intended as a debugging tool for the developer only.
+  * Please refrain from leaving trace_printks scattered around in
+  * your code. (Extra memory is used for special buffers that are
+- * allocated when trace_printk() is used)
++ * allocated when trace_printk() is used.)
+  *
+  * A little optization trick is done here. If there's only one
+  * argument, there's no need to scan the string for printf formats.
+@@ -681,7 +699,7 @@ int __trace_printk(unsigned long ip, con
+  *       the @ip is passed in via the trace_puts macro.
+  *
+  * This is similar to trace_printk() but is made for those really fast
+- * paths that a developer wants the least amount of "Heisenbug" affects,
++ * paths that a developer wants the least amount of "Heisenbug" effects,
+  * where the processing of the print format is still too much.
+  *
+  * This function allows a kernel developer to debug fast path sections
+@@ -692,7 +710,7 @@ int __trace_printk(unsigned long ip, con
+  * This is intended as a debugging tool for the developer only.
+  * Please refrain from leaving trace_puts scattered around in
+  * your code. (Extra memory is used for special buffers that are
+- * allocated when trace_puts() is used)
++ * allocated when trace_puts() is used.)
+  *
+  * Returns: 0 if nothing was written, positive # if string was.
+  *  (1 when __trace_bputs is used, strlen(str) when __trace_puts is used)
+@@ -771,6 +789,12 @@ static inline void ftrace_dump(enum ftra
+ 	t2 min2 = (y);					\
+ 	(void) (&min1 == &min2);			\
+ 	min1 < min2 ? min1 : min2; })
++
++/**
++ * min - return minimum of two values of the same or compatible types
++ * @x: first value
++ * @y: second value
++ */
+ #define min(x, y)					\
+ 	__min(typeof(x), typeof(y),			\
+ 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
+@@ -781,12 +805,31 @@ static inline void ftrace_dump(enum ftra
+ 	t2 max2 = (y);					\
+ 	(void) (&max1 == &max2);			\
+ 	max1 > max2 ? max1 : max2; })
++
++/**
++ * max - return maximum of two values of the same or compatible types
++ * @x: first value
++ * @y: second value
++ */
+ #define max(x, y)					\
+ 	__max(typeof(x), typeof(y),			\
+ 	      __UNIQUE_ID(max1_), __UNIQUE_ID(max2_),	\
+ 	      x, y)
+ 
++/**
++ * min3 - return minimum of three values
++ * @x: first value
++ * @y: second value
++ * @z: third value
++ */
+ #define min3(x, y, z) min((typeof(x))min(x, y), z)
++
++/**
++ * max3 - return maximum of three values
++ * @x: first value
++ * @y: second value
++ * @z: third value
++ */
+ #define max3(x, y, z) max((typeof(x))max(x, y), z)
+ 
+ /**
+@@ -805,8 +848,8 @@ static inline void ftrace_dump(enum ftra
+  * @lo: lowest allowable value
+  * @hi: highest allowable value
+  *
+- * This macro does strict typechecking of lo/hi to make sure they are of the
+- * same type as val.  See the unnecessary pointer comparisons.
++ * This macro does strict typechecking of @lo/@hi to make sure they are of the
++ * same type as @val.  See the unnecessary pointer comparisons.
+  */
+ #define clamp(val, lo, hi) min((typeof(val))max(val, lo), hi)
+ 
+@@ -816,11 +859,24 @@ static inline void ftrace_dump(enum ftra
+  *
+  * Or not use min/max/clamp at all, of course.
+  */
++
++/**
++ * min_t - return minimum of two values, using the specified type
++ * @type: data type to use
++ * @x: first value
++ * @y: second value
++ */
+ #define min_t(type, x, y)				\
+ 	__min(type, type,				\
+ 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
+ 	      x, y)
+ 
++/**
++ * max_t - return maximum of two values, using the specified type
++ * @type: data type to use
++ * @x: first value
++ * @y: second value
++ */
+ #define max_t(type, x, y)				\
+ 	__max(type, type,				\
+ 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
+@@ -834,7 +890,7 @@ static inline void ftrace_dump(enum ftra
+  * @hi: maximum allowable value
+  *
+  * This macro does no typechecking and uses temporary variables of type
+- * 'type' to make all the comparisons.
++ * @type to make all the comparisons.
+  */
+ #define clamp_t(type, val, lo, hi) min_t(type, max_t(type, val, lo), hi)
+ 
+@@ -845,15 +901,17 @@ static inline void ftrace_dump(enum ftra
+  * @hi: maximum allowable value
+  *
+  * This macro does no typechecking and uses temporary variables of whatever
+- * type the input argument 'val' is.  This is useful when val is an unsigned
+- * type and min and max are literals that will otherwise be assigned a signed
++ * type the input argument @val is.  This is useful when @val is an unsigned
++ * type and @lo and @hi are literals that will otherwise be assigned a signed
+  * integer type.
+  */
+ #define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
+ 
+ 
+-/*
+- * swap - swap value of @a and @b
++/**
++ * swap - swap values of @a and @b
++ * @a: first value
++ * @b: second value
+  */
+ #define swap(a, b) \
+ 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+
