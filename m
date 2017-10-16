@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- makefile-fix-empty-flag-results-for-stackprotector-_auto-mode.patch added
- to -mm tree
-Date: Mon, 16 Oct 2017 15:21:45 -0700
-Message-ID: <59e530f9.RRPdkH7t/N8L4VUZ%akpm@linux-foundation.org>
+Subject: + hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch added to
+ -mm tree
+Date: Mon, 16 Oct 2017 15:37:34 -0700
+Message-ID: <59e534ae.IhDU/TiThGAVvNYy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752007AbdJPWVq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 18:21:46 -0400
+        with ESMTP id S1752209AbdJPWhf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 18:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, robert.jarzmik@free.fr, mm-commits@vger.kernel.org
+To: chris.gekas@gmail.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Makefile: fix empty flag results for stackprotector _AUTO mode
+     Subject: hfs/hfsplus: clean up unused variables in bnode.c
 has been added to the -mm tree.  Its filename is
-     makefile-fix-empty-flag-results-for-stackprotector-_auto-mode.patch
+     hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/makefile-fix-empty-flag-results-for-stackprotector-_auto-mode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-fix-empty-flag-results-for-stackprotector-_auto-mode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,55 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: Makefile: fix empty flag results for stackprotector _AUTO mode
+From: Christos Gkekas <chris.gekas@gmail.com>
+Subject: hfs/hfsplus: clean up unused variables in bnode.c
 
-If the compiler didn't support any stackprotector mode, the second empty
-test would still trip.  This moves it to an "else" test for the non-AUTO
-modes.
+Delete variables 'tree' and 'sb', which are set but never used.
 
-Link: http://lkml.kernel.org/r/20171016040333.GA82643@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Link: http://lkml.kernel.org/r/1507977146-15875-1-git-send-email-chris.gekas@gmail.com
+Signed-off-by: Christos Gkekas <chris.gekas@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/hfs/bnode.c     |    4 ----
+ fs/hfsplus/bnode.c |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN Makefile~makefile-fix-empty-flag-results-for-stackprotector-_auto-mode Makefile
---- a/Makefile~makefile-fix-empty-flag-results-for-stackprotector-_auto-mode
-+++ a/Makefile
-@@ -1097,16 +1097,17 @@ PHONY += prepare-compiler-check
- prepare-compiler-check: FORCE
- # Make sure compiler supports requested stack protector flag.
- ifdef stackp-name
--  # Warn about CONFIG_CC_STACKPROTECTOR_AUTO having found no option.
-   ifeq ($(stackp-flag),)
-+	# Warn about CONFIG_CC_STACKPROTECTOR_AUTO having found no option.
- 	@echo CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
- 		  Compiler does not support any known stack-protector >&2
--  endif
--  # Fail if specifically requested stack protector is missing.
-+  else
-   ifeq ($(call cc-option, $(stackp-flag)),)
-+	# Fail if specifically requested stack protector is missing.
- 	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
- 		  $(stackp-flag) not supported by compiler >&2 && exit 1
-   endif
-+  endif
- endif
- # Make sure compiler does not have buggy stack-protector support.
- ifdef stackp-check
+diff -puN fs/hfs/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec fs/hfs/bnode.c
+--- a/fs/hfs/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec
++++ a/fs/hfs/bnode.c
+@@ -97,13 +97,11 @@ void hfs_bnode_clear(struct hfs_bnode *n
+ void hfs_bnode_copy(struct hfs_bnode *dst_node, int dst,
+ 		struct hfs_bnode *src_node, int src, int len)
+ {
+-	struct hfs_btree *tree;
+ 	struct page *src_page, *dst_page;
+ 
+ 	hfs_dbg(BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
+ 	if (!len)
+ 		return;
+-	tree = src_node->tree;
+ 	src += src_node->page_offset;
+ 	dst += dst_node->page_offset;
+ 	src_page = src_node->page[0];
+@@ -236,7 +234,6 @@ struct hfs_bnode *hfs_bnode_findhash(str
+ 
+ static struct hfs_bnode *__hfs_bnode_create(struct hfs_btree *tree, u32 cnid)
+ {
+-	struct super_block *sb;
+ 	struct hfs_bnode *node, *node2;
+ 	struct address_space *mapping;
+ 	struct page *page;
+@@ -248,7 +245,6 @@ static struct hfs_bnode *__hfs_bnode_cre
+ 		return NULL;
+ 	}
+ 
+-	sb = tree->inode->i_sb;
+ 	size = sizeof(struct hfs_bnode) + tree->pages_per_bnode *
+ 		sizeof(struct page *);
+ 	node = kzalloc(size, GFP_KERNEL);
+diff -puN fs/hfsplus/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec fs/hfsplus/bnode.c
+--- a/fs/hfsplus/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec
++++ a/fs/hfsplus/bnode.c
+@@ -126,14 +126,12 @@ void hfs_bnode_clear(struct hfs_bnode *n
+ void hfs_bnode_copy(struct hfs_bnode *dst_node, int dst,
+ 		    struct hfs_bnode *src_node, int src, int len)
+ {
+-	struct hfs_btree *tree;
+ 	struct page **src_page, **dst_page;
+ 	int l;
+ 
+ 	hfs_dbg(BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
+ 	if (!len)
+ 		return;
+-	tree = src_node->tree;
+ 	src += src_node->page_offset;
+ 	dst += dst_node->page_offset;
+ 	src_page = src_node->page + (src >> PAGE_SHIFT);
+@@ -400,7 +398,6 @@ struct hfs_bnode *hfs_bnode_findhash(str
+ 
+ static struct hfs_bnode *__hfs_bnode_create(struct hfs_btree *tree, u32 cnid)
+ {
+-	struct super_block *sb;
+ 	struct hfs_bnode *node, *node2;
+ 	struct address_space *mapping;
+ 	struct page *page;
+@@ -413,7 +410,6 @@ static struct hfs_bnode *__hfs_bnode_cre
+ 		return NULL;
+ 	}
+ 
+-	sb = tree->inode->i_sb;
+ 	size = sizeof(struct hfs_bnode) + tree->pages_per_bnode *
+ 		sizeof(struct page *);
+ 	node = kzalloc(size, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from chris.gekas@gmail.com are
 
-sh-boot-add-static-stack-protector-to-pre-kernel.patch
-makefile-move-stackprotector-availability-out-of-kconfig.patch
-makefile-introduce-config_cc_stackprotector_auto.patch
-makefile-introduce-config_cc_stackprotector_auto-fix.patch
-makefile-introduce-config_cc_stackprotector_auto-fix-2.patch
-makefile-fix-empty-flag-results-for-stackprotector-_auto-mode.patch
+hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch
 
