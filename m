@@ -1,93 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-only-dispaly-online-cpus-of-the-numa-node.patch removed from -mm tree
-Date: Mon, 16 Oct 2017 12:55:30 -0700
-Message-ID: <20171016195530.1VLpR3k6Q%akpm@linux-foundation.org>
+Subject: [merged] scripts-kallsyms-ignore-symbol-type-n.patch
+ removed from -mm tree
+Date: Mon, 16 Oct 2017 12:55:36 -0700
+Message-ID: <20171016195536.vx1WHTBEl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55556 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754483AbdJPTzc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:32 -0400
+        with ESMTP id S1755750AbdJPTzh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2017 15:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, dingtianhong@huawei.com, gregkh@linuxfoundation.org, guohanjun@huawei.com, huawei.libin@huawei.com, mhocko@suse.com, mm-commits@vger.kernel.org, thunder.leizhen@huawei.com, wangkefeng.wang@huawei.com, will.deacon@arm.com
+To: ard.biesheuvel@linaro.org, jpoimboe@redhat.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: only display online cpus of the numa node
+     Subject: scripts/kallsyms.c: ignore symbol type 'n'
 has been removed from the -mm tree.  Its filename was
-     mm-only-dispaly-online-cpus-of-the-numa-node.patch
+     scripts-kallsyms-ignore-symbol-type-n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm: only display online cpus of the numa node
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: scripts/kallsyms.c: ignore symbol type 'n'
 
-When I executed numactl -H(which read
-/sys/devices/system/node/nodeX/cpumap and display cpumask_of_node for each
-node), but I got different result on X86 and arm64.  For each numa node,
-the former only displayed online CPUs, and the latter displayed all
-possible CPUs.  Unfortunately, both Linux documentation and numactl manual
-have not described it clear.
+gcc on aarch64 may emit synbols of type 'n' if the kernel is built with
+'-frecord-gcc-switches'.  In most cases, those symbols are reported with
+nm as
 
-I sent a mail to ask for help, and Michal Hocko replied that he preferred
-to print online cpus because it doesn't really make much sense to bind
-anything on offline nodes.
+	000000000000000e n $d
 
-Will said:
+and with objdump as
 
-: I suspect the vast majority (if not all) code that reads this file was
-: developed for x86, so having the same behaviour for arm64 sounds like
-: something we should do ASAP before people try to special case with
-: things like #ifdef __aarch64__.  I'd rather have this in 4.14 if possible.
+	0000000000000000 l    d  .GCC.command.line	0000000000000000 .GCC.command.line
+	000000000000000e l       .GCC.command.line	0000000000000000 $d
 
-Link: http://lkml.kernel.org/r/1506678805-15392-2-git-send-email-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Tianhong Ding <dingtianhong@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Libin <huawei.libin@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Those symbols are detected in is_arm_mapping_symbol() and ignored. 
+However, if "--prefix-symbols=<prefix>" is configured as well, the
+situation is different.  For example, in efi/libstub, arm64 images are
+built with
+
+	'--prefix-alloc-sections=.init --prefix-symbols=__efistub_'.
+
+In combination with '-frecord-gcc-switches', the symbols are now reported
+by nm as:
+
+	000000000000000e n __efistub_$d
+and by objdump as:
+	0000000000000000 l    d  .GCC.command.line	0000000000000000 .GCC.command.line
+	000000000000000e l       .GCC.command.line	0000000000000000 __efistub_$d
+
+Those symbols are no longer ignored and included in the base address
+calculation.  This results in a base address of 000000000000000e, which in
+turn causes kallsyms to abort with
+
+    kallsyms failure:
+	relative symbol value 0xffffff900800a000 out of range in relative mode
+
+The problem is seen in little endian arm64 builds with CONFIG_EFI enabled
+and with '-frecord-gcc-switches' set in KCFLAGS.
+
+Explicitly ignore symbols of type 'n' since those are clearly debug
+symbols.
+
+Link: http://lkml.kernel.org/r/1507136063-3139-1-git-send-email-linux@roeck-us.net
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ scripts/kallsyms.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-only-dispaly-online-cpus-of-the-numa-node drivers/base/node.c
---- a/drivers/base/node.c~mm-only-dispaly-online-cpus-of-the-numa-node
-+++ a/drivers/base/node.c
-@@ -27,13 +27,21 @@ static struct bus_type node_subsys = {
+diff -puN scripts/kallsyms.c~scripts-kallsyms-ignore-symbol-type-n scripts/kallsyms.c
+--- a/scripts/kallsyms.c~scripts-kallsyms-ignore-symbol-type-n
++++ a/scripts/kallsyms.c
+@@ -158,7 +158,7 @@ static int read_symbol(FILE *in, struct
+ 	else if (str[0] == '$')
+ 		return -1;
+ 	/* exclude debugging symbols */
+-	else if (stype == 'N')
++	else if (stype == 'N' || stype == 'n')
+ 		return -1;
  
- static ssize_t node_read_cpumap(struct device *dev, bool list, char *buf)
- {
-+	ssize_t n;
-+	cpumask_var_t mask;
- 	struct node *node_dev = to_node(dev);
--	const struct cpumask *mask = cpumask_of_node(node_dev->dev.id);
- 
- 	/* 2008/04/07: buf currently PAGE_SIZE, need 9 chars per 32 bits. */
- 	BUILD_BUG_ON((NR_CPUS/32 * 9) > (PAGE_SIZE-1));
- 
--	return cpumap_print_to_pagebuf(list, buf, mask);
-+	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
-+		return 0;
-+
-+	cpumask_and(mask, cpumask_of_node(node_dev->dev.id), cpu_online_mask);
-+	n = cpumap_print_to_pagebuf(list, buf, mask);
-+	free_cpumask_var(mask);
-+
-+	return n;
- }
- 
- static inline ssize_t node_read_cpumask(struct device *dev,
+ 	/* include the type field in the symbol name, so that it gets
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
 
