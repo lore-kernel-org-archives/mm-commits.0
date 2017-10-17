@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-qs_holds-may-could-not-be-zero.patch added to -mm
+Subject: + shmem-convert-shmem_init_inodecache-to-void.patch added to -mm
  tree
-Date: Tue, 17 Oct 2017 16:20:31 -0700
-Message-ID: <59e6903f.oo5N4z72/MCKJ9h/%akpm@linux-foundation.org>
+Date: Tue, 17 Oct 2017 16:22:09 -0700
+Message-ID: <59e690a1.XiaEsajGb5V1Xn4M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60770 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755951AbdJQXUc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:20:32 -0400
+        with ESMTP id S1761365AbdJQXWK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhang.yangB@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: zhangweiping@didichuxing.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix qs_holds may could not be zero
+     Subject: shmem: convert shmem_init_inodecache() to void
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+     shmem-convert-shmem_init_inodecache-to-void.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-convert-shmem_init_inodecache-to-void.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-convert-shmem_init_inodecache-to-void.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhangyang <zhang.yangB@h3c.com>
-Subject: ocfs2: fix qs_holds may could not be zero
+From: weiping zhang <zhangweiping@didichuxing.com>
+Subject: shmem: convert shmem_init_inodecache() to void
 
-In our test, We fond that when the network down, qs->qs_holds could not b=
-e reduce to zero, it will lead to the node can't do fence.
+shmem_inode_cachep was created with SLAB_PANIC flag and
+shmem_init_inodecache() never returns non-zero, so convert this function
+to return void.
 
-o2net_idle_timer -> o2quo_conn_err -> qs->qs_holds++, after
-O2NET_QUORUM_DE= LAY_MS if qs_holds could be subtract to zero, it could do
-make_decision.
-
-But if there are many nodes, when one node network down which contains
-o2net connections may not do o2net_idle_timer at the same time.
-
-So when a o2net_node have done nn->nn_still_up, but the qs_holds is not
-zero.  because the other o2net_node have not done nn->nn_still_up.  So the
-first o2net_node will do o2net_idle_timer again, and the qs_holds could be
-add again.  And the qs_holds is global variable, so it formed a loop, the
-node could not do o2quo_make_decision, because of qs_holds never be zero.
-
-I alter the function o2quo_conn_err, take o2quo_set_hold under control of
-t= he bit map qs_conn_bm.
-
-Link: http://lkml.kernel.org/r/7F50894FD17BEC45AAC26E5BADA6CE330C60F99A@H3CMLB12-EX.srv.huawei-3com.com
-Signed-off-by: Yang Zhang <zhang.yangB@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/20170909124542.GA35224@bogon.didichuxing.com
+Signed-off-by: weiping zhang <zhangweiping@didichuxing.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/quorum.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/shmem.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/cluster/quorum.c~ocfs2-fix-qs_holds-may-could-not-be-zero fs/ocfs2/cluster/quorum.c
---- a/fs/ocfs2/cluster/quorum.c~ocfs2-fix-qs_holds-may-could-not-be-zero
-+++ a/fs/ocfs2/cluster/quorum.c
-@@ -314,13 +314,16 @@ void o2quo_conn_err(u8 node)
- 				node, qs->qs_connected);
+diff -puN mm/shmem.c~shmem-convert-shmem_init_inodecache-to-void mm/shmem.c
+--- a/mm/shmem.c~shmem-convert-shmem_init_inodecache-to-void
++++ a/mm/shmem.c
+@@ -3860,12 +3860,11 @@ static void shmem_init_inode(void *foo)
+ 	inode_init_once(&info->vfs_inode);
+ }
  
- 		clear_bit(node, qs->qs_conn_bm);
-+		/*
-+		 * Bring set hold within this judgement, in order to avoid
-+		 * qs_hold could not be zero.
-+		 */
-+		if (test_bit(node, qs->qs_hb_bm))
-+			o2quo_set_hold(qs, node);
- 	}
+-static int shmem_init_inodecache(void)
++static void shmem_init_inodecache(void)
+ {
+ 	shmem_inode_cachep = kmem_cache_create("shmem_inode_cache",
+ 				sizeof(struct shmem_inode_info),
+ 				0, SLAB_PANIC|SLAB_ACCOUNT, shmem_init_inode);
+-	return 0;
+ }
  
- 	mlog(0, "node %u, %d total\n", node, qs->qs_connected);
+ static void shmem_destroy_inodecache(void)
+@@ -3989,9 +3988,7 @@ int __init shmem_init(void)
+ 	if (shmem_inode_cachep)
+ 		return 0;
  
--	if (test_bit(node, qs->qs_hb_bm))
--		o2quo_set_hold(qs, node);
+-	error = shmem_init_inodecache();
+-	if (error)
+-		goto out3;
++	shmem_init_inodecache();
+ 
+ 	error = register_filesystem(&shmem_fs_type);
+ 	if (error) {
+@@ -4018,7 +4015,6 @@ out1:
+ 	unregister_filesystem(&shmem_fs_type);
+ out2:
+ 	shmem_destroy_inodecache();
+-out3:
+ 	shm_mnt = ERR_PTR(error);
+ 	return error;
+ }
+_
+
+Patches currently in -mm which might be from zhangweiping@didichuxing.com are
+
+shmem-convert-shmem_init_inodecache-to-void.patch
+
