@@ -1,104 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + sh-boot-add-static-stack-protector-to-pre-kernel.patch added to -mm tree
-Date: Tue, 17 Oct 2017 14:06:21 -0700
-Message-ID: <59e670cd.WnlrByPpkq0nD7Yb%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 17 Oct 2017 14:39:55 -0700
+Message-ID: <20171017213955.gpZyExC-q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50342 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756089AbdJQVGX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 17:06:23 -0400
+        with ESMTP id S934647AbdJQVj4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 17:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, dalias@libc.org, labbott@redhat.com, mingo@kernel.org, mmarek@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, yamada.masahiro@socionext.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh/boot: add static stack-protector to pre-kernel
-has been added to the -mm tree.  Its filename is
-     sh-boot-add-static-stack-protector-to-pre-kernel.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-boot-add-static-stack-protector-to-pre-kernel.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-boot-add-static-stack-protector-to-pre-kernel.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: sh/boot: add static stack-protector to pre-kernel
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The sh decompressor code triggers stack-protector code generation when
-using CONFIG_CC_STACKPROTECTOR_STRONG.  As done for arm and mips, add a
-simple static stack-protector canary.  As this wasn't protected before,
-the risk of using a weak canary is minimized.  Once the kernel is actually
-up, a better canary is chosen.
-
-Link: http://lkml.kernel.org/r/1506972007-80614-2-git-send-email-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boot/compressed/misc.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ sound/usb/quirks.c |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN arch/sh/boot/compressed/misc.c~sh-boot-add-static-stack-protector-to-pre-kernel arch/sh/boot/compressed/misc.c
---- a/arch/sh/boot/compressed/misc.c~sh-boot-add-static-stack-protector-to-pre-kernel
-+++ a/arch/sh/boot/compressed/misc.c
-@@ -103,6 +103,18 @@ static void error(char *x)
- 	while(1);	/* Halt */
- }
- 
-+unsigned long __stack_chk_guard;
-+
-+void __stack_chk_guard_setup(void)
-+{
-+	__stack_chk_guard = 0x000a0dff;
-+}
-+
-+void __stack_chk_fail(void)
-+{
-+	error("stack-protector: Kernel stack is corrupted\n");
-+}
-+
- #ifdef CONFIG_SUPERH64
- #define stackalign	8
- #else
-@@ -117,6 +129,8 @@ void decompress_kernel(void)
- {
- 	unsigned long output_addr;
- 
-+	__stack_chk_guard_setup();
-+
- #ifdef CONFIG_SUPERH64
- 	output_addr = (CONFIG_MEMORY_START + 0x2000);
- #else
+diff -puN sound/usb/quirks.c~linux-next-git-rejects sound/usb/quirks.c
+--- a/sound/usb/quirks.c~linux-next-git-rejects
++++ a/sound/usb/quirks.c
+@@ -1128,21 +1128,6 @@ bool snd_usb_get_sample_rate_quirk(struc
+ 	/* devices which do not support reading the sample rate. */
+ 	switch (chip->usb_id) {
+ 	case USB_ID(0x041E, 0x4080): /* Creative Live Cam VF0610 */
+-<<<<<<< HEAD
+-	case USB_ID(0x045E, 0x075D): /* MS Lifecam Cinema  */
+-	case USB_ID(0x045E, 0x076D): /* MS Lifecam HD-5000 */
+-	case USB_ID(0x045E, 0x076E): /* MS Lifecam HD-5001 */
+-	case USB_ID(0x045E, 0x076F): /* MS Lifecam HD-6000 */
+-	case USB_ID(0x045E, 0x0772): /* MS Lifecam Studio */
+-	case USB_ID(0x045E, 0x0779): /* MS Lifecam HD-3000 */
+-	case USB_ID(0x047F, 0x02F7): /* Plantronics BT-600 */
+-	case USB_ID(0x047F, 0x0415): /* Plantronics BT-300 */
+-	case USB_ID(0x047F, 0xAA05): /* Plantronics DA45 */
+-	case USB_ID(0x047F, 0xC022): /* Plantronics C310 */
+-	case USB_ID(0x047F, 0xC02F): /* Plantronics P610 */
+-	case USB_ID(0x047F, 0xC036): /* Plantronics C520-M */
+-=======
+->>>>>>> linux-next/akpm-base
+ 	case USB_ID(0x04D8, 0xFEEA): /* Benchmark DAC1 Pre */
+ 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
+ 	case USB_ID(0x05A3, 0x9420): /* ELP HD USB Camera */
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-writeback-convert-timers-to-use-timer_setup.patch
-sh-boot-add-static-stack-protector-to-pre-kernel.patch
-makefile-move-stackprotector-availability-out-of-kconfig.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-sysctl-make-numa-stats-configurable-fix.patch
+mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
