@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
- added to -mm tree
-Date: Tue, 17 Oct 2017 16:09:33 -0700
-Message-ID: <59e68dad.CaE23tB2THescS1x%akpm@linux-foundation.org>
+Subject: + mm-refactor-truncate_complete_page.patch added to -mm tree
+Date: Tue, 17 Oct 2017 16:09:21 -0700
+Message-ID: <59e68da1.5NDNEmJDvXB0eN7X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59338 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59292 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754136AbdJQXJe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:09:34 -0400
+        with ESMTP id S1754136AbdJQXJX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:09:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: factor out checks and accounting from __delete_from_page_cache()
+     Subject: mm: refactor truncate_complete_page()
 has been added to the -mm tree.  Its filename is
-     mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
+     mm-refactor-truncate_complete_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-truncate_complete_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-truncate_complete_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,13 +39,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: factor out checks and accounting from __delete_from_page_cache()
+Subject: mm: refactor truncate_complete_page()
 
-Move checks and accounting updates from __delete_from_page_cache() into a
-separate function.  We will reuse it when batching page cache truncation
-operations.
+Move call of delete_from_page_cache() and page->mapping check out of
+truncate_complete_page() into the single caller - truncate_inode_page(). 
+Also move page_mapped() check into truncate_complete_page().  That way it
+will be easier to batch operations.  Also rename truncate_complete_page()
+to truncate_cleanup_page().
 
-Link: http://lkml.kernel.org/r/20171010151937.26984-7-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171010151937.26984-3-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
@@ -57,102 +57,66 @@ Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   72 +++++++++++++++++++++++++++----------------------
- 1 file changed, 41 insertions(+), 31 deletions(-)
+ mm/truncate.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN mm/filemap.c~mm-factor-out-checks-and-accounting-from-__delete_from_page_cache mm/filemap.c
---- a/mm/filemap.c~mm-factor-out-checks-and-accounting-from-__delete_from_page_cache
-+++ a/mm/filemap.c
-@@ -181,17 +181,11 @@ static void page_cache_tree_delete(struc
- 	mapping->nrpages -= nr;
- }
- 
--/*
-- * Delete a page from the page cache and free it. Caller has to make
-- * sure the page is locked and that nobody else uses it - or that usage
-- * is safe.  The caller must hold the mapping's tree_lock.
-- */
--void __delete_from_page_cache(struct page *page, void *shadow)
-+static void unaccount_page_cache_page(struct address_space *mapping,
-+				      struct page *page)
+diff -puN mm/truncate.c~mm-refactor-truncate_complete_page mm/truncate.c
+--- a/mm/truncate.c~mm-refactor-truncate_complete_page
++++ a/mm/truncate.c
+@@ -134,11 +134,17 @@ void do_invalidatepage(struct page *page
+  * its lock, b) when a concurrent invalidate_mapping_pages got there first and
+  * c) when tmpfs swizzles a page between a tmpfs inode and swapper_space.
+  */
+-static int
+-truncate_complete_page(struct address_space *mapping, struct page *page)
++static void
++truncate_cleanup_page(struct address_space *mapping, struct page *page)
  {
--	struct address_space *mapping = page->mapping;
--	int nr = hpage_nr_pages(page);
-+	int nr;
+-	if (page->mapping != mapping)
+-		return -EIO;
++	if (page_mapped(page)) {
++		loff_t holelen;
++
++		holelen = PageTransHuge(page) ? HPAGE_PMD_SIZE : PAGE_SIZE;
++		unmap_mapping_range(mapping,
++				   (loff_t)page->index << PAGE_SHIFT,
++				   holelen, 0);
++	}
  
--	trace_mm_filemap_delete_from_page_cache(page);
- 	/*
- 	 * if we're uptodate, flush out into the cleancache, otherwise
- 	 * invalidate any existing cleancache entries.  We can't leave
-@@ -228,30 +222,46 @@ void __delete_from_page_cache(struct pag
- 	}
- 
- 	/* hugetlb pages do not participate in page cache accounting. */
--	if (!PageHuge(page)) {
--		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
--		if (PageSwapBacked(page)) {
--			__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
--			if (PageTransHuge(page))
--				__dec_node_page_state(page, NR_SHMEM_THPS);
--		} else {
--			VM_BUG_ON_PAGE(PageTransHuge(page), page);
--		}
-+	if (PageHuge(page))
-+		return;
-+
-+	nr = hpage_nr_pages(page);
- 
--		/*
--		 * At this point page must be either written or cleaned by
--		 * truncate.  Dirty page here signals a bug and loss of
--		 * unwritten data.
--		 *
--		 * This fixes dirty accounting after removing the page entirely
--		 * but leaves PageDirty set: it has no effect for truncated
--		 * page and anyway will be cleared before returning page into
--		 * buddy allocator.
--		 */
--		if (WARN_ON_ONCE(PageDirty(page)))
--			account_page_cleaned(page, mapping,
--					     inode_to_wb(mapping->host));
-+	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
-+	if (PageSwapBacked(page)) {
-+		__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
-+		if (PageTransHuge(page))
-+			__dec_node_page_state(page, NR_SHMEM_THPS);
-+	} else {
-+		VM_BUG_ON_PAGE(PageTransHuge(page), page);
- 	}
-+
-+	/*
-+	 * At this point page must be either written or cleaned by
-+	 * truncate.  Dirty page here signals a bug and loss of
-+	 * unwritten data.
-+	 *
-+	 * This fixes dirty accounting after removing the page entirely
-+	 * but leaves PageDirty set: it has no effect for truncated
-+	 * page and anyway will be cleared before returning page into
-+	 * buddy allocator.
-+	 */
-+	if (WARN_ON_ONCE(PageDirty(page)))
-+		account_page_cleaned(page, mapping, inode_to_wb(mapping->host));
-+}
-+
-+/*
-+ * Delete a page from the page cache and free it. Caller has to make
-+ * sure the page is locked and that nobody else uses it - or that usage
-+ * is safe.  The caller must hold the mapping's tree_lock.
-+ */
-+void __delete_from_page_cache(struct page *page, void *shadow)
-+{
-+	struct address_space *mapping = page->mapping;
-+
-+	trace_mm_filemap_delete_from_page_cache(page);
-+
-+	unaccount_page_cache_page(mapping, page);
- 	page_cache_tree_delete(mapping, page, shadow);
+ 	if (page_has_private(page))
+ 		do_invalidatepage(page, 0, PAGE_SIZE);
+@@ -150,8 +156,6 @@ truncate_complete_page(struct address_sp
+ 	 */
+ 	cancel_dirty_page(page);
+ 	ClearPageMappedToDisk(page);
+-	delete_from_page_cache(page);
+-	return 0;
  }
  
+ /*
+@@ -180,16 +184,14 @@ invalidate_complete_page(struct address_
+ 
+ int truncate_inode_page(struct address_space *mapping, struct page *page)
+ {
+-	loff_t holelen;
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 
+-	holelen = PageTransHuge(page) ? HPAGE_PMD_SIZE : PAGE_SIZE;
+-	if (page_mapped(page)) {
+-		unmap_mapping_range(mapping,
+-				   (loff_t)page->index << PAGE_SHIFT,
+-				   holelen, 0);
+-	}
+-	return truncate_complete_page(mapping, page);
++	if (page->mapping != mapping)
++		return -EIO;
++
++	truncate_cleanup_page(mapping, page);
++	delete_from_page_cache(page);
++	return 0;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
