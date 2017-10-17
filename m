@@ -1,94 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-cluster-hang-after-a-node-dies.patch added to -mm
- tree
-Date: Tue, 17 Oct 2017 15:40:50 -0700
-Message-ID: <59e686f2.uUIYE0yvnX2sSn/v%akpm@linux-foundation.org>
+Subject: [obsolete]
+ mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 17 Oct 2017 15:43:04 -0700
+Message-ID: <59e68778.4CPqKvYlrXeckeif%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58254 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753242AbdJQWkw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:40:52 -0400
+        with ESMTP id S1764634AbdJQWnH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, v.mayatskih@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix cluster hang after a node dies
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-cluster-hang-after-a-node-dies.patch
+     Subject: mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-cluster-hang-after-a-node-dies.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-cluster-hang-after-a-node-dies.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2: fix cluster hang after a node dies
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes
 
-When a node dies, other live nodes have to choose a new master for an
-existed lock resource mastered by the dead node.
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
+#21: 
+  A) page backing address is free before mmu_notifier_invalidate_range_end()
 
-As for ocfs2/dlm implementation, this is done by function -
-dlm_move_lockres_to_recovery_list which marks those lock rsources as
-DLM_LOCK_RES_RECOVERING and manages them via a list from which DLM changes
-lock resource's master later.
+ERROR: code indent should use tabs where possible
+#322: FILE: mm/hugetlb.c:3263:
++^I ^I^I^I *$
 
-So without invoking dlm_move_lockres_to_recovery_list, no master will be
-choosed after dlm recovery accomplishment since no lock resource can be
-found through ::resource list.
+WARNING: please, no space before tabs
+#322: FILE: mm/hugetlb.c:3263:
++^I ^I^I^I *$
 
-What's worse is that if DLM_LOCK_RES_RECOVERING is not marked for lock
-resources mastered a dead node, it will break up synchronization among
-nodes.
+total: 1 errors, 2 warnings, 283 lines checked
 
-So invoke dlm_move_lockres_to_recovery_list again.
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
 
-Fixs: 'commit ee8f7fcbe638 ("ocfs2/dlm: continue to purge recovery lockres when recovery master goes down")'
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED6E0F9@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Reported-by: Vitaly Mayatskih <v.mayatskih@gmail.com>
-Tested-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/mm-mmu_notifier-avoid-double-notification-when-it-is-useless.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2419,6 +2419,7 @@ static void dlm_do_local_recovery_cleanu
- 					dlm_lockres_put(res);
- 					continue;
- 				}
-+				dlm_move_lockres_to_recovery_list(dlm, res);
- 			} else if (res->owner == dlm->node_num) {
- 				dlm_free_dead_locks(dlm, res, dead_node);
- 				__dlm_lockres_calc_usage(dlm, res);
+diff -puN mm/hugetlb.c~mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes
++++ a/mm/hugetlb.c
+@@ -3260,7 +3260,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 				 * No need to notify as we downgrading page
+ 				 * table protection not changing it to point
+ 				 * to a new page.
+-	 			 *
++				 *
+ 				 * See Documentation/vm/mmu_notifier.txt
+ 				 */
+ 				huge_ptep_set_wrprotect(src, addr, src_pte);
 _
 
-Patches currently in -mm which might be from ge.changwei@h3c.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-fix-cluster-hang-after-a-node-dies.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-sysctl-make-numa-stats-configurable-fix.patch
+mm-sysctl-make-numa-stats-configurable-fix-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
