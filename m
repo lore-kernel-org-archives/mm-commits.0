@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+Subject: +
+ mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
  added to -mm tree
-Date: Tue, 17 Oct 2017 15:26:45 -0700
-Message-ID: <59e683a5.EsXc638m3pN9WNrd%akpm@linux-foundation.org>
+Date: Tue, 17 Oct 2017 15:26:48 -0700
+Message-ID: <59e683a8.AszZxlrN6qNeKDrz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57188 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935130AbdJQW0r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:26:47 -0400
+        with ESMTP id S1764612AbdJQW0v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop migrate type checks from has_unmovable_pages
+     Subject: mm, page_alloc: fail has_unmovable_pages when seeing reserved pages
 has been added to the -mm tree.  Its filename is
-     mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+     mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +41,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: drop migrate type checks from has_unmovable_pages
+Subject: mm, page_alloc: fail has_unmovable_pages when seeing reserved pages
 
-Michael has noticed that the memory offline tries to migrate kernel code
-pages when doing
+Reserved pages should be completely ignored by the core mm because they
+have a special meaning for their owners.  has_unmovable_pages doesn't
+check those so we rely on other tests (reference count, or PageLRU) to
+fail on such pages.  Althought this happens to work it is safer to simply
+check for those explicitly and do not rely on the owner of the page to
+abuse those fields for special purposes.
 
- echo 0 > /sys/devices/system/memory/memory0/online
+Please note that this is more of a further fortification of the code
+rahter than a fix of an existing issue.
 
-The current implementation will fail the operation after several failed
-page migration attempts but we shouldn't even attempt to migrate that
-memory and fail right away because this memory is clearly not migrateable.
-This will become a real problem when we drop the retry loop counter resp.
-timeout.
-
-The real problem is in has_unmovable_pages in fact.  We should fail if
-there are any non migrateable pages in the area.  In orther to guarantee
-that remove the migrate type checks because MIGRATE_MOVABLE is not
-guaranteed to contain only migrateable pages.  It is merely a heuristic. 
-Similarly MIGRATE_CMA does guarantee that the page allocator doesn't
-allocate any non-migrateable pages from the block but CMA allocations
-themselves are unlikely to migrateable.  Therefore remove both checks.
-
-Link: http://lkml.kernel.org/r/20171013120013.698-1-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20171013120756.jeopthigbmm3c7bl@dhcp22.suse.cz
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Michael Ellerman <mpe@ellerman.id.au>
-Tested-by: Michael Ellerman <mpe@ellerman.id.au>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Igor Mammedov <imammedo@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
@@ -75,22 +66,22 @@ Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages
+diff -puN mm/page_alloc.c~mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages
 +++ a/mm/page_alloc.c
-@@ -7360,9 +7360,6 @@ bool has_unmovable_pages(struct zone *zo
- 	 */
- 	if (zone_idx(zone) == ZONE_MOVABLE)
- 		return false;
--	mt = get_pageblock_migratetype(page);
--	if (mt == MIGRATE_MOVABLE || is_migrate_cma(mt))
--		return false;
+@@ -7370,6 +7370,9 @@ bool has_unmovable_pages(struct zone *zo
  
- 	pfn = page_to_pfn(page);
- 	for (found = 0, iter = 0; iter < pageblock_nr_pages; iter++) {
+ 		page = pfn_to_page(check);
+ 
++		if (PageReserved(page))
++			return true;
++
+ 		/*
+ 		 * Hugepages are not in LRU lists, but they're movable.
+ 		 * We need not scan over tail pages bacause we don't
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
