@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-swap-fix-race-between-swap-count-continuation-operations.patch added to
- -mm tree
-Date: Tue, 17 Oct 2017 15:37:31 -0700
-Message-ID: <59e6862b.uToYkMs0YjJRHDV/%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-cluster-hang-after-a-node-dies.patch added to -mm
+ tree
+Date: Tue, 17 Oct 2017 15:40:50 -0700
+Message-ID: <59e686f2.uUIYE0yvnX2sSn/v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58226 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752560AbdJQWhd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:37:33 -0400
+        with ESMTP id S1753242AbdJQWkw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aaron.lu@intel.com, ak@linux.intel.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com, minchan@kernel.org, shli@kernel.org, tim.c.chen@intel.com, mm-commits@vger.kernel.org
+To: ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, v.mayatskih@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap: Fix race between swap count continuation operations
+     Subject: ocfs2: fix cluster hang after a node dies
 has been added to the -mm tree.  Its filename is
-     mm-swap-fix-race-between-swap-count-continuation-operations.patch
+     ocfs2-fix-cluster-hang-after-a-node-dies.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-race-between-swap-count-continuation-operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-cluster-hang-after-a-node-dies.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-race-between-swap-count-continuation-operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-cluster-hang-after-a-node-dies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,164 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: Fix race between swap count continuation operations
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2: fix cluster hang after a node dies
 
-One page may store a set of entries of the sis->swap_map
-(swap_info_struct->swap_map) in multiple swap clusters.  If some of the
-entries has sis->swap_map[offset] > SWAP_MAP_MAX, multiple pages will be
-used to store the set of entries of the sis->swap_map.  And the pages are
-linked with page->lru.  This is called swap count continuation.  To access
-the pages which store the set of entries of the sis->swap_map
-simultaneously, previously, sis->lock is used.  But to improve the
-scalability of __swap_duplicate(), swap cluster lock may be used in
-swap_count_continued() now.  This may race with
-add_swap_count_continuation() which operates on a nearby swap cluster, in
-which the sis->swap_map entries are stored in the same page.
+When a node dies, other live nodes have to choose a new master for an
+existed lock resource mastered by the dead node.
 
-It is possible for a user to trigger it.  With the race, the reference
-count of swap slots may be wrong, and which may cause swap slots leak,
-infinite loop in kernel, etc.
+As for ocfs2/dlm implementation, this is done by function -
+dlm_move_lockres_to_recovery_list which marks those lock rsources as
+DLM_LOCK_RES_RECOVERING and manages them via a list from which DLM changes
+lock resource's master later.
 
-To fix the race, a new spin lock called cont_lock is added to struct
-swap_info_struct to protect the swap count continuation page list.  This
-is a lock at the swap device level, so the scalability isn't very well. 
-But it is still much better than the original sis->lock, because it is
-only acquired/released when swap count continuation is used.  Which is
-considered rare in practice.  If it turns out that the scalability becomes
-an issue for some workloads, we can split the lock into some more fine
-grained locks.
+So without invoking dlm_move_lockres_to_recovery_list, no master will be
+choosed after dlm recovery accomplishment since no lock resource can be
+found through ::resource list.
 
-Link: http://lkml.kernel.org/r/20171017081320.28133-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+What's worse is that if DLM_LOCK_RES_RECOVERING is not marked for lock
+resources mastered a dead node, it will break up synchronization among
+nodes.
+
+So invoke dlm_move_lockres_to_recovery_list again.
+
+Fixs: 'commit ee8f7fcbe638 ("ocfs2/dlm: continue to purge recovery lockres when recovery master goes down")'
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED6E0F9@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reported-by: Vitaly Mayatskih <v.mayatskih@gmail.com>
+Tested-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++++
- mm/swapfile.c        |   23 +++++++++++++++++------
- 2 files changed, 21 insertions(+), 6 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/swap.h~mm-swap-fix-race-between-swap-count-continuation-operations include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-fix-race-between-swap-count-continuation-operations
-+++ a/include/linux/swap.h
-@@ -265,6 +265,10 @@ struct swap_info_struct {
- 					 * both locks need hold, hold swap_lock
- 					 * first.
- 					 */
-+	spinlock_t cont_lock;		/*
-+					 * protect swap count continuation page
-+					 * list.
-+					 */
- 	struct work_struct discard_work; /* discard worker */
- 	struct swap_cluster_list discard_clusters; /* discard clusters list */
- };
-diff -puN mm/swapfile.c~mm-swap-fix-race-between-swap-count-continuation-operations mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-fix-race-between-swap-count-continuation-operations
-+++ a/mm/swapfile.c
-@@ -2869,6 +2869,7 @@ static struct swap_info_struct *alloc_sw
- 	p->flags = SWP_USED;
- 	spin_unlock(&swap_lock);
- 	spin_lock_init(&p->lock);
-+	spin_lock_init(&p->cont_lock);
- 
- 	return p;
- }
-@@ -3545,6 +3546,7 @@ int add_swap_count_continuation(swp_entr
- 	head = vmalloc_to_page(si->swap_map + offset);
- 	offset &= ~PAGE_MASK;
- 
-+	spin_lock(&si->cont_lock);
- 	/*
- 	 * Page allocation does not initialize the page's lru field,
- 	 * but it does always reset its private field.
-@@ -3564,7 +3566,7 @@ int add_swap_count_continuation(swp_entr
- 		 * a continuation page, free our allocation and use this one.
- 		 */
- 		if (!(count & COUNT_CONTINUED))
--			goto out;
-+			goto out_unlock_cont;
- 
- 		map = kmap_atomic(list_page) + offset;
- 		count = *map;
-@@ -3575,11 +3577,13 @@ int add_swap_count_continuation(swp_entr
- 		 * free our allocation and use this one.
- 		 */
- 		if ((count & ~COUNT_CONTINUED) != SWAP_CONT_MAX)
--			goto out;
-+			goto out_unlock_cont;
- 	}
- 
- 	list_add_tail(&page->lru, &head->lru);
- 	page = NULL;			/* now it's attached, don't free it */
-+out_unlock_cont:
-+	spin_unlock(&si->cont_lock);
- out:
- 	unlock_cluster(ci);
- 	spin_unlock(&si->lock);
-@@ -3604,6 +3608,7 @@ static bool swap_count_continued(struct
- 	struct page *head;
- 	struct page *page;
- 	unsigned char *map;
-+	bool ret;
- 
- 	head = vmalloc_to_page(si->swap_map + offset);
- 	if (page_private(head) != SWP_CONTINUED) {
-@@ -3611,6 +3616,7 @@ static bool swap_count_continued(struct
- 		return false;		/* need to add count continuation */
- 	}
- 
-+	spin_lock(&si->cont_lock);
- 	offset &= ~PAGE_MASK;
- 	page = list_entry(head->lru.next, struct page, lru);
- 	map = kmap_atomic(page) + offset;
-@@ -3631,8 +3637,10 @@ static bool swap_count_continued(struct
- 		if (*map == SWAP_CONT_MAX) {
- 			kunmap_atomic(map);
- 			page = list_entry(page->lru.next, struct page, lru);
--			if (page == head)
--				return false;	/* add count continuation */
-+			if (page == head) {
-+				ret = false;	/* add count continuation */
-+				goto out;
-+			}
- 			map = kmap_atomic(page) + offset;
- init_map:		*map = 0;		/* we didn't zero the page */
- 		}
-@@ -3645,7 +3653,7 @@ init_map:		*map = 0;		/* we didn't zero
- 			kunmap_atomic(map);
- 			page = list_entry(page->lru.prev, struct page, lru);
- 		}
--		return true;			/* incremented */
-+		ret = true;			/* incremented */
- 
- 	} else {				/* decrementing */
- 		/*
-@@ -3671,8 +3679,11 @@ init_map:		*map = 0;		/* we didn't zero
- 			kunmap_atomic(map);
- 			page = list_entry(page->lru.prev, struct page, lru);
- 		}
--		return count == COUNT_CONTINUED;
-+		ret = count == COUNT_CONTINUED;
- 	}
-+out:
-+	spin_unlock(&si->cont_lock);
-+	return ret;
- }
- 
- /*
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2419,6 +2419,7 @@ static void dlm_do_local_recovery_cleanu
+ 					dlm_lockres_put(res);
+ 					continue;
+ 				}
++				dlm_move_lockres_to_recovery_list(dlm, res);
+ 			} else if (res->owner == dlm->node_num) {
+ 				dlm_free_dead_locks(dlm, res, dead_node);
+ 				__dlm_lockres_calc_usage(dlm, res);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from ge.changwei@h3c.com are
 
-mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry.patch
-mm-swap-fix-race-between-swap-count-continuation-operations.patch
+ocfs2-fix-cluster-hang-after-a-node-dies.patch
 
