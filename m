@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- makefile-move-stackprotector-availability-out-of-kconfig.patch removed from -mm tree
-Date: Tue, 17 Oct 2017 12:57:00 -0700
-Message-ID: <59e6608c.0eZh/045SV8os1wu%akpm@linux-foundation.org>
+Subject: + makefile-move-stackprotector-availability-out-of-kconfig.patch
+ added to -mm tree
+Date: Tue, 17 Oct 2017 14:06:24 -0700
+Message-ID: <59e670d0.lnMBLHWL+BXopef7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760136AbdJQT5B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 15:57:01 -0400
+        with ESMTP id S1756089AbdJQVG0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 17:06:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, dalias@libc.org, labbott@redhat.com, mingo@kernel.org, mmarek@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, yamada.masahiro@socionext.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: keescook@chromium.org, dalias@libc.org, labbott@redhat.com, mingo@kernel.org
 
 The patch titled
      Subject: Makefile: move stackprotector availability out of Kconfig
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      makefile-move-stackprotector-availability-out-of-kconfig.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/makefile-move-stackprotector-availability-out-of-kconfig.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-move-stackprotector-availability-out-of-kconfig.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
@@ -106,8 +120,6 @@ _
 Patches currently in -mm which might be from keescook@chromium.org are
 
 writeback-convert-timers-to-use-timer_setup.patch
-makefile-introduce-config_cc_stackprotector_auto.patch
-makefile-introduce-config_cc_stackprotector_auto-fix.patch
-makefile-introduce-config_cc_stackprotector_auto-fix-2.patch
-makefile-introduce-config_cc_stackprotector_auto-fix-3.patch
+sh-boot-add-static-stack-protector-to-pre-kernel.patch
+makefile-move-stackprotector-availability-out-of-kconfig.patch
 
