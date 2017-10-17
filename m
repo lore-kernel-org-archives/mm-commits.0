@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
- added to -mm tree
-Date: Tue, 17 Oct 2017 15:26:48 -0700
-Message-ID: <59e683a8.AszZxlrN6qNeKDrz%akpm@linux-foundation.org>
+Subject: + zram-make-function-zram_page_end_io-static.patch added to -mm
+ tree
+Date: Tue, 17 Oct 2017 15:31:28 -0700
+Message-ID: <59e684c0.6WCdsx6BXrLGOQp3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1764612AbdJQW0v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:26:51 -0400
+        with ESMTP id S935130AbdJQWb3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:31:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: colin.king@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: fail has_unmovable_pages when seeing reserved pages
+     Subject: drivers/block/zram/zram_drv.c: make zram_page_end_io() static
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
+     zram-make-function-zram_page_end_io-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-make-function-zram_page_end_io-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-make-function-zram_page_end_io-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: fail has_unmovable_pages when seeing reserved pages
+From: Colin Ian King <colin.king@canonical.com>
+Subject: drivers/block/zram/zram_drv.c: make zram_page_end_io() static
 
-Reserved pages should be completely ignored by the core mm because they
-have a special meaning for their owners.  has_unmovable_pages doesn't
-check those so we rely on other tests (reference count, or PageLRU) to
-fail on such pages.  Althought this happens to work it is safer to simply
-check for those explicitly and do not rely on the owner of the page to
-abuse those fields for special purposes.
+zram_page_end_io() is local to the source and does not need to be in
+global scope, so make it static.
 
-Please note that this is more of a further fortification of the code
-rahter than a fix of an existing issue.
+Cleans up sparse warning:
+symbol 'zram_page_end_io' was not declared. Should it be static?
 
-Link: http://lkml.kernel.org/r/20171013120756.jeopthigbmm3c7bl@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Link: http://lkml.kernel.org/r/20171016173336.20320-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages
-+++ a/mm/page_alloc.c
-@@ -7370,6 +7370,9 @@ bool has_unmovable_pages(struct zone *zo
+diff -puN drivers/block/zram/zram_drv.c~zram-make-function-zram_page_end_io-static drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-make-function-zram_page_end_io-static
++++ a/drivers/block/zram/zram_drv.c
+@@ -428,7 +428,7 @@ static void put_entry_bdev(struct zram *
+ 	WARN_ON_ONCE(!was_set);
+ }
  
- 		page = pfn_to_page(check);
+-void zram_page_end_io(struct bio *bio)
++static void zram_page_end_io(struct bio *bio)
+ {
+ 	struct page *page = bio->bi_io_vec[0].bv_page;
  
-+		if (PageReserved(page))
-+			return true;
-+
- 		/*
- 		 * Hugepages are not in LRU lists, but they're movable.
- 		 * We need not scan over tail pages bacause we don't
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
-mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
-mm-memory_hotplug-do-not-fail-offlining-too-early.patch
-mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
-mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
-mm-arch-remove-empty_bad_page.patch
+mm-rmap-remove-redundant-variable-cend.patch
+zram-make-function-zram_page_end_io-static.patch
 
