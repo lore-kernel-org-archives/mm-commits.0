@@ -1,438 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-sysctl-make-numa-stats-configurable.patch
- removed from -mm tree
-Date: Tue, 17 Oct 2017 15:46:34 -0700
-Message-ID: <59e6884a.acw4TNYZYL7Y1I5c%akpm@linux-foundation.org>
+Subject: + fs-nilfs2-convert-timers-to-use-timer_setup.patch added to -mm
+ tree
+Date: Tue, 17 Oct 2017 15:48:27 -0700
+Message-ID: <59e688bb.uYLhVLCPIrG7s+Mj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755712AbdJQWqg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:46:36 -0400
+        with ESMTP id S1752200AbdJQWs2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:48:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kemi.wang@intel.com, aaron.lu@intel.com, andi.kleen@intel.com, bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, keescook@chromium.org, mcgrof@kernel.org, mgorman@techsingularity.net, mhocko@suse.com, tim.c.chen@intel.com, vbabka@suse.cz, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, sysctl: make NUMA stats configurable
-has been removed from the -mm tree.  Its filename was
-     mm-sysctl-make-numa-stats-configurable.patch
+     Subject: fs/nilfs2: convert timers to use timer_setup()
+has been added to the -mm tree.  Its filename is
+     fs-nilfs2-convert-timers-to-use-timer_setup.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-nilfs2-convert-timers-to-use-timer_setup.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nilfs2-convert-timers-to-use-timer_setup.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kemi Wang <kemi.wang@intel.com>
-Subject: mm, sysctl: make NUMA stats configurable
+From: Kees Cook <keescook@chromium.org>
+Subject: fs/nilfs2: convert timers to use timer_setup()
 
-When page allocation performance becomes a bottleneck and you can tolerate
-some possible tool breakage and decreased numa counter precision, you can
-do:
+In preparation for unconditionally passing the struct timer_list pointer
+to all timer callbacks, switch to using the new timer_setup() and
+from_timer() to pass the timer pointer explicitly.  This requires adding a
+pointer to hold the timer's target task, as the lifetime of sc_task
+doesn't appear to match the timer's task.
 
-	echo [C|c]oarse > /proc/sys/vm/numa_stats_mode
-
-In this case, numa counter update is ignored.
-
-We can see about *4.8%*(185->176) drop of cpu cycles per single page
-allocation and reclaim on Jesper's page_bench01 (single thread) and
-*8.1%*(343->315) drop of cpu cycles per single page allocation and reclaim
-on Jesper's page_bench03 (88 threads) running on a 2-Socket
-Broadwell-based server (88 threads, 126G memory).
-
-Benchmark link provided by Jesper D Brouer(increase loop times to
-10000000):
-https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/bench
-
-=========================================================================
-When page allocation performance is not a bottleneck and you want all
-tooling to work, you can do:
-	echo [S|s]trict > /proc/sys/vm/numa_stats_mode
-
-=========================================================================
-
-We recommend automatic detection of numa statistics by system, this is also
-system default configuration, you can do:
-
-	echo [A|a]uto > /proc/sys/vm/numa_stats_mode
-
-In this case, numa counter update is skipped unless it has been read by
-users at least once, e.g. cat /proc/zoneinfo.
-
-Branch target selection with jump label:
-
-a) When numa_stats_mode is changed to *strict*, jump to the branch for
-   numa counters update.
-
-b) When numa_stats_mode is changed to *coarse*, return back directly.
-
-c) When numa_stats_mode is changed to *auto*, the branch target used in
-   last time is kept, and the branch target is changed to the branch for
-   numa counters update once numa counters are *read* by users.
-
-Therefore, with the help of jump label, the page allocation performance is
-hardly affected when numa counters are updated with a call in
-zone_statistics().  Meanwhile, the auto mode can give people benefit
-without manual tuning.
-
-Many thanks to Michal Hocko, Dave Hansen and Ying Huang for comments to
-help improve the original patch.
-
-[akpm@linux-foundation.org: various fixes]
-[akpm@linux-foundation.org: fix typo]
-Link: http://lkml.kernel.org/r/1506579101-5457-1-git-send-email-kemi.wang@intel.com
-Signed-off-by: Kemi Wang <kemi.wang@intel.com>
-Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
-Suggested-by: Ying Huang <ying.huang@intel.com>
-Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
+Link: http://lkml.kernel.org/r/20171016235900.GA102729@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   25 ++++++
- drivers/base/node.c         |    4 +
- include/linux/vmstat.h      |   23 ++++++
- init/main.c                 |    3 
- kernel/sysctl.c             |    7 +
- mm/page_alloc.c             |   10 ++
- mm/vmstat.c                 |  126 ++++++++++++++++++++++++++++++++++
- 7 files changed, 198 insertions(+)
+ fs/nilfs2/segment.c |   11 +++++------
+ fs/nilfs2/segment.h |    1 +
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-sysctl-make-numa-stats-configurable Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-sysctl-make-numa-stats-configurable
-+++ a/Documentation/sysctl/vm.txt
-@@ -61,6 +61,7 @@ Currently, these files are in /proc/sys/
- - swappiness
- - user_reserve_kbytes
- - vfs_cache_pressure
-+- numa_stats_mode
- - watermark_scale_factor
- - zone_reclaim_mode
+diff -puN fs/nilfs2/segment.c~fs-nilfs2-convert-timers-to-use-timer_setup fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~fs-nilfs2-convert-timers-to-use-timer_setup
++++ a/fs/nilfs2/segment.c
+@@ -2400,11 +2400,11 @@ static int nilfs_segctor_construct(struc
+ 	return err;
+ }
  
-@@ -850,6 +851,30 @@ ten times more freeable objects than the
- 
- =============================================================
- 
-+numa_stats_mode
-+
-+This interface allows runtime configuration of numa statistics.
-+
-+When page allocation performance becomes a bottleneck and you can tolerate
-+some possible tool breakage and decreased numa counter precision, you can
-+do:
-+	echo [C|c]oarse > /proc/sys/vm/numa_stats_mode
-+
-+When page allocation performance is not a bottleneck and you want all
-+tooling to work, you can do:
-+	echo [S|s]trict > /proc/sys/vm/numa_stat_mode
-+
-+We recommend automatic detection of numa statistics by system, because
-+numa statistics do not affect system decisions and it is very rarely
-+consumed.  In this case you can do:
-+	echo [A|a]uto > /proc/sys/vm/numa_stats_mode
-+
-+This is the system default configuration.  With this default setting, numa
-+counter updates are skipped until the counter is *read* by userspace at
-+least once.
-+
-+==============================================================
-+
- watermark_scale_factor:
- 
- This factor controls the aggressiveness of kswapd. It defines the
-diff -puN drivers/base/node.c~mm-sysctl-make-numa-stats-configurable drivers/base/node.c
---- a/drivers/base/node.c~mm-sysctl-make-numa-stats-configurable
-+++ a/drivers/base/node.c
-@@ -161,6 +161,8 @@ static DEVICE_ATTR(meminfo, S_IRUGO, nod
- static ssize_t node_read_numastat(struct device *dev,
- 				struct device_attribute *attr, char *buf)
+-static void nilfs_construction_timeout(unsigned long data)
++static void nilfs_construction_timeout(struct timer_list *t)
  {
-+	if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE)
-+		static_branch_enable(&vm_numa_stats_mode_key);
- 	return sprintf(buf,
- 		       "numa_hit %lu\n"
- 		       "numa_miss %lu\n"
-@@ -194,6 +196,8 @@ static ssize_t node_read_vmstat(struct d
- 		n += sprintf(buf+n, "%s %lu\n",
- 			     vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
- 			     sum_zone_numa_state(nid, i));
-+	if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE)
-+		static_branch_enable(&vm_numa_stats_mode_key);
- #endif
+-	struct task_struct *p = (struct task_struct *)data;
++	struct nilfs_sc_info *sci = from_timer(sci, t, sc_timer);
  
- 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
-diff -puN include/linux/vmstat.h~mm-sysctl-make-numa-stats-configurable include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-sysctl-make-numa-stats-configurable
-+++ a/include/linux/vmstat.h
-@@ -6,9 +6,28 @@
- #include <linux/mmzone.h>
- #include <linux/vm_event_item.h>
- #include <linux/atomic.h>
-+#include <linux/static_key.h>
- 
- extern int sysctl_stat_interval;
- 
-+#ifdef CONFIG_NUMA
-+DECLARE_STATIC_KEY_FALSE(vm_numa_stats_mode_key);
-+/*
-+ * vm_numa_stats_mode:
-+ * 0 = auto mode of NUMA stats, automatic detection of NUMA statistics.
-+ * 1 = strict mode of NUMA stats, keep NUMA statistics.
-+ * 2 = coarse mode of NUMA stats, ignore NUMA statistics.
-+ */
-+#define VM_NUMA_STAT_AUTO_MODE 0
-+#define VM_NUMA_STAT_STRICT_MODE  1
-+#define VM_NUMA_STAT_COARSE_MODE  2
-+#define VM_NUMA_STAT_MODE_LEN 16
-+extern int vm_numa_stats_mode;
-+extern char sysctl_vm_numa_stats_mode[];
-+extern int sysctl_vm_numa_stats_mode_handler(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *length, loff_t *ppos);
-+#endif
-+
- #ifdef CONFIG_VM_EVENT_COUNTERS
- /*
-  * Light weight per cpu counter implementation.
-@@ -229,6 +248,10 @@ extern unsigned long sum_zone_node_page_
- extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
- extern unsigned long node_page_state(struct pglist_data *pgdat,
- 						enum node_stat_item item);
-+extern void zero_zone_numa_counters(struct zone *zone);
-+extern void zero_zones_numa_counters(void);
-+extern void zero_global_numa_counters(void);
-+extern void invalid_numa_statistics(void);
- #else
- #define sum_zone_node_page_state(node, item) global_zone_page_state(item)
- #define node_page_state(node, item) global_node_page_state(item)
-diff -puN init/main.c~mm-sysctl-make-numa-stats-configurable init/main.c
---- a/init/main.c~mm-sysctl-make-numa-stats-configurable
-+++ a/init/main.c
-@@ -504,6 +504,9 @@ static void __init mm_init(void)
- 	pgtable_init();
- 	vmalloc_init();
- 	ioremap_huge_init();
-+#ifdef CONFIG_NUMA
-+	pr_info("vmstat: NUMA stat updates are skipped unless they have been used\n");
-+#endif
+-	wake_up_process(p);
++	wake_up_process(sci->sc_timer_task);
  }
  
- asmlinkage __visible void __init start_kernel(void)
-diff -puN kernel/sysctl.c~mm-sysctl-make-numa-stats-configurable kernel/sysctl.c
---- a/kernel/sysctl.c~mm-sysctl-make-numa-stats-configurable
-+++ a/kernel/sysctl.c
-@@ -1371,6 +1371,13 @@ static struct ctl_table vm_table[] = {
- 		.mode           = 0644,
- 		.proc_handler   = &hugetlb_mempolicy_sysctl_handler,
- 	},
-+	{
-+		.procname	= "numa_stats_mode",
-+		.data		= sysctl_vm_numa_stats_mode,
-+		.maxlen		= VM_NUMA_STAT_MODE_LEN,
-+		.mode		= 0644,
-+		.proc_handler	= sysctl_vm_numa_stats_mode_handler,
-+	},
- #endif
- 	 {
- 		.procname	= "hugetlb_shm_group",
-diff -puN mm/page_alloc.c~mm-sysctl-make-numa-stats-configurable mm/page_alloc.c
---- a/mm/page_alloc.c~mm-sysctl-make-numa-stats-configurable
-+++ a/mm/page_alloc.c
-@@ -83,6 +83,8 @@ DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
- #endif
+ static void
+@@ -2542,8 +2542,7 @@ static int nilfs_segctor_thread(void *ar
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	int timeout = 0;
  
-+DEFINE_STATIC_KEY_FALSE(vm_numa_stats_mode_key);
-+
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
- /*
-  * N.B., Do NOT reference the '_numa_mem_' per cpu variable directly.
-@@ -2739,6 +2741,14 @@ static inline void zone_statistics(struc
- #ifdef CONFIG_NUMA
- 	enum numa_stat_item local_stat = NUMA_LOCAL;
+-	sci->sc_timer.data = (unsigned long)current;
+-	sci->sc_timer.function = nilfs_construction_timeout;
++	sci->sc_timer_task = current;
  
-+	/*
-+	 * skip zone_statistics() if NUMA stats is set to coarse mode or
-+	 * NUMA stats is never consumed in auto mode.
-+	 */
-+
-+	if (!static_branch_unlikely(&vm_numa_stats_mode_key))
-+		return;
-+
- 	if (z->node != numa_node_id())
- 		local_stat = NUMA_OTHER;
+ 	/* start sync. */
+ 	sci->sc_task = current;
+@@ -2674,7 +2673,7 @@ static struct nilfs_sc_info *nilfs_segct
+ 	INIT_LIST_HEAD(&sci->sc_gc_inodes);
+ 	INIT_LIST_HEAD(&sci->sc_iput_queue);
+ 	INIT_WORK(&sci->sc_iput_work, nilfs_iput_work_func);
+-	init_timer(&sci->sc_timer);
++	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
  
-diff -puN mm/vmstat.c~mm-sysctl-make-numa-stats-configurable mm/vmstat.c
---- a/mm/vmstat.c~mm-sysctl-make-numa-stats-configurable
-+++ a/mm/vmstat.c
-@@ -32,6 +32,88 @@
+ 	sci->sc_interval = HZ * NILFS_SC_DEFAULT_TIMEOUT;
+ 	sci->sc_mjcp_freq = HZ * NILFS_SC_DEFAULT_SR_FREQ;
+diff -puN fs/nilfs2/segment.h~fs-nilfs2-convert-timers-to-use-timer_setup fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~fs-nilfs2-convert-timers-to-use-timer_setup
++++ a/fs/nilfs2/segment.h
+@@ -180,6 +180,7 @@ struct nilfs_sc_info {
+ 	unsigned long		sc_watermark;
  
- #define NUMA_STATS_THRESHOLD (U16_MAX - 2)
+ 	struct timer_list	sc_timer;
++	struct task_struct     *sc_timer_task;
+ 	struct task_struct     *sc_task;
+ };
  
-+#ifdef CONFIG_NUMA
-+int vm_numa_stats_mode = VM_NUMA_STAT_AUTO_MODE;
-+char sysctl_vm_numa_stats_mode[VM_NUMA_STAT_MODE_LEN] = "auto";
-+static const char *vm_numa_stats_mode_name[3] = {"auto", "strict", "coarse"};
-+static DEFINE_MUTEX(vm_numa_stats_mode_lock);
-+
-+static int __parse_vm_numa_stats_mode(char *s)
-+{
-+	if (strcasecmp(s, "auto"))
-+		vm_numa_stats_mode = VM_NUMA_STAT_AUTO_MODE;
-+	else if (strcasecmp(s, "strict") == 0)
-+		vm_numa_stats_mode = VM_NUMA_STAT_STRICT_MODE;
-+	else if (strcasecmp(s, "coarse"))
-+		vm_numa_stats_mode = VM_NUMA_STAT_COARSE_MODE;
-+	else {
-+		pr_warn("Ignoring invalid vm_numa_stats_mode value: %s\n", s);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+int sysctl_vm_numa_stats_mode_handler(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *length, loff_t *ppos)
-+{
-+	char old_string[VM_NUMA_STAT_MODE_LEN];
-+	int ret, oldval;
-+
-+	mutex_lock(&vm_numa_stats_mode_lock);
-+	if (write)
-+		strncpy(old_string, (char *)table->data, VM_NUMA_STAT_MODE_LEN);
-+	ret = proc_dostring(table, write, buffer, length, ppos);
-+	if (ret || !write) {
-+		mutex_unlock(&vm_numa_stats_mode_lock);
-+		return ret;
-+	}
-+
-+	oldval = vm_numa_stats_mode;
-+	if (__parse_vm_numa_stats_mode((char *)table->data)) {
-+		/*
-+		 * invalid sysctl_vm_numa_stats_mode value, restore saved string
-+		 */
-+		strncpy((char *)table->data, old_string, VM_NUMA_STAT_MODE_LEN);
-+		vm_numa_stats_mode = oldval;
-+	} else {
-+		/*
-+		 * check whether numa stats mode changes or not
-+		 */
-+		if (vm_numa_stats_mode == oldval) {
-+			/* no change */
-+			mutex_unlock(&vm_numa_stats_mode_lock);
-+			return 0;
-+		} else if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE) {
-+			/*
-+			 * Keep the branch selection in last time when numa
-+			 * stats is changed to auto mode.
-+			 */
-+			pr_info("numa stats changed from %s to auto mode\n",
-+				 vm_numa_stats_mode_name[oldval]);
-+		} else if (vm_numa_stats_mode == VM_NUMA_STAT_STRICT_MODE) {
-+			static_branch_enable(&vm_numa_stats_mode_key);
-+			pr_info("numa stats changes from %s to strict mode\n",
-+				 vm_numa_stats_mode_name[oldval]);
-+		} else if (vm_numa_stats_mode == VM_NUMA_STAT_COARSE_MODE) {
-+			static_branch_disable(&vm_numa_stats_mode_key);
-+			/*
-+			 * Invalidate numa counters when vmstat mode is set to
-+			 * coarse mode, because users can't tell the difference
-+			 * between the dead state and when allocator activity is
-+			 * quiet once zone_statistics() is turned off.
-+			 */
-+			invalid_numa_statistics();
-+			pr_info("numa stats changes from %s to coarse mode\n",
-+				 vm_numa_stats_mode_name[oldval]);
-+		}
-+	}
-+
-+	mutex_unlock(&vm_numa_stats_mode_lock);
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
- EXPORT_PER_CPU_SYMBOL(vm_event_states);
-@@ -914,6 +996,42 @@ unsigned long sum_zone_numa_state(int no
- 	return count;
- }
- 
-+/* zero numa counters within a zone */
-+void zero_zone_numa_counters(struct zone *zone)
-+{
-+	int item, cpu;
-+
-+	for (item = 0; item < NR_VM_NUMA_STAT_ITEMS; item++) {
-+		atomic_long_set(&zone->vm_numa_stat[item], 0);
-+		for_each_online_cpu(cpu)
-+			per_cpu_ptr(zone->pageset, cpu)->vm_numa_stat_diff[item] = 0;
-+	}
-+}
-+
-+/* zero numa counters of all the populated zones */
-+void zero_zones_numa_counters(void)
-+{
-+	struct zone *zone;
-+
-+	for_each_populated_zone(zone)
-+		zero_zone_numa_counters(zone);
-+}
-+
-+/* zero global numa counters */
-+void zero_global_numa_counters(void)
-+{
-+	int item;
-+
-+	for (item = 0; item < NR_VM_NUMA_STAT_ITEMS; item++)
-+		atomic_long_set(&vm_numa_stat[item], 0);
-+}
-+
-+void invalid_numa_statistics(void)
-+{
-+	zero_zones_numa_counters();
-+	zero_global_numa_counters();
-+}
-+
- /*
-  * Determine the per node value of a stat item.
-  */
-@@ -1582,6 +1700,10 @@ static int zoneinfo_show(struct seq_file
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
- 	walk_zones_in_node(m, pgdat, false, false, zoneinfo_show_print);
-+#ifdef CONFIG_NUMA
-+	if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE)
-+		static_branch_enable(&vm_numa_stats_mode_key);
-+#endif
- 	return 0;
- }
- 
-@@ -1678,6 +1800,10 @@ static int vmstat_show(struct seq_file *
- 
- static void vmstat_stop(struct seq_file *m, void *arg)
- {
-+#ifdef CONFIG_NUMA
-+	if (vm_numa_stats_mode == VM_NUMA_STAT_AUTO_MODE)
-+		static_branch_enable(&vm_numa_stats_mode_key);
-+#endif
- 	kfree(m->private);
- 	m->private = NULL;
- }
 _
 
-Patches currently in -mm which might be from kemi.wang@intel.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+writeback-convert-timers-to-use-timer_setup.patch
+sh-boot-add-static-stack-protector-to-pre-kernel.patch
+makefile-move-stackprotector-availability-out-of-kconfig.patch
+fs-nilfs2-convert-timers-to-use-timer_setup.patch
 
