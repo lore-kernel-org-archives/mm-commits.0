@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-core-make-use-of-devm_register_reboot_notifier.patch
- added to -mm tree
-Date: Tue, 17 Oct 2017 15:02:57 -0700
-Message-ID: <59e67e11.MwL/wivMTuc4b1BK%akpm@linux-foundation.org>
+Subject: + support-resetting-warn_once.patch added to -mm tree
+Date: Tue, 17 Oct 2017 15:17:35 -0700
+Message-ID: <59e6817f.q28evZp8erE2HFOa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55482 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753184AbdJQWC7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:02:59 -0400
+        with ESMTP id S1756594AbdJQWRg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:17:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrew.smirnov@gmail.com, andy.shevchenko@gmail.com, cphealy@gmail.com, linux@roeck-us.net, wim@iguana.be, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/watchdog: make use of devm_register_reboot_notifier()
+     Subject: kernel debug: support resetting WARN*_ONCE
 has been added to the -mm tree.  Its filename is
-     watchdog-core-make-use-of-devm_register_reboot_notifier.patch
+     support-resetting-warn_once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-core-make-use-of-devm_register_reboot_notifier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/support-resetting-warn_once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-core-make-use-of-devm_register_reboot_notifier.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/support-resetting-warn_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,144 +38,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: drivers/watchdog: make use of devm_register_reboot_notifier()
+From: Andi Kleen <ak@linux.intel.com>
+Subject: kernel debug: support resetting WARN*_ONCE
 
-Save a bit of cleanup code by leveraging newly added
-devm_register_reboot_notifier().
+I like _ONCE warnings because it's guaranteed that they don't
+flood the log.
 
-Link: http://lkml.kernel.org/r/20170411160615.9784-1-andrew.smirnov@gmail.com
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Chris Healy <cphealy@gmail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+During testing I find it useful to reset the state of the once warnings,
+so that I can rerun tests and see if they trigger again, or can
+guarantee that a test run always hits the same warnings.
+
+This patch adds a debugfs interface to reset all the _ONCE
+warnings so that they appear again:
+
+echo 1 > /sys/kernel/debug/clear_warn_once
+
+This is implemented by putting all the warning booleans into
+a special section, and clearing it.
+
+Link: http://lkml.kernel.org/r/20171017221455.6740-1-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/watchdog_core.c |   35 -----------------------------
- drivers/watchdog/watchdog_dev.c  |   32 ++++++++++++++++++++++++++
- 2 files changed, 32 insertions(+), 35 deletions(-)
+ Documentation/clearing-warn-once.txt |    7 ++++++
+ include/asm-generic/bug.h            |    6 ++---
+ include/asm-generic/sections.h       |    1 
+ include/asm-generic/vmlinux.lds.h    |    3 ++
+ kernel/panic.c                       |   28 +++++++++++++++++++++++++
+ 5 files changed, 42 insertions(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/watchdog_core.c~watchdog-core-make-use-of-devm_register_reboot_notifier drivers/watchdog/watchdog_core.c
---- a/drivers/watchdog/watchdog_core.c~watchdog-core-make-use-of-devm_register_reboot_notifier
-+++ a/drivers/watchdog/watchdog_core.c
-@@ -137,25 +137,6 @@ int watchdog_init_timeout(struct watchdo
- }
- EXPORT_SYMBOL_GPL(watchdog_init_timeout);
+diff -puN /dev/null Documentation/clearing-warn-once.txt
+--- /dev/null
++++ a/Documentation/clearing-warn-once.txt
+@@ -0,0 +1,7 @@
++
++WARN_ONCE / WARN_ON_ONCE only print a warning once.
++
++echo 1 > /sys/kernel/debug/clear_warn_once
++
++clears the state and allows the warnings to print once again.
++This can be useful after test suite runs to reproduce problems.
+diff -puN include/asm-generic/bug.h~support-resetting-warn_once include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~support-resetting-warn_once
++++ a/include/asm-generic/bug.h
+@@ -129,7 +129,7 @@ void __warn(const char *file, int line,
  
--static int watchdog_reboot_notifier(struct notifier_block *nb,
--				    unsigned long code, void *data)
--{
--	struct watchdog_device *wdd = container_of(nb, struct watchdog_device,
--						   reboot_nb);
--
--	if (code == SYS_DOWN || code == SYS_HALT) {
--		if (watchdog_active(wdd)) {
--			int ret;
--
--			ret = wdd->ops->stop(wdd);
--			if (ret)
--				return NOTIFY_BAD;
--		}
--	}
--
--	return NOTIFY_DONE;
--}
--
- static int watchdog_restart_notifier(struct notifier_block *nb,
- 				     unsigned long action, void *data)
- {
-@@ -244,19 +225,6 @@ static int __watchdog_register_device(st
- 		}
- 	}
+ #ifndef WARN_ON_ONCE
+ #define WARN_ON_ONCE(condition)	({				\
+-	static bool __section(.data.unlikely) __warned;		\
++	static bool __section(.data.once) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once && !__warned)) {		\
+@@ -141,7 +141,7 @@ void __warn(const char *file, int line,
+ #endif
  
--	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
--		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
--
--		ret = register_reboot_notifier(&wdd->reboot_nb);
--		if (ret) {
--			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
--			       wdd->id, ret);
--			watchdog_dev_unregister(wdd);
--			ida_simple_remove(&watchdog_ida, wdd->id);
--			return ret;
--		}
--	}
--
- 	if (wdd->ops->restart) {
- 		wdd->restart_nb.notifier_call = watchdog_restart_notifier;
+ #define WARN_ONCE(condition, format...)	({			\
+-	static bool __section(.data.unlikely) __warned;		\
++	static bool __section(.data.once) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once && !__warned)) {		\
+@@ -152,7 +152,7 @@ void __warn(const char *file, int line,
+ })
  
-@@ -302,9 +270,6 @@ static void __watchdog_unregister_device
- 	if (wdd->ops->restart)
- 		unregister_restart_handler(&wdd->restart_nb);
+ #define WARN_TAINT_ONCE(condition, taint, format...)	({	\
+-	static bool __section(.data.unlikely) __warned;		\
++	static bool __section(.data.once) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once && !__warned)) {		\
+diff -puN include/asm-generic/sections.h~support-resetting-warn_once include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~support-resetting-warn_once
++++ a/include/asm-generic/sections.h
+@@ -43,6 +43,7 @@ extern char __entry_text_start[], __entr
+ extern char __start_rodata[], __end_rodata[];
+ extern char __irqentry_text_start[], __irqentry_text_end[];
+ extern char __softirqentry_text_start[], __softirqentry_text_end[];
++extern char __start_once[], __end_once[];
  
--	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status))
--		unregister_reboot_notifier(&wdd->reboot_nb);
--
- 	watchdog_dev_unregister(wdd);
- 	ida_simple_remove(&watchdog_ida, wdd->id);
- }
-diff -puN drivers/watchdog/watchdog_dev.c~watchdog-core-make-use-of-devm_register_reboot_notifier drivers/watchdog/watchdog_dev.c
---- a/drivers/watchdog/watchdog_dev.c~watchdog-core-make-use-of-devm_register_reboot_notifier
-+++ a/drivers/watchdog/watchdog_dev.c
-@@ -42,6 +42,7 @@
- #include <linux/miscdevice.h>	/* For handling misc devices */
- #include <linux/module.h>	/* For module stuff/... */
- #include <linux/mutex.h>	/* For mutexes */
-+#include <linux/reboot.h>	/* For reboot notifier */
- #include <linux/slab.h>		/* For memory functions */
- #include <linux/types.h>	/* For standard types (like size_t) */
- #include <linux/watchdog.h>	/* For watchdog specific items */
-@@ -1016,6 +1017,25 @@ static struct class watchdog_class = {
- 	.dev_groups =	wdt_groups,
- };
+ /* Start and end of .ctors section - used for constructor calls. */
+ extern char __ctors_start[], __ctors_end[];
+diff -puN include/asm-generic/vmlinux.lds.h~support-resetting-warn_once include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~support-resetting-warn_once
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -223,6 +223,9 @@
+ 	MEM_KEEP(init.data)						\
+ 	MEM_KEEP(exit.data)						\
+ 	*(.data.unlikely)						\
++	VMLINUX_SYMBOL(__start_once) = .;				\
++	*(.data.once)							\
++	VMLINUX_SYMBOL(__end_once) = .;					\
+ 	STRUCT_ALIGN();							\
+ 	*(__tracepoints)						\
+ 	/* implement dynamic printk debug */				\
+diff -puN kernel/panic.c~support-resetting-warn_once kernel/panic.c
+--- a/kernel/panic.c~support-resetting-warn_once
++++ a/kernel/panic.c
+@@ -27,6 +27,8 @@
+ #include <linux/console.h>
+ #include <linux/bug.h>
+ #include <linux/ratelimit.h>
++#include <linux/debugfs.h>
++#include <asm/sections.h>
  
-+static int watchdog_reboot_notifier(struct notifier_block *nb,
-+				    unsigned long code, void *data)
+ #define PANIC_TIMER_STEP 100
+ #define PANIC_BLINK_SPD 18
+@@ -587,6 +589,32 @@ void warn_slowpath_null(const char *file
+ EXPORT_SYMBOL(warn_slowpath_null);
+ #endif
+ 
++#ifdef CONFIG_BUG
++
++/* Support resetting WARN*_ONCE state */
++
++static int clear_warn_once_set(void *data, u64 val)
 +{
-+	struct watchdog_device *wdd = container_of(nb, struct watchdog_device,
-+						   reboot_nb);
-+
-+	if (code == SYS_DOWN || code == SYS_HALT) {
-+		if (watchdog_active(wdd)) {
-+			int ret;
-+
-+			ret = wdd->ops->stop(wdd);
-+			if (ret)
-+				return NOTIFY_BAD;
-+		}
-+	}
-+
-+	return NOTIFY_DONE;
++	memset(__start_once, 0, __end_once - __start_once);
++	return 0;
 +}
 +
- /*
-  *	watchdog_dev_register: register a watchdog device
-  *	@wdd: watchdog device
-@@ -1049,6 +1069,18 @@ int watchdog_dev_register(struct watchdo
- 	if (ret) {
- 		device_destroy(&watchdog_class, devno);
- 		watchdog_cdev_unregister(wdd);
-+		return ret;
-+	}
++DEFINE_SIMPLE_ATTRIBUTE(clear_warn_once_fops,
++			NULL,
++                        clear_warn_once_set,
++		        "%lld\n");
 +
-+	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
-+		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
++static __init int register_warn_debugfs(void)
++{
++	/* Don't care about failure */
++	debugfs_create_file("clear_warn_once", 0644, NULL,
++			    NULL, &clear_warn_once_fops);
++	return 0;
++}
 +
-+		ret = devm_register_reboot_notifier(dev, &wdd->reboot_nb);
-+		if (ret) {
-+			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
-+			       wdd->id, ret);
-+			watchdog_dev_unregister(wdd);
-+		}
- 	}
++__initcall(register_warn_debugfs);
++#endif
++
+ #ifdef CONFIG_CC_STACKPROTECTOR
  
- 	return ret;
+ /*
 _
 
-Patches currently in -mm which might be from andrew.smirnov@gmail.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-kernel-reboot-add-devm_register_reboot_notifier.patch
-watchdog-core-make-use-of-devm_register_reboot_notifier.patch
+support-resetting-warn_once.patch
 
