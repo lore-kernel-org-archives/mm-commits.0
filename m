@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + support-resetting-warn_once-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 17 Oct 2017 15:21:32 -0700
-Message-ID: <59e6826c.Hcu117bBIWtvKHa5%akpm@linux-foundation.org>
+Subject: + mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+ added to -mm tree
+Date: Tue, 17 Oct 2017 15:26:45 -0700
+Message-ID: <59e683a5.EsXc638m3pN9WNrd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57188 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966388AbdJQWVd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:21:33 -0400
+        with ESMTP id S935130AbdJQW0r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 18:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: support-resetting-warn_once-checkpatch-fixes
+     Subject: mm: drop migrate type checks from has_unmovable_pages
 has been added to the -mm tree.  Its filename is
-     support-resetting-warn_once-checkpatch-fixes.patch
+     mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/support-resetting-warn_once-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/support-resetting-warn_once-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: support-resetting-warn_once-checkpatch-fixes
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: drop migrate type checks from has_unmovable_pages
 
-ERROR: code indent should use tabs where possible
-#124: FILE: kernel/panic.c:604:
-+                        clear_warn_once_set,$
+Michael has noticed that the memory offline tries to migrate kernel code
+pages when doing
 
-WARNING: please, no spaces at the start of a line
-#124: FILE: kernel/panic.c:604:
-+                        clear_warn_once_set,$
+ echo 0 > /sys/devices/system/memory/memory0/online
 
-ERROR: code indent should use tabs where possible
-#125: FILE: kernel/panic.c:605:
-+^I^I        "%lld\n");$
+The current implementation will fail the operation after several failed
+page migration attempts but we shouldn't even attempt to migrate that
+memory and fail right away because this memory is clearly not migrateable.
+This will become a real problem when we drop the retry loop counter resp.
+timeout.
 
-WARNING: please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)
-#135: FILE: kernel/panic.c:615:
-+__initcall(register_warn_debugfs);
+The real problem is in has_unmovable_pages in fact.  We should fail if
+there are any non migrateable pages in the area.  In orther to guarantee
+that remove the migrate type checks because MIGRATE_MOVABLE is not
+guaranteed to contain only migrateable pages.  It is merely a heuristic. 
+Similarly MIGRATE_CMA does guarantee that the page allocator doesn't
+allocate any non-migrateable pages from the block but CMA allocations
+themselves are unlikely to migrateable.  Therefore remove both checks.
 
-total: 2 errors, 2 warnings, 87 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/support-resetting-warn_once.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Link: http://lkml.kernel.org/r/20171013120013.698-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/panic.c~support-resetting-warn_once-checkpatch-fixes kernel/panic.c
---- a/kernel/panic.c~support-resetting-warn_once-checkpatch-fixes
-+++ a/kernel/panic.c
-@@ -601,8 +601,8 @@ static int clear_warn_once_set(void *dat
+diff -puN mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages
++++ a/mm/page_alloc.c
+@@ -7360,9 +7360,6 @@ bool has_unmovable_pages(struct zone *zo
+ 	 */
+ 	if (zone_idx(zone) == ZONE_MOVABLE)
+ 		return false;
+-	mt = get_pageblock_migratetype(page);
+-	if (mt == MIGRATE_MOVABLE || is_migrate_cma(mt))
+-		return false;
  
- DEFINE_SIMPLE_ATTRIBUTE(clear_warn_once_fops,
- 			NULL,
--                        clear_warn_once_set,
--		        "%lld\n");
-+			clear_warn_once_set,
-+			"%lld\n");
- 
- static __init int register_warn_debugfs(void)
- {
-@@ -612,7 +612,7 @@ static __init int register_warn_debugfs(
- 	return 0;
- }
- 
--__initcall(register_warn_debugfs);
-+device_initcall(register_warn_debugfs);
- #endif
- 
- #ifdef CONFIG_CC_STACKPROTECTOR
+ 	pfn = page_to_pfn(page);
+ 	for (found = 0, iter = 0; iter < pageblock_nr_pages; iter++) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
-mm-sysctl-make-numa-stats-configurable-fix.patch
-mm-sysctl-make-numa-stats-configurable-fix-fix.patch
-mm-mmu_notifier-avoid-double-notification-when-it-is-useless-checkpatch-fixes.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-support-resetting-warn_once-checkpatch-fixes.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
+mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+mm-arch-remove-empty_bad_page.patch
 
