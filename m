@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch added to -mm
- tree
-Date: Tue, 17 Oct 2017 16:35:41 -0700
-Message-ID: <20171017233541.flsUHkCHl%akpm@linux-foundation.org>
+Subject: + checkpatch-add-tp_printk-to-list-of-logging-functions.patch
+ added to -mm tree
+Date: Tue, 17 Oct 2017 16:38:45 -0700
+Message-ID: <59e69485.fSME3TUw/ytRyz0B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33040 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761589AbdJQXfn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:35:43 -0400
+        with ESMTP id S1764751AbdJQXir (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:38:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: joe@perches.com, songliubraving@fb.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-drop-migrate-type-checks-from-has_unmovable_pages-fix
+     Subject: checkpatch: add TP_printk to list of logging functions
 has been added to the -mm tree.  Its filename is
-     mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+     checkpatch-add-tp_printk-to-list-of-logging-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-tp_printk-to-list-of-logging-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-tp_printk-to-list-of-logging-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,46 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-drop-migrate-type-checks-from-has_unmovable_pages-fix
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add TP_printk to list of logging functions
 
-remove unused local `mt'
+So the line length check can be bypassed by its callers.
 
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/7de542c08a6e79f2ebe7c1416c9f403c23fdcc09.1508282823.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages-fix
-+++ a/mm/page_alloc.c
-@@ -7352,7 +7352,6 @@ bool has_unmovable_pages(struct zone *zo
- 			 bool skip_hwpoisoned_pages)
- {
- 	unsigned long pfn, iter, found;
--	int mt;
- 
- 	/*
- 	 * For avoiding noise data, lru_add_drain_all() should be called
+diff -puN scripts/checkpatch.pl~checkpatch-add-tp_printk-to-list-of-logging-functions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-tp_printk-to-list-of-logging-functions
++++ a/scripts/checkpatch.pl
+@@ -454,6 +454,7 @@ our $zero_initializer = qr{(?:(?:0[xX])?
+ our $logFunctions = qr{(?x:
+ 	printk(?:_ratelimited|_once|_deferred_once|_deferred|)|
+ 	(?:[a-z0-9]+_){1,2}(?:printk|emerg|alert|crit|err|warning|warn|notice|info|debug|dbg|vdbg|devel|cont|WARN)(?:_ratelimited|_once|)|
++	TP_printk|
+ 	WARN(?:_RATELIMIT|_ONCE|)|
+ 	panic|
+ 	MODULE_[A-Z_]+|
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-support-resetting-warn_once-checkpatch-fixes.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+spellingtxt-add-unnecessary-typo-variants.patch
+parse-maintainers-add-ability-to-specify-filenames.patch
+checkpatch-printks-always-need-a-kern_level.patch
+checkpatch-allow-define_per_cpu-definitions-to-exceed-line-length.patch
+checkpatch-add-tp_printk-to-list-of-logging-functions.patch
 
