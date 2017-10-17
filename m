@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-factor-out-page-cache-page-freeing-into-a-separate-function.patch added
- to -mm tree
-Date: Tue, 17 Oct 2017 16:09:24 -0700
-Message-ID: <59e68da4.5nEbNnrjeOmXAKZ6%akpm@linux-foundation.org>
+ mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
+ added to -mm tree
+Date: Tue, 17 Oct 2017 16:09:33 -0700
+Message-ID: <59e68dad.CaE23tB2THescS1x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59338 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932983AbdJQXJZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:09:25 -0400
+        with ESMTP id S1754136AbdJQXJe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Oct 2017 19:09:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: factor out page cache page freeing into a separate function
+     Subject: mm: factor out checks and accounting from __delete_from_page_cache()
 has been added to the -mm tree.  Its filename is
-     mm-factor-out-page-cache-page-freeing-into-a-separate-function.patch
+     mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-out-page-cache-page-freeing-into-a-separate-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-out-page-cache-page-freeing-into-a-separate-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,18 +41,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: factor out page cache page freeing into a separate function
+Subject: mm: factor out checks and accounting from __delete_from_page_cache()
 
-Factor out page freeing from delete_from_page_cache() into a separate
-function.  We will need to call the same when batching pagecache deletion
+Move checks and accounting updates from __delete_from_page_cache() into a
+separate function.  We will reuse it when batching page cache truncation
 operations.
 
-invalidate_complete_page2() and replace_page_cache_page() might want to
-call this function as well however they currently don't seem to handle
-THPs so it's unnecessary for them to take the hit of checking whether a
-page is THP or not.
-
-Link: http://lkml.kernel.org/r/20171010151937.26984-4-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171010151937.26984-7-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
@@ -62,62 +57,101 @@ Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ mm/filemap.c |   72 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 41 insertions(+), 31 deletions(-)
 
-diff -puN mm/filemap.c~mm-factor-out-page-cache-page-freeing-into-a-separate-function mm/filemap.c
---- a/mm/filemap.c~mm-factor-out-page-cache-page-freeing-into-a-separate-function
+diff -puN mm/filemap.c~mm-factor-out-checks-and-accounting-from-__delete_from_page_cache mm/filemap.c
+--- a/mm/filemap.c~mm-factor-out-checks-and-accounting-from-__delete_from_page_cache
 +++ a/mm/filemap.c
-@@ -254,6 +254,23 @@ void __delete_from_page_cache(struct pag
- 		account_page_cleaned(page, mapping, inode_to_wb(mapping->host));
+@@ -181,17 +181,11 @@ static void page_cache_tree_delete(struc
+ 	mapping->nrpages -= nr;
  }
  
-+static void page_cache_free_page(struct address_space *mapping,
-+				struct page *page)
-+{
-+	void (*freepage)(struct page *);
+-/*
+- * Delete a page from the page cache and free it. Caller has to make
+- * sure the page is locked and that nobody else uses it - or that usage
+- * is safe.  The caller must hold the mapping's tree_lock.
+- */
+-void __delete_from_page_cache(struct page *page, void *shadow)
++static void unaccount_page_cache_page(struct address_space *mapping,
++				      struct page *page)
+ {
+-	struct address_space *mapping = page->mapping;
+-	int nr = hpage_nr_pages(page);
++	int nr;
+ 
+-	trace_mm_filemap_delete_from_page_cache(page);
+ 	/*
+ 	 * if we're uptodate, flush out into the cleancache, otherwise
+ 	 * invalidate any existing cleancache entries.  We can't leave
+@@ -228,30 +222,46 @@ void __delete_from_page_cache(struct pag
+ 	}
+ 
+ 	/* hugetlb pages do not participate in page cache accounting. */
+-	if (!PageHuge(page)) {
+-		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
+-		if (PageSwapBacked(page)) {
+-			__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
+-			if (PageTransHuge(page))
+-				__dec_node_page_state(page, NR_SHMEM_THPS);
+-		} else {
+-			VM_BUG_ON_PAGE(PageTransHuge(page), page);
+-		}
++	if (PageHuge(page))
++		return;
 +
-+	freepage = mapping->a_ops->freepage;
-+	if (freepage)
-+		freepage(page);
-+
-+	if (PageTransHuge(page) && !PageHuge(page)) {
-+		page_ref_sub(page, HPAGE_PMD_NR);
-+		VM_BUG_ON_PAGE(page_count(page) <= 0, page);
++	nr = hpage_nr_pages(page);
+ 
+-		/*
+-		 * At this point page must be either written or cleaned by
+-		 * truncate.  Dirty page here signals a bug and loss of
+-		 * unwritten data.
+-		 *
+-		 * This fixes dirty accounting after removing the page entirely
+-		 * but leaves PageDirty set: it has no effect for truncated
+-		 * page and anyway will be cleared before returning page into
+-		 * buddy allocator.
+-		 */
+-		if (WARN_ON_ONCE(PageDirty(page)))
+-			account_page_cleaned(page, mapping,
+-					     inode_to_wb(mapping->host));
++	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
++	if (PageSwapBacked(page)) {
++		__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
++		if (PageTransHuge(page))
++			__dec_node_page_state(page, NR_SHMEM_THPS);
 +	} else {
-+		put_page(page);
-+	}
++		VM_BUG_ON_PAGE(PageTransHuge(page), page);
+ 	}
++
++	/*
++	 * At this point page must be either written or cleaned by
++	 * truncate.  Dirty page here signals a bug and loss of
++	 * unwritten data.
++	 *
++	 * This fixes dirty accounting after removing the page entirely
++	 * but leaves PageDirty set: it has no effect for truncated
++	 * page and anyway will be cleared before returning page into
++	 * buddy allocator.
++	 */
++	if (WARN_ON_ONCE(PageDirty(page)))
++		account_page_cleaned(page, mapping, inode_to_wb(mapping->host));
 +}
 +
- /**
-  * delete_from_page_cache - delete page from page cache
-  * @page: the page which the kernel is trying to remove from page cache
-@@ -266,25 +283,13 @@ void delete_from_page_cache(struct page
- {
- 	struct address_space *mapping = page_mapping(page);
- 	unsigned long flags;
--	void (*freepage)(struct page *);
- 
- 	BUG_ON(!PageLocked(page));
--
--	freepage = mapping->a_ops->freepage;
--
- 	spin_lock_irqsave(&mapping->tree_lock, flags);
- 	__delete_from_page_cache(page, NULL);
- 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
- 
--	if (freepage)
--		freepage(page);
--
--	if (PageTransHuge(page) && !PageHuge(page)) {
--		page_ref_sub(page, HPAGE_PMD_NR);
--		VM_BUG_ON_PAGE(page_count(page) <= 0, page);
--	} else {
--		put_page(page);
--	}
-+	page_cache_free_page(mapping, page);
++/*
++ * Delete a page from the page cache and free it. Caller has to make
++ * sure the page is locked and that nobody else uses it - or that usage
++ * is safe.  The caller must hold the mapping's tree_lock.
++ */
++void __delete_from_page_cache(struct page *page, void *shadow)
++{
++	struct address_space *mapping = page->mapping;
++
++	trace_mm_filemap_delete_from_page_cache(page);
++
++	unaccount_page_cache_page(mapping, page);
+ 	page_cache_tree_delete(mapping, page, shadow);
  }
- EXPORT_SYMBOL(delete_from_page_cache);
  
 _
 
