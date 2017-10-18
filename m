@@ -1,111 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- makefile-move-stackprotector-availability-out-of-kconfig.patch removed from -mm tree
-Date: Wed, 18 Oct 2017 14:32:55 -0700
-Message-ID: <59e7c887.rw68QoQNb4xVnoGW%akpm@linux-foundation.org>
+Subject: + mm-deferred_init_memmap-improvements-fix.patch added to -mm
+ tree
+Date: Wed, 18 Oct 2017 14:39:59 -0700
+Message-ID: <59e7ca2f.s4lSuOr0sF5WayWw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34986 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750853AbdJRVc5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 17:32:57 -0400
+        with ESMTP id S1750853AbdJRVkA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 17:40:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, dalias@libc.org, labbott@redhat.com, mingo@kernel.org, mmarek@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, yamada.masahiro@socionext.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pasha.tatashin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Makefile: move stackprotector availability out of Kconfig
-has been removed from the -mm tree.  Its filename was
-     makefile-move-stackprotector-availability-out-of-kconfig.patch
+     Subject: mm-deferred_init_memmap-improvements-fix
+has been added to the -mm tree.  Its filename is
+     mm-deferred_init_memmap-improvements-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-deferred_init_memmap-improvements-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-deferred_init_memmap-improvements-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: Makefile: move stackprotector availability out of Kconfig
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-deferred_init_memmap-improvements-fix
 
-Various portions of the kernel, especially per-architecture pieces, need
-to know if the compiler is building it with the stack protector.  This was
-done in the arch/Kconfig with 'select', but this doesn't allow a way to do
-auto-detected compiler support.  In preparation for creating an
-on-if-available default, move the logic for the definition of
-CONFIG_CC_STACKPROTECTOR into the Makefile.
+__init section fixes
 
-Link: http://lkml.kernel.org/r/1506972007-80614-3-git-send-email-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile     |    7 +++++--
- arch/Kconfig |    8 --------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/Kconfig~makefile-move-stackprotector-availability-out-of-kconfig arch/Kconfig
---- a/arch/Kconfig~makefile-move-stackprotector-availability-out-of-kconfig
-+++ a/arch/Kconfig
-@@ -523,12 +523,6 @@ config HAVE_CC_STACKPROTECTOR
- 	  - its compiler supports the -fstack-protector option
- 	  - it has implemented a stack canary (e.g. __stack_chk_guard)
+diff -puN mm/page_alloc.c~mm-deferred_init_memmap-improvements-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-deferred_init_memmap-improvements-fix
++++ a/mm/page_alloc.c
+@@ -1448,7 +1448,7 @@ static inline void __init pgdat_init_rep
+  * Helper for deferred_init_range, free the given range, reset the counters, and
+  * return number of pages freed.
+  */
+-static inline unsigned long __def_free(unsigned long *nr_free,
++static unsigned long __init __def_free(unsigned long *nr_free,
+ 				       unsigned long *free_base_pfn,
+ 				       struct page **page)
+ {
+@@ -1462,8 +1462,8 @@ static inline unsigned long __def_free(u
+ 	return nr;
+ }
  
--config CC_STACKPROTECTOR
--	def_bool n
--	help
--	  Set when a stack-protector mode is enabled, so that the build
--	  can enable kernel-side support for the GCC feature.
--
- choice
- 	prompt "Stack Protector buffer overflow detection"
- 	depends on HAVE_CC_STACKPROTECTOR
-@@ -549,7 +543,6 @@ config CC_STACKPROTECTOR_NONE
- 
- config CC_STACKPROTECTOR_REGULAR
- 	bool "Regular"
--	select CC_STACKPROTECTOR
- 	help
- 	  Functions will have the stack-protector canary logic added if they
- 	  have an 8-byte or larger character array on the stack.
-@@ -563,7 +556,6 @@ config CC_STACKPROTECTOR_REGULAR
- 
- config CC_STACKPROTECTOR_STRONG
- 	bool "Strong"
--	select CC_STACKPROTECTOR
- 	help
- 	  Functions will have the stack-protector canary logic added in any
- 	  of the following conditions:
-diff -puN Makefile~makefile-move-stackprotector-availability-out-of-kconfig Makefile
---- a/Makefile~makefile-move-stackprotector-availability-out-of-kconfig
-+++ a/Makefile
-@@ -688,8 +688,11 @@ else
-   stackp-flag := $(call cc-option, -fno-stack-protector)
- endif
- endif
--# Find arch-specific stack protector compiler sanity-checking script.
--ifdef CONFIG_CC_STACKPROTECTOR
-+ifdef stackp-name
-+  # If the stack protector has been selected, inform the rest of the build.
-+  KBUILD_CFLAGS += -DCONFIG_CC_STACKPROTECTOR
-+  KBUILD_AFLAGS += -DCONFIG_CC_STACKPROTECTOR
-+  # Find arch-specific stack protector compiler sanity-checking script.
-   stackp-path := $(srctree)/scripts/gcc-$(SRCARCH)_$(BITS)-has-stack-protector.sh
-   stackp-check := $(wildcard $(stackp-path))
- endif
+-static unsigned long deferred_init_range(int nid, int zid, unsigned long pfn,
+-					 unsigned long end_pfn)
++static unsigned long __init deferred_init_range(int nid, int zid,
++				unsigned long pfn, unsigned long end_pfn)
+ {
+ 	struct mminit_pfnnid_cache nid_init_state = { };
+ 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-writeback-convert-timers-to-use-timer_setup.patch
-sh-boot-add-static-stack-protector-to-pre-kernel.patch
-fs-nilfs2-convert-timers-to-use-timer_setup.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-deferred_init_memmap-improvements-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
