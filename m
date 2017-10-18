@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-batch-radix-tree-operations-when-truncating-pages-fix.patch
+Subject: +
+ mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
  added to -mm tree
-Date: Wed, 18 Oct 2017 15:02:21 -0700
-Message-ID: <59e7cf6d.pU8x6mH/Hg85E29C%akpm@linux-foundation.org>
+Date: Wed, 18 Oct 2017 15:16:31 -0700
+Message-ID: <59e7d2bf.EtsEp5aKRQ401Nb7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37708 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751099AbdJRWCX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 18:02:23 -0400
+        with ESMTP id S1750920AbdJRWQd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 18:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert delete_from_page_cache_batch() to pagevec
+     Subject: mm, page_alloc: enable/disable IRQs once when freeing a list of pages
 has been added to the -mm tree.  Its filename is
-     mm-batch-radix-tree-operations-when-truncating-pages-fix.patch
+     mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-batch-radix-tree-operations-when-truncating-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-batch-radix-tree-operations-when-truncating-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,207 +40,233 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: convert delete_from_page_cache_batch() to pagevec
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: enable/disable IRQs once when freeing a list of pages
 
-Use pagevec instead of page array - to be folded into the last patch of my
-batched truncate series: "mm: Batch radix tree operations when truncating
-pages".  Thanks!
+Patch series "Follow-up for speed up page cache truncation", v2.
 
-Link: http://lkml.kernel.org/r/20171018111648.13714-1-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+This series is a follow-on for Jan Kara's series "Speed up page cache
+truncation" series.  We both ended up looking at the same problem but saw
+different problems based on the same data.  This series builds upon his
+work.
+
+A variety of workloads were compared on four separate machines but each
+machine showed gains albeit at different levels.  Minimally, some of the
+differences are due to NUMA where truncating data from a remote node is
+slower than a local node.  The workloads checked were
+
+o sparse truncate microbenchmark, tiny
+o sparse truncate microbenchmark, large
+o reaim-io disk workfile
+o dbench4 (modified by mmtests to produce more stable results)
+o filebench varmail configuration for small memory size
+o bonnie, directory operations, working set size 2*RAM
+
+reaim-io, dbench and filebench all showed minor gains.  Truncation does
+not dominate those workloads but were tested to ensure no other
+regressions.  They will not be reported further.
+
+The sparse truncate microbench was written by Jan.  It creates a number of
+files and then times how long it takes to truncate each one.  The "tiny"
+configuraiton creates a number of files that easily fits in memory and
+times how long it takes to truncate files with page cache.  The large
+configuration uses enough files to have data that is twice the size of
+memory and so timings there include truncating page cache and working set
+shadow entries in the radix tree.
+
+Patches 1-4 are the most relevant parts of this series.  Patches 5-8 are
+optional as they are deleting code that is essentially useless but has a
+negligible performance impact.
+
+The changelogs have more information on performance but just for bonnie
+delete options, the main comparison is
+
+bonnie
+                                      4.14.0-rc5             4.14.0-rc5             4.14.0-rc5
+                                          jan-v2                vanilla                 mel-v2
+Hmean     SeqCreate ops         76.20 (   0.00%)       75.80 (  -0.53%)       76.80 (   0.79%)
+Hmean     SeqCreate read        85.00 (   0.00%)       85.00 (   0.00%)       85.00 (   0.00%)
+Hmean     SeqCreate del      13752.31 (   0.00%)    12090.23 ( -12.09%)    15304.84 (  11.29%)
+Hmean     RandCreate ops        76.00 (   0.00%)       75.60 (  -0.53%)       77.00 (   1.32%)
+Hmean     RandCreate read       96.80 (   0.00%)       96.80 (   0.00%)       97.00 (   0.21%)
+Hmean     RandCreate del     13233.75 (   0.00%)    11525.35 ( -12.91%)    14446.61 (   9.16%)
+
+Jan's series is the baseline and the vanilla kernel is 12% slower where as
+this series on top gains another 11%.  This is from a different machine
+than the data in the changelogs but the detailed data was not collected as
+there was no substantial change in v2.
+
+
+This patch (of 8):
+
+Freeing a list of pages current enables/disables IRQs for each page freed.
+This patch splits freeing a list of pages into two operations --
+preparing the pages for freeing and the actual freeing.  This is a
+tradeoff - we're taking two passes of the list to free in exchange for
+avoiding multiple enable/disable of IRQs.
+
+sparsetruncate (tiny)
+                              4.14.0-rc4             4.14.0-rc4
+                           janbatch-v1r1            oneirq-v1r1
+Min          Time      149.00 (   0.00%)      141.00 (   5.37%)
+1st-qrtle    Time      150.00 (   0.00%)      142.00 (   5.33%)
+2nd-qrtle    Time      151.00 (   0.00%)      142.00 (   5.96%)
+3rd-qrtle    Time      151.00 (   0.00%)      143.00 (   5.30%)
+Max-90%      Time      153.00 (   0.00%)      144.00 (   5.88%)
+Max-95%      Time      155.00 (   0.00%)      147.00 (   5.16%)
+Max-99%      Time      201.00 (   0.00%)      195.00 (   2.99%)
+Max          Time      236.00 (   0.00%)      230.00 (   2.54%)
+Amean        Time      152.65 (   0.00%)      144.37 (   5.43%)
+Stddev       Time        9.78 (   0.00%)       10.44 (  -6.72%)
+Coeff        Time        6.41 (   0.00%)        7.23 ( -12.84%)
+Best99%Amean Time      152.07 (   0.00%)      143.72 (   5.50%)
+Best95%Amean Time      150.75 (   0.00%)      142.37 (   5.56%)
+Best90%Amean Time      150.59 (   0.00%)      142.19 (   5.58%)
+Best75%Amean Time      150.36 (   0.00%)      141.92 (   5.61%)
+Best50%Amean Time      150.04 (   0.00%)      141.69 (   5.56%)
+Best25%Amean Time      149.85 (   0.00%)      141.38 (   5.65%)
+
+With a tiny number of files, each file truncated has resident page cache
+and it shows that time to truncate is roughtly 5-6% with some minor
+jitter.
+
+                                      4.14.0-rc4             4.14.0-rc4
+                                   janbatch-v1r1            oneirq-v1r1
+Hmean     SeqCreate ops         65.27 (   0.00%)       81.86 (  25.43%)
+Hmean     SeqCreate read        39.48 (   0.00%)       47.44 (  20.16%)
+Hmean     SeqCreate del      24963.95 (   0.00%)    26319.99 (   5.43%)
+Hmean     RandCreate ops        65.47 (   0.00%)       82.01 (  25.26%)
+Hmean     RandCreate read       42.04 (   0.00%)       51.75 (  23.09%)
+Hmean     RandCreate del     23377.66 (   0.00%)    23764.79 (   1.66%)
+
+As expected, there is a small gain for the delete operation.
+
+Link: http://lkml.kernel.org/r/20171018075952.10627-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    6 +++--
- mm/filemap.c            |   43 ++++++++++++++++++--------------------
- mm/truncate.c           |   18 +++++++--------
- 3 files changed, 34 insertions(+), 33 deletions(-)
+ mm/page_alloc.c |   58 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 44 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-batch-radix-tree-operations-when-truncating-pages-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-batch-radix-tree-operations-when-truncating-pages-fix
-+++ a/include/linux/pagemap.h
-@@ -616,6 +616,8 @@ static inline int fault_in_pages_readabl
- 	return 0;
+diff -puN mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages
++++ a/mm/page_alloc.c
+@@ -2587,24 +2587,26 @@ void mark_free_pages(struct zone *zone)
  }
+ #endif /* CONFIG_PM */
  
-+struct pagevec;
+-/*
+- * Free a 0-order page
+- * cold == true ? free a cold page : free a hot page
+- */
+-void free_hot_cold_page(struct page *page, bool cold)
++static bool free_hot_cold_page_prepare(struct page *page, unsigned long pfn)
+ {
+-	struct zone *zone = page_zone(page);
+-	struct per_cpu_pages *pcp;
+-	unsigned long flags;
+-	unsigned long pfn = page_to_pfn(page);
+ 	int migratetype;
+ 
+ 	if (!free_pcp_prepare(page))
+-		return;
++		return false;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+ 	set_pcppage_migratetype(page, migratetype);
+-	local_irq_save(flags);
++	return true;
++}
 +
- int add_to_page_cache_locked(struct page *page, struct address_space *mapping,
- 				pgoff_t index, gfp_t gfp_mask);
- int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
-@@ -623,8 +625,8 @@ int add_to_page_cache_lru(struct page *p
- extern void delete_from_page_cache(struct page *page);
- extern void __delete_from_page_cache(struct page *page, void *shadow);
- int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
--void delete_from_page_cache_batch(struct address_space *mapping, int count,
--				  struct page **pages);
-+void delete_from_page_cache_batch(struct address_space *mapping,
-+				  struct pagevec *pvec);
++static void free_hot_cold_page_commit(struct page *page, unsigned long pfn,
++				bool cold)
++{
++	struct zone *zone = page_zone(page);
++	struct per_cpu_pages *pcp;
++	int migratetype;
++
++	migratetype = get_pcppage_migratetype(page);
+ 	__count_vm_event(PGFREE);
  
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-diff -puN mm/filemap.c~mm-batch-radix-tree-operations-when-truncating-pages-fix mm/filemap.c
---- a/mm/filemap.c~mm-batch-radix-tree-operations-when-truncating-pages-fix
-+++ a/mm/filemap.c
-@@ -307,21 +307,20 @@ EXPORT_SYMBOL(delete_from_page_cache);
- /*
-  * page_cache_tree_delete_batch - delete several pages from page cache
-  * @mapping: the mapping to which pages belong
-- * @count: the number of pages to delete
-- * @pages: pages that should be deleted
-+ * @pvec: pagevec with pages to delete
-  *
-- * The function walks over mapping->page_tree and removes pages passed in
-- * @pages array from the radix tree. The function expects @pages array to
-- * sorted by page index. It tolerates holes in @pages array (radix tree
-- * entries at those indices are not modified). The function expects only THP
-- * head pages to be present in the @pages array and takes care to delete all
-- * corresponding tail pages from the radix tree as well.
-+ * The function walks over mapping->page_tree and removes pages passed in @pvec
-+ * from the radix tree. The function expects @pvec to be sorted by page index.
-+ * It tolerates holes in @pvec (radix tree entries at those indices are not
-+ * modified). The function expects only THP head pages to be present in the
-+ * @pvec and takes care to delete all corresponding tail pages from the radix
-+ * tree as well.
-  *
-  * The function expects mapping->tree_lock to be held.
-  */
- static void
--page_cache_tree_delete_batch(struct address_space *mapping, int count,
--			     struct page **pages)
-+page_cache_tree_delete_batch(struct address_space *mapping,
-+			     struct pagevec *pvec)
- {
- 	struct radix_tree_iter iter;
- 	void **slot;
-@@ -330,9 +329,9 @@ page_cache_tree_delete_batch(struct addr
- 	struct page *page;
- 	pgoff_t start;
- 
--	start = pages[0]->index;
-+	start = pvec->pages[0]->index;
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
--		if (i >= count && !tail_pages)
-+		if (i >= pagevec_count(pvec) && !tail_pages)
- 			break;
- 		page = radix_tree_deref_slot_protected(slot,
- 						       &mapping->tree_lock);
-@@ -344,7 +343,7 @@ page_cache_tree_delete_batch(struct addr
- 			 * have our pages locked so they are protected from
- 			 * being removed.
- 			 */
--			if (page != pages[i])
-+			if (page != pvec->pages[i])
- 				continue;
- 			WARN_ON_ONCE(!PageLocked(page));
- 			if (PageTransHuge(page) && !PageHuge(page))
-@@ -366,26 +365,26 @@ page_cache_tree_delete_batch(struct addr
- 	mapping->nrpages -= total_pages;
- }
- 
--void delete_from_page_cache_batch(struct address_space *mapping, int count,
--				  struct page **pages)
-+void delete_from_page_cache_batch(struct address_space *mapping,
-+				  struct pagevec *pvec)
- {
- 	int i;
- 	unsigned long flags;
- 
--	if (!count)
-+	if (!pagevec_count(pvec))
- 		return;
- 
- 	spin_lock_irqsave(&mapping->tree_lock, flags);
--	for (i = 0; i < count; i++) {
--		trace_mm_filemap_delete_from_page_cache(pages[i]);
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		trace_mm_filemap_delete_from_page_cache(pvec->pages[i]);
- 
--		unaccount_page_cache_page(mapping, pages[i]);
-+		unaccount_page_cache_page(mapping, pvec->pages[i]);
- 	}
--	page_cache_tree_delete_batch(mapping, count, pages);
-+	page_cache_tree_delete_batch(mapping, pvec);
- 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
- 
--	for (i = 0; i < count; i++)
--		page_cache_free_page(mapping, pages[i]);
-+	for (i = 0; i < pagevec_count(pvec); i++)
-+		page_cache_free_page(mapping, pvec->pages[i]);
- }
- 
- int filemap_check_errors(struct address_space *mapping)
-diff -puN mm/truncate.c~mm-batch-radix-tree-operations-when-truncating-pages-fix mm/truncate.c
---- a/mm/truncate.c~mm-batch-radix-tree-operations-when-truncating-pages-fix
-+++ a/mm/truncate.c
-@@ -297,11 +297,11 @@ void truncate_inode_pages_range(struct a
- 		/*
- 		 * Pagevec array has exceptional entries and we may also fail
- 		 * to lock some pages. So we store pages that can be deleted
--		 * in an extra array.
-+		 * in a new pagevec.
- 		 */
--		struct page *pages[PAGEVEC_SIZE];
--		int batch_count = 0;
-+		struct pagevec locked_pvec;
- 
-+		pagevec_init(&locked_pvec, 0);
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 
-@@ -327,13 +327,13 @@ void truncate_inode_pages_range(struct a
- 				unlock_page(page);
- 				continue;
- 			}
--			pages[batch_count++] = page;
-+			pagevec_add(&locked_pvec, page);
+ 	/*
+@@ -2617,7 +2619,7 @@ void free_hot_cold_page(struct page *pag
+ 	if (migratetype >= MIGRATE_PCPTYPES) {
+ 		if (unlikely(is_migrate_isolate(migratetype))) {
+ 			free_one_page(zone, page, pfn, 0, migratetype);
+-			goto out;
++			return;
  		}
--		for (i = 0; i < batch_count; i++)
--			truncate_cleanup_page(mapping, pages[i]);
--		delete_from_page_cache_batch(mapping, batch_count, pages);
--		for (i = 0; i < batch_count; i++)
--			unlock_page(pages[i]);
-+		for (i = 0; i < pagevec_count(&locked_pvec); i++)
-+			truncate_cleanup_page(mapping, locked_pvec.pages[i]);
-+		delete_from_page_cache_batch(mapping, &locked_pvec);
-+		for (i = 0; i < pagevec_count(&locked_pvec); i++)
-+			unlock_page(locked_pvec.pages[i]);
- 		pagevec_remove_exceptionals(&pvec);
- 		pagevec_release(&pvec);
- 		cond_resched();
+ 		migratetype = MIGRATE_MOVABLE;
+ 	}
+@@ -2633,8 +2635,22 @@ void free_hot_cold_page(struct page *pag
+ 		free_pcppages_bulk(zone, batch, pcp);
+ 		pcp->count -= batch;
+ 	}
++}
+ 
+-out:
++/*
++ * Free a 0-order page
++ * cold == true ? free a cold page : free a hot page
++ */
++void free_hot_cold_page(struct page *page, bool cold)
++{
++	unsigned long flags;
++	unsigned long pfn = page_to_pfn(page);
++
++	if (!free_hot_cold_page_prepare(page, pfn))
++		return;
++
++	local_irq_save(flags);
++	free_hot_cold_page_commit(page, pfn, cold);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -2644,11 +2660,25 @@ out:
+ void free_hot_cold_page_list(struct list_head *list, bool cold)
+ {
+ 	struct page *page, *next;
++	unsigned long flags, pfn;
+ 
++	/* Prepare pages for freeing */
+ 	list_for_each_entry_safe(page, next, list, lru) {
++		pfn = page_to_pfn(page);
++		if (!free_hot_cold_page_prepare(page, pfn))
++			list_del(&page->lru);
++		page->private = pfn;
++	}
++
++	local_irq_save(flags);
++	list_for_each_entry_safe(page, next, list, lru) {
++		unsigned long pfn = page->private;
++
++		page->private = 0;
+ 		trace_mm_page_free_batched(page, cold);
+-		free_hot_cold_page(page, cold);
++		free_hot_cold_page_commit(page, pfn, cold);
+ 	}
++	local_irq_restore(flags);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-readahead-increase-maximum-readahead-window.patch
-mm-implement-find_get_pages_range_tag.patch
-btrfs-use-pagevec_lookup_range_tag.patch
-ceph-use-pagevec_lookup_range_tag.patch
-ext4-use-pagevec_lookup_range_tag.patch
-f2fs-use-pagevec_lookup_range_tag.patch
-f2fs-simplify-page-iteration-loops.patch
-f2fs-use-find_get_pages_tag-for-looking-up-single-page.patch
-gfs2-use-pagevec_lookup_range_tag.patch
-nilfs2-use-pagevec_lookup_range_tag.patch
-mm-use-pagevec_lookup_range_tag-in-__filemap_fdatawait_range.patch
-mm-use-pagevec_lookup_range_tag-in-write_cache_pages.patch
-mm-add-variant-of-pagevec_lookup_range_tag-taking-number-of-pages.patch
-ceph-use-pagevec_lookup_range_nr_tag.patch
-mm-remove-nr_pages-argument-from-pagevec_lookup_range_tag.patch
-afs-use-find_get_pages_range_tag.patch
-cifs-use-find_get_pages_range_tag.patch
-mm-speedup-cancel_dirty_page-for-clean-pages.patch
-mm-refactor-truncate_complete_page.patch
-mm-factor-out-page-cache-page-freeing-into-a-separate-function.patch
-mm-move-accounting-updates-before-page_cache_tree_delete.patch
-mm-move-clearing-of-page-mapping-to-page_cache_tree_delete.patch
-mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
-mm-batch-radix-tree-operations-when-truncating-pages.patch
-mm-batch-radix-tree-operations-when-truncating-pages-fix.patch
+mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
+mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch
+mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch
+mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock.patch
+mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch
+mm-pagevec-remove-cold-parameter-for-pagevecs.patch
+mm-remove-cold-parameter-for-release_pages.patch
+mm-remove-cold-parameter-from-free_hot_cold_page.patch
+mm-remove-__gfp_cold.patch
 
