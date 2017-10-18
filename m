@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
- added to -mm tree
-Date: Wed, 18 Oct 2017 15:16:31 -0700
-Message-ID: <59e7d2bf.EtsEp5aKRQ401Nb7%akpm@linux-foundation.org>
+ mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch added to -mm tree
+Date: Wed, 18 Oct 2017 15:16:34 -0700
+Message-ID: <59e7d2c2.L6RwNl/eE84TqUh3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37726 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750920AbdJRWQd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 18:16:33 -0400
+        with ESMTP id S1750932AbdJRWQf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 18:16:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: enable/disable IRQs once when freeing a list of pages
+     Subject: mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
+     mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,221 +40,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: enable/disable IRQs once when freeing a list of pages
+Subject: mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix
 
-Patch series "Follow-up for speed up page cache truncation", v2.
+Use page_private and set_page_private helpers.
 
-This series is a follow-on for Jan Kara's series "Speed up page cache
-truncation" series.  We both ended up looking at the same problem but saw
-different problems based on the same data.  This series builds upon his
-work.
-
-A variety of workloads were compared on four separate machines but each
-machine showed gains albeit at different levels.  Minimally, some of the
-differences are due to NUMA where truncating data from a remote node is
-slower than a local node.  The workloads checked were
-
-o sparse truncate microbenchmark, tiny
-o sparse truncate microbenchmark, large
-o reaim-io disk workfile
-o dbench4 (modified by mmtests to produce more stable results)
-o filebench varmail configuration for small memory size
-o bonnie, directory operations, working set size 2*RAM
-
-reaim-io, dbench and filebench all showed minor gains.  Truncation does
-not dominate those workloads but were tested to ensure no other
-regressions.  They will not be reported further.
-
-The sparse truncate microbench was written by Jan.  It creates a number of
-files and then times how long it takes to truncate each one.  The "tiny"
-configuraiton creates a number of files that easily fits in memory and
-times how long it takes to truncate files with page cache.  The large
-configuration uses enough files to have data that is twice the size of
-memory and so timings there include truncating page cache and working set
-shadow entries in the radix tree.
-
-Patches 1-4 are the most relevant parts of this series.  Patches 5-8 are
-optional as they are deleting code that is essentially useless but has a
-negligible performance impact.
-
-The changelogs have more information on performance but just for bonnie
-delete options, the main comparison is
-
-bonnie
-                                      4.14.0-rc5             4.14.0-rc5             4.14.0-rc5
-                                          jan-v2                vanilla                 mel-v2
-Hmean     SeqCreate ops         76.20 (   0.00%)       75.80 (  -0.53%)       76.80 (   0.79%)
-Hmean     SeqCreate read        85.00 (   0.00%)       85.00 (   0.00%)       85.00 (   0.00%)
-Hmean     SeqCreate del      13752.31 (   0.00%)    12090.23 ( -12.09%)    15304.84 (  11.29%)
-Hmean     RandCreate ops        76.00 (   0.00%)       75.60 (  -0.53%)       77.00 (   1.32%)
-Hmean     RandCreate read       96.80 (   0.00%)       96.80 (   0.00%)       97.00 (   0.21%)
-Hmean     RandCreate del     13233.75 (   0.00%)    11525.35 ( -12.91%)    14446.61 (   9.16%)
-
-Jan's series is the baseline and the vanilla kernel is 12% slower where as
-this series on top gains another 11%.  This is from a different machine
-than the data in the changelogs but the detailed data was not collected as
-there was no substantial change in v2.
-
-
-This patch (of 8):
-
-Freeing a list of pages current enables/disables IRQs for each page freed.
-This patch splits freeing a list of pages into two operations --
-preparing the pages for freeing and the actual freeing.  This is a
-tradeoff - we're taking two passes of the list to free in exchange for
-avoiding multiple enable/disable of IRQs.
-
-sparsetruncate (tiny)
-                              4.14.0-rc4             4.14.0-rc4
-                           janbatch-v1r1            oneirq-v1r1
-Min          Time      149.00 (   0.00%)      141.00 (   5.37%)
-1st-qrtle    Time      150.00 (   0.00%)      142.00 (   5.33%)
-2nd-qrtle    Time      151.00 (   0.00%)      142.00 (   5.96%)
-3rd-qrtle    Time      151.00 (   0.00%)      143.00 (   5.30%)
-Max-90%      Time      153.00 (   0.00%)      144.00 (   5.88%)
-Max-95%      Time      155.00 (   0.00%)      147.00 (   5.16%)
-Max-99%      Time      201.00 (   0.00%)      195.00 (   2.99%)
-Max          Time      236.00 (   0.00%)      230.00 (   2.54%)
-Amean        Time      152.65 (   0.00%)      144.37 (   5.43%)
-Stddev       Time        9.78 (   0.00%)       10.44 (  -6.72%)
-Coeff        Time        6.41 (   0.00%)        7.23 ( -12.84%)
-Best99%Amean Time      152.07 (   0.00%)      143.72 (   5.50%)
-Best95%Amean Time      150.75 (   0.00%)      142.37 (   5.56%)
-Best90%Amean Time      150.59 (   0.00%)      142.19 (   5.58%)
-Best75%Amean Time      150.36 (   0.00%)      141.92 (   5.61%)
-Best50%Amean Time      150.04 (   0.00%)      141.69 (   5.56%)
-Best25%Amean Time      149.85 (   0.00%)      141.38 (   5.65%)
-
-With a tiny number of files, each file truncated has resident page cache
-and it shows that time to truncate is roughtly 5-6% with some minor
-jitter.
-
-                                      4.14.0-rc4             4.14.0-rc4
-                                   janbatch-v1r1            oneirq-v1r1
-Hmean     SeqCreate ops         65.27 (   0.00%)       81.86 (  25.43%)
-Hmean     SeqCreate read        39.48 (   0.00%)       47.44 (  20.16%)
-Hmean     SeqCreate del      24963.95 (   0.00%)    26319.99 (   5.43%)
-Hmean     RandCreate ops        65.47 (   0.00%)       82.01 (  25.26%)
-Hmean     RandCreate read       42.04 (   0.00%)       51.75 (  23.09%)
-Hmean     RandCreate del     23377.66 (   0.00%)    23764.79 (   1.66%)
-
-As expected, there is a small gain for the delete operation.
-
-Link: http://lkml.kernel.org/r/20171018075952.10627-2-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20171018101547.mjycw7zreb66jzpa@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   58 ++++++++++++++++++++++++++++++++++------------
- 1 file changed, 44 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages
+diff -puN mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix
 +++ a/mm/page_alloc.c
-@@ -2587,24 +2587,26 @@ void mark_free_pages(struct zone *zone)
- }
- #endif /* CONFIG_PM */
- 
--/*
-- * Free a 0-order page
-- * cold == true ? free a cold page : free a hot page
-- */
--void free_hot_cold_page(struct page *page, bool cold)
-+static bool free_hot_cold_page_prepare(struct page *page, unsigned long pfn)
- {
--	struct zone *zone = page_zone(page);
--	struct per_cpu_pages *pcp;
--	unsigned long flags;
--	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
- 
- 	if (!free_pcp_prepare(page))
--		return;
-+		return false;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
- 	set_pcppage_migratetype(page, migratetype);
--	local_irq_save(flags);
-+	return true;
-+}
-+
-+static void free_hot_cold_page_commit(struct page *page, unsigned long pfn,
-+				bool cold)
-+{
-+	struct zone *zone = page_zone(page);
-+	struct per_cpu_pages *pcp;
-+	int migratetype;
-+
-+	migratetype = get_pcppage_migratetype(page);
- 	__count_vm_event(PGFREE);
- 
- 	/*
-@@ -2617,7 +2619,7 @@ void free_hot_cold_page(struct page *pag
- 	if (migratetype >= MIGRATE_PCPTYPES) {
- 		if (unlikely(is_migrate_isolate(migratetype))) {
- 			free_one_page(zone, page, pfn, 0, migratetype);
--			goto out;
-+			return;
- 		}
- 		migratetype = MIGRATE_MOVABLE;
+@@ -2667,14 +2667,14 @@ void free_hot_cold_page_list(struct list
+ 		pfn = page_to_pfn(page);
+ 		if (!free_hot_cold_page_prepare(page, pfn))
+ 			list_del(&page->lru);
+-		page->private = pfn;
++		set_page_private(page, pfn);
  	}
-@@ -2633,8 +2635,22 @@ void free_hot_cold_page(struct page *pag
- 		free_pcppages_bulk(zone, batch, pcp);
- 		pcp->count -= batch;
- 	}
-+}
  
--out:
-+/*
-+ * Free a 0-order page
-+ * cold == true ? free a cold page : free a hot page
-+ */
-+void free_hot_cold_page(struct page *page, bool cold)
-+{
-+	unsigned long flags;
-+	unsigned long pfn = page_to_pfn(page);
-+
-+	if (!free_hot_cold_page_prepare(page, pfn))
-+		return;
-+
-+	local_irq_save(flags);
-+	free_hot_cold_page_commit(page, pfn, cold);
- 	local_irq_restore(flags);
- }
- 
-@@ -2644,11 +2660,25 @@ out:
- void free_hot_cold_page_list(struct list_head *list, bool cold)
- {
- 	struct page *page, *next;
-+	unsigned long flags, pfn;
- 
-+	/* Prepare pages for freeing */
+ 	local_irq_save(flags);
  	list_for_each_entry_safe(page, next, list, lru) {
-+		pfn = page_to_pfn(page);
-+		if (!free_hot_cold_page_prepare(page, pfn))
-+			list_del(&page->lru);
-+		page->private = pfn;
-+	}
-+
-+	local_irq_save(flags);
-+	list_for_each_entry_safe(page, next, list, lru) {
-+		unsigned long pfn = page->private;
-+
-+		page->private = 0;
- 		trace_mm_page_free_batched(page, cold);
--		free_hot_cold_page(page, cold);
-+		free_hot_cold_page_commit(page, pfn, cold);
- 	}
-+	local_irq_restore(flags);
- }
+-		unsigned long pfn = page->private;
++		unsigned long pfn = page_private(page);
  
- /*
+-		page->private = 0;
++		set_page_private(page, 0);
+ 		trace_mm_page_free_batched(page, cold);
+ 		free_hot_cold_page_commit(page, pfn, cold);
+ 	}
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
