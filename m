@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch added to -mm tree
-Date: Wed, 18 Oct 2017 15:16:37 -0700
-Message-ID: <59e7d2c5.oauTIdDBwDaEL27M%akpm@linux-foundation.org>
+Subject: + mm-pagevec-remove-cold-parameter-for-pagevecs.patch added to
+ -mm tree
+Date: Wed, 18 Oct 2017 15:16:47 -0700
+Message-ID: <59e7d2cf.INHhOnXPUJTUYajg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750992AbdJRWQj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 18:16:39 -0400
+        with ESMTP id S1751041AbdJRWQt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2017 18:16:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, truncate: do not check mapping for every page being truncated
+     Subject: mm, pagevec: remove cold parameter for pagevecs
 has been added to the -mm tree.  Its filename is
-     mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch
+     mm-pagevec-remove-cold-parameter-for-pagevecs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagevec-remove-cold-parameter-for-pagevecs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagevec-remove-cold-parameter-for-pagevecs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,363 +40,555 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, truncate: do not check mapping for every page being truncated
+Subject: mm, pagevec: remove cold parameter for pagevecs
 
-During truncation, the mapping has already been checked for shmem and dax
-so it's known that workingset_update_node is required.  This patch avoids
-the checks on mapping for each page being truncated.  In all other cases,
-a lookup helper is used to determine if workingset_update_node() needs to
-be called.  The one danger is that the API is slightly harder to use as
-calling workingset_update_node directly without checking for dax or shmem
-mappings could lead to surprises.  However, the API rarely needs to be
-used and hopefully the comment is enough to give people the hint.
+Every pagevec_init user claims the pages being released are hot even in
+cases where it is unlikely the pages are hot.  As no one cares about the
+hotness of pages being released to the allocator, just ditch the
+parameter.
 
-sparsetruncate (tiny)
-                              4.14.0-rc4             4.14.0-rc4
-                             oneirq-v1r1        pickhelper-v1r1
-Min          Time      141.00 (   0.00%)      140.00 (   0.71%)
-1st-qrtle    Time      142.00 (   0.00%)      141.00 (   0.70%)
-2nd-qrtle    Time      142.00 (   0.00%)      142.00 (   0.00%)
-3rd-qrtle    Time      143.00 (   0.00%)      143.00 (   0.00%)
-Max-90%      Time      144.00 (   0.00%)      144.00 (   0.00%)
-Max-95%      Time      147.00 (   0.00%)      145.00 (   1.36%)
-Max-99%      Time      195.00 (   0.00%)      191.00 (   2.05%)
-Max          Time      230.00 (   0.00%)      205.00 (  10.87%)
-Amean        Time      144.37 (   0.00%)      143.82 (   0.38%)
-Stddev       Time       10.44 (   0.00%)        9.00 (  13.74%)
-Coeff        Time        7.23 (   0.00%)        6.26 (  13.41%)
-Best99%Amean Time      143.72 (   0.00%)      143.34 (   0.26%)
-Best95%Amean Time      142.37 (   0.00%)      142.00 (   0.26%)
-Best90%Amean Time      142.19 (   0.00%)      141.85 (   0.24%)
-Best75%Amean Time      141.92 (   0.00%)      141.58 (   0.24%)
-Best50%Amean Time      141.69 (   0.00%)      141.31 (   0.27%)
-Best25%Amean Time      141.38 (   0.00%)      140.97 (   0.29%)
+No performance impact is expected as the overhead is marginal.  The
+parameter is removed simply because it is a bit stupid to have a useless
+parameter copied everywhere.
 
-As you'd expect, the gain is marginal but it can be detected.  The
-differences in bonnie are all within the noise which is not surprising
-given the impact on the microbenchmark.
-
-radix_tree_update_node_t is a callback for some radix operations that
-optionally passes in a private field.  The only user of the callback is
-workingset_update_node and as it no longer requires a mapping, the private
-field is removed.
-
-Link: http://lkml.kernel.org/r/20171018075952.10627-3-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20171018075952.10627-6-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                              |    2 -
- include/linux/radix-tree.h            |    7 ++---
- include/linux/swap.h                  |   13 +++++++++-
- lib/idr.c                             |    2 -
- lib/radix-tree.c                      |   30 ++++++++++--------------
- mm/filemap.c                          |    7 +++--
- mm/shmem.c                            |    2 -
- mm/truncate.c                         |    2 -
- mm/workingset.c                       |   10 +-------
- tools/testing/radix-tree/multiorder.c |    2 -
- 10 files changed, 39 insertions(+), 38 deletions(-)
+ drivers/gpu/drm/i915/i915_gem_gtt.c |    2 +-
+ fs/afs/write.c                      |    4 ++--
+ fs/btrfs/extent_io.c                |    4 ++--
+ fs/buffer.c                         |    4 ++--
+ fs/cachefiles/rdwr.c                |    4 ++--
+ fs/ceph/addr.c                      |    4 ++--
+ fs/dax.c                            |    2 +-
+ fs/ext4/file.c                      |    2 +-
+ fs/ext4/inode.c                     |    6 +++---
+ fs/f2fs/checkpoint.c                |    2 +-
+ fs/f2fs/data.c                      |    2 +-
+ fs/f2fs/node.c                      |    8 ++++----
+ fs/fscache/page.c                   |    2 +-
+ fs/gfs2/aops.c                      |    2 +-
+ fs/hugetlbfs/inode.c                |    2 +-
+ fs/nilfs2/btree.c                   |    2 +-
+ fs/nilfs2/page.c                    |    8 ++++----
+ fs/nilfs2/segment.c                 |    4 ++--
+ include/linux/pagevec.h             |    4 +---
+ mm/filemap.c                        |    2 +-
+ mm/mlock.c                          |    4 ++--
+ mm/page-writeback.c                 |    2 +-
+ mm/shmem.c                          |    6 +++---
+ mm/swap.c                           |    4 ++--
+ mm/truncate.c                       |    8 ++++----
+ 25 files changed, 46 insertions(+), 48 deletions(-)
 
-diff -puN fs/dax.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated fs/dax.c
---- a/fs/dax.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
+diff -puN drivers/gpu/drm/i915/i915_gem_gtt.c~mm-pagevec-remove-cold-parameter-for-pagevecs drivers/gpu/drm/i915/i915_gem_gtt.c
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -1866,7 +1866,7 @@ static void i915_address_space_init(stru
+ 	INIT_LIST_HEAD(&vm->unbound_list);
+ 
+ 	list_add_tail(&vm->global_link, &dev_priv->vm_list);
+-	pagevec_init(&vm->free_pages, false);
++	pagevec_init(&vm->free_pages);
+ }
+ 
+ static void i915_address_space_fini(struct i915_address_space *vm)
+diff -puN fs/afs/write.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/afs/write.c
+--- a/fs/afs/write.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/afs/write.c
+@@ -308,7 +308,7 @@ static void afs_kill_pages(struct afs_vn
+ 	_enter("{%x:%u},%lx-%lx",
+ 	       vnode->fid.vid, vnode->fid.vnode, first, last);
+ 
+-	pagevec_init(&pv, 0);
++	pagevec_init(&pv);
+ 
+ 	do {
+ 		_debug("kill %lx-%lx", first, last);
+@@ -602,7 +602,7 @@ void afs_pages_written_back(struct afs_v
+ 
+ 	ASSERT(wb != NULL);
+ 
+-	pagevec_init(&pv, 0);
++	pagevec_init(&pv);
+ 
+ 	do {
+ 		_debug("done %lx-%lx", first, last);
+diff -puN fs/btrfs/extent_io.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/btrfs/extent_io.c
+--- a/fs/btrfs/extent_io.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/btrfs/extent_io.c
+@@ -3801,7 +3801,7 @@ int btree_write_cache_pages(struct addre
+ 	int scanned = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		index = mapping->writeback_index; /* Start from prev offset */
+ 		end = -1;
+@@ -3940,7 +3940,7 @@ static int extent_write_cache_pages(stru
+ 	if (!igrab(inode))
+ 		return 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		index = mapping->writeback_index; /* Start from prev offset */
+ 		end = -1;
+diff -puN fs/buffer.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/buffer.c
+--- a/fs/buffer.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/buffer.c
+@@ -1632,7 +1632,7 @@ void clean_bdev_aliases(struct block_dev
+ 	struct buffer_head *head;
+ 
+ 	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end)) {
+ 		count = pagevec_count(&pvec);
+ 		for (i = 0; i < count; i++) {
+@@ -3545,7 +3545,7 @@ page_cache_seek_hole_data(struct inode *
+ 	if (length <= 0)
+ 		return -ENOENT;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	do {
+ 		unsigned nr_pages, i;
+diff -puN fs/cachefiles/rdwr.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/cachefiles/rdwr.c
+--- a/fs/cachefiles/rdwr.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/cachefiles/rdwr.c
+@@ -710,7 +710,7 @@ int cachefiles_read_or_alloc_pages(struc
+ 	/* calculate the shift required to use bmap */
+ 	shift = PAGE_SHIFT - inode->i_sb->s_blocksize_bits;
+ 
+-	pagevec_init(&pagevec, 0);
++	pagevec_init(&pagevec);
+ 
+ 	op->op.flags &= FSCACHE_OP_KEEP_FLAGS;
+ 	op->op.flags |= FSCACHE_OP_ASYNC;
+@@ -844,7 +844,7 @@ int cachefiles_allocate_pages(struct fsc
+ 
+ 	ret = cachefiles_has_space(cache, 0, *nr_pages);
+ 	if (ret == 0) {
+-		pagevec_init(&pagevec, 0);
++		pagevec_init(&pagevec);
+ 
+ 		list_for_each_entry(page, pages, lru) {
+ 			if (pagevec_add(&pagevec, page) == 0)
+diff -puN fs/ceph/addr.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/ceph/addr.c
+--- a/fs/ceph/addr.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/ceph/addr.c
+@@ -679,7 +679,7 @@ static void ceph_release_pages(struct pa
+ 	struct pagevec pvec;
+ 	int i;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	for (i = 0; i < num; i++) {
+ 		if (pagevec_add(&pvec, pages[i]) == 0)
+ 			pagevec_release(&pvec);
+@@ -810,7 +810,7 @@ static int ceph_writepages_start(struct
+ 	if (fsc->mount_options->wsize < wsize)
+ 		wsize = fsc->mount_options->wsize;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	start_index = wbc->range_cyclic ? mapping->writeback_index : 0;
+ 	index = start_index;
+diff -puN fs/dax.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/dax.c
+--- a/fs/dax.c~mm-pagevec-remove-cold-parameter-for-pagevecs
 +++ a/fs/dax.c
-@@ -565,7 +565,7 @@ static void *dax_insert_mapping_entry(st
- 		ret = __radix_tree_lookup(page_tree, index, &node, &slot);
- 		WARN_ON_ONCE(ret != entry);
- 		__radix_tree_replace(page_tree, node, slot,
--				     new_entry, NULL, NULL);
-+				     new_entry, NULL);
- 		entry = new_entry;
+@@ -794,7 +794,7 @@ int dax_writeback_mapping_range(struct a
+ 
+ 	tag_pages_for_writeback(mapping, start_index, end_index);
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (!done) {
+ 		pvec.nr = find_get_entries_tag(mapping, start_index,
+ 				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
+diff -puN fs/ext4/file.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/ext4/file.c
+--- a/fs/ext4/file.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/ext4/file.c
+@@ -475,7 +475,7 @@ static int ext4_find_unwritten_pgoff(str
+ 	index = startoff >> PAGE_SHIFT;
+ 	end = (endoff - 1) >> PAGE_SHIFT;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	do {
+ 		int i;
+ 		unsigned long nr_pages;
+diff -puN fs/ext4/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/ext4/inode.c
+--- a/fs/ext4/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/ext4/inode.c
+@@ -1718,7 +1718,7 @@ static void mpage_release_unused_pages(s
+ 		ext4_es_remove_extent(inode, start, last - start + 1);
  	}
  
-diff -puN include/linux/radix-tree.h~mm-truncate-do-not-check-mapping-for-every-page-being-truncated include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/include/linux/radix-tree.h
-@@ -301,18 +301,17 @@ void *__radix_tree_lookup(const struct r
- void *radix_tree_lookup(const struct radix_tree_root *, unsigned long);
- void __rcu **radix_tree_lookup_slot(const struct radix_tree_root *,
- 					unsigned long index);
--typedef void (*radix_tree_update_node_t)(struct radix_tree_node *, void *);
-+typedef void (*radix_tree_update_node_t)(struct radix_tree_node *);
- void __radix_tree_replace(struct radix_tree_root *, struct radix_tree_node *,
- 			  void __rcu **slot, void *entry,
--			  radix_tree_update_node_t update_node, void *private);
-+			  radix_tree_update_node_t update_node);
- void radix_tree_iter_replace(struct radix_tree_root *,
- 		const struct radix_tree_iter *, void __rcu **slot, void *entry);
- void radix_tree_replace_slot(struct radix_tree_root *,
- 			     void __rcu **slot, void *entry);
- void __radix_tree_delete_node(struct radix_tree_root *,
- 			      struct radix_tree_node *,
--			      radix_tree_update_node_t update_node,
--			      void *private);
-+			      radix_tree_update_node_t update_node);
- void radix_tree_iter_delete(struct radix_tree_root *,
- 			struct radix_tree_iter *iter, void __rcu **slot);
- void *radix_tree_delete_item(struct radix_tree_root *, unsigned long, void *);
-diff -puN include/linux/swap.h~mm-truncate-do-not-check-mapping-for-every-page-being-truncated include/linux/swap.h
---- a/include/linux/swap.h~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/include/linux/swap.h
-@@ -297,7 +297,18 @@ struct vma_swap_readahead {
- void *workingset_eviction(struct address_space *mapping, struct page *page);
- bool workingset_refault(void *shadow);
- void workingset_activation(struct page *page);
--void workingset_update_node(struct radix_tree_node *node, void *private);
-+
-+/* Do not use directly, use workingset_lookup_update */
-+void workingset_update_node(struct radix_tree_node *node);
-+
-+/* Returns workingset_update_node() if the mapping has shadow entries. */
-+#define workingset_lookup_update(mapping)				\
-+({									\
-+	radix_tree_update_node_t __helper = workingset_update_node;	\
-+	if (dax_mapping(mapping) || shmem_mapping(mapping))		\
-+		__helper = NULL;					\
-+	__helper;							\
-+})
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (index <= end) {
+ 		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end);
+ 		if (nr_pages == 0)
+@@ -2344,7 +2344,7 @@ static int mpage_map_and_submit_buffers(
+ 	lblk = start << bpp_bits;
+ 	pblock = mpd->map.m_pblk;
  
- /* linux/mm/page_alloc.c */
- extern unsigned long totalram_pages;
-diff -puN lib/idr.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated lib/idr.c
---- a/lib/idr.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/lib/idr.c
-@@ -171,7 +171,7 @@ void *idr_replace_ext(struct idr *idr, v
- 	if (!slot || radix_tree_tag_get(&idr->idr_rt, id, IDR_FREE))
- 		return ERR_PTR(-ENOENT);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (start <= end) {
+ 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
+ 						&start, end);
+@@ -2615,7 +2615,7 @@ static int mpage_prepare_extent_to_map(s
+ 	else
+ 		tag = PAGECACHE_TAG_DIRTY;
  
--	__radix_tree_replace(&idr->idr_rt, node, slot, ptr, NULL, NULL);
-+	__radix_tree_replace(&idr->idr_rt, node, slot, ptr, NULL);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	mpd->map.m_len = 0;
+ 	mpd->next_page = index;
+ 	while (index <= end) {
+diff -puN fs/f2fs/checkpoint.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/f2fs/checkpoint.c
+--- a/fs/f2fs/checkpoint.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/f2fs/checkpoint.c
+@@ -314,7 +314,7 @@ long sync_meta_pages(struct f2fs_sb_info
+ 	};
+ 	struct blk_plug plug;
  
- 	return entry;
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	blk_start_plug(&plug);
+ 
+diff -puN fs/f2fs/data.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/f2fs/data.c
+--- a/fs/f2fs/data.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/f2fs/data.c
+@@ -1635,7 +1635,7 @@ static int f2fs_write_cache_pages(struct
+ 	int range_whole = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	if (get_dirty_pages(mapping->host) <=
+ 				SM_I(F2FS_M_SB(mapping))->min_hot_blocks)
+diff -puN fs/f2fs/node.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/f2fs/node.c
+--- a/fs/f2fs/node.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/f2fs/node.c
+@@ -1282,7 +1282,7 @@ static struct page *last_fsync_dnode(str
+ 	struct page *last_page = NULL;
+ 	int nr_pages;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = 0;
+ 
+ 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
+@@ -1436,7 +1436,7 @@ int fsync_node_pages(struct f2fs_sb_info
+ 			return PTR_ERR_OR_ZERO(last_page);
+ 	}
+ retry:
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = 0;
+ 
+ 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
+@@ -1547,7 +1547,7 @@ int sync_node_pages(struct f2fs_sb_info
+ 	int ret = 0;
+ 	int nr_pages;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ next_step:
+ 	index = 0;
+@@ -1648,7 +1648,7 @@ int wait_on_node_pages_writeback(struct
+ 	int ret2, ret = 0;
+ 	int nr_pages;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
+ 				PAGECACHE_TAG_WRITEBACK))) {
+diff -puN fs/fscache/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/fscache/page.c
+--- a/fs/fscache/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/fscache/page.c
+@@ -1175,7 +1175,7 @@ void __fscache_uncache_all_inode_pages(s
+ 		return;
+ 	}
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	next = 0;
+ 	do {
+ 		if (!pagevec_lookup(&pvec, mapping, &next))
+diff -puN fs/gfs2/aops.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/gfs2/aops.c
+--- a/fs/gfs2/aops.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/gfs2/aops.c
+@@ -371,7 +371,7 @@ static int gfs2_write_cache_jdata(struct
+ 	int range_whole = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		writeback_index = mapping->writeback_index; /* prev offset */
+ 		index = writeback_index;
+diff -puN fs/hugetlbfs/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/hugetlbfs/inode.c
+@@ -407,7 +407,7 @@ static void remove_inode_hugepages(struc
+ 
+ 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
+ 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	next = start;
+ 	while (next < end) {
+ 		/*
+diff -puN fs/nilfs2/btree.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/nilfs2/btree.c
+@@ -2156,7 +2156,7 @@ static void nilfs_btree_lookup_dirty_buf
+ 	     level++)
+ 		INIT_LIST_HEAD(&lists[level]);
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while (pagevec_lookup_tag(&pvec, btcache, &index,
+ 					PAGECACHE_TAG_DIRTY)) {
+diff -puN fs/nilfs2/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/nilfs2/page.c
+@@ -255,7 +255,7 @@ int nilfs_copy_dirty_pages(struct addres
+ 	pgoff_t index = 0;
+ 	int err = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ repeat:
+ 	if (!pagevec_lookup_tag(&pvec, smap, &index, PAGECACHE_TAG_DIRTY))
+ 		return 0;
+@@ -309,7 +309,7 @@ void nilfs_copy_back_pages(struct addres
+ 	pgoff_t index = 0;
+ 	int err;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ repeat:
+ 	n = pagevec_lookup(&pvec, smap, &index);
+ 	if (!n)
+@@ -373,7 +373,7 @@ void nilfs_clear_dirty_pages(struct addr
+ 	unsigned int i;
+ 	pgoff_t index = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while (pagevec_lookup_tag(&pvec, mapping, &index,
+ 					PAGECACHE_TAG_DIRTY)) {
+@@ -518,7 +518,7 @@ unsigned long nilfs_find_uncommitted_ext
+ 	index = start_blk >> (PAGE_SHIFT - inode->i_blkbits);
+ 	nblocks_in_page = 1U << (PAGE_SHIFT - inode->i_blkbits);
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ repeat:
+ 	pvec.nr = find_get_pages_contig(inode->i_mapping, index, PAGEVEC_SIZE,
+diff -puN fs/nilfs2/segment.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/fs/nilfs2/segment.c
+@@ -708,7 +708,7 @@ static size_t nilfs_lookup_dirty_data_bu
+ 		index = start >> PAGE_SHIFT;
+ 		last = end >> PAGE_SHIFT;
+ 	}
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+  repeat:
+ 	if (unlikely(index > last) ||
+ 	    !pagevec_lookup_range_tag(&pvec, mapping, &index, last,
+@@ -753,7 +753,7 @@ static void nilfs_lookup_dirty_node_buff
+ 	unsigned int i;
+ 	pgoff_t index = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while (pagevec_lookup_tag(&pvec, mapping, &index,
+ 					PAGECACHE_TAG_DIRTY)) {
+diff -puN include/linux/pagevec.h~mm-pagevec-remove-cold-parameter-for-pagevecs include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/include/linux/pagevec.h
+@@ -16,7 +16,6 @@ struct address_space;
+ 
+ struct pagevec {
+ 	unsigned long nr;
+-	bool cold;
+ 	bool drained;
+ 	struct page *pages[PAGEVEC_SIZE];
+ };
+@@ -50,10 +49,9 @@ static inline unsigned pagevec_lookup_ta
+ 	return pagevec_lookup_range_tag(pvec, mapping, index, (pgoff_t)-1, tag);
  }
-diff -puN lib/radix-tree.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated lib/radix-tree.c
---- a/lib/radix-tree.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/lib/radix-tree.c
-@@ -677,8 +677,7 @@ out:
-  *	@root		radix tree root
-  */
- static inline bool radix_tree_shrink(struct radix_tree_root *root,
--				     radix_tree_update_node_t update_node,
--				     void *private)
-+				     radix_tree_update_node_t update_node)
+ 
+-static inline void pagevec_init(struct pagevec *pvec, int cold)
++static inline void pagevec_init(struct pagevec *pvec)
  {
- 	bool shrunk = false;
+ 	pvec->nr = 0;
+-	pvec->cold = cold;
+ 	pvec->drained = false;
+ }
  
-@@ -739,7 +738,7 @@ static inline bool radix_tree_shrink(str
- 		if (!radix_tree_is_internal_node(child)) {
- 			node->slots[0] = (void __rcu *)RADIX_TREE_RETRY;
- 			if (update_node)
--				update_node(node, private);
-+				update_node(node);
- 		}
- 
- 		WARN_ON_ONCE(!list_empty(&node->private_list));
-@@ -752,7 +751,7 @@ static inline bool radix_tree_shrink(str
- 
- static bool delete_node(struct radix_tree_root *root,
- 			struct radix_tree_node *node,
--			radix_tree_update_node_t update_node, void *private)
-+			radix_tree_update_node_t update_node)
- {
- 	bool deleted = false;
- 
-@@ -762,8 +761,8 @@ static bool delete_node(struct radix_tre
- 		if (node->count) {
- 			if (node_to_entry(node) ==
- 					rcu_dereference_raw(root->rnode))
--				deleted |= radix_tree_shrink(root, update_node,
--								private);
-+				deleted |= radix_tree_shrink(root,
-+								update_node);
- 			return deleted;
- 		}
- 
-@@ -1173,7 +1172,6 @@ static int calculate_count(struct radix_
-  * @slot:		pointer to slot in @node
-  * @item:		new item to store in the slot.
-  * @update_node:	callback for changing leaf nodes
-- * @private:		private data to pass to @update_node
-  *
-  * For use with __radix_tree_lookup().  Caller must hold tree write locked
-  * across slot lookup and replacement.
-@@ -1181,7 +1179,7 @@ static int calculate_count(struct radix_
- void __radix_tree_replace(struct radix_tree_root *root,
- 			  struct radix_tree_node *node,
- 			  void __rcu **slot, void *item,
--			  radix_tree_update_node_t update_node, void *private)
-+			  radix_tree_update_node_t update_node)
- {
- 	void *old = rcu_dereference_raw(*slot);
- 	int exceptional = !!radix_tree_exceptional_entry(item) -
-@@ -1201,9 +1199,9 @@ void __radix_tree_replace(struct radix_t
+diff -puN mm/filemap.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/filemap.c
+--- a/mm/filemap.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/mm/filemap.c
+@@ -519,7 +519,7 @@ static void __filemap_fdatawait_range(st
+ 	if (end_byte < start_byte)
  		return;
  
- 	if (update_node)
--		update_node(node, private);
-+		update_node(node);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (index <= end) {
+ 		unsigned i;
  
--	delete_node(root, node, update_node, private);
-+	delete_node(root, node, update_node);
- }
+diff -puN mm/mlock.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/mlock.c
+--- a/mm/mlock.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/mm/mlock.c
+@@ -288,7 +288,7 @@ static void __munlock_pagevec(struct pag
+ 	struct pagevec pvec_putback;
+ 	int pgrescued = 0;
  
- /**
-@@ -1225,7 +1223,7 @@ void __radix_tree_replace(struct radix_t
- void radix_tree_replace_slot(struct radix_tree_root *root,
- 			     void __rcu **slot, void *item)
- {
--	__radix_tree_replace(root, NULL, slot, item, NULL, NULL);
-+	__radix_tree_replace(root, NULL, slot, item, NULL);
- }
- EXPORT_SYMBOL(radix_tree_replace_slot);
+-	pagevec_init(&pvec_putback, 0);
++	pagevec_init(&pvec_putback);
  
-@@ -1242,7 +1240,7 @@ void radix_tree_iter_replace(struct radi
- 				const struct radix_tree_iter *iter,
- 				void __rcu **slot, void *item)
- {
--	__radix_tree_replace(root, iter->node, slot, item, NULL, NULL);
-+	__radix_tree_replace(root, iter->node, slot, item, NULL);
- }
+ 	/* Phase 1: page isolation */
+ 	spin_lock_irq(zone_lru_lock(zone));
+@@ -447,7 +447,7 @@ void munlock_vma_pages_range(struct vm_a
+ 		struct pagevec pvec;
+ 		struct zone *zone;
  
- #ifdef CONFIG_RADIX_TREE_MULTIORDER
-@@ -1972,7 +1970,6 @@ EXPORT_SYMBOL(radix_tree_gang_lookup_tag
-  *	@root:		radix tree root
-  *	@node:		node containing @index
-  *	@update_node:	callback for changing leaf nodes
-- *	@private:	private data to pass to @update_node
-  *
-  *	After clearing the slot at @index in @node from radix tree
-  *	rooted at @root, call this function to attempt freeing the
-@@ -1980,10 +1977,9 @@ EXPORT_SYMBOL(radix_tree_gang_lookup_tag
-  */
- void __radix_tree_delete_node(struct radix_tree_root *root,
- 			      struct radix_tree_node *node,
--			      radix_tree_update_node_t update_node,
--			      void *private)
-+			      radix_tree_update_node_t update_node)
- {
--	delete_node(root, node, update_node, private);
-+	delete_node(root, node, update_node);
- }
+-		pagevec_init(&pvec, 0);
++		pagevec_init(&pvec);
+ 		/*
+ 		 * Although FOLL_DUMP is intended for get_dump_page(),
+ 		 * it just so happens that its special treatment of the
+diff -puN mm/page-writeback.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/mm/page-writeback.c
+@@ -2168,7 +2168,7 @@ int write_cache_pages(struct address_spa
+ 	int range_whole = 0;
+ 	int tag;
  
- static bool __radix_tree_delete(struct radix_tree_root *root,
-@@ -2001,7 +1997,7 @@ static bool __radix_tree_delete(struct r
- 			node_tag_clear(root, node, tag, offset);
- 
- 	replace_slot(slot, NULL, node, -1, exceptional);
--	return node && delete_node(root, node, NULL, NULL);
-+	return node && delete_node(root, node, NULL);
- }
- 
- /**
-diff -puN mm/filemap.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated mm/filemap.c
---- a/mm/filemap.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/mm/filemap.c
-@@ -35,6 +35,7 @@
- #include <linux/hugetlb.h>
- #include <linux/memcontrol.h>
- #include <linux/cleancache.h>
-+#include <linux/shmem_fs.h>
- #include <linux/rmap.h>
- #include "internal.h"
- 
-@@ -134,7 +135,7 @@ static int page_cache_tree_insert(struct
- 			*shadowp = p;
- 	}
- 	__radix_tree_replace(&mapping->page_tree, node, slot, page,
--			     workingset_update_node, mapping);
-+			     workingset_lookup_update(mapping));
- 	mapping->nrpages++;
- 	return 0;
- }
-@@ -162,7 +163,7 @@ static void page_cache_tree_delete(struc
- 
- 		radix_tree_clear_tags(&mapping->page_tree, node, slot);
- 		__radix_tree_replace(&mapping->page_tree, node, slot, shadow,
--				     workingset_update_node, mapping);
-+				workingset_lookup_update(mapping));
- 	}
- 
- 	page->mapping = NULL;
-@@ -359,7 +360,7 @@ page_cache_tree_delete_batch(struct addr
- 		}
- 		radix_tree_clear_tags(&mapping->page_tree, iter.node, slot);
- 		__radix_tree_replace(&mapping->page_tree, iter.node, slot, NULL,
--				     workingset_update_node, mapping);
-+				workingset_lookup_update(mapping));
- 		total_pages++;
- 	}
- 	mapping->nrpages -= total_pages;
-diff -puN mm/shmem.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated mm/shmem.c
---- a/mm/shmem.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		writeback_index = mapping->writeback_index; /* prev offset */
+ 		index = writeback_index;
+diff -puN mm/shmem.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/shmem.c
+--- a/mm/shmem.c~mm-pagevec-remove-cold-parameter-for-pagevecs
 +++ a/mm/shmem.c
-@@ -338,7 +338,7 @@ static int shmem_radix_tree_replace(stru
- 	if (item != expected)
- 		return -ENOENT;
- 	__radix_tree_replace(&mapping->page_tree, node, pslot,
--			     replacement, NULL, NULL);
-+			     replacement, NULL);
- 	return 0;
+@@ -747,7 +747,7 @@ void shmem_unlock_mapping(struct address
+ 	pgoff_t indices[PAGEVEC_SIZE];
+ 	pgoff_t index = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	/*
+ 	 * Minor point, but we might as well stop if someone else SHM_LOCKs it.
+ 	 */
+@@ -790,7 +790,7 @@ static void shmem_undo_range(struct inod
+ 	if (lend == -1)
+ 		end = -1;	/* unsigned, so actually very big */
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index < end) {
+ 		pvec.nr = find_get_entries(mapping, index,
+@@ -2528,7 +2528,7 @@ static pgoff_t shmem_seek_hole_data(stru
+ 	bool done = false;
+ 	int i;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	pvec.nr = 1;		/* start small: we may be there already */
+ 	while (!done) {
+ 		pvec.nr = find_get_entries(mapping, index,
+diff -puN mm/swap.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/swap.c
+--- a/mm/swap.c~mm-pagevec-remove-cold-parameter-for-pagevecs
++++ a/mm/swap.c
+@@ -210,7 +210,7 @@ static void pagevec_lru_move_fn(struct p
+ 	}
+ 	if (pgdat)
+ 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
+-	release_pages(pvec->pages, pvec->nr, pvec->cold);
++	release_pages(pvec->pages, pvec->nr, 0);
+ 	pagevec_reinit(pvec);
  }
  
-diff -puN mm/truncate.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated mm/truncate.c
---- a/mm/truncate.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
+@@ -837,7 +837,7 @@ void __pagevec_release(struct pagevec *p
+ 		lru_add_drain();
+ 		pvec->drained = true;
+ 	}
+-	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
++	release_pages(pvec->pages, pagevec_count(pvec), 0);
+ 	pagevec_reinit(pvec);
+ }
+ EXPORT_SYMBOL(__pagevec_release);
+diff -puN mm/truncate.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/truncate.c
+--- a/mm/truncate.c~mm-pagevec-remove-cold-parameter-for-pagevecs
 +++ a/mm/truncate.c
-@@ -42,7 +42,7 @@ static void clear_shadow_entry(struct ad
- 	if (*slot != entry)
- 		goto unlock;
- 	__radix_tree_replace(&mapping->page_tree, node, slot, NULL,
--			     workingset_update_node, mapping);
-+			     workingset_update_node);
- 	mapping->nrexceptional--;
- unlock:
- 	spin_unlock_irq(&mapping->tree_lock);
-diff -puN mm/workingset.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated mm/workingset.c
---- a/mm/workingset.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/mm/workingset.c
-@@ -339,14 +339,8 @@ out:
+@@ -322,7 +322,7 @@ void truncate_inode_pages_range(struct a
+ 	else
+ 		end = (lend + 1) >> PAGE_SHIFT;
  
- static struct list_lru shadow_nodes;
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE),
+@@ -335,7 +335,7 @@ void truncate_inode_pages_range(struct a
+ 		struct pagevec locked_pvec;
+ 		int ei = PAGEVEC_SIZE;
  
--void workingset_update_node(struct radix_tree_node *node, void *private)
-+void workingset_update_node(struct radix_tree_node *node)
- {
--	struct address_space *mapping = private;
--
--	/* Only regular page cache has shadow entries */
--	if (dax_mapping(mapping) || shmem_mapping(mapping))
--		return;
--
- 	/*
- 	 * Track non-empty nodes that contain only shadow entries;
- 	 * unlink those that contain pages or are being freed.
-@@ -474,7 +468,7 @@ static enum lru_status shadow_lru_isolat
- 		goto out_invalid;
- 	inc_lruvec_page_state(virt_to_page(node), WORKINGSET_NODERECLAIM);
- 	__radix_tree_delete_node(&mapping->page_tree, node,
--				 workingset_update_node, mapping);
-+				 workingset_lookup_update(mapping));
+-		pagevec_init(&locked_pvec, 0);
++		pagevec_init(&locked_pvec);
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
  
- out_invalid:
- 	spin_unlock(&mapping->tree_lock);
-diff -puN tools/testing/radix-tree/multiorder.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~mm-truncate-do-not-check-mapping-for-every-page-being-truncated
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -618,7 +618,7 @@ static void multiorder_account(void)
- 	__radix_tree_insert(&tree, 1 << 5, 5, (void *)0x12);
- 	__radix_tree_lookup(&tree, 1 << 5, &node, &slot);
- 	assert(node->count == node->exceptional * 2);
--	__radix_tree_replace(&tree, node, slot, NULL, NULL, NULL);
-+	__radix_tree_replace(&tree, node, slot, NULL, NULL);
- 	assert(node->exceptional == 0);
+@@ -554,7 +554,7 @@ unsigned long invalidate_mapping_pages(s
+ 	unsigned long count = 0;
+ 	int i;
  
- 	item_kill_tree(&tree);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
+ 			indices)) {
+@@ -684,7 +684,7 @@ int invalidate_inode_pages2_range(struct
+ 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		goto out;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
