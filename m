@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-use-time64_t-timestamps.patch added to -mm tree
-Date: Thu, 19 Oct 2017 12:20:28 -0700
-Message-ID: <59e8fafc.HkLQHVZy1Y7OMk1q%akpm@linux-foundation.org>
+Subject: + mm-remove-cold-parameter-from-free_hot_cold_page-fix.patch
+ added to -mm tree
+Date: Thu, 19 Oct 2017 12:23:21 -0700
+Message-ID: <59e8fba9.uqPYWV1iB9ipAE/A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753396AbdJSTU3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2017 15:20:29 -0400
+        with ESMTP id S1751585AbdJSTXW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2017 15:23:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, daniel.thompson@linaro.org, deepa.kernel@gmail.com, lokeshvutla@ti.com, shorne@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: use time64_t timestamps
+     Subject: mm-remove-cold-parameter-from-free_hot_cold_page-fix
 has been added to the -mm tree.  Its filename is
-     initramfs-use-time64_t-timestamps.patch
+     mm-remove-cold-parameter-from-free_hot_cold_page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-use-time64_t-timestamps.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-cold-parameter-from-free_hot_cold_page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-use-time64_t-timestamps.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-cold-parameter-from-free_hot_cold_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: initramfs: use time64_t timestamps
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm-remove-cold-parameter-from-free_hot_cold_page-fix
 
-The cpio format uses a 32-bit number to encode file timestamps, which
-breaks initramfs support in 2038.  This reinterprets the timestamp as
-unsigned, to give us another 68 years and avoids breaking until 2106.
+As pointed out by Vlastimil Babka, the pages being freed should be added
+to the head, no the tail, of the pcpu list.
 
-Link: http://lkml.kernel.org/r/20171019095536.801199-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Stafford Horne <shorne@gmail.com>
+Link: http://lkml.kernel.org/r/20171019154321.qtpzaeftoyyw4iey@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/initramfs.c~initramfs-use-time64_t-timestamps init/initramfs.c
---- a/init/initramfs.c~initramfs-use-time64_t-timestamps
-+++ a/init/initramfs.c
-@@ -108,7 +108,7 @@ static void __init free_hash(void)
+diff -puN mm/page_alloc.c~mm-remove-cold-parameter-from-free_hot_cold_page-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-cold-parameter-from-free_hot_cold_page-fix
++++ a/mm/page_alloc.c
+@@ -2624,7 +2624,7 @@ static void free_unref_page_commit(struc
  	}
- }
  
--static long __init do_utime(char *filename, time_t mtime)
-+static long __init do_utime(char *filename, time64_t mtime)
- {
- 	struct timespec64 t[2];
- 
-@@ -124,10 +124,10 @@ static __initdata LIST_HEAD(dir_list);
- struct dir_entry {
- 	struct list_head list;
- 	char *name;
--	time_t mtime;
-+	time64_t mtime;
- };
- 
--static void __init dir_add(const char *name, time_t mtime)
-+static void __init dir_add(const char *name, time64_t mtime)
- {
- 	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
- 	if (!de)
-@@ -149,7 +149,7 @@ static void __init dir_utime(void)
- 	}
- }
- 
--static __initdata time_t mtime;
-+static __initdata time64_t mtime;
- 
- /* cpio header parsing */
- 
-@@ -176,7 +176,7 @@ static void __init parse_header(char *s)
- 	uid = parsed[2];
- 	gid = parsed[3];
- 	nlink = parsed[4];
--	mtime = parsed[5];
-+	mtime = parsed[5]; /* breaks in y2106 */
- 	body_len = parsed[6];
- 	major = parsed[7];
- 	minor = parsed[8];
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+-	list_add_tail(&page->lru, &pcp->lists[migratetype]);
++	list_add(&page->lru, &pcp->lists[migratetype]);
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+ 		unsigned long batch = READ_ONCE(pcp->batch);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-initramfs-use-time64_t-timestamps.patch
-pcmcia-badge4-avoid-unused-function-warning.patch
+mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
+mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch
+mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch
+mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock.patch
+mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch
+mm-pagevec-remove-cold-parameter-for-pagevecs.patch
+mm-remove-cold-parameter-for-release_pages.patch
+mm-remove-cold-parameter-from-free_hot_cold_page.patch
+mm-remove-cold-parameter-from-free_hot_cold_page-fix.patch
+mm-remove-__gfp_cold.patch
+mm-pagevec-rename-pagevec-drained-field.patch
 
