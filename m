@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + support-resetting-warn_once-for-all-architectures.patch added
- to -mm tree
-Date: Thu, 19 Oct 2017 14:42:44 -0700
-Message-ID: <59e91c54.ZqYAFteCcrJzZUeP%akpm@linux-foundation.org>
+Subject: + mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch added to -mm tree
+Date: Thu, 19 Oct 2017 16:07:16 -0700
+Message-ID: <59e93024.Gss+lvjoXSieC/B/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58078 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751885AbdJSVmp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2017 17:42:45 -0400
+        with ESMTP id S1750968AbdJSXHS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2017 19:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel debug: support resetting WARN_ONCE for all architectures
+     Subject: fs/hugetlbfs/inode.c: fix hwpoison reserve accounting
 has been added to the -mm tree.  Its filename is
-     support-resetting-warn_once-for-all-architectures.patch
+     mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/support-resetting-warn_once-for-all-architectures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/support-resetting-warn_once-for-all-architectures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: kernel debug: support resetting WARN_ONCE for all architectures
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: fs/hugetlbfs/inode.c: fix hwpoison reserve accounting
 
-Some architectures store the WARN_ONCE state in the flags field of the
-bug_entry.  Clear that one too when resetting once state through
-/sys/kernel/debug/clear_warn_once
+Calling madvise(MADV_HWPOISON) on a hugetlbfs page will result in bad
+(negative) reserved huge page counts.  This may not happen immediately,
+but may happen later when the underlying file is removed or filesystem
+unmounted.  For example:
 
-Pointed out by Michael Ellerman
+AnonHugePages:         0 kB
+ShmemHugePages:        0 kB
+HugePages_Total:       1
+HugePages_Free:        0
+HugePages_Rsvd:    18446744073709551615
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
 
-Improves the earlier patch that add clear_warn_once.
+In routine hugetlbfs_error_remove_page(), hugetlb_fix_reserve_counts is
+called after remove_huge_page.  hugetlb_fix_reserve_counts is designed to
+only be called/used only if a failure is returned from
+hugetlb_unreserve_pages.  Therefore, call hugetlb_unreserve_pages as
+required and only call hugetlb_fix_reserve_counts in the unlikely event
+that hugetlb_unreserve_pages returns an error.
 
-Link: http://lkml.kernel.org/r/20171019204642.7404-1-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/20171019230007.17043-2-mike.kravetz@oracle.com
+Fixes: 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h |    5 +++++
- kernel/panic.c      |    1 +
- lib/bug.c           |   21 +++++++++++++++++++++
- 3 files changed, 27 insertions(+)
+ fs/hugetlbfs/inode.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bug.h~support-resetting-warn_once-for-all-architectures include/linux/bug.h
---- a/include/linux/bug.h~support-resetting-warn_once-for-all-architectures
-+++ a/include/linux/bug.h
-@@ -42,6 +42,8 @@ enum bug_trap_type report_bug(unsigned l
- /* These are defined by the architecture */
- int is_valid_bugaddr(unsigned long addr);
- 
-+void generic_bug_clear_once(void);
-+
- #else	/* !CONFIG_GENERIC_BUG */
- 
- static inline enum bug_trap_type report_bug(unsigned long bug_addr,
-@@ -50,6 +52,9 @@ static inline enum bug_trap_type report_
- 	return BUG_TRAP_TYPE_BUG;
- }
- 
-+
-+static inline void generic_bug_clear_once(void) {}
-+
- #endif	/* CONFIG_GENERIC_BUG */
- 
- /*
-diff -puN kernel/panic.c~support-resetting-warn_once-for-all-architectures kernel/panic.c
---- a/kernel/panic.c~support-resetting-warn_once-for-all-architectures
-+++ a/kernel/panic.c
-@@ -595,6 +595,7 @@ EXPORT_SYMBOL(warn_slowpath_null);
- 
- static int clear_warn_once_set(void *data, u64 val)
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-hwpoison-reserve-accounting fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-hwpoison-reserve-accounting
++++ a/fs/hugetlbfs/inode.c
+@@ -841,9 +841,12 @@ static int hugetlbfs_error_remove_page(s
+ 				struct page *page)
  {
-+	generic_bug_clear_once();
- 	memset(__start_once, 0, __end_once - __start_once);
+ 	struct inode *inode = mapping->host;
++	pgoff_t index = page->index;
+ 
+ 	remove_huge_page(page);
+-	hugetlb_fix_reserve_counts(inode);
++	if (unlikely(hugetlb_unreserve_pages(inode, index, index + 1, 1)))
++		hugetlb_fix_reserve_counts(inode);
++
  	return 0;
  }
-diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures lib/bug.c
---- a/lib/bug.c~support-resetting-warn_once-for-all-architectures
-+++ a/lib/bug.c
-@@ -195,3 +195,24 @@ enum bug_trap_type report_bug(unsigned l
  
- 	return BUG_TRAP_TYPE_BUG;
- }
-+
-+static void clear_once_table(struct bug_entry *start, struct bug_entry *end)
-+{
-+	struct bug_entry *bug;
-+
-+	for (bug = start; bug < end; bug++)
-+		bug->flags &= ~BUGFLAG_ONCE;
-+}
-+
-+void generic_bug_clear_once(void)
-+{
-+	struct module *mod;
-+
-+	rcu_read_lock_sched();
-+	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
-+		clear_once_table(mod->bug_table,
-+				 mod->bug_table + mod->num_bugs);
-+	rcu_read_unlock_sched();
-+
-+	clear_once_table(__start___bug_table, __stop___bug_table);
-+}
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-support-resetting-warn_once.patch
-support-resetting-warn_once-for-all-architectures.patch
+mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch
 
