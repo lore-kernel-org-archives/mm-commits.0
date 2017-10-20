@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + support-resetting-warn_once-for-all-architectures-v2.patch
- added to -mm tree
-Date: Fri, 20 Oct 2017 14:50:56 -0700
-Message-ID: <59ea6fc0.LsYHEczL1FzWDaRH%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch added to -mm tree
+Date: Fri, 20 Oct 2017 14:54:35 -0700
+Message-ID: <59ea709b.qzuzxwLmCVS7n59w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753332AbdJTVu6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2017 17:50:58 -0400
+        with ESMTP id S1752612AbdJTVyg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2017 17:54:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: support-resetting-warn_once-for-all-architectures-v2
+     Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
 has been added to the -mm tree.  Its filename is
-     support-resetting-warn_once-for-all-architectures-v2.patch
+     ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/support-resetting-warn_once-for-all-architectures-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/support-resetting-warn_once-for-all-architectures-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +39,203 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: support-resetting-warn_once-for-all-architectures-v2
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
 
-add a missing ifdef CONFIG_MODULES. Thanks 0day!
+The subsystem.su_mutex is required while accessing the item->ci_parent,
+otherwise, NULL pointer dereference to the item->ci_parent will be
+triggered in the following situation:
 
-Link: http://lkml.kernel.org/r/20171020170633.9593-1-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+add node                     delete node
+sys_write
+ vfs_write
+  configfs_write_file
+   o2nm_node_store
+    o2nm_node_local_write
+                             do_rmdir
+                              vfs_rmdir
+                               configfs_rmdir
+                                mutex_lock(&subsys->su_mutex);
+                                unlink_obj
+                                 item->ci_group = NULL;
+                                 item->ci_parent = NULL;
+	 to_o2nm_cluster_from_node
+	  node->nd_item.ci_parent->ci_parent
+	  BUG since of NULL pointer dereference to nd_item.ci_parent
+
+Moreover, the o2nm_cluster also should be protected by the
+subsystem.su_mutex.
+
+Link: http://lkml.kernel.org/r/59E9B36A.10700@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/cluster/nodemanager.c |   58 +++++++++++++++++++++++++------
+ 1 file changed, 48 insertions(+), 10 deletions(-)
 
-diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures-v2 lib/bug.c
---- a/lib/bug.c~support-resetting-warn_once-for-all-architectures-v2
-+++ a/lib/bug.c
-@@ -208,11 +208,13 @@ void generic_bug_clear_once(void)
+diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -39,6 +39,8 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
+ 		"reset",	/* O2NM_FENCE_RESET */
+ 		"panic",	/* O2NM_FENCE_PANIC */
+ };
++static inline void o2nm_lock_subsystem(void);
++static inline void o2nm_unlock_subsystem(void);
+ 
+ struct o2nm_node *o2nm_get_node_by_num(u8 node_num)
  {
- 	struct module *mod;
- 
-+#ifdef CONFIG_MODULES
- 	rcu_read_lock_sched();
- 	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
- 		clear_once_table(mod->bug_table,
- 				 mod->bug_table + mod->num_bugs);
- 	rcu_read_unlock_sched();
-+#endif
- 
- 	clear_once_table(__start___bug_table, __stop___bug_table);
+@@ -181,7 +183,10 @@ static struct o2nm_cluster *to_o2nm_clus
+ {
+ 	/* through the first node_set .parent
+ 	 * mycluster/nodes/mynode == o2nm_cluster->o2nm_node_group->o2nm_node */
+-	return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
++	if (node->nd_item.ci_parent)
++		return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
++	else
++		return NULL;
  }
+ 
+ enum {
+@@ -194,7 +199,7 @@ static ssize_t o2nm_node_num_store(struc
+ 				   size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
+ 	int ret = 0;
+@@ -213,6 +218,12 @@ static ssize_t o2nm_node_num_store(struc
+ 	if (!test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes) ||
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		o2nm_unlock_subsystem();
++		return -EINVAL;
++	}
+ 
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (cluster->cl_nodes[tmp])
+@@ -226,6 +237,7 @@ static ssize_t o2nm_node_num_store(struc
+ 		set_bit(tmp, cluster->cl_nodes_bitmap);
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
++	o2nm_unlock_subsystem();
+ 	if (ret)
+ 		return ret;
+ 
+@@ -269,7 +281,7 @@ static ssize_t o2nm_node_ipv4_address_st
+ 					    size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	int ret, i;
+ 	struct rb_node **p, *parent;
+ 	unsigned int octets[4];
+@@ -285,7 +297,12 @@ static ssize_t o2nm_node_ipv4_address_st
+ 			return -ERANGE;
+ 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
+ 	}
+-
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		o2nm_unlock_subsystem();
++		return -EINVAL;
++	}
+ 	ret = 0;
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
+@@ -298,6 +315,7 @@ static ssize_t o2nm_node_ipv4_address_st
+ 		rb_insert_color(&node->nd_ip_node, &cluster->cl_node_ip_tree);
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
++	o2nm_unlock_subsystem();
+ 	if (ret)
+ 		return ret;
+ 
+@@ -315,7 +333,7 @@ static ssize_t o2nm_node_local_store(str
+ 				     size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
+ 	ssize_t ret;
+@@ -333,17 +351,24 @@ static ssize_t o2nm_node_local_store(str
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		ret = -EINVAL;
++		goto out;
++	}
+ 	/* the only failure case is trying to set a new local node
+ 	 * when a different one is already set */
+ 	if (tmp && tmp == cluster->cl_has_local &&
+-	    cluster->cl_local_node != node->nd_num)
+-		return -EBUSY;
+-
++	    cluster->cl_local_node != node->nd_num) {
++		ret = -EBUSY;
++		goto out;
++	}
+ 	/* bring up the rx thread if we're setting the new local node. */
+ 	if (tmp && !cluster->cl_has_local) {
+ 		ret = o2net_start_listening(node);
+ 		if (ret)
+-			return ret;
++			goto out;
+ 	}
+ 
+ 	if (!tmp && cluster->cl_has_local &&
+@@ -357,8 +382,11 @@ static ssize_t o2nm_node_local_store(str
+ 		cluster->cl_has_local = tmp;
+ 		cluster->cl_local_node = node->nd_num;
+ 	}
++	ret = count;
+ 
+-	return count;
++out:
++	o2nm_unlock_subsystem();
++	return ret;
+ }
+ 
+ CONFIGFS_ATTR(o2nm_node_, num);
+@@ -738,6 +766,16 @@ static struct o2nm_cluster_group o2nm_cl
+ 	},
+ };
+ 
++static inline void o2nm_lock_subsystem(void)
++{
++	mutex_lock(&o2nm_cluster_group.cs_subsys.su_mutex);
++}
++
++static inline void o2nm_unlock_subsystem(void)
++{
++	mutex_unlock(&o2nm_cluster_group.cs_subsys.su_mutex);
++}
++
+ int o2nm_depend_item(struct config_item *item)
+ {
+ 	return configfs_depend_item(&o2nm_cluster_group.cs_subsys, item);
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-support-resetting-warn_once.patch
-support-resetting-warn_once-for-all-architectures.patch
-support-resetting-warn_once-for-all-architectures-v2.patch
+ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
 
