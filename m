@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch added to -mm tree
-Date: Fri, 20 Oct 2017 14:54:35 -0700
-Message-ID: <59ea709b.qzuzxwLmCVS7n59w%akpm@linux-foundation.org>
+Subject: + mm-mlock-remove-lru_add_drain_all.patch added to -mm tree
+Date: Fri, 20 Oct 2017 15:15:23 -0700
+Message-ID: <59ea757b.Oy0y7CGtYhf55LY1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58628 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752612AbdJTVyg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2017 17:54:36 -0400
+        with ESMTP id S1752041AbdJTWPZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2017 18:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
+To: shakeelb@google.com, bsingharora@gmail.com, gthelen@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mingo@kernel.org, vbabka@suse.cz, xieyisheng1@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
+     Subject: mm: mlock: remove lru_add_drain_all()
 has been added to the -mm tree.  Its filename is
-     ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+     mm-mlock-remove-lru_add_drain_all.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-remove-lru_add_drain_all.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-remove-lru_add_drain_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,203 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: mlock: remove lru_add_drain_all()
 
-The subsystem.su_mutex is required while accessing the item->ci_parent,
-otherwise, NULL pointer dereference to the item->ci_parent will be
-triggered in the following situation:
+lru_add_drain_all() is not required by mlock() and it will drain
+everything that has been cached at the time mlock is called.  And that is
+not really related to the memory which will be faulted in (and cached) and
+mlocked by the syscall itself.
 
-add node                     delete node
-sys_write
- vfs_write
-  configfs_write_file
-   o2nm_node_store
-    o2nm_node_local_write
-                             do_rmdir
-                              vfs_rmdir
-                               configfs_rmdir
-                                mutex_lock(&subsys->su_mutex);
-                                unlink_obj
-                                 item->ci_group = NULL;
-                                 item->ci_parent = NULL;
-	 to_o2nm_cluster_from_node
-	  node->nd_item.ci_parent->ci_parent
-	  BUG since of NULL pointer dereference to nd_item.ci_parent
+If anything lru_add_drain_all() should be called _after_ pages have been
+mlocked and faulted in but even that is not strictly needed because those
+pages would get to the appropriate LRUs lazily during the reclaim path. 
+Moreover follow_page_pte (gup) will drain the local pcp LRU cache.
 
-Moreover, the o2nm_cluster also should be protected by the
-subsystem.su_mutex.
+On larger machines the overhead of lru_add_drain_all() in mlock() can be
+significant when mlocking data already in memory.  We have observed high
+latency in mlock() due to lru_add_drain_all() when the users were mlocking
+in memory tmpfs files.
 
-Link: http://lkml.kernel.org/r/59E9B36A.10700@huawei.com
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+[mhocko@suse.com: changelog fix]
+Link: http://lkml.kernel.org/r/20171019222507.2894-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |   58 +++++++++++++++++++++++++------
- 1 file changed, 48 insertions(+), 10 deletions(-)
+ mm/mlock.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent fs/ocfs2/cluster/nodemanager.c
---- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -39,6 +39,8 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
- 		"reset",	/* O2NM_FENCE_RESET */
- 		"panic",	/* O2NM_FENCE_PANIC */
- };
-+static inline void o2nm_lock_subsystem(void);
-+static inline void o2nm_unlock_subsystem(void);
+diff -puN mm/mlock.c~mm-mlock-remove-lru_add_drain_all mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-remove-lru_add_drain_all
++++ a/mm/mlock.c
+@@ -669,8 +669,6 @@ static __must_check int do_mlock(unsigne
+ 	if (!can_do_mlock())
+ 		return -EPERM;
  
- struct o2nm_node *o2nm_get_node_by_num(u8 node_num)
- {
-@@ -181,7 +183,10 @@ static struct o2nm_cluster *to_o2nm_clus
- {
- 	/* through the first node_set .parent
- 	 * mycluster/nodes/mynode == o2nm_cluster->o2nm_node_group->o2nm_node */
--	return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
-+	if (node->nd_item.ci_parent)
-+		return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
-+	else
-+		return NULL;
- }
- 
- enum {
-@@ -194,7 +199,7 @@ static ssize_t o2nm_node_num_store(struc
- 				   size_t count)
- {
- 	struct o2nm_node *node = to_o2nm_node(item);
--	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
-+	struct o2nm_cluster *cluster;
- 	unsigned long tmp;
- 	char *p = (char *)page;
- 	int ret = 0;
-@@ -213,6 +218,12 @@ static ssize_t o2nm_node_num_store(struc
- 	if (!test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes) ||
- 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
- 		return -EINVAL; /* XXX */
-+	o2nm_lock_subsystem();
-+	cluster = to_o2nm_cluster_from_node(node);
-+	if (!cluster) {
-+		o2nm_unlock_subsystem();
-+		return -EINVAL;
-+	}
- 
- 	write_lock(&cluster->cl_nodes_lock);
- 	if (cluster->cl_nodes[tmp])
-@@ -226,6 +237,7 @@ static ssize_t o2nm_node_num_store(struc
- 		set_bit(tmp, cluster->cl_nodes_bitmap);
- 	}
- 	write_unlock(&cluster->cl_nodes_lock);
-+	o2nm_unlock_subsystem();
- 	if (ret)
- 		return ret;
- 
-@@ -269,7 +281,7 @@ static ssize_t o2nm_node_ipv4_address_st
- 					    size_t count)
- {
- 	struct o2nm_node *node = to_o2nm_node(item);
--	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
-+	struct o2nm_cluster *cluster;
- 	int ret, i;
- 	struct rb_node **p, *parent;
- 	unsigned int octets[4];
-@@ -285,7 +297,12 @@ static ssize_t o2nm_node_ipv4_address_st
- 			return -ERANGE;
- 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
- 	}
+-	lru_add_drain_all();	/* flush pagevec */
 -
-+	o2nm_lock_subsystem();
-+	cluster = to_o2nm_cluster_from_node(node);
-+	if (!cluster) {
-+		o2nm_unlock_subsystem();
-+		return -EINVAL;
-+	}
- 	ret = 0;
- 	write_lock(&cluster->cl_nodes_lock);
- 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
-@@ -298,6 +315,7 @@ static ssize_t o2nm_node_ipv4_address_st
- 		rb_insert_color(&node->nd_ip_node, &cluster->cl_node_ip_tree);
- 	}
- 	write_unlock(&cluster->cl_nodes_lock);
-+	o2nm_unlock_subsystem();
- 	if (ret)
- 		return ret;
+ 	len = PAGE_ALIGN(len + (offset_in_page(start)));
+ 	start &= PAGE_MASK;
  
-@@ -315,7 +333,7 @@ static ssize_t o2nm_node_local_store(str
- 				     size_t count)
- {
- 	struct o2nm_node *node = to_o2nm_node(item);
--	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
-+	struct o2nm_cluster *cluster;
- 	unsigned long tmp;
- 	char *p = (char *)page;
- 	ssize_t ret;
-@@ -333,17 +351,24 @@ static ssize_t o2nm_node_local_store(str
- 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
- 		return -EINVAL; /* XXX */
+@@ -797,9 +795,6 @@ SYSCALL_DEFINE1(mlockall, int, flags)
+ 	if (!can_do_mlock())
+ 		return -EPERM;
  
-+	o2nm_lock_subsystem();
-+	cluster = to_o2nm_cluster_from_node(node);
-+	if (!cluster) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 	/* the only failure case is trying to set a new local node
- 	 * when a different one is already set */
- 	if (tmp && tmp == cluster->cl_has_local &&
--	    cluster->cl_local_node != node->nd_num)
--		return -EBUSY;
--
-+	    cluster->cl_local_node != node->nd_num) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
- 	/* bring up the rx thread if we're setting the new local node. */
- 	if (tmp && !cluster->cl_has_local) {
- 		ret = o2net_start_listening(node);
- 		if (ret)
--			return ret;
-+			goto out;
- 	}
- 
- 	if (!tmp && cluster->cl_has_local &&
-@@ -357,8 +382,11 @@ static ssize_t o2nm_node_local_store(str
- 		cluster->cl_has_local = tmp;
- 		cluster->cl_local_node = node->nd_num;
- 	}
-+	ret = count;
- 
--	return count;
-+out:
-+	o2nm_unlock_subsystem();
-+	return ret;
- }
- 
- CONFIGFS_ATTR(o2nm_node_, num);
-@@ -738,6 +766,16 @@ static struct o2nm_cluster_group o2nm_cl
- 	},
- };
- 
-+static inline void o2nm_lock_subsystem(void)
-+{
-+	mutex_lock(&o2nm_cluster_group.cs_subsys.su_mutex);
-+}
-+
-+static inline void o2nm_unlock_subsystem(void)
-+{
-+	mutex_unlock(&o2nm_cluster_group.cs_subsys.su_mutex);
-+}
-+
- int o2nm_depend_item(struct config_item *item)
- {
- 	return configfs_depend_item(&o2nm_cluster_group.cs_subsys, item);
-_
-
-Patches currently in -mm which might be from alex.chen@huawei.com are
-
-ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
-ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
-
+-	if (flags & MCL_CURRENT)
+-		lru_add_drain_all();	/* flush pagevec */
