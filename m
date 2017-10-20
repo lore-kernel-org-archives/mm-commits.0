@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-remove-lru_add_drain_all.patch added to -mm tree
-Date: Fri, 20 Oct 2017 15:15:23 -0700
-Message-ID: <59ea757b.Oy0y7CGtYhf55LY1%akpm@linux-foundation.org>
+Subject: + lib-int_sqrt-optimize-initial-value-compute.patch added to -mm
+ tree
+Date: Fri, 20 Oct 2017 15:18:14 -0700
+Message-ID: <59ea7626.JkfXSAXCrs4zcdiy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59102 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752041AbdJTWPZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2017 18:15:25 -0400
+        with ESMTP id S1751721AbdJTWSQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2017 18:18:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shakeelb@google.com, bsingharora@gmail.com, gthelen@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mingo@kernel.org, vbabka@suse.cz, xieyisheng1@huawei.com, mm-commits@vger.kernel.org
+To: peterz@infradead.org, aksgarg1989@gmail.com, davem@davemloft.net, dave@stgolabs.net, joe@perches.com, keescook@chromium.org, mawilcox@microsoft.com, md@google.com, mingo@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: remove lru_add_drain_all()
+     Subject: lib/int_sqrt: optimize initial value compute
 has been added to the -mm tree.  Its filename is
-     mm-mlock-remove-lru_add_drain_all.patch
+     lib-int_sqrt-optimize-initial-value-compute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-remove-lru_add_drain_all.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-int_sqrt-optimize-initial-value-compute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-remove-lru_add_drain_all.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-int_sqrt-optimize-initial-value-compute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,59 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: mlock: remove lru_add_drain_all()
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: lib/int_sqrt: optimize initial value compute
 
-lru_add_drain_all() is not required by mlock() and it will drain
-everything that has been cached at the time mlock is called.  And that is
-not really related to the memory which will be faulted in (and cached) and
-mlocked by the syscall itself.
+The initial value (@m) compute is:
 
-If anything lru_add_drain_all() should be called _after_ pages have been
-mlocked and faulted in but even that is not strictly needed because those
-pages would get to the appropriate LRUs lazily during the reclaim path. 
-Moreover follow_page_pte (gup) will drain the local pcp LRU cache.
+	m = 1UL << (BITS_PER_LONG - 2);
+	while (m > x)
+		m >>= 2;
 
-On larger machines the overhead of lru_add_drain_all() in mlock() can be
-significant when mlocking data already in memory.  We have observed high
-latency in mlock() due to lru_add_drain_all() when the users were mlocking
-in memory tmpfs files.
+Which is a linear search for the highest even bit smaller or equal to @x
+We can implement this using a binary search using __fls() (or better when
+its hardware implemented).
 
-[mhocko@suse.com: changelog fix]
-Link: http://lkml.kernel.org/r/20171019222507.2894-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
+	m = 1UL << (__fls(x) & ~1UL);
+
+Especially for small values of @x; which are the more common arguments
+when doing a CDF on idle times; the linear search is near to worst case,
+while the binary search of __fls() is a constant 6 (or 5 on 32bit)
+branches.
+
+      cycles:                 branches:              branch-misses:
+
+PRE:
+
+hot:   43.633557 +- 0.034373  45.333132 +- 0.002277  0.023529 +- 0.000681
+cold: 207.438411 +- 0.125840  45.333132 +- 0.002277  6.976486 +- 0.004219
+
+SOFTWARE FLS:
+
+hot:   29.576176 +- 0.028850  26.666730 +- 0.004511  0.019463 +- 0.000663
+cold: 165.947136 +- 0.188406  26.666746 +- 0.004511  6.133897 +- 0.004386
+
+HARDWARE FLS:
+
+hot:   24.720922 +- 0.025161  20.666784 +- 0.004509  0.020836 +- 0.000677
+cold: 132.777197 +- 0.127471  20.666776 +- 0.004509  5.080285 +- 0.003874
+
+Averages computed over all values <128k using a LFSR to generate order. 
+Cold numbers have a LFSR based branch trace buffer 'confuser' ran between
+each int_sqrt() invocation.
+
+Link: http://lkml.kernel.org/r/20171020164644.936577234@infradead.org
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Suggested-by: Joe Perches <joe@perches.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Anshul Garg <aksgarg1989@gmail.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Miller <davem@davemloft.net>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Michael Davidson <md@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 -----
- 1 file changed, 5 deletions(-)
+ lib/int_sqrt.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-remove-lru_add_drain_all mm/mlock.c
---- a/mm/mlock.c~mm-mlock-remove-lru_add_drain_all
-+++ a/mm/mlock.c
-@@ -669,8 +669,6 @@ static __must_check int do_mlock(unsigne
- 	if (!can_do_mlock())
- 		return -EPERM;
+diff -puN lib/int_sqrt.c~lib-int_sqrt-optimize-initial-value-compute lib/int_sqrt.c
+--- a/lib/int_sqrt.c~lib-int_sqrt-optimize-initial-value-compute
++++ a/lib/int_sqrt.c
+@@ -7,6 +7,7 @@
  
--	lru_add_drain_all();	/* flush pagevec */
--
- 	len = PAGE_ALIGN(len + (offset_in_page(start)));
- 	start &= PAGE_MASK;
+ #include <linux/kernel.h>
+ #include <linux/export.h>
++#include <linux/bitops.h>
  
-@@ -797,9 +795,6 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	if (!can_do_mlock())
- 		return -EPERM;
+ /**
+  * int_sqrt - rough approximation to sqrt
+@@ -21,10 +22,7 @@ unsigned long int_sqrt(unsigned long x)
+ 	if (x <= 1)
+ 		return x;
  
--	if (flags & MCL_CURRENT)
--		lru_add_drain_all();	/* flush pagevec */
+-	m = 1UL << (BITS_PER_LONG - 2);
+-	while (m > x)
+-		m >>= 2;
