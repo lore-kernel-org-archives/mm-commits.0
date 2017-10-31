@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + update-mips-email-addresses.patch added to -mm tree
-Date: Tue, 31 Oct 2017 16:03:27 -0700
-Message-ID: <59f9013f.901n+phjPHQE5hHW%akpm@linux-foundation.org>
+Subject: + support-resetting-warn_once-for-all-architectures-v2-fix.patch
+ added to -mm tree
+Date: Tue, 31 Oct 2017 16:26:29 -0700
+Message-ID: <59f906a5.eB5TZx6VEHOwlZuM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51130 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750928AbdJaXD3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2017 19:03:29 -0400
+        with ESMTP id S1753486AbdJaX0a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2017 19:26:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.burton@mips.com, dengcheng.zhu@imgtec.com, dengcheng.zhu@mips.com, matt.redfearn@imgtec.com, matt.redfearn@mips.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Update MIPS email addresses
+     Subject: support-resetting-warn_once-for-all-architectures-v2-fix
 has been added to the -mm tree.  Its filename is
-     update-mips-email-addresses.patch
+     support-resetting-warn_once-for-all-architectures-v2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/update-mips-email-addresses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/support-resetting-warn_once-for-all-architectures-v2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/update-mips-email-addresses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/support-resetting-warn_once-for-all-architectures-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,659 +39,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Burton <paul.burton@mips.com>
-Subject: Update MIPS email addresses
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: support-resetting-warn_once-for-all-architectures-v2-fix
 
-MIPS will soon not be a part of Imagination Technologies, and as such many
-@imgtec.com email addresses will no longer be valid.  This patch updates
-the addresses for those who:
+fix unused var warning
 
- - Have 10 or more patches in mainline authored using an @imgtec.com
-   email address, or any patches dated within the past year.
-
- - Are still with Imagination but leaving as part of the MIPS business
-   unit, as determined from an internal email address list.
-
- - Haven't already updated their email address (ie. JamesH) or expressed
-   a desire to be excluded (ie. Maciej).
-
- - Acked v2 or earlier of this patch, which leaves Deng-Cheng, Matt &
-   myself.
-
-New addresses are of the form firstname.lastname@mips.com, and all
-verified against an internal email address list.  An entry is added to
-.mailmap for each person such that get_maintainer.pl will report the new
-addresses rather than @imgtec.com addresses which will soon be dead.
-
-Instances of the affected addresses throughout the tree are then
-mechanically replaced with the new @mips.com address.
-
-Link: http://lkml.kernel.org/r/20171026000433.26116-1-paul.burton@mips.com
-Signed-off-by: Paul Burton <paul.burton@mips.com>
-Acked-by: Dengcheng Zhu <dengcheng.zhu@mips.com>
-Acked-by: Matt Redfearn <matt.redfearn@mips.com>
-Cc: Deng-Cheng Zhu <dengcheng.zhu@imgtec.com>
-Cc: Deng-Cheng Zhu <dengcheng.zhu@mips.com>
-Cc: Matt Redfearn <matt.redfearn@imgtec.com>
-Cc: Matt Redfearn <matt.redfearn@mips.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap                                         |    3 +++
- Documentation/ABI/testing/sysfs-class-remoteproc |    4 ++--
- MAINTAINERS                                      |    6 +++---
- arch/mips/generic/Makefile                       |    2 +-
- arch/mips/generic/Platform                       |    2 +-
- arch/mips/generic/board-sead3.c                  |    2 +-
- arch/mips/generic/init.c                         |    2 +-
- arch/mips/generic/irq.c                          |    2 +-
- arch/mips/generic/proc.c                         |    2 +-
- arch/mips/generic/yamon-dt.c                     |    2 +-
- arch/mips/include/asm/dsemul.h                   |    2 +-
- arch/mips/include/asm/maar.h                     |    2 +-
- arch/mips/include/asm/mach-malta/malta-dtshim.h  |    2 +-
- arch/mips/include/asm/mach-malta/malta-pm.h      |    2 +-
- arch/mips/include/asm/machine.h                  |    2 +-
- arch/mips/include/asm/mips-cm.h                  |    2 +-
- arch/mips/include/asm/mips-cpc.h                 |    2 +-
- arch/mips/include/asm/mips-cps.h                 |    2 +-
- arch/mips/include/asm/mips-gic.h                 |    2 +-
- arch/mips/include/asm/msa.h                      |    2 +-
- arch/mips/include/asm/pm-cps.h                   |    2 +-
- arch/mips/include/asm/smp-cps.h                  |    2 +-
- arch/mips/include/asm/yamon-dt.h                 |    2 +-
- arch/mips/kernel/cmpxchg.c                       |    2 +-
- arch/mips/kernel/cps-vec-ns16550.S               |    2 +-
- arch/mips/kernel/cps-vec.S                       |    2 +-
- arch/mips/kernel/elf.c                           |    2 +-
- arch/mips/kernel/mips-cm.c                       |    2 +-
- arch/mips/kernel/mips-cpc.c                      |    2 +-
- arch/mips/kernel/pm-cps.c                        |    2 +-
- arch/mips/kernel/relocate.c                      |    2 +-
- arch/mips/kernel/smp-cps.c                       |    2 +-
- arch/mips/mm/sc-debugfs.c                        |    2 +-
- arch/mips/mti-malta/malta-dt.c                   |    2 +-
- arch/mips/mti-malta/malta-dtshim.c               |    2 +-
- arch/mips/mti-malta/malta-pm.c                   |    2 +-
- arch/mips/pci/pci-generic.c                      |    2 +-
- arch/mips/tools/generic-board-config.sh          |    2 +-
- drivers/auxdisplay/img-ascii-lcd.c               |    2 +-
- drivers/clk/imgtec/clk-boston.c                  |    2 +-
- drivers/clk/ingenic/cgu.c                        |    2 +-
- drivers/clk/ingenic/cgu.h                        |    2 +-
- drivers/clk/ingenic/jz4740-cgu.c                 |    2 +-
- drivers/clk/ingenic/jz4780-cgu.c                 |    2 +-
- drivers/cpuidle/cpuidle-cps.c                    |    2 +-
- drivers/power/reset/piix4-poweroff.c             |    4 ++--
- 46 files changed, 52 insertions(+), 49 deletions(-)
+ lib/bug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/generic/board-sead3.c~update-mips-email-addresses arch/mips/generic/board-sead3.c
---- a/arch/mips/generic/board-sead3.c~update-mips-email-addresses
-+++ a/arch/mips/generic/board-sead3.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/generic/init.c~update-mips-email-addresses arch/mips/generic/init.c
---- a/arch/mips/generic/init.c~update-mips-email-addresses
-+++ a/arch/mips/generic/init.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/generic/irq.c~update-mips-email-addresses arch/mips/generic/irq.c
---- a/arch/mips/generic/irq.c~update-mips-email-addresses
-+++ a/arch/mips/generic/irq.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/generic/Makefile~update-mips-email-addresses arch/mips/generic/Makefile
---- a/arch/mips/generic/Makefile~update-mips-email-addresses
-+++ a/arch/mips/generic/Makefile
-@@ -1,6 +1,6 @@
- #
- # Copyright (C) 2016 Imagination Technologies
--# Author: Paul Burton <paul.burton@imgtec.com>
-+# Author: Paul Burton <paul.burton@mips.com>
- #
- # This program is free software; you can redistribute it and/or modify it
- # under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/generic/Platform~update-mips-email-addresses arch/mips/generic/Platform
---- a/arch/mips/generic/Platform~update-mips-email-addresses
-+++ a/arch/mips/generic/Platform
-@@ -1,6 +1,6 @@
- #
- # Copyright (C) 2016 Imagination Technologies
--# Author: Paul Burton <paul.burton@imgtec.com>
-+# Author: Paul Burton <paul.burton@mips.com>
- #
- # This program is free software; you can redistribute it and/or modify it
- # under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/generic/proc.c~update-mips-email-addresses arch/mips/generic/proc.c
---- a/arch/mips/generic/proc.c~update-mips-email-addresses
-+++ a/arch/mips/generic/proc.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/generic/yamon-dt.c~update-mips-email-addresses arch/mips/generic/yamon-dt.c
---- a/arch/mips/generic/yamon-dt.c~update-mips-email-addresses
-+++ a/arch/mips/generic/yamon-dt.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/dsemul.h~update-mips-email-addresses arch/mips/include/asm/dsemul.h
---- a/arch/mips/include/asm/dsemul.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/dsemul.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/maar.h~update-mips-email-addresses arch/mips/include/asm/maar.h
---- a/arch/mips/include/asm/maar.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/maar.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/machine.h~update-mips-email-addresses arch/mips/include/asm/machine.h
---- a/arch/mips/include/asm/machine.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/machine.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/mach-malta/malta-dtshim.h~update-mips-email-addresses arch/mips/include/asm/mach-malta/malta-dtshim.h
---- a/arch/mips/include/asm/mach-malta/malta-dtshim.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/mach-malta/malta-dtshim.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/mach-malta/malta-pm.h~update-mips-email-addresses arch/mips/include/asm/mach-malta/malta-pm.h
---- a/arch/mips/include/asm/mach-malta/malta-pm.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/mach-malta/malta-pm.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/mips-cm.h~update-mips-email-addresses arch/mips/include/asm/mips-cm.h
---- a/arch/mips/include/asm/mips-cm.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/mips-cm.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/mips-cpc.h~update-mips-email-addresses arch/mips/include/asm/mips-cpc.h
---- a/arch/mips/include/asm/mips-cpc.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/mips-cpc.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/mips-cps.h~update-mips-email-addresses arch/mips/include/asm/mips-cps.h
---- a/arch/mips/include/asm/mips-cps.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/mips-cps.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2017 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/mips-gic.h~update-mips-email-addresses arch/mips/include/asm/mips-gic.h
---- a/arch/mips/include/asm/mips-gic.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/mips-gic.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2017 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/msa.h~update-mips-email-addresses arch/mips/include/asm/msa.h
---- a/arch/mips/include/asm/msa.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/msa.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/pm-cps.h~update-mips-email-addresses arch/mips/include/asm/pm-cps.h
---- a/arch/mips/include/asm/pm-cps.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/pm-cps.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/smp-cps.h~update-mips-email-addresses arch/mips/include/asm/smp-cps.h
---- a/arch/mips/include/asm/smp-cps.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/smp-cps.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/include/asm/yamon-dt.h~update-mips-email-addresses arch/mips/include/asm/yamon-dt.h
---- a/arch/mips/include/asm/yamon-dt.h~update-mips-email-addresses
-+++ a/arch/mips/include/asm/yamon-dt.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/cmpxchg.c~update-mips-email-addresses arch/mips/kernel/cmpxchg.c
---- a/arch/mips/kernel/cmpxchg.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/cmpxchg.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2017 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/cps-vec-ns16550.S~update-mips-email-addresses arch/mips/kernel/cps-vec-ns16550.S
---- a/arch/mips/kernel/cps-vec-ns16550.S~update-mips-email-addresses
-+++ a/arch/mips/kernel/cps-vec-ns16550.S
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/cps-vec.S~update-mips-email-addresses arch/mips/kernel/cps-vec.S
---- a/arch/mips/kernel/cps-vec.S~update-mips-email-addresses
-+++ a/arch/mips/kernel/cps-vec.S
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/elf.c~update-mips-email-addresses arch/mips/kernel/elf.c
---- a/arch/mips/kernel/elf.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/elf.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/mips-cm.c~update-mips-email-addresses arch/mips/kernel/mips-cm.c
---- a/arch/mips/kernel/mips-cm.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/mips-cm.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/mips-cpc.c~update-mips-email-addresses arch/mips/kernel/mips-cpc.c
---- a/arch/mips/kernel/mips-cpc.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/mips-cpc.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/pm-cps.c~update-mips-email-addresses arch/mips/kernel/pm-cps.c
---- a/arch/mips/kernel/pm-cps.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/pm-cps.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/kernel/relocate.c~update-mips-email-addresses arch/mips/kernel/relocate.c
---- a/arch/mips/kernel/relocate.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/relocate.c
-@@ -6,7 +6,7 @@
-  * Support for Kernel relocation at boot time
-  *
-  * Copyright (C) 2015, Imagination Technologies Ltd.
-- * Authors: Matt Redfearn (matt.redfearn@imgtec.com)
-+ * Authors: Matt Redfearn (matt.redfearn@mips.com)
-  */
- #include <asm/bootinfo.h>
- #include <asm/cacheflush.h>
-diff -puN arch/mips/kernel/smp-cps.c~update-mips-email-addresses arch/mips/kernel/smp-cps.c
---- a/arch/mips/kernel/smp-cps.c~update-mips-email-addresses
-+++ a/arch/mips/kernel/smp-cps.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/mm/sc-debugfs.c~update-mips-email-addresses arch/mips/mm/sc-debugfs.c
---- a/arch/mips/mm/sc-debugfs.c~update-mips-email-addresses
-+++ a/arch/mips/mm/sc-debugfs.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/mti-malta/malta-dt.c~update-mips-email-addresses arch/mips/mti-malta/malta-dt.c
---- a/arch/mips/mti-malta/malta-dt.c~update-mips-email-addresses
-+++ a/arch/mips/mti-malta/malta-dt.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/mti-malta/malta-dtshim.c~update-mips-email-addresses arch/mips/mti-malta/malta-dtshim.c
---- a/arch/mips/mti-malta/malta-dtshim.c~update-mips-email-addresses
-+++ a/arch/mips/mti-malta/malta-dtshim.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/mti-malta/malta-pm.c~update-mips-email-addresses arch/mips/mti-malta/malta-pm.c
---- a/arch/mips/mti-malta/malta-pm.c~update-mips-email-addresses
-+++ a/arch/mips/mti-malta/malta-pm.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN arch/mips/pci/pci-generic.c~update-mips-email-addresses arch/mips/pci/pci-generic.c
---- a/arch/mips/pci/pci-generic.c~update-mips-email-addresses
-+++ a/arch/mips/pci/pci-generic.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * pcibios_align_resource taken from arch/arm/kernel/bios32.c.
-  *
-diff -puN arch/mips/tools/generic-board-config.sh~update-mips-email-addresses arch/mips/tools/generic-board-config.sh
---- a/arch/mips/tools/generic-board-config.sh~update-mips-email-addresses
-+++ a/arch/mips/tools/generic-board-config.sh
-@@ -1,7 +1,7 @@
- #!/bin/sh
- #
- # Copyright (C) 2017 Imagination Technologies
--# Author: Paul Burton <paul.burton@imgtec.com>
-+# Author: Paul Burton <paul.burton@mips.com>
- #
- # This program is free software; you can redistribute it and/or modify it
- # under the terms of the GNU General Public License as published by the
-diff -puN Documentation/ABI/testing/sysfs-class-remoteproc~update-mips-email-addresses Documentation/ABI/testing/sysfs-class-remoteproc
---- a/Documentation/ABI/testing/sysfs-class-remoteproc~update-mips-email-addresses
-+++ a/Documentation/ABI/testing/sysfs-class-remoteproc
-@@ -1,6 +1,6 @@
- What:		/sys/class/remoteproc/.../firmware
- Date:		October 2016
--Contact:	Matt Redfearn <matt.redfearn@imgtec.com>
-+Contact:	Matt Redfearn <matt.redfearn@mips.com>
- Description:	Remote processor firmware
+diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures-v2-fix lib/bug.c
+--- a/lib/bug.c~support-resetting-warn_once-for-all-architectures-v2-fix
++++ a/lib/bug.c
+@@ -206,9 +206,9 @@ static void clear_once_table(struct bug_
  
- 		Reports the name of the firmware currently loaded to the
-@@ -11,7 +11,7 @@ Description:	Remote processor firmware
+ void generic_bug_clear_once(void)
+ {
++#ifdef CONFIG_MODULES
+ 	struct module *mod;
  
- What:		/sys/class/remoteproc/.../state
- Date:		October 2016
--Contact:	Matt Redfearn <matt.redfearn@imgtec.com>
-+Contact:	Matt Redfearn <matt.redfearn@mips.com>
- Description:	Remote processor state
- 
- 		Reports the state of the remote processor, which will be one of:
-diff -puN drivers/auxdisplay/img-ascii-lcd.c~update-mips-email-addresses drivers/auxdisplay/img-ascii-lcd.c
---- a/drivers/auxdisplay/img-ascii-lcd.c~update-mips-email-addresses
-+++ a/drivers/auxdisplay/img-ascii-lcd.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN drivers/clk/imgtec/clk-boston.c~update-mips-email-addresses drivers/clk/imgtec/clk-boston.c
---- a/drivers/clk/imgtec/clk-boston.c~update-mips-email-addresses
-+++ a/drivers/clk/imgtec/clk-boston.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016-2017 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN drivers/clk/ingenic/cgu.c~update-mips-email-addresses drivers/clk/ingenic/cgu.c
---- a/drivers/clk/ingenic/cgu.c~update-mips-email-addresses
-+++ a/drivers/clk/ingenic/cgu.c
-@@ -2,7 +2,7 @@
-  * Ingenic SoC CGU driver
-  *
-  * Copyright (c) 2013-2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-diff -puN drivers/clk/ingenic/cgu.h~update-mips-email-addresses drivers/clk/ingenic/cgu.h
---- a/drivers/clk/ingenic/cgu.h~update-mips-email-addresses
-+++ a/drivers/clk/ingenic/cgu.h
-@@ -2,7 +2,7 @@
-  * Ingenic SoC CGU driver
-  *
-  * Copyright (c) 2013-2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-diff -puN drivers/clk/ingenic/jz4740-cgu.c~update-mips-email-addresses drivers/clk/ingenic/jz4740-cgu.c
---- a/drivers/clk/ingenic/jz4740-cgu.c~update-mips-email-addresses
-+++ a/drivers/clk/ingenic/jz4740-cgu.c
-@@ -2,7 +2,7 @@
-  * Ingenic JZ4740 SoC CGU driver
-  *
-  * Copyright (c) 2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-diff -puN drivers/clk/ingenic/jz4780-cgu.c~update-mips-email-addresses drivers/clk/ingenic/jz4780-cgu.c
---- a/drivers/clk/ingenic/jz4780-cgu.c~update-mips-email-addresses
-+++ a/drivers/clk/ingenic/jz4780-cgu.c
-@@ -2,7 +2,7 @@
-  * Ingenic JZ4780 SoC CGU driver
-  *
-  * Copyright (c) 2013-2015 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-diff -puN drivers/cpuidle/cpuidle-cps.c~update-mips-email-addresses drivers/cpuidle/cpuidle-cps.c
---- a/drivers/cpuidle/cpuidle-cps.c~update-mips-email-addresses
-+++ a/drivers/cpuidle/cpuidle-cps.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2014 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-diff -puN drivers/power/reset/piix4-poweroff.c~update-mips-email-addresses drivers/power/reset/piix4-poweroff.c
---- a/drivers/power/reset/piix4-poweroff.c~update-mips-email-addresses
-+++ a/drivers/power/reset/piix4-poweroff.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2016 Imagination Technologies
-- * Author: Paul Burton <paul.burton@imgtec.com>
-+ * Author: Paul Burton <paul.burton@mips.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-@@ -109,5 +109,5 @@ static struct pci_driver piix4_poweroff_
- };
- 
- module_pci_driver(piix4_poweroff_driver);
--MODULE_AUTHOR("Paul Burton <paul.burton@imgtec.com>");
-+MODULE_AUTHOR("Paul Burton <paul.burton@mips.com>");
- MODULE_LICENSE("GPL");
-diff -puN .mailmap~update-mips-email-addresses .mailmap
---- a/.mailmap~update-mips-email-addresses
-+++ a/.mailmap
-@@ -43,6 +43,7 @@ Corey Minyard <minyard@acm.org>
- Damian Hobson-Garcia <dhobsong@igel.co.jp>
- David Brownell <david-b@pacbell.net>
- David Woodhouse <dwmw2@shinybook.infradead.org>
-+Deng-Cheng Zhu <dengcheng.zhu@mips.com> <dengcheng.zhu@imgtec.com>
- Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
- Domen Puncer <domen@coderock.org>
- Douglas Gilbert <dougg@torque.net>
-@@ -114,6 +115,7 @@ Mauro Carvalho Chehab <mchehab@kernel.or
- Matt Ranostay <mranostay@gmail.com> Matthew Ranostay <mranostay@embeddedalley.com>
- Matt Ranostay <mranostay@gmail.com> <matt.ranostay@intel.com>
- Matt Ranostay <matt.ranostay@konsulko.com> <matt@ranostay.consulting>
-+Matt Redfearn <matt.redfearn@mips.com> <matt.redfearn@imgtec.com>
- Mayuresh Janorkar <mayur@ti.com>
- Michael Buesch <m@bues.ch>
- Michel Dänzer <michel@tungstengraphics.com>
-@@ -127,6 +129,7 @@ Mythri P K <mythripk@ti.com>
- Nguyen Anh Quynh <aquynh@gmail.com>
- Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
- Patrick Mochel <mochel@digitalimplant.org>
-+Paul Burton <paul.burton@mips.com> <paul.burton@imgtec.com>
- Peter A Jonsson <pj@ludd.ltu.se>
- Peter Oruba <peter@oruba.de>
- Peter Oruba <peter.oruba@amd.com>
-diff -puN MAINTAINERS~update-mips-email-addresses MAINTAINERS
---- a/MAINTAINERS~update-mips-email-addresses
-+++ a/MAINTAINERS
-@@ -6733,7 +6733,7 @@ S:	Maintained
- F:	drivers/usb/atm/ueagle-atm.c
- 
- IMGTEC ASCII LCD DRIVER
--M:	Paul Burton <paul.burton@imgtec.com>
-+M:	Paul Burton <paul.burton@mips.com>
- S:	Maintained
- F:	Documentation/devicetree/bindings/auxdisplay/img-ascii-lcd.txt
- F:	drivers/auxdisplay/img-ascii-lcd.c
-@@ -8993,7 +8993,7 @@ F:	Documentation/mips/
- F:	arch/mips/
- 
- MIPS BOSTON DEVELOPMENT BOARD
--M:	Paul Burton <paul.burton@imgtec.com>
-+M:	Paul Burton <paul.burton@mips.com>
- L:	linux-mips@linux-mips.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/clock/img,boston-clock.txt
-@@ -9003,7 +9003,7 @@ F:	drivers/clk/imgtec/clk-boston.c
- F:	include/dt-bindings/clock/boston-clock.h
- 
- MIPS GENERIC PLATFORM
--M:	Paul Burton <paul.burton@imgtec.com>
-+M:	Paul Burton <paul.burton@mips.com>
- L:	linux-mips@linux-mips.org
- S:	Supported
- F:	arch/mips/generic/
+-#ifdef CONFIG_MODULES
+ 	rcu_read_lock_sched();
+ 	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
+ 		clear_once_table(mod->bug_table,
 _
 
-Patches currently in -mm which might be from paul.burton@mips.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-update-mips-email-addresses.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-deferred_init_memmap-improvements-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures-v2-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
