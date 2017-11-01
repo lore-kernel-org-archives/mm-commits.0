@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + support-resetting-warn_once-for-all-architectures-v2-fix.patch
- added to -mm tree
-Date: Tue, 31 Oct 2017 16:26:29 -0700
-Message-ID: <59f906a5.eB5TZx6VEHOwlZuM%akpm@linux-foundation.org>
+Subject: + scripts-warn-about-invalid-maintainers-patterns.patch added to
+ -mm tree
+Date: Wed, 01 Nov 2017 12:01:58 -0700
+Message-ID: <59fa1a26.ZP3BCmzm64SZkqa6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753486AbdJaX0a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2017 19:26:30 -0400
+        with ESMTP id S932209AbdKATCA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2017 15:02:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: tom.saeger@oracle.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: support-resetting-warn_once-for-all-architectures-v2-fix
+     Subject: get_maintainer: add --self-test for internal consistency tests
 has been added to the -mm tree.  Its filename is
-     support-resetting-warn_once-for-all-architectures-v2-fix.patch
+     scripts-warn-about-invalid-maintainers-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/support-resetting-warn_once-for-all-architectures-v2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-warn-about-invalid-maintainers-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/support-resetting-warn_once-for-all-architectures-v2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-warn-about-invalid-maintainers-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,225 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: support-resetting-warn_once-for-all-architectures-v2-fix
+From: Tom Saeger <tom.saeger@oracle.com>
+Subject: get_maintainer: add --self-test for internal consistency tests
 
-fix unused var warning
+Add "--self-test" option to get_maintainer.pl to show potential
+issues in MAINTAINERS file(s) content.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Pattern check warnings are shown for "F" and "X" patterns found in
+MAINTAINERS file(s) which do not match any files known by git.
+
+Link: http://lkml.kernel.org/r/64994f911b3510d0f4c8ac2e113501dfcec1f3c9.1509559540.git.tom.saeger@oracle.com
+Signed-off-by: Tom Saeger <tom.saeger@oracle.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   96 +++++++++++++++++++++++++++++-------
+ 1 file changed, 78 insertions(+), 18 deletions(-)
 
-diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures-v2-fix lib/bug.c
---- a/lib/bug.c~support-resetting-warn_once-for-all-architectures-v2-fix
-+++ a/lib/bug.c
-@@ -206,9 +206,9 @@ static void clear_once_table(struct bug_
+diff -puN scripts/get_maintainer.pl~scripts-warn-about-invalid-maintainers-patterns scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-warn-about-invalid-maintainers-patterns
++++ a/scripts/get_maintainer.pl
+@@ -57,6 +57,7 @@ my $sections = 0;
+ my $file_emails = 0;
+ my $from_filename = 0;
+ my $pattern_depth = 0;
++my $self_test = 0;
+ my $version = 0;
+ my $help = 0;
+ my $find_maintainer_files = 0;
+@@ -138,6 +139,7 @@ my %VCS_cmds_git = (
+     "subject_pattern" => "^GitSubject: (.*)",
+     "stat_pattern" => "^(\\d+)\\t(\\d+)\\t\$file\$",
+     "file_exists_cmd" => "git ls-files \$file",
++    "list_files_cmd" => "git ls-files \$file",
+ );
  
- void generic_bug_clear_once(void)
- {
-+#ifdef CONFIG_MODULES
- 	struct module *mod;
+ my %VCS_cmds_hg = (
+@@ -167,6 +169,7 @@ my %VCS_cmds_hg = (
+     "subject_pattern" => "^HgSubject: (.*)",
+     "stat_pattern" => "^(\\d+)\t(\\d+)\t\$file\$",
+     "file_exists_cmd" => "hg files \$file",
++    "list_files_cmd" => "hg manifest -R \$file",
+ );
  
--#ifdef CONFIG_MODULES
- 	rcu_read_lock_sched();
- 	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
- 		clear_once_table(mod->bug_table,
+ my $conf = which_conf(".get_maintainer.conf");
+@@ -216,6 +219,14 @@ if (-f $ignore_file) {
+     close($ignore);
+ }
+ 
++if ($#ARGV > 0) {
++    foreach (@ARGV) {
++        if ($_ eq "-self-test" || $_ eq "--self-test") {
++            die "$P: using --self-test does not allow any other option or argument\n";
++        }
++    }
++}
++
+ if (!GetOptions(
+ 		'email!' => \$email,
+ 		'git!' => \$email_git,
+@@ -252,6 +263,7 @@ if (!GetOptions(
+ 		'fe|file-emails!' => \$file_emails,
+ 		'f|file' => \$from_filename,
+ 		'find-maintainer-files' => \$find_maintainer_files,
++		'self-test' => \$self_test,
+ 		'v|version' => \$version,
+ 		'h|help|usage' => \$help,
+ 		)) {
+@@ -268,6 +280,12 @@ if ($version != 0) {
+     exit 0;
+ }
+ 
++if ($self_test) {
++    read_all_maintainer_files();
++    check_maintainers_patterns();
++    exit 0;
++}
++
+ if (-t STDIN && !@ARGV) {
+     # We're talking to a terminal, but have no command line arguments.
+     die "$P: missing patchfile or -f file - use --help if necessary\n";
+@@ -311,12 +329,14 @@ if (!top_of_kernel_tree($lk_path)) {
+ my @typevalue = ();
+ my %keyword_hash;
+ my @mfiles = ();
++my @self_test_pattern_info = ();
+ 
+ sub read_maintainer_file {
+     my ($file) = @_;
+ 
+     open (my $maint, '<', "$file")
+ 	or die "$P: Can't open MAINTAINERS file '$file': $!\n";
++    my $i = 1;
+     while (<$maint>) {
+ 	my $line = $_;
+ 
+@@ -333,6 +353,9 @@ sub read_maintainer_file {
+ 		if ((-d $value)) {
+ 		    $value =~ s@([^/])$@$1/@;
+ 		}
++		if ($self_test) {
++			push(@self_test_pattern_info, {file=>$file, line=>$line, linenr=>$i, pat=>$value});
++		}
+ 	    } elsif ($type eq "K") {
+ 		$keyword_hash{@typevalue} = $value;
+ 	    }
+@@ -341,6 +364,7 @@ sub read_maintainer_file {
+ 	    $line =~ s/\n$//g;
+ 	    push(@typevalue, $line);
+ 	}
++	$i++;
+     }
+     close($maint);
+ }
+@@ -357,26 +381,30 @@ sub find_ignore_git {
+     return grep { $_ !~ /^\.git$/; } @_;
+ }
+ 
+-if (-d "${lk_path}MAINTAINERS") {
+-    opendir(DIR, "${lk_path}MAINTAINERS") or die $!;
+-    my @files = readdir(DIR);
+-    closedir(DIR);
+-    foreach my $file (@files) {
+-	push(@mfiles, "${lk_path}MAINTAINERS/$file") if ($file !~ /^\./);
+-    }
+-}
++read_all_maintainer_files();
+ 
+-if ($find_maintainer_files) {
+-    find( { wanted => \&find_is_maintainer_file,
+-	    preprocess => \&find_ignore_git,
+-	    no_chdir => 1,
+-	}, "${lk_path}");
+-} else {
+-    push(@mfiles, "${lk_path}MAINTAINERS") if -f "${lk_path}MAINTAINERS";
+-}
++sub read_all_maintainer_files {
++    if (-d "${lk_path}MAINTAINERS") {
++        opendir(DIR, "${lk_path}MAINTAINERS") or die $!;
++        my @files = readdir(DIR);
++        closedir(DIR);
++        foreach my $file (@files) {
++            push(@mfiles, "${lk_path}MAINTAINERS/$file") if ($file !~ /^\./);
++        }
++    }
++
++    if ($find_maintainer_files) {
++        find( { wanted => \&find_is_maintainer_file,
++                preprocess => \&find_ignore_git,
++                no_chdir => 1,
++        }, "${lk_path}");
++    } else {
++        push(@mfiles, "${lk_path}MAINTAINERS") if -f "${lk_path}MAINTAINERS";
++    }
+ 
+-foreach my $file (@mfiles) {
+-    read_maintainer_file("$file");
++    foreach my $file (@mfiles) {
++        read_maintainer_file("$file");
++    }
+ }
+ 
+ #
+@@ -586,6 +614,20 @@ if ($web) {
+ 
+ exit($exit);
+ 
++sub check_maintainers_patterns {
++    my @lsfiles = ();
++
++    @lsfiles = vcs_list_files($lk_path);
++
++    for my $x (@self_test_pattern_info) {
++        if (!grep(m@^$x->{pat}@, @lsfiles)) {
++            my $line = $x->{line};
++            chomp($line);
++            print("$x->{file}:$x->{linenr}: warning: no matches $line\n");
++        }
++    }
++}
++
+ sub ignore_email_address {
+     my ($address) = @_;
+ 
+@@ -863,6 +905,7 @@ Other options:
+   --sections => print all of the subsystem sections with pattern matches
+   --letters => print all matching 'letter' types from all matching sections
+   --mailmap => use .mailmap file (default: $email_use_mailmap)
++  --self-test => show potential issues with MAINTAINERS file content
+   --version => show version
+   --help => show this help information
+ 
+@@ -2192,6 +2235,23 @@ sub vcs_file_exists {
+     return $exists;
+ }
+ 
++sub vcs_list_files {
++    my ($file) = @_;
++
++    my @lsfiles = ();
++
++    my $vcs_used = vcs_exists();
++    return 0 if (!$vcs_used);
++
++    my $cmd = $VCS_cmds{"list_files_cmd"};
++    $cmd =~ s/(\$\w+)/$1/eeg;   # interpolate $cmd
++    @lsfiles = &{$VCS_cmds{"execute_cmd"}}($cmd);
++
++    return () if ($? != 0);
++
++    return @lsfiles;
++}
++
+ sub uniq {
+     my (@parms) = @_;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tom.saeger@oracle.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-f2fs-simplify-page-iteration-loops-fix.patch
-mm-deferred_init_memmap-improvements-fix.patch
-mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
-mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
-support-resetting-warn_once-checkpatch-fixes.patch
-support-resetting-warn_once-for-all-architectures-v2-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+scripts-warn-about-invalid-maintainers-patterns.patch
 
