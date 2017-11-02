@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch added to -mm tree
-Date: Thu, 02 Nov 2017 14:14:36 -0700
-Message-ID: <59fb8abc.aXTnq1y/kMz2ZMUF%akpm@linux-foundation.org>
+Subject: + mm-dont-warn-about-allocations-which-stall-for-too-long.patch
+ added to -mm tree
+Date: Thu, 02 Nov 2017 14:18:31 -0700
+Message-ID: <59fb8ba7.UdLRlMo6pSD863Cc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36402 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934407AbdKBVOz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 17:14:55 -0400
+        with ESMTP id S964914AbdKBVSd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 17:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, arbab@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, pmladek@suse.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, xiyou.wangcong@gmail.com, yuwang.yuwang@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: distinguish CMA and MOVABLE isolation in has_unmovable_pages()
+     Subject: mm: don't warn about allocations which stall for too long
 has been added to the -mm tree.  Its filename is
-     mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
+     mm-dont-warn-about-allocations-which-stall-for-too-long.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-warn-about-allocations-which-stall-for-too-long.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-warn-about-allocations-which-stall-for-too-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,152 +39,170 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: distinguish CMA and MOVABLE isolation in has_unmovable_pages()
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm: don't warn about allocations which stall for too long
 
-Joonsoo has noticed that "mm: drop migrate type checks from
-has_unmovable_pages" would break CMA allocator because it relies on
-has_unmovable_pages returning false even for CMA pageblocks which in fact
-don't have to be movable:
+63f53dea0c9866e9 ("mm: warn about allocations which stall for too long")
+was a great step for reducing possibility of silent hang up problem caused
+by memory allocation stalls.  But this commit reverts it, for it is
+possible to trigger OOM lockup and/or soft lockups when many threads
+concurrently called warn_alloc() (in order to warn about memory allocation
+stalls) due to current implementation of printk(), and it is difficult to
+obtain useful information due to limitation of synchronous warning
+approach.
 
-alloc_contig_range
-  start_isolate_page_range
-    set_migratetype_isolate
-      has_unmovable_pages
+Current printk() implementation flushes all pending logs using the context
+of a thread which called console_unlock(). printk() should be able to flush
+all pending logs eventually unless somebody continues appending to printk()
+buffer.
 
-This is a result of the code sharing between CMA and memory hotplug while
-each one has a different idea of what has_unmovable_pages should return. 
-This is unfortunate but fixing it properly would require a lot of code
-duplication.
+Since warn_alloc() started appending to printk() buffer while waiting for
+oom_kill_process() to make forward progress when oom_kill_process() is
+processing pending logs, it became possible for warn_alloc() to force
+oom_kill_process() loop inside printk(). As a result, warn_alloc()
+significantly increased possibility of preventing oom_kill_process() from
+making forward progress.
 
-Fix the issue by introducing the requested migrate type argument and
-special case MIGRATE_CMA case where CMA page blocks are handled properly. 
-This will work for memory hotplug because it requires MIGRATE_MOVABLE.
+---------- Pseudo code start ----------
+Before warn_alloc() was introduced:
 
-Link: http://lkml.kernel.org/r/20171019122118.y6cndierwl2vnguj@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+  retry:
+    if (mutex_trylock(&oom_lock)) {
+      while (atomic_read(&printk_pending_logs) > 0) {
+        atomic_dec(&printk_pending_logs);
+        print_one_log();
+      }
+      // Send SIGKILL here.
+      mutex_unlock(&oom_lock)
+    }
+    goto retry;
+
+After warn_alloc() was introduced:
+
+  retry:
+    if (mutex_trylock(&oom_lock)) {
+      while (atomic_read(&printk_pending_logs) > 0) {
+        atomic_dec(&printk_pending_logs);
+        print_one_log();
+      }
+      // Send SIGKILL here.
+      mutex_unlock(&oom_lock)
+    } else if (waited_for_10seconds()) {
+      atomic_inc(&printk_pending_logs);
+    }
+    goto retry;
+---------- Pseudo code end ----------
+
+Although waited_for_10seconds() becomes true once per 10 seconds, unbounded
+number of threads can call waited_for_10seconds() at the same time. Also,
+since threads doing waited_for_10seconds() keep doing almost busy loop, the
+thread doing print_one_log() can use little CPU resource. Therefore, this
+situation can be simplified like
+
+---------- Pseudo code start ----------
+  retry:
+    if (mutex_trylock(&oom_lock)) {
+      while (atomic_read(&printk_pending_logs) > 0) {
+        atomic_dec(&printk_pending_logs);
+        print_one_log();
+      }
+      // Send SIGKILL here.
+      mutex_unlock(&oom_lock)
+    } else {
+      atomic_inc(&printk_pending_logs);
+    }
+    goto retry;
+---------- Pseudo code end ----------
+
+when printk() is called faster than print_one_log() can process a log.
+
+One of possible mitigation would be to introduce a new lock in order to
+make sure that no other series of printk() (either oom_kill_process() or
+warn_alloc()) can append to printk() buffer when one series of printk()
+(either oom_kill_process() or warn_alloc()) is already in progress. Such
+serialization will also help obtaining kernel messages in readable form.
+
+---------- Pseudo code start ----------
+  retry:
+    if (mutex_trylock(&oom_lock)) {
+      mutex_lock(&oom_printk_lock);
+      while (atomic_read(&printk_pending_logs) > 0) {
+        atomic_dec(&printk_pending_logs);
+        print_one_log();
+      }
+      // Send SIGKILL here.
+      mutex_unlock(&oom_printk_lock);
+      mutex_unlock(&oom_lock)
+    } else {
+      if (mutex_trylock(&oom_printk_lock)) {
+        atomic_inc(&printk_pending_logs);
+        mutex_unlock(&oom_printk_lock);
+      }
+    }
+    goto retry;
+---------- Pseudo code end ----------
+
+But this commit does not go that direction, for we don't want to introduce
+a new lock dependency, and we unlikely be able to obtain useful
+information even if we serialized oom_kill_process() and warn_alloc().
+
+Synchronous approach is prone to unexpected results (e.g.  too late [1],
+too frequent [2], overlooked [3]).  As far as I know, warn_alloc() never
+helped with providing information other than "something is going wrong". 
+I want to consider asynchronous approach which can obtain information
+during stalls with possibly relevant threads (e.g.  the owner of oom_lock
+and kswapd-like threads) and serve as a trigger for actions (e.g.  turn
+on/off tracepoints, ask libvirt daemon to take a memory dump of stalling
+KVM guest for diagnostic purpose).
+
+This commit temporarily loses ability to report e.g.  OOM lockup due to
+unable to invoke the OOM killer due to !__GFP_FS allocation request.  But
+asynchronous approach will be able to detect such situation and emit
+warning.  Thus, let's remove warn_alloc().
+
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=192981
+[2] http://lkml.kernel.org/r/CAM_iQpWuPVGc2ky8M-9yukECtS+zKjiDasNymX7rMcBjBFyM_A@mail.gmail.com
+[3] commit db73ee0d46379922 ("mm, vmscan: do not loop on too_many_isolated for ever"))
+
+Link: http://lkml.kernel.org/r/1509017339-4802-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: Cong Wang <xiyou.wangcong@gmail.com>
+Reported-by: yuwang.yuwang <yuwang.yuwang@alibaba-inc.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |    2 +-
- mm/page_alloc.c                |   12 +++++++++++-
- mm/page_isolation.c            |   10 +++++-----
- 3 files changed, 17 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN include/linux/page-isolation.h~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages include/linux/page-isolation.h
---- a/include/linux/page-isolation.h~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages
-+++ a/include/linux/page-isolation.h
-@@ -31,7 +31,7 @@ static inline bool is_migrate_isolate(in
- #endif
- 
- bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
--			 bool skip_hwpoisoned_pages);
-+			 int migratetype, bool skip_hwpoisoned_pages);
- void set_pageblock_migratetype(struct page *page, int migratetype);
- int move_freepages_block(struct zone *zone, struct page *page,
- 				int migratetype, int *num_movable);
-diff -puN mm/page_alloc.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages
+diff -puN mm/page_alloc.c~mm-dont-warn-about-allocations-which-stall-for-too-long mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-warn-about-allocations-which-stall-for-too-long
 +++ a/mm/page_alloc.c
-@@ -7349,6 +7349,7 @@ void *__init alloc_large_system_hash(con
-  * race condition. So you can't expect this function should be exact.
-  */
- bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
-+			 int migratetype,
- 			 bool skip_hwpoisoned_pages)
- {
- 	unsigned long pfn, iter, found;
-@@ -7360,6 +7361,15 @@ bool has_unmovable_pages(struct zone *zo
- 	if (zone_idx(zone) == ZONE_MOVABLE)
- 		return false;
+@@ -3899,8 +3899,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	enum compact_result compact_result;
+ 	int compaction_retries;
+ 	int no_progress_loops;
+-	unsigned long alloc_start = jiffies;
+-	unsigned int stall_timeout = 10 * HZ;
+ 	unsigned int cpuset_mems_cookie;
+ 	int reserve_flags;
  
-+	/*
-+	 * CMA allocations (alloc_contig_range) really need to mark isolate
-+	 * CMA pageblocks even when they are not movable in fact so consider
-+	 * them movable here.
-+	 */
-+	if (is_migrate_cma(migratetype) &&
-+			is_migrate_cma(get_pageblock_migratetype(page)))
-+		return false;
-+
- 	pfn = page_to_pfn(page);
- 	for (found = 0, iter = 0; iter < pageblock_nr_pages; iter++) {
- 		unsigned long check = pfn + iter;
-@@ -7442,7 +7452,7 @@ bool is_pageblock_removable_nolock(struc
- 	if (!zone_spans_pfn(zone, pfn))
- 		return false;
+@@ -4032,14 +4030,6 @@ retry:
+ 	if (!can_direct_reclaim)
+ 		goto nopage;
  
--	return !has_unmovable_pages(zone, page, 0, true);
-+	return !has_unmovable_pages(zone, page, 0, MIGRATE_MOVABLE, true);
- }
- 
- #if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
-diff -puN mm/page_isolation.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages mm/page_isolation.c
---- a/mm/page_isolation.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages
-+++ a/mm/page_isolation.c
-@@ -15,7 +15,7 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/page_isolation.h>
- 
--static int set_migratetype_isolate(struct page *page,
-+static int set_migratetype_isolate(struct page *page, int migratetype,
- 				bool skip_hwpoisoned_pages)
- {
- 	struct zone *zone;
-@@ -52,7 +52,7 @@ static int set_migratetype_isolate(struc
- 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
- 	 * We just check MOVABLE pages.
- 	 */
--	if (!has_unmovable_pages(zone, page, arg.pages_found,
-+	if (!has_unmovable_pages(zone, page, arg.pages_found, migratetype,
- 				 skip_hwpoisoned_pages))
- 		ret = 0;
- 
-@@ -64,14 +64,14 @@ static int set_migratetype_isolate(struc
- out:
- 	if (!ret) {
- 		unsigned long nr_pages;
--		int migratetype = get_pageblock_migratetype(page);
-+		int mt = get_pageblock_migratetype(page);
- 
- 		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
- 		zone->nr_isolate_pageblock++;
- 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE,
- 									NULL);
- 
--		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
-+		__mod_zone_freepage_state(zone, -nr_pages, mt);
- 	}
- 
- 	spin_unlock_irqrestore(&zone->lock, flags);
-@@ -183,7 +183,7 @@ int start_isolate_page_range(unsigned lo
- 	     pfn += pageblock_nr_pages) {
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
- 		if (page &&
--		    set_migratetype_isolate(page, skip_hwpoisoned_pages)) {
-+		    set_migratetype_isolate(page, migratetype, skip_hwpoisoned_pages)) {
- 			undo_pfn = pfn;
- 			goto undo;
- 		}
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
-mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
-mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
-mm-memory_hotplug-do-not-fail-offlining-too-early.patch
-mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
-mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
-mm-arch-remove-empty_bad_page.patch
-
+-	/* Make sure we know about allocations which stall for too long */
+-	if (time_after(jiffies, alloc_start + stall_timeout)) {
+-		warn_alloc(gfp_mask & ~__GFP_NOWARN, ac->nodemask,
+-			"page allocation stalls for %ums, order:%u",
+-			jiffies_to_msecs(jiffies-alloc_start), order);
+-		stall_timeout += 10 * HZ;
+-	}
