@@ -1,55 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 6/7] mm/huge_memory.c: deposit page table when copying a
- PMD migration entry
-Date: Thu, 02 Nov 2017 15:59:47 -0700
-Message-ID: <59fba363.CaAD1QZ/UL9thChU%akpm@linux-foundation.org>
+Subject: [patch 5/7] initramfs: fix initramfs rebuilds w/ compression
+ after disabling
+Date: Thu, 02 Nov 2017 15:59:44 -0700
+Message-ID: <59fba360.a+p3xTf16CfNsNJN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48414 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934623AbdKBW7t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 18:59:49 -0400
+        with ESMTP id S934623AbdKBW7p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 18:59:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zi.yan@cs.rutgers.edu, fengguang.wu@intel.com, kirill.shutemov@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, f.fainelli@gmail.com, klondike@xiscosoft.net, npiggin@gmail.com
 
-From: Zi Yan <zi.yan@cs.rutgers.edu>
-Subject: mm/huge_memory.c: deposit page table when copying a PMD migration entry
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
 
-We need to deposit pre-allocated PTE page table when a PMD migration entry
-is copied in copy_huge_pmd().  Otherwise, we will leak the pre-allocated
-page and cause a NULL pointer dereference later in zap_huge_pmd().
+This is a follow-up to commit 57ddfdaa9a72 ("initramfs: fix disabling of
+initramfs (and its compression)").  This particular commit fixed the use
+case where we build the kernel with an initramfs with no compression, and
+then we build the kernel with no initramfs.
 
-The missing counters during PMD migration entry copy process are added as
-well.
+Now this still left us with the same case as described here:
+http://lkml.kernel.org/r/20170521033337.6197-1-f.fainelli@gmail.com not
+working with initramfs compression.  This can be seen by the following
+steps/timestamps:
 
-The bug report is here: https://lkml.org/lkml/2017/10/29/214
+https://www.spinics.net/lists/kernel/msg2598153.html
 
-Link: http://lkml.kernel.org/r/20171030144636.4836-1-zi.yan@sent.com
-Fixes: 84c3fc4e9c563 ("mm: thp: check pmd migration entry in common path")
-Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+.initramfs_data.cpio.gz.cmd is correct:
+
+cmd_usr/initramfs_data.cpio.gz := /bin/bash
+./scripts/gen_initramfs_list.sh -o usr/initramfs_data.cpio.gz  -u 1000
+-g 1000  /home/fainelli/work/uclinux-rootfs/romfs
+/home/fainelli/work/uclinux-rootfs/misc/initramfs.dev
+
+and was generated the first time we did generate the gzip initramfs, so
+the command has not changed, nor its arguments, so we just don't call it,
+no initramfs cpio is re-generated as a consequence.
+
+The fix for this problem is just to properly keep track of the
+.initramfs_cpio_data.d file by suffixing it with the compression
+extension.  This takes care of properly tracking dependencies such that
+the initramfs get (re)generated any time files are added/deleted etc.
+
+Link: http://lkml.kernel.org/r/20170930033936.6722-1-f.fainelli@gmail.com
+Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initramfs compression algorithm")
+Fixes: 9e3596b0c653 ("kbuild: initramfs cleanup, set target from Kconfig")
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: "Francisco Blas Izquierdo Riera (klondike)" <klondike@xiscosoft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +++
- 1 file changed, 3 insertions(+)
+ usr/Makefile |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-migration-deposit-page-table-when-copying-a-pmd-migration-entry mm/huge_memory.c
---- a/mm/huge_memory.c~mm-migration-deposit-page-table-when-copying-a-pmd-migration-entry
-+++ a/mm/huge_memory.c
-@@ -941,6 +941,9 @@ int copy_huge_pmd(struct mm_struct *dst_
- 				pmd = pmd_swp_mksoft_dirty(pmd);
- 			set_pmd_at(src_mm, addr, src_pmd, pmd);
- 		}
-+		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+		atomic_long_inc(&dst_mm->nr_ptes);
-+		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
- 		set_pmd_at(dst_mm, addr, dst_pmd, pmd);
- 		ret = 0;
- 		goto out_unlock;
+diff -puN usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling usr/Makefile
+--- a/usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling
++++ a/usr/Makefile
+@@ -8,6 +8,7 @@ PHONY += klibcdirs
+ 
+ suffix_y = $(subst $\",,$(CONFIG_INITRAMFS_COMPRESSION))
+ datafile_y = initramfs_data.cpio$(suffix_y)
++datafile_d_y = .$(datafile_y).d
+ AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/$(datafile_y)"
+ 
+ 
+@@ -30,12 +31,12 @@ ramfs-args  := \
+         $(if $(CONFIG_INITRAMFS_ROOT_UID), -u $(CONFIG_INITRAMFS_ROOT_UID)) \
+         $(if $(CONFIG_INITRAMFS_ROOT_GID), -g $(CONFIG_INITRAMFS_ROOT_GID))
+ 
+-# .initramfs_data.cpio.d is used to identify all files included
++# $(datafile_d_y) is used to identify all files included
+ # in initramfs and to detect if any files are added/removed.
+ # Removed files are identified by directory timestamp being updated
+ # The dependency list is generated by gen_initramfs.sh -l
+-ifneq ($(wildcard $(obj)/.initramfs_data.cpio.d),)
+-	include $(obj)/.initramfs_data.cpio.d
++ifneq ($(wildcard $(obj)/$(datafile_d_y)),)
++	include $(obj)/$(datafile_d_y)
+ endif
+ 
+ quiet_cmd_initfs = GEN     $@
+@@ -53,5 +54,5 @@ $(deps_initramfs): klibcdirs
+ # 3) If gen_init_cpio are newer than initramfs_data.cpio
+ # 4) arguments to gen_initramfs.sh changes
+ $(obj)/$(datafile_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
+-	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
++	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/$(datafile_d_y)
+ 	$(call if_changed,initfs)
 _
