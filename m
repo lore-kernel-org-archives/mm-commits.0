@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + iopoll-avoid-wint-in-bool-context-warning.patch added to -mm
- tree
-Date: Thu, 02 Nov 2017 13:41:33 -0700
-Message-ID: <59fb82fd.h58kRHPBNzs+otxX%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item.patch
+ added to -mm tree
+Date: Thu, 02 Nov 2017 13:42:59 -0700
+Message-ID: <59fb8353.bShhIuaWvb2oYNyT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46734 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934115AbdKBUle (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 16:41:34 -0400
+        with ESMTP id S934115AbdKBUnB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 16:43:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, broonie@kernel.org, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iopoll: avoid -Wint-in-bool-context warning
+     Subject: ocfs2/cluster: unlock the o2hb_live_lock before the o2nm_depend_item()
 has been added to the -mm tree.  Its filename is
-     iopoll-avoid-wint-in-bool-context-warning.patch
+     ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iopoll-avoid-wint-in-bool-context-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/iopoll-avoid-wint-in-bool-context-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +40,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: iopoll: avoid -Wint-in-bool-context warning
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2/cluster: unlock the o2hb_live_lock before the o2nm_depend_item()
 
-When we pass the result of a multiplication as the timeout or the delay,
-we can get a warning from gcc-7:
+In the following situation, the down_write() will be called under the
+spin_lock(), which may lead a soft lockup:
 
-drivers/mmc/host/bcm2835.c:596:149: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-drivers/mfd/arizona-core.c:247:195: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
-drivers/gpu/drm/sun4i/sun4i_hdmi_i2c.c:49:27: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+o2hb_region_inc_user
+ spin_lock(&o2hb_live_lock)
+  o2hb_region_pin
+   o2nm_depend_item
+    configfs_depend_item
+     inode_lock
+      down_write
+      -->here may sleep and reschedule
 
-The warning is a bit questionable inside of a macro, but this is
-intentional on the side of the gcc developers.  It is also an indication
-of another problem: we evaluate the timeout and sleep arguments multiple
-times, which can have undesired side-effects when those are complex
-expressions.
+So we should unlock the o2hb_live_lock before the o2nm_depend_item(), and
+get item reference in advance to prevent the region to be released.
 
-This changes the two iopoll variants to use local variables for storing
-copies of the timeouts.  This adds some more type safety, and avoids both
-the double-evaluation and the gcc warning.
-
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81484
-Link: http://lkml.kernel.org/r/20170726133756.2161367-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/20171102114048.1526955-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Mark Brown <broonie@kernel.org>
+Link: http://lkml.kernel.org/r/59FAB46C.9050703@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/iopoll.h |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/iopoll.h~iopoll-avoid-wint-in-bool-context-warning include/linux/iopoll.h
---- a/include/linux/iopoll.h~iopoll-avoid-wint-in-bool-context-warning
-+++ a/include/linux/iopoll.h
-@@ -42,18 +42,21 @@
-  */
- #define readx_poll_timeout(op, addr, val, cond, sleep_us, timeout_us)	\
- ({ \
--	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
--	might_sleep_if(sleep_us); \
-+	u64 __timeout_us = (timeout_us); \
-+	unsigned long __sleep_us = (sleep_us); \
-+	ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
-+	might_sleep_if((__sleep_us) != 0); \
- 	for (;;) { \
- 		(val) = op(addr); \
- 		if (cond) \
- 			break; \
--		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
-+		if (__timeout_us && \
-+		    ktime_compare(ktime_get(), __timeout) > 0) { \
- 			(val) = op(addr); \
- 			break; \
- 		} \
--		if (sleep_us) \
--			usleep_range((sleep_us >> 2) + 1, sleep_us); \
-+		if (__sleep_us) \
-+			usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
- 	} \
- 	(cond) ? 0 : -ETIMEDOUT; \
- })
-@@ -77,17 +80,20 @@
-  */
- #define readx_poll_timeout_atomic(op, addr, val, cond, delay_us, timeout_us) \
- ({ \
--	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
-+	u64 __timeout_us = (timeout_us); \
-+	unsigned long __delay_us = (delay_us); \
-+	ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
- 	for (;;) { \
- 		(val) = op(addr); \
- 		if (cond) \
- 			break; \
--		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
-+		if (__timeout_us && \
-+		    ktime_compare(ktime_get(), __timeout) > 0) { \
- 			(val) = op(addr); \
- 			break; \
- 		} \
--		if (delay_us) \
--			udelay(delay_us);	\
-+		if (__delay_us) \
-+			udelay(__delay_us);	\
- 	} \
- 	(cond) ? 0 : -ETIMEDOUT; \
- })
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -2399,8 +2399,15 @@ static int o2hb_region_pin(const char *r
+ 		if (reg->hr_item_pinned || reg->hr_item_dropped)
+ 			goto skip_pin;
+ 
++		config_item_get(&reg->hr_item);
++		spin_unlock(&o2hb_live_lock);
++
+ 		/* Ignore ENOENT only for local hb (userdlm domain) */
+ 		ret = o2nm_depend_item(&reg->hr_item);
++
++		config_item_put(&reg->hr_item);
++		spin_lock(&o2hb_live_lock);
++
+ 		if (!ret) {
+ 			mlog(ML_CLUSTER, "Pin region %s\n", uuid);
+ 			reg->hr_item_pinned = 1;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-iopoll-avoid-wint-in-bool-context-warning.patch
-initramfs-use-time64_t-timestamps.patch
-pcmcia-badge4-avoid-unused-function-warning.patch
+ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr.patch
+ocfs2-cluster-unlock-the-o2hb_live_lock-before-the-o2nm_depend_item.patch
+ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
 
