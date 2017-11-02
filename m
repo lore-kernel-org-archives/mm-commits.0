@@ -1,95 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-endianness-constraints.patch added to -mm tree
-Date: Wed, 01 Nov 2017 14:20:38 -0700
-Message-ID: <59fa3aa6.tAgaVSo02DZQvjpj%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Thu, 02 Nov 2017 12:42:44 -0700
+Message-ID: <20171102194244.xuWaJWpBn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41316 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42956 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933385AbdKAVUj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2017 17:20:39 -0400
+        with ESMTP id S934065AbdKBTmq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 15:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix endianness constraints
-has been added to the -mm tree.  Its filename is
-     m32r-fix-endianness-constraints.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m32r-fix-endianness-constraints.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-fix-endianness-constraints.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m32r: fix endianness constraints
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The m32r Kconfig provides both CPU_BIG_ENDIAN and CPU_LITTLE_ENDIAN
-configuration options.  As they are user-selectable and independent, this
-allows invalid configurations:
-
-  - All m32r defconfigs build a big endian kernel, but CPU_BIG_ENDIAN is
-    not set, causing compiler warnings like:
-
-	include/linux/byteorder/big_endian.h:7:2: warning: #warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN [-Wcpp]
-	 #warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
-	  ^
-
-  - Since commit 5bdfca6435b82944 ("m32r: define CPU_BIG_ENDIAN"),
-    building an allmodconfig or allyesconfig enables both
-    CONFIG_CPU_BIG_ENDIAN and CONFIG_CPU_LITTLE_ENDIAN.
-    While this did get rid of the warning above, both options are
-    obviously mutually exclusive.
-
-Fix this by making only CPU_LITTLE_ENDIAN configurable by the user, as
-before, and by making sure exactly one of CPU_BIG_ENDIAN and
-CPU_LITTLE_ENDIAN is always enabled.
-
-Link: http://lkml.kernel.org/r/1509361505-18150-1-git-send-email-geert@linux-m68k.org
-Fixes: 5bdfca6435b82944 ("m32r: define CPU_BIG_ENDIAN")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/process/index.rst               |    3 ---
+ drivers/gpu/drm/amd/scheduler/gpu_scheduler.c |    4 ----
+ drivers/gpu/drm/i915/i915_gem_evict.c         |   13 -------------
+ 3 files changed, 20 deletions(-)
 
-diff -puN arch/m32r/Kconfig~m32r-fix-endianness-constraints arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-fix-endianness-constraints
-+++ a/arch/m32r/Kconfig
-@@ -195,8 +195,8 @@ config TIMER_DIVIDE
- 	default "128"
+diff -puN Documentation/process/index.rst~linux-next-git-rejects Documentation/process/index.rst
+--- a/Documentation/process/index.rst~linux-next-git-rejects
++++ a/Documentation/process/index.rst
+@@ -25,11 +25,8 @@ Below are the essential guides that ever
+    submitting-patches
+    coding-style
+    email-clients
+-<<<<<<< HEAD
+    kernel-enforcement-statement
+-=======
+    kernel-driver-statement
+->>>>>>> linux-next/akpm-base
  
- config CPU_BIG_ENDIAN
--        bool "Generate big endian code"
--	default n
-+	bool
-+	default !CPU_LITTLE_ENDIAN
+ Other guides to the community that are of interest to most developers are: 
  
- config CPU_LITTLE_ENDIAN
-         bool "Generate little endian code"
+diff -puN drivers/gpu/drm/amd/scheduler/gpu_scheduler.c~linux-next-git-rejects drivers/gpu/drm/amd/scheduler/gpu_scheduler.c
+--- a/drivers/gpu/drm/amd/scheduler/gpu_scheduler.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/scheduler/gpu_scheduler.c
+@@ -215,9 +215,6 @@ void amd_sched_entity_fini(struct amd_gp
+ 	*/
+ 	wait_event(sched->job_scheduled, amd_sched_entity_is_idle(entity));
+ 
+-<<<<<<< HEAD
+-	amd_sched_rq_remove_entity(rq, entity);
+-=======
+ 		/* Park the kernel for a moment to make sure it isn't processing
+ 		 * our enity.
+ 		 */
+@@ -233,7 +230,6 @@ void amd_sched_entity_fini(struct amd_gp
+ 		}
+ 
+ 	}
+->>>>>>> linux-next/akpm-base
+ 	kfifo_free(&entity->job_queue);
+ }
+ 
+diff -puN drivers/gpu/drm/i915/i915_gem_evict.c~linux-next-git-rejects drivers/gpu/drm/i915/i915_gem_evict.c
+--- a/drivers/gpu/drm/i915/i915_gem_evict.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/i915_gem_evict.c
+@@ -33,13 +33,10 @@
+ #include "intel_drv.h"
+ #include "i915_trace.h"
+ 
+-<<<<<<< HEAD
+-=======
+ I915_SELFTEST_DECLARE(static struct igt_evict_ctl {
+ 	bool fail_if_busy:1;
+ } igt_evict_ctl;)
+ 
+->>>>>>> linux-next/akpm-base
+ static bool ggtt_is_idle(struct drm_i915_private *i915)
+ {
+        struct intel_engine_cs *engine;
+@@ -212,15 +209,6 @@ search_again:
+ 	 * the kernel's there is no more we can evict.
+ 	 */
+ 	if (!ggtt_is_idle(dev_priv)) {
+-<<<<<<< HEAD
+-		ret = ggtt_flush(dev_priv);
+-		if (ret)
+-			return ret;
+-
+-		goto search_again;
+-	}
+-
+-=======
+ 		if (I915_SELFTEST_ONLY(igt_evict_ctl.fail_if_busy))
+ 			return -EBUSY;
+ 
+@@ -231,7 +219,6 @@ search_again:
+ 		goto search_again;
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	/*
+ 	 * If we still have pending pageflip completions, drop
+ 	 * back to userspace to give our workqueues time to
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-m32r-fix-endianness-constraints.patch
-lib-add-module-support-to-string-tests.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-deferred_init_memmap-improvements-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures-v2-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
