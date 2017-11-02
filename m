@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-warn-about-allocations-which-stall-for-too-long.patch
- added to -mm tree
-Date: Thu, 02 Nov 2017 14:18:31 -0700
-Message-ID: <59fb8ba7.UdLRlMo6pSD863Cc%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch added to -mm tree
+Date: Thu, 02 Nov 2017 14:31:33 -0700
+Message-ID: <59fb8eb5.qhiVW5nskHx9sXAv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38250 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964914AbdKBVSd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 17:18:33 -0400
+        with ESMTP id S964829AbdKBVbe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 17:31:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, pmladek@suse.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, xiyou.wangcong@gmail.com, yuwang.yuwang@alibaba-inc.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't warn about allocations which stall for too long
+     Subject: ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2
 has been added to the -mm tree.  Its filename is
-     mm-dont-warn-about-allocations-which-stall-for-too-long.patch
+     ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-warn-about-allocations-which-stall-for-too-long.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-warn-about-allocations-which-stall-for-too-long.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,170 +39,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: don't warn about allocations which stall for too long
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2
 
-63f53dea0c9866e9 ("mm: warn about allocations which stall for too long")
-was a great step for reducing possibility of silent hang up problem caused
-by memory allocation stalls.  But this commit reverts it, for it is
-possible to trigger OOM lockup and/or soft lockups when many threads
-concurrently called warn_alloc() (in order to warn about memory allocation
-stalls) due to current implementation of printk(), and it is difficult to
-obtain useful information due to limitation of synchronous warning
-approach.
-
-Current printk() implementation flushes all pending logs using the context
-of a thread which called console_unlock(). printk() should be able to flush
-all pending logs eventually unless somebody continues appending to printk()
-buffer.
-
-Since warn_alloc() started appending to printk() buffer while waiting for
-oom_kill_process() to make forward progress when oom_kill_process() is
-processing pending logs, it became possible for warn_alloc() to force
-oom_kill_process() loop inside printk(). As a result, warn_alloc()
-significantly increased possibility of preventing oom_kill_process() from
-making forward progress.
-
----------- Pseudo code start ----------
-Before warn_alloc() was introduced:
-
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_lock)
-    }
-    goto retry;
-
-After warn_alloc() was introduced:
-
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_lock)
-    } else if (waited_for_10seconds()) {
-      atomic_inc(&printk_pending_logs);
-    }
-    goto retry;
----------- Pseudo code end ----------
-
-Although waited_for_10seconds() becomes true once per 10 seconds, unbounded
-number of threads can call waited_for_10seconds() at the same time. Also,
-since threads doing waited_for_10seconds() keep doing almost busy loop, the
-thread doing print_one_log() can use little CPU resource. Therefore, this
-situation can be simplified like
-
----------- Pseudo code start ----------
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_lock)
-    } else {
-      atomic_inc(&printk_pending_logs);
-    }
-    goto retry;
----------- Pseudo code end ----------
-
-when printk() is called faster than print_one_log() can process a log.
-
-One of possible mitigation would be to introduce a new lock in order to
-make sure that no other series of printk() (either oom_kill_process() or
-warn_alloc()) can append to printk() buffer when one series of printk()
-(either oom_kill_process() or warn_alloc()) is already in progress. Such
-serialization will also help obtaining kernel messages in readable form.
-
----------- Pseudo code start ----------
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      mutex_lock(&oom_printk_lock);
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_printk_lock);
-      mutex_unlock(&oom_lock)
-    } else {
-      if (mutex_trylock(&oom_printk_lock)) {
-        atomic_inc(&printk_pending_logs);
-        mutex_unlock(&oom_printk_lock);
-      }
-    }
-    goto retry;
----------- Pseudo code end ----------
-
-But this commit does not go that direction, for we don't want to introduce
-a new lock dependency, and we unlikely be able to obtain useful
-information even if we serialized oom_kill_process() and warn_alloc().
-
-Synchronous approach is prone to unexpected results (e.g.  too late [1],
-too frequent [2], overlooked [3]).  As far as I know, warn_alloc() never
-helped with providing information other than "something is going wrong". 
-I want to consider asynchronous approach which can obtain information
-during stalls with possibly relevant threads (e.g.  the owner of oom_lock
-and kswapd-like threads) and serve as a trigger for actions (e.g.  turn
-on/off tracepoints, ask libvirt daemon to take a memory dump of stalling
-KVM guest for diagnostic purpose).
-
-This commit temporarily loses ability to report e.g.  OOM lockup due to
-unable to invoke the OOM killer due to !__GFP_FS allocation request.  But
-asynchronous approach will be able to detect such situation and emit
-warning.  Thus, let's remove warn_alloc().
-
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=192981
-[2] http://lkml.kernel.org/r/CAM_iQpWuPVGc2ky8M-9yukECtS+zKjiDasNymX7rMcBjBFyM_A@mail.gmail.com
-[3] commit db73ee0d46379922 ("mm, vmscan: do not loop on too_many_isolated for ever"))
-
-Link: http://lkml.kernel.org/r/1509017339-4802-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: Cong Wang <xiyou.wangcong@gmail.com>
-Reported-by: yuwang.yuwang <yuwang.yuwang@alibaba-inc.com>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/59EEAA69.9080703@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ fs/ocfs2/cluster/nodemanager.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-dont-warn-about-allocations-which-stall-for-too-long mm/page_alloc.c
---- a/mm/page_alloc.c~mm-dont-warn-about-allocations-which-stall-for-too-long
-+++ a/mm/page_alloc.c
-@@ -3899,8 +3899,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	enum compact_result compact_result;
- 	int compaction_retries;
- 	int no_progress_loops;
--	unsigned long alloc_start = jiffies;
--	unsigned int stall_timeout = 10 * HZ;
- 	unsigned int cpuset_mems_cookie;
- 	int reserve_flags;
+diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2 fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -39,6 +39,7 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
+ 		"reset",	/* O2NM_FENCE_RESET */
+ 		"panic",	/* O2NM_FENCE_PANIC */
+ };
++
+ static inline void o2nm_lock_subsystem(void);
+ static inline void o2nm_unlock_subsystem(void);
  
-@@ -4032,14 +4030,6 @@ retry:
- 	if (!can_direct_reclaim)
- 		goto nopage;
+@@ -218,6 +219,7 @@ static ssize_t o2nm_node_num_store(struc
+ 	if (!test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes) ||
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
++
+ 	o2nm_lock_subsystem();
+ 	cluster = to_o2nm_cluster_from_node(node);
+ 	if (!cluster) {
+@@ -238,6 +240,7 @@ static ssize_t o2nm_node_num_store(struc
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
+ 	o2nm_unlock_subsystem();
++
+ 	if (ret)
+ 		return ret;
  
--	/* Make sure we know about allocations which stall for too long */
--	if (time_after(jiffies, alloc_start + stall_timeout)) {
--		warn_alloc(gfp_mask & ~__GFP_NOWARN, ac->nodemask,
--			"page allocation stalls for %ums, order:%u",
--			jiffies_to_msecs(jiffies-alloc_start), order);
--		stall_timeout += 10 * HZ;
--	}
+@@ -297,12 +300,14 @@ static ssize_t o2nm_node_ipv4_address_st
+ 			return -ERANGE;
+ 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
+ 	}
++
+ 	o2nm_lock_subsystem();
+ 	cluster = to_o2nm_cluster_from_node(node);
+ 	if (!cluster) {
+ 		o2nm_unlock_subsystem();
+ 		return -EINVAL;
+ 	}
++
+ 	ret = 0;
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
+@@ -316,6 +321,7 @@ static ssize_t o2nm_node_ipv4_address_st
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
+ 	o2nm_unlock_subsystem();
++
+ 	if (ret)
+ 		return ret;
+ 
+@@ -357,6 +363,7 @@ static ssize_t o2nm_node_local_store(str
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
++
+ 	/* the only failure case is trying to set a new local node
+ 	 * when a different one is already set */
+ 	if (tmp && tmp == cluster->cl_has_local &&
+@@ -364,6 +371,7 @@ static ssize_t o2nm_node_local_store(str
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
++
+ 	/* bring up the rx thread if we're setting the new local node. */
+ 	if (tmp && !cluster->cl_has_local) {
+ 		ret = o2net_start_listening(node);
+@@ -382,6 +390,7 @@ static ssize_t o2nm_node_local_store(str
+ 		cluster->cl_has_local = tmp;
+ 		cluster->cl_local_node = node->nd_num;
+ 	}
++
+ 	ret = count;
+ 
+ out:
+_
+
+Patches currently in -mm which might be from alex.chen@huawei.com are
+
+ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr.patch
+ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
+ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3.patch
+ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch
+
