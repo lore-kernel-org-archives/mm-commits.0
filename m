@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch added
- to -mm tree
-Date: Thu, 02 Nov 2017 13:40:23 -0700
-Message-ID: <59fb82b7.twl2tKSbgQgQaALn%akpm@linux-foundation.org>
+Subject: + iopoll-avoid-wint-in-bool-context-warning.patch added to -mm
+ tree
+Date: Thu, 02 Nov 2017 13:41:33 -0700
+Message-ID: <59fb82fd.h58kRHPBNzs+otxX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44464 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964781AbdKBUkk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 16:40:40 -0400
+        with ESMTP id S934115AbdKBUle (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 16:41:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: remove unneeded pageblock_skip_persistent() checks
+     Subject: iopoll: avoid -Wint-in-bool-context warning
 has been added to the -mm tree.  Its filename is
-     mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch
+     iopoll-avoid-wint-in-bool-context-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iopoll-avoid-wint-in-bool-context-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/iopoll-avoid-wint-in-bool-context-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: remove unneeded pageblock_skip_persistent() checks
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: iopoll: avoid -Wint-in-bool-context warning
 
-f3c931633a59 ("mm, compaction: persistently skip hugetlbfs pageblocks")
-has introduced pageblock_skip_persistent() checks into migration and free
-scanners, to make sure pageblocks that should be persistently skipped are
-marked as such, regardless of the ignore_skip_hint flag.
+When we pass the result of a multiplication as the timeout or the delay,
+we can get a warning from gcc-7:
 
-Since the previous patch introduced a new no_set_skip_hint flag, the
-ignore flag no longer prevents marking pageblocks as skipped.  Therefore
-we can remove the special cases.  The relevant pageblocks will be marked
-as skipped by the common logic which marks each pageblock where no page
-could be isolated.  This makes the code simpler.
+drivers/mmc/host/bcm2835.c:596:149: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/mfd/arizona-core.c:247:195: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/gpu/drm/sun4i/sun4i_hdmi_i2c.c:49:27: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
 
-Link: http://lkml.kernel.org/r/20171102121706.21504-3-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+The warning is a bit questionable inside of a macro, but this is
+intentional on the side of the gcc developers.  It is also an indication
+of another problem: we evaluate the timeout and sleep arguments multiple
+times, which can have undesired side-effects when those are complex
+expressions.
+
+This changes the two iopoll variants to use local variables for storing
+copies of the timeouts.  This adds some more type safety, and avoids both
+the double-evaluation and the gcc warning.
+
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81484
+Link: http://lkml.kernel.org/r/20170726133756.2161367-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20171102114048.1526955-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ include/linux/iopoll.h |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-remove-unneeded-pageblock_skip_persistent-checks mm/compaction.c
---- a/mm/compaction.c~mm-compaction-remove-unneeded-pageblock_skip_persistent-checks
-+++ a/mm/compaction.c
-@@ -476,10 +476,7 @@ static unsigned long isolate_freepages_b
- 		if (PageCompound(page)) {
- 			const unsigned int order = compound_order(page);
- 
--			if (pageblock_skip_persistent(page, order)) {
--				set_pageblock_skip(page);
--				blockpfn = end_pfn;
--			} else if (likely(order < MAX_ORDER)) {
-+			if (likely(order < MAX_ORDER)) {
- 				blockpfn += (1UL << order) - 1;
- 				cursor += (1UL << order) - 1;
- 			}
-@@ -801,10 +798,7 @@ isolate_migratepages_block(struct compac
- 		if (PageCompound(page)) {
- 			const unsigned int order = compound_order(page);
- 
--			if (pageblock_skip_persistent(page, order)) {
--				set_pageblock_skip(page);
--				low_pfn = end_pfn;
--			} else if (likely(order < MAX_ORDER))
-+			if (likely(order < MAX_ORDER))
- 				low_pfn += (1UL << order) - 1;
- 			goto isolate_fail;
- 		}
-@@ -867,13 +861,7 @@ isolate_migratepages_block(struct compac
- 			 * is safe to read and it's 0 for tail pages.
- 			 */
- 			if (unlikely(PageCompound(page))) {
--				const unsigned int order = compound_order(page);
+diff -puN include/linux/iopoll.h~iopoll-avoid-wint-in-bool-context-warning include/linux/iopoll.h
+--- a/include/linux/iopoll.h~iopoll-avoid-wint-in-bool-context-warning
++++ a/include/linux/iopoll.h
+@@ -42,18 +42,21 @@
+  */
+ #define readx_poll_timeout(op, addr, val, cond, sleep_us, timeout_us)	\
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+-	might_sleep_if(sleep_us); \
++	u64 __timeout_us = (timeout_us); \
++	unsigned long __sleep_us = (sleep_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
++	might_sleep_if((__sleep_us) != 0); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if (__timeout_us && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+-		if (sleep_us) \
+-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
++		if (__sleep_us) \
++			usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
+ 	} \
+ 	(cond) ? 0 : -ETIMEDOUT; \
+ })
+@@ -77,17 +80,20 @@
+  */
+ #define readx_poll_timeout_atomic(op, addr, val, cond, delay_us, timeout_us) \
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
++	u64 __timeout_us = (timeout_us); \
++	unsigned long __delay_us = (delay_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if (__timeout_us && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+-		if (delay_us) \
+-			udelay(delay_us);	\
++		if (__delay_us) \
++			udelay(__delay_us);	\
+ 	} \
+ 	(cond) ? 0 : -ETIMEDOUT; \
+ })
+_
+
+Patches currently in -mm which might be from arnd@arndb.de are
+
+iopoll-avoid-wint-in-bool-context-warning.patch
+initramfs-use-time64_t-timestamps.patch
+pcmcia-badge4-avoid-unused-function-warning.patch
+
