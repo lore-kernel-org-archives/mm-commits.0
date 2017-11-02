@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slab-slub-slob-convert-slab_flags_t-to-32-bit.patch added to
- -mm tree
-Date: Thu, 02 Nov 2017 14:42:54 -0700
-Message-ID: <59fb915e.AFBhdJzGmBt98j5I%akpm@linux-foundation.org>
+Subject: + mm-broken-deferred-calculation.patch added to -mm tree
+Date: Thu, 02 Nov 2017 14:48:23 -0700
+Message-ID: <59fb92a7.RQSD3UPaM2udh0ib%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40574 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934115AbdKBVmz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 17:42:55 -0400
+        with ESMTP id S1751830AbdKBVsY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 17:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: pasha.tatashin@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab, slub, slob: convert slab_flags_t to 32-bit
+     Subject: mm/page_alloc.c: broken deferred calculation
 has been added to the -mm tree.  Its filename is
-     slab-slub-slob-convert-slab_flags_t-to-32-bit.patch
+     mm-broken-deferred-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-slub-slob-convert-slab_flags_t-to-32-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-broken-deferred-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-slub-slob-convert-slab_flags_t-to-32-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-broken-deferred-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,180 +38,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: slab, slub, slob: convert slab_flags_t to 32-bit
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm/page_alloc.c: broken deferred calculation
 
-struct kmem_cache::flags is "unsigned long" which is unnecessary on 64-bit
-as no flags are defined in the higher bits.
+In reset_deferred_meminit() we determine number of pages that must not be
+deferred.  We initialize pages for at least 2G of memory, but also pages
+for reserved memory in this node.
 
-Switch the field to 32-bit and save some space on x86_64 until such flags
-appear:
+The reserved memory is determined in this function:
+memblock_reserved_memory_within(), which operates over physical addresses,
+and returns size in bytes.  However, reset_deferred_meminit() assumes that
+that this function operates with pfns, and returns page count.
 
-	add/remove: 0/0 grow/shrink: 0/107 up/down: 0/-657 (-657)
-	function                                     old     new   delta
-	sysfs_slab_add                               720     719      -1
-				...
-	check_object                                 699     676     -23
+The result is that in the best case machine boots slower than expected due
+to initializing more pages than needed in single thread, and in the worst
+case panics because fewer than needed pages are initialized early.
 
-Link: http://lkml.kernel.org/r/20171021100635.GA8287@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20171021011707.15191-1-pasha.tatashin@oracle.com
+Fixes: 864b9a393dcb ("mm: consider memblock reservations for deferred memory initialization sizing")
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h  |   44 ++++++++++++++++++++--------------------
- include/linux/types.h |    2 -
- mm/slab.c             |    4 +--
- mm/slub.c             |    4 +--
- 4 files changed, 27 insertions(+), 27 deletions(-)
+ include/linux/mmzone.h |    3 ++-
+ mm/page_alloc.c        |   27 ++++++++++++++++++---------
+ 2 files changed, 20 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/slab.h~slab-slub-slob-convert-slab_flags_t-to-32-bit include/linux/slab.h
---- a/include/linux/slab.h~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/include/linux/slab.h
-@@ -22,19 +22,19 @@
-  * The ones marked DEBUG are only valid if CONFIG_DEBUG_SLAB is set.
-  */
- /* DEBUG: Perform (expensive) checks on alloc/free */
--#define SLAB_CONSISTENCY_CHECKS	((slab_flags_t __force)0x00000100UL)
-+#define SLAB_CONSISTENCY_CHECKS	((slab_flags_t __force)0x00000100U)
- /* DEBUG: Red zone objs in a cache */
--#define SLAB_RED_ZONE		((slab_flags_t __force)0x00000400UL)
-+#define SLAB_RED_ZONE		((slab_flags_t __force)0x00000400U)
- /* DEBUG: Poison objects */
--#define SLAB_POISON		((slab_flags_t __force)0x00000800UL)
-+#define SLAB_POISON		((slab_flags_t __force)0x00000800U)
- /* Align objs on cache lines */
--#define SLAB_HWCACHE_ALIGN	((slab_flags_t __force)0x00002000UL)
-+#define SLAB_HWCACHE_ALIGN	((slab_flags_t __force)0x00002000U)
- /* Use GFP_DMA memory */
--#define SLAB_CACHE_DMA		((slab_flags_t __force)0x00004000UL)
-+#define SLAB_CACHE_DMA		((slab_flags_t __force)0x00004000U)
- /* DEBUG: Store the last owner for bug hunting */
--#define SLAB_STORE_USER		((slab_flags_t __force)0x00010000UL)
-+#define SLAB_STORE_USER		((slab_flags_t __force)0x00010000U)
- /* Panic if kmem_cache_create() fails */
--#define SLAB_PANIC		((slab_flags_t __force)0x00040000UL)
-+#define SLAB_PANIC		((slab_flags_t __force)0x00040000U)
- /*
-  * SLAB_TYPESAFE_BY_RCU - **WARNING** READ THIS!
-  *
-@@ -73,50 +73,50 @@
-  * Note that SLAB_TYPESAFE_BY_RCU was originally named SLAB_DESTROY_BY_RCU.
-  */
- /* Defer freeing slabs to RCU */
--#define SLAB_TYPESAFE_BY_RCU	((slab_flags_t __force)0x00080000UL)
-+#define SLAB_TYPESAFE_BY_RCU	((slab_flags_t __force)0x00080000U)
- /* Spread some memory over cpuset */
--#define SLAB_MEM_SPREAD		((slab_flags_t __force)0x00100000UL)
-+#define SLAB_MEM_SPREAD		((slab_flags_t __force)0x00100000U)
- /* Trace allocations and frees */
--#define SLAB_TRACE		((slab_flags_t __force)0x00200000UL)
-+#define SLAB_TRACE		((slab_flags_t __force)0x00200000U)
+diff -puN include/linux/mmzone.h~mm-broken-deferred-calculation include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-broken-deferred-calculation
++++ a/include/linux/mmzone.h
+@@ -700,7 +700,8 @@ typedef struct pglist_data {
+ 	 * is the first PFN that needs to be initialised.
+ 	 */
+ 	unsigned long first_deferred_pfn;
+-	unsigned long static_init_size;
++	/* Number of non-deferred pages */
++	unsigned long static_init_pgcnt;
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
  
- /* Flag to prevent checks on free */
- #ifdef CONFIG_DEBUG_OBJECTS
--# define SLAB_DEBUG_OBJECTS	((slab_flags_t __force)0x00400000UL)
-+# define SLAB_DEBUG_OBJECTS	((slab_flags_t __force)0x00400000U)
- #else
--# define SLAB_DEBUG_OBJECTS	((slab_flags_t __force)0x00000000UL)
-+# define SLAB_DEBUG_OBJECTS	0
- #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN mm/page_alloc.c~mm-broken-deferred-calculation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-broken-deferred-calculation
++++ a/mm/page_alloc.c
+@@ -291,28 +291,37 @@ EXPORT_SYMBOL(nr_online_nodes);
+ int page_group_by_mobility_disabled __read_mostly;
  
- /* Avoid kmemleak tracing */
--#define SLAB_NOLEAKTRACE	((slab_flags_t __force)0x00800000UL)
-+#define SLAB_NOLEAKTRACE	((slab_flags_t __force)0x00800000U)
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++
++/*
++ * Determine how many pages need to be initialized durig early boot
++ * (non-deferred initialization).
++ * The value of first_deferred_pfn will be set later, once non-deferred pages
++ * are initialized, but for now set it ULONG_MAX.
++ */
+ static inline void reset_deferred_meminit(pg_data_t *pgdat)
+ {
+-	unsigned long max_initialise;
+-	unsigned long reserved_lowmem;
++	phys_addr_t start_addr, end_addr;
++	unsigned long max_pgcnt;
++	unsigned long reserved;
  
- /* Don't track use of uninitialized memory */
- #ifdef CONFIG_KMEMCHECK
--# define SLAB_NOTRACK		((slab_flags_t __force)0x01000000UL)
-+# define SLAB_NOTRACK		((slab_flags_t __force)0x01000000U)
- #else
--# define SLAB_NOTRACK		((slab_flags_t __force)0x00000000UL)
-+# define SLAB_NOTRACK		0
- #endif
- /* Fault injection mark */
- #ifdef CONFIG_FAILSLAB
--# define SLAB_FAILSLAB		((slab_flags_t __force)0x02000000UL)
-+# define SLAB_FAILSLAB		((slab_flags_t __force)0x02000000U)
- #else
--# define SLAB_FAILSLAB		((slab_flags_t __force)0x00000000UL)
-+# define SLAB_FAILSLAB		0
- #endif
- /* Account to memcg */
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
--# define SLAB_ACCOUNT		((slab_flags_t __force)0x04000000UL)
-+# define SLAB_ACCOUNT		((slab_flags_t __force)0x04000000U)
- #else
--# define SLAB_ACCOUNT		((slab_flags_t __force)0x00000000UL)
-+# define SLAB_ACCOUNT		0
- #endif
+ 	/*
+ 	 * Initialise at least 2G of a node but also take into account that
+ 	 * two large system hashes that can take up 1GB for 0.25TB/node.
+ 	 */
+-	max_initialise = max(2UL << (30 - PAGE_SHIFT),
+-		(pgdat->node_spanned_pages >> 8));
++	max_pgcnt = max(2UL << (30 - PAGE_SHIFT),
++			(pgdat->node_spanned_pages >> 8));
  
- #ifdef CONFIG_KASAN
--#define SLAB_KASAN		((slab_flags_t __force)0x08000000UL)
-+#define SLAB_KASAN		((slab_flags_t __force)0x08000000U)
- #else
--#define SLAB_KASAN		((slab_flags_t __force)0x00000000UL)
-+#define SLAB_KASAN		0
- #endif
+ 	/*
+ 	 * Compensate the all the memblock reservations (e.g. crash kernel)
+ 	 * from the initial estimation to make sure we will initialize enough
+ 	 * memory to boot.
+ 	 */
+-	reserved_lowmem = memblock_reserved_memory_within(pgdat->node_start_pfn,
+-			pgdat->node_start_pfn + max_initialise);
+-	max_initialise += reserved_lowmem;
++	start_addr = PFN_PHYS(pgdat->node_start_pfn);
++	end_addr = PFN_PHYS(pgdat->node_start_pfn + max_pgcnt);
++	reserved = memblock_reserved_memory_within(start_addr, end_addr);
++	max_pgcnt += PHYS_PFN(reserved);
  
- /* The following flags affect the page allocator grouping pages by mobility */
- /* Objects are reclaimable */
--#define SLAB_RECLAIM_ACCOUNT	((slab_flags_t __force)0x00020000UL)
-+#define SLAB_RECLAIM_ACCOUNT	((slab_flags_t __force)0x00020000U)
- #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
- /*
-  * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
-diff -puN include/linux/types.h~slab-slub-slob-convert-slab_flags_t-to-32-bit include/linux/types.h
---- a/include/linux/types.h~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/include/linux/types.h
-@@ -156,7 +156,7 @@ typedef u32 dma_addr_t;
- #endif
+-	pgdat->static_init_size = min(max_initialise, pgdat->node_spanned_pages);
++	pgdat->static_init_pgcnt = min(max_pgcnt, pgdat->node_spanned_pages);
+ 	pgdat->first_deferred_pfn = ULONG_MAX;
+ }
  
- typedef unsigned __bitwise gfp_t;
--typedef unsigned long __bitwise slab_flags_t;
-+typedef unsigned __bitwise slab_flags_t;
- typedef unsigned __bitwise fmode_t;
- 
- #ifdef CONFIG_PHYS_ADDR_T_64BIT
-diff -puN mm/slab.c~slab-slub-slob-convert-slab_flags_t-to-32-bit mm/slab.c
---- a/mm/slab.c~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/mm/slab.c
-@@ -252,8 +252,8 @@ static void kmem_cache_node_init(struct
- 	MAKE_LIST((cachep), (&(ptr)->slabs_free), slabs_free, nodeid);	\
- 	} while (0)
- 
--#define CFLGS_OBJFREELIST_SLAB	((slab_flags_t __force)0x40000000UL)
--#define CFLGS_OFF_SLAB		((slab_flags_t __force)0x80000000UL)
-+#define CFLGS_OBJFREELIST_SLAB	((slab_flags_t __force)0x40000000U)
-+#define CFLGS_OFF_SLAB		((slab_flags_t __force)0x80000000U)
- #define	OBJFREELIST_SLAB(x)	((x)->flags & CFLGS_OBJFREELIST_SLAB)
- #define	OFF_SLAB(x)	((x)->flags & CFLGS_OFF_SLAB)
- 
-diff -puN mm/slub.c~slab-slub-slob-convert-slab_flags_t-to-32-bit mm/slub.c
---- a/mm/slub.c~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/mm/slub.c
-@@ -194,9 +194,9 @@ static inline bool kmem_cache_has_cpu_pa
- 
- /* Internal SLUB flags */
- /* Poison object */
--#define __OBJECT_POISON		((slab_flags_t __force)0x80000000UL)
-+#define __OBJECT_POISON		((slab_flags_t __force)0x80000000U)
- /* Use cmpxchg_double */
--#define __CMPXCHG_DOUBLE	((slab_flags_t __force)0x40000000UL)
-+#define __CMPXCHG_DOUBLE	((slab_flags_t __force)0x40000000U)
- 
- /*
-  * Tracking user of a slab.
+@@ -339,7 +348,7 @@ static inline bool update_defer_init(pg_
+ 	if (zone_end < pgdat_end_pfn(pgdat))
+ 		return true;
+ 	(*nr_initialised)++;
+-	if ((*nr_initialised > pgdat->static_init_size) &&
++	if ((*nr_initialised > pgdat->static_init_pgcnt) &&
+ 	    (pfn & (PAGES_PER_SECTION - 1)) == 0) {
+ 		pgdat->first_deferred_pfn = pfn;
+ 		return false;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from pasha.tatashin@oracle.com are
 
-slab-slub-slob-add-slab_flags_t.patch
-slab-slub-slob-convert-slab_flags_t-to-32-bit.patch
-proc-uninline-name_to_int.patch
-proc-use-do-while-in-name_to_int.patch
-seq_file-delete-small-value-optimization.patch
+mm-deferred_init_memmap-improvements.patch
+mm-deferred_init_memmap-improvements-fix-3.patch
+x86-mm-setting-fields-in-deferred-pages.patch
+sparc64-mm-setting-fields-in-deferred-pages.patch
+sparc64-simplify-vmemmap_populate.patch
+mm-defining-memblock_virt_alloc_try_nid_raw.patch
+mm-zero-reserved-and-unavailable-struct-pages.patch
+x86-kasan-add-and-use-kasan_map_populate.patch
+arm64-kasan-add-and-use-kasan_map_populate.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap.patch
+sparc64-optimized-struct-page-zeroing.patch
+mm-broken-deferred-calculation.patch
+sparc64-ng4-memset-32-bits-overflow.patch
 
