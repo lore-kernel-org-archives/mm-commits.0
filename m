@@ -1,28 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-deferred_init_memmap-improvements-fix-2.patch removed from -mm tree
-Date: Thu, 02 Nov 2017 13:33:00 -0700
-Message-ID: <59fb80fc.fEg4fZu5nmAkkWtm%akpm@linux-foundation.org>
+Subject: + mm-deferred_init_memmap-improvements-fix-3.patch added to -mm
+ tree
+Date: Thu, 02 Nov 2017 13:33:47 -0700
+Message-ID: <59fb812b.JkS14w2WQZbq3xmt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32780 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934337AbdKBUdC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 16:33:02 -0400
+        with ESMTP id S934338AbdKBUdt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Nov 2017 16:33:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasha.tatashin@oracle.com, aryabinin@virtuozzo.com, bob.picco@oracle.com, daniel.m.jordan@oracle.com, dvyukov@google.com, glider@google.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, steven.sistare@oracle.com, mm-commits@vger.kernel.org
+To: pasha.tatashin@oracle.com, aryabinin@virtuozzo.com, bob.picco@oracle.com, daniel.m.jordan@oracle.com, dvyukov@google.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, steven.sistare@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: mm: buddy page accessed before initialized
-has been removed from the -mm tree.  Its filename was
-     mm-deferred_init_memmap-improvements-fix-2.patch
+has been added to the -mm tree.  Its filename is
+     mm-deferred_init_memmap-improvements-fix-3.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-deferred_init_memmap-improvements-fix-3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-deferred_init_memmap-improvements-fix-3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
@@ -95,7 +109,7 @@ return back to deferred_init_range(), the buddy page is initialized again.
 So, in order to avoid this issue, we must initialize the buddy page prior
 to calling deferred_free_range().
 
-Link: http://lkml.kernel.org/r/20171031155002.21691-2-pasha.tatashin@oracle.com
+Link: http://lkml.kernel.org/r/20171102170221.7401-2-pasha.tatashin@oracle.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Cc: Steven Sistare <steven.sistare@oracle.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
@@ -103,34 +117,113 @@ Cc: Bob Picco <bob.picco@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   66 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 23 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-deferred_init_memmap-improvements-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-deferred_init_memmap-improvements-fix-2
+diff -puN mm/page_alloc.c~mm-deferred_init_memmap-improvements-fix-3 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-deferred_init_memmap-improvements-fix-3
 +++ a/mm/page_alloc.c
-@@ -1499,9 +1499,17 @@ static unsigned long __init deferred_ini
- 			__init_single_page(page, pfn, zid, nid);
+@@ -1448,9 +1448,9 @@ static inline void __init pgdat_init_rep
+  * Helper for deferred_init_range, free the given range, reset the counters, and
+  * return number of pages freed.
+  */
+-static inline unsigned long __def_free(unsigned long *nr_free,
+-				       unsigned long *free_base_pfn,
+-				       struct page **page)
++static inline unsigned long __init __def_free(unsigned long *nr_free,
++					      unsigned long *free_base_pfn,
++					      struct page **page)
+ {
+ 	unsigned long nr = *nr_free;
+ 
+@@ -1462,8 +1462,9 @@ static inline unsigned long __def_free(u
+ 	return nr;
+ }
+ 
+-static unsigned long deferred_init_range(int nid, int zid, unsigned long pfn,
+-					 unsigned long end_pfn)
++static unsigned long __init deferred_init_range(int nid, int zid,
++						unsigned long start_pfn,
++						unsigned long end_pfn)
+ {
+ 	struct mminit_pfnnid_cache nid_init_state = { };
+ 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
+@@ -1471,23 +1472,44 @@ static unsigned long deferred_init_range
+ 	unsigned long nr_pages = 0;
+ 	unsigned long nr_free = 0;
+ 	struct page *page = NULL;
++	unsigned long pfn;
+ 
+-	for (; pfn < end_pfn; pfn++) {
+-		/*
+-		 * First we check if pfn is valid on architectures where it is
+-		 * possible to have holes within pageblock_nr_pages. On systems
+-		 * where it is not possible, this function is optimized out.
+-		 *
+-		 * Then, we check if a current large page is valid by only
+-		 * checking the validity of the head pfn.
+-		 *
+-		 * meminit_pfn_in_nid is checked on systems where pfns can
+-		 * interleave within a node: a pfn is between start and end
+-		 * of a node, but does not belong to this memory node.
+-		 *
+-		 * Finally, we minimize pfn page lookups and scheduler checks by
+-		 * performing it only once every pageblock_nr_pages.
+-		 */
++	/*
++	 * First we check if pfn is valid on architectures where it is possible
++	 * to have holes within pageblock_nr_pages. On systems where it is not
++	 * possible, this function is optimized out.
++	 *
++	 * Then, we check if a current large page is valid by only checking the
++	 * validity of the head pfn.
++	 *
++	 * meminit_pfn_in_nid is checked on systems where pfns can interleave
++	 * within a node: a pfn is between start and end of a node, but does not
++	 * belong to this memory node.
++	 *
++	 * Finally, we minimize pfn page lookups and scheduler checks by
++	 * performing it only once every pageblock_nr_pages.
++	 *
++	 * We do it in two loops: first we initialize struct page, than free to
++	 * buddy allocator, becuse while we are freeing pages we can access
++	 * pages that are ahead (computing buddy page in __free_one_page()).
++	 */
++	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++		if (!pfn_valid_within(pfn))
++			continue;
++		if ((pfn & nr_pgmask) || pfn_valid(pfn)) {
++			if (meminit_pfn_in_nid(pfn, nid, &nid_init_state)) {
++				if (page && (pfn & nr_pgmask))
++					page++;
++				else
++					page = pfn_to_page(pfn);
++				__init_single_page(page, pfn, zid, nid);
++				cond_resched();
++			}
++		}
++	}
++
++	page = NULL;
++	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		if (!pfn_valid_within(pfn)) {
+ 			nr_pages += __def_free(&nr_free, &free_base_pfn, &page);
+ 		} else if (!(pfn & nr_pgmask) && !pfn_valid(pfn)) {
+@@ -1496,12 +1518,10 @@ static unsigned long deferred_init_range
+ 			nr_pages += __def_free(&nr_free, &free_base_pfn, &page);
+ 		} else if (page && (pfn & nr_pgmask)) {
+ 			page++;
+-			__init_single_page(page, pfn, zid, nid);
  			nr_free++;
  		} else {
--			nr_pages += __def_free(&nr_free, &free_base_pfn, &page);
+ 			nr_pages += __def_free(&nr_free, &free_base_pfn, &page);
  			page = pfn_to_page(pfn);
- 			__init_single_page(page, pfn, zid, nid);
-+			/*
-+			 * We must free previous range after initializing the
-+			 * first page of the next range. This is because first
-+			 * page may be accessed in __free_one_page(), when buddy
-+			 * page is computed:
-+			 *   buddy_pfn = pfn + pageblock_nr_pages
-+			 */
-+			deferred_free_range(free_base_pfn, nr_free);
-+			nr_pages += nr_free;
+-			__init_single_page(page, pfn, zid, nid);
  			free_base_pfn = pfn;
  			nr_free = 1;
  			cond_resched();
