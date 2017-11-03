@@ -1,83 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch removed from -mm tree
-Date: Fri, 03 Nov 2017 11:54:02 -0700
-Message-ID: <20171103185402.0BUIAsKD9%akpm@linux-foundation.org>
+ mm-migration-deposit-page-table-when-copying-a-pmd-migration-entry.patch
+ removed from -mm tree
+Date: Fri, 03 Nov 2017 11:54:08 -0700
+Message-ID: <20171103185408.JUZKKJjLd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54444 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933020AbdKCSyE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:04 -0400
+        with ESMTP id S933020AbdKCSyJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
+To: fengguang.wu@intel.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: fix hwpoison reserve accounting
+     Subject: mm/huge_memory.c: deposit page table when copying a PMD migration entry
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch
+     mm-migration-deposit-page-table-when-copying-a-pmd-migration-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: fs/hugetlbfs/inode.c: fix hwpoison reserve accounting
+From: Zi Yan <zi.yan@cs.rutgers.edu>
+Subject: mm/huge_memory.c: deposit page table when copying a PMD migration entry
 
-Calling madvise(MADV_HWPOISON) on a hugetlbfs page will result in bad
-(negative) reserved huge page counts.  This may not happen immediately,
-but may happen later when the underlying file is removed or filesystem
-unmounted.  For example:
+We need to deposit pre-allocated PTE page table when a PMD migration entry
+is copied in copy_huge_pmd().  Otherwise, we will leak the pre-allocated
+page and cause a NULL pointer dereference later in zap_huge_pmd().
 
-AnonHugePages:         0 kB
-ShmemHugePages:        0 kB
-HugePages_Total:       1
-HugePages_Free:        0
-HugePages_Rsvd:    18446744073709551615
-HugePages_Surp:        0
-Hugepagesize:       2048 kB
+The missing counters during PMD migration entry copy process are added as
+well.
 
-In routine hugetlbfs_error_remove_page(), hugetlb_fix_reserve_counts is
-called after remove_huge_page.  hugetlb_fix_reserve_counts is designed to
-only be called/used only if a failure is returned from
-hugetlb_unreserve_pages.  Therefore, call hugetlb_unreserve_pages as
-required and only call hugetlb_fix_reserve_counts in the unlikely event
-that hugetlb_unreserve_pages returns an error.
+The bug report is here: https://lkml.org/lkml/2017/10/29/214
 
-Link: http://lkml.kernel.org/r/20171019230007.17043-2-mike.kravetz@oracle.com
-Fixes: 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20171030144636.4836-1-zi.yan@sent.com
+Fixes: 84c3fc4e9c563 ("mm: thp: check pmd migration entry in common path")
+Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-hwpoison-reserve-accounting fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-hwpoison-reserve-accounting
-+++ a/fs/hugetlbfs/inode.c
-@@ -842,9 +842,12 @@ static int hugetlbfs_error_remove_page(s
- 				struct page *page)
- {
- 	struct inode *inode = mapping->host;
-+	pgoff_t index = page->index;
- 
- 	remove_huge_page(page);
--	hugetlb_fix_reserve_counts(inode);
-+	if (unlikely(hugetlb_unreserve_pages(inode, index, index + 1, 1)))
-+		hugetlb_fix_reserve_counts(inode);
-+
- 	return 0;
- }
- 
+diff -puN mm/huge_memory.c~mm-migration-deposit-page-table-when-copying-a-pmd-migration-entry mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-migration-deposit-page-table-when-copying-a-pmd-migration-entry
++++ a/mm/huge_memory.c
+@@ -941,6 +941,9 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 				pmd = pmd_swp_mksoft_dirty(pmd);
+ 			set_pmd_at(src_mm, addr, src_pmd, pmd);
+ 		}
++		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++		atomic_long_inc(&dst_mm->nr_ptes);
++		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+ 		set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+ 		ret = 0;
+ 		goto out_unlock;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
 
 
