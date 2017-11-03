@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-in_atomic-in-print_vma_addr.patch added to -mm tree
-Date: Fri, 03 Nov 2017 10:57:54 -0700
-Message-ID: <59fcae22.PMlIXllWxLQgAiFa%akpm@linux-foundation.org>
+Subject: + autofs-dont-fail-mount-for-transient-error.patch added to -mm
+ tree
+Date: Fri, 03 Nov 2017 11:05:40 -0700
+Message-ID: <59fcaff4.neiELIcLaqj1knKq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38106 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933473AbdKCR5z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 13:57:55 -0400
+        with ESMTP id S1751381AbdKCSFl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:05:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.s@alibaba-inc.com, fweisbec@gmail.com, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: neilb@suse.com, raven@themaw.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use in_atomic() in print_vma_addr()
+     Subject: autofs: don't fail mount for transient error
 has been added to the -mm tree.  Its filename is
-     mm-use-in_atomic-in-print_vma_addr.patch
+     autofs-dont-fail-mount-for-transient-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-in_atomic-in-print_vma_addr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-dont-fail-mount-for-transient-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-in_atomic-in-print_vma_addr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-dont-fail-mount-for-transient-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,60 +39,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: mm: use in_atomic() in print_vma_addr()
+From: NeilBrown <neilb@suse.com>
+Subject: autofs: don't fail mount for transient error
 
-3e51f3c4004c9b ("sched/preempt: Remove PREEMPT_ACTIVE unmasking off
-in_atomic()") uses in_atomic() just check the preempt count, so it is not
-necessary to use preempt_count() in print_vma_addr() any more.  Replace
-preempt_count() to in_atomic() which is a generic API for checking atomic
-context.
+Currently if the autofs kernel module gets an error when writing to the
+pipe which links to the daemon, then it marks the whole moutpoint as
+catatonic, and it will stop working.
 
-in_atomic() is the preferred API for checking atomic context instead of
-preempt_count() which should be used for retrieving the preemption count
-value.
+It is possible that the error is transient.  This can happen if the daemon
+is slow and more than 16 requests queue up.  If a subsequent process tries
+to queue a request, and is then signalled, the write to the pipe will
+return -ERESTARTSYS and autofs will take that as total failure.
 
-If we go through the kernel code, almost everywhere "in_atomic" is used
-for such use case already, except two places:
+So change the code to assess -ERESTARTSYS and -ENOMEM as transient
+failures which only abort the current request, not the whole mountpoint.
 
-- print_vma_addr()
-- debug_smp_processor_id()
+It isn't a crash or a data corruption, but having autofs mountpoints
+suddenly stop working is rather inconvenient.
 
-Both came from Ingo long time ago before 3e51f3c4004c9b01 ("sched/preempt:
-Remove PREEMPT_ACTIVE unmasking off in_atomic()").  But, after this commit
-was merged, use in_atomic() to follow the convention.
+Ian said:
 
-Link: http://lkml.kernel.org/r/1509572313-102989-1-git-send-email-yang.s@alibaba-inc.com
-Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+: And given the problems with a half dozen (or so) user space applications
+: consuming large amounts of CPU under heavy mount and umount activity this
+: could happen more easily than we expect.
+
+
+Link: http://lkml.kernel.org/r/87y3norvgp.fsf@notabene.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.com>
+Acked-by: Ian Kent <raven@themaw.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/waitq.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-use-in_atomic-in-print_vma_addr mm/memory.c
---- a/mm/memory.c~mm-use-in_atomic-in-print_vma_addr
-+++ a/mm/memory.c
-@@ -4488,7 +4488,7 @@ void print_vma_addr(char *prefix, unsign
- 	 * Do not print if we are in atomic
- 	 * contexts (in exception stacks, etc.):
- 	 */
--	if (preempt_count())
-+	if (in_atomic())
- 		return;
+diff -puN fs/autofs4/waitq.c~autofs-dont-fail-mount-for-transient-error fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs-dont-fail-mount-for-transient-error
++++ a/fs/autofs4/waitq.c
+@@ -81,7 +81,8 @@ static int autofs4_write(struct autofs_s
+ 		spin_unlock_irqrestore(&current->sighand->siglock, flags);
+ 	}
  
- 	down_read(&mm->mmap_sem);
+-	return (bytes > 0);
++	/* if 'wr' returned 0 (impossible) we assume -EIO (safe) */
++	return bytes == 0 ? 0 : wr < 0 ? wr : -EIO;
+ }
+ 
+ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+@@ -95,6 +96,7 @@ static void autofs4_notify_daemon(struct
+ 	} pkt;
+ 	struct file *pipe = NULL;
+ 	size_t pktsz;
++	int ret;
+ 
+ 	pr_debug("wait id = 0x%08lx, name = %.*s, type=%d\n",
+ 		 (unsigned long) wq->wait_queue_token,
+@@ -169,7 +171,18 @@ static void autofs4_notify_daemon(struct
+ 	mutex_unlock(&sbi->wq_mutex);
+ 
+ 	if (autofs4_write(sbi, pipe, &pkt, pktsz))
++	switch (ret = autofs4_write(sbi, pipe, &pkt, pktsz)) {
++	case 0:
++		break;
++	case -ENOMEM:
++	case -ERESTARTSYS:
++		/* Just fail this one */
++		autofs4_wait_release(sbi, wq->wait_queue_token, ret);
++		break;
++	default:
+ 		autofs4_catatonic_mode(sbi);
++		break;
++	}
+ 	fput(pipe);
+ }
+ 
 _
 
-Patches currently in -mm which might be from yang.s@alibaba-inc.com are
+Patches currently in -mm which might be from neilb@suse.com are
 
-tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
-mm-slabinfo-dump-config_slabinfo.patch
-mm-slabinfo-dump-config_slabinfo-v11.patch
-mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
-mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11.patch
-mm-use-in_atomic-in-print_vma_addr.patch
+autofs-dont-fail-mount-for-transient-error.patch
 
