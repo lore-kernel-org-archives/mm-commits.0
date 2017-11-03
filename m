@@ -1,112 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim.patch
+ initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
  removed from -mm tree
-Date: Fri, 03 Nov 2017 11:53:59 -0700
-Message-ID: <20171103185359.OLRYWRgLK%akpm@linux-foundation.org>
+Date: Fri, 03 Nov 2017 11:54:05 -0700
+Message-ID: <20171103185405.6UHFTImVm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54388 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933020AbdKCSyB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:01 -0400
+        with ESMTP id S933020AbdKCSyH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ashish.samant@oracle.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: f.fainelli@gmail.com, klondike@xiscosoft.net, mm-commits@vger.kernel.org, npiggin@gmail.com
 
 
 The patch titled
-     Subject: ocfs2: fstrim: Fix start offset of first cluster group during fstrim
+     Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim.patch
+     initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ashish Samant <ashish.samant@oracle.com>
-Subject: ocfs2: fstrim: Fix start offset of first cluster group during fstrim
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
 
-The first cluster group descriptor is not stored at the start of the group
-but at an offset from the start.  We need to take this into account while
-doing fstrim on the first cluster group.  Otherwise we will wrongly start
-fstrim a few blocks after the desired start block and the range can cross
-over into the next cluster group and zero out the group descriptor there. 
-This can cause filesytem corruption that cannot be fixed by fsck.
+This is a follow-up to commit 57ddfdaa9a72 ("initramfs: fix disabling of
+initramfs (and its compression)").  This particular commit fixed the use
+case where we build the kernel with an initramfs with no compression, and
+then we build the kernel with no initramfs.
 
-Link: http://lkml.kernel.org/r/1507835579-7308-1-git-send-email-ashish.samant@oracle.com
-Signed-off-by: Ashish Samant <ashish.samant@oracle.com>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
+Now this still left us with the same case as described here:
+http://lkml.kernel.org/r/20170521033337.6197-1-f.fainelli@gmail.com not
+working with initramfs compression.  This can be seen by the following
+steps/timestamps:
+
+https://www.spinics.net/lists/kernel/msg2598153.html
+
+.initramfs_data.cpio.gz.cmd is correct:
+
+cmd_usr/initramfs_data.cpio.gz := /bin/bash
+./scripts/gen_initramfs_list.sh -o usr/initramfs_data.cpio.gz  -u 1000
+-g 1000  /home/fainelli/work/uclinux-rootfs/romfs
+/home/fainelli/work/uclinux-rootfs/misc/initramfs.dev
+
+and was generated the first time we did generate the gzip initramfs, so
+the command has not changed, nor its arguments, so we just don't call it,
+no initramfs cpio is re-generated as a consequence.
+
+The fix for this problem is just to properly keep track of the
+.initramfs_cpio_data.d file by suffixing it with the compression
+extension.  This takes care of properly tracking dependencies such that
+the initramfs get (re)generated any time files are added/deleted etc.
+
+Link: http://lkml.kernel.org/r/20170930033936.6722-1-f.fainelli@gmail.com
+Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initramfs compression algorithm")
+Fixes: 9e3596b0c653 ("kbuild: initramfs cleanup, set target from Kconfig")
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: "Francisco Blas Izquierdo Riera (klondike)" <klondike@xiscosoft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ usr/Makefile |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim
-+++ a/fs/ocfs2/alloc.c
-@@ -7304,13 +7304,24 @@ out:
+diff -puN usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling usr/Makefile
+--- a/usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling
++++ a/usr/Makefile
+@@ -8,6 +8,7 @@ PHONY += klibcdirs
  
- static int ocfs2_trim_extent(struct super_block *sb,
- 			     struct ocfs2_group_desc *gd,
--			     u32 start, u32 count)
-+			     u64 group, u32 start, u32 count)
- {
- 	u64 discard, bcount;
-+	struct ocfs2_super *osb = OCFS2_SB(sb);
+ suffix_y = $(subst $\",,$(CONFIG_INITRAMFS_COMPRESSION))
+ datafile_y = initramfs_data.cpio$(suffix_y)
++datafile_d_y = .$(datafile_y).d
+ AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/$(datafile_y)"
  
- 	bcount = ocfs2_clusters_to_blocks(sb, count);
--	discard = le64_to_cpu(gd->bg_blkno) +
--			ocfs2_clusters_to_blocks(sb, start);
-+	discard = ocfs2_clusters_to_blocks(sb, start);
-+
-+	/*
-+	 * For the first cluster group, the gd->bg_blkno is not at the start
-+	 * of the group, but at an offset from the start. If we add it while
-+	 * calculating discard for first group, we will wrongly start fstrim a
-+	 * few blocks after the desried start block and the range can cross
-+	 * over into the next cluster group. So, add it only if this is not
-+	 * the first cluster group.
-+	 */
-+	if (group != osb->first_cluster_group_blkno)
-+		discard += le64_to_cpu(gd->bg_blkno);
  
- 	trace_ocfs2_trim_extent(sb, (unsigned long long)discard, bcount);
+@@ -30,12 +31,12 @@ ramfs-args  := \
+         $(if $(CONFIG_INITRAMFS_ROOT_UID), -u $(CONFIG_INITRAMFS_ROOT_UID)) \
+         $(if $(CONFIG_INITRAMFS_ROOT_GID), -g $(CONFIG_INITRAMFS_ROOT_GID))
  
-@@ -7318,7 +7329,7 @@ static int ocfs2_trim_extent(struct supe
- }
+-# .initramfs_data.cpio.d is used to identify all files included
++# $(datafile_d_y) is used to identify all files included
+ # in initramfs and to detect if any files are added/removed.
+ # Removed files are identified by directory timestamp being updated
+ # The dependency list is generated by gen_initramfs.sh -l
+-ifneq ($(wildcard $(obj)/.initramfs_data.cpio.d),)
+-	include $(obj)/.initramfs_data.cpio.d
++ifneq ($(wildcard $(obj)/$(datafile_d_y)),)
++	include $(obj)/$(datafile_d_y)
+ endif
  
- static int ocfs2_trim_group(struct super_block *sb,
--			    struct ocfs2_group_desc *gd,
-+			    struct ocfs2_group_desc *gd, u64 group,
- 			    u32 start, u32 max, u32 minbits)
- {
- 	int ret = 0, count = 0, next;
-@@ -7337,7 +7348,7 @@ static int ocfs2_trim_group(struct super
- 		next = ocfs2_find_next_bit(bitmap, max, start);
- 
- 		if ((next - start) >= minbits) {
--			ret = ocfs2_trim_extent(sb, gd,
-+			ret = ocfs2_trim_extent(sb, gd, group,
- 						start, next - start);
- 			if (ret < 0) {
- 				mlog_errno(ret);
-@@ -7435,7 +7446,8 @@ int ocfs2_trim_fs(struct super_block *sb
- 		}
- 
- 		gd = (struct ocfs2_group_desc *)gd_bh->b_data;
--		cnt = ocfs2_trim_group(sb, gd, first_bit, last_bit, minlen);
-+		cnt = ocfs2_trim_group(sb, gd, group,
-+				       first_bit, last_bit, minlen);
- 		brelse(gd_bh);
- 		gd_bh = NULL;
- 		if (cnt < 0) {
+ quiet_cmd_initfs = GEN     $@
+@@ -53,5 +54,5 @@ $(deps_initramfs): klibcdirs
+ # 3) If gen_init_cpio are newer than initramfs_data.cpio
+ # 4) arguments to gen_initramfs.sh changes
+ $(obj)/$(datafile_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
+-	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
++	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/$(datafile_d_y)
+ 	$(call if_changed,initfs)
 _
 
-Patches currently in -mm which might be from ashish.samant@oracle.com are
+Patches currently in -mm which might be from f.fainelli@gmail.com are
 
 
