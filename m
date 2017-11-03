@@ -1,107 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
- removed from -mm tree
-Date: Fri, 03 Nov 2017 11:54:05 -0700
-Message-ID: <20171103185405.6UHFTImVm%akpm@linux-foundation.org>
+ mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch removed from -mm tree
+Date: Fri, 03 Nov 2017 11:54:02 -0700
+Message-ID: <20171103185402.0BUIAsKD9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54302 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933020AbdKCSyH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:07 -0400
+        with ESMTP id S933020AbdKCSyE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, klondike@xiscosoft.net, mm-commits@vger.kernel.org, npiggin@gmail.com
+To: aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
+     Subject: fs/hugetlbfs/inode.c: fix hwpoison reserve accounting
 has been removed from the -mm tree.  Its filename was
-     initramfs-fix-initramfs-rebuilds-w-compression-after-disabling.patch
+     mm-hugetlbfs-fix-hwpoison-reserve-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: initramfs: fix initramfs rebuilds w/ compression after disabling
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: fs/hugetlbfs/inode.c: fix hwpoison reserve accounting
 
-This is a follow-up to commit 57ddfdaa9a72 ("initramfs: fix disabling of
-initramfs (and its compression)").  This particular commit fixed the use
-case where we build the kernel with an initramfs with no compression, and
-then we build the kernel with no initramfs.
+Calling madvise(MADV_HWPOISON) on a hugetlbfs page will result in bad
+(negative) reserved huge page counts.  This may not happen immediately,
+but may happen later when the underlying file is removed or filesystem
+unmounted.  For example:
 
-Now this still left us with the same case as described here:
-http://lkml.kernel.org/r/20170521033337.6197-1-f.fainelli@gmail.com not
-working with initramfs compression.  This can be seen by the following
-steps/timestamps:
+AnonHugePages:         0 kB
+ShmemHugePages:        0 kB
+HugePages_Total:       1
+HugePages_Free:        0
+HugePages_Rsvd:    18446744073709551615
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
 
-https://www.spinics.net/lists/kernel/msg2598153.html
+In routine hugetlbfs_error_remove_page(), hugetlb_fix_reserve_counts is
+called after remove_huge_page.  hugetlb_fix_reserve_counts is designed to
+only be called/used only if a failure is returned from
+hugetlb_unreserve_pages.  Therefore, call hugetlb_unreserve_pages as
+required and only call hugetlb_fix_reserve_counts in the unlikely event
+that hugetlb_unreserve_pages returns an error.
 
-.initramfs_data.cpio.gz.cmd is correct:
-
-cmd_usr/initramfs_data.cpio.gz := /bin/bash
-./scripts/gen_initramfs_list.sh -o usr/initramfs_data.cpio.gz  -u 1000
--g 1000  /home/fainelli/work/uclinux-rootfs/romfs
-/home/fainelli/work/uclinux-rootfs/misc/initramfs.dev
-
-and was generated the first time we did generate the gzip initramfs, so
-the command has not changed, nor its arguments, so we just don't call it,
-no initramfs cpio is re-generated as a consequence.
-
-The fix for this problem is just to properly keep track of the
-.initramfs_cpio_data.d file by suffixing it with the compression
-extension.  This takes care of properly tracking dependencies such that
-the initramfs get (re)generated any time files are added/deleted etc.
-
-Link: http://lkml.kernel.org/r/20170930033936.6722-1-f.fainelli@gmail.com
-Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initramfs compression algorithm")
-Fixes: 9e3596b0c653 ("kbuild: initramfs cleanup, set target from Kconfig")
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: "Francisco Blas Izquierdo Riera (klondike)" <klondike@xiscosoft.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: http://lkml.kernel.org/r/20171019230007.17043-2-mike.kravetz@oracle.com
+Fixes: 78bb920344b8 ("mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Makefile |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/hugetlbfs/inode.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling usr/Makefile
---- a/usr/Makefile~initramfs-fix-initramfs-rebuilds-w-compression-after-disabling
-+++ a/usr/Makefile
-@@ -8,6 +8,7 @@ PHONY += klibcdirs
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-hwpoison-reserve-accounting fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-hwpoison-reserve-accounting
++++ a/fs/hugetlbfs/inode.c
+@@ -842,9 +842,12 @@ static int hugetlbfs_error_remove_page(s
+ 				struct page *page)
+ {
+ 	struct inode *inode = mapping->host;
++	pgoff_t index = page->index;
  
- suffix_y = $(subst $\",,$(CONFIG_INITRAMFS_COMPRESSION))
- datafile_y = initramfs_data.cpio$(suffix_y)
-+datafile_d_y = .$(datafile_y).d
- AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/$(datafile_y)"
+ 	remove_huge_page(page);
+-	hugetlb_fix_reserve_counts(inode);
++	if (unlikely(hugetlb_unreserve_pages(inode, index, index + 1, 1)))
++		hugetlb_fix_reserve_counts(inode);
++
+ 	return 0;
+ }
  
- 
-@@ -30,12 +31,12 @@ ramfs-args  := \
-         $(if $(CONFIG_INITRAMFS_ROOT_UID), -u $(CONFIG_INITRAMFS_ROOT_UID)) \
-         $(if $(CONFIG_INITRAMFS_ROOT_GID), -g $(CONFIG_INITRAMFS_ROOT_GID))
- 
--# .initramfs_data.cpio.d is used to identify all files included
-+# $(datafile_d_y) is used to identify all files included
- # in initramfs and to detect if any files are added/removed.
- # Removed files are identified by directory timestamp being updated
- # The dependency list is generated by gen_initramfs.sh -l
--ifneq ($(wildcard $(obj)/.initramfs_data.cpio.d),)
--	include $(obj)/.initramfs_data.cpio.d
-+ifneq ($(wildcard $(obj)/$(datafile_d_y)),)
-+	include $(obj)/$(datafile_d_y)
- endif
- 
- quiet_cmd_initfs = GEN     $@
-@@ -53,5 +54,5 @@ $(deps_initramfs): klibcdirs
- # 3) If gen_init_cpio are newer than initramfs_data.cpio
- # 4) arguments to gen_initramfs.sh changes
- $(obj)/$(datafile_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
--	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
-+	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/$(datafile_d_y)
- 	$(call if_changed,initfs)
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
