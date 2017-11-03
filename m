@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch added
- to -mm tree
-Date: Fri, 03 Nov 2017 12:08:28 -0700
-Message-ID: <59fcbeac.fED7hhXY+MT/o7QA%akpm@linux-foundation.org>
+Subject: + mm-consolidate-page-table-accounting-fix-fix.patch added to -mm tree
+Date: Fri, 03 Nov 2017 12:35:33 -0700
+Message-ID: <59fcc505.el8FaemID1JJllVt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33140 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751878AbdKCTI3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 15:08:29 -0400
+        with ESMTP id S1756279AbdKCTfe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 15:35:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab-slub-slob-convert-slab_flags_t-to-32-bit-fix
+     Subject: mm-consolidate-page-table-accounting-fix-fix
 has been added to the -mm tree.  Its filename is
-     slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+     mm-consolidate-page-table-accounting-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-page-table-accounting-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-page-table-accounting-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab-slub-slob-convert-slab_flags_t-to-32-bit-fix
+Subject: mm-consolidate-page-table-accounting-fix-fix
 
-fix printk warning
+fix mm/huge_memory.c
 
-mm/slub.c:3660: warning: format '%lx' expects type 'long unsigned int', but argument 7 has type 'slab_flags_t'
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
+ mm/huge_memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slab-slub-slob-convert-slab_flags_t-to-32-bit-fix mm/slub.c
---- a/mm/slub.c~slab-slub-slob-convert-slab_flags_t-to-32-bit-fix
-+++ a/mm/slub.c
-@@ -3657,7 +3657,7 @@ error:
- 	if (flags & SLAB_PANIC)
- 		panic("Cannot create slab %s size=%lu realsize=%u order=%u offset=%u flags=%lx\n",
- 		      s->name, (unsigned long)s->size, s->size,
--		      oo_order(s->oo), s->offset, flags);
-+		      oo_order(s->oo), s->offset, (unsigned long)flags);
- 	return -EINVAL;
- }
- 
+diff -puN mm/huge_memory.c~mm-consolidate-page-table-accounting-fix-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-consolidate-page-table-accounting-fix-fix
++++ a/mm/huge_memory.c
+@@ -942,7 +942,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 			set_pmd_at(src_mm, addr, src_pmd, pmd);
+ 		}
+ 		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-		atomic_long_inc(&dst_mm->nr_ptes);
++		mm_inc_nr_ptes(dst_mm);
+ 		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+ 		set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+ 		ret = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +77,7 @@ mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
 mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
 mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
 f2fs-simplify-page-iteration-loops-fix.patch
+mm-consolidate-page-table-accounting-fix-fix.patch
 mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
 mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
 support-resetting-warn_once-checkpatch-fixes.patch
