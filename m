@@ -1,93 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry.patch removed
- from -mm tree
-Date: Fri, 03 Nov 2017 11:53:55 -0700
-Message-ID: <20171103185355.sLVD1KW1r%akpm@linux-foundation.org>
+ ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim.patch
+ removed from -mm tree
+Date: Fri, 03 Nov 2017 11:53:59 -0700
+Message-ID: <20171103185359.OLRYWRgLK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54172 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933601AbdKCSx5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:53:57 -0400
+        with ESMTP id S933020AbdKCSyB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, dancol@google.com, hughd@google.com, jglisse@redhat.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, ying.huang@intel.com, zi.yan@cs.rutgers.edu
+To: ashish.samant@oracle.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, /proc/pid/pagemap: fix soft dirty marking for PMD migration entry
+     Subject: ocfs2: fstrim: Fix start offset of first cluster group during fstrim
 has been removed from the -mm tree.  Its filename was
-     mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry.patch
+     ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, /proc/pid/pagemap: fix soft dirty marking for PMD migration entry
+From: Ashish Samant <ashish.samant@oracle.com>
+Subject: ocfs2: fstrim: Fix start offset of first cluster group during fstrim
 
-Now, when the page table is walked in the implementation of
-/proc/<pid>/pagemap, pmd_soft_dirty() is used for both the PMD huge page
-map and the PMD migration entries.  That is wrong, pmd_swp_soft_dirty()
-should be used for the PMD migration entries instead because the different
-page table entry flag is used.
+The first cluster group descriptor is not stored at the start of the group
+but at an offset from the start.  We need to take this into account while
+doing fstrim on the first cluster group.  Otherwise we will wrongly start
+fstrim a few blocks after the desired start block and the range can cross
+over into the next cluster group and zero out the group descriptor there. 
+This can cause filesytem corruption that cannot be fixed by fsck.
 
-As a result, /proc/pid/pagemap may report incorrect soft dirty information
-for PMD migration entries.
-
-Link: http://lkml.kernel.org/r/20171017081818.31795-1-ying.huang@intel.com
-Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1507835579-7308-1-git-send-email-ashish.samant@oracle.com
+Signed-off-by: Ashish Samant <ashish.samant@oracle.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry
-+++ a/fs/proc/task_mmu.c
-@@ -1311,13 +1311,15 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 		pmd_t pmd = *pmdp;
- 		struct page *page = NULL;
+diff -puN fs/ocfs2/alloc.c~ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-fstrim-fix-start-offset-of-first-cluster-group-during-fstrim
++++ a/fs/ocfs2/alloc.c
+@@ -7304,13 +7304,24 @@ out:
  
--		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(pmd))
-+		if (vma->vm_flags & VM_SOFTDIRTY)
- 			flags |= PM_SOFT_DIRTY;
+ static int ocfs2_trim_extent(struct super_block *sb,
+ 			     struct ocfs2_group_desc *gd,
+-			     u32 start, u32 count)
++			     u64 group, u32 start, u32 count)
+ {
+ 	u64 discard, bcount;
++	struct ocfs2_super *osb = OCFS2_SB(sb);
  
- 		if (pmd_present(pmd)) {
- 			page = pmd_page(pmd);
+ 	bcount = ocfs2_clusters_to_blocks(sb, count);
+-	discard = le64_to_cpu(gd->bg_blkno) +
+-			ocfs2_clusters_to_blocks(sb, start);
++	discard = ocfs2_clusters_to_blocks(sb, start);
++
++	/*
++	 * For the first cluster group, the gd->bg_blkno is not at the start
++	 * of the group, but at an offset from the start. If we add it while
++	 * calculating discard for first group, we will wrongly start fstrim a
++	 * few blocks after the desried start block and the range can cross
++	 * over into the next cluster group. So, add it only if this is not
++	 * the first cluster group.
++	 */
++	if (group != osb->first_cluster_group_blkno)
++		discard += le64_to_cpu(gd->bg_blkno);
  
- 			flags |= PM_PRESENT;
-+			if (pmd_soft_dirty(pmd))
-+				flags |= PM_SOFT_DIRTY;
- 			if (pm->show_pfn)
- 				frame = pmd_pfn(pmd) +
- 					((addr & ~PMD_MASK) >> PAGE_SHIFT);
-@@ -1329,6 +1331,8 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 			frame = swp_type(entry) |
- 				(swp_offset(entry) << MAX_SWAPFILES_SHIFT);
- 			flags |= PM_SWAP;
-+			if (pmd_swp_soft_dirty(pmd))
-+				flags |= PM_SOFT_DIRTY;
- 			VM_BUG_ON(!is_pmd_migration_entry(pmd));
- 			page = migration_entry_to_page(entry);
+ 	trace_ocfs2_trim_extent(sb, (unsigned long long)discard, bcount);
+ 
+@@ -7318,7 +7329,7 @@ static int ocfs2_trim_extent(struct supe
+ }
+ 
+ static int ocfs2_trim_group(struct super_block *sb,
+-			    struct ocfs2_group_desc *gd,
++			    struct ocfs2_group_desc *gd, u64 group,
+ 			    u32 start, u32 max, u32 minbits)
+ {
+ 	int ret = 0, count = 0, next;
+@@ -7337,7 +7348,7 @@ static int ocfs2_trim_group(struct super
+ 		next = ocfs2_find_next_bit(bitmap, max, start);
+ 
+ 		if ((next - start) >= minbits) {
+-			ret = ocfs2_trim_extent(sb, gd,
++			ret = ocfs2_trim_extent(sb, gd, group,
+ 						start, next - start);
+ 			if (ret < 0) {
+ 				mlog_errno(ret);
+@@ -7435,7 +7446,8 @@ int ocfs2_trim_fs(struct super_block *sb
  		}
+ 
+ 		gd = (struct ocfs2_group_desc *)gd_bh->b_data;
+-		cnt = ocfs2_trim_group(sb, gd, first_bit, last_bit, minlen);
++		cnt = ocfs2_trim_group(sb, gd, group,
++				       first_bit, last_bit, minlen);
+ 		brelse(gd_bh);
+ 		gd_bh = NULL;
+ 		if (cnt < 0) {
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from ashish.samant@oracle.com are
 
 
