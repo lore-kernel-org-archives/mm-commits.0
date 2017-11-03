@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-account-pud-page-tables-fix-2.patch added to -mm tree
-Date: Fri, 03 Nov 2017 10:54:25 -0700
-Message-ID: <59fcad51.EFjMswJIgmkPX5vk%akpm@linux-foundation.org>
+Subject: + mm-use-in_atomic-in-print_vma_addr.patch added to -mm tree
+Date: Fri, 03 Nov 2017 10:57:54 -0700
+Message-ID: <59fcae22.PMlIXllWxLQgAiFa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933729AbdKCRy0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 13:54:26 -0400
+        with ESMTP id S933473AbdKCR5z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 13:57:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: yang.s@alibaba-inc.com, fweisbec@gmail.com, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/mm: fix pud table accounting
+     Subject: mm: use in_atomic() in print_vma_addr()
 has been added to the -mm tree.  Its filename is
-     mm-account-pud-page-tables-fix-2.patch
+     mm-use-in_atomic-in-print_vma_addr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-account-pud-page-tables-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-in_atomic-in-print_vma_addr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-account-pud-page-tables-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-in_atomic-in-print_vma_addr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,66 +38,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: s390/mm: fix pud table accounting
+From: "Yang Shi" <yang.s@alibaba-inc.com>
+Subject: mm: use in_atomic() in print_vma_addr()
 
-With "mm: account pud page tables" and "mm: consolidate page table
-accounting" pud page table accounting was introduced which now results in
-tons of warnings like this one on s390:
+3e51f3c4004c9b ("sched/preempt: Remove PREEMPT_ACTIVE unmasking off
+in_atomic()") uses in_atomic() just check the preempt count, so it is not
+necessary to use preempt_count() in print_vma_addr() any more.  Replace
+preempt_count() to in_atomic() which is a generic API for checking atomic
+context.
 
-BUG: non-zero pgtables_bytes on freeing mm: -16384
+in_atomic() is the preferred API for checking atomic context instead of
+preempt_count() which should be used for retrieving the preemption count
+value.
 
-Reason for this are our run-time folded page tables: by default new
-processes start with three page table levels where the allocated pgd is
-the same as the first pud.  In this case there won't ever be a pud
-allocated and therefore mm_inc_nr_puds() will also never be called.
+If we go through the kernel code, almost everywhere "in_atomic" is used
+for such use case already, except two places:
 
-However when freeing the address space free_pud_range() will call exactly
-once mm_dec_nr_puds() which leads to misaccounting.
+- print_vma_addr()
+- debug_smp_processor_id()
 
-Therefore call mm_inc_nr_puds() within init_new_context() to fix this. 
-This is the same like we have it already for processes that run with two
-page table levels (aka compat processes).
+Both came from Ingo long time ago before 3e51f3c4004c9b01 ("sched/preempt:
+Remove PREEMPT_ACTIVE unmasking off in_atomic()").  But, after this commit
+was merged, use in_atomic() to follow the convention.
 
-While at it also adjust the comment, since there is no "mm->nr_pmds"
-anymore.
-
-Link: http://lkml.kernel.org/r/20171103090551.18231-1-heiko.carstens@de.ibm.com
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Link: http://lkml.kernel.org/r/1509572313-102989-1-git-send-email-yang.s@alibaba-inc.com
+Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/mmu_context.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/include/asm/mmu_context.h~mm-account-pud-page-tables-fix-2 arch/s390/include/asm/mmu_context.h
---- a/arch/s390/include/asm/mmu_context.h~mm-account-pud-page-tables-fix-2
-+++ a/arch/s390/include/asm/mmu_context.h
-@@ -44,6 +44,8 @@ static inline int init_new_context(struc
- 		mm->context.asce_limit = STACK_TOP_MAX;
- 		mm->context.asce = __pa(mm->pgd) | _ASCE_TABLE_LENGTH |
- 				   _ASCE_USER_BITS | _ASCE_TYPE_REGION3;
-+		/* pgd_alloc() did not account this pud */
-+		mm_inc_nr_puds(mm);
- 		break;
- 	case -PAGE_SIZE:
- 		/* forked 5-level task, set new asce with new_mm->pgd */
-@@ -59,7 +61,7 @@ static inline int init_new_context(struc
- 		/* forked 2-level compat task, set new asce with new mm->pgd */
- 		mm->context.asce = __pa(mm->pgd) | _ASCE_TABLE_LENGTH |
- 				   _ASCE_USER_BITS | _ASCE_TYPE_SEGMENT;
--		/* pgd_alloc() did not increase mm->nr_pmds */
-+		/* pgd_alloc() did not account this pmd */
- 		mm_inc_nr_pmds(mm);
- 	}
- 	crst_table_init((unsigned long *) mm->pgd, pgd_entry_type(mm));
+diff -puN mm/memory.c~mm-use-in_atomic-in-print_vma_addr mm/memory.c
+--- a/mm/memory.c~mm-use-in_atomic-in-print_vma_addr
++++ a/mm/memory.c
+@@ -4488,7 +4488,7 @@ void print_vma_addr(char *prefix, unsign
+ 	 * Do not print if we are in atomic
+ 	 * contexts (in exception stacks, etc.):
+ 	 */
+-	if (preempt_count())
++	if (in_atomic())
+ 		return;
+ 
+ 	down_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from yang.s@alibaba-inc.com are
 
-mm-account-pud-page-tables-fix-2.patch
+tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
+mm-slabinfo-dump-config_slabinfo.patch
+mm-slabinfo-dump-config_slabinfo-v11.patch
+mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
+mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11.patch
+mm-use-in_atomic-in-print_vma_addr.patch
 
