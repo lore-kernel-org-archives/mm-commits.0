@@ -1,130 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?userfaultfd-hugetlbfs-prevent-uffdio=5Fcopy-to-fill-beyond?=
- =?US-ASCII?Q?-the-end-of-i=5Fsize.patch?= removed from -mm tree
-Date: Fri, 03 Nov 2017 11:53:52 -0700
-Message-ID: <20171103185352.y_e_m-O5g%akpm@linux-foundation.org>
+ mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry.patch removed
+ from -mm tree
+Date: Fri, 03 Nov 2017 11:53:55 -0700
+Message-ID: <20171103185355.sLVD1KW1r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933020AbdKCSxy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:53:54 -0400
+        with ESMTP id S933601AbdKCSx5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2017 14:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, stable@vger.kernel.org
+To: arnd@arndb.de, dancol@google.com, hughd@google.com, jglisse@redhat.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, ying.huang@intel.com, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: prevent UFFDIO_COPY to fill beyond the end of i_size
+     Subject: mm, /proc/pid/pagemap: fix soft dirty marking for PMD migration entry
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size.patch
+     mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: prevent UFFDIO_COPY to fill beyond the end of i_size
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, /proc/pid/pagemap: fix soft dirty marking for PMD migration entry
 
-kernel BUG at fs/hugetlbfs/inode.c:484!
-RIP: 0010:[<ffffffff815f8520>]  [<ffffffff815f8520>] remove_inode_hugepages+0x3d0/0x410
-Call Trace:
- [<ffffffff815f95b9>] hugetlbfs_setattr+0xd9/0x130
- [<ffffffff81526312>] notify_change+0x292/0x410
- [<ffffffff816cc6b6>] ? security_inode_need_killpriv+0x16/0x20
- [<ffffffff81503c65>] do_truncate+0x65/0xa0
- [<ffffffff81504035>] ? do_sys_ftruncate.constprop.3+0xe5/0x180
- [<ffffffff8150406a>] do_sys_ftruncate.constprop.3+0x11a/0x180
- [<ffffffff8150410e>] SyS_ftruncate+0xe/0x10
- [<ffffffff81999f27>] tracesys+0xd9/0xde
+Now, when the page table is walked in the implementation of
+/proc/<pid>/pagemap, pmd_soft_dirty() is used for both the PMD huge page
+map and the PMD migration entries.  That is wrong, pmd_swp_soft_dirty()
+should be used for the PMD migration entries instead because the different
+page table entry flag is used.
 
-This oops was caused by the lack of i_size check in
-hugetlb_mcopy_atomic_pte.  mmap() can still succeed beyond the end of the
-i_size after vmtruncate zapped vmas in those ranges, but the faults must
-not succeed, and that includes UFFDIO_COPY.
+As a result, /proc/pid/pagemap may report incorrect soft dirty information
+for PMD migration entries.
 
-We could differentiate the retval to userland to represent a SIGBUS like a
-page fault would do (vs SIGSEGV), but it doesn't seem very useful and we'd
-need to pick a random retval as there's no meaningful syscall retval that
-would differentiate from SIGSEGV and SIGBUS, there's just -EFAULT.
-
-Link: http://lkml.kernel.org/r/20171016223914.2421-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20171017081818.31795-1-ying.huang@intel.com
+Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   32 ++++++++++++++++++++++++++++++--
- 1 file changed, 30 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-prevent-uffdio_copy-to-fill-beyond-the-end-of-i_size
-+++ a/mm/hugetlb.c
-@@ -3984,6 +3984,9 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 			    unsigned long src_addr,
- 			    struct page **pagep)
- {
-+	struct address_space *mapping;
-+	pgoff_t idx;
-+	unsigned long size;
- 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	struct hstate *h = hstate_vma(dst_vma);
- 	pte_t _dst_pte;
-@@ -4021,13 +4024,24 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	__SetPageUptodate(page);
- 	set_page_huge_active(page);
+diff -puN fs/proc/task_mmu.c~mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-pagemap-fix-soft-dirty-marking-for-pmd-migration-entry
++++ a/fs/proc/task_mmu.c
+@@ -1311,13 +1311,15 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		pmd_t pmd = *pmdp;
+ 		struct page *page = NULL;
  
-+	mapping = dst_vma->vm_file->f_mapping;
-+	idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-+
- 	/*
- 	 * If shared, add to page cache
- 	 */
- 	if (vm_shared) {
--		struct address_space *mapping = dst_vma->vm_file->f_mapping;
--		pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-+		size = i_size_read(mapping->host) >> huge_page_shift(h);
-+		ret = -EFAULT;
-+		if (idx >= size)
-+			goto out_release_nounlock;
+-		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(pmd))
++		if (vma->vm_flags & VM_SOFTDIRTY)
+ 			flags |= PM_SOFT_DIRTY;
  
-+		/*
-+		 * Serialization between remove_inode_hugepages() and
-+		 * huge_add_to_page_cache() below happens through the
-+		 * hugetlb_fault_mutex_table that here must be hold by
-+		 * the caller.
-+		 */
- 		ret = huge_add_to_page_cache(page, mapping, idx);
- 		if (ret)
- 			goto out_release_nounlock;
-@@ -4036,6 +4050,20 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
- 	spin_lock(ptl);
+ 		if (pmd_present(pmd)) {
+ 			page = pmd_page(pmd);
  
-+	/*
-+	 * Recheck the i_size after holding PT lock to make sure not
-+	 * to leave any page mapped (as page_mapped()) beyond the end
-+	 * of the i_size (remove_inode_hugepages() is strict about
-+	 * enforcing that). If we bail out here, we'll also leave a
-+	 * page in the radix tree in the vm_shared case beyond the end
-+	 * of the i_size, but remove_inode_hugepages() will take care
-+	 * of it as soon as we drop the hugetlb_fault_mutex_table.
-+	 */
-+	size = i_size_read(mapping->host) >> huge_page_shift(h);
-+	ret = -EFAULT;
-+	if (idx >= size)
-+		goto out_release_unlock;
-+
- 	ret = -EEXIST;
- 	if (!huge_pte_none(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
+ 			flags |= PM_PRESENT;
++			if (pmd_soft_dirty(pmd))
++				flags |= PM_SOFT_DIRTY;
+ 			if (pm->show_pfn)
+ 				frame = pmd_pfn(pmd) +
+ 					((addr & ~PMD_MASK) >> PAGE_SHIFT);
+@@ -1329,6 +1331,8 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 			frame = swp_type(entry) |
+ 				(swp_offset(entry) << MAX_SWAPFILES_SHIFT);
+ 			flags |= PM_SWAP;
++			if (pmd_swp_soft_dirty(pmd))
++				flags |= PM_SOFT_DIRTY;
+ 			VM_BUG_ON(!is_pmd_migration_entry(pmd));
+ 			page = migration_entry_to_page(entry);
+ 		}
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
