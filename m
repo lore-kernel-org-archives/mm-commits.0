@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures.patch
- added to -mm tree
-Date: Mon, 06 Nov 2017 15:41:04 -0800
-Message-ID: <5a00f310.+/vGAmxrnBOtJfVJ%akpm@linux-foundation.org>
+Subject: + lib_backtrace-fix-kernel-text-address-leak.patch added to -mm
+ tree
+Date: Mon, 06 Nov 2017 15:52:58 -0800
+Message-ID: <5a00f5da.9c6gBZgyRXr+3YpB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754285AbdKFXlG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2017 18:41:06 -0500
+        with ESMTP id S1752743AbdKFXw7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2017 18:52:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, joe@perches.com, khalid.aziz@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: changcheng.liu@intel.com, jpoimboe@redhat.com, pmladek@suse.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, sparse: do not swamp log with huge vmemmap allocation failures
+     Subject: lib/nmi_backtrace.c: fix kernel text address leak
 has been added to the -mm tree.  Its filename is
-     mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures.patch
+     lib_backtrace-fix-kernel-text-address-leak.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib_backtrace-fix-kernel-text-address-leak.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib_backtrace-fix-kernel-text-address-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,114 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, sparse: do not swamp log with huge vmemmap allocation failures
+From: "Liu, Changcheng" <changcheng.liu@intel.com>
+Subject: lib/nmi_backtrace.c: fix kernel text address leak
 
-While doing memory hotplug tests under heavy memory pressure we have
-noticed too many page allocation failures when allocating vmemmap memmap
-backed by huge page
+Don't leak idle function address in NMI backtrace.
 
-[146792.281354] kworker/u3072:1: page allocation failure: order:9, mode:0x24084c0(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO)
-[...]
-[146792.281394] Call Trace:
-[146792.281430]  [<ffffffff81019a99>] dump_trace+0x59/0x310
-[146792.281436]  [<ffffffff81019e3a>] show_stack_log_lvl+0xea/0x170
-[146792.281440]  [<ffffffff8101abc1>] show_stack+0x21/0x40
-[146792.281448]  [<ffffffff8130f040>] dump_stack+0x5c/0x7c
-[146792.281464]  [<ffffffff8118c982>] warn_alloc_failed+0xe2/0x150
-[146792.281471]  [<ffffffff8118cddd>] __alloc_pages_nodemask+0x3ed/0xb20
-[146792.281489]  [<ffffffff811d3aaf>] alloc_pages_current+0x7f/0x100
-[146792.281503]  [<ffffffff815dfa2c>] vmemmap_alloc_block+0x79/0xb6
-[146792.281510]  [<ffffffff815dfbd3>] __vmemmap_alloc_block_buf+0x136/0x145
-[146792.281524]  [<ffffffff815dd0c5>] vmemmap_populate+0xd2/0x2b9
-[146792.281529]  [<ffffffff815dffd9>] sparse_mem_map_populate+0x23/0x30
-[146792.281532]  [<ffffffff815df88d>] sparse_add_one_section+0x68/0x18e
-[146792.281537]  [<ffffffff815d9f5a>] __add_pages+0x10a/0x1d0
-[146792.281553]  [<ffffffff8106249a>] arch_add_memory+0x4a/0xc0
-[146792.281559]  [<ffffffff815da1f9>] add_memory_resource+0x89/0x160
-[146792.281564]  [<ffffffff815da33d>] add_memory+0x6d/0xd0
-[146792.281585]  [<ffffffff813d36c4>] acpi_memory_device_add+0x181/0x251
-[146792.281597]  [<ffffffff813946e5>] acpi_bus_attach+0xfd/0x19b
-[146792.281602]  [<ffffffff81394866>] acpi_bus_scan+0x59/0x69
-[146792.281604]  [<ffffffff813949de>] acpi_device_hotplug+0xd2/0x41f
-[146792.281608]  [<ffffffff8138db67>] acpi_hotplug_work_fn+0x1a/0x23
-[146792.281623]  [<ffffffff81093cee>] process_one_work+0x14e/0x410
-[146792.281630]  [<ffffffff81094546>] worker_thread+0x116/0x490
-[146792.281637]  [<ffffffff810999ed>] kthread+0xbd/0xe0
-[146792.281651]  [<ffffffff815e4e7f>] ret_from_fork+0x3f/0x70
-
-and we do see many of those because essentially every allocation fails for
-each memory section.  This is an excessive way to tell the user that there
-is nothing to really worry about because we do have a fallback mechanism
-to use base pages.  The only downside might be a performance degradation
-due to TLB pressure.
-
-This patch changes vmemmap_alloc_block() to use __GFP_NOWARN and warn
-explicitly once on the first allocation failure.  This will reduce the
-noise in the kernel log considerably, while we still have an indication
-that a performance might be impacted.
-
-Link: http://lkml.kernel.org/r/20171106092228.31098-1-mhocko@kernel.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Link: http://lkml.kernel.org/r/20171106165648.GA95243@sofia
+Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    1 -
- mm/sparse-vmemmap.c   |   11 +++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ lib/nmi_backtrace.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures
-+++ a/arch/x86/mm/init_64.c
-@@ -1405,7 +1405,6 @@ static int __meminit vmemmap_populate_hu
- 			vmemmap_verify((pte_t *)pmd, node, addr, next);
- 			continue;
- 		}
--		pr_warn_once("vmemmap: falling back to regular page backing\n");
- 		if (vmemmap_populate_basepages(addr, next, node))
- 			return -ENOMEM;
- 	}
-diff -puN mm/sparse-vmemmap.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures
-+++ a/mm/sparse-vmemmap.c
-@@ -53,12 +53,19 @@ void * __meminit vmemmap_alloc_block(uns
- {
- 	/* If the main allocator is up use that, fallback to bootmem. */
- 	if (slab_is_available()) {
-+		gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
-+		int order = get_order(size);
-+		static bool warned;
- 		struct page *page;
- 
--		page = alloc_pages_node(node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
--					get_order(size));
-+		page = alloc_pages_node(node, gfp_mask, order);
- 		if (page)
- 			return page_address(page);
-+
-+		if (!warned) {
-+			warn_alloc(gfp_mask, NULL, "vmemmap alloc failure: order:%u", order);
-+			warned = true;
-+		}
- 		return NULL;
- 	} else
- 		return __earlyonly_bootmem_alloc(node, size, size,
+diff -puN lib/nmi_backtrace.c~lib_backtrace-fix-kernel-text-address-leak lib/nmi_backtrace.c
+--- a/lib/nmi_backtrace.c~lib_backtrace-fix-kernel-text-address-leak
++++ a/lib/nmi_backtrace.c
+@@ -93,8 +93,8 @@ bool nmi_cpu_backtrace(struct pt_regs *r
+ 	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
+ 		arch_spin_lock(&lock);
+ 		if (regs && cpu_in_idle(instruction_pointer(regs))) {
+-			pr_warn("NMI backtrace for cpu %d skipped: idling at pc %#lx\n",
+-				cpu, instruction_pointer(regs));
++			pr_warn("NMI backtrace for cpu %d skipped: idling at %pS\n",
++				cpu, (void *)instruction_pointer(regs));
+ 		} else {
+ 			pr_warn("NMI backtrace for cpu %d\n", cpu);
+ 			if (regs)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from changcheng.liu@intel.com are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
-mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
-mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
-mm-memory_hotplug-do-not-fail-offlining-too-early.patch
-mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
-mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
-mm-arch-remove-empty_bad_page.patch
-mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures.patch
-fs-elf-drop-map_fixed-usage-from-elf_map.patch
+lib_backtrace-fix-kernel-text-address-leak.patch
 
