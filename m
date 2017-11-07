@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch added to
+Subject: + mm-page_ext-check-if-page_ext-is-not-prepared.patch added to
  -mm tree
-Date: Tue, 07 Nov 2017 12:22:48 -0800
-Message-ID: <5a021618.4PAY7U4XHaJceNb9%akpm@linux-foundation.org>
+Date: Tue, 07 Nov 2017 12:33:34 -0800
+Message-ID: <5a02189e.np9a/aZqlWvEMMvD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752233AbdKGUWu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2017 15:22:50 -0500
+        with ESMTP id S1752700AbdKGUdg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2017 15:33:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangnan0@huawei.com, aarcange@redhat.com, guro@fb.com, khlebnikov@yandex-team.ru, liubo95@huawei.com, mhocko@suse.com, mingo@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jaewon31.kim@samsung.com, js1304@gmail.com, mhocko@suse.com, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_reaper: gather each vma to prevent leaking TLB entry
+     Subject: mm/page_ext.c: check if page_ext is not prepared
 has been added to the -mm tree.  Its filename is
-     mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch
+     mm-page_ext-check-if-page_ext-is-not-prepared.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ext-check-if-page_ext-is-not-prepared.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ext-check-if-page_ext-is-not-prepared.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,88 +39,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Nan <wangnan0@huawei.com>
-Subject: mm, oom_reaper: gather each vma to prevent leaking TLB entry
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm/page_ext.c: check if page_ext is not prepared
 
-tlb_gather_mmu(&tlb, mm, 0, -1) means gathering the whole virtual memory
-space.  In this case, tlb->fullmm is true.  Some archs like arm64 doesn't
-flush TLB when tlb->fullmm is true:
+online_page_ext() and page_ext_init() allocate page_ext for each section,
+but they do not allocate if the first PFN is !pfn_present(pfn) or
+!pfn_valid(pfn).  Then section->page_ext remains as NULL.  lookup_page_ext
+checks NULL only if CONFIG_DEBUG_VM is enabled.  For a valid PFN,
+__set_page_owner will try to get page_ext through lookup_page_ext. 
+Without CONFIG_DEBUG_VM lookup_page_ext will misuse NULL pointer as value
+0.  This incurrs invalid address access.
 
-  commit 5a7862e83000 ("arm64: tlbflush: avoid flushing when fullmm == 1").
+This is the panic example when PFN 0x100000 is not valid but PFN 0x13FC00
+is being used for page_ext.  section->page_ext is NULL, get_entry returned
+invalid page_ext address as 0x1DFA000 for a PFN 0x13FC00.
 
-Which causes leaking of tlb entries.
+To avoid this panic, CONFIG_DEBUG_VM should be removed so that page_ext
+will be checked at all times.
 
-Will clarifies his patch:
+<1>[   11.618085] Unable to handle kernel paging request at virtual address 01dfa014
+<1>[   11.618140] pgd = ffffffc0c6dc9000
+<1>[   11.618174] [01dfa014] *pgd=0000000000000000, *pud=0000000000000000
+<4>[   11.618240] ------------[ cut here ]------------
+<2>[   11.618278] Kernel BUG at ffffff80082371e0 [verbose debug info unavailable]
+<0>[   11.618338] Internal error: Oops: 96000045 [#1] PREEMPT SMP
+<4>[   11.618381] Modules linked in:
+<4>[   11.618524] task: ffffffc0c6ec9180 task.stack: ffffffc0c6f40000
+<4>[   11.618569] PC is at __set_page_owner+0x48/0x78
+<4>[   11.618607] LR is at __set_page_owner+0x44/0x78
+<4>[   11.626025] [<ffffff80082371e0>] __set_page_owner+0x48/0x78
+<4>[   11.626071] [<ffffff80081df9f0>] get_page_from_freelist+0x880/0x8e8
+<4>[   11.626118] [<ffffff80081e00a4>] __alloc_pages_nodemask+0x14c/0xc48
+<4>[   11.626165] [<ffffff80081e610c>] __do_page_cache_readahead+0xdc/0x264
+<4>[   11.626214] [<ffffff80081d8824>] filemap_fault+0x2ac/0x550
+<4>[   11.626259] [<ffffff80082e5cf8>] ext4_filemap_fault+0x3c/0x58
+<4>[   11.626305] [<ffffff800820a2f8>] __do_fault+0x80/0x120
+<4>[   11.626347] [<ffffff800820eb4c>] handle_mm_fault+0x704/0xbb0
+<4>[   11.626393] [<ffffff800809ba70>] do_page_fault+0x2e8/0x394
+<4>[   11.626437] [<ffffff8008080be4>] do_mem_abort+0x88/0x124
 
-: Basically, we tag each address space with an ASID (PCID on x86) which
-: is resident in the TLB. This means we can elide TLB invalidation when
-: pulling down a full mm because we won't ever assign that ASID to another mm
-: without doing TLB invalidation elsewhere (which actually just nukes the
-: whole TLB).
-:
-: I think that means that we could potentially not fault on a kernel uaccess,
-: because we could hit in the TLB.
-
-There could be a window between complete_signal() sending IPI to other
-cores and all threads sharing this mm are really kicked off from cores. 
-In this window, the oom reaper may calls tlb_flush_mmu_tlbonly() to flush
-TLB then frees pages.  However, due to the above problem, the TLB entries
-are not really flushed on arm64.  Other threads are possible to access
-these pages through TLB entries.  Moreover, a copy_to_user() can also
-write to these pages without generating page fault, causes use-after-free
-bugs.
-
-This patch gathers each vma instead of gathering full vm space.  In this
-case tlb->fullmm is not true.  The behavior of oom reaper become similar
-to munmapping before do_exit, which should be safe for all archs.
-
-Link: http://lkml.kernel.org/r/20171107095453.179940-1-wangnan0@huawei.com
-Fixes: aac453635549 ("mm, oom: introduce oom reaper")
-Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Link: http://lkml.kernel.org/r/20171107094131.14621-1-jaewon31.kim@samsung.com
+Fixes: eefa864b701d ("mm/page_ext: resurrect struct page extending code for debugging")
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Bob Liu <liubo95@huawei.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/page_ext.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry
-+++ a/mm/oom_kill.c
-@@ -554,7 +554,6 @@ static bool __oom_reap_task_mm(struct ta
- 	 */
- 	set_bit(MMF_UNSTABLE, &mm->flags);
+diff -puN mm/page_ext.c~mm-page_ext-check-if-page_ext-is-not-prepared mm/page_ext.c
+--- a/mm/page_ext.c~mm-page_ext-check-if-page_ext-is-not-prepared
++++ a/mm/page_ext.c
+@@ -125,7 +125,6 @@ struct page_ext *lookup_page_ext(struct
+ 	struct page_ext *base;
  
--	tlb_gather_mmu(&tlb, mm, 0, -1);
- 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
- 		if (!can_madv_dontneed_vma(vma))
- 			continue;
-@@ -569,11 +568,13 @@ static bool __oom_reap_task_mm(struct ta
- 		 * we do not want to block exit_mmap by keeping mm ref
- 		 * count elevated without a good reason.
- 		 */
--		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
-+		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
-+			tlb_gather_mmu(&tlb, mm, vma->vm_start, vma->vm_end);
- 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
- 					 NULL);
-+			tlb_finish_mmu(&tlb, vma->vm_start, vma->vm_end);
-+		}
- 	}
--	tlb_finish_mmu(&tlb, 0, -1);
- 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
- 			task_pid_nr(tsk), tsk->comm,
- 			K(get_mm_counter(mm, MM_ANONPAGES)),
+ 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
+-#if defined(CONFIG_DEBUG_VM)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+@@ -134,7 +133,6 @@ struct page_ext *lookup_page_ext(struct
+ 	 */
+ 	if (unlikely(!base))
+ 		return NULL;
+-#endif
+ 	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
+ 					MAX_ORDER_NR_PAGES);
+ 	return get_entry(base, index);
+@@ -199,7 +197,6 @@ struct page_ext *lookup_page_ext(struct
+ {
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct mem_section *section = __pfn_to_section(pfn);
+-#if defined(CONFIG_DEBUG_VM)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+@@ -208,7 +205,6 @@ struct page_ext *lookup_page_ext(struct
+ 	 */
+ 	if (!section->page_ext)
+ 		return NULL;
+-#endif
+ 	return get_entry(section->page_ext, pfn);
+ }
+ 
 _
 
-Patches currently in -mm which might be from wangnan0@huawei.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch
+mm-page_ext-check-if-page_ext-is-not-prepared.patch
 
