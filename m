@@ -1,297 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-add-more-self-test-options.patch added to -mm
+Subject: [withdrawn]
+ mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch removed from -mm
  tree
-Date: Tue, 07 Nov 2017 11:57:59 -0800
-Message-ID: <5a021047.rZpIfGhKVHGrhNYh%akpm@linux-foundation.org>
+Date: Tue, 07 Nov 2017 11:59:16 -0800
+Message-ID: <5a021094.FAGHw8Shk0/nABUg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54660 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752719AbdKGT6A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2017 14:58:00 -0500
+        with ESMTP id S1754350AbdKGT7R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2017 14:59:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, tom.saeger@oracle.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, 00moses.alexander00@gmail.com, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: add more --self-test options
-has been added to the -mm tree.  Its filename is
-     get_maintainer-add-more-self-test-options.patch
+     Subject: mm, hugetlb: remove hugepages_treat_as_movable sysctl
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-add-more-self-test-options.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-add-more-self-test-options.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: add more --self-test options
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, hugetlb: remove hugepages_treat_as_movable sysctl
 
-Add tests for duplicate section headers, missing section content, link and
-scm reachability.
+hugepages_treat_as_movable has been introduced by 396faf0303d2 ("Allow
+huge page allocations to use GFP_HIGH_MOVABLE") to allow hugetlb
+allocations from ZONE_MOVABLE even when hugetlb pages were not
+migrateable.  The purpose of the movable zone was different at the time. 
+It aimed at reducing memory fragmentation and hugetlb pages being long
+lived and large werre not contributing to the fragmentation so it was
+acceptable to use the zone back then.
 
-Miscellanea:
+Things have changed though and the primary purpose of the zone became
+migratability guarantee.  If we allow non migrateable hugetlb pages to be
+in ZONE_MOVABLE memory hotplug might fail to offline the memory.
 
-o Add --self-test=<foo> options
-  (a comma separated list of any of sections, patterns, links or scm)
-  where the default without options is all tests
-o Rename check_maintainers_patterns to self_test
-o Rename self_test_pattern_info to self_test_info
+Remove the knob and only rely on hugepage_migration_supported to allow
+movable zones.
 
-[tom.saeger@oracle.com: improvements]
-Link: http://lkml.kernel.org/r/13e3986c374902fcf08ae947e36c5c608bbe3b79.1510075301.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Tom Saeger <tom.saeger@oracle.com>
+Mel said:
+
+: Primarily it was aimed at allowing the hugetlb pool to safely shrink with
+: the ability to grow it again.  The use case was for batched jobs, some of
+: which needed huge pages and others that did not but didn't want the memory
+: useless pinned in the huge pages pool.
+: 
+: I suspect that more users rely on THP than hugetlbfs for flexible use of
+: huge pages with fallback options so I think that removing the option
+: should be ok.
+
+Link: http://lkml.kernel.org/r/20171003072619.8654-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Alexandru Moise <00moses.alexander00@gmail.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Alexandru Moise <00moses.alexander00@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |  149 +++++++++++++++++++++++++++++++-----
- 1 file changed, 132 insertions(+), 17 deletions(-)
+ Documentation/sysctl/vm.txt |   25 -------------------------
+ include/linux/hugetlb.h     |    1 -
+ kernel/sysctl.c             |    7 -------
+ mm/hugetlb.c                |    4 +---
+ 4 files changed, 1 insertion(+), 36 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-add-more-self-test-options scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-add-more-self-test-options
-+++ a/scripts/get_maintainer.pl
-@@ -57,7 +57,7 @@ my $sections = 0;
- my $file_emails = 0;
- my $from_filename = 0;
- my $pattern_depth = 0;
--my $self_test = 0;
-+my $self_test = undef;
- my $version = 0;
- my $help = 0;
- my $find_maintainer_files = 0;
-@@ -221,7 +221,7 @@ if (-f $ignore_file) {
+diff -puN Documentation/sysctl/vm.txt~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
++++ a/Documentation/sysctl/vm.txt
+@@ -30,7 +30,6 @@ Currently, these files are in /proc/sys/
+ - dirty_writeback_centisecs
+ - drop_caches
+ - extfrag_threshold
+-- hugepages_treat_as_movable
+ - hugetlb_shm_group
+ - laptop_mode
+ - legacy_va_layout
+@@ -267,30 +266,6 @@ any throttling.
  
- if ($#ARGV > 0) {
-     foreach (@ARGV) {
--        if ($_ eq "-self-test" || $_ eq "--self-test") {
-+        if ($_ =~ /^-{1,2}self-test(?:=|$)/) {
-             die "$P: using --self-test does not allow any other option or argument\n";
-         }
-     }
-@@ -263,7 +263,7 @@ if (!GetOptions(
- 		'fe|file-emails!' => \$file_emails,
- 		'f|file' => \$from_filename,
- 		'find-maintainer-files' => \$find_maintainer_files,
--		'self-test' => \$self_test,
-+		'self-test:s' => \$self_test,
- 		'v|version' => \$version,
- 		'h|help|usage' => \$help,
- 		)) {
-@@ -280,9 +280,9 @@ if ($version != 0) {
-     exit 0;
- }
+ ==============================================================
  
--if ($self_test) {
-+if (defined $self_test) {
-     read_all_maintainer_files();
--    check_maintainers_patterns();
-+    self_test();
-     exit 0;
- }
+-hugepages_treat_as_movable
+-
+-This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
+-or not. If set to non-zero, hugepages can be allocated from ZONE_MOVABLE.
+-ZONE_MOVABLE is created when kernel boot parameter kernelcore= is specified,
+-so this parameter has no effect if used without kernelcore=.
+-
+-Hugepage migration is now available in some situations which depend on the
+-architecture and/or the hugepage size. If a hugepage supports migration,
+-allocation from ZONE_MOVABLE is always enabled for the hugepage regardless
+-of the value of this parameter.
+-IOW, this parameter affects only non-migratable hugepages.
+-
+-Assuming that hugepages are not migratable in your system, one usecase of
+-this parameter is that users can make hugepage pool more extensible by
+-enabling the allocation from ZONE_MOVABLE. This is because on ZONE_MOVABLE
+-page reclaim/migration/compaction work more and you can get contiguous
+-memory more likely. Note that using ZONE_MOVABLE for non-migratable
+-hugepages can do harm to other features like memory hotremove (because
+-memory hotremove expects that memory blocks on ZONE_MOVABLE are always
+-removable,) so it's a trade-off responsible for the users.
+-
+-==============================================================
+-
+ hugetlb_shm_group
  
-@@ -329,7 +329,7 @@ if (!top_of_kernel_tree($lk_path)) {
- my @typevalue = ();
- my %keyword_hash;
- my @mfiles = ();
--my @self_test_pattern_info = ();
-+my @self_test_info = ();
+ hugetlb_shm_group contains group id that is allowed to create SysV
+diff -puN include/linux/hugetlb.h~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
++++ a/include/linux/hugetlb.h
+@@ -129,7 +129,6 @@ u32 hugetlb_fault_mutex_hash(struct hsta
  
- sub read_maintainer_file {
-     my ($file) = @_;
-@@ -339,6 +339,7 @@ sub read_maintainer_file {
-     my $i = 1;
-     while (<$maint>) {
- 	my $line = $_;
-+	chomp $line;
+ pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
  
- 	if ($line =~ m/^([A-Z]):\s*(.*)/) {
- 	    my $type = $1;
-@@ -353,17 +354,16 @@ sub read_maintainer_file {
- 		if ((-d $value)) {
- 		    $value =~ s@([^/])$@$1/@;
- 		}
--		if ($self_test) {
--			push(@self_test_pattern_info, {file=>$file, line=>$line, linenr=>$i, pat=>$value});
--		}
- 	    } elsif ($type eq "K") {
- 		$keyword_hash{@typevalue} = $value;
- 	    }
- 	    push(@typevalue, "$type:$value");
- 	} elsif (!(/^\s*$/ || /^\s*\#/)) {
--	    $line =~ s/\n$//g;
- 	    push(@typevalue, $line);
- 	}
-+	if (defined $self_test) {
-+	    push(@self_test_info, {file=>$file, linenr=>$i, line=>$line});
-+	}
- 	$i++;
-     }
-     close($maint);
-@@ -614,17 +614,132 @@ if ($web) {
+-extern int hugepages_treat_as_movable;
+ extern int sysctl_hugetlb_shm_group;
+ extern struct list_head huge_boot_pages;
  
- exit($exit);
+diff -puN kernel/sysctl.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
++++ a/kernel/sysctl.c
+@@ -1379,13 +1379,6 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	 },
+-	 {
+-		.procname	= "hugepages_treat_as_movable",
+-		.data		= &hugepages_treat_as_movable,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+ 	{
+ 		.procname	= "nr_overcommit_hugepages",
+ 		.data		= NULL,
+diff -puN mm/hugetlb.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
++++ a/mm/hugetlb.c
+@@ -36,8 +36,6 @@
+ #include <linux/userfaultfd_k.h>
+ #include "internal.h"
  
--sub check_maintainers_patterns {
-+sub self_test {
-     my @lsfiles = ();
-+    my @good_links = ();
-+    my @bad_links = ();
-+    my @section_headers = ();
-+    my $index = 0;
- 
-     @lsfiles = vcs_list_files($lk_path);
- 
--    for my $x (@self_test_pattern_info) {
--        if (!grep(m@^$x->{pat}@, @lsfiles)) {
--            my $line = $x->{line};
--            chomp($line);
--            print("$x->{file}:$x->{linenr}: warning: no matches $line\n");
--        }
-+    for my $x (@self_test_info) {
-+	$index++;
-+
-+	## Section header duplication and missing section content
-+	if (($self_test eq "" || $self_test =~ /\bsections\b/) &&
-+	    $x->{line} =~ /^\S[^:]/ &&
-+	    defined $self_test_info[$index] &&
-+	    $self_test_info[$index]->{line} =~ /^([A-Z]):\s*\S/) {
-+	    my $has_S = 0;
-+	    my $has_F = 0;
-+	    my $has_ML = 0;
-+	    my $status = "";
-+	    if (grep(m@^\Q$x->{line}\E@, @section_headers)) {
-+		print("$x->{file}:$x->{linenr}: warning: duplicate section header\t$x->{line}\n");
-+	    } else {
-+		push(@section_headers, $x->{line});
-+	    }
-+	    my $nextline = $index;
-+	    while (defined $self_test_info[$nextline] &&
-+		   $self_test_info[$nextline]->{line} =~ /^([A-Z]):\s*(\S.*)/) {
-+		my $type = $1;
-+		my $value = $2;
-+		if ($type eq "S") {
-+		    $has_S = 1;
-+		    $status = $value;
-+		} elsif ($type eq "F" || $type eq "N") {
-+		    $has_F = 1;
-+		} elsif ($type eq "M" || $type eq "R" || $type eq "L") {
-+		    $has_ML = 1;
-+		}
-+		$nextline++;
-+	    }
-+	    if (!$has_ML && $status !~ /orphan|obsolete/i) {
-+		print("$x->{file}:$x->{linenr}: warning: section without email address\t$x->{line}\n");
-+	    }
-+	    if (!$has_S) {
-+		print("$x->{file}:$x->{linenr}: warning: section without status \t$x->{line}\n");
-+	    }
-+	    if (!$has_F) {
-+		print("$x->{file}:$x->{linenr}: warning: section without file pattern\t$x->{line}\n");
-+	    }
-+	}
-+
-+	next if ($x->{line} !~ /^([A-Z]):\s*(.*)/);
-+
-+	my $type = $1;
-+	my $value = $2;
-+
-+	## Filename pattern matching
-+	if (($type eq "F" || $type eq "X") &&
-+	    ($self_test eq "" || $self_test =~ /\bpatterns\b/)) {
-+	    $value =~ s@\.@\\\.@g;       ##Convert . to \.
-+	    $value =~ s/\*/\.\*/g;       ##Convert * to .*
-+	    $value =~ s/\?/\./g;         ##Convert ? to .
-+	    ##if pattern is a directory and it lacks a trailing slash, add one
-+	    if ((-d $value)) {
-+		$value =~ s@([^/])$@$1/@;
-+	    }
-+	    if (!grep(m@^$value@, @lsfiles)) {
-+		print("$x->{file}:$x->{linenr}: warning: no file matches\t$x->{line}\n");
-+	    }
-+
-+	## Link reachability
-+	} elsif (($type eq "W" || $type eq "Q" || $type eq "B") &&
-+		 $value =~ /^https?:/ &&
-+		 ($self_test eq "" || $self_test =~ /\blinks\b/)) {
-+	    next if (grep(m@^\Q$value\E$@, @good_links));
-+	    my $isbad = 0;
-+	    if (grep(m@^\Q$value\E$@, @bad_links)) {
-+	        $isbad = 1;
-+	    } else {
-+		my $output = `wget --spider -q --no-check-certificate --timeout 10 --tries 1 $value`;
-+		if ($? == 0) {
-+		    push(@good_links, $value);
-+		} else {
-+		    push(@bad_links, $value);
-+		    $isbad = 1;
-+		}
-+	    }
-+	    if ($isbad) {
-+	        print("$x->{file}:$x->{linenr}: warning: possible bad link\t$x->{line}\n");
-+	    }
-+
-+	## SCM reachability
-+	} elsif ($type eq "T" &&
-+		 ($self_test eq "" || $self_test =~ /\bscm\b/)) {
-+	    next if (grep(m@^\Q$value\E$@, @good_links));
-+	    my $isbad = 0;
-+	    if (grep(m@^\Q$value\E$@, @bad_links)) {
-+	        $isbad = 1;
-+            } elsif ($value !~ /^(?:git|quilt|hg)\s+\S/) {
-+		print("$x->{file}:$x->{linenr}: warning: malformed entry\t$x->{line}\n");
-+	    } elsif ($value =~ /^git\s+(\S+)(\s+([^\(]+\S+))?/) {
-+		my $url = $1;
-+		my $branch = "";
-+		$branch = $3 if $3;
-+		my $output = `git ls-remote --exit-code -h "$url" $branch > /dev/null 2>&1`;
-+		if ($? == 0) {
-+		    push(@good_links, $value);
-+		} else {
-+		    push(@bad_links, $value);
-+		    $isbad = 1;
-+		}
-+	    } elsif ($value =~ /^(?:quilt|hg)\s+(https?:\S+)/) {
-+		my $url = $1;
-+		my $output = `wget --spider -q --no-check-certificate --timeout 10 --tries 1 $url`;
-+		if ($? == 0) {
-+		    push(@good_links, $value);
-+		} else {
-+		    push(@bad_links, $value);
-+		    $isbad = 1;
-+		}
-+	    }
-+	    if ($isbad) {
-+		print("$x->{file}:$x->{linenr}: warning: possible bad link\t$x->{line}\n");
-+	    }
-+	}
-     }
- }
- 
+-int hugepages_treat_as_movable;
+-
+ int hugetlb_max_hstate __read_mostly;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
+@@ -926,7 +924,7 @@ retry_cpuset:
+ /* Movability of hugepages depends on migration support. */
+ static inline gfp_t htlb_alloc_mask(struct hstate *h)
+ {
+-	if (hugepages_treat_as_movable || hugepage_migration_supported(h))
++	if (hugepage_migration_supported(h))
+ 		return GFP_HIGHUSER_MOVABLE;
+ 	else
+ 		return GFP_HIGHUSER;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-spellingtxt-add-unnecessary-typo-variants.patch
-parse-maintainers-add-ability-to-specify-filenames.patch
-get_maintainer-add-more-self-test-options.patch
-checkpatch-printks-always-need-a-kern_level.patch
-checkpatch-allow-define_per_cpu-definitions-to-exceed-line-length.patch
-checkpatch-add-tp_printk-to-list-of-logging-functions.patch
-checkpatch-add-strict-test-for-lines-ending-in-or.patch
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
+mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
+mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
+mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+mm-arch-remove-empty_bad_page.patch
+mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures.patch
+mm-do-not-rely-on-preempt_count-in-print_vma_addr-was-re-mm-use-in_atomic-in-print_vma_addr.patch
+fs-elf-drop-map_fixed-usage-from-elf_map.patch
 
