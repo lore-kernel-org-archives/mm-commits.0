@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-simplify-nodemask-printing.patch added to -mm tree
-Date: Thu, 09 Nov 2017 15:03:54 -0800
-Message-ID: <5a04deda.7+Oqt31A8QFohKnS%akpm@linux-foundation.org>
+Subject: + lib-test-module-for-find__bit-functions.patch added to -mm tree
+Date: Thu, 09 Nov 2017 15:13:41 -0800
+Message-ID: <5a04e125.k777UiCmR4NvEU9a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47394 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754273AbdKIXDz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2017 18:03:55 -0500
+        with ESMTP id S1754215AbdKIXNm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2017 18:13:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, joe@perches.com, mm-commits@vger.kernel.org
+To: ynorov@caviumnetworks.com, adobriyan@gmail.com, courbet@google.com, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: simplify nodemask printing
+     Subject: lib: test module for find_*_bit() functions
 has been added to the -mm tree.  Its filename is
-     mm-simplify-nodemask-printing.patch
+     lib-test-module-for-find__bit-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-nodemask-printing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-module-for-find__bit-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-nodemask-printing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-module-for-find__bit-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,83 +38,220 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: simplify nodemask printing
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: lib: test module for find_*_bit() functions
 
-alloc_warn() and dump_header() have to explicitly handle NULL nodemask
-which forces both paths to use pr_cont.  We can do better.  printk already
-handles NULL pointers properly so all we need is to teach nodemask_pr_args
-to handle NULL nodemask carefully.  This allows simplification of both
-alloc_warn() and dump_header() and gets rid of pr_cont altogether.
+find_bit functions are widely used in the kernel, including hot paths. 
+This module tests performance of those functions in 2 typical scenarios:
+randomly filled bitmap with relatively equal distribution of set and
+cleared bits, and sparse bitmap which has 1 set bit for 500 cleared bits.
 
-This patch has been motivated by patch from Joe Perches
-http://lkml.kernel.org/r/b31236dfe3fc924054fd7842bde678e71d193638.1509991345.git.joe@perches.com
+On ThunderX machine:
 
-Link: http://lkml.kernel.org/r/20171109100531.3cn2hcqnuj7mjaju@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Joe Perches <joe@perches.com>
+		 Start testing find_bit() with random-filled bitmap
+[1032111.632383] find_next_bit:		240043 cycles,	164062 iterations
+[1032111.647236] find_next_zero_bit:	312848 cycles,	163619 iterations
+[1032111.661585] find_last_bit:		193748 cycles,	164062 iterations
+[1032113.450517] find_first_bit:	177720874 cycles,	164062 iterations
+[1032113.462930]
+		 Start testing find_bit() with sparse bitmap
+[1032113.477229] find_next_bit:		3633 cycles,	656 iterations
+[1032113.494281] find_next_zero_bit:	620399 cycles,	327025 iterations
+[1032113.506723] find_last_bit:		3038 cycles,	656 iterations
+[1032113.524485] find_first_bit:	691407 cycles,	656 iterations
+
+Link: http://lkml.kernel.org/r/20171109140714.13168-1-ynorov@caviumnetworks.com
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Reviewed-by: Clement Courbet <courbet@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    2 +-
- mm/oom_kill.c            |   12 ++++--------
- mm/page_alloc.c          |   12 +++---------
- 3 files changed, 8 insertions(+), 18 deletions(-)
+ lib/Kconfig.debug   |    9 ++
+ lib/Makefile        |    1 
+ lib/test_find_bit.c |  141 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 151 insertions(+)
 
-diff -puN include/linux/nodemask.h~mm-simplify-nodemask-printing include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-simplify-nodemask-printing
-+++ a/include/linux/nodemask.h
-@@ -104,7 +104,7 @@ extern nodemask_t _unused_nodemask_arg_;
-  *
-  * Can be used to provide arguments for '%*pb[l]' when printing a nodemask.
-  */
--#define nodemask_pr_args(maskp)		MAX_NUMNODES, (maskp)->bits
-+#define nodemask_pr_args(maskp)	(maskp) ? MAX_NUMNODES : 0, (maskp) ? (maskp)->bits : NULL
+diff -puN lib/Kconfig.debug~lib-test-module-for-find__bit-functions lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-test-module-for-find__bit-functions
++++ a/lib/Kconfig.debug
+@@ -1836,6 +1836,15 @@ config TEST_BPF
  
- /*
-  * The inline keyword gives the compiler room to decide to inline, or
-diff -puN mm/oom_kill.c~mm-simplify-nodemask-printing mm/oom_kill.c
---- a/mm/oom_kill.c~mm-simplify-nodemask-printing
-+++ a/mm/oom_kill.c
-@@ -426,14 +426,10 @@ static void dump_tasks(struct mem_cgroup
+ 	  If unsure, say N.
  
- static void dump_header(struct oom_control *oc, struct task_struct *p)
- {
--	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=",
--		current->comm, oc->gfp_mask, &oc->gfp_mask);
--	if (oc->nodemask)
--		pr_cont("%*pbl", nodemask_pr_args(oc->nodemask));
--	else
--		pr_cont("(null)");
--	pr_cont(",  order=%d, oom_score_adj=%hd\n",
--		oc->order, current->signal->oom_score_adj);
-+	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=%*pbl, order=%d, oom_score_adj=%hd\n",
-+		current->comm, oc->gfp_mask, &oc->gfp_mask,
-+		nodemask_pr_args(oc->nodemask), oc->order,
-+			current->signal->oom_score_adj);
- 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
- 		pr_warn("COMPACTION is disabled!!!\n");
- 
-diff -puN mm/page_alloc.c~mm-simplify-nodemask-printing mm/page_alloc.c
---- a/mm/page_alloc.c~mm-simplify-nodemask-printing
-+++ a/mm/page_alloc.c
-@@ -3275,20 +3275,14 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
- 		return;
- 
--	pr_warn("%s: ", current->comm);
--
- 	va_start(args, fmt);
- 	vaf.fmt = fmt;
- 	vaf.va = &args;
--	pr_cont("%pV", &vaf);
-+	pr_warn("%s: %pV, mode:%#x(%pGg), nodemask=%*pbl\n",
-+			current->comm, &vaf, gfp_mask, &gfp_mask,
-+			nodemask_pr_args(nodemask));
- 	va_end(args);
- 
--	pr_cont(", mode:%#x(%pGg), nodemask=", gfp_mask, &gfp_mask);
--	if (nodemask)
--		pr_cont("%*pbl\n", nodemask_pr_args(nodemask));
--	else
--		pr_cont("(null)\n");
++config TEST_FIND_BIT
++	tristate "Test find_bit functions"
++	default n
++	help
++	  This builds the "test_find_bit" module that measure find_*_bit()
++	  functions performance.
++
++	  If unsure, say N.
++
+ config TEST_FIRMWARE
+ 	tristate "Test firmware loading via userspace interface"
+ 	default n
+diff -puN lib/Makefile~lib-test-module-for-find__bit-functions lib/Makefile
+--- a/lib/Makefile~lib-test-module-for-find__bit-functions
++++ a/lib/Makefile
+@@ -47,6 +47,7 @@ obj-y += hexdump.o
+ obj-$(CONFIG_TEST_HEXDUMP) += test_hexdump.o
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_BPF) += test_bpf.o
++obj-$(CONFIG_TEST_FIND_BIT) += test_find_bit.o
+ obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
+ obj-$(CONFIG_TEST_SYSCTL) += test_sysctl.o
+ obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
+diff -puN /dev/null lib/test_find_bit.c
+--- /dev/null
++++ a/lib/test_find_bit.c
+@@ -0,0 +1,141 @@
++/*
++ * Test for find_*_bit functions.
++ *
++ * Copyright (c) 2017 Cavium.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of version 2 of the GNU General Public
++ * License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ */
++
++/*
++ * find_bit functions are widely used in kernel, so the successful boot
++ * is good enough test for correctness.
++ *
++ * This test is focused on performance of traversing bitmaps. Two typical
++ * scenarios are reproduced:
++ * - randomly filled bitmap with approximately equal number of set and
++ *   cleared bits;
++ * - sparse bitmap with few set bits at random positions.
++ */
++
++#include <linux/bitops.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/printk.h>
++#include <linux/random.h>
++
++#define BITMAP_LEN	(4096UL * 8 * 10)
++#define SPARSE		500
++
++static DECLARE_BITMAP(bitmap, BITMAP_LEN) __initdata;
++
++/*
++ * This is Schlemiel the Painter's algorithm. It should be called after
++ * all other tests for the same bitmap because it sets all bits of bitmap to 1.
++ */
++static int __init test_find_first_bit(void *bitmap, unsigned long len)
++{
++	unsigned long i, cnt;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	for (cnt = i = 0; i < len; cnt++) {
++		i = find_first_bit(bitmap, len);
++		__clear_bit(i, bitmap);
++	}
++	cycles = get_cycles() - cycles;
++	pr_err("find_first_bit:\t\t%ld cycles,\t%ld iterations\n", cycles, cnt);
++
++	return 0;
++}
++
++static int __init test_find_next_bit(const void *bitmap, unsigned long len)
++{
++	unsigned long i, cnt;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
++		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
++	cycles = get_cycles() - cycles;
++	pr_err("find_next_bit:\t\t%ld cycles,\t%ld iterations\n", cycles, cnt);
++
++	return 0;
++}
++
++static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
++{
++	unsigned long i, cnt;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
++		i = find_next_zero_bit(bitmap, len, i) + 1;
++	cycles = get_cycles() - cycles;
++	pr_err("find_next_zero_bit:\t%ld cycles,\t%ld iterations\n",
++								cycles, cnt);
++
++	return 0;
++}
++
++static int __init test_find_last_bit(const void *bitmap, unsigned long len)
++{
++	unsigned long l, cnt = 0;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	do {
++		cnt++;
++		l = find_last_bit(bitmap, len);
++		if (l >= len)
++			break;
++		len = l;
++	} while (len);
++	cycles = get_cycles() - cycles;
++	pr_err("find_last_bit:\t\t%ld cycles,\t%ld iterations\n", cycles, cnt);
++
++	return 0;
++}
++
++static int __init find_bit_test(void)
++{
++	unsigned long nbits = BITMAP_LEN / SPARSE;
++
++	pr_err("\nStart testing find_bit() with random-filled bitmap\n");
++
++	get_random_bytes(bitmap, sizeof(bitmap));
++
++	test_find_next_bit(bitmap, BITMAP_LEN);
++	test_find_next_zero_bit(bitmap, BITMAP_LEN);
++	test_find_last_bit(bitmap, BITMAP_LEN);
++	test_find_first_bit(bitmap, BITMAP_LEN);
++
++	pr_err("\nStart testing find_bit() with sparse bitmap\n");
++
++	bitmap_zero(bitmap, BITMAP_LEN);
++
++	while (nbits--)
++		__set_bit(prandom_u32() % BITMAP_LEN, bitmap);
++
++	test_find_next_bit(bitmap, BITMAP_LEN);
++	test_find_next_zero_bit(bitmap, BITMAP_LEN);
++	test_find_last_bit(bitmap, BITMAP_LEN);
++	test_find_first_bit(bitmap, BITMAP_LEN);
++
++	return 0;
++}
++module_init(find_bit_test);
++
++static void __exit test_find_bit_cleanup(void)
++{
++}
++module_exit(test_find_bit_cleanup);
++
++MODULE_LICENSE("GPL");
+_
+
+Patches currently in -mm which might be from ynorov@caviumnetworks.com are
+
+lib-test-module-for-find__bit-functions.patch
+
