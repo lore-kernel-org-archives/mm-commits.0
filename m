@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bug-fix-cut-here-location-for-__warn_taint-architectures.patch
- added to -mm tree
-Date: Wed, 08 Nov 2017 16:07:21 -0800
-Message-ID: <5a039c39.Qhg5YcvCcTJdRqe7%akpm@linux-foundation.org>
+Subject: + mm-sysctl-make-numa-stats-configurable-v5-fix.patch added to
+ -mm tree
+Date: Wed, 08 Nov 2017 16:09:55 -0800
+Message-ID: <5a039cd3.Ob4pxwa2Y7u7gA9N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753147AbdKIAHX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2017 19:07:23 -0500
+        with ESMTP id S1751872AbdKIAJ4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2017 19:09:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, arnd@arndb.de, fengguang.wu@intel.com, jpoimboe@redhat.com, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, brouer@redhat.com, dave.hansen@intel.com, mhocko@suse.com, vbabka@suse.cz, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bug: fix "cut here" location for __WARN_TAINT architectures
+     Subject: mm, vmstat: Make sure mutex is a global static
 has been added to the -mm tree.  Its filename is
-     bug-fix-cut-here-location-for-__warn_taint-architectures.patch
+     mm-sysctl-make-numa-stats-configurable-v5-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bug-fix-cut-here-location-for-__warn_taint-architectures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sysctl-make-numa-stats-configurable-v5-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bug-fix-cut-here-location-for-__warn_taint-architectures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sysctl-make-numa-stats-configurable-v5-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,112 +40,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: bug: fix "cut here" location for __WARN_TAINT architectures
+Subject: mm, vmstat: Make sure mutex is a global static
 
-Prior to v4.11, x86 used warn_slowpath_fmt() for handling WARN()s.  After
-WARN() was moved to using UD0 on x86, the warning text started appearing
-_before_ the "cut here" line.  This appears to have been a long-standing
-bug on architectures that used __WARN_TAINT, but it didn't get fixed.
+The mutex in sysctl_vm_numa_stat_handler() needs to be a global static,
+not a stack variable, otherwise it doesn't serve any purpose.  Also,
+reading the file with CONFIG_LOCKDEP=y will complain:
 
-v4.11 and earlier on x86:
+[   63.258593] INFO: trying to register non-static key.
+[   63.259113] the code is fine but needs lockdep annotation.
+[   63.259596] turning off the locking correctness validator.
+[   63.260073] CPU: 1 PID: 4102 Comm: perl Not tainted 4.14.0-rc8-next-20171107+ #419
+[   63.260769] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[   63.261570] Call Trace:
+[   63.261783]  dump_stack+0x5f/0x86
+[   63.262062]  register_lock_class+0xe4/0x550
+[   63.262408]  ? __lock_acquire+0x308/0x1170
+[   63.262746]  __lock_acquire+0x7e/0x1170
+[   63.263063]  lock_acquire+0x9d/0x1d0
+[   63.263363]  ? sysctl_vm_numa_stat_handler+0x8f/0x2d0
+[   63.263777]  ? sysctl_vm_numa_stat_handler+0x8f/0x2d0
+[   63.264192]  __mutex_lock+0xb8/0x9a0
+[   63.264488]  ? sysctl_vm_numa_stat_handler+0x8f/0x2d0
+[   63.264942]  ? sysctl_vm_numa_stat_handler+0x8f/0x2d0
+[   63.265398]  ? sysctl_vm_numa_stat_handler+0x8f/0x2d0
+[   63.265840]  sysctl_vm_numa_stat_handler+0x8f/0x2d0
+[   63.266270]  proc_sys_call_handler+0xe3/0x100
+[   63.266655]  __vfs_read+0x33/0x1b0
+[   63.266957]  vfs_read+0xa6/0x150
+[   63.267244]  SyS_read+0x55/0xc0
+[   63.267525]  do_syscall_64+0x56/0x140
+[   63.267850]  entry_SYSCALL64_slow_path+0x25/0x25
 
-[    7.944142] ------------[ cut here ]------------
-[    7.945631] WARNING: CPU: 0 PID: 2956 at drivers/misc/lkdtm_bugs.c:65 lkdtm_WARNING+0x21/0x30
-[    7.947453] This is a warning message
-[    7.948357] Modules linked in:
-
-v4.12 and later on x86:
-
-[    8.973063] This is a warning message
-[    8.973885] ------------[ cut here ]------------
-[    8.974867] WARNING: CPU: 1 PID: 2982 at drivers/misc/lkdtm_bugs.c:68 lkdtm_WARNING+0x15/0x20
-[    8.976563] Modules linked in:
-
-With this fix:
-
-[    9.157133] ------------[ cut here ]------------
-[    9.158143] This is a warning message
-[    9.159099] WARNING: CPU: 3 PID: 3009 at drivers/misc/lkdtm_bugs.c:67 lkdtm_WARNING+0x15/0x20
-
-Since the __FILE__ reporting happens as part of the UD0 handler, it isn't
-trivial to move the message to after the WARNING line, but at least we can
-fix the position of the "cut here" line so all the various logging tools
-will start including the actual runtime warning message again, when they
-follow the instruction and "cut here".
-
-Link: http://lkml.kernel.org/r/1510100869-73751-4-git-send-email-keescook@chromium.org
-Fixes: 9a93848fe787 ("x86/debug: Implement __WARN() using UD0")
+Link: http://lkml.kernel.org/r/20171107213809.GA4314@beast
+Fixes: 920d5f77d1a25 ("mm, sysctl: make NUMA stats configurable")
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ying Huang <ying.huang@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    5 +++--
- kernel/panic.c            |   16 +++++++++++++++-
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ mm/vmstat.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/bug.h~bug-fix-cut-here-location-for-__warn_taint-architectures include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~bug-fix-cut-here-location-for-__warn_taint-architectures
-+++ a/include/asm-generic/bug.h
-@@ -92,10 +92,11 @@ extern void warn_slowpath_null(const cha
- #define __WARN_printf_taint(taint, arg...)				\
- 	warn_slowpath_fmt_taint(__FILE__, __LINE__, taint, arg)
- #else
-+extern __printf(1, 2) void __warn_printk(const char *fmt, ...);
- #define __WARN()		__WARN_TAINT(TAINT_WARN)
--#define __WARN_printf(arg...)	do { printk(arg); __WARN(); } while (0)
-+#define __WARN_printf(arg...)	do { __warn_printk(arg); __WARN(); } while (0)
- #define __WARN_printf_taint(taint, arg...)				\
--	do { printk(arg); __WARN_TAINT(taint); } while (0)
-+	do { __warn_printk(arg); __WARN_TAINT(taint); } while (0)
- #endif
- 
- /* used internally by panic.c */
-diff -puN kernel/panic.c~bug-fix-cut-here-location-for-__warn_taint-architectures kernel/panic.c
---- a/kernel/panic.c~bug-fix-cut-here-location-for-__warn_taint-architectures
-+++ a/kernel/panic.c
-@@ -520,7 +520,8 @@ void __warn(const char *file, int line,
- {
- 	disable_trace_on_warning();
- 
--	pr_warn(CUT_HERE);
-+	if (args)
-+		pr_warn(CUT_HERE);
- 
- 	if (file)
- 		pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS\n",
-@@ -584,9 +585,22 @@ EXPORT_SYMBOL(warn_slowpath_fmt_taint);
- 
- void warn_slowpath_null(const char *file, int line)
- {
-+	pr_warn(CUT_HERE);
- 	__warn(file, line, __builtin_return_address(0), TAINT_WARN, NULL, NULL);
+diff -puN mm/vmstat.c~mm-sysctl-make-numa-stats-configurable-v5-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-sysctl-make-numa-stats-configurable-v5-fix
++++ a/mm/vmstat.c
+@@ -72,11 +72,12 @@ static void invalid_numa_statistics(void
+ 	zero_global_numa_counters();
  }
- EXPORT_SYMBOL(warn_slowpath_null);
-+#else
-+void __warn_printk(const char *fmt, ...)
-+{
-+	va_list args;
-+
-+	pr_warn(CUT_HERE);
-+
-+	va_start(args, fmt);
-+	vprintk(fmt, args);
-+	va_end(args);
-+}
-+EXPORT_SYMBOL(__warn_printk);
- #endif
  
- #ifdef CONFIG_BUG
++static DEFINE_MUTEX(vm_numa_stat_lock);
++
+ int sysctl_vm_numa_stat_handler(struct ctl_table *table, int write,
+ 		void __user *buffer, size_t *length, loff_t *ppos)
+ {
+ 	int ret, oldval;
+-	DEFINE_MUTEX(vm_numa_stat_lock);
+ 
+ 	mutex_lock(&vm_numa_stat_lock);
+ 	if (write)
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
 
 writeback-convert-timers-to-use-timer_setup.patch
+mm-sysctl-make-numa-stats-configurable-v5-fix.patch
 sh-boot-add-static-stack-protector-to-pre-kernel.patch
 lkdtm-include-warn-format-string.patch
 bug-define-the-cut-here-string-in-a-single-place.patch
