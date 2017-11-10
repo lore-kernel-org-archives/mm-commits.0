@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch added
- to -mm tree
-Date: Fri, 10 Nov 2017 14:39:49 -0800
-Message-ID: <5a062ab5.aKf3FW+irqfApNGa%akpm@linux-foundation.org>
+ net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
+ added to -mm tree
+Date: Fri, 10 Nov 2017 15:09:28 -0800
+Message-ID: <5a0631a8.dtdFCjhNOt8VZRqb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59396 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754778AbdKJWju (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 17:39:50 -0500
+        with ESMTP id S1751097AbdKJXJ3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 18:09:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jpoimboe@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jiri@mellanox.com, nogahf@mellanox.com, simon.horman@netronome.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/objtool/Makefile: don't assume sync-check.sh is executable
+     Subject: net/sched/sch_red.c: work around gcc-4.4.4 anon union initializer issue
 has been added to the -mm tree.  Its filename is
-     tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+     net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,31 +41,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tools/objtool/Makefile: don't assume sync-check.sh is executable
+Subject: net/sched/sch_red.c: work around gcc-4.4.4 anon union initializer issue
 
-patch(1) loses the x bit.  Kernel build breaks.
+gcc-4.4.4 (at lest) has issues with initializers and anonymous unions:
 
-Fixes: 3bd51c5a371de ("objtool: Move kernel headers/code sync check to a script")
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+net/sched/sch_red.c: In function 'red_dump_offload':
+net/sched/sch_red.c:282: error: unknown field 'stats' specified in initializer
+net/sched/sch_red.c:282: warning: initialization makes integer from pointer without a cast
+net/sched/sch_red.c:283: error: unknown field 'stats' specified in initializer
+net/sched/sch_red.c:283: warning: initialization makes integer from pointer without a cast
+net/sched/sch_red.c: In function 'red_dump_stats':
+net/sched/sch_red.c:352: error: unknown field 'xstats' specified in initializer
+net/sched/sch_red.c:352: warning: initialization makes integer from pointer without a cast
+
+Work around this.
+
+Fixes: 602f3baf2218 ("net_sch: red: Add offload ability to RED qdisc")
+Cc: Nogah Frankel <nogahf@mellanox.com>
+Cc: Jiri Pirko <jiri@mellanox.com>
+Cc: Simon Horman <simon.horman@netronome.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/objtool/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sched/sch_red.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN tools/objtool/Makefile~tools-objtool-makefile-dont-assume-sync-checksh-is-executable tools/objtool/Makefile
---- a/tools/objtool/Makefile~tools-objtool-makefile-dont-assume-sync-checksh-is-executable
-+++ a/tools/objtool/Makefile
-@@ -44,7 +44,7 @@ $(OBJTOOL_IN): fixdep FORCE
- 	@$(MAKE) $(build)=objtool
+diff -puN net/sched/sch_red.c~net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue net/sched/sch_red.c
+--- a/net/sched/sch_red.c~net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue
++++ a/net/sched/sch_red.c
+@@ -276,11 +276,13 @@ static int red_dump_offload(struct Qdisc
+ {
+ 	struct net_device *dev = qdisc_dev(sch);
+ 	struct tc_red_qopt_offload hw_stats = {
++		.command = TC_RED_STATS,
+ 		.handle = sch->handle,
+ 		.parent = sch->parent,
+-		.command = TC_RED_STATS,
+-		.stats.bstats = &sch->bstats,
+-		.stats.qstats = &sch->qstats,
++		{
++			.stats.bstats = &sch->bstats,
++			.stats.qstats = &sch->qstats,
++		},
+ 	};
+ 	int err;
  
- $(OBJTOOL): $(LIBSUBCMD) $(OBJTOOL_IN)
--	@./sync-check.sh
-+	@$(CONFIG_SHELL) ./sync-check.sh
- 	$(QUIET_LINK)$(CC) $(OBJTOOL_IN) $(LDFLAGS) -o $@
- 
- 
+@@ -346,10 +348,12 @@ static int red_dump_stats(struct Qdisc *
+ 	if (tc_can_offload(dev) &&  dev->netdev_ops->ndo_setup_tc) {
+ 		struct red_stats hw_stats = {0};
+ 		struct tc_red_qopt_offload hw_stats_request = {
++			.command = TC_RED_XSTATS,
+ 			.handle = sch->handle,
+ 			.parent = sch->parent,
+-			.command = TC_RED_XSTATS,
+-			.xstats = &hw_stats,
++			{
++				.xstats = &hw_stats,
++			},
+ 		};
+ 		if (!dev->netdev_ops->ndo_setup_tc(dev,
+ 						   TC_SETUP_QDISC_RED,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +131,7 @@ sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
 tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
 
