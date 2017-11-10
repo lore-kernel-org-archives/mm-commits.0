@@ -1,97 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-clang-handle-randomizable-anonymous-structs.patch
- added to -mm tree
-Date: Thu, 09 Nov 2017 15:25:24 -0800
-Message-ID: <5a04e3e4.kBbOoOCcjfZfxdit%akpm@linux-foundation.org>
+Subject: [merged] sysctl-add-register_sysctl-dummy-helper.patch
+ removed from -mm tree
+Date: Fri, 10 Nov 2017 14:21:49 -0800
+Message-ID: <20171110222149.--FnTT73N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48074 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54786 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754310AbdKIXZZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2017 18:25:25 -0500
+        with ESMTP id S1754022AbdKJWVv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 17:21:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandipan@linux.vnet.ibm.com, ast@fb.com, gregkh@linuxfoundation.org, kstewart@linuxfoundation.org, naveen.n.rao@linux.vnet.ibm.com, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alex.bennee@linaro.org, arnd@arndb.de, catalin.marinas@arm.com, Dave.Martin@arm.com, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com
 
 
 The patch titled
-     Subject: include/linux/compiler-clang.h: handle randomizable anonymous structs
-has been added to the -mm tree.  Its filename is
-     compiler-clang-handle-randomizable-anonymous-structs.patch
+     Subject: sysctl: add register_sysctl() dummy helper
+has been removed from the -mm tree.  Its filename was
+     sysctl-add-register_sysctl-dummy-helper.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compiler-clang-handle-randomizable-anonymous-structs.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-clang-handle-randomizable-anonymous-structs.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sandipan Das <sandipan@linux.vnet.ibm.com>
-Subject: include/linux/compiler-clang.h: handle randomizable anonymous structs
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: sysctl: add register_sysctl() dummy helper
 
-The GCC randomize layout plugin can randomize the member offsets of
-sensitive kernel data structures.  To use this feature, certain
-annotations and members are added to the structures which affect the
-member offsets even if this plugin is not used.
+register_sysctl() has been around for five years with commit fea478d4101a
+("sysctl: Add register_sysctl for normal sysctl users") but now that arm64
+started using it, I ran into a compile error:
 
-All of these structures are completely randomized, except for task_struct
-which leaves out some of its members.  All the other members are wrapped
-within an anonymous struct with the __randomize_layout attribute.  This is
-done using the randomized_struct_fields_start and
-randomized_struct_fields_end defines.  When the plugin is disabled, the
-behaviour of this attribute can vary based on the GCC version.  For GCC
-5.1+, this attribute maps to __designated_init otherwise it is just an
-empty define but the anonymous structure is still present.  For other
-compilers, both randomized_struct_fields_start and
-randomized_struct_fields_end default to empty defines meaning the
-anonymous structure is not introduced at all.  So, if a module compiled
-with Clang, such as a BPF program, needs to access task_struct fields such
-as pid and comm, the offsets of these members as recognized by Clang are
-different from those recognized by modules compiled with GCC.  If GCC 4.6+
-is used to build the kernel, this can be solved by introducing appropriate
-defines for Clang so that the anonymous structure is seen when determining
-the offsets for the members.
+arch/arm64/kernel/armv8_deprecated.c: In function 'register_insn_emulation_sysctl':
+arch/arm64/kernel/armv8_deprecated.c:257:2: error: implicit declaration of function 'register_sysctl'
 
-Link: http://lkml.kernel.org/r/20171109064645.25581-1-sandipan@linux.vnet.ibm.com
-Signed-off-by: Sandipan Das <sandipan@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
+This adds a inline function like we already have for
+register_sysctl_paths() and register_sysctl_table().
+
+Link: http://lkml.kernel.org/r/20171106133700.558647-1-arnd@arndb.de
+Fixes: 38b9aeb32fa7 ("arm64: Port deprecated instruction emulation to new sysctl interface")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Dave Martin <Dave.Martin@arm.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Alex Benne <alex.bennee@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Alexei Starovoitov <ast@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/sysctl.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/compiler-clang.h~compiler-clang-handle-randomizable-anonymous-structs include/linux/compiler-clang.h
---- a/include/linux/compiler-clang.h~compiler-clang-handle-randomizable-anonymous-structs
-+++ a/include/linux/compiler-clang.h
-@@ -16,3 +16,6 @@
-  * with any version that can compile the kernel
-  */
- #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+diff -puN include/linux/sysctl.h~sysctl-add-register_sysctl-dummy-helper include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-add-register_sysctl-dummy-helper
++++ a/include/linux/sysctl.h
+@@ -213,6 +213,11 @@ static inline struct ctl_table_header *r
+ 	return NULL;
+ }
+ 
++static inline struct ctl_table_header *register_sysctl(const char *path, struct ctl_table *table)
++{
++	return NULL;
++}
 +
-+#define randomized_struct_fields_start	struct {
-+#define randomized_struct_fields_end	};
+ static inline void unregister_sysctl_table(struct ctl_table_header * table)
+ {
+ }
 _
 
-Patches currently in -mm which might be from sandipan@linux.vnet.ibm.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-compiler-clang-handle-randomizable-anonymous-structs.patch
+iopoll-avoid-wint-in-bool-context-warning.patch
+initramfs-use-time64_t-timestamps.patch
+pcmcia-badge4-avoid-unused-function-warning.patch
 
