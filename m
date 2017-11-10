@@ -1,99 +1,109 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- maintainers-update-tpm-driver-infrastructure-changes.patch removed from -mm
- tree
-Date: Fri, 10 Nov 2017 14:21:53 -0800
-Message-ID: <20171110222153.ltxqrmOpq%akpm@linux-foundation.org>
+ maintainers-update-tpm-driver-infrastructure-changes-fix.patch removed from
+ -mm tree
+Date: Fri, 10 Nov 2017 14:21:57 -0800
+Message-ID: <20171110222157.W3PUKLhb_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54852 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754143AbdKJWVz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 17:21:55 -0500
+        with ESMTP id S1754413AbdKJWV6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 17:21:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: acme@kernel.org, ashleydlai@gmail.com, boris.brezillon@free-electrons.com, bp@suse.de, davem@davemloft.net, egtvedt@samfundet.no, geert@linux-m68k.org, gregkh@linuxfoundation.org, gwingerde@gmail.com, hskinnemoen@gmail.com, jarkko.sakkinen@linux.intel.com, martink@posteo.de, mchehab@kernel.org, mm-commits@vger.kernel.org, pavel@ucw.cz, rdunlap@infradead.org, tpmdd@selhorst.net, zohar@linux.vnet.ibm.com
+To: akpm@linux-foundation.org, jarkko.sakkinen@linux.intel.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update TPM driver infrastructure changes
+     Subject: maintainers-update-tpm-driver-infrastructure-changes-fix
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-tpm-driver-infrastructure-changes.patch
+     maintainers-update-tpm-driver-infrastructure-changes-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Subject: MAINTAINERS: update TPM driver infrastructure changes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maintainers-update-tpm-driver-infrastructure-changes-fix
 
-Link: http://lkml.kernel.org/r/20170915223811.21368-1-jarkko.sakkinen@linux.intel.com
-Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: Marcel Selhorst <tpmdd@selhorst.net>
-Cc: Ashley Lai <ashleydlai@gmail.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+alpha-sort CREDITS, per Randy
+
 Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Håvard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Gertjan van Wingerde <gwingerde@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    7 +++++++
- MAINTAINERS |   13 ++-----------
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ CREDITS |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN CREDITS~maintainers-update-tpm-driver-infrastructure-changes CREDITS
---- a/CREDITS~maintainers-update-tpm-driver-infrastructure-changes
+diff -puN CREDITS~maintainers-update-tpm-driver-infrastructure-changes-fix CREDITS
+--- a/CREDITS~maintainers-update-tpm-driver-infrastructure-changes-fix
 +++ a/CREDITS
-@@ -4128,6 +4128,13 @@ D: MD driver
- D: EISA/sysfs subsystem
- S: France
+@@ -2113,6 +2113,10 @@ S: J. Obrechtstr 23
+ S: NL-5216 GP 's-Hertogenbosch
+ S: The Netherlands
+ 
++N: Ashley Lai
++E: ashleydlai@gmail.com
++D: IBM VTPM driver
++
+ N: Savio Lam
+ E: lam836@cs.cuhk.hk
+ D: Author of the dialog utility, foundation
+@@ -3333,6 +3337,10 @@ S: Braunschweiger Strasse 79
+ S: 31134 Hildesheim
+ S: Germany
  
 +N: Marcel Selhorst
 +E: tpmdd@selhorst.net
 +D: TPM driver
 +
-+N: Ashley Lai
-+E: ashleydlai@gmail.com
-+D: IBM VTPM driver
+ N: Darren Senn
+ E: sinster@darkwater.com
+ D: Whatever I notice needs doing (so far: itimers, /proc)
+@@ -4128,14 +4136,6 @@ D: MD driver
+ D: EISA/sysfs subsystem
+ S: France
  
+-N: Marcel Selhorst
+-E: tpmdd@selhorst.net
+-D: TPM driver
+-
+-N: Ashley Lai
+-E: ashleydlai@gmail.com
+-D: IBM VTPM driver
+-
  # Don't add your name here, unless you really _are_ after Marc
  # alphabetically. Leonard used to be very proud of being the 
-diff -puN MAINTAINERS~maintainers-update-tpm-driver-infrastructure-changes MAINTAINERS
---- a/MAINTAINERS~maintainers-update-tpm-driver-infrastructure-changes
-+++ a/MAINTAINERS
-@@ -13603,23 +13603,14 @@ F:	drivers/platform/x86/toshiba-wmi.c
- 
- TPM DEVICE DRIVER
- M:	Peter Huewe <peterhuewe@gmx.de>
--M:	Marcel Selhorst <tpmdd@selhorst.net>
- M:	Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
- R:	Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
--W:	http://tpmdd.sourceforge.net
--L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
--Q:	https://patchwork.kernel.org/project/tpmdd-devel/list/
-+L:	linux-integrity@vger.kernel.org
-+Q:	https://patchwork.kernel.org/project/linux-integrity/list/
- T:	git git://git.infradead.org/users/jjs/linux-tpmdd.git
- S:	Maintained
- F:	drivers/char/tpm/
- 
--TPM IBM_VTPM DEVICE DRIVER
--M:	Ashley Lai <ashleydlai@gmail.com>
--W:	http://tpmdd.sourceforge.net
--L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
--S:	Maintained
--F:	drivers/char/tpm/tpm_ibmvtpm*
+ # last entry, and he'll get positively pissed if he can't even
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-consolidate-page-table-accounting-fix-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures-v2-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
