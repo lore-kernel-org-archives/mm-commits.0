@@ -1,78 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-add-register_sysctl-dummy-helper.patch
- removed from -mm tree
-Date: Fri, 10 Nov 2017 14:21:49 -0800
-Message-ID: <20171110222149.--FnTT73N%akpm@linux-foundation.org>
+Subject: [merged]
+ maintainers-update-tpm-driver-infrastructure-changes.patch removed from -mm
+ tree
+Date: Fri, 10 Nov 2017 14:21:53 -0800
+Message-ID: <20171110222153.ltxqrmOpq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54820 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754022AbdKJWVv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 17:21:51 -0500
+        with ESMTP id S1754143AbdKJWVz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 17:21:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.bennee@linaro.org, arnd@arndb.de, catalin.marinas@arm.com, Dave.Martin@arm.com, ebiederm@xmission.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com
+To: acme@kernel.org, ashleydlai@gmail.com, boris.brezillon@free-electrons.com, bp@suse.de, davem@davemloft.net, egtvedt@samfundet.no, geert@linux-m68k.org, gregkh@linuxfoundation.org, gwingerde@gmail.com, hskinnemoen@gmail.com, jarkko.sakkinen@linux.intel.com, martink@posteo.de, mchehab@kernel.org, mm-commits@vger.kernel.org, pavel@ucw.cz, rdunlap@infradead.org, tpmdd@selhorst.net, zohar@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: sysctl: add register_sysctl() dummy helper
+     Subject: MAINTAINERS: update TPM driver infrastructure changes
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-register_sysctl-dummy-helper.patch
+     maintainers-update-tpm-driver-infrastructure-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: sysctl: add register_sysctl() dummy helper
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: MAINTAINERS: update TPM driver infrastructure changes
 
-register_sysctl() has been around for five years with commit fea478d4101a
-("sysctl: Add register_sysctl for normal sysctl users") but now that arm64
-started using it, I ran into a compile error:
-
-arch/arm64/kernel/armv8_deprecated.c: In function 'register_insn_emulation_sysctl':
-arch/arm64/kernel/armv8_deprecated.c:257:2: error: implicit declaration of function 'register_sysctl'
-
-This adds a inline function like we already have for
-register_sysctl_paths() and register_sysctl_table().
-
-Link: http://lkml.kernel.org/r/20171106133700.558647-1-arnd@arndb.de
-Fixes: 38b9aeb32fa7 ("arm64: Port deprecated instruction emulation to new sysctl interface")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Dave Martin <Dave.Martin@arm.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Alex Benne <alex.bennee@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20170915223811.21368-1-jarkko.sakkinen@linux.intel.com
+Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: Marcel Selhorst <tpmdd@selhorst.net>
+Cc: Ashley Lai <ashleydlai@gmail.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Håvard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Martin Kepplinger <martink@posteo.de>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Gertjan van Wingerde <gwingerde@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ CREDITS     |    7 +++++++
+ MAINTAINERS |   13 ++-----------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-add-register_sysctl-dummy-helper include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-register_sysctl-dummy-helper
-+++ a/include/linux/sysctl.h
-@@ -213,6 +213,11 @@ static inline struct ctl_table_header *r
- 	return NULL;
- }
+diff -puN CREDITS~maintainers-update-tpm-driver-infrastructure-changes CREDITS
+--- a/CREDITS~maintainers-update-tpm-driver-infrastructure-changes
++++ a/CREDITS
+@@ -4128,6 +4128,13 @@ D: MD driver
+ D: EISA/sysfs subsystem
+ S: France
  
-+static inline struct ctl_table_header *register_sysctl(const char *path, struct ctl_table *table)
-+{
-+	return NULL;
-+}
++N: Marcel Selhorst
++E: tpmdd@selhorst.net
++D: TPM driver
 +
- static inline void unregister_sysctl_table(struct ctl_table_header * table)
- {
- }
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-iopoll-avoid-wint-in-bool-context-warning.patch
-initramfs-use-time64_t-timestamps.patch
-pcmcia-badge4-avoid-unused-function-warning.patch
-
++N: Ashley Lai
++E: ashleydlai@gmail.com
++D: IBM VTPM driver
+ 
+ # Don't add your name here, unless you really _are_ after Marc
+ # alphabetically. Leonard used to be very proud of being the 
+diff -puN MAINTAINERS~maintainers-update-tpm-driver-infrastructure-changes MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-tpm-driver-infrastructure-changes
++++ a/MAINTAINERS
+@@ -13603,23 +13603,14 @@ F:	drivers/platform/x86/toshiba-wmi.c
+ 
+ TPM DEVICE DRIVER
+ M:	Peter Huewe <peterhuewe@gmx.de>
+-M:	Marcel Selhorst <tpmdd@selhorst.net>
+ M:	Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+ R:	Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+-W:	http://tpmdd.sourceforge.net
+-L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
+-Q:	https://patchwork.kernel.org/project/tpmdd-devel/list/
++L:	linux-integrity@vger.kernel.org
++Q:	https://patchwork.kernel.org/project/linux-integrity/list/
+ T:	git git://git.infradead.org/users/jjs/linux-tpmdd.git
+ S:	Maintained
+ F:	drivers/char/tpm/
+ 
+-TPM IBM_VTPM DEVICE DRIVER
+-M:	Ashley Lai <ashleydlai@gmail.com>
+-W:	http://tpmdd.sourceforge.net
+-L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
+-S:	Maintained
+-F:	drivers/char/tpm/tpm_ibmvtpm*
