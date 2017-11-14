@@ -1,82 +1,89 @@
-From: akpm@linux-foundation.org
-Subject: + umh-optimize-proc_cap_handler.patch added to -mm tree
-Date: Fri, 10 Nov 2017 15:58:32 -0800
-Message-ID: <5a063d28.aR2/MaTdLCnDqKKk%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: mmotm 2017-11-10-15-56 uploaded (lib/test_find_bit.c)
+Date: Mon, 13 Nov 2017 16:17:41 -0800
+Message-ID: <20171113161741.5feaa74b30527f05b1684d10__18024.0990747281$1510618680$gmane$org@linux-foundation.org>
+References: <5a063cc8.w9SFxvjWsZNJM4HP%akpm@linux-foundation.org>
+        <2ce9cf55-2b54-b6cd-fa4d-3cd0a354b5f1@infradead.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55302 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754053AbdKJX6d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2017 18:58:33 -0500
+        with ESMTP id S1751028AbdKNARn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2017 19:17:43 -0500
+In-Reply-To: <2ce9cf55-2b54-b6cd-fa4d-3cd0a354b5f1@infradead.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: christophe.jaillet@wanadoo.fr, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org, Yury Norov <ynorov@caviumnetworks.com>
 
+On Fri, 10 Nov 2017 18:00:57 -0800 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-The patch titled
-     Subject: kernel/umh.c: optimize 'proc_cap_handler()'
-has been added to the -mm tree.  Its filename is
-     umh-optimize-proc_cap_handler.patch
+> On 11/10/2017 03:56 PM, akpm@linux-foundation.org wrote:
+> > The mm-of-the-moment snapshot 2017-11-10-15-56 has been uploaded to
+> > 
+> >    http://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > mmotm-readme.txt says
+> > 
+> > README for mm-of-the-moment:
+> > 
+> > http://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> > more than once a week.
+> 
+> on i386:
+> 
+> ../lib/test_find_bit.c:54:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
+> ../lib/test_find_bit.c:68:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
+> ../lib/test_find_bit.c:82:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
+> ../lib/test_find_bit.c:102:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/umh-optimize-proc_cap_handler.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/umh-optimize-proc_cap_handler.patch
+typecasts, I guess?  We don't seem to have a %p thingy for cycles_t?
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: kernel/umh.c: optimize 'proc_cap_handler()'
-
-If 'write' is 0, we can avoid a call to spin_lock/spin_unlock.
-
-Link: http://lkml.kernel.org/r/20171020193331.7233-1-christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Acked-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/umh.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN kernel/umh.c~umh-optimize-proc_cap_handler kernel/umh.c
---- a/kernel/umh.c~umh-optimize-proc_cap_handler
-+++ a/kernel/umh.c
-@@ -537,14 +537,14 @@ static int proc_cap_handler(struct ctl_t
- 	/*
- 	 * Drop everything not in the new_cap (but don't add things)
- 	 */
--	spin_lock(&umh_sysctl_lock);
- 	if (write) {
-+		spin_lock(&umh_sysctl_lock);
- 		if (table->data == CAP_BSET)
- 			usermodehelper_bset = cap_intersect(usermodehelper_bset, new_cap);
- 		if (table->data == CAP_PI)
- 			usermodehelper_inheritable = cap_intersect(usermodehelper_inheritable, new_cap);
-+		spin_unlock(&umh_sysctl_lock);
+--- a/lib/test_find_bit.c~lib-test-module-for-find__bit-functions-fix
++++ a/lib/test_find_bit.c
+@@ -51,7 +51,8 @@ static int __init test_find_first_bit(vo
+ 		__clear_bit(i, bitmap);
  	}
--	spin_unlock(&umh_sysctl_lock);
+ 	cycles = get_cycles() - cycles;
+-	pr_err("find_first_bit:\t\t%ld cycles,\t%ld iterations\n", cycles, cnt);
++	pr_err("find_first_bit:\t\t%ld cycles,\t%ld iterations\n",
++		(long)cycles, cnt);
+ 
+ 	return 0;
+ }
+@@ -65,7 +66,8 @@ static int __init test_find_next_bit(con
+ 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+ 		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
+ 	cycles = get_cycles() - cycles;
+-	pr_err("find_next_bit:\t\t%ld cycles,\t%ld iterations\n", cycles, cnt);
++	pr_err("find_next_bit:\t\t%ld cycles,\t%ld iterations\n",
++		(long)cycles, cnt);
+ 
+ 	return 0;
+ }
+@@ -80,7 +82,7 @@ static int __init test_find_next_zero_bi
+ 		i = find_next_zero_bit(bitmap, len, i) + 1;
+ 	cycles = get_cycles() - cycles;
+ 	pr_err("find_next_zero_bit:\t%ld cycles,\t%ld iterations\n",
+-								cycles, cnt);
++		(long)cycles, cnt);
+ 
+ 	return 0;
+ }
+@@ -99,7 +101,8 @@ static int __init test_find_last_bit(con
+ 		len = l;
+ 	} while (len);
+ 	cycles = get_cycles() - cycles;
+-	pr_err("find_last_bit:\t\t%ld cycles,\t%ld iterations\n", cycles, cnt);
++	pr_err("find_last_bit:\t\t%ld cycles,\t%ld iterations\n",
++		(long)cycles, cnt);
  
  	return 0;
  }
 _
-
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
-
-umh-optimize-proc_cap_handler.patch
-rapidio-fix-resources-leak-in-error-handling-path-in-rio_dma_transfer.patch
-rapidio-fix-an-error-handling-in-rio_dma_transfer.patch
 
