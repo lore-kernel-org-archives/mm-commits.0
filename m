@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch added
- to -mm tree
-Date: Tue, 14 Nov 2017 12:22:05 -0800
-Message-ID: <5a0b506d.gdHEe0hT/liGOSJu%akpm@linux-foundation.org>
+ mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+ added to -mm tree
+Date: Tue, 14 Nov 2017 12:22:15 -0800
+Message-ID: <5a0b5077.SGuiPRRe3XYRV+mY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54932 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754051AbdKNUWH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 15:22:07 -0500
+        with ESMTP id S1755276AbdKNUWQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 15:22:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, arnd@arndb.de, catalin.marinas@arm.com, dave.hansen@intel.com, davem@davemloft.net, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, stable@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.hansen@intel.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix device-dax pud write-faults triggered by get_user_pages()
+     Subject: mm: replace pte_write with pte_access_permitted in fault + gup paths
 has been added to the -mm tree.  Its filename is
-     mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+     mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,128 +41,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix device-dax pud write-faults triggered by get_user_pages()
+Subject: mm: replace pte_write with pte_access_permitted in fault + gup paths
 
-Currently only get_user_pages_fast() can safely handle the writable gup
-case due to its use of pud_access_permitted() to check whether the pud
-entry is writable.  In the gup slow path pud_write() is used instead of
-pud_access_permitted() and to date it has been unimplemented, just calls
-BUG_ON().
+The 'access_permitted' helper is used in the gup-fast path and goes beyond
+the simple _PAGE_RW check to also:
 
-    kernel BUG at ./include/linux/hugetlb.h:244!
-    [..]
-    RIP: 0010:follow_devmap_pud+0x482/0x490
-    [..]
-    Call Trace:
-     follow_page_mask+0x28c/0x6e0
-     __get_user_pages+0xe4/0x6c0
-     get_user_pages_unlocked+0x130/0x1b0
-     get_user_pages_fast+0x89/0xb0
-     iov_iter_get_pages_alloc+0x114/0x4a0
-     nfs_direct_read_schedule_iovec+0xd2/0x350
-     ? nfs_start_io_direct+0x63/0x70
-     nfs_file_direct_read+0x1e0/0x250
-     nfs_file_read+0x90/0xc0
+* validate that the mapping is writable from a protection keys
+  standpoint
 
-For now this just implements a simple check for the _PAGE_RW bit similar
-to pmd_write.  However, this implies that the gup-slow-path check is
-missing the extra checks that the gup-fast-path performs with
-pud_access_permitted.  Later patches will align all checks to use the
-'access_permitted' helper if the architecture provides it.  Note that the
-generic 'access_permitted' helper fallback is the simple _PAGE_RW check on
-architectures that do not define the 'access_permitted' helper(s).
+* validate that the pte has _PAGE_USER set since all fault paths where
+  pte_write is must be referencing user-memory.
 
-Link: http://lkml.kernel.org/r/151043109938.2842.14834662818213616199.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
+Link: http://lkml.kernel.org/r/151043111604.2842.8051684481794973100.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: <stable@vger.kernel.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h    |    1 +
- arch/sparc/include/asm/pgtable_64.h |    1 +
- arch/x86/include/asm/pgtable.h      |    6 ++++++
- include/asm-generic/pgtable.h       |    9 +++++++++
- include/linux/hugetlb.h             |    8 --------
- 5 files changed, 17 insertions(+), 8 deletions(-)
+ mm/gup.c    |    2 +-
+ mm/hmm.c    |    4 ++--
+ mm/memory.c |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm64/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages arch/arm64/include/asm/pgtable.h
---- a/arch/arm64/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -340,6 +340,7 @@ static inline int pmd_protnone(pmd_t pmd
- #define pfn_pmd(pfn,prot)	(__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot)))
- #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
- 
-+#define __HAVE_ARCH_PUD_WRITE
- #define pud_write(pud)		pte_write(pud_pte(pud))
- #define pud_pfn(pud)		(((pud_val(pud) & PUD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
- 
-diff -puN arch/sparc/include/asm/pgtable_64.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -723,6 +723,7 @@ static inline unsigned long pmd_write(pm
- 	return pte_write(pte);
+diff -puN mm/gup.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths mm/gup.c
+--- a/mm/gup.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths
++++ a/mm/gup.c
+@@ -66,7 +66,7 @@ static int follow_pfn_pte(struct vm_area
+  */
+ static inline bool can_follow_write_pte(pte_t pte, unsigned int flags)
+ {
+-	return pte_write(pte) ||
++	return pte_access_permitted(pte, WRITE) ||
+ 		((flags & FOLL_FORCE) && (flags & FOLL_COW) && pte_dirty(pte));
  }
  
-+#define __HAVE_ARCH_PUD_WRITE
- #define pud_write(pud)	pte_write(__pte(pud_val(pud)))
+diff -puN mm/hmm.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths mm/hmm.c
+--- a/mm/hmm.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths
++++ a/mm/hmm.c
+@@ -456,11 +456,11 @@ again:
+ 			continue;
+ 		}
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN arch/x86/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1088,6 +1088,12 @@ static inline void pmdp_set_wrprotect(st
- 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pmdp);
- }
+-		if (write_fault && !pte_write(pte))
++		if (!pte_access_permitted(pte, write_fault))
+ 			goto fault;
  
-+#define __HAVE_ARCH_PUD_WRITE
-+static inline int pud_write(pud_t pud)
-+{
-+	return pud_flags(pud) & _PAGE_RW;
-+}
-+
- /*
-  * clone_pgd_range(pgd_t *dst, pgd_t *src, int count);
-  *
-diff -puN include/asm-generic/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/include/asm-generic/pgtable.h
-@@ -812,6 +812,15 @@ static inline int pmd_write(pmd_t pmd)
- 	return 0;
- }
- #endif /* __HAVE_ARCH_PMD_WRITE */
-+
-+#ifndef __HAVE_ARCH_PUD_WRITE
-+static inline int pud_write(pud_t pud)
-+{
-+	BUG();
-+	return 0;
-+}
-+#endif /* __HAVE_ARCH_PUD_WRITE */
-+
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 		pfns[i] = hmm_pfn_t_from_pfn(pte_pfn(pte)) | flag;
+-		pfns[i] |= pte_write(pte) ? HMM_PFN_WRITE : 0;
++		pfns[i] |= pte_access_permitted(pte, WRITE) ? HMM_PFN_WRITE : 0;
+ 		continue;
  
- #if !defined(CONFIG_TRANSPARENT_HUGEPAGE) || \
-diff -puN include/linux/hugetlb.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/include/linux/hugetlb.h
-@@ -239,14 +239,6 @@ static inline int pgd_write(pgd_t pgd)
- }
- #endif
+ fault:
+diff -puN mm/memory.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths mm/memory.c
+--- a/mm/memory.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths
++++ a/mm/memory.c
+@@ -3948,7 +3948,7 @@ static int handle_pte_fault(struct vm_fa
+ 	if (unlikely(!pte_same(*vmf->pte, entry)))
+ 		goto unlock;
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+-		if (!pte_write(entry))
++		if (!pte_access_permitted(entry, WRITE))
+ 			return do_wp_page(vmf);
+ 		entry = pte_mkdirty(entry);
+ 	}
+@@ -4336,7 +4336,7 @@ int follow_phys(struct vm_area_struct *v
+ 		goto out;
+ 	pte = *ptep;
  
--#ifndef pud_write
--static inline int pud_write(pud_t pud)
--{
--	BUG();
--	return 0;
--}
--#endif
+-	if ((flags & FOLL_WRITE) && !pte_write(pte))
++	if (!pte_access_permitted(pte, flags & FOLL_WRITE))
+ 		goto unlock;
+ 
+ 	*prot = pgprot_val(pte_pgprot(pte));
+_
+
+Patches currently in -mm which might be from dan.j.williams@intel.com are
+
+mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
+mm-replace-pmd_write-with-pmd_access_permitted-in-fault-gup-paths.patch
+mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+
