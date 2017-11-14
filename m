@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch added to -mm tree
-Date: Tue, 14 Nov 2017 15:21:51 -0800
-Message-ID: <5a0b7a8f.xpBDAfPIj5oE/YHc%akpm@linux-foundation.org>
+ mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch added to -mm tree
+Date: Tue, 14 Nov 2017 15:46:06 -0800
+Message-ID: <5a0b803e.GcIikYkRtro/5Amz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756510AbdKNXVx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 18:21:53 -0500
+        with ESMTP id S1751105AbdKNXqI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 18:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: osalvador@techadventures.net, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mhocko@suse.com, osalvador@techadventures.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make alloc_node_mem_map a voidcall if we don't have CONFIG_FLAT_NODE_MEM_MAP
+     Subject: mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix
 has been added to the -mm tree.  Its filename is
-     mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
+     mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,88 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@techadventures.net>
-Subject: mm: make alloc_node_mem_map a voidcall if we don't have CONFIG_FLAT_NODE_MEM_MAP
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix
 
-free_area_init_node() calls alloc_node_mem_map(), but this function does
-nothing unless we have CONFIG_FLAT_NODE_MEM_MAP.
+clean up the printk while we're there
 
-As a cleanup, we can move the "#ifdef CONFIG_FLAT_NODE_MEM_MAP" within
-alloc_node_mem_map() out of the function, and define a
-alloc_node_mem_map() { } when CONFIG_FLAT_NODE_MEM_MAP is not present.
-
-This also moves the printk that lays within the "#ifdef
-CONFIG_FLAT_NODE_MEM_MAP" block from free_area_init_node() to
-alloc_node_mem_map(), getting rid of the "#ifdef CONFIG_FLAT_NODE_MEM_MAP"
-in free_area_init_node().
-
-Link: http://lkml.kernel.org/r/20171114111935.GA11758@techadventures.net
-Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@techadventures.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map mm/page_alloc.c
---- a/mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map
+diff -puN mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix
 +++ a/mm/page_alloc.c
-@@ -6147,6 +6147,7 @@ static void __paginginit free_area_init_
- 	}
- }
- 
-+#ifdef CONFIG_FLAT_NODE_MEM_MAP
- static void __ref alloc_node_mem_map(struct pglist_data *pgdat)
- {
- 	unsigned long __maybe_unused start = 0;
-@@ -6156,7 +6157,6 @@ static void __ref alloc_node_mem_map(str
- 	if (!pgdat->node_spanned_pages)
- 		return;
- 
--#ifdef CONFIG_FLAT_NODE_MEM_MAP
- 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
- 	offset = pgdat->node_start_pfn - start;
- 	/* ia64 gets its own node_mem_map, before this, without bootmem */
-@@ -6178,6 +6178,9 @@ static void __ref alloc_node_mem_map(str
+@@ -6178,9 +6178,9 @@ static void __ref alloc_node_mem_map(str
  							       pgdat->node_id);
  		pgdat->node_mem_map = map + offset;
  	}
-+	printk(KERN_DEBUG "alloc_node_mem_map: node %d, pgdat %08lx, node_mem_map %08lx\n",
-+							pgdat->node_id, (unsigned long)pgdat,
-+							(unsigned long)pgdat->node_mem_map);
+-	printk(KERN_DEBUG "alloc_node_mem_map: node %d, pgdat %08lx, node_mem_map %08lx\n",
+-							pgdat->node_id, (unsigned long)pgdat,
+-							(unsigned long)pgdat->node_mem_map);
++	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
++				__func__, pgdat->node_id, (unsigned long)pgdat,
++				(unsigned long)pgdat->node_mem_map);
  #ifndef CONFIG_NEED_MULTIPLE_NODES
  	/*
  	 * With no DISCONTIG, the global mem_map is just set as node 0's
-@@ -6190,8 +6193,10 @@ static void __ref alloc_node_mem_map(str
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- 	}
- #endif
--#endif /* CONFIG_FLAT_NODE_MEM_MAP */
- }
-+#else
-+static void __ref alloc_node_mem_map(struct pglist_data *pgdat) { }
-+#endif /* CONFIG_FLAT_NODE_MEM_MAP */
- 
- void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
- 		unsigned long node_start_pfn, unsigned long *zholes_size)
-@@ -6218,11 +6223,6 @@ void __paginginit free_area_init_node(in
- 				  zones_size, zholes_size);
- 
- 	alloc_node_mem_map(pgdat);
--#ifdef CONFIG_FLAT_NODE_MEM_MAP
--	printk(KERN_DEBUG "free_area_init_node: node %d, pgdat %08lx, node_mem_map %08lx\n",
--		nid, (unsigned long)pgdat,
--		(unsigned long)pgdat->node_mem_map);
--#endif
- 
- 	reset_deferred_meminit(pgdat);
- 	free_area_init_core(pgdat);
 _
 
-Patches currently in -mm which might be from osalvador@techadventures.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-consolidate-page-table-accounting-fix-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+mm-simplify-nodemask-printing-fix.patch
+mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures-v2-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
