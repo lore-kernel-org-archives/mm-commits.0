@@ -1,49 +1,59 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: mmotm 2017-11-10-15-56 uploaded (lib/test_find_bit.c)
-Date: Mon, 13 Nov 2017 16:17:41 -0800
-Message-ID: <20171113161741.5feaa74b30527f05b1684d10__18024.0990747281$1510618680$gmane$org@linux-foundation.org>
-References: <5a063cc8.w9SFxvjWsZNJM4HP%akpm@linux-foundation.org>
-        <2ce9cf55-2b54-b6cd-fa4d-3cd0a354b5f1@infradead.org>
+From: akpm@linux-foundation.org
+Subject: + lib-test-module-for-find__bit-functions-fix.patch added to -mm
+ tree
+Date: Mon, 13 Nov 2017 16:18:36 -0800
+Message-ID: <5a0a365c.TePedsdZ0B8y8c7v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55314 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdKNARn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2017 19:17:43 -0500
-In-Reply-To: <2ce9cf55-2b54-b6cd-fa4d-3cd0a354b5f1@infradead.org>
+        with ESMTP id S1751521AbdKNASh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2017 19:18:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org, Yury Norov <ynorov@caviumnetworks.com>
+To: akpm@linux-foundation.org, courbet@google.com, rdunlap@infradead.org, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
-On Fri, 10 Nov 2017 18:00:57 -0800 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-> On 11/10/2017 03:56 PM, akpm@linux-foundation.org wrote:
-> > The mm-of-the-moment snapshot 2017-11-10-15-56 has been uploaded to
-> > 
-> >    http://www.ozlabs.org/~akpm/mmotm/
-> > 
-> > mmotm-readme.txt says
-> > 
-> > README for mm-of-the-moment:
-> > 
-> > http://www.ozlabs.org/~akpm/mmotm/
-> > 
-> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> > more than once a week.
-> 
-> on i386:
-> 
-> ../lib/test_find_bit.c:54:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
-> ../lib/test_find_bit.c:68:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
-> ../lib/test_find_bit.c:82:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
-> ../lib/test_find_bit.c:102:2: warning: format '%ld' expects argument of type 'long int', but argument 2 has type 'cycles_t' [-Wformat=]
+The patch titled
+     Subject: lib-test-module-for-find__bit-functions-fix
+has been added to the -mm tree.  Its filename is
+     lib-test-module-for-find__bit-functions-fix.patch
 
-typecasts, I guess?  We don't seem to have a %p thingy for cycles_t?
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-module-for-find__bit-functions-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-module-for-find__bit-functions-fix.patch
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-test-module-for-find__bit-functions-fix
+
+fix printk warnings reported by Randy
+
+Cc: Clement Courbet <courbet@google.com>
+Cc: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/test_find_bit.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff -puN lib/test_find_bit.c~lib-test-module-for-find__bit-functions-fix lib/test_find_bit.c
 --- a/lib/test_find_bit.c~lib-test-module-for-find__bit-functions-fix
 +++ a/lib/test_find_bit.c
 @@ -51,7 +51,8 @@ static int __init test_find_first_bit(vo
@@ -86,4 +96,36 @@ typecasts, I guess?  We don't seem to have a %p thingy for cycles_t?
  	return 0;
  }
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-consolidate-page-table-accounting-fix-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures-v2-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix-fix.patch
+lib-test-module-for-find__bit-functions-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
