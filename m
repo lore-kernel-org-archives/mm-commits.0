@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
- added to -mm tree
-Date: Tue, 14 Nov 2017 12:22:15 -0800
-Message-ID: <5a0b5077.SGuiPRRe3XYRV+mY%akpm@linux-foundation.org>
+ mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch added to -mm tree
+Date: Tue, 14 Nov 2017 15:21:51 -0800
+Message-ID: <5a0b7a8f.xpBDAfPIj5oE/YHc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44508 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755276AbdKNUWQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 15:22:16 -0500
+        with ESMTP id S1756510AbdKNXVx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 18:21:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@intel.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: osalvador@techadventures.net, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: replace pte_write with pte_access_permitted in fault + gup paths
+     Subject: mm: make alloc_node_mem_map a voidcall if we don't have CONFIG_FLAT_NODE_MEM_MAP
 has been added to the -mm tree.  Its filename is
-     mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+     mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,87 +39,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: replace pte_write with pte_access_permitted in fault + gup paths
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm: make alloc_node_mem_map a voidcall if we don't have CONFIG_FLAT_NODE_MEM_MAP
 
-The 'access_permitted' helper is used in the gup-fast path and goes beyond
-the simple _PAGE_RW check to also:
+free_area_init_node() calls alloc_node_mem_map(), but this function does
+nothing unless we have CONFIG_FLAT_NODE_MEM_MAP.
 
-* validate that the mapping is writable from a protection keys
-  standpoint
+As a cleanup, we can move the "#ifdef CONFIG_FLAT_NODE_MEM_MAP" within
+alloc_node_mem_map() out of the function, and define a
+alloc_node_mem_map() { } when CONFIG_FLAT_NODE_MEM_MAP is not present.
 
-* validate that the pte has _PAGE_USER set since all fault paths where
-  pte_write is must be referencing user-memory.
+This also moves the printk that lays within the "#ifdef
+CONFIG_FLAT_NODE_MEM_MAP" block from free_area_init_node() to
+alloc_node_mem_map(), getting rid of the "#ifdef CONFIG_FLAT_NODE_MEM_MAP"
+in free_area_init_node().
 
-Link: http://lkml.kernel.org/r/151043111604.2842.8051684481794973100.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Link: http://lkml.kernel.org/r/20171114111935.GA11758@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c    |    2 +-
- mm/hmm.c    |    4 ++--
- mm/memory.c |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/gup.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths mm/gup.c
---- a/mm/gup.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths
-+++ a/mm/gup.c
-@@ -66,7 +66,7 @@ static int follow_pfn_pte(struct vm_area
-  */
- static inline bool can_follow_write_pte(pte_t pte, unsigned int flags)
- {
--	return pte_write(pte) ||
-+	return pte_access_permitted(pte, WRITE) ||
- 		((flags & FOLL_FORCE) && (flags & FOLL_COW) && pte_dirty(pte));
+diff -puN mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map
++++ a/mm/page_alloc.c
+@@ -6147,6 +6147,7 @@ static void __paginginit free_area_init_
+ 	}
  }
  
-diff -puN mm/hmm.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths mm/hmm.c
---- a/mm/hmm.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths
-+++ a/mm/hmm.c
-@@ -456,11 +456,11 @@ again:
- 			continue;
- 		}
++#ifdef CONFIG_FLAT_NODE_MEM_MAP
+ static void __ref alloc_node_mem_map(struct pglist_data *pgdat)
+ {
+ 	unsigned long __maybe_unused start = 0;
+@@ -6156,7 +6157,6 @@ static void __ref alloc_node_mem_map(str
+ 	if (!pgdat->node_spanned_pages)
+ 		return;
  
--		if (write_fault && !pte_write(pte))
-+		if (!pte_access_permitted(pte, write_fault))
- 			goto fault;
- 
- 		pfns[i] = hmm_pfn_t_from_pfn(pte_pfn(pte)) | flag;
--		pfns[i] |= pte_write(pte) ? HMM_PFN_WRITE : 0;
-+		pfns[i] |= pte_access_permitted(pte, WRITE) ? HMM_PFN_WRITE : 0;
- 		continue;
- 
- fault:
-diff -puN mm/memory.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths mm/memory.c
---- a/mm/memory.c~mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths
-+++ a/mm/memory.c
-@@ -3948,7 +3948,7 @@ static int handle_pte_fault(struct vm_fa
- 	if (unlikely(!pte_same(*vmf->pte, entry)))
- 		goto unlock;
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
--		if (!pte_write(entry))
-+		if (!pte_access_permitted(entry, WRITE))
- 			return do_wp_page(vmf);
- 		entry = pte_mkdirty(entry);
+-#ifdef CONFIG_FLAT_NODE_MEM_MAP
+ 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+ 	offset = pgdat->node_start_pfn - start;
+ 	/* ia64 gets its own node_mem_map, before this, without bootmem */
+@@ -6178,6 +6178,9 @@ static void __ref alloc_node_mem_map(str
+ 							       pgdat->node_id);
+ 		pgdat->node_mem_map = map + offset;
  	}
-@@ -4336,7 +4336,7 @@ int follow_phys(struct vm_area_struct *v
- 		goto out;
- 	pte = *ptep;
++	printk(KERN_DEBUG "alloc_node_mem_map: node %d, pgdat %08lx, node_mem_map %08lx\n",
++							pgdat->node_id, (unsigned long)pgdat,
++							(unsigned long)pgdat->node_mem_map);
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+ 	 * With no DISCONTIG, the global mem_map is just set as node 0's
+@@ -6190,8 +6193,10 @@ static void __ref alloc_node_mem_map(str
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 	}
+ #endif
+-#endif /* CONFIG_FLAT_NODE_MEM_MAP */
+ }
++#else
++static void __ref alloc_node_mem_map(struct pglist_data *pgdat) { }
++#endif /* CONFIG_FLAT_NODE_MEM_MAP */
  
--	if ((flags & FOLL_WRITE) && !pte_write(pte))
-+	if (!pte_access_permitted(pte, flags & FOLL_WRITE))
- 		goto unlock;
+ void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
+ 		unsigned long node_start_pfn, unsigned long *zholes_size)
+@@ -6218,11 +6223,6 @@ void __paginginit free_area_init_node(in
+ 				  zones_size, zholes_size);
  
- 	*prot = pgprot_val(pte_pgprot(pte));
+ 	alloc_node_mem_map(pgdat);
+-#ifdef CONFIG_FLAT_NODE_MEM_MAP
+-	printk(KERN_DEBUG "free_area_init_node: node %d, pgdat %08lx, node_mem_map %08lx\n",
+-		nid, (unsigned long)pgdat,
+-		(unsigned long)pgdat->node_mem_map);
+-#endif
+ 
+ 	reset_deferred_meminit(pgdat);
+ 	free_area_init_core(pgdat);
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from osalvador@techadventures.net are
 
-mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
-mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
-mm-replace-pmd_write-with-pmd_access_permitted-in-fault-gup-paths.patch
-mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
 
