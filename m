@@ -1,144 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- =?US-ASCII?Q?ocfs2-old-mle-put-and-release-after-the-function-dlm=5Fad?=
- =?US-ASCII?Q?d=5Fmigration=5Fmle-called.patch?= removed from -mm tree
-Date: Mon, 13 Nov 2017 22:27:24 -0800
-Message-ID: <20171114062724.50iyE83I0%akpm@linux-foundation.org>
+Subject: [merged]
+ net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
+ removed from -mm tree
+Date: Tue, 14 Nov 2017 11:21:12 -0800
+Message-ID: <20171114192112.WFPvePv7M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753403AbdKNG1Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 01:27:25 -0500
+        with ESMTP id S1751637AbdKNTVO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 14:21:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guozhonghua@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jiri@mellanox.com, mm-commits@vger.kernel.org, nogahf@mellanox.com, simon.horman@netronome.com
 
 
 The patch titled
-     Subject: ocfs2: old mle put and release after the function dlm_add_migration_mle called
+     Subject: net/sched/sch_red.c: work around gcc-4.4.4 anon union initializer issue
 has been removed from the -mm tree.  Its filename was
-     ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
+     net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: old mle put and release after the function dlm_add_migration_mle called
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/sched/sch_red.c: work around gcc-4.4.4 anon union initializer issue
 
-If the old mle is found after the dlm_add_migration_mle called, it should
-be put once.  If the return value is not - EEXIST and its type is BLOCK,
-it should be put again to release it to avoid memory leak, for it had been
-unhashed from the map.
+gcc-4.4.4 (at lest) has issues with initializers and anonymous unions:
 
-[akpm@linux-foundation.org: fix coding style, comments]
-Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4A3D4B7FE@H3CMLB12-EX.srv.huawei-3com.com
-Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+net/sched/sch_red.c: In function 'red_dump_offload':
+net/sched/sch_red.c:282: error: unknown field 'stats' specified in initializer
+net/sched/sch_red.c:282: warning: initialization makes integer from pointer without a cast
+net/sched/sch_red.c:283: error: unknown field 'stats' specified in initializer
+net/sched/sch_red.c:283: warning: initialization makes integer from pointer without a cast
+net/sched/sch_red.c: In function 'red_dump_stats':
+net/sched/sch_red.c:352: error: unknown field 'xstats' specified in initializer
+net/sched/sch_red.c:352: warning: initialization makes integer from pointer without a cast
+
+Work around this.
+
+Fixes: 602f3baf2218 ("net_sch: red: Add offload ability to RED qdisc")
+Cc: Nogah Frankel <nogahf@mellanox.com>
+Cc: Jiri Pirko <jiri@mellanox.com>
+Cc: Simon Horman <simon.horman@netronome.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ net/sched/sch_red.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2612,20 +2612,48 @@ static int dlm_migrate_lockres(struct dl
- 	spin_lock(&dlm->master_lock);
- 	ret = dlm_add_migration_mle(dlm, res, mle, &oldmle, name,
- 				    namelen, target, dlm->node_num);
-+	if (ret == -EEXIST) {
-+		if (oldmle)
-+			__dlm_put_mle(oldmle);
-+
-+		spin_unlock(&dlm->master_lock);
-+		spin_unlock(&dlm->spinlock);
-+		mlog(0, "another process is already migrating it\n");
-+		goto fail;
-+	}
-+
-+	/*
-+	 * If an old mle is found, it should be put.  If its type is BLOCK,
-+	 * it should be put again.  Because it has been unhasded from the map
-+	 * in the function dlm_add_migration_mle.
-+	 * Otherwise the memory will be leaked.  It will not be found again from
-+	 * the hash map.
-+	 */
-+	if (oldmle) {
-+		/* master is known, detach if not already detached */
-+		__dlm_mle_detach_hb_events(dlm, oldmle);
-+		__dlm_put_mle(oldmle);
-+
-+		/*
-+		 * If the type of the mle is BLOCK, it should be put once for
-+		 * release.  Otherwise a memory leak may be caused because
-+		 * oldmle has been unhashed from the hash map and it will not
-+		 * be found any more.
-+		 */
-+		if (oldmle->type == DLM_MLE_BLOCK)
-+			__dlm_put_mle(oldmle);
-+       }
-+
- 	/* get an extra reference on the mle.
- 	 * otherwise the assert_master from the new
- 	 * master will destroy this.
- 	 */
- 	dlm_get_mle_inuse(mle);
-+	mle_added = 1;
-+
- 	spin_unlock(&dlm->master_lock);
- 	spin_unlock(&dlm->spinlock);
+diff -puN net/sched/sch_red.c~net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue net/sched/sch_red.c
+--- a/net/sched/sch_red.c~net-sched-sch_redc-work-around-gcc-444-anon-union-initializer-issue
++++ a/net/sched/sch_red.c
+@@ -276,11 +276,13 @@ static int red_dump_offload(struct Qdisc
+ {
+ 	struct net_device *dev = qdisc_dev(sch);
+ 	struct tc_red_qopt_offload hw_stats = {
++		.command = TC_RED_STATS,
+ 		.handle = sch->handle,
+ 		.parent = sch->parent,
+-		.command = TC_RED_STATS,
+-		.stats.bstats = &sch->bstats,
+-		.stats.qstats = &sch->qstats,
++		{
++			.stats.bstats = &sch->bstats,
++			.stats.qstats = &sch->qstats,
++		},
+ 	};
+ 	int err;
  
--	if (ret == -EEXIST) {
--		mlog(0, "another process is already migrating it\n");
--		goto fail;
--	}
--	mle_added = 1;
--
- 	/*
- 	 * set the MIGRATING flag and flush asts
- 	 * if we fail after this we need to re-dirty the lockres
-@@ -2642,12 +2670,6 @@ static int dlm_migrate_lockres(struct dl
- 	}
- 
- fail:
--	if (ret != -EEXIST && oldmle) {
--		/* master is known, detach if not already detached */
--		dlm_mle_detach_hb_events(dlm, oldmle);
--		dlm_put_mle(oldmle);
--	}
--
- 	if (ret < 0) {
- 		if (mle_added) {
- 			dlm_mle_detach_hb_events(dlm, mle);
-@@ -3182,16 +3204,24 @@ int dlm_migrate_request_handler(struct o
- 	if (ret < 0)
- 		kmem_cache_free(dlm_mle_cache, mle);
- 
-+	/*
-+	 * If an old mle is found, it should be put.  If its type is BLOCK,
-+	 * it should be put again because it has been unhashed from the map
-+	 * in the dlm_add_migration_mle().
-+	 * Otherwise the memory will be leaked.  It will not be found again from
-+	 * the hash map.
-+	 */
-+	if (oldmle) {
-+		__dlm_mle_detach_hb_events(dlm, oldmle);
-+		__dlm_put_mle(oldmle);
-+		if (ret >= 0 && oldmle->type == DLM_MLE_BLOCK)
-+			__dlm_put_mle(oldmle);
-+	}
-+
- 	spin_unlock(&dlm->master_lock);
- unlock:
- 	spin_unlock(&dlm->spinlock);
- 
--	if (oldmle) {
--		/* master is known, detach if not already detached */
--		dlm_mle_detach_hb_events(dlm, oldmle);
--		dlm_put_mle(oldmle);
--	}
+@@ -346,10 +348,12 @@ static int red_dump_stats(struct Qdisc *
+ 	if (tc_can_offload(dev) &&  dev->netdev_ops->ndo_setup_tc) {
+ 		struct red_stats hw_stats = {0};
+ 		struct tc_red_qopt_offload hw_stats_request = {
++			.command = TC_RED_XSTATS,
+ 			.handle = sch->handle,
+ 			.parent = sch->parent,
+-			.command = TC_RED_XSTATS,
+-			.xstats = &hw_stats,
++			{
++				.xstats = &hw_stats,
++			},
+ 		};
+ 		if (!dev->netdev_ops->ndo_setup_tc(dev,
+ 						   TC_SETUP_QDISC_RED,
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-consolidate-page-table-accounting-fix-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+support-resetting-warn_once-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures-v2-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix.patch
+support-resetting-warn_once-for-all-architectures-v2-fix-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
