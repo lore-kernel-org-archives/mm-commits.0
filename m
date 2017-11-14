@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-simplify-nodemask-printing-fix.patch added to -mm tree
-Date: Tue, 14 Nov 2017 12:17:45 -0800
-Message-ID: <5a0b4f69.qRawLtQhNp3zet0e%akpm@linux-foundation.org>
+Subject: +
+ mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
+ added to -mm tree
+Date: Tue, 14 Nov 2017 12:22:09 -0800
+Message-ID: <5a0b5071.cIfd12i64jgWDJt6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54914 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753595AbdKNURq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 15:17:46 -0500
+        with ESMTP id S1756130AbdKNUWL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 15:22:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, joe@perches.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.hansen@intel.com, davem@davemloft.net, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-simplify-nodemask-printing-fix
+     Subject: mm: replace pud_write with pud_access_permitted in fault + gup paths
 has been added to the -mm tree.  Its filename is
-     mm-simplify-nodemask-printing-fix.patch
+     mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-nodemask-printing-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-nodemask-printing-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,63 +40,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-simplify-nodemask-printing-fix
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: replace pud_write with pud_access_permitted in fault + gup paths
 
-fix tile warning, per Arnd
+The 'access_permitted' helper is used in the gup-fast path and goes beyond
+the simple _PAGE_RW check to also:
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+* validate that the mapping is writable from a protection keys
+  standpoint
+
+* validate that the pte has _PAGE_USER set since all fault paths where
+  pud_write is must be referencing user-memory.
+
+Link: http://lkml.kernel.org/r/151043110453.2842.2166049702068628177.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/s390/include/asm/pgtable.h |    6 ++++++
+ arch/sparc/mm/gup.c             |    2 +-
+ mm/huge_memory.c                |    2 +-
+ mm/memory.c                     |    2 +-
+ 4 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/nodemask.h~mm-simplify-nodemask-printing-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-simplify-nodemask-printing-fix
-+++ a/include/linux/nodemask.h
-@@ -104,7 +104,9 @@ extern nodemask_t _unused_nodemask_arg_;
-  *
-  * Can be used to provide arguments for '%*pb[l]' when printing a nodemask.
-  */
--#define nodemask_pr_args(maskp)	(maskp) ? MAX_NUMNODES : 0, (maskp) ? (maskp)->bits : NULL
-+#define nodemask_pr_args(maskp)				\
-+	((maskp) != NULL) ? MAX_NUMNODES : 0,		\
-+	((maskp) != NULL) ? (maskp)->bits : NULL
+diff -puN arch/s390/include/asm/pgtable.h~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1264,6 +1264,12 @@ static inline pud_t pud_mkwrite(pud_t pu
+ 	return pud;
+ }
  
- /*
-  * The inline keyword gives the compiler room to decide to inline, or
++#define __HAVE_ARCH_PUD_WRITE
++static inline int pud_write(pud_t pud)
++{
++	return (pud_val(pud) & _REGION3_ENTRY_WRITE) != 0;
++}
++
+ static inline pud_t pud_mkclean(pud_t pud)
+ {
+ 	if (pud_large(pud)) {
+diff -puN arch/sparc/mm/gup.c~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths arch/sparc/mm/gup.c
+--- a/arch/sparc/mm/gup.c~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths
++++ a/arch/sparc/mm/gup.c
+@@ -114,7 +114,7 @@ static int gup_huge_pud(pud_t *pudp, pud
+ 	if (!(pud_val(pud) & _PAGE_VALID))
+ 		return 0;
+ 
+-	if (write && !pud_write(pud))
++	if (!pud_access_permitted(pud, write))
+ 		return 0;
+ 
+ 	refs = 0;
+diff -puN mm/huge_memory.c~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths
++++ a/mm/huge_memory.c
+@@ -1022,7 +1022,7 @@ struct page *follow_devmap_pud(struct vm
+ 
+ 	assert_spin_locked(pud_lockptr(mm, pud));
+ 
+-	if (flags & FOLL_WRITE && !pud_write(*pud))
++	if (!pud_access_permitted(*pud, flags & FOLL_WRITE))
+ 		return NULL;
+ 
+ 	if (pud_present(*pud) && pud_devmap(*pud))
+diff -puN mm/memory.c~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths mm/memory.c
+--- a/mm/memory.c~mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths
++++ a/mm/memory.c
+@@ -4013,7 +4013,7 @@ static int __handle_mm_fault(struct vm_a
+ 
+ 			/* NUMA case for anonymous PUDs would go here */
+ 
+-			if (dirty && !pud_write(orig_pud)) {
++			if (dirty && !pud_access_permitted(orig_pud, WRITE)) {
+ 				ret = wp_huge_pud(&vmf, orig_pud);
+ 				if (!(ret & VM_FAULT_FALLBACK))
+ 					return ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-slab-slub-slob-convert-slab_flags_t-to-32-bit-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
-mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
-f2fs-simplify-page-iteration-loops-fix.patch
-mm-consolidate-page-table-accounting-fix-fix.patch
-mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
-mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
-mm-simplify-nodemask-printing-fix.patch
-support-resetting-warn_once-checkpatch-fixes.patch
-support-resetting-warn_once-for-all-architectures-v2-fix.patch
-support-resetting-warn_once-for-all-architectures-v2-fix-fix.patch
-support-resetting-warn_once-for-all-architectures-v2-fix-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
+mm-replace-pmd_write-with-pmd_access_permitted-in-fault-gup-paths.patch
+mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
 
