@@ -1,382 +1,328 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- scripts-replace-fsf-address-with-web-source-in-license-notices.patch
- removed from -mm tree
-Date: Wed, 15 Nov 2017 10:52:34 -0800
-Message-ID: <20171115185234.07Bj332WF%akpm@linux-foundation.org>
+ kernel-replace-fsf-address-with-web-source-in-license-notices.patch removed
+ from -mm tree
+Date: Wed, 15 Nov 2017 10:52:38 -0800
+Message-ID: <20171115185238.Kmcjg6WTK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54804 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753230AbdKOSwf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 13:52:35 -0500
+        with ESMTP id S1753230AbdKOSwk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 13:52:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: greg@kroah.com, martink@posteo.de, mm-commits@vger.kernel.org
+To: martink@posteo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts: replace FSF address with web source in license notices
+     Subject: kernel: replace FSF address with web source in license notices
 has been removed from the -mm tree.  Its filename was
-     scripts-replace-fsf-address-with-web-source-in-license-notices.patch
+     kernel-replace-fsf-address-with-web-source-in-license-notices.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Martin Kepplinger <martink@posteo.de>
-Subject: scripts: replace FSF address with web source in license notices
+Subject: kernel: replace FSF address with web source in license notices
 
 A few years ago the FSF moved and "59 Temple Place" is wrong.  Having this
 still in our source files feels old and unmaintained.
 
-Let's take the license statement serious and not confuse users.
-
 As https://www.gnu.org/licenses/gpl-howto.html suggests, we replace the
-postal address with "<http://www.gnu.org/licenses/>" in the scripts
-directory.
+postal address with "<http://www.gnu.org/licenses/>".
 
-Link: http://lkml.kernel.org/r/20171114100646.29301-1-martink@posteo.de
+Link: http://lkml.kernel.org/r/20171114091008.26555-1-martink@posteo.de
 Signed-off-by: Martin Kepplinger <martink@posteo.de>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/dtc/checks.c                |    4 +---
- scripts/dtc/data.c                  |    4 +---
- scripts/dtc/dtc-lexer.l             |    4 +---
- scripts/dtc/dtc-lexer.lex.c_shipped |    4 +---
- scripts/dtc/dtc-parser.y            |    4 +---
- scripts/dtc/dtc.c                   |    4 +---
- scripts/dtc/fdtget.c                |    4 +---
- scripts/dtc/fdtput.c                |    4 +---
- scripts/dtc/flattree.c              |    4 +---
- scripts/dtc/fstree.c                |    4 +---
- scripts/dtc/livetree.c              |    4 +---
- scripts/dtc/srcpos.c                |    4 +---
- scripts/dtc/srcpos.h                |    4 +---
- scripts/dtc/treesource.c            |    4 +---
- scripts/dtc/util.c                  |    4 +---
- scripts/dtc/util.h                  |    4 +---
- scripts/genksyms/genksyms.c         |    4 ++--
- scripts/genksyms/genksyms.h         |    4 ++--
- scripts/genksyms/lex.l              |    4 ++--
- scripts/genksyms/lex.lex.c_shipped  |    4 ++--
- scripts/genksyms/parse.y            |    4 ++--
- scripts/selinux/mdp/mdp.c           |    3 +--
- 22 files changed, 27 insertions(+), 60 deletions(-)
+ kernel/audit.c                      |    3 +--
+ kernel/audit.h                      |    3 +--
+ kernel/audit_watch.c                |    3 +--
+ kernel/auditfilter.c                |    3 +--
+ kernel/auditsc.c                    |    3 +--
+ kernel/events/hw_breakpoint.c       |    3 +--
+ kernel/events/uprobes.c             |    3 +--
+ kernel/extable.c                    |    3 +--
+ kernel/futex.c                      |    3 +--
+ kernel/kprobes.c                    |    3 +--
+ kernel/module.c                     |    3 +--
+ kernel/params.c                     |    3 +--
+ kernel/time/timeconv.c              |    3 +--
+ kernel/trace/trace_events_filter.c  |    3 +--
+ kernel/trace/trace_events_trigger.c |    3 +--
+ kernel/trace/trace_kprobe.c         |    3 +--
+ kernel/trace/trace_probe.c          |    3 +--
+ kernel/trace/trace_probe.h          |    3 +--
+ kernel/trace/trace_uprobe.c         |    3 +--
+ kernel/tracepoint.c                 |    3 +--
+ 20 files changed, 20 insertions(+), 40 deletions(-)
 
-diff -puN scripts/dtc/checks.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/checks.c
---- a/scripts/dtc/checks.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/checks.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include "dtc.h"
-diff -puN scripts/dtc/data.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/data.c
---- a/scripts/dtc/data.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/data.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include "dtc.h"
-diff -puN scripts/dtc/dtc.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/dtc.c
---- a/scripts/dtc/dtc.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/dtc.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include <sys/stat.h>
-diff -puN scripts/dtc/dtc-lexer.l~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/dtc-lexer.l
---- a/scripts/dtc/dtc-lexer.l~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/dtc-lexer.l
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- %option noyywrap nounput noinput never-interactive
-diff -puN scripts/dtc/dtc-lexer.lex.c_shipped~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/dtc-lexer.lex.c_shipped
---- a/scripts/dtc/dtc-lexer.lex.c_shipped~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/dtc-lexer.lex.c_shipped
-@@ -618,9 +618,7 @@ char *yytext;
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- #define YY_NO_INPUT 1
- 
-diff -puN scripts/dtc/dtc-parser.y~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/dtc-parser.y
---- a/scripts/dtc/dtc-parser.y~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/dtc-parser.y
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- %{
- #include <stdio.h>
-diff -puN scripts/dtc/fdtget.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/fdtget.c
---- a/scripts/dtc/fdtget.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/fdtget.c
-@@ -18,9 +18,7 @@
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-- * MA 02111-1307 USA
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include <assert.h>
-diff -puN scripts/dtc/fdtput.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/fdtput.c
---- a/scripts/dtc/fdtput.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/fdtput.c
-@@ -12,9 +12,7 @@
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-- * MA 02111-1307 USA
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include <assert.h>
-diff -puN scripts/dtc/flattree.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/flattree.c
---- a/scripts/dtc/flattree.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/flattree.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include "dtc.h"
-diff -puN scripts/dtc/fstree.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/fstree.c
---- a/scripts/dtc/fstree.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/fstree.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include "dtc.h"
-diff -puN scripts/dtc/livetree.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/livetree.c
---- a/scripts/dtc/livetree.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/livetree.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include "dtc.h"
-diff -puN scripts/dtc/srcpos.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/srcpos.c
---- a/scripts/dtc/srcpos.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/srcpos.c
-@@ -12,9 +12,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #define _GNU_SOURCE
-diff -puN scripts/dtc/srcpos.h~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/srcpos.h
---- a/scripts/dtc/srcpos.h~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/srcpos.h
-@@ -12,9 +12,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #ifndef _SRCPOS_H_
-diff -puN scripts/dtc/treesource.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/treesource.c
---- a/scripts/dtc/treesource.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/treesource.c
-@@ -13,9 +13,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include "dtc.h"
-diff -puN scripts/dtc/util.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/util.c
---- a/scripts/dtc/util.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/util.c
-@@ -16,9 +16,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #include <ctype.h>
-diff -puN scripts/dtc/util.h~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/dtc/util.h
---- a/scripts/dtc/util.h~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/dtc/util.h
-@@ -20,9 +20,7 @@
-  *  General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-- *                                                                   USA
-+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
- #ifdef __GNUC__
-diff -puN scripts/genksyms/genksyms.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/genksyms/genksyms.c
---- a/scripts/genksyms/genksyms.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/genksyms/genksyms.c
-@@ -18,8 +18,8 @@
-    General Public License for more details.
- 
-    You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software Foundation,
--   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
-+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
- 
- #include <stdio.h>
- #include <string.h>
-diff -puN scripts/genksyms/genksyms.h~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/genksyms/genksyms.h
---- a/scripts/genksyms/genksyms.h~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/genksyms/genksyms.h
-@@ -17,8 +17,8 @@
-    General Public License for more details.
- 
-    You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software Foundation,
--   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
-+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
- 
- #ifndef MODUTILS_GENKSYMS_H
- #define MODUTILS_GENKSYMS_H 1
-diff -puN scripts/genksyms/lex.l~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/genksyms/lex.l
---- a/scripts/genksyms/lex.l~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/genksyms/lex.l
-@@ -17,8 +17,8 @@
-    General Public License for more details.
- 
-    You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software Foundation,
--   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
-+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
- 
- 
- %{
-diff -puN scripts/genksyms/lex.lex.c_shipped~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/genksyms/lex.lex.c_shipped
---- a/scripts/genksyms/lex.lex.c_shipped~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/genksyms/lex.lex.c_shipped
-@@ -555,8 +555,8 @@ char *yytext;
-    General Public License for more details.
- 
-    You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software Foundation,
--   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
-+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
- 
- #include <limits.h>
- #include <stdlib.h>
-diff -puN scripts/genksyms/parse.y~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/genksyms/parse.y
---- a/scripts/genksyms/parse.y~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/genksyms/parse.y
-@@ -17,8 +17,8 @@
-    General Public License for more details.
- 
-    You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software Foundation,
--   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
-+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
- 
- 
- %{
-diff -puN scripts/selinux/mdp/mdp.c~scripts-replace-fsf-address-with-web-source-in-license-notices scripts/selinux/mdp/mdp.c
---- a/scripts/selinux/mdp/mdp.c~scripts-replace-fsf-address-with-web-source-in-license-notices
-+++ a/scripts/selinux/mdp/mdp.c
+diff -puN kernel/audit.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/audit.c
+--- a/kernel/audit.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/audit.c
 @@ -16,8 +16,7 @@
   * GNU General Public License for more details.
   *
   * You should have received a copy of the GNU General Public License
 - * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Written by Rickard E. (Rik) Faith <faith@redhat.com>
+  *
+diff -puN kernel/auditfilter.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/auditfilter.c
+--- a/kernel/auditfilter.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/auditfilter.c
+@@ -15,8 +15,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+diff -puN kernel/audit.h~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/audit.h
+--- a/kernel/audit.h~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/audit.h
+@@ -15,8 +15,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+ #include <linux/fs.h>
+diff -puN kernel/auditsc.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/auditsc.c
+--- a/kernel/auditsc.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/auditsc.c
+@@ -17,8 +17,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Written by Rickard E. (Rik) Faith <faith@redhat.com>
+  *
+diff -puN kernel/audit_watch.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/audit_watch.c
+--- a/kernel/audit_watch.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/audit_watch.c
+@@ -15,8 +15,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+ #include <linux/file.h>
+diff -puN kernel/events/hw_breakpoint.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/events/hw_breakpoint.c
+--- a/kernel/events/hw_breakpoint.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/events/hw_breakpoint.c
+@@ -10,8 +10,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
 - * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
   *
-  * Copyright (C) IBM Corporation, 2006
+  * Copyright (C) 2007 Alan Stern
+  * Copyright (C) IBM Corporation, 2009
+diff -puN kernel/events/uprobes.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/events/uprobes.c
+@@ -12,8 +12,7 @@
+  * GNU General Public License for more details.
   *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Copyright (C) IBM Corporation, 2008-2012
+  * Authors:
+diff -puN kernel/extable.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/extable.c
+--- a/kernel/extable.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/extable.c
+@@ -12,8 +12,7 @@
+     GNU General Public License for more details.
+ 
+     You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++    along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+ #include <linux/ftrace.h>
+ #include <linux/memory.h>
+diff -puN kernel/futex.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/futex.c
+--- a/kernel/futex.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/futex.c
+@@ -41,8 +41,7 @@
+  *  GNU General Public License for more details.
+  *
+  *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ #include <linux/slab.h>
+ #include <linux/poll.h>
+diff -puN kernel/kprobes.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/kprobes.c
+--- a/kernel/kprobes.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/kprobes.c
+@@ -13,8 +13,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Copyright (C) IBM Corporation, 2002, 2004
+  *
+diff -puN kernel/module.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/module.c
+--- a/kernel/module.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/module.c
+@@ -13,8 +13,7 @@
+     GNU General Public License for more details.
+ 
+     You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++    along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+ #include <linux/export.h>
+ #include <linux/extable.h>
+diff -puN kernel/params.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/params.c
+--- a/kernel/params.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/params.c
+@@ -12,8 +12,7 @@
+     GNU General Public License for more details.
+ 
+     You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++    along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+diff -puN kernel/time/timeconv.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/time/timeconv.c
+--- a/kernel/time/timeconv.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/time/timeconv.c
+@@ -15,8 +15,7 @@
+  *
+  * You should have received a copy of the GNU Library General Public
+  * License along with the GNU C Library; see the file COPYING.LIB.  If not,
+- * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+- * Boston, MA 02111-1307, USA.
++ * see <http://www.gnu.org/licenses/>.
+  */
+ 
+ /*
+diff -puN kernel/tracepoint.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/tracepoint.c
+--- a/kernel/tracepoint.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/tracepoint.c
+@@ -12,8 +12,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+diff -puN kernel/trace/trace_events_filter.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/trace/trace_events_filter.c
+--- a/kernel/trace/trace_events_filter.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/trace/trace_events_filter.c
+@@ -12,8 +12,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Copyright (C) 2009 Tom Zanussi <tzanussi@gmail.com>
+  */
+diff -puN kernel/trace/trace_events_trigger.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/trace/trace_events_trigger.c
+--- a/kernel/trace/trace_events_trigger.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/trace/trace_events_trigger.c
+@@ -12,8 +12,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Copyright (C) 2013 Tom Zanussi <tom.zanussi@linux.intel.com>
+  */
+diff -puN kernel/trace/trace_kprobe.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/trace/trace_kprobe.c
+--- a/kernel/trace/trace_kprobe.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/trace/trace_kprobe.c
+@@ -13,8 +13,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ #define pr_fmt(fmt)	"trace_kprobe: " fmt
+ 
+diff -puN kernel/trace/trace_probe.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/trace/trace_probe.c
+--- a/kernel/trace/trace_probe.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/trace/trace_probe.c
+@@ -11,8 +11,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * This code was copied from kernel/trace/trace_kprobe.c written by
+  * Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+diff -puN kernel/trace/trace_probe.h~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/trace/trace_probe.h
+--- a/kernel/trace/trace_probe.h~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/trace/trace_probe.h
+@@ -11,8 +11,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * This code was copied from kernel/trace/trace_kprobe.h written by
+  * Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+diff -puN kernel/trace/trace_uprobe.c~kernel-replace-fsf-address-with-web-source-in-license-notices kernel/trace/trace_uprobe.c
+--- a/kernel/trace/trace_uprobe.c~kernel-replace-fsf-address-with-web-source-in-license-notices
++++ a/kernel/trace/trace_uprobe.c
+@@ -11,8 +11,7 @@
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  *
+  * Copyright (C) IBM Corporation, 2010-2012
+  * Author:	Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 _
 
 Patches currently in -mm which might be from martink@posteo.de are
 
-kernel-replace-fsf-address-with-web-source-in-license-notices.patch
 init-replace-fsf-address-with-web-source-in-license-notices.patch
 lib-replace-fsf-address-with-web-source-in-license-notices.patch
 
