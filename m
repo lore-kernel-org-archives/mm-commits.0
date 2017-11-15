@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals.patch
- added to -mm tree
-Date: Tue, 14 Nov 2017 16:28:44 -0800
-Message-ID: <5a0b8a3c.N7PfS3Y/JcTJ8+Ds%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-truncate-remove-all-exceptional-entries-from-pagevec-unde?=
+ =?US-ASCII?Q?r-one-lock-fix.patch?= added to -mm tree
+Date: Tue, 14 Nov 2017 19:57:11 -0800
+Message-ID: <20171115035711.XttFf7tPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45950 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751872AbdKOA2p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 19:28:45 -0500
+        with ESMTP id S1754099AbdKOD5N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 22:57:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, me@kylehuey.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, jack@suse.cz, mgorman@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: kernel/signal.c: protect the SIGNAL_UNKILLABLE tasks from !sig_kernel_only() signals
+     Subject: mm, truncate: remove all exceptional entries from pagevec under one lock -fix
 has been added to the -mm tree.  Its filename is
-     protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals.patch
+     mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/signal.c: protect the SIGNAL_UNKILLABLE tasks from !sig_kernel_only() signals
+From: Jan Kara <jack@suse.cz>
+Subject: mm, truncate: remove all exceptional entries from pagevec under one lock -fix
 
-Change sig_task_ignored() to drop the SIG_DFL && !sig_kernel_only()
-signals even if force == T.  This simplifies the next change and this
-matches the same check in get_signal() which will drop these signals
-anyway.
+Patch "mm, truncate: remove all exceptional entries from pagevec" had a
+problem that truncate_exceptional_pvec_entries() didn't remove exceptional
+entries that were beyond end of truncated range from the pagevec.  As a
+result pagevec_release() oopsed trying to treat exceptional entry as a
+page pointer.  This can be reproduced by running xfstests generic/269 in a
+loop while applying memory pressure until the bug triggers.
 
-Link: http://lkml.kernel.org/r/20171103184227.GC21036@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Tested-by: Kyle Huey <me@kylehuey.com>
+Rip out fragile passing of index of the first exceptional entry in the
+pagevec and scan the full pagevec instead.  Additional pagevec pass
+doesn't have measurable overhead and the code is more robust that way.
+
+This is a fix to the mmotm patch
+mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock.patch
+
+Link: http://lkml.kernel.org/r/20171108164226.26788-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: Mel Gorman <mgorman@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals kernel/signal.c
---- a/kernel/signal.c~protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals
-+++ a/kernel/signal.c
-@@ -78,7 +78,7 @@ static int sig_task_ignored(struct task_
- 	handler = sig_handler(t, sig);
+diff -puN mm/truncate.c~mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock-fix mm/truncate.c
+--- a/mm/truncate.c~mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock-fix
++++ a/mm/truncate.c
+@@ -59,24 +59,29 @@ static void clear_shadow_entry(struct ad
+  * exceptional entries similar to what pagevec_remove_exceptionals does.
+  */
+ static void truncate_exceptional_pvec_entries(struct address_space *mapping,
+-				struct pagevec *pvec, pgoff_t *indices, int ei)
++				struct pagevec *pvec, pgoff_t *indices,
++				pgoff_t end)
+ {
+ 	int i, j;
+-	bool dax;
+-
+-	/* Return immediately if caller indicates there are no entries */
+-	if (ei == PAGEVEC_SIZE)
+-		return;
++	bool dax, lock;
  
- 	if (unlikely(t->signal->flags & SIGNAL_UNKILLABLE) &&
--			handler == SIG_DFL && !force)
-+	    handler == SIG_DFL && !(force && sig_kernel_only(sig)))
- 		return 1;
+ 	/* Handled by shmem itself */
+ 	if (shmem_mapping(mapping))
+ 		return;
  
- 	return sig_handler_ignored(handler, sig);
++	for (j = 0; j < pagevec_count(pvec); j++)
++		if (radix_tree_exceptional_entry(pvec->pages[j]))
++			break;
++
++	if (j == pagevec_count(pvec))
++		return;
++
+ 	dax = dax_mapping(mapping);
+-	if (!dax)
++	lock = !dax && indices[j] < end;
++	if (lock)
+ 		spin_lock_irq(&mapping->tree_lock);
+ 
+-	for (i = ei, j = ei; i < pagevec_count(pvec); i++) {
++	for (i = j; i < pagevec_count(pvec); i++) {
+ 		struct page *page = pvec->pages[i];
+ 		pgoff_t index = indices[i];
+ 
+@@ -85,6 +90,9 @@ static void truncate_exceptional_pvec_en
+ 			continue;
+ 		}
+ 
++		if (index >= end)
++			continue;
++
+ 		if (unlikely(dax)) {
+ 			dax_delete_mapping_entry(mapping, index);
+ 			continue;
+@@ -93,7 +101,7 @@ static void truncate_exceptional_pvec_en
+ 		__clear_shadow_entry(mapping, index, page);
+ 	}
+ 
+-	if (!dax)
++	if (lock)
+ 		spin_unlock_irq(&mapping->tree_lock);
+ 	pvec->nr = j;
+ }
+@@ -333,7 +341,6 @@ void truncate_inode_pages_range(struct a
+ 		 * in a new pagevec.
+ 		 */
+ 		struct pagevec locked_pvec;
+-		int ei = PAGEVEC_SIZE;
+ 
+ 		pagevec_init(&locked_pvec, 0);
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+@@ -344,11 +351,8 @@ void truncate_inode_pages_range(struct a
+ 			if (index >= end)
+ 				break;
+ 
+-			if (radix_tree_exceptional_entry(page)) {
+-				if (ei == PAGEVEC_SIZE)
+-					ei = i;
++			if (radix_tree_exceptional_entry(page))
+ 				continue;
+-			}
+ 
+ 			if (!trylock_page(page))
+ 				continue;
+@@ -368,7 +372,7 @@ void truncate_inode_pages_range(struct a
+ 		delete_from_page_cache_batch(mapping, &locked_pvec);
+ 		for (i = 0; i < pagevec_count(&locked_pvec); i++)
+ 			unlock_page(locked_pvec.pages[i]);
+-		truncate_exceptional_pvec_entries(mapping, &pvec, indices, ei);
++		truncate_exceptional_pvec_entries(mapping, &pvec, indices, end);
+ 		pagevec_release(&pvec);
+ 		cond_resched();
+ 		index++;
+@@ -414,8 +418,6 @@ void truncate_inode_pages_range(struct a
+ 
+ 	index = start;
+ 	for ( ; ; ) {
+-		int ei = PAGEVEC_SIZE;
+-
+ 		cond_resched();
+ 		if (!pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE), indices)) {
+@@ -444,11 +446,8 @@ void truncate_inode_pages_range(struct a
+ 				break;
+ 			}
+ 
+-			if (radix_tree_exceptional_entry(page)) {
+-				if (ei == PAGEVEC_SIZE)
+-					ei = i;
++			if (radix_tree_exceptional_entry(page))
+ 				continue;
+-			}
+ 
+ 			lock_page(page);
+ 			WARN_ON(page_to_index(page) != index);
+@@ -456,7 +455,7 @@ void truncate_inode_pages_range(struct a
+ 			truncate_inode_page(mapping, page);
+ 			unlock_page(page);
+ 		}
+-		truncate_exceptional_pvec_entries(mapping, &pvec, indices, ei);
++		truncate_exceptional_pvec_entries(mapping, &pvec, indices, end);
+ 		pagevec_release(&pvec);
+ 		index++;
+ 	}
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
-protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals.patch
-remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal.patch
+mm-readahead-increase-maximum-readahead-window.patch
+mm-implement-find_get_pages_range_tag.patch
+btrfs-use-pagevec_lookup_range_tag.patch
+ceph-use-pagevec_lookup_range_tag.patch
+ext4-use-pagevec_lookup_range_tag.patch
+f2fs-use-pagevec_lookup_range_tag.patch
+f2fs-simplify-page-iteration-loops.patch
+f2fs-use-find_get_pages_tag-for-looking-up-single-page.patch
+gfs2-use-pagevec_lookup_range_tag.patch
+nilfs2-use-pagevec_lookup_range_tag.patch
+mm-use-pagevec_lookup_range_tag-in-__filemap_fdatawait_range.patch
+mm-use-pagevec_lookup_range_tag-in-write_cache_pages.patch
+mm-add-variant-of-pagevec_lookup_range_tag-taking-number-of-pages.patch
+ceph-use-pagevec_lookup_range_nr_tag.patch
+mm-remove-nr_pages-argument-from-pagevec_lookup_range_tag.patch
+afs-use-find_get_pages_range_tag.patch
+cifs-use-find_get_pages_range_tag.patch
+mm-speedup-cancel_dirty_page-for-clean-pages.patch
+mm-refactor-truncate_complete_page.patch
+mm-factor-out-page-cache-page-freeing-into-a-separate-function.patch
+mm-move-accounting-updates-before-page_cache_tree_delete.patch
+mm-move-clearing-of-page-mapping-to-page_cache_tree_delete.patch
+mm-factor-out-checks-and-accounting-from-__delete_from_page_cache.patch
+mm-batch-radix-tree-operations-when-truncating-pages.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix.patch
+mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock-fix.patch
 
