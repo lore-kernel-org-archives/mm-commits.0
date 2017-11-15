@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it.patch added to -mm tree
-Date: Wed, 15 Nov 2017 11:28:16 -0800
-Message-ID: <5a0c9550.3Qd5SgTeHqRrlR1y%akpm@linux-foundation.org>
+Subject: + memory-hotplug-fix-comments-when-add-section.patch added to -mm tree
+Date: Wed, 15 Nov 2017 11:50:08 -0800
+Message-ID: <5a0c9a70.mx71mJwBsspvSnDp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757599AbdKOT27 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 14:28:59 -0500
+        with ESMTP id S1756561AbdKOTuJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 14:50:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guozhonghua@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: fan.du@intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove unneeded goto in ocfs2_reserve_cluster_bitmap_bits()
+     Subject: memory hotplug: fix comments when adding section
 has been added to the -mm tree.  Its filename is
-     ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it.patch
+     memory-hotplug-fix-comments-when-add-section.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-fix-comments-when-add-section.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-fix-comments-when-add-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +38,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: remove unneeded goto in ocfs2_reserve_cluster_bitmap_bits()
+From: Fan Du <fan.du@intel.com>
+Subject: memory hotplug: fix comments when adding section
 
-Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4F3CDE3A9@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: guozhonghua <guozhonghua@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Here, pfn_to_node should be page_to_nid.
+
+Link: http://lkml.kernel.org/r/1510735205-22540-1-git-send-email-fan.du@intel.com
+Signed-off-by: Fan Du <fan.du@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/suballoc.c~ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it
-+++ a/fs/ocfs2/suballoc.c
-@@ -1147,12 +1147,9 @@ int ocfs2_reserve_cluster_bitmap_bits(st
- 					     GLOBAL_BITMAP_SYSTEM_INODE,
- 					     OCFS2_INVALID_SLOT, NULL,
- 					     ALLOC_NEW_GROUP);
--	if (status < 0 && status != -ENOSPC) {
-+	if (status < 0 && status != -ENOSPC)
- 		mlog_errno(status);
--		goto bail;
--	}
- 
--bail:
- 	return status;
- }
- 
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-comments-when-add-section mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-comments-when-add-section
++++ a/mm/memory_hotplug.c
+@@ -265,7 +265,7 @@ static int __meminit __add_section(int n
+ 	/*
+ 	 * Make all the pages reserved so that nobody will stumble over half
+ 	 * initialized state.
+-	 * FIXME: We also have to associate it with a node because pfn_to_node
++	 * FIXME: We also have to associate it with a node because page_to_nid
+ 	 * relies on having page with the proper node.
+ 	 */
+ 	for (i = 0; i < PAGES_PER_SECTION; i++) {
 _
 
-Patches currently in -mm which might be from guozhonghua@h3c.com are
+Patches currently in -mm which might be from fan.du@intel.com are
 
-ocfs2-remove-unused-function-ocfs2_publish_get_mount_state.patch
-ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it.patch
+memory-hotplug-fix-comments-when-add-section.patch
 
