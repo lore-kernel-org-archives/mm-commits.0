@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal.patch added to -mm tree
-Date: Tue, 14 Nov 2017 16:28:46 -0800
-Message-ID: <5a0b8a3e.1Qfmc3sxQgrz1zno%akpm@linux-foundation.org>
+Subject: + protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
+ added to -mm tree
+Date: Tue, 14 Nov 2017 16:28:41 -0800
+Message-ID: <5a0b8a39.SAyZpKi3KEItdxA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52722 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751105AbdKOA2r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 19:28:47 -0500
+        with ESMTP id S1751872AbdKOA2n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2017 19:28:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dvyukov@google.com, keescook@chromium.org, me@kylehuey.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, me@kylehuey.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/signal.c: remove the no longer needed SIGNAL_UNKILLABLE check in complete_signal()
+     Subject: kernel/signal.c: protect the traced SIGNAL_UNKILLABLE tasks from SIGKILL
 has been added to the -mm tree.  Its filename is
-     remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal.patch
+     protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,87 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/signal.c: remove the no longer needed SIGNAL_UNKILLABLE check in complete_signal()
+Subject: kernel/signal.c: protect the traced SIGNAL_UNKILLABLE tasks from SIGKILL
 
-complete_signal() checks SIGNAL_UNKILLABLE before it starts to destroy the
-thread group, today this is wrong in many ways.
+The comment in sig_ignored() says "Tracers may want to know about even
+ignored signals" but SIGKILL can not be reported to debugger and it is
+just wrong to return 0 in this case: SIGKILL should only kill the
+SIGNAL_UNKILLABLE task if it comes from the parent ns.
 
-If nothing else, fatal_signal_pending() should always imply that the whole
-thread group (except ->group_exit_task if it is not NULL) is killed, this
-check breaks the rule.
+Change sig_ignored() to ignore ->ptrace if sig == SIGKILL and rely on
+sig_task_ignored().
 
-After the previous changes we can rely on sig_task_ignored();
-sig_fatal(sig) && SIGNAL_UNKILLABLE can only be true if we actually want
-to kill this task and sig == SIGKILL OR it is traced and debugger can
-intercept the signal.
+SISGTOP coming from within the namespace is not really right too but at
+least debugger can intercept it, and we can't drop it here because this
+will break "gdb -p 1": ptrace_attach() won't work.  Perhaps we will add
+another ->ptrace check later, we will see.
 
-This should hopefully fix the problem reported by Dmitry. This test-case
-
-	static int init(void *arg)
-	{
-		for (;;)
-			pause();
-	}
-
-	int main(void)
-	{
-		char stack[16 * 1024];
-
-		for (;;) {
-			int pid = clone(init, stack + sizeof(stack)/2,
-					CLONE_NEWPID | SIGCHLD, NULL);
-			assert(pid > 0);
-
-			assert(ptrace(PTRACE_ATTACH, pid, 0, 0) == 0);
-			assert(waitpid(-1, NULL, WSTOPPED) == pid);
-
-			assert(ptrace(PTRACE_DETACH, pid, 0, SIGSTOP) == 0);
-			assert(syscall(__NR_tkill, pid, SIGKILL) == 0);
-			assert(pid == wait(NULL));
-		}
-	}
-
-triggers the WARN_ON_ONCE(!(task->jobctl & JOBCTL_STOP_PENDING)) in
-task_participate_group_stop().  do_signal_stop()->signal_group_exit()
-checks SIGNAL_GROUP_EXIT and return false, but task_set_jobctl_pending()
-checks fatal_signal_pending() and does not set JOBCTL_STOP_PENDING.
-
-And his should fix the minor security problem reported by Kyle,
-SECCOMP_RET_TRACE can miss fatal_signal_pending() the same way if the task
-is the root of a pid namespace.
-
-Link: http://lkml.kernel.org/r/20171103184246.GD21036@redhat.com
+Link: http://lkml.kernel.org/r/20171103184206.GB21036@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reported-by: Kyle Huey <me@kylehuey.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
 Tested-by: Kyle Huey <me@kylehuey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/signal.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal kernel/signal.c
---- a/kernel/signal.c~remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal
+diff -puN kernel/signal.c~protect-the-traced-signal_unkillable-tasks-from-sigkill kernel/signal.c
+--- a/kernel/signal.c~protect-the-traced-signal_unkillable-tasks-from-sigkill
 +++ a/kernel/signal.c
-@@ -931,9 +931,9 @@ static void complete_signal(int sig, str
- 	 * then start taking the whole group down immediately.
- 	 */
- 	if (sig_fatal(p, sig) &&
--	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
-+	    !(signal->flags & SIGNAL_GROUP_EXIT) &&
- 	    !sigismember(&t->real_blocked, sig) &&
--	    (sig == SIGKILL || !t->ptrace)) {
-+	    (sig == SIGKILL || !p->ptrace)) {
- 		/*
- 		 * This signal will be fatal to the whole group.
- 		 */
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
-protect-the-signal_unkillable-tasks-from-sig_kernel_only-signals.patch
-remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal.patch
-
+@@ -94,13 +94,15 @@ static int sig_ignored(struct task_struc
+ 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+ 		return 0;
+ 
+-	if (!sig_task_ignored(t, sig, force))
+-		return 0;
