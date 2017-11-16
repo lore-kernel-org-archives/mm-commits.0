@@ -1,125 +1,156 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch removed from -mm tree
-Date: Wed, 15 Nov 2017 16:49:24 -0800
-Message-ID: <5a0ce094.tHiIosUyBmjgjUM0%akpm@linux-foundation.org>
+ mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11.patch removed from -mm tree
+Date: Wed, 15 Nov 2017 16:49:59 -0800
+Message-ID: <5a0ce0b7.2Pc3ERY6F+1Y/wgR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35258 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753402AbdKPAt0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:49:26 -0500
+        with ESMTP id S1753775AbdKPAuB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:50:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
+To: yang.s@alibaba-inc.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2
+     Subject: mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11
 has been removed from the -mm tree.  Its filename was
-     ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch
+     mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11.patch
 
-This patch was dropped because it was folded into ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+This patch was dropped because it was folded into mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2
+From: "Yang Shi" <yang.s@alibaba-inc.com>
+Subject: mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11
 
-Link: http://lkml.kernel.org/r/59EEAA69.9080703@huawei.com
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Link: http://lkml.kernel.org/r/1507656303-103845-4-git-send-email-yang.s@alibaba-inc.com
+Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/slab.h        |    6 +++
+ mm/slab_common.c |   69 ++++++++++++++++++++++-----------------------
+ 2 files changed, 40 insertions(+), 35 deletions(-)
 
-diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2 fs/ocfs2/cluster/nodemanager.c
---- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -39,6 +39,7 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
- 		"reset",	/* O2NM_FENCE_RESET */
- 		"panic",	/* O2NM_FENCE_PANIC */
- };
-+
- static inline void o2nm_lock_subsystem(void);
- static inline void o2nm_unlock_subsystem(void);
+diff -puN mm/slab_common.c~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11 mm/slab_common.c
+--- a/mm/slab_common.c~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11
++++ a/mm/slab_common.c
+@@ -559,41 +559,6 @@ static int shutdown_cache(struct kmem_ca
+ 	return 0;
+ }
  
-@@ -218,6 +219,7 @@ static ssize_t o2nm_node_num_store(struc
- 	if (!test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes) ||
- 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
- 		return -EINVAL; /* XXX */
-+
- 	o2nm_lock_subsystem();
- 	cluster = to_o2nm_cluster_from_node(node);
- 	if (!cluster) {
-@@ -238,6 +240,7 @@ static ssize_t o2nm_node_num_store(struc
- 	}
- 	write_unlock(&cluster->cl_nodes_lock);
- 	o2nm_unlock_subsystem();
-+
- 	if (ret)
- 		return ret;
+-void dump_unreclaimable_slab(void)
+-{
+-	struct kmem_cache *s, *s2;
+-	struct slabinfo sinfo;
+-
+-	/*
+-	 * Here acquiring slab_mutex is risky since we don't prefer to get
+-	 * sleep in oom path. But, without mutex hold, it may introduce a
+-	 * risk of crash.
+-	 * Use mutex_trylock to protect the list traverse, dump nothing
+-	 * without acquiring the mutex.
+-	 */
+-	if (!mutex_trylock(&slab_mutex)) {
+-		pr_warn("excessive unreclaimable slab but cannot dump stats\n");
+-		return;
+-	}
+-
+-	pr_info("Unreclaimable slab info:\n");
+-	pr_info("Name                      Used          Total\n");
+-
+-	list_for_each_entry_safe(s, s2, &slab_caches, list) {
+-		if (!is_root_cache(s) || (s->flags & SLAB_RECLAIM_ACCOUNT))
+-			continue;
+-
+-		memset(&sinfo, 0, sizeof(sinfo));
+-		get_slabinfo(s, &sinfo);
+-
+-		if (sinfo.num_objs > 0)
+-			pr_info("%-17s %10luKB %10luKB\n", cache_name(s),
+-				(sinfo.active_objs * s->size) / 1024,
+-				(sinfo.num_objs * s->size) / 1024);
+-	}
+-	mutex_unlock(&slab_mutex);
+-}
+-
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
+ /*
+  * memcg_create_kmem_cache - Create a cache for a memory cgroup.
+@@ -1315,6 +1280,40 @@ static int slab_show(struct seq_file *m,
+ 	return 0;
+ }
  
-@@ -297,12 +300,14 @@ static ssize_t o2nm_node_ipv4_address_st
- 			return -ERANGE;
- 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
- 	}
++void dump_unreclaimable_slab(void)
++{
++	struct kmem_cache *s, *s2;
++	struct slabinfo sinfo;
 +
- 	o2nm_lock_subsystem();
- 	cluster = to_o2nm_cluster_from_node(node);
- 	if (!cluster) {
- 		o2nm_unlock_subsystem();
- 		return -EINVAL;
- 	}
++	/*
++	 * Here acquiring slab_mutex is risky since we don't prefer to get
++	 * sleep in oom path. But, without mutex hold, it may introduce a
++	 * risk of crash.
++	 * Use mutex_trylock to protect the list traverse, dump nothing
++	 * without acquiring the mutex.
++	 */
++	if (!mutex_trylock(&slab_mutex)) {
++		pr_warn("excessive unreclaimable slab but cannot dump stats\n");
++		return;
++	}
 +
- 	ret = 0;
- 	write_lock(&cluster->cl_nodes_lock);
- 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
-@@ -316,6 +321,7 @@ static ssize_t o2nm_node_ipv4_address_st
- 	}
- 	write_unlock(&cluster->cl_nodes_lock);
- 	o2nm_unlock_subsystem();
++	pr_info("Unreclaimable slab info:\n");
++	pr_info("Name                      Used          Total\n");
 +
- 	if (ret)
- 		return ret;
++	list_for_each_entry_safe(s, s2, &slab_caches, list) {
++		if (!is_root_cache(s) || (s->flags & SLAB_RECLAIM_ACCOUNT))
++			continue;
++
++		get_slabinfo(s, &sinfo);
++
++		if (sinfo.num_objs > 0)
++			pr_info("%-17s %10luKB %10luKB\n", cache_name(s),
++				(sinfo.active_objs * s->size) / 1024,
++				(sinfo.num_objs * s->size) / 1024);
++	}
++	mutex_unlock(&slab_mutex);
++}
++
+ #if defined(CONFIG_MEMCG)
+ void *memcg_slab_start(struct seq_file *m, loff_t *pos)
+ {
+diff -puN mm/slab.h~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11 mm/slab.h
+--- a/mm/slab.h~mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory-v11
++++ a/mm/slab.h
+@@ -506,7 +506,13 @@ void *memcg_slab_next(struct seq_file *m
+ void memcg_slab_stop(struct seq_file *m, void *p);
+ int memcg_slab_show(struct seq_file *m, void *p);
  
-@@ -357,6 +363,7 @@ static ssize_t o2nm_node_local_store(str
- 		ret = -EINVAL;
- 		goto out;
- 	}
-+
- 	/* the only failure case is trying to set a new local node
- 	 * when a different one is already set */
- 	if (tmp && tmp == cluster->cl_has_local &&
-@@ -364,6 +371,7 @@ static ssize_t o2nm_node_local_store(str
- 		ret = -EBUSY;
- 		goto out;
- 	}
-+
- 	/* bring up the rx thread if we're setting the new local node. */
- 	if (tmp && !cluster->cl_has_local) {
- 		ret = o2net_start_listening(node);
-@@ -382,6 +390,7 @@ static ssize_t o2nm_node_local_store(str
- 		cluster->cl_has_local = tmp;
- 		cluster->cl_local_node = node->nd_num;
- 	}
-+
- 	ret = count;
++#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG)
+ void dump_unreclaimable_slab(void);
++#else
++static inline void dump_unreclaimable_slab(void)
++{
++}
++#endif
  
- out:
+ void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr);
+ 
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from yang.s@alibaba-inc.com are
 
-ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr.patch
-ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
-ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
+mm-slabinfo-dump-config_slabinfo.patch
+mm-slabinfo-dump-config_slabinfo-v11.patch
+mm-oom-show-unreclaimable-slab-info-when-unreclaimable-slabs-user-memory.patch
 
