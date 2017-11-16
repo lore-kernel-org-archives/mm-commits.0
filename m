@@ -1,81 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-convert-shmem_init_inodecache-to-void.patch
- removed from -mm tree
-Date: Thu, 16 Nov 2017 12:04:43 -0800
-Message-ID: <20171116200443.SvTPeFn83%akpm@linux-foundation.org>
+Subject: [merged]
+ unify-migrate_pages-and-move_pages-access-checks.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:04:40 -0800
+Message-ID: <20171116200440.mPuU3O7od%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933284AbdKPUEo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:44 -0500
+        with ESMTP id S933284AbdKPUEl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org, zhangweiping@didichuxing.com
+To: ebiederm@xmission.com, keescook@chromium.org, mhocko@suse.com, mm-commits@vger.kernel.org, otto.ebeling@iki.fi, w@1wt.eu
 
 
 The patch titled
-     Subject: shmem: convert shmem_init_inodecache() to void
+     Subject: Unify migrate_pages and move_pages access checks
 has been removed from the -mm tree.  Its filename was
-     shmem-convert-shmem_init_inodecache-to-void.patch
+     unify-migrate_pages-and-move_pages-access-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: weiping zhang <zhangweiping@didichuxing.com>
-Subject: shmem: convert shmem_init_inodecache() to void
+From: Otto Ebeling <otto.ebeling@iki.fi>
+Subject: Unify migrate_pages and move_pages access checks
 
-shmem_inode_cachep was created with SLAB_PANIC flag and
-shmem_init_inodecache() never returns non-zero, so convert this function
-to return void.
+197e7e521384a23b ("Sanitize 'move_pages()' permission checks") fixed a
+security issue I reported in the move_pages syscall, and made it so that
+you can't act on set-uid processes unless you have the CAP_SYS_PTRACE
+capability.
 
-Link: http://lkml.kernel.org/r/20170909124542.GA35224@bogon.didichuxing.com
-Signed-off-by: weiping zhang <zhangweiping@didichuxing.com>
-Cc: Hugh Dickins <hughd@google.com>
+Unify the access check logic of migrate_pages to match the new behavior of
+move_pages.  We discussed this a bit in the security@ list and thought
+it'd be good for consistency even though there's no evident security
+impact.  The NUMA node access checks are left intact and require
+CAP_SYS_NICE as before.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.11.1710011830320.6333@lakka.kapsi.fi
+Signed-off-by: Otto Ebeling <otto.ebeling@iki.fi>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/mempolicy.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN mm/shmem.c~shmem-convert-shmem_init_inodecache-to-void mm/shmem.c
---- a/mm/shmem.c~shmem-convert-shmem_init_inodecache-to-void
-+++ a/mm/shmem.c
-@@ -3862,12 +3862,11 @@ static void shmem_init_inode(void *foo)
- 	inode_init_once(&info->vfs_inode);
- }
- 
--static int shmem_init_inodecache(void)
-+static void shmem_init_inodecache(void)
+diff -puN mm/mempolicy.c~unify-migrate_pages-and-move_pages-access-checks mm/mempolicy.c
+--- a/mm/mempolicy.c~unify-migrate_pages-and-move_pages-access-checks
++++ a/mm/mempolicy.c
+@@ -85,6 +85,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/compat.h>
++#include <linux/ptrace.h>
+ #include <linux/swap.h>
+ #include <linux/seq_file.h>
+ #include <linux/proc_fs.h>
+@@ -1365,7 +1366,6 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 		const unsigned long __user *, old_nodes,
+ 		const unsigned long __user *, new_nodes)
  {
- 	shmem_inode_cachep = kmem_cache_create("shmem_inode_cache",
- 				sizeof(struct shmem_inode_info),
- 				0, SLAB_PANIC|SLAB_ACCOUNT, shmem_init_inode);
--	return 0;
- }
+-	const struct cred *cred = current_cred(), *tcred;
+ 	struct mm_struct *mm = NULL;
+ 	struct task_struct *task;
+ 	nodemask_t task_nodes;
+@@ -1401,15 +1401,10 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 	err = -EINVAL;
  
- static void shmem_destroy_inodecache(void)
-@@ -3991,9 +3990,7 @@ int __init shmem_init(void)
- 	if (shmem_inode_cachep)
- 		return 0;
- 
--	error = shmem_init_inodecache();
--	if (error)
--		goto out3;
-+	shmem_init_inodecache();
- 
- 	error = register_filesystem(&shmem_fs_type);
- 	if (error) {
-@@ -4020,7 +4017,6 @@ out1:
- 	unregister_filesystem(&shmem_fs_type);
- out2:
- 	shmem_destroy_inodecache();
--out3:
- 	shm_mnt = ERR_PTR(error);
- 	return error;
- }
+ 	/*
+-	 * Check if this process has the right to modify the specified
+-	 * process. The right exists if the process has administrative
+-	 * capabilities, superuser privileges or the same
+-	 * userid as the target process.
++	 * Check if this process has the right to modify the specified process.
++	 * Use the regular "ptrace_may_access()" checks.
+ 	 */
+-	tcred = __task_cred(task);
+-	if (!uid_eq(cred->euid, tcred->suid) && !uid_eq(cred->euid, tcred->uid) &&
+-	    !uid_eq(cred->uid,  tcred->suid) && !uid_eq(cred->uid,  tcred->uid) &&
+-	    !capable(CAP_SYS_NICE)) {
++	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS)) {
+ 		rcu_read_unlock();
+ 		err = -EPERM;
+ 		goto out_put;
 _
 
-Patches currently in -mm which might be from zhangweiping@didichuxing.com are
+Patches currently in -mm which might be from otto.ebeling@iki.fi are
 
 
