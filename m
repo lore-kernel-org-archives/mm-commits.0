@@ -1,108 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/131] sparc64: optimize struct page zeroing
-Date: Wed, 15 Nov 2017 17:36:48 -0800
-Message-ID: <20171116013648.iWq8H3_DM%akpm@linux-foundation.org>
+Subject: [patch 091/131] mm/page_alloc: make sure __rmqueue() etc
+ are always inline
+Date: Wed, 15 Nov 2017 17:36:53 -0800
+Message-ID: <20171116013653.i4tEjKav-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40116 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933058AbdKPBgv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:36:51 -0500
+        with ESMTP id S933052AbdKPBgy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:36:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ard.biesheuvel@linaro.org, aryabinin@virtuozzo.com, bob.picco@oracle.com, borntraeger@de.ibm.com, catalin.marinas@arm.com, daniel.m.jordan@oracle.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, heiko.carstens@de.ibm.com, hpa@zytor.com, mark.rutland@arm.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, sam@ravnborg.org, steven.sistare@oracle.com, tglx@linutronix.de, torvalds@linux-foundation.org, will.deacon@arm.com, willy@infradead.org
+To: aaron.lu@intel.com, akpm@linux-foundation.org, andi@firstfloor.org, dave.hansen@intel.com, kemi.wang@intel.com, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, vbabka@suse.cz, ying.huang@intel.com
 
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: sparc64: optimize struct page zeroing
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: mm/page_alloc: make sure __rmqueue() etc are always inline
 
-Add an optimized mm_zero_struct_page(), so struct page's are zeroed
-without calling memset().  We do eight to ten regular stores based on the
-size of struct page.  Compiler optimizes out the conditions of switch()
-statement.
+__rmqueue(), __rmqueue_fallback(), __rmqueue_smallest() and
+__rmqueue_cma_fallback() are all in page allocator's hot path and better
+be finished as soon as possible.  One way to make them faster is by making
+them inline.  But as Andrew Morton and Andi Kleen pointed out:
+https://lkml.org/lkml/2017/10/10/1252
+https://lkml.org/lkml/2017/10/10/1279
+To make sure they are inlined, we should use __always_inline for them.
 
-SPARC-M6 with 15T of memory, single thread performance:
+With the will-it-scale/page_fault1/process benchmark, when using nr_cpu
+processes to stress buddy, the results for will-it-scale.processes with
+and without the patch are:
 
-                               BASE            FIX  OPTIMIZED_FIX
-        bootmem_init   28.440467985s   2.305674818s   2.305161615s
-free_area_init_nodes  202.845901673s 225.343084508s 172.556506560s
-                      --------------------------------------------
-Total                 231.286369658s 227.648759326s 174.861668175s
+On a 2-sockets Intel-Skylake machine:
 
-BASE:  current linux
-FIX:   This patch series without "optimized struct page zeroing"
-OPTIMIZED_FIX: This patch series including the current patch.
+ compiler          base        head
+gcc-4.4.7       6496131     6911823 +6.4%
+gcc-4.9.4       7225110     7731072 +7.0%
+gcc-5.4.1       7054224     7688146 +9.0%
+gcc-6.2.0       7059794     7651675 +8.4%
 
-bootmem_init() is where memory for struct pages is zeroed during
-allocation.  Note, about two seconds in this function is a fixed time: it
-does not increase as memory is increased.
+On a 4-sockets Intel-Skylake machine:
 
-Link: http://lkml.kernel.org/r/20171013173214.27300-11-pasha.tatashin@oracle.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will.deacon@arm.com>
+ compiler          base        head
+gcc-4.4.7      13162890    13508193 +2.6%
+gcc-4.9.4      14997463    15484353 +3.2%
+gcc-5.4.1      14708711    15449805 +5.0%
+gcc-6.2.0      14574099    15349204 +5.3%
+
+The above 4 compilers are used because I've done the tests through Intel's
+Linux Kernel Performance(LKP) infrastructure and they are the available
+compilers there.
+
+The benefit being less on 4 sockets machine is due to the lock contention
+there(perf-profile/native_queued_spin_lock_slowpath=81%) is less severe
+than on the 2 sockets machine(85%).
+
+What the benchmark does is: it forks nr_cpu processes and then each
+process does the following:
+    1 mmap() 128M anonymous space;
+    2 writes to each page there to trigger actual page allocation;
+    3 munmap() it.
+in a loop.
+https://github.com/antonblanchard/will-it-scale/blob/master/tests/page_fault1.c
+
+Binary size wise, I have locally built them with different compilers:
+
+[aaron@aaronlu obj]$ size */*/mm/page_alloc.o
+   text    data     bss     dec     hex filename
+  37409    9904    8524   55837    da1d gcc-4.9.4/base/mm/page_alloc.o
+  38273    9904    8524   56701    dd7d gcc-4.9.4/head/mm/page_alloc.o
+  37465    9840    8428   55733    d9b5 gcc-5.5.0/base/mm/page_alloc.o
+  38169    9840    8428   56437    dc75 gcc-5.5.0/head/mm/page_alloc.o
+  37573    9840    8428   55841    da21 gcc-6.4.0/base/mm/page_alloc.o
+  38261    9840    8428   56529    dcd1 gcc-6.4.0/head/mm/page_alloc.o
+  36863    9840    8428   55131    d75b gcc-7.2.0/base/mm/page_alloc.o
+  37711    9840    8428   55979    daab gcc-7.2.0/head/mm/page_alloc.o
+
+Text size increased about 800 bytes for mm/page_alloc.o.
+
+[aaron@aaronlu obj]$ size */*/vmlinux
+   text    data     bss     dec       hex     filename
+10342757   5903208 17723392 33969357  20654cd gcc-4.9.4/base/vmlinux
+10342757   5903208 17723392 33969357  20654cd gcc-4.9.4/head/vmlinux
+10332448   5836608 17715200 33884256  2050860 gcc-5.5.0/base/vmlinux
+10332448   5836608 17715200 33884256  2050860 gcc-5.5.0/head/vmlinux
+10094546   5836696 17715200 33646442  201676a gcc-6.4.0/base/vmlinux
+10094546   5836696 17715200 33646442  201676a gcc-6.4.0/head/vmlinux
+10018775   5828732 17715200 33562707  2002053 gcc-7.2.0/base/vmlinux
+10018775   5828732 17715200 33562707  2002053 gcc-7.2.0/head/vmlinux
+
+Text size for vmlinux has no change though, probably due to function
+alignment.
+
+Link: http://lkml.kernel.org/r/20171013063111.GA26032@intel.com
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Kemi Wang <kemi.wang@intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |   30 ++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/sparc/include/asm/pgtable_64.h~sparc64-optimized-struct-page-zeroing arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~sparc64-optimized-struct-page-zeroing
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -231,6 +231,36 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
+diff -puN mm/page_alloc.c~mm-page_alloc-make-sure-__rmqueue-etc-always-inline mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-make-sure-__rmqueue-etc-always-inline
++++ a/mm/page_alloc.c
+@@ -1813,7 +1813,7 @@ static void prep_new_page(struct page *p
+  * Go through the free lists for the given migratetype and remove
+  * the smallest available page from the freelists
+  */
+-static inline
++static __always_inline
+ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+ 						int migratetype)
+ {
+@@ -1857,7 +1857,7 @@ static int fallbacks[MIGRATE_TYPES][4] =
+ };
  
-+/* This macro must be updated when the size of struct page grows above 80
-+ * or reduces below 64.
-+ * The idea that compiler optimizes out switch() statement, and only
-+ * leaves clrx instructions
-+ */
-+#define	mm_zero_struct_page(pp) do {					\
-+	unsigned long *_pp = (void *)(pp);				\
-+									\
-+	 /* Check that struct page is either 64, 72, or 80 bytes */	\
-+	BUILD_BUG_ON(sizeof(struct page) & 7);				\
-+	BUILD_BUG_ON(sizeof(struct page) < 64);				\
-+	BUILD_BUG_ON(sizeof(struct page) > 80);				\
-+									\
-+	switch (sizeof(struct page)) {					\
-+	case 80:							\
-+		_pp[9] = 0;	/* fallthrough */			\
-+	case 72:							\
-+		_pp[8] = 0;	/* fallthrough */			\
-+	default:							\
-+		_pp[7] = 0;						\
-+		_pp[6] = 0;						\
-+		_pp[5] = 0;						\
-+		_pp[4] = 0;						\
-+		_pp[3] = 0;						\
-+		_pp[2] = 0;						\
-+		_pp[1] = 0;						\
-+		_pp[0] = 0;						\
-+	}								\
-+} while (0)
-+
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
+ #ifdef CONFIG_CMA
+-static struct page *__rmqueue_cma_fallback(struct zone *zone,
++static __always_inline struct page *__rmqueue_cma_fallback(struct zone *zone,
+ 					unsigned int order)
+ {
+ 	return __rmqueue_smallest(zone, order, MIGRATE_CMA);
+@@ -2238,7 +2238,7 @@ static bool unreserve_highatomic_pageblo
+  * deviation from the rest of this file, to make the for loop
+  * condition simpler.
+  */
+-static inline bool
++static __always_inline bool
+ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ {
+ 	struct free_area *area;
+@@ -2310,8 +2310,8 @@ do_steal:
+  * Do the hard work of removing an element from the buddy allocator.
+  * Call me with the zone->lock already held.
+  */
+-static struct page *__rmqueue(struct zone *zone, unsigned int order,
+-				int migratetype)
++static __always_inline struct page *
++__rmqueue(struct zone *zone, unsigned int order, int migratetype)
+ {
+ 	struct page *page;
+ 
 _
