@@ -1,67 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 126/131] writeback: remove unused function
- parameter
-Date: Wed, 15 Nov 2017 17:39:03 -0800
-Message-ID: <20171116013903.vg2Yhg1-u%akpm@linux-foundation.org>
+Subject: [patch 125/131] mm: do not rely on preempt_count in
+ print_vma_addr
+Date: Wed, 15 Nov 2017 17:38:59 -0800
+Message-ID: <20171116013859.KEPu0CntC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933297AbdKPBjH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:39:07 -0500
+        with ESMTP id S933297AbdKPBjF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:39:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, jack@suse.cz, mm-commits@vger.kernel.org, tj@kernel.org, torvalds@linux-foundation.org, wanglong19@meituan.com
+To: akpm@linux-foundation.org, fweisbec@gmail.com, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org, vbabka@suse.cz, yang.s@alibaba-inc.com
 
-From: Wang Long <wanglong19@meituan.com>
-Subject: writeback: remove unused function parameter
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: do not rely on preempt_count in print_vma_addr
 
-The parameter `struct bdi_writeback *wb` is not been used in the function
-body.  Remove it.
+The preempt count check on print_vma_addr has been added by e8bff74afbdb
+("x86: fix "BUG: sleeping function called from invalid context" in
+print_vma_addr()") and it relied on the elevated preempt count from
+preempt_conditional_sti because preempt_count check doesn't work on non
+preemptive kernels by default.  The code has evolved though and
+d99e1bd175f4 ("x86/entry/traps: Refactor preemption and interrupt flag
+handling") has replaced preempt_conditional_sti by an explicit
+preempt_disable which is noop on !PREEMPT so the check in print_vma_addr
+is broken.
 
-Link: http://lkml.kernel.org/r/1509685485-15278-1-git-send-email-wanglong19@meituan.com
-Signed-off-by: Wang Long <wanglong19@meituan.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Fix the issue by using trylock on mmap_sem rather than chacking the
+preempt count.  The allocation we are relying on has to be GFP_NOWAIT as
+well.  There is a chance that we won't dump the vma state if the lock is
+contended or the memory short but this is acceptable outcome and much less
+fragile than the not working preemption check or tricks around it.
+
+Link: http://lkml.kernel.org/r/20171106134031.g6dbelg55mrbyc6i@dhcp22.suse.cz
+Fixes: d99e1bd175f4 ("x86/entry/traps: Refactor preemption and interrupt flag handling")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Yang Shi <yang.s@alibaba-inc.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    2 +-
- mm/page-writeback.c         |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/backing-dev.h~writeback-remove-the-unused-function-parameter include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~writeback-remove-the-unused-function-parameter
-+++ a/include/linux/backing-dev.h
-@@ -93,7 +93,7 @@ extern void wb_writeout_inc(struct bdi_w
- /*
-  * maximal error of a stat counter.
-  */
--static inline unsigned long wb_stat_error(struct bdi_writeback *wb)
-+static inline unsigned long wb_stat_error(void)
- {
- #ifdef CONFIG_SMP
- 	return nr_cpu_ids * WB_STAT_BATCH;
-diff -puN mm/page-writeback.c~writeback-remove-the-unused-function-parameter mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-remove-the-unused-function-parameter
-+++ a/mm/page-writeback.c
-@@ -1545,7 +1545,7 @@ static inline void wb_dirty_limits(struc
- 	 * actually dirty; with m+n sitting in the percpu
- 	 * deltas.
- 	 */
--	if (dtc->wb_thresh < 2 * wb_stat_error(wb)) {
-+	if (dtc->wb_thresh < 2 * wb_stat_error()) {
- 		wb_reclaimable = wb_stat_sum(wb, WB_RECLAIMABLE);
- 		dtc->wb_dirty = wb_reclaimable + wb_stat_sum(wb, WB_WRITEBACK);
- 	} else {
-@@ -1803,7 +1803,7 @@ pause:
- 		 * more page. However wb_dirty has accounting errors.  So use
- 		 * the larger and more IO friendly wb_stat_error.
- 		 */
--		if (sdtc->wb_dirty <= wb_stat_error(wb))
-+		if (sdtc->wb_dirty <= wb_stat_error())
- 			break;
+diff -puN mm/memory.c~mm-do-not-rely-on-preempt_count-in-print_vma_addr-was-re-mm-use-in_atomic-in-print_vma_addr mm/memory.c
+--- a/mm/memory.c~mm-do-not-rely-on-preempt_count-in-print_vma_addr-was-re-mm-use-in_atomic-in-print_vma_addr
++++ a/mm/memory.c
+@@ -4485,17 +4485,15 @@ void print_vma_addr(char *prefix, unsign
+ 	struct vm_area_struct *vma;
  
- 		if (fatal_signal_pending(current))
+ 	/*
+-	 * Do not print if we are in atomic
+-	 * contexts (in exception stacks, etc.):
++	 * we might be running from an atomic context so we cannot sleep
+ 	 */
+-	if (preempt_count())
++	if (!down_read_trylock(&mm->mmap_sem))
+ 		return;
+ 
+-	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, ip);
+ 	if (vma && vma->vm_file) {
+ 		struct file *f = vma->vm_file;
+-		char *buf = (char *)__get_free_page(GFP_KERNEL);
++		char *buf = (char *)__get_free_page(GFP_NOWAIT);
+ 		if (buf) {
+ 			char *p;
+ 
 _
