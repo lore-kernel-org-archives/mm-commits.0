@@ -1,122 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 032/131] mm: swap: SWP_SYNCHRONOUS_IO: skip
- swapcache only if swapped page has no other reference
-Date: Wed, 15 Nov 2017 17:33:11 -0800
-Message-ID: <20171116013311.Xl9YvSrx3%akpm@linux-foundation.org>
+Subject: [patch 033/131] mm, swap: fix false error message in
+ __swp_swapcount()
+Date: Wed, 15 Nov 2017 17:33:15 -0800
+Message-ID: <20171116013315.yPNeBF96-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38780 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38800 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932597AbdKPBdN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:13 -0500
+        with ESMTP id S932597AbdKPBdR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, hch@lst.de, hughd@google.com, idryomov@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, huang.ying.caritas@gmail.com, hughd@google.com, lists@nerdbynature.de, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: swap: SWP_SYNCHRONOUS_IO: skip swapcache only if swapped page has no other reference
+From: Huang Ying <huang.ying.caritas@gmail.com>
+Subject: mm, swap: fix false error message in __swp_swapcount()
 
-When SWP_SYNCHRONOUS_IO swapped-in pages are shared by several processes,
-it can cause unnecessary memory wastage by skipping swap cache.  Because,
-with swapin fault by read, they could share a page if the page were in
-swap cache.  Thus, it avoids allocating same content new pages.
+When a page fault occurs for a swap entry, the physical swap readahead
+(not the VMA base swap readahead) may readahead several swap entries after
+the fault swap entry.  The readahead algorithm calculates some of the swap
+entries to readahead via increasing the offset of the fault swap entry
+without checking whether they are beyond the end of the swap device and it
+relys on the __swp_swapcount() and swapcache_prepare() to check it. 
+Although __swp_swapcount() checks for the swap entry passed in, it will
+complain with the error message as follow for the expected invalid swap
+entry.  This may make the end users confused.
 
-This patch makes the swapcache skipping work only if the swap pte is
-non-sharable.
+  swap_info_get: Bad swap offset entry 0200f8a7
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/1507620825-5537-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+To fix the false error message, the swap entry checking is added in
+swapin_readahead() to avoid to pass the out-of-bound swap entries and the
+swap entry reserved for the swap header to __swp_swapcount() and
+swapcache_prepare().
+
+Link: http://lkml.kernel.org/r/20171102054225.22897-1-ying.huang@intel.com
+Fixes: e8c26ab60598 ("mm/swap: skip readahead for unreferenced swap slots")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: Christian Kujau <lists@nerdbynature.de>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: <stable@vger.kernel.org>	[4.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++++++
- mm/memory.c          |   19 ++++++++++---------
- mm/swapfile.c        |    7 +++++++
- 3 files changed, 23 insertions(+), 9 deletions(-)
+ mm/swap_state.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/swap.h~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
-+++ a/include/linux/swap.h
-@@ -463,6 +463,7 @@ extern unsigned int count_swap_pages(int
- extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int page_swapcount(struct page *);
-+extern int __swap_count(struct swap_info_struct *si, swp_entry_t entry);
- extern int __swp_swapcount(swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
-@@ -588,6 +589,11 @@ static inline int page_swapcount(struct
- {
- 	return 0;
- }
-+
-+static inline int __swap_count(struct swap_info_struct *si, swp_entry_t entry)
-+{
-+	return 0;
-+}
+diff -puN mm/swap_state.c~mm-swap-fix-false-error-message-in-__swp_swapcount mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-fix-false-error-message-in-__swp_swapcount
++++ a/mm/swap_state.c
+@@ -559,6 +559,7 @@ struct page *swapin_readahead(swp_entry_
+ 	unsigned long offset = entry_offset;
+ 	unsigned long start_offset, end_offset;
+ 	unsigned long mask;
++	struct swap_info_struct *si = swp_swap_info(entry);
+ 	struct blk_plug plug;
+ 	bool do_poll = true, page_allocated;
  
- static inline int __swp_swapcount(swp_entry_t entry)
- {
-diff -puN mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference mm/memory.c
---- a/mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
-+++ a/mm/memory.c
-@@ -2890,15 +2890,8 @@ int do_swap_page(struct vm_fault *vmf)
- 	if (!page) {
- 		struct swap_info_struct *si = swp_swap_info(entry);
+@@ -572,6 +573,8 @@ struct page *swapin_readahead(swp_entry_
+ 	end_offset = offset | mask;
+ 	if (!start_offset)	/* First page is swap header. */
+ 		start_offset++;
++	if (end_offset >= si->max)
++		end_offset = si->max - 1;
  
--		if (!(si->flags & SWP_SYNCHRONOUS_IO)) {
--			if (vma_readahead)
--				page = do_swap_page_readahead(entry,
--					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
--			else
--				page = swapin_readahead(entry,
--					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
--			swapcache = page;
--		} else {
-+		if (si->flags & SWP_SYNCHRONOUS_IO &&
-+				__swap_count(si, entry) == 1) {
- 			/* skip swapcache */
- 			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
- 			if (page) {
-@@ -2908,6 +2901,14 @@ int do_swap_page(struct vm_fault *vmf)
- 				lru_cache_add_anon(page);
- 				swap_readpage(page, true);
- 			}
-+		} else {
-+			if (vma_readahead)
-+				page = do_swap_page_readahead(entry,
-+					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
-+			else
-+				page = swapin_readahead(entry,
-+				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			swapcache = page;
- 		}
- 
- 		if (!page) {
-diff -puN mm/swapfile.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
-+++ a/mm/swapfile.c
-@@ -1328,6 +1328,13 @@ int page_swapcount(struct page *page)
- 	return count;
- }
- 
-+int __swap_count(struct swap_info_struct *si, swp_entry_t entry)
-+{
-+	pgoff_t offset = swp_offset(entry);
-+
-+	return swap_count(si->swap_map[offset]);
-+}
-+
- static int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
- {
- 	int count = 0;
+ 	blk_start_plug(&plug);
+ 	for (offset = start_offset; offset <= end_offset ; offset++) {
 _
