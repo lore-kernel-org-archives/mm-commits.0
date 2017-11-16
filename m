@@ -1,37 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [patch 111/131] mm, page_alloc: simplify list handling in
- rmqueue_bulk()
-Date: Wed, 15 Nov 2017 17:38:07 -0800
-Message-ID: <20171116013807.7bd7G53zg%akpm@linux-foundation.org>
+Subject: [patch 108/131] mm: remove cold parameter for
+ release_pages
+Date: Wed, 15 Nov 2017 17:37:55 -0800
+Message-ID: <20171116013755.THSheBtH4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40368 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932320AbdKPBiI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:38:08 -0500
+        with ESMTP id S933653AbdKPBh5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ak@linux.intel.com, akpm@linux-foundation.org, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: simplify list handling in rmqueue_bulk()
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: remove cold parameter for release_pages
 
-rmqueue_bulk() fills an empty pcplist with pages from the free list.  It
-tries to preserve increasing order by pfn to the caller, because it leads
-to better performance with some I/O controllers, as explained in
-e084b2d95e48 ("page-allocator: preserve PFN ordering when __GFP_COLD is
-set").
+All callers of release_pages claim the pages being released are cache hot.
+As no one cares about the hotness of pages being released to the
+allocator, just ditch the parameter.
 
-To preserve the order, it's sufficient to add pages to the tail of the
-list as they are retrieved.  The current code instead adds to the head of
-the list, but then updates the list head pointer to the last added page,
-in each step.  This does result in the same order, but is needlessly
-confusing and potentially wasteful, with no apparent benefit.  This patch
-simplifies the code and adjusts comment accordingly.
+No performance impact is expected as the overhead is marginal.  The
+parameter is removed simply because it is a bit stupid to have a useless
+parameter copied everywhere.
 
-Link: http://lkml.kernel.org/r/f6505442-98a9-12e4-b2cd-0fa83874c159@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/20171018075952.10627-7-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -40,36 +35,214 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c  |    6 ++----
+ drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c |    2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c   |    6 +++---
+ drivers/gpu/drm/i915/i915_gem_userptr.c |    4 ++--
+ drivers/gpu/drm/radeon/radeon_ttm.c     |    2 +-
+ fs/fuse/dev.c                           |    2 +-
+ include/linux/pagemap.h                 |    2 +-
+ include/linux/swap.h                    |    2 +-
+ mm/swap.c                               |    8 ++++----
+ mm/swap_state.c                         |    2 +-
+ 11 files changed, 18 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-simplify-list-handling-in-rmqueue_bulk mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-simplify-list-handling-in-rmqueue_bulk
-+++ a/mm/page_alloc.c
-@@ -2350,16 +2350,16 @@ static int rmqueue_bulk(struct zone *zon
- 			continue;
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+@@ -553,8 +553,7 @@ static int amdgpu_cs_parser_bos(struct a
+ 				 * invalidated it. Free it and try again
+ 				 */
+ 				release_pages(e->user_pages,
+-					      e->robj->tbo.ttm->num_pages,
+-					      false);
++					      e->robj->tbo.ttm->num_pages);
+ 				kvfree(e->user_pages);
+ 				e->user_pages = NULL;
+ 			}
+@@ -691,8 +690,7 @@ error_free_pages:
+ 				continue;
  
- 		/*
--		 * Split buddy pages returned by expand() are received here
--		 * in physical page order. The page is added to the callers and
--		 * list and the list head then moves forward. From the callers
--		 * perspective, the linked list is ordered by page number in
--		 * some conditions. This is useful for IO devices that can
--		 * merge IO requests if the physical pages are ordered
--		 * properly.
-+		 * Split buddy pages returned by expand() are received here in
-+		 * physical page order. The page is added to the tail of
-+		 * caller's list. From the callers perspective, the linked list
-+		 * is ordered by page number under some conditions. This is
-+		 * useful for IO devices that can forward direction from the
-+		 * head, thus also in the physical page order. This is useful
-+		 * for IO devices that can merge IO requests if the physical
-+		 * pages are ordered properly.
- 		 */
--		list_add(&page->lru, list);
--		list = &page->lru;
-+		list_add_tail(&page->lru, list);
- 		alloced++;
- 		if (is_migrate_cma(get_pcppage_migratetype(page)))
- 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
+ 			release_pages(e->user_pages,
+-				      e->robj->tbo.ttm->num_pages,
+-				      false);
++				      e->robj->tbo.ttm->num_pages);
+ 			kvfree(e->user_pages);
+ 		}
+ 	}
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+@@ -347,7 +347,7 @@ int amdgpu_gem_userptr_ioctl(struct drm_
+ 	return 0;
+ 
+ free_pages:
+-	release_pages(bo->tbo.ttm->pages, bo->tbo.ttm->num_pages, false);
++	release_pages(bo->tbo.ttm->pages, bo->tbo.ttm->num_pages);
+ 
+ unlock_mmap_sem:
+ 	up_read(&current->mm->mmap_sem);
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -659,7 +659,7 @@ int amdgpu_ttm_tt_get_user_pages(struct
+ 	return 0;
+ 
+ release_pages:
+-	release_pages(pages, pinned, 0);
++	release_pages(pages, pinned);
+ 	return r;
+ }
+ 
+diff -puN drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/etnaviv/etnaviv_gem.c
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+@@ -779,7 +779,7 @@ static struct page **etnaviv_gem_userptr
+ 	up_read(&mm->mmap_sem);
+ 
+ 	if (ret < 0) {
+-		release_pages(pvec, pinned, 0);
++		release_pages(pvec, pinned);
+ 		kvfree(pvec);
+ 		return ERR_PTR(ret);
+ 	}
+@@ -852,7 +852,7 @@ static int etnaviv_gem_userptr_get_pages
+ 		}
+ 	}
+ 
+-	release_pages(pvec, pinned, 0);
++	release_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	work = kmalloc(sizeof(*work), GFP_KERNEL);
+@@ -886,7 +886,7 @@ static void etnaviv_gem_userptr_release(
+ 	if (etnaviv_obj->pages) {
+ 		int npages = etnaviv_obj->base.size >> PAGE_SHIFT;
+ 
+-		release_pages(etnaviv_obj->pages, npages, 0);
++		release_pages(etnaviv_obj->pages, npages);
+ 		kvfree(etnaviv_obj->pages);
+ 	}
+ 	put_task_struct(etnaviv_obj->userptr.task);
+diff -puN drivers/gpu/drm/i915/i915_gem_userptr.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/i915/i915_gem_userptr.c
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -554,7 +554,7 @@ __i915_gem_userptr_get_pages_worker(stru
+ 	}
+ 	mutex_unlock(&obj->mm.lock);
+ 
+-	release_pages(pvec, pinned, 0);
++	release_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	i915_gem_object_put(obj);
+@@ -668,7 +668,7 @@ i915_gem_userptr_get_pages(struct drm_i9
+ 		__i915_gem_userptr_set_active(obj, true);
+ 
+ 	if (IS_ERR(pages))
+-		release_pages(pvec, pinned, 0);
++		release_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	return pages;
+diff -puN drivers/gpu/drm/radeon/radeon_ttm.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/radeon/radeon_ttm.c
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -597,7 +597,7 @@ release_sg:
+ 	kfree(ttm->sg);
+ 
+ release_pages:
+-	release_pages(ttm->pages, pinned, 0);
++	release_pages(ttm->pages, pinned);
+ 	return r;
+ }
+ 
+diff -puN fs/fuse/dev.c~mm-remove-cold-parameter-for-release_pages fs/fuse/dev.c
+--- a/fs/fuse/dev.c~mm-remove-cold-parameter-for-release_pages
++++ a/fs/fuse/dev.c
+@@ -1636,7 +1636,7 @@ out_finish:
+ 
+ static void fuse_retrieve_end(struct fuse_conn *fc, struct fuse_req *req)
+ {
+-	release_pages(req->pages, req->num_pages, false);
++	release_pages(req->pages, req->num_pages);
+ }
+ 
+ static int fuse_retrieve(struct fuse_conn *fc, struct inode *inode,
+diff -puN include/linux/pagemap.h~mm-remove-cold-parameter-for-release_pages include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-remove-cold-parameter-for-release_pages
++++ a/include/linux/pagemap.h
+@@ -118,7 +118,7 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
+ }
+ 
+-void release_pages(struct page **pages, int nr, bool cold);
++void release_pages(struct page **pages, int nr);
+ 
+ /*
+  * speculatively take a reference to a page.
+diff -puN include/linux/swap.h~mm-remove-cold-parameter-for-release_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-cold-parameter-for-release_pages
++++ a/include/linux/swap.h
+@@ -510,7 +510,7 @@ static inline struct swap_info_struct *s
+ #define free_page_and_swap_cache(page) \
+ 	put_page(page)
+ #define free_pages_and_swap_cache(pages, nr) \
+-	release_pages((pages), (nr), false);
++	release_pages((pages), (nr));
+ 
+ static inline void show_swap_cache_info(void)
+ {
+diff -puN mm/swap.c~mm-remove-cold-parameter-for-release_pages mm/swap.c
+--- a/mm/swap.c~mm-remove-cold-parameter-for-release_pages
++++ a/mm/swap.c
+@@ -210,7 +210,7 @@ static void pagevec_lru_move_fn(struct p
+ 	}
+ 	if (pgdat)
+ 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
+-	release_pages(pvec->pages, pvec->nr, 0);
++	release_pages(pvec->pages, pvec->nr);
+ 	pagevec_reinit(pvec);
+ }
+ 
+@@ -740,7 +740,7 @@ void lru_add_drain_all(void)
+  * Decrement the reference count on all the pages in @pages.  If it
+  * fell to zero, remove the page from the LRU and free it.
+  */
+-void release_pages(struct page **pages, int nr, bool cold)
++void release_pages(struct page **pages, int nr)
+ {
+ 	int i;
+ 	LIST_HEAD(pages_to_free);
+@@ -817,7 +817,7 @@ void release_pages(struct page **pages,
+ 		spin_unlock_irqrestore(&locked_pgdat->lru_lock, flags);
+ 
+ 	mem_cgroup_uncharge_list(&pages_to_free);
+-	free_hot_cold_page_list(&pages_to_free, cold);
++	free_hot_cold_page_list(&pages_to_free, 0);
+ }
+ EXPORT_SYMBOL(release_pages);
+ 
+@@ -837,7 +837,7 @@ void __pagevec_release(struct pagevec *p
+ 		lru_add_drain();
+ 		pvec->drained = true;
+ 	}
+-	release_pages(pvec->pages, pagevec_count(pvec), 0);
++	release_pages(pvec->pages, pagevec_count(pvec));
+ 	pagevec_reinit(pvec);
+ }
+ EXPORT_SYMBOL(__pagevec_release);
+diff -puN mm/swap_state.c~mm-remove-cold-parameter-for-release_pages mm/swap_state.c
+--- a/mm/swap_state.c~mm-remove-cold-parameter-for-release_pages
++++ a/mm/swap_state.c
+@@ -319,7 +319,7 @@ void free_pages_and_swap_cache(struct pa
+ 	lru_add_drain();
+ 	for (i = 0; i < nr; i++)
+ 		free_swap_cache(pagep[i]);
+-	release_pages(pagep, nr, false);
++	release_pages(pagep, nr);
+ }
+ 
+ /*
 _
