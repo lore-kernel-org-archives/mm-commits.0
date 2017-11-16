@@ -1,88 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
- removed from -mm tree
-Date: Thu, 16 Nov 2017 12:00:44 -0800
-Message-ID: <20171116200044.rzulbKp4U%akpm@linux-foundation.org>
+ zram-remove-zlib-from-the-list-of-recommended-algorithms.patch removed from
+ -mm tree
+Date: Thu, 16 Nov 2017 12:00:50 -0800
+Message-ID: <20171116200050.xAewSCwYl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46346 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933663AbdKPUAp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:45 -0500
+        with ESMTP id S934974AbdKPUAv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
+     Subject: zram: remove zlib from the list of recommended algorithms
 has been removed from the -mm tree.  Its filename was
-     mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+     zram-remove-zlib-from-the-list-of-recommended-algorithms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zram: remove zlib from the list of recommended algorithms
 
-The vm direct limit setting must be set greater than vm background limit
-setting.  Otherwise print a warning to help the operator to figure out
-that the vm dirtiness settings is in illogical state.
+ZSTD tends to outperform deflate/inflate, thus we remove zlib from the
+list of recommended algorithms and recommend zstd instead.
 
-Link: http://lkml.kernel.org/r/1506592464-30962-1-git-send-email-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/20170912050005.3247-2-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    7 +++++++
- mm/page-writeback.c         |    5 ++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/block/zram/zcomp.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
-+++ a/Documentation/sysctl/vm.txt
-@@ -157,6 +157,10 @@ Note: the minimum value allowed for dirt
- value lower than this limit will be ignored and the old configuration will be
- retained.
- 
-+Note: the value of dirty_bytes also must be set greater than
-+dirty_background_bytes or the amount of memory corresponding to
-+dirty_background_ratio.
-+
- ==============================================================
- 
- dirty_expire_centisecs
-@@ -176,6 +180,9 @@ generating disk writes will itself start
- 
- The total available memory is not equal to total system memory.
- 
-+Note: dirty_ratio must be set greater than dirty_background_ratio or
-+ratio corresponding to dirty_background_bytes.
-+
- ==============================================================
- 
- dirty_writeback_centisecs
-diff -puN mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
---- a/mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
-+++ a/mm/page-writeback.c
-@@ -433,8 +433,11 @@ static void domain_dirty_limits(struct d
- 	else
- 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
- 
--	if (bg_thresh >= thresh)
-+	if (unlikely(bg_thresh >= thresh)) {
-+		pr_warn("vm direct limit must be set greater than background limit.\n");
- 		bg_thresh = thresh / 2;
-+	}
-+
- 	tsk = current;
- 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
- 		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
+diff -puN drivers/block/zram/zcomp.c~zram-remove-zlib-from-the-list-of-recommended-algorithms drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-remove-zlib-from-the-list-of-recommended-algorithms
++++ a/drivers/block/zram/zcomp.c
+@@ -23,9 +23,6 @@ static const char * const backends[] = {
+ #if IS_ENABLED(CONFIG_CRYPTO_LZ4)
+ 	"lz4",
+ #endif
+-#if IS_ENABLED(CONFIG_CRYPTO_DEFLATE)
+-	"deflate",
+-#endif
+ #if IS_ENABLED(CONFIG_CRYPTO_LZ4HC)
+ 	"lz4hc",
+ #endif
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
 
