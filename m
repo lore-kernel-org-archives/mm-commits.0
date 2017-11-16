@@ -1,125 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch removed
+Subject: [merged] mm-slabinfo-dump-config_slabinfo.patch removed
  from -mm tree
-Date: Thu, 16 Nov 2017 11:59:14 -0800
-Message-ID: <20171116195914.uxJPLGGAY%akpm@linux-foundation.org>
+Date: Thu, 16 Nov 2017 11:59:17 -0800
+Message-ID: <20171116195917.Mc_3lSKN3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45832 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934028AbdKPT7P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:15 -0500
+        with ESMTP id S934156AbdKPT7S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, yang.s@alibaba-inc.com
 
 
 The patch titled
-     Subject: tools: slabinfo: add "-U" option to show unreclaimable slabs only
+     Subject: mm: slabinfo: remove CONFIG_SLABINFO
 has been removed from the -mm tree.  Its filename was
-     tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
+     mm-slabinfo-dump-config_slabinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: tools: slabinfo: add "-U" option to show unreclaimable slabs only
+Subject: mm: slabinfo: remove CONFIG_SLABINFO
 
-Patch series "oom: capture unreclaimable slab info in oom message", v10.
+According to discussion with Christoph
+(https://marc.info/?l=linux-kernel&m=150695909709711&w=2), it sounds like
+it is pointless to keep CONFIG_SLABINFO around.
 
-Recently we ran into a oom issue, kernel panic due to no killable process.
-The dmesg shows huge unreclaimable slabs used almost 100% memory, but
-kdump doesn't capture vmcore due to some reason.
+This patch removes the CONFIG_SLABINFO config option, but /proc/slabinfo
+is still available.
 
-So, it may sound better to capture unreclaimable slab info in oom message
-when kernel panic to aid trouble shooting and cover the corner case. 
-Since kernel already panic, so capturing more information sounds worthy
-and doesn't bother normal oom killer.
-
-With the patchset, tools/vm/slabinfo has a new option, "-U", to show
-unreclaimable slab only.
-
-And, oom will print all non zero (num_objs * size != 0) unreclaimable
-slabs in oom killer message.
-
-
-This patch (of 3):
-
-Add "-U" option to show unreclaimable slabs only.
-
-"-U" and "-S" together can tell us what unreclaimable slabs use the most
-memory to help debug huge unreclaimable slabs issue.
-
-Link: http://lkml.kernel.org/r/1507152550-46205-2-git-send-email-yang.s@alibaba-inc.com
+[yang.s@alibaba-inc.com: v11]
+  Link: http://lkml.kernel.org/r/1507656303-103845-3-git-send-email-yang.s@alibaba-inc.com
+Link: http://lkml.kernel.org/r/1507152550-46205-3-git-send-email-yang.s@alibaba-inc.com
 Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Acked-by: Christoph Lameter <cl@linux.com>
 Acked-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/slabinfo.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ init/Kconfig     |    6 ------
+ mm/memcontrol.c  |    2 +-
+ mm/slab.c        |    2 --
+ mm/slab_common.c |    7 +++----
+ mm/slub.c        |    4 ++--
+ 5 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN tools/vm/slabinfo.c~tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only tools/vm/slabinfo.c
---- a/tools/vm/slabinfo.c~tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only
-+++ a/tools/vm/slabinfo.c
-@@ -84,6 +84,7 @@ int output_lines = -1;
- int sort_loss;
- int extended_totals;
- int show_bytes;
-+int unreclaim_only;
+diff -puN init/Kconfig~mm-slabinfo-dump-config_slabinfo init/Kconfig
+--- a/init/Kconfig~mm-slabinfo-dump-config_slabinfo
++++ a/init/Kconfig
+@@ -1664,12 +1664,6 @@ config HAVE_GENERIC_DMA_COHERENT
+ 	bool
+ 	default n
  
- /* Debug options */
- int sanity;
-@@ -133,6 +134,7 @@ static void usage(void)
- 		"-L|--Loss              Sort by loss\n"
- 		"-X|--Xtotals           Show extended summary information\n"
- 		"-B|--Bytes             Show size in bytes\n"
-+		"-U|--Unreclaim		Show unreclaimable slabs only\n"
- 		"\nValid debug options (FZPUT may be combined)\n"
- 		"a / A          Switch on all debug options (=FZUP)\n"
- 		"-              Switch off all debug options\n"
-@@ -569,6 +571,9 @@ static void slabcache(struct slabinfo *s
- 	if (strcmp(s->name, "*") == 0)
- 		return;
+-config SLABINFO
+-	bool
+-	depends on PROC_FS
+-	depends on SLAB || SLUB_DEBUG
+-	default y
+-
+ config RT_MUTEXES
+ 	bool
  
-+	if (unreclaim_only && s->reclaim_account)
-+		return;
-+
- 	if (actual_slabs == 1) {
- 		report(s);
- 		return;
-@@ -1347,6 +1352,7 @@ struct option opts[] = {
- 	{ "Loss", no_argument, NULL, 'L'},
- 	{ "Xtotals", no_argument, NULL, 'X'},
- 	{ "Bytes", no_argument, NULL, 'B'},
-+	{ "Unreclaim", no_argument, NULL, 'U'},
- 	{ NULL, 0, NULL, 0 }
- };
+diff -puN mm/memcontrol.c~mm-slabinfo-dump-config_slabinfo mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-slabinfo-dump-config_slabinfo
++++ a/mm/memcontrol.c
+@@ -4049,7 +4049,7 @@ static struct cftype mem_cgroup_legacy_f
+ 		.write = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+-#ifdef CONFIG_SLABINFO
++#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG)
+ 	{
+ 		.name = "kmem.slabinfo",
+ 		.seq_start = memcg_slab_start,
+diff -puN mm/slab.c~mm-slabinfo-dump-config_slabinfo mm/slab.c
+--- a/mm/slab.c~mm-slabinfo-dump-config_slabinfo
++++ a/mm/slab.c
+@@ -4097,7 +4097,6 @@ out:
+ 	schedule_delayed_work(work, round_jiffies_relative(REAPTIMEOUT_AC));
+ }
  
-@@ -1358,7 +1364,7 @@ int main(int argc, char *argv[])
+-#ifdef CONFIG_SLABINFO
+ void get_slabinfo(struct kmem_cache *cachep, struct slabinfo *sinfo)
+ {
+ 	unsigned long active_objs, num_objs, active_slabs;
+@@ -4405,7 +4404,6 @@ static int __init slab_proc_init(void)
+ 	return 0;
+ }
+ module_init(slab_proc_init);
+-#endif
  
- 	page_size = getpagesize();
+ #ifdef CONFIG_HARDENED_USERCOPY
+ /*
+diff -puN mm/slab_common.c~mm-slabinfo-dump-config_slabinfo mm/slab_common.c
+--- a/mm/slab_common.c~mm-slabinfo-dump-config_slabinfo
++++ a/mm/slab_common.c
+@@ -1184,8 +1184,7 @@ void cache_random_seq_destroy(struct kme
+ }
+ #endif /* CONFIG_SLAB_FREELIST_RANDOM */
  
--	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:LXB",
-+	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:LXBU",
- 						opts, NULL)) != -1)
- 		switch (c) {
- 		case '1':
-@@ -1439,6 +1445,9 @@ int main(int argc, char *argv[])
- 		case 'B':
- 			show_bytes = 1;
- 			break;
-+		case 'U':
-+			unreclaim_only = 1;
-+			break;
- 		default:
- 			fatal("%s: Invalid option '%c'\n", argv[0], optopt);
+-#ifdef CONFIG_SLABINFO
+-
++#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG)
+ #ifdef CONFIG_SLAB
+ #define SLABINFO_RIGHTS (S_IWUSR | S_IRUSR)
+ #else
+@@ -1281,7 +1280,7 @@ static int slab_show(struct seq_file *m,
+ 	return 0;
+ }
  
+-#if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
++#if defined(CONFIG_MEMCG)
+ void *memcg_slab_start(struct seq_file *m, loff_t *pos)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+@@ -1355,7 +1354,7 @@ static int __init slab_proc_init(void)
+ 	return 0;
+ }
+ module_init(slab_proc_init);
+-#endif /* CONFIG_SLABINFO */
++#endif /* CONFIG_SLAB || CONFIG_SLUB_DEBUG */
+ 
+ static __always_inline void *__do_krealloc(const void *p, size_t new_size,
+ 					   gfp_t flags)
+diff -puN mm/slub.c~mm-slabinfo-dump-config_slabinfo mm/slub.c
+--- a/mm/slub.c~mm-slabinfo-dump-config_slabinfo
++++ a/mm/slub.c
+@@ -5852,7 +5852,7 @@ __initcall(slab_sysfs_init);
+ /*
+  * The /proc/slabinfo ABI
+  */
+-#ifdef CONFIG_SLABINFO
++#ifdef CONFIG_SLUB_DEBUG
+ void get_slabinfo(struct kmem_cache *s, struct slabinfo *sinfo)
+ {
+ 	unsigned long nr_slabs = 0;
+@@ -5884,4 +5884,4 @@ ssize_t slabinfo_write(struct file *file
+ {
+ 	return -EIO;
+ }
+-#endif /* CONFIG_SLABINFO */
++#endif /* CONFIG_SLUB_DEBUG */
 _
 
 Patches currently in -mm which might be from yang.s@alibaba-inc.com are
