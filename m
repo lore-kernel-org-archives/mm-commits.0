@@ -1,115 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [patch 124/131] mm, sparse: do not swamp log with huge
- vmemmap allocation failures
-Date: Wed, 15 Nov 2017 17:38:56 -0800
-Message-ID: <20171116013856.e26ig2qEh%akpm@linux-foundation.org>
+Subject: [patch 127/131] mm/page_ext.c: check if page_ext is not
+ prepared
+Date: Wed, 15 Nov 2017 17:39:07 -0800
+Message-ID: <20171116013907.EWBc6fyrK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40748 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933297AbdKPBi6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:38:58 -0500
+        with ESMTP id S933297AbdKPBjJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:39:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, joe@perches.com, khalid.aziz@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, jaewon31.kim@samsung.com, js1304@gmail.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, sparse: do not swamp log with huge vmemmap allocation failures
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm/page_ext.c: check if page_ext is not prepared
 
-While doing memory hotplug tests under heavy memory pressure we have
-noticed too many page allocation failures when allocating vmemmap memmap
-backed by huge page
+online_page_ext() and page_ext_init() allocate page_ext for each section,
+but they do not allocate if the first PFN is !pfn_present(pfn) or
+!pfn_valid(pfn).  Then section->page_ext remains as NULL.  lookup_page_ext
+checks NULL only if CONFIG_DEBUG_VM is enabled.  For a valid PFN,
+__set_page_owner will try to get page_ext through lookup_page_ext. 
+Without CONFIG_DEBUG_VM lookup_page_ext will misuse NULL pointer as value
+0.  This incurrs invalid address access.
 
-[146792.281354] kworker/u3072:1: page allocation failure: order:9, mode:0x24084c0(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO)
-[...]
-[146792.281394] Call Trace:
-[146792.281430]  [<ffffffff81019a99>] dump_trace+0x59/0x310
-[146792.281436]  [<ffffffff81019e3a>] show_stack_log_lvl+0xea/0x170
-[146792.281440]  [<ffffffff8101abc1>] show_stack+0x21/0x40
-[146792.281448]  [<ffffffff8130f040>] dump_stack+0x5c/0x7c
-[146792.281464]  [<ffffffff8118c982>] warn_alloc_failed+0xe2/0x150
-[146792.281471]  [<ffffffff8118cddd>] __alloc_pages_nodemask+0x3ed/0xb20
-[146792.281489]  [<ffffffff811d3aaf>] alloc_pages_current+0x7f/0x100
-[146792.281503]  [<ffffffff815dfa2c>] vmemmap_alloc_block+0x79/0xb6
-[146792.281510]  [<ffffffff815dfbd3>] __vmemmap_alloc_block_buf+0x136/0x145
-[146792.281524]  [<ffffffff815dd0c5>] vmemmap_populate+0xd2/0x2b9
-[146792.281529]  [<ffffffff815dffd9>] sparse_mem_map_populate+0x23/0x30
-[146792.281532]  [<ffffffff815df88d>] sparse_add_one_section+0x68/0x18e
-[146792.281537]  [<ffffffff815d9f5a>] __add_pages+0x10a/0x1d0
-[146792.281553]  [<ffffffff8106249a>] arch_add_memory+0x4a/0xc0
-[146792.281559]  [<ffffffff815da1f9>] add_memory_resource+0x89/0x160
-[146792.281564]  [<ffffffff815da33d>] add_memory+0x6d/0xd0
-[146792.281585]  [<ffffffff813d36c4>] acpi_memory_device_add+0x181/0x251
-[146792.281597]  [<ffffffff813946e5>] acpi_bus_attach+0xfd/0x19b
-[146792.281602]  [<ffffffff81394866>] acpi_bus_scan+0x59/0x69
-[146792.281604]  [<ffffffff813949de>] acpi_device_hotplug+0xd2/0x41f
-[146792.281608]  [<ffffffff8138db67>] acpi_hotplug_work_fn+0x1a/0x23
-[146792.281623]  [<ffffffff81093cee>] process_one_work+0x14e/0x410
-[146792.281630]  [<ffffffff81094546>] worker_thread+0x116/0x490
-[146792.281637]  [<ffffffff810999ed>] kthread+0xbd/0xe0
-[146792.281651]  [<ffffffff815e4e7f>] ret_from_fork+0x3f/0x70
+This is the panic example when PFN 0x100000 is not valid but PFN 0x13FC00
+is being used for page_ext.  section->page_ext is NULL, get_entry returned
+invalid page_ext address as 0x1DFA000 for a PFN 0x13FC00.
 
-and we do see many of those because essentially every allocation fails for
-each memory section.  This is an excessive way to tell the user that there
-is nothing to really worry about because we do have a fallback mechanism
-to use base pages.  The only downside might be a performance degradation
-due to TLB pressure.
+To avoid this panic, CONFIG_DEBUG_VM should be removed so that page_ext
+will be checked at all times.
 
-This patch changes vmemmap_alloc_block() to use __GFP_NOWARN and warn
-explicitly once on the first allocation failure.  This will reduce the
-noise in the kernel log considerably, while we still have an indication
-that a performance might be impacted.
+<1>[   11.618085] Unable to handle kernel paging request at virtual address 01dfa014
+<1>[   11.618140] pgd = ffffffc0c6dc9000
+<1>[   11.618174] [01dfa014] *pgd=0000000000000000, *pud=0000000000000000
+<4>[   11.618240] ------------[ cut here ]------------
+<2>[   11.618278] Kernel BUG at ffffff80082371e0 [verbose debug info unavailable]
+<0>[   11.618338] Internal error: Oops: 96000045 [#1] PREEMPT SMP
+<4>[   11.618381] Modules linked in:
+<4>[   11.618524] task: ffffffc0c6ec9180 task.stack: ffffffc0c6f40000
+<4>[   11.618569] PC is at __set_page_owner+0x48/0x78
+<4>[   11.618607] LR is at __set_page_owner+0x44/0x78
+<4>[   11.626025] [<ffffff80082371e0>] __set_page_owner+0x48/0x78
+<4>[   11.626071] [<ffffff80081df9f0>] get_page_from_freelist+0x880/0x8e8
+<4>[   11.626118] [<ffffff80081e00a4>] __alloc_pages_nodemask+0x14c/0xc48
+<4>[   11.626165] [<ffffff80081e610c>] __do_page_cache_readahead+0xdc/0x264
+<4>[   11.626214] [<ffffff80081d8824>] filemap_fault+0x2ac/0x550
+<4>[   11.626259] [<ffffff80082e5cf8>] ext4_filemap_fault+0x3c/0x58
+<4>[   11.626305] [<ffffff800820a2f8>] __do_fault+0x80/0x120
+<4>[   11.626347] [<ffffff800820eb4c>] handle_mm_fault+0x704/0xbb0
+<4>[   11.626393] [<ffffff800809ba70>] do_page_fault+0x2e8/0x394
+<4>[   11.626437] [<ffffff8008080be4>] do_mem_abort+0x88/0x124
 
-[mhocko@kernel.org: forgot to git add the follow up fix]
-  Link: http://lkml.kernel.org/r/20171107090635.c27thtse2lchjgvb@dhcp22.suse.cz
-Link: http://lkml.kernel.org/r/20171106092228.31098-1-mhocko@kernel.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Joe Perches <joe@perches.com>
+Pre-4.7 kernels also need f86e427197 ("mm: check the return value of
+lookup_page_ext for all call sites").
+
+Link: http://lkml.kernel.org/r/20171107094131.14621-1-jaewon31.kim@samsung.com
+Fixes: eefa864b701d ("mm/page_ext: resurrect struct page extending code for debugging")
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: <stable@vger.kernel.org>	[depends on f86e427197, see above]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    1 -
- mm/sparse-vmemmap.c   |   12 ++++++++++--
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ mm/page_ext.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures
-+++ a/arch/x86/mm/init_64.c
-@@ -1405,7 +1405,6 @@ static int __meminit vmemmap_populate_hu
- 			vmemmap_verify((pte_t *)pmd, node, addr, next);
- 			continue;
- 		}
--		pr_warn_once("vmemmap: falling back to regular page backing\n");
- 		if (vmemmap_populate_basepages(addr, next, node))
- 			return -ENOMEM;
- 	}
-diff -puN mm/sparse-vmemmap.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-sparse-do-not-swamp-log-with-huge-vmemmap-allocation-failures
-+++ a/mm/sparse-vmemmap.c
-@@ -53,12 +53,20 @@ void * __meminit vmemmap_alloc_block(uns
- {
- 	/* If the main allocator is up use that, fallback to bootmem. */
- 	if (slab_is_available()) {
-+		gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
-+		int order = get_order(size);
-+		static bool warned;
- 		struct page *page;
+diff -puN mm/page_ext.c~mm-page_ext-check-if-page_ext-is-not-prepared mm/page_ext.c
+--- a/mm/page_ext.c~mm-page_ext-check-if-page_ext-is-not-prepared
++++ a/mm/page_ext.c
+@@ -125,7 +125,6 @@ struct page_ext *lookup_page_ext(struct
+ 	struct page_ext *base;
  
--		page = alloc_pages_node(node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
--					get_order(size));
-+		page = alloc_pages_node(node, gfp_mask, order);
- 		if (page)
- 			return page_address(page);
-+
-+		if (!warned) {
-+			warn_alloc(gfp_mask & ~__GFP_NOWARN, NULL,
-+				   "vmemmap alloc failure: order:%u", order);
-+			warned = true;
-+		}
+ 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
+-#if defined(CONFIG_DEBUG_VM)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+@@ -134,7 +133,6 @@ struct page_ext *lookup_page_ext(struct
+ 	 */
+ 	if (unlikely(!base))
  		return NULL;
- 	} else
- 		return __earlyonly_bootmem_alloc(node, size, size,
+-#endif
+ 	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
+ 					MAX_ORDER_NR_PAGES);
+ 	return get_entry(base, index);
+@@ -199,7 +197,6 @@ struct page_ext *lookup_page_ext(struct
+ {
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct mem_section *section = __pfn_to_section(pfn);
+-#if defined(CONFIG_DEBUG_VM)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+@@ -208,7 +205,6 @@ struct page_ext *lookup_page_ext(struct
+ 	 */
+ 	if (!section->page_ext)
+ 		return NULL;
+-#endif
+ 	return get_entry(section->page_ext, pfn);
+ }
+ 
 _
