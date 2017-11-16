@@ -1,40 +1,52 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-pagevec-remove-cold-parameter-for-pagevecs.patch removed from -mm tree
-Date: Thu, 16 Nov 2017 12:04:18 -0800
-Message-ID: <20171116200418.YpI42DyzX%akpm@linux-foundation.org>
+ mm-remove-cold-parameter-from-free_hot_cold_page.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:04:25 -0800
+Message-ID: <20171116200425.EyFRzfa-k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47360 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933284AbdKPUEU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:20 -0500
+        with ESMTP id S933284AbdKPUE1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, pagevec: remove cold parameter for pagevecs
+     Subject: mm: remove cold parameter from free_hot_cold_page*
 has been removed from the -mm tree.  Its filename was
-     mm-pagevec-remove-cold-parameter-for-pagevecs.patch
+     mm-remove-cold-parameter-from-free_hot_cold_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, pagevec: remove cold parameter for pagevecs
+Subject: mm: remove cold parameter from free_hot_cold_page*
 
-Every pagevec_init user claims the pages being released are hot even in
-cases where it is unlikely the pages are hot.  As no one cares about the
-hotness of pages being released to the allocator, just ditch the
-parameter.
+Most callers users of free_hot_cold_page claim the pages being released
+are cache hot.  The exception is the page reclaim paths where it is likely
+that enough pages will be freed in the near future that the per-cpu lists
+are going to be recycled and the cache hotness information is lost.  As no
+one really cares about the hotness of pages being released to the
+allocator, just ditch the parameter.
+
+The APIs are renamed to indicate that it's no longer about hot/cold pages.
+It should also be less confusing as there are subtle differences between
+them.  __free_pages drops a reference and frees a page when the refcount
+reaches zero.  free_hot_cold_page handled pages whose refcount was already
+zero which is non-obvious from the name.  free_unref_page should be more
+obvious.
 
 No performance impact is expected as the overhead is marginal.  The
 parameter is removed simply because it is a bit stupid to have a useless
 parameter copied everywhere.
 
-Link: http://lkml.kernel.org/r/20171018075952.10627-6-mgorman@techsingularity.net
+[mgorman@techsingularity.net: add pages to head, not tail]
+  Link: http://lkml.kernel.org/r/20171019154321.qtpzaeftoyyw4iey@techsingularity.net
+Link: http://lkml.kernel.org/r/20171018075952.10627-8-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -45,520 +57,277 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem_gtt.c |    2 +-
- fs/afs/write.c                      |    4 ++--
- fs/btrfs/extent_io.c                |    4 ++--
- fs/buffer.c                         |    4 ++--
- fs/cachefiles/rdwr.c                |    4 ++--
- fs/ceph/addr.c                      |    4 ++--
- fs/dax.c                            |    2 +-
- fs/ext4/inode.c                     |    6 +++---
- fs/f2fs/checkpoint.c                |    2 +-
- fs/f2fs/data.c                      |    2 +-
- fs/f2fs/node.c                      |    8 ++++----
- fs/fscache/page.c                   |    2 +-
- fs/gfs2/aops.c                      |    2 +-
- fs/hugetlbfs/inode.c                |    2 +-
- fs/nilfs2/btree.c                   |    2 +-
- fs/nilfs2/page.c                    |    8 ++++----
- fs/nilfs2/segment.c                 |    4 ++--
- include/linux/pagevec.h             |    4 +---
- mm/filemap.c                        |    2 +-
- mm/mlock.c                          |    4 ++--
- mm/page-writeback.c                 |    2 +-
- mm/shmem.c                          |    6 +++---
- mm/swap.c                           |    4 ++--
- mm/truncate.c                       |    8 ++++----
- 24 files changed, 45 insertions(+), 47 deletions(-)
+ arch/powerpc/mm/mmu_context_book3s64.c |    2 -
+ arch/powerpc/mm/pgtable_64.c           |    2 -
+ arch/sparc/mm/init_64.c                |    2 -
+ arch/tile/mm/homecache.c               |    2 -
+ include/linux/gfp.h                    |    4 +--
+ include/trace/events/kmem.h            |   11 +++-----
+ mm/page_alloc.c                        |   29 +++++++++--------------
+ mm/rmap.c                              |    2 -
+ mm/swap.c                              |    4 +--
+ mm/vmscan.c                            |    6 ++--
+ 10 files changed, 28 insertions(+), 36 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem_gtt.c~mm-pagevec-remove-cold-parameter-for-pagevecs drivers/gpu/drm/i915/i915_gem_gtt.c
---- a/drivers/gpu/drm/i915/i915_gem_gtt.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/drivers/gpu/drm/i915/i915_gem_gtt.c
-@@ -1859,7 +1859,7 @@ static void i915_address_space_init(stru
- 	INIT_LIST_HEAD(&vm->unbound_list);
- 
- 	list_add_tail(&vm->global_link, &dev_priv->vm_list);
--	pagevec_init(&vm->free_pages, false);
-+	pagevec_init(&vm->free_pages);
+diff -puN arch/powerpc/mm/mmu_context_book3s64.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/powerpc/mm/mmu_context_book3s64.c
+--- a/arch/powerpc/mm/mmu_context_book3s64.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/arch/powerpc/mm/mmu_context_book3s64.c
+@@ -200,7 +200,7 @@ static void destroy_pagetable_page(struc
+ 	/* We allow PTE_FRAG_NR fragments from a PTE page */
+ 	if (page_ref_sub_and_test(page, PTE_FRAG_NR - count)) {
+ 		pgtable_page_dtor(page);
+-		free_hot_cold_page(page, 0);
++		free_unref_page(page);
+ 	}
  }
  
- static void i915_address_space_fini(struct i915_address_space *vm)
-diff -puN fs/afs/write.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/afs/write.c
---- a/fs/afs/write.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/afs/write.c
-@@ -308,7 +308,7 @@ static void afs_kill_pages(struct afs_vn
- 	_enter("{%x:%u},%lx-%lx",
- 	       vnode->fid.vid, vnode->fid.vnode, first, last);
- 
--	pagevec_init(&pv, 0);
-+	pagevec_init(&pv);
- 
- 	do {
- 		_debug("kill %lx-%lx", first, last);
-@@ -602,7 +602,7 @@ void afs_pages_written_back(struct afs_v
- 
- 	ASSERT(wb != NULL);
- 
--	pagevec_init(&pv, 0);
-+	pagevec_init(&pv);
- 
- 	do {
- 		_debug("done %lx-%lx", first, last);
-diff -puN fs/btrfs/extent_io.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/btrfs/extent_io.c
---- a/fs/btrfs/extent_io.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/btrfs/extent_io.c
-@@ -3797,7 +3797,7 @@ int btree_write_cache_pages(struct addre
- 	int scanned = 0;
- 	int tag;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	if (wbc->range_cyclic) {
- 		index = mapping->writeback_index; /* Start from prev offset */
- 		end = -1;
-@@ -3936,7 +3936,7 @@ static int extent_write_cache_pages(stru
- 	if (!igrab(inode))
- 		return 0;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	if (wbc->range_cyclic) {
- 		index = mapping->writeback_index; /* Start from prev offset */
- 		end = -1;
-diff -puN fs/buffer.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/buffer.c
---- a/fs/buffer.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/buffer.c
-@@ -1592,7 +1592,7 @@ void clean_bdev_aliases(struct block_dev
- 	struct buffer_head *head;
- 
- 	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end)) {
- 		count = pagevec_count(&pvec);
- 		for (i = 0; i < count; i++) {
-@@ -3514,7 +3514,7 @@ page_cache_seek_hole_data(struct inode *
- 	if (length <= 0)
- 		return -ENOENT;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	do {
- 		unsigned nr_pages, i;
-diff -puN fs/cachefiles/rdwr.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/cachefiles/rdwr.c
---- a/fs/cachefiles/rdwr.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/cachefiles/rdwr.c
-@@ -710,7 +710,7 @@ int cachefiles_read_or_alloc_pages(struc
- 	/* calculate the shift required to use bmap */
- 	shift = PAGE_SHIFT - inode->i_sb->s_blocksize_bits;
- 
--	pagevec_init(&pagevec, 0);
-+	pagevec_init(&pagevec);
- 
- 	op->op.flags &= FSCACHE_OP_KEEP_FLAGS;
- 	op->op.flags |= FSCACHE_OP_ASYNC;
-@@ -844,7 +844,7 @@ int cachefiles_allocate_pages(struct fsc
- 
- 	ret = cachefiles_has_space(cache, 0, *nr_pages);
- 	if (ret == 0) {
--		pagevec_init(&pagevec, 0);
-+		pagevec_init(&pagevec);
- 
- 		list_for_each_entry(page, pages, lru) {
- 			if (pagevec_add(&pagevec, page) == 0)
-diff -puN fs/ceph/addr.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/ceph/addr.c
---- a/fs/ceph/addr.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/ceph/addr.c
-@@ -680,7 +680,7 @@ static void ceph_release_pages(struct pa
- 	struct pagevec pvec;
- 	int i;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	for (i = 0; i < num; i++) {
- 		if (pagevec_add(&pvec, pages[i]) == 0)
- 			pagevec_release(&pvec);
-@@ -811,7 +811,7 @@ static int ceph_writepages_start(struct
- 	if (fsc->mount_options->wsize < wsize)
- 		wsize = fsc->mount_options->wsize;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	start_index = wbc->range_cyclic ? mapping->writeback_index : 0;
- 	index = start_index;
-diff -puN fs/dax.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/dax.c
---- a/fs/dax.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/dax.c
-@@ -794,7 +794,7 @@ int dax_writeback_mapping_range(struct a
- 
- 	tag_pages_for_writeback(mapping, start_index, end_index);
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	while (!done) {
- 		pvec.nr = find_get_entries_tag(mapping, start_index,
- 				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
-diff -puN fs/ext4/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/ext4/inode.c
---- a/fs/ext4/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/ext4/inode.c
-@@ -1719,7 +1719,7 @@ static void mpage_release_unused_pages(s
- 		ext4_es_remove_extent(inode, start, last - start + 1);
+diff -puN arch/powerpc/mm/pgtable_64.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/powerpc/mm/pgtable_64.c
+--- a/arch/powerpc/mm/pgtable_64.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -404,7 +404,7 @@ void pte_fragment_free(unsigned long *ta
+ 	if (put_page_testzero(page)) {
+ 		if (!kernel)
+ 			pgtable_page_dtor(page);
+-		free_hot_cold_page(page, 0);
++		free_unref_page(page);
  	}
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	while (index <= end) {
- 		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end);
- 		if (nr_pages == 0)
-@@ -2345,7 +2345,7 @@ static int mpage_map_and_submit_buffers(
- 	lblk = start << bpp_bits;
- 	pblock = mpd->map.m_pblk;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	while (start <= end) {
- 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
- 						&start, end);
-@@ -2616,7 +2616,7 @@ static int mpage_prepare_extent_to_map(s
- 	else
- 		tag = PAGECACHE_TAG_DIRTY;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	mpd->map.m_len = 0;
- 	mpd->next_page = index;
- 	while (index <= end) {
-diff -puN fs/f2fs/checkpoint.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/f2fs/checkpoint.c
---- a/fs/f2fs/checkpoint.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/f2fs/checkpoint.c
-@@ -314,7 +314,7 @@ long sync_meta_pages(struct f2fs_sb_info
- 	};
- 	struct blk_plug plug;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	blk_start_plug(&plug);
- 
-diff -puN fs/f2fs/data.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/f2fs/data.c
---- a/fs/f2fs/data.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/f2fs/data.c
-@@ -1635,7 +1635,7 @@ static int f2fs_write_cache_pages(struct
- 	int range_whole = 0;
- 	int tag;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	if (get_dirty_pages(mapping->host) <=
- 				SM_I(F2FS_M_SB(mapping))->min_hot_blocks)
-diff -puN fs/f2fs/node.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/f2fs/node.c
---- a/fs/f2fs/node.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/f2fs/node.c
-@@ -1282,7 +1282,7 @@ static struct page *last_fsync_dnode(str
- 	struct page *last_page = NULL;
- 	int nr_pages;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	index = 0;
- 
- 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
-@@ -1436,7 +1436,7 @@ int fsync_node_pages(struct f2fs_sb_info
- 			return PTR_ERR_OR_ZERO(last_page);
- 	}
- retry:
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	index = 0;
- 
- 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
-@@ -1547,7 +1547,7 @@ int sync_node_pages(struct f2fs_sb_info
- 	int ret = 0;
- 	int nr_pages;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- next_step:
- 	index = 0;
-@@ -1648,7 +1648,7 @@ int wait_on_node_pages_writeback(struct
- 	int ret2, ret = 0;
- 	int nr_pages;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
- 				PAGECACHE_TAG_WRITEBACK))) {
-diff -puN fs/fscache/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/fscache/page.c
---- a/fs/fscache/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/fscache/page.c
-@@ -1175,7 +1175,7 @@ void __fscache_uncache_all_inode_pages(s
- 		return;
- 	}
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	next = 0;
- 	do {
- 		if (!pagevec_lookup(&pvec, mapping, &next))
-diff -puN fs/gfs2/aops.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/gfs2/aops.c
---- a/fs/gfs2/aops.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/gfs2/aops.c
-@@ -371,7 +371,7 @@ static int gfs2_write_cache_jdata(struct
- 	int range_whole = 0;
- 	int tag;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	if (wbc->range_cyclic) {
- 		writeback_index = mapping->writeback_index; /* prev offset */
- 		index = writeback_index;
-diff -puN fs/hugetlbfs/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/hugetlbfs/inode.c
-@@ -407,7 +407,7 @@ static void remove_inode_hugepages(struc
- 
- 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
- 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	next = start;
- 	while (next < end) {
- 		/*
-diff -puN fs/nilfs2/btree.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/nilfs2/btree.c
-@@ -2156,7 +2156,7 @@ static void nilfs_btree_lookup_dirty_buf
- 	     level++)
- 		INIT_LIST_HEAD(&lists[level]);
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	while (pagevec_lookup_tag(&pvec, btcache, &index,
- 					PAGECACHE_TAG_DIRTY)) {
-diff -puN fs/nilfs2/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/nilfs2/page.c
-@@ -255,7 +255,7 @@ int nilfs_copy_dirty_pages(struct addres
- 	pgoff_t index = 0;
- 	int err = 0;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- repeat:
- 	if (!pagevec_lookup_tag(&pvec, smap, &index, PAGECACHE_TAG_DIRTY))
- 		return 0;
-@@ -309,7 +309,7 @@ void nilfs_copy_back_pages(struct addres
- 	pgoff_t index = 0;
- 	int err;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- repeat:
- 	n = pagevec_lookup(&pvec, smap, &index);
- 	if (!n)
-@@ -373,7 +373,7 @@ void nilfs_clear_dirty_pages(struct addr
- 	unsigned int i;
- 	pgoff_t index = 0;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	while (pagevec_lookup_tag(&pvec, mapping, &index,
- 					PAGECACHE_TAG_DIRTY)) {
-@@ -518,7 +518,7 @@ unsigned long nilfs_find_uncommitted_ext
- 	index = start_blk >> (PAGE_SHIFT - inode->i_blkbits);
- 	nblocks_in_page = 1U << (PAGE_SHIFT - inode->i_blkbits);
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- repeat:
- 	pvec.nr = find_get_pages_contig(inode->i_mapping, index, PAGEVEC_SIZE,
-diff -puN fs/nilfs2/segment.c~mm-pagevec-remove-cold-parameter-for-pagevecs fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/fs/nilfs2/segment.c
-@@ -708,7 +708,7 @@ static size_t nilfs_lookup_dirty_data_bu
- 		index = start >> PAGE_SHIFT;
- 		last = end >> PAGE_SHIFT;
- 	}
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
-  repeat:
- 	if (unlikely(index > last) ||
- 	    !pagevec_lookup_range_tag(&pvec, mapping, &index, last,
-@@ -753,7 +753,7 @@ static void nilfs_lookup_dirty_node_buff
- 	unsigned int i;
- 	pgoff_t index = 0;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 
- 	while (pagevec_lookup_tag(&pvec, mapping, &index,
- 					PAGECACHE_TAG_DIRTY)) {
-diff -puN include/linux/pagevec.h~mm-pagevec-remove-cold-parameter-for-pagevecs include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/include/linux/pagevec.h
-@@ -17,7 +17,6 @@ struct address_space;
- 
- struct pagevec {
- 	unsigned long nr;
--	bool cold;
- 	bool drained;
- 	struct page *pages[PAGEVEC_SIZE];
- };
-@@ -51,10 +50,9 @@ static inline unsigned pagevec_lookup_ta
- 	return pagevec_lookup_range_tag(pvec, mapping, index, (pgoff_t)-1, tag);
  }
  
--static inline void pagevec_init(struct pagevec *pvec, int cold)
-+static inline void pagevec_init(struct pagevec *pvec)
+diff -puN arch/sparc/mm/init_64.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/arch/sparc/mm/init_64.c
+@@ -2939,7 +2939,7 @@ pgtable_t pte_alloc_one(struct mm_struct
+ 	if (!page)
+ 		return NULL;
+ 	if (!pgtable_page_ctor(page)) {
+-		free_hot_cold_page(page, 0);
++		free_unref_page(page);
+ 		return NULL;
+ 	}
+ 	return (pte_t *) page_address(page);
+diff -puN arch/tile/mm/homecache.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/tile/mm/homecache.c
+--- a/arch/tile/mm/homecache.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/arch/tile/mm/homecache.c
+@@ -409,7 +409,7 @@ void __homecache_free_pages(struct page
+ 	if (put_page_testzero(page)) {
+ 		homecache_change_page_home(page, order, PAGE_HOME_HASH);
+ 		if (order == 0) {
+-			free_hot_cold_page(page, false);
++			free_unref_page(page);
+ 		} else {
+ 			init_page_count(page);
+ 			__free_pages(page, order);
+diff -puN include/linux/gfp.h~mm-remove-cold-parameter-from-free_hot_cold_page include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/include/linux/gfp.h
+@@ -530,8 +530,8 @@ void * __meminit alloc_pages_exact_nid(i
+ 
+ extern void __free_pages(struct page *page, unsigned int order);
+ extern void free_pages(unsigned long addr, unsigned int order);
+-extern void free_hot_cold_page(struct page *page, bool cold);
+-extern void free_hot_cold_page_list(struct list_head *list, bool cold);
++extern void free_unref_page(struct page *page);
++extern void free_unref_page_list(struct list_head *list);
+ 
+ struct page_frag_cache;
+ extern void __page_frag_cache_drain(struct page *page, unsigned int count);
+diff -puN include/trace/events/kmem.h~mm-remove-cold-parameter-from-free_hot_cold_page include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/include/trace/events/kmem.h
+@@ -172,24 +172,21 @@ TRACE_EVENT(mm_page_free,
+ 
+ TRACE_EVENT(mm_page_free_batched,
+ 
+-	TP_PROTO(struct page *page, int cold),
++	TP_PROTO(struct page *page),
+ 
+-	TP_ARGS(page, cold),
++	TP_ARGS(page),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(	unsigned long,	pfn		)
+-		__field(	int,		cold		)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->pfn		= page_to_pfn(page);
+-		__entry->cold		= cold;
+ 	),
+ 
+-	TP_printk("page=%p pfn=%lu order=0 cold=%d",
++	TP_printk("page=%p pfn=%lu order=0",
+ 			pfn_to_page(__entry->pfn),
+-			__entry->pfn,
+-			__entry->cold)
++			__entry->pfn)
+ );
+ 
+ TRACE_EVENT(mm_page_alloc,
+diff -puN mm/page_alloc.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/mm/page_alloc.c
+@@ -2611,7 +2611,7 @@ void mark_free_pages(struct zone *zone)
+ }
+ #endif /* CONFIG_PM */
+ 
+-static bool free_hot_cold_page_prepare(struct page *page, unsigned long pfn)
++static bool free_unref_page_prepare(struct page *page, unsigned long pfn)
  {
- 	pvec->nr = 0;
--	pvec->cold = cold;
- 	pvec->drained = false;
+ 	int migratetype;
+ 
+@@ -2623,8 +2623,7 @@ static bool free_hot_cold_page_prepare(s
+ 	return true;
  }
  
-diff -puN mm/filemap.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/filemap.c
---- a/mm/filemap.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/mm/filemap.c
-@@ -519,7 +519,7 @@ static void __filemap_fdatawait_range(st
- 	if (end_byte < start_byte)
+-static void free_hot_cold_page_commit(struct page *page, unsigned long pfn,
+-				bool cold)
++static void free_unref_page_commit(struct page *page, unsigned long pfn)
+ {
+ 	struct zone *zone = page_zone(page);
+ 	struct per_cpu_pages *pcp;
+@@ -2649,10 +2648,7 @@ static void free_hot_cold_page_commit(st
+ 	}
+ 
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+-	if (!cold)
+-		list_add(&page->lru, &pcp->lists[migratetype]);
+-	else
+-		list_add_tail(&page->lru, &pcp->lists[migratetype]);
++	list_add(&page->lru, &pcp->lists[migratetype]);
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+ 		unsigned long batch = READ_ONCE(pcp->batch);
+@@ -2663,25 +2659,24 @@ static void free_hot_cold_page_commit(st
+ 
+ /*
+  * Free a 0-order page
+- * cold == true ? free a cold page : free a hot page
+  */
+-void free_hot_cold_page(struct page *page, bool cold)
++void free_unref_page(struct page *page)
+ {
+ 	unsigned long flags;
+ 	unsigned long pfn = page_to_pfn(page);
+ 
+-	if (!free_hot_cold_page_prepare(page, pfn))
++	if (!free_unref_page_prepare(page, pfn))
  		return;
  
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	while (index <= end) {
- 		unsigned i;
+ 	local_irq_save(flags);
+-	free_hot_cold_page_commit(page, pfn, cold);
++	free_unref_page_commit(page, pfn);
+ 	local_irq_restore(flags);
+ }
  
-diff -puN mm/mlock.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/mlock.c
---- a/mm/mlock.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/mm/mlock.c
-@@ -289,7 +289,7 @@ static void __munlock_pagevec(struct pag
- 	struct pagevec pvec_putback;
- 	int pgrescued = 0;
+ /*
+  * Free a list of 0-order pages
+  */
+-void free_hot_cold_page_list(struct list_head *list, bool cold)
++void free_unref_page_list(struct list_head *list)
+ {
+ 	struct page *page, *next;
+ 	unsigned long flags, pfn;
+@@ -2689,7 +2684,7 @@ void free_hot_cold_page_list(struct list
+ 	/* Prepare pages for freeing */
+ 	list_for_each_entry_safe(page, next, list, lru) {
+ 		pfn = page_to_pfn(page);
+-		if (!free_hot_cold_page_prepare(page, pfn))
++		if (!free_unref_page_prepare(page, pfn))
+ 			list_del(&page->lru);
+ 		set_page_private(page, pfn);
+ 	}
+@@ -2699,8 +2694,8 @@ void free_hot_cold_page_list(struct list
+ 		unsigned long pfn = page_private(page);
  
--	pagevec_init(&pvec_putback, 0);
-+	pagevec_init(&pvec_putback);
+ 		set_page_private(page, 0);
+-		trace_mm_page_free_batched(page, cold);
+-		free_hot_cold_page_commit(page, pfn, cold);
++		trace_mm_page_free_batched(page);
++		free_unref_page_commit(page, pfn);
+ 	}
+ 	local_irq_restore(flags);
+ }
+@@ -4301,7 +4296,7 @@ void __free_pages(struct page *page, uns
+ {
+ 	if (put_page_testzero(page)) {
+ 		if (order == 0)
+-			free_hot_cold_page(page, false);
++			free_unref_page(page);
+ 		else
+ 			__free_pages_ok(page, order);
+ 	}
+@@ -4359,7 +4354,7 @@ void __page_frag_cache_drain(struct page
+ 		unsigned int order = compound_order(page);
  
- 	/* Phase 1: page isolation */
- 	spin_lock_irq(zone_lru_lock(zone));
-@@ -448,7 +448,7 @@ void munlock_vma_pages_range(struct vm_a
- 		struct pagevec pvec;
- 		struct zone *zone;
- 
--		pagevec_init(&pvec, 0);
-+		pagevec_init(&pvec);
- 		/*
- 		 * Although FOLL_DUMP is intended for get_dump_page(),
- 		 * it just so happens that its special treatment of the
-diff -puN mm/page-writeback.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/page-writeback.c
---- a/mm/page-writeback.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/mm/page-writeback.c
-@@ -2168,7 +2168,7 @@ int write_cache_pages(struct address_spa
- 	int range_whole = 0;
- 	int tag;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	if (wbc->range_cyclic) {
- 		writeback_index = mapping->writeback_index; /* prev offset */
- 		index = writeback_index;
-diff -puN mm/shmem.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/shmem.c
---- a/mm/shmem.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/mm/shmem.c
-@@ -747,7 +747,7 @@ void shmem_unlock_mapping(struct address
- 	pgoff_t indices[PAGEVEC_SIZE];
- 	pgoff_t index = 0;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	/*
- 	 * Minor point, but we might as well stop if someone else SHM_LOCKs it.
- 	 */
-@@ -790,7 +790,7 @@ static void shmem_undo_range(struct inod
- 	if (lend == -1)
- 		end = -1;	/* unsigned, so actually very big */
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	index = start;
- 	while (index < end) {
- 		pvec.nr = find_get_entries(mapping, index,
-@@ -2528,7 +2528,7 @@ static pgoff_t shmem_seek_hole_data(stru
- 	bool done = false;
- 	int i;
- 
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	pvec.nr = 1;		/* start small: we may be there already */
- 	while (!done) {
- 		pvec.nr = find_get_entries(mapping, index,
-diff -puN mm/swap.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/swap.c
---- a/mm/swap.c~mm-pagevec-remove-cold-parameter-for-pagevecs
+ 		if (order == 0)
+-			free_hot_cold_page(page, false);
++			free_unref_page(page);
+ 		else
+ 			__free_pages_ok(page, order);
+ 	}
+diff -puN mm/rmap.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/rmap.c
+--- a/mm/rmap.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/mm/rmap.c
+@@ -1321,7 +1321,7 @@ void page_remove_rmap(struct page *page,
+ 	 * It would be tidy to reset the PageAnon mapping here,
+ 	 * but that might overwrite a racing page_add_anon_rmap
+ 	 * which increments mapcount after us but sets mapping
+-	 * before us: so leave the reset to free_hot_cold_page,
++	 * before us: so leave the reset to free_unref_page,
+ 	 * and remember that it's only reliable while mapped.
+ 	 * Leaving it set also helps swapoff to reinstate ptes
+ 	 * faster for those pages still in swapcache.
+diff -puN mm/swap.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/swap.c
+--- a/mm/swap.c~mm-remove-cold-parameter-from-free_hot_cold_page
 +++ a/mm/swap.c
-@@ -210,7 +210,7 @@ static void pagevec_lru_move_fn(struct p
- 	}
- 	if (pgdat)
- 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+	release_pages(pvec->pages, pvec->nr, 0);
- 	pagevec_reinit(pvec);
+@@ -76,7 +76,7 @@ static void __page_cache_release(struct
+ static void __put_single_page(struct page *page)
+ {
+ 	__page_cache_release(page);
+-	free_hot_cold_page(page, false);
++	free_unref_page(page);
  }
  
-@@ -837,7 +837,7 @@ void __pagevec_release(struct pagevec *p
- 		lru_add_drain();
- 		pvec->drained = true;
- 	}
--	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
-+	release_pages(pvec->pages, pagevec_count(pvec), 0);
- 	pagevec_reinit(pvec);
+ static void __put_compound_page(struct page *page)
+@@ -817,7 +817,7 @@ void release_pages(struct page **pages,
+ 		spin_unlock_irqrestore(&locked_pgdat->lru_lock, flags);
+ 
+ 	mem_cgroup_uncharge_list(&pages_to_free);
+-	free_hot_cold_page_list(&pages_to_free, 0);
++	free_unref_page_list(&pages_to_free);
  }
- EXPORT_SYMBOL(__pagevec_release);
-diff -puN mm/truncate.c~mm-pagevec-remove-cold-parameter-for-pagevecs mm/truncate.c
---- a/mm/truncate.c~mm-pagevec-remove-cold-parameter-for-pagevecs
-+++ a/mm/truncate.c
-@@ -330,7 +330,7 @@ void truncate_inode_pages_range(struct a
- 	else
- 		end = (lend + 1) >> PAGE_SHIFT;
+ EXPORT_SYMBOL(release_pages);
  
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	index = start;
- 	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE),
-@@ -342,7 +342,7 @@ void truncate_inode_pages_range(struct a
- 		 */
- 		struct pagevec locked_pvec;
+diff -puN mm/vmscan.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-cold-parameter-from-free_hot_cold_page
++++ a/mm/vmscan.c
+@@ -1349,7 +1349,7 @@ keep:
  
--		pagevec_init(&locked_pvec, 0);
-+		pagevec_init(&locked_pvec);
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
+ 	mem_cgroup_uncharge_list(&free_pages);
+ 	try_to_unmap_flush();
+-	free_hot_cold_page_list(&free_pages, true);
++	free_unref_page_list(&free_pages);
  
-@@ -553,7 +553,7 @@ unsigned long invalidate_mapping_pages(s
- 	unsigned long count = 0;
- 	int i;
+ 	list_splice(&ret_pages, page_list);
+ 	count_vm_events(PGACTIVATE, pgactivate);
+@@ -1824,7 +1824,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	spin_unlock_irq(&pgdat->lru_lock);
  
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
- 			indices)) {
-@@ -683,7 +683,7 @@ int invalidate_inode_pages2_range(struct
- 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
- 		goto out;
+ 	mem_cgroup_uncharge_list(&page_list);
+-	free_hot_cold_page_list(&page_list, true);
++	free_unref_page_list(&page_list);
  
--	pagevec_init(&pvec, 0);
-+	pagevec_init(&pvec);
- 	index = start;
- 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
+ 	/*
+ 	 * If reclaim is isolating dirty pages under writeback, it implies
+@@ -2063,7 +2063,7 @@ static void shrink_active_list(unsigned
+ 	spin_unlock_irq(&pgdat->lru_lock);
+ 
+ 	mem_cgroup_uncharge_list(&l_hold);
+-	free_hot_cold_page_list(&l_hold, true);
++	free_unref_page_list(&l_hold);
+ 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
+ 			nr_deactivate, nr_rotated, sc->priority, file);
+ }
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
