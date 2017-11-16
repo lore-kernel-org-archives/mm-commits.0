@@ -1,192 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-dont-warn-about-allocations-which-stall-for-too-long.patch removed from
+Subject: [merged] mm-broken-deferred-calculation.patch removed from
  -mm tree
-Date: Thu, 16 Nov 2017 12:04:59 -0800
-Message-ID: <20171116200459.ygnWnuFxf%akpm@linux-foundation.org>
+Date: Thu, 16 Nov 2017 12:05:03 -0800
+Message-ID: <20171116200503.yhCOdA3pW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933284AbdKPUFB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:05:01 -0500
+        with ESMTP id S935809AbdKPUFE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:05:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, pmladek@suse.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, xiyou.wangcong@gmail.com, yuwang.yuwang@alibaba-inc.com
+To: mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't warn about allocations which stall for too long
+     Subject: mm/page_alloc.c: broken deferred calculation
 has been removed from the -mm tree.  Its filename was
-     mm-dont-warn-about-allocations-which-stall-for-too-long.patch
+     mm-broken-deferred-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: don't warn about allocations which stall for too long
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm/page_alloc.c: broken deferred calculation
 
-63f53dea0c9866e9 ("mm: warn about allocations which stall for too long")
-was a great step for reducing possibility of silent hang up problem caused
-by memory allocation stalls.  But this commit reverts it, for it is
-possible to trigger OOM lockup and/or soft lockups when many threads
-concurrently called warn_alloc() (in order to warn about memory allocation
-stalls) due to current implementation of printk(), and it is difficult to
-obtain useful information due to limitation of synchronous warning
-approach.
+In reset_deferred_meminit() we determine number of pages that must not be
+deferred.  We initialize pages for at least 2G of memory, but also pages
+for reserved memory in this node.
 
-Current printk() implementation flushes all pending logs using the context
-of a thread which called console_unlock(). printk() should be able to flush
-all pending logs eventually unless somebody continues appending to printk()
-buffer.
+The reserved memory is determined in this function:
+memblock_reserved_memory_within(), which operates over physical addresses,
+and returns size in bytes.  However, reset_deferred_meminit() assumes that
+that this function operates with pfns, and returns page count.
 
-Since warn_alloc() started appending to printk() buffer while waiting for
-oom_kill_process() to make forward progress when oom_kill_process() is
-processing pending logs, it became possible for warn_alloc() to force
-oom_kill_process() loop inside printk(). As a result, warn_alloc()
-significantly increased possibility of preventing oom_kill_process() from
-making forward progress.
+The result is that in the best case machine boots slower than expected due
+to initializing more pages than needed in single thread, and in the worst
+case panics because fewer than needed pages are initialized early.
 
----------- Pseudo code start ----------
-Before warn_alloc() was introduced:
-
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_lock)
-    }
-    goto retry;
-
-After warn_alloc() was introduced:
-
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_lock)
-    } else if (waited_for_10seconds()) {
-      atomic_inc(&printk_pending_logs);
-    }
-    goto retry;
----------- Pseudo code end ----------
-
-Although waited_for_10seconds() becomes true once per 10 seconds, unbounded
-number of threads can call waited_for_10seconds() at the same time. Also,
-since threads doing waited_for_10seconds() keep doing almost busy loop, the
-thread doing print_one_log() can use little CPU resource. Therefore, this
-situation can be simplified like
-
----------- Pseudo code start ----------
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_lock)
-    } else {
-      atomic_inc(&printk_pending_logs);
-    }
-    goto retry;
----------- Pseudo code end ----------
-
-when printk() is called faster than print_one_log() can process a log.
-
-One of possible mitigation would be to introduce a new lock in order to
-make sure that no other series of printk() (either oom_kill_process() or
-warn_alloc()) can append to printk() buffer when one series of printk()
-(either oom_kill_process() or warn_alloc()) is already in progress. Such
-serialization will also help obtaining kernel messages in readable form.
-
----------- Pseudo code start ----------
-  retry:
-    if (mutex_trylock(&oom_lock)) {
-      mutex_lock(&oom_printk_lock);
-      while (atomic_read(&printk_pending_logs) > 0) {
-        atomic_dec(&printk_pending_logs);
-        print_one_log();
-      }
-      // Send SIGKILL here.
-      mutex_unlock(&oom_printk_lock);
-      mutex_unlock(&oom_lock)
-    } else {
-      if (mutex_trylock(&oom_printk_lock)) {
-        atomic_inc(&printk_pending_logs);
-        mutex_unlock(&oom_printk_lock);
-      }
-    }
-    goto retry;
----------- Pseudo code end ----------
-
-But this commit does not go that direction, for we don't want to introduce
-a new lock dependency, and we unlikely be able to obtain useful
-information even if we serialized oom_kill_process() and warn_alloc().
-
-Synchronous approach is prone to unexpected results (e.g.  too late [1],
-too frequent [2], overlooked [3]).  As far as I know, warn_alloc() never
-helped with providing information other than "something is going wrong". 
-I want to consider asynchronous approach which can obtain information
-during stalls with possibly relevant threads (e.g.  the owner of oom_lock
-and kswapd-like threads) and serve as a trigger for actions (e.g.  turn
-on/off tracepoints, ask libvirt daemon to take a memory dump of stalling
-KVM guest for diagnostic purpose).
-
-This commit temporarily loses ability to report e.g.  OOM lockup due to
-unable to invoke the OOM killer due to !__GFP_FS allocation request.  But
-asynchronous approach will be able to detect such situation and emit
-warning.  Thus, let's remove warn_alloc().
-
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=192981
-[2] http://lkml.kernel.org/r/CAM_iQpWuPVGc2ky8M-9yukECtS+zKjiDasNymX7rMcBjBFyM_A@mail.gmail.com
-[3] commit db73ee0d46379922 ("mm, vmscan: do not loop on too_many_isolated for ever"))
-
-Link: http://lkml.kernel.org/r/1509017339-4802-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: Cong Wang <xiyou.wangcong@gmail.com>
-Reported-by: yuwang.yuwang <yuwang.yuwang@alibaba-inc.com>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20171021011707.15191-1-pasha.tatashin@oracle.com
+Fixes: 864b9a393dcb ("mm: consider memblock reservations for deferred memory initialization sizing")
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ include/linux/mmzone.h |    3 ++-
+ mm/page_alloc.c        |   27 ++++++++++++++++++---------
+ 2 files changed, 20 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-dont-warn-about-allocations-which-stall-for-too-long mm/page_alloc.c
---- a/mm/page_alloc.c~mm-dont-warn-about-allocations-which-stall-for-too-long
+diff -puN include/linux/mmzone.h~mm-broken-deferred-calculation include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-broken-deferred-calculation
++++ a/include/linux/mmzone.h
+@@ -700,7 +700,8 @@ typedef struct pglist_data {
+ 	 * is the first PFN that needs to be initialised.
+ 	 */
+ 	unsigned long first_deferred_pfn;
+-	unsigned long static_init_size;
++	/* Number of non-deferred pages */
++	unsigned long static_init_pgcnt;
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN mm/page_alloc.c~mm-broken-deferred-calculation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-broken-deferred-calculation
 +++ a/mm/page_alloc.c
-@@ -3903,8 +3903,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	enum compact_result compact_result;
- 	int compaction_retries;
- 	int no_progress_loops;
--	unsigned long alloc_start = jiffies;
--	unsigned int stall_timeout = 10 * HZ;
- 	unsigned int cpuset_mems_cookie;
- 	int reserve_flags;
+@@ -291,28 +291,37 @@ EXPORT_SYMBOL(nr_online_nodes);
+ int page_group_by_mobility_disabled __read_mostly;
  
-@@ -4036,14 +4034,6 @@ retry:
- 	if (!can_direct_reclaim)
- 		goto nopage;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++
++/*
++ * Determine how many pages need to be initialized durig early boot
++ * (non-deferred initialization).
++ * The value of first_deferred_pfn will be set later, once non-deferred pages
++ * are initialized, but for now set it ULONG_MAX.
++ */
+ static inline void reset_deferred_meminit(pg_data_t *pgdat)
+ {
+-	unsigned long max_initialise;
+-	unsigned long reserved_lowmem;
++	phys_addr_t start_addr, end_addr;
++	unsigned long max_pgcnt;
++	unsigned long reserved;
  
--	/* Make sure we know about allocations which stall for too long */
--	if (time_after(jiffies, alloc_start + stall_timeout)) {
--		warn_alloc(gfp_mask & ~__GFP_NOWARN, ac->nodemask,
--			"page allocation stalls for %ums, order:%u",
--			jiffies_to_msecs(jiffies-alloc_start), order);
--		stall_timeout += 10 * HZ;
--	}
+ 	/*
+ 	 * Initialise at least 2G of a node but also take into account that
+ 	 * two large system hashes that can take up 1GB for 0.25TB/node.
+ 	 */
+-	max_initialise = max(2UL << (30 - PAGE_SHIFT),
+-		(pgdat->node_spanned_pages >> 8));
++	max_pgcnt = max(2UL << (30 - PAGE_SHIFT),
++			(pgdat->node_spanned_pages >> 8));
+ 
+ 	/*
+ 	 * Compensate the all the memblock reservations (e.g. crash kernel)
+ 	 * from the initial estimation to make sure we will initialize enough
+ 	 * memory to boot.
+ 	 */
+-	reserved_lowmem = memblock_reserved_memory_within(pgdat->node_start_pfn,
+-			pgdat->node_start_pfn + max_initialise);
+-	max_initialise += reserved_lowmem;
++	start_addr = PFN_PHYS(pgdat->node_start_pfn);
++	end_addr = PFN_PHYS(pgdat->node_start_pfn + max_pgcnt);
++	reserved = memblock_reserved_memory_within(start_addr, end_addr);
++	max_pgcnt += PHYS_PFN(reserved);
+ 
+-	pgdat->static_init_size = min(max_initialise, pgdat->node_spanned_pages);
++	pgdat->static_init_pgcnt = min(max_pgcnt, pgdat->node_spanned_pages);
+ 	pgdat->first_deferred_pfn = ULONG_MAX;
+ }
+ 
+@@ -339,7 +348,7 @@ static inline bool update_defer_init(pg_
+ 	if (zone_end < pgdat_end_pfn(pgdat))
+ 		return true;
+ 	(*nr_initialised)++;
+-	if ((*nr_initialised > pgdat->static_init_size) &&
++	if ((*nr_initialised > pgdat->static_init_pgcnt) &&
+ 	    (pfn & (PAGES_PER_SECTION - 1)) == 0) {
+ 		pgdat->first_deferred_pfn = pfn;
+ 		return false;
+_
+
+Patches currently in -mm which might be from pasha.tatashin@oracle.com are
+
+sparc64-ng4-memset-32-bits-overflow.patch
+
