@@ -1,40 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 007/131] ocfs2: clean up some unused function
- declarations
-Date: Wed, 15 Nov 2017 17:31:37 -0800
-Message-ID: <20171116013137.5XtvtK5wp%akpm@linux-foundation.org>
+Subject: [patch 006/131] ocfs2: fix cluster hang after a node dies
+Date: Wed, 15 Nov 2017 17:31:33 -0800
+Message-ID: <20171116013133.aWSMY2Rt3%akpm__31436.6521467038$1510795899$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38288 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933442AbdKPBbj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:31:39 -0500
+        with ESMTP id S933468AbdKPBbf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:31:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, v.mayatskih@gmail.com
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: clean up some unused function declarations
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2: fix cluster hang after a node dies
 
-Link: http://lkml.kernel.org/r/59C5D7D6.9050106@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
+When a node dies, other live nodes have to choose a new master for an
+existed lock resource mastered by the dead node.
+
+As for ocfs2/dlm implementation, this is done by function -
+dlm_move_lockres_to_recovery_list which marks those lock rsources as
+DLM_LOCK_RES_RECOVERING and manages them via a list from which DLM changes
+lock resource's master later.
+
+So without invoking dlm_move_lockres_to_recovery_list, no master will be
+choosed after dlm recovery accomplishment since no lock resource can be
+found through ::resource list.
+
+What's worse is that if DLM_LOCK_RES_RECOVERING is not marked for lock
+resources mastered a dead node, it will break up synchronization among
+nodes.
+
+So invoke dlm_move_lockres_to_recovery_list again.
+
+Fixs: 'commit ee8f7fcbe638 ("ocfs2/dlm: continue to purge recovery lockres when recovery master goes down")'
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED6E0F9@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reported-by: Vitaly Mayatskih <v.mayatskih@gmail.com>
+Tested-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/buffer_head_io.h |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/buffer_head_io.h~ocfs2-clean-up-some-unused-func-declaration fs/ocfs2/buffer_head_io.h
---- a/fs/ocfs2/buffer_head_io.h~ocfs2-clean-up-some-unused-func-declaration
-+++ a/fs/ocfs2/buffer_head_io.h
-@@ -28,9 +28,6 @@
- 
- #include <linux/buffer_head.h>
- 
--void ocfs2_end_buffer_io_sync(struct buffer_head *bh,
--			     int uptodate);
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2419,6 +2419,7 @@ static void dlm_do_local_recovery_cleanu
+ 					dlm_lockres_put(res);
+ 					continue;
+ 				}
++				dlm_move_lockres_to_recovery_list(dlm, res);
+ 			} else if (res->owner == dlm->node_num) {
+ 				dlm_free_dead_locks(dlm, res, dead_node);
+ 				__dlm_lockres_calc_usage(dlm, res);
+_
