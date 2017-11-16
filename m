@@ -1,59 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch removed
- from -mm tree
-Date: Wed, 15 Nov 2017 17:05:44 -0800
-Message-ID: <5a0ce468.dSoSHkXRQYwbhfe4%akpm@linux-foundation.org>
+ mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch removed from -mm tree
+Date: Wed, 15 Nov 2017 17:06:34 -0800
+Message-ID: <5a0ce49a.gpcX+JrU+GaYomLy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36234 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932186AbdKPBFp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:05:45 -0500
+        with ESMTP id S1751097AbdKPBGg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:06:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-batch-radix-tree-operations-when-truncating-pages-fix-fix
+     Subject: mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+     mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix.patch
 
-This patch was dropped because it was folded into mm-batch-radix-tree-operations-when-truncating-pages.patch
+This patch was dropped because it was folded into mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-batch-radix-tree-operations-when-truncating-pages-fix-fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix
 
-move struct pagevec forward declaration to top-of-file
+Use page_private and set_page_private helpers.
 
-To avoid possible duplication in the future.
-
+Link: http://lkml.kernel.org/r/20171018101547.mjycw7zreb66jzpa@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-batch-radix-tree-operations-when-truncating-pages-fix-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-batch-radix-tree-operations-when-truncating-pages-fix-fix
-+++ a/include/linux/pagemap.h
-@@ -16,6 +16,8 @@
- #include <linux/hardirq.h> /* for in_interrupt() */
- #include <linux/hugetlb_inline.h>
+diff -puN mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages-fix
++++ a/mm/page_alloc.c
+@@ -2687,14 +2687,14 @@ void free_hot_cold_page_list(struct list
+ 		pfn = page_to_pfn(page);
+ 		if (!free_hot_cold_page_prepare(page, pfn))
+ 			list_del(&page->lru);
+-		page->private = pfn;
++		set_page_private(page, pfn);
+ 	}
  
-+struct pagevec;
-+
- /*
-  * Bits in mapping->flags.
-  */
-@@ -617,8 +619,6 @@ static inline int fault_in_pages_readabl
- 	return 0;
- }
+ 	local_irq_save(flags);
+ 	list_for_each_entry_safe(page, next, list, lru) {
+-		unsigned long pfn = page->private;
++		unsigned long pfn = page_private(page);
  
--struct pagevec;
+-		page->private = 0;
++		set_page_private(page, 0);
+ 		trace_mm_page_free_batched(page, cold);
+ 		free_hot_cold_page_commit(page, pfn, cold);
+ 	}
+_
+
+Patches currently in -mm which might be from mgorman@techsingularity.net are
+
+mm-page_alloc-enable-disable-irqs-once-when-freeing-a-list-of-pages.patch
+mm-truncate-do-not-check-mapping-for-every-page-being-truncated.patch
+mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock.patch
+mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch
+mm-pagevec-remove-cold-parameter-for-pagevecs.patch
+mm-remove-cold-parameter-for-release_pages.patch
+mm-remove-cold-parameter-from-free_hot_cold_page.patch
+mm-remove-cold-parameter-from-free_hot_cold_page-fix.patch
+mm-remove-__gfp_cold.patch
+mm-pagevec-rename-pagevec-drained-field.patch
+
