@@ -1,271 +1,162 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow.patch removed
- from -mm tree
-Date: Thu, 16 Nov 2017 12:03:13 -0800
-Message-ID: <20171116200313.8wmystYRx%akpm@linux-foundation.org>
+ mm-page_alloc-make-sure-__rmqueue-etc-always-inline.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:03:30 -0800
+Message-ID: <20171116200330.ZjXpUPEBu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47048 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933463AbdKPUDR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:17 -0500
+        with ESMTP id S935293AbdKPUDc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, aryabinin@virtuozzo.com, bob.picco@oracle.com, borntraeger@de.ibm.com, catalin.marinas@arm.com, daniel.m.jordan@oracle.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, heiko.carstens@de.ibm.com, hpa@zytor.com, mark.rutland@arm.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, sam@ravnborg.org, steven.sistare@oracle.com, tglx@linutronix.de, will.deacon@arm.com, willy@infradead.org
+To: aaron.lu@intel.com, andi@firstfloor.org, dave.hansen@intel.com, kemi.wang@intel.com, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, vbabka@suse.cz, ying.huang@intel.com
 
 
 The patch titled
-     Subject: x86/mm/kasan: don't use vmemmap_populate() to initialize shadow
+     Subject: mm/page_alloc: make sure __rmqueue() etc are always inline
 has been removed from the -mm tree.  Its filename was
-     x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow.patch
+     mm-page_alloc-make-sure-__rmqueue-etc-always-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: x86/mm/kasan: don't use vmemmap_populate() to initialize shadow
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: mm/page_alloc: make sure __rmqueue() etc are always inline
 
-The kasan shadow is currently mapped using vmemmap_populate() since that
-provides a semi-convenient way to map pages into init_top_pgt.  However,
-since that no longer zeroes the mapped pages, it is not suitable for
-kasan, which requires zeroed shadow memory.
+__rmqueue(), __rmqueue_fallback(), __rmqueue_smallest() and
+__rmqueue_cma_fallback() are all in page allocator's hot path and better
+be finished as soon as possible.  One way to make them faster is by making
+them inline.  But as Andrew Morton and Andi Kleen pointed out:
+https://lkml.org/lkml/2017/10/10/1252
+https://lkml.org/lkml/2017/10/10/1279
+To make sure they are inlined, we should use __always_inline for them.
 
-Add kasan_populate_shadow() interface and use it instead of
-vmemmap_populate().  Besides, this allows us to take advantage of gigantic
-pages and use them to populate the shadow, which should save us some
-memory wasted on page tables and reduce TLB pressure.
+With the will-it-scale/page_fault1/process benchmark, when using nr_cpu
+processes to stress buddy, the results for will-it-scale.processes with
+and without the patch are:
 
-Link: http://lkml.kernel.org/r/20171103185147.2688-2-pasha.tatashin@oracle.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will.deacon@arm.com>
+On a 2-sockets Intel-Skylake machine:
+
+ compiler          base        head
+gcc-4.4.7       6496131     6911823 +6.4%
+gcc-4.9.4       7225110     7731072 +7.0%
+gcc-5.4.1       7054224     7688146 +9.0%
+gcc-6.2.0       7059794     7651675 +8.4%
+
+On a 4-sockets Intel-Skylake machine:
+
+ compiler          base        head
+gcc-4.4.7      13162890    13508193 +2.6%
+gcc-4.9.4      14997463    15484353 +3.2%
+gcc-5.4.1      14708711    15449805 +5.0%
+gcc-6.2.0      14574099    15349204 +5.3%
+
+The above 4 compilers are used because I've done the tests through Intel's
+Linux Kernel Performance(LKP) infrastructure and they are the available
+compilers there.
+
+The benefit being less on 4 sockets machine is due to the lock contention
+there(perf-profile/native_queued_spin_lock_slowpath=81%) is less severe
+than on the 2 sockets machine(85%).
+
+What the benchmark does is: it forks nr_cpu processes and then each
+process does the following:
+    1 mmap() 128M anonymous space;
+    2 writes to each page there to trigger actual page allocation;
+    3 munmap() it.
+in a loop.
+https://github.com/antonblanchard/will-it-scale/blob/master/tests/page_fault1.c
+
+Binary size wise, I have locally built them with different compilers:
+
+[aaron@aaronlu obj]$ size */*/mm/page_alloc.o
+   text    data     bss     dec     hex filename
+  37409    9904    8524   55837    da1d gcc-4.9.4/base/mm/page_alloc.o
+  38273    9904    8524   56701    dd7d gcc-4.9.4/head/mm/page_alloc.o
+  37465    9840    8428   55733    d9b5 gcc-5.5.0/base/mm/page_alloc.o
+  38169    9840    8428   56437    dc75 gcc-5.5.0/head/mm/page_alloc.o
+  37573    9840    8428   55841    da21 gcc-6.4.0/base/mm/page_alloc.o
+  38261    9840    8428   56529    dcd1 gcc-6.4.0/head/mm/page_alloc.o
+  36863    9840    8428   55131    d75b gcc-7.2.0/base/mm/page_alloc.o
+  37711    9840    8428   55979    daab gcc-7.2.0/head/mm/page_alloc.o
+
+Text size increased about 800 bytes for mm/page_alloc.o.
+
+[aaron@aaronlu obj]$ size */*/vmlinux
+   text    data     bss     dec       hex     filename
+10342757   5903208 17723392 33969357  20654cd gcc-4.9.4/base/vmlinux
+10342757   5903208 17723392 33969357  20654cd gcc-4.9.4/head/vmlinux
+10332448   5836608 17715200 33884256  2050860 gcc-5.5.0/base/vmlinux
+10332448   5836608 17715200 33884256  2050860 gcc-5.5.0/head/vmlinux
+10094546   5836696 17715200 33646442  201676a gcc-6.4.0/base/vmlinux
+10094546   5836696 17715200 33646442  201676a gcc-6.4.0/head/vmlinux
+10018775   5828732 17715200 33562707  2002053 gcc-7.2.0/base/vmlinux
+10018775   5828732 17715200 33562707  2002053 gcc-7.2.0/head/vmlinux
+
+Text size for vmlinux has no change though, probably due to function
+alignment.
+
+Link: http://lkml.kernel.org/r/20171013063111.GA26032@intel.com
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Kemi Wang <kemi.wang@intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig            |    2 
- arch/x86/mm/kasan_init_64.c |  143 ++++++++++++++++++++++++++++++++--
- 2 files changed, 137 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow
-+++ a/arch/x86/Kconfig
-@@ -110,7 +110,7 @@ config X86
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select HAVE_ARCH_HUGE_VMAP		if X86_64 || X86_PAE
- 	select HAVE_ARCH_JUMP_LABEL
--	select HAVE_ARCH_KASAN			if X86_64 && SPARSEMEM_VMEMMAP
-+	select HAVE_ARCH_KASAN			if X86_64
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS		if MMU
- 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
-diff -puN arch/x86/mm/kasan_init_64.c~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow arch/x86/mm/kasan_init_64.c
---- a/arch/x86/mm/kasan_init_64.c~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -4,12 +4,14 @@
- #include <linux/bootmem.h>
- #include <linux/kasan.h>
- #include <linux/kdebug.h>
-+#include <linux/memblock.h>
- #include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/sched/task.h>
- #include <linux/vmalloc.h>
- 
- #include <asm/e820/types.h>
-+#include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- #include <asm/sections.h>
- #include <asm/pgtable.h>
-@@ -18,7 +20,134 @@ extern struct range pfn_mapped[E820_MAX_
- 
- static p4d_t tmp_p4d_table[PTRS_PER_P4D] __initdata __aligned(PAGE_SIZE);
- 
--static int __init map_range(struct range *range)
-+static __init void *early_alloc(size_t size, int nid)
-+{
-+	return memblock_virt_alloc_try_nid_nopanic(size, size,
-+		__pa(MAX_DMA_ADDRESS), BOOTMEM_ALLOC_ACCESSIBLE, nid);
-+}
-+
-+static void __init kasan_populate_pmd(pmd_t *pmd, unsigned long addr,
-+				      unsigned long end, int nid)
-+{
-+	pte_t *pte;
-+
-+	if (pmd_none(*pmd)) {
-+		void *p;
-+
-+		if (boot_cpu_has(X86_FEATURE_PSE) &&
-+		    ((end - addr) == PMD_SIZE) &&
-+		    IS_ALIGNED(addr, PMD_SIZE)) {
-+			p = early_alloc(PMD_SIZE, nid);
-+			if (p && pmd_set_huge(pmd, __pa(p), PAGE_KERNEL))
-+				return;
-+			else if (p)
-+				memblock_free(__pa(p), PMD_SIZE);
-+		}
-+
-+		p = early_alloc(PAGE_SIZE, nid);
-+		pmd_populate_kernel(&init_mm, pmd, p);
-+	}
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	do {
-+		pte_t entry;
-+		void *p;
-+
-+		if (!pte_none(*pte))
-+			continue;
-+
-+		p = early_alloc(PAGE_SIZE, nid);
-+		entry = pfn_pte(PFN_DOWN(__pa(p)), PAGE_KERNEL);
-+		set_pte_at(&init_mm, addr, pte, entry);
-+	} while (pte++, addr += PAGE_SIZE, addr != end);
-+}
-+
-+static void __init kasan_populate_pud(pud_t *pud, unsigned long addr,
-+				      unsigned long end, int nid)
-+{
-+	pmd_t *pmd;
-+	unsigned long next;
-+
-+	if (pud_none(*pud)) {
-+		void *p;
-+
-+		if (boot_cpu_has(X86_FEATURE_GBPAGES) &&
-+		    ((end - addr) == PUD_SIZE) &&
-+		    IS_ALIGNED(addr, PUD_SIZE)) {
-+			p = early_alloc(PUD_SIZE, nid);
-+			if (p && pud_set_huge(pud, __pa(p), PAGE_KERNEL))
-+				return;
-+			else if (p)
-+				memblock_free(__pa(p), PUD_SIZE);
-+		}
-+
-+		p = early_alloc(PAGE_SIZE, nid);
-+		pud_populate(&init_mm, pud, p);
-+	}
-+
-+	pmd = pmd_offset(pud, addr);
-+	do {
-+		next = pmd_addr_end(addr, end);
-+		if (!pmd_large(*pmd))
-+			kasan_populate_pmd(pmd, addr, next, nid);
-+	} while (pmd++, addr = next, addr != end);
-+}
-+
-+static void __init kasan_populate_p4d(p4d_t *p4d, unsigned long addr,
-+				      unsigned long end, int nid)
-+{
-+	pud_t *pud;
-+	unsigned long next;
-+
-+	if (p4d_none(*p4d)) {
-+		void *p = early_alloc(PAGE_SIZE, nid);
-+
-+		p4d_populate(&init_mm, p4d, p);
-+	}
-+
-+	pud = pud_offset(p4d, addr);
-+	do {
-+		next = pud_addr_end(addr, end);
-+		if (!pud_large(*pud))
-+			kasan_populate_pud(pud, addr, next, nid);
-+	} while (pud++, addr = next, addr != end);
-+}
-+
-+static void __init kasan_populate_pgd(pgd_t *pgd, unsigned long addr,
-+				      unsigned long end, int nid)
-+{
-+	void *p;
-+	p4d_t *p4d;
-+	unsigned long next;
-+
-+	if (pgd_none(*pgd)) {
-+		p = early_alloc(PAGE_SIZE, nid);
-+		pgd_populate(&init_mm, pgd, p);
-+	}
-+
-+	p4d = p4d_offset(pgd, addr);
-+	do {
-+		next = p4d_addr_end(addr, end);
-+		kasan_populate_p4d(p4d, addr, next, nid);
-+	} while (p4d++, addr = next, addr != end);
-+}
-+
-+static void __init kasan_populate_shadow(unsigned long addr, unsigned long end,
-+					 int nid)
-+{
-+	pgd_t *pgd;
-+	unsigned long next;
-+
-+	addr = addr & PAGE_MASK;
-+	end = round_up(end, PAGE_SIZE);
-+	pgd = pgd_offset_k(addr);
-+	do {
-+		next = pgd_addr_end(addr, end);
-+		kasan_populate_pgd(pgd, addr, next, nid);
-+	} while (pgd++, addr = next, addr != end);
-+}
-+
-+static void __init map_range(struct range *range)
+diff -puN mm/page_alloc.c~mm-page_alloc-make-sure-__rmqueue-etc-always-inline mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-make-sure-__rmqueue-etc-always-inline
++++ a/mm/page_alloc.c
+@@ -1813,7 +1813,7 @@ static void prep_new_page(struct page *p
+  * Go through the free lists for the given migratetype and remove
+  * the smallest available page from the freelists
+  */
+-static inline
++static __always_inline
+ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+ 						int migratetype)
  {
- 	unsigned long start;
- 	unsigned long end;
-@@ -26,7 +155,7 @@ static int __init map_range(struct range
- 	start = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->start));
- 	end = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->end));
+@@ -1857,7 +1857,7 @@ static int fallbacks[MIGRATE_TYPES][4] =
+ };
  
--	return vmemmap_populate(start, end, NUMA_NO_NODE);
-+	kasan_populate_shadow(start, end, early_pfn_to_nid(range->start));
- }
+ #ifdef CONFIG_CMA
+-static struct page *__rmqueue_cma_fallback(struct zone *zone,
++static __always_inline struct page *__rmqueue_cma_fallback(struct zone *zone,
+ 					unsigned int order)
+ {
+ 	return __rmqueue_smallest(zone, order, MIGRATE_CMA);
+@@ -2238,7 +2238,7 @@ static bool unreserve_highatomic_pageblo
+  * deviation from the rest of this file, to make the for loop
+  * condition simpler.
+  */
+-static inline bool
++static __always_inline bool
+ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ {
+ 	struct free_area *area;
+@@ -2310,8 +2310,8 @@ do_steal:
+  * Do the hard work of removing an element from the buddy allocator.
+  * Call me with the zone->lock already held.
+  */
+-static struct page *__rmqueue(struct zone *zone, unsigned int order,
+-				int migratetype)
++static __always_inline struct page *
++__rmqueue(struct zone *zone, unsigned int order, int migratetype)
+ {
+ 	struct page *page;
  
- static void __init clear_pgds(unsigned long start,
-@@ -189,16 +318,16 @@ void __init kasan_init(void)
- 		if (pfn_mapped[i].end == 0)
- 			break;
- 
--		if (map_range(&pfn_mapped[i]))
--			panic("kasan: unable to allocate shadow!");
-+		map_range(&pfn_mapped[i]);
- 	}
-+
- 	kasan_populate_zero_shadow(
- 		kasan_mem_to_shadow((void *)PAGE_OFFSET + MAXMEM),
- 		kasan_mem_to_shadow((void *)__START_KERNEL_map));
- 
--	vmemmap_populate((unsigned long)kasan_mem_to_shadow(_stext),
--			(unsigned long)kasan_mem_to_shadow(_end),
--			NUMA_NO_NODE);
-+	kasan_populate_shadow((unsigned long)kasan_mem_to_shadow(_stext),
-+			      (unsigned long)kasan_mem_to_shadow(_end),
-+			      early_pfn_to_nid(__pa(_stext)));
- 
- 	kasan_populate_zero_shadow(kasan_mem_to_shadow((void *)MODULES_END),
- 			(void *)KASAN_SHADOW_END);
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from aaron.lu@intel.com are
 
-kcov-remove-pointless-current-=-null-check.patch
 
