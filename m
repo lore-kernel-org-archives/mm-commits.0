@@ -1,61 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-defining-memblock_virt_alloc_try_nid_raw.patch
- removed from -mm tree
-Date: Thu, 16 Nov 2017 12:03:05 -0800
-Message-ID: <20171116200305.gtctmfGDd%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow.patch removed
+ from -mm tree
+Date: Thu, 16 Nov 2017 12:03:13 -0800
+Message-ID: <20171116200313.8wmystYRx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46954 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935293AbdKPUDH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:07 -0500
+        with ESMTP id S933463AbdKPUDR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ard.biesheuvel@linaro.org, aryabinin@virtuozzo.com, bob.picco@oracle.com, borntraeger@de.ibm.com, catalin.marinas@arm.com, daniel.m.jordan@oracle.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, heiko.carstens@de.ibm.com, hpa@zytor.com, mark.rutland@arm.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, sam@ravnborg.org, steven.sistare@oracle.com, tglx@linutronix.de, will.deacon@arm.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: define memblock_virt_alloc_try_nid_raw
+     Subject: x86/mm/kasan: don't use vmemmap_populate() to initialize shadow
 has been removed from the -mm tree.  Its filename was
-     mm-defining-memblock_virt_alloc_try_nid_raw.patch
+     x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: define memblock_virt_alloc_try_nid_raw
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: x86/mm/kasan: don't use vmemmap_populate() to initialize shadow
 
-* A new variant of memblock_virt_alloc_* allocations:
-memblock_virt_alloc_try_nid_raw()
-    - Does not zero the allocated memory
-    - Does not panic if request cannot be satisfied
+The kasan shadow is currently mapped using vmemmap_populate() since that
+provides a semi-convenient way to map pages into init_top_pgt.  However,
+since that no longer zeroes the mapped pages, it is not suitable for
+kasan, which requires zeroed shadow memory.
 
-* optimize early system hash allocations
+Add kasan_populate_shadow() interface and use it instead of
+vmemmap_populate().  Besides, this allows us to take advantage of gigantic
+pages and use them to populate the shadow, which should save us some
+memory wasted on page tables and reduce TLB pressure.
 
-Clients can call alloc_large_system_hash() with flag: HASH_ZERO to specify
-that memory that was allocated for system hash needs to be zeroed,
-otherwise the memory does not need to be zeroed, and client will
-initialize it.
-
-If memory does not need to be zero'd, call the new
-memblock_virt_alloc_raw() interface, and thus improve the boot
-performance.
-
-* debug for raw alloctor
-
-When CONFIG_DEBUG_VM is enabled, this patch sets all the memory that is
-returned by memblock_virt_alloc_try_nid_raw() to ones to ensure that no
-places excpect zeroed memory.
-
-Link: http://lkml.kernel.org/r/20171013173214.27300-6-pasha.tatashin@oracle.com
+Link: http://lkml.kernel.org/r/20171103185147.2688-2-pasha.tatashin@oracle.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Tested-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Bob Picco <bob.picco@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -74,210 +62,210 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |   27 +++++++++++++++++
- mm/memblock.c           |   60 +++++++++++++++++++++++++++++++++-----
- mm/page_alloc.c         |   15 ++++-----
- 3 files changed, 87 insertions(+), 15 deletions(-)
+ arch/x86/Kconfig            |    2 
+ arch/x86/mm/kasan_init_64.c |  143 ++++++++++++++++++++++++++++++++--
+ 2 files changed, 137 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-defining-memblock_virt_alloc_try_nid_raw include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-defining-memblock_virt_alloc_try_nid_raw
-+++ a/include/linux/bootmem.h
-@@ -161,6 +161,9 @@ extern void *__alloc_bootmem_low_node(pg
- #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
+diff -puN arch/x86/Kconfig~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow
++++ a/arch/x86/Kconfig
+@@ -110,7 +110,7 @@ config X86
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_ARCH_HUGE_VMAP		if X86_64 || X86_PAE
+ 	select HAVE_ARCH_JUMP_LABEL
+-	select HAVE_ARCH_KASAN			if X86_64 && SPARSEMEM_VMEMMAP
++	select HAVE_ARCH_KASAN			if X86_64
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS		if MMU
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
+diff -puN arch/x86/mm/kasan_init_64.c~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow arch/x86/mm/kasan_init_64.c
+--- a/arch/x86/mm/kasan_init_64.c~x86-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow
++++ a/arch/x86/mm/kasan_init_64.c
+@@ -4,12 +4,14 @@
+ #include <linux/bootmem.h>
+ #include <linux/kasan.h>
+ #include <linux/kdebug.h>
++#include <linux/memblock.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/sched/task.h>
+ #include <linux/vmalloc.h>
  
- /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
-+void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
-+				      phys_addr_t min_addr,
-+				      phys_addr_t max_addr, int nid);
- void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
- 		phys_addr_t align, phys_addr_t min_addr,
- 		phys_addr_t max_addr, int nid);
-@@ -177,6 +180,14 @@ static inline void * __init memblock_vir
- 					    NUMA_NO_NODE);
- }
+ #include <asm/e820/types.h>
++#include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include <asm/sections.h>
+ #include <asm/pgtable.h>
+@@ -18,7 +20,134 @@ extern struct range pfn_mapped[E820_MAX_
  
-+static inline void * __init memblock_virt_alloc_raw(
-+					phys_addr_t size,  phys_addr_t align)
+ static p4d_t tmp_p4d_table[PTRS_PER_P4D] __initdata __aligned(PAGE_SIZE);
+ 
+-static int __init map_range(struct range *range)
++static __init void *early_alloc(size_t size, int nid)
 +{
-+	return memblock_virt_alloc_try_nid_raw(size, align, BOOTMEM_LOW_LIMIT,
-+					    BOOTMEM_ALLOC_ACCESSIBLE,
-+					    NUMA_NO_NODE);
++	return memblock_virt_alloc_try_nid_nopanic(size, size,
++		__pa(MAX_DMA_ADDRESS), BOOTMEM_ALLOC_ACCESSIBLE, nid);
 +}
 +
- static inline void * __init memblock_virt_alloc_nopanic(
- 					phys_addr_t size, phys_addr_t align)
- {
-@@ -258,6 +269,14 @@ static inline void * __init memblock_vir
- 	return __alloc_bootmem(size, align, BOOTMEM_LOW_LIMIT);
- }
- 
-+static inline void * __init memblock_virt_alloc_raw(
-+					phys_addr_t size,  phys_addr_t align)
++static void __init kasan_populate_pmd(pmd_t *pmd, unsigned long addr,
++				      unsigned long end, int nid)
 +{
-+	if (!align)
-+		align = SMP_CACHE_BYTES;
-+	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
-+}
++	pte_t *pte;
 +
- static inline void * __init memblock_virt_alloc_nopanic(
- 					phys_addr_t size, phys_addr_t align)
- {
-@@ -310,6 +329,14 @@ static inline void * __init memblock_vir
- 					  min_addr);
- }
- 
-+static inline void * __init memblock_virt_alloc_try_nid_raw(
-+			phys_addr_t size, phys_addr_t align,
-+			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
-+{
-+	return ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size, align,
-+				min_addr, max_addr);
-+}
++	if (pmd_none(*pmd)) {
++		void *p;
 +
- static inline void * __init memblock_virt_alloc_try_nid_nopanic(
- 			phys_addr_t size, phys_addr_t align,
- 			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
-diff -puN mm/memblock.c~mm-defining-memblock_virt_alloc_try_nid_raw mm/memblock.c
---- a/mm/memblock.c~mm-defining-memblock_virt_alloc_try_nid_raw
-+++ a/mm/memblock.c
-@@ -1327,7 +1327,6 @@ again:
- 	return NULL;
- done:
- 	ptr = phys_to_virt(alloc);
--	memset(ptr, 0, size);
- 
- 	/*
- 	 * The min_count is set to 0 so that bootmem allocated blocks
-@@ -1341,6 +1340,45 @@ done:
- }
- 
- /**
-+ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
-+ * memory and without panicking
-+ * @size: size of memory block to be allocated in bytes
-+ * @align: alignment of the region and block's size
-+ * @min_addr: the lower bound of the memory region from where the allocation
-+ *	  is preferred (phys address)
-+ * @max_addr: the upper bound of the memory region from where the allocation
-+ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
-+ *	      allocate only from memory limited by memblock.current_limit value
-+ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ *
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. Does not zero allocated memory, does not panic if request
-+ * cannot be satisfied.
-+ *
-+ * RETURNS:
-+ * Virtual address of allocated memory block on success, NULL on failure.
-+ */
-+void * __init memblock_virt_alloc_try_nid_raw(
-+			phys_addr_t size, phys_addr_t align,
-+			phys_addr_t min_addr, phys_addr_t max_addr,
-+			int nid)
-+{
-+	void *ptr;
++		if (boot_cpu_has(X86_FEATURE_PSE) &&
++		    ((end - addr) == PMD_SIZE) &&
++		    IS_ALIGNED(addr, PMD_SIZE)) {
++			p = early_alloc(PMD_SIZE, nid);
++			if (p && pmd_set_huge(pmd, __pa(p), PAGE_KERNEL))
++				return;
++			else if (p)
++				memblock_free(__pa(p), PMD_SIZE);
++		}
 +
-+	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
-+		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
-+		     (u64)max_addr, (void *)_RET_IP_);
-+
-+	ptr = memblock_virt_alloc_internal(size, align,
-+					   min_addr, max_addr, nid);
-+#ifdef CONFIG_DEBUG_VM
-+	if (ptr && size > 0)
-+		memset(ptr, 0xff, size);
-+#endif
-+	return ptr;
-+}
-+
-+/**
-  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
-  * @size: size of memory block to be allocated in bytes
-  * @align: alignment of the region and block's size
-@@ -1351,8 +1389,8 @@ done:
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
-- * additional debug information (including caller info), if enabled.
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. This function zeroes the allocated memory.
-  *
-  * RETURNS:
-  * Virtual address of allocated memory block on success, NULL on failure.
-@@ -1362,11 +1400,17 @@ void * __init memblock_virt_alloc_try_ni
- 				phys_addr_t min_addr, phys_addr_t max_addr,
- 				int nid)
- {
-+	void *ptr;
-+
- 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
- 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
- 		     (u64)max_addr, (void *)_RET_IP_);
--	return memblock_virt_alloc_internal(size, align, min_addr,
--					     max_addr, nid);
-+
-+	ptr = memblock_virt_alloc_internal(size, align,
-+					   min_addr, max_addr, nid);
-+	if (ptr)
-+		memset(ptr, 0, size);
-+	return ptr;
- }
- 
- /**
-@@ -1380,7 +1424,7 @@ void * __init memblock_virt_alloc_try_ni
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
-+ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
-  * which provides debug information (including caller info), if enabled,
-  * and panics if the request can not be satisfied.
-  *
-@@ -1399,8 +1443,10 @@ void * __init memblock_virt_alloc_try_ni
- 		     (u64)max_addr, (void *)_RET_IP_);
- 	ptr = memblock_virt_alloc_internal(size, align,
- 					   min_addr, max_addr, nid);
--	if (ptr)
-+	if (ptr) {
-+		memset(ptr, 0, size);
- 		return ptr;
++		p = early_alloc(PAGE_SIZE, nid);
++		pmd_populate_kernel(&init_mm, pmd, p);
 +	}
++
++	pte = pte_offset_kernel(pmd, addr);
++	do {
++		pte_t entry;
++		void *p;
++
++		if (!pte_none(*pte))
++			continue;
++
++		p = early_alloc(PAGE_SIZE, nid);
++		entry = pfn_pte(PFN_DOWN(__pa(p)), PAGE_KERNEL);
++		set_pte_at(&init_mm, addr, pte, entry);
++	} while (pte++, addr += PAGE_SIZE, addr != end);
++}
++
++static void __init kasan_populate_pud(pud_t *pud, unsigned long addr,
++				      unsigned long end, int nid)
++{
++	pmd_t *pmd;
++	unsigned long next;
++
++	if (pud_none(*pud)) {
++		void *p;
++
++		if (boot_cpu_has(X86_FEATURE_GBPAGES) &&
++		    ((end - addr) == PUD_SIZE) &&
++		    IS_ALIGNED(addr, PUD_SIZE)) {
++			p = early_alloc(PUD_SIZE, nid);
++			if (p && pud_set_huge(pud, __pa(p), PAGE_KERNEL))
++				return;
++			else if (p)
++				memblock_free(__pa(p), PUD_SIZE);
++		}
++
++		p = early_alloc(PAGE_SIZE, nid);
++		pud_populate(&init_mm, pud, p);
++	}
++
++	pmd = pmd_offset(pud, addr);
++	do {
++		next = pmd_addr_end(addr, end);
++		if (!pmd_large(*pmd))
++			kasan_populate_pmd(pmd, addr, next, nid);
++	} while (pmd++, addr = next, addr != end);
++}
++
++static void __init kasan_populate_p4d(p4d_t *p4d, unsigned long addr,
++				      unsigned long end, int nid)
++{
++	pud_t *pud;
++	unsigned long next;
++
++	if (p4d_none(*p4d)) {
++		void *p = early_alloc(PAGE_SIZE, nid);
++
++		p4d_populate(&init_mm, p4d, p);
++	}
++
++	pud = pud_offset(p4d, addr);
++	do {
++		next = pud_addr_end(addr, end);
++		if (!pud_large(*pud))
++			kasan_populate_pud(pud, addr, next, nid);
++	} while (pud++, addr = next, addr != end);
++}
++
++static void __init kasan_populate_pgd(pgd_t *pgd, unsigned long addr,
++				      unsigned long end, int nid)
++{
++	void *p;
++	p4d_t *p4d;
++	unsigned long next;
++
++	if (pgd_none(*pgd)) {
++		p = early_alloc(PAGE_SIZE, nid);
++		pgd_populate(&init_mm, pgd, p);
++	}
++
++	p4d = p4d_offset(pgd, addr);
++	do {
++		next = p4d_addr_end(addr, end);
++		kasan_populate_p4d(p4d, addr, next, nid);
++	} while (p4d++, addr = next, addr != end);
++}
++
++static void __init kasan_populate_shadow(unsigned long addr, unsigned long end,
++					 int nid)
++{
++	pgd_t *pgd;
++	unsigned long next;
++
++	addr = addr & PAGE_MASK;
++	end = round_up(end, PAGE_SIZE);
++	pgd = pgd_offset_k(addr);
++	do {
++		next = pgd_addr_end(addr, end);
++		kasan_populate_pgd(pgd, addr, next, nid);
++	} while (pgd++, addr = next, addr != end);
++}
++
++static void __init map_range(struct range *range)
+ {
+ 	unsigned long start;
+ 	unsigned long end;
+@@ -26,7 +155,7 @@ static int __init map_range(struct range
+ 	start = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->start));
+ 	end = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->end));
  
- 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx\n",
- 	      __func__, (u64)size, (u64)align, nid, (u64)min_addr,
-diff -puN mm/page_alloc.c~mm-defining-memblock_virt_alloc_try_nid_raw mm/page_alloc.c
---- a/mm/page_alloc.c~mm-defining-memblock_virt_alloc_try_nid_raw
-+++ a/mm/page_alloc.c
-@@ -7313,18 +7313,17 @@ void *__init alloc_large_system_hash(con
+-	return vmemmap_populate(start, end, NUMA_NO_NODE);
++	kasan_populate_shadow(start, end, early_pfn_to_nid(range->start));
+ }
  
- 	log2qty = ilog2(numentries);
+ static void __init clear_pgds(unsigned long start,
+@@ -189,16 +318,16 @@ void __init kasan_init(void)
+ 		if (pfn_mapped[i].end == 0)
+ 			break;
  
--	/*
--	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
--	 * currently not used when HASH_EARLY is specified.
--	 */
- 	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
- 	do {
- 		size = bucketsize << log2qty;
--		if (flags & HASH_EARLY)
--			table = memblock_virt_alloc_nopanic(size, 0);
--		else if (hashdist)
-+		if (flags & HASH_EARLY) {
-+			if (flags & HASH_ZERO)
-+				table = memblock_virt_alloc_nopanic(size, 0);
-+			else
-+				table = memblock_virt_alloc_raw(size, 0);
-+		} else if (hashdist) {
- 			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
--		else {
-+		} else {
- 			/*
- 			 * If bucketsize is not a power-of-two, we may free
- 			 * some pages at the end of hash table which
+-		if (map_range(&pfn_mapped[i]))
+-			panic("kasan: unable to allocate shadow!");
++		map_range(&pfn_mapped[i]);
+ 	}
++
+ 	kasan_populate_zero_shadow(
+ 		kasan_mem_to_shadow((void *)PAGE_OFFSET + MAXMEM),
+ 		kasan_mem_to_shadow((void *)__START_KERNEL_map));
+ 
+-	vmemmap_populate((unsigned long)kasan_mem_to_shadow(_stext),
+-			(unsigned long)kasan_mem_to_shadow(_end),
+-			NUMA_NO_NODE);
++	kasan_populate_shadow((unsigned long)kasan_mem_to_shadow(_stext),
++			      (unsigned long)kasan_mem_to_shadow(_end),
++			      early_pfn_to_nid(__pa(_stext)));
+ 
+ 	kasan_populate_zero_shadow(kasan_mem_to_shadow((void *)MODULES_END),
+ 			(void *)KASAN_SHADOW_END);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@oracle.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-sparc64-ng4-memset-32-bits-overflow.patch
+kcov-remove-pointless-current-=-null-check.patch
 
