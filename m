@@ -1,63 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/131] ocfs2: fix cluster hang after a node dies
-Date: Wed, 15 Nov 2017 17:31:33 -0800
-Message-ID: <20171116013133.aWSMY2Rt3%akpm__31436.6521467038$1510795899$gmane$org@linux-foundation.org>
+Subject: [patch 008/131] ocfs2: should wait dio before inode lock
+ in ocfs2_setattr()
+Date: Wed, 15 Nov 2017 17:31:40 -0800
+Message-ID: <20171116013140._8Y3AY-GQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933468AbdKPBbf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:31:35 -0500
+        with ESMTP id S933442AbdKPBbm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:31:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, v.mayatskih@gmail.com
+To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2: fix cluster hang after a node dies
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: should wait dio before inode lock in ocfs2_setattr()
 
-When a node dies, other live nodes have to choose a new master for an
-existed lock resource mastered by the dead node.
+we should wait dio requests to finish before inode lock in
+ocfs2_setattr(), otherwise the following deadlock will happen:
 
-As for ocfs2/dlm implementation, this is done by function -
-dlm_move_lockres_to_recovery_list which marks those lock rsources as
-DLM_LOCK_RES_RECOVERING and manages them via a list from which DLM changes
-lock resource's master later.
+process 1                  process 2                    process 3
+truncate file 'A'          end_io of writing file 'A'   receiving the bast messages
+ocfs2_setattr
+ ocfs2_inode_lock_tracker
+  ocfs2_inode_lock_full
+ inode_dio_wait
+  __inode_dio_wait
+  -->waiting for all dio
+  requests finish
+                                                        dlm_proxy_ast_handler
+                                                         dlm_do_local_bast
+                                                          ocfs2_blocking_ast
+                                                           ocfs2_generic_handle_bast
+                                                            set OCFS2_LOCK_BLOCKED flag
+                        dio_end_io
+                         dio_bio_end_aio
+                          dio_complete
+                           ocfs2_dio_end_io
+                            ocfs2_dio_end_io_write
+                             ocfs2_inode_lock
+                              __ocfs2_cluster_lock
+                               ocfs2_wait_for_mask
+                               -->waiting for OCFS2_LOCK_BLOCKED
+                               flag to be cleared, that is waiting
+                               for 'process 1' unlocking the inode lock
+                           inode_dio_end
+                           -->here dec the i_dio_count, but will never
+                           be called, so a deadlock happened.
 
-So without invoking dlm_move_lockres_to_recovery_list, no master will be
-choosed after dlm recovery accomplishment since no lock resource can be
-found through ::resource list.
-
-What's worse is that if DLM_LOCK_RES_RECOVERING is not marked for lock
-resources mastered a dead node, it will break up synchronization among
-nodes.
-
-So invoke dlm_move_lockres_to_recovery_list again.
-
-Fixs: 'commit ee8f7fcbe638 ("ocfs2/dlm: continue to purge recovery lockres when recovery master goes down")'
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED6E0F9@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Reported-by: Vitaly Mayatskih <v.mayatskih@gmail.com>
-Tested-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
+Link: http://lkml.kernel.org/r/59F81636.70508@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Acked-by: Changwei Ge <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/file.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-cluster-hang-after-a-node-dies
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2419,6 +2419,7 @@ static void dlm_do_local_recovery_cleanu
- 					dlm_lockres_put(res);
- 					continue;
- 				}
-+				dlm_move_lockres_to_recovery_list(dlm, res);
- 			} else if (res->owner == dlm->node_num) {
- 				dlm_free_dead_locks(dlm, res, dead_node);
- 				__dlm_lockres_calc_usage(dlm, res);
-_
+diff -puN fs/ocfs2/file.c~ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr
++++ a/fs/ocfs2/file.c
+@@ -1161,6 +1161,13 @@ int ocfs2_setattr(struct dentry *dentry,
+ 	}
+ 	size_change = S_ISREG(inode->i_mode) && attr->ia_valid & ATTR_SIZE;
+ 	if (size_change) {
++		/*
++		 * Here we should wait dio to finish before inode lock
++		 * to avoid a deadlock between ocfs2_setattr() and
++		 * ocfs2_dio_end_io_write()
++		 */
++		inode_dio_wait(inode);
++
+ 		status = ocfs2_rw_lock(inode, 1);
+ 		if (status < 0) {
+ 			mlog_errno(status);
+@@ -1200,8 +1207,6 @@ int ocfs2_setattr(struct dentry *dentry,
+ 		if (status)
+ 			goto bail_unlock;
+ 
+-		inode_dio_wait(inode);
