@@ -1,131 +1,139 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch removed from -mm tree
-Date: Wed, 15 Nov 2017 16:47:08 -0800
-Message-ID: <5a0ce00c.SaH0JQL3bLveE8Bh%akpm@linux-foundation.org>
+ ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3.patch removed
+ from -mm tree
+Date: Wed, 15 Nov 2017 16:48:18 -0800
+Message-ID: <5a0ce052.Y2KMQrGUSC+yFOOf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753923AbdKPArK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:47:10 -0500
+        with ESMTP id S1753923AbdKPAsT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:48:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maninder1.s@samsung.com, andi@firstfloor.org, a.sahrawat@samsung.com, mmarek@suse.cz, pankaj.m@samsung.com, v.narang@samsung.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
+     Subject: ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3
 has been removed from the -mm tree.  Its filename was
-     bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2.patch
+     ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3.patch
 
-This patch was dropped because it was folded into bloat-o-meter-provide-3-different-arguments-for-data-function-and-all.patch
+This patch was dropped because it was folded into ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3
 
-v1 -> v2
-1) Incorporated missed changes between 4.1 and latest version.
-2) Removed extra noise of "#####" after each section print.
-3) Removed extra parentheses from if and else caluse.
+The ip_alloc_sem should be taken in ocfs2_get_block() when reading file
+in DIRECT mode to prevent concurrent access to extent tree with
+ocfs2_dio_end_io_write(), which may cause BUGON in the following situation:
 
-Link: http://lkml.kernel.org/r/1506569402-24787-1-git-send-email-maninder1.s@samsung.com
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Cc: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: <pankaj.m@samsung.com>
-Cc: <a.sahrawat@samsung.com>
+read file 'A'                                  end_io of writing file 'A'
+vfs_read
+ __vfs_read
+  ocfs2_file_read_iter
+   generic_file_read_iter
+    ocfs2_direct_IO
+     __blockdev_direct_IO
+      do_blockdev_direct_IO
+       do_direct_IO
+        get_more_blocks
+         ocfs2_get_block
+          ocfs2_extent_map_get_blocks
+           ocfs2_get_clusters
+            ocfs2_get_clusters_nocache()
+             ocfs2_search_extent_list
+              return the index of record which
+              contains the v_cluster, that is
+              v_cluster > rec[i]->e_cpos.
+                                                ocfs2_dio_end_io
+                                                 ocfs2_dio_end_io_write
+                                                  down_write(&oi->ip_alloc_sem);
+                                                  ocfs2_mark_extent_written
+                                                   ocfs2_change_extent_flag
+                                                    ocfs2_split_extent
+                                                     ...
+                                                 --> modify the rec[i]->e_cpos, resulting
+                                                     in v_cluster < rec[i]->e_cpos.
+             BUG_ON(v_cluster < le32_to_cpu(rec->e_cpos))
+
+Link: http://lkml.kernel.org/r/59EF3614.6050008@huawei.com
+Fixes: c15471f79506 ("ocfs2: fix sparse file & data ordering issue in direct io")
+
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Gang He <ghe@suse.com>
+Acked-by: Changwei Ge <ge.changwei@h3c.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |   51 +++++++++++++++++-----------------------
- 1 file changed, 22 insertions(+), 29 deletions(-)
+ fs/ocfs2/aops.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN scripts/bloat-o-meter~bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2 scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~bloat-o-meter-provide-3-different-arguments-for-data-function-and-all-v2
-+++ a/scripts/bloat-o-meter
-@@ -13,7 +13,7 @@ from signal import signal, SIGPIPE, SIG_
- signal(SIGPIPE, SIG_DFL)
+diff -puN fs/ocfs2/aops.c~ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3 fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block-v3
++++ a/fs/ocfs2/aops.c
+@@ -134,10 +134,10 @@ bail:
+ 	return err;
+ }
  
- if len(sys.argv) < 3:
--    sys.stderr.write("usage: %s [option] file1 file2 \n" % sys.argv[0])
-+    sys.stderr.write("usage: %s [option] file1 file2\n" % sys.argv[0])
-     sys.stderr.write("The options are:\n")
-     sys.stderr.write("-c	cateogrize output based on symbole type\n")
-     sys.stderr.write("-d	Show delta of Data Section\n")
-@@ -22,23 +22,24 @@ if len(sys.argv) < 3:
+-static int ocfs2_get_block_lock(struct inode *inode, sector_t iblock,
++static int ocfs2_lock_get_block(struct inode *inode, sector_t iblock,
+ 		    struct buffer_head *bh_result, int create)
+ {
+-	int ret;
++	int ret = 0;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
  
- re_NUMBER = re.compile(r'\.[0-9]+')
+ 	down_read(&oi->ip_alloc_sem);
+@@ -2141,7 +2141,7 @@ static void ocfs2_dio_free_write_ctx(str
+  * called like this: dio->get_blocks(dio->inode, fs_startblk,
+  * 					fs_count, map_bh, dio->rw == WRITE);
+  */
+-static int ocfs2_dio_get_block(struct inode *inode, sector_t iblock,
++static int ocfs2_dio_wr_get_block(struct inode *inode, sector_t iblock,
+ 			       struct buffer_head *bh_result, int create)
+ {
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+@@ -2167,8 +2167,9 @@ static int ocfs2_dio_get_block(struct in
+ 	 * while file size will be changed.
+ 	 */
+ 	if (pos + total_len <= i_size_read(inode)) {
++
+ 		/* This is the fast path for re-write. */
+-		ret = ocfs2_get_block_lock(inode, iblock, bh_result, create);
++		ret = ocfs2_lock_get_block(inode, iblock, bh_result, create);
+ 		if (buffer_mapped(bh_result) &&
+ 		    !buffer_new(bh_result) &&
+ 		    ret == 0)
+@@ -2433,9 +2434,9 @@ static ssize_t ocfs2_direct_IO(struct ki
+ 		return 0;
  
--def getsizes(file, format) :
--    func_sym = {}
--    for l in os.popen("nm --size-sort " + file).readlines():
--        size, type, name = l[:-1].split()
--        if type in format:
--            # strip generated symbols
--            if name.startswith("__mod_"): continue
--            if name.startswith("SyS_"): continue
--            if name.startswith("compat_SyS_"): continue
--            if name == "linux_banner": continue
--            # statics and some other optimizations adds random .NUMBER
--            name = re_NUMBER.sub('', name)
--            func_sym[name] = func_sym.get(name, 0) + int(size, 16)
--    return func_sym
-+def getsizes(file, format):
-+    sym = {}
-+    with os.popen("nm --size-sort " + file) as f:
-+        for line in f:
-+            size, type, name = line.split()
-+            if type in format:
-+                # strip generated symbols
-+                if name.startswith("__mod_"): continue
-+                if name.startswith("SyS_"): continue
-+                if name.startswith("compat_SyS_"): continue
-+                if name == "linux_banner": continue
-+                # statics and some other optimizations adds random .NUMBER
-+                name = re_NUMBER.sub('', name)
-+                sym[name] = sym.get(name, 0) + int(size, 16)
-+    return sym
+ 	if (iov_iter_rw(iter) == READ)
+-		get_block = ocfs2_get_block_lock;
++		get_block = ocfs2_lock_get_block;
+ 	else
+-		get_block = ocfs2_dio_get_block;
++		get_block = ocfs2_dio_wr_get_block;
  
- def calc(oldfile, newfile, format):
--    old = getsizes(oldfile , format)
-+    old = getsizes(oldfile, format)
-     new = getsizes(newfile, format)
-     grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
-     delta, common = [], {}
-@@ -79,27 +80,19 @@ def print_result(symboltype, symbolforma
-     print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
-           (add, remove, grow, shrink, up, -down, up-down))
-     print("%-40s %7s %7s %+7s" % (symboltype, "old", "new", "delta"))
--
-     for d, n in delta:
--        if d: print "%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d)
-+        if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
- 
-     print("Total: Before=%d, After=%d, chg %+.2f%%" % \
--          (otot, ntot, (ntot - otot)*100.0/otot))
-+        (otot, ntot, (ntot - otot)*100.0/otot))
- 
--if(sys.argv[1] == "-c"):
-+if sys.argv[1] == "-c":
-     print_result("Function", "tT", 3)
--    print("##########################################################")
--
-     print_result("Data", "dDbB", 3)
--    print("##########################################################")
--
-     print_result("RO Data", "rR", 3)
--
--elif(sys.argv[1] == "-d"):
-+elif sys.argv[1] == "-d":
-     print_result("Data", "dDbBrR", 3)
--
--elif(sys.argv[1] == "-t"):
-+elif sys.argv[1] == "-t":
-     print_result("Function", "tT", 3)
+ 	return __blockdev_direct_IO(iocb, inode, inode->i_sb->s_bdev,
+ 				    iter, get_block,
+_
+
+Patches currently in -mm which might be from alex.chen@huawei.com are
+
+ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr.patch
+ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
+ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent-v2.patch
+
