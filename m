@@ -1,75 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Nov 2017 16:56:13 -0800
-Message-ID: <5a0ce22d.ZZXvVJwmKwD7ih0I%akpm@linux-foundation.org>
+ mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch removed from -mm tree
+Date: Wed, 15 Nov 2017 16:56:40 -0800
+Message-ID: <5a0ce248.p6og1fSWBYJ3Q+jS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35352 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35356 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932597AbdKPA4O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:56:14 -0500
+        with ESMTP id S1758010AbdKPA4l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:56:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
+     Subject: mm-drop-migrate-type-checks-from-has_unmovable_pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
+     mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
 
-This patch was dropped because it was folded into mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+This patch was dropped because it was folded into mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
+Subject: mm-drop-migrate-type-checks-from-has_unmovable_pages-fix
 
-WARNING: line over 80 characters
-#84: FILE: mm/memory.c:2910:
-+					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+remove unused local `mt'
 
-total: 0 errors, 1 warnings, 62 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
-+++ a/mm/memory.c
-@@ -2907,7 +2907,7 @@ int do_swap_page(struct vm_fault *vmf)
- 					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
- 			else
- 				page = swapin_readahead(entry,
--					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
- 			swapcache = page;
- 		}
+diff -puN mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages-fix
++++ a/mm/page_alloc.c
+@@ -7352,7 +7352,6 @@ bool has_unmovable_pages(struct zone *zo
+ 			 bool skip_hwpoisoned_pages)
+ {
+ 	unsigned long pfn, iter, found;
+-	int mt;
  
+ 	/*
+ 	 * For avoiding noise data, lru_add_drain_all() should be called
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
-mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
 mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
 mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
 f2fs-simplify-page-iteration-loops-fix.patch
