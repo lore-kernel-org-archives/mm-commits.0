@@ -1,112 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/131] zram: set BDI_CAP_STABLE_WRITES once
-Date: Wed, 15 Nov 2017 17:32:56 -0800
-Message-ID: <20171116013256.b8lv-zWGU%akpm@linux-foundation.org>
+Subject: [patch 030/131] mm, swap: introduce SWP_SYNCHRONOUS_IO
+Date: Wed, 15 Nov 2017 17:33:04 -0800
+Message-ID: <20171116013304.AMdZ5e9NH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38748 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932597AbdKPBc6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:32:58 -0500
+        with ESMTP id S932597AbdKPBdF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, hch@lst.de, hughd@google.com, idryomov@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: set BDI_CAP_STABLE_WRITES once
+Subject: mm, swap: introduce SWP_SYNCHRONOUS_IO
 
-With fast swap storage, the platform wants to use swap more aggressively
-and swap-in is crucial to application latency.
+If rw-page based fast storage is used for swap devices, we need to detect
+it to enhance swap IO operations.  This patch is preparation for
+optimizing of swap-in operation with next patch.
 
-The rw_page() based synchronous devices like zram, pmem and btt are such
-fast storage.  When I profile swapin performance with zram lz4 decompress
-test, S/W overhead is more than 70%.  Maybe, it would be bigger in nvdimm.
-
-This patchset reduces swap-in latency by skipping swapcache if the swap
-device is a synchronous device like a rw_page() based device.
-
-It enhances by 45% my swapin test (5G sequential swapin, no readahead)
-from 2.41sec to 1.64sec.
-
-
-This patch (of 4):
-
-19b7ccf8651d ("block: get rid of blk_integrity_revalidate()") fixed a
-weird thing (i.e., reset BDI_CAP_STABLE_WRITES flag unconditionally
-whenever revalidat_disk is called) so zram doesn't need to reset the flag
-any more when revalidating the bdev.  Instead, set the flag just once when
-the zram device is created.
-
-It shouldn't change any behavior.
-
-Link: http://lkml.kernel.org/r/1505886205-9671-2-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1505886205-9671-4-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/swap.h |    3 ++-
+ mm/swapfile.c        |    3 +++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-set-bdi_cap_stable_writes-once drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-set-bdi_cap_stable_writes-once
-+++ a/drivers/block/zram/zram_drv.c
-@@ -122,14 +122,6 @@ static inline bool is_partial_io(struct
- }
- #endif
+diff -puN include/linux/swap.h~mm-swap-introduce-swp_synchronous_io include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-introduce-swp_synchronous_io
++++ a/include/linux/swap.h
+@@ -171,8 +171,9 @@ enum {
+ 	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
+ 	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
+ 	SWP_STABLE_WRITES = (1 << 10),	/* no overwrite PG_writeback pages */
++	SWP_SYNCHRONOUS_IO = (1 << 11),	/* synchronous IO is efficient */
+ 					/* add others here before... */
+-	SWP_SCANNING	= (1 << 11),	/* refcount in scan_swap_map */
++	SWP_SCANNING	= (1 << 12),	/* refcount in scan_swap_map */
+ };
  
--static void zram_revalidate_disk(struct zram *zram)
--{
--	revalidate_disk(zram->disk);
--	/* revalidate_disk reset the BDI_CAP_STABLE_WRITES so set again */
--	zram->disk->queue->backing_dev_info->capabilities |=
--		BDI_CAP_STABLE_WRITES;
--}
--
- /*
-  * Check if request is within bounds and aligned on zram logical blocks.
-  */
-@@ -1373,7 +1365,8 @@ static ssize_t disksize_store(struct dev
- 	zram->comp = comp;
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
--	zram_revalidate_disk(zram);
+ #define SWAP_CLUSTER_MAX 32UL
+diff -puN mm/swapfile.c~mm-swap-introduce-swp_synchronous_io mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-introduce-swp_synchronous_io
++++ a/mm/swapfile.c
+@@ -3169,6 +3169,9 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (bdi_cap_stable_pages_required(inode_to_bdi(inode)))
+ 		p->flags |= SWP_STABLE_WRITES;
+ 
++	if (bdi_cap_synchronous_io(inode_to_bdi(inode)))
++		p->flags |= SWP_SYNCHRONOUS_IO;
 +
-+	revalidate_disk(zram->disk);
- 	up_write(&zram->init_lock);
- 
- 	return len;
-@@ -1420,7 +1413,7 @@ static ssize_t reset_store(struct device
- 	/* Make sure all the pending I/O are finished */
- 	fsync_bdev(bdev);
- 	zram_reset_device(zram);
--	zram_revalidate_disk(zram);
-+	revalidate_disk(zram->disk);
- 	bdput(bdev);
- 
- 	mutex_lock(&bdev->bd_mutex);
-@@ -1539,6 +1532,7 @@ static int zram_add(void)
- 	/* zram devices sort of resembles non-rotational disks */
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, zram->disk->queue);
- 	queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, zram->disk->queue);
-+
- 	/*
- 	 * To ensure that we always get PAGE_SIZE aligned
- 	 * and n*PAGE_SIZED sized I/O requests.
-@@ -1563,6 +1557,8 @@ static int zram_add(void)
- 	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
- 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
- 
-+	zram->disk->queue->backing_dev_info->capabilities |=
-+					BDI_CAP_STABLE_WRITES;
- 	add_disk(zram->disk);
- 
- 	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
+ 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+ 		int cpu;
+ 		unsigned long ci, nr_cluster;
 _
