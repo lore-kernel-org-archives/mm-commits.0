@@ -1,88 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [patch 050/131] mm/swap_slots.c: fix race conditions in
- swap_slots cache init
-Date: Wed, 15 Nov 2017 17:34:18 -0800
-Message-ID: <20171116013418.XN2uJmaPZ%akpm@linux-foundation.org>
+Subject: [patch 051/131] mm, arch: remove empty_bad_page*
+Date: Wed, 15 Nov 2017 17:34:22 -0800
+Message-ID: <20171116013422.Nn35c6nwp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39128 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753159AbdKPBeU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:20 -0500
+        with ESMTP id S1753159AbdKPBeY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, wenwei.tww@alibaba-inc.com, ying.huang@intel.com
+To: akpm@linux-foundation.org, dalias@libc.org, dhowells@redhat.com, jdike@addtoit.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, ralf@linus-mips.org, richard@nod.at, torvalds@linux-foundation.org, ysato@users.sourceforge.jp
 
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: mm/swap_slots.c: fix race conditions in swap_slots cache init
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, arch: remove empty_bad_page*
 
-Memory allocations can happen before the swap_slots cache initialization
-is completed during cpu bring up.  If we are low on memory, we could call
-get_swap_page() and access swap_slots_cache before it is fully
-initialized.
+empty_bad_page() and empty_bad_pte_table() seem to be relics from old days
+which is not used by any code for a long time.  I have tried to find when
+exactly but this is not really all that straightforward due to many code
+movements - traces disappear around 2.4 times.
 
-Add a check in get_swap_page() for initialized swap_slots_cache to prevent
-this condition.  Similar check already exists in free_swap_slot.  Also
-annotate the checks to indicate the likely condition.
+Anyway no code really references neither empty_bad_page nor
+empty_bad_pte_table.  We only allocate the storage which is not used by
+anybody so remove them.
 
-We also added a memory barrier to make sure that the locks initialization
-are done before the assignment of cache->slots and cache->slots_ret
-pointers.  This ensures the assumption that it is safe to acquire the
-slots cache locks and use the slots cache when the corresponding
-cache->slots or cache->slots_ret pointers are non null.
-
-[akpm@linux-foundation.org: tidy up comment]
-[akpm@linux-foundation.org: fix spello in comment]
-Link: http://lkml.kernel.org/r/65a9d0f133f63e66bba37b53b2fd0464b7cae771.1500677066.git.tim.c.chen@linux.intel.com
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
-Acked-by: Ying Huang <ying.huang@intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20171004150045.30755-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Ralf Baechle <ralf@linus-mips.org>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/frv/mm/init.c                 |   14 --------------
+ arch/h8300/mm/init.c               |   13 -------------
+ arch/mips/include/asm/pgtable-64.h |    8 +-------
+ arch/mn10300/kernel/head.S         |    8 --------
+ arch/sh/kernel/head_64.S           |    8 --------
+ arch/um/kernel/mem.c               |    3 ---
+ include/linux/page-flags.h         |    2 +-
+ 7 files changed, 2 insertions(+), 54 deletions(-)
 
-diff -puN mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init mm/swap_slots.c
---- a/mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init
-+++ a/mm/swap_slots.c
-@@ -149,6 +149,13 @@ static int alloc_swap_slot_cache(unsigne
- 	cache->nr = 0;
- 	cache->cur = 0;
- 	cache->n_ret = 0;
-+	/*
-+	 * We initialized alloc_lock and free_lock earlier.  We use
-+	 * !cache->slots or !cache->slots_ret to know if it is safe to acquire
-+	 * the corresponding lock and use the cache.  Memory barrier below
-+	 * ensures the assumption.
-+	 */
-+	mb();
- 	cache->slots = slots;
- 	slots = NULL;
- 	cache->slots_ret = slots_ret;
-@@ -275,7 +282,7 @@ int free_swap_slot(swp_entry_t entry)
- 	struct swap_slots_cache *cache;
+diff -puN arch/frv/mm/init.c~mm-arch-remove-empty_bad_page arch/frv/mm/init.c
+--- a/arch/frv/mm/init.c~mm-arch-remove-empty_bad_page
++++ a/arch/frv/mm/init.c
+@@ -42,21 +42,9 @@
+ #undef DEBUG
  
- 	cache = raw_cpu_ptr(&swp_slots);
--	if (use_swap_slot_cache && cache->slots_ret) {
-+	if (likely(use_swap_slot_cache && cache->slots_ret)) {
- 		spin_lock_irq(&cache->free_lock);
- 		/* Swap slots cache may be deactivated before acquiring lock */
- 		if (!use_swap_slot_cache || !cache->slots_ret) {
-@@ -326,7 +333,7 @@ swp_entry_t get_swap_page(struct page *p
+ /*
+- * BAD_PAGE is the page that is used for page faults when linux
+- * is out-of-memory. Older versions of linux just did a
+- * do_exit(), but using this instead means there is less risk
+- * for a process dying in kernel mode, possibly leaving a inode
+- * unused etc..
+- *
+- * BAD_PAGETABLE is the accompanying page-table: it is initialized
+- * to point to BAD_PAGE entries.
+- *
+  * ZERO_PAGE is a special page that is used for zero-initialized
+  * data and COW.
+  */
+-static unsigned long empty_bad_page_table;
+-static unsigned long empty_bad_page;
+-
+ unsigned long empty_zero_page;
+ EXPORT_SYMBOL(empty_zero_page);
+ 
+@@ -72,8 +60,6 @@ void __init paging_init(void)
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
+ 
+ 	/* allocate some pages for kernel housekeeping tasks */
+-	empty_bad_page_table	= (unsigned long) alloc_bootmem_pages(PAGE_SIZE);
+-	empty_bad_page		= (unsigned long) alloc_bootmem_pages(PAGE_SIZE);
+ 	empty_zero_page		= (unsigned long) alloc_bootmem_pages(PAGE_SIZE);
+ 
+ 	memset((void *) empty_zero_page, 0, PAGE_SIZE);
+diff -puN arch/h8300/mm/init.c~mm-arch-remove-empty_bad_page arch/h8300/mm/init.c
+--- a/arch/h8300/mm/init.c~mm-arch-remove-empty_bad_page
++++ a/arch/h8300/mm/init.c
+@@ -40,20 +40,9 @@
+ #include <asm/sections.h>
+ 
+ /*
+- * BAD_PAGE is the page that is used for page faults when linux
+- * is out-of-memory. Older versions of linux just did a
+- * do_exit(), but using this instead means there is less risk
+- * for a process dying in kernel mode, possibly leaving a inode
+- * unused etc..
+- *
+- * BAD_PAGETABLE is the accompanying page-table: it is initialized
+- * to point to BAD_PAGE entries.
+- *
+  * ZERO_PAGE is a special page that is used for zero-initialized
+  * data and COW.
+  */
+-static unsigned long empty_bad_page_table;
+-static unsigned long empty_bad_page;
+ unsigned long empty_zero_page;
+ 
+ /*
+@@ -78,8 +67,6 @@ void __init paging_init(void)
+ 	 * Initialize the bad page table and bad page to point
+ 	 * to a couple of allocated pages.
  	 */
- 	cache = raw_cpu_ptr(&swp_slots);
+-	empty_bad_page_table = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
+-	empty_bad_page = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
+ 	empty_zero_page = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
+ 	memset((void *)empty_zero_page, 0, PAGE_SIZE);
  
--	if (check_cache_active()) {
-+	if (likely(check_cache_active() && cache->slots)) {
- 		mutex_lock(&cache->alloc_lock);
- 		if (cache->slots) {
- repeat:
+diff -puN arch/mips/include/asm/pgtable-64.h~mm-arch-remove-empty_bad_page arch/mips/include/asm/pgtable-64.h
+--- a/arch/mips/include/asm/pgtable-64.h~mm-arch-remove-empty_bad_page
++++ a/arch/mips/include/asm/pgtable-64.h
+@@ -31,12 +31,7 @@
+  * tables. Each page table is also a single 4K page, giving 512 (==
+  * PTRS_PER_PTE) 8 byte ptes. Each pud entry is initialized to point to
+  * invalid_pmd_table, each pmd entry is initialized to point to
+- * invalid_pte_table, each pte is initialized to 0. When memory is low,
+- * and a pmd table or a page table allocation fails, empty_bad_pmd_table
+- * and empty_bad_page_table is returned back to higher layer code, so
+- * that the failure is recognized later on. Linux does not seem to
+- * handle these failures very well though. The empty_bad_page_table has
+- * invalid pte entries in it, to force page faults.
++ * invalid_pte_table, each pte is initialized to 0.
+  *
+  * Kernel mappings: kernel mappings are held in the swapper_pg_table.
+  * The layout is identical to userspace except it's indexed with the
+@@ -175,7 +170,6 @@
+ 	printk("%s:%d: bad pgd %016lx.\n", __FILE__, __LINE__, pgd_val(e))
+ 
+ extern pte_t invalid_pte_table[PTRS_PER_PTE];
+-extern pte_t empty_bad_page_table[PTRS_PER_PTE];
+ 
+ #ifndef __PAGETABLE_PUD_FOLDED
+ /*
+diff -puN arch/mn10300/kernel/head.S~mm-arch-remove-empty_bad_page arch/mn10300/kernel/head.S
+--- a/arch/mn10300/kernel/head.S~mm-arch-remove-empty_bad_page
++++ a/arch/mn10300/kernel/head.S
+@@ -434,14 +434,6 @@ ENTRY(empty_zero_page)
+ 	.space PAGE_SIZE
+ 
+ 	.balign PAGE_SIZE
+-ENTRY(empty_bad_page)
+-	.space PAGE_SIZE
+-
+-	.balign PAGE_SIZE
+-ENTRY(empty_bad_pte_table)
+-	.space PAGE_SIZE
+-
+-	.balign PAGE_SIZE
+ ENTRY(large_page_table)
+ 	.space PAGE_SIZE
+ 
+diff -puN arch/sh/kernel/head_64.S~mm-arch-remove-empty_bad_page arch/sh/kernel/head_64.S
+--- a/arch/sh/kernel/head_64.S~mm-arch-remove-empty_bad_page
++++ a/arch/sh/kernel/head_64.S
+@@ -101,14 +101,6 @@ empty_zero_page:
+ mmu_pdtp_cache:
+ 	.space PAGE_SIZE, 0
+ 
+-	.global empty_bad_page
+-empty_bad_page:
+-	.space PAGE_SIZE, 0
+-
+-	.global empty_bad_pte_table
+-empty_bad_pte_table:
+-	.space PAGE_SIZE, 0
+-
+ 	.global	fpu_in_use
+ fpu_in_use:	.quad	0
+ 
+diff -puN arch/um/kernel/mem.c~mm-arch-remove-empty_bad_page arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~mm-arch-remove-empty_bad_page
++++ a/arch/um/kernel/mem.c
+@@ -22,8 +22,6 @@
+ /* allocated in paging_init, zeroed in mem_init, and unchanged thereafter */
+ unsigned long *empty_zero_page = NULL;
+ EXPORT_SYMBOL(empty_zero_page);
+-/* allocated in paging_init and unchanged thereafter */
+-static unsigned long *empty_bad_page = NULL;
+ 
+ /*
+  * Initialized during boot, and readonly for initializing page tables
+@@ -146,7 +144,6 @@ void __init paging_init(void)
+ 	int i;
+ 
+ 	empty_zero_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
+-	empty_bad_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
+ 	for (i = 0; i < ARRAY_SIZE(zones_size); i++)
+ 		zones_size[i] = 0;
+ 
+diff -puN include/linux/page-flags.h~mm-arch-remove-empty_bad_page include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-arch-remove-empty_bad_page
++++ a/include/linux/page-flags.h
+@@ -18,7 +18,7 @@
+  * Various page->flags bits:
+  *
+  * PG_reserved is set for special pages, which can never be swapped out. Some
+- * of them might not even exist (eg empty_bad_page)...
++ * of them might not even exist...
+  *
+  * The PG_private bitflag is set on pagecache pages if they contain filesystem
+  * specific data (which is normally at page->private). It can be used by
 _
