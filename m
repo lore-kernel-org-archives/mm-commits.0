@@ -1,80 +1,50 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- writeback-remove-the-unused-function-parameter.patch removed from -mm tree
-Date: Thu, 16 Nov 2017 12:05:22 -0800
-Message-ID: <20171116200522.66f4UDv59%akpm@linux-foundation.org>
+ mmoom_reaper-remove-pointless-kthread_run-error-check.patch removed from
+ -mm tree
+Date: Thu, 16 Nov 2017 12:05:28 -0800
+Message-ID: <20171116200528.Or0TSX7Wc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47620 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936737AbdKPUFY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:05:24 -0500
+        with ESMTP id S936737AbdKPUF3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:05:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@kernel.dk, jack@suse.cz, mm-commits@vger.kernel.org, tj@kernel.org, wanglong19@meituan.com
+To: mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp
 
 
 The patch titled
-     Subject: writeback: remove unused function parameter
+     Subject: mm,oom_reaper: remove pointless kthread_run() error check
 has been removed from the -mm tree.  Its filename was
-     writeback-remove-the-unused-function-parameter.patch
+     mmoom_reaper-remove-pointless-kthread_run-error-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Long <wanglong19@meituan.com>
-Subject: writeback: remove unused function parameter
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm,oom_reaper: remove pointless kthread_run() error check
 
-The parameter `struct bdi_writeback *wb` is not been used in the function
-body.  Remove it.
+Since oom_init() is called before userspace processes start, memory
+allocation failure for creating the OOM reaper kernel thread will let the
+OOM killer call panic() rather than wake up the OOM reaper.
 
-Link: http://lkml.kernel.org/r/1509685485-15278-1-git-send-email-wanglong19@meituan.com
-Signed-off-by: Wang Long <wanglong19@meituan.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: http://lkml.kernel.org/r/1510137800-4602-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    2 +-
- mm/page-writeback.c         |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN include/linux/backing-dev.h~writeback-remove-the-unused-function-parameter include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~writeback-remove-the-unused-function-parameter
-+++ a/include/linux/backing-dev.h
-@@ -93,7 +93,7 @@ extern void wb_writeout_inc(struct bdi_w
- /*
-  * maximal error of a stat counter.
-  */
--static inline unsigned long wb_stat_error(struct bdi_writeback *wb)
-+static inline unsigned long wb_stat_error(void)
- {
- #ifdef CONFIG_SMP
- 	return nr_cpu_ids * WB_STAT_BATCH;
-diff -puN mm/page-writeback.c~writeback-remove-the-unused-function-parameter mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-remove-the-unused-function-parameter
-+++ a/mm/page-writeback.c
-@@ -1545,7 +1545,7 @@ static inline void wb_dirty_limits(struc
- 	 * actually dirty; with m+n sitting in the percpu
- 	 * deltas.
- 	 */
--	if (dtc->wb_thresh < 2 * wb_stat_error(wb)) {
-+	if (dtc->wb_thresh < 2 * wb_stat_error()) {
- 		wb_reclaimable = wb_stat_sum(wb, WB_RECLAIMABLE);
- 		dtc->wb_dirty = wb_reclaimable + wb_stat_sum(wb, WB_WRITEBACK);
- 	} else {
-@@ -1803,7 +1803,7 @@ pause:
- 		 * more page. However wb_dirty has accounting errors.  So use
- 		 * the larger and more IO friendly wb_stat_error.
- 		 */
--		if (sdtc->wb_dirty <= wb_stat_error(wb))
-+		if (sdtc->wb_dirty <= wb_stat_error())
- 			break;
+diff -puN mm/oom_kill.c~mmoom_reaper-remove-pointless-kthread_run-error-check mm/oom_kill.c
+--- a/mm/oom_kill.c~mmoom_reaper-remove-pointless-kthread_run-error-check
++++ a/mm/oom_kill.c
+@@ -640,9 +640,6 @@ static int oom_reaper(void *unused)
  
- 		if (fatal_signal_pending(current))
-_
-
-Patches currently in -mm which might be from wanglong19@meituan.com are
-
-
+ static void wake_oom_reaper(struct task_struct *tsk)
+ {
+-	if (!oom_reaper_th)
+-		return;
