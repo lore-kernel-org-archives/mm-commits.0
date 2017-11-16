@@ -1,69 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- writeback-remove-unused-parameter-from-balance_dirty_pages.patch removed
- from -mm tree
-Date: Thu, 16 Nov 2017 12:00:23 -0800
-Message-ID: <20171116200023.t2NAA4MzG%akpm@linux-foundation.org>
+ mm-drop-migrate-type-checks-from-has_unmovable_pages.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:00:26 -0800
+Message-ID: <20171116200026.8xc-P5toG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46220 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934367AbdKPUAY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:24 -0500
+        with ESMTP id S934367AbdKPUA2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, tahsin@google.com
+To: arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, ran.wang_1@nxp.com, tony@atomide.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
 
 
 The patch titled
-     Subject: mm/page-writeback.c: remove unused parameter from balance_dirty_pages()
+     Subject: mm: drop migrate type checks from has_unmovable_pages
 has been removed from the -mm tree.  Its filename was
-     writeback-remove-unused-parameter-from-balance_dirty_pages.patch
+     mm-drop-migrate-type-checks-from-has_unmovable_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tahsin Erdogan <tahsin@google.com>
-Subject: mm/page-writeback.c: remove unused parameter from balance_dirty_pages()
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: drop migrate type checks from has_unmovable_pages
 
-"mapping" parameter to balance_dirty_pages() is not used anymore.
+Michael has noticed that the memory offline tries to migrate kernel code
+pages when doing
 
-Fixes: dfb8ae567835 ("writeback: let balance_dirty_pages() work on the matching cgroup bdi_writeback")
-Link: http://lkml.kernel.org/r/20170927221311.23263-1-tahsin@google.com
-Signed-off-by: Tahsin Erdogan <tahsin@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jan Kara <jack@suse.cz>
+ echo 0 > /sys/devices/system/memory/memory0/online
+
+The current implementation will fail the operation after several failed
+page migration attempts but we shouldn't even attempt to migrate that
+memory and fail right away because this memory is clearly not migrateable.
+This will become a real problem when we drop the retry loop counter resp.
+timeout.
+
+The real problem is in has_unmovable_pages in fact.  We should fail if
+there are any non migrateable pages in the area.  In orther to guarantee
+that remove the migrate type checks because MIGRATE_MOVABLE is not
+guaranteed to contain only migrateable pages.  It is merely a heuristic. 
+Similarly MIGRATE_CMA does guarantee that the page allocator doesn't
+allocate any non-migrateable pages from the block but CMA allocations
+themselves are unlikely to migrateable.  Therefore remove both checks.
+
+[akpm@linux-foundation.org: remove unused local `mt']
+Link: http://lkml.kernel.org/r/20171013120013.698-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Ran Wang <ran.wang_1@nxp.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-remove-unused-parameter-from-balance_dirty_pages mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-remove-unused-parameter-from-balance_dirty_pages
-+++ a/mm/page-writeback.c
-@@ -1559,8 +1559,7 @@ static inline void wb_dirty_limits(struc
-  * If we're over `background_thresh' then the writeback threads are woken to
-  * perform some writeout.
-  */
--static void balance_dirty_pages(struct address_space *mapping,
--				struct bdi_writeback *wb,
-+static void balance_dirty_pages(struct bdi_writeback *wb,
- 				unsigned long pages_dirtied)
+diff -puN mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-drop-migrate-type-checks-from-has_unmovable_pages
++++ a/mm/page_alloc.c
+@@ -7356,7 +7356,6 @@ bool has_unmovable_pages(struct zone *zo
+ 			 bool skip_hwpoisoned_pages)
  {
- 	struct dirty_throttle_control gdtc_stor = { GDTC_INIT(wb) };
-@@ -1910,7 +1909,7 @@ void balance_dirty_pages_ratelimited(str
- 	preempt_enable();
+ 	unsigned long pfn, iter, found;
+-	int mt;
  
- 	if (unlikely(current->nr_dirtied >= ratelimit))
--		balance_dirty_pages(mapping, wb, current->nr_dirtied);
-+		balance_dirty_pages(wb, current->nr_dirtied);
+ 	/*
+ 	 * For avoiding noise data, lru_add_drain_all() should be called
+@@ -7364,9 +7363,6 @@ bool has_unmovable_pages(struct zone *zo
+ 	 */
+ 	if (zone_idx(zone) == ZONE_MOVABLE)
+ 		return false;
+-	mt = get_pageblock_migratetype(page);
+-	if (mt == MIGRATE_MOVABLE || is_migrate_cma(mt))
+-		return false;
  
- 	wb_put(wb);
- }
+ 	pfn = page_to_pfn(page);
+ 	for (found = 0, iter = 0; iter < pageblock_nr_pages; iter++) {
 _
 
-Patches currently in -mm which might be from tahsin@google.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
 
