@@ -1,63 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hmm-constify-hmm_devmem_page_get_drvdata-parameter.patch removed from
- -mm tree
-Date: Thu, 16 Nov 2017 12:00:56 -0800
-Message-ID: <20171116200056.t2awN2O55%akpm@linux-foundation.org>
+ zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:01:00 -0800
+Message-ID: <20171116200100.kZ-iRUj3B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46364 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934974AbdKPUA6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:58 -0500
+        with ESMTP id S934974AbdKPUBB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:01:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com
+To: minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: mm/hmm: constify hmm_devmem_page_get_drvdata() parameter
+     Subject: zsmalloc: calling zs_map_object() from irq is a bug
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-constify-hmm_devmem_page_get_drvdata-parameter.patch
+     zsmalloc-calling-zs_map_object-from-irq-is-a-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/hmm: constify hmm_devmem_page_get_drvdata() parameter
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zsmalloc: calling zs_map_object() from irq is a bug
 
-Constify pointer parameter to avoid issue when use from code that only has
-const struct page pointer to use in the first place.
+Use BUG_ON(in_interrupt()) in zs_map_object().  This is not a new
+BUG_ON(), it's always been there, but was recently changed to VM_BUG_ON().
+There are several problems there.  First, we use use per-CPU mappings
+both in zsmalloc and in zram, and interrupt may easily corrupt those
+buffers.  Second, and more importantly, we believe it's possible to start
+leaking sensitive information.  Consider the following case:
 
-Link: http://lkml.kernel.org/r/1506972774-10191-1-git-send-email-jglisse@redhat.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+-> process P
+	swap out
+	 zram
+	  per-cpu mapping CPU1
+	   compress page A
+-> IRQ
+
+	swap out
+	 zram
+	  per-cpu mapping CPU1
+	   compress page B
+	    write page from per-cpu mapping CPU1 to zsmalloc pool
+	iret
+
+-> process P
+	    write page from per-cpu mapping CPU1 to zsmalloc pool  [*]
+	return
+
+* so we store overwritten data that actually belongs to another
+  page (task) and potentially contains sensitive data. And when
+  process P will page fault it's going to read (swap in) that
+  other task's data.
+
+Link: http://lkml.kernel.org/r/20170929045140.4055-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-constify-hmm_devmem_page_get_drvdata-parameter include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-constify-hmm_devmem_page_get_drvdata-parameter
-+++ a/include/linux/hmm.h
-@@ -471,9 +471,9 @@ static inline void hmm_devmem_page_set_d
-  * @page: pointer to struct page
-  * Return: driver data value
-  */
--static inline unsigned long hmm_devmem_page_get_drvdata(struct page *page)
-+static inline unsigned long hmm_devmem_page_get_drvdata(const struct page *page)
- {
--	unsigned long *drvdata = (unsigned long *)&page->pgmap;
-+	const unsigned long *drvdata = (const unsigned long *)&page->pgmap;
+diff -puN mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug
++++ a/mm/zsmalloc.c
+@@ -1349,7 +1349,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	 * pools/users, we can't allow mapping in interrupt context
+ 	 * because it can corrupt another users mappings.
+ 	 */
+-	WARN_ON_ONCE(in_interrupt());
++	BUG_ON(in_interrupt());
  
- 	return drvdata[1];
- }
+ 	/* From now on, migration cannot move the object */
+ 	pin_tag(handle);
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
 
