@@ -1,124 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-set-bdi_cap_stable_writes-once.patch removed
- from -mm tree
-Date: Thu, 16 Nov 2017 12:00:04 -0800
-Message-ID: <20171116200004.6nlj9I_2T%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+ removed from -mm tree
+Date: Thu, 16 Nov 2017 12:00:17 -0800
+Message-ID: <20171116200017.RQkYEnEfY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934471AbdKPUAF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:05 -0500
+        with ESMTP id S934765AbdKPUAT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: axboe@kernel.dk, dan.j.williams@intel.com, hch@lst.de, hughd@google.com, idryomov@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sergey.senozhatsky@gmail.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: zram: set BDI_CAP_STABLE_WRITES once
+     Subject: mm: swap: SWP_SYNCHRONOUS_IO: skip swapcache only if swapped page has no other reference
 has been removed from the -mm tree.  Its filename was
-     zram-set-bdi_cap_stable_writes-once.patch
+     mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: set BDI_CAP_STABLE_WRITES once
+Subject: mm: swap: SWP_SYNCHRONOUS_IO: skip swapcache only if swapped page has no other reference
 
-With fast swap storage, the platform wants to use swap more aggressively
-and swap-in is crucial to application latency.
+When SWP_SYNCHRONOUS_IO swapped-in pages are shared by several processes,
+it can cause unnecessary memory wastage by skipping swap cache.  Because,
+with swapin fault by read, they could share a page if the page were in
+swap cache.  Thus, it avoids allocating same content new pages.
 
-The rw_page() based synchronous devices like zram, pmem and btt are such
-fast storage.  When I profile swapin performance with zram lz4 decompress
-test, S/W overhead is more than 70%.  Maybe, it would be bigger in nvdimm.
+This patch makes the swapcache skipping work only if the swap pte is
+non-sharable.
 
-This patchset reduces swap-in latency by skipping swapcache if the swap
-device is a synchronous device like a rw_page() based device.
-
-It enhances by 45% my swapin test (5G sequential swapin, no readahead)
-from 2.41sec to 1.64sec.
-
-
-This patch (of 4):
-
-19b7ccf8651d ("block: get rid of blk_integrity_revalidate()") fixed a
-weird thing (i.e., reset BDI_CAP_STABLE_WRITES flag unconditionally
-whenever revalidat_disk is called) so zram doesn't need to reset the flag
-any more when revalidating the bdev.  Instead, set the flag just once when
-the zram device is created.
-
-It shouldn't change any behavior.
-
-Link: http://lkml.kernel.org/r/1505886205-9671-2-git-send-email-minchan@kernel.org
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1507620825-5537-1-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/swap.h |    6 ++++++
+ mm/memory.c          |   19 ++++++++++---------
+ mm/swapfile.c        |    7 +++++++
+ 3 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-set-bdi_cap_stable_writes-once drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-set-bdi_cap_stable_writes-once
-+++ a/drivers/block/zram/zram_drv.c
-@@ -122,14 +122,6 @@ static inline bool is_partial_io(struct
+diff -puN include/linux/swap.h~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
++++ a/include/linux/swap.h
+@@ -463,6 +463,7 @@ extern unsigned int count_swap_pages(int
+ extern sector_t map_swap_page(struct page *, struct block_device **);
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern int page_swapcount(struct page *);
++extern int __swap_count(struct swap_info_struct *si, swp_entry_t entry);
+ extern int __swp_swapcount(swp_entry_t entry);
+ extern int swp_swapcount(swp_entry_t entry);
+ extern struct swap_info_struct *page_swap_info(struct page *);
+@@ -588,6 +589,11 @@ static inline int page_swapcount(struct
+ {
+ 	return 0;
  }
- #endif
- 
--static void zram_revalidate_disk(struct zram *zram)
--{
--	revalidate_disk(zram->disk);
--	/* revalidate_disk reset the BDI_CAP_STABLE_WRITES so set again */
--	zram->disk->queue->backing_dev_info->capabilities |=
--		BDI_CAP_STABLE_WRITES;
--}
--
- /*
-  * Check if request is within bounds and aligned on zram logical blocks.
-  */
-@@ -1373,7 +1365,8 @@ static ssize_t disksize_store(struct dev
- 	zram->comp = comp;
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
--	zram_revalidate_disk(zram);
 +
-+	revalidate_disk(zram->disk);
- 	up_write(&zram->init_lock);
++static inline int __swap_count(struct swap_info_struct *si, swp_entry_t entry)
++{
++	return 0;
++}
  
- 	return len;
-@@ -1420,7 +1413,7 @@ static ssize_t reset_store(struct device
- 	/* Make sure all the pending I/O are finished */
- 	fsync_bdev(bdev);
- 	zram_reset_device(zram);
--	zram_revalidate_disk(zram);
-+	revalidate_disk(zram->disk);
- 	bdput(bdev);
+ static inline int __swp_swapcount(swp_entry_t entry)
+ {
+diff -puN mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference mm/memory.c
+--- a/mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
++++ a/mm/memory.c
+@@ -2890,15 +2890,8 @@ int do_swap_page(struct vm_fault *vmf)
+ 	if (!page) {
+ 		struct swap_info_struct *si = swp_swap_info(entry);
  
- 	mutex_lock(&bdev->bd_mutex);
-@@ -1539,6 +1532,7 @@ static int zram_add(void)
- 	/* zram devices sort of resembles non-rotational disks */
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, zram->disk->queue);
- 	queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, zram->disk->queue);
+-		if (!(si->flags & SWP_SYNCHRONOUS_IO)) {
+-			if (vma_readahead)
+-				page = do_swap_page_readahead(entry,
+-					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
+-			else
+-				page = swapin_readahead(entry,
+-					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+-			swapcache = page;
+-		} else {
++		if (si->flags & SWP_SYNCHRONOUS_IO &&
++				__swap_count(si, entry) == 1) {
+ 			/* skip swapcache */
+ 			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+ 			if (page) {
+@@ -2908,6 +2901,14 @@ int do_swap_page(struct vm_fault *vmf)
+ 				lru_cache_add_anon(page);
+ 				swap_readpage(page, true);
+ 			}
++		} else {
++			if (vma_readahead)
++				page = do_swap_page_readahead(entry,
++					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
++			else
++				page = swapin_readahead(entry,
++				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
++			swapcache = page;
+ 		}
+ 
+ 		if (!page) {
+diff -puN mm/swapfile.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference
++++ a/mm/swapfile.c
+@@ -1328,6 +1328,13 @@ int page_swapcount(struct page *page)
+ 	return count;
+ }
+ 
++int __swap_count(struct swap_info_struct *si, swp_entry_t entry)
++{
++	pgoff_t offset = swp_offset(entry);
 +
- 	/*
- 	 * To ensure that we always get PAGE_SIZE aligned
- 	 * and n*PAGE_SIZED sized I/O requests.
-@@ -1563,6 +1557,8 @@ static int zram_add(void)
- 	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
- 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
- 
-+	zram->disk->queue->backing_dev_info->capabilities |=
-+					BDI_CAP_STABLE_WRITES;
- 	add_disk(zram->disk);
- 
- 	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
++	return swap_count(si->swap_map[offset]);
++}
++
+ static int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
+ {
+ 	int count = 0;
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
