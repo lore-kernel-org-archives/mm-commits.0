@@ -1,79 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-convert-timers-to-use-timer_setup.patch
+Subject: [merged] zram-make-function-zram_page_end_io-static.patch
  removed from -mm tree
-Date: Thu, 16 Nov 2017 12:03:39 -0800
-Message-ID: <20171116200339.01mUfEAMU%akpm@linux-foundation.org>
+Date: Thu, 16 Nov 2017 12:03:42 -0800
+Message-ID: <20171116200342.YqeDStTP0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47078 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47094 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935293AbdKPUDk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:40 -0500
+        with ESMTP id S935293AbdKPUDn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, jack@suse.cz, jlayton@redhat.com, keescook@chromium.org, mawilcox@microsoft.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: colin.king@canonical.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: mm/page-writeback.c: convert timers to use timer_setup()
+     Subject: drivers/block/zram/zram_drv.c: make zram_page_end_io() static
 has been removed from the -mm tree.  Its filename was
-     writeback-convert-timers-to-use-timer_setup.patch
+     zram-make-function-zram_page_end_io-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/page-writeback.c: convert timers to use timer_setup()
+From: Colin Ian King <colin.king@canonical.com>
+Subject: drivers/block/zram/zram_drv.c: make zram_page_end_io() static
 
-In preparation for unconditionally passing the struct timer_list pointer
-to all timer callbacks, switch to using the new timer_setup() and
-from_timer() to pass the timer pointer explicitly.
+zram_page_end_io() is local to the source and does not need to be in
+global scope, so make it static.
 
-Link: http://lkml.kernel.org/r/20171016225913.GA99214@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Jeff Layton <jlayton@redhat.com>
+Cleans up sparse warning:
+symbol 'zram_page_end_io' was not declared. Should it be static?
+
+Link: http://lkml.kernel.org/r/20171016173336.20320-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~writeback-convert-timers-to-use-timer_setup mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-convert-timers-to-use-timer_setup
-+++ a/mm/page-writeback.c
-@@ -628,9 +628,9 @@ EXPORT_SYMBOL_GPL(wb_writeout_inc);
-  * On idle system, we can be called long after we scheduled because we use
-  * deferred timers so count with missed periods.
-  */
--static void writeout_period(unsigned long t)
-+static void writeout_period(struct timer_list *t)
+diff -puN drivers/block/zram/zram_drv.c~zram-make-function-zram_page_end_io-static drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-make-function-zram_page_end_io-static
++++ a/drivers/block/zram/zram_drv.c
+@@ -428,7 +428,7 @@ static void put_entry_bdev(struct zram *
+ 	WARN_ON_ONCE(!was_set);
+ }
+ 
+-void zram_page_end_io(struct bio *bio)
++static void zram_page_end_io(struct bio *bio)
  {
--	struct wb_domain *dom = (void *)t;
-+	struct wb_domain *dom = from_timer(dom, t, period_timer);
- 	int miss_periods = (jiffies - dom->period_time) /
- 						 VM_COMPLETIONS_PERIOD_LEN;
- 
-@@ -653,8 +653,7 @@ int wb_domain_init(struct wb_domain *dom
- 
- 	spin_lock_init(&dom->lock);
- 
--	setup_deferrable_timer(&dom->period_timer, writeout_period,
--			       (unsigned long)dom);
-+	timer_setup(&dom->period_timer, writeout_period, TIMER_DEFERRABLE);
- 
- 	dom->dirty_limit_tstamp = jiffies;
+ 	struct page *page = bio->bi_io_vec[0].bv_page;
  
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-sh-boot-add-static-stack-protector-to-pre-kernel.patch
-lkdtm-include-warn-format-string.patch
-bug-define-the-cut-here-string-in-a-single-place.patch
-bug-fix-cut-here-location-for-__warn_taint-architectures.patch
-fs-nilfs2-convert-timers-to-use-timer_setup.patch
+fat-remove-redundant-assignment-of-0-to-slots.patch
 
