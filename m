@@ -1,174 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [patch 038/131] mm, memory_hotplug: do not fail offlining
- too early
-Date: Wed, 15 Nov 2017 17:33:34 -0800
-Message-ID: <20171116013334.Q8lPVFym9%akpm@linux-foundation.org>
+Subject: [patch 040/131] mm/memblock.c: make the index explicit
+ argument of for_each_memblock_type
+Date: Wed, 15 Nov 2017 17:33:42 -0800
+Message-ID: <20171116013342.nlFAIP4bV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932597AbdKPBdg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:36 -0500
+        with ESMTP id S933553AbdKPBdo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, torvalds@linux-foundation.org, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: akpm@linux-foundation.org, gi-oh.kim@profitbricks.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: do not fail offlining too early
+From: Gioh Kim <gi-oh.kim@profitbricks.com>
+Subject: mm/memblock.c: make the index explicit argument of for_each_memblock_type
 
-Patch series "mm, memory_hotplug: redefine memory offline retry logic", v2.
+for_each_memblock_type macro function relies on idx variable defined in
+the caller context.  Silent macro arguments are almost always wrong thing
+to do.  They make code harder to read and easier to get wrong.  Let's use
+an explicit iterator parameter for for_each_memblock_type and make the
+code more obious.  This patch is a mere cleanup and it shouldn't introduce
+any functional change.
 
-While testing memory hotplug on a large 4TB machine we have noticed that
-memory offlining is just too eager to fail.  The primary reason is that
-the retry logic is just too easy to give up.  We have 4 ways out of the
-offline
-
-	- we have a permanent failure (isolation or memory notifiers fail,
-	  or hugetlb pages cannot be dropped)
-	- userspace sends a signal
-	- a hardcoded 120s timeout expires
-	- page migration fails 5 times
-
-This is way too convoluted and it doesn't scale very well.  We have seen
-both temporary migration failures as well as 120s being triggered.  After
-removing those restrictions we were able to pass stress testing during
-memory hot remove without any other negative side effects observed. 
-Therefore I suggest dropping both hard coded policies.  I couldn't have
-found any specific reason for them in the changelog.  I neither didn't get
-any response [1] from Kamezawa.  If we need some upper bound - e.g. 
-timeout based - then we should have a proper and user defined policy for
-that.  In any case there should be a clear use case when introducing it. 
-
-
-This patch (of 2):
-
-Memory offlining can fail too eagerly under heavy memory pressure.
-
-[ 5410.336792] page:ffffea22a646bd00 count:255 mapcount:252 mapping:ffff88ff926c9f38 index:0x3
-[ 5410.336809] flags: 0x9855fe40010048(uptodate|active|mappedtodisk)
-[ 5410.336811] page dumped because: isolation failed
-[ 5410.336813] page->mem_cgroup:ffff8801cd662000
-[ 5420.655030] memory offlining [mem 0x18b580000000-0x18b5ffffffff] failed
-
-Isolation has failed here because the page is not on LRU.  Most probably
-because it was on the pcp LRU cache or it has been removed from the LRU
-already but it hasn't been freed yet.  In both cases the page doesn't look
-non-migrable so retrying more makes sense.
-
-__offline_pages seems rather cluttered when it comes to the retry logic. 
-We have 5 retries at maximum and a timeout.  We could argue whether the
-timeout makes sense but failing just because of a race when somebody
-isoltes a page from LRU or puts it on a pcp LRU lists is just wrong.  It
-only takes it to race with a process which unmaps some pages and remove
-them from the LRU list and we can fail the whole offline because of
-something that is a temporary condition and actually not harmful for the
-offline.
-
-Please note that unmovable pages should be already excluded during
-start_isolate_page_range.  We could argue that has_unmovable_pages is racy
-and MIGRATE_MOVABLE check doesn't provide any hard guarantee either but
-kernel zones (aka < ZONE_MOVABLE) will very likely detect unmovable pages
-in most cases and movable zone shouldn't contain unmovable pages at all. 
-Some of those pages might be pinned but not for ever because that would be
-a bug on its own.  In any case the context is still interruptible and so
-the userspace can easily bail out when the operation takes too long.  This
-is certainly better behavior than a hardcoded retry loop which is racy.
-
-Fix this by removing the max retry count and only rely on the timeout
-resp.  interruption by a signal from the userspace.  Also retry rather
-than fail when check_pages_isolated sees some !free pages because those
-could be a result of the race as well.
-
-Link: http://lkml.kernel.org/r/20170918070834.13083-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/20170913133029.28911-1-gi-oh.kim@profitbricks.com
+Signed-off-by: Gioh Kim <gi-oh.kim@profitbricks.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   40 ++++++++++------------------------------
- 1 file changed, 10 insertions(+), 30 deletions(-)
+ include/linux/memblock.h |    8 ++++----
+ mm/memblock.c            |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early
-+++ a/mm/memory_hotplug.c
-@@ -1594,7 +1594,7 @@ static int __ref __offline_pages(unsigne
- {
- 	unsigned long pfn, nr_pages, expire;
- 	long offlined_pages;
--	int ret, drain, retry_max, node;
-+	int ret, node;
- 	unsigned long flags;
- 	unsigned long valid_start, valid_end;
- 	struct zone *zone;
-@@ -1631,43 +1631,25 @@ static int __ref __offline_pages(unsigne
+diff -puN include/linux/memblock.h~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type
++++ a/include/linux/memblock.h
+@@ -389,10 +389,10 @@ static inline unsigned long memblock_reg
+ 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+ 	     region++)
  
- 	pfn = start_pfn;
- 	expire = jiffies + timeout;
--	drain = 0;
--	retry_max = 5;
- repeat:
- 	/* start memory hot removal */
--	ret = -EAGAIN;
-+	ret = -EBUSY;
- 	if (time_after(jiffies, expire))
- 		goto failed_removal;
- 	ret = -EINTR;
- 	if (signal_pending(current))
- 		goto failed_removal;
--	ret = 0;
--	if (drain) {
--		lru_add_drain_all_cpuslocked();
--		cond_resched();
--		drain_all_pages(zone);
--	}
-+
-+	cond_resched();
-+	lru_add_drain_all_cpuslocked();
-+	drain_all_pages(zone);
+-#define for_each_memblock_type(memblock_type, rgn)			\
+-	for (idx = 0, rgn = &memblock_type->regions[0];			\
+-	     idx < memblock_type->cnt;					\
+-	     idx++, rgn = &memblock_type->regions[idx])
++#define for_each_memblock_type(i, memblock_type, rgn)			\
++	for (i = 0, rgn = &memblock_type->regions[0];			\
++	     i < memblock_type->cnt;					\
++	     i++, rgn = &memblock_type->regions[i])
  
- 	pfn = scan_movable_pages(start_pfn, end_pfn);
- 	if (pfn) { /* We have movable pages */
- 		ret = do_migrate_range(pfn, end_pfn);
--		if (!ret) {
--			drain = 1;
--			goto repeat;
--		} else {
--			if (ret < 0)
--				if (--retry_max == 0)
--					goto failed_removal;
--			yield();
--			drain = 1;
--			goto repeat;
--		}
-+		goto repeat;
- 	}
--	/* drain all zone's lru pagevec, this is asynchronous... */
--	lru_add_drain_all_cpuslocked();
--	yield();
--	/* drain pcp pages, this is synchronous. */
--	drain_all_pages(zone);
-+
- 	/*
- 	 * dissolve free hugepages in the memory block before doing offlining
- 	 * actually in order to make hugetlbfs's object counting consistent.
-@@ -1677,10 +1659,8 @@ repeat:
- 		goto failed_removal;
- 	/* check again */
- 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
--	if (offlined_pages < 0) {
--		ret = -EBUSY;
--		goto failed_removal;
--	}
-+	if (offlined_pages < 0)
-+		goto repeat;
- 	pr_info("Offlined Pages %ld\n", offlined_pages);
- 	/* Ok, all of our target is isolated.
- 	   We cannot do rollback at this point. */
+ #ifdef CONFIG_MEMTEST
+ extern void early_memtest(phys_addr_t start, phys_addr_t end);
+diff -puN mm/memblock.c~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type
++++ a/mm/memblock.c
+@@ -533,7 +533,7 @@ repeat:
+ 	base = obase;
+ 	nr_new = 0;
+ 
+-	for_each_memblock_type(type, rgn) {
++	for_each_memblock_type(idx, type, rgn) {
+ 		phys_addr_t rbase = rgn->base;
+ 		phys_addr_t rend = rbase + rgn->size;
+ 
+@@ -637,7 +637,7 @@ static int __init_memblock memblock_isol
+ 		if (memblock_double_array(type, base, size) < 0)
+ 			return -ENOMEM;
+ 
+-	for_each_memblock_type(type, rgn) {
++	for_each_memblock_type(idx, type, rgn) {
+ 		phys_addr_t rbase = rgn->base;
+ 		phys_addr_t rend = rbase + rgn->size;
+ 
+@@ -1715,7 +1715,7 @@ static void __init_memblock memblock_dum
+ 
+ 	pr_info(" %s.cnt  = 0x%lx\n", type->name, type->cnt);
+ 
+-	for_each_memblock_type(type, rgn) {
++	for_each_memblock_type(idx, type, rgn) {
+ 		char nid_buf[32] = "";
+ 
+ 		base = rgn->base;
+@@ -1739,7 +1739,7 @@ memblock_reserved_memory_within(phys_add
+ 	unsigned long size = 0;
+ 	int idx;
+ 
+-	for_each_memblock_type((&memblock.reserved), rgn) {
++	for_each_memblock_type(idx, (&memblock.reserved), rgn) {
+ 		phys_addr_t start, end;
+ 
+ 		if (rgn->base + rgn->size < start_addr)
 _
