@@ -1,93 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 040/131] mm/memblock.c: make the index explicit
- argument of for_each_memblock_type
-Date: Wed, 15 Nov 2017 17:33:42 -0800
-Message-ID: <20171116013342.nlFAIP4bV%akpm@linux-foundation.org>
+Subject: [patch 041/131] mm/page-writeback.c: print a warning if
+ the vm dirtiness settings are illogical
+Date: Wed, 15 Nov 2017 17:33:45 -0800
+Message-ID: <20171116013345.cFvk8OGFj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38978 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933553AbdKPBdo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:44 -0500
+        with ESMTP id S933595AbdKPBdr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gi-oh.kim@profitbricks.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, jack@suse.cz, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Gioh Kim <gi-oh.kim@profitbricks.com>
-Subject: mm/memblock.c: make the index explicit argument of for_each_memblock_type
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
 
-for_each_memblock_type macro function relies on idx variable defined in
-the caller context.  Silent macro arguments are almost always wrong thing
-to do.  They make code harder to read and easier to get wrong.  Let's use
-an explicit iterator parameter for for_each_memblock_type and make the
-code more obious.  This patch is a mere cleanup and it shouldn't introduce
-any functional change.
+The vm direct limit setting must be set greater than vm background limit
+setting.  Otherwise print a warning to help the operator to figure out
+that the vm dirtiness settings is in illogical state.
 
-Link: http://lkml.kernel.org/r/20170913133029.28911-1-gi-oh.kim@profitbricks.com
-Signed-off-by: Gioh Kim <gi-oh.kim@profitbricks.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1506592464-30962-1-git-send-email-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    8 ++++----
- mm/memblock.c            |    8 ++++----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/sysctl/vm.txt |    7 +++++++
+ mm/page-writeback.c         |    5 ++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memblock.h~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type
-+++ a/include/linux/memblock.h
-@@ -389,10 +389,10 @@ static inline unsigned long memblock_reg
- 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
- 	     region++)
+diff -puN Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/Documentation/sysctl/vm.txt
+@@ -157,6 +157,10 @@ Note: the minimum value allowed for dirt
+ value lower than this limit will be ignored and the old configuration will be
+ retained.
  
--#define for_each_memblock_type(memblock_type, rgn)			\
--	for (idx = 0, rgn = &memblock_type->regions[0];			\
--	     idx < memblock_type->cnt;					\
--	     idx++, rgn = &memblock_type->regions[idx])
-+#define for_each_memblock_type(i, memblock_type, rgn)			\
-+	for (i = 0, rgn = &memblock_type->regions[0];			\
-+	     i < memblock_type->cnt;					\
-+	     i++, rgn = &memblock_type->regions[i])
++Note: the value of dirty_bytes also must be set greater than
++dirty_background_bytes or the amount of memory corresponding to
++dirty_background_ratio.
++
+ ==============================================================
  
- #ifdef CONFIG_MEMTEST
- extern void early_memtest(phys_addr_t start, phys_addr_t end);
-diff -puN mm/memblock.c~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-make-the-index-explicit-argument-of-for_each_memblock_type
-+++ a/mm/memblock.c
-@@ -533,7 +533,7 @@ repeat:
- 	base = obase;
- 	nr_new = 0;
+ dirty_expire_centisecs
+@@ -176,6 +180,9 @@ generating disk writes will itself start
  
--	for_each_memblock_type(type, rgn) {
-+	for_each_memblock_type(idx, type, rgn) {
- 		phys_addr_t rbase = rgn->base;
- 		phys_addr_t rend = rbase + rgn->size;
+ The total available memory is not equal to total system memory.
  
-@@ -637,7 +637,7 @@ static int __init_memblock memblock_isol
- 		if (memblock_double_array(type, base, size) < 0)
- 			return -ENOMEM;
++Note: dirty_ratio must be set greater than dirty_background_ratio or
++ratio corresponding to dirty_background_bytes.
++
+ ==============================================================
  
--	for_each_memblock_type(type, rgn) {
-+	for_each_memblock_type(idx, type, rgn) {
- 		phys_addr_t rbase = rgn->base;
- 		phys_addr_t rend = rbase + rgn->size;
+ dirty_writeback_centisecs
+diff -puN mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/mm/page-writeback.c
+@@ -433,8 +433,11 @@ static void domain_dirty_limits(struct d
+ 	else
+ 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
  
-@@ -1715,7 +1715,7 @@ static void __init_memblock memblock_dum
- 
- 	pr_info(" %s.cnt  = 0x%lx\n", type->name, type->cnt);
- 
--	for_each_memblock_type(type, rgn) {
-+	for_each_memblock_type(idx, type, rgn) {
- 		char nid_buf[32] = "";
- 
- 		base = rgn->base;
-@@ -1739,7 +1739,7 @@ memblock_reserved_memory_within(phys_add
- 	unsigned long size = 0;
- 	int idx;
- 
--	for_each_memblock_type((&memblock.reserved), rgn) {
-+	for_each_memblock_type(idx, (&memblock.reserved), rgn) {
- 		phys_addr_t start, end;
- 
- 		if (rgn->base + rgn->size < start_addr)
+-	if (bg_thresh >= thresh)
++	if (unlikely(bg_thresh >= thresh)) {
++		pr_warn("vm direct limit must be set greater than background limit.\n");
+ 		bg_thresh = thresh / 2;
++	}
++
+ 	tsk = current;
+ 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
+ 		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
 _
