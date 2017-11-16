@@ -1,87 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [patch 008/131] ocfs2: should wait dio before inode lock
- in ocfs2_setattr()
-Date: Wed, 15 Nov 2017 17:31:40 -0800
-Message-ID: <20171116013140._8Y3AY-GQ%akpm@linux-foundation.org>
+Subject: [patch 010/131] ocfs2: subsystem.su_mutex is required
+ while accessing the item->ci_parent
+Date: Wed, 15 Nov 2017 17:31:48 -0800
+Message-ID: <20171116013148.jTLGqpVPl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38352 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933442AbdKPBbm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:31:42 -0500
+        with ESMTP id S933442AbdKPBbu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:31:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
 
 From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: should wait dio before inode lock in ocfs2_setattr()
+Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
 
-we should wait dio requests to finish before inode lock in
-ocfs2_setattr(), otherwise the following deadlock will happen:
+The subsystem.su_mutex is required while accessing the item->ci_parent,
+otherwise, NULL pointer dereference to the item->ci_parent will be
+triggered in the following situation:
 
-process 1                  process 2                    process 3
-truncate file 'A'          end_io of writing file 'A'   receiving the bast messages
-ocfs2_setattr
- ocfs2_inode_lock_tracker
-  ocfs2_inode_lock_full
- inode_dio_wait
-  __inode_dio_wait
-  -->waiting for all dio
-  requests finish
-                                                        dlm_proxy_ast_handler
-                                                         dlm_do_local_bast
-                                                          ocfs2_blocking_ast
-                                                           ocfs2_generic_handle_bast
-                                                            set OCFS2_LOCK_BLOCKED flag
-                        dio_end_io
-                         dio_bio_end_aio
-                          dio_complete
-                           ocfs2_dio_end_io
-                            ocfs2_dio_end_io_write
-                             ocfs2_inode_lock
-                              __ocfs2_cluster_lock
-                               ocfs2_wait_for_mask
-                               -->waiting for OCFS2_LOCK_BLOCKED
-                               flag to be cleared, that is waiting
-                               for 'process 1' unlocking the inode lock
-                           inode_dio_end
-                           -->here dec the i_dio_count, but will never
-                           be called, so a deadlock happened.
+add node                     delete node
+sys_write
+ vfs_write
+  configfs_write_file
+   o2nm_node_store
+    o2nm_node_local_write
+                             do_rmdir
+                              vfs_rmdir
+                               configfs_rmdir
+                                mutex_lock(&subsys->su_mutex);
+                                unlink_obj
+                                 item->ci_group = NULL;
+                                 item->ci_parent = NULL;
+	 to_o2nm_cluster_from_node
+	  node->nd_item.ci_parent->ci_parent
+	  BUG since of NULL pointer dereference to nd_item.ci_parent
 
-Link: http://lkml.kernel.org/r/59F81636.70508@huawei.com
+Moreover, the o2nm_cluster also should be protected by the
+subsystem.su_mutex.
+
+[alex.chen@huawei.com: v2]
+  Link: http://lkml.kernel.org/r/59EEAA69.9080703@huawei.com
+Link: http://lkml.kernel.org/r/59E9B36A.10700@huawei.com
 Signed-off-by: Alex Chen <alex.chen@huawei.com>
 Reviewed-by: Jun Piao <piaojun@huawei.com>
 Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Acked-by: Changwei Ge <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ fs/ocfs2/cluster/nodemanager.c |   63 +++++++++++++++++++++++++++----
+ 1 file changed, 55 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr
-+++ a/fs/ocfs2/file.c
-@@ -1161,6 +1161,13 @@ int ocfs2_setattr(struct dentry *dentry,
- 	}
- 	size_change = S_ISREG(inode->i_mode) && attr->ia_valid & ATTR_SIZE;
- 	if (size_change) {
-+		/*
-+		 * Here we should wait dio to finish before inode lock
-+		 * to avoid a deadlock between ocfs2_setattr() and
-+		 * ocfs2_dio_end_io_write()
-+		 */
-+		inode_dio_wait(inode);
-+
- 		status = ocfs2_rw_lock(inode, 1);
- 		if (status < 0) {
- 			mlog_errno(status);
-@@ -1200,8 +1207,6 @@ int ocfs2_setattr(struct dentry *dentry,
- 		if (status)
- 			goto bail_unlock;
+diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -40,6 +40,9 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
+ 		"panic",	/* O2NM_FENCE_PANIC */
+ };
  
--		inode_dio_wait(inode);
++static inline void o2nm_lock_subsystem(void);
++static inline void o2nm_unlock_subsystem(void);
++
+ struct o2nm_node *o2nm_get_node_by_num(u8 node_num)
+ {
+ 	struct o2nm_node *node = NULL;
+@@ -181,7 +184,10 @@ static struct o2nm_cluster *to_o2nm_clus
+ {
+ 	/* through the first node_set .parent
+ 	 * mycluster/nodes/mynode == o2nm_cluster->o2nm_node_group->o2nm_node */
+-	return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
++	if (node->nd_item.ci_parent)
++		return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
++	else
++		return NULL;
+ }
+ 
+ enum {
+@@ -194,7 +200,7 @@ static ssize_t o2nm_node_num_store(struc
+ 				   size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
+ 	int ret = 0;
+@@ -214,6 +220,13 @@ static ssize_t o2nm_node_num_store(struc
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		o2nm_unlock_subsystem();
++		return -EINVAL;
++	}
++
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (cluster->cl_nodes[tmp])
+ 		ret = -EEXIST;
+@@ -226,6 +239,8 @@ static ssize_t o2nm_node_num_store(struc
+ 		set_bit(tmp, cluster->cl_nodes_bitmap);
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
++	o2nm_unlock_subsystem();
++
+ 	if (ret)
+ 		return ret;
+ 
+@@ -269,7 +284,7 @@ static ssize_t o2nm_node_ipv4_address_st
+ 					    size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	int ret, i;
+ 	struct rb_node **p, *parent;
+ 	unsigned int octets[4];
+@@ -286,6 +301,13 @@ static ssize_t o2nm_node_ipv4_address_st
+ 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
+ 	}
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		o2nm_unlock_subsystem();
++		return -EINVAL;
++	}
++
+ 	ret = 0;
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
+@@ -298,6 +320,8 @@ static ssize_t o2nm_node_ipv4_address_st
+ 		rb_insert_color(&node->nd_ip_node, &cluster->cl_node_ip_tree);
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
++	o2nm_unlock_subsystem();
++
+ 	if (ret)
+ 		return ret;
+ 
+@@ -315,7 +339,7 @@ static ssize_t o2nm_node_local_store(str
+ 				     size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
+ 	ssize_t ret;
+@@ -333,17 +357,26 @@ static ssize_t o2nm_node_local_store(str
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		ret = -EINVAL;
++		goto out;
++	}
++
+ 	/* the only failure case is trying to set a new local node
+ 	 * when a different one is already set */
+ 	if (tmp && tmp == cluster->cl_has_local &&
+-	    cluster->cl_local_node != node->nd_num)
+-		return -EBUSY;
++	    cluster->cl_local_node != node->nd_num) {
++		ret = -EBUSY;
++		goto out;
++	}
+ 
+ 	/* bring up the rx thread if we're setting the new local node. */
+ 	if (tmp && !cluster->cl_has_local) {
+ 		ret = o2net_start_listening(node);
+ 		if (ret)
+-			return ret;
++			goto out;
+ 	}
+ 
+ 	if (!tmp && cluster->cl_has_local &&
+@@ -358,7 +391,11 @@ static ssize_t o2nm_node_local_store(str
+ 		cluster->cl_local_node = node->nd_num;
+ 	}
+ 
+-	return count;
++	ret = count;
++
++out:
++	o2nm_unlock_subsystem();
++	return ret;
+ }
+ 
+ CONFIGFS_ATTR(o2nm_node_, num);
+@@ -738,6 +775,16 @@ static struct o2nm_cluster_group o2nm_cl
+ 	},
+ };
+ 
++static inline void o2nm_lock_subsystem(void)
++{
++	mutex_lock(&o2nm_cluster_group.cs_subsys.su_mutex);
++}
++
++static inline void o2nm_unlock_subsystem(void)
++{
++	mutex_unlock(&o2nm_cluster_group.cs_subsys.su_mutex);
++}
++
+ int o2nm_depend_item(struct config_item *item)
+ {
+ 	return configfs_depend_item(&o2nm_cluster_group.cs_subsys, item);
+_
