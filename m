@@ -1,97 +1,119 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr.patch removed from
- -mm tree
-Date: Thu, 16 Nov 2017 11:58:59 -0800
-Message-ID: <20171116195859.9vlLhmmJZ%akpm__14441.4951130331$1510862342$gmane$org@linux-foundation.org>
+ ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch removed
+ from -mm tree
+Date: Thu, 16 Nov 2017 11:59:02 -0800
+Message-ID: <20171116195902.5E44ZIL5T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45758 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934001AbdKPT7A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:00 -0500
+        with ESMTP id S934046AbdKPT7E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org
+To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: ocfs2: should wait dio before inode lock in ocfs2_setattr()
+     Subject: ocfs2: ip_alloc_sem should be taken in ocfs2_get_block()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr.patch
+     ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: should wait dio before inode lock in ocfs2_setattr()
+Subject: ocfs2: ip_alloc_sem should be taken in ocfs2_get_block()
 
-we should wait dio requests to finish before inode lock in
-ocfs2_setattr(), otherwise the following deadlock will happen:
+ip_alloc_sem should be taken in ocfs2_get_block() when reading file in
+DIRECT mode to prevent concurrent access to extent tree with
+ocfs2_dio_end_io_write(), which may cause BUGON in the following
+situation:
 
-process 1                  process 2                    process 3
-truncate file 'A'          end_io of writing file 'A'   receiving the bast messages
-ocfs2_setattr
- ocfs2_inode_lock_tracker
-  ocfs2_inode_lock_full
- inode_dio_wait
-  __inode_dio_wait
-  -->waiting for all dio
-  requests finish
-                                                        dlm_proxy_ast_handler
-                                                         dlm_do_local_bast
-                                                          ocfs2_blocking_ast
-                                                           ocfs2_generic_handle_bast
-                                                            set OCFS2_LOCK_BLOCKED flag
-                        dio_end_io
-                         dio_bio_end_aio
-                          dio_complete
-                           ocfs2_dio_end_io
-                            ocfs2_dio_end_io_write
-                             ocfs2_inode_lock
-                              __ocfs2_cluster_lock
-                               ocfs2_wait_for_mask
-                               -->waiting for OCFS2_LOCK_BLOCKED
-                               flag to be cleared, that is waiting
-                               for 'process 1' unlocking the inode lock
-                           inode_dio_end
-                           -->here dec the i_dio_count, but will never
-                           be called, so a deadlock happened.
+read file 'A'                                  end_io of writing file 'A'
+vfs_read
+ __vfs_read
+  ocfs2_file_read_iter
+   generic_file_read_iter
+    ocfs2_direct_IO
+     __blockdev_direct_IO
+      do_blockdev_direct_IO
+       do_direct_IO
+        get_more_blocks
+         ocfs2_get_block
+          ocfs2_extent_map_get_blocks
+           ocfs2_get_clusters
+            ocfs2_get_clusters_nocache()
+             ocfs2_search_extent_list
+              return the index of record which
+              contains the v_cluster, that is
+              v_cluster > rec[i]->e_cpos.
+                                                ocfs2_dio_end_io
+                                                 ocfs2_dio_end_io_write
+                                                  down_write(&oi->ip_alloc_sem);
+                                                  ocfs2_mark_extent_written
+                                                   ocfs2_change_extent_flag
+                                                    ocfs2_split_extent
+                                                     ...
+                                                 --> modify the rec[i]->e_cpos, resulting
+                                                     in v_cluster < rec[i]->e_cpos.
+             BUG_ON(v_cluster < le32_to_cpu(rec->e_cpos))
 
-Link: http://lkml.kernel.org/r/59F81636.70508@huawei.com
+[alex.chen@huawei.com: v3]
+  Link: http://lkml.kernel.org/r/59EF3614.6050008@huawei.com
+Link: http://lkml.kernel.org/r/59EF3614.6050008@huawei.com
+Fixes: c15471f79506 ("ocfs2: fix sparse file & data ordering issue in direct io")
 Signed-off-by: Alex Chen <alex.chen@huawei.com>
 Reviewed-by: Jun Piao <piaojun@huawei.com>
 Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Gang He <ghe@suse.com>
 Acked-by: Changwei Ge <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ fs/ocfs2/aops.c |   26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-should-wait-dio-before-inode-lock-in-ocfs2_setattr
-+++ a/fs/ocfs2/file.c
-@@ -1161,6 +1161,13 @@ int ocfs2_setattr(struct dentry *dentry,
- 	}
- 	size_change = S_ISREG(inode->i_mode) && attr->ia_valid & ATTR_SIZE;
- 	if (size_change) {
-+		/*
-+		 * Here we should wait dio to finish before inode lock
-+		 * to avoid a deadlock between ocfs2_setattr() and
-+		 * ocfs2_dio_end_io_write()
-+		 */
-+		inode_dio_wait(inode);
-+
- 		status = ocfs2_rw_lock(inode, 1);
- 		if (status < 0) {
- 			mlog_errno(status);
-@@ -1200,8 +1207,6 @@ int ocfs2_setattr(struct dentry *dentry,
- 		if (status)
- 			goto bail_unlock;
+diff -puN fs/ocfs2/aops.c~ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block
++++ a/fs/ocfs2/aops.c
+@@ -134,6 +134,19 @@ bail:
+ 	return err;
+ }
  
--		inode_dio_wait(inode);
++static int ocfs2_lock_get_block(struct inode *inode, sector_t iblock,
++		    struct buffer_head *bh_result, int create)
++{
++	int ret = 0;
++	struct ocfs2_inode_info *oi = OCFS2_I(inode);
++
++	down_read(&oi->ip_alloc_sem);
++	ret = ocfs2_get_block(inode, iblock, bh_result, create);
++	up_read(&oi->ip_alloc_sem);
++
++	return ret;
++}
++
+ int ocfs2_get_block(struct inode *inode, sector_t iblock,
+ 		    struct buffer_head *bh_result, int create)
+ {
+@@ -2128,7 +2141,7 @@ static void ocfs2_dio_free_write_ctx(str
+  * called like this: dio->get_blocks(dio->inode, fs_startblk,
+  * 					fs_count, map_bh, dio->rw == WRITE);
+  */
+-static int ocfs2_dio_get_block(struct inode *inode, sector_t iblock,
++static int ocfs2_dio_wr_get_block(struct inode *inode, sector_t iblock,
+ 			       struct buffer_head *bh_result, int create)
+ {
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+@@ -2154,12 +2167,9 @@ static int ocfs2_dio_get_block(struct in
+ 	 * while file size will be changed.
+ 	 */
+ 	if (pos + total_len <= i_size_read(inode)) {
+-		down_read(&oi->ip_alloc_sem);
+-		/* This is the fast path for re-write. */
+-		ret = ocfs2_get_block(inode, iblock, bh_result, create);
