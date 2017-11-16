@@ -1,166 +1,186 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
- removed from -mm tree
-Date: Thu, 16 Nov 2017 12:00:29 -0800
-Message-ID: <20171116200029.nUcbTW_fX%akpm@linux-foundation.org>
+ mm-memory_hotplug-do-not-fail-offlining-too-early.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:00:35 -0800
+Message-ID: <20171116200035.mcr_z4Zl9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46290 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934367AbdKPUAb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:31 -0500
+        with ESMTP id S934367AbdKPUAh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, ran.wang_1@nxp.com, stefan.wahren@i2se.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
 
 
 The patch titled
-     Subject: mm: distinguish CMA and MOVABLE isolation in has_unmovable_pages()
+     Subject: mm, memory_hotplug: do not fail offlining too early
 has been removed from the -mm tree.  Its filename was
-     mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages.patch
+     mm-memory_hotplug-do-not-fail-offlining-too-early.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: distinguish CMA and MOVABLE isolation in has_unmovable_pages()
+Subject: mm, memory_hotplug: do not fail offlining too early
 
-Joonsoo has noticed that "mm: drop migrate type checks from
-has_unmovable_pages" would break CMA allocator because it relies on
-has_unmovable_pages returning false even for CMA pageblocks which in fact
-don't have to be movable:
+Patch series "mm, memory_hotplug: redefine memory offline retry logic", v2.
 
-alloc_contig_range
-  start_isolate_page_range
-    set_migratetype_isolate
-      has_unmovable_pages
+While testing memory hotplug on a large 4TB machine we have noticed that
+memory offlining is just too eager to fail.  The primary reason is that
+the retry logic is just too easy to give up.  We have 4 ways out of the
+offline
 
-This is a result of the code sharing between CMA and memory hotplug while
-each one has a different idea of what has_unmovable_pages should return. 
-This is unfortunate but fixing it properly would require a lot of code
-duplication.
+	- we have a permanent failure (isolation or memory notifiers fail,
+	  or hugetlb pages cannot be dropped)
+	- userspace sends a signal
+	- a hardcoded 120s timeout expires
+	- page migration fails 5 times
 
-Fix the issue by introducing the requested migrate type argument and
-special case MIGRATE_CMA case where CMA page blocks are handled properly. 
-This will work for memory hotplug because it requires MIGRATE_MOVABLE.
+This is way too convoluted and it doesn't scale very well.  We have seen
+both temporary migration failures as well as 120s being triggered.  After
+removing those restrictions we were able to pass stress testing during
+memory hot remove without any other negative side effects observed. 
+Therefore I suggest dropping both hard coded policies.  I couldn't have
+found any specific reason for them in the changelog.  I neither didn't get
+any response [1] from Kamezawa.  If we need some upper bound - e.g. 
+timeout based - then we should have a proper and user defined policy for
+that.  In any case there should be a clear use case when introducing it. 
 
-Link: http://lkml.kernel.org/r/20171019122118.y6cndierwl2vnguj@dhcp22.suse.cz
+
+This patch (of 2):
+
+Memory offlining can fail too eagerly under heavy memory pressure.
+
+[ 5410.336792] page:ffffea22a646bd00 count:255 mapcount:252 mapping:ffff88ff926c9f38 index:0x3
+[ 5410.336809] flags: 0x9855fe40010048(uptodate|active|mappedtodisk)
+[ 5410.336811] page dumped because: isolation failed
+[ 5410.336813] page->mem_cgroup:ffff8801cd662000
+[ 5420.655030] memory offlining [mem 0x18b580000000-0x18b5ffffffff] failed
+
+Isolation has failed here because the page is not on LRU.  Most probably
+because it was on the pcp LRU cache or it has been removed from the LRU
+already but it hasn't been freed yet.  In both cases the page doesn't look
+non-migrable so retrying more makes sense.
+
+__offline_pages seems rather cluttered when it comes to the retry logic. 
+We have 5 retries at maximum and a timeout.  We could argue whether the
+timeout makes sense but failing just because of a race when somebody
+isoltes a page from LRU or puts it on a pcp LRU lists is just wrong.  It
+only takes it to race with a process which unmaps some pages and remove
+them from the LRU list and we can fail the whole offline because of
+something that is a temporary condition and actually not harmful for the
+offline.
+
+Please note that unmovable pages should be already excluded during
+start_isolate_page_range.  We could argue that has_unmovable_pages is racy
+and MIGRATE_MOVABLE check doesn't provide any hard guarantee either but
+kernel zones (aka < ZONE_MOVABLE) will very likely detect unmovable pages
+in most cases and movable zone shouldn't contain unmovable pages at all. 
+Some of those pages might be pinned but not for ever because that would be
+a bug on its own.  In any case the context is still interruptible and so
+the userspace can easily bail out when the operation takes too long.  This
+is certainly better behavior than a hardcoded retry loop which is racy.
+
+Fix this by removing the max retry count and only rely on the timeout
+resp.  interruption by a signal from the userspace.  Also retry rather
+than fail when check_pages_isolated sees some !free pages because those
+could be a result of the race as well.
+
+Link: http://lkml.kernel.org/r/20170918070834.13083-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Tested-by: Stefan Wahren <stefan.wahren@i2se.com>
-Tested-by: Ran Wang <ran.wang_1@nxp.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Igor Mammedov <imammedo@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |    2 +-
- mm/page_alloc.c                |   12 +++++++++++-
- mm/page_isolation.c            |   10 +++++-----
- 3 files changed, 17 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |   40 ++++++++++------------------------------
+ 1 file changed, 10 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/page-isolation.h~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages include/linux/page-isolation.h
---- a/include/linux/page-isolation.h~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages
-+++ a/include/linux/page-isolation.h
-@@ -31,7 +31,7 @@ static inline bool is_migrate_isolate(in
- #endif
- 
- bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
--			 bool skip_hwpoisoned_pages);
-+			 int migratetype, bool skip_hwpoisoned_pages);
- void set_pageblock_migratetype(struct page *page, int migratetype);
- int move_freepages_block(struct zone *zone, struct page *page,
- 				int migratetype, int *num_movable);
-diff -puN mm/page_alloc.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages
-+++ a/mm/page_alloc.c
-@@ -7353,6 +7353,7 @@ void *__init alloc_large_system_hash(con
-  * race condition. So you can't expect this function should be exact.
-  */
- bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
-+			 int migratetype,
- 			 bool skip_hwpoisoned_pages)
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early
++++ a/mm/memory_hotplug.c
+@@ -1594,7 +1594,7 @@ static int __ref __offline_pages(unsigne
  {
- 	unsigned long pfn, iter, found;
-@@ -7364,6 +7365,15 @@ bool has_unmovable_pages(struct zone *zo
- 	if (zone_idx(zone) == ZONE_MOVABLE)
- 		return false;
- 
-+	/*
-+	 * CMA allocations (alloc_contig_range) really need to mark isolate
-+	 * CMA pageblocks even when they are not movable in fact so consider
-+	 * them movable here.
-+	 */
-+	if (is_migrate_cma(migratetype) &&
-+			is_migrate_cma(get_pageblock_migratetype(page)))
-+		return false;
-+
- 	pfn = page_to_pfn(page);
- 	for (found = 0, iter = 0; iter < pageblock_nr_pages; iter++) {
- 		unsigned long check = pfn + iter;
-@@ -7446,7 +7456,7 @@ bool is_pageblock_removable_nolock(struc
- 	if (!zone_spans_pfn(zone, pfn))
- 		return false;
- 
--	return !has_unmovable_pages(zone, page, 0, true);
-+	return !has_unmovable_pages(zone, page, 0, MIGRATE_MOVABLE, true);
- }
- 
- #if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
-diff -puN mm/page_isolation.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages mm/page_isolation.c
---- a/mm/page_isolation.c~mm-distinguish-cma-and-movable-isolation-in-has_unmovable_pages
-+++ a/mm/page_isolation.c
-@@ -15,7 +15,7 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/page_isolation.h>
- 
--static int set_migratetype_isolate(struct page *page,
-+static int set_migratetype_isolate(struct page *page, int migratetype,
- 				bool skip_hwpoisoned_pages)
- {
+ 	unsigned long pfn, nr_pages, expire;
+ 	long offlined_pages;
+-	int ret, drain, retry_max, node;
++	int ret, node;
+ 	unsigned long flags;
+ 	unsigned long valid_start, valid_end;
  	struct zone *zone;
-@@ -52,7 +52,7 @@ static int set_migratetype_isolate(struc
- 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
- 	 * We just check MOVABLE pages.
- 	 */
--	if (!has_unmovable_pages(zone, page, arg.pages_found,
-+	if (!has_unmovable_pages(zone, page, arg.pages_found, migratetype,
- 				 skip_hwpoisoned_pages))
- 		ret = 0;
+@@ -1631,43 +1631,25 @@ static int __ref __offline_pages(unsigne
  
-@@ -64,14 +64,14 @@ static int set_migratetype_isolate(struc
- out:
- 	if (!ret) {
- 		unsigned long nr_pages;
--		int migratetype = get_pageblock_migratetype(page);
-+		int mt = get_pageblock_migratetype(page);
+ 	pfn = start_pfn;
+ 	expire = jiffies + timeout;
+-	drain = 0;
+-	retry_max = 5;
+ repeat:
+ 	/* start memory hot removal */
+-	ret = -EAGAIN;
++	ret = -EBUSY;
+ 	if (time_after(jiffies, expire))
+ 		goto failed_removal;
+ 	ret = -EINTR;
+ 	if (signal_pending(current))
+ 		goto failed_removal;
+-	ret = 0;
+-	if (drain) {
+-		lru_add_drain_all_cpuslocked();
+-		cond_resched();
+-		drain_all_pages(zone);
+-	}
++
++	cond_resched();
++	lru_add_drain_all_cpuslocked();
++	drain_all_pages(zone);
  
- 		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
- 		zone->nr_isolate_pageblock++;
- 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE,
- 									NULL);
- 
--		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
-+		__mod_zone_freepage_state(zone, -nr_pages, mt);
+ 	pfn = scan_movable_pages(start_pfn, end_pfn);
+ 	if (pfn) { /* We have movable pages */
+ 		ret = do_migrate_range(pfn, end_pfn);
+-		if (!ret) {
+-			drain = 1;
+-			goto repeat;
+-		} else {
+-			if (ret < 0)
+-				if (--retry_max == 0)
+-					goto failed_removal;
+-			yield();
+-			drain = 1;
+-			goto repeat;
+-		}
++		goto repeat;
  	}
- 
- 	spin_unlock_irqrestore(&zone->lock, flags);
-@@ -183,7 +183,7 @@ int start_isolate_page_range(unsigned lo
- 	     pfn += pageblock_nr_pages) {
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
- 		if (page &&
--		    set_migratetype_isolate(page, skip_hwpoisoned_pages)) {
-+		    set_migratetype_isolate(page, migratetype, skip_hwpoisoned_pages)) {
- 			undo_pfn = pfn;
- 			goto undo;
- 		}
+-	/* drain all zone's lru pagevec, this is asynchronous... */
+-	lru_add_drain_all_cpuslocked();
+-	yield();
+-	/* drain pcp pages, this is synchronous. */
+-	drain_all_pages(zone);
++
+ 	/*
+ 	 * dissolve free hugepages in the memory block before doing offlining
+ 	 * actually in order to make hugetlbfs's object counting consistent.
+@@ -1677,10 +1659,8 @@ repeat:
+ 		goto failed_removal;
+ 	/* check again */
+ 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
+-	if (offlined_pages < 0) {
+-		ret = -EBUSY;
+-		goto failed_removal;
+-	}
++	if (offlined_pages < 0)
++		goto repeat;
+ 	pr_info("Offlined Pages %ld\n", offlined_pages);
+ 	/* Ok, all of our target is isolated.
+ 	   We cannot do rollback at this point. */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
