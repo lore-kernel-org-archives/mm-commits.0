@@ -1,211 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-implement-find_get_pages_range_tag.patch
- removed from -mm tree
-Date: Thu, 16 Nov 2017 12:01:25 -0800
-Message-ID: <20171116200125.HJ-m6_xe1%akpm@linux-foundation.org>
+Subject: [merged]
+ cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:01:19 -0800
+Message-ID: <20171116200119.IlgrV4dkf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46468 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932697AbdKPUB1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:01:27 -0500
+        with ESMTP id S932697AbdKPUBU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:01:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.m.jordan@oracle.com, dhowells@redhat.com, dsterba@suse.com, idryomov@gmail.com, jack@suse.cz, jaegeuk@kernel.org, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org, rpeterso@redhat.com, sfrench@samba.org, tytso@mit.edu, yuchao0@huawei.com, zyan@redhat.com
+To: gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, jaewon31.kim@samsung.com, labbott@redhat.com, mm-commits@vger.kernel.org, opendmb@gmail.com, pintu.ping@gmail.com
 
 
 The patch titled
-     Subject: mm: implement find_get_pages_range_tag()
+     Subject: mm/cma.c: change pr_info to pr_err for cma_alloc fail log
 has been removed from the -mm tree.  Its filename was
-     mm-implement-find_get_pages_range_tag.patch
+     cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: implement find_get_pages_range_tag()
+From: Pintu Agarwal <pintu.ping@gmail.com>
+Subject: mm/cma.c: change pr_info to pr_err for cma_alloc fail log
 
-Patch series "Ranged pagevec tagged lookup", v3.
+It was observed that under cma_alloc fail log, pr_info was used instead of
+pr_err.  This will lead to problems if printk debug level is set to below
+7.  In this case the cma_alloc failure log will not be captured in the log
+and it will be difficult to debug.
 
-In this series I provide a ranged variant of pagevec_lookup_tag() and use
-it in places where it makes sense.  This series removes some common code
-and it also has a potential for speeding up some operations similarly as
-for pagevec_lookup_range() (but for now I can think of only artificial
-cases where this happens).
+Simply replace the pr_info with pr_err to capture failure log.
 
-
-This patch (of 16):
-
-Implement a variant of find_get_pages_tag() that stops iterating at given
-index.  Lots of users of this function (through pagevec_lookup()) actually
-want a range lookup and all of them are currently open-coding this.
-
-Also create corresponding pagevec_lookup_range_tag() function.
-
-Link: http://lkml.kernel.org/r/20171009151359.31984-2-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Bob Peterson <rpeterso@redhat.com>
-Cc: Chao Yu <yuchao0@huawei.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Steve French <sfrench@samba.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: "Yan, Zheng" <zyan@redhat.com>
+Link: http://lkml.kernel.org/r/1507650633-4430-1-git-send-email-pintu.ping@gmail.com
+Signed-off-by: Pintu Agarwal <pintu.ping@gmail.com>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jaewon Kim <jaewon31.kim@samsung.com>
+Cc: Doug Berger <opendmb@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   12 ++++++++++--
- include/linux/pagevec.h |   11 +++++++++--
- mm/filemap.c            |   33 ++++++++++++++++++++++++---------
- mm/swap.c               |    9 +++++----
- 4 files changed, 48 insertions(+), 17 deletions(-)
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pagemap.h~mm-implement-find_get_pages_range_tag include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-implement-find_get_pages_range_tag
-+++ a/include/linux/pagemap.h
-@@ -366,8 +366,16 @@ static inline unsigned find_get_pages(st
- }
- unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
- 			       unsigned int nr_pages, struct page **pages);
--unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
--			int tag, unsigned int nr_pages, struct page **pages);
-+unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
-+			pgoff_t end, int tag, unsigned int nr_pages,
-+			struct page **pages);
-+static inline unsigned find_get_pages_tag(struct address_space *mapping,
-+			pgoff_t *index, int tag, unsigned int nr_pages,
-+			struct page **pages)
-+{
-+	return find_get_pages_range_tag(mapping, index, (pgoff_t)-1, tag,
-+					nr_pages, pages);
-+}
- unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
- 			int tag, unsigned int nr_entries,
- 			struct page **entries, pgoff_t *indices);
-diff -puN include/linux/pagevec.h~mm-implement-find_get_pages_range_tag include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-implement-find_get_pages_range_tag
-+++ a/include/linux/pagevec.h
-@@ -38,9 +38,16 @@ static inline unsigned pagevec_lookup(st
- 	return pagevec_lookup_range(pvec, mapping, start, (pgoff_t)-1);
- }
+diff -puN mm/cma.c~cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log mm/cma.c
+--- a/mm/cma.c~cma-change-pr_info-to-pr_err-for-cma_alloc-fail-log
++++ a/mm/cma.c
+@@ -461,7 +461,7 @@ struct page *cma_alloc(struct cma *cma,
+ 	trace_cma_alloc(pfn, page, count, align);
  
--unsigned pagevec_lookup_tag(struct pagevec *pvec,
-+unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
-+		struct address_space *mapping, pgoff_t *index, pgoff_t end,
-+		int tag, unsigned nr_pages);
-+static inline unsigned pagevec_lookup_tag(struct pagevec *pvec,
- 		struct address_space *mapping, pgoff_t *index, int tag,
--		unsigned nr_pages);
-+		unsigned nr_pages)
-+{
-+	return pagevec_lookup_range_tag(pvec, mapping, index, (pgoff_t)-1, tag,
-+					nr_pages);
-+}
- 
- static inline void pagevec_init(struct pagevec *pvec, int cold)
- {
-diff -puN mm/filemap.c~mm-implement-find_get_pages_range_tag mm/filemap.c
---- a/mm/filemap.c~mm-implement-find_get_pages_range_tag
-+++ a/mm/filemap.c
-@@ -1754,9 +1754,10 @@ repeat:
- EXPORT_SYMBOL(find_get_pages_contig);
- 
- /**
-- * find_get_pages_tag - find and return pages that match @tag
-+ * find_get_pages_range_tag - find and return pages in given range matching @tag
-  * @mapping:	the address_space to search
-  * @index:	the starting page index
-+ * @end:	The final page index (inclusive)
-  * @tag:	the tag index
-  * @nr_pages:	the maximum number of pages
-  * @pages:	where the resulting pages are placed
-@@ -1764,8 +1765,9 @@ EXPORT_SYMBOL(find_get_pages_contig);
-  * Like find_get_pages, except we only return pages which are tagged with
-  * @tag.   We update @index to index the next page for the traversal.
-  */
--unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
--			int tag, unsigned int nr_pages, struct page **pages)
-+unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
-+			pgoff_t end, int tag, unsigned int nr_pages,
-+			struct page **pages)
- {
- 	struct radix_tree_iter iter;
- 	void **slot;
-@@ -1778,6 +1780,9 @@ unsigned find_get_pages_tag(struct addre
- 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
- 				   &iter, *index, tag) {
- 		struct page *head, *page;
-+
-+		if (iter.index > end)
-+			break;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1819,18 +1824,28 @@ repeat:
- 		}
- 
- 		pages[ret] = page;
--		if (++ret == nr_pages)
--			break;
-+		if (++ret == nr_pages) {
-+			*index = pages[ret - 1]->index + 1;
-+			goto out;
-+		}
+ 	if (ret && !(gfp_mask & __GFP_NOWARN)) {
+-		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
++		pr_err("%s: alloc failed, req-size: %zu pages, ret: %d\n",
+ 			__func__, count, ret);
+ 		cma_debug_show_areas(cma);
  	}
- 
-+	/*
-+	 * We come here when we got at @end. We take care to not overflow the
-+	 * index @index as it confuses some of the callers. This breaks the
-+	 * iteration when there is page at index -1 but that is already broken
-+	 * anyway.
-+	 */
-+	if (end == (pgoff_t)-1)
-+		*index = (pgoff_t)-1;
-+	else
-+		*index = end + 1;
-+out:
- 	rcu_read_unlock();
- 
--	if (ret)
--		*index = pages[ret - 1]->index + 1;
--
- 	return ret;
- }
--EXPORT_SYMBOL(find_get_pages_tag);
-+EXPORT_SYMBOL(find_get_pages_range_tag);
- 
- /**
-  * find_get_entries_tag - find and return entries that match @tag
-diff -puN mm/swap.c~mm-implement-find_get_pages_range_tag mm/swap.c
---- a/mm/swap.c~mm-implement-find_get_pages_range_tag
-+++ a/mm/swap.c
-@@ -986,14 +986,15 @@ unsigned pagevec_lookup_range(struct pag
- }
- EXPORT_SYMBOL(pagevec_lookup_range);
- 
--unsigned pagevec_lookup_tag(struct pagevec *pvec, struct address_space *mapping,
--		pgoff_t *index, int tag, unsigned nr_pages)
-+unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
-+		struct address_space *mapping, pgoff_t *index, pgoff_t end,
-+		int tag, unsigned nr_pages)
- {
--	pvec->nr = find_get_pages_tag(mapping, index, tag,
-+	pvec->nr = find_get_pages_range_tag(mapping, index, end, tag,
- 					nr_pages, pvec->pages);
- 	return pagevec_count(pvec);
- }
--EXPORT_SYMBOL(pagevec_lookup_tag);
-+EXPORT_SYMBOL(pagevec_lookup_range_tag);
- 
- /*
-  * Perform any setup for the swap system
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from pintu.ping@gmail.com are
 
-mm-readahead-increase-maximum-readahead-window.patch
 
