@@ -1,193 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/131] slab, slub, slob: convert slab_flags_t to
- 32-bit
-Date: Wed, 15 Nov 2017 17:32:21 -0800
-Message-ID: <20171116013221.CAfwT3o7b%akpm@linux-foundation.org>
+Subject: [patch 020/131] slub: fix sysfs duplicate filename
+ creation when slub_debug=O
+Date: Wed, 15 Nov 2017 17:32:25 -0800
+Message-ID: <20171116013225.7OAHShHOr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38500 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932772AbdKPBcX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:32:23 -0500
+        with ESMTP id S932772AbdKPBc1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:32:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: slab, slub, slob: convert slab_flags_t to 32-bit
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: slub: fix sysfs duplicate filename creation when slub_debug=O
 
-struct kmem_cache::flags is "unsigned long" which is unnecessary on 64-bit
-as no flags are defined in the higher bits.
+When slub_debug=O is set.  It is possible to clear debug flags for an
+"unmergeable" slab cache in kmem_cache_open().  It makes the "unmergeable"
+cache became "mergeable" in sysfs_slab_add().
 
-Switch the field to 32-bit and save some space on x86_64 until such flags
-appear:
+These caches will generate their "unique IDs" by create_unique_id(), but
+it is possible to create identical unique IDs.  In my experiment,
+sgpool-128, names_cache, biovec-256 generate the same ID ":Ft-0004096" and
+the kernel reports "sysfs: cannot create duplicate filename
+'/kernel/slab/:Ft-0004096'".
 
-	add/remove: 0/0 grow/shrink: 0/107 up/down: 0/-657 (-657)
-	function                                     old     new   delta
-	sysfs_slab_add                               720     719      -1
-				...
-	check_object                                 699     676     -23
+To repeat my experiment, set disable_higher_order_debug=1,
+CONFIG_SLUB_DEBUG_ON=y in kernel-4.14.
 
-[akpm@linux-foundation.org: fix printk warning]
-Link: http://lkml.kernel.org/r/20171021100635.GA8287@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Fix this issue by setting unmergeable=1 if slub_debug=O and the the
+default slub_debug contains any no-merge flags.
+
+call path:
+kmem_cache_create()
+  __kmem_cache_alias()	-> we set SLAB_NEVER_MERGE flags here
+  create_cache()
+    __kmem_cache_create()
+      kmem_cache_open()	-> clear DEBUG_METADATA_FLAGS
+      sysfs_slab_add()	-> the slab cache is mergeable now
+
+[    0.674272] sysfs: cannot create duplicate filename '/kernel/slab/:Ft-0004096'
+[    0.674473] ------------[ cut here ]------------
+[    0.674653] WARNING: CPU: 0 PID: 1 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x60/0x7c
+[    0.674847] Modules linked in:
+[    0.674969] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W       4.14.0-rc7ajb-00131-gd4c2e9f-dirty #123
+[    0.675211] Hardware name: linux,dummy-virt (DT)
+[    0.675342] task: ffffffc07d4e0080 task.stack: ffffff8008008000
+[    0.675505] PC is at sysfs_warn_dup+0x60/0x7c
+[    0.675633] LR is at sysfs_warn_dup+0x60/0x7c
+[    0.675759] pc : [<ffffff8008235808>] lr : [<ffffff8008235808>] pstate: 60000145
+[    0.675948] sp : ffffff800800bb40
+[    0.676048] x29: ffffff800800bb40 x28: 0000000000000040
+[    0.676209] x27: ffffffc07c52a380 x26: 0000000000000000
+[    0.676369] x25: ffffff8008af4ad0 x24: ffffff8008af4000
+[    0.676528] x23: ffffffc07c532580 x22: ffffffc07cf04598
+[    0.676695] x21: ffffffc07cf26578 x20: ffffffc07c533700
+[    0.676857] x19: ffffffc07ce67000 x18: 0000000000000002
+[    0.677017] x17: 0000000000007ffe x16: 0000000000000007
+[    0.677176] x15: 0000000000000001 x14: 0000000000007fff
+[    0.677335] x13: 0000000000000394 x12: 0000000000000000
+[    0.677492] x11: 00000000000001ab x10: 0000000000000007
+[    0.677651] x9 : 00000000000001ac x8 : ffffff800835d114
+[    0.677809] x7 : 656b2f2720656d61 x6 : 0000000000000017
+[    0.677967] x5 : ffffffc07ffdb9a8 x4 : 0000000000000000
+[    0.678124] x3 : 0000000000000000 x2 : ffffffffffffffff
+[    0.678282] x1 : ffffff8008a4e878 x0 : 0000000000000042
+[    0.678442] Call trace:
+[    0.678528] Exception stack(0xffffff800800ba00 to 0xffffff800800bb40)
+[    0.678706] ba00: 0000000000000042 ffffff8008a4e878 ffffffffffffffff 0000000000000000
+[    0.678914] ba20: 0000000000000000 ffffffc07ffdb9a8 0000000000000017 656b2f2720656d61
+[    0.679121] ba40: ffffff800835d114 00000000000001ac 0000000000000007 00000000000001ab
+[    0.679326] ba60: 0000000000000000 0000000000000394 0000000000007fff 0000000000000001
+[    0.679532] ba80: 0000000000000007 0000000000007ffe 0000000000000002 ffffffc07ce67000
+[    0.679739] baa0: ffffffc07c533700 ffffffc07cf26578 ffffffc07cf04598 ffffffc07c532580
+[    0.679944] bac0: ffffff8008af4000 ffffff8008af4ad0 0000000000000000 ffffffc07c52a380
+[    0.680149] bae0: 0000000000000040 ffffff800800bb40 ffffff8008235808 ffffff800800bb40
+[    0.680354] bb00: ffffff8008235808 0000000060000145 ffffffc07c533700 0000000062616c73
+[    0.680560] bb20: ffffffffffffffff 0000000000000000 ffffff800800bb40 ffffff8008235808
+[    0.680774] [<ffffff8008235808>] sysfs_warn_dup+0x60/0x7c
+[    0.680928] [<ffffff8008235920>] sysfs_create_dir_ns+0x98/0xa0
+[    0.681095] [<ffffff8008539274>] kobject_add_internal+0xa0/0x294
+[    0.681267] [<ffffff80085394f8>] kobject_init_and_add+0x90/0xb4
+[    0.681435] [<ffffff80081b524c>] sysfs_slab_add+0x90/0x200
+[    0.681592] [<ffffff80081b62a0>] __kmem_cache_create+0x26c/0x438
+[    0.681769] [<ffffff80081858a4>] kmem_cache_create+0x164/0x1f4
+[    0.681940] [<ffffff80086caa98>] sg_pool_init+0x60/0x100
+[    0.682094] [<ffffff8008084144>] do_one_initcall+0x38/0x12c
+[    0.682254] [<ffffff80086a0d10>] kernel_init_freeable+0x138/0x1d4
+[    0.682423] [<ffffff8008547388>] kernel_init+0x10/0xfc
+[    0.682571] [<ffffff80080851e0>] ret_from_fork+0x10/0x18
+
+Link: http://lkml.kernel.org/r/1510365805-5155-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h  |   44 ++++++++++++++++++++--------------------
- include/linux/types.h |    2 -
- mm/slab.c             |    4 +--
- mm/slub.c             |    6 ++---
- 4 files changed, 28 insertions(+), 28 deletions(-)
+ mm/slub.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/slab.h~slab-slub-slob-convert-slab_flags_t-to-32-bit include/linux/slab.h
---- a/include/linux/slab.h~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/include/linux/slab.h
-@@ -22,19 +22,19 @@
-  * The ones marked DEBUG are only valid if CONFIG_DEBUG_SLAB is set.
-  */
- /* DEBUG: Perform (expensive) checks on alloc/free */
--#define SLAB_CONSISTENCY_CHECKS	((slab_flags_t __force)0x00000100UL)
-+#define SLAB_CONSISTENCY_CHECKS	((slab_flags_t __force)0x00000100U)
- /* DEBUG: Red zone objs in a cache */
--#define SLAB_RED_ZONE		((slab_flags_t __force)0x00000400UL)
-+#define SLAB_RED_ZONE		((slab_flags_t __force)0x00000400U)
- /* DEBUG: Poison objects */
--#define SLAB_POISON		((slab_flags_t __force)0x00000800UL)
-+#define SLAB_POISON		((slab_flags_t __force)0x00000800U)
- /* Align objs on cache lines */
--#define SLAB_HWCACHE_ALIGN	((slab_flags_t __force)0x00002000UL)
-+#define SLAB_HWCACHE_ALIGN	((slab_flags_t __force)0x00002000U)
- /* Use GFP_DMA memory */
--#define SLAB_CACHE_DMA		((slab_flags_t __force)0x00004000UL)
-+#define SLAB_CACHE_DMA		((slab_flags_t __force)0x00004000U)
- /* DEBUG: Store the last owner for bug hunting */
--#define SLAB_STORE_USER		((slab_flags_t __force)0x00010000UL)
-+#define SLAB_STORE_USER		((slab_flags_t __force)0x00010000U)
- /* Panic if kmem_cache_create() fails */
--#define SLAB_PANIC		((slab_flags_t __force)0x00040000UL)
-+#define SLAB_PANIC		((slab_flags_t __force)0x00040000U)
- /*
-  * SLAB_TYPESAFE_BY_RCU - **WARNING** READ THIS!
-  *
-@@ -73,50 +73,50 @@
-  * Note that SLAB_TYPESAFE_BY_RCU was originally named SLAB_DESTROY_BY_RCU.
-  */
- /* Defer freeing slabs to RCU */
--#define SLAB_TYPESAFE_BY_RCU	((slab_flags_t __force)0x00080000UL)
-+#define SLAB_TYPESAFE_BY_RCU	((slab_flags_t __force)0x00080000U)
- /* Spread some memory over cpuset */
--#define SLAB_MEM_SPREAD		((slab_flags_t __force)0x00100000UL)
-+#define SLAB_MEM_SPREAD		((slab_flags_t __force)0x00100000U)
- /* Trace allocations and frees */
--#define SLAB_TRACE		((slab_flags_t __force)0x00200000UL)
-+#define SLAB_TRACE		((slab_flags_t __force)0x00200000U)
- 
- /* Flag to prevent checks on free */
- #ifdef CONFIG_DEBUG_OBJECTS
--# define SLAB_DEBUG_OBJECTS	((slab_flags_t __force)0x00400000UL)
-+# define SLAB_DEBUG_OBJECTS	((slab_flags_t __force)0x00400000U)
- #else
--# define SLAB_DEBUG_OBJECTS	((slab_flags_t __force)0x00000000UL)
-+# define SLAB_DEBUG_OBJECTS	0
- #endif
- 
- /* Avoid kmemleak tracing */
--#define SLAB_NOLEAKTRACE	((slab_flags_t __force)0x00800000UL)
-+#define SLAB_NOLEAKTRACE	((slab_flags_t __force)0x00800000U)
- 
- /* Don't track use of uninitialized memory */
- #ifdef CONFIG_KMEMCHECK
--# define SLAB_NOTRACK		((slab_flags_t __force)0x01000000UL)
-+# define SLAB_NOTRACK		((slab_flags_t __force)0x01000000U)
- #else
--# define SLAB_NOTRACK		((slab_flags_t __force)0x00000000UL)
-+# define SLAB_NOTRACK		0
- #endif
- /* Fault injection mark */
- #ifdef CONFIG_FAILSLAB
--# define SLAB_FAILSLAB		((slab_flags_t __force)0x02000000UL)
-+# define SLAB_FAILSLAB		((slab_flags_t __force)0x02000000U)
- #else
--# define SLAB_FAILSLAB		((slab_flags_t __force)0x00000000UL)
-+# define SLAB_FAILSLAB		0
- #endif
- /* Account to memcg */
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
--# define SLAB_ACCOUNT		((slab_flags_t __force)0x04000000UL)
-+# define SLAB_ACCOUNT		((slab_flags_t __force)0x04000000U)
- #else
--# define SLAB_ACCOUNT		((slab_flags_t __force)0x00000000UL)
-+# define SLAB_ACCOUNT		0
- #endif
- 
- #ifdef CONFIG_KASAN
--#define SLAB_KASAN		((slab_flags_t __force)0x08000000UL)
-+#define SLAB_KASAN		((slab_flags_t __force)0x08000000U)
- #else
--#define SLAB_KASAN		((slab_flags_t __force)0x00000000UL)
-+#define SLAB_KASAN		0
- #endif
- 
- /* The following flags affect the page allocator grouping pages by mobility */
- /* Objects are reclaimable */
--#define SLAB_RECLAIM_ACCOUNT	((slab_flags_t __force)0x00020000UL)
-+#define SLAB_RECLAIM_ACCOUNT	((slab_flags_t __force)0x00020000U)
- #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
- /*
-  * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
-diff -puN include/linux/types.h~slab-slub-slob-convert-slab_flags_t-to-32-bit include/linux/types.h
---- a/include/linux/types.h~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/include/linux/types.h
-@@ -156,7 +156,7 @@ typedef u32 dma_addr_t;
- #endif
- 
- typedef unsigned __bitwise gfp_t;
--typedef unsigned long __bitwise slab_flags_t;
-+typedef unsigned __bitwise slab_flags_t;
- typedef unsigned __bitwise fmode_t;
- 
- #ifdef CONFIG_PHYS_ADDR_T_64BIT
-diff -puN mm/slab.c~slab-slub-slob-convert-slab_flags_t-to-32-bit mm/slab.c
---- a/mm/slab.c~slab-slub-slob-convert-slab_flags_t-to-32-bit
-+++ a/mm/slab.c
-@@ -252,8 +252,8 @@ static void kmem_cache_node_init(struct
- 	MAKE_LIST((cachep), (&(ptr)->slabs_free), slabs_free, nodeid);	\
- 	} while (0)
- 
--#define CFLGS_OBJFREELIST_SLAB	((slab_flags_t __force)0x40000000UL)
--#define CFLGS_OFF_SLAB		((slab_flags_t __force)0x80000000UL)
-+#define CFLGS_OBJFREELIST_SLAB	((slab_flags_t __force)0x40000000U)
-+#define CFLGS_OFF_SLAB		((slab_flags_t __force)0x80000000U)
- #define	OBJFREELIST_SLAB(x)	((x)->flags & CFLGS_OBJFREELIST_SLAB)
- #define	OFF_SLAB(x)	((x)->flags & CFLGS_OFF_SLAB)
- 
-diff -puN mm/slub.c~slab-slub-slob-convert-slab_flags_t-to-32-bit mm/slub.c
---- a/mm/slub.c~slab-slub-slob-convert-slab_flags_t-to-32-bit
+diff -puN mm/slub.c~slub-fix-sysfs-duplicate-filename-creation-when-slub_debug=o mm/slub.c
+--- a/mm/slub.c~slub-fix-sysfs-duplicate-filename-creation-when-slub_debug=o
 +++ a/mm/slub.c
-@@ -194,9 +194,9 @@ static inline bool kmem_cache_has_cpu_pa
+@@ -5706,6 +5706,10 @@ static int sysfs_slab_add(struct kmem_ca
+ 		return 0;
+ 	}
  
- /* Internal SLUB flags */
- /* Poison object */
--#define __OBJECT_POISON		((slab_flags_t __force)0x80000000UL)
-+#define __OBJECT_POISON		((slab_flags_t __force)0x80000000U)
- /* Use cmpxchg_double */
--#define __CMPXCHG_DOUBLE	((slab_flags_t __force)0x40000000UL)
-+#define __CMPXCHG_DOUBLE	((slab_flags_t __force)0x40000000U)
- 
- /*
-  * Tracking user of a slab.
-@@ -3657,7 +3657,7 @@ error:
- 	if (flags & SLAB_PANIC)
- 		panic("Cannot create slab %s size=%lu realsize=%u order=%u offset=%u flags=%lx\n",
- 		      s->name, (unsigned long)s->size, s->size,
--		      oo_order(s->oo), s->offset, flags);
-+		      oo_order(s->oo), s->offset, (unsigned long)flags);
- 	return -EINVAL;
- }
- 
++	if (!unmergeable && disable_higher_order_debug &&
++			(slub_debug & DEBUG_METADATA_FLAGS))
++		unmergeable = 1;
++
+ 	if (unmergeable) {
+ 		/*
+ 		 * Slabcache can never be merged so we can use the name proper.
 _
