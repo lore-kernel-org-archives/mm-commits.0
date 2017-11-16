@@ -1,62 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-use-pagevec_lookup_range_tag.patch removed
- from -mm tree
-Date: Thu, 16 Nov 2017 12:01:52 -0800
-Message-ID: <20171116200152.-kHokEXUK%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-use-pagevec_lookup_range_tag-in-write_cache_pages.patch removed from -mm
+ tree
+Date: Thu, 16 Nov 2017 12:01:58 -0800
+Message-ID: <20171116200158.heVPbP_Iy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46576 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46594 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932697AbdKPUBx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:01:53 -0500
+        with ESMTP id S932697AbdKPUB7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:01:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.m.jordan@oracle.com, jack@suse.cz, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: daniel.m.jordan@oracle.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: use pagevec_lookup_range_tag()
+     Subject: mm: use pagevec_lookup_range_tag() in write_cache_pages()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-use-pagevec_lookup_range_tag.patch
+     mm-use-pagevec_lookup_range_tag-in-write_cache_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: nilfs2: use pagevec_lookup_range_tag()
+Subject: mm: use pagevec_lookup_range_tag() in write_cache_pages()
 
-We want only pages from given range in nilfs_lookup_dirty_data_buffers(). 
-Use pagevec_lookup_range_tag() instead of pagevec_lookup_tag() and remove
-unnecessary code.
+Use pagevec_lookup_range_tag() in write_cache_pages() as it is interested
+only in pages from given range.  Remove unnecessary code resulting from
+this.
 
-Link: http://lkml.kernel.org/r/20171009151359.31984-10-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171009151359.31984-12-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/page-writeback.c |   20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
-diff -puN fs/nilfs2/segment.c~nilfs2-use-pagevec_lookup_range_tag fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-use-pagevec_lookup_range_tag
-+++ a/fs/nilfs2/segment.c
-@@ -711,18 +711,14 @@ static size_t nilfs_lookup_dirty_data_bu
- 	pagevec_init(&pvec, 0);
-  repeat:
- 	if (unlikely(index > last) ||
--	    !pagevec_lookup_tag(&pvec, mapping, &index, PAGECACHE_TAG_DIRTY,
--				min_t(pgoff_t, last - index,
--				      PAGEVEC_SIZE - 1) + 1))
-+	    !pagevec_lookup_range_tag(&pvec, mapping, &index, last,
-+				PAGECACHE_TAG_DIRTY, PAGEVEC_SIZE))
- 		return ndirties;
+diff -puN mm/page-writeback.c~mm-use-pagevec_lookup_range_tag-in-write_cache_pages mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-use-pagevec_lookup_range_tag-in-write_cache_pages
++++ a/mm/page-writeback.c
+@@ -2196,30 +2196,14 @@ retry:
+ 	while (!done && (index <= end)) {
+ 		int i;
  
- 	for (i = 0; i < pagevec_count(&pvec); i++) {
- 		struct buffer_head *bh, *head;
- 		struct page *page = pvec.pages[i];
+-		nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
+-			      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
++		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
++				tag, PAGEVEC_SIZE);
+ 		if (nr_pages == 0)
+ 			break;
  
--		if (unlikely(page->index > last))
--			break;
+ 		for (i = 0; i < nr_pages; i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+-			/*
+-			 * At this point, the page may be truncated or
+-			 * invalidated (changing page->mapping to NULL), or
+-			 * even swizzled back from swapper_space to tmpfs file
+-			 * mapping. However, page->index will not change
+-			 * because we have a reference on the page.
+-			 */
+-			if (page->index > end) {
+-				/*
+-				 * can't be range_cyclic (1st pass) because
+-				 * end == -1 in that case.
+-				 */
+-				done = 1;
+-				break;
+-			}
