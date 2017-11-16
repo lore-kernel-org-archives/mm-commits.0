@@ -1,255 +1,122 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-truncate-remove-all-exceptional-entries-from-pagevec-unde?=
- =?US-ASCII?Q?r-one-lock.patch?= removed from -mm tree
-Date: Thu, 16 Nov 2017 12:04:12 -0800
-Message-ID: <20171116200412.14K7v1ZHv%akpm@linux-foundation.org>
+ mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch removed from
+ -mm tree
+Date: Thu, 16 Nov 2017 12:04:15 -0800
+Message-ID: <20171116200415.Tnuw1ffZO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47322 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933284AbdKPUEN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:13 -0500
+        with ESMTP id S933284AbdKPUER (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, truncate: remove all exceptional entries from pagevec under one lock
+     Subject: mm: only drain per-cpu pagevecs once per pagevec usage
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock.patch
+     mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, truncate: remove all exceptional entries from pagevec under one lock
+Subject: mm: only drain per-cpu pagevecs once per pagevec usage
 
-During truncate each entry in a pagevec is checked to see if it is an
-exceptional entry and if so, the shadow entry is cleaned up.  This is
-potentially expensive as multiple entries for a mapping locks/unlocks the
-tree lock.  This batches the operation such that any exceptional entries
-removed from a pagevec only acquire the mapping tree lock once.  The
-corner case where this is more expensive is where there is only one
-exceptional entry but this is unlikely due to temporal locality and how it
-affects LRU ordering.  Note that for truncations of small files created
-recently, this patch should show no gain because it only batches the
-handling of exceptional entries.
+When a pagevec is initialised on the stack, it is generally used multiple
+times over a range of pages, looking up entries and then releasing them. 
+On each pagevec_release, the per-cpu deferred LRU pagevecs are drained on
+the grounds the page being released may be on those queues and the pages
+may be cache hot.  In many cases only the first drain is necessary as it's
+unlikely that the range of pages being walked is racing against LRU
+addition.  Even if there is such a race, the impact is marginal where as
+constantly redraining the lru pagevecs costs.
 
-sparsetruncate (large)
+This patch ensures that pagevec is only drained once in a given lifecycle
+without increasing the cache footprint of the pagevec structure.  Only
+sparsetruncate tiny is shown here as large files have many exceptional
+entries and calls pagecache_release less frequently.
+
+sparsetruncate (tiny)
                               4.14.0-rc4             4.14.0-rc4
-                         pickhelper-v1r1       batchshadow-v1r1
-Min          Time       38.00 (   0.00%)       27.00 (  28.95%)
-1st-qrtle    Time       40.00 (   0.00%)       28.00 (  30.00%)
-2nd-qrtle    Time       44.00 (   0.00%)       41.00 (   6.82%)
-3rd-qrtle    Time      146.00 (   0.00%)      147.00 (  -0.68%)
-Max-90%      Time      153.00 (   0.00%)      153.00 (   0.00%)
-Max-95%      Time      155.00 (   0.00%)      156.00 (  -0.65%)
-Max-99%      Time      181.00 (   0.00%)      171.00 (   5.52%)
-Amean        Time       93.04 (   0.00%)       88.43 (   4.96%)
-Best99%Amean Time       92.08 (   0.00%)       86.13 (   6.46%)
-Best95%Amean Time       89.19 (   0.00%)       83.13 (   6.80%)
-Best90%Amean Time       85.60 (   0.00%)       79.15 (   7.53%)
-Best75%Amean Time       72.95 (   0.00%)       65.09 (  10.78%)
-Best50%Amean Time       39.86 (   0.00%)       28.20 (  29.25%)
-Best25%Amean Time       39.44 (   0.00%)       27.70 (  29.77%)
+                        batchshadow-v1r1          onedrain-v1r1
+Min          Time      141.00 (   0.00%)      141.00 (   0.00%)
+1st-qrtle    Time      142.00 (   0.00%)      142.00 (   0.00%)
+2nd-qrtle    Time      142.00 (   0.00%)      142.00 (   0.00%)
+3rd-qrtle    Time      143.00 (   0.00%)      143.00 (   0.00%)
+Max-90%      Time      144.00 (   0.00%)      144.00 (   0.00%)
+Max-95%      Time      146.00 (   0.00%)      145.00 (   0.68%)
+Max-99%      Time      198.00 (   0.00%)      194.00 (   2.02%)
+Max          Time      254.00 (   0.00%)      208.00 (  18.11%)
+Amean        Time      145.12 (   0.00%)      144.30 (   0.56%)
+Stddev       Time       12.74 (   0.00%)        9.62 (  24.49%)
+Coeff        Time        8.78 (   0.00%)        6.67 (  24.06%)
+Best99%Amean Time      144.29 (   0.00%)      143.82 (   0.32%)
+Best95%Amean Time      142.68 (   0.00%)      142.31 (   0.26%)
+Best90%Amean Time      142.52 (   0.00%)      142.19 (   0.24%)
+Best75%Amean Time      142.26 (   0.00%)      141.98 (   0.20%)
+Best50%Amean Time      141.90 (   0.00%)      141.71 (   0.13%)
+Best25%Amean Time      141.80 (   0.00%)      141.43 (   0.26%)
 
-bonnie
-                                      4.14.0-rc4             4.14.0-rc4
-                                 pickhelper-v1r1       batchshadow-v1r1
-Hmean     SeqCreate ops         71.92 (   0.00%)       76.78 (   6.76%)
-Hmean     SeqCreate read        42.42 (   0.00%)       45.01 (   6.10%)
-Hmean     SeqCreate del      26519.88 (   0.00%)    27191.87 (   2.53%)
-Hmean     RandCreate ops        71.92 (   0.00%)       76.95 (   7.00%)
-Hmean     RandCreate read       44.44 (   0.00%)       49.23 (  10.78%)
-Hmean     RandCreate del     24948.62 (   0.00%)    24764.97 (  -0.74%)
+The impact on bonnie is marginal and within the noise because a
+significant percentage of the file being truncated has been reclaimed and
+consists of shadow entries which reduce the hotness of the pagevec_release
+path.
 
-Truncation of a large number of files shows a substantial gain with 99% of
-files being truncated 6.46% faster.  bonnie shows a modest gain of 2.53%
-
-[jack@suse.cz: fix truncate_exceptional_pvec_entries()]
-  Link: http://lkml.kernel.org/r/20171108164226.26788-1-jack@suse.cz
-Link: http://lkml.kernel.org/r/20171018075952.10627-4-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20171018075952.10627-5-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   91 +++++++++++++++++++++++++++++++++---------------
- 1 file changed, 63 insertions(+), 28 deletions(-)
+ include/linux/pagevec.h |    4 +++-
+ mm/swap.c               |    5 ++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/truncate.c~mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock mm/truncate.c
---- a/mm/truncate.c~mm-truncate-remove-all-exceptional-entries-from-pagevec-under-one-lock
-+++ a/mm/truncate.c
-@@ -25,44 +25,85 @@
- #include <linux/rmap.h>
- #include "internal.h"
+diff -puN include/linux/pagevec.h~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage include/linux/pagevec.h
+--- a/include/linux/pagevec.h~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage
++++ a/include/linux/pagevec.h
+@@ -17,7 +17,8 @@ struct address_space;
  
--static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
--			       void *entry)
-+/*
-+ * Regular page slots are stabilized by the page lock even without the tree
-+ * itself locked.  These unlocked entries need verification under the tree
-+ * lock.
-+ */
-+static inline void __clear_shadow_entry(struct address_space *mapping,
-+				pgoff_t index, void *entry)
+ struct pagevec {
+ 	unsigned long nr;
+-	unsigned long cold;
++	bool cold;
++	bool drained;
+ 	struct page *pages[PAGEVEC_SIZE];
+ };
+ 
+@@ -54,6 +55,7 @@ static inline void pagevec_init(struct p
  {
- 	struct radix_tree_node *node;
- 	void **slot;
- 
--	spin_lock_irq(&mapping->tree_lock);
--	/*
--	 * Regular page slots are stabilized by the page lock even
--	 * without the tree itself locked.  These unlocked entries
--	 * need verification under the tree lock.
--	 */
- 	if (!__radix_tree_lookup(&mapping->page_tree, index, &node, &slot))
--		goto unlock;
-+		return;
- 	if (*slot != entry)
--		goto unlock;
-+		return;
- 	__radix_tree_replace(&mapping->page_tree, node, slot, NULL,
- 			     workingset_update_node);
- 	mapping->nrexceptional--;
--unlock:
-+}
-+
-+static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
-+			       void *entry)
-+{
-+	spin_lock_irq(&mapping->tree_lock);
-+	__clear_shadow_entry(mapping, index, entry);
- 	spin_unlock_irq(&mapping->tree_lock);
+ 	pvec->nr = 0;
+ 	pvec->cold = cold;
++	pvec->drained = false;
  }
  
- /*
-- * Unconditionally remove exceptional entry. Usually called from truncate path.
-+ * Unconditionally remove exceptional entries. Usually called from truncate
-+ * path. Note that the pagevec may be altered by this function by removing
-+ * exceptional entries similar to what pagevec_remove_exceptionals does.
+ static inline void pagevec_reinit(struct pagevec *pvec)
+diff -puN mm/swap.c~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage mm/swap.c
+--- a/mm/swap.c~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage
++++ a/mm/swap.c
+@@ -833,7 +833,10 @@ EXPORT_SYMBOL(release_pages);
   */
--static void truncate_exceptional_entry(struct address_space *mapping,
--				       pgoff_t index, void *entry)
-+static void truncate_exceptional_pvec_entries(struct address_space *mapping,
-+				struct pagevec *pvec, pgoff_t *indices,
-+				pgoff_t end)
+ void __pagevec_release(struct pagevec *pvec)
  {
-+	int i, j;
-+	bool dax, lock;
-+
- 	/* Handled by shmem itself */
- 	if (shmem_mapping(mapping))
- 		return;
- 
--	if (dax_mapping(mapping)) {
--		dax_delete_mapping_entry(mapping, index);
-+	for (j = 0; j < pagevec_count(pvec); j++)
-+		if (radix_tree_exceptional_entry(pvec->pages[j]))
-+			break;
-+
-+	if (j == pagevec_count(pvec))
- 		return;
-+
-+	dax = dax_mapping(mapping);
-+	lock = !dax && indices[j] < end;
-+	if (lock)
-+		spin_lock_irq(&mapping->tree_lock);
-+
-+	for (i = j; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
-+		pgoff_t index = indices[i];
-+
-+		if (!radix_tree_exceptional_entry(page)) {
-+			pvec->pages[j++] = page;
-+			continue;
-+		}
-+
-+		if (index >= end)
-+			continue;
-+
-+		if (unlikely(dax)) {
-+			dax_delete_mapping_entry(mapping, index);
-+			continue;
-+		}
-+
-+		__clear_shadow_entry(mapping, index, page);
- 	}
--	clear_shadow_entry(mapping, index, entry);
-+
-+	if (lock)
-+		spin_unlock_irq(&mapping->tree_lock);
-+	pvec->nr = j;
+-	lru_add_drain();
++	if (!pvec->drained) {
++		lru_add_drain();
++		pvec->drained = true;
++	}
+ 	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
+ 	pagevec_reinit(pvec);
  }
- 
- /*
-@@ -310,11 +351,8 @@ void truncate_inode_pages_range(struct a
- 			if (index >= end)
- 				break;
- 
--			if (radix_tree_exceptional_entry(page)) {
--				truncate_exceptional_entry(mapping, index,
--							   page);
-+			if (radix_tree_exceptional_entry(page))
- 				continue;
--			}
- 
- 			if (!trylock_page(page))
- 				continue;
-@@ -334,12 +372,11 @@ void truncate_inode_pages_range(struct a
- 		delete_from_page_cache_batch(mapping, &locked_pvec);
- 		for (i = 0; i < pagevec_count(&locked_pvec); i++)
- 			unlock_page(locked_pvec.pages[i]);
--		pagevec_remove_exceptionals(&pvec);
-+		truncate_exceptional_pvec_entries(mapping, &pvec, indices, end);
- 		pagevec_release(&pvec);
- 		cond_resched();
- 		index++;
- 	}
--
- 	if (partial_start) {
- 		struct page *page = find_lock_page(mapping, start - 1);
- 		if (page) {
-@@ -397,6 +434,7 @@ void truncate_inode_pages_range(struct a
- 			pagevec_release(&pvec);
- 			break;
- 		}
-+
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 
-@@ -408,11 +446,8 @@ void truncate_inode_pages_range(struct a
- 				break;
- 			}
- 
--			if (radix_tree_exceptional_entry(page)) {
--				truncate_exceptional_entry(mapping, index,
--							   page);
-+			if (radix_tree_exceptional_entry(page))
- 				continue;
--			}
- 
- 			lock_page(page);
- 			WARN_ON(page_to_index(page) != index);
-@@ -420,7 +455,7 @@ void truncate_inode_pages_range(struct a
- 			truncate_inode_page(mapping, page);
- 			unlock_page(page);
- 		}
--		pagevec_remove_exceptionals(&pvec);
-+		truncate_exceptional_pvec_entries(mapping, &pvec, indices, end);
- 		pagevec_release(&pvec);
- 		index++;
- 	}
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
