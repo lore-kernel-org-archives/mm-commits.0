@@ -1,63 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-simplify-nodemask-printing-fix.patch removed
- from -mm tree
-Date: Wed, 15 Nov 2017 17:12:15 -0800
-Message-ID: <5a0ce5ef.sJmNjcCzUQPmMKEh%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch removed from -mm tree
+Date: Wed, 15 Nov 2017 17:12:48 -0800
+Message-ID: <5a0ce610.NXv36uHFcs45brrl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36640 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932838AbdKPBMR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:12:17 -0500
+        with ESMTP id S932838AbdKPBMu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:12:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, joe@perches.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mhocko@suse.com, osalvador@techadventures.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-simplify-nodemask-printing-fix
+     Subject: mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-nodemask-printing-fix.patch
+     mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
 
-This patch was dropped because it was folded into mm-simplify-nodemask-printing.patch
+This patch was dropped because it was folded into mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-simplify-nodemask-printing-fix
+Subject: mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix
 
-fix tile warning, per Arnd
+clean up the printk while we're there
 
-Cc: Joe Perches <joe@perches.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Oscar Salvador <osalvador@techadventures.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/nodemask.h~mm-simplify-nodemask-printing-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-simplify-nodemask-printing-fix
-+++ a/include/linux/nodemask.h
-@@ -104,7 +104,9 @@ extern nodemask_t _unused_nodemask_arg_;
-  *
-  * Can be used to provide arguments for '%*pb[l]' when printing a nodemask.
-  */
--#define nodemask_pr_args(maskp)	(maskp) ? MAX_NUMNODES : 0, (maskp) ? (maskp)->bits : NULL
-+#define nodemask_pr_args(maskp)				\
-+	((maskp) != NULL) ? MAX_NUMNODES : 0,		\
-+	((maskp) != NULL) ? (maskp)->bits : NULL
- 
- /*
-  * The inline keyword gives the compiler room to decide to inline, or
+diff -puN mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix
++++ a/mm/page_alloc.c
+@@ -6178,9 +6178,9 @@ static void __ref alloc_node_mem_map(str
+ 							       pgdat->node_id);
+ 		pgdat->node_mem_map = map + offset;
+ 	}
+-	printk(KERN_DEBUG "alloc_node_mem_map: node %d, pgdat %08lx, node_mem_map %08lx\n",
+-							pgdat->node_id, (unsigned long)pgdat,
+-							(unsigned long)pgdat->node_mem_map);
++	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
++				__func__, pgdat->node_id, (unsigned long)pgdat,
++				(unsigned long)pgdat->node_mem_map);
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+ 	 * With no DISCONTIG, the global mem_map is just set as node 0's
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-simplify-nodemask-printing.patch
-mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
+mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map.patch
 
