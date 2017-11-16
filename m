@@ -1,90 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-swap-skip-swapcache-for-swapin-of-synchronous-device-fix.patch removed
- from -mm tree
-Date: Wed, 15 Nov 2017 16:51:11 -0800
-Message-ID: <5a0ce0ff.eUpD9aXr6baEVspr%akpm__16890.5169274241$1510793483$gmane$org@linux-foundation.org>
+ mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 15 Nov 2017 16:56:13 -0800
+Message-ID: <5a0ce22d.ZZXvVJwmKwD7ih0I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35352 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753775AbdKPAvM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:51:12 -0500
+        with ESMTP id S932597AbdKPA4O (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 19:56:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huang.ying.caritas@gmail.com, hughd@google.com, lists@nerdbynature.de, mhocko@suse.com, minchan@kernel.org, stable@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap: fix false error message in __swp_swapcount()
+     Subject: mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-swap-skip-swapcache-for-swapin-of-synchronous-device-fix.patch
+     mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
+This patch was dropped because it was folded into mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
 
 ------------------------------------------------------
-From: Huang Ying <huang.ying.caritas@gmail.com>
-Subject: mm, swap: fix false error message in __swp_swapcount()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
 
-When a page fault occurs for a swap entry, the physical swap readahead
-(not the VMA base swap readahead) may readahead several swap entries after
-the fault swap entry.  The readahead algorithm calculates some of the swap
-entries to readahead via increasing the offset of the fault swap entry
-without checking whether they are beyond the end of the swap device and it
-relys on the __swp_swapcount() and swapcache_prepare() to check it. 
-Although __swp_swapcount() checks for the swap entry passed in, it will
-complain with the error message as follow for the expected invalid swap
-entry.  This may make the end users confused.
+WARNING: line over 80 characters
+#84: FILE: mm/memory.c:2910:
++					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
 
-  swap_info_get: Bad swap offset entry 0200f8a7
+total: 0 errors, 1 warnings, 62 lines checked
 
-To fix the false error message, the swap entry checking is added in
-swapin_readahead() to avoid to pass the out-of-bound swap entries and the
-swap entry reserved for the swap header to __swp_swapcount() and
-swapcache_prepare().
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
 
-Link: http://lkml.kernel.org/r/20171102054225.22897-1-ying.huang@intel.com
-Fixes: e8c26ab60598 ("mm/swap: skip readahead for unreferenced swap slots")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Christian Kujau <lists@nerdbynature.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.11+]
+./patches/mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swap_state.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device-fix mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-skip-swapcache-for-swapin-of-synchronous-device-fix
-+++ a/mm/swap_state.c
-@@ -559,6 +559,7 @@ struct page *swapin_readahead(swp_entry_
- 	unsigned long offset = entry_offset;
- 	unsigned long start_offset, end_offset;
- 	unsigned long mask;
-+	struct swap_info_struct *si = swp_swap_info(entry);
- 	struct blk_plug plug;
- 	bool do_poll = true, page_allocated;
+diff -puN mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference-checkpatch-fixes
++++ a/mm/memory.c
+@@ -2907,7 +2907,7 @@ int do_swap_page(struct vm_fault *vmf)
+ 					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
+ 			else
+ 				page = swapin_readahead(entry,
+-					GFP_HIGHUSER_MOVABLE, vma, vmf->address);
++				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+ 			swapcache = page;
+ 		}
  
-@@ -572,6 +573,8 @@ struct page *swapin_readahead(swp_entry_
- 	end_offset = offset | mask;
- 	if (!start_offset)	/* First page is swap header. */
- 		start_offset++;
-+	if (end_offset >= si->max)
-+		end_offset = si->max - 1;
- 
- 	blk_start_plug(&plug);
- 	for (offset = start_offset; offset <= end_offset ; offset++) {
 _
 
-Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swap-skip-swapcache-for-swapin-of-synchronous-device.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-swap-skip-swapcache-only-if-swapped-page-has-no-other-reference.patch
+mm-drop-migrate-type-checks-from-has_unmovable_pages-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix.patch
+mm-swap-fix-race-conditions-in-swap_slots-cache-init-fix-fix.patch
+f2fs-simplify-page-iteration-loops-fix.patch
+mm-consolidate-page-table-accounting-fix-fix.patch
+mm-stop-zeroing-memory-during-allocation-in-vmemmap-fix.patch
+mm-batch-radix-tree-operations-when-truncating-pages-fix-fix.patch
+mm-simplify-nodemask-printing-fix.patch
+mm-make-alloc_node_mem_map-a-voidcall-if-we-dont-have-config_flat_node_mem_map-fix.patch
 
