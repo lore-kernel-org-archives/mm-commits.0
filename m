@@ -1,232 +1,127 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?ocfs2-subsystemsu=5Fmutex-is-required-while-accessing-the-?=
- =?US-ASCII?Q?item-ci=5Fparent.patch?= removed from -mm tree
-Date: Thu, 16 Nov 2017 11:59:05 -0800
-Message-ID: <20171116195905.taZV7AiT4%akpm@linux-foundation.org>
+ tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch removed
+ from -mm tree
+Date: Thu, 16 Nov 2017 11:59:14 -0800
+Message-ID: <20171116195914.uxJPLGGAY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45812 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934028AbdKPT7G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:06 -0500
+        with ESMTP id S934028AbdKPT7P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, yang.s@alibaba-inc.com
 
 
 The patch titled
-     Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
+     Subject: tools: slabinfo: add "-U" option to show unreclaimable slabs only
 has been removed from the -mm tree.  Its filename was
-     ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
+     tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
+From: "Yang Shi" <yang.s@alibaba-inc.com>
+Subject: tools: slabinfo: add "-U" option to show unreclaimable slabs only
 
-The subsystem.su_mutex is required while accessing the item->ci_parent,
-otherwise, NULL pointer dereference to the item->ci_parent will be
-triggered in the following situation:
+Patch series "oom: capture unreclaimable slab info in oom message", v10.
 
-add node                     delete node
-sys_write
- vfs_write
-  configfs_write_file
-   o2nm_node_store
-    o2nm_node_local_write
-                             do_rmdir
-                              vfs_rmdir
-                               configfs_rmdir
-                                mutex_lock(&subsys->su_mutex);
-                                unlink_obj
-                                 item->ci_group = NULL;
-                                 item->ci_parent = NULL;
-	 to_o2nm_cluster_from_node
-	  node->nd_item.ci_parent->ci_parent
-	  BUG since of NULL pointer dereference to nd_item.ci_parent
+Recently we ran into a oom issue, kernel panic due to no killable process.
+The dmesg shows huge unreclaimable slabs used almost 100% memory, but
+kdump doesn't capture vmcore due to some reason.
 
-Moreover, the o2nm_cluster also should be protected by the
-subsystem.su_mutex.
+So, it may sound better to capture unreclaimable slab info in oom message
+when kernel panic to aid trouble shooting and cover the corner case. 
+Since kernel already panic, so capturing more information sounds worthy
+and doesn't bother normal oom killer.
 
-[alex.chen@huawei.com: v2]
-  Link: http://lkml.kernel.org/r/59EEAA69.9080703@huawei.com
-Link: http://lkml.kernel.org/r/59E9B36A.10700@huawei.com
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+With the patchset, tools/vm/slabinfo has a new option, "-U", to show
+unreclaimable slab only.
+
+And, oom will print all non zero (num_objs * size != 0) unreclaimable
+slabs in oom killer message.
+
+
+This patch (of 3):
+
+Add "-U" option to show unreclaimable slabs only.
+
+"-U" and "-S" together can tell us what unreclaimable slabs use the most
+memory to help debug huge unreclaimable slabs issue.
+
+Link: http://lkml.kernel.org/r/1507152550-46205-2-git-send-email-yang.s@alibaba-inc.com
+Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |   63 +++++++++++++++++++++++++++----
- 1 file changed, 55 insertions(+), 8 deletions(-)
+ tools/vm/slabinfo.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent fs/ocfs2/cluster/nodemanager.c
---- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -40,6 +40,9 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
- 		"panic",	/* O2NM_FENCE_PANIC */
+diff -puN tools/vm/slabinfo.c~tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only tools/vm/slabinfo.c
+--- a/tools/vm/slabinfo.c~tools-slabinfo-add-u-option-to-show-unreclaimable-slabs-only
++++ a/tools/vm/slabinfo.c
+@@ -84,6 +84,7 @@ int output_lines = -1;
+ int sort_loss;
+ int extended_totals;
+ int show_bytes;
++int unreclaim_only;
+ 
+ /* Debug options */
+ int sanity;
+@@ -133,6 +134,7 @@ static void usage(void)
+ 		"-L|--Loss              Sort by loss\n"
+ 		"-X|--Xtotals           Show extended summary information\n"
+ 		"-B|--Bytes             Show size in bytes\n"
++		"-U|--Unreclaim		Show unreclaimable slabs only\n"
+ 		"\nValid debug options (FZPUT may be combined)\n"
+ 		"a / A          Switch on all debug options (=FZUP)\n"
+ 		"-              Switch off all debug options\n"
+@@ -569,6 +571,9 @@ static void slabcache(struct slabinfo *s
+ 	if (strcmp(s->name, "*") == 0)
+ 		return;
+ 
++	if (unreclaim_only && s->reclaim_account)
++		return;
++
+ 	if (actual_slabs == 1) {
+ 		report(s);
+ 		return;
+@@ -1347,6 +1352,7 @@ struct option opts[] = {
+ 	{ "Loss", no_argument, NULL, 'L'},
+ 	{ "Xtotals", no_argument, NULL, 'X'},
+ 	{ "Bytes", no_argument, NULL, 'B'},
++	{ "Unreclaim", no_argument, NULL, 'U'},
+ 	{ NULL, 0, NULL, 0 }
  };
  
-+static inline void o2nm_lock_subsystem(void);
-+static inline void o2nm_unlock_subsystem(void);
-+
- struct o2nm_node *o2nm_get_node_by_num(u8 node_num)
- {
- 	struct o2nm_node *node = NULL;
-@@ -181,7 +184,10 @@ static struct o2nm_cluster *to_o2nm_clus
- {
- 	/* through the first node_set .parent
- 	 * mycluster/nodes/mynode == o2nm_cluster->o2nm_node_group->o2nm_node */
--	return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
-+	if (node->nd_item.ci_parent)
-+		return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
-+	else
-+		return NULL;
- }
+@@ -1358,7 +1364,7 @@ int main(int argc, char *argv[])
  
- enum {
-@@ -194,7 +200,7 @@ static ssize_t o2nm_node_num_store(struc
- 				   size_t count)
- {
- 	struct o2nm_node *node = to_o2nm_node(item);
--	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
-+	struct o2nm_cluster *cluster;
- 	unsigned long tmp;
- 	char *p = (char *)page;
- 	int ret = 0;
-@@ -214,6 +220,13 @@ static ssize_t o2nm_node_num_store(struc
- 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
- 		return -EINVAL; /* XXX */
+ 	page_size = getpagesize();
  
-+	o2nm_lock_subsystem();
-+	cluster = to_o2nm_cluster_from_node(node);
-+	if (!cluster) {
-+		o2nm_unlock_subsystem();
-+		return -EINVAL;
-+	}
-+
- 	write_lock(&cluster->cl_nodes_lock);
- 	if (cluster->cl_nodes[tmp])
- 		ret = -EEXIST;
-@@ -226,6 +239,8 @@ static ssize_t o2nm_node_num_store(struc
- 		set_bit(tmp, cluster->cl_nodes_bitmap);
- 	}
- 	write_unlock(&cluster->cl_nodes_lock);
-+	o2nm_unlock_subsystem();
-+
- 	if (ret)
- 		return ret;
+-	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:LXB",
++	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:LXBU",
+ 						opts, NULL)) != -1)
+ 		switch (c) {
+ 		case '1':
+@@ -1439,6 +1445,9 @@ int main(int argc, char *argv[])
+ 		case 'B':
+ 			show_bytes = 1;
+ 			break;
++		case 'U':
++			unreclaim_only = 1;
++			break;
+ 		default:
+ 			fatal("%s: Invalid option '%c'\n", argv[0], optopt);
  
-@@ -269,7 +284,7 @@ static ssize_t o2nm_node_ipv4_address_st
- 					    size_t count)
- {
- 	struct o2nm_node *node = to_o2nm_node(item);
--	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
-+	struct o2nm_cluster *cluster;
- 	int ret, i;
- 	struct rb_node **p, *parent;
- 	unsigned int octets[4];
-@@ -286,6 +301,13 @@ static ssize_t o2nm_node_ipv4_address_st
- 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
- 	}
- 
-+	o2nm_lock_subsystem();
-+	cluster = to_o2nm_cluster_from_node(node);
-+	if (!cluster) {
-+		o2nm_unlock_subsystem();
-+		return -EINVAL;
-+	}
-+
- 	ret = 0;
- 	write_lock(&cluster->cl_nodes_lock);
- 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
-@@ -298,6 +320,8 @@ static ssize_t o2nm_node_ipv4_address_st
- 		rb_insert_color(&node->nd_ip_node, &cluster->cl_node_ip_tree);
- 	}
- 	write_unlock(&cluster->cl_nodes_lock);
-+	o2nm_unlock_subsystem();
-+
- 	if (ret)
- 		return ret;
- 
-@@ -315,7 +339,7 @@ static ssize_t o2nm_node_local_store(str
- 				     size_t count)
- {
- 	struct o2nm_node *node = to_o2nm_node(item);
--	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
-+	struct o2nm_cluster *cluster;
- 	unsigned long tmp;
- 	char *p = (char *)page;
- 	ssize_t ret;
-@@ -333,17 +357,26 @@ static ssize_t o2nm_node_local_store(str
- 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
- 		return -EINVAL; /* XXX */
- 
-+	o2nm_lock_subsystem();
-+	cluster = to_o2nm_cluster_from_node(node);
-+	if (!cluster) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
- 	/* the only failure case is trying to set a new local node
- 	 * when a different one is already set */
- 	if (tmp && tmp == cluster->cl_has_local &&
--	    cluster->cl_local_node != node->nd_num)
--		return -EBUSY;
-+	    cluster->cl_local_node != node->nd_num) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
- 
- 	/* bring up the rx thread if we're setting the new local node. */
- 	if (tmp && !cluster->cl_has_local) {
- 		ret = o2net_start_listening(node);
- 		if (ret)
--			return ret;
-+			goto out;
- 	}
- 
- 	if (!tmp && cluster->cl_has_local &&
-@@ -358,7 +391,11 @@ static ssize_t o2nm_node_local_store(str
- 		cluster->cl_local_node = node->nd_num;
- 	}
- 
--	return count;
-+	ret = count;
-+
-+out:
-+	o2nm_unlock_subsystem();
-+	return ret;
- }
- 
- CONFIGFS_ATTR(o2nm_node_, num);
-@@ -738,6 +775,16 @@ static struct o2nm_cluster_group o2nm_cl
- 	},
- };
- 
-+static inline void o2nm_lock_subsystem(void)
-+{
-+	mutex_lock(&o2nm_cluster_group.cs_subsys.su_mutex);
-+}
-+
-+static inline void o2nm_unlock_subsystem(void)
-+{
-+	mutex_unlock(&o2nm_cluster_group.cs_subsys.su_mutex);
-+}
-+
- int o2nm_depend_item(struct config_item *item)
- {
- 	return configfs_depend_item(&o2nm_cluster_group.cs_subsys, item);
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from yang.s@alibaba-inc.com are
 
 
