@@ -1,65 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hmm-remove-redundant-variable-align_end.patch
- removed from -mm tree
-Date: Thu, 16 Nov 2017 12:05:12 -0800
-Message-ID: <20171116200512.QyThfAtNj%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?mm-do-not-rely-on-preempt=5Fcount-in-print=5Fvma=5Faddr-was?=
+ =?US-ASCII?Q?-re-mm-use-in=5Fatomic-in-print=5Fvma=5Faddr.patch?= removed
+ from -mm tree
+Date: Thu, 16 Nov 2017 12:05:19 -0800
+Message-ID: <20171116200519.F1ODOp6cC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936777AbdKPUFP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:05:15 -0500
+        with ESMTP id S935809AbdKPUFU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:05:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, jglisse@redhat.com, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org, peterz@infradead.org, vbabka@suse.cz, yang.s@alibaba-inc.com
 
 
 The patch titled
-     Subject: mm/hmm: remove redundant variable align_end
+     Subject: mm: do not rely on preempt_count in print_vma_addr
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-remove-redundant-variable-align_end.patch
+     mm-do-not-rely-on-preempt_count-in-print_vma_addr-was-re-mm-use-in_atomic-in-print_vma_addr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/hmm: remove redundant variable align_end
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: do not rely on preempt_count in print_vma_addr
 
-Variable align_end is assigned a value but it is never read, so the
-variable is redundant and can be removed.  Cleans up the clang warning:
-Value stored to 'align_end' is never read
+The preempt count check on print_vma_addr has been added by e8bff74afbdb
+("x86: fix "BUG: sleeping function called from invalid context" in
+print_vma_addr()") and it relied on the elevated preempt count from
+preempt_conditional_sti because preempt_count check doesn't work on non
+preemptive kernels by default.  The code has evolved though and
+d99e1bd175f4 ("x86/entry/traps: Refactor preemption and interrupt flag
+handling") has replaced preempt_conditional_sti by an explicit
+preempt_disable which is noop on !PREEMPT so the check in print_vma_addr
+is broken.
 
-Link: http://lkml.kernel.org/r/20171017143837.23207-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+Fix the issue by using trylock on mmap_sem rather than chacking the
+preempt count.  The allocation we are relying on has to be GFP_NOWAIT as
+well.  There is a chance that we won't dump the vma state if the lock is
+contended or the memory short but this is acceptable outcome and much less
+fragile than the not working preemption check or tricks around it.
+
+Link: http://lkml.kernel.org/r/20171106134031.g6dbelg55mrbyc6i@dhcp22.suse.cz
+Fixes: d99e1bd175f4 ("x86/entry/traps: Refactor preemption and interrupt flag handling")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Yang Shi <yang.s@alibaba-inc.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memory.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/hmm.c~mm-hmm-remove-redundant-variable-align_end mm/hmm.c
---- a/mm/hmm.c~mm-hmm-remove-redundant-variable-align_end
-+++ a/mm/hmm.c
-@@ -803,11 +803,10 @@ static RADIX_TREE(hmm_devmem_radix, GFP_
+diff -puN mm/memory.c~mm-do-not-rely-on-preempt_count-in-print_vma_addr-was-re-mm-use-in_atomic-in-print_vma_addr mm/memory.c
+--- a/mm/memory.c~mm-do-not-rely-on-preempt_count-in-print_vma_addr-was-re-mm-use-in_atomic-in-print_vma_addr
++++ a/mm/memory.c
+@@ -4485,17 +4485,15 @@ void print_vma_addr(char *prefix, unsign
+ 	struct vm_area_struct *vma;
  
- static void hmm_devmem_radix_release(struct resource *resource)
- {
--	resource_size_t key, align_start, align_size, align_end;
-+	resource_size_t key, align_start, align_size;
+ 	/*
+-	 * Do not print if we are in atomic
+-	 * contexts (in exception stacks, etc.):
++	 * we might be running from an atomic context so we cannot sleep
+ 	 */
+-	if (preempt_count())
++	if (!down_read_trylock(&mm->mmap_sem))
+ 		return;
  
- 	align_start = resource->start & ~(PA_SECTION_SIZE - 1);
- 	align_size = ALIGN(resource_size(resource), PA_SECTION_SIZE);
--	align_end = align_start + align_size - 1;
+-	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, ip);
+ 	if (vma && vma->vm_file) {
+ 		struct file *f = vma->vm_file;
+-		char *buf = (char *)__get_free_page(GFP_KERNEL);
++		char *buf = (char *)__get_free_page(GFP_NOWAIT);
+ 		if (buf) {
+ 			char *p;
  
- 	mutex_lock(&hmm_devmem_lock);
- 	for (key = resource->start;
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-fat-remove-redundant-assignment-of-0-to-slots.patch
+mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
 
