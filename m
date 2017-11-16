@@ -1,120 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [patch 020/131] slub: fix sysfs duplicate filename
- creation when slub_debug=O
-Date: Wed, 15 Nov 2017 17:32:25 -0800
-Message-ID: <20171116013225.7OAHShHOr%akpm@linux-foundation.org>
+Subject: [patch 021/131] include/linux/slab.h: add
+ kmalloc_array_node() and kcalloc_node()
+Date: Wed, 15 Nov 2017 17:32:29 -0800
+Message-ID: <20171116013229.iqre6WtDZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932772AbdKPBc1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:32:27 -0500
+        with ESMTP id S932772AbdKPBcb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:32:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, cl@linux.com, damien.lemoal@wdc.com, davem@davemloft.net, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, iamjoonsoo.kim@lge.com, infinipath@intel.com, jthumshirn@suse.de, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, santosh.shilimkar@oracle.com, sean.hefty@intel.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: slub: fix sysfs duplicate filename creation when slub_debug=O
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: include/linux/slab.h: add kmalloc_array_node() and kcalloc_node()
 
-When slub_debug=O is set.  It is possible to clear debug flags for an
-"unmergeable" slab cache in kmem_cache_open().  It makes the "unmergeable"
-cache became "mergeable" in sysfs_slab_add().
+Patch series "Add kmalloc_array_node() and kcalloc_node()".
 
-These caches will generate their "unique IDs" by create_unique_id(), but
-it is possible to create identical unique IDs.  In my experiment,
-sgpool-128, names_cache, biovec-256 generate the same ID ":Ft-0004096" and
-the kernel reports "sysfs: cannot create duplicate filename
-'/kernel/slab/:Ft-0004096'".
+Our current memeory allocation routines suffer form an API imbalance,
+for one we have kmalloc_array() and kcalloc() which check for
+overflows in size multiplication and we have kmalloc_node() and
+kzalloc_node() which allow for memory allocation on a certain NUMA
+node but don't check for eventual overflows.
 
-To repeat my experiment, set disable_higher_order_debug=1,
-CONFIG_SLUB_DEBUG_ON=y in kernel-4.14.
 
-Fix this issue by setting unmergeable=1 if slub_debug=O and the the
-default slub_debug contains any no-merge flags.
+This patch (of 6):
 
-call path:
-kmem_cache_create()
-  __kmem_cache_alias()	-> we set SLAB_NEVER_MERGE flags here
-  create_cache()
-    __kmem_cache_create()
-      kmem_cache_open()	-> clear DEBUG_METADATA_FLAGS
-      sysfs_slab_add()	-> the slab cache is mergeable now
+We have kmalloc_array() and kcalloc() wrappers on top of kmalloc() which
+ensure us overflow free multiplication for the size of a memory allocation
+but these implementations are not NUMA-aware.
 
-[    0.674272] sysfs: cannot create duplicate filename '/kernel/slab/:Ft-0004096'
-[    0.674473] ------------[ cut here ]------------
-[    0.674653] WARNING: CPU: 0 PID: 1 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x60/0x7c
-[    0.674847] Modules linked in:
-[    0.674969] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W       4.14.0-rc7ajb-00131-gd4c2e9f-dirty #123
-[    0.675211] Hardware name: linux,dummy-virt (DT)
-[    0.675342] task: ffffffc07d4e0080 task.stack: ffffff8008008000
-[    0.675505] PC is at sysfs_warn_dup+0x60/0x7c
-[    0.675633] LR is at sysfs_warn_dup+0x60/0x7c
-[    0.675759] pc : [<ffffff8008235808>] lr : [<ffffff8008235808>] pstate: 60000145
-[    0.675948] sp : ffffff800800bb40
-[    0.676048] x29: ffffff800800bb40 x28: 0000000000000040
-[    0.676209] x27: ffffffc07c52a380 x26: 0000000000000000
-[    0.676369] x25: ffffff8008af4ad0 x24: ffffff8008af4000
-[    0.676528] x23: ffffffc07c532580 x22: ffffffc07cf04598
-[    0.676695] x21: ffffffc07cf26578 x20: ffffffc07c533700
-[    0.676857] x19: ffffffc07ce67000 x18: 0000000000000002
-[    0.677017] x17: 0000000000007ffe x16: 0000000000000007
-[    0.677176] x15: 0000000000000001 x14: 0000000000007fff
-[    0.677335] x13: 0000000000000394 x12: 0000000000000000
-[    0.677492] x11: 00000000000001ab x10: 0000000000000007
-[    0.677651] x9 : 00000000000001ac x8 : ffffff800835d114
-[    0.677809] x7 : 656b2f2720656d61 x6 : 0000000000000017
-[    0.677967] x5 : ffffffc07ffdb9a8 x4 : 0000000000000000
-[    0.678124] x3 : 0000000000000000 x2 : ffffffffffffffff
-[    0.678282] x1 : ffffff8008a4e878 x0 : 0000000000000042
-[    0.678442] Call trace:
-[    0.678528] Exception stack(0xffffff800800ba00 to 0xffffff800800bb40)
-[    0.678706] ba00: 0000000000000042 ffffff8008a4e878 ffffffffffffffff 0000000000000000
-[    0.678914] ba20: 0000000000000000 ffffffc07ffdb9a8 0000000000000017 656b2f2720656d61
-[    0.679121] ba40: ffffff800835d114 00000000000001ac 0000000000000007 00000000000001ab
-[    0.679326] ba60: 0000000000000000 0000000000000394 0000000000007fff 0000000000000001
-[    0.679532] ba80: 0000000000000007 0000000000007ffe 0000000000000002 ffffffc07ce67000
-[    0.679739] baa0: ffffffc07c533700 ffffffc07cf26578 ffffffc07cf04598 ffffffc07c532580
-[    0.679944] bac0: ffffff8008af4000 ffffff8008af4ad0 0000000000000000 ffffffc07c52a380
-[    0.680149] bae0: 0000000000000040 ffffff800800bb40 ffffff8008235808 ffffff800800bb40
-[    0.680354] bb00: ffffff8008235808 0000000060000145 ffffffc07c533700 0000000062616c73
-[    0.680560] bb20: ffffffffffffffff 0000000000000000 ffffff800800bb40 ffffff8008235808
-[    0.680774] [<ffffff8008235808>] sysfs_warn_dup+0x60/0x7c
-[    0.680928] [<ffffff8008235920>] sysfs_create_dir_ns+0x98/0xa0
-[    0.681095] [<ffffff8008539274>] kobject_add_internal+0xa0/0x294
-[    0.681267] [<ffffff80085394f8>] kobject_init_and_add+0x90/0xb4
-[    0.681435] [<ffffff80081b524c>] sysfs_slab_add+0x90/0x200
-[    0.681592] [<ffffff80081b62a0>] __kmem_cache_create+0x26c/0x438
-[    0.681769] [<ffffff80081858a4>] kmem_cache_create+0x164/0x1f4
-[    0.681940] [<ffffff80086caa98>] sg_pool_init+0x60/0x100
-[    0.682094] [<ffffff8008084144>] do_one_initcall+0x38/0x12c
-[    0.682254] [<ffffff80086a0d10>] kernel_init_freeable+0x138/0x1d4
-[    0.682423] [<ffffff8008547388>] kernel_init+0x10/0xfc
-[    0.682571] [<ffffff80080851e0>] ret_from_fork+0x10/0x18
+Likewise we have kmalloc_node() which is a NUMA-aware version of kmalloc()
+but the implementation is not aware of any possible overflows in eventual
+size calculations.
 
-Link: http://lkml.kernel.org/r/1510365805-5155-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Introduce a combination of the two above cases to have a NUMA-node aware
+version of kmalloc_array() and kcalloc().
+
+Link: http://lkml.kernel.org/r/20170927082038.3782-2-jthumshirn@suse.de
+Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Damien Le Moal <damien.lemoal@wdc.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/slab.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN mm/slub.c~slub-fix-sysfs-duplicate-filename-creation-when-slub_debug=o mm/slub.c
---- a/mm/slub.c~slub-fix-sysfs-duplicate-filename-creation-when-slub_debug=o
-+++ a/mm/slub.c
-@@ -5706,6 +5706,10 @@ static int sysfs_slab_add(struct kmem_ca
- 		return 0;
- 	}
+diff -puN include/linux/slab.h~mm-add-kmalloc_array_node-and-kcalloc_node include/linux/slab.h
+--- a/include/linux/slab.h~mm-add-kmalloc_array_node-and-kcalloc_node
++++ a/include/linux/slab.h
+@@ -650,6 +650,22 @@ extern void *__kmalloc_track_caller(size
+ #define kmalloc_track_caller(size, flags) \
+ 	__kmalloc_track_caller(size, flags, _RET_IP_)
  
-+	if (!unmergeable && disable_higher_order_debug &&
-+			(slub_debug & DEBUG_METADATA_FLAGS))
-+		unmergeable = 1;
++static inline void *kmalloc_array_node(size_t n, size_t size, gfp_t flags,
++				       int node)
++{
++	if (size != 0 && n > SIZE_MAX / size)
++		return NULL;
++	if (__builtin_constant_p(n) && __builtin_constant_p(size))
++		return kmalloc_node(n * size, flags, node);
++	return __kmalloc_node(n * size, flags, node);
++}
 +
- 	if (unmergeable) {
- 		/*
- 		 * Slabcache can never be merged so we can use the name proper.
++static inline void *kcalloc_node(size_t n, size_t size, gfp_t flags, int node)
++{
++	return kmalloc_array_node(n, size, flags | __GFP_ZERO, node);
++}
++
++
+ #ifdef CONFIG_NUMA
+ extern void *__kmalloc_node_track_caller(size_t, gfp_t, int, unsigned long);
+ #define kmalloc_node_track_caller(size, flags, node) \
 _
