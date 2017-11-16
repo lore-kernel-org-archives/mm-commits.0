@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-move-accounting-updates-before-page_cache_tree_delete.patch removed from
- -mm tree
-Date: Thu, 16 Nov 2017 12:03:54 -0800
-Message-ID: <20171116200354.Gv40Am1Hl%akpm@linux-foundation.org>
+ mm-move-clearing-of-page-mapping-to-page_cache_tree_delete.patch removed
+ from -mm tree
+Date: Thu, 16 Nov 2017 12:03:57 -0800
+Message-ID: <20171116200357.57dynBRVs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47186 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934285AbdKPUDz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:55 -0500
+        with ESMTP id S934285AbdKPUD6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move accounting updates before page_cache_tree_delete()
+     Subject: mm: move clearing of page->mapping to page_cache_tree_delete()
 has been removed from the -mm tree.  Its filename was
-     mm-move-accounting-updates-before-page_cache_tree_delete.patch
+     mm-move-clearing-of-page-mapping-to-page_cache_tree_delete.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: move accounting updates before page_cache_tree_delete()
+Subject: mm: move clearing of page->mapping to page_cache_tree_delete()
 
-Move updates of various counters before page_cache_tree_delete() call.  It
-will be easier to batch things this way and there is no difference whether
-the counters get updated before or after removal from the radix tree.
+Clearing of page->mapping makes sense in page_cache_tree_delete() as well
+and it will help us with batching things this way.
 
-Link: http://lkml.kernel.org/r/20171010151937.26984-5-jack@suse.cz
+Link: http://lkml.kernel.org/r/20171010151937.26984-6-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Andi Kleen <ak@linux.intel.com>
@@ -40,75 +39,23 @@ Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   49 +++++++++++++++++++++++++------------------------
- 1 file changed, 25 insertions(+), 24 deletions(-)
+ mm/filemap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/filemap.c~mm-move-accounting-updates-before-page_cache_tree_delete mm/filemap.c
---- a/mm/filemap.c~mm-move-accounting-updates-before-page_cache_tree_delete
+diff -puN mm/filemap.c~mm-move-clearing-of-page-mapping-to-page_cache_tree_delete mm/filemap.c
+--- a/mm/filemap.c~mm-move-clearing-of-page-mapping-to-page_cache_tree_delete
 +++ a/mm/filemap.c
-@@ -224,34 +224,35 @@ void __delete_from_page_cache(struct pag
- 		}
+@@ -165,6 +165,9 @@ static void page_cache_tree_delete(struc
+ 				     workingset_update_node, mapping);
  	}
  
--	page_cache_tree_delete(mapping, page, shadow);
--
--	page->mapping = NULL;
--	/* Leave page->index set: truncation lookup relies upon it */
--
- 	/* hugetlb pages do not participate in page cache accounting. */
--	if (PageHuge(page))
--		return;
-+	if (!PageHuge(page)) {
-+		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
-+		if (PageSwapBacked(page)) {
-+			__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
-+			if (PageTransHuge(page))
-+				__dec_node_page_state(page, NR_SHMEM_THPS);
-+		} else {
-+			VM_BUG_ON_PAGE(PageTransHuge(page), page);
-+		}
- 
--	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
--	if (PageSwapBacked(page)) {
--		__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
--		if (PageTransHuge(page))
--			__dec_node_page_state(page, NR_SHMEM_THPS);
--	} else {
--		VM_BUG_ON_PAGE(PageTransHuge(page), page);
-+		/*
-+		 * At this point page must be either written or cleaned by
-+		 * truncate.  Dirty page here signals a bug and loss of
-+		 * unwritten data.
-+		 *
-+		 * This fixes dirty accounting after removing the page entirely
-+		 * but leaves PageDirty set: it has no effect for truncated
-+		 * page and anyway will be cleared before returning page into
-+		 * buddy allocator.
-+		 */
-+		if (WARN_ON_ONCE(PageDirty(page)))
-+			account_page_cleaned(page, mapping,
-+					     inode_to_wb(mapping->host));
- 	}
-+	page_cache_tree_delete(mapping, page, shadow);
- 
--	/*
--	 * At this point page must be either written or cleaned by truncate.
--	 * Dirty page here signals a bug and loss of unwritten data.
--	 *
--	 * This fixes dirty accounting after removing the page entirely but
--	 * leaves PageDirty set: it has no effect for truncated page and
--	 * anyway will be cleared before returning page into buddy allocator.
--	 */
--	if (WARN_ON_ONCE(PageDirty(page)))
--		account_page_cleaned(page, mapping, inode_to_wb(mapping->host));
 +	page->mapping = NULL;
 +	/* Leave page->index set: truncation lookup relies upon it */
- }
- 
- static void page_cache_free_page(struct address_space *mapping,
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-mm-readahead-increase-maximum-readahead-window.patch
-
++
+ 	if (shadow) {
+ 		mapping->nrexceptional += nr;
+ 		/*
+@@ -250,9 +253,6 @@ void __delete_from_page_cache(struct pag
+ 					     inode_to_wb(mapping->host));
+ 	}
+ 	page_cache_tree_delete(mapping, page, shadow);
