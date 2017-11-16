@@ -1,293 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arm64-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow.patch removed
+ mm-soft_offline-improve-hugepage-soft-offlining-error-log.patch removed
  from -mm tree
-Date: Thu, 16 Nov 2017 12:03:18 -0800
-Message-ID: <20171116200318.QSfyEnMJP%akpm@linux-foundation.org>
+Date: Thu, 16 Nov 2017 12:03:36 -0800
+Message-ID: <20171116200336.0T8bzI9p-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47062 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933463AbdKPUDW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:22 -0500
+        with ESMTP id S935293AbdKPUDh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:03:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, aryabinin@virtuozzo.com, bob.picco@oracle.com, borntraeger@de.ibm.com, catalin.marinas@arm.com, daniel.m.jordan@oracle.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, heiko.carstens@de.ibm.com, hpa@zytor.com, mark.rutland@arm.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, sam@ravnborg.org, steven.sistare@oracle.com, tglx@linutronix.de, will.deacon@arm.com, willy@infradead.org
+To: laszlth@gmail.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: arm64/mm/kasan: don't use vmemmap_populate() to initialize shadow
+     Subject: mm, soft_offline: improve hugepage soft offlining error log
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow.patch
+     mm-soft_offline-improve-hugepage-soft-offlining-error-log.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: arm64/mm/kasan: don't use vmemmap_populate() to initialize shadow
+From: Laszlo Toth <laszlth@gmail.com>
+Subject: mm, soft_offline: improve hugepage soft offlining error log
 
-The kasan shadow is currently mapped using vmemmap_populate() since that
-provides a semi-convenient way to map pages into init_top_pgt.  However,
-since that no longer zeroes the mapped pages, it is not suitable for
-kasan, which requires zeroed shadow memory.
+On a failed attempt, we get the following entry: soft offline: 0x3c0000:
+migration failed 1, type 17ffffc0008008 (uptodate|head)
 
-Add kasan_populate_shadow() interface and use it instead of
-vmemmap_populate().  Besides, this allows us to take advantage of gigantic
-pages and use them to populate the shadow, which should save us some
-memory wasted on page tables and reduce TLB pressure.
+Make this more specific to be straightforward and to follow other error
+log formats in soft_offline_huge_page().
 
-Link: http://lkml.kernel.org/r/20171103185147.2688-3-pasha.tatashin@oracle.com
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20171016171757.GA3018@ubuntu-desk-vm
+Signed-off-by: Laszlo Toth <laszlth@gmail.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig         |    2 
- arch/arm64/mm/kasan_init.c |  130 +++++++++++++++++++++--------------
- 2 files changed, 81 insertions(+), 51 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/Kconfig~arm64-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~arm64-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow
-+++ a/arch/arm64/Kconfig
-@@ -85,7 +85,7 @@ config ARM64
- 	select HAVE_ARCH_BITREVERSE
- 	select HAVE_ARCH_HUGE_VMAP
- 	select HAVE_ARCH_JUMP_LABEL
--	select HAVE_ARCH_KASAN if SPARSEMEM_VMEMMAP && !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
-+	select HAVE_ARCH_KASAN if !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_MMAP_RND_BITS
- 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
-diff -puN arch/arm64/mm/kasan_init.c~arm64-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow arch/arm64/mm/kasan_init.c
---- a/arch/arm64/mm/kasan_init.c~arm64-mm-kasan-dont-use-vmemmap_populate-to-initialize-shadow
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -11,6 +11,7 @@
-  */
- 
- #define pr_fmt(fmt) "kasan: " fmt
-+#include <linux/bootmem.h>
- #include <linux/kasan.h>
- #include <linux/kernel.h>
- #include <linux/sched/task.h>
-@@ -35,77 +36,117 @@ static pgd_t tmp_pg_dir[PTRS_PER_PGD] __
-  * with the physical address from __pa_symbol.
-  */
- 
--static void __init kasan_early_pte_populate(pmd_t *pmd, unsigned long addr,
--					unsigned long end)
-+static phys_addr_t __init kasan_alloc_zeroed_page(int node)
- {
--	pte_t *pte;
--	unsigned long next;
-+	void *p = memblock_virt_alloc_try_nid(PAGE_SIZE, PAGE_SIZE,
-+					      __pa(MAX_DMA_ADDRESS),
-+					      MEMBLOCK_ALLOC_ACCESSIBLE, node);
-+	return __pa(p);
-+}
-+
-+static pte_t *__init kasan_pte_offset(pmd_t *pmd, unsigned long addr, int node,
-+				      bool early)
-+{
-+	if (pmd_none(*pmd)) {
-+		phys_addr_t pte_phys = early ? __pa_symbol(kasan_zero_pte)
-+					     : kasan_alloc_zeroed_page(node);
-+		__pmd_populate(pmd, pte_phys, PMD_TYPE_TABLE);
-+	}
-+
-+	return early ? pte_offset_kimg(pmd, addr)
-+		     : pte_offset_kernel(pmd, addr);
-+}
- 
--	if (pmd_none(*pmd))
--		__pmd_populate(pmd, __pa_symbol(kasan_zero_pte), PMD_TYPE_TABLE);
-+static pmd_t *__init kasan_pmd_offset(pud_t *pud, unsigned long addr, int node,
-+				      bool early)
-+{
-+	if (pud_none(*pud)) {
-+		phys_addr_t pmd_phys = early ? __pa_symbol(kasan_zero_pmd)
-+					     : kasan_alloc_zeroed_page(node);
-+		__pud_populate(pud, pmd_phys, PMD_TYPE_TABLE);
-+	}
-+
-+	return early ? pmd_offset_kimg(pud, addr) : pmd_offset(pud, addr);
-+}
-+
-+static pud_t *__init kasan_pud_offset(pgd_t *pgd, unsigned long addr, int node,
-+				      bool early)
-+{
-+	if (pgd_none(*pgd)) {
-+		phys_addr_t pud_phys = early ? __pa_symbol(kasan_zero_pud)
-+					     : kasan_alloc_zeroed_page(node);
-+		__pgd_populate(pgd, pud_phys, PMD_TYPE_TABLE);
-+	}
-+
-+	return early ? pud_offset_kimg(pgd, addr) : pud_offset(pgd, addr);
-+}
-+
-+static void __init kasan_pte_populate(pmd_t *pmd, unsigned long addr,
-+				      unsigned long end, int node, bool early)
-+{
-+	unsigned long next;
-+	pte_t *pte = kasan_pte_offset(pmd, addr, node, early);
- 
--	pte = pte_offset_kimg(pmd, addr);
- 	do {
-+		phys_addr_t page_phys = early ? __pa_symbol(kasan_zero_page)
-+					      : kasan_alloc_zeroed_page(node);
- 		next = addr + PAGE_SIZE;
--		set_pte(pte, pfn_pte(sym_to_pfn(kasan_zero_page),
--					PAGE_KERNEL));
-+		set_pte(pte, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
- 	} while (pte++, addr = next, addr != end && pte_none(*pte));
- }
- 
--static void __init kasan_early_pmd_populate(pud_t *pud,
--					unsigned long addr,
--					unsigned long end)
-+static void __init kasan_pmd_populate(pud_t *pud, unsigned long addr,
-+				      unsigned long end, int node, bool early)
- {
--	pmd_t *pmd;
- 	unsigned long next;
-+	pmd_t *pmd = kasan_pmd_offset(pud, addr, node, early);
- 
--	if (pud_none(*pud))
--		__pud_populate(pud, __pa_symbol(kasan_zero_pmd), PMD_TYPE_TABLE);
--
--	pmd = pmd_offset_kimg(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		kasan_early_pte_populate(pmd, addr, next);
-+		kasan_pte_populate(pmd, addr, next, node, early);
- 	} while (pmd++, addr = next, addr != end && pmd_none(*pmd));
- }
- 
--static void __init kasan_early_pud_populate(pgd_t *pgd,
--					unsigned long addr,
--					unsigned long end)
-+static void __init kasan_pud_populate(pgd_t *pgd, unsigned long addr,
-+				      unsigned long end, int node, bool early)
- {
--	pud_t *pud;
- 	unsigned long next;
-+	pud_t *pud = kasan_pud_offset(pgd, addr, node, early);
- 
--	if (pgd_none(*pgd))
--		__pgd_populate(pgd, __pa_symbol(kasan_zero_pud), PUD_TYPE_TABLE);
--
--	pud = pud_offset_kimg(pgd, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
--		kasan_early_pmd_populate(pud, addr, next);
-+		kasan_pmd_populate(pud, addr, next, node, early);
- 	} while (pud++, addr = next, addr != end && pud_none(*pud));
- }
- 
--static void __init kasan_map_early_shadow(void)
-+static void __init kasan_pgd_populate(unsigned long addr, unsigned long end,
-+				      int node, bool early)
- {
--	unsigned long addr = KASAN_SHADOW_START;
--	unsigned long end = KASAN_SHADOW_END;
- 	unsigned long next;
- 	pgd_t *pgd;
- 
- 	pgd = pgd_offset_k(addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
--		kasan_early_pud_populate(pgd, addr, next);
-+		kasan_pud_populate(pgd, addr, next, node, early);
- 	} while (pgd++, addr = next, addr != end);
- }
- 
-+/* The early shadow maps everything to a single page of zeroes */
- asmlinkage void __init kasan_early_init(void)
- {
- 	BUILD_BUG_ON(KASAN_SHADOW_OFFSET != KASAN_SHADOW_END - (1UL << 61));
- 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_START, PGDIR_SIZE));
- 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_END, PGDIR_SIZE));
--	kasan_map_early_shadow();
-+	kasan_pgd_populate(KASAN_SHADOW_START, KASAN_SHADOW_END, NUMA_NO_NODE,
-+			   true);
-+}
-+
-+/* Set up full kasan mappings, ensuring that the mapped pages are zeroed */
-+static void __init kasan_map_populate(unsigned long start, unsigned long end,
-+				      int node)
-+{
-+	kasan_pgd_populate(start & PAGE_MASK, PAGE_ALIGN(end), node, false);
- }
- 
- /*
-@@ -142,8 +183,8 @@ void __init kasan_init(void)
- 	struct memblock_region *reg;
- 	int i;
- 
--	kimg_shadow_start = (u64)kasan_mem_to_shadow(_text);
--	kimg_shadow_end = (u64)kasan_mem_to_shadow(_end);
-+	kimg_shadow_start = (u64)kasan_mem_to_shadow(_text) & PAGE_MASK;
-+	kimg_shadow_end = PAGE_ALIGN((u64)kasan_mem_to_shadow(_end));
- 
- 	mod_shadow_start = (u64)kasan_mem_to_shadow((void *)MODULES_VADDR);
- 	mod_shadow_end = (u64)kasan_mem_to_shadow((void *)MODULES_END);
-@@ -161,19 +202,8 @@ void __init kasan_init(void)
- 
- 	clear_pgds(KASAN_SHADOW_START, KASAN_SHADOW_END);
- 
--	vmemmap_populate(kimg_shadow_start, kimg_shadow_end,
--			 pfn_to_nid(virt_to_pfn(lm_alias(_text))));
--
--	/*
--	 * vmemmap_populate() has populated the shadow region that covers the
--	 * kernel image with SWAPPER_BLOCK_SIZE mappings, so we have to round
--	 * the start and end addresses to SWAPPER_BLOCK_SIZE as well, to prevent
--	 * kasan_populate_zero_shadow() from replacing the page table entries
--	 * (PMD or PTE) at the edges of the shadow region for the kernel
--	 * image.
--	 */
--	kimg_shadow_start = round_down(kimg_shadow_start, SWAPPER_BLOCK_SIZE);
--	kimg_shadow_end = round_up(kimg_shadow_end, SWAPPER_BLOCK_SIZE);
-+	kasan_map_populate(kimg_shadow_start, kimg_shadow_end,
-+			   pfn_to_nid(virt_to_pfn(lm_alias(_text))));
- 
- 	kasan_populate_zero_shadow((void *)KASAN_SHADOW_START,
- 				   (void *)mod_shadow_start);
-@@ -191,9 +221,9 @@ void __init kasan_init(void)
- 		if (start >= end)
- 			break;
- 
--		vmemmap_populate((unsigned long)kasan_mem_to_shadow(start),
--				(unsigned long)kasan_mem_to_shadow(end),
--				pfn_to_nid(virt_to_pfn(start)));
-+		kasan_map_populate((unsigned long)kasan_mem_to_shadow(start),
-+				   (unsigned long)kasan_mem_to_shadow(end),
-+				   pfn_to_nid(virt_to_pfn(start)));
- 	}
- 
- 	/*
+diff -puN mm/memory-failure.c~mm-soft_offline-improve-hugepage-soft-offlining-error-log mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft_offline-improve-hugepage-soft-offlining-error-log
++++ a/mm/memory-failure.c
+@@ -1587,7 +1587,7 @@ static int soft_offline_huge_page(struct
+ 	ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+ 				MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 	if (ret) {
+-		pr_info("soft offline: %#lx: migration failed %d, type %lx (%pGp)\n",
++		pr_info("soft offline: %#lx: hugepage migration failed %d, type %lx (%pGp)\n",
+ 			pfn, ret, page->flags, &page->flags);
+ 		if (!list_empty(&pagelist))
+ 			putback_movable_pages(&pagelist);
 _
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from laszlth@gmail.com are
 
-scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
 
