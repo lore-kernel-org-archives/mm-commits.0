@@ -1,38 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-get-mle-inuse-only-when-it-is-initialized.patch removed from -mm
- tree
-Date: Thu, 16 Nov 2017 11:59:08 -0800
-Message-ID: <20171116195908.osdy2A75h%akpm@linux-foundation.org>
+ =?US-ASCII?Q?ocfs2-subsystemsu=5Fmutex-is-required-while-accessing-the-?=
+ =?US-ASCII?Q?item-ci=5Fparent.patch?= removed from -mm tree
+Date: Thu, 16 Nov 2017 11:59:05 -0800
+Message-ID: <20171116195905.taZV7AiT4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45770 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934048AbdKPT7J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:09 -0500
+        with ESMTP id S934028AbdKPT7G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: ocfs2/dlm: get mle inuse only when it is initialized
+     Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-get-mle-inuse-only-when-it-is-initialized.patch
+     ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2/dlm: get mle inuse only when it is initialized
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: subsystem.su_mutex is required while accessing the item->ci_parent
 
-When dlm_add_migration_mle returns -EEXIST, previously input mle will not
-be initialized.  So we can't use its associated dlm object.  And we truly
-don't need this mle for already launched migration progress, since oldmle
-has taken this role.
+The subsystem.su_mutex is required while accessing the item->ci_parent,
+otherwise, NULL pointer dereference to the item->ci_parent will be
+triggered in the following situation:
 
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED7AA61@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+add node                     delete node
+sys_write
+ vfs_write
+  configfs_write_file
+   o2nm_node_store
+    o2nm_node_local_write
+                             do_rmdir
+                              vfs_rmdir
+                               configfs_rmdir
+                                mutex_lock(&subsys->su_mutex);
+                                unlink_obj
+                                 item->ci_group = NULL;
+                                 item->ci_parent = NULL;
+	 to_o2nm_cluster_from_node
+	  node->nd_item.ci_parent->ci_parent
+	  BUG since of NULL pointer dereference to nd_item.ci_parent
+
+Moreover, the o2nm_cluster also should be protected by the
+subsystem.su_mutex.
+
+[alex.chen@huawei.com: v2]
+  Link: http://lkml.kernel.org/r/59EEAA69.9080703@huawei.com
+Link: http://lkml.kernel.org/r/59E9B36A.10700@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
 Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -40,25 +64,169 @@ Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/ocfs2/cluster/nodemanager.c |   63 +++++++++++++++++++++++++++----
+ 1 file changed, 55 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-get-mle-inuse-only-when-it-is-initialized fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-get-mle-inuse-only-when-it-is-initialized
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2616,7 +2616,9 @@ static int dlm_migrate_lockres(struct dl
- 	 * otherwise the assert_master from the new
- 	 * master will destroy this.
- 	 */
--	dlm_get_mle_inuse(mle);
-+	if (ret != -EEXIST)
-+		dlm_get_mle_inuse(mle);
-+
- 	spin_unlock(&dlm->master_lock);
- 	spin_unlock(&dlm->spinlock);
+diff -puN fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-subsystemsu_mutex-is-required-while-accessing-the-item-ci_parent
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -40,6 +40,9 @@ char *o2nm_fence_method_desc[O2NM_FENCE_
+ 		"panic",	/* O2NM_FENCE_PANIC */
+ };
  
++static inline void o2nm_lock_subsystem(void);
++static inline void o2nm_unlock_subsystem(void);
++
+ struct o2nm_node *o2nm_get_node_by_num(u8 node_num)
+ {
+ 	struct o2nm_node *node = NULL;
+@@ -181,7 +184,10 @@ static struct o2nm_cluster *to_o2nm_clus
+ {
+ 	/* through the first node_set .parent
+ 	 * mycluster/nodes/mynode == o2nm_cluster->o2nm_node_group->o2nm_node */
+-	return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
++	if (node->nd_item.ci_parent)
++		return to_o2nm_cluster(node->nd_item.ci_parent->ci_parent);
++	else
++		return NULL;
+ }
+ 
+ enum {
+@@ -194,7 +200,7 @@ static ssize_t o2nm_node_num_store(struc
+ 				   size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
+ 	int ret = 0;
+@@ -214,6 +220,13 @@ static ssize_t o2nm_node_num_store(struc
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		o2nm_unlock_subsystem();
++		return -EINVAL;
++	}
++
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (cluster->cl_nodes[tmp])
+ 		ret = -EEXIST;
+@@ -226,6 +239,8 @@ static ssize_t o2nm_node_num_store(struc
+ 		set_bit(tmp, cluster->cl_nodes_bitmap);
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
++	o2nm_unlock_subsystem();
++
+ 	if (ret)
+ 		return ret;
+ 
+@@ -269,7 +284,7 @@ static ssize_t o2nm_node_ipv4_address_st
+ 					    size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	int ret, i;
+ 	struct rb_node **p, *parent;
+ 	unsigned int octets[4];
+@@ -286,6 +301,13 @@ static ssize_t o2nm_node_ipv4_address_st
+ 		be32_add_cpu(&ipv4_addr, octets[i] << (i * 8));
+ 	}
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		o2nm_unlock_subsystem();
++		return -EINVAL;
++	}
++
+ 	ret = 0;
+ 	write_lock(&cluster->cl_nodes_lock);
+ 	if (o2nm_node_ip_tree_lookup(cluster, ipv4_addr, &p, &parent))
+@@ -298,6 +320,8 @@ static ssize_t o2nm_node_ipv4_address_st
+ 		rb_insert_color(&node->nd_ip_node, &cluster->cl_node_ip_tree);
+ 	}
+ 	write_unlock(&cluster->cl_nodes_lock);
++	o2nm_unlock_subsystem();
++
+ 	if (ret)
+ 		return ret;
+ 
+@@ -315,7 +339,7 @@ static ssize_t o2nm_node_local_store(str
+ 				     size_t count)
+ {
+ 	struct o2nm_node *node = to_o2nm_node(item);
+-	struct o2nm_cluster *cluster = to_o2nm_cluster_from_node(node);
++	struct o2nm_cluster *cluster;
+ 	unsigned long tmp;
+ 	char *p = (char *)page;
+ 	ssize_t ret;
+@@ -333,17 +357,26 @@ static ssize_t o2nm_node_local_store(str
+ 	    !test_bit(O2NM_NODE_ATTR_PORT, &node->nd_set_attributes))
+ 		return -EINVAL; /* XXX */
+ 
++	o2nm_lock_subsystem();
++	cluster = to_o2nm_cluster_from_node(node);
++	if (!cluster) {
++		ret = -EINVAL;
++		goto out;
++	}
++
+ 	/* the only failure case is trying to set a new local node
+ 	 * when a different one is already set */
+ 	if (tmp && tmp == cluster->cl_has_local &&
+-	    cluster->cl_local_node != node->nd_num)
+-		return -EBUSY;
++	    cluster->cl_local_node != node->nd_num) {
++		ret = -EBUSY;
++		goto out;
++	}
+ 
+ 	/* bring up the rx thread if we're setting the new local node. */
+ 	if (tmp && !cluster->cl_has_local) {
+ 		ret = o2net_start_listening(node);
+ 		if (ret)
+-			return ret;
++			goto out;
+ 	}
+ 
+ 	if (!tmp && cluster->cl_has_local &&
+@@ -358,7 +391,11 @@ static ssize_t o2nm_node_local_store(str
+ 		cluster->cl_local_node = node->nd_num;
+ 	}
+ 
+-	return count;
++	ret = count;
++
++out:
++	o2nm_unlock_subsystem();
++	return ret;
+ }
+ 
+ CONFIGFS_ATTR(o2nm_node_, num);
+@@ -738,6 +775,16 @@ static struct o2nm_cluster_group o2nm_cl
+ 	},
+ };
+ 
++static inline void o2nm_lock_subsystem(void)
++{
++	mutex_lock(&o2nm_cluster_group.cs_subsys.su_mutex);
++}
++
++static inline void o2nm_unlock_subsystem(void)
++{
++	mutex_unlock(&o2nm_cluster_group.cs_subsys.su_mutex);
++}
++
+ int o2nm_depend_item(struct config_item *item)
+ {
+ 	return configfs_depend_item(&o2nm_cluster_group.cs_subsys, item);
 _
 
-Patches currently in -mm which might be from ge.changwei@h3c.com are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
 
