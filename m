@@ -1,148 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [patch 091/131] mm/page_alloc: make sure __rmqueue() etc
- are always inline
-Date: Wed, 15 Nov 2017 17:36:53 -0800
-Message-ID: <20171116013653.i4tEjKav-%akpm@linux-foundation.org>
+Subject: [patch 092/131] userfaultfd: use mmgrab instead of
+ open-coded increment of mm_count
+Date: Wed, 15 Nov 2017 17:36:56 -0800
+Message-ID: <20171116013656.KQZUPvbCt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933052AbdKPBgy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:36:54 -0500
+        with ESMTP id S933052AbdKPBg6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:36:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aaron.lu@intel.com, akpm@linux-foundation.org, andi@firstfloor.org, dave.hansen@intel.com, kemi.wang@intel.com, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, vbabka@suse.cz, ying.huang@intel.com
+To: aarcange@redhat.com, akpm@linux-foundation.org, dgilbert@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
 
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: mm/page_alloc: make sure __rmqueue() etc are always inline
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: use mmgrab instead of open-coded increment of mm_count
 
-__rmqueue(), __rmqueue_fallback(), __rmqueue_smallest() and
-__rmqueue_cma_fallback() are all in page allocator's hot path and better
-be finished as soon as possible.  One way to make them faster is by making
-them inline.  But as Andrew Morton and Andi Kleen pointed out:
-https://lkml.org/lkml/2017/10/10/1252
-https://lkml.org/lkml/2017/10/10/1279
-To make sure they are inlined, we should use __always_inline for them.
-
-With the will-it-scale/page_fault1/process benchmark, when using nr_cpu
-processes to stress buddy, the results for will-it-scale.processes with
-and without the patch are:
-
-On a 2-sockets Intel-Skylake machine:
-
- compiler          base        head
-gcc-4.4.7       6496131     6911823 +6.4%
-gcc-4.9.4       7225110     7731072 +7.0%
-gcc-5.4.1       7054224     7688146 +9.0%
-gcc-6.2.0       7059794     7651675 +8.4%
-
-On a 4-sockets Intel-Skylake machine:
-
- compiler          base        head
-gcc-4.4.7      13162890    13508193 +2.6%
-gcc-4.9.4      14997463    15484353 +3.2%
-gcc-5.4.1      14708711    15449805 +5.0%
-gcc-6.2.0      14574099    15349204 +5.3%
-
-The above 4 compilers are used because I've done the tests through Intel's
-Linux Kernel Performance(LKP) infrastructure and they are the available
-compilers there.
-
-The benefit being less on 4 sockets machine is due to the lock contention
-there(perf-profile/native_queued_spin_lock_slowpath=81%) is less severe
-than on the 2 sockets machine(85%).
-
-What the benchmark does is: it forks nr_cpu processes and then each
-process does the following:
-    1 mmap() 128M anonymous space;
-    2 writes to each page there to trigger actual page allocation;
-    3 munmap() it.
-in a loop.
-https://github.com/antonblanchard/will-it-scale/blob/master/tests/page_fault1.c
-
-Binary size wise, I have locally built them with different compilers:
-
-[aaron@aaronlu obj]$ size */*/mm/page_alloc.o
-   text    data     bss     dec     hex filename
-  37409    9904    8524   55837    da1d gcc-4.9.4/base/mm/page_alloc.o
-  38273    9904    8524   56701    dd7d gcc-4.9.4/head/mm/page_alloc.o
-  37465    9840    8428   55733    d9b5 gcc-5.5.0/base/mm/page_alloc.o
-  38169    9840    8428   56437    dc75 gcc-5.5.0/head/mm/page_alloc.o
-  37573    9840    8428   55841    da21 gcc-6.4.0/base/mm/page_alloc.o
-  38261    9840    8428   56529    dcd1 gcc-6.4.0/head/mm/page_alloc.o
-  36863    9840    8428   55131    d75b gcc-7.2.0/base/mm/page_alloc.o
-  37711    9840    8428   55979    daab gcc-7.2.0/head/mm/page_alloc.o
-
-Text size increased about 800 bytes for mm/page_alloc.o.
-
-[aaron@aaronlu obj]$ size */*/vmlinux
-   text    data     bss     dec       hex     filename
-10342757   5903208 17723392 33969357  20654cd gcc-4.9.4/base/vmlinux
-10342757   5903208 17723392 33969357  20654cd gcc-4.9.4/head/vmlinux
-10332448   5836608 17715200 33884256  2050860 gcc-5.5.0/base/vmlinux
-10332448   5836608 17715200 33884256  2050860 gcc-5.5.0/head/vmlinux
-10094546   5836696 17715200 33646442  201676a gcc-6.4.0/base/vmlinux
-10094546   5836696 17715200 33646442  201676a gcc-6.4.0/head/vmlinux
-10018775   5828732 17715200 33562707  2002053 gcc-7.2.0/base/vmlinux
-10018775   5828732 17715200 33562707  2002053 gcc-7.2.0/head/vmlinux
-
-Text size for vmlinux has no change though, probably due to function
-alignment.
-
-Link: http://lkml.kernel.org/r/20171013063111.GA26032@intel.com
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Kemi Wang <kemi.wang@intel.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1508132478-7738-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-make-sure-__rmqueue-etc-always-inline mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-make-sure-__rmqueue-etc-always-inline
-+++ a/mm/page_alloc.c
-@@ -1813,7 +1813,7 @@ static void prep_new_page(struct page *p
-  * Go through the free lists for the given migratetype and remove
-  * the smallest available page from the freelists
-  */
--static inline
-+static __always_inline
- struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
- 						int migratetype)
- {
-@@ -1857,7 +1857,7 @@ static int fallbacks[MIGRATE_TYPES][4] =
- };
+diff -puN fs/userfaultfd.c~userfaultfd-use-mmgrab-instead-of-open-coded-increment-of-mm_count fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-use-mmgrab-instead-of-open-coded-increment-of-mm_count
++++ a/fs/userfaultfd.c
+@@ -668,7 +668,7 @@ int dup_userfaultfd(struct vm_area_struc
+ 		ctx->features = octx->features;
+ 		ctx->released = false;
+ 		ctx->mm = vma->vm_mm;
+-		atomic_inc(&ctx->mm->mm_count);
++		mmgrab(ctx->mm);
  
- #ifdef CONFIG_CMA
--static struct page *__rmqueue_cma_fallback(struct zone *zone,
-+static __always_inline struct page *__rmqueue_cma_fallback(struct zone *zone,
- 					unsigned int order)
- {
- 	return __rmqueue_smallest(zone, order, MIGRATE_CMA);
-@@ -2238,7 +2238,7 @@ static bool unreserve_highatomic_pageblo
-  * deviation from the rest of this file, to make the for loop
-  * condition simpler.
-  */
--static inline bool
-+static __always_inline bool
- __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- {
- 	struct free_area *area;
-@@ -2310,8 +2310,8 @@ do_steal:
-  * Do the hard work of removing an element from the buddy allocator.
-  * Call me with the zone->lock already held.
-  */
--static struct page *__rmqueue(struct zone *zone, unsigned int order,
--				int migratetype)
-+static __always_inline struct page *
-+__rmqueue(struct zone *zone, unsigned int order, int migratetype)
- {
- 	struct page *page;
- 
+ 		userfaultfd_ctx_get(octx);
+ 		fctx->orig = octx;
 _
