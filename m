@@ -1,119 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch removed
- from -mm tree
-Date: Thu, 16 Nov 2017 11:59:02 -0800
-Message-ID: <20171116195902.5E44ZIL5T%akpm@linux-foundation.org>
+ =?US-ASCII?Q?ocfs2-the-goto-is-not-useful-in-the-function-ocfs2=5Freserv?=
+ =?US-ASCII?Q?e=5Fcluster=5Fbitmap=5Fbits-so-remove-it.patch?= removed from
+ -mm tree
+Date: Thu, 16 Nov 2017 11:59:11 -0800
+Message-ID: <20171116195911.tR-1TxfcO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45802 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934046AbdKPT7E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:04 -0500
+        with ESMTP id S934028AbdKPT7M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 14:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: guozhonghua@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: ip_alloc_sem should be taken in ocfs2_get_block()
+     Subject: ocfs2: remove unneeded goto in ocfs2_reserve_cluster_bitmap_bits()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block.patch
+     ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: ip_alloc_sem should be taken in ocfs2_get_block()
+From: Guozhonghua <guozhonghua@h3c.com>
+Subject: ocfs2: remove unneeded goto in ocfs2_reserve_cluster_bitmap_bits()
 
-ip_alloc_sem should be taken in ocfs2_get_block() when reading file in
-DIRECT mode to prevent concurrent access to extent tree with
-ocfs2_dio_end_io_write(), which may cause BUGON in the following
-situation:
-
-read file 'A'                                  end_io of writing file 'A'
-vfs_read
- __vfs_read
-  ocfs2_file_read_iter
-   generic_file_read_iter
-    ocfs2_direct_IO
-     __blockdev_direct_IO
-      do_blockdev_direct_IO
-       do_direct_IO
-        get_more_blocks
-         ocfs2_get_block
-          ocfs2_extent_map_get_blocks
-           ocfs2_get_clusters
-            ocfs2_get_clusters_nocache()
-             ocfs2_search_extent_list
-              return the index of record which
-              contains the v_cluster, that is
-              v_cluster > rec[i]->e_cpos.
-                                                ocfs2_dio_end_io
-                                                 ocfs2_dio_end_io_write
-                                                  down_write(&oi->ip_alloc_sem);
-                                                  ocfs2_mark_extent_written
-                                                   ocfs2_change_extent_flag
-                                                    ocfs2_split_extent
-                                                     ...
-                                                 --> modify the rec[i]->e_cpos, resulting
-                                                     in v_cluster < rec[i]->e_cpos.
-             BUG_ON(v_cluster < le32_to_cpu(rec->e_cpos))
-
-[alex.chen@huawei.com: v3]
-  Link: http://lkml.kernel.org/r/59EF3614.6050008@huawei.com
-Link: http://lkml.kernel.org/r/59EF3614.6050008@huawei.com
-Fixes: c15471f79506 ("ocfs2: fix sparse file & data ordering issue in direct io")
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Reviewed-by: Gang He <ghe@suse.com>
-Acked-by: Changwei Ge <ge.changwei@h3c.com>
+Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4F3CDE3A9@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: guozhonghua <guozhonghua@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ fs/ocfs2/suballoc.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-the-ip_alloc_sem-should-be-taken-in-ocfs2_get_block
-+++ a/fs/ocfs2/aops.c
-@@ -134,6 +134,19 @@ bail:
- 	return err;
+diff -puN fs/ocfs2/suballoc.c~ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-the-goto-is-not-useful-in-the-function-ocfs2_reserve_cluster_bitmap_bits-so-remove-it
++++ a/fs/ocfs2/suballoc.c
+@@ -1147,12 +1147,9 @@ int ocfs2_reserve_cluster_bitmap_bits(st
+ 					     GLOBAL_BITMAP_SYSTEM_INODE,
+ 					     OCFS2_INVALID_SLOT, NULL,
+ 					     ALLOC_NEW_GROUP);
+-	if (status < 0 && status != -ENOSPC) {
++	if (status < 0 && status != -ENOSPC)
+ 		mlog_errno(status);
+-		goto bail;
+-	}
+ 
+-bail:
+ 	return status;
  }
  
-+static int ocfs2_lock_get_block(struct inode *inode, sector_t iblock,
-+		    struct buffer_head *bh_result, int create)
-+{
-+	int ret = 0;
-+	struct ocfs2_inode_info *oi = OCFS2_I(inode);
-+
-+	down_read(&oi->ip_alloc_sem);
-+	ret = ocfs2_get_block(inode, iblock, bh_result, create);
-+	up_read(&oi->ip_alloc_sem);
-+
-+	return ret;
-+}
-+
- int ocfs2_get_block(struct inode *inode, sector_t iblock,
- 		    struct buffer_head *bh_result, int create)
- {
-@@ -2128,7 +2141,7 @@ static void ocfs2_dio_free_write_ctx(str
-  * called like this: dio->get_blocks(dio->inode, fs_startblk,
-  * 					fs_count, map_bh, dio->rw == WRITE);
-  */
--static int ocfs2_dio_get_block(struct inode *inode, sector_t iblock,
-+static int ocfs2_dio_wr_get_block(struct inode *inode, sector_t iblock,
- 			       struct buffer_head *bh_result, int create)
- {
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-@@ -2154,12 +2167,9 @@ static int ocfs2_dio_get_block(struct in
- 	 * while file size will be changed.
- 	 */
- 	if (pos + total_len <= i_size_read(inode)) {
--		down_read(&oi->ip_alloc_sem);
--		/* This is the fast path for re-write. */
--		ret = ocfs2_get_block(inode, iblock, bh_result, create);
+_
+
+Patches currently in -mm which might be from guozhonghua@h3c.com are
+
+
