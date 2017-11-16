@@ -1,42 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 092/131] userfaultfd: use mmgrab instead of
- open-coded increment of mm_count
-Date: Wed, 15 Nov 2017 17:36:56 -0800
-Message-ID: <20171116013656.KQZUPvbCt%akpm@linux-foundation.org>
+Subject: [patch 093/131] mm, soft_offline: improve hugepage soft
+ offlining error log
+Date: Wed, 15 Nov 2017 17:37:00 -0800
+Message-ID: <20171116013700.2Kd-soYNz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40140 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933052AbdKPBg6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:36:58 -0500
+        with ESMTP id S933052AbdKPBhC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:37:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, dgilbert@redhat.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, laszlth@gmail.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: use mmgrab instead of open-coded increment of mm_count
+From: Laszlo Toth <laszlth@gmail.com>
+Subject: mm, soft_offline: improve hugepage soft offlining error log
 
-Link: http://lkml.kernel.org/r/1508132478-7738-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+On a failed attempt, we get the following entry: soft offline: 0x3c0000:
+migration failed 1, type 17ffffc0008008 (uptodate|head)
+
+Make this more specific to be straightforward and to follow other error
+log formats in soft_offline_huge_page().
+
+Link: http://lkml.kernel.org/r/20171016171757.GA3018@ubuntu-desk-vm
+Signed-off-by: Laszlo Toth <laszlth@gmail.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    2 +-
+ mm/memory-failure.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-use-mmgrab-instead-of-open-coded-increment-of-mm_count fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-use-mmgrab-instead-of-open-coded-increment-of-mm_count
-+++ a/fs/userfaultfd.c
-@@ -668,7 +668,7 @@ int dup_userfaultfd(struct vm_area_struc
- 		ctx->features = octx->features;
- 		ctx->released = false;
- 		ctx->mm = vma->vm_mm;
--		atomic_inc(&ctx->mm->mm_count);
-+		mmgrab(ctx->mm);
- 
- 		userfaultfd_ctx_get(octx);
- 		fctx->orig = octx;
+diff -puN mm/memory-failure.c~mm-soft_offline-improve-hugepage-soft-offlining-error-log mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft_offline-improve-hugepage-soft-offlining-error-log
++++ a/mm/memory-failure.c
+@@ -1587,7 +1587,7 @@ static int soft_offline_huge_page(struct
+ 	ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+ 				MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 	if (ret) {
+-		pr_info("soft offline: %#lx: migration failed %d, type %lx (%pGp)\n",
++		pr_info("soft offline: %#lx: hugepage migration failed %d, type %lx (%pGp)\n",
+ 			pfn, ret, page->flags, &page->flags);
+ 		if (!list_empty(&pagelist))
+ 			putback_movable_pages(&pagelist);
 _
