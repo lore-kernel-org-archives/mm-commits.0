@@ -1,104 +1,88 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-remove-timeout-from-__offline_memory.patch removed from
- -mm tree
-Date: Thu, 16 Nov 2017 12:00:38 -0800
-Message-ID: <20171116200038.MQrpZR9ap%akpm@linux-foundation.org>
+ mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+ removed from -mm tree
+Date: Thu, 16 Nov 2017 12:00:44 -0800
+Message-ID: <20171116200044.rzulbKp4U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46328 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934367AbdKPUAk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:40 -0500
+        with ESMTP id S933663AbdKPUAp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: jack@suse.cz, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: remove timeout from __offline_memory
+     Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-remove-timeout-from-__offline_memory.patch
+     mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: remove timeout from __offline_memory
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical
 
-We have a hardcoded 120s timeout after which the memory offline fails
-basically since the hot remove has been introduced.  This is essentially a
-policy implemented in the kernel.  Moreover there is no way to adjust the
-timeout and so we are sometimes facing memory offline failures if the
-system is under a heavy memory pressure or very intensive CPU workload on
-large machines.
+The vm direct limit setting must be set greater than vm background limit
+setting.  Otherwise print a warning to help the operator to figure out
+that the vm dirtiness settings is in illogical state.
 
-It is not very clear what purpose the timeout actually serves.  The
-offline operation is interruptible by a signal so if userspace wants some
-timeout based termination this can be done trivially by sending a signal.
-
-If there is a strong usecase to do this from the kernel then we should do
-it properly and have a it tunable from the userspace with the timeout
-disabled by default along with the explanation who uses it and for what
-purporse.
-
-Link: http://lkml.kernel.org/r/20170918070834.13083-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/1506592464-30962-1-git-send-email-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ Documentation/sysctl/vm.txt |    7 +++++++
+ mm/page-writeback.c         |    5 ++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory
-+++ a/mm/memory_hotplug.c
-@@ -1590,9 +1590,9 @@ static void node_states_clear_node(int n
- }
+diff -puN Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/Documentation/sysctl/vm.txt
+@@ -157,6 +157,10 @@ Note: the minimum value allowed for dirt
+ value lower than this limit will be ignored and the old configuration will be
+ retained.
  
- static int __ref __offline_pages(unsigned long start_pfn,
--		  unsigned long end_pfn, unsigned long timeout)
-+		  unsigned long end_pfn)
- {
--	unsigned long pfn, nr_pages, expire;
-+	unsigned long pfn, nr_pages;
- 	long offlined_pages;
- 	int ret, node;
- 	unsigned long flags;
-@@ -1630,12 +1630,8 @@ static int __ref __offline_pages(unsigne
- 		goto failed_removal;
++Note: the value of dirty_bytes also must be set greater than
++dirty_background_bytes or the amount of memory corresponding to
++dirty_background_ratio.
++
+ ==============================================================
  
- 	pfn = start_pfn;
--	expire = jiffies + timeout;
- repeat:
- 	/* start memory hot removal */
--	ret = -EBUSY;
--	if (time_after(jiffies, expire))
--		goto failed_removal;
- 	ret = -EINTR;
- 	if (signal_pending(current))
- 		goto failed_removal;
-@@ -1708,7 +1704,7 @@ failed_removal:
- /* Must be protected by mem_hotplug_begin() or a device_lock */
- int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
--	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
-+	return __offline_pages(start_pfn, start_pfn + nr_pages);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+ dirty_expire_centisecs
+@@ -176,6 +180,9 @@ generating disk writes will itself start
  
+ The total available memory is not equal to total system memory.
+ 
++Note: dirty_ratio must be set greater than dirty_background_ratio or
++ratio corresponding to dirty_background_bytes.
++
+ ==============================================================
+ 
+ dirty_writeback_centisecs
+diff -puN mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/mm/page-writeback.c
+@@ -433,8 +433,11 @@ static void domain_dirty_limits(struct d
+ 	else
+ 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
+ 
+-	if (bg_thresh >= thresh)
++	if (unlikely(bg_thresh >= thresh)) {
++		pr_warn("vm direct limit must be set greater than background limit.\n");
+ 		bg_thresh = thresh / 2;
++	}
++
+ 	tsk = current;
+ 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
+ 		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
-mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
 
