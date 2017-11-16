@@ -1,122 +1,259 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch removed from
- -mm tree
-Date: Thu, 16 Nov 2017 12:04:15 -0800
-Message-ID: <20171116200415.Tnuw1ffZO%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-cold-parameter-for-release_pages.patch
+ removed from -mm tree
+Date: Thu, 16 Nov 2017 12:04:22 -0800
+Message-ID: <20171116200422.f44FTxr0U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47322 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47352 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933284AbdKPUER (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:17 -0500
+        with ESMTP id S933284AbdKPUEY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: only drain per-cpu pagevecs once per pagevec usage
+     Subject: mm: remove cold parameter for release_pages
 has been removed from the -mm tree.  Its filename was
-     mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage.patch
+     mm-remove-cold-parameter-for-release_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: only drain per-cpu pagevecs once per pagevec usage
+Subject: mm: remove cold parameter for release_pages
 
-When a pagevec is initialised on the stack, it is generally used multiple
-times over a range of pages, looking up entries and then releasing them. 
-On each pagevec_release, the per-cpu deferred LRU pagevecs are drained on
-the grounds the page being released may be on those queues and the pages
-may be cache hot.  In many cases only the first drain is necessary as it's
-unlikely that the range of pages being walked is racing against LRU
-addition.  Even if there is such a race, the impact is marginal where as
-constantly redraining the lru pagevecs costs.
+All callers of release_pages claim the pages being released are cache hot.
+As no one cares about the hotness of pages being released to the
+allocator, just ditch the parameter.
 
-This patch ensures that pagevec is only drained once in a given lifecycle
-without increasing the cache footprint of the pagevec structure.  Only
-sparsetruncate tiny is shown here as large files have many exceptional
-entries and calls pagecache_release less frequently.
+No performance impact is expected as the overhead is marginal.  The
+parameter is removed simply because it is a bit stupid to have a useless
+parameter copied everywhere.
 
-sparsetruncate (tiny)
-                              4.14.0-rc4             4.14.0-rc4
-                        batchshadow-v1r1          onedrain-v1r1
-Min          Time      141.00 (   0.00%)      141.00 (   0.00%)
-1st-qrtle    Time      142.00 (   0.00%)      142.00 (   0.00%)
-2nd-qrtle    Time      142.00 (   0.00%)      142.00 (   0.00%)
-3rd-qrtle    Time      143.00 (   0.00%)      143.00 (   0.00%)
-Max-90%      Time      144.00 (   0.00%)      144.00 (   0.00%)
-Max-95%      Time      146.00 (   0.00%)      145.00 (   0.68%)
-Max-99%      Time      198.00 (   0.00%)      194.00 (   2.02%)
-Max          Time      254.00 (   0.00%)      208.00 (  18.11%)
-Amean        Time      145.12 (   0.00%)      144.30 (   0.56%)
-Stddev       Time       12.74 (   0.00%)        9.62 (  24.49%)
-Coeff        Time        8.78 (   0.00%)        6.67 (  24.06%)
-Best99%Amean Time      144.29 (   0.00%)      143.82 (   0.32%)
-Best95%Amean Time      142.68 (   0.00%)      142.31 (   0.26%)
-Best90%Amean Time      142.52 (   0.00%)      142.19 (   0.24%)
-Best75%Amean Time      142.26 (   0.00%)      141.98 (   0.20%)
-Best50%Amean Time      141.90 (   0.00%)      141.71 (   0.13%)
-Best25%Amean Time      141.80 (   0.00%)      141.43 (   0.26%)
-
-The impact on bonnie is marginal and within the noise because a
-significant percentage of the file being truncated has been reclaimed and
-consists of shadow entries which reduce the hotness of the pagevec_release
-path.
-
-Link: http://lkml.kernel.org/r/20171018075952.10627-5-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20171018075952.10627-7-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    4 +++-
- mm/swap.c               |    5 ++++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c  |    6 ++----
+ drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c |    2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c   |    6 +++---
+ drivers/gpu/drm/i915/i915_gem_userptr.c |    4 ++--
+ drivers/gpu/drm/radeon/radeon_ttm.c     |    2 +-
+ fs/fuse/dev.c                           |    2 +-
+ include/linux/pagemap.h                 |    2 +-
+ include/linux/swap.h                    |    2 +-
+ mm/swap.c                               |    8 ++++----
+ mm/swap_state.c                         |    2 +-
+ 11 files changed, 18 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/pagevec.h~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage
-+++ a/include/linux/pagevec.h
-@@ -17,7 +17,8 @@ struct address_space;
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+@@ -553,8 +553,7 @@ static int amdgpu_cs_parser_bos(struct a
+ 				 * invalidated it. Free it and try again
+ 				 */
+ 				release_pages(e->user_pages,
+-					      e->robj->tbo.ttm->num_pages,
+-					      false);
++					      e->robj->tbo.ttm->num_pages);
+ 				kvfree(e->user_pages);
+ 				e->user_pages = NULL;
+ 			}
+@@ -691,8 +690,7 @@ error_free_pages:
+ 				continue;
  
- struct pagevec {
- 	unsigned long nr;
--	unsigned long cold;
-+	bool cold;
-+	bool drained;
- 	struct page *pages[PAGEVEC_SIZE];
- };
+ 			release_pages(e->user_pages,
+-				      e->robj->tbo.ttm->num_pages,
+-				      false);
++				      e->robj->tbo.ttm->num_pages);
+ 			kvfree(e->user_pages);
+ 		}
+ 	}
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+@@ -347,7 +347,7 @@ int amdgpu_gem_userptr_ioctl(struct drm_
+ 	return 0;
  
-@@ -54,6 +55,7 @@ static inline void pagevec_init(struct p
- {
- 	pvec->nr = 0;
- 	pvec->cold = cold;
-+	pvec->drained = false;
+ free_pages:
+-	release_pages(bo->tbo.ttm->pages, bo->tbo.ttm->num_pages, false);
++	release_pages(bo->tbo.ttm->pages, bo->tbo.ttm->num_pages);
+ 
+ unlock_mmap_sem:
+ 	up_read(&current->mm->mmap_sem);
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -659,7 +659,7 @@ int amdgpu_ttm_tt_get_user_pages(struct
+ 	return 0;
+ 
+ release_pages:
+-	release_pages(pages, pinned, 0);
++	release_pages(pages, pinned);
+ 	return r;
  }
  
- static inline void pagevec_reinit(struct pagevec *pvec)
-diff -puN mm/swap.c~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage mm/swap.c
---- a/mm/swap.c~mm-only-drain-per-cpu-pagevecs-once-per-pagevec-usage
-+++ a/mm/swap.c
-@@ -833,7 +833,10 @@ EXPORT_SYMBOL(release_pages);
-  */
- void __pagevec_release(struct pagevec *pvec)
+diff -puN drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/etnaviv/etnaviv_gem.c
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+@@ -779,7 +779,7 @@ static struct page **etnaviv_gem_userptr
+ 	up_read(&mm->mmap_sem);
+ 
+ 	if (ret < 0) {
+-		release_pages(pvec, pinned, 0);
++		release_pages(pvec, pinned);
+ 		kvfree(pvec);
+ 		return ERR_PTR(ret);
+ 	}
+@@ -852,7 +852,7 @@ static int etnaviv_gem_userptr_get_pages
+ 		}
+ 	}
+ 
+-	release_pages(pvec, pinned, 0);
++	release_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	work = kmalloc(sizeof(*work), GFP_KERNEL);
+@@ -886,7 +886,7 @@ static void etnaviv_gem_userptr_release(
+ 	if (etnaviv_obj->pages) {
+ 		int npages = etnaviv_obj->base.size >> PAGE_SHIFT;
+ 
+-		release_pages(etnaviv_obj->pages, npages, 0);
++		release_pages(etnaviv_obj->pages, npages);
+ 		kvfree(etnaviv_obj->pages);
+ 	}
+ 	put_task_struct(etnaviv_obj->userptr.task);
+diff -puN drivers/gpu/drm/i915/i915_gem_userptr.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/i915/i915_gem_userptr.c
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -554,7 +554,7 @@ __i915_gem_userptr_get_pages_worker(stru
+ 	}
+ 	mutex_unlock(&obj->mm.lock);
+ 
+-	release_pages(pvec, pinned, 0);
++	release_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	i915_gem_object_put(obj);
+@@ -668,7 +668,7 @@ i915_gem_userptr_get_pages(struct drm_i9
+ 		__i915_gem_userptr_set_active(obj, true);
+ 
+ 	if (IS_ERR(pages))
+-		release_pages(pvec, pinned, 0);
++		release_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	return pages;
+diff -puN drivers/gpu/drm/radeon/radeon_ttm.c~mm-remove-cold-parameter-for-release_pages drivers/gpu/drm/radeon/radeon_ttm.c
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c~mm-remove-cold-parameter-for-release_pages
++++ a/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -597,7 +597,7 @@ release_sg:
+ 	kfree(ttm->sg);
+ 
+ release_pages:
+-	release_pages(ttm->pages, pinned, 0);
++	release_pages(ttm->pages, pinned);
+ 	return r;
+ }
+ 
+diff -puN fs/fuse/dev.c~mm-remove-cold-parameter-for-release_pages fs/fuse/dev.c
+--- a/fs/fuse/dev.c~mm-remove-cold-parameter-for-release_pages
++++ a/fs/fuse/dev.c
+@@ -1636,7 +1636,7 @@ out_finish:
+ 
+ static void fuse_retrieve_end(struct fuse_conn *fc, struct fuse_req *req)
  {
--	lru_add_drain();
-+	if (!pvec->drained) {
-+		lru_add_drain();
-+		pvec->drained = true;
-+	}
- 	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
+-	release_pages(req->pages, req->num_pages, false);
++	release_pages(req->pages, req->num_pages);
+ }
+ 
+ static int fuse_retrieve(struct fuse_conn *fc, struct inode *inode,
+diff -puN include/linux/pagemap.h~mm-remove-cold-parameter-for-release_pages include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-remove-cold-parameter-for-release_pages
++++ a/include/linux/pagemap.h
+@@ -118,7 +118,7 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
+ }
+ 
+-void release_pages(struct page **pages, int nr, bool cold);
++void release_pages(struct page **pages, int nr);
+ 
+ /*
+  * speculatively take a reference to a page.
+diff -puN include/linux/swap.h~mm-remove-cold-parameter-for-release_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-cold-parameter-for-release_pages
++++ a/include/linux/swap.h
+@@ -510,7 +510,7 @@ static inline struct swap_info_struct *s
+ #define free_page_and_swap_cache(page) \
+ 	put_page(page)
+ #define free_pages_and_swap_cache(pages, nr) \
+-	release_pages((pages), (nr), false);
++	release_pages((pages), (nr));
+ 
+ static inline void show_swap_cache_info(void)
+ {
+diff -puN mm/swap.c~mm-remove-cold-parameter-for-release_pages mm/swap.c
+--- a/mm/swap.c~mm-remove-cold-parameter-for-release_pages
++++ a/mm/swap.c
+@@ -210,7 +210,7 @@ static void pagevec_lru_move_fn(struct p
+ 	}
+ 	if (pgdat)
+ 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
+-	release_pages(pvec->pages, pvec->nr, 0);
++	release_pages(pvec->pages, pvec->nr);
  	pagevec_reinit(pvec);
  }
+ 
+@@ -740,7 +740,7 @@ void lru_add_drain_all(void)
+  * Decrement the reference count on all the pages in @pages.  If it
+  * fell to zero, remove the page from the LRU and free it.
+  */
+-void release_pages(struct page **pages, int nr, bool cold)
++void release_pages(struct page **pages, int nr)
+ {
+ 	int i;
+ 	LIST_HEAD(pages_to_free);
+@@ -817,7 +817,7 @@ void release_pages(struct page **pages,
+ 		spin_unlock_irqrestore(&locked_pgdat->lru_lock, flags);
+ 
+ 	mem_cgroup_uncharge_list(&pages_to_free);
+-	free_hot_cold_page_list(&pages_to_free, cold);
++	free_hot_cold_page_list(&pages_to_free, 0);
+ }
+ EXPORT_SYMBOL(release_pages);
+ 
+@@ -837,7 +837,7 @@ void __pagevec_release(struct pagevec *p
+ 		lru_add_drain();
+ 		pvec->drained = true;
+ 	}
+-	release_pages(pvec->pages, pagevec_count(pvec), 0);
++	release_pages(pvec->pages, pagevec_count(pvec));
+ 	pagevec_reinit(pvec);
+ }
+ EXPORT_SYMBOL(__pagevec_release);
+diff -puN mm/swap_state.c~mm-remove-cold-parameter-for-release_pages mm/swap_state.c
+--- a/mm/swap_state.c~mm-remove-cold-parameter-for-release_pages
++++ a/mm/swap_state.c
+@@ -319,7 +319,7 @@ void free_pages_and_swap_cache(struct pa
+ 	lru_add_drain();
+ 	for (i = 0; i < nr; i++)
+ 		free_swap_cache(pagep[i]);
+-	release_pages(pagep, nr, false);
++	release_pages(pagep, nr);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
