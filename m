@@ -1,86 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-swap-fix-false-error-message-in-__swp_swapcount.patch removed from -mm
- tree
-Date: Thu, 16 Nov 2017 12:00:20 -0800
-Message-ID: <20171116200020.YI3Y9UsFC%akpm@linux-foundation.org>
+ writeback-remove-unused-parameter-from-balance_dirty_pages.patch removed
+ from -mm tree
+Date: Thu, 16 Nov 2017 12:00:23 -0800
+Message-ID: <20171116200023.t2NAA4MzG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934367AbdKPUAW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:22 -0500
+        with ESMTP id S934367AbdKPUAY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huang.ying.caritas@gmail.com, hughd@google.com, lists@nerdbynature.de, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
+To: hannes@cmpxchg.org, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, tahsin@google.com
 
 
 The patch titled
-     Subject: mm, swap: fix false error message in __swp_swapcount()
+     Subject: mm/page-writeback.c: remove unused parameter from balance_dirty_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-fix-false-error-message-in-__swp_swapcount.patch
+     writeback-remove-unused-parameter-from-balance_dirty_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <huang.ying.caritas@gmail.com>
-Subject: mm, swap: fix false error message in __swp_swapcount()
+From: Tahsin Erdogan <tahsin@google.com>
+Subject: mm/page-writeback.c: remove unused parameter from balance_dirty_pages()
 
-When a page fault occurs for a swap entry, the physical swap readahead
-(not the VMA base swap readahead) may readahead several swap entries after
-the fault swap entry.  The readahead algorithm calculates some of the swap
-entries to readahead via increasing the offset of the fault swap entry
-without checking whether they are beyond the end of the swap device and it
-relys on the __swp_swapcount() and swapcache_prepare() to check it. 
-Although __swp_swapcount() checks for the swap entry passed in, it will
-complain with the error message as follow for the expected invalid swap
-entry.  This may make the end users confused.
+"mapping" parameter to balance_dirty_pages() is not used anymore.
 
-  swap_info_get: Bad swap offset entry 0200f8a7
-
-To fix the false error message, the swap entry checking is added in
-swapin_readahead() to avoid to pass the out-of-bound swap entries and the
-swap entry reserved for the swap header to __swp_swapcount() and
-swapcache_prepare().
-
-Link: http://lkml.kernel.org/r/20171102054225.22897-1-ying.huang@intel.com
-Fixes: e8c26ab60598 ("mm/swap: skip readahead for unreferenced swap slots")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Christian Kujau <lists@nerdbynature.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.11+]
+Fixes: dfb8ae567835 ("writeback: let balance_dirty_pages() work on the matching cgroup bdi_writeback")
+Link: http://lkml.kernel.org/r/20170927221311.23263-1-tahsin@google.com
+Signed-off-by: Tahsin Erdogan <tahsin@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page-writeback.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/swap_state.c~mm-swap-fix-false-error-message-in-__swp_swapcount mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-fix-false-error-message-in-__swp_swapcount
-+++ a/mm/swap_state.c
-@@ -559,6 +559,7 @@ struct page *swapin_readahead(swp_entry_
- 	unsigned long offset = entry_offset;
- 	unsigned long start_offset, end_offset;
- 	unsigned long mask;
-+	struct swap_info_struct *si = swp_swap_info(entry);
- 	struct blk_plug plug;
- 	bool do_poll = true, page_allocated;
+diff -puN mm/page-writeback.c~writeback-remove-unused-parameter-from-balance_dirty_pages mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-remove-unused-parameter-from-balance_dirty_pages
++++ a/mm/page-writeback.c
+@@ -1559,8 +1559,7 @@ static inline void wb_dirty_limits(struc
+  * If we're over `background_thresh' then the writeback threads are woken to
+  * perform some writeout.
+  */
+-static void balance_dirty_pages(struct address_space *mapping,
+-				struct bdi_writeback *wb,
++static void balance_dirty_pages(struct bdi_writeback *wb,
+ 				unsigned long pages_dirtied)
+ {
+ 	struct dirty_throttle_control gdtc_stor = { GDTC_INIT(wb) };
+@@ -1910,7 +1909,7 @@ void balance_dirty_pages_ratelimited(str
+ 	preempt_enable();
  
-@@ -572,6 +573,8 @@ struct page *swapin_readahead(swp_entry_
- 	end_offset = offset | mask;
- 	if (!start_offset)	/* First page is swap header. */
- 		start_offset++;
-+	if (end_offset >= si->max)
-+		end_offset = si->max - 1;
+ 	if (unlikely(current->nr_dirtied >= ratelimit))
+-		balance_dirty_pages(mapping, wb, current->nr_dirtied);
++		balance_dirty_pages(wb, current->nr_dirtied);
  
- 	blk_start_plug(&plug);
- 	for (offset = start_offset; offset <= end_offset ; offset++) {
+ 	wb_put(wb);
+ }
 _
 
-Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
+Patches currently in -mm which might be from tahsin@google.com are
 
 
