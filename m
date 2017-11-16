@@ -1,45 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [patch 043/131] zram: remove zlib from the list of
- recommended algorithms
-Date: Wed, 15 Nov 2017 17:33:53 -0800
-Message-ID: <20171116013353.LaYZeLwOS%akpm@linux-foundation.org>
+Subject: [patch 044/131] fs/hugetlbfs/inode.c: remove redundant
+ -ENIVAL return from hugetlbfs_setattr()
+Date: Wed, 15 Nov 2017 17:33:56 -0800
+Message-ID: <20171116013356.HWn-vxdRJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39002 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933588AbdKPBdz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:55 -0500
+        with ESMTP id S933596AbdKPBd6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, khandual@linux.vnet.ibm.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: zram: remove zlib from the list of recommended algorithms
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: fs/hugetlbfs/inode.c: remove redundant -ENIVAL return from hugetlbfs_setattr()
 
-ZSTD tends to outperform deflate/inflate, thus we remove zlib from the
-list of recommended algorithms and recommend zstd instead.
+There is no need to have a local return code set with -EINVAL when both
+the conditions following it return error codes appropriately.  Just remove
+the redundant one.
 
-Link: http://lkml.kernel.org/r/20170912050005.3247-2-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/20170929145444.17611-1-khandual@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/hugetlbfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/zram/zcomp.c~zram-remove-zlib-from-the-list-of-recommended-algorithms drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-remove-zlib-from-the-list-of-recommended-algorithms
-+++ a/drivers/block/zram/zcomp.c
-@@ -23,9 +23,6 @@ static const char * const backends[] = {
- #if IS_ENABLED(CONFIG_CRYPTO_LZ4)
- 	"lz4",
- #endif
--#if IS_ENABLED(CONFIG_CRYPTO_DEFLATE)
--	"deflate",
--#endif
- #if IS_ENABLED(CONFIG_CRYPTO_LZ4HC)
- 	"lz4hc",
- #endif
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-remove-the-redundant-enival-return-from-hugetlbfs_setattr
++++ a/fs/hugetlbfs/inode.c
+@@ -668,7 +668,6 @@ static int hugetlbfs_setattr(struct dent
+ 		return error;
+ 
+ 	if (ia_valid & ATTR_SIZE) {
+-		error = -EINVAL;
+ 		if (attr->ia_size & ~huge_page_mask(h))
+ 			return -EINVAL;
+ 		error = hugetlb_vmtruncate(inode, attr->ia_size);
 _
