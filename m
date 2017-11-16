@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/131] mm/page_owner.c: reduce page_owner
- structure size
-Date: Wed, 15 Nov 2017 17:34:30 -0800
-Message-ID: <20171116013430.a1wVqkWEt%akpm@linux-foundation.org>
+Subject: [patch 055/131] btrfs: use pagevec_lookup_range_tag()
+Date: Wed, 15 Nov 2017 17:34:37 -0800
+Message-ID: <20171116013437.YRev0LQFT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39198 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757751AbdKPBeb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:31 -0500
+        with ESMTP id S932972AbdKPBej (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.sahrawat@samsung.com, akpm@linux-foundation.org, ayush.m@samsung.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, v.narang@samsung.com, vbabka@suse.cz, vinmenon@codeaurora.org
+To: akpm@linux-foundation.org, daniel.m.jordan@oracle.com, dsterba@suse.com, jack@suse.cz, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Ayush Mittal <ayush.m@samsung.com>
-Subject: mm/page_owner.c: reduce page_owner structure size
+From: Jan Kara <jack@suse.cz>
+Subject: btrfs: use pagevec_lookup_range_tag()
 
-Maximum page order can be at max 10 which can be accomodated in short data
-type(2 bytes).  last_migrate_reason is defined as enum type whose values
-can be accomodated in short data type (2 bytes).
+We want only pages from given range in btree_write_cache_pages() and
+extent_write_cache_pages().  Use pagevec_lookup_range_tag() instead of
+pagevec_lookup_tag() and remove unnecessary code.
 
-Total structure size is currently 16 bytes but after changing structure
-size it goes to 12 bytes.
-
-Vlastimil said:
-
-: Looks like it works, so why not.
-: Before:
-: [    0.001000] allocated 50331648 bytes of page_ext
-: After:
-: [    0.001000] allocated 41943040 bytes of page_ext
-
-Link: http://lkml.kernel.org/r/1507623917-37991-1-git-send-email-ayush.m@samsung.com
-Signed-off-by: Ayush Mittal <ayush.m@samsung.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: Vaneet Narang <v.narang@samsung.com>
+Link: http://lkml.kernel.org/r/20171009151359.31984-3-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: David Sterba <dsterba@suse.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: David Sterba <dsterba@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/btrfs/extent_io.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN mm/page_owner.c~mm-reducing-page_owner-structure-size mm/page_owner.c
---- a/mm/page_owner.c~mm-reducing-page_owner-structure-size
-+++ a/mm/page_owner.c
-@@ -20,9 +20,9 @@
- #define PAGE_OWNER_STACK_DEPTH (16)
+diff -puN fs/btrfs/extent_io.c~btrfs-use-pagevec_lookup_range_tag fs/btrfs/extent_io.c
+--- a/fs/btrfs/extent_io.c~btrfs-use-pagevec_lookup_range_tag
++++ a/fs/btrfs/extent_io.c
+@@ -3814,8 +3814,8 @@ retry:
+ 	if (wbc->sync_mode == WB_SYNC_ALL)
+ 		tag_pages_for_writeback(mapping, index, end);
+ 	while (!done && !nr_to_write_done && (index <= end) &&
+-	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
++	       (nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
++			tag, PAGEVEC_SIZE))) {
+ 		unsigned i;
  
- struct page_owner {
--	unsigned int order;
-+	unsigned short order;
-+	short last_migrate_reason;
- 	gfp_t gfp_mask;
--	int last_migrate_reason;
- 	depot_stack_handle_t handle;
- };
+ 		scanned = 1;
+@@ -3825,11 +3825,6 @@ retry:
+ 			if (!PagePrivate(page))
+ 				continue;
  
-_
+-			if (!wbc->range_cyclic && page->index > end) {
+-				done = 1;
+-				break;
+-			}
+-
+ 			spin_lock(&mapping->private_lock);
+ 			if (!PagePrivate(page)) {
+ 				spin_unlock(&mapping->private_lock);
+@@ -3961,8 +3956,8 @@ retry:
+ 		tag_pages_for_writeback(mapping, index, end);
+ 	done_index = index;
+ 	while (!done && !nr_to_write_done && (index <= end) &&
+-	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index, tag,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
++	       (nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
++			tag, PAGEVEC_SIZE))) {
+ 		unsigned i;
+ 
+ 		scanned = 1;
+@@ -3986,12 +3981,6 @@ retry:
+ 				unlock_page(page);
+ 				continue;
+ 			}
