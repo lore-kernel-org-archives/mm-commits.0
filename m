@@ -1,54 +1,47 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-cold-parameter-from-free_hot_cold_page.patch removed from -mm
+ mm-page_alloc-simplify-list-handling-in-rmqueue_bulk.patch removed from -mm
  tree
-Date: Thu, 16 Nov 2017 12:04:25 -0800
-Message-ID: <20171116200425.EyFRzfa-k%akpm@linux-foundation.org>
+Date: Thu, 16 Nov 2017 12:04:32 -0800
+Message-ID: <20171116200432.DpYdbqB3-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47396 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933284AbdKPUE1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:27 -0500
+        with ESMTP id S933284AbdKPUEf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:04:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ak@linux.intel.com, dave.hansen@intel.com, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: remove cold parameter from free_hot_cold_page*
+     Subject: mm, page_alloc: simplify list handling in rmqueue_bulk()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-cold-parameter-from-free_hot_cold_page.patch
+     mm-page_alloc-simplify-list-handling-in-rmqueue_bulk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: remove cold parameter from free_hot_cold_page*
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: simplify list handling in rmqueue_bulk()
 
-Most callers users of free_hot_cold_page claim the pages being released
-are cache hot.  The exception is the page reclaim paths where it is likely
-that enough pages will be freed in the near future that the per-cpu lists
-are going to be recycled and the cache hotness information is lost.  As no
-one really cares about the hotness of pages being released to the
-allocator, just ditch the parameter.
+rmqueue_bulk() fills an empty pcplist with pages from the free list.  It
+tries to preserve increasing order by pfn to the caller, because it leads
+to better performance with some I/O controllers, as explained in
+e084b2d95e48 ("page-allocator: preserve PFN ordering when __GFP_COLD is
+set").
 
-The APIs are renamed to indicate that it's no longer about hot/cold pages.
-It should also be less confusing as there are subtle differences between
-them.  __free_pages drops a reference and frees a page when the refcount
-reaches zero.  free_hot_cold_page handled pages whose refcount was already
-zero which is non-obvious from the name.  free_unref_page should be more
-obvious.
+To preserve the order, it's sufficient to add pages to the tail of the
+list as they are retrieved.  The current code instead adds to the head of
+the list, but then updates the list head pointer to the last added page,
+in each step.  This does result in the same order, but is needlessly
+confusing and potentially wasteful, with no apparent benefit.  This patch
+simplifies the code and adjusts comment accordingly.
 
-No performance impact is expected as the overhead is marginal.  The
-parameter is removed simply because it is a bit stupid to have a useless
-parameter copied everywhere.
-
-[mgorman@techsingularity.net: add pages to head, not tail]
-  Link: http://lkml.kernel.org/r/20171019154321.qtpzaeftoyyw4iey@techsingularity.net
-Link: http://lkml.kernel.org/r/20171018075952.10627-8-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/f6505442-98a9-12e4-b2cd-0fa83874c159@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -57,279 +50,43 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mmu_context_book3s64.c |    2 -
- arch/powerpc/mm/pgtable_64.c           |    2 -
- arch/sparc/mm/init_64.c                |    2 -
- arch/tile/mm/homecache.c               |    2 -
- include/linux/gfp.h                    |    4 +--
- include/trace/events/kmem.h            |   11 +++-----
- mm/page_alloc.c                        |   29 +++++++++--------------
- mm/rmap.c                              |    2 -
- mm/swap.c                              |    4 +--
- mm/vmscan.c                            |    6 ++--
- 10 files changed, 28 insertions(+), 36 deletions(-)
+ mm/page_alloc.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/powerpc/mm/mmu_context_book3s64.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/powerpc/mm/mmu_context_book3s64.c
---- a/arch/powerpc/mm/mmu_context_book3s64.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/arch/powerpc/mm/mmu_context_book3s64.c
-@@ -200,7 +200,7 @@ static void destroy_pagetable_page(struc
- 	/* We allow PTE_FRAG_NR fragments from a PTE page */
- 	if (page_ref_sub_and_test(page, PTE_FRAG_NR - count)) {
- 		pgtable_page_dtor(page);
--		free_hot_cold_page(page, 0);
-+		free_unref_page(page);
- 	}
- }
- 
-diff -puN arch/powerpc/mm/pgtable_64.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/powerpc/mm/pgtable_64.c
---- a/arch/powerpc/mm/pgtable_64.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/arch/powerpc/mm/pgtable_64.c
-@@ -404,7 +404,7 @@ void pte_fragment_free(unsigned long *ta
- 	if (put_page_testzero(page)) {
- 		if (!kernel)
- 			pgtable_page_dtor(page);
--		free_hot_cold_page(page, 0);
-+		free_unref_page(page);
- 	}
- }
- 
-diff -puN arch/sparc/mm/init_64.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/arch/sparc/mm/init_64.c
-@@ -2939,7 +2939,7 @@ pgtable_t pte_alloc_one(struct mm_struct
- 	if (!page)
- 		return NULL;
- 	if (!pgtable_page_ctor(page)) {
--		free_hot_cold_page(page, 0);
-+		free_unref_page(page);
- 		return NULL;
- 	}
- 	return (pte_t *) page_address(page);
-diff -puN arch/tile/mm/homecache.c~mm-remove-cold-parameter-from-free_hot_cold_page arch/tile/mm/homecache.c
---- a/arch/tile/mm/homecache.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/arch/tile/mm/homecache.c
-@@ -409,7 +409,7 @@ void __homecache_free_pages(struct page
- 	if (put_page_testzero(page)) {
- 		homecache_change_page_home(page, order, PAGE_HOME_HASH);
- 		if (order == 0) {
--			free_hot_cold_page(page, false);
-+			free_unref_page(page);
- 		} else {
- 			init_page_count(page);
- 			__free_pages(page, order);
-diff -puN include/linux/gfp.h~mm-remove-cold-parameter-from-free_hot_cold_page include/linux/gfp.h
---- a/include/linux/gfp.h~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/include/linux/gfp.h
-@@ -530,8 +530,8 @@ void * __meminit alloc_pages_exact_nid(i
- 
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
--extern void free_hot_cold_page(struct page *page, bool cold);
--extern void free_hot_cold_page_list(struct list_head *list, bool cold);
-+extern void free_unref_page(struct page *page);
-+extern void free_unref_page_list(struct list_head *list);
- 
- struct page_frag_cache;
- extern void __page_frag_cache_drain(struct page *page, unsigned int count);
-diff -puN include/trace/events/kmem.h~mm-remove-cold-parameter-from-free_hot_cold_page include/trace/events/kmem.h
---- a/include/trace/events/kmem.h~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/include/trace/events/kmem.h
-@@ -172,24 +172,21 @@ TRACE_EVENT(mm_page_free,
- 
- TRACE_EVENT(mm_page_free_batched,
- 
--	TP_PROTO(struct page *page, int cold),
-+	TP_PROTO(struct page *page),
- 
--	TP_ARGS(page, cold),
-+	TP_ARGS(page),
- 
- 	TP_STRUCT__entry(
- 		__field(	unsigned long,	pfn		)
--		__field(	int,		cold		)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->pfn		= page_to_pfn(page);
--		__entry->cold		= cold;
- 	),
- 
--	TP_printk("page=%p pfn=%lu order=0 cold=%d",
-+	TP_printk("page=%p pfn=%lu order=0",
- 			pfn_to_page(__entry->pfn),
--			__entry->pfn,
--			__entry->cold)
-+			__entry->pfn)
- );
- 
- TRACE_EVENT(mm_page_alloc,
-diff -puN mm/page_alloc.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-cold-parameter-from-free_hot_cold_page
+diff -puN mm/page_alloc.c~mm-page_alloc-simplify-list-handling-in-rmqueue_bulk mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-simplify-list-handling-in-rmqueue_bulk
 +++ a/mm/page_alloc.c
-@@ -2611,7 +2611,7 @@ void mark_free_pages(struct zone *zone)
- }
- #endif /* CONFIG_PM */
+@@ -2350,16 +2350,16 @@ static int rmqueue_bulk(struct zone *zon
+ 			continue;
  
--static bool free_hot_cold_page_prepare(struct page *page, unsigned long pfn)
-+static bool free_unref_page_prepare(struct page *page, unsigned long pfn)
- {
- 	int migratetype;
- 
-@@ -2623,8 +2623,7 @@ static bool free_hot_cold_page_prepare(s
- 	return true;
- }
- 
--static void free_hot_cold_page_commit(struct page *page, unsigned long pfn,
--				bool cold)
-+static void free_unref_page_commit(struct page *page, unsigned long pfn)
- {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
-@@ -2649,10 +2648,7 @@ static void free_hot_cold_page_commit(st
- 	}
- 
- 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
--	if (!cold)
--		list_add(&page->lru, &pcp->lists[migratetype]);
--	else
--		list_add_tail(&page->lru, &pcp->lists[migratetype]);
-+	list_add(&page->lru, &pcp->lists[migratetype]);
- 	pcp->count++;
- 	if (pcp->count >= pcp->high) {
- 		unsigned long batch = READ_ONCE(pcp->batch);
-@@ -2663,25 +2659,24 @@ static void free_hot_cold_page_commit(st
- 
- /*
-  * Free a 0-order page
-- * cold == true ? free a cold page : free a hot page
-  */
--void free_hot_cold_page(struct page *page, bool cold)
-+void free_unref_page(struct page *page)
- {
- 	unsigned long flags;
- 	unsigned long pfn = page_to_pfn(page);
- 
--	if (!free_hot_cold_page_prepare(page, pfn))
-+	if (!free_unref_page_prepare(page, pfn))
- 		return;
- 
- 	local_irq_save(flags);
--	free_hot_cold_page_commit(page, pfn, cold);
-+	free_unref_page_commit(page, pfn);
- 	local_irq_restore(flags);
- }
- 
- /*
-  * Free a list of 0-order pages
-  */
--void free_hot_cold_page_list(struct list_head *list, bool cold)
-+void free_unref_page_list(struct list_head *list)
- {
- 	struct page *page, *next;
- 	unsigned long flags, pfn;
-@@ -2689,7 +2684,7 @@ void free_hot_cold_page_list(struct list
- 	/* Prepare pages for freeing */
- 	list_for_each_entry_safe(page, next, list, lru) {
- 		pfn = page_to_pfn(page);
--		if (!free_hot_cold_page_prepare(page, pfn))
-+		if (!free_unref_page_prepare(page, pfn))
- 			list_del(&page->lru);
- 		set_page_private(page, pfn);
- 	}
-@@ -2699,8 +2694,8 @@ void free_hot_cold_page_list(struct list
- 		unsigned long pfn = page_private(page);
- 
- 		set_page_private(page, 0);
--		trace_mm_page_free_batched(page, cold);
--		free_hot_cold_page_commit(page, pfn, cold);
-+		trace_mm_page_free_batched(page);
-+		free_unref_page_commit(page, pfn);
- 	}
- 	local_irq_restore(flags);
- }
-@@ -4301,7 +4296,7 @@ void __free_pages(struct page *page, uns
- {
- 	if (put_page_testzero(page)) {
- 		if (order == 0)
--			free_hot_cold_page(page, false);
-+			free_unref_page(page);
- 		else
- 			__free_pages_ok(page, order);
- 	}
-@@ -4359,7 +4354,7 @@ void __page_frag_cache_drain(struct page
- 		unsigned int order = compound_order(page);
- 
- 		if (order == 0)
--			free_hot_cold_page(page, false);
-+			free_unref_page(page);
- 		else
- 			__free_pages_ok(page, order);
- 	}
-diff -puN mm/rmap.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/rmap.c
---- a/mm/rmap.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/mm/rmap.c
-@@ -1321,7 +1321,7 @@ void page_remove_rmap(struct page *page,
- 	 * It would be tidy to reset the PageAnon mapping here,
- 	 * but that might overwrite a racing page_add_anon_rmap
- 	 * which increments mapcount after us but sets mapping
--	 * before us: so leave the reset to free_hot_cold_page,
-+	 * before us: so leave the reset to free_unref_page,
- 	 * and remember that it's only reliable while mapped.
- 	 * Leaving it set also helps swapoff to reinstate ptes
- 	 * faster for those pages still in swapcache.
-diff -puN mm/swap.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/swap.c
---- a/mm/swap.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/mm/swap.c
-@@ -76,7 +76,7 @@ static void __page_cache_release(struct
- static void __put_single_page(struct page *page)
- {
- 	__page_cache_release(page);
--	free_hot_cold_page(page, false);
-+	free_unref_page(page);
- }
- 
- static void __put_compound_page(struct page *page)
-@@ -817,7 +817,7 @@ void release_pages(struct page **pages,
- 		spin_unlock_irqrestore(&locked_pgdat->lru_lock, flags);
- 
- 	mem_cgroup_uncharge_list(&pages_to_free);
--	free_hot_cold_page_list(&pages_to_free, 0);
-+	free_unref_page_list(&pages_to_free);
- }
- EXPORT_SYMBOL(release_pages);
- 
-diff -puN mm/vmscan.c~mm-remove-cold-parameter-from-free_hot_cold_page mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-cold-parameter-from-free_hot_cold_page
-+++ a/mm/vmscan.c
-@@ -1349,7 +1349,7 @@ keep:
- 
- 	mem_cgroup_uncharge_list(&free_pages);
- 	try_to_unmap_flush();
--	free_hot_cold_page_list(&free_pages, true);
-+	free_unref_page_list(&free_pages);
- 
- 	list_splice(&ret_pages, page_list);
- 	count_vm_events(PGACTIVATE, pgactivate);
-@@ -1824,7 +1824,7 @@ shrink_inactive_list(unsigned long nr_to
- 	spin_unlock_irq(&pgdat->lru_lock);
- 
- 	mem_cgroup_uncharge_list(&page_list);
--	free_hot_cold_page_list(&page_list, true);
-+	free_unref_page_list(&page_list);
- 
- 	/*
- 	 * If reclaim is isolating dirty pages under writeback, it implies
-@@ -2063,7 +2063,7 @@ static void shrink_active_list(unsigned
- 	spin_unlock_irq(&pgdat->lru_lock);
- 
- 	mem_cgroup_uncharge_list(&l_hold);
--	free_hot_cold_page_list(&l_hold, true);
-+	free_unref_page_list(&l_hold);
- 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
- 			nr_deactivate, nr_rotated, sc->priority, file);
- }
+ 		/*
+-		 * Split buddy pages returned by expand() are received here
+-		 * in physical page order. The page is added to the callers and
+-		 * list and the list head then moves forward. From the callers
+-		 * perspective, the linked list is ordered by page number in
+-		 * some conditions. This is useful for IO devices that can
+-		 * merge IO requests if the physical pages are ordered
+-		 * properly.
++		 * Split buddy pages returned by expand() are received here in
++		 * physical page order. The page is added to the tail of
++		 * caller's list. From the callers perspective, the linked list
++		 * is ordered by page number under some conditions. This is
++		 * useful for IO devices that can forward direction from the
++		 * head, thus also in the physical page order. This is useful
++		 * for IO devices that can merge IO requests if the physical
++		 * pages are ordered properly.
+ 		 */
+-		list_add(&page->lru, list);
+-		list = &page->lru;
++		list_add_tail(&page->lru, list);
+ 		alloced++;
+ 		if (is_migrate_cma(get_pcppage_migratetype(page)))
+ 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+mm-compaction-extend-pageblock_skip_persistent-to-all-compound-pages.patch
+mm-compaction-split-off-flag-for-not-updating-skip-hints.patch
+mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch
 
