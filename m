@@ -1,186 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-do-not-fail-offlining-too-early.patch removed from -mm
- tree
-Date: Thu, 16 Nov 2017 12:00:35 -0800
-Message-ID: <20171116200035.mcr_z4Zl9%akpm@linux-foundation.org>
+ mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
+ removed from -mm tree
+Date: Thu, 16 Nov 2017 12:00:32 -0800
+Message-ID: <20171116200032.YLgELsGM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934367AbdKPUAh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:37 -0500
+        with ESMTP id S934367AbdKPUAd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 15:00:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
 
 
 The patch titled
-     Subject: mm, memory_hotplug: do not fail offlining too early
+     Subject: mm, page_alloc: fail has_unmovable_pages when seeing reserved pages
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-do-not-fail-offlining-too-early.patch
+     mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: do not fail offlining too early
+Subject: mm, page_alloc: fail has_unmovable_pages when seeing reserved pages
 
-Patch series "mm, memory_hotplug: redefine memory offline retry logic", v2.
+Reserved pages should be completely ignored by the core mm because they
+have a special meaning for their owners.  has_unmovable_pages doesn't
+check those so we rely on other tests (reference count, or PageLRU) to
+fail on such pages.  Althought this happens to work it is safer to simply
+check for those explicitly and do not rely on the owner of the page to
+abuse those fields for special purposes.
 
-While testing memory hotplug on a large 4TB machine we have noticed that
-memory offlining is just too eager to fail.  The primary reason is that
-the retry logic is just too easy to give up.  We have 4 ways out of the
-offline
+Please note that this is more of a further fortification of the code
+rahter than a fix of an existing issue.
 
-	- we have a permanent failure (isolation or memory notifiers fail,
-	  or hugetlb pages cannot be dropped)
-	- userspace sends a signal
-	- a hardcoded 120s timeout expires
-	- page migration fails 5 times
-
-This is way too convoluted and it doesn't scale very well.  We have seen
-both temporary migration failures as well as 120s being triggered.  After
-removing those restrictions we were able to pass stress testing during
-memory hot remove without any other negative side effects observed. 
-Therefore I suggest dropping both hard coded policies.  I couldn't have
-found any specific reason for them in the changelog.  I neither didn't get
-any response [1] from Kamezawa.  If we need some upper bound - e.g. 
-timeout based - then we should have a proper and user defined policy for
-that.  In any case there should be a clear use case when introducing it. 
-
-
-This patch (of 2):
-
-Memory offlining can fail too eagerly under heavy memory pressure.
-
-[ 5410.336792] page:ffffea22a646bd00 count:255 mapcount:252 mapping:ffff88ff926c9f38 index:0x3
-[ 5410.336809] flags: 0x9855fe40010048(uptodate|active|mappedtodisk)
-[ 5410.336811] page dumped because: isolation failed
-[ 5410.336813] page->mem_cgroup:ffff8801cd662000
-[ 5420.655030] memory offlining [mem 0x18b580000000-0x18b5ffffffff] failed
-
-Isolation has failed here because the page is not on LRU.  Most probably
-because it was on the pcp LRU cache or it has been removed from the LRU
-already but it hasn't been freed yet.  In both cases the page doesn't look
-non-migrable so retrying more makes sense.
-
-__offline_pages seems rather cluttered when it comes to the retry logic. 
-We have 5 retries at maximum and a timeout.  We could argue whether the
-timeout makes sense but failing just because of a race when somebody
-isoltes a page from LRU or puts it on a pcp LRU lists is just wrong.  It
-only takes it to race with a process which unmaps some pages and remove
-them from the LRU list and we can fail the whole offline because of
-something that is a temporary condition and actually not harmful for the
-offline.
-
-Please note that unmovable pages should be already excluded during
-start_isolate_page_range.  We could argue that has_unmovable_pages is racy
-and MIGRATE_MOVABLE check doesn't provide any hard guarantee either but
-kernel zones (aka < ZONE_MOVABLE) will very likely detect unmovable pages
-in most cases and movable zone shouldn't contain unmovable pages at all. 
-Some of those pages might be pinned but not for ever because that would be
-a bug on its own.  In any case the context is still interruptible and so
-the userspace can easily bail out when the operation takes too long.  This
-is certainly better behavior than a hardcoded retry loop which is racy.
-
-Fix this by removing the max retry count and only rely on the timeout
-resp.  interruption by a signal from the userspace.  Also retry rather
-than fail when check_pages_isolated sees some !free pages because those
-could be a result of the race as well.
-
-Link: http://lkml.kernel.org/r/20170918070834.13083-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20171013120756.jeopthigbmm3c7bl@dhcp22.suse.cz
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   40 ++++++++++------------------------------
- 1 file changed, 10 insertions(+), 30 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-fail-offlining-too-early
-+++ a/mm/memory_hotplug.c
-@@ -1594,7 +1594,7 @@ static int __ref __offline_pages(unsigne
- {
- 	unsigned long pfn, nr_pages, expire;
- 	long offlined_pages;
--	int ret, drain, retry_max, node;
-+	int ret, node;
- 	unsigned long flags;
- 	unsigned long valid_start, valid_end;
- 	struct zone *zone;
-@@ -1631,43 +1631,25 @@ static int __ref __offline_pages(unsigne
+diff -puN mm/page_alloc.c~mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fail-has_unmovable_pages-when-seeing-reserved-pages
++++ a/mm/page_alloc.c
+@@ -7383,6 +7383,9 @@ bool has_unmovable_pages(struct zone *zo
  
- 	pfn = start_pfn;
- 	expire = jiffies + timeout;
--	drain = 0;
--	retry_max = 5;
- repeat:
- 	/* start memory hot removal */
--	ret = -EAGAIN;
-+	ret = -EBUSY;
- 	if (time_after(jiffies, expire))
- 		goto failed_removal;
- 	ret = -EINTR;
- 	if (signal_pending(current))
- 		goto failed_removal;
--	ret = 0;
--	if (drain) {
--		lru_add_drain_all_cpuslocked();
--		cond_resched();
--		drain_all_pages(zone);
--	}
-+
-+	cond_resched();
-+	lru_add_drain_all_cpuslocked();
-+	drain_all_pages(zone);
+ 		page = pfn_to_page(check);
  
- 	pfn = scan_movable_pages(start_pfn, end_pfn);
- 	if (pfn) { /* We have movable pages */
- 		ret = do_migrate_range(pfn, end_pfn);
--		if (!ret) {
--			drain = 1;
--			goto repeat;
--		} else {
--			if (ret < 0)
--				if (--retry_max == 0)
--					goto failed_removal;
--			yield();
--			drain = 1;
--			goto repeat;
--		}
-+		goto repeat;
- 	}
--	/* drain all zone's lru pagevec, this is asynchronous... */
--	lru_add_drain_all_cpuslocked();
--	yield();
--	/* drain pcp pages, this is synchronous. */
--	drain_all_pages(zone);
++		if (PageReserved(page))
++			return true;
 +
- 	/*
- 	 * dissolve free hugepages in the memory block before doing offlining
- 	 * actually in order to make hugetlbfs's object counting consistent.
-@@ -1677,10 +1659,8 @@ repeat:
- 		goto failed_removal;
- 	/* check again */
- 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
--	if (offlined_pages < 0) {
--		ret = -EBUSY;
--		goto failed_removal;
--	}
-+	if (offlined_pages < 0)
-+		goto repeat;
- 	pr_info("Offlined Pages %ld\n", offlined_pages);
- 	/* Ok, all of our target is isolated.
- 	   We cannot do rollback at this point. */
+ 		/*
+ 		 * Hugepages are not in LRU lists, but they're movable.
+ 		 * We need not scan over tail pages bacause we don't
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
