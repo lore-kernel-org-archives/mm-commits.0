@@ -1,80 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [patch 049/131] mm: remove unused pgdat->inactive_ratio
-Date: Wed, 15 Nov 2017 17:34:15 -0800
-Message-ID: <20171116013415.BORBHJ3g9%akpm@linux-foundation.org>
+Subject: [patch 050/131] mm/swap_slots.c: fix race conditions in
+ swap_slots cache init
+Date: Wed, 15 Nov 2017 17:34:18 -0800
+Message-ID: <20171116013418.XN2uJmaPZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753159AbdKPBeQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:16 -0500
+        with ESMTP id S1753159AbdKPBeU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, wenwei.tww@alibaba-inc.com, ying.huang@intel.com
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm: remove unused pgdat->inactive_ratio
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: mm/swap_slots.c: fix race conditions in swap_slots cache init
 
-Since 59dc76b0d4df ("mm: vmscan: reduce size of inactive file list")
-'pgdat->inactive_ratio' is not used, except for printing
-"node_inactive_ratio: 0" in /proc/zoneinfo output.
+Memory allocations can happen before the swap_slots cache initialization
+is completed during cpu bring up.  If we are low on memory, we could call
+get_swap_page() and access swap_slots_cache before it is fully
+initialized.
 
-Remove it.
+Add a check in get_swap_page() for initialized swap_slots_cache to prevent
+this condition.  Similar check already exists in free_swap_slot.  Also
+annotate the checks to indicate the likely condition.
 
-Link: http://lkml.kernel.org/r/20171003152611.27483-1-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+We also added a memory barrier to make sure that the locks initialization
+are done before the assignment of cache->slots and cache->slots_ret
+pointers.  This ensures the assumption that it is safe to acquire the
+slots cache locks and use the slots cache when the corresponding
+cache->slots or cache->slots_ret pointers are non null.
+
+[akpm@linux-foundation.org: tidy up comment]
+[akpm@linux-foundation.org: fix spello in comment]
+Link: http://lkml.kernel.org/r/65a9d0f133f63e66bba37b53b2fd0464b7cae771.1500677066.git.tim.c.chen@linux.intel.com
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Reported-by: Wenwei Tao <wenwei.tww@alibaba-inc.com>
+Acked-by: Ying Huang <ying.huang@intel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ------
- mm/vmscan.c            |    2 +-
- mm/vmstat.c            |    6 ++----
- 3 files changed, 3 insertions(+), 11 deletions(-)
+ mm/swap_slots.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-remove-unused-pgdat-inactive_ratio include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-remove-unused-pgdat-inactive_ratio
-+++ a/include/linux/mmzone.h
-@@ -712,12 +712,6 @@ typedef struct pglist_data {
- 	/* Fields commonly accessed by the page reclaim scanner */
- 	struct lruvec		lruvec;
+diff -puN mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init mm/swap_slots.c
+--- a/mm/swap_slots.c~mm-swap-fix-race-conditions-in-swap_slots-cache-init
++++ a/mm/swap_slots.c
+@@ -149,6 +149,13 @@ static int alloc_swap_slot_cache(unsigne
+ 	cache->nr = 0;
+ 	cache->cur = 0;
+ 	cache->n_ret = 0;
++	/*
++	 * We initialized alloc_lock and free_lock earlier.  We use
++	 * !cache->slots or !cache->slots_ret to know if it is safe to acquire
++	 * the corresponding lock and use the cache.  Memory barrier below
++	 * ensures the assumption.
++	 */
++	mb();
+ 	cache->slots = slots;
+ 	slots = NULL;
+ 	cache->slots_ret = slots_ret;
+@@ -275,7 +282,7 @@ int free_swap_slot(swp_entry_t entry)
+ 	struct swap_slots_cache *cache;
  
--	/*
--	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
--	 * this node's LRU.  Maintained by the pageout code.
--	 */
--	unsigned int inactive_ratio;
--
- 	unsigned long		flags;
+ 	cache = raw_cpu_ptr(&swp_slots);
+-	if (use_swap_slot_cache && cache->slots_ret) {
++	if (likely(use_swap_slot_cache && cache->slots_ret)) {
+ 		spin_lock_irq(&cache->free_lock);
+ 		/* Swap slots cache may be deactivated before acquiring lock */
+ 		if (!use_swap_slot_cache || !cache->slots_ret) {
+@@ -326,7 +333,7 @@ swp_entry_t get_swap_page(struct page *p
+ 	 */
+ 	cache = raw_cpu_ptr(&swp_slots);
  
- 	ZONE_PADDING(_pad2_)
-diff -puN mm/vmscan.c~mm-remove-unused-pgdat-inactive_ratio mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-unused-pgdat-inactive_ratio
-+++ a/mm/vmscan.c
-@@ -2082,7 +2082,7 @@ static void shrink_active_list(unsigned
-  * If that fails and refaulting is observed, the inactive list grows.
-  *
-  * The inactive_ratio is the target ratio of ACTIVE to INACTIVE pages
-- * on this LRU, maintained by the pageout code. A zone->inactive_ratio
-+ * on this LRU, maintained by the pageout code. An inactive_ratio
-  * of 3 means 3:1 or 25% of the pages are kept on the inactive list.
-  *
-  * total     target    max
-diff -puN mm/vmstat.c~mm-remove-unused-pgdat-inactive_ratio mm/vmstat.c
---- a/mm/vmstat.c~mm-remove-unused-pgdat-inactive_ratio
-+++ a/mm/vmstat.c
-@@ -1564,11 +1564,9 @@ static void zoneinfo_show_print(struct s
- 	}
- 	seq_printf(m,
- 		   "\n  node_unreclaimable:  %u"
--		   "\n  start_pfn:           %lu"
--		   "\n  node_inactive_ratio: %u",
-+		   "\n  start_pfn:           %lu",
- 		   pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES,
--		   zone->zone_start_pfn,
--		   zone->zone_pgdat->inactive_ratio);
-+		   zone->zone_start_pfn);
- 	seq_putc(m, '\n');
- }
- 
+-	if (check_cache_active()) {
++	if (likely(check_cache_active() && cache->slots)) {
+ 		mutex_lock(&cache->alloc_lock);
+ 		if (cache->slots) {
+ repeat:
 _
