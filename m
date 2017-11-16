@@ -1,58 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [patch 026/131] net/rds/ib_fmr.c: use kmalloc_array_node()
-Date: Wed, 15 Nov 2017 17:32:49 -0800
-Message-ID: <20171116013249.faSFBtThQ%akpm@linux-foundation.org>
+Subject: [patch 029/131] bdi: introduce BDI_CAP_SYNCHRONOUS_IO
+Date: Wed, 15 Nov 2017 17:33:00 -0800
+Message-ID: <20171116013300.4UcibGQc-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933534AbdKPBcv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:32:51 -0500
+        with ESMTP id S932597AbdKPBdC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, cl@linux.com, damien.lemoal@wdc.com, davem@davemloft.net, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, iamjoonsoo.kim@lge.com, infinipath@intel.com, jthumshirn@suse.de, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, santosh.shilimkar@oracle.com, sean.hefty@intel.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, hch@lst.de, hughd@google.com, idryomov@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: net/rds/ib_fmr.c: use kmalloc_array_node()
+From: Minchan Kim <minchan@kernel.org>
+Subject: bdi: introduce BDI_CAP_SYNCHRONOUS_IO
 
-Now that we have a NUMA-aware version of kmalloc_array() we can use it
-instead of kmalloc_node() without an overflow check in the size
-calculation.
+As discussed at
+lkml.kernel.org/r/<20170728165604.10455-1-ross.zwisler@linux.intel.com>,
+someday we will remove rw_page().  If so, we need something to detect such
+super-fast storage on which synchronous IO operations like the current
+rw_page are always a win.
 
-Link: http://lkml.kernel.org/r/20170927082038.3782-7-jthumshirn@suse.de
-Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Introduces BDI_CAP_SYNCHRONOUS_IO to indicate such devices.  With it, we
+could use various optimization techniques.
+
+Link: http://lkml.kernel.org/r/1505886205-9671-3-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Damien Le Moal <damien.lemoal@wdc.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mike Marciniszyn <infinipath@intel.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rds/ib_fmr.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/brd.c           |    2 ++
+ drivers/block/zram/zram_drv.c |    2 +-
+ drivers/nvdimm/btt.c          |    3 +++
+ drivers/nvdimm/pmem.c         |    2 ++
+ include/linux/backing-dev.h   |    8 ++++++++
+ 5 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN net/rds/ib_fmr.c~rds-ib-use-kmalloc_array_node net/rds/ib_fmr.c
---- a/net/rds/ib_fmr.c~rds-ib-use-kmalloc_array_node
-+++ a/net/rds/ib_fmr.c
-@@ -139,8 +139,8 @@ static int rds_ib_map_fmr(struct rds_ib_
- 		return -EINVAL;
- 	}
+diff -puN drivers/block/brd.c~bdi-introduce-bdi_cap_synchronous_io drivers/block/brd.c
+--- a/drivers/block/brd.c~bdi-introduce-bdi_cap_synchronous_io
++++ a/drivers/block/brd.c
+@@ -20,6 +20,7 @@
+ #include <linux/radix-tree.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
++#include <linux/backing-dev.h>
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ #include <linux/pfn_t.h>
+ #include <linux/dax.h>
+@@ -448,6 +449,7 @@ static struct brd_device *brd_alloc(int
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
+ 	sprintf(disk->disk_name, "ram%d", i);
+ 	set_capacity(disk, rd_size * 2);
++	disk->queue->backing_dev_info->capabilities |= BDI_CAP_SYNCHRONOUS_IO;
  
--	dma_pages = kmalloc_node(sizeof(u64) * page_cnt, GFP_ATOMIC,
--				 rdsibdev_to_node(rds_ibdev));
-+	dma_pages = kmalloc_array_node(sizeof(u64), page_cnt, GFP_ATOMIC,
-+				       rdsibdev_to_node(rds_ibdev));
- 	if (!dma_pages) {
- 		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		return -ENOMEM;
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ 	queue_flag_set_unlocked(QUEUE_FLAG_DAX, brd->brd_queue);
+diff -puN drivers/block/zram/zram_drv.c~bdi-introduce-bdi_cap_synchronous_io drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~bdi-introduce-bdi_cap_synchronous_io
++++ a/drivers/block/zram/zram_drv.c
+@@ -1558,7 +1558,7 @@ static int zram_add(void)
+ 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
+ 
+ 	zram->disk->queue->backing_dev_info->capabilities |=
+-					BDI_CAP_STABLE_WRITES;
++			(BDI_CAP_STABLE_WRITES | BDI_CAP_SYNCHRONOUS_IO);
+ 	add_disk(zram->disk);
+ 
+ 	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
+diff -puN drivers/nvdimm/btt.c~bdi-introduce-bdi_cap_synchronous_io drivers/nvdimm/btt.c
+--- a/drivers/nvdimm/btt.c~bdi-introduce-bdi_cap_synchronous_io
++++ a/drivers/nvdimm/btt.c
+@@ -23,6 +23,7 @@
+ #include <linux/ndctl.h>
+ #include <linux/fs.h>
+ #include <linux/nd.h>
++#include <linux/backing-dev.h>
+ #include "btt.h"
+ #include "nd.h"
+ 
+@@ -1402,6 +1403,8 @@ static int btt_blk_init(struct btt *btt)
+ 	btt->btt_disk->private_data = btt;
+ 	btt->btt_disk->queue = btt->btt_queue;
+ 	btt->btt_disk->flags = GENHD_FL_EXT_DEVT;
++	btt->btt_disk->queue->backing_dev_info->capabilities |=
++			BDI_CAP_SYNCHRONOUS_IO;
+ 
+ 	blk_queue_make_request(btt->btt_queue, btt_make_request);
+ 	blk_queue_logical_block_size(btt->btt_queue, btt->sector_size);
+diff -puN drivers/nvdimm/pmem.c~bdi-introduce-bdi_cap_synchronous_io drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~bdi-introduce-bdi_cap_synchronous_io
++++ a/drivers/nvdimm/pmem.c
+@@ -31,6 +31,7 @@
+ #include <linux/uio.h>
+ #include <linux/dax.h>
+ #include <linux/nd.h>
++#include <linux/backing-dev.h>
+ #include "pmem.h"
+ #include "pfn.h"
+ #include "nd.h"
+@@ -394,6 +395,7 @@ static int pmem_attach_disk(struct devic
+ 	disk->fops		= &pmem_fops;
+ 	disk->queue		= q;
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
++	disk->queue->backing_dev_info->capabilities |= BDI_CAP_SYNCHRONOUS_IO;
+ 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+ 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
+ 			/ 512);
+diff -puN include/linux/backing-dev.h~bdi-introduce-bdi_cap_synchronous_io include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~bdi-introduce-bdi_cap_synchronous_io
++++ a/include/linux/backing-dev.h
+@@ -122,6 +122,8 @@ int bdi_set_max_ratio(struct backing_dev
+  * BDI_CAP_STRICTLIMIT:    Keep number of dirty pages below bdi threshold.
+  *
+  * BDI_CAP_CGROUP_WRITEBACK: Supports cgroup-aware writeback.
++ * BDI_CAP_SYNCHRONOUS_IO: Device is so fast that asynchronous IO would be
++ *			   inefficient.
+  */
+ #define BDI_CAP_NO_ACCT_DIRTY	0x00000001
+ #define BDI_CAP_NO_WRITEBACK	0x00000002
+@@ -129,6 +131,7 @@ int bdi_set_max_ratio(struct backing_dev
+ #define BDI_CAP_STABLE_WRITES	0x00000008
+ #define BDI_CAP_STRICTLIMIT	0x00000010
+ #define BDI_CAP_CGROUP_WRITEBACK 0x00000020
++#define BDI_CAP_SYNCHRONOUS_IO	0x00000040
+ 
+ #define BDI_CAP_NO_ACCT_AND_WRITEBACK \
+ 	(BDI_CAP_NO_WRITEBACK | BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_ACCT_WB)
+@@ -174,6 +177,11 @@ static inline int wb_congested(struct bd
+ long congestion_wait(int sync, long timeout);
+ long wait_iff_congested(struct pglist_data *pgdat, int sync, long timeout);
+ 
++static inline bool bdi_cap_synchronous_io(struct backing_dev_info *bdi)
++{
++	return bdi->capabilities & BDI_CAP_SYNCHRONOUS_IO;
++}
++
+ static inline bool bdi_cap_stable_pages_required(struct backing_dev_info *bdi)
+ {
+ 	return bdi->capabilities & BDI_CAP_STABLE_WRITES;
 _
