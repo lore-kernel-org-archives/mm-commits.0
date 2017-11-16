@@ -1,88 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 039/131] mm, memory_hotplug: remove timeout from
- __offline_memory
-Date: Wed, 15 Nov 2017 17:33:38 -0800
-Message-ID: <20171116013338.C-xrbSbWL%akpm@linux-foundation.org>
+Subject: [patch 046/131] zsmalloc: calling zs_map_object() from irq
+ is a bug
+Date: Wed, 15 Nov 2017 17:34:03 -0800
+Message-ID: <20171116013403.RkTy-wm41%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39022 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933563AbdKPBdk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:33:40 -0500
+        with ESMTP id S932972AbdKPBeF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2017 20:34:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, imammedo@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, qiuxishi@huawei.com, torvalds@linux-foundation.org, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: remove timeout from __offline_memory
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zsmalloc: calling zs_map_object() from irq is a bug
 
-We have a hardcoded 120s timeout after which the memory offline fails
-basically since the hot remove has been introduced.  This is essentially a
-policy implemented in the kernel.  Moreover there is no way to adjust the
-timeout and so we are sometimes facing memory offline failures if the
-system is under a heavy memory pressure or very intensive CPU workload on
-large machines.
+Use BUG_ON(in_interrupt()) in zs_map_object().  This is not a new
+BUG_ON(), it's always been there, but was recently changed to VM_BUG_ON().
+There are several problems there.  First, we use use per-CPU mappings
+both in zsmalloc and in zram, and interrupt may easily corrupt those
+buffers.  Second, and more importantly, we believe it's possible to start
+leaking sensitive information.  Consider the following case:
 
-It is not very clear what purpose the timeout actually serves.  The
-offline operation is interruptible by a signal so if userspace wants some
-timeout based termination this can be done trivially by sending a signal.
+-> process P
+	swap out
+	 zram
+	  per-cpu mapping CPU1
+	   compress page A
+-> IRQ
 
-If there is a strong usecase to do this from the kernel then we should do
-it properly and have a it tunable from the userspace with the timeout
-disabled by default along with the explanation who uses it and for what
-purporse.
+	swap out
+	 zram
+	  per-cpu mapping CPU1
+	   compress page B
+	    write page from per-cpu mapping CPU1 to zsmalloc pool
+	iret
 
-Link: http://lkml.kernel.org/r/20170918070834.13083-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+-> process P
+	    write page from per-cpu mapping CPU1 to zsmalloc pool  [*]
+	return
+
+* so we store overwritten data that actually belongs to another
+  page (task) and potentially contains sensitive data. And when
+  process P will page fault it's going to read (swap in) that
+  other task's data.
+
+Link: http://lkml.kernel.org/r/20170929045140.4055-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-timeout-from-__offline_memory
-+++ a/mm/memory_hotplug.c
-@@ -1590,9 +1590,9 @@ static void node_states_clear_node(int n
- }
+diff -puN mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-calling-zs_map_object-from-irq-is-a-bug
++++ a/mm/zsmalloc.c
+@@ -1349,7 +1349,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	 * pools/users, we can't allow mapping in interrupt context
+ 	 * because it can corrupt another users mappings.
+ 	 */
+-	WARN_ON_ONCE(in_interrupt());
++	BUG_ON(in_interrupt());
  
- static int __ref __offline_pages(unsigned long start_pfn,
--		  unsigned long end_pfn, unsigned long timeout)
-+		  unsigned long end_pfn)
- {
--	unsigned long pfn, nr_pages, expire;
-+	unsigned long pfn, nr_pages;
- 	long offlined_pages;
- 	int ret, node;
- 	unsigned long flags;
-@@ -1630,12 +1630,8 @@ static int __ref __offline_pages(unsigne
- 		goto failed_removal;
- 
- 	pfn = start_pfn;
--	expire = jiffies + timeout;
- repeat:
- 	/* start memory hot removal */
--	ret = -EBUSY;
--	if (time_after(jiffies, expire))
--		goto failed_removal;
- 	ret = -EINTR;
- 	if (signal_pending(current))
- 		goto failed_removal;
-@@ -1708,7 +1704,7 @@ failed_removal:
- /* Must be protected by mem_hotplug_begin() or a device_lock */
- int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
--	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
-+	return __offline_pages(start_pfn, start_pfn + nr_pages);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
+ 	/* From now on, migration cannot move the object */
+ 	pin_tag(handle);
 _
