@@ -1,69 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 37/94] tools/lib/traceevent/parse-filter.c: clean
- up clang build warning
-Date: Fri, 17 Nov 2017 15:28:23 -0800
-Message-ID: <20171117232823.kXVyUTaLB%akpm@linux-foundation.org>
+Subject: [patch 38/94] lib/rbtree-test: lower default params
+Date: Fri, 17 Nov 2017 15:28:27 -0800
+Message-ID: <20171117232827.41XucPWMD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55600 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964924AbdKQX2Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:28:25 -0500
+        with ESMTP id S964924AbdKQX23 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:28:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cj.chengjian@huawei.com, huawei.libin@huawei.com, kstewart@linuxfoundation.org, mm-commits@vger.kernel.org, rostedt@goodmis.org, torvalds@linux-foundation.org, xiexiuqi@huawei.com
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, fengguang.wu@intel.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Cheng Jian <cj.chengjian@huawei.com>
-Subject: tools/lib/traceevent/parse-filter.c: clean up clang build warning
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/rbtree-test: lower default params
 
-The uniform structure filter_arg sets its union based on the difference of
-enum filter_arg_type, However, some functions use implicit type conversion
-obviously.
+Fengguang reported soft lockups while running the rbtree and interval tree
+test modules.  The logic for these tests all occur in init phase, and we
+currently are pounding with the default values for number of nodes and
+number of iterations of each test.  Reduce the latter by two orders of
+magnitude.  This does not influence the value of the tests in that one
+thousand times by default is enough to get the picture.
 
-warning: implicit conversion from enumeration type 'enum filter_exp_type'
-	 to different enumeration type 'enum filter_op_type'
-
-warning: implicit conversion from enumeration type 'enum filter_cmp_type'
-	 to different enumeration type 'enum filter_exp_type'
-
-Link: http://lkml.kernel.org/r/1509938415-113825-1-git-send-email-cj.chengjian@huawei.com
-Signed-off-by: Cheng Jian <cj.chengjian@huawei.com>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: Li Bin <huawei.libin@huawei.com>
-Cc: Steven Rostedt (Red Hat) <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/20171109161715.xai2dtwqw2frhkcm@linux-n805
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/lib/traceevent/parse-filter.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/interval_tree_test.c |    4 ++--
+ lib/rbtree_test.c        |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN tools/lib/traceevent/parse-filter.c~lib-traceevent-clean-up-clang-build-warning tools/lib/traceevent/parse-filter.c
---- a/tools/lib/traceevent/parse-filter.c~lib-traceevent-clean-up-clang-build-warning
-+++ a/tools/lib/traceevent/parse-filter.c
-@@ -436,13 +436,13 @@ create_arg_exp(enum filter_exp_type etyp
- 		return NULL;
+diff -puN lib/interval_tree_test.c~lib-rbtree-test-lower-default-params lib/interval_tree_test.c
+--- a/lib/interval_tree_test.c~lib-rbtree-test-lower-default-params
++++ a/lib/interval_tree_test.c
+@@ -11,10 +11,10 @@
+ 	MODULE_PARM_DESC(name, msg);
  
- 	arg->type = FILTER_ARG_EXP;
--	arg->op.type = etype;
-+	arg->exp.type = etype;
+ __param(int, nnodes, 100, "Number of nodes in the interval tree");
+-__param(int, perf_loops, 100000, "Number of iterations modifying the tree");
++__param(int, perf_loops, 1000, "Number of iterations modifying the tree");
  
- 	return arg;
- }
+ __param(int, nsearches, 100, "Number of searches to the interval tree");
+-__param(int, search_loops, 10000, "Number of iterations searching the tree");
++__param(int, search_loops, 1000, "Number of iterations searching the tree");
+ __param(bool, search_all, false, "Searches will iterate all nodes in the tree");
  
- static struct filter_arg *
--create_arg_cmp(enum filter_exp_type etype)
-+create_arg_cmp(enum filter_cmp_type ctype)
- {
- 	struct filter_arg *arg;
+ __param(uint, max_endpoint, ~0, "Largest value for the interval's endpoint");
+diff -puN lib/rbtree_test.c~lib-rbtree-test-lower-default-params lib/rbtree_test.c
+--- a/lib/rbtree_test.c~lib-rbtree-test-lower-default-params
++++ a/lib/rbtree_test.c
+@@ -11,7 +11,7 @@
+ 	MODULE_PARM_DESC(name, msg);
  
-@@ -452,7 +452,7 @@ create_arg_cmp(enum filter_exp_type etyp
+ __param(int, nnodes, 100, "Number of nodes in the rb-tree");
+-__param(int, perf_loops, 100000, "Number of iterations modifying the rb-tree");
++__param(int, perf_loops, 1000, "Number of iterations modifying the rb-tree");
+ __param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
  
- 	/* Use NUM and change if necessary */
- 	arg->type = FILTER_ARG_NUM;
--	arg->op.type = etype;
-+	arg->num.type = ctype;
- 
- 	return arg;
- }
+ struct test_node {
 _
