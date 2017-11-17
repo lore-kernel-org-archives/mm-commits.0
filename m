@@ -1,72 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/94] sh/boot: add static stack-protector to
- pre-kernel
-Date: Fri, 17 Nov 2017 15:26:59 -0800
-Message-ID: <20171117232659.ftbH-m8Uo%akpm@linux-foundation.org>
+Subject: [patch 16/94] kernel debug: support resetting WARN_ONCE
+ for all architectures
+Date: Fri, 17 Nov 2017 15:27:06 -0800
+Message-ID: <20171117232706.24JfVndUM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423248AbdKQX1B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:27:01 -0500
+        with ESMTP id S1423248AbdKQX1I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:27:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dalias@libc.org, keescook@chromium.org, labbott@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org, mmarek@suse.com, npiggin@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, yamada.masahiro@socionext.com, ysato@users.sourceforge.jp
+To: ak@linux.intel.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, torvalds@linux-foundation.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: sh/boot: add static stack-protector to pre-kernel
+From: Andi Kleen <ak@linux.intel.com>
+Subject: kernel debug: support resetting WARN_ONCE for all architectures
 
-The sh decompressor code triggers stack-protector code generation when
-using CONFIG_CC_STACKPROTECTOR_STRONG.  As done for arm and mips, add a
-simple static stack-protector canary.  As this wasn't protected before,
-the risk of using a weak canary is minimized.  Once the kernel is actually
-up, a better canary is chosen.
+Some architectures store the WARN_ONCE state in the flags field of the
+bug_entry.  Clear that one too when resetting once state through
+/sys/kernel/debug/clear_warn_once
 
-Link: http://lkml.kernel.org/r/1506972007-80614-2-git-send-email-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Pointed out by Michael Ellerman
+
+Improves the earlier patch that add clear_warn_once.
+
+[ak@linux.intel.com: add a missing ifdef CONFIG_MODULES]
+  Link: http://lkml.kernel.org/r/20171020170633.9593-1-andi@firstfloor.org
+[akpm@linux-foundation.org: fix unused var warning]
+[akpm@linux-foundation.org: Use 0200 for clear_warn_once file, per mpe]
+[akpm@linux-foundation.org: clear BUGFLAG_DONE in clear_once_table(), per mpe]
+Link: http://lkml.kernel.org/r/20171019204642.7404-1-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boot/compressed/misc.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/linux/bug.h |    5 +++++
+ kernel/panic.c      |    3 ++-
+ lib/bug.c           |   23 +++++++++++++++++++++++
+ 3 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/boot/compressed/misc.c~sh-boot-add-static-stack-protector-to-pre-kernel arch/sh/boot/compressed/misc.c
---- a/arch/sh/boot/compressed/misc.c~sh-boot-add-static-stack-protector-to-pre-kernel
-+++ a/arch/sh/boot/compressed/misc.c
-@@ -104,6 +104,18 @@ static void error(char *x)
- 	while(1);	/* Halt */
+diff -puN include/linux/bug.h~support-resetting-warn_once-for-all-architectures include/linux/bug.h
+--- a/include/linux/bug.h~support-resetting-warn_once-for-all-architectures
++++ a/include/linux/bug.h
+@@ -43,6 +43,8 @@ enum bug_trap_type report_bug(unsigned l
+ /* These are defined by the architecture */
+ int is_valid_bugaddr(unsigned long addr);
+ 
++void generic_bug_clear_once(void);
++
+ #else	/* !CONFIG_GENERIC_BUG */
+ 
+ static inline enum bug_trap_type report_bug(unsigned long bug_addr,
+@@ -51,6 +53,9 @@ static inline enum bug_trap_type report_
+ 	return BUG_TRAP_TYPE_BUG;
  }
  
-+unsigned long __stack_chk_guard;
 +
-+void __stack_chk_guard_setup(void)
-+{
-+	__stack_chk_guard = 0x000a0dff;
-+}
++static inline void generic_bug_clear_once(void) {}
 +
-+void __stack_chk_fail(void)
-+{
-+	error("stack-protector: Kernel stack is corrupted\n");
-+}
-+
- #ifdef CONFIG_SUPERH64
- #define stackalign	8
- #else
-@@ -118,6 +130,8 @@ void decompress_kernel(void)
- {
- 	unsigned long output_addr;
+ #endif	/* CONFIG_GENERIC_BUG */
  
-+	__stack_chk_guard_setup();
+ /*
+diff -puN kernel/panic.c~support-resetting-warn_once-for-all-architectures kernel/panic.c
+--- a/kernel/panic.c~support-resetting-warn_once-for-all-architectures
++++ a/kernel/panic.c
+@@ -595,6 +595,7 @@ EXPORT_SYMBOL(warn_slowpath_null);
+ 
+ static int clear_warn_once_set(void *data, u64 val)
+ {
++	generic_bug_clear_once();
+ 	memset(__start_once, 0, __end_once - __start_once);
+ 	return 0;
+ }
+@@ -607,7 +608,7 @@ DEFINE_SIMPLE_ATTRIBUTE(clear_warn_once_
+ static __init int register_warn_debugfs(void)
+ {
+ 	/* Don't care about failure */
+-	debugfs_create_file("clear_warn_once", 0644, NULL,
++	debugfs_create_file("clear_warn_once", 0200, NULL,
+ 			    NULL, &clear_warn_once_fops);
+ 	return 0;
+ }
+diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures lib/bug.c
+--- a/lib/bug.c~support-resetting-warn_once-for-all-architectures
++++ a/lib/bug.c
+@@ -196,3 +196,26 @@ enum bug_trap_type report_bug(unsigned l
+ 
+ 	return BUG_TRAP_TYPE_BUG;
+ }
 +
- #ifdef CONFIG_SUPERH64
- 	output_addr = (CONFIG_MEMORY_START + 0x2000);
- #else
++static void clear_once_table(struct bug_entry *start, struct bug_entry *end)
++{
++	struct bug_entry *bug;
++
++	for (bug = start; bug < end; bug++)
++		bug->flags &= ~BUGFLAG_DONE;
++}
++
++void generic_bug_clear_once(void)
++{
++#ifdef CONFIG_MODULES
++	struct module *mod;
++
++	rcu_read_lock_sched();
++	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
++		clear_once_table(mod->bug_table,
++				 mod->bug_table + mod->num_bugs);
++	rcu_read_unlock_sched();
++#endif
++
++	clear_once_table(__start___bug_table, __stop___bug_table);
++}
 _
