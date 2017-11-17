@@ -1,66 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] pid-remove-pidhash-v6.patch removed from -mm tree
-Date: Fri, 17 Nov 2017 15:17:17 -0800
-Message-ID: <5a0f6dfd./Ps++N95Cbb4YLRj%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kernel-reboot-add-devm_register_reboot_notifier-fix.patch removed from -mm
+ tree
+Date: Fri, 17 Nov 2017 15:17:56 -0800
+Message-ID: <5a0f6e24.zUQItYh47TlvLiMQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965653AbdKQXRT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:17:19 -0500
+        with ESMTP id S965653AbdKQXR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gs051095@gmail.com, ebiederm@xmission.com, hch@infradead.org, julia.lawall@lip6.fr, ktkhai@virtuozzo.com, mingo@kernel.org, oleg@redhat.com, pasha.tatashin@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrew.smirnov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid-remove-pidhash-v6
+     Subject: kernel-reboot-add-devm_register_reboot_notifier-fix
 has been removed from the -mm tree.  Its filename was
-     pid-remove-pidhash-v6.patch
+     kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 
-This patch was dropped because it was folded into pid-remove-pidhash.patch
+This patch was dropped because it was folded into kernel-reboot-add-devm_register_reboot_notifier.patch
 
 ------------------------------------------------------
-From: Gargi Sharma <gs051095@gmail.com>
-Subject: pid-remove-pidhash-v6
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-reboot-add-devm_register_reboot_notifier-fix
 
-Link: http://lkml.kernel.org/r/1507760379-21662-3-git-send-email-gs051095@gmail.com
-Signed-off-by: Gargi Sharma <gs051095@gmail.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+move `struct device' forward declaration to top-of-file
+
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/asm-offsets.c |    4 ++--
- kernel/pid.c                   |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/linux/reboot.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/asm-offsets.c~pid-remove-pidhash-v6 arch/ia64/kernel/asm-offsets.c
---- a/arch/ia64/kernel/asm-offsets.c~pid-remove-pidhash-v6
-+++ a/arch/ia64/kernel/asm-offsets.c
-@@ -31,8 +31,8 @@ void foo(void)
- 	DEFINE(SIGFRAME_SIZE, sizeof (struct sigframe));
- 	DEFINE(UNW_FRAME_INFO_SIZE, sizeof (struct unw_frame_info));
+diff -puN include/linux/reboot.h~kernel-reboot-add-devm_register_reboot_notifier-fix include/linux/reboot.h
+--- a/include/linux/reboot.h~kernel-reboot-add-devm_register_reboot_notifier-fix
++++ a/include/linux/reboot.h
+@@ -6,6 +6,8 @@
+ #include <linux/notifier.h>
+ #include <uapi/linux/reboot.h>
  
--	BUILD_BUG_ON(sizeof(struct upid) != 32);
--	DEFINE(IA64_UPID_SHIFT, 5);
-+	BUILD_BUG_ON(sizeof(struct upid) != 16);
-+	DEFINE(IA64_UPID_SHIFT, 4);
++struct device;
++
+ #define SYS_DOWN	0x0001	/* Notify of system down */
+ #define SYS_RESTART	SYS_DOWN
+ #define SYS_HALT	0x0002	/* Notify of system halt */
+@@ -39,7 +41,6 @@ extern int reboot_force;
+ extern int register_reboot_notifier(struct notifier_block *);
+ extern int unregister_reboot_notifier(struct notifier_block *);
  
- 	BLANK();
+-struct device;
+ extern int devm_register_reboot_notifier(struct device *, struct notifier_block *);
  
-diff -puN kernel/pid.c~pid-remove-pidhash-v6 kernel/pid.c
---- a/kernel/pid.c~pid-remove-pidhash-v6
-+++ a/kernel/pid.c
-@@ -118,8 +118,7 @@ void free_pid(struct pid *pid)
- 	for (i = 0; i <= pid->level; i++) {
- 		struct upid *upid = pid->numbers + i;
- 		struct pid_namespace *ns = upid->ns;
+ extern int register_restart_handler(struct notifier_block *);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+kernel-reboot-add-devm_register_reboot_notifier.patch
+watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
+sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
+sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+
