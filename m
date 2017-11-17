@@ -1,151 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [patch 81/94] drivers/watchdog: make use of
- devm_register_reboot_notifier()
-Date: Fri, 17 Nov 2017 15:31:01 -0800
-Message-ID: <20171117233101.DDcc8U9sO%akpm@linux-foundation.org>
+Subject: [patch 83/94] sysvipc: unteach ids->next_id for
+ !CHECKPOINT_RESTORE
+Date: Fri, 17 Nov 2017 15:31:08 -0800
+Message-ID: <20171117233108.MFT8Tc9sR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56146 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966959AbdKQXbC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:02 -0500
+        with ESMTP id S966968AbdKQXbJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrew.smirnov@gmail.com, andy.shevchenko@gmail.com, cphealy@gmail.com, linux@roeck-us.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, wim@iguana.be
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: drivers/watchdog: make use of devm_register_reboot_notifier()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: sysvipc: unteach ids->next_id for !CHECKPOINT_RESTORE
 
-Save a bit of cleanup code by leveraging newly added
-devm_register_reboot_notifier().
+Patch series "sysvipc: ipc-key management improvements".
 
-[akpm@linux-foundation.org: small cleanup: avoid 80-col tricks]
-Link: http://lkml.kernel.org/r/20170411160615.9784-1-andrew.smirnov@gmail.com
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Chris Healy <cphealy@gmail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Here are a few improvements I spotted while eyeballing Guillaume's
+rhashtable implementation for ipc keys.  The first and fourth patches are
+the interesting ones, the middle two are trivial.
+
+
+This patch (of 4):
+
+The next_id object-allocation functionality was introduced in
+03f595668017f ("ipc: add sysctl to specify desired next object id"). 
+Given that these new entries are _only_ exported under the
+CONFIG_CHECKPOINT_RESTORE option, there is no point for the common case to
+even know about ->next_id.  As such rewrite ipc_buildid() such that it can
+do away with the field as well as unnecessary branches when adding a new
+identifier.  The end result also better differentiates both cases, so the
+code ends up being cleaner; albeit the small duplications regarding the
+default case.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20170831172049.14576-2-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/watchdog_core.c |   35 -----------------------------
- drivers/watchdog/watchdog_dev.c  |   32 ++++++++++++++++++++++++++
- 2 files changed, 32 insertions(+), 35 deletions(-)
+ include/linux/ipc_namespace.h |    2 +
+ ipc/util.c                    |   60 ++++++++++++++++++++++++--------
+ ipc/util.h                    |    5 --
+ 3 files changed, 47 insertions(+), 20 deletions(-)
 
-diff -puN drivers/watchdog/watchdog_core.c~watchdog-core-make-use-of-devm_register_reboot_notifier drivers/watchdog/watchdog_core.c
---- a/drivers/watchdog/watchdog_core.c~watchdog-core-make-use-of-devm_register_reboot_notifier
-+++ a/drivers/watchdog/watchdog_core.c
-@@ -137,25 +137,6 @@ int watchdog_init_timeout(struct watchdo
- }
- EXPORT_SYMBOL_GPL(watchdog_init_timeout);
- 
--static int watchdog_reboot_notifier(struct notifier_block *nb,
--				    unsigned long code, void *data)
--{
--	struct watchdog_device *wdd = container_of(nb, struct watchdog_device,
--						   reboot_nb);
--
--	if (code == SYS_DOWN || code == SYS_HALT) {
--		if (watchdog_active(wdd)) {
--			int ret;
--
--			ret = wdd->ops->stop(wdd);
--			if (ret)
--				return NOTIFY_BAD;
--		}
--	}
--
--	return NOTIFY_DONE;
--}
--
- static int watchdog_restart_notifier(struct notifier_block *nb,
- 				     unsigned long action, void *data)
- {
-@@ -244,19 +225,6 @@ static int __watchdog_register_device(st
- 		}
- 	}
- 
--	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
--		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
--
--		ret = register_reboot_notifier(&wdd->reboot_nb);
--		if (ret) {
--			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
--			       wdd->id, ret);
--			watchdog_dev_unregister(wdd);
--			ida_simple_remove(&watchdog_ida, wdd->id);
--			return ret;
--		}
--	}
--
- 	if (wdd->ops->restart) {
- 		wdd->restart_nb.notifier_call = watchdog_restart_notifier;
- 
-@@ -302,9 +270,6 @@ static void __watchdog_unregister_device
- 	if (wdd->ops->restart)
- 		unregister_restart_handler(&wdd->restart_nb);
- 
--	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status))
--		unregister_reboot_notifier(&wdd->reboot_nb);
--
- 	watchdog_dev_unregister(wdd);
- 	ida_simple_remove(&watchdog_ida, wdd->id);
- }
-diff -puN drivers/watchdog/watchdog_dev.c~watchdog-core-make-use-of-devm_register_reboot_notifier drivers/watchdog/watchdog_dev.c
---- a/drivers/watchdog/watchdog_dev.c~watchdog-core-make-use-of-devm_register_reboot_notifier
-+++ a/drivers/watchdog/watchdog_dev.c
-@@ -42,6 +42,7 @@
- #include <linux/miscdevice.h>	/* For handling misc devices */
- #include <linux/module.h>	/* For module stuff/... */
- #include <linux/mutex.h>	/* For mutexes */
-+#include <linux/reboot.h>	/* For reboot notifier */
- #include <linux/slab.h>		/* For memory functions */
- #include <linux/types.h>	/* For standard types (like size_t) */
- #include <linux/watchdog.h>	/* For watchdog specific items */
-@@ -1016,6 +1017,25 @@ static struct class watchdog_class = {
- 	.dev_groups =	wdt_groups,
+diff -puN include/linux/ipc_namespace.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore
++++ a/include/linux/ipc_namespace.h
+@@ -19,7 +19,9 @@ struct ipc_ids {
+ 	bool tables_initialized;
+ 	struct rw_semaphore rwsem;
+ 	struct idr ipcs_idr;
++#ifdef CONFIG_CHECKPOINT_RESTORE
+ 	int next_id;
++#endif
+ 	struct rhashtable key_ht;
  };
  
-+static int watchdog_reboot_notifier(struct notifier_block *nb,
-+				    unsigned long code, void *data)
+diff -puN ipc/util.c~sysvipc-unteach-ids-next_id-for-checkpoint_restore ipc/util.c
+--- a/ipc/util.c~sysvipc-unteach-ids-next_id-for-checkpoint_restore
++++ a/ipc/util.c
+@@ -116,13 +116,15 @@ int ipc_init_ids(struct ipc_ids *ids)
+ 	int err;
+ 	ids->in_use = 0;
+ 	ids->seq = 0;
+-	ids->next_id = -1;
+ 	init_rwsem(&ids->rwsem);
+ 	err = rhashtable_init(&ids->key_ht, &ipc_kht_params);
+ 	if (err)
+ 		return err;
+ 	idr_init(&ids->ipcs_idr);
+ 	ids->tables_initialized = true;
++#ifdef CONFIG_CHECKPOINT_RESTORE
++	ids->next_id = -1;
++#endif
+ 	return 0;
+ }
+ 
+@@ -216,6 +218,46 @@ int ipc_get_maxid(struct ipc_ids *ids)
+ 	return max_id;
+ }
+ 
++#ifdef CONFIG_CHECKPOINT_RESTORE
++/*
++ * Specify desired id for next allocated IPC object.
++ */
++#define ipc_idr_alloc(ids, new)						\
++	idr_alloc(&(ids)->ipcs_idr, (new),				\
++		  (ids)->next_id < 0 ? 0 : ipcid_to_idx((ids)->next_id),\
++		  0, GFP_NOWAIT)
++
++static inline int ipc_buildid(int id, struct ipc_ids *ids,
++			      struct kern_ipc_perm *new)
 +{
-+	struct watchdog_device *wdd;
-+
-+	wdd = container_of(nb, struct watchdog_device, reboot_nb);
-+	if (code == SYS_DOWN || code == SYS_HALT) {
-+		if (watchdog_active(wdd)) {
-+			int ret;
-+
-+			ret = wdd->ops->stop(wdd);
-+			if (ret)
-+				return NOTIFY_BAD;
-+		}
++	if (ids->next_id < 0) { /* default, behave as !CHECKPOINT_RESTORE */
++		new->seq = ids->seq++;
++		if (ids->seq > IPCID_SEQ_MAX)
++			ids->seq = 0;
++	} else {
++		new->seq = ipcid_to_seqx(ids->next_id);
++		ids->next_id = -1;
 +	}
 +
-+	return NOTIFY_DONE;
++	return SEQ_MULTIPLIER * new->seq + id;
 +}
 +
- /*
-  *	watchdog_dev_register: register a watchdog device
-  *	@wdd: watchdog device
-@@ -1049,6 +1069,18 @@ int watchdog_dev_register(struct watchdo
- 	if (ret) {
- 		device_destroy(&watchdog_class, devno);
- 		watchdog_cdev_unregister(wdd);
-+		return ret;
-+	}
++#else
++#define ipc_idr_alloc(ids, new)					\
++	idr_alloc(&(ids)->ipcs_idr, (new), 0, 0, GFP_NOWAIT)
 +
-+	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
-+		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
++static inline int ipc_buildid(int id, struct ipc_ids *ids,
++			      struct kern_ipc_perm *new)
++{
++	new->seq = ids->seq++;
++	if (ids->seq > IPCID_SEQ_MAX)
++		ids->seq = 0;
 +
-+		ret = devm_register_reboot_notifier(dev, &wdd->reboot_nb);
-+		if (ret) {
-+			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
-+			       wdd->id, ret);
-+			watchdog_dev_unregister(wdd);
-+		}
++	return SEQ_MULTIPLIER * new->seq + id;
++}
++
++#endif /* CONFIG_CHECKPOINT_RESTORE */
++
+ /**
+  * ipc_addid - add an ipc identifier
+  * @ids: ipc identifier set
+@@ -234,7 +276,6 @@ int ipc_addid(struct ipc_ids *ids, struc
+ 	kuid_t euid;
+ 	kgid_t egid;
+ 	int id, err;
+-	int next_id = ids->next_id;
+ 
+ 	if (size > IPCMNI)
+ 		size = IPCMNI;
+@@ -254,9 +295,7 @@ int ipc_addid(struct ipc_ids *ids, struc
+ 	new->cuid = new->uid = euid;
+ 	new->gid = new->cgid = egid;
+ 
+-	id = idr_alloc(&ids->ipcs_idr, new,
+-		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
+-		       GFP_NOWAIT);
++	id = ipc_idr_alloc(ids, new);
+ 	idr_preload_end();
+ 
+ 	if (id >= 0 && new->key != IPC_PRIVATE) {
+@@ -274,17 +313,8 @@ int ipc_addid(struct ipc_ids *ids, struc
  	}
  
- 	return ret;
-_
+ 	ids->in_use++;
++	new->id = ipc_buildid(id, ids, new);
+ 
+-	if (next_id < 0) {
+-		new->seq = ids->seq++;
+-		if (ids->seq > IPCID_SEQ_MAX)
+-			ids->seq = 0;
+-	} else {
+-		new->seq = ipcid_to_seqx(next_id);
+-		ids->next_id = -1;
+-	}
+-
+-	new->id = ipc_buildid(id, new->seq);
+ 	return id;
+ }
+ 
+diff -puN ipc/util.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore ipc/util.h
+--- a/ipc/util.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore
++++ a/ipc/util.h
+@@ -146,11 +146,6 @@ extern struct msg_msg *load_msg(const vo
+ extern struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst);
+ extern int store_msg(void __user *dest, struct msg_msg *msg, size_t len);
+ 
+-static inline int ipc_buildid(int id, int seq)
+-{
+-	return SEQ_MULTIPLIER * seq + id;
+-}
