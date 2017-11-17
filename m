@@ -1,104 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- support-resetting-warn_once-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 17 Nov 2017 15:11:50 -0800
-Message-ID: <5a0f6cb6.5AZCZ+njy9j+H7cI%akpm@linux-foundation.org>
+ support-resetting-warn_once-for-all-architectures-v2.patch removed from -mm tree
+Date: Fri, 17 Nov 2017 15:12:12 -0800
+Message-ID: <5a0f6ccc.BKo6SJ6v1WEjc5fc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966856AbdKQXLw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:11:52 -0500
+        with ESMTP id S966887AbdKQXMO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:12:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: support-resetting-warn_once-checkpatch-fixes
+     Subject: support-resetting-warn_once-for-all-architectures-v2
 has been removed from the -mm tree.  Its filename was
-     support-resetting-warn_once-checkpatch-fixes.patch
+     support-resetting-warn_once-for-all-architectures-v2.patch
 
-This patch was dropped because it was folded into support-resetting-warn_once.patch
+This patch was dropped because it was folded into support-resetting-warn_once-for-all-architectures.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: support-resetting-warn_once-checkpatch-fixes
+From: Andi Kleen <ak@linux.intel.com>
+Subject: support-resetting-warn_once-for-all-architectures-v2
 
-ERROR: code indent should use tabs where possible
-#124: FILE: kernel/panic.c:604:
-+                        clear_warn_once_set,$
+add a missing ifdef CONFIG_MODULES. Thanks 0day!
 
-WARNING: please, no spaces at the start of a line
-#124: FILE: kernel/panic.c:604:
-+                        clear_warn_once_set,$
-
-ERROR: code indent should use tabs where possible
-#125: FILE: kernel/panic.c:605:
-+^I^I        "%lld\n");$
-
-WARNING: please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)
-#135: FILE: kernel/panic.c:615:
-+__initcall(register_warn_debugfs);
-
-total: 2 errors, 2 warnings, 87 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/support-resetting-warn_once.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Link: http://lkml.kernel.org/r/20171020170633.9593-1-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/bug.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/panic.c~support-resetting-warn_once-checkpatch-fixes kernel/panic.c
---- a/kernel/panic.c~support-resetting-warn_once-checkpatch-fixes
-+++ a/kernel/panic.c
-@@ -601,8 +601,8 @@ static int clear_warn_once_set(void *dat
- 
- DEFINE_SIMPLE_ATTRIBUTE(clear_warn_once_fops,
- 			NULL,
--                        clear_warn_once_set,
--		        "%lld\n");
-+			clear_warn_once_set,
-+			"%lld\n");
- 
- static __init int register_warn_debugfs(void)
+diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures-v2 lib/bug.c
+--- a/lib/bug.c~support-resetting-warn_once-for-all-architectures-v2
++++ a/lib/bug.c
+@@ -209,11 +209,13 @@ void generic_bug_clear_once(void)
  {
-@@ -612,7 +612,7 @@ static __init int register_warn_debugfs(
- 	return 0;
+ 	struct module *mod;
+ 
++#ifdef CONFIG_MODULES
+ 	rcu_read_lock_sched();
+ 	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
+ 		clear_once_table(mod->bug_table,
+ 				 mod->bug_table + mod->num_bugs);
+ 	rcu_read_unlock_sched();
++#endif
+ 
+ 	clear_once_table(__start___bug_table, __stop___bug_table);
  }
- 
--__initcall(register_warn_debugfs);
-+device_initcall(register_warn_debugfs);
- #endif
- 
- #ifdef CONFIG_CC_STACKPROTECTOR
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 support-resetting-warn_once.patch
-support-resetting-warn_once-for-all-architectures-v2-fix.patch
-support-resetting-warn_once-for-all-architectures-v2-fix-fix.patch
-support-resetting-warn_once-for-all-architectures-v2-fix-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-watchdog-core-make-use-of-devm_register_reboot_notifier-fix.patch
-sysvipc-unteach-ids-next_id-for-checkpoint_restore-checkpatch-fixes.patch
-sysvipc-make-get_maxid-o1-again-checkpatch-fixes.patch
+support-resetting-warn_once-for-all-architectures.patch
 
