@@ -1,50 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/94] mm: shmem: remove unused info variable
-Date: Fri, 17 Nov 2017 15:26:23 -0800
-Message-ID: <20171117232623.kzi3g8cM4%akpm@linux-foundation.org>
+Subject: [patch 05/94] mm, compaction: kcompactd should not ignore
+ pageblock skip
+Date: Fri, 17 Nov 2017 15:26:27 -0800
+Message-ID: <20171117232627.KndiCbCR-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55188 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423240AbdKQX0Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:26:25 -0500
+        with ESMTP id S1423240AbdKQX02 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:26:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clabbe@baylibre.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Corentin Labbe <clabbe@baylibre.com>
-Subject: mm: shmem: remove unused info variable
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: kcompactd should not ignore pageblock skip
 
-Fix the following warning by removing the unused variable:
-mm/shmem.c:3205:27: warning: variable 'info' set but not used [-Wunused-but-set-variable]
+Kcompactd is needlessly ignoring pageblock skip information.  It is doing
+MIGRATE_SYNC_LIGHT compaction, which is no more powerful than MIGRATE_SYNC
+compaction.
 
-Link: http://lkml.kernel.org/r/1510774029-30652-1-git-send-email-clabbe@baylibre.com
-Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
+If compaction recently failed to isolate memory from a set of pageblocks,
+there is nothing to indicate that kcompactd will be able to do so, or that
+it is beneficial from attempting to isolate memory.
+
+Use the pageblock skip hint to avoid rescanning pageblocks needlessly
+until that information is reset.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708151638550.106658@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/compaction.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmem-remove-unused-info-variable mm/shmem.c
---- a/mm/shmem.c~mm-shmem-remove-unused-info-variable
-+++ a/mm/shmem.c
-@@ -3202,7 +3202,6 @@ static int shmem_symlink(struct inode *d
- 	int len;
- 	struct inode *inode;
- 	struct page *page;
--	struct shmem_inode_info *info;
- 
- 	len = strlen(symname) + 1;
- 	if (len > PAGE_SIZE)
-@@ -3222,7 +3221,6 @@ static int shmem_symlink(struct inode *d
- 		error = 0;
- 	}
- 
--	info = SHMEM_I(inode);
- 	inode->i_size = len-1;
- 	if (len <= SHORT_SYMLINK_LEN) {
- 		inode->i_link = kmemdup(symname, len, GFP_KERNEL);
-_
+diff -puN mm/compaction.c~mm-compaction-kcompactd-should-not-ignore-pageblock-skip mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-kcompactd-should-not-ignore-pageblock-skip
++++ a/mm/compaction.c
+@@ -1928,9 +1928,8 @@ static void kcompactd_do_work(pg_data_t
+ 		.total_free_scanned = 0,
+ 		.classzone_idx = pgdat->kcompactd_classzone_idx,
+ 		.mode = MIGRATE_SYNC_LIGHT,
+-		.ignore_skip_hint = true,
++		.ignore_skip_hint = false,
+ 		.gfp_mask = GFP_KERNEL,
