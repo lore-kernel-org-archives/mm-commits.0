@@ -1,49 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 64/94] kernel/signal.c: protect the traced
- SIGNAL_UNKILLABLE tasks from SIGKILL
-Date: Fri, 17 Nov 2017 15:30:01 -0800
-Message-ID: <20171117233001.4s9ocl8og%akpm@linux-foundation.org>
+Subject: [patch 67/94] kdump: print a message in case
+ parse_crashkernel_mem resulted in zero bytes
+Date: Fri, 17 Nov 2017 15:30:12 -0800
+Message-ID: <20171117233012.vQOEj73_d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55954 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966947AbdKQXaC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:02 -0500
+        with ESMTP id S966947AbdKQXaN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, me@kylehuey.com, mm-commits@vger.kernel.org, oleg@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bhe@redhat.com, bhsharma@redhat.com, dyoung@redhat.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vgoyal@redhat.com
 
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/signal.c: protect the traced SIGNAL_UNKILLABLE tasks from SIGKILL
+From: Dave Young <dyoung@redhat.com>
+Subject: kdump: print a message in case parse_crashkernel_mem resulted in zero bytes
 
-The comment in sig_ignored() says "Tracers may want to know about even
-ignored signals" but SIGKILL can not be reported to debugger and it is
-just wrong to return 0 in this case: SIGKILL should only kill the
-SIGNAL_UNKILLABLE task if it comes from the parent ns.
+parse_crashkernel_mem() silently returns if we get zero bytes in the
+parsing function.  It is useful for debugging to add a message, especially
+if the kernel cannot boot correctly.
 
-Change sig_ignored() to ignore ->ptrace if sig == SIGKILL and rely on
-sig_task_ignored().
+Add a pr_info instead of pr_warn because it is expected behavior for size
+= 0, eg.  crashkernel=2G-4G:128M, size will be 0 in case system memory is
+less than 2G.
 
-SISGTOP coming from within the namespace is not really right too but at
-least debugger can intercept it, and we can't drop it here because this
-will break "gdb -p 1": ptrace_attach() won't work.  Perhaps we will add
-another ->ptrace check later, we will see.
-
-Link: http://lkml.kernel.org/r/20171103184206.GB21036@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Tested-by: Kyle Huey <me@kylehuey.com>
+Link: http://lkml.kernel.org/r/20171114080129.GA6115@dhcp-128-65.nay.redhat.com
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Bhupesh Sharma <bhsharma@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ kernel/crash_core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~protect-the-traced-signal_unkillable-tasks-from-sigkill kernel/signal.c
---- a/kernel/signal.c~protect-the-traced-signal_unkillable-tasks-from-sigkill
-+++ a/kernel/signal.c
-@@ -94,13 +94,15 @@ static int sig_ignored(struct task_struc
- 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
- 		return 0;
+diff -puN kernel/crash_core.c~kdump-print-a-message-in-case-parse_crashkernel_mem-resulted-in-zero-bytes kernel/crash_core.c
+--- a/kernel/crash_core.c~kdump-print-a-message-in-case-parse_crashkernel_mem-resulted-in-zero-bytes
++++ a/kernel/crash_core.c
+@@ -108,7 +108,8 @@ static int __init parse_crashkernel_mem(
+ 				return -EINVAL;
+ 			}
+ 		}
+-	}
++	} else
++		pr_info("crashkernel size resulted in zero bytes\n");
  
--	if (!sig_task_ignored(t, sig, force))
--		return 0;
+ 	return 0;
+ }
+_
