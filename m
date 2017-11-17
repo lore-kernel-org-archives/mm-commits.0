@@ -1,52 +1,351 @@
 From: akpm@linux-foundation.org
-Subject: [patch 29/94] include/linux/radix-tree.h: remove unneeded
- #include <linux/bug.h>
-Date: Fri, 17 Nov 2017 15:27:53 -0800
-Message-ID: <20171117232753.DjT4y33c6%akpm@linux-foundation.org>
+Subject: [patch 30/94] lib: add module support to string tests
+Date: Fri, 17 Nov 2017 15:27:56 -0800
+Message-ID: <20171117232756.U9mMURgyg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55462 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423266AbdKQX1z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:27:55 -0500
+        with ESMTP id S965922AbdKQX16 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chrism@mellanox.com, hannes@cmpxchg.org, jack@suse.cz, mawilcox@microsoft.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, geert@linux-m68k.org, mawilcox@microsoft.com, mm-commits@vger.kernel.org, shuah@kernel.org, torvalds@linux-foundation.org
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: include/linux/radix-tree.h: remove unneeded #include <linux/bug.h>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: lib: add module support to string tests
 
-This include was added by 187f1882b5b0 ("BUG: headers with BUG/BUG_ON etc.
-need linux/bug.h") because BUG_ON() was used in this header at that time.
+Extract the string test code into its own source file, to allow compiling
+it either to a loadable module, or built into the kernel.
 
-Some time later, 6d75f366b924 ("lib: radix-tree: check accounting of
-existing slot replacement users") removed the use of BUG_ON() from this
-header.
-
-Since then, there is no reason to include <linux/bug.h>.
-
-Link: http://lkml.kernel.org/r/1505660151-4383-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Fixes: 03270c13c5ffaa6a ("lib/string.c: add testcases for memset16/32/64")
+Link: http://lkml.kernel.org/r/1505397744-3387-1-git-send-email-geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chris Mi <chrism@mellanox.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 -
- 1 file changed, 1 deletion(-)
+ lib/Kconfig       |    2 
+ lib/Makefile      |    1 
+ lib/string.c      |  141 --------------------------------------------
+ lib/test_string.c |  141 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 143 insertions(+), 142 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-remove-unneeded-include-linux-bugh include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-remove-unneeded-include-linux-bugh
-+++ a/include/linux/radix-tree.h
-@@ -22,7 +22,6 @@
- #define _LINUX_RADIX_TREE_H
+diff -puN lib/Kconfig~lib-add-module-support-to-string-tests lib/Kconfig
+--- a/lib/Kconfig~lib-add-module-support-to-string-tests
++++ a/lib/Kconfig
+@@ -584,7 +584,7 @@ config PRIME_NUMBERS
+ 	tristate
  
- #include <linux/bitops.h>
--#include <linux/bug.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/preempt.h>
+ config STRING_SELFTEST
+-	bool "Test string functions"
++	tristate "Test string functions"
+ 
+ endmenu
+ 
+diff -puN lib/Makefile~lib-add-module-support-to-string-tests lib/Makefile
+--- a/lib/Makefile~lib-add-module-support-to-string-tests
++++ a/lib/Makefile
+@@ -40,6 +40,7 @@ obj-y += bcd.o div64.o sort.o parser.o d
+ 	 bsearch.o find_bit.o llist.o memweight.o kfifo.o \
+ 	 percpu-refcount.o percpu_ida.o rhashtable.o reciprocal_div.o \
+ 	 once.o refcount.o usercopy.o errseq.o
++obj-$(CONFIG_STRING_SELFTEST) += test_string.o
+ obj-y += string_helpers.o
+ obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
+ obj-y += hexdump.o
+diff -puN lib/string.c~lib-add-module-support-to-string-tests lib/string.c
+--- a/lib/string.c~lib-add-module-support-to-string-tests
++++ a/lib/string.c
+@@ -1052,144 +1052,3 @@ void fortify_panic(const char *name)
+ 	BUG();
+ }
+ EXPORT_SYMBOL(fortify_panic);
+-
+-#ifdef CONFIG_STRING_SELFTEST
+-#include <linux/slab.h>
+-#include <linux/module.h>
+-
+-static __init int memset16_selftest(void)
+-{
+-	unsigned i, j, k;
+-	u16 v, *p;
+-
+-	p = kmalloc(256 * 2 * 2, GFP_KERNEL);
+-	if (!p)
+-		return -1;
+-
+-	for (i = 0; i < 256; i++) {
+-		for (j = 0; j < 256; j++) {
+-			memset(p, 0xa1, 256 * 2 * sizeof(v));
+-			memset16(p + i, 0xb1b2, j);
+-			for (k = 0; k < 512; k++) {
+-				v = p[k];
+-				if (k < i) {
+-					if (v != 0xa1a1)
+-						goto fail;
+-				} else if (k < i + j) {
+-					if (v != 0xb1b2)
+-						goto fail;
+-				} else {
+-					if (v != 0xa1a1)
+-						goto fail;
+-				}
+-			}
+-		}
+-	}
+-
+-fail:
+-	kfree(p);
+-	if (i < 256)
+-		return (i << 24) | (j << 16) | k;
+-	return 0;
+-}
+-
+-static __init int memset32_selftest(void)
+-{
+-	unsigned i, j, k;
+-	u32 v, *p;
+-
+-	p = kmalloc(256 * 2 * 4, GFP_KERNEL);
+-	if (!p)
+-		return -1;
+-
+-	for (i = 0; i < 256; i++) {
+-		for (j = 0; j < 256; j++) {
+-			memset(p, 0xa1, 256 * 2 * sizeof(v));
+-			memset32(p + i, 0xb1b2b3b4, j);
+-			for (k = 0; k < 512; k++) {
+-				v = p[k];
+-				if (k < i) {
+-					if (v != 0xa1a1a1a1)
+-						goto fail;
+-				} else if (k < i + j) {
+-					if (v != 0xb1b2b3b4)
+-						goto fail;
+-				} else {
+-					if (v != 0xa1a1a1a1)
+-						goto fail;
+-				}
+-			}
+-		}
+-	}
+-
+-fail:
+-	kfree(p);
+-	if (i < 256)
+-		return (i << 24) | (j << 16) | k;
+-	return 0;
+-}
+-
+-static __init int memset64_selftest(void)
+-{
+-	unsigned i, j, k;
+-	u64 v, *p;
+-
+-	p = kmalloc(256 * 2 * 8, GFP_KERNEL);
+-	if (!p)
+-		return -1;
+-
+-	for (i = 0; i < 256; i++) {
+-		for (j = 0; j < 256; j++) {
+-			memset(p, 0xa1, 256 * 2 * sizeof(v));
+-			memset64(p + i, 0xb1b2b3b4b5b6b7b8ULL, j);
+-			for (k = 0; k < 512; k++) {
+-				v = p[k];
+-				if (k < i) {
+-					if (v != 0xa1a1a1a1a1a1a1a1ULL)
+-						goto fail;
+-				} else if (k < i + j) {
+-					if (v != 0xb1b2b3b4b5b6b7b8ULL)
+-						goto fail;
+-				} else {
+-					if (v != 0xa1a1a1a1a1a1a1a1ULL)
+-						goto fail;
+-				}
+-			}
+-		}
+-	}
+-
+-fail:
+-	kfree(p);
+-	if (i < 256)
+-		return (i << 24) | (j << 16) | k;
+-	return 0;
+-}
+-
+-static __init int string_selftest_init(void)
+-{
+-	int test, subtest;
+-
+-	test = 1;
+-	subtest = memset16_selftest();
+-	if (subtest)
+-		goto fail;
+-
+-	test = 2;
+-	subtest = memset32_selftest();
+-	if (subtest)
+-		goto fail;
+-
+-	test = 3;
+-	subtest = memset64_selftest();
+-	if (subtest)
+-		goto fail;
+-
+-	pr_info("String selftests succeeded\n");
+-	return 0;
+-fail:
+-	pr_crit("String selftest failure %d.%08x\n", test, subtest);
+-	return 0;
+-}
+-
+-module_init(string_selftest_init);
+-#endif	/* CONFIG_STRING_SELFTEST */
+diff -puN /dev/null lib/test_string.c
+--- /dev/null
++++ a/lib/test_string.c
+@@ -0,0 +1,141 @@
++#include <linux/module.h>
++#include <linux/printk.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++
++static __init int memset16_selftest(void)
++{
++	unsigned i, j, k;
++	u16 v, *p;
++
++	p = kmalloc(256 * 2 * 2, GFP_KERNEL);
++	if (!p)
++		return -1;
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 256; j++) {
++			memset(p, 0xa1, 256 * 2 * sizeof(v));
++			memset16(p + i, 0xb1b2, j);
++			for (k = 0; k < 512; k++) {
++				v = p[k];
++				if (k < i) {
++					if (v != 0xa1a1)
++						goto fail;
++				} else if (k < i + j) {
++					if (v != 0xb1b2)
++						goto fail;
++				} else {
++					if (v != 0xa1a1)
++						goto fail;
++				}
++			}
++		}
++	}
++
++fail:
++	kfree(p);
++	if (i < 256)
++		return (i << 24) | (j << 16) | k;
++	return 0;
++}
++
++static __init int memset32_selftest(void)
++{
++	unsigned i, j, k;
++	u32 v, *p;
++
++	p = kmalloc(256 * 2 * 4, GFP_KERNEL);
++	if (!p)
++		return -1;
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 256; j++) {
++			memset(p, 0xa1, 256 * 2 * sizeof(v));
++			memset32(p + i, 0xb1b2b3b4, j);
++			for (k = 0; k < 512; k++) {
++				v = p[k];
++				if (k < i) {
++					if (v != 0xa1a1a1a1)
++						goto fail;
++				} else if (k < i + j) {
++					if (v != 0xb1b2b3b4)
++						goto fail;
++				} else {
++					if (v != 0xa1a1a1a1)
++						goto fail;
++				}
++			}
++		}
++	}
++
++fail:
++	kfree(p);
++	if (i < 256)
++		return (i << 24) | (j << 16) | k;
++	return 0;
++}
++
++static __init int memset64_selftest(void)
++{
++	unsigned i, j, k;
++	u64 v, *p;
++
++	p = kmalloc(256 * 2 * 8, GFP_KERNEL);
++	if (!p)
++		return -1;
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 256; j++) {
++			memset(p, 0xa1, 256 * 2 * sizeof(v));
++			memset64(p + i, 0xb1b2b3b4b5b6b7b8ULL, j);
++			for (k = 0; k < 512; k++) {
++				v = p[k];
++				if (k < i) {
++					if (v != 0xa1a1a1a1a1a1a1a1ULL)
++						goto fail;
++				} else if (k < i + j) {
++					if (v != 0xb1b2b3b4b5b6b7b8ULL)
++						goto fail;
++				} else {
++					if (v != 0xa1a1a1a1a1a1a1a1ULL)
++						goto fail;
++				}
++			}
++		}
++	}
++
++fail:
++	kfree(p);
++	if (i < 256)
++		return (i << 24) | (j << 16) | k;
++	return 0;
++}
++
++static __init int string_selftest_init(void)
++{
++	int test, subtest;
++
++	test = 1;
++	subtest = memset16_selftest();
++	if (subtest)
++		goto fail;
++
++	test = 2;
++	subtest = memset32_selftest();
++	if (subtest)
++		goto fail;
++
++	test = 3;
++	subtest = memset64_selftest();
++	if (subtest)
++		goto fail;
++
++	pr_info("String selftests succeeded\n");
++	return 0;
++fail:
++	pr_crit("String selftest failure %d.%08x\n", test, subtest);
++	return 0;
++}
++
++module_init(string_selftest_init);
++MODULE_LICENSE("GPL v2");
 _
