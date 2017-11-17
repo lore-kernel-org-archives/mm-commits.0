@@ -1,120 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/94] proc, coredump: add CoreDumping flag to
- /proc/pid/status
-Date: Fri, 17 Nov 2017 15:26:45 -0800
-Message-ID: <20171117232645.BAq5Olslv%akpm@linux-foundation.org>
+Subject: [patch 11/94] proc: : uninline name_to_int()
+Date: Fri, 17 Nov 2017 15:26:49 -0800
+Message-ID: <20171117232649.pWvqHmYE3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55262 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759117AbdKQX0r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:26:47 -0500
+        with ESMTP id S1759137AbdKQX0u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:26:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guro@fb.com, koct9i@gmail.com, mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: proc, coredump: add CoreDumping flag to /proc/pid/status
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: : uninline name_to_int()
 
-Right now there is no convenient way to check if a process is being
-coredumped at the moment.
+Save ~360 bytes.
 
-It might be necessary to recognize such state to prevent killing the
-process and getting a broken coredump.  Writing a large core might take
-significant time, and the process is unresponsive during it, so it might
-be killed by timeout, if another process is monitoring and
-killing/restarting hanging tasks.
+	add/remove: 1/0 grow/shrink: 0/4 up/down: 104/-463 (-359)
+	function                                     old     new   delta
+	name_to_int                                    -     104    +104
+	proc_pid_lookup                              217     126     -91
+	proc_lookupfd_common                         212     121     -91
+	proc_task_lookup                             289     194     -95
+	__proc_create                                588     402    -186
 
-We're getting a significant number of corrupted coredump files on
-machines in our fleet, just because processes are being killed by
-timeout in the middle of the core writing process.
-
-We do have a process health check, and some agent is responsible for
-restarting processes which are not responding for health check
-requests.  Writing a large coredump to the disk can easily exceed the
-reasonable timeout (especially on an overloaded machine).
-
-This flag will allow the agent to distinguish processes which are being
-coredumped, extend the timeout for them, and let them produce a full
-coredump file.
-
-To provide an ability to detect if a process is in the state of being
-coredumped, we can expose a boolean CoreDumping flag in
-/proc/pid/status.
-
-Example:
-$ cat core.sh
-  #!/bin/sh
-
-  echo "|/usr/bin/sleep 10" > /proc/sys/kernel/core_pattern
-  sleep 1000 &
-  PID=$!
-
-  cat /proc/$PID/status | grep CoreDumping
-  kill -ABRT $PID
-  sleep 1
-  cat /proc/$PID/status | grep CoreDumping
-
-$ ./core.sh
-  CoreDumping:	0
-  CoreDumping:	1
-
-[guro@fb.com: document CoreDumping flag in /proc/<pid>/status]
-  Link: http://lkml.kernel.org/r/20170928135357.GA8470@castle.DHCP.thefacebook.com
-Link: http://lkml.kernel.org/r/20170920230634.31572-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/20170912194850.GA17730@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    3 +++
- fs/proc/array.c                    |    6 ++++++
- 2 files changed, 9 insertions(+)
+ fs/proc/Makefile   |    1 +
+ fs/proc/internal.h |   23 +----------------------
+ fs/proc/util.c     |   23 +++++++++++++++++++++++
+ 3 files changed, 25 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-coredump-add-coredumping-flag-to-proc-pid-status Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-coredump-add-coredumping-flag-to-proc-pid-status
-+++ a/Documentation/filesystems/proc.txt
-@@ -181,6 +181,7 @@ read the file /proc/PID/status:
-   VmPTE:        20 kb
-   VmSwap:        0 kB
-   HugetlbPages:          0 kB
-+  CoreDumping:    0
-   Threads:        1
-   SigQ:   0/28578
-   SigPnd: 0000000000000000
-@@ -253,6 +254,8 @@ Table 1-2: Contents of the status files
-  VmSwap                      amount of swap used by anonymous private data
-                              (shmem swap usage is not included)
-  HugetlbPages                size of hugetlb memory portions
-+ CoreDumping                 process's memory is currently being dumped
-+                             (killing the process may lead to a corrupted core)
-  Threads                     number of threads
-  SigQ                        number of signals queued/max. number for queue
-  SigPnd                      bitmap of pending signals for the thread
-diff -puN fs/proc/array.c~proc-coredump-add-coredumping-flag-to-proc-pid-status fs/proc/array.c
---- a/fs/proc/array.c~proc-coredump-add-coredumping-flag-to-proc-pid-status
-+++ a/fs/proc/array.c
-@@ -366,6 +366,11 @@ static void task_cpus_allowed(struct seq
- 		   cpumask_pr_args(&task->cpus_allowed));
- }
+diff -puN fs/proc/internal.h~proc-uninline-name_to_int fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-uninline-name_to_int
++++ a/fs/proc/internal.h
+@@ -103,28 +103,7 @@ static inline struct task_struct *get_pr
+ void task_dump_owner(struct task_struct *task, mode_t mode,
+ 		     kuid_t *ruid, kgid_t *rgid);
  
-+static inline void task_core_dumping(struct seq_file *m, struct mm_struct *mm)
-+{
-+	seq_printf(m, "CoreDumping:\t%d\n", !!mm->core_state);
-+}
+-static inline unsigned name_to_int(const struct qstr *qstr)
+-{
+-	const char *name = qstr->name;
+-	int len = qstr->len;
+-	unsigned n = 0;
+-
+-	if (len > 1 && *name == '0')
+-		goto out;
+-	while (len-- > 0) {
+-		unsigned c = *name++ - '0';
+-		if (c > 9)
+-			goto out;
+-		if (n >= (~0U-9)/10)
+-			goto out;
+-		n *= 10;
+-		n += c;
+-	}
+-	return n;
+-out:
+-	return ~0U;
+-}
+-
++unsigned name_to_int(const struct qstr *qstr);
+ /*
+  * Offset of the first process in the /proc root directory..
+  */
+diff -puN fs/proc/Makefile~proc-uninline-name_to_int fs/proc/Makefile
+--- a/fs/proc/Makefile~proc-uninline-name_to_int
++++ a/fs/proc/Makefile
+@@ -21,6 +21,7 @@ proc-y	+= loadavg.o
+ proc-y	+= meminfo.o
+ proc-y	+= stat.o
+ proc-y	+= uptime.o
++proc-y	+= util.o
+ proc-y	+= version.o
+ proc-y	+= softirqs.o
+ proc-y	+= namespaces.o
+diff -puN /dev/null fs/proc/util.c
+--- /dev/null
++++ a/fs/proc/util.c
+@@ -0,0 +1,23 @@
++#include <linux/dcache.h>
 +
- int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
- 			struct pid *pid, struct task_struct *task)
- {
-@@ -376,6 +381,7 @@ int proc_pid_status(struct seq_file *m,
- 
- 	if (mm) {
- 		task_mem(m, mm);
-+		task_core_dumping(m, mm);
- 		mmput(mm);
- 	}
- 	task_sig(m, task);
++unsigned name_to_int(const struct qstr *qstr)
++{
++	const char *name = qstr->name;
++	int len = qstr->len;
++	unsigned n = 0;
++
++	if (len > 1 && *name == '0')
++		goto out;
++	while (len-- > 0) {
++		unsigned c = *name++ - '0';
++		if (c > 9)
++			goto out;
++		if (n >= (~0U-9)/10)
++			goto out;
++		n *= 10;
++		n += c;
++	}
++	return n;
++out:
++	return ~0U;
++}
 _
