@@ -1,79 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [patch 82/94] initramfs: use time64_t timestamps
-Date: Fri, 17 Nov 2017 15:31:04 -0800
-Message-ID: <20171117233104.kzORAP31l%akpm@linux-foundation.org>
+Subject: [patch 81/94] drivers/watchdog: make use of
+ devm_register_reboot_notifier()
+Date: Fri, 17 Nov 2017 15:31:01 -0800
+Message-ID: <20171117233101.DDcc8U9sO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966968AbdKQXbG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:06 -0500
+        with ESMTP id S966959AbdKQXbC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, daniel.thompson@linaro.org, deepa.kernel@gmail.com, lokeshvutla@ti.com, mm-commits@vger.kernel.org, shorne@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, andrew.smirnov@gmail.com, andy.shevchenko@gmail.com, cphealy@gmail.com, linux@roeck-us.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, wim@iguana.be
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: initramfs: use time64_t timestamps
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: drivers/watchdog: make use of devm_register_reboot_notifier()
 
-The cpio format uses a 32-bit number to encode file timestamps, which
-breaks initramfs support in 2038.  This reinterprets the timestamp as
-unsigned, to give us another 68 years and avoids breaking until 2106.
+Save a bit of cleanup code by leveraging newly added
+devm_register_reboot_notifier().
 
-Link: http://lkml.kernel.org/r/20171019095536.801199-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Stafford Horne <shorne@gmail.com>
+[akpm@linux-foundation.org: small cleanup: avoid 80-col tricks]
+Link: http://lkml.kernel.org/r/20170411160615.9784-1-andrew.smirnov@gmail.com
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Chris Healy <cphealy@gmail.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/watchdog/watchdog_core.c |   35 -----------------------------
+ drivers/watchdog/watchdog_dev.c  |   32 ++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 35 deletions(-)
 
-diff -puN init/initramfs.c~initramfs-use-time64_t-timestamps init/initramfs.c
---- a/init/initramfs.c~initramfs-use-time64_t-timestamps
-+++ a/init/initramfs.c
-@@ -109,7 +109,7 @@ static void __init free_hash(void)
- 	}
+diff -puN drivers/watchdog/watchdog_core.c~watchdog-core-make-use-of-devm_register_reboot_notifier drivers/watchdog/watchdog_core.c
+--- a/drivers/watchdog/watchdog_core.c~watchdog-core-make-use-of-devm_register_reboot_notifier
++++ a/drivers/watchdog/watchdog_core.c
+@@ -137,25 +137,6 @@ int watchdog_init_timeout(struct watchdo
  }
+ EXPORT_SYMBOL_GPL(watchdog_init_timeout);
  
--static long __init do_utime(char *filename, time_t mtime)
-+static long __init do_utime(char *filename, time64_t mtime)
+-static int watchdog_reboot_notifier(struct notifier_block *nb,
+-				    unsigned long code, void *data)
+-{
+-	struct watchdog_device *wdd = container_of(nb, struct watchdog_device,
+-						   reboot_nb);
+-
+-	if (code == SYS_DOWN || code == SYS_HALT) {
+-		if (watchdog_active(wdd)) {
+-			int ret;
+-
+-			ret = wdd->ops->stop(wdd);
+-			if (ret)
+-				return NOTIFY_BAD;
+-		}
+-	}
+-
+-	return NOTIFY_DONE;
+-}
+-
+ static int watchdog_restart_notifier(struct notifier_block *nb,
+ 				     unsigned long action, void *data)
  {
- 	struct timespec64 t[2];
+@@ -244,19 +225,6 @@ static int __watchdog_register_device(st
+ 		}
+ 	}
  
-@@ -125,10 +125,10 @@ static __initdata LIST_HEAD(dir_list);
- struct dir_entry {
- 	struct list_head list;
- 	char *name;
--	time_t mtime;
-+	time64_t mtime;
+-	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
+-		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
+-
+-		ret = register_reboot_notifier(&wdd->reboot_nb);
+-		if (ret) {
+-			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
+-			       wdd->id, ret);
+-			watchdog_dev_unregister(wdd);
+-			ida_simple_remove(&watchdog_ida, wdd->id);
+-			return ret;
+-		}
+-	}
+-
+ 	if (wdd->ops->restart) {
+ 		wdd->restart_nb.notifier_call = watchdog_restart_notifier;
+ 
+@@ -302,9 +270,6 @@ static void __watchdog_unregister_device
+ 	if (wdd->ops->restart)
+ 		unregister_restart_handler(&wdd->restart_nb);
+ 
+-	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status))
+-		unregister_reboot_notifier(&wdd->reboot_nb);
+-
+ 	watchdog_dev_unregister(wdd);
+ 	ida_simple_remove(&watchdog_ida, wdd->id);
+ }
+diff -puN drivers/watchdog/watchdog_dev.c~watchdog-core-make-use-of-devm_register_reboot_notifier drivers/watchdog/watchdog_dev.c
+--- a/drivers/watchdog/watchdog_dev.c~watchdog-core-make-use-of-devm_register_reboot_notifier
++++ a/drivers/watchdog/watchdog_dev.c
+@@ -42,6 +42,7 @@
+ #include <linux/miscdevice.h>	/* For handling misc devices */
+ #include <linux/module.h>	/* For module stuff/... */
+ #include <linux/mutex.h>	/* For mutexes */
++#include <linux/reboot.h>	/* For reboot notifier */
+ #include <linux/slab.h>		/* For memory functions */
+ #include <linux/types.h>	/* For standard types (like size_t) */
+ #include <linux/watchdog.h>	/* For watchdog specific items */
+@@ -1016,6 +1017,25 @@ static struct class watchdog_class = {
+ 	.dev_groups =	wdt_groups,
  };
  
--static void __init dir_add(const char *name, time_t mtime)
-+static void __init dir_add(const char *name, time64_t mtime)
- {
- 	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
- 	if (!de)
-@@ -150,7 +150,7 @@ static void __init dir_utime(void)
++static int watchdog_reboot_notifier(struct notifier_block *nb,
++				    unsigned long code, void *data)
++{
++	struct watchdog_device *wdd;
++
++	wdd = container_of(nb, struct watchdog_device, reboot_nb);
++	if (code == SYS_DOWN || code == SYS_HALT) {
++		if (watchdog_active(wdd)) {
++			int ret;
++
++			ret = wdd->ops->stop(wdd);
++			if (ret)
++				return NOTIFY_BAD;
++		}
++	}
++
++	return NOTIFY_DONE;
++}
++
+ /*
+  *	watchdog_dev_register: register a watchdog device
+  *	@wdd: watchdog device
+@@ -1049,6 +1069,18 @@ int watchdog_dev_register(struct watchdo
+ 	if (ret) {
+ 		device_destroy(&watchdog_class, devno);
+ 		watchdog_cdev_unregister(wdd);
++		return ret;
++	}
++
++	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
++		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
++
++		ret = devm_register_reboot_notifier(dev, &wdd->reboot_nb);
++		if (ret) {
++			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
++			       wdd->id, ret);
++			watchdog_dev_unregister(wdd);
++		}
  	}
- }
  
--static __initdata time_t mtime;
-+static __initdata time64_t mtime;
- 
- /* cpio header parsing */
- 
-@@ -177,7 +177,7 @@ static void __init parse_header(char *s)
- 	uid = parsed[2];
- 	gid = parsed[3];
- 	nlink = parsed[4];
--	mtime = parsed[5];
-+	mtime = parsed[5]; /* breaks in y2106 */
- 	body_len = parsed[6];
- 	major = parsed[7];
- 	minor = parsed[8];
+ 	return ret;
 _
