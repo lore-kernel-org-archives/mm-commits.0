@@ -1,93 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [patch 66/94] kernel/signal.c: remove the no longer needed
- SIGNAL_UNKILLABLE check in complete_signal()
-Date: Fri, 17 Nov 2017 15:30:08 -0800
-Message-ID: <20171117233008.g72Llp1vr%akpm@linux-foundation.org>
+Subject: [patch 68/94] rapidio: constify rio_device_id
+Date: Fri, 17 Nov 2017 15:30:15 -0800
+Message-ID: <20171117233015.WcIwsS5mw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55942 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55960 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966947AbdKQXaK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:10 -0500
+        with ESMTP id S966147AbdKQXaR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dvyukov@google.com, keescook@chromium.org, me@kylehuey.com, mm-commits@vger.kernel.org, oleg@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alexandre.bounine@idt.com, arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/signal.c: remove the no longer needed SIGNAL_UNKILLABLE check in complete_signal()
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: rapidio: constify rio_device_id
 
-complete_signal() checks SIGNAL_UNKILLABLE before it starts to destroy the
-thread group, today this is wrong in many ways.
+rio_device_id are not supposed to change at runtime.  rio driver is
+working with const 'id_table'.  So mark the non-const rio_device_id
+structs as const.
 
-If nothing else, fatal_signal_pending() should always imply that the whole
-thread group (except ->group_exit_task if it is not NULL) is killed, this
-check breaks the rule.
-
-After the previous changes we can rely on sig_task_ignored();
-sig_fatal(sig) && SIGNAL_UNKILLABLE can only be true if we actually want
-to kill this task and sig == SIGKILL OR it is traced and debugger can
-intercept the signal.
-
-This should hopefully fix the problem reported by Dmitry. This test-case
-
-	static int init(void *arg)
-	{
-		for (;;)
-			pause();
-	}
-
-	int main(void)
-	{
-		char stack[16 * 1024];
-
-		for (;;) {
-			int pid = clone(init, stack + sizeof(stack)/2,
-					CLONE_NEWPID | SIGCHLD, NULL);
-			assert(pid > 0);
-
-			assert(ptrace(PTRACE_ATTACH, pid, 0, 0) == 0);
-			assert(waitpid(-1, NULL, WSTOPPED) == pid);
-
-			assert(ptrace(PTRACE_DETACH, pid, 0, SIGSTOP) == 0);
-			assert(syscall(__NR_tkill, pid, SIGKILL) == 0);
-			assert(pid == wait(NULL));
-		}
-	}
-
-triggers the WARN_ON_ONCE(!(task->jobctl & JOBCTL_STOP_PENDING)) in
-task_participate_group_stop().  do_signal_stop()->signal_group_exit()
-checks SIGNAL_GROUP_EXIT and return false, but task_set_jobctl_pending()
-checks fatal_signal_pending() and does not set JOBCTL_STOP_PENDING.
-
-And his should fix the minor security problem reported by Kyle,
-SECCOMP_RET_TRACE can miss fatal_signal_pending() the same way if the task
-is the root of a pid namespace.
-
-Link: http://lkml.kernel.org/r/20171103184246.GD21036@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reported-by: Kyle Huey <me@kylehuey.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Tested-by: Kyle Huey <me@kylehuey.com>
+Link: http://lkml.kernel.org/r/1503734627-6058-2-git-send-email-arvind.yadav.cs@gmail.com
+Link: http://lkml.kernel.org/r/1503734627-6058-3-git-send-email-arvind.yadav.cs@gmail.com
+Link: http://lkml.kernel.org/r/1503734627-6058-4-git-send-email-arvind.yadav.cs@gmail.com
+Link: http://lkml.kernel.org/r/1503734627-6058-5-git-send-email-arvind.yadav.cs@gmail.com
+Link: http://lkml.kernel.org/r/1503734627-6058-6-git-send-email-arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/switches/idt_gen2.c |    2 +-
+ drivers/rapidio/switches/idt_gen3.c |    2 +-
+ drivers/rapidio/switches/idtcps.c   |    2 +-
+ drivers/rapidio/switches/tsi568.c   |    2 +-
+ drivers/rapidio/switches/tsi57x.c   |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal kernel/signal.c
---- a/kernel/signal.c~remove-the-no-longer-needed-signal_unkillable-check-in-complete_signal
-+++ a/kernel/signal.c
-@@ -931,9 +931,9 @@ static void complete_signal(int sig, str
- 	 * then start taking the whole group down immediately.
- 	 */
- 	if (sig_fatal(p, sig) &&
--	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
-+	    !(signal->flags & SIGNAL_GROUP_EXIT) &&
- 	    !sigismember(&t->real_blocked, sig) &&
--	    (sig == SIGKILL || !t->ptrace)) {
-+	    (sig == SIGKILL || !p->ptrace)) {
- 		/*
- 		 * This signal will be fatal to the whole group.
- 		 */
+diff -puN drivers/rapidio/switches/idtcps.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/idtcps.c
+--- a/drivers/rapidio/switches/idtcps.c~rapidio-idt_gen2-constify-rio_device_id
++++ a/drivers/rapidio/switches/idtcps.c
+@@ -168,7 +168,7 @@ static void idtcps_remove(struct rio_dev
+ 	spin_unlock(&rdev->rswitch->lock);
+ }
+ 
+-static struct rio_device_id idtcps_id_table[] = {
++static const struct rio_device_id idtcps_id_table[] = {
+ 	{RIO_DEVICE(RIO_DID_IDTCPS6Q, RIO_VID_IDT)},
+ 	{RIO_DEVICE(RIO_DID_IDTCPS8, RIO_VID_IDT)},
+ 	{RIO_DEVICE(RIO_DID_IDTCPS10Q, RIO_VID_IDT)},
+diff -puN drivers/rapidio/switches/idt_gen2.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/idt_gen2.c
+--- a/drivers/rapidio/switches/idt_gen2.c~rapidio-idt_gen2-constify-rio_device_id
++++ a/drivers/rapidio/switches/idt_gen2.c
+@@ -458,7 +458,7 @@ static void idtg2_remove(struct rio_dev
+ 	idtg2_sysfs(rdev, false);
+ }
+ 
+-static struct rio_device_id idtg2_id_table[] = {
++static const struct rio_device_id idtg2_id_table[] = {
+ 	{RIO_DEVICE(RIO_DID_IDTCPS1848, RIO_VID_IDT)},
+ 	{RIO_DEVICE(RIO_DID_IDTCPS1616, RIO_VID_IDT)},
+ 	{RIO_DEVICE(RIO_DID_IDTVPS1616, RIO_VID_IDT)},
+diff -puN drivers/rapidio/switches/idt_gen3.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/idt_gen3.c
+--- a/drivers/rapidio/switches/idt_gen3.c~rapidio-idt_gen2-constify-rio_device_id
++++ a/drivers/rapidio/switches/idt_gen3.c
+@@ -348,7 +348,7 @@ static void idtg3_shutdown(struct rio_de
+ 	}
+ }
+ 
+-static struct rio_device_id idtg3_id_table[] = {
++static const struct rio_device_id idtg3_id_table[] = {
+ 	{RIO_DEVICE(RIO_DID_IDTRXS1632, RIO_VID_IDT)},
+ 	{RIO_DEVICE(RIO_DID_IDTRXS2448, RIO_VID_IDT)},
+ 	{ 0, }	/* terminate list */
+diff -puN drivers/rapidio/switches/tsi568.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/tsi568.c
+--- a/drivers/rapidio/switches/tsi568.c~rapidio-idt_gen2-constify-rio_device_id
++++ a/drivers/rapidio/switches/tsi568.c
+@@ -169,7 +169,7 @@ static void tsi568_remove(struct rio_dev
+ 	spin_unlock(&rdev->rswitch->lock);
+ }
+ 
+-static struct rio_device_id tsi568_id_table[] = {
++static const struct rio_device_id tsi568_id_table[] = {
+ 	{RIO_DEVICE(RIO_DID_TSI568, RIO_VID_TUNDRA)},
+ 	{ 0, }	/* terminate list */
+ };
+diff -puN drivers/rapidio/switches/tsi57x.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/tsi57x.c
+--- a/drivers/rapidio/switches/tsi57x.c~rapidio-idt_gen2-constify-rio_device_id
++++ a/drivers/rapidio/switches/tsi57x.c
+@@ -336,7 +336,7 @@ static void tsi57x_remove(struct rio_dev
+ 	spin_unlock(&rdev->rswitch->lock);
+ }
+ 
+-static struct rio_device_id tsi57x_id_table[] = {
++static const struct rio_device_id tsi57x_id_table[] = {
+ 	{RIO_DEVICE(RIO_DID_TSI572, RIO_VID_TUNDRA)},
+ 	{RIO_DEVICE(RIO_DID_TSI574, RIO_VID_TUNDRA)},
+ 	{RIO_DEVICE(RIO_DID_TSI577, RIO_VID_TUNDRA)},
 _
