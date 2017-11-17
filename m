@@ -1,52 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [patch 88/94] drivers/pcmcia/sa1111_badge4.c: avoid unused
- function warning
-Date: Fri, 17 Nov 2017 15:31:26 -0800
-Message-ID: <20171117233126.QCYAXlLDw%akpm@linux-foundation.org>
+Subject: [patch 86/94] sysvipc: make get_maxid O(1) again
+Date: Fri, 17 Nov 2017 15:31:18 -0800
+Message-ID: <20171117233118.kqM40xF6d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56174 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966977AbdKQXb1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:27 -0500
+        with ESMTP id S966972AbdKQXbU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, mm-commits@vger.kernel.org, rmk@armlinux.org.uk, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/pcmcia/sa1111_badge4.c: avoid unused function warning
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: sysvipc: make get_maxid O(1) again
 
-pcmv_setup() is only used when the badge4 driver is built-in, but not when
-it is a loadable module:
+For a custom microbenchmark on a 3.30GHz Xeon SandyBridge, which calls
+IPC_STAT over and over, it was calculated that, on avg the cost of
+ipc_get_maxid() for increasing amounts of keys was:
 
-drivers/pcmcia/sa1111_badge4.c:153:122: error: 'pcmv_setup' defined but not used [-Werror=unused-function]
+10 keys: ~900 cycles
+100 keys: ~15000 cycles
+1000 keys: ~150000 cycles
+10000 keys: ~2100000 cycles
 
-This adds an #ifdef to avoid the definition of the unused function in the
-modular case.
+This is unsurprising as maxid is currently O(n).
 
-Link: http://lkml.kernel.org/r/20170911201133.3421636-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <rmk@armlinux.org.uk>
+By having the max_id available in O(1) we save all those cycles for each
+semctl(_STAT) command, the idr_find can be expensive -- which some real
+(customer) workloads actually poll on.  Note that this used to be the
+case, until 7ca7e564e04 ("ipc: store ipcs into IDRs").  The cost is the
+extra idr_find when doing RMIDs, but we simply go backwards, and should
+not take too many iterations to find the new value.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20170831172049.14576-5-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/sa1111_badge4.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/ipc_namespace.h |    1 
+ ipc/util.c                    |   43 +++++++++-----------------------
+ ipc/util.h                    |   21 +++++++++++++--
+ 3 files changed, 32 insertions(+), 33 deletions(-)
 
-diff -puN drivers/pcmcia/sa1111_badge4.c~pcmcia-badge4-avoid-unused-function-warning drivers/pcmcia/sa1111_badge4.c
---- a/drivers/pcmcia/sa1111_badge4.c~pcmcia-badge4-avoid-unused-function-warning
-+++ a/drivers/pcmcia/sa1111_badge4.c
-@@ -144,6 +144,7 @@ int pcmcia_badge4_init(struct sa1111_dev
- 				 sa11xx_drv_pcmcia_add_one);
+diff -puN include/linux/ipc_namespace.h~sysvipc-make-get_maxid-o1-again include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~sysvipc-make-get_maxid-o1-again
++++ a/include/linux/ipc_namespace.h
+@@ -19,6 +19,7 @@ struct ipc_ids {
+ 	bool tables_initialized;
+ 	struct rw_semaphore rwsem;
+ 	struct idr ipcs_idr;
++	int max_id;
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	int next_id;
+ #endif
+diff -puN ipc/util.c~sysvipc-make-get_maxid-o1-again ipc/util.c
+--- a/ipc/util.c~sysvipc-make-get_maxid-o1-again
++++ a/ipc/util.c
+@@ -122,6 +122,7 @@ int ipc_init_ids(struct ipc_ids *ids)
+ 		return err;
+ 	idr_init(&ids->ipcs_idr);
+ 	ids->tables_initialized = true;
++	ids->max_id = -1;
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	ids->next_id = -1;
+ #endif
+@@ -188,36 +189,6 @@ static struct kern_ipc_perm *ipc_findkey
+ 	return NULL;
  }
  
-+#ifndef MODULE
- static int __init pcmv_setup(char *s)
- {
- 	int v[4];
-@@ -158,3 +159,4 @@ static int __init pcmv_setup(char *s)
+-/**
+- * ipc_get_maxid - get the last assigned id
+- * @ids: ipc identifier set
+- *
+- * Called with ipc_ids.rwsem held.
+- */
+-int ipc_get_maxid(struct ipc_ids *ids)
+-{
+-	struct kern_ipc_perm *ipc;
+-	int max_id = -1;
+-	int total, id;
+-
+-	if (ids->in_use == 0)
+-		return -1;
+-
+-	if (ids->in_use == IPCMNI)
+-		return IPCMNI - 1;
+-
+-	/* Look for the last assigned id */
+-	total = 0;
+-	for (id = 0; id < IPCMNI && total < ids->in_use; id++) {
+-		ipc = idr_find(&ids->ipcs_idr, id);
+-		if (ipc != NULL) {
+-			max_id = id;
+-			total++;
+-		}
+-	}
+-	return max_id;
+-}
+-
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ /*
+  * Specify desired id for next allocated IPC object.
+@@ -313,6 +284,9 @@ int ipc_addid(struct ipc_ids *ids, struc
+ 	}
+ 
+ 	ids->in_use++;
++	if (id > ids->max_id)
++		ids->max_id = id;
++
+ 	new->id = ipc_buildid(id, ids, new);
+ 
+ 	return id;
+@@ -459,6 +433,15 @@ void ipc_rmid(struct ipc_ids *ids, struc
+ 	ipc_kht_remove(ids, ipcp);
+ 	ids->in_use--;
+ 	ipcp->deleted = true;
++
++	if (unlikely(lid == ids->max_id)) {
++		do {
++			lid--;
++			if (lid == -1)
++				break;
++		} while (!idr_find(&ids->ipcs_idr, lid));
++		ids->max_id = lid;
++	}
  }
  
- __setup("pcmv=", pcmv_setup);
-+#endif
+ /**
+diff -puN ipc/util.h~sysvipc-make-get_maxid-o1-again ipc/util.h
+--- a/ipc/util.h~sysvipc-make-get_maxid-o1-again
++++ a/ipc/util.h
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/unistd.h>
+ #include <linux/err.h>
++#include <linux/ipc_namespace.h>
+ 
+ #define SEQ_MULTIPLIER	(IPCMNI)
+ 
+@@ -99,9 +100,6 @@ void __init ipc_init_proc_interface(cons
+ /* must be called with ids->rwsem acquired for writing */
+ int ipc_addid(struct ipc_ids *, struct kern_ipc_perm *, int);
+ 
+-/* must be called with ids->rwsem acquired for reading */
+-int ipc_get_maxid(struct ipc_ids *);
+-
+ /* must be called with both locks acquired. */
+ void ipc_rmid(struct ipc_ids *, struct kern_ipc_perm *);
+ 
+@@ -111,6 +109,23 @@ void ipc_set_key_private(struct ipc_ids
+ /* must be called with ipcp locked */
+ int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flg);
+ 
++/**
++ * ipc_get_maxid - get the last assigned id
++ * @ids: ipc identifier set
++ *
++ * Called with ipc_ids.rwsem held for reading.
++ */
++static inline int ipc_get_maxid(struct ipc_ids *ids)
++{
++	if (ids->in_use == 0)
++		return -1;
++
++	if (ids->in_use == IPCMNI)
++		return IPCMNI - 1;
++
++	return ids->max_id;
++}
++
+ /*
+  * For allocation that need to be freed by RCU.
+  * Objects are reference counted, they start with reference count 1.
 _
