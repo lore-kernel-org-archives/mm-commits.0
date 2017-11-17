@@ -1,115 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 16/94] kernel debug: support resetting WARN_ONCE
- for all architectures
-Date: Fri, 17 Nov 2017 15:27:06 -0800
-Message-ID: <20171117232706.24JfVndUM%akpm@linux-foundation.org>
+Subject: [patch 17/94] parse-maintainers: add ability to specify
+ filenames
+Date: Fri, 17 Nov 2017 15:27:10 -0800
+Message-ID: <20171117232710.jZnYjTSXJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1423248AbdKQX1I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:27:08 -0500
+        with ESMTP id S1423248AbdKQX1M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:27:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Andi Kleen <ak@linux.intel.com>
-Subject: kernel debug: support resetting WARN_ONCE for all architectures
+From: Joe Perches <joe@perches.com>
+Subject: parse-maintainers: add ability to specify filenames
 
-Some architectures store the WARN_ONCE state in the flags field of the
-bug_entry.  Clear that one too when resetting once state through
-/sys/kernel/debug/clear_warn_once
+parse-maintainers.pl is convenient, but currently hard-codes the filenames
+that are used.
 
-Pointed out by Michael Ellerman
+Allow user-specified filenames to simplify the use of the script.
 
-Improves the earlier patch that add clear_warn_once.
-
-[ak@linux.intel.com: add a missing ifdef CONFIG_MODULES]
-  Link: http://lkml.kernel.org/r/20171020170633.9593-1-andi@firstfloor.org
-[akpm@linux-foundation.org: fix unused var warning]
-[akpm@linux-foundation.org: Use 0200 for clear_warn_once file, per mpe]
-[akpm@linux-foundation.org: clear BUGFLAG_DONE in clear_once_table(), per mpe]
-Link: http://lkml.kernel.org/r/20171019204642.7404-1-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Tested-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/48703c068b3235223ffa3b2eb268fa0a125b25e0.1502251549.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h |    5 +++++
- kernel/panic.c      |    3 ++-
- lib/bug.c           |   23 +++++++++++++++++++++++
- 3 files changed, 30 insertions(+), 1 deletion(-)
+ scripts/parse-maintainers.pl |   52 +++++++++++++++++++++++++++++----
+ 1 file changed, 47 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/bug.h~support-resetting-warn_once-for-all-architectures include/linux/bug.h
---- a/include/linux/bug.h~support-resetting-warn_once-for-all-architectures
-+++ a/include/linux/bug.h
-@@ -43,6 +43,8 @@ enum bug_trap_type report_bug(unsigned l
- /* These are defined by the architecture */
- int is_valid_bugaddr(unsigned long addr);
+diff -puN scripts/parse-maintainers.pl~parse-maintainers-add-ability-to-specify-filenames scripts/parse-maintainers.pl
+--- a/scripts/parse-maintainers.pl~parse-maintainers-add-ability-to-specify-filenames
++++ a/scripts/parse-maintainers.pl
+@@ -2,9 +2,44 @@
+ # SPDX-License-Identifier: GPL-2.0
  
-+void generic_bug_clear_once(void);
+ use strict;
++use Getopt::Long qw(:config no_auto_abbrev);
 +
- #else	/* !CONFIG_GENERIC_BUG */
++my $input_file = "MAINTAINERS";
++my $output_file = "MAINTAINERS.new";
++my $output_section = "SECTION.new";
++my $help = 0;
  
- static inline enum bug_trap_type report_bug(unsigned long bug_addr,
-@@ -51,6 +53,9 @@ static inline enum bug_trap_type report_
- 	return BUG_TRAP_TYPE_BUG;
- }
+ my $P = $0;
  
-+
-+static inline void generic_bug_clear_once(void) {}
-+
- #endif	/* CONFIG_GENERIC_BUG */
- 
- /*
-diff -puN kernel/panic.c~support-resetting-warn_once-for-all-architectures kernel/panic.c
---- a/kernel/panic.c~support-resetting-warn_once-for-all-architectures
-+++ a/kernel/panic.c
-@@ -595,6 +595,7 @@ EXPORT_SYMBOL(warn_slowpath_null);
- 
- static int clear_warn_once_set(void *data, u64 val)
- {
-+	generic_bug_clear_once();
- 	memset(__start_once, 0, __end_once - __start_once);
- 	return 0;
- }
-@@ -607,7 +608,7 @@ DEFINE_SIMPLE_ATTRIBUTE(clear_warn_once_
- static __init int register_warn_debugfs(void)
- {
- 	/* Don't care about failure */
--	debugfs_create_file("clear_warn_once", 0644, NULL,
-+	debugfs_create_file("clear_warn_once", 0200, NULL,
- 			    NULL, &clear_warn_once_fops);
- 	return 0;
- }
-diff -puN lib/bug.c~support-resetting-warn_once-for-all-architectures lib/bug.c
---- a/lib/bug.c~support-resetting-warn_once-for-all-architectures
-+++ a/lib/bug.c
-@@ -196,3 +196,26 @@ enum bug_trap_type report_bug(unsigned l
- 
- 	return BUG_TRAP_TYPE_BUG;
- }
-+
-+static void clear_once_table(struct bug_entry *start, struct bug_entry *end)
-+{
-+	struct bug_entry *bug;
-+
-+	for (bug = start; bug < end; bug++)
-+		bug->flags &= ~BUGFLAG_DONE;
++if (!GetOptions(
++		'input=s' => \$input_file,
++		'output=s' => \$output_file,
++		'section=s' => \$output_section,
++		'h|help|usage' => \$help,
++	    )) {
++    die "$P: invalid argument - use --help if necessary\n";
 +}
 +
-+void generic_bug_clear_once(void)
-+{
-+#ifdef CONFIG_MODULES
-+	struct module *mod;
-+
-+	rcu_read_lock_sched();
-+	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
-+		clear_once_table(mod->bug_table,
-+				 mod->bug_table + mod->num_bugs);
-+	rcu_read_unlock_sched();
-+#endif
-+
-+	clear_once_table(__start___bug_table, __stop___bug_table);
++if ($help != 0) {
++    usage();
++    exit 0;
 +}
++
++sub usage {
++    print <<EOT;
++usage: $P [options] <pattern matching regexes>
++
++  --input => MAINTAINERS file to read (default: MAINTAINERS)
++  --output => sorted MAINTAINERS file to write (default: MAINTAINERS.new)
++  --section => new sorted MAINTAINERS file to write to (default: SECTION.new)
++
++If <pattern match regexes> exist, then the sections that match the
++regexes are not written to the output file but are written to the
++section file.
++
++EOT
++}
++
+ # sort comparison functions
+ sub by_category($$) {
+     my ($a, $b) = @_;
+@@ -56,13 +91,20 @@ sub trim {
+ sub alpha_output {
+     my ($hashref, $filename) = (@_);
+ 
++    return if ! scalar(keys %$hashref);
++
+     open(my $file, '>', "$filename") or die "$P: $filename: open failed - $!\n";
++    my $separator;
+     foreach my $key (sort by_category keys %$hashref) {
+ 	if ($key eq " ") {
+-	    chomp $$hashref{$key};
+ 	    print $file $$hashref{$key};
+ 	} else {
+-	    print $file "\n" . $key . "\n";
++	    if (! defined $separator) {
++		$separator = "\n";
++	    } else {
++		print $file $separator;
++	    }
++	    print $file $key . "\n";
+ 	    foreach my $pattern (sort by_pattern split('\n', %$hashref{$key})) {
+ 		print $file ($pattern . "\n");
+ 	    }
+@@ -112,7 +154,7 @@ sub file_input {
+ my %hash;
+ my %new_hash;
+ 
+-file_input(\%hash, "MAINTAINERS");
++file_input(\%hash, $input_file);
+ 
+ foreach my $type (@ARGV) {
+     foreach my $key (keys %hash) {
+@@ -123,7 +165,7 @@ foreach my $type (@ARGV) {
+     }
+ }
+ 
+-alpha_output(\%hash, "MAINTAINERS.new");
+-alpha_output(\%new_hash, "SECTION.new");
++alpha_output(\%hash, $output_file);
++alpha_output(\%new_hash, $output_section);
+ 
+ exit(0);
 _
