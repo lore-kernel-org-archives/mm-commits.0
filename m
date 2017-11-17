@@ -1,57 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 53/94] pipe: avoid round_pipe_size() nr_pages
- overflow on 32-bit
-Date: Fri, 17 Nov 2017 15:29:21 -0800
-Message-ID: <20171117232921.dRnNH9oba%akpm@linux-foundation.org>
+Subject: [patch 54/94] pipe: add proc_dopipe_max_size() to safely
+ assign pipe_max_size
+Date: Fri, 17 Nov 2017 15:29:24 -0800
+Message-ID: <20171117232924.go8uCm1jY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55814 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55828 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966933AbdKQX3W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:29:22 -0500
+        with ESMTP id S966933AbdKQX30 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:29:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, axboe@kernel.dk, joe.lawrence@redhat.com, jpoimboe@redhat.com, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, rdunlap@infradead.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 From: Joe Lawrence <joe.lawrence@redhat.com>
-Subject: pipe: avoid round_pipe_size() nr_pages overflow on 32-bit
+Subject: pipe: add proc_dopipe_max_size() to safely assign pipe_max_size
 
-round_pipe_size() contains a right-bit-shift expression which may
-overflow, which would cause undefined results in a subsequent
-roundup_pow_of_two() call.
+pipe_max_size is assigned directly via procfs sysctl:
 
-  static inline unsigned int round_pipe_size(unsigned int size)
+  static struct ctl_table fs_table[] = {
+          ...
+          {
+                  .procname       = "pipe-max-size",
+                  .data           = &pipe_max_size,
+                  .maxlen         = sizeof(int),
+                  .mode           = 0644,
+                  .proc_handler   = &pipe_proc_fn,
+                  .extra1         = &pipe_min_size,
+          },
+          ...
+
+  int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
+                   size_t *lenp, loff_t *ppos)
   {
-          unsigned long nr_pages;
+          ...
+          ret = proc_dointvec_minmax(table, write, buf, lenp, ppos)
+          ...
 
-          nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
-          return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
-  }
+and then later rounded in-place a few statements later:
 
-PAGE_SIZE is defined as (1UL << PAGE_SHIFT), so:
-  - 4 bytes wide on 32-bit (0 to 0xffffffff)
-  - 8 bytes wide on 64-bit (0 to 0xffffffffffffffff)
+          ...
+          pipe_max_size = round_pipe_size(pipe_max_size);
+          ...
 
-That means that 32-bit round_pipe_size(), nr_pages may overflow to 0:
+This leaves a window of time between initial assignment and rounding that
+may be visible to other threads.  (For example, one thread sets a
+non-rounded value to pipe_max_size while another reads its value.)
 
-  size=0x00000000    nr_pages=0x0
-  size=0x00000001    nr_pages=0x1
-  size=0xfffff000    nr_pages=0xfffff
-  size=0xfffff001    nr_pages=0x0         << !
-  size=0xffffffff    nr_pages=0x0         << !
+Similar reads of pipe_max_size are potentially racy:
 
-This is bad because roundup_pow_of_two(n) is undefined when n == 0!
+  pipe.c :: alloc_pipe_info()
+  pipe.c :: pipe_set_size()
 
-64-bit is not a problem as the unsigned int size is 4 bytes wide (similar
-to 32-bit) and the larger, 8 byte wide unsigned long, is sufficient to
-handle the largest value of the bit shift expression:
+Add a new proc_dopipe_max_size() that consolidates reading the new value
+from the user buffer, verifying bounds, and calling round_pipe_size() with
+a single assignment to pipe_max_size.
 
-  size=0xffffffff    nr_pages=100000
-
-Modify round_pipe_size() to return 0 if n == 0 and updates its callers to
-handle accordingly.
-
-Link: http://lkml.kernel.org/r/1507658689-11669-3-git-send-email-joe.lawrence@redhat.com
+Link: http://lkml.kernel.org/r/1507658689-11669-4-git-send-email-joe.lawrence@redhat.com
 Signed-off-by: Joe Lawrence <joe.lawrence@redhat.com>
 Reported-by: Mikulas Patocka <mpatocka@redhat.com>
 Reviewed-by: Mikulas Patocka <mpatocka@redhat.com>
@@ -63,60 +68,153 @@ Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ fs/pipe.c                 |   18 ++-----------
+ include/linux/pipe_fs_i.h |    1 
+ include/linux/sysctl.h    |    3 ++
+ kernel/sysctl.c           |   49 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 56 insertions(+), 15 deletions(-)
 
-diff -puN fs/pipe.c~pipe-avoid-round_pipe_size-nr_pages-overflow-on-32-bit fs/pipe.c
---- a/fs/pipe.c~pipe-avoid-round_pipe_size-nr_pages-overflow-on-32-bit
+diff -puN fs/pipe.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size fs/pipe.c
+--- a/fs/pipe.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
 +++ a/fs/pipe.c
-@@ -1018,13 +1018,19 @@ const struct file_operations pipefifo_fo
- 
- /*
+@@ -1020,7 +1020,7 @@ const struct file_operations pipefifo_fo
   * Currently we rely on the pipe array holding a power-of-2 number
-- * of pages.
-+ * of pages. Returns 0 on error.
+  * of pages. Returns 0 on error.
   */
- static inline unsigned int round_pipe_size(unsigned int size)
+-static inline unsigned int round_pipe_size(unsigned int size)
++unsigned int round_pipe_size(unsigned int size)
  {
  	unsigned long nr_pages;
  
-+	if (size < pipe_min_size)
-+		size = pipe_min_size;
-+
- 	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	if (nr_pages == 0)
-+		return 0;
-+
- 	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
+@@ -1125,25 +1125,13 @@ out_revert_acct:
  }
  
-@@ -1040,6 +1046,8 @@ static long pipe_set_size(struct pipe_in
- 	long ret = 0;
- 
- 	size = round_pipe_size(arg);
-+	if (size == 0)
-+		return -EINVAL;
- 	nr_pages = size >> PAGE_SHIFT;
- 
- 	if (!nr_pages)
-@@ -1123,13 +1131,18 @@ out_revert_acct:
+ /*
+- * This should work even if CONFIG_PROC_FS isn't set, as proc_dointvec_minmax
++ * This should work even if CONFIG_PROC_FS isn't set, as proc_dopipe_max_size
+  * will return an error.
+  */
  int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
  		 size_t *lenp, loff_t *ppos)
  {
-+	unsigned int rounded_pipe_max_size;
- 	int ret;
- 
- 	ret = proc_douintvec_minmax(table, write, buf, lenp, ppos);
- 	if (ret < 0 || !write)
- 		return ret;
- 
--	pipe_max_size = round_pipe_size(pipe_max_size);
-+	rounded_pipe_max_size = round_pipe_size(pipe_max_size);
-+	if (rounded_pipe_max_size == 0)
-+		return -EINVAL;
-+
-+	pipe_max_size = rounded_pipe_max_size;
- 	return ret;
+-	unsigned int rounded_pipe_max_size;
+-	int ret;
+-
+-	ret = proc_douintvec_minmax(table, write, buf, lenp, ppos);
+-	if (ret < 0 || !write)
+-		return ret;
+-
+-	rounded_pipe_max_size = round_pipe_size(pipe_max_size);
+-	if (rounded_pipe_max_size == 0)
+-		return -EINVAL;
+-
+-	pipe_max_size = rounded_pipe_max_size;
+-	return ret;
++	return proc_dopipe_max_size(table, write, buf, lenp, ppos);
  }
  
+ /*
+diff -puN include/linux/pipe_fs_i.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size include/linux/pipe_fs_i.h
+--- a/include/linux/pipe_fs_i.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
++++ a/include/linux/pipe_fs_i.h
+@@ -191,5 +191,6 @@ long pipe_fcntl(struct file *, unsigned
+ struct pipe_inode_info *get_pipe_info(struct file *file);
+ 
+ int create_pipe_files(struct file **, int);
++unsigned int round_pipe_size(unsigned int size);
+ 
+ #endif
+diff -puN include/linux/sysctl.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size include/linux/sysctl.h
+--- a/include/linux/sysctl.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
++++ a/include/linux/sysctl.h
+@@ -51,6 +51,9 @@ extern int proc_dointvec_minmax(struct c
+ extern int proc_douintvec_minmax(struct ctl_table *table, int write,
+ 				 void __user *buffer, size_t *lenp,
+ 				 loff_t *ppos);
++extern int proc_dopipe_max_size(struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp,
++				loff_t *ppos);
+ extern int proc_dointvec_jiffies(struct ctl_table *, int,
+ 				 void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
+diff -puN kernel/sysctl.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size kernel/sysctl.c
+--- a/kernel/sysctl.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
++++ a/kernel/sysctl.c
+@@ -66,6 +66,7 @@
+ #include <linux/kexec.h>
+ #include <linux/bpf.h>
+ #include <linux/mount.h>
++#include <linux/pipe_fs_i.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/processor.h>
+@@ -2620,6 +2621,47 @@ int proc_douintvec_minmax(struct ctl_tab
+ 				 do_proc_douintvec_minmax_conv, &param);
+ }
+ 
++struct do_proc_dopipe_max_size_conv_param {
++	unsigned int *min;
++};
++
++static int do_proc_dopipe_max_size_conv(unsigned long *lvalp,
++					unsigned int *valp,
++					int write, void *data)
++{
++	struct do_proc_dopipe_max_size_conv_param *param = data;
++
++	if (write) {
++		unsigned int val = round_pipe_size(*lvalp);
++
++		if (val == 0)
++			return -EINVAL;
++
++		if (param->min && *param->min > val)
++			return -ERANGE;
++
++		if (*lvalp > UINT_MAX)
++			return -EINVAL;
++
++		*valp = val;
++	} else {
++		unsigned int val = *valp;
++		*lvalp = (unsigned long) val;
++	}
++
++	return 0;
++}
++
++int proc_dopipe_max_size(struct ctl_table *table, int write,
++			 void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct do_proc_dopipe_max_size_conv_param param = {
++		.min = (unsigned int *) table->extra1,
++	};
++	return do_proc_douintvec(table, write, buffer, lenp, ppos,
++				 do_proc_dopipe_max_size_conv, &param);
++}
++
+ static void validate_coredump_safety(void)
+ {
+ #ifdef CONFIG_COREDUMP
+@@ -3125,6 +3167,12 @@ int proc_douintvec_minmax(struct ctl_tab
+ 	return -ENOSYS;
+ }
+ 
++int proc_dopipe_max_size(struct ctl_table *table, int write,
++			 void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	return -ENOSYS;
++}
++
+ int proc_dointvec_jiffies(struct ctl_table *table, int write,
+ 		    void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -3168,6 +3216,7 @@ EXPORT_SYMBOL(proc_douintvec);
+ EXPORT_SYMBOL(proc_dointvec_jiffies);
+ EXPORT_SYMBOL(proc_dointvec_minmax);
+ EXPORT_SYMBOL_GPL(proc_douintvec_minmax);
++EXPORT_SYMBOL_GPL(proc_dopipe_max_size);
+ EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
+ EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
+ EXPORT_SYMBOL(proc_dostring);
 _
