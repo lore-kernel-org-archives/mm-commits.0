@@ -1,65 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [patch 47/94] epoll: account epitem and eppoll_entry to
- kmemcg
-Date: Fri, 17 Nov 2017 15:28:59 -0800
-Message-ID: <20171117232859.zZmw5uKh3%akpm@linux-foundation.org>
+Subject: [patch 48/94] epoll: avoid calling ep_call_nested() from
+ ep_poll_safewake()
+Date: Fri, 17 Nov 2017 15:29:02 -0800
+Message-ID: <20171117232902.gRfVJZKNY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55748 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759344AbdKQX3A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:29:00 -0500
+        with ESMTP id S1759270AbdKQX3E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:29:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, dbueso@suse.de, jbaron@akamai.com, mm-commits@vger.kernel.org, sqazi@google.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: epoll: account epitem and eppoll_entry to kmemcg
+From: Jason Baron <jbaron@akamai.com>
+Subject: epoll: avoid calling ep_call_nested() from ep_poll_safewake()
 
-A userspace application can directly trigger the allocations from
-eventpoll_epi and eventpoll_pwq slabs.  A buggy or malicious application
-can consume a significant amount of system memory by triggering such
-allocations.  Indeed we have seen in production where a buggy application
-was leaking the epoll references and causing a burst of eventpoll_epi and
-eventpoll_pwq slab allocations.  This patch opt-in the charging of
-eventpoll_epi and eventpoll_pwq slabs.
+ep_poll_safewake() is used to wakeup potentially nested epoll file
+descriptors.  The function uses ep_call_nested() to prevent entering the
+same wake up queue more than once, and to prevent excessively deep wakeup
+paths (deeper than EP_MAX_NESTS).  However, this is not necessary since we
+are already preventing these conditions during EPOLL_CTL_ADD.  This saves
+extra function calls, and avoids taking a global lock during the
+ep_call_nested() calls.
 
-There is a per-user limit (~4% of total memory if no highmem) on these
-caches.  I think it is too generous particularly in the scenario where
-jobs of multiple users are running on the system and the administrator
-is reducing cost by overcomitting the memory.  This is unaccounted
-kernel memory and will not be considered by the oom-killer.  I think by
-accounting it to kmemcg, for systems with kmem accounting enabled, we
-can provide better isolation between jobs of different users.
+I have, however, left ep_call_nested() for the CONFIG_DEBUG_LOCK_ALLOC
+case, since ep_call_nested() keeps track of the nesting level, and this is
+required by the call to spin_lock_irqsave_nested().  It would be nice to
+remove the ep_call_nested() calls for the CONFIG_DEBUG_LOCK_ALLOC case as
+well, however its not clear how to simply pass the nesting level through
+multiple wake_up() levels without more surgery.  In any case, I don't
+think CONFIG_DEBUG_LOCK_ALLOC is generally used for production.  This
+patch, also apparently fixes a workload at Google that Salman Qazi
+reported by completely removing the poll_safewake_ncalls->lock from wakeup
+paths.
 
-Link: http://lkml.kernel.org/r/20171003021519.23907-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1507920533-8812-1-git-send-email-jbaron@akamai.com
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Acked-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Greg Thelen <gthelen@google.com>
+Cc: Salman Qazi <sqazi@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/eventpoll.c |   47 ++++++++++++++++++-----------------------------
+ 1 file changed, 18 insertions(+), 29 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-account-epitem-and-eppoll_entry-to-kmemcg fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-account-epitem-and-eppoll_entry-to-kmemcg
+diff -puN fs/eventpoll.c~epoll-avoid-calling-ep_call_nested-from-ep_poll_safewake fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-avoid-calling-ep_call_nested-from-ep_poll_safewake
 +++ a/fs/eventpoll.c
-@@ -2329,11 +2329,11 @@ static int __init eventpoll_init(void)
+@@ -276,9 +276,6 @@ static DEFINE_MUTEX(epmutex);
+ /* Used to check for epoll file descriptor inclusion loops */
+ static struct nested_calls poll_loop_ncalls;
  
- 	/* Allocates slab cache used to allocate "struct epitem" items */
- 	epi_cache = kmem_cache_create("eventpoll_epi", sizeof(struct epitem),
--			0, SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
-+			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
+-/* Used for safe wake up implementation */
+-static struct nested_calls poll_safewake_ncalls;
+-
+ /* Used to call file's f_op->poll() under the nested calls boundaries */
+ static struct nested_calls poll_readywalk_ncalls;
  
- 	/* Allocates slab cache used to allocate "struct eppoll_entry" */
- 	pwq_cache = kmem_cache_create("eventpoll_pwq",
--			sizeof(struct eppoll_entry), 0, SLAB_PANIC, NULL);
-+		sizeof(struct eppoll_entry), 0, SLAB_PANIC|SLAB_ACCOUNT, NULL);
+@@ -551,40 +548,21 @@ out_unlock:
+  * this special case of epoll.
+  */
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+-static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
+-				     unsigned long events, int subclass)
++
++static struct nested_calls poll_safewake_ncalls;
++
++static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
+ {
+ 	unsigned long flags;
++	wait_queue_head_t *wqueue = (wait_queue_head_t *)cookie;
  
+-	spin_lock_irqsave_nested(&wqueue->lock, flags, subclass);
+-	wake_up_locked_poll(wqueue, events);
++	spin_lock_irqsave_nested(&wqueue->lock, flags, call_nests + 1);
++	wake_up_locked_poll(wqueue, POLLIN);
+ 	spin_unlock_irqrestore(&wqueue->lock, flags);
+-}
+-#else
+-static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
+-				     unsigned long events, int subclass)
+-{
+-	wake_up_poll(wqueue, events);
+-}
+-#endif
+ 
+-static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
+-{
+-	ep_wake_up_nested((wait_queue_head_t *) cookie, POLLIN,
+-			  1 + call_nests);
  	return 0;
  }
+ 
+-/*
+- * Perform a safe wake up of the poll wait list. The problem is that
+- * with the new callback'd wake up system, it is possible that the
+- * poll callback is reentered from inside the call to wake_up() done
+- * on the poll wait queue head. The rule is that we cannot reenter the
+- * wake up code from the same task more than EP_MAX_NESTS times,
+- * and we cannot reenter the same wait queue head at all. This will
+- * enable to have a hierarchy of epoll file descriptor of no more than
+- * EP_MAX_NESTS deep.
+- */
+ static void ep_poll_safewake(wait_queue_head_t *wq)
+ {
+ 	int this_cpu = get_cpu();
+@@ -595,6 +573,15 @@ static void ep_poll_safewake(wait_queue_
+ 	put_cpu();
+ }
+ 
++#else
++
++static void ep_poll_safewake(wait_queue_head_t *wq)
++{
++	wake_up_poll(wq, POLLIN);
++}
++
++#endif
++
+ static void ep_remove_wait_queue(struct eppoll_entry *pwq)
+ {
+ 	wait_queue_head_t *whead;
+@@ -2315,8 +2302,10 @@ static int __init eventpoll_init(void)
+ 	 */
+ 	ep_nested_calls_init(&poll_loop_ncalls);
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 	/* Initialize the structure used to perform safe poll wait head wake ups */
+ 	ep_nested_calls_init(&poll_safewake_ncalls);
++#endif
+ 
+ 	/* Initialize the structure used to perform file's f_op->poll() calls */
+ 	ep_nested_calls_init(&poll_readywalk_ncalls);
 _
