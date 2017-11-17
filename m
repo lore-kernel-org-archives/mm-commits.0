@@ -1,79 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/94] mm/z3fold.c: use kref to prevent page
- free/compact race
-Date: Fri, 17 Nov 2017 15:26:16 -0800
-Message-ID: <20171117232616.NUI9i1n9F%akpm@linux-foundation.org>
+Subject: [patch 03/94] lib/dma-debug.c: fix incorrect pfn
+ calculation
+Date: Fri, 17 Nov 2017 15:26:19 -0800
+Message-ID: <20171117232619.br_QxkUxL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55170 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030464AbdKQX0R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:26:17 -0500
+        with ESMTP id S1423240AbdKQX0V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:26:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, Oleksiy.Avramchenko@sony.com, stable@vger.kernel.org, torvalds@linux-foundation.org, vitaly.wool@sonymobile.com, vitalywool@gmail.com
+To: akpm@linux-foundation.org, hch@lst.de, m.szyprowski@samsung.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org, robin.murphy@arm.com, torvalds@linux-foundation.org
 
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: mm/z3fold.c: use kref to prevent page free/compact race
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: lib/dma-debug.c: fix incorrect pfn calculation
 
-There is a race in the current z3fold implementation between do_compact()
-called in a work queue context and the page release procedure when page's
-kref goes to 0.  do_compact() may be waiting for page lock, which is
-released by release_z3fold_page_locked right before putting the page onto
-the "stale" list, and then the page may be freed as do_compact() modifies
-its contents.
+dma-debug reports the following warning:
 
-The mechanism currently implemented to handle that (checking the
-PAGE_STALE flag) is not reliable enough.  Instead, we'll use page's kref
-counter to guarantee that the page is not released if its compaction is
-scheduled.  It then becomes compaction function's responsibility to
-decrease the counter and quit immediately if the page was actually freed.
+[name:panic&]WARNING: CPU: 3 PID: 298 at kernel-4.4/lib/dma-debug.c:604
+debug _dma_assert_idle+0x1a8/0x230()
+DMA-API: cpu touching an active dma mapped cacheline [cln=0x00000882300]
+CPU: 3 PID: 298 Comm: vold Tainted: G        W  O    4.4.22+ #1
+Hardware name: MT6739 (DT)
+Call trace:
+[<ffffff800808acd0>] dump_backtrace+0x0/0x1d4
+[<ffffff800808affc>] show_stack+0x14/0x1c
+[<ffffff800838019c>] dump_stack+0xa8/0xe0
+[<ffffff80080a0594>] warn_slowpath_common+0xf4/0x11c
+[<ffffff80080a061c>] warn_slowpath_fmt+0x60/0x80
+[<ffffff80083afe24>] debug_dma_assert_idle+0x1a8/0x230
+[<ffffff80081dca9c>] wp_page_copy.isra.96+0x118/0x520
+[<ffffff80081de114>] do_wp_page+0x4fc/0x534
+[<ffffff80081e0a14>] handle_mm_fault+0xd4c/0x1310
+[<ffffff8008098798>] do_page_fault+0x1c8/0x394
+[<ffffff800808231c>] do_mem_abort+0x50/0xec
 
-Link: http://lkml.kernel.org/r/20171117092032.00ea56f42affbed19f4fcc6c@gmail.com
-Signed-off-by: Vitaly Wool <vitaly.wool@sonymobile.com>
-Cc: <Oleksiy.Avramchenko@sony.com>
-Cc: <stable@vger.kernel.org>
+I found that debug_dma_alloc_coherent() and debug_dma_free_coherent()
+assume that dma_alloc_coherent() always returns a linear address.  However
+it's possible that dma_alloc_coherent() returns a non-linear address.  In
+this case, page_to_pfn(virt_to_page(virt)) will return an incorrect pfn. 
+If the pfn is valid and mapped as a COW page, we will hit the warning when
+doing wp_page_copy().
+
+Fix this by calculating pfn for linear and non-linear addresses.
+
+[miles.chen@mediatek.com: v4]
+  Link: http://lkml.kernel.org/r/1510872972-23919-1-git-send-email-miles.chen@mediatek.com
+Link: http://lkml.kernel.org/r/1506484087-1177-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ lib/dma-debug.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-use-kref-to-prevent-page-free-compact-race mm/z3fold.c
---- a/mm/z3fold.c~z3fold-use-kref-to-prevent-page-free-compact-race
-+++ a/mm/z3fold.c
-@@ -404,8 +404,7 @@ static void do_compact_page(struct z3fol
- 		WARN_ON(z3fold_page_trylock(zhdr));
- 	else
- 		z3fold_page_lock(zhdr);
--	if (test_bit(PAGE_STALE, &page->private) ||
--	    !test_and_clear_bit(NEEDS_COMPACTING, &page->private)) {
-+	if (WARN_ON(!test_and_clear_bit(NEEDS_COMPACTING, &page->private))) {
- 		z3fold_page_unlock(zhdr);
+diff -puN lib/dma-debug.c~dma-debug-fix-incorrect-pfn-calculation lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-fix-incorrect-pfn-calculation
++++ a/lib/dma-debug.c
+@@ -1495,14 +1495,22 @@ void debug_dma_alloc_coherent(struct dev
+ 	if (!entry)
  		return;
- 	}
-@@ -413,6 +412,11 @@ static void do_compact_page(struct z3fol
- 	list_del_init(&zhdr->buddy);
- 	spin_unlock(&pool->lock);
  
-+	if (kref_put(&zhdr->refcount, release_z3fold_page_locked)) {
-+		atomic64_dec(&pool->pages_nr);
++	/* handle vmalloc and linear addresses */
++	if (!is_vmalloc_addr(virt) && !virt_to_page(virt))
 +		return;
-+	}
 +
- 	z3fold_compact_page(zhdr);
- 	unbuddied = get_cpu_ptr(pool->unbuddied);
- 	fchunks = num_free_chunks(zhdr);
-@@ -753,9 +757,11 @@ static void z3fold_free(struct z3fold_po
- 		list_del_init(&zhdr->buddy);
- 		spin_unlock(&pool->lock);
- 		zhdr->cpu = -1;
-+		kref_get(&zhdr->refcount);
- 		do_compact_page(zhdr, true);
- 		return;
- 	}
-+	kref_get(&zhdr->refcount);
- 	queue_work_on(zhdr->cpu, pool->compact_wq, &zhdr->work);
- 	z3fold_page_unlock(zhdr);
+ 	entry->type      = dma_debug_coherent;
+ 	entry->dev       = dev;
+-	entry->pfn	 = page_to_pfn(virt_to_page(virt));
+ 	entry->offset	 = offset_in_page(virt);
+ 	entry->size      = size;
+ 	entry->dev_addr  = dma_addr;
+ 	entry->direction = DMA_BIDIRECTIONAL;
+ 
++	if (is_vmalloc_addr(virt))
++		entry->pfn = vmalloc_to_pfn(virt);
++	else
++		entry->pfn = page_to_pfn(virt_to_page(virt));
++
+ 	add_dma_entry(entry);
  }
+ EXPORT_SYMBOL(debug_dma_alloc_coherent);
+@@ -1513,13 +1521,21 @@ void debug_dma_free_coherent(struct devi
+ 	struct dma_debug_entry ref = {
+ 		.type           = dma_debug_coherent,
+ 		.dev            = dev,
+-		.pfn		= page_to_pfn(virt_to_page(virt)),
+ 		.offset		= offset_in_page(virt),
+ 		.dev_addr       = addr,
+ 		.size           = size,
+ 		.direction      = DMA_BIDIRECTIONAL,
+ 	};
+ 
++	/* handle vmalloc and linear addresses */
++	if (!is_vmalloc_addr(virt) && !virt_to_page(virt))
++		return;
++
++	if (is_vmalloc_addr(virt))
++		ref.pfn = vmalloc_to_pfn(virt);
++	else
++		ref.pfn = page_to_pfn(virt_to_page(virt));
++
+ 	if (unlikely(dma_debug_disabled()))
+ 		return;
+ 
 _
