@@ -1,40 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 71/94] Documentation/sysctl/vm.txt: fix typo
-Date: Fri, 17 Nov 2017 15:30:23 -0800
-Message-ID: <20171117233023.bPzxF-FlQ%akpm@linux-foundation.org>
+Subject: [patch 72/94] kernel/sysctl.c: code cleanups
+Date: Fri, 17 Nov 2017 15:30:26 -0800
+Message-ID: <20171117233026.liQ8rJEd0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55978 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966147AbdKQXaZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:25 -0500
+        with ESMTP id S966147AbdKQXa2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, l4stpr0gr4m@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, trivial@kernel.org
+To: akpm@linux-foundation.org, keescook@chromium.org, mail@okal.no, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Kangmin Park <l4stpr0gr4m@gmail.com>
-Subject: Documentation/sysctl/vm.txt: fix typo
+From: "Ola N. Kaldestad" <mail@okal.no>
+Subject: kernel/sysctl.c: code cleanups
 
-Link: http://lkml.kernel.org/r/CAKW4uUyCi=PnKf3epgFVz8z=1tMtHSOHNm+fdNxrNw3-THvRCA@mail.gmail.com
-Signed-off-by: Kangmin Park <l4stpr0gr4m@gmail.com>
-Cc: Jiri Kosina <trivial@kernel.org>
-Cc: Alan Cox <alan@redhat.com>
+Remove unnecessary else block, remove redundant return and call to kfree
+in if block.
+
+Link: http://lkml.kernel.org/r/1510238435-1655-1-git-send-email-mail@okal.no
+Signed-off-by: Ola N. Kaldestad <mail@okal.no>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~fix-a-typo-in-documentation-sysctl-vmtxt Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~fix-a-typo-in-documentation-sysctl-vmtxt
-+++ a/Documentation/sysctl/vm.txt
-@@ -818,7 +818,7 @@ tooling to work, you can do:
- swappiness
+diff -puN kernel/sysctl.c~fix-code-style-warning kernel/sysctl.c
+--- a/kernel/sysctl.c~fix-code-style-warning
++++ a/kernel/sysctl.c
+@@ -3127,14 +3127,12 @@ int proc_do_large_bitmap(struct ctl_tabl
+ 			else
+ 				bitmap_copy(bitmap, tmp_bitmap, bitmap_len);
+ 		}
+-		kfree(tmp_bitmap);
+ 		*lenp -= left;
+ 		*ppos += *lenp;
+-		return 0;
+-	} else {
+-		kfree(tmp_bitmap);
+-		return err;
+ 	}
++
++	kfree(tmp_bitmap);
++	return err;
+ }
  
- This control is used to define how aggressive the kernel will swap
--memory pages.  Higher values will increase agressiveness, lower values
-+memory pages.  Higher values will increase aggressiveness, lower values
- decrease the amount of swap.  A value of 0 instructs the kernel not to
- initiate swap until the amount of free and file-backed pages is less
- than the high water mark in a zone.
+ #else /* CONFIG_PROC_SYSCTL */
 _
