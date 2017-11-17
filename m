@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-nodemask-printing.patch added to -mm tree
-Date: Fri, 17 Nov 2017 14:09:23 -0800
-Message-ID: <5a0f5e13.GOUoJOP2ImL4VPo0%akpm@linux-foundation.org>
+Subject: + z3fold-use-kref-to-prevent-page-free-compact-race.patch added
+ to -mm tree
+Date: Fri, 17 Nov 2017 14:11:15 -0800
+Message-ID: <5a0f5e83.Nu0qqnbZmu37zLgP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48616 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933775AbdKQWJY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 17:09:24 -0500
+        with ESMTP id S934901AbdKQWLR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 17:11:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mhocko@kernel.org, sfr@canb.auug.org.au, zhangshaokun@hisilicon.com, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, Oleksiy.Avramchenko@sony.com, stable@vger.kernel.org, vitaly.wool@sonymobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix nodemask printing
+     Subject: mm/z3fold.c: use kref to prevent page free/compact race
 has been added to the -mm tree.  Its filename is
-     mm-fix-nodemask-printing.patch
+     z3fold-use-kref-to-prevent-page-free-compact-race.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-nodemask-printing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-use-kref-to-prevent-page-free-compact-race.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-nodemask-printing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-use-kref-to-prevent-page-free-compact-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,64 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: fix nodemask printing
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: mm/z3fold.c: use kref to prevent page free/compact race
 
-The cleanup caused build warnings for constant mask pointers:
+There is a race in the current z3fold implementation between do_compact()
+called in a work queue context and the page release procedure when page's
+kref goes to 0.  do_compact() may be waiting for page lock, which is
+released by release_z3fold_page_locked right before putting the page onto
+the "stale" list, and then the page may be freed as do_compact() modifies
+its contents.
 
-mm/mempolicy.c: In function `mpol_to_str':
-./include/linux/nodemask.h:108:11: warning: the comparison will always evaluate as `true' for the address of `nodes' will never be NULL [-Waddress]
+The mechanism currently implemented to handle that (checking the
+PAGE_STALE flag) is not reliable enough.  Instead, we'll use page's kref
+counter to guarantee that the page is not released if its compaction is
+scheduled.  It then becomes compaction function's responsibility to
+decrease the counter and quit immediately if the page was actually freed.
 
-An earlier workaround I suggested was incorporated in the version that
-got merged, but that only solved the problem for gcc-7 and higher, while
-gcc-4.6 through gcc-6.x still warn.
-
-This changes the printing again to use inline functions that make it
-clear to the compiler that the line that does the NULL check has no
-idea whether the argument is a constant NULL.
-
-Link: http://lkml.kernel.org/r/20171117101545.119689-1-arnd@arndb.de
-Fixes: 0205f75571e3 ("mm: simplify nodemask printing")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Zhangshaokun <zhangshaokun@hisilicon.com>
+Link: http://lkml.kernel.org/r/20171117092032.00ea56f42affbed19f4fcc6c@gmail.com
+Signed-off-by: Vitaly Wool <vitaly.wool@sonymobile.com>
+Cc: <Oleksiy.Avramchenko@sony.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/z3fold.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/nodemask.h~mm-fix-nodemask-printing include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-fix-nodemask-printing
-+++ a/include/linux/nodemask.h
-@@ -104,9 +104,16 @@ extern nodemask_t _unused_nodemask_arg_;
-  *
-  * Can be used to provide arguments for '%*pb[l]' when printing a nodemask.
-  */
--#define nodemask_pr_args(maskp)				\
--	((maskp) != NULL) ? MAX_NUMNODES : 0,		\
--	((maskp) != NULL) ? (maskp)->bits : NULL
-+#define nodemask_pr_args(maskp)	__nodemask_pr_numnodes(maskp), \
-+				__nodemask_pr_bits(maskp)
-+static inline unsigned int __nodemask_pr_numnodes(const nodemask_t *m)
-+{
-+	return m ? MAX_NUMNODES : 0;
-+}
-+static inline const unsigned long *__nodemask_pr_bits(const nodemask_t *m)
-+{
-+	return m ? m->bits : NULL;
-+}
+diff -puN mm/z3fold.c~z3fold-use-kref-to-prevent-page-free-compact-race mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-use-kref-to-prevent-page-free-compact-race
++++ a/mm/z3fold.c
+@@ -404,8 +404,7 @@ static void do_compact_page(struct z3fol
+ 		WARN_ON(z3fold_page_trylock(zhdr));
+ 	else
+ 		z3fold_page_lock(zhdr);
+-	if (test_bit(PAGE_STALE, &page->private) ||
+-	    !test_and_clear_bit(NEEDS_COMPACTING, &page->private)) {
++	if (WARN_ON(!test_and_clear_bit(NEEDS_COMPACTING, &page->private))) {
+ 		z3fold_page_unlock(zhdr);
+ 		return;
+ 	}
+@@ -413,6 +412,11 @@ static void do_compact_page(struct z3fol
+ 	list_del_init(&zhdr->buddy);
+ 	spin_unlock(&pool->lock);
  
- /*
-  * The inline keyword gives the compiler room to decide to inline, or
++	if (kref_put(&zhdr->refcount, release_z3fold_page_locked)) {
++		atomic64_dec(&pool->pages_nr);
++		return;
++	}
++
+ 	z3fold_compact_page(zhdr);
+ 	unbuddied = get_cpu_ptr(pool->unbuddied);
+ 	fchunks = num_free_chunks(zhdr);
+@@ -753,9 +757,11 @@ static void z3fold_free(struct z3fold_po
+ 		list_del_init(&zhdr->buddy);
+ 		spin_unlock(&pool->lock);
+ 		zhdr->cpu = -1;
++		kref_get(&zhdr->refcount);
+ 		do_compact_page(zhdr, true);
+ 		return;
+ 	}
++	kref_get(&zhdr->refcount);
+ 	queue_work_on(zhdr->cpu, pool->compact_wq, &zhdr->work);
+ 	z3fold_page_unlock(zhdr);
+ }
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-mm-fix-nodemask-printing.patch
-iopoll-avoid-wint-in-bool-context-warning.patch
-lib-test-module-for-find__bit-functions-fix-2.patch
-initramfs-use-time64_t-timestamps.patch
-pcmcia-badge4-avoid-unused-function-warning.patch
+z3fold-use-kref-to-prevent-page-free-compact-race.patch
 
