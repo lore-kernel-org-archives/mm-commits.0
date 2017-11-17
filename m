@@ -1,280 +1,54 @@
-From: akpm@linux-foundation.org
-Subject: [patch 94/94] EXPERT Kconfig menu: fix broken EXPERT menu
-Date: Fri, 17 Nov 2017 15:31:47 -0800
-Message-ID: <20171117233147.KBSFf-DKi%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [patch 69/94] drivers/rapidio/devices/rio_mport_cdev.c: fix
+ resource leak in error handling path in 'rio_dma_transfer()'
+Date: Fri, 17 Nov 2017 15:37:57 -0800
+Message-ID: <20171117153757.cd4b2666b2c95ad982092995@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56608 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966169AbdKQXbt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:31:49 -0500
+        with ESMTP id S1030470AbdKQXh7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:37:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, Logan Gunthorpe <logang@deltatee.com>, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Christian =?ISO-8859-1?Q?K=F6ni?= =?ISO-8859-1?Q?g?= <christian.koenig@amd.com>, mm-commits@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: EXPERT Kconfig menu: fix broken EXPERT menu
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: drivers/rapidio/devices/rio_mport_cdev.c: fix resource leak in error handling path in 'rio_dma_transfer()'
 
-Clean up the EXPERT menu (yet again).
+If 'dma_map_sg()', we should branch to the existing error handling path to
+free some resources before returning.
 
-Move FHANDLE and CHECKPOINT_RESTORE into the primary EXPERT menu since
-they already depend on EXPERT.
-
-Move BPF_SYSCALL and USERFAULTFD out of the EXPERT Kconfig symbols menu
-list since they do not depend on EXPERT and were breaking the continuity
-of that menu list.
-
-Move all of the KALLSYMS Kconfig symbols to the end of the EXPERT menu. 
-This separates the kernel services from the build options.
-
-This patch depends on [PATCH] pci: move PCI_QUIRKS to the PCI bus menu
-(https://lkml.org/lkml/2017/11/2/907).
-
-Link: http://lkml.kernel.org/r/72e4465a-a5ff-cb3c-1a90-11aa4861b161@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Daniel Borkmann <daniel@iogearbox.net>	[BPF]
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
+Link: http://lkml.kernel.org/r/61292a4f369229eee03394247385e955027283f8.1505687047.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Christian K_nig <christian.koenig@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |  184 ++++++++++++++++++++++++-------------------------
- 1 file changed, 93 insertions(+), 91 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~expert-kconfig-menu-fix-broken-expert-menu init/Kconfig
---- a/init/Kconfig~expert-kconfig-menu-fix-broken-expert-menu
-+++ a/init/Kconfig
-@@ -283,19 +283,6 @@ config CROSS_MEMORY_ATTACH
- 	  to directly read from or write to another process' address space.
- 	  See the man page for more details.
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-resources-leak-in-error-handling-path-in-rio_dma_transfer drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-resources-leak-in-error-handling-path-in-rio_dma_transfer
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -963,7 +963,8 @@ rio_dma_transfer(struct file *filp, u32
+ 			   req->sgt.sgl, req->sgt.nents, dir);
+ 	if (nents == -EFAULT) {
+ 		rmcd_error("Failed to map SG list");
+-		return -EFAULT;
++		ret = -EFAULT;
++		goto err_pg;
+ 	}
  
--config FHANDLE
--	bool "open by fhandle syscalls" if EXPERT
--	select EXPORTFS
--	default y
--	help
--	  If you say Y here, a user level program will be able to map
--	  file names to handle and then later use the handle for
--	  different file system operations. This is useful in implementing
--	  userspace file servers, which now track files using handles instead
--	  of names. The handle would remain the same even if file names
--	  get renamed. Enables open_by_handle_at(2) and name_to_handle_at(2)
--	  syscalls.
--
- config USELIB
- 	bool "uselib syscall"
- 	def_bool ALPHA || M68K || SPARC || X86_32 || IA32_EMULATION
-@@ -883,18 +870,6 @@ config SOCK_CGROUP_DATA
- 
- endif # CGROUPS
- 
--config CHECKPOINT_RESTORE
--	bool "Checkpoint/restore support" if EXPERT
--	select PROC_CHILDREN
--	default n
--	help
--	  Enables additional kernel features in a sake of checkpoint/restore.
--	  In particular it adds auxiliary prctl codes to setup process text,
--	  data and heap segment sizes, and a few additional /proc filesystem
--	  entries.
--
--	  If unsure, say N here.
--
- menuconfig NAMESPACES
- 	bool "Namespaces support" if EXPERT
- 	depends on MULTIUSER
-@@ -1163,6 +1138,19 @@ config SYSCTL_SYSCALL
- 
- 	  If unsure say N here.
- 
-+config FHANDLE
-+	bool "open by fhandle syscalls" if EXPERT
-+	select EXPORTFS
-+	default y
-+	help
-+	  If you say Y here, a user level program will be able to map
-+	  file names to handle and then later use the handle for
-+	  different file system operations. This is useful in implementing
-+	  userspace file servers, which now track files using handles instead
-+	  of names. The handle would remain the same even if file names
-+	  get renamed. Enables open_by_handle_at(2) and name_to_handle_at(2)
-+	  syscalls.
-+
- config POSIX_TIMERS
- 	bool "Posix Clocks & timers" if EXPERT
- 	default y
-@@ -1180,54 +1168,6 @@ config POSIX_TIMERS
- 
- 	  If unsure say y.
- 
--config KALLSYMS
--	 bool "Load all symbols for debugging/ksymoops" if EXPERT
--	 default y
--	 help
--	   Say Y here to let the kernel print out symbolic crash information and
--	   symbolic stack backtraces. This increases the size of the kernel
--	   somewhat, as all symbols have to be loaded into the kernel image.
--
--config KALLSYMS_ALL
--	bool "Include all symbols in kallsyms"
--	depends on DEBUG_KERNEL && KALLSYMS
--	help
--	   Normally kallsyms only contains the symbols of functions for nicer
--	   OOPS messages and backtraces (i.e., symbols from the text and inittext
--	   sections). This is sufficient for most cases. And only in very rare
--	   cases (e.g., when a debugger is used) all symbols are required (e.g.,
--	   names of variables from the data sections, etc).
--
--	   This option makes sure that all symbols are loaded into the kernel
--	   image (i.e., symbols from all sections) in cost of increased kernel
--	   size (depending on the kernel configuration, it may be 300KiB or
--	   something like this).
--
--	   Say N unless you really need all symbols.
--
--config KALLSYMS_ABSOLUTE_PERCPU
--	bool
--	depends on KALLSYMS
--	default X86_64 && SMP
--
--config KALLSYMS_BASE_RELATIVE
--	bool
--	depends on KALLSYMS
--	default !IA64 && !(TILE && 64BIT)
--	help
--	  Instead of emitting them as absolute values in the native word size,
--	  emit the symbol references in the kallsyms table as 32-bit entries,
--	  each containing a relative value in the range [base, base + U32_MAX]
--	  or, when KALLSYMS_ABSOLUTE_PERCPU is in effect, each containing either
--	  an absolute value in the range [0, S32_MAX] or a relative value in the
--	  range [base, base + S32_MAX], where base is the lowest relative symbol
--	  address encountered in the image.
--
--	  On 64-bit builds, this reduces the size of the address table by 50%,
--	  but more importantly, it results in entries whose values are build
--	  time constants, and no relocation pass is required at runtime to fix
--	  up the entries based on the runtime load address of the kernel.
--
- config PRINTK
- 	default y
- 	bool "Enable support for printk" if EXPERT
-@@ -1339,16 +1279,6 @@ config EVENTFD
- 
- 	  If unsure, say Y.
- 
--# syscall, maps, verifier
--config BPF_SYSCALL
--	bool "Enable bpf() system call"
--	select ANON_INODES
--	select BPF
--	default n
--	help
--	  Enable the bpf() system call that allows to manipulate eBPF
--	  programs and maps via file descriptors.
--
- config SHMEM
- 	bool "Use full shmem filesystem" if EXPERT
- 	default y
-@@ -1378,14 +1308,6 @@ config ADVISE_SYSCALLS
- 	  applications use these syscalls, you can disable this option to save
- 	  space.
- 
--config USERFAULTFD
--	bool "Enable userfaultfd() system call"
--	select ANON_INODES
--	depends on MMU
--	help
--	  Enable the userfaultfd() system call that allows to intercept and
--	  handle page faults in userland.
--
- config MEMBARRIER
- 	bool "Enable membarrier() system call" if EXPERT
- 	default y
-@@ -1398,6 +1320,86 @@ config MEMBARRIER
- 
- 	  If unsure, say Y.
- 
-+config CHECKPOINT_RESTORE
-+	bool "Checkpoint/restore support" if EXPERT
-+	select PROC_CHILDREN
-+	default n
-+	help
-+	  Enables additional kernel features in a sake of checkpoint/restore.
-+	  In particular it adds auxiliary prctl codes to setup process text,
-+	  data and heap segment sizes, and a few additional /proc filesystem
-+	  entries.
-+
-+	  If unsure, say N here.
-+
-+config KALLSYMS
-+	 bool "Load all symbols for debugging/ksymoops" if EXPERT
-+	 default y
-+	 help
-+	   Say Y here to let the kernel print out symbolic crash information and
-+	   symbolic stack backtraces. This increases the size of the kernel
-+	   somewhat, as all symbols have to be loaded into the kernel image.
-+
-+config KALLSYMS_ALL
-+	bool "Include all symbols in kallsyms"
-+	depends on DEBUG_KERNEL && KALLSYMS
-+	help
-+	   Normally kallsyms only contains the symbols of functions for nicer
-+	   OOPS messages and backtraces (i.e., symbols from the text and inittext
-+	   sections). This is sufficient for most cases. And only in very rare
-+	   cases (e.g., when a debugger is used) all symbols are required (e.g.,
-+	   names of variables from the data sections, etc).
-+
-+	   This option makes sure that all symbols are loaded into the kernel
-+	   image (i.e., symbols from all sections) in cost of increased kernel
-+	   size (depending on the kernel configuration, it may be 300KiB or
-+	   something like this).
-+
-+	   Say N unless you really need all symbols.
-+
-+config KALLSYMS_ABSOLUTE_PERCPU
-+	bool
-+	depends on KALLSYMS
-+	default X86_64 && SMP
-+
-+config KALLSYMS_BASE_RELATIVE
-+	bool
-+	depends on KALLSYMS
-+	default !IA64 && !(TILE && 64BIT)
-+	help
-+	  Instead of emitting them as absolute values in the native word size,
-+	  emit the symbol references in the kallsyms table as 32-bit entries,
-+	  each containing a relative value in the range [base, base + U32_MAX]
-+	  or, when KALLSYMS_ABSOLUTE_PERCPU is in effect, each containing either
-+	  an absolute value in the range [0, S32_MAX] or a relative value in the
-+	  range [base, base + S32_MAX], where base is the lowest relative symbol
-+	  address encountered in the image.
-+
-+	  On 64-bit builds, this reduces the size of the address table by 50%,
-+	  but more importantly, it results in entries whose values are build
-+	  time constants, and no relocation pass is required at runtime to fix
-+	  up the entries based on the runtime load address of the kernel.
-+
-+# end of the "standard kernel features (expert users)" menu
-+
-+# syscall, maps, verifier
-+config BPF_SYSCALL
-+	bool "Enable bpf() system call"
-+	select ANON_INODES
-+	select BPF
-+	default n
-+	help
-+	  Enable the bpf() system call that allows to manipulate eBPF
-+	  programs and maps via file descriptors.
-+
-+config USERFAULTFD
-+	bool "Enable userfaultfd() system call"
-+	select ANON_INODES
-+	depends on MMU
-+	help
-+	  Enable the userfaultfd() system call that allows to intercept and
-+	  handle page faults in userland.
-+
- config EMBEDDED
- 	bool "Embedded system"
- 	option allnoconfig_y
+ 	ret = do_dma_request(req, xfer, sync, nents);
 _
+
