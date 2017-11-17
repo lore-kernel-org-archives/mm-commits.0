@@ -1,99 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 68/94] rapidio: constify rio_device_id
-Date: Fri, 17 Nov 2017 15:30:15 -0800
-Message-ID: <20171117233015.WcIwsS5mw%akpm@linux-foundation.org>
+Subject: [patch 71/94] Documentation/sysctl/vm.txt: fix typo
+Date: Fri, 17 Nov 2017 15:30:23 -0800
+Message-ID: <20171117233023.bPzxF-FlQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55974 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966147AbdKQXaR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:17 -0500
+        with ESMTP id S966147AbdKQXaZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2017 18:30:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexandre.bounine@idt.com, arvind.yadav.cs@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alan@redhat.com, l4stpr0gr4m@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, trivial@kernel.org
 
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: rapidio: constify rio_device_id
+From: Kangmin Park <l4stpr0gr4m@gmail.com>
+Subject: Documentation/sysctl/vm.txt: fix typo
 
-rio_device_id are not supposed to change at runtime.  rio driver is
-working with const 'id_table'.  So mark the non-const rio_device_id
-structs as const.
-
-Link: http://lkml.kernel.org/r/1503734627-6058-2-git-send-email-arvind.yadav.cs@gmail.com
-Link: http://lkml.kernel.org/r/1503734627-6058-3-git-send-email-arvind.yadav.cs@gmail.com
-Link: http://lkml.kernel.org/r/1503734627-6058-4-git-send-email-arvind.yadav.cs@gmail.com
-Link: http://lkml.kernel.org/r/1503734627-6058-5-git-send-email-arvind.yadav.cs@gmail.com
-Link: http://lkml.kernel.org/r/1503734627-6058-6-git-send-email-arvind.yadav.cs@gmail.com
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Link: http://lkml.kernel.org/r/CAKW4uUyCi=PnKf3epgFVz8z=1tMtHSOHNm+fdNxrNw3-THvRCA@mail.gmail.com
+Signed-off-by: Kangmin Park <l4stpr0gr4m@gmail.com>
+Cc: Jiri Kosina <trivial@kernel.org>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/switches/idt_gen2.c |    2 +-
- drivers/rapidio/switches/idt_gen3.c |    2 +-
- drivers/rapidio/switches/idtcps.c   |    2 +-
- drivers/rapidio/switches/tsi568.c   |    2 +-
- drivers/rapidio/switches/tsi57x.c   |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/sysctl/vm.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/switches/idtcps.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/idtcps.c
---- a/drivers/rapidio/switches/idtcps.c~rapidio-idt_gen2-constify-rio_device_id
-+++ a/drivers/rapidio/switches/idtcps.c
-@@ -168,7 +168,7 @@ static void idtcps_remove(struct rio_dev
- 	spin_unlock(&rdev->rswitch->lock);
- }
+diff -puN Documentation/sysctl/vm.txt~fix-a-typo-in-documentation-sysctl-vmtxt Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~fix-a-typo-in-documentation-sysctl-vmtxt
++++ a/Documentation/sysctl/vm.txt
+@@ -818,7 +818,7 @@ tooling to work, you can do:
+ swappiness
  
--static struct rio_device_id idtcps_id_table[] = {
-+static const struct rio_device_id idtcps_id_table[] = {
- 	{RIO_DEVICE(RIO_DID_IDTCPS6Q, RIO_VID_IDT)},
- 	{RIO_DEVICE(RIO_DID_IDTCPS8, RIO_VID_IDT)},
- 	{RIO_DEVICE(RIO_DID_IDTCPS10Q, RIO_VID_IDT)},
-diff -puN drivers/rapidio/switches/idt_gen2.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/idt_gen2.c
---- a/drivers/rapidio/switches/idt_gen2.c~rapidio-idt_gen2-constify-rio_device_id
-+++ a/drivers/rapidio/switches/idt_gen2.c
-@@ -458,7 +458,7 @@ static void idtg2_remove(struct rio_dev
- 	idtg2_sysfs(rdev, false);
- }
- 
--static struct rio_device_id idtg2_id_table[] = {
-+static const struct rio_device_id idtg2_id_table[] = {
- 	{RIO_DEVICE(RIO_DID_IDTCPS1848, RIO_VID_IDT)},
- 	{RIO_DEVICE(RIO_DID_IDTCPS1616, RIO_VID_IDT)},
- 	{RIO_DEVICE(RIO_DID_IDTVPS1616, RIO_VID_IDT)},
-diff -puN drivers/rapidio/switches/idt_gen3.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/idt_gen3.c
---- a/drivers/rapidio/switches/idt_gen3.c~rapidio-idt_gen2-constify-rio_device_id
-+++ a/drivers/rapidio/switches/idt_gen3.c
-@@ -348,7 +348,7 @@ static void idtg3_shutdown(struct rio_de
- 	}
- }
- 
--static struct rio_device_id idtg3_id_table[] = {
-+static const struct rio_device_id idtg3_id_table[] = {
- 	{RIO_DEVICE(RIO_DID_IDTRXS1632, RIO_VID_IDT)},
- 	{RIO_DEVICE(RIO_DID_IDTRXS2448, RIO_VID_IDT)},
- 	{ 0, }	/* terminate list */
-diff -puN drivers/rapidio/switches/tsi568.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/tsi568.c
---- a/drivers/rapidio/switches/tsi568.c~rapidio-idt_gen2-constify-rio_device_id
-+++ a/drivers/rapidio/switches/tsi568.c
-@@ -169,7 +169,7 @@ static void tsi568_remove(struct rio_dev
- 	spin_unlock(&rdev->rswitch->lock);
- }
- 
--static struct rio_device_id tsi568_id_table[] = {
-+static const struct rio_device_id tsi568_id_table[] = {
- 	{RIO_DEVICE(RIO_DID_TSI568, RIO_VID_TUNDRA)},
- 	{ 0, }	/* terminate list */
- };
-diff -puN drivers/rapidio/switches/tsi57x.c~rapidio-idt_gen2-constify-rio_device_id drivers/rapidio/switches/tsi57x.c
---- a/drivers/rapidio/switches/tsi57x.c~rapidio-idt_gen2-constify-rio_device_id
-+++ a/drivers/rapidio/switches/tsi57x.c
-@@ -336,7 +336,7 @@ static void tsi57x_remove(struct rio_dev
- 	spin_unlock(&rdev->rswitch->lock);
- }
- 
--static struct rio_device_id tsi57x_id_table[] = {
-+static const struct rio_device_id tsi57x_id_table[] = {
- 	{RIO_DEVICE(RIO_DID_TSI572, RIO_VID_TUNDRA)},
- 	{RIO_DEVICE(RIO_DID_TSI574, RIO_VID_TUNDRA)},
- 	{RIO_DEVICE(RIO_DID_TSI577, RIO_VID_TUNDRA)},
+ This control is used to define how aggressive the kernel will swap
+-memory pages.  Higher values will increase agressiveness, lower values
++memory pages.  Higher values will increase aggressiveness, lower values
+ decrease the amount of swap.  A value of 0 instructs the kernel not to
+ initiate swap until the amount of free and file-backed pages is less
+ than the high water mark in a zone.
 _
