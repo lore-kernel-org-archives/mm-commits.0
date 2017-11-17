@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-fix-incorrect-pfn-calculation-v4.patch added to -mm
- tree
-Date: Thu, 16 Nov 2017 16:13:58 -0800
-Message-ID: <5a0e29c6.PZMpUL5ntlvGjpgI%akpm@linux-foundation.org>
+Subject: + mm-shmem-remove-unused-info-variable.patch added to -mm tree
+Date: Thu, 16 Nov 2017 16:35:02 -0800
+Message-ID: <5a0e2eb6.DmuMCAhnJ2oaqU6g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35188 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbdKQAOA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 19:14:00 -0500
+        with ESMTP id S1751173AbdKQAfD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Nov 2017 19:35:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miles.chen@mediatek.com, hch@lst.de, m.szyprowski@samsung.com, robin.murphy@arm.com, mm-commits@vger.kernel.org
+To: clabbe@baylibre.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug-fix-incorrect-pfn-calculation-v4
+     Subject: mm: shmem: remove unused info variable
 has been added to the -mm tree.  Its filename is
-     dma-debug-fix-incorrect-pfn-calculation-v4.patch
+     mm-shmem-remove-unused-info-variable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-fix-incorrect-pfn-calculation-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-remove-unused-info-variable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-fix-incorrect-pfn-calculation-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-remove-unused-info-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +38,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: dma-debug-fix-incorrect-pfn-calculation-v4
+From: Corentin Labbe <clabbe@baylibre.com>
+Subject: mm: shmem: remove unused info variable
 
-Link: http://lkml.kernel.org/r/1510872972-23919-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Fix the following warning by removing the unused variable:
+mm/shmem.c:3205:27: warning: variable 'info' set but not used [-Wunused-but-set-variable]
+
+Link: http://lkml.kernel.org/r/1510774029-30652-1-git-send-email-clabbe@baylibre.com
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ mm/shmem.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-fix-incorrect-pfn-calculation-v4 lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-fix-incorrect-pfn-calculation-v4
-+++ a/lib/dma-debug.c
-@@ -1495,15 +1495,22 @@ void debug_dma_alloc_coherent(struct dev
- 	if (!entry)
- 		return;
+diff -puN mm/shmem.c~mm-shmem-remove-unused-info-variable mm/shmem.c
+--- a/mm/shmem.c~mm-shmem-remove-unused-info-variable
++++ a/mm/shmem.c
+@@ -3202,7 +3202,6 @@ static int shmem_symlink(struct inode *d
+ 	int len;
+ 	struct inode *inode;
+ 	struct page *page;
+-	struct shmem_inode_info *info;
  
-+	/* handle vmalloc and linear addresses */
-+	if (!is_vmalloc_addr(virt) && !virt_to_page(virt))
-+		return;
-+
- 	entry->type      = dma_debug_coherent;
- 	entry->dev       = dev;
--	entry->pfn	 = is_vmalloc_addr(virt) ? vmalloc_to_pfn(virt) :
--						page_to_pfn(virt_to_page(virt));
- 	entry->offset	 = offset_in_page(virt);
- 	entry->size      = size;
- 	entry->dev_addr  = dma_addr;
- 	entry->direction = DMA_BIDIRECTIONAL;
+ 	len = strlen(symname) + 1;
+ 	if (len > PAGE_SIZE)
+@@ -3222,7 +3221,6 @@ static int shmem_symlink(struct inode *d
+ 		error = 0;
+ 	}
  
-+	if (is_vmalloc_addr(virt))
-+		entry->pfn = vmalloc_to_pfn(virt);
-+	else
-+		entry->pfn = page_to_pfn(virt_to_page(virt));
-+
- 	add_dma_entry(entry);
- }
- EXPORT_SYMBOL(debug_dma_alloc_coherent);
-@@ -1514,14 +1521,21 @@ void debug_dma_free_coherent(struct devi
- 	struct dma_debug_entry ref = {
- 		.type           = dma_debug_coherent,
- 		.dev            = dev,
--		.pfn		= is_vmalloc_addr(virt) ? vmalloc_to_pfn(virt) :
--						page_to_pfn(virt_to_page(virt)),
- 		.offset		= offset_in_page(virt),
- 		.dev_addr       = addr,
- 		.size           = size,
- 		.direction      = DMA_BIDIRECTIONAL,
- 	};
- 
-+	/* handle vmalloc and linear addresses */
-+	if (!is_vmalloc_addr(virt) && !virt_to_page(virt))
-+		return;
-+
-+	if (is_vmalloc_addr(virt))
-+		ref.pfn = vmalloc_to_pfn(virt);
-+	else
-+		ref.pfn = page_to_pfn(virt_to_page(virt));
-+
- 	if (unlikely(dma_debug_disabled()))
- 		return;
- 
+-	info = SHMEM_I(inode);
+ 	inode->i_size = len-1;
+ 	if (len <= SHORT_SYMLINK_LEN) {
+ 		inode->i_link = kmemdup(symname, len, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from clabbe@baylibre.com are
 
-dma-debug-fix-incorrect-pfn-calculation.patch
-dma-debug-fix-incorrect-pfn-calculation-v4.patch
-checkpatch-support-function-pointers-for-unnamed-function-definition-arguments.patch
+mm-shmem-remove-unused-info-variable.patch
 
