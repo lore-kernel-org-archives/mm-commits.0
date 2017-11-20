@@ -1,188 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sysvipc-unteach-ids-next_id-for-checkpoint_restore.patch removed from -mm
+ makefile-support-flag-fsanitizer-coverage=trace-cmp.patch removed from -mm
  tree
-Date: Mon, 20 Nov 2017 13:26:45 -0800
-Message-ID: <20171120212645._LDqm_7oy%akpm@linux-foundation.org>
+Date: Mon, 20 Nov 2017 13:26:30 -0800
+Message-ID: <20171120212630.CkbODzd-6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40910 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753146AbdKTV0q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:26:46 -0500
+        with ESMTP id S1752973AbdKTV0c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:26:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: alex.popov@linux.com, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, keescook@chromium.org, mark.rutland@arm.com, mm-commits@vger.kernel.org, quentin.casasnovas@oracle.com, syzkaller@googlegroups.com, tchibo@google.com, vegard.nossum@oracle.com
 
 
 The patch titled
-     Subject: sysvipc: unteach ids->next_id for !CHECKPOINT_RESTORE
+     Subject: Makefile: support flag -fsanitizer-coverage=trace-cmp
 has been removed from the -mm tree.  Its filename was
-     sysvipc-unteach-ids-next_id-for-checkpoint_restore.patch
+     makefile-support-flag-fsanitizer-coverage=trace-cmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: sysvipc: unteach ids->next_id for !CHECKPOINT_RESTORE
+From: Victor Chibotaru <tchibo@google.com>
+Subject: Makefile: support flag -fsanitizer-coverage=trace-cmp
 
-Patch series "sysvipc: ipc-key management improvements".
+The flag enables Clang instrumentation of comparison operations (currently
+not supported by GCC).  This instrumentation is needed by the new KCOV
+device to collect comparison operands.
 
-Here are a few improvements I spotted while eyeballing Guillaume's
-rhashtable implementation for ipc keys.  The first and fourth patches are
-the interesting ones, the middle two are trivial.
-
-
-This patch (of 4):
-
-The next_id object-allocation functionality was introduced in
-03f595668017f ("ipc: add sysctl to specify desired next object id"). 
-Given that these new entries are _only_ exported under the
-CONFIG_CHECKPOINT_RESTORE option, there is no point for the common case to
-even know about ->next_id.  As such rewrite ipc_buildid() such that it can
-do away with the field as well as unnecessary branches when adding a new
-identifier.  The end result also better differentiates both cases, so the
-code ends up being cleaner; albeit the small duplications regarding the
-default case.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170831172049.14576-2-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Link: http://lkml.kernel.org/r/20171011095459.70721-2-glider@google.com
+Signed-off-by: Victor Chibotaru <tchibo@google.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Popov <alex.popov@linux.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+Cc: <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    2 +
- ipc/util.c                    |   60 ++++++++++++++++++++++++--------
- ipc/util.h                    |    5 --
- 3 files changed, 47 insertions(+), 20 deletions(-)
+ Makefile              |    3 +--
+ lib/Kconfig.debug     |   10 ++++++++++
+ scripts/Makefile.kcov |    7 +++++++
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore
-+++ a/include/linux/ipc_namespace.h
-@@ -19,7 +19,9 @@ struct ipc_ids {
- 	bool tables_initialized;
- 	struct rw_semaphore rwsem;
- 	struct idr ipcs_idr;
-+#ifdef CONFIG_CHECKPOINT_RESTORE
- 	int next_id;
-+#endif
- 	struct rhashtable key_ht;
- };
+diff -puN lib/Kconfig.debug~makefile-support-flag-fsanitizer-coverage=trace-cmp lib/Kconfig.debug
+--- a/lib/Kconfig.debug~makefile-support-flag-fsanitizer-coverage=trace-cmp
++++ a/lib/Kconfig.debug
+@@ -756,6 +756,16 @@ config KCOV
  
-diff -puN ipc/util.c~sysvipc-unteach-ids-next_id-for-checkpoint_restore ipc/util.c
---- a/ipc/util.c~sysvipc-unteach-ids-next_id-for-checkpoint_restore
-+++ a/ipc/util.c
-@@ -116,13 +116,15 @@ int ipc_init_ids(struct ipc_ids *ids)
- 	int err;
- 	ids->in_use = 0;
- 	ids->seq = 0;
--	ids->next_id = -1;
- 	init_rwsem(&ids->rwsem);
- 	err = rhashtable_init(&ids->key_ht, &ipc_kht_params);
- 	if (err)
- 		return err;
- 	idr_init(&ids->ipcs_idr);
- 	ids->tables_initialized = true;
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+	ids->next_id = -1;
-+#endif
- 	return 0;
- }
+ 	  For more details, see Documentation/dev-tools/kcov.rst.
  
-@@ -216,6 +218,46 @@ int ipc_get_maxid(struct ipc_ids *ids)
- 	return max_id;
- }
- 
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+/*
-+ * Specify desired id for next allocated IPC object.
-+ */
-+#define ipc_idr_alloc(ids, new)						\
-+	idr_alloc(&(ids)->ipcs_idr, (new),				\
-+		  (ids)->next_id < 0 ? 0 : ipcid_to_idx((ids)->next_id),\
-+		  0, GFP_NOWAIT)
++config KCOV_ENABLE_COMPARISONS
++	bool "Enable comparison operands collection by KCOV"
++	depends on KCOV
++	default n
++	help
++	  KCOV also exposes operands of every comparison in the instrumented
++	  code along with operand sizes and PCs of the comparison instructions.
++	  These operands can be used by fuzzing engines to improve the quality
++	  of fuzzing coverage.
 +
-+static inline int ipc_buildid(int id, struct ipc_ids *ids,
-+			      struct kern_ipc_perm *new)
-+{
-+	if (ids->next_id < 0) { /* default, behave as !CHECKPOINT_RESTORE */
-+		new->seq = ids->seq++;
-+		if (ids->seq > IPCID_SEQ_MAX)
-+			ids->seq = 0;
-+	} else {
-+		new->seq = ipcid_to_seqx(ids->next_id);
-+		ids->next_id = -1;
-+	}
-+
-+	return SEQ_MULTIPLIER * new->seq + id;
-+}
-+
-+#else
-+#define ipc_idr_alloc(ids, new)					\
-+	idr_alloc(&(ids)->ipcs_idr, (new), 0, 0, GFP_NOWAIT)
-+
-+static inline int ipc_buildid(int id, struct ipc_ids *ids,
-+			      struct kern_ipc_perm *new)
-+{
-+	new->seq = ids->seq++;
-+	if (ids->seq > IPCID_SEQ_MAX)
-+		ids->seq = 0;
-+
-+	return SEQ_MULTIPLIER * new->seq + id;
-+}
-+
-+#endif /* CONFIG_CHECKPOINT_RESTORE */
-+
- /**
-  * ipc_addid - add an ipc identifier
-  * @ids: ipc identifier set
-@@ -234,7 +276,6 @@ int ipc_addid(struct ipc_ids *ids, struc
- 	kuid_t euid;
- 	kgid_t egid;
- 	int id, err;
--	int next_id = ids->next_id;
- 
- 	if (size > IPCMNI)
- 		size = IPCMNI;
-@@ -254,9 +295,7 @@ int ipc_addid(struct ipc_ids *ids, struc
- 	new->cuid = new->uid = euid;
- 	new->gid = new->cgid = egid;
- 
--	id = idr_alloc(&ids->ipcs_idr, new,
--		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
--		       GFP_NOWAIT);
-+	id = ipc_idr_alloc(ids, new);
- 	idr_preload_end();
- 
- 	if (id >= 0 && new->key != IPC_PRIVATE) {
-@@ -274,17 +313,8 @@ int ipc_addid(struct ipc_ids *ids, struc
- 	}
- 
- 	ids->in_use++;
-+	new->id = ipc_buildid(id, ids, new);
- 
--	if (next_id < 0) {
--		new->seq = ids->seq++;
--		if (ids->seq > IPCID_SEQ_MAX)
--			ids->seq = 0;
--	} else {
--		new->seq = ipcid_to_seqx(next_id);
--		ids->next_id = -1;
--	}
+ config KCOV_INSTRUMENT_ALL
+ 	bool "Instrument all code by default"
+ 	depends on KCOV
+diff -puN Makefile~makefile-support-flag-fsanitizer-coverage=trace-cmp Makefile
+--- a/Makefile~makefile-support-flag-fsanitizer-coverage=trace-cmp
++++ a/Makefile
+@@ -375,8 +375,6 @@ CFLAGS_KERNEL	=
+ AFLAGS_KERNEL	=
+ LDFLAGS_vmlinux =
+ CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage -fno-tree-loop-im $(call cc-disable-warning,maybe-uninitialized,)
+-CFLAGS_KCOV	:= $(call cc-option,-fsanitize-coverage=trace-pc,)
 -
--	new->id = ipc_buildid(id, new->seq);
- 	return id;
- }
  
-diff -puN ipc/util.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore ipc/util.h
---- a/ipc/util.h~sysvipc-unteach-ids-next_id-for-checkpoint_restore
-+++ a/ipc/util.h
-@@ -146,11 +146,6 @@ extern struct msg_msg *load_msg(const vo
- extern struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst);
- extern int store_msg(void __user *dest, struct msg_msg *msg, size_t len);
+ # Use USERINCLUDE when you must reference the UAPI directories only.
+ USERINCLUDE    := \
+@@ -659,6 +657,7 @@ ifeq ($(shell $(CONFIG_SHELL) $(srctree)
+ 	KBUILD_AFLAGS += -DCC_HAVE_ASM_GOTO
+ endif
  
--static inline int ipc_buildid(int id, int seq)
--{
--	return SEQ_MULTIPLIER * seq + id;
--}
++include scripts/Makefile.kcov
+ include scripts/Makefile.gcc-plugins
+ 
+ ifdef CONFIG_READABLE_ASM
+diff -puN /dev/null scripts/Makefile.kcov
+--- /dev/null
++++ a/scripts/Makefile.kcov
+@@ -0,0 +1,7 @@
++ifdef CONFIG_KCOV
++CFLAGS_KCOV	:= $(call cc-option,-fsanitize-coverage=trace-pc,)
++ifeq ($(CONFIG_KCOV_ENABLE_COMPARISONS),y)
++CFLAGS_KCOV += $(call cc-option,-fsanitize-coverage=trace-cmp,)
++endif
++
++endif
+_
+
+Patches currently in -mm which might be from tchibo@google.com are
+
+
