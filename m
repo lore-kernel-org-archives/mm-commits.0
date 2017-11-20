@@ -1,115 +1,134 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-extend-pageblock_skip_persistent-to-all-compound-pages.patch
- removed from -mm tree
-Date: Mon, 20 Nov 2017 13:22:52 -0800
-Message-ID: <20171120212252.XS_uxnY0I%akpm@linux-foundation.org>
+ proc-coredump-add-coredumping-flag-to-proc-pid-status.patch removed from
+ -mm tree
+Date: Mon, 20 Nov 2017 13:23:02 -0800
+Message-ID: <20171120212302.Al09ZcUsK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753033AbdKTVWx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:53 -0500
+        with ESMTP id S1751109AbdKTVXD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: guro@fb.com, koct9i@gmail.com, mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm, compaction: extend pageblock_skip_persistent() to all compound pages
+     Subject: proc, coredump: add CoreDumping flag to /proc/pid/status
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-extend-pageblock_skip_persistent-to-all-compound-pages.patch
+     proc-coredump-add-coredumping-flag-to-proc-pid-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: extend pageblock_skip_persistent() to all compound pages
+From: Roman Gushchin <guro@fb.com>
+Subject: proc, coredump: add CoreDumping flag to /proc/pid/status
 
-pageblock_skip_persistent() checks for HugeTLB pages of pageblock order. 
-When clearing pageblock skip bits for compaction, the bits are not cleared
-for such pageblocks, because they cannot contain base pages suitable for
-migration, nor free pages to use as migration targets.
+Right now there is no convenient way to check if a process is being
+coredumped at the moment.
 
-This optimization can be simply extended to all compound pages of order
-equal or larger than pageblock order, because migrating such pages (if
-they support it) cannot help sub-pageblock fragmentation.  This includes
-THP's and also gigantic HugeTLB pages, which the current implementation
-doesn't persistently skip due to a strict pageblock_order equality check
-and not recognizing tail pages.
+It might be necessary to recognize such state to prevent killing the
+process and getting a broken coredump.  Writing a large core might take
+significant time, and the process is unresponsive during it, so it might
+be killed by timeout, if another process is monitoring and
+killing/restarting hanging tasks.
 
-While THP pages are generally less "persistent" than HugeTLB, we can still
-expect that if a THP exists at the point of __reset_isolation_suitable(),
-it will exist also during the subsequent compaction run.  The time
-difference here could be actually smaller than between a compaction run
-that sets a (non-persistent) skip bit on a THP, and the next compaction
-run that observes it.
+We're getting a significant number of corrupted coredump files on
+machines in our fleet, just because processes are being killed by
+timeout in the middle of the core writing process.
 
-Link: http://lkml.kernel.org/r/20171102121706.21504-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+We do have a process health check, and some agent is responsible for
+restarting processes which are not responding for health check
+requests.  Writing a large coredump to the disk can easily exceed the
+reasonable timeout (especially on an overloaded machine).
+
+This flag will allow the agent to distinguish processes which are being
+coredumped, extend the timeout for them, and let them produce a full
+coredump file.
+
+To provide an ability to detect if a process is in the state of being
+coredumped, we can expose a boolean CoreDumping flag in
+/proc/pid/status.
+
+Example:
+$ cat core.sh
+  #!/bin/sh
+
+  echo "|/usr/bin/sleep 10" > /proc/sys/kernel/core_pattern
+  sleep 1000 &
+  PID=$!
+
+  cat /proc/$PID/status | grep CoreDumping
+  kill -ABRT $PID
+  sleep 1
+  cat /proc/$PID/status | grep CoreDumping
+
+$ ./core.sh
+  CoreDumping:	0
+  CoreDumping:	1
+
+[guro@fb.com: document CoreDumping flag in /proc/<pid>/status]
+  Link: http://lkml.kernel.org/r/20170928135357.GA8470@castle.DHCP.thefacebook.com
+Link: http://lkml.kernel.org/r/20170920230634.31572-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ Documentation/filesystems/proc.txt |    3 +++
+ fs/proc/array.c                    |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-extend-pageblock_skip_persistent-to-all-compound-pages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-extend-pageblock_skip_persistent-to-all-compound-pages
-+++ a/mm/compaction.c
-@@ -219,17 +219,21 @@ static void reset_cached_positions(struc
+diff -puN Documentation/filesystems/proc.txt~proc-coredump-add-coredumping-flag-to-proc-pid-status Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-coredump-add-coredumping-flag-to-proc-pid-status
++++ a/Documentation/filesystems/proc.txt
+@@ -181,6 +181,7 @@ read the file /proc/PID/status:
+   VmPTE:        20 kb
+   VmSwap:        0 kB
+   HugetlbPages:          0 kB
++  CoreDumping:    0
+   Threads:        1
+   SigQ:   0/28578
+   SigPnd: 0000000000000000
+@@ -253,6 +254,8 @@ Table 1-2: Contents of the status files
+  VmSwap                      amount of swap used by anonymous private data
+                              (shmem swap usage is not included)
+  HugetlbPages                size of hugetlb memory portions
++ CoreDumping                 process's memory is currently being dumped
++                             (killing the process may lead to a corrupted core)
+  Threads                     number of threads
+  SigQ                        number of signals queued/max. number for queue
+  SigPnd                      bitmap of pending signals for the thread
+diff -puN fs/proc/array.c~proc-coredump-add-coredumping-flag-to-proc-pid-status fs/proc/array.c
+--- a/fs/proc/array.c~proc-coredump-add-coredumping-flag-to-proc-pid-status
++++ a/fs/proc/array.c
+@@ -366,6 +366,11 @@ static void task_cpus_allowed(struct seq
+ 		   cpumask_pr_args(&task->cpus_allowed));
  }
  
- /*
-- * Hugetlbfs pages should consistenly be skipped until updated by the hugetlb
-- * subsystem.  It is always pointless to compact pages of pageblock_order and
-- * the free scanner can reconsider when no longer huge.
-+ * Compound pages of >= pageblock_order should consistenly be skipped until
-+ * released. It is always pointless to compact pages of such order (if they are
-+ * migratable), and the pageblocks they occupy cannot contain any free pages.
-  */
--static bool pageblock_skip_persistent(struct page *page, unsigned int order)
-+static bool pageblock_skip_persistent(struct page *page)
++static inline void task_core_dumping(struct seq_file *m, struct mm_struct *mm)
++{
++	seq_printf(m, "CoreDumping:\t%d\n", !!mm->core_state);
++}
++
+ int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
+ 			struct pid *pid, struct task_struct *task)
  {
--	if (!PageHuge(page))
-+	if (!PageCompound(page))
- 		return false;
--	if (order != pageblock_order)
--		return false;
--	return true;
-+
-+	page = compound_head(page);
-+
-+	if (compound_order(page) >= pageblock_order)
-+		return true;
-+
-+	return false;
- }
+@@ -376,6 +381,7 @@ int proc_pid_status(struct seq_file *m,
  
- /*
-@@ -256,7 +260,7 @@ static void __reset_isolation_suitable(s
- 			continue;
- 		if (zone != page_zone(page))
- 			continue;
--		if (pageblock_skip_persistent(page, compound_order(page)))
-+		if (pageblock_skip_persistent(page))
- 			continue;
- 
- 		clear_pageblock_skip(page);
-@@ -323,8 +327,7 @@ static inline bool isolation_suitable(st
- 	return true;
- }
- 
--static inline bool pageblock_skip_persistent(struct page *page,
--					     unsigned int order)
-+static inline bool pageblock_skip_persistent(struct page *page)
- {
- 	return false;
- }
+ 	if (mm) {
+ 		task_mem(m, mm);
++		task_core_dumping(m, mm);
+ 		mmput(mm);
+ 	}
+ 	task_sig(m, task);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from guro@fb.com are
 
 
