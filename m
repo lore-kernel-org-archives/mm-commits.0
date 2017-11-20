@@ -1,64 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-shmem-remove-unused-info-variable.patch
- removed from -mm tree
-Date: Mon, 20 Nov 2017 13:22:43 -0800
-Message-ID: <20171120212243.V3TTvTGmd%akpm@linux-foundation.org>
+Subject: [merged]
+ z3fold-use-kref-to-prevent-page-free-compact-race.patch removed from -mm
+ tree
+Date: Mon, 20 Nov 2017 13:22:37 -0800
+Message-ID: <20171120212237.W7D5x9YV8%akpm__1069.29496764696$1511212964$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39930 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753059AbdKTVWo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:44 -0500
+        with ESMTP id S1752905AbdKTVWj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clabbe@baylibre.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, Oleksiy.Avramchenko@sony.com, stable@vger.kernel.org, vitaly.wool@sonymobile.com, vitalywool@gmail.com
 
 
 The patch titled
-     Subject: mm: shmem: remove unused info variable
+     Subject: mm/z3fold.c: use kref to prevent page free/compact race
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-remove-unused-info-variable.patch
+     z3fold-use-kref-to-prevent-page-free-compact-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Corentin Labbe <clabbe@baylibre.com>
-Subject: mm: shmem: remove unused info variable
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: mm/z3fold.c: use kref to prevent page free/compact race
 
-Fix the following warning by removing the unused variable:
-mm/shmem.c:3205:27: warning: variable 'info' set but not used [-Wunused-but-set-variable]
+There is a race in the current z3fold implementation between do_compact()
+called in a work queue context and the page release procedure when page's
+kref goes to 0.  do_compact() may be waiting for page lock, which is
+released by release_z3fold_page_locked right before putting the page onto
+the "stale" list, and then the page may be freed as do_compact() modifies
+its contents.
 
-Link: http://lkml.kernel.org/r/1510774029-30652-1-git-send-email-clabbe@baylibre.com
-Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
+The mechanism currently implemented to handle that (checking the
+PAGE_STALE flag) is not reliable enough.  Instead, we'll use page's kref
+counter to guarantee that the page is not released if its compaction is
+scheduled.  It then becomes compaction function's responsibility to
+decrease the counter and quit immediately if the page was actually freed.
+
+Link: http://lkml.kernel.org/r/20171117092032.00ea56f42affbed19f4fcc6c@gmail.com
+Signed-off-by: Vitaly Wool <vitaly.wool@sonymobile.com>
+Cc: <Oleksiy.Avramchenko@sony.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/z3fold.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmem-remove-unused-info-variable mm/shmem.c
---- a/mm/shmem.c~mm-shmem-remove-unused-info-variable
-+++ a/mm/shmem.c
-@@ -3202,7 +3202,6 @@ static int shmem_symlink(struct inode *d
- 	int len;
- 	struct inode *inode;
- 	struct page *page;
--	struct shmem_inode_info *info;
- 
- 	len = strlen(symname) + 1;
- 	if (len > PAGE_SIZE)
-@@ -3222,7 +3221,6 @@ static int shmem_symlink(struct inode *d
- 		error = 0;
+diff -puN mm/z3fold.c~z3fold-use-kref-to-prevent-page-free-compact-race mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-use-kref-to-prevent-page-free-compact-race
++++ a/mm/z3fold.c
+@@ -404,8 +404,7 @@ static void do_compact_page(struct z3fol
+ 		WARN_ON(z3fold_page_trylock(zhdr));
+ 	else
+ 		z3fold_page_lock(zhdr);
+-	if (test_bit(PAGE_STALE, &page->private) ||
+-	    !test_and_clear_bit(NEEDS_COMPACTING, &page->private)) {
++	if (WARN_ON(!test_and_clear_bit(NEEDS_COMPACTING, &page->private))) {
+ 		z3fold_page_unlock(zhdr);
+ 		return;
  	}
+@@ -413,6 +412,11 @@ static void do_compact_page(struct z3fol
+ 	list_del_init(&zhdr->buddy);
+ 	spin_unlock(&pool->lock);
  
--	info = SHMEM_I(inode);
- 	inode->i_size = len-1;
- 	if (len <= SHORT_SYMLINK_LEN) {
- 		inode->i_link = kmemdup(symname, len, GFP_KERNEL);
++	if (kref_put(&zhdr->refcount, release_z3fold_page_locked)) {
++		atomic64_dec(&pool->pages_nr);
++		return;
++	}
++
+ 	z3fold_compact_page(zhdr);
+ 	unbuddied = get_cpu_ptr(pool->unbuddied);
+ 	fchunks = num_free_chunks(zhdr);
+@@ -753,9 +757,11 @@ static void z3fold_free(struct z3fold_po
+ 		list_del_init(&zhdr->buddy);
+ 		spin_unlock(&pool->lock);
+ 		zhdr->cpu = -1;
++		kref_get(&zhdr->refcount);
+ 		do_compact_page(zhdr, true);
+ 		return;
+ 	}
++	kref_get(&zhdr->refcount);
+ 	queue_work_on(zhdr->cpu, pool->compact_wq, &zhdr->work);
+ 	z3fold_page_unlock(zhdr);
+ }
 _
 
-Patches currently in -mm which might be from clabbe@baylibre.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
 
