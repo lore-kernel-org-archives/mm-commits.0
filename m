@@ -1,125 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- genalloc-make-the-avail-variable-an-atomic_long_t.patch removed from -mm
- tree
-Date: Mon, 20 Nov 2017 13:24:18 -0800
-Message-ID: <20171120212418.jL9H44kzL%akpm@linux-foundation.org>
+Subject: [merged] lib_backtrace-fix-kernel-text-address-leak.patch
+ removed from -mm tree
+Date: Mon, 20 Nov 2017 13:24:21 -0800
+Message-ID: <20171120212421.c9zw8efqH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40424 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751109AbdKTVYT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:19 -0500
+        with ESMTP id S1752816AbdKTVYW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, danielmentz@google.com, logang@deltatee.com, mathieu.desnoyers@efficios.com, mm-commits@vger.kernel.org, sbates@raithlin.com, will.deacon@arm.com
+To: changcheng.liu@intel.com, jpoimboe@redhat.com, mm-commits@vger.kernel.org, pmladek@suse.com, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: lib/genalloc.c: make the avail variable an atomic_long_t
+     Subject: lib/nmi_backtrace.c: fix kernel text address leak
 has been removed from the -mm tree.  Its filename was
-     genalloc-make-the-avail-variable-an-atomic_long_t.patch
+     lib_backtrace-fix-kernel-text-address-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Bates <sbates@raithlin.com>
-Subject: lib/genalloc.c: make the avail variable an atomic_long_t
+From: "Liu, Changcheng" <changcheng.liu@intel.com>
+Subject: lib/nmi_backtrace.c: fix kernel text address leak
 
-If the amount of resources allocated to a gen_pool exceeds 2^32 then the
-avail atomic overflows and this causes problems when clients try and
-borrow resources from the pool.  This is only expected to be an issue on
-64 bit systems.
+Don't leak idle function address in NMI backtrace.
 
-Add the <linux/atomic.h> header to pull in atomic_long* operations.  So
-that 32 bit systems continue to use atomic32_t but 64 bit systems can use
-atomic64_t.
-
-Link: http://lkml.kernel.org/r/1509033843-25667-1-git-send-email-sbates@raithlin.com
-Signed-off-by: Stephen Bates <sbates@raithlin.com>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Reviewed-by: Daniel Mentz <danielmentz@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: http://lkml.kernel.org/r/20171106165648.GA95243@sofia
+Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    3 ++-
- lib/genalloc.c           |   10 +++++-----
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ lib/nmi_backtrace.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/genalloc.h~genalloc-make-the-avail-variable-an-atomic_long_t include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-make-the-avail-variable-an-atomic_long_t
-+++ a/include/linux/genalloc.h
-@@ -32,6 +32,7 @@
- 
- #include <linux/types.h>
- #include <linux/spinlock_types.h>
-+#include <linux/atomic.h>
- 
- struct device;
- struct device_node;
-@@ -71,7 +72,7 @@ struct gen_pool {
-  */
- struct gen_pool_chunk {
- 	struct list_head next_chunk;	/* next chunk in pool */
--	atomic_t avail;
-+	atomic_long_t avail;
- 	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
- 	unsigned long start_addr;	/* start address of memory chunk */
- 	unsigned long end_addr;		/* end address of memory chunk (inclusive) */
-diff -puN lib/genalloc.c~genalloc-make-the-avail-variable-an-atomic_long_t lib/genalloc.c
---- a/lib/genalloc.c~genalloc-make-the-avail-variable-an-atomic_long_t
-+++ a/lib/genalloc.c
-@@ -194,7 +194,7 @@ int gen_pool_add_virt(struct gen_pool *p
- 	chunk->phys_addr = phys;
- 	chunk->start_addr = virt;
- 	chunk->end_addr = virt + size - 1;
--	atomic_set(&chunk->avail, size);
-+	atomic_long_set(&chunk->avail, size);
- 
- 	spin_lock(&pool->lock);
- 	list_add_rcu(&chunk->next_chunk, &pool->chunks);
-@@ -304,7 +304,7 @@ unsigned long gen_pool_alloc_algo(struct
- 	nbits = (size + (1UL << order) - 1) >> order;
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
--		if (size > atomic_read(&chunk->avail))
-+		if (size > atomic_long_read(&chunk->avail))
- 			continue;
- 
- 		start_bit = 0;
-@@ -324,7 +324,7 @@ retry:
- 
- 		addr = chunk->start_addr + ((unsigned long)start_bit << order);
- 		size = nbits << order;
--		atomic_sub(size, &chunk->avail);
-+		atomic_long_sub(size, &chunk->avail);
- 		break;
- 	}
- 	rcu_read_unlock();
-@@ -390,7 +390,7 @@ void gen_pool_free(struct gen_pool *pool
- 			remain = bitmap_clear_ll(chunk->bits, start_bit, nbits);
- 			BUG_ON(remain);
- 			size = nbits << order;
--			atomic_add(size, &chunk->avail);
-+			atomic_long_add(size, &chunk->avail);
- 			rcu_read_unlock();
- 			return;
- 		}
-@@ -464,7 +464,7 @@ size_t gen_pool_avail(struct gen_pool *p
- 
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
--		avail += atomic_read(&chunk->avail);
-+		avail += atomic_long_read(&chunk->avail);
- 	rcu_read_unlock();
- 	return avail;
- }
+diff -puN lib/nmi_backtrace.c~lib_backtrace-fix-kernel-text-address-leak lib/nmi_backtrace.c
+--- a/lib/nmi_backtrace.c~lib_backtrace-fix-kernel-text-address-leak
++++ a/lib/nmi_backtrace.c
+@@ -93,8 +93,8 @@ bool nmi_cpu_backtrace(struct pt_regs *r
+ 	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
+ 		arch_spin_lock(&lock);
+ 		if (regs && cpu_in_idle(instruction_pointer(regs))) {
+-			pr_warn("NMI backtrace for cpu %d skipped: idling at pc %#lx\n",
+-				cpu, instruction_pointer(regs));
++			pr_warn("NMI backtrace for cpu %d skipped: idling at %pS\n",
++				cpu, (void *)instruction_pointer(regs));
+ 		} else {
+ 			pr_warn("NMI backtrace for cpu %d\n", cpu);
+ 			if (regs)
 _
 
-Patches currently in -mm which might be from sbates@raithlin.com are
+Patches currently in -mm which might be from changcheng.liu@intel.com are
 
 
