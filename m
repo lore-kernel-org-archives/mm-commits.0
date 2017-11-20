@@ -1,234 +1,106 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch removed
+ nilfs2-fix-race-condition-that-causes-file-system-corruption.patch removed
  from -mm tree
-Date: Mon, 20 Nov 2017 13:25:16 -0800
-Message-ID: <20171120212516.S1Ocl5ccT%akpm@linux-foundation.org>
+Date: Mon, 20 Nov 2017 13:25:25 -0800
+Message-ID: <20171120212525.-PxAOtg_I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40704 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752831AbdKTVZR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:17 -0500
+        with ESMTP id S1752785AbdKTVZ0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@kernel.dk, joe.lawrence@redhat.com, jpoimboe@redhat.com, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, rdunlap@infradead.org, viro@zeniv.linux.org.uk
+To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: add proc_dopipe_max_size() to safely assign pipe_max_size
+     Subject: nilfs2: fix race condition that causes file system corruption
 has been removed from the -mm tree.  Its filename was
-     pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size.patch
+     nilfs2-fix-race-condition-that-causes-file-system-corruption.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Lawrence <joe.lawrence@redhat.com>
-Subject: pipe: add proc_dopipe_max_size() to safely assign pipe_max_size
+From: Andreas Rohner <andreas.rohner@gmx.net>
+Subject: nilfs2: fix race condition that causes file system corruption
 
-pipe_max_size is assigned directly via procfs sysctl:
+There is a race condition between nilfs_dirty_inode() and
+nilfs_set_file_dirty().
 
-  static struct ctl_table fs_table[] = {
-          ...
-          {
-                  .procname       = "pipe-max-size",
-                  .data           = &pipe_max_size,
-                  .maxlen         = sizeof(int),
-                  .mode           = 0644,
-                  .proc_handler   = &pipe_proc_fn,
-                  .extra1         = &pipe_min_size,
-          },
-          ...
+When a file is opened, nilfs_dirty_inode() is called to update the access
+timestamp in the inode.  It calls __nilfs_mark_inode_dirty() in a separate
+transaction.  __nilfs_mark_inode_dirty() caches the ifile buffer_head in
+the i_bh field of the inode info structure and marks it as dirty.
 
-  int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
-                   size_t *lenp, loff_t *ppos)
-  {
-          ...
-          ret = proc_dointvec_minmax(table, write, buf, lenp, ppos)
-          ...
+After some data was written to the file in another transaction, the
+function nilfs_set_file_dirty() is called, which adds the inode to the
+ns_dirty_files list.
 
-and then later rounded in-place a few statements later:
+Then the segment construction calls nilfs_segctor_collect_dirty_files(),
+which goes through the ns_dirty_files list and checks the i_bh field.  If
+there is a cached buffer_head in i_bh it is not marked as dirty again.
 
-          ...
-          pipe_max_size = round_pipe_size(pipe_max_size);
-          ...
+Since nilfs_dirty_inode() and nilfs_set_file_dirty() use separate
+transactions, it is possible that a segment construction that writes out
+the ifile occurs in-between the two.  If this happens the inode is not on
+the ns_dirty_files list, but its ifile block is still marked as dirty and
+written out.
 
-This leaves a window of time between initial assignment and rounding that
-may be visible to other threads.  (For example, one thread sets a
-non-rounded value to pipe_max_size while another reads its value.)
+In the next segment construction, the data for the file is written out and
+nilfs_bmap_propagate() updates the b-tree.  Eventually the bmap root is
+written into the i_bh block, which is not dirty, because it was written
+out in another segment construction.
 
-Similar reads of pipe_max_size are potentially racy:
+As a result the bmap update can be lost, which leads to file system
+corruption.  Either the virtual block address points to an unallocated DAT
+block, or the DAT entry will be reused for something different.
 
-  pipe.c :: alloc_pipe_info()
-  pipe.c :: pipe_set_size()
+The error can remain undetected for a long time.  A typical error message
+would be one of the "bad btree" errors or a warning that a DAT entry could
+not be found.
 
-Add a new proc_dopipe_max_size() that consolidates reading the new value
-from the user buffer, verifying bounds, and calling round_pipe_size() with
-a single assignment to pipe_max_size.
+This bug can be reproduced reliably by a simple benchmark that creates and
+overwrites millions of 4k files.
 
-Link: http://lkml.kernel.org/r/1507658689-11669-4-git-send-email-joe.lawrence@redhat.com
-Signed-off-by: Joe Lawrence <joe.lawrence@redhat.com>
-Reported-by: Mikulas Patocka <mpatocka@redhat.com>
-Reviewed-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: http://lkml.kernel.org/r/1509367935-3086-2-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Tested-by: Andreas Rohner <andreas.rohner@gmx.net>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |   18 ++-----------
- include/linux/pipe_fs_i.h |    1 
- include/linux/sysctl.h    |    3 ++
- kernel/sysctl.c           |   49 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 56 insertions(+), 15 deletions(-)
+ fs/nilfs2/segment.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/pipe.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size fs/pipe.c
---- a/fs/pipe.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/fs/pipe.c
-@@ -1020,7 +1020,7 @@ const struct file_operations pipefifo_fo
-  * Currently we rely on the pipe array holding a power-of-2 number
-  * of pages. Returns 0 on error.
-  */
--static inline unsigned int round_pipe_size(unsigned int size)
-+unsigned int round_pipe_size(unsigned int size)
- {
- 	unsigned long nr_pages;
+diff -puN fs/nilfs2/segment.c~nilfs2-fix-race-condition-that-causes-file-system-corruption fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-fix-race-condition-that-causes-file-system-corruption
++++ a/fs/nilfs2/segment.c
+@@ -1954,8 +1954,6 @@ static int nilfs_segctor_collect_dirty_f
+ 					  err, ii->vfs_inode.i_ino);
+ 				return err;
+ 			}
+-			mark_buffer_dirty(ibh);
+-			nilfs_mdt_mark_dirty(ifile);
+ 			spin_lock(&nilfs->ns_inode_lock);
+ 			if (likely(!ii->i_bh))
+ 				ii->i_bh = ibh;
+@@ -1964,6 +1962,10 @@ static int nilfs_segctor_collect_dirty_f
+ 			goto retry;
+ 		}
  
-@@ -1125,25 +1125,13 @@ out_revert_acct:
- }
- 
- /*
-- * This should work even if CONFIG_PROC_FS isn't set, as proc_dointvec_minmax
-+ * This should work even if CONFIG_PROC_FS isn't set, as proc_dopipe_max_size
-  * will return an error.
-  */
- int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
- 		 size_t *lenp, loff_t *ppos)
- {
--	unsigned int rounded_pipe_max_size;
--	int ret;
--
--	ret = proc_douintvec_minmax(table, write, buf, lenp, ppos);
--	if (ret < 0 || !write)
--		return ret;
--
--	rounded_pipe_max_size = round_pipe_size(pipe_max_size);
--	if (rounded_pipe_max_size == 0)
--		return -EINVAL;
--
--	pipe_max_size = rounded_pipe_max_size;
--	return ret;
-+	return proc_dopipe_max_size(table, write, buf, lenp, ppos);
- }
- 
- /*
-diff -puN include/linux/pipe_fs_i.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/include/linux/pipe_fs_i.h
-@@ -191,5 +191,6 @@ long pipe_fcntl(struct file *, unsigned
- struct pipe_inode_info *get_pipe_info(struct file *file);
- 
- int create_pipe_files(struct file **, int);
-+unsigned int round_pipe_size(unsigned int size);
- 
- #endif
-diff -puN include/linux/sysctl.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size include/linux/sysctl.h
---- a/include/linux/sysctl.h~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/include/linux/sysctl.h
-@@ -51,6 +51,9 @@ extern int proc_dointvec_minmax(struct c
- extern int proc_douintvec_minmax(struct ctl_table *table, int write,
- 				 void __user *buffer, size_t *lenp,
- 				 loff_t *ppos);
-+extern int proc_dopipe_max_size(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp,
-+				loff_t *ppos);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-add-proc_dopipe_max_size-to-safely-assign-pipe_max_size
-+++ a/kernel/sysctl.c
-@@ -66,6 +66,7 @@
- #include <linux/kexec.h>
- #include <linux/bpf.h>
- #include <linux/mount.h>
-+#include <linux/pipe_fs_i.h>
- 
- #include <linux/uaccess.h>
- #include <asm/processor.h>
-@@ -2620,6 +2621,47 @@ int proc_douintvec_minmax(struct ctl_tab
- 				 do_proc_douintvec_minmax_conv, &param);
- }
- 
-+struct do_proc_dopipe_max_size_conv_param {
-+	unsigned int *min;
-+};
++		// Always redirty the buffer to avoid race condition
++		mark_buffer_dirty(ii->i_bh);
++		nilfs_mdt_mark_dirty(ifile);
 +
-+static int do_proc_dopipe_max_size_conv(unsigned long *lvalp,
-+					unsigned int *valp,
-+					int write, void *data)
-+{
-+	struct do_proc_dopipe_max_size_conv_param *param = data;
-+
-+	if (write) {
-+		unsigned int val = round_pipe_size(*lvalp);
-+
-+		if (val == 0)
-+			return -EINVAL;
-+
-+		if (param->min && *param->min > val)
-+			return -ERANGE;
-+
-+		if (*lvalp > UINT_MAX)
-+			return -EINVAL;
-+
-+		*valp = val;
-+	} else {
-+		unsigned int val = *valp;
-+		*lvalp = (unsigned long) val;
-+	}
-+
-+	return 0;
-+}
-+
-+int proc_dopipe_max_size(struct ctl_table *table, int write,
-+			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct do_proc_dopipe_max_size_conv_param param = {
-+		.min = (unsigned int *) table->extra1,
-+	};
-+	return do_proc_douintvec(table, write, buffer, lenp, ppos,
-+				 do_proc_dopipe_max_size_conv, &param);
-+}
-+
- static void validate_coredump_safety(void)
- {
- #ifdef CONFIG_COREDUMP
-@@ -3125,6 +3167,12 @@ int proc_douintvec_minmax(struct ctl_tab
- 	return -ENOSYS;
- }
- 
-+int proc_dopipe_max_size(struct ctl_table *table, int write,
-+			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return -ENOSYS;
-+}
-+
- int proc_dointvec_jiffies(struct ctl_table *table, int write,
- 		    void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -3168,6 +3216,7 @@ EXPORT_SYMBOL(proc_douintvec);
- EXPORT_SYMBOL(proc_dointvec_jiffies);
- EXPORT_SYMBOL(proc_dointvec_minmax);
- EXPORT_SYMBOL_GPL(proc_douintvec_minmax);
-+EXPORT_SYMBOL_GPL(proc_dopipe_max_size);
- EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
- EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
- EXPORT_SYMBOL(proc_dostring);
+ 		clear_bit(NILFS_I_QUEUED, &ii->i_state);
+ 		set_bit(NILFS_I_BUSY, &ii->i_state);
+ 		list_move_tail(&ii->i_dirty, &sci->sc_dirty_files);
 _
 
-Patches currently in -mm which might be from joe.lawrence@redhat.com are
+Patches currently in -mm which might be from andreas.rohner@gmx.net are
 
 
