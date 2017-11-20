@@ -1,77 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-rbtree-test-lower-default-params.patch
- removed from -mm tree
-Date: Mon, 20 Nov 2017 13:24:27 -0800
-Message-ID: <20171120212427.Ooc1pyUTr%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?checkpatch-support-function-pointers-for-unnamed-function-de?=
+ =?US-ASCII?Q?finition-arguments.patch?= removed from -mm tree
+Date: Mon, 20 Nov 2017 13:24:33 -0800
+Message-ID: <20171120212433.BQxK4pxFF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40514 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752933AbdKTVY2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:28 -0500
+        with ESMTP id S1752988AbdKTVYe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: joe@perches.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rbtree-test: lower default params
+     Subject: checkpatch: support function pointers for unnamed function definition arguments
 has been removed from the -mm tree.  Its filename was
-     lib-rbtree-test-lower-default-params.patch
+     checkpatch-support-function-pointers-for-unnamed-function-definition-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/rbtree-test: lower default params
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: checkpatch: support function pointers for unnamed function definition arguments
 
-Fengguang reported soft lockups while running the rbtree and interval tree
-test modules.  The logic for these tests all occur in init phase, and we
-currently are pounding with the default values for number of nodes and
-number of iterations of each test.  Reduce the latter by two orders of
-magnitude.  This does not influence the value of the tests in that one
-thousand times by default is enough to get the picture.
+Current unnamed function definition argument does not include function
+pointer cases and it reports something like:
 
-Link: http://lkml.kernel.org/r/20171109161715.xai2dtwqw2frhkcm@linux-n805
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+WARNING: function definition argument 'void' should also have an identifier name
++unsigned int (*dummy)(void);
+
+Support function pointers for unnamed function arguments
+
+Link: http://lkml.kernel.org/r/1505389925-31087-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/interval_tree_test.c |    4 ++--
- lib/rbtree_test.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/interval_tree_test.c~lib-rbtree-test-lower-default-params lib/interval_tree_test.c
---- a/lib/interval_tree_test.c~lib-rbtree-test-lower-default-params
-+++ a/lib/interval_tree_test.c
-@@ -11,10 +11,10 @@
- 	MODULE_PARM_DESC(name, msg);
+diff -puN scripts/checkpatch.pl~checkpatch-support-function-pointers-for-unnamed-function-definition-arguments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-support-function-pointers-for-unnamed-function-definition-arguments
++++ a/scripts/checkpatch.pl
+@@ -5957,7 +5957,7 @@ sub process {
  
- __param(int, nnodes, 100, "Number of nodes in the interval tree");
--__param(int, perf_loops, 100000, "Number of iterations modifying the tree");
-+__param(int, perf_loops, 1000, "Number of iterations modifying the tree");
- 
- __param(int, nsearches, 100, "Number of searches to the interval tree");
--__param(int, search_loops, 10000, "Number of iterations searching the tree");
-+__param(int, search_loops, 1000, "Number of iterations searching the tree");
- __param(bool, search_all, false, "Searches will iterate all nodes in the tree");
- 
- __param(uint, max_endpoint, ~0, "Largest value for the interval's endpoint");
-diff -puN lib/rbtree_test.c~lib-rbtree-test-lower-default-params lib/rbtree_test.c
---- a/lib/rbtree_test.c~lib-rbtree-test-lower-default-params
-+++ a/lib/rbtree_test.c
-@@ -11,7 +11,7 @@
- 	MODULE_PARM_DESC(name, msg);
- 
- __param(int, nnodes, 100, "Number of nodes in the rb-tree");
--__param(int, perf_loops, 100000, "Number of iterations modifying the rb-tree");
-+__param(int, perf_loops, 1000, "Number of iterations modifying the rb-tree");
- __param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
- 
- struct test_node {
+ # check for function declarations that have arguments without identifier names
+ 		if (defined $stat &&
+-		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*$Ident\s*\(\s*([^{]+)\s*\)\s*;/s &&
++		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
+ 		    $1 ne "void") {
+ 			my $args = trim($1);
+ 			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
 
