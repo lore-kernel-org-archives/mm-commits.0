@@ -1,104 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-dont-fail-mount-for-transient-error.patch
+Subject: [merged] fs-nilfs2-convert-timers-to-use-timer_setup.patch
  removed from -mm tree
-Date: Mon, 20 Nov 2017 13:25:06 -0800
-Message-ID: <20171120212506.13CTySvfj%akpm__13919.3089250059$1511213118$gmane$org@linux-foundation.org>
+Date: Mon, 20 Nov 2017 13:25:22 -0800
+Message-ID: <20171120212522.jLAxyIa5Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40726 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752905AbdKTVZH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:07 -0500
+        with ESMTP id S1752785AbdKTVZX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, neilb@suse.com, raven@themaw.net, stable@vger.kernel.org
+To: keescook@chromium.org, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: don't fail mount for transient error
+     Subject: fs/nilfs2: convert timers to use timer_setup()
 has been removed from the -mm tree.  Its filename was
-     autofs-dont-fail-mount-for-transient-error.patch
+     fs-nilfs2-convert-timers-to-use-timer_setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.com>
-Subject: autofs: don't fail mount for transient error
+From: Kees Cook <keescook@chromium.org>
+Subject: fs/nilfs2: convert timers to use timer_setup()
 
-Currently if the autofs kernel module gets an error when writing to the
-pipe which links to the daemon, then it marks the whole moutpoint as
-catatonic, and it will stop working.
+In preparation for unconditionally passing the struct timer_list pointer
+to all timer callbacks, switch to using the new timer_setup() and
+from_timer() to pass the timer pointer explicitly.  This requires adding a
+pointer to hold the timer's target task, as the lifetime of sc_task
+doesn't appear to match the timer's task.
 
-It is possible that the error is transient.  This can happen if the daemon
-is slow and more than 16 requests queue up.  If a subsequent process tries
-to queue a request, and is then signalled, the write to the pipe will
-return -ERESTARTSYS and autofs will take that as total failure.
-
-So change the code to assess -ERESTARTSYS and -ENOMEM as transient
-failures which only abort the current request, not the whole mountpoint.
-
-It isn't a crash or a data corruption, but having autofs mountpoints
-suddenly stop working is rather inconvenient.
-
-Ian said:
-
-: And given the problems with a half dozen (or so) user space applications
-: consuming large amounts of CPU under heavy mount and umount activity this
-: could happen more easily than we expect.
-
-
-Link: http://lkml.kernel.org/r/87y3norvgp.fsf@notabene.neil.brown.name
-Signed-off-by: NeilBrown <neilb@suse.com>
-Acked-by: Ian Kent <raven@themaw.net>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20171016235900.GA102729@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/waitq.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ fs/nilfs2/segment.c |   11 +++++------
+ fs/nilfs2/segment.h |    1 +
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/autofs4/waitq.c~autofs-dont-fail-mount-for-transient-error fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs-dont-fail-mount-for-transient-error
-+++ a/fs/autofs4/waitq.c
-@@ -81,7 +81,8 @@ static int autofs4_write(struct autofs_s
- 		spin_unlock_irqrestore(&current->sighand->siglock, flags);
- 	}
- 
--	return (bytes > 0);
-+	/* if 'wr' returned 0 (impossible) we assume -EIO (safe) */
-+	return bytes == 0 ? 0 : wr < 0 ? wr : -EIO;
+diff -puN fs/nilfs2/segment.c~fs-nilfs2-convert-timers-to-use-timer_setup fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~fs-nilfs2-convert-timers-to-use-timer_setup
++++ a/fs/nilfs2/segment.c
+@@ -2400,11 +2400,11 @@ static int nilfs_segctor_construct(struc
+ 	return err;
  }
  
- static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
-@@ -95,6 +96,7 @@ static void autofs4_notify_daemon(struct
- 	} pkt;
- 	struct file *pipe = NULL;
- 	size_t pktsz;
-+	int ret;
+-static void nilfs_construction_timeout(unsigned long data)
++static void nilfs_construction_timeout(struct timer_list *t)
+ {
+-	struct task_struct *p = (struct task_struct *)data;
++	struct nilfs_sc_info *sci = from_timer(sci, t, sc_timer);
  
- 	pr_debug("wait id = 0x%08lx, name = %.*s, type=%d\n",
- 		 (unsigned long) wq->wait_queue_token,
-@@ -169,7 +171,18 @@ static void autofs4_notify_daemon(struct
- 	mutex_unlock(&sbi->wq_mutex);
- 
- 	if (autofs4_write(sbi, pipe, &pkt, pktsz))
-+	switch (ret = autofs4_write(sbi, pipe, &pkt, pktsz)) {
-+	case 0:
-+		break;
-+	case -ENOMEM:
-+	case -ERESTARTSYS:
-+		/* Just fail this one */
-+		autofs4_wait_release(sbi, wq->wait_queue_token, ret);
-+		break;
-+	default:
- 		autofs4_catatonic_mode(sbi);
-+		break;
-+	}
- 	fput(pipe);
+-	wake_up_process(p);
++	wake_up_process(sci->sc_timer_task);
  }
+ 
+ static void
+@@ -2542,8 +2542,7 @@ static int nilfs_segctor_thread(void *ar
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	int timeout = 0;
+ 
+-	sci->sc_timer.data = (unsigned long)current;
+-	sci->sc_timer.function = nilfs_construction_timeout;
++	sci->sc_timer_task = current;
+ 
+ 	/* start sync. */
+ 	sci->sc_task = current;
+@@ -2674,7 +2673,7 @@ static struct nilfs_sc_info *nilfs_segct
+ 	INIT_LIST_HEAD(&sci->sc_gc_inodes);
+ 	INIT_LIST_HEAD(&sci->sc_iput_queue);
+ 	INIT_WORK(&sci->sc_iput_work, nilfs_iput_work_func);
+-	init_timer(&sci->sc_timer);
++	timer_setup(&sci->sc_timer, nilfs_construction_timeout, 0);
+ 
+ 	sci->sc_interval = HZ * NILFS_SC_DEFAULT_TIMEOUT;
+ 	sci->sc_mjcp_freq = HZ * NILFS_SC_DEFAULT_SR_FREQ;
+diff -puN fs/nilfs2/segment.h~fs-nilfs2-convert-timers-to-use-timer_setup fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~fs-nilfs2-convert-timers-to-use-timer_setup
++++ a/fs/nilfs2/segment.h
+@@ -180,6 +180,7 @@ struct nilfs_sc_info {
+ 	unsigned long		sc_watermark;
+ 
+ 	struct timer_list	sc_timer;
++	struct task_struct     *sc_timer_task;
+ 	struct task_struct     *sc_task;
+ };
  
 _
 
-Patches currently in -mm which might be from neilb@suse.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
