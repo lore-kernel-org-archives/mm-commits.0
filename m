@@ -1,63 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] umh-optimize-proc_cap_handler.patch removed from
- -mm tree
-Date: Mon, 20 Nov 2017 13:23:41 -0800
-Message-ID: <20171120212341.V0JTENXec%akpm@linux-foundation.org>
+Subject: [merged]
+ compiler-clang-handle-randomizable-anonymous-structs.patch removed from -mm
+ tree
+Date: Mon, 20 Nov 2017 13:23:38 -0800
+Message-ID: <20171120212338.tbq5kpMR-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753116AbdKTVXm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:42 -0500
+        with ESMTP id S1753046AbdKTVXj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: christophe.jaillet@wanadoo.fr, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: ast@fb.com, gregkh@linuxfoundation.org, kstewart@linuxfoundation.org, mm-commits@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, rientjes@google.com, sandipan@linux.vnet.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: kernel/umh.c: optimize 'proc_cap_handler()'
+     Subject: include/linux/compiler-clang.h: handle randomizable anonymous structs
 has been removed from the -mm tree.  Its filename was
-     umh-optimize-proc_cap_handler.patch
+     compiler-clang-handle-randomizable-anonymous-structs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: kernel/umh.c: optimize 'proc_cap_handler()'
+From: Sandipan Das <sandipan@linux.vnet.ibm.com>
+Subject: include/linux/compiler-clang.h: handle randomizable anonymous structs
 
-If 'write' is 0, we can avoid a call to spin_lock/spin_unlock.
+The GCC randomize layout plugin can randomize the member offsets of
+sensitive kernel data structures.  To use this feature, certain
+annotations and members are added to the structures which affect the
+member offsets even if this plugin is not used.
 
-Link: http://lkml.kernel.org/r/20171020193331.7233-1-christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Acked-by: Luis R. Rodriguez <mcgrof@kernel.org>
+All of these structures are completely randomized, except for task_struct
+which leaves out some of its members.  All the other members are wrapped
+within an anonymous struct with the __randomize_layout attribute.  This is
+done using the randomized_struct_fields_start and
+randomized_struct_fields_end defines.  When the plugin is disabled, the
+behaviour of this attribute can vary based on the GCC version.  For GCC
+5.1+, this attribute maps to __designated_init otherwise it is just an
+empty define but the anonymous structure is still present.  For other
+compilers, both randomized_struct_fields_start and
+randomized_struct_fields_end default to empty defines meaning the
+anonymous structure is not introduced at all.  So, if a module compiled
+with Clang, such as a BPF program, needs to access task_struct fields such
+as pid and comm, the offsets of these members as recognized by Clang are
+different from those recognized by modules compiled with GCC.  If GCC 4.6+
+is used to build the kernel, this can be solved by introducing appropriate
+defines for Clang so that the anonymous structure is seen when determining
+the offsets for the members.
+
+Link: http://lkml.kernel.org/r/20171109064645.25581-1-sandipan@linux.vnet.ibm.com
+Signed-off-by: Sandipan Das <sandipan@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Alexei Starovoitov <ast@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/umh.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/compiler-clang.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/umh.c~umh-optimize-proc_cap_handler kernel/umh.c
---- a/kernel/umh.c~umh-optimize-proc_cap_handler
-+++ a/kernel/umh.c
-@@ -537,14 +537,14 @@ static int proc_cap_handler(struct ctl_t
- 	/*
- 	 * Drop everything not in the new_cap (but don't add things)
- 	 */
--	spin_lock(&umh_sysctl_lock);
- 	if (write) {
-+		spin_lock(&umh_sysctl_lock);
- 		if (table->data == CAP_BSET)
- 			usermodehelper_bset = cap_intersect(usermodehelper_bset, new_cap);
- 		if (table->data == CAP_PI)
- 			usermodehelper_inheritable = cap_intersect(usermodehelper_inheritable, new_cap);
-+		spin_unlock(&umh_sysctl_lock);
- 	}
--	spin_unlock(&umh_sysctl_lock);
- 
- 	return 0;
- }
+diff -puN include/linux/compiler-clang.h~compiler-clang-handle-randomizable-anonymous-structs include/linux/compiler-clang.h
+--- a/include/linux/compiler-clang.h~compiler-clang-handle-randomizable-anonymous-structs
++++ a/include/linux/compiler-clang.h
+@@ -16,3 +16,6 @@
+  * with any version that can compile the kernel
+  */
+ #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
++
++#define randomized_struct_fields_start	struct {
++#define randomized_struct_fields_end	};
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from sandipan@linux.vnet.ibm.com are
 
 
