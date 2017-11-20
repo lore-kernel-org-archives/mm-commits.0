@@ -1,67 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-allow-define_per_cpu-definitions-to-exceed-line-length.patch
- removed from -mm tree
-Date: Mon, 20 Nov 2017 13:24:42 -0800
-Message-ID: <20171120212442.uUaMdByh1%akpm@linux-foundation.org>
+ checkpatch-add-tp_printk-to-list-of-logging-functions.patch removed from
+ -mm tree
+Date: Mon, 20 Nov 2017 13:24:45 -0800
+Message-ID: <20171120212445.Y9Cf5yJu1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40608 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752856AbdKTVYn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:43 -0500
+        with ESMTP id S1752856AbdKTVYq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, daniel.lezcano@linaro.org, joe@perches.com, marc.zyngier@arm.com, mark.rutland@arm.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: joe@perches.com, mm-commits@vger.kernel.org, songliubraving@fb.com
 
 
 The patch titled
-     Subject: checkpatch: allow DEFINE_PER_CPU definitions to exceed line length
+     Subject: checkpatch: add TP_printk to list of logging functions
 has been removed from the -mm tree.  Its filename was
-     checkpatch-allow-define_per_cpu-definitions-to-exceed-line-length.patch
+     checkpatch-add-tp_printk-to-list-of-logging-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: allow DEFINE_PER_CPU definitions to exceed line length
+Subject: checkpatch: add TP_printk to list of logging functions
 
-Some of the definitions are very long and can't be split into multiple
-lines because ctags is limited.
+So the line length check can be bypassed by its callers.
 
-Exempt these lines from the line length checks.
-
-See 25528213fe9f75f4 ("tags: Fix DEFINE_PER_CPU expansions") for more
-details.
-
-Link: http://lkml.kernel.org/r/1508170320.6530.15.camel@perches.com
+Link: http://lkml.kernel.org/r/7de542c08a6e79f2ebe7c1416c9f403c23fdcc09.1508282823.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Reported-by: Song Liu <songliubraving@fb.com>
+Tested-by: Song Liu <songliubraving@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-define_per_cpu-definitions-to-exceed-line-length scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-define_per_cpu-definitions-to-exceed-line-length
+diff -puN scripts/checkpatch.pl~checkpatch-add-tp_printk-to-list-of-logging-functions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-tp_printk-to-list-of-logging-functions
 +++ a/scripts/checkpatch.pl
-@@ -2900,8 +2900,9 @@ sub process {
- 				 $line =~ /^\+\s*#\s*define\s+\w+\s+$String$/) {
- 				$msg_type = "";
- 
--			# EFI_GUID is another special case
--			} elsif ($line =~ /^\+.*\bEFI_GUID\s*\(/) {
-+			# More special cases
-+			} elsif ($line =~ /^\+.*\bEFI_GUID\s*\(/ ||
-+				 $line =~ /^\+\s*(?:\w+)?\s*DEFINE_PER_CPU/) {
- 				$msg_type = "";
- 
- 			# Otherwise set the alternate message types
+@@ -454,6 +454,7 @@ our $zero_initializer = qr{(?:(?:0[xX])?
+ our $logFunctions = qr{(?x:
+ 	printk(?:_ratelimited|_once|_deferred_once|_deferred|)|
+ 	(?:[a-z0-9]+_){1,2}(?:printk|emerg|alert|crit|err|warning|warn|notice|info|debug|dbg|vdbg|devel|cont|WARN)(?:_ratelimited|_once|)|
++	TP_printk|
+ 	WARN(?:_RATELIMIT|_ONCE|)|
+ 	panic|
+ 	MODULE_[A-Z_]+|
 _
 
 Patches currently in -mm which might be from joe@perches.com are
