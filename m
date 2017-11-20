@@ -1,111 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch removed from -mm tree
-Date: Mon, 20 Nov 2017 13:25:42 -0800
-Message-ID: <20171120212542.Nl-0rMNgx%akpm@linux-foundation.org>
+ protect-the-traced-signal_unkillable-tasks-from-sigkill.patch removed from
+ -mm tree
+Date: Mon, 20 Nov 2017 13:25:48 -0800
+Message-ID: <20171120212548.mCC03n7J-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752720AbdKTVZn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:43 -0500
+        with ESMTP id S1752937AbdKTVZt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris.gekas@gmail.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: me@kylehuey.com, mm-commits@vger.kernel.org, oleg@redhat.com
 
 
 The patch titled
-     Subject: hfs/hfsplus: clean up unused variables in bnode.c
+     Subject: kernel/signal.c: protect the traced SIGNAL_UNKILLABLE tasks from SIGKILL
 has been removed from the -mm tree.  Its filename was
-     hfs-hfsplus-clean-up-unused-variables-in-bnodec.patch
+     protect-the-traced-signal_unkillable-tasks-from-sigkill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christos Gkekas <chris.gekas@gmail.com>
-Subject: hfs/hfsplus: clean up unused variables in bnode.c
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: kernel/signal.c: protect the traced SIGNAL_UNKILLABLE tasks from SIGKILL
 
-Delete variables 'tree' and 'sb', which are set but never used.
+The comment in sig_ignored() says "Tracers may want to know about even
+ignored signals" but SIGKILL can not be reported to debugger and it is
+just wrong to return 0 in this case: SIGKILL should only kill the
+SIGNAL_UNKILLABLE task if it comes from the parent ns.
 
-Link: http://lkml.kernel.org/r/1507977146-15875-1-git-send-email-chris.gekas@gmail.com
-Signed-off-by: Christos Gkekas <chris.gekas@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Change sig_ignored() to ignore ->ptrace if sig == SIGKILL and rely on
+sig_task_ignored().
+
+SISGTOP coming from within the namespace is not really right too but at
+least debugger can intercept it, and we can't drop it here because this
+will break "gdb -p 1": ptrace_attach() won't work.  Perhaps we will add
+another ->ptrace check later, we will see.
+
+Link: http://lkml.kernel.org/r/20171103184206.GB21036@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Tested-by: Kyle Huey <me@kylehuey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bnode.c     |    4 ----
- fs/hfsplus/bnode.c |    4 ----
- 2 files changed, 8 deletions(-)
+ kernel/signal.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/hfs/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec fs/hfs/bnode.c
---- a/fs/hfs/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec
-+++ a/fs/hfs/bnode.c
-@@ -98,13 +98,11 @@ void hfs_bnode_clear(struct hfs_bnode *n
- void hfs_bnode_copy(struct hfs_bnode *dst_node, int dst,
- 		struct hfs_bnode *src_node, int src, int len)
- {
--	struct hfs_btree *tree;
- 	struct page *src_page, *dst_page;
+diff -puN kernel/signal.c~protect-the-traced-signal_unkillable-tasks-from-sigkill kernel/signal.c
+--- a/kernel/signal.c~protect-the-traced-signal_unkillable-tasks-from-sigkill
++++ a/kernel/signal.c
+@@ -94,13 +94,15 @@ static int sig_ignored(struct task_struc
+ 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+ 		return 0;
  
- 	hfs_dbg(BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
- 	if (!len)
- 		return;
--	tree = src_node->tree;
- 	src += src_node->page_offset;
- 	dst += dst_node->page_offset;
- 	src_page = src_node->page[0];
-@@ -237,7 +235,6 @@ struct hfs_bnode *hfs_bnode_findhash(str
- 
- static struct hfs_bnode *__hfs_bnode_create(struct hfs_btree *tree, u32 cnid)
- {
--	struct super_block *sb;
- 	struct hfs_bnode *node, *node2;
- 	struct address_space *mapping;
- 	struct page *page;
-@@ -249,7 +246,6 @@ static struct hfs_bnode *__hfs_bnode_cre
- 		return NULL;
- 	}
- 
--	sb = tree->inode->i_sb;
- 	size = sizeof(struct hfs_bnode) + tree->pages_per_bnode *
- 		sizeof(struct page *);
- 	node = kzalloc(size, GFP_KERNEL);
-diff -puN fs/hfsplus/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec fs/hfsplus/bnode.c
---- a/fs/hfsplus/bnode.c~hfs-hfsplus-clean-up-unused-variables-in-bnodec
-+++ a/fs/hfsplus/bnode.c
-@@ -127,14 +127,12 @@ void hfs_bnode_clear(struct hfs_bnode *n
- void hfs_bnode_copy(struct hfs_bnode *dst_node, int dst,
- 		    struct hfs_bnode *src_node, int src, int len)
- {
--	struct hfs_btree *tree;
- 	struct page **src_page, **dst_page;
- 	int l;
- 
- 	hfs_dbg(BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
- 	if (!len)
- 		return;
--	tree = src_node->tree;
- 	src += src_node->page_offset;
- 	dst += dst_node->page_offset;
- 	src_page = src_node->page + (src >> PAGE_SHIFT);
-@@ -401,7 +399,6 @@ struct hfs_bnode *hfs_bnode_findhash(str
- 
- static struct hfs_bnode *__hfs_bnode_create(struct hfs_btree *tree, u32 cnid)
- {
--	struct super_block *sb;
- 	struct hfs_bnode *node, *node2;
- 	struct address_space *mapping;
- 	struct page *page;
-@@ -414,7 +411,6 @@ static struct hfs_bnode *__hfs_bnode_cre
- 		return NULL;
- 	}
- 
--	sb = tree->inode->i_sb;
- 	size = sizeof(struct hfs_bnode) + tree->pages_per_bnode *
- 		sizeof(struct page *);
- 	node = kzalloc(size, GFP_KERNEL);
-_
-
-Patches currently in -mm which might be from chris.gekas@gmail.com are
-
-
+-	if (!sig_task_ignored(t, sig, force))
+-		return 0;
