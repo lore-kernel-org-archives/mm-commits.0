@@ -1,136 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- parse-maintainers-add-ability-to-specify-filenames.patch removed from -mm
- tree
-Date: Mon, 20 Nov 2017 13:23:24 -0800
-Message-ID: <20171120212324.m_tAAEC3Z%akpm@linux-foundation.org>
+Subject: [merged] iopoll-avoid-wint-in-bool-context-warning.patch
+ removed from -mm tree
+Date: Mon, 20 Nov 2017 13:23:27 -0800
+Message-ID: <20171120212327.1h1RjdZ1-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40094 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752997AbdKTVXZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:25 -0500
+        with ESMTP id S1752997AbdKTVX2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse-maintainers: add ability to specify filenames
+     Subject: iopoll: avoid -Wint-in-bool-context warning
 has been removed from the -mm tree.  Its filename was
-     parse-maintainers-add-ability-to-specify-filenames.patch
+     iopoll-avoid-wint-in-bool-context-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: parse-maintainers: add ability to specify filenames
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: iopoll: avoid -Wint-in-bool-context warning
 
-parse-maintainers.pl is convenient, but currently hard-codes the filenames
-that are used.
+When we pass the result of a multiplication as the timeout or the delay,
+we can get a warning from gcc-7:
 
-Allow user-specified filenames to simplify the use of the script.
+drivers/mmc/host/bcm2835.c:596:149: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/mfd/arizona-core.c:247:195: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/gpu/drm/sun4i/sun4i_hdmi_i2c.c:49:27: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
 
-Link: http://lkml.kernel.org/r/48703c068b3235223ffa3b2eb268fa0a125b25e0.1502251549.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+The warning is a bit questionable inside of a macro, but this is
+intentional on the side of the gcc developers.  It is also an indication
+of another problem: we evaluate the timeout and sleep arguments multiple
+times, which can have undesired side-effects when those are complex
+expressions.
+
+This changes the two iopoll variants to use local variables for storing
+copies of the timeouts.  This adds some more type safety, and avoids both
+the double-evaluation and the gcc warning.
+
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81484
+Link: http://lkml.kernel.org/r/20170726133756.2161367-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20171102114048.1526955-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/parse-maintainers.pl |   52 +++++++++++++++++++++++++++++----
- 1 file changed, 47 insertions(+), 5 deletions(-)
+ include/linux/iopoll.h |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN scripts/parse-maintainers.pl~parse-maintainers-add-ability-to-specify-filenames scripts/parse-maintainers.pl
---- a/scripts/parse-maintainers.pl~parse-maintainers-add-ability-to-specify-filenames
-+++ a/scripts/parse-maintainers.pl
-@@ -2,9 +2,44 @@
- # SPDX-License-Identifier: GPL-2.0
- 
- use strict;
-+use Getopt::Long qw(:config no_auto_abbrev);
-+
-+my $input_file = "MAINTAINERS";
-+my $output_file = "MAINTAINERS.new";
-+my $output_section = "SECTION.new";
-+my $help = 0;
- 
- my $P = $0;
- 
-+if (!GetOptions(
-+		'input=s' => \$input_file,
-+		'output=s' => \$output_file,
-+		'section=s' => \$output_section,
-+		'h|help|usage' => \$help,
-+	    )) {
-+    die "$P: invalid argument - use --help if necessary\n";
-+}
-+
-+if ($help != 0) {
-+    usage();
-+    exit 0;
-+}
-+
-+sub usage {
-+    print <<EOT;
-+usage: $P [options] <pattern matching regexes>
-+
-+  --input => MAINTAINERS file to read (default: MAINTAINERS)
-+  --output => sorted MAINTAINERS file to write (default: MAINTAINERS.new)
-+  --section => new sorted MAINTAINERS file to write to (default: SECTION.new)
-+
-+If <pattern match regexes> exist, then the sections that match the
-+regexes are not written to the output file but are written to the
-+section file.
-+
-+EOT
-+}
-+
- # sort comparison functions
- sub by_category($$) {
-     my ($a, $b) = @_;
-@@ -56,13 +91,20 @@ sub trim {
- sub alpha_output {
-     my ($hashref, $filename) = (@_);
- 
-+    return if ! scalar(keys %$hashref);
-+
-     open(my $file, '>', "$filename") or die "$P: $filename: open failed - $!\n";
-+    my $separator;
-     foreach my $key (sort by_category keys %$hashref) {
- 	if ($key eq " ") {
--	    chomp $$hashref{$key};
- 	    print $file $$hashref{$key};
- 	} else {
--	    print $file "\n" . $key . "\n";
-+	    if (! defined $separator) {
-+		$separator = "\n";
-+	    } else {
-+		print $file $separator;
-+	    }
-+	    print $file $key . "\n";
- 	    foreach my $pattern (sort by_pattern split('\n', %$hashref{$key})) {
- 		print $file ($pattern . "\n");
- 	    }
-@@ -112,7 +154,7 @@ sub file_input {
- my %hash;
- my %new_hash;
- 
--file_input(\%hash, "MAINTAINERS");
-+file_input(\%hash, $input_file);
- 
- foreach my $type (@ARGV) {
-     foreach my $key (keys %hash) {
-@@ -123,7 +165,7 @@ foreach my $type (@ARGV) {
-     }
- }
- 
--alpha_output(\%hash, "MAINTAINERS.new");
--alpha_output(\%new_hash, "SECTION.new");
-+alpha_output(\%hash, $output_file);
-+alpha_output(\%new_hash, $output_section);
- 
- exit(0);
+diff -puN include/linux/iopoll.h~iopoll-avoid-wint-in-bool-context-warning include/linux/iopoll.h
+--- a/include/linux/iopoll.h~iopoll-avoid-wint-in-bool-context-warning
++++ a/include/linux/iopoll.h
+@@ -42,18 +42,21 @@
+  */
+ #define readx_poll_timeout(op, addr, val, cond, sleep_us, timeout_us)	\
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
+-	might_sleep_if(sleep_us); \
++	u64 __timeout_us = (timeout_us); \
++	unsigned long __sleep_us = (sleep_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
++	might_sleep_if((__sleep_us) != 0); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if (__timeout_us && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+-		if (sleep_us) \
+-			usleep_range((sleep_us >> 2) + 1, sleep_us); \
++		if (__sleep_us) \
++			usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
+ 	} \
+ 	(cond) ? 0 : -ETIMEDOUT; \
+ })
+@@ -77,17 +80,20 @@
+  */
+ #define readx_poll_timeout_atomic(op, addr, val, cond, delay_us, timeout_us) \
+ ({ \
+-	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us); \
++	u64 __timeout_us = (timeout_us); \
++	unsigned long __delay_us = (delay_us); \
++	ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
+ 	for (;;) { \
+ 		(val) = op(addr); \
+ 		if (cond) \
+ 			break; \
+-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) { \
++		if (__timeout_us && \
++		    ktime_compare(ktime_get(), __timeout) > 0) { \
+ 			(val) = op(addr); \
+ 			break; \
+ 		} \
+-		if (delay_us) \
+-			udelay(delay_us);	\
++		if (__delay_us) \
++			udelay(__delay_us);	\
+ 	} \
+ 	(cond) ? 0 : -ETIMEDOUT; \
+ })
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 
