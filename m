@@ -1,108 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- makefile-support-flag-fsanitizer-coverage=trace-cmp.patch removed from -mm
- tree
-Date: Mon, 20 Nov 2017 13:26:30 -0800
-Message-ID: <20171120212630.CkbODzd-6%akpm@linux-foundation.org>
+ sysvipc-duplicate-lock-comments-wrt-ipc_addid.patch removed from -mm tree
+Date: Mon, 20 Nov 2017 13:26:48 -0800
+Message-ID: <20171120212648.yxb6H73hb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40978 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752973AbdKTV0c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:26:32 -0500
+        with ESMTP id S1752725AbdKTV0t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:26:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.popov@linux.com, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, keescook@chromium.org, mark.rutland@arm.com, mm-commits@vger.kernel.org, quentin.casasnovas@oracle.com, syzkaller@googlegroups.com, tchibo@google.com, vegard.nossum@oracle.com
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Makefile: support flag -fsanitizer-coverage=trace-cmp
+     Subject: sysvipc: duplicate lock comments wrt ipc_addid()
 has been removed from the -mm tree.  Its filename was
-     makefile-support-flag-fsanitizer-coverage=trace-cmp.patch
+     sysvipc-duplicate-lock-comments-wrt-ipc_addid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Victor Chibotaru <tchibo@google.com>
-Subject: Makefile: support flag -fsanitizer-coverage=trace-cmp
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: sysvipc: duplicate lock comments wrt ipc_addid()
 
-The flag enables Clang instrumentation of comparison operations (currently
-not supported by GCC).  This instrumentation is needed by the new KCOV
-device to collect comparison operands.
+The comment in msgqueues when using ipc_addid() is quite useful imo. 
+Duplicate it for shm and semaphores.
 
-Link: http://lkml.kernel.org/r/20171011095459.70721-2-glider@google.com
-Signed-off-by: Victor Chibotaru <tchibo@google.com>
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Alexander Popov <alex.popov@linux.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
-Cc: <syzkaller@googlegroups.com>
+Link: http://lkml.kernel.org/r/20170831172049.14576-3-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile              |    3 +--
- lib/Kconfig.debug     |   10 ++++++++++
- scripts/Makefile.kcov |    7 +++++++
- 3 files changed, 18 insertions(+), 2 deletions(-)
+ ipc/sem.c |    1 +
+ ipc/shm.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN lib/Kconfig.debug~makefile-support-flag-fsanitizer-coverage=trace-cmp lib/Kconfig.debug
---- a/lib/Kconfig.debug~makefile-support-flag-fsanitizer-coverage=trace-cmp
-+++ a/lib/Kconfig.debug
-@@ -756,6 +756,16 @@ config KCOV
+diff -puN ipc/sem.c~sysvipc-duplicate-lock-comments-wrt-ipc_addid ipc/sem.c
+--- a/ipc/sem.c~sysvipc-duplicate-lock-comments-wrt-ipc_addid
++++ a/ipc/sem.c
+@@ -515,6 +515,7 @@ static int newary(struct ipc_namespace *
+ 	sma->sem_nsems = nsems;
+ 	sma->sem_ctime = ktime_get_real_seconds();
  
- 	  For more details, see Documentation/dev-tools/kcov.rst.
++	/* ipc_addid() locks sma upon success. */
+ 	retval = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
+ 	if (retval < 0) {
+ 		call_rcu(&sma->sem_perm.rcu, sem_rcu_free);
+diff -puN ipc/shm.c~sysvipc-duplicate-lock-comments-wrt-ipc_addid ipc/shm.c
+--- a/ipc/shm.c~sysvipc-duplicate-lock-comments-wrt-ipc_addid
++++ a/ipc/shm.c
+@@ -601,6 +601,7 @@ static int newseg(struct ipc_namespace *
+ 	shp->shm_file = file;
+ 	shp->shm_creator = current;
  
-+config KCOV_ENABLE_COMPARISONS
-+	bool "Enable comparison operands collection by KCOV"
-+	depends on KCOV
-+	default n
-+	help
-+	  KCOV also exposes operands of every comparison in the instrumented
-+	  code along with operand sizes and PCs of the comparison instructions.
-+	  These operands can be used by fuzzing engines to improve the quality
-+	  of fuzzing coverage.
-+
- config KCOV_INSTRUMENT_ALL
- 	bool "Instrument all code by default"
- 	depends on KCOV
-diff -puN Makefile~makefile-support-flag-fsanitizer-coverage=trace-cmp Makefile
---- a/Makefile~makefile-support-flag-fsanitizer-coverage=trace-cmp
-+++ a/Makefile
-@@ -375,8 +375,6 @@ CFLAGS_KERNEL	=
- AFLAGS_KERNEL	=
- LDFLAGS_vmlinux =
- CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage -fno-tree-loop-im $(call cc-disable-warning,maybe-uninitialized,)
--CFLAGS_KCOV	:= $(call cc-option,-fsanitize-coverage=trace-pc,)
--
- 
- # Use USERINCLUDE when you must reference the UAPI directories only.
- USERINCLUDE    := \
-@@ -659,6 +657,7 @@ ifeq ($(shell $(CONFIG_SHELL) $(srctree)
- 	KBUILD_AFLAGS += -DCC_HAVE_ASM_GOTO
- endif
- 
-+include scripts/Makefile.kcov
- include scripts/Makefile.gcc-plugins
- 
- ifdef CONFIG_READABLE_ASM
-diff -puN /dev/null scripts/Makefile.kcov
---- /dev/null
-+++ a/scripts/Makefile.kcov
-@@ -0,0 +1,7 @@
-+ifdef CONFIG_KCOV
-+CFLAGS_KCOV	:= $(call cc-option,-fsanitize-coverage=trace-pc,)
-+ifeq ($(CONFIG_KCOV_ENABLE_COMPARISONS),y)
-+CFLAGS_KCOV += $(call cc-option,-fsanitize-coverage=trace-cmp,)
-+endif
-+
-+endif
++	/* ipc_addid() locks shp upon success. */
+ 	error = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
+ 	if (error < 0)
+ 		goto no_id;
 _
 
-Patches currently in -mm which might be from tchibo@google.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
