@@ -1,65 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- radix-tree-remove-unneeded-include-linux-bugh.patch removed from -mm tree
-Date: Mon, 20 Nov 2017 13:23:59 -0800
-Message-ID: <20171120212359.dLY9q46VA%akpm@linux-foundation.org>
+ lib-test-delete-five-error-messages-for-a-failed-memory-allocation.patch
+ removed from -mm tree
+Date: Mon, 20 Nov 2017 13:24:05 -0800
+Message-ID: <20171120212405.cnRaEX17U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40220 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753008AbdKTVYA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:00 -0500
+        with ESMTP id S1752908AbdKTVYG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chrism@mellanox.com, hannes@cmpxchg.org, jack@suse.cz, mawilcox@microsoft.com, mm-commits@vger.kernel.org, yamada.masahiro@socionext.com
+To: elfring@users.sourceforge.net, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/radix-tree.h: remove unneeded #include <linux/bug.h>
+     Subject: lib/test: delete five error messages for failed memory allocations
 has been removed from the -mm tree.  Its filename was
-     radix-tree-remove-unneeded-include-linux-bugh.patch
+     lib-test-delete-five-error-messages-for-a-failed-memory-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: include/linux/radix-tree.h: remove unneeded #include <linux/bug.h>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: lib/test: delete five error messages for failed memory allocations
 
-This include was added by 187f1882b5b0 ("BUG: headers with BUG/BUG_ON etc.
-need linux/bug.h") because BUG_ON() was used in this header at that time.
+Omit extra messages for a memory allocation failure in these functions.
 
-Some time later, 6d75f366b924 ("lib: radix-tree: check accounting of
-existing slot replacement users") removed the use of BUG_ON() from this
-header.
+This issue was detected by using the Coccinelle software.
 
-Since then, there is no reason to include <linux/bug.h>.
-
-Link: http://lkml.kernel.org/r/1505660151-4383-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chris Mi <chrism@mellanox.com>
+Link: http://lkml.kernel.org/r/410a4c5a-4ee0-6fcc-969c-103d8e496b78@users.sourceforge.net
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 -
- 1 file changed, 1 deletion(-)
+ lib/test_kasan.c     |    5 ++---
+ lib/test_kmod.c      |    8 ++------
+ lib/test_list_sort.c |    9 +++------
+ 3 files changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-remove-unneeded-include-linux-bugh include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-remove-unneeded-include-linux-bugh
-+++ a/include/linux/radix-tree.h
-@@ -22,7 +22,6 @@
- #define _LINUX_RADIX_TREE_H
+diff -puN lib/test_kasan.c~lib-test-delete-five-error-messages-for-a-failed-memory-allocation lib/test_kasan.c
+--- a/lib/test_kasan.c~lib-test-delete-five-error-messages-for-a-failed-memory-allocation
++++ a/lib/test_kasan.c
+@@ -353,10 +353,9 @@ static noinline void __init memcg_accoun
+ 	 */
+ 	for (i = 0; i < 5; i++) {
+ 		p = kmem_cache_alloc(cache, GFP_KERNEL);
+-		if (!p) {
+-			pr_err("Allocation failed\n");
++		if (!p)
+ 			goto free_cache;
+-		}
++
+ 		kmem_cache_free(cache, p);
+ 		msleep(100);
+ 	}
+diff -puN lib/test_kmod.c~lib-test-delete-five-error-messages-for-a-failed-memory-allocation lib/test_kmod.c
+--- a/lib/test_kmod.c~lib-test-delete-five-error-messages-for-a-failed-memory-allocation
++++ a/lib/test_kmod.c
+@@ -783,10 +783,8 @@ static int kmod_config_sync_info(struct
+ 	free_test_dev_info(test_dev);
+ 	test_dev->info = vzalloc(config->num_threads *
+ 				 sizeof(struct kmod_test_device_info));
+-	if (!test_dev->info) {
+-		dev_err(test_dev->dev, "Cannot alloc test_dev info\n");
++	if (!test_dev->info)
+ 		return -ENOMEM;
+-	}
  
- #include <linux/bitops.h>
--#include <linux/bug.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/preempt.h>
+ 	return 0;
+ }
+@@ -1089,10 +1087,8 @@ static struct kmod_test_device *alloc_te
+ 	struct miscdevice *misc_dev;
+ 
+ 	test_dev = vzalloc(sizeof(struct kmod_test_device));
+-	if (!test_dev) {
+-		pr_err("Cannot alloc test_dev\n");
++	if (!test_dev)
+ 		goto err_out;
+-	}
+ 
+ 	mutex_init(&test_dev->config_mutex);
+ 	mutex_init(&test_dev->trigger_mutex);
+diff -puN lib/test_list_sort.c~lib-test-delete-five-error-messages-for-a-failed-memory-allocation lib/test_list_sort.c
+--- a/lib/test_list_sort.c~lib-test-delete-five-error-messages-for-a-failed-memory-allocation
++++ a/lib/test_list_sort.c
+@@ -76,17 +76,14 @@ static int __init list_sort_test(void)
+ 	pr_debug("start testing list_sort()\n");
+ 
+ 	elts = kcalloc(TEST_LIST_LEN, sizeof(*elts), GFP_KERNEL);
+-	if (!elts) {
+-		pr_err("error: cannot allocate memory\n");
++	if (!elts)
+ 		return err;
+-	}
+ 
+ 	for (i = 0; i < TEST_LIST_LEN; i++) {
+ 		el = kmalloc(sizeof(*el), GFP_KERNEL);
+-		if (!el) {
+-			pr_err("error: cannot allocate memory\n");
++		if (!el)
+ 			goto exit;
+-		}
++
+ 		 /* force some equivalencies */
+ 		el->value = prandom_u32() % (TEST_LIST_LEN / 3);
+ 		el->serial = i;
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from elfring@users.sourceforge.net are
 
 
