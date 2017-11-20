@@ -1,82 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch
- removed from -mm tree
-Date: Mon, 20 Nov 2017 13:22:59 -0800
-Message-ID: <20171120212259.jms5mN65K%akpm@linux-foundation.org>
+Subject: [merged] proc-uninline-name_to_int.patch removed from -mm
+ tree
+Date: Mon, 20 Nov 2017 13:23:05 -0800
+Message-ID: <20171120212305.xxNLRQHgV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752921AbdKTVXA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:00 -0500
+        with ESMTP id S1752965AbdKTVXG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: remove unneeded pageblock_skip_persistent() checks
+     Subject: proc: : uninline name_to_int()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-remove-unneeded-pageblock_skip_persistent-checks.patch
+     proc-uninline-name_to_int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: remove unneeded pageblock_skip_persistent() checks
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: : uninline name_to_int()
 
-f3c931633a59 ("mm, compaction: persistently skip hugetlbfs pageblocks")
-has introduced pageblock_skip_persistent() checks into migration and free
-scanners, to make sure pageblocks that should be persistently skipped are
-marked as such, regardless of the ignore_skip_hint flag.
+Save ~360 bytes.
 
-Since the previous patch introduced a new no_set_skip_hint flag, the
-ignore flag no longer prevents marking pageblocks as skipped.  Therefore
-we can remove the special cases.  The relevant pageblocks will be marked
-as skipped by the common logic which marks each pageblock where no page
-could be isolated.  This makes the code simpler.
+	add/remove: 1/0 grow/shrink: 0/4 up/down: 104/-463 (-359)
+	function                                     old     new   delta
+	name_to_int                                    -     104    +104
+	proc_pid_lookup                              217     126     -91
+	proc_lookupfd_common                         212     121     -91
+	proc_task_lookup                             289     194     -95
+	__proc_create                                588     402    -186
 
-Link: http://lkml.kernel.org/r/20171102121706.21504-3-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20170912194850.GA17730@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ fs/proc/Makefile   |    1 +
+ fs/proc/internal.h |   23 +----------------------
+ fs/proc/util.c     |   23 +++++++++++++++++++++++
+ 3 files changed, 25 insertions(+), 22 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-remove-unneeded-pageblock_skip_persistent-checks mm/compaction.c
---- a/mm/compaction.c~mm-compaction-remove-unneeded-pageblock_skip_persistent-checks
-+++ a/mm/compaction.c
-@@ -476,10 +476,7 @@ static unsigned long isolate_freepages_b
- 		if (PageCompound(page)) {
- 			const unsigned int order = compound_order(page);
+diff -puN fs/proc/internal.h~proc-uninline-name_to_int fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-uninline-name_to_int
++++ a/fs/proc/internal.h
+@@ -103,28 +103,7 @@ static inline struct task_struct *get_pr
+ void task_dump_owner(struct task_struct *task, mode_t mode,
+ 		     kuid_t *ruid, kgid_t *rgid);
  
--			if (pageblock_skip_persistent(page, order)) {
--				set_pageblock_skip(page);
--				blockpfn = end_pfn;
--			} else if (likely(order < MAX_ORDER)) {
-+			if (likely(order < MAX_ORDER)) {
- 				blockpfn += (1UL << order) - 1;
- 				cursor += (1UL << order) - 1;
- 			}
-@@ -801,10 +798,7 @@ isolate_migratepages_block(struct compac
- 		if (PageCompound(page)) {
- 			const unsigned int order = compound_order(page);
- 
--			if (pageblock_skip_persistent(page, order)) {
--				set_pageblock_skip(page);
--				low_pfn = end_pfn;
--			} else if (likely(order < MAX_ORDER))
-+			if (likely(order < MAX_ORDER))
- 				low_pfn += (1UL << order) - 1;
- 			goto isolate_fail;
- 		}
-@@ -867,13 +861,7 @@ isolate_migratepages_block(struct compac
- 			 * is safe to read and it's 0 for tail pages.
- 			 */
- 			if (unlikely(PageCompound(page))) {
--				const unsigned int order = compound_order(page);
+-static inline unsigned name_to_int(const struct qstr *qstr)
+-{
+-	const char *name = qstr->name;
+-	int len = qstr->len;
+-	unsigned n = 0;
+-
+-	if (len > 1 && *name == '0')
+-		goto out;
+-	while (len-- > 0) {
+-		unsigned c = *name++ - '0';
+-		if (c > 9)
+-			goto out;
+-		if (n >= (~0U-9)/10)
+-			goto out;
+-		n *= 10;
+-		n += c;
+-	}
+-	return n;
+-out:
+-	return ~0U;
+-}
+-
++unsigned name_to_int(const struct qstr *qstr);
+ /*
+  * Offset of the first process in the /proc root directory..
+  */
+diff -puN fs/proc/Makefile~proc-uninline-name_to_int fs/proc/Makefile
+--- a/fs/proc/Makefile~proc-uninline-name_to_int
++++ a/fs/proc/Makefile
+@@ -21,6 +21,7 @@ proc-y	+= loadavg.o
+ proc-y	+= meminfo.o
+ proc-y	+= stat.o
+ proc-y	+= uptime.o
++proc-y	+= util.o
+ proc-y	+= version.o
+ proc-y	+= softirqs.o
+ proc-y	+= namespaces.o
+diff -puN /dev/null fs/proc/util.c
+--- /dev/null
++++ a/fs/proc/util.c
+@@ -0,0 +1,23 @@
++#include <linux/dcache.h>
++
++unsigned name_to_int(const struct qstr *qstr)
++{
++	const char *name = qstr->name;
++	int len = qstr->len;
++	unsigned n = 0;
++
++	if (len > 1 && *name == '0')
++		goto out;
++	while (len-- > 0) {
++		unsigned c = *name++ - '0';
++		if (c > 9)
++			goto out;
++		if (n >= (~0U-9)/10)
++			goto out;
++		n *= 10;
++		n += c;
++	}
++	return n;
++out:
++	return ~0U;
++}
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+seq_file-delete-small-value-optimization.patch
+
