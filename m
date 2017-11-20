@@ -1,365 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-add-module-support-to-string-tests.patch
+Subject: [merged] lib-int_sqrt-optimize-small-argument.patch
  removed from -mm tree
-Date: Mon, 20 Nov 2017 13:24:02 -0800
-Message-ID: <20171120212402.3gqx0N7l8%akpm@linux-foundation.org>
+Date: Mon, 20 Nov 2017 13:24:08 -0800
+Message-ID: <20171120212408.vg3ted2-y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40298 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752905AbdKTVYD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:03 -0500
+        with ESMTP id S1752921AbdKTVYK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, mawilcox@microsoft.com, mm-commits@vger.kernel.org, shuah@kernel.org
+To: aksgarg1989@gmail.com, dave@stgolabs.net, davem@davemloft.net, joe@perches.com, keescook@chromium.org, mawilcox@microsoft.com, md@google.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, tglx@linutronix.de, torvalds@linux-foundation.org, will.deacon@arm.com
 
 
 The patch titled
-     Subject: lib: add module support to string tests
+     Subject: lib/int_sqrt: optimize small argument
 has been removed from the -mm tree.  Its filename was
-     lib-add-module-support-to-string-tests.patch
+     lib-int_sqrt-optimize-small-argument.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib: add module support to string tests
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: lib/int_sqrt: optimize small argument
 
-Extract the string test code into its own source file, to allow compiling
-it either to a loadable module, or built into the kernel.
+The current int_sqrt() computation is sub-optimal for the case of small
+@x.  Which is the interesting case when we're going to do cumulative
+distribution functions on idle times, which we assume to be a random
+variable, where the target residency of the deepest idle state gives an
+upper bound on the variable (5e6ns on recent Intel chips).
 
-Fixes: 03270c13c5ffaa6a ("lib/string.c: add testcases for memset16/32/64")
-Link: http://lkml.kernel.org/r/1505397744-3387-1-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+In the case of small @x, the compute loop:
+
+	while (m != 0) {
+		b = y + m;
+		y >>= 1;
+
+		if (x >= b) {
+			x -= b;
+			y += m;
+		}
+		m >>= 2;
+	}
+
+can be reduced to:
+
+	while (m > x)
+		m >>= 2;
+
+Because y==0, b==m and until x>=m y will remain 0.
+
+And while this is computationally equivalent, it runs much faster
+because there's less code, in particular less branches.
+
+      cycles:                 branches:              branch-misses:
+
+OLD:
+
+hot:   45.109444 +- 0.044117  44.333392 +- 0.002254  0.018723 +- 0.000593
+cold: 187.737379 +- 0.156678  44.333407 +- 0.002254  6.272844 +- 0.004305
+
+PRE:
+
+hot:   67.937492 +- 0.064124  66.999535 +- 0.000488  0.066720 +- 0.001113
+cold: 232.004379 +- 0.332811  66.999527 +- 0.000488  6.914634 +- 0.006568
+
+POST:
+
+hot:   43.633557 +- 0.034373  45.333132 +- 0.002277  0.023529 +- 0.000681
+cold: 207.438411 +- 0.125840  45.333132 +- 0.002277  6.976486 +- 0.004219
+
+Averages computed over all values <128k using a LFSR to generate order. 
+Cold numbers have a LFSR based branch trace buffer 'confuser' ran between
+each int_sqrt() invocation.
+
+Link: http://lkml.kernel.org/r/20171020164644.876503355@infradead.org
+Fixes: 30493cc9dddb ("lib/int_sqrt.c: optimize square root algorithm")
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Suggested-by: Anshul Garg <aksgarg1989@gmail.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: David Miller <davem@davemloft.net>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michael Davidson <md@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig       |    2 
- lib/Makefile      |    1 
- lib/string.c      |  141 --------------------------------------------
- lib/test_string.c |  141 ++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 143 insertions(+), 142 deletions(-)
+ lib/int_sqrt.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN lib/Kconfig~lib-add-module-support-to-string-tests lib/Kconfig
---- a/lib/Kconfig~lib-add-module-support-to-string-tests
-+++ a/lib/Kconfig
-@@ -584,7 +584,7 @@ config PRIME_NUMBERS
- 	tristate
+diff -puN lib/int_sqrt.c~lib-int_sqrt-optimize-small-argument lib/int_sqrt.c
+--- a/lib/int_sqrt.c~lib-int_sqrt-optimize-small-argument
++++ a/lib/int_sqrt.c
+@@ -23,6 +23,9 @@ unsigned long int_sqrt(unsigned long x)
+ 		return x;
  
- config STRING_SELFTEST
--	bool "Test string functions"
-+	tristate "Test string functions"
- 
- endmenu
- 
-diff -puN lib/Makefile~lib-add-module-support-to-string-tests lib/Makefile
---- a/lib/Makefile~lib-add-module-support-to-string-tests
-+++ a/lib/Makefile
-@@ -40,6 +40,7 @@ obj-y += bcd.o div64.o sort.o parser.o d
- 	 bsearch.o find_bit.o llist.o memweight.o kfifo.o \
- 	 percpu-refcount.o percpu_ida.o rhashtable.o reciprocal_div.o \
- 	 once.o refcount.o usercopy.o errseq.o
-+obj-$(CONFIG_STRING_SELFTEST) += test_string.o
- obj-y += string_helpers.o
- obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
- obj-y += hexdump.o
-diff -puN lib/string.c~lib-add-module-support-to-string-tests lib/string.c
---- a/lib/string.c~lib-add-module-support-to-string-tests
-+++ a/lib/string.c
-@@ -1052,144 +1052,3 @@ void fortify_panic(const char *name)
- 	BUG();
- }
- EXPORT_SYMBOL(fortify_panic);
--
--#ifdef CONFIG_STRING_SELFTEST
--#include <linux/slab.h>
--#include <linux/module.h>
--
--static __init int memset16_selftest(void)
--{
--	unsigned i, j, k;
--	u16 v, *p;
--
--	p = kmalloc(256 * 2 * 2, GFP_KERNEL);
--	if (!p)
--		return -1;
--
--	for (i = 0; i < 256; i++) {
--		for (j = 0; j < 256; j++) {
--			memset(p, 0xa1, 256 * 2 * sizeof(v));
--			memset16(p + i, 0xb1b2, j);
--			for (k = 0; k < 512; k++) {
--				v = p[k];
--				if (k < i) {
--					if (v != 0xa1a1)
--						goto fail;
--				} else if (k < i + j) {
--					if (v != 0xb1b2)
--						goto fail;
--				} else {
--					if (v != 0xa1a1)
--						goto fail;
--				}
--			}
--		}
--	}
--
--fail:
--	kfree(p);
--	if (i < 256)
--		return (i << 24) | (j << 16) | k;
--	return 0;
--}
--
--static __init int memset32_selftest(void)
--{
--	unsigned i, j, k;
--	u32 v, *p;
--
--	p = kmalloc(256 * 2 * 4, GFP_KERNEL);
--	if (!p)
--		return -1;
--
--	for (i = 0; i < 256; i++) {
--		for (j = 0; j < 256; j++) {
--			memset(p, 0xa1, 256 * 2 * sizeof(v));
--			memset32(p + i, 0xb1b2b3b4, j);
--			for (k = 0; k < 512; k++) {
--				v = p[k];
--				if (k < i) {
--					if (v != 0xa1a1a1a1)
--						goto fail;
--				} else if (k < i + j) {
--					if (v != 0xb1b2b3b4)
--						goto fail;
--				} else {
--					if (v != 0xa1a1a1a1)
--						goto fail;
--				}
--			}
--		}
--	}
--
--fail:
--	kfree(p);
--	if (i < 256)
--		return (i << 24) | (j << 16) | k;
--	return 0;
--}
--
--static __init int memset64_selftest(void)
--{
--	unsigned i, j, k;
--	u64 v, *p;
--
--	p = kmalloc(256 * 2 * 8, GFP_KERNEL);
--	if (!p)
--		return -1;
--
--	for (i = 0; i < 256; i++) {
--		for (j = 0; j < 256; j++) {
--			memset(p, 0xa1, 256 * 2 * sizeof(v));
--			memset64(p + i, 0xb1b2b3b4b5b6b7b8ULL, j);
--			for (k = 0; k < 512; k++) {
--				v = p[k];
--				if (k < i) {
--					if (v != 0xa1a1a1a1a1a1a1a1ULL)
--						goto fail;
--				} else if (k < i + j) {
--					if (v != 0xb1b2b3b4b5b6b7b8ULL)
--						goto fail;
--				} else {
--					if (v != 0xa1a1a1a1a1a1a1a1ULL)
--						goto fail;
--				}
--			}
--		}
--	}
--
--fail:
--	kfree(p);
--	if (i < 256)
--		return (i << 24) | (j << 16) | k;
--	return 0;
--}
--
--static __init int string_selftest_init(void)
--{
--	int test, subtest;
--
--	test = 1;
--	subtest = memset16_selftest();
--	if (subtest)
--		goto fail;
--
--	test = 2;
--	subtest = memset32_selftest();
--	if (subtest)
--		goto fail;
--
--	test = 3;
--	subtest = memset64_selftest();
--	if (subtest)
--		goto fail;
--
--	pr_info("String selftests succeeded\n");
--	return 0;
--fail:
--	pr_crit("String selftest failure %d.%08x\n", test, subtest);
--	return 0;
--}
--
--module_init(string_selftest_init);
--#endif	/* CONFIG_STRING_SELFTEST */
-diff -puN /dev/null lib/test_string.c
---- /dev/null
-+++ a/lib/test_string.c
-@@ -0,0 +1,141 @@
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
+ 	m = 1UL << (BITS_PER_LONG - 2);
++	while (m > x)
++		m >>= 2;
 +
-+static __init int memset16_selftest(void)
-+{
-+	unsigned i, j, k;
-+	u16 v, *p;
-+
-+	p = kmalloc(256 * 2 * 2, GFP_KERNEL);
-+	if (!p)
-+		return -1;
-+
-+	for (i = 0; i < 256; i++) {
-+		for (j = 0; j < 256; j++) {
-+			memset(p, 0xa1, 256 * 2 * sizeof(v));
-+			memset16(p + i, 0xb1b2, j);
-+			for (k = 0; k < 512; k++) {
-+				v = p[k];
-+				if (k < i) {
-+					if (v != 0xa1a1)
-+						goto fail;
-+				} else if (k < i + j) {
-+					if (v != 0xb1b2)
-+						goto fail;
-+				} else {
-+					if (v != 0xa1a1)
-+						goto fail;
-+				}
-+			}
-+		}
-+	}
-+
-+fail:
-+	kfree(p);
-+	if (i < 256)
-+		return (i << 24) | (j << 16) | k;
-+	return 0;
-+}
-+
-+static __init int memset32_selftest(void)
-+{
-+	unsigned i, j, k;
-+	u32 v, *p;
-+
-+	p = kmalloc(256 * 2 * 4, GFP_KERNEL);
-+	if (!p)
-+		return -1;
-+
-+	for (i = 0; i < 256; i++) {
-+		for (j = 0; j < 256; j++) {
-+			memset(p, 0xa1, 256 * 2 * sizeof(v));
-+			memset32(p + i, 0xb1b2b3b4, j);
-+			for (k = 0; k < 512; k++) {
-+				v = p[k];
-+				if (k < i) {
-+					if (v != 0xa1a1a1a1)
-+						goto fail;
-+				} else if (k < i + j) {
-+					if (v != 0xb1b2b3b4)
-+						goto fail;
-+				} else {
-+					if (v != 0xa1a1a1a1)
-+						goto fail;
-+				}
-+			}
-+		}
-+	}
-+
-+fail:
-+	kfree(p);
-+	if (i < 256)
-+		return (i << 24) | (j << 16) | k;
-+	return 0;
-+}
-+
-+static __init int memset64_selftest(void)
-+{
-+	unsigned i, j, k;
-+	u64 v, *p;
-+
-+	p = kmalloc(256 * 2 * 8, GFP_KERNEL);
-+	if (!p)
-+		return -1;
-+
-+	for (i = 0; i < 256; i++) {
-+		for (j = 0; j < 256; j++) {
-+			memset(p, 0xa1, 256 * 2 * sizeof(v));
-+			memset64(p + i, 0xb1b2b3b4b5b6b7b8ULL, j);
-+			for (k = 0; k < 512; k++) {
-+				v = p[k];
-+				if (k < i) {
-+					if (v != 0xa1a1a1a1a1a1a1a1ULL)
-+						goto fail;
-+				} else if (k < i + j) {
-+					if (v != 0xb1b2b3b4b5b6b7b8ULL)
-+						goto fail;
-+				} else {
-+					if (v != 0xa1a1a1a1a1a1a1a1ULL)
-+						goto fail;
-+				}
-+			}
-+		}
-+	}
-+
-+fail:
-+	kfree(p);
-+	if (i < 256)
-+		return (i << 24) | (j << 16) | k;
-+	return 0;
-+}
-+
-+static __init int string_selftest_init(void)
-+{
-+	int test, subtest;
-+
-+	test = 1;
-+	subtest = memset16_selftest();
-+	if (subtest)
-+		goto fail;
-+
-+	test = 2;
-+	subtest = memset32_selftest();
-+	if (subtest)
-+		goto fail;
-+
-+	test = 3;
-+	subtest = memset64_selftest();
-+	if (subtest)
-+		goto fail;
-+
-+	pr_info("String selftests succeeded\n");
-+	return 0;
-+fail:
-+	pr_crit("String selftest failure %d.%08x\n", test, subtest);
-+	return 0;
-+}
-+
-+module_init(string_selftest_init);
-+MODULE_LICENSE("GPL v2");
+ 	while (m != 0) {
+ 		b = y + m;
+ 		y >>= 1;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 
