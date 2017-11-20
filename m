@@ -1,94 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-split-off-flag-for-not-updating-skip-hints.patch removed from
+Subject: [merged] support-resetting-warn_once.patch removed from
  -mm tree
-Date: Mon, 20 Nov 2017 13:22:55 -0800
-Message-ID: <20171120212255.VM0p_wB0W%akpm@linux-foundation.org>
+Date: Mon, 20 Nov 2017 13:23:18 -0800
+Message-ID: <20171120212318.zNaKZ4KVA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40076 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753116AbdKTVW5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:57 -0500
+        with ESMTP id S1752932AbdKTVXT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: ak@linux.intel.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
 
 
 The patch titled
-     Subject: mm, compaction: split off flag for not updating skip hints
+     Subject: kernel debug: support resetting WARN*_ONCE
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-split-off-flag-for-not-updating-skip-hints.patch
+     support-resetting-warn_once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: split off flag for not updating skip hints
+From: Andi Kleen <ak@linux.intel.com>
+Subject: kernel debug: support resetting WARN*_ONCE
 
-Pageblock skip hints were added as a heuristic for compaction, which
-shares core code with CMA.  Since CMA reliability would suffer from the
-heuristics, compact_control flag ignore_skip_hint was added for the CMA
-use case.  Since 6815bf3f233e ("mm/compaction: respect ignore_skip_hint in
-update_pageblock_skip") the flag also means that CMA won't *update* the
-skip hints in addition to ignoring them.
+I like _ONCE warnings because it's guaranteed that they don't
+flood the log.
 
-Today, direct compaction can also ignore the skip hints in the last resort
-attempt, but there's no reason not to set them when isolation fails in
-such case.  Thus, this patch splits off a new no_set_skip_hint flag to
-avoid the updating, which only CMA sets.  This should improve the
-heuristics a bit, and allow us to simplify the persistent skip bit
-handling as the next step.
+During testing I find it useful to reset the state of the once warnings,
+so that I can rerun tests and see if they trigger again, or can
+guarantee that a test run always hits the same warnings.
 
-Link: http://lkml.kernel.org/r/20171102121706.21504-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This patch adds a debugfs interface to reset all the _ONCE
+warnings so that they appear again:
+
+echo 1 > /sys/kernel/debug/clear_warn_once
+
+This is implemented by putting all the warning booleans into
+a special section, and clearing it.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20171017221455.6740-1-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- mm/internal.h   |    1 +
- mm/page_alloc.c |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ Documentation/clearing-warn-once.txt |    7 ++++++
+ include/asm-generic/bug.h            |    6 ++---
+ include/asm-generic/sections.h       |    1 
+ include/asm-generic/vmlinux.lds.h    |    3 ++
+ kernel/panic.c                       |   28 +++++++++++++++++++++++++
+ 5 files changed, 42 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-split-off-flag-for-not-updating-skip-hints mm/compaction.c
---- a/mm/compaction.c~mm-compaction-split-off-flag-for-not-updating-skip-hints
-+++ a/mm/compaction.c
-@@ -295,7 +295,7 @@ static void update_pageblock_skip(struct
- 	struct zone *zone = cc->zone;
- 	unsigned long pfn;
+diff -puN /dev/null Documentation/clearing-warn-once.txt
+--- /dev/null
++++ a/Documentation/clearing-warn-once.txt
+@@ -0,0 +1,7 @@
++
++WARN_ONCE / WARN_ON_ONCE only print a warning once.
++
++echo 1 > /sys/kernel/debug/clear_warn_once
++
++clears the state and allows the warnings to print once again.
++This can be useful after test suite runs to reproduce problems.
+diff -puN include/asm-generic/bug.h~support-resetting-warn_once include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~support-resetting-warn_once
++++ a/include/asm-generic/bug.h
+@@ -130,7 +130,7 @@ void __warn(const char *file, int line,
  
--	if (cc->ignore_skip_hint)
-+	if (cc->no_set_skip_hint)
- 		return;
+ #ifndef WARN_ON_ONCE
+ #define WARN_ON_ONCE(condition)	({				\
+-	static bool __section(.data.unlikely) __warned;		\
++	static bool __section(.data.once) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once && !__warned)) {		\
+@@ -142,7 +142,7 @@ void __warn(const char *file, int line,
+ #endif
  
- 	if (!page)
-diff -puN mm/internal.h~mm-compaction-split-off-flag-for-not-updating-skip-hints mm/internal.h
---- a/mm/internal.h~mm-compaction-split-off-flag-for-not-updating-skip-hints
-+++ a/mm/internal.h
-@@ -198,6 +198,7 @@ struct compact_control {
- 	const int classzone_idx;	/* zone index of a direct compactor */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
-+	bool no_set_skip_hint;		/* Don't mark blocks for skipping */
- 	bool ignore_block_suitable;	/* Scan blocks considered unsuitable */
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	bool whole_zone;		/* Whole zone should/has been scanned */
-diff -puN mm/page_alloc.c~mm-compaction-split-off-flag-for-not-updating-skip-hints mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-split-off-flag-for-not-updating-skip-hints
-+++ a/mm/page_alloc.c
-@@ -7619,6 +7619,7 @@ int alloc_contig_range(unsigned long sta
- 		.zone = page_zone(pfn_to_page(start)),
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
-+		.no_set_skip_hint = true,
- 		.gfp_mask = current_gfp_context(gfp_mask),
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
+ #define WARN_ONCE(condition, format...)	({			\
+-	static bool __section(.data.unlikely) __warned;		\
++	static bool __section(.data.once) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once && !__warned)) {		\
+@@ -153,7 +153,7 @@ void __warn(const char *file, int line,
+ })
+ 
+ #define WARN_TAINT_ONCE(condition, taint, format...)	({	\
+-	static bool __section(.data.unlikely) __warned;		\
++	static bool __section(.data.once) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once && !__warned)) {		\
+diff -puN include/asm-generic/sections.h~support-resetting-warn_once include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~support-resetting-warn_once
++++ a/include/asm-generic/sections.h
+@@ -44,6 +44,7 @@ extern char __entry_text_start[], __entr
+ extern char __start_rodata[], __end_rodata[];
+ extern char __irqentry_text_start[], __irqentry_text_end[];
+ extern char __softirqentry_text_start[], __softirqentry_text_end[];
++extern char __start_once[], __end_once[];
+ 
+ /* Start and end of .ctors section - used for constructor calls. */
+ extern char __ctors_start[], __ctors_end[];
+diff -puN include/asm-generic/vmlinux.lds.h~support-resetting-warn_once include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~support-resetting-warn_once
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -223,6 +223,9 @@
+ 	MEM_KEEP(init.data)						\
+ 	MEM_KEEP(exit.data)						\
+ 	*(.data.unlikely)						\
++	VMLINUX_SYMBOL(__start_once) = .;				\
++	*(.data.once)							\
++	VMLINUX_SYMBOL(__end_once) = .;					\
+ 	STRUCT_ALIGN();							\
+ 	*(__tracepoints)						\
+ 	/* implement dynamic printk debug */				\
+diff -puN kernel/panic.c~support-resetting-warn_once kernel/panic.c
+--- a/kernel/panic.c~support-resetting-warn_once
++++ a/kernel/panic.c
+@@ -27,6 +27,8 @@
+ #include <linux/console.h>
+ #include <linux/bug.h>
+ #include <linux/ratelimit.h>
++#include <linux/debugfs.h>
++#include <asm/sections.h>
+ 
+ #define PANIC_TIMER_STEP 100
+ #define PANIC_BLINK_SPD 18
+@@ -587,6 +589,32 @@ void warn_slowpath_null(const char *file
+ EXPORT_SYMBOL(warn_slowpath_null);
+ #endif
+ 
++#ifdef CONFIG_BUG
++
++/* Support resetting WARN*_ONCE state */
++
++static int clear_warn_once_set(void *data, u64 val)
++{
++	memset(__start_once, 0, __end_once - __start_once);
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(clear_warn_once_fops,
++			NULL,
++			clear_warn_once_set,
++			"%lld\n");
++
++static __init int register_warn_debugfs(void)
++{
++	/* Don't care about failure */
++	debugfs_create_file("clear_warn_once", 0644, NULL,
++			    NULL, &clear_warn_once_fops);
++	return 0;
++}
++
++device_initcall(register_warn_debugfs);
++#endif
++
+ #ifdef CONFIG_CC_STACKPROTECTOR
+ 
+ /*
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 
