@@ -1,124 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-debug-fix-incorrect-pfn-calculation.patch
- removed from -mm tree
-Date: Mon, 20 Nov 2017 13:22:40 -0800
-Message-ID: <20171120212240.PjbrRZUnf%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch removed from
+ -mm tree
+Date: Mon, 20 Nov 2017 13:22:46 -0800
+Message-ID: <20171120212246.tTdl1MJ26%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39984 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753058AbdKTVWm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:42 -0500
+        with ESMTP id S1752816AbdKTVWr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, m.szyprowski@samsung.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org, robin.murphy@arm.com
+To: mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: lib/dma-debug.c: fix incorrect pfn calculation
+     Subject: mm, compaction: kcompactd should not ignore pageblock skip
 has been removed from the -mm tree.  Its filename was
-     dma-debug-fix-incorrect-pfn-calculation.patch
+     mm-compaction-kcompactd-should-not-ignore-pageblock-skip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: lib/dma-debug.c: fix incorrect pfn calculation
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: kcompactd should not ignore pageblock skip
 
-dma-debug reports the following warning:
+Kcompactd is needlessly ignoring pageblock skip information.  It is doing
+MIGRATE_SYNC_LIGHT compaction, which is no more powerful than MIGRATE_SYNC
+compaction.
 
-[name:panic&]WARNING: CPU: 3 PID: 298 at kernel-4.4/lib/dma-debug.c:604
-debug _dma_assert_idle+0x1a8/0x230()
-DMA-API: cpu touching an active dma mapped cacheline [cln=0x00000882300]
-CPU: 3 PID: 298 Comm: vold Tainted: G        W  O    4.4.22+ #1
-Hardware name: MT6739 (DT)
-Call trace:
-[<ffffff800808acd0>] dump_backtrace+0x0/0x1d4
-[<ffffff800808affc>] show_stack+0x14/0x1c
-[<ffffff800838019c>] dump_stack+0xa8/0xe0
-[<ffffff80080a0594>] warn_slowpath_common+0xf4/0x11c
-[<ffffff80080a061c>] warn_slowpath_fmt+0x60/0x80
-[<ffffff80083afe24>] debug_dma_assert_idle+0x1a8/0x230
-[<ffffff80081dca9c>] wp_page_copy.isra.96+0x118/0x520
-[<ffffff80081de114>] do_wp_page+0x4fc/0x534
-[<ffffff80081e0a14>] handle_mm_fault+0xd4c/0x1310
-[<ffffff8008098798>] do_page_fault+0x1c8/0x394
-[<ffffff800808231c>] do_mem_abort+0x50/0xec
+If compaction recently failed to isolate memory from a set of pageblocks,
+there is nothing to indicate that kcompactd will be able to do so, or that
+it is beneficial from attempting to isolate memory.
 
-I found that debug_dma_alloc_coherent() and debug_dma_free_coherent()
-assume that dma_alloc_coherent() always returns a linear address.  However
-it's possible that dma_alloc_coherent() returns a non-linear address.  In
-this case, page_to_pfn(virt_to_page(virt)) will return an incorrect pfn. 
-If the pfn is valid and mapped as a COW page, we will hit the warning when
-doing wp_page_copy().
+Use the pageblock skip hint to avoid rescanning pageblocks needlessly
+until that information is reset.
 
-Fix this by calculating pfn for linear and non-linear addresses.
-
-[miles.chen@mediatek.com: v4]
-  Link: http://lkml.kernel.org/r/1510872972-23919-1-git-send-email-miles.chen@mediatek.com
-Link: http://lkml.kernel.org/r/1506484087-1177-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1708151638550.106658@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ mm/compaction.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-fix-incorrect-pfn-calculation lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-fix-incorrect-pfn-calculation
-+++ a/lib/dma-debug.c
-@@ -1495,14 +1495,22 @@ void debug_dma_alloc_coherent(struct dev
- 	if (!entry)
- 		return;
- 
-+	/* handle vmalloc and linear addresses */
-+	if (!is_vmalloc_addr(virt) && !virt_to_page(virt))
-+		return;
-+
- 	entry->type      = dma_debug_coherent;
- 	entry->dev       = dev;
--	entry->pfn	 = page_to_pfn(virt_to_page(virt));
- 	entry->offset	 = offset_in_page(virt);
- 	entry->size      = size;
- 	entry->dev_addr  = dma_addr;
- 	entry->direction = DMA_BIDIRECTIONAL;
- 
-+	if (is_vmalloc_addr(virt))
-+		entry->pfn = vmalloc_to_pfn(virt);
-+	else
-+		entry->pfn = page_to_pfn(virt_to_page(virt));
-+
- 	add_dma_entry(entry);
- }
- EXPORT_SYMBOL(debug_dma_alloc_coherent);
-@@ -1513,13 +1521,21 @@ void debug_dma_free_coherent(struct devi
- 	struct dma_debug_entry ref = {
- 		.type           = dma_debug_coherent,
- 		.dev            = dev,
--		.pfn		= page_to_pfn(virt_to_page(virt)),
- 		.offset		= offset_in_page(virt),
- 		.dev_addr       = addr,
- 		.size           = size,
- 		.direction      = DMA_BIDIRECTIONAL,
- 	};
- 
-+	/* handle vmalloc and linear addresses */
-+	if (!is_vmalloc_addr(virt) && !virt_to_page(virt))
-+		return;
-+
-+	if (is_vmalloc_addr(virt))
-+		ref.pfn = vmalloc_to_pfn(virt);
-+	else
-+		ref.pfn = page_to_pfn(virt_to_page(virt));
-+
- 	if (unlikely(dma_debug_disabled()))
- 		return;
- 
-_
-
-Patches currently in -mm which might be from miles.chen@mediatek.com are
-
-
+diff -puN mm/compaction.c~mm-compaction-kcompactd-should-not-ignore-pageblock-skip mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-kcompactd-should-not-ignore-pageblock-skip
++++ a/mm/compaction.c
+@@ -1928,9 +1928,8 @@ static void kcompactd_do_work(pg_data_t
+ 		.total_free_scanned = 0,
+ 		.classzone_idx = pgdat->kcompactd_classzone_idx,
+ 		.mode = MIGRATE_SYNC_LIGHT,
+-		.ignore_skip_hint = true,
++		.ignore_skip_hint = false,
+ 		.gfp_mask = GFP_KERNEL,
