@@ -1,133 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- pipe-match-pipe_max_size-data-type-with-procfs.patch removed from -mm tree
-Date: Mon, 20 Nov 2017 13:25:09 -0800
-Message-ID: <20171120212509.8E0sNLi8y%akpm@linux-foundation.org>
+Subject: [merged] autofs-dont-fail-mount-for-transient-error.patch
+ removed from -mm tree
+Date: Mon, 20 Nov 2017 13:25:06 -0800
+Message-ID: <20171120212506.13CTySvfj%akpm__13919.3089250059$1511213118$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40672 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752882AbdKTVZL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:11 -0500
+        with ESMTP id S1752905AbdKTVZH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@kernel.dk, joe.lawrence@redhat.com, jpoimboe@redhat.com, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, rdunlap@infradead.org, viro@zeniv.linux.org.uk
+To: mm-commits@vger.kernel.org, neilb@suse.com, raven@themaw.net, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: match pipe_max_size data type with procfs
+     Subject: autofs: don't fail mount for transient error
 has been removed from the -mm tree.  Its filename was
-     pipe-match-pipe_max_size-data-type-with-procfs.patch
+     autofs-dont-fail-mount-for-transient-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Lawrence <joe.lawrence@redhat.com>
-Subject: pipe: match pipe_max_size data type with procfs
+From: NeilBrown <neilb@suse.com>
+Subject: autofs: don't fail mount for transient error
 
-Patch series "A few round_pipe_size() and pipe-max-size fixups", v3.
+Currently if the autofs kernel module gets an error when writing to the
+pipe which links to the daemon, then it marks the whole moutpoint as
+catatonic, and it will stop working.
 
-While backporting Michael's "pipe: fix limit handling" patchset to a
-distro-kernel, Mikulas noticed that current upstream pipe limit handling
-contains a few problems:
+It is possible that the error is transient.  This can happen if the daemon
+is slow and more than 16 requests queue up.  If a subsequent process tries
+to queue a request, and is then signalled, the write to the pipe will
+return -ERESTARTSYS and autofs will take that as total failure.
 
-  1 - procfs signed wrap: echo'ing a large number into
-      /proc/sys/fs/pipe-max-size and then cat'ing it back out shows a
-      negative value.
+So change the code to assess -ERESTARTSYS and -ENOMEM as transient
+failures which only abort the current request, not the whole mountpoint.
 
-  2 - round_pipe_size() nr_pages overflow on 32bit:  this would
-      subsequently try roundup_pow_of_two(0), which is undefined.
+It isn't a crash or a data corruption, but having autofs mountpoints
+suddenly stop working is rather inconvenient.
 
-  3 - visible non-rounded pipe-max-size value: there is no mutual
-      exclusion or protection between the time pipe_max_size is assigned
-      a raw value from proc_dointvec_minmax() and when it is rounded.
+Ian said:
 
-  4 - unsigned long -> unsigned int conversion makes for potential odd
-      return errors from do_proc_douintvec_minmax_conv() and
-      do_proc_dopipe_max_size_conv().
-
-This version underwent the same testing as v1:
-https://marc.info/?l=linux-kernel&m=150643571406022&w=2
+: And given the problems with a half dozen (or so) user space applications
+: consuming large amounts of CPU under heavy mount and umount activity this
+: could happen more easily than we expect.
 
 
-This patch (of 4):
-
-pipe_max_size is defined as an unsigned int:
-
-  unsigned int pipe_max_size = 1048576;
-
-but its procfs/sysctl representation is an integer:
-
-  static struct ctl_table fs_table[] = {
-          ...
-          {
-                  .procname       = "pipe-max-size",
-                  .data           = &pipe_max_size,
-                  .maxlen         = sizeof(int),
-                  .mode           = 0644,
-                  .proc_handler   = &pipe_proc_fn,
-                  .extra1         = &pipe_min_size,
-          },
-          ...
-
-that is signed:
-
-  int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
-                   size_t *lenp, loff_t *ppos)
-  {
-          ...
-          ret = proc_dointvec_minmax(table, write, buf, lenp, ppos)
-
-This leads to signed results via procfs for large values of pipe_max_size:
-
-  % echo 2147483647 >/proc/sys/fs/pipe-max-size
-  % cat /proc/sys/fs/pipe-max-size
-  -2147483648
-
-Use unsigned operations on this variable to avoid such negative values.
-
-Link: http://lkml.kernel.org/r/1507658689-11669-2-git-send-email-joe.lawrence@redhat.com
-Signed-off-by: Joe Lawrence <joe.lawrence@redhat.com>
-Reported-by: Mikulas Patocka <mpatocka@redhat.com>
-Reviewed-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: http://lkml.kernel.org/r/87y3norvgp.fsf@notabene.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.com>
+Acked-by: Ian Kent <raven@themaw.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c       |    2 +-
- kernel/sysctl.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/autofs4/waitq.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN fs/pipe.c~pipe-match-pipe_max_size-data-type-with-procfs fs/pipe.c
---- a/fs/pipe.c~pipe-match-pipe_max_size-data-type-with-procfs
-+++ a/fs/pipe.c
-@@ -1125,7 +1125,7 @@ int pipe_proc_fn(struct ctl_table *table
- {
- 	int ret;
+diff -puN fs/autofs4/waitq.c~autofs-dont-fail-mount-for-transient-error fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs-dont-fail-mount-for-transient-error
++++ a/fs/autofs4/waitq.c
+@@ -81,7 +81,8 @@ static int autofs4_write(struct autofs_s
+ 		spin_unlock_irqrestore(&current->sighand->siglock, flags);
+ 	}
  
--	ret = proc_dointvec_minmax(table, write, buf, lenp, ppos);
-+	ret = proc_douintvec_minmax(table, write, buf, lenp, ppos);
- 	if (ret < 0 || !write)
- 		return ret;
+-	return (bytes > 0);
++	/* if 'wr' returned 0 (impossible) we assume -EIO (safe) */
++	return bytes == 0 ? 0 : wr < 0 ? wr : -EIO;
+ }
  
-diff -puN kernel/sysctl.c~pipe-match-pipe_max_size-data-type-with-procfs kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-match-pipe_max_size-data-type-with-procfs
-+++ a/kernel/sysctl.c
-@@ -1816,7 +1816,7 @@ static struct ctl_table fs_table[] = {
- 	{
- 		.procname	= "pipe-max-size",
- 		.data		= &pipe_max_size,
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(pipe_max_size),
- 		.mode		= 0644,
- 		.proc_handler	= &pipe_proc_fn,
- 		.extra1		= &pipe_min_size,
+ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+@@ -95,6 +96,7 @@ static void autofs4_notify_daemon(struct
+ 	} pkt;
+ 	struct file *pipe = NULL;
+ 	size_t pktsz;
++	int ret;
+ 
+ 	pr_debug("wait id = 0x%08lx, name = %.*s, type=%d\n",
+ 		 (unsigned long) wq->wait_queue_token,
+@@ -169,7 +171,18 @@ static void autofs4_notify_daemon(struct
+ 	mutex_unlock(&sbi->wq_mutex);
+ 
+ 	if (autofs4_write(sbi, pipe, &pkt, pktsz))
++	switch (ret = autofs4_write(sbi, pipe, &pkt, pktsz)) {
++	case 0:
++		break;
++	case -ENOMEM:
++	case -ERESTARTSYS:
++		/* Just fail this one */
++		autofs4_wait_release(sbi, wq->wait_queue_token, ret);
++		break;
++	default:
+ 		autofs4_catatonic_mode(sbi);
++		break;
++	}
+ 	fput(pipe);
+ }
+ 
 _
 
-Patches currently in -mm which might be from joe.lawrence@redhat.com are
+Patches currently in -mm which might be from neilb@suse.com are
 
 
