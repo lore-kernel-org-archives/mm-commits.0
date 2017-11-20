@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- compiler-clang-handle-randomizable-anonymous-structs.patch removed from -mm
- tree
-Date: Mon, 20 Nov 2017 13:23:38 -0800
-Message-ID: <20171120212338.tbq5kpMR-%akpm@linux-foundation.org>
+ =?US-ASCII?Q?dynamic=5Fdebug-fix-optional-omitted-ending-line-number-to?=
+ =?US-ASCII?Q?-be-large-instead-of-0.patch?= removed from -mm tree
+Date: Mon, 20 Nov 2017 13:23:44 -0800
+Message-ID: <20171120212344.y3DcYsw_-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40162 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753046AbdKTVXj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:39 -0500
+        with ESMTP id S1752882AbdKTVXp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:23:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ast@fb.com, gregkh@linuxfoundation.org, kstewart@linuxfoundation.org, mm-commits@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, rientjes@google.com, sandipan@linux.vnet.ibm.com, tglx@linutronix.de
+To: jbaron@akamai.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: include/linux/compiler-clang.h: handle randomizable anonymous structs
+     Subject: dynamic-debug-howto: fix optional/omitted ending line number to be LARGE instead of 0
 has been removed from the -mm tree.  Its filename was
-     compiler-clang-handle-randomizable-anonymous-structs.patch
+     dynamic_debug-fix-optional-omitted-ending-line-number-to-be-large-instead-of-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sandipan Das <sandipan@linux.vnet.ibm.com>
-Subject: include/linux/compiler-clang.h: handle randomizable anonymous structs
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: dynamic-debug-howto: fix optional/omitted ending line number to be LARGE instead of 0
 
-The GCC randomize layout plugin can randomize the member offsets of
-sensitive kernel data structures.  To use this feature, certain
-annotations and members are added to the structures which affect the
-member offsets even if this plugin is not used.
+line-range is supposed to treat "1-" as "1-endoffile", so
+handle the special case by setting last_lineno to UINT_MAX.
 
-All of these structures are completely randomized, except for task_struct
-which leaves out some of its members.  All the other members are wrapped
-within an anonymous struct with the __randomize_layout attribute.  This is
-done using the randomized_struct_fields_start and
-randomized_struct_fields_end defines.  When the plugin is disabled, the
-behaviour of this attribute can vary based on the GCC version.  For GCC
-5.1+, this attribute maps to __designated_init otherwise it is just an
-empty define but the anonymous structure is still present.  For other
-compilers, both randomized_struct_fields_start and
-randomized_struct_fields_end default to empty defines meaning the
-anonymous structure is not introduced at all.  So, if a module compiled
-with Clang, such as a BPF program, needs to access task_struct fields such
-as pid and comm, the offsets of these members as recognized by Clang are
-different from those recognized by modules compiled with GCC.  If GCC 4.6+
-is used to build the kernel, this can be solved by introducing appropriate
-defines for Clang so that the anonymous structure is seen when determining
-the offsets for the members.
+Fixes this error:
 
-Link: http://lkml.kernel.org/r/20171109064645.25581-1-sandipan@linux.vnet.ibm.com
-Signed-off-by: Sandipan Das <sandipan@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Alexei Starovoitov <ast@fb.com>
+dynamic_debug:ddebug_parse_query: last-line:0 < 1st-line:1
+dynamic_debug:ddebug_exec_query: query parse failed
+
+Link: http://lkml.kernel.org/r/10a6a101-e2be-209f-1f41-54637824788e@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Jason Baron <jbaron@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/dynamic_debug.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/compiler-clang.h~compiler-clang-handle-randomizable-anonymous-structs include/linux/compiler-clang.h
---- a/include/linux/compiler-clang.h~compiler-clang-handle-randomizable-anonymous-structs
-+++ a/include/linux/compiler-clang.h
-@@ -16,3 +16,6 @@
-  * with any version that can compile the kernel
-  */
- #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+diff -puN lib/dynamic_debug.c~dynamic_debug-fix-optional-omitted-ending-line-number-to-be-large-instead-of-0 lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic_debug-fix-optional-omitted-ending-line-number-to-be-large-instead-of-0
++++ a/lib/dynamic_debug.c
+@@ -360,6 +360,10 @@ static int ddebug_parse_query(char *word
+ 				if (parse_lineno(last, &query->last_lineno) < 0)
+ 					return -EINVAL;
+ 
++				/* special case for last lineno not specified */
++				if (query->last_lineno == 0)
++					query->last_lineno = UINT_MAX;
 +
-+#define randomized_struct_fields_start	struct {
-+#define randomized_struct_fields_end	};
+ 				if (query->last_lineno < query->first_lineno) {
+ 					pr_err("last-line:%d < 1st-line:%d\n",
+ 						query->last_lineno,
 _
 
-Patches currently in -mm which might be from sandipan@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
