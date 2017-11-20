@@ -1,59 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib_backtrace-fix-kernel-text-address-leak.patch
+Subject: [merged] lib-traceevent-clean-up-clang-build-warning.patch
  removed from -mm tree
-Date: Mon, 20 Nov 2017 13:24:21 -0800
-Message-ID: <20171120212421.c9zw8efqH%akpm@linux-foundation.org>
+Date: Mon, 20 Nov 2017 13:24:24 -0800
+Message-ID: <20171120212424.Te58FmDTi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40450 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752816AbdKTVYW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:22 -0500
+        with ESMTP id S1752932AbdKTVYZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: changcheng.liu@intel.com, jpoimboe@redhat.com, mm-commits@vger.kernel.org, pmladek@suse.com, sergey.senozhatsky@gmail.com
+To: cj.chengjian@huawei.com, huawei.libin@huawei.com, kstewart@linuxfoundation.org, mm-commits@vger.kernel.org, rostedt@goodmis.org, xiexiuqi@huawei.com
 
 
 The patch titled
-     Subject: lib/nmi_backtrace.c: fix kernel text address leak
+     Subject: tools/lib/traceevent/parse-filter.c: clean up clang build warning
 has been removed from the -mm tree.  Its filename was
-     lib_backtrace-fix-kernel-text-address-leak.patch
+     lib-traceevent-clean-up-clang-build-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Liu, Changcheng" <changcheng.liu@intel.com>
-Subject: lib/nmi_backtrace.c: fix kernel text address leak
+From: Cheng Jian <cj.chengjian@huawei.com>
+Subject: tools/lib/traceevent/parse-filter.c: clean up clang build warning
 
-Don't leak idle function address in NMI backtrace.
+The uniform structure filter_arg sets its union based on the difference of
+enum filter_arg_type, However, some functions use implicit type conversion
+obviously.
 
-Link: http://lkml.kernel.org/r/20171106165648.GA95243@sofia
-Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+warning: implicit conversion from enumeration type 'enum filter_exp_type'
+	 to different enumeration type 'enum filter_op_type'
+
+warning: implicit conversion from enumeration type 'enum filter_cmp_type'
+	 to different enumeration type 'enum filter_exp_type'
+
+Link: http://lkml.kernel.org/r/1509938415-113825-1-git-send-email-cj.chengjian@huawei.com
+Signed-off-by: Cheng Jian <cj.chengjian@huawei.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: Li Bin <huawei.libin@huawei.com>
+Cc: Steven Rostedt (Red Hat) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/nmi_backtrace.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/lib/traceevent/parse-filter.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/nmi_backtrace.c~lib_backtrace-fix-kernel-text-address-leak lib/nmi_backtrace.c
---- a/lib/nmi_backtrace.c~lib_backtrace-fix-kernel-text-address-leak
-+++ a/lib/nmi_backtrace.c
-@@ -93,8 +93,8 @@ bool nmi_cpu_backtrace(struct pt_regs *r
- 	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
- 		arch_spin_lock(&lock);
- 		if (regs && cpu_in_idle(instruction_pointer(regs))) {
--			pr_warn("NMI backtrace for cpu %d skipped: idling at pc %#lx\n",
--				cpu, instruction_pointer(regs));
-+			pr_warn("NMI backtrace for cpu %d skipped: idling at %pS\n",
-+				cpu, (void *)instruction_pointer(regs));
- 		} else {
- 			pr_warn("NMI backtrace for cpu %d\n", cpu);
- 			if (regs)
+diff -puN tools/lib/traceevent/parse-filter.c~lib-traceevent-clean-up-clang-build-warning tools/lib/traceevent/parse-filter.c
+--- a/tools/lib/traceevent/parse-filter.c~lib-traceevent-clean-up-clang-build-warning
++++ a/tools/lib/traceevent/parse-filter.c
+@@ -436,13 +436,13 @@ create_arg_exp(enum filter_exp_type etyp
+ 		return NULL;
+ 
+ 	arg->type = FILTER_ARG_EXP;
+-	arg->op.type = etype;
++	arg->exp.type = etype;
+ 
+ 	return arg;
+ }
+ 
+ static struct filter_arg *
+-create_arg_cmp(enum filter_exp_type etype)
++create_arg_cmp(enum filter_cmp_type ctype)
+ {
+ 	struct filter_arg *arg;
+ 
+@@ -452,7 +452,7 @@ create_arg_cmp(enum filter_exp_type etyp
+ 
+ 	/* Use NUM and change if necessary */
+ 	arg->type = FILTER_ARG_NUM;
+-	arg->op.type = etype;
++	arg->num.type = ctype;
+ 
+ 	return arg;
+ }
 _
 
-Patches currently in -mm which might be from changcheng.liu@intel.com are
+Patches currently in -mm which might be from cj.chengjian@huawei.com are
 
 
