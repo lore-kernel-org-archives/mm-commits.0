@@ -1,151 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- epoll-avoid-calling-ep_call_nested-from-ep_poll_safewake.patch removed from
- -mm tree
-Date: Mon, 20 Nov 2017 13:24:57 -0800
-Message-ID: <20171120212457.GGvRbmAbz%akpm@linux-foundation.org>
+ init-version-include-linux-exporth-instead-of-linux-moduleh.patch removed
+ from -mm tree
+Date: Mon, 20 Nov 2017 13:25:03 -0800
+Message-ID: <20171120212503.4seA9egOo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40668 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752785AbdKTVY6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:58 -0500
+        with ESMTP id S1752997AbdKTVZE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:25:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbueso@suse.de, jbaron@akamai.com, mm-commits@vger.kernel.org, sqazi@google.com, viro@zeniv.linux.org.uk
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: epoll: avoid calling ep_call_nested() from ep_poll_safewake()
+     Subject: init/version.c: include <linux/export.h> instead of <linux/module.h>
 has been removed from the -mm tree.  Its filename was
-     epoll-avoid-calling-ep_call_nested-from-ep_poll_safewake.patch
+     init-version-include-linux-exporth-instead-of-linux-moduleh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: epoll: avoid calling ep_call_nested() from ep_poll_safewake()
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: init/version.c: include <linux/export.h> instead of <linux/module.h>
 
-ep_poll_safewake() is used to wakeup potentially nested epoll file
-descriptors.  The function uses ep_call_nested() to prevent entering the
-same wake up queue more than once, and to prevent excessively deep wakeup
-paths (deeper than EP_MAX_NESTS).  However, this is not necessary since we
-are already preventing these conditions during EPOLL_CTL_ADD.  This saves
-extra function calls, and avoids taking a global lock during the
-ep_call_nested() calls.
+init/version.c has nothing to do with modules, so remove the
+<linux/modude.h>.
 
-I have, however, left ep_call_nested() for the CONFIG_DEBUG_LOCK_ALLOC
-case, since ep_call_nested() keeps track of the nesting level, and this is
-required by the call to spin_lock_irqsave_nested().  It would be nice to
-remove the ep_call_nested() calls for the CONFIG_DEBUG_LOCK_ALLOC case as
-well, however its not clear how to simply pass the nesting level through
-multiple wake_up() levels without more surgery.  In any case, I don't
-think CONFIG_DEBUG_LOCK_ALLOC is generally used for production.  This
-patch, also apparently fixes a workload at Google that Salman Qazi
-reported by completely removing the poll_safewake_ncalls->lock from wakeup
-paths.
+Instead, include <linux/export.h> for EXPORT_SYMBOL_GPL.
 
-Link: http://lkml.kernel.org/r/1507920533-8812-1-git-send-email-jbaron@akamai.com
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Salman Qazi <sqazi@google.com>
+This cuts off a lot of unnecessary header parsing.
+
+Link: http://lkml.kernel.org/r/1505920984-8523-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   47 ++++++++++++++++++-----------------------------
- 1 file changed, 18 insertions(+), 29 deletions(-)
+ init/version.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-avoid-calling-ep_call_nested-from-ep_poll_safewake fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-avoid-calling-ep_call_nested-from-ep_poll_safewake
-+++ a/fs/eventpoll.c
-@@ -276,9 +276,6 @@ static DEFINE_MUTEX(epmutex);
- /* Used to check for epoll file descriptor inclusion loops */
- static struct nested_calls poll_loop_ncalls;
- 
--/* Used for safe wake up implementation */
--static struct nested_calls poll_safewake_ncalls;
--
- /* Used to call file's f_op->poll() under the nested calls boundaries */
- static struct nested_calls poll_readywalk_ncalls;
- 
-@@ -551,40 +548,21 @@ out_unlock:
-  * this special case of epoll.
+diff -puN init/version.c~init-version-include-linux-exporth-instead-of-linux-moduleh init/version.c
+--- a/init/version.c~init-version-include-linux-exporth-instead-of-linux-moduleh
++++ a/init/version.c
+@@ -7,7 +7,7 @@
   */
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
--static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
--				     unsigned long events, int subclass)
-+
-+static struct nested_calls poll_safewake_ncalls;
-+
-+static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
- {
- 	unsigned long flags;
-+	wait_queue_head_t *wqueue = (wait_queue_head_t *)cookie;
  
--	spin_lock_irqsave_nested(&wqueue->lock, flags, subclass);
--	wake_up_locked_poll(wqueue, events);
-+	spin_lock_irqsave_nested(&wqueue->lock, flags, call_nests + 1);
-+	wake_up_locked_poll(wqueue, POLLIN);
- 	spin_unlock_irqrestore(&wqueue->lock, flags);
--}
--#else
--static inline void ep_wake_up_nested(wait_queue_head_t *wqueue,
--				     unsigned long events, int subclass)
--{
--	wake_up_poll(wqueue, events);
--}
--#endif
- 
--static int ep_poll_wakeup_proc(void *priv, void *cookie, int call_nests)
--{
--	ep_wake_up_nested((wait_queue_head_t *) cookie, POLLIN,
--			  1 + call_nests);
- 	return 0;
- }
- 
--/*
-- * Perform a safe wake up of the poll wait list. The problem is that
-- * with the new callback'd wake up system, it is possible that the
-- * poll callback is reentered from inside the call to wake_up() done
-- * on the poll wait queue head. The rule is that we cannot reenter the
-- * wake up code from the same task more than EP_MAX_NESTS times,
-- * and we cannot reenter the same wait queue head at all. This will
-- * enable to have a hierarchy of epoll file descriptor of no more than
-- * EP_MAX_NESTS deep.
-- */
- static void ep_poll_safewake(wait_queue_head_t *wq)
- {
- 	int this_cpu = get_cpu();
-@@ -595,6 +573,15 @@ static void ep_poll_safewake(wait_queue_
- 	put_cpu();
- }
- 
-+#else
-+
-+static void ep_poll_safewake(wait_queue_head_t *wq)
-+{
-+	wake_up_poll(wq, POLLIN);
-+}
-+
-+#endif
-+
- static void ep_remove_wait_queue(struct eppoll_entry *pwq)
- {
- 	wait_queue_head_t *whead;
-@@ -2315,8 +2302,10 @@ static int __init eventpoll_init(void)
- 	 */
- 	ep_nested_calls_init(&poll_loop_ncalls);
- 
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
- 	/* Initialize the structure used to perform safe poll wait head wake ups */
- 	ep_nested_calls_init(&poll_safewake_ncalls);
-+#endif
- 
- 	/* Initialize the structure used to perform file's f_op->poll() calls */
- 	ep_nested_calls_init(&poll_readywalk_ncalls);
+ #include <generated/compile.h>
+-#include <linux/module.h>
++#include <linux/export.h>
+ #include <linux/uts.h>
+ #include <linux/utsname.h>
+ #include <generated/utsrelease.h>
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
 
