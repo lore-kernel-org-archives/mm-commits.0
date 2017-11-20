@@ -1,103 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-reboot-add-devm_register_reboot_notifier.patch removed from -mm tree
-Date: Mon, 20 Nov 2017 13:26:36 -0800
-Message-ID: <20171120212636.hR7KlW-EX%akpm@linux-foundation.org>
+Subject: [merged] kcov-update-documentation.patch removed from -mm
+ tree
+Date: Mon, 20 Nov 2017 13:26:33 -0800
+Message-ID: <20171120212633.BMNaC5xfh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40924 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752854AbdKTV0h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:26:37 -0500
+        with ESMTP id S1752908AbdKTV0f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:26:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrew.smirnov@gmail.com, mm-commits@vger.kernel.org
+To: alex.popov@linux.com, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, keescook@chromium.org, mark.rutland@arm.com, mm-commits@vger.kernel.org, quentin.casasnovas@oracle.com, syzkaller@googlegroups.com, tchibo@google.com, vegard.nossum@oracle.com
 
 
 The patch titled
-     Subject: kernel/reboot.c: add devm_register_reboot_notifier()
+     Subject: kcov: update documentation
 has been removed from the -mm tree.  Its filename was
-     kernel-reboot-add-devm_register_reboot_notifier.patch
+     kcov-update-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: kernel/reboot.c: add devm_register_reboot_notifier()
+From: Victor Chibotaru <tchibo@google.com>
+Subject: kcov: update documentation
 
-Add devm_* wrapper around register_reboot_notifier to simplify device
-specific reboot notifier registration/unregistration.
+The updated documentation describes new KCOV mode for collecting
+comparison operands.
 
-[akpm@linux-foundation.org: move `struct device' forward decl to top-of-file]
-Link: http://lkml.kernel.org/r/20170320171753.1705-1-andrew.smirnov@gmail.com
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Link: http://lkml.kernel.org/r/20171011095459.70721-3-glider@google.com
+Signed-off-by: Victor Chibotaru <tchibo@google.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Popov <alex.popov@linux.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+Cc: <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |    4 ++++
- kernel/reboot.c        |   27 +++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ Documentation/dev-tools/kcov.rst |   99 +++++++++++++++++++++++++++--
+ 1 file changed, 95 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/reboot.h~kernel-reboot-add-devm_register_reboot_notifier include/linux/reboot.h
---- a/include/linux/reboot.h~kernel-reboot-add-devm_register_reboot_notifier
-+++ a/include/linux/reboot.h
-@@ -6,6 +6,8 @@
- #include <linux/notifier.h>
- #include <uapi/linux/reboot.h>
+diff -puN Documentation/dev-tools/kcov.rst~kcov-update-documentation Documentation/dev-tools/kcov.rst
+--- a/Documentation/dev-tools/kcov.rst~kcov-update-documentation
++++ a/Documentation/dev-tools/kcov.rst
+@@ -12,19 +12,30 @@ To achieve this goal it does not collect
+ and instrumentation of some inherently non-deterministic parts of kernel is
+ disabled (e.g. scheduler, locking).
  
-+struct device;
+-Usage
+------
++kcov is also able to collect comparison operands from the instrumented code
++(this feature currently requires that the kernel is compiled with clang).
 +
- #define SYS_DOWN	0x0001	/* Notify of system down */
- #define SYS_RESTART	SYS_DOWN
- #define SYS_HALT	0x0002	/* Notify of system halt */
-@@ -39,6 +41,8 @@ extern int reboot_force;
- extern int register_reboot_notifier(struct notifier_block *);
- extern int unregister_reboot_notifier(struct notifier_block *);
++Prerequisites
++-------------
  
-+extern int devm_register_reboot_notifier(struct device *, struct notifier_block *);
-+
- extern int register_restart_handler(struct notifier_block *);
- extern int unregister_restart_handler(struct notifier_block *);
- extern void do_kernel_restart(char *cmd);
-diff -puN kernel/reboot.c~kernel-reboot-add-devm_register_reboot_notifier kernel/reboot.c
---- a/kernel/reboot.c~kernel-reboot-add-devm_register_reboot_notifier
-+++ a/kernel/reboot.c
-@@ -104,6 +104,33 @@ int unregister_reboot_notifier(struct no
- }
- EXPORT_SYMBOL(unregister_reboot_notifier);
+ Configure the kernel with::
  
-+static void devm_unregister_reboot_notifier(struct device *dev, void *res)
-+{
-+	WARN_ON(unregister_reboot_notifier(*(struct notifier_block **)res));
-+}
+         CONFIG_KCOV=y
+ 
+ CONFIG_KCOV requires gcc built on revision 231296 or later.
 +
-+int devm_register_reboot_notifier(struct device *dev, struct notifier_block *nb)
-+{
-+	struct notifier_block **rcnb;
-+	int ret;
++If the comparison operands need to be collected, set::
 +
-+	rcnb = devres_alloc(devm_unregister_reboot_notifier,
-+			    sizeof(*rcnb), GFP_KERNEL);
-+	if (!rcnb)
-+		return -ENOMEM;
++	CONFIG_KCOV_ENABLE_COMPARISONS=y
 +
-+	ret = register_reboot_notifier(nb);
-+	if (!ret) {
-+		*rcnb = nb;
-+		devres_add(dev, rcnb);
-+	} else {
-+		devres_free(rcnb);
+ Profiling data will only become accessible once debugfs has been mounted::
+ 
+         mount -t debugfs none /sys/kernel/debug
+ 
+-The following program demonstrates kcov usage from within a test program:
++Coverage collection
++-------------------
++The following program demonstrates coverage collection from within a test
++program using kcov:
+ 
+ .. code-block:: c
+ 
+@@ -44,6 +55,9 @@ The following program demonstrates kcov
+     #define KCOV_DISABLE			_IO('c', 101)
+     #define COVER_SIZE			(64<<10)
+ 
++    #define KCOV_TRACE_PC  0
++    #define KCOV_TRACE_CMP 1
++
+     int main(int argc, char **argv)
+     {
+ 	int fd;
+@@ -64,7 +78,7 @@ The following program demonstrates kcov
+ 	if ((void*)cover == MAP_FAILED)
+ 		perror("mmap"), exit(1);
+ 	/* Enable coverage collection on the current thread. */
+-	if (ioctl(fd, KCOV_ENABLE, 0))
++	if (ioctl(fd, KCOV_ENABLE, KCOV_TRACE_PC))
+ 		perror("ioctl"), exit(1);
+ 	/* Reset coverage from the tail of the ioctl() call. */
+ 	__atomic_store_n(&cover[0], 0, __ATOMIC_RELAXED);
+@@ -111,3 +125,80 @@ The interface is fine-grained to allow e
+ That is, a parent process opens /sys/kernel/debug/kcov, enables trace mode,
+ mmaps coverage buffer and then forks child processes in a loop. Child processes
+ only need to enable coverage (disable happens automatically on thread end).
++
++Comparison operands collection
++------------------------------
++Comparison operands collection is similar to coverage collection:
++
++.. code-block:: c
++
++    /* Same includes and defines as above. */
++
++    /* Number of 64-bit words per record. */
++    #define KCOV_WORDS_PER_CMP 4
++
++    /*
++     * The format for the types of collected comparisons.
++     *
++     * Bit 0 shows whether one of the arguments is a compile-time constant.
++     * Bits 1 & 2 contain log2 of the argument size, up to 8 bytes.
++     */
++
++    #define KCOV_CMP_CONST          (1 << 0)
++    #define KCOV_CMP_SIZE(n)        ((n) << 1)
++    #define KCOV_CMP_MASK           KCOV_CMP_SIZE(3)
++
++    int main(int argc, char **argv)
++    {
++	int fd;
++	uint64_t *cover, type, arg1, arg2, is_const, size;
++	unsigned long n, i;
++
++	fd = open("/sys/kernel/debug/kcov", O_RDWR);
++	if (fd == -1)
++		perror("open"), exit(1);
++	if (ioctl(fd, KCOV_INIT_TRACE, COVER_SIZE))
++		perror("ioctl"), exit(1);
++	/*
++	* Note that the buffer pointer is of type uint64_t*, because all
++	* the comparison operands are promoted to uint64_t.
++	*/
++	cover = (uint64_t *)mmap(NULL, COVER_SIZE * sizeof(unsigned long),
++				     PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
++	if ((void*)cover == MAP_FAILED)
++		perror("mmap"), exit(1);
++	/* Note KCOV_TRACE_CMP instead of KCOV_TRACE_PC. */
++	if (ioctl(fd, KCOV_ENABLE, KCOV_TRACE_CMP))
++		perror("ioctl"), exit(1);
++	__atomic_store_n(&cover[0], 0, __ATOMIC_RELAXED);
++	read(-1, NULL, 0);
++	/* Read number of comparisons collected. */
++	n = __atomic_load_n(&cover[0], __ATOMIC_RELAXED);
++	for (i = 0; i < n; i++) {
++		type = cover[i * KCOV_WORDS_PER_CMP + 1];
++		/* arg1 and arg2 - operands of the comparison. */
++		arg1 = cover[i * KCOV_WORDS_PER_CMP + 2];
++		arg2 = cover[i * KCOV_WORDS_PER_CMP + 3];
++		/* ip - caller address. */
++		ip = cover[i * KCOV_WORDS_PER_CMP + 4];
++		/* size of the operands. */
++		size = 1 << ((type & KCOV_CMP_MASK) >> 1);
++		/* is_const - true if either operand is a compile-time constant.*/
++		is_const = type & KCOV_CMP_CONST;
++		printf("ip: 0x%lx type: 0x%lx, arg1: 0x%lx, arg2: 0x%lx, "
++			"size: %lu, %s\n",
++			ip, type, arg1, arg2, size,
++		is_const ? "const" : "non-const");
 +	}
++	if (ioctl(fd, KCOV_DISABLE, 0))
++		perror("ioctl"), exit(1);
++	/* Free resources. */
++	if (munmap(cover, COVER_SIZE * sizeof(unsigned long)))
++		perror("munmap"), exit(1);
++	if (close(fd))
++		perror("close"), exit(1);
++	return 0;
++    }
 +
-+	return ret;
-+}
-+EXPORT_SYMBOL(devm_register_reboot_notifier);
-+
- /*
-  *	Notifier list for kernel code which wants to be called
-  *	to restart the system.
++Note that the kcov modes (coverage collection or comparison operands) are
++mutually exclusive.
 _
 
-Patches currently in -mm which might be from andrew.smirnov@gmail.com are
+Patches currently in -mm which might be from tchibo@google.com are
 
 
