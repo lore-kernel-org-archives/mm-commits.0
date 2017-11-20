@@ -1,64 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-strict-test-for-lines-ending-in-or.patch removed from -mm
- tree
-Date: Mon, 20 Nov 2017 13:24:48 -0800
-Message-ID: <20171120212448.RlfURYjjw%akpm@linux-foundation.org>
+ epoll-account-epitem-and-eppoll_entry-to-kmemcg.patch removed from -mm tree
+Date: Mon, 20 Nov 2017 13:24:54 -0800
+Message-ID: <20171120212454.vbFMyaXPD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752962AbdKTVYt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:49 -0500
+        with ESMTP id S1752937AbdKTVYz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:24:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org, vivien.didelot@savoirfairelinux.com
+To: gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: checkpatch: add --strict test for lines ending in [ or (
+     Subject: epoll: account epitem and eppoll_entry to kmemcg
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-strict-test-for-lines-ending-in-or.patch
+     epoll-account-epitem-and-eppoll_entry-to-kmemcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --strict test for lines ending in [ or (
+From: Shakeel Butt <shakeelb@google.com>
+Subject: epoll: account epitem and eppoll_entry to kmemcg
 
-Lines that end in an open bracket or open parenthesis are generally hard
-to follow.  Lines following those ending with open parenthesis are also
-rarely aligned to that open parenthesis.
+A userspace application can directly trigger the allocations from
+eventpoll_epi and eventpoll_pwq slabs.  A buggy or malicious application
+can consume a significant amount of system memory by triggering such
+allocations.  Indeed we have seen in production where a buggy application
+was leaking the epoll references and causing a burst of eventpoll_epi and
+eventpoll_pwq slab allocations.  This patch opt-in the charging of
+eventpoll_epi and eventpoll_pwq slabs.
 
-Suggest not ending lines with '[' or '('
+There is a per-user limit (~4% of total memory if no highmem) on these
+caches.  I think it is too generous particularly in the scenario where
+jobs of multiple users are running on the system and the administrator
+is reducing cost by overcomitting the memory.  This is unaccounted
+kernel memory and will not be considered by the oom-killer.  I think by
+accounting it to kmemcg, for systems with kmem accounting enabled, we
+can provide better isolation between jobs of different users.
 
-Link: http://lkml.kernel.org/r/8fd0b2b4a7482064254e37931eb9302a81d5aa2f.1508340786.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Link: http://lkml.kernel.org/r/20171003021519.23907-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/eventpoll.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-lines-ending-in-or scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-lines-ending-in-or
-+++ a/scripts/checkpatch.pl
-@@ -3184,6 +3184,12 @@ sub process {
- # check we are in a valid C source file if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c)$/);
+diff -puN fs/eventpoll.c~epoll-account-epitem-and-eppoll_entry-to-kmemcg fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-account-epitem-and-eppoll_entry-to-kmemcg
++++ a/fs/eventpoll.c
+@@ -2329,11 +2329,11 @@ static int __init eventpoll_init(void)
  
-+# check for unusual line ending [ or (
-+		if ($line =~ /^\+.*([\[\(])\s*$/) {
-+			CHK("OPEN_ENDED_LINE",
-+			    "Lines should not end with a '$1'\n" . $herecurr);
-+		}
-+
- # check if this appears to be the start function declaration, save the name
- 		if ($sline =~ /^\+\{\s*$/ &&
- 		    $prevline =~ /^\+(?:(?:(?:$Storage|$Inline)\s*)*\s*$Type\s*)?($Ident)\(/) {
+ 	/* Allocates slab cache used to allocate "struct epitem" items */
+ 	epi_cache = kmem_cache_create("eventpoll_epi", sizeof(struct epitem),
+-			0, SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
++			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
+ 
+ 	/* Allocates slab cache used to allocate "struct eppoll_entry" */
+ 	pwq_cache = kmem_cache_create("eventpoll_pwq",
+-			sizeof(struct eppoll_entry), 0, SLAB_PANIC, NULL);
++		sizeof(struct eppoll_entry), 0, SLAB_PANIC|SLAB_ACCOUNT, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
