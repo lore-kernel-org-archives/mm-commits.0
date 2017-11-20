@@ -1,80 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-nodemask-printing.patch removed from -mm
- tree
-Date: Mon, 20 Nov 2017 13:22:34 -0800
-Message-ID: <20171120212234.A3zvAcUUL%akpm@linux-foundation.org>
+Subject: [merged] mm-shmem-remove-unused-info-variable.patch
+ removed from -mm tree
+Date: Mon, 20 Nov 2017 13:22:43 -0800
+Message-ID: <20171120212243.V3TTvTGmd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39976 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752882AbdKTVWg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:36 -0500
+        with ESMTP id S1753059AbdKTVWo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 16:22:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mhocko@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, zhangshaokun@hisilicon.com
+To: clabbe@baylibre.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix nodemask printing
+     Subject: mm: shmem: remove unused info variable
 has been removed from the -mm tree.  Its filename was
-     mm-fix-nodemask-printing.patch
+     mm-shmem-remove-unused-info-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: fix nodemask printing
+From: Corentin Labbe <clabbe@baylibre.com>
+Subject: mm: shmem: remove unused info variable
 
-The cleanup caused build warnings for constant mask pointers:
+Fix the following warning by removing the unused variable:
+mm/shmem.c:3205:27: warning: variable 'info' set but not used [-Wunused-but-set-variable]
 
-mm/mempolicy.c: In function `mpol_to_str':
-./include/linux/nodemask.h:108:11: warning: the comparison will always evaluate as `true' for the address of `nodes' will never be NULL [-Waddress]
-
-An earlier workaround I suggested was incorporated in the version that
-got merged, but that only solved the problem for gcc-7 and higher, while
-gcc-4.6 through gcc-6.x still warn.
-
-This changes the printing again to use inline functions that make it
-clear to the compiler that the line that does the NULL check has no
-idea whether the argument is a constant NULL.
-
-Link: http://lkml.kernel.org/r/20171117101545.119689-1-arnd@arndb.de
-Fixes: 0205f75571e3 ("mm: simplify nodemask printing")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Zhangshaokun <zhangshaokun@hisilicon.com>
+Link: http://lkml.kernel.org/r/1510774029-30652-1-git-send-email-clabbe@baylibre.com
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/shmem.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/nodemask.h~mm-fix-nodemask-printing include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-fix-nodemask-printing
-+++ a/include/linux/nodemask.h
-@@ -104,9 +104,16 @@ extern nodemask_t _unused_nodemask_arg_;
-  *
-  * Can be used to provide arguments for '%*pb[l]' when printing a nodemask.
-  */
--#define nodemask_pr_args(maskp)				\
--	((maskp) != NULL) ? MAX_NUMNODES : 0,		\
--	((maskp) != NULL) ? (maskp)->bits : NULL
-+#define nodemask_pr_args(maskp)	__nodemask_pr_numnodes(maskp), \
-+				__nodemask_pr_bits(maskp)
-+static inline unsigned int __nodemask_pr_numnodes(const nodemask_t *m)
-+{
-+	return m ? MAX_NUMNODES : 0;
-+}
-+static inline const unsigned long *__nodemask_pr_bits(const nodemask_t *m)
-+{
-+	return m ? m->bits : NULL;
-+}
+diff -puN mm/shmem.c~mm-shmem-remove-unused-info-variable mm/shmem.c
+--- a/mm/shmem.c~mm-shmem-remove-unused-info-variable
++++ a/mm/shmem.c
+@@ -3202,7 +3202,6 @@ static int shmem_symlink(struct inode *d
+ 	int len;
+ 	struct inode *inode;
+ 	struct page *page;
+-	struct shmem_inode_info *info;
  
- /*
-  * The inline keyword gives the compiler room to decide to inline, or
+ 	len = strlen(symname) + 1;
+ 	if (len > PAGE_SIZE)
+@@ -3222,7 +3221,6 @@ static int shmem_symlink(struct inode *d
+ 		error = 0;
+ 	}
+ 
+-	info = SHMEM_I(inode);
+ 	inode->i_size = len-1;
+ 	if (len <= SHORT_SYMLINK_LEN) {
+ 		inode->i_link = kmemdup(symname, len, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from clabbe@baylibre.com are
 
 
