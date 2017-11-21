@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-relax-deferred-struct-page-requirements.patch added to -mm
- tree
-Date: Mon, 20 Nov 2017 16:10:42 -0800
-Message-ID: <5a136f02.snI62zAc2j6KBaas%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-remove-redundant-check-in-get_nodes.patch added to -mm tree
+Date: Mon, 20 Nov 2017 16:16:30 -0800
+Message-ID: <5a13705e.Hm2vhM3Znqxwk4lG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53316 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53420 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdKUAKo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 19:10:44 -0500
+        with ESMTP id S1751195AbdKUAQc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2017 19:16:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasha.tatashin@oracle.com, arbab@linux.vnet.ibm.com, benh@kernel.crashing.org, daniel.m.jordan@oracle.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, paulus@samba.org, schwidefsky@de.ibm.com, steven.sistare@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, ak@linux.intel.com, cl@linux.com, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, salls@cs.ucsb.edu, tanxiaojun@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: relax deferred struct page requirements
+     Subject: mm/mempolicy: remove redundant check in get_nodes
 has been added to the -mm tree.  Its filename is
-     mm-relax-deferred-struct-page-requirements.patch
+     mm-mempolicy-remove-redundant-check-in-get_nodes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-relax-deferred-struct-page-requirements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-remove-redundant-check-in-get_nodes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-relax-deferred-struct-page-requirements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-remove-redundant-check-in-get_nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +38,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: relax deferred struct page requirements
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/mempolicy: remove redundant check in get_nodes
 
-There is no need to have ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT, as all
-the page initialization code is in common code.
+We have already checked whether maxnode is a page worth of bits, by:
+    maxnode > PAGE_SIZE*BITS_PER_BYTE
 
-Also, there is no need to depend on MEMORY_HOTPLUG, as initialization code
-does not really use hotplug memory functionality.  So, we can remove this
-requirement as well.
+So no need to check it once more.
 
-This patch allows to use deferred struct page initialization on all
-platforms with memblock allocator.
-
-Tested on x86, arm64, and sparc.  Also, verified that code compiles on PPC
-with CONFIG_MEMORY_HOTPLUG disabled.
-
-Link: http://lkml.kernel.org/r/20171117014601.31606-1-pasha.tatashin@oracle.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>	[s390]
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1510882624-44342-2-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Chris Salls <salls@cs.ucsb.edu>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Tan Xiaojun <tanxiaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    1 -
- arch/s390/Kconfig    |    1 -
- arch/x86/Kconfig     |    1 -
- mm/Kconfig           |    7 +------
- 4 files changed, 1 insertion(+), 9 deletions(-)
+ mm/mempolicy.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~mm-relax-deferred-struct-page-requirements arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~mm-relax-deferred-struct-page-requirements
-+++ a/arch/powerpc/Kconfig
-@@ -150,7 +150,6 @@ config PPC
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ARCH_SUPPORTS_ATOMIC_RMW
--	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
- 	select ARCH_WANT_IPC_PARSE_VERSION
-diff -puN arch/s390/Kconfig~mm-relax-deferred-struct-page-requirements arch/s390/Kconfig
---- a/arch/s390/Kconfig~mm-relax-deferred-struct-page-requirements
-+++ a/arch/s390/Kconfig
-@@ -108,7 +108,6 @@ config S390
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
- 	select ARCH_SAVE_PAGE_KEYS if HIBERNATION
- 	select ARCH_SUPPORTS_ATOMIC_RMW
--	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF
-diff -puN arch/x86/Kconfig~mm-relax-deferred-struct-page-requirements arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-relax-deferred-struct-page-requirements
-+++ a/arch/x86/Kconfig
-@@ -69,7 +69,6 @@ config X86
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ARCH_SUPPORTS_ATOMIC_RMW
--	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_QUEUED_RWLOCKS
-diff -puN mm/Kconfig~mm-relax-deferred-struct-page-requirements mm/Kconfig
---- a/mm/Kconfig~mm-relax-deferred-struct-page-requirements
-+++ a/mm/Kconfig
-@@ -639,15 +639,10 @@ config MAX_STACK_SIZE_MB
- 
- 	  A sane initial value is 80 MB.
- 
--# For architectures that support deferred memory initialisation
--config ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
--	bool
+diff -puN mm/mempolicy.c~mm-mempolicy-remove-redundant-check-in-get_nodes mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-remove-redundant-check-in-get_nodes
++++ a/mm/mempolicy.c
+@@ -1282,8 +1282,6 @@ static int get_nodes(nodemask_t *nodes,
+ 	/* When the user specified more nodes than supported just check
+ 	   if the non supported part is all zero. */
+ 	if (nlongs > BITS_TO_LONGS(MAX_NUMNODES)) {
+-		if (nlongs > PAGE_SIZE/sizeof(long))
+-			return -EINVAL;
+ 		for (k = BITS_TO_LONGS(MAX_NUMNODES); k < nlongs; k++) {
+ 			unsigned long t;
+ 			if (get_user(t, nmask + k))
+_
+
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
+
+mm-mempolicy-remove-redundant-check-in-get_nodes.patch
+mm-mempolicy-fix-the-check-of-nodemask-from-user.patch
+mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
+
