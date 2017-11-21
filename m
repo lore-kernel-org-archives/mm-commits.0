@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-faddr2line-extend-usage-on-generic-arch.patch added to
- -mm tree
-Date: Tue, 21 Nov 2017 14:01:23 -0800
-Message-ID: <5a14a233.pGkQMG2bd1noQqYc%akpm@linux-foundation.org>
+Subject: + mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
+ added to -mm tree
+Date: Tue, 21 Nov 2017 14:14:04 -0800
+Message-ID: <5a14a52c.bQE4EmNxiFoIFxoH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34192 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751302AbdKUWBZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 17:01:25 -0500
+        with ESMTP id S1751359AbdKUWOG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 17:14:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: changcheng.liu@intel.com, gregkh@linuxfoundation.org, kstewart@linuxfoundation.org, neilb@suse.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: zi.yan@cs.rutgers.edu, ar@linux.vnet.ibm.com, jglisse@redhat.com, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/faddr2line: extend usage on generic arch
+     Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
 has been added to the -mm tree.  Its filename is
-     scripts-faddr2line-extend-usage-on-generic-arch.patch
+     mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-faddr2line-extend-usage-on-generic-arch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-faddr2line-extend-usage-on-generic-arch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Liu, Changcheng" <changcheng.liu@intel.com>
-Subject: scripts/faddr2line: extend usage on generic arch
+From: Zi Yan <zi.yan@cs.rutgers.edu>
+Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
 
-When cross-compiling, fadd2line should use the binary tool used for the
-target system, rather than that of the host.
+In https://lkml.org/lkml/2017/11/20/411, Andrea reported that during
+memory hotplug/hot remove prep_transhuge_page() is called incorrectly on
+non-THP pages for migration, when THP is on but THP migration is not
+enabled.  This leads to a bad state of target pages for migration.
 
-Link: http://lkml.kernel.org/r/20171121092911.GA150711@sofia
-Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: NeilBrown <neilb@suse.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This patch fixes it by only calling prep_transhuge_page() when we are
+certain that the target page is THP.
+
+Link: http://lkml.kernel.org/r/20171121021855.50525-1-zi.yan@sent.com
+Fixes: 8135d8926c08 ("mm: memory_hotplug: memory hotremove supports thp migration")
+Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
+Reported-by: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.14]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/faddr2line |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ include/linux/migrate.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/faddr2line~scripts-faddr2line-extend-usage-on-generic-arch scripts/faddr2line
---- a/scripts/faddr2line~scripts-faddr2line-extend-usage-on-generic-arch
-+++ a/scripts/faddr2line
-@@ -44,9 +44,16 @@
- set -o errexit
- set -o nounset
+diff -puN include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page
++++ a/include/linux/migrate.h
+@@ -54,7 +54,7 @@ static inline struct page *new_page_node
+ 	new_page = __alloc_pages_nodemask(gfp_mask, order,
+ 				preferred_nid, nodemask);
  
-+READELF="${CROSS_COMPILE}readelf"
-+ADDR2LINE="${CROSS_COMPILE}addr2line"
-+SIZE="${CROSS_COMPILE}size"
-+NM="${CROSS_COMPILE}nm"
-+
- command -v awk >/dev/null 2>&1 || die "awk isn't installed"
--command -v readelf >/dev/null 2>&1 || die "readelf isn't installed"
--command -v addr2line >/dev/null 2>&1 || die "addr2line isn't installed"
-+command -v ${READELF} >/dev/null 2>&1 || die "readelf isn't installed"
-+command -v ${ADDR2LINE} >/dev/null 2>&1 || die "addr2line isn't installed"
-+command -v ${SIZE} >/dev/null 2>&1 || die "size isn't installed"
-+command -v ${NM} >/dev/null 2>&1 || die "nm isn't installed"
+-	if (new_page && PageTransHuge(page))
++	if (new_page && PageTransHuge(new_page))
+ 		prep_transhuge_page(new_page);
  
- usage() {
- 	echo "usage: faddr2line <object file> <func+offset> <func+offset>..." >&2
-@@ -69,10 +76,10 @@ die() {
- find_dir_prefix() {
- 	local objfile=$1
- 
--	local start_kernel_addr=$(readelf -sW $objfile | awk '$8 == "start_kernel" {printf "0x%s", $2}')
-+	local start_kernel_addr=$(${READELF} -sW $objfile | awk '$8 == "start_kernel" {printf "0x%s", $2}')
- 	[[ -z $start_kernel_addr ]] && return
- 
--	local file_line=$(addr2line -e $objfile $start_kernel_addr)
-+	local file_line=$(${ADDR2LINE} -e $objfile $start_kernel_addr)
- 	[[ -z $file_line ]] && return
- 
- 	local prefix=${file_line%init/main.c:*}
-@@ -104,7 +111,7 @@ __faddr2line() {
- 
- 	# Go through each of the object's symbols which match the func name.
- 	# In rare cases there might be duplicates.
--	file_end=$(size -Ax $objfile | awk '$1 == ".text" {print $2}')
-+	file_end=$(${SIZE} -Ax $objfile | awk '$1 == ".text" {print $2}')
- 	while read symbol; do
- 		local fields=($symbol)
- 		local sym_base=0x${fields[0]}
-@@ -156,10 +163,10 @@ __faddr2line() {
- 
- 		# pass real address to addr2line
- 		echo "$func+$offset/$sym_size:"
--		addr2line -fpie $objfile $addr | sed "s; $dir_prefix\(\./\)*; ;"
-+		${ADDR2LINE} -fpie $objfile $addr | sed "s; $dir_prefix\(\./\)*; ;"
- 		DONE=1
- 
--	done < <(nm -n $objfile | awk -v fn=$func -v end=$file_end '$3 == fn { found=1; line=$0; start=$1; next } found == 1 { found=0; print line, "0x"$1 } END {if (found == 1) print line, end; }')
-+	done < <(${NM} -n $objfile | awk -v fn=$func -v end=$file_end '$3 == fn { found=1; line=$0; start=$1; next } found == 1 { found=0; print line, "0x"$1 } END {if (found == 1) print line, end; }')
- }
- 
- [[ $# -lt 2 ]] && usage
+ 	return new_page;
 _
 
-Patches currently in -mm which might be from changcheng.liu@intel.com are
+Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
 
-scripts-faddr2line-extend-usage-on-generic-arch.patch
+mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
 
