@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
- added to -mm tree
-Date: Tue, 21 Nov 2017 14:57:09 -0800
-Message-ID: <5a14af45.zHvpkUkuOeaIiVcN%akpm@linux-foundation.org>
+Subject: +
+ device-dax-implement-split-to-catch-invalid-munmap-attempts.patch added to
+ -mm tree
+Date: Tue, 21 Nov 2017 14:57:12 -0800
+Message-ID: <5a14af48.yuPbt78i7HKdN1v6%akpm__16763.7582323097$1511305036$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38558 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751263AbdKUW5K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 17:57:10 -0500
+        with ESMTP id S1751263AbdKUW5N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 17:57:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dan.j.williams@intel.com, jmoyer@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlbfs: introduce ->split() to vm_operations_struct
+     Subject: device-dax: implement ->split() to catch invalid munmap attempts
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
+     device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,91 +41,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm, hugetlbfs: introduce ->split() to vm_operations_struct
+Subject: device-dax: implement ->split() to catch invalid munmap attempts
 
-Patch series "device-dax: fix unaligned munmap handling"
+Similar to how device-dax enforces that the 'address', 'offset', and 'len'
+parameters to mmap() be aligned to the device's fundamental alignment, the
+same constraints apply to munmap().  Implement ->split() to fail munmap
+calls that violate the alignment constraint.  Otherwise, we later fail
+VM_BUG_ON checks in the unmap_page_range() path with crash signatures of
+the form:
 
-When device-dax is operating in huge-page mode we want it to behave like
-hugetlbfs and fail attempts to split vmas into unaligned ranges.  It would
-be messy to teach the munmap path about device-dax alignment constraints
-in the same (hstate) way that hugetlbfs communicates this constraint. 
-Instead, these patches introduce a new ->split() vm operation.
+    vma ffff8800b60c8a88 start 00007f88c0000000 end 00007f88c0e00000
+    next           (null) prev           (null) mm ffff8800b61150c0
+    prot 8000000000000027 anon_vma           (null) vm_ops ffffffffa0091240
+    pgoff 0 file ffff8800b638ef80 private_data           (null)
+    flags: 0x380000fb(read|write|shared|mayread|maywrite|mayexec|mayshare|softdirty|mixedmap|hugepage)
+    ------------[ cut here ]------------
+    kernel BUG at mm/huge_memory.c:2014!
+    [..]
+    RIP: 0010:__split_huge_pud+0x12a/0x180
+    [..]
+    Call Trace:
+     unmap_page_range+0x245/0xa40
+     ? __vma_adjust+0x301/0x990
+     unmap_vmas+0x4c/0xa0
+     unmap_region+0xae/0x120
+     ? __vma_rb_erase+0x11a/0x230
+     do_munmap+0x276/0x410
+     vm_munmap+0x6a/0xa0
+     SyS_munmap+0x1d/0x30
 
-
-This patch (of 2):
-
-The device-dax interface has similar constraints as hugetlbfs in that it
-requires the munmap path to unmap in huge page aligned units.  Rather than
-add more custom vma handling code in __split_vma() introduce a new vm
-operation to perform this vma specific check.
-
-Link: http://lkml.kernel.org/r/151130418135.4029.6783191281930729710.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: http://lkml.kernel.org/r/151130418681.4029.7118245855057952010.stgit@dwillia2-desk3.amr.corp.intel.com
 Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/hugetlb.c       |    8 ++++++++
- mm/mmap.c          |    8 +++++---
- 3 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/dax/device.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN include/linux/mm.h~mm-hugetlbfs-introduce-split-to-vm_operations_struct include/linux/mm.h
---- a/include/linux/mm.h~mm-hugetlbfs-introduce-split-to-vm_operations_struct
-+++ a/include/linux/mm.h
-@@ -377,6 +377,7 @@ enum page_entry_size {
- struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
-+	int (*split)(struct vm_area_struct * area, unsigned long addr);
- 	int (*mremap)(struct vm_area_struct * area);
- 	int (*fault)(struct vm_fault *vmf);
- 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
-diff -puN mm/hugetlb.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct
-+++ a/mm/hugetlb.c
-@@ -3125,6 +3125,13 @@ static void hugetlb_vm_op_close(struct v
- 	}
+diff -puN drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts drivers/dax/device.c
+--- a/drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts
++++ a/drivers/dax/device.c
+@@ -428,9 +428,21 @@ static int dev_dax_fault(struct vm_fault
+ 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
  }
  
-+static int hugetlb_vm_op_split(struct vm_area_struct *vma, unsigned long addr)
++static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
 +{
-+	if (addr & ~(huge_page_mask(hstate_vma(vma))))
++	struct file *filp = vma->vm_file;
++	struct dev_dax *dev_dax = filp->private_data;
++	struct dax_region *dax_region = dev_dax->region;
++
++	if (!IS_ALIGNED(addr, dax_region->align))
 +		return -EINVAL;
 +	return 0;
 +}
 +
- /*
-  * We cannot handle pagefaults against hugetlb pages at all.  They cause
-  * handle_mm_fault() to try to instantiate regular-sized pages in the
-@@ -3141,6 +3148,7 @@ const struct vm_operations_struct hugetl
- 	.fault = hugetlb_vm_op_fault,
- 	.open = hugetlb_vm_op_open,
- 	.close = hugetlb_vm_op_close,
-+	.split = hugetlb_vm_op_split,
+ static const struct vm_operations_struct dax_vm_ops = {
+ 	.fault = dev_dax_fault,
+ 	.huge_fault = dev_dax_huge_fault,
++	.split = dev_dax_split,
  };
  
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
-diff -puN mm/mmap.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct mm/mmap.c
---- a/mm/mmap.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct
-+++ a/mm/mmap.c
-@@ -2555,9 +2555,11 @@ int __split_vma(struct mm_struct *mm, st
- 	struct vm_area_struct *new;
- 	int err;
- 
--	if (is_vm_hugetlb_page(vma) && (addr &
--					~(huge_page_mask(hstate_vma(vma)))))
--		return -EINVAL;
-+	if (vma->vm_ops && vma->vm_ops->split) {
-+		err = vma->vm_ops->split(vma, addr);
-+		if (err)
-+			return err;
-+	}
- 
- 	new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 	if (!new)
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
