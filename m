@@ -1,289 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
- added to -mm tree
-Date: Tue, 21 Nov 2017 16:00:27 -0800
-Message-ID: <5a14be1b.+N+HJi8gBy2zDX07%akpm@linux-foundation.org>
+Subject: mmotm 2017-11-21-17-21 uploaded
+Date: Tue, 21 Nov 2017 17:22:04 -0800
+Message-ID: <5a14d13c.Z20Ltd/In+FYR1so%akpm__30483.7854732343$1511313741$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41316 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50814 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751443AbdKVAA3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 19:00:29 -0500
+        with ESMTP id S1751379AbdKVBWH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 20:22:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hughd@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2017-11-21-17-21 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: mm: swap: unify cluster-based and vma-based swap readahead
-has been added to the -mm tree.  Its filename is
-     mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: swap: unify cluster-based and vma-based swap readahead
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-This patch makes do_swap_page() not need to be aware of two different swap
-readahead algorithms.  Just unify cluster-based and vma-based readahead
-function call.
 
-Link: http://lkml.kernel.org/r/1509520520-32367-3-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- include/linux/swap.h |   27 ++++++-----------------
- mm/memory.c          |   11 +++------
- mm/shmem.c           |    5 +++-
- mm/swap_state.c      |   48 +++++++++++++++++++++++++++++++----------
- 4 files changed, 53 insertions(+), 38 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-unify-cluster-based-and-vma-based-swap-readahead include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/include/linux/swap.h
-@@ -401,7 +401,6 @@ int generic_swapfile_activate(struct swa
- #define SWAP_ADDRESS_SPACE_SHIFT	14
- #define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
- extern struct address_space *swapper_spaces[];
--extern bool swap_vma_readahead;
- #define swap_address_space(entry)			    \
- 	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
- 		>> SWAP_ADDRESS_SPACE_SHIFT])
-@@ -423,10 +422,10 @@ extern struct page *read_swap_cache_asyn
- extern struct page *__read_swap_cache_async(swp_entry_t, gfp_t,
- 			struct vm_area_struct *vma, unsigned long addr,
- 			bool *new_page_allocated);
--extern struct page *swapin_readahead(swp_entry_t, gfp_t,
--			struct vm_area_struct *vma, unsigned long addr);
--extern struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
--					   struct vm_fault *vmf);
-+extern struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
-+				struct vm_fault *vmf);
-+extern struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
-+				struct vm_fault *vmf);
- 
- /* linux/mm/swapfile.c */
- extern atomic_long_t nr_swap_pages;
-@@ -434,11 +433,6 @@ extern long total_swap_pages;
- extern atomic_t nr_rotate_swap;
- extern bool has_usable_swap(void);
- 
--static inline bool swap_use_vma_readahead(void)
--{
--	return READ_ONCE(swap_vma_readahead) && !atomic_read(&nr_rotate_swap);
--}
--
- /* Swap 50% full? Release swapcache more aggressively.. */
- static inline bool vm_swap_full(void)
- {
-@@ -534,19 +528,14 @@ static inline void put_swap_page(struct
- {
- }
- 
--static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
--			struct vm_area_struct *vma, unsigned long addr)
-+static inline struct page *swap_cluster_readahead(swp_entry_t entry,
-+				gfp_t gfp_mask, struct vm_fault *vmf)
- {
- 	return NULL;
- }
- 
--static inline bool swap_use_vma_readahead(void)
--{
--	return false;
--}
--
--static inline struct page *do_swap_page_readahead(swp_entry_t fentry,
--				gfp_t gfp_mask, struct vm_fault *vmf)
-+static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
-+			struct vm_fault *vmf)
- {
- 	return NULL;
- }
-diff -puN mm/memory.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead mm/memory.c
---- a/mm/memory.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/mm/memory.c
-@@ -2889,7 +2889,8 @@ int do_swap_page(struct vm_fault *vmf)
- 		if (si->flags & SWP_SYNCHRONOUS_IO &&
- 				__swap_count(si, entry) == 1) {
- 			/* skip swapcache */
--			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
-+							vmf->address);
- 			if (page) {
- 				__SetPageLocked(page);
- 				__SetPageSwapBacked(page);
-@@ -2898,12 +2899,8 @@ int do_swap_page(struct vm_fault *vmf)
- 				swap_readpage(page, true);
- 			}
- 		} else {
--			if (swap_use_vma_readahead())
--				page = do_swap_page_readahead(entry,
--					GFP_HIGHUSER_MOVABLE, vmf);
--			else
--				page = swapin_readahead(entry,
--				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
-+						vmf);
- 			swapcache = page;
- 		}
- 
-diff -puN mm/shmem.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead mm/shmem.c
---- a/mm/shmem.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/mm/shmem.c
-@@ -1413,9 +1413,12 @@ static struct page *shmem_swapin(swp_ent
- {
- 	struct vm_area_struct pvma;
- 	struct page *page;
-+	struct vm_fault vmf;
- 
- 	shmem_pseudo_vma_init(&pvma, info, index);
--	page = swapin_readahead(swap, gfp, &pvma, 0);
-+	vmf.vma = &pvma;
-+	vmf.address = 0;
-+	page = swap_cluster_readahead(swap, gfp, &vmf);
- 	shmem_pseudo_vma_destroy(&pvma);
- 
- 	return page;
-diff -puN mm/swap_state.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/mm/swap_state.c
-@@ -38,7 +38,7 @@ static const struct address_space_operat
- 
- struct address_space *swapper_spaces[MAX_SWAPFILES] __read_mostly;
- static unsigned int nr_swapper_spaces[MAX_SWAPFILES] __read_mostly;
--bool swap_vma_readahead __read_mostly = true;
-+bool enable_vma_readahead __read_mostly = true;
- 
- #define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
- #define SWAP_RA_HITS_MASK	((1UL << SWAP_RA_WIN_SHIFT) - 1)
-@@ -322,6 +322,11 @@ void free_pages_and_swap_cache(struct pa
- 	release_pages(pagep, nr);
- }
- 
-+static inline bool swap_use_vma_readahead(void)
-+{
-+	return READ_ONCE(enable_vma_readahead) && !atomic_read(&nr_rotate_swap);
-+}
-+
- /*
-  * Lookup a swap entry in the swap cache. A found page will be returned
-  * unlocked and with its refcount incremented - we rely on the kernel
-@@ -539,11 +544,10 @@ static unsigned long swapin_nr_pages(uns
- }
- 
- /**
-- * swapin_readahead - swap in pages in hope we need them soon
-+ * swap_cluster_readahead - swap in pages in hope we need them soon
-  * @entry: swap entry of this memory
-  * @gfp_mask: memory allocation flags
-- * @vma: user vma this address belongs to
-- * @addr: target address for mempolicy
-+ * @vmf: fault information
-  *
-  * Returns the struct page for entry and addr, after queueing swapin.
-  *
-@@ -555,10 +559,10 @@ static unsigned long swapin_nr_pages(uns
-  * This has been extended to use the NUMA policies from the mm triggering
-  * the readahead.
-  *
-- * Caller must hold down_read on the vma->vm_mm if vma is not NULL.
-+ * Caller must hold down_read on the vma->vm_mm if vmf->vma is not NULL.
-  */
--struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
--			struct vm_area_struct *vma, unsigned long addr)
-+struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
-+				struct vm_fault *vmf)
- {
- 	struct page *page;
- 	unsigned long entry_offset = swp_offset(entry);
-@@ -568,6 +572,8 @@ struct page *swapin_readahead(swp_entry_
- 	struct swap_info_struct *si = swp_swap_info(entry);
- 	struct blk_plug plug;
- 	bool do_poll = true, page_allocated;
-+	struct vm_area_struct *vma = vmf->vma;
-+	unsigned long addr = vmf->address;
- 
- 	mask = swapin_nr_pages(offset) - 1;
- 	if (!mask)
-@@ -723,7 +729,7 @@ static void swap_ra_info(struct vm_fault
- 	pte_unmap(orig_pte);
- }
- 
--struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
-+struct page *swap_vma_readahead(swp_entry_t fentry, gfp_t gfp_mask,
- 				    struct vm_fault *vmf)
- {
- 	struct blk_plug plug;
-@@ -771,20 +777,40 @@ skip:
- 				     ra_info.win == 1);
- }
- 
-+/**
-+ * swapin_readahead - swap in pages in hope we need them soon
-+ * @entry: swap entry of this memory
-+ * @gfp_mask: memory allocation flags
-+ * @vmf: fault information
-+ *
-+ * Returns the struct page for entry and addr, after queueing swapin.
-+ *
-+ * It's a main entry function for swap readahead. By the configuration,
-+ * it will read ahead blocks by cluster-based(ie, physical disk based)
-+ * or vma-based(ie, virtual address based on faulty address) readahead.
-+ */
-+struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
-+				struct vm_fault *vmf)
-+{
-+	return swap_use_vma_readahead() ?
-+			swap_vma_readahead(entry, gfp_mask, vmf) :
-+			swap_cluster_readahead(entry, gfp_mask, vmf);
-+}
-+
- #ifdef CONFIG_SYSFS
- static ssize_t vma_ra_enabled_show(struct kobject *kobj,
- 				     struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%s\n", swap_vma_readahead ? "true" : "false");
-+	return sprintf(buf, "%s\n", enable_vma_readahead ? "true" : "false");
- }
- static ssize_t vma_ra_enabled_store(struct kobject *kobj,
- 				      struct kobj_attribute *attr,
- 				      const char *buf, size_t count)
- {
- 	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
--		swap_vma_readahead = true;
-+		enable_vma_readahead = true;
- 	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
--		swap_vma_readahead = false;
-+		enable_vma_readahead = false;
- 	else
- 		return -EINVAL;
- 
-_
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-Patches currently in -mm which might be from minchan@kernel.org are
+A git copy of this tree is available at
 
-mm-swap-clean-up-swap-readahead.patch
-mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.14:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+  i-need-old-gcc.patch
+* mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+* frv-fix-build-failure.patch
+* mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch
+* scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
+* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
+* mm-cma-fix-alloc_contig_range-ret-code-potential-leak.patch
+* mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+* mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3.patch
+* mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write.patch
+* mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
+* mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths-v3.patch
+* mm-replace-pmd_write-with-pmd_access_permitted-in-fault-gup-paths.patch
+* mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+* scripts-faddr2line-extend-usage-on-generic-arch.patch
+* mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
+* device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
+* mm-introduce-get_user_pages_longterm.patch
+* mm-introduce-get_user_pages_longterm-fix.patch
+* mm-fail-get_vaddr_frames-for-filesystem-dax-mappings.patch
+* v4l2-disable-filesystem-dax-mapping-support.patch
+* ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch
+* mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* prctl-add-pr_et_pdeathsig_proc.patch
+* ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+* ocfs2-move-some-definitions-to-header-file.patch
+* ocfs2-fix-some-small-problems.patch
+* ocfs2-add-kobject-for-online-file-check.patch
+* ocfs2-add-duplicative-ino-number-check.patch
+* ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+* ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* dentry-fix-kmemcheck-splat-at-take_dentry_name_snapshot.patch
+  mm.patch
+* include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+* mm-kmemleak-remove-unused-hardirqh.patch
+* zswap-same-filled-pages-handling.patch
+* zswap-same-filled-pages-handling-v2.patch
+* mm-relax-deferred-struct-page-requirements.patch
+* mm-mempolicy-remove-redundant-check-in-get_nodes.patch
+* mm-mempolicy-fix-the-check-of-nodemask-from-user.patch
+* mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
+* mm-drop-hotplug-lock-from-lru_add_drain_all.patch
+* mm-show-total-hugetlb-memory-consumption-in-proc-meminfo.patch
+* mm-use-sc-priority-for-slab-shrink-targets.patch
+* mm-mlock-vmscan-no-more-skipping-pagevecs.patch
+* mmvmscan-mark-register_shrinker-as-__must_check.patch
+* mm-split-deferred_init_range-into-initializing-and-freeing-parts.patch
+* mm-filemap-remove-include-of-hardirqh.patch
+* mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch
+* mm-memcontrol-implement-lruvec-stat-functions-on-top-of-each-other.patch
+* mm-memcontrol-fix-excessive-complexity-in-memorystat-reporting.patch
+* mm-swap-clean-up-swap-readahead.patch
+* mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
+* mm-make-count-list_lru_one-nr_items-lockless.patch
+* mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
+* mm-readahead-increase-maximum-readahead-window.patch
+* proc-do-not-show-vmexe-bigger-than-total-executable-virtual-memory.patch
+* mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
+* proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
+* proc-fix-proc-map_files-lookup.patch
+* proc-simpler-proc-vmcore-cleanup.patch
+* proc-less-memory-for-proc-map_files-readdir.patch
+* makefile-move-stack-protector-compiler-breakage-test-earlier.patch
+* makefile-move-stack-protector-availability-out-of-kconfig.patch
+* makefile-introduce-config_cc_stackprotector_auto.patch
+* lib-stackdepot-use-a-non-instrumented-version-of-memcmp.patch
+* seq_file-delete-small-value-optimization.patch
+* forkc-check-error-and-return-early.patch
+* forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
+* pids-introduce-find_get_task_by_vpid-helper.patch
+  linux-next.patch
+  linux-next-rejects.patch
+  linux-next-git-rejects.patch
+* tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+* vfs-remove-might_sleep-from-clear_inode.patch
+* sparc64-ng4-memset-32-bits-overflow.patch
+* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  workaround-for-a-pci-restoring-bug.patch
