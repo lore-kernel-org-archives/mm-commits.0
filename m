@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch added
- to -mm tree
-Date: Tue, 21 Nov 2017 15:57:16 -0800
-Message-ID: <5a14bd5c.chEjM+gbuUfWOg2u%akpm@linux-foundation.org>
+Subject: + mm-swap-clean-up-swap-readahead.patch added to -mm tree
+Date: Tue, 21 Nov 2017 16:00:24 -0800
+Message-ID: <5a14be18.LO5aZHzBgoIMvIUX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41306 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751497AbdKUX5S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 18:57:18 -0500
+        with ESMTP id S1751443AbdKVAAZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2017 19:00:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, hughd@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: eliminate raw access to stat and event counters
+     Subject: mm: swap: clean up swap readahead
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch
+     mm-swap-clean-up-swap-readahead.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-clean-up-swap-readahead.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-clean-up-swap-readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,255 +38,304 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: eliminate raw access to stat and event counters
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: swap: clean up swap readahead
 
-Replace all raw 'this_cpu_' modifications of the stat and event per-cpu
-counters with API functions such as mod_memcg_state().
+When I see recent change of swap readahead, I am very unhappy about
+current code structure which diverges two swap readahead algorithm in
+do_swap_page.  This patch is to clean it up.
 
-This makes the code easier to read, but is also in preparation for the
-next patch, which changes the per-cpu implementation of those counters.
+Main motivation is that fault handler doesn't need to be aware of
+readahead algorithms but just should call swapin_readahead.
 
-Link: http://lkml.kernel.org/r/20171103153336.24044-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
+As first step, this patch cleans up a little bit but not perfect (I just
+separate for review easier) so next patch will make the goal complete.
+
+Link: http://lkml.kernel.org/r/1509520520-32367-2-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   31 +++++++++++-------
- mm/memcontrol.c            |   59 ++++++++++++++---------------------
- 2 files changed, 45 insertions(+), 45 deletions(-)
+ include/linux/swap.h |   17 +------
+ mm/memory.c          |   17 +------
+ mm/swap_state.c      |   89 ++++++++++++++++++++++-------------------
+ 3 files changed, 55 insertions(+), 68 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters
-+++ a/include/linux/memcontrol.h
-@@ -272,13 +272,6 @@ static inline bool mem_cgroup_disabled(v
- 	return !cgroup_subsys_enabled(memory_cgrp_subsys);
+diff -puN include/linux/swap.h~mm-swap-clean-up-swap-readahead include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-clean-up-swap-readahead
++++ a/include/linux/swap.h
+@@ -425,12 +425,8 @@ extern struct page *__read_swap_cache_as
+ 			bool *new_page_allocated);
+ extern struct page *swapin_readahead(swp_entry_t, gfp_t,
+ 			struct vm_area_struct *vma, unsigned long addr);
+-
+-extern struct page *swap_readahead_detect(struct vm_fault *vmf,
+-					  struct vma_swap_readahead *swap_ra);
+ extern struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
+-					   struct vm_fault *vmf,
+-					   struct vma_swap_readahead *swap_ra);
++					   struct vm_fault *vmf);
+ 
+ /* linux/mm/swapfile.c */
+ extern atomic_long_t nr_swap_pages;
+@@ -549,15 +545,8 @@ static inline bool swap_use_vma_readahea
+ 	return false;
  }
  
--static inline void mem_cgroup_event(struct mem_cgroup *memcg,
--				    enum memcg_event_item event)
+-static inline struct page *swap_readahead_detect(
+-	struct vm_fault *vmf, struct vma_swap_readahead *swap_ra)
 -{
--	this_cpu_inc(memcg->stat->events[event]);
--	cgroup_file_notify(&memcg->events_file);
+-	return NULL;
 -}
 -
- bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg);
- 
- int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
-@@ -627,15 +620,23 @@ unsigned long mem_cgroup_soft_limit_recl
- 						gfp_t gfp_mask,
- 						unsigned long *total_scanned);
- 
-+/* idx can be of type enum memcg_event_item or vm_event_item */
-+static inline void __count_memcg_events(struct mem_cgroup *memcg,
-+					int idx, unsigned long count)
-+{
-+	if (!mem_cgroup_disabled())
-+		__this_cpu_add(memcg->stat->events[idx], count);
-+}
-+
-+/* idx can be of type enum memcg_event_item or vm_event_item */
- static inline void count_memcg_events(struct mem_cgroup *memcg,
--				      enum vm_event_item idx,
--				      unsigned long count)
-+				      int idx, unsigned long count)
+-static inline struct page *do_swap_page_readahead(
+-	swp_entry_t fentry, gfp_t gfp_mask,
+-	struct vm_fault *vmf, struct vma_swap_readahead *swap_ra)
++static inline struct page *do_swap_page_readahead(swp_entry_t fentry,
++				gfp_t gfp_mask, struct vm_fault *vmf)
  {
- 	if (!mem_cgroup_disabled())
- 		this_cpu_add(memcg->stat->events[idx], count);
+ 	return NULL;
  }
+diff -puN mm/memory.c~mm-swap-clean-up-swap-readahead mm/memory.c
+--- a/mm/memory.c~mm-swap-clean-up-swap-readahead
++++ a/mm/memory.c
+@@ -2849,21 +2849,14 @@ int do_swap_page(struct vm_fault *vmf)
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page = NULL, *swapcache = NULL;
+ 	struct mem_cgroup *memcg;
+-	struct vma_swap_readahead swap_ra;
+ 	swp_entry_t entry;
+ 	pte_t pte;
+ 	int locked;
+ 	int exclusive = 0;
+ 	int ret = 0;
+-	bool vma_readahead = swap_use_vma_readahead();
  
--/* idx can be of type enum memcg_stat_item or node_stat_item */
-+/* idx can be of type enum memcg_event_item or vm_event_item */
- static inline void count_memcg_page_event(struct page *page,
- 					  int idx)
- {
-@@ -654,12 +655,20 @@ static inline void count_memcg_event_mm(
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
- 	if (likely(memcg)) {
--		this_cpu_inc(memcg->stat->events[idx]);
-+		count_memcg_events(memcg, idx, 1);
- 		if (idx == OOM_KILL)
- 			cgroup_file_notify(&memcg->events_file);
- 	}
- 	rcu_read_unlock();
- }
-+
-+static inline void mem_cgroup_event(struct mem_cgroup *memcg,
-+				    enum memcg_event_item event)
-+{
-+	count_memcg_events(memcg, event, 1);
-+	cgroup_file_notify(&memcg->events_file);
-+}
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- void mem_cgroup_split_huge_fixup(struct page *head);
- #endif
-diff -puN mm/memcontrol.c~mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters
-+++ a/mm/memcontrol.c
-@@ -586,23 +586,23 @@ static void mem_cgroup_charge_statistics
- 	 * counted as CACHE even if it's on ANON LRU.
- 	 */
- 	if (PageAnon(page))
--		__this_cpu_add(memcg->stat->count[MEMCG_RSS], nr_pages);
-+		__mod_memcg_state(memcg, MEMCG_RSS, nr_pages);
- 	else {
--		__this_cpu_add(memcg->stat->count[MEMCG_CACHE], nr_pages);
-+		__mod_memcg_state(memcg, MEMCG_CACHE, nr_pages);
- 		if (PageSwapBacked(page))
--			__this_cpu_add(memcg->stat->count[NR_SHMEM], nr_pages);
-+			__mod_memcg_state(memcg, NR_SHMEM, nr_pages);
- 	}
+-	if (vma_readahead)
+-		page = swap_readahead_detect(vmf, &swap_ra);
+-	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte)) {
+-		if (page)
+-			put_page(page);
++	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte))
+ 		goto out;
+-	}
  
- 	if (compound) {
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
--		__this_cpu_add(memcg->stat->count[MEMCG_RSS_HUGE], nr_pages);
-+		__mod_memcg_state(memcg, MEMCG_RSS_HUGE, nr_pages);
- 	}
+ 	entry = pte_to_swp_entry(vmf->orig_pte);
+ 	if (unlikely(non_swap_entry(entry))) {
+@@ -2889,9 +2882,7 @@ int do_swap_page(struct vm_fault *vmf)
  
- 	/* pagein of a big page is an event. So, ignore page size */
- 	if (nr_pages > 0)
--		__this_cpu_inc(memcg->stat->events[PGPGIN]);
-+		__count_memcg_events(memcg, PGPGIN, 1);
- 	else {
--		__this_cpu_inc(memcg->stat->events[PGPGOUT]);
-+		__count_memcg_events(memcg, PGPGOUT, 1);
- 		nr_pages = -nr_pages; /* for event */
- 	}
  
-@@ -2415,18 +2415,11 @@ void mem_cgroup_split_huge_fixup(struct
- 	for (i = 1; i < HPAGE_PMD_NR; i++)
- 		head[i].mem_cgroup = head->mem_cgroup;
+ 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
+-	if (!page)
+-		page = lookup_swap_cache(entry, vma_readahead ? vma : NULL,
+-					 vmf->address);
++	page = lookup_swap_cache(entry, vma, vmf->address);
+ 	if (!page) {
+ 		struct swap_info_struct *si = swp_swap_info(entry);
  
--	__this_cpu_sub(head->mem_cgroup->stat->count[MEMCG_RSS_HUGE],
--		       HPAGE_PMD_NR);
-+	__mod_memcg_state(head->mem_cgroup, MEMCG_RSS_HUGE, -HPAGE_PMD_NR);
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #ifdef CONFIG_MEMCG_SWAP
--static void mem_cgroup_swap_statistics(struct mem_cgroup *memcg,
--				       int nr_entries)
--{
--	this_cpu_add(memcg->stat->count[MEMCG_SWAP], nr_entries);
--}
--
- /**
-  * mem_cgroup_move_swap_account - move swap charge and swap_cgroup's record.
-  * @entry: swap entry to be moved
-@@ -2450,8 +2443,8 @@ static int mem_cgroup_move_swap_account(
- 	new_id = mem_cgroup_id(to);
- 
- 	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
--		mem_cgroup_swap_statistics(from, -1);
--		mem_cgroup_swap_statistics(to, 1);
-+		mod_memcg_state(from, MEMCG_SWAP, -1);
-+		mod_memcg_state(to, MEMCG_SWAP, 1);
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -4584,8 +4577,8 @@ static int mem_cgroup_move_account(struc
- 	spin_lock_irqsave(&from->move_lock, flags);
- 
- 	if (!anon && page_mapped(page)) {
--		__this_cpu_sub(from->stat->count[NR_FILE_MAPPED], nr_pages);
--		__this_cpu_add(to->stat->count[NR_FILE_MAPPED], nr_pages);
-+		__mod_memcg_state(from, NR_FILE_MAPPED, -nr_pages);
-+		__mod_memcg_state(to, NR_FILE_MAPPED, nr_pages);
- 	}
- 
- 	/*
-@@ -4597,16 +4590,14 @@ static int mem_cgroup_move_account(struc
- 		struct address_space *mapping = page_mapping(page);
- 
- 		if (mapping_cap_account_dirty(mapping)) {
--			__this_cpu_sub(from->stat->count[NR_FILE_DIRTY],
--				       nr_pages);
--			__this_cpu_add(to->stat->count[NR_FILE_DIRTY],
--				       nr_pages);
-+			__mod_memcg_state(from, NR_FILE_DIRTY, -nr_pages);
-+			__mod_memcg_state(to, NR_FILE_DIRTY, nr_pages);
- 		}
- 	}
- 
- 	if (PageWriteback(page)) {
--		__this_cpu_sub(from->stat->count[NR_WRITEBACK], nr_pages);
--		__this_cpu_add(to->stat->count[NR_WRITEBACK], nr_pages);
-+		__mod_memcg_state(from, NR_WRITEBACK, -nr_pages);
-+		__mod_memcg_state(to, NR_WRITEBACK, nr_pages);
- 	}
- 
- 	/*
-@@ -5642,11 +5633,11 @@ static void uncharge_batch(const struct
- 	}
- 
- 	local_irq_save(flags);
--	__this_cpu_sub(ug->memcg->stat->count[MEMCG_RSS], ug->nr_anon);
--	__this_cpu_sub(ug->memcg->stat->count[MEMCG_CACHE], ug->nr_file);
--	__this_cpu_sub(ug->memcg->stat->count[MEMCG_RSS_HUGE], ug->nr_huge);
--	__this_cpu_sub(ug->memcg->stat->count[NR_SHMEM], ug->nr_shmem);
--	__this_cpu_add(ug->memcg->stat->events[PGPGOUT], ug->pgpgout);
-+	__mod_memcg_state(ug->memcg, MEMCG_RSS, -ug->nr_anon);
-+	__mod_memcg_state(ug->memcg, MEMCG_CACHE, -ug->nr_file);
-+	__mod_memcg_state(ug->memcg, MEMCG_RSS_HUGE, -ug->nr_huge);
-+	__mod_memcg_state(ug->memcg, NR_SHMEM, -ug->nr_shmem);
-+	__count_memcg_events(ug->memcg, PGPGOUT, ug->pgpgout);
- 	__this_cpu_add(ug->memcg->stat->nr_page_events, nr_pages);
- 	memcg_check_events(ug->memcg, ug->dummy_page);
- 	local_irq_restore(flags);
-@@ -5874,7 +5865,7 @@ bool mem_cgroup_charge_skmem(struct mem_
- 	if (in_softirq())
- 		gfp_mask = GFP_NOWAIT;
- 
--	this_cpu_add(memcg->stat->count[MEMCG_SOCK], nr_pages);
-+	mod_memcg_state(memcg, MEMCG_SOCK, nr_pages);
- 
- 	if (try_charge(memcg, gfp_mask, nr_pages) == 0)
- 		return true;
-@@ -5895,7 +5886,7 @@ void mem_cgroup_uncharge_skmem(struct me
- 		return;
- 	}
- 
--	this_cpu_sub(memcg->stat->count[MEMCG_SOCK], nr_pages);
-+	mod_memcg_state(memcg, MEMCG_SOCK, -nr_pages);
- 
- 	refill_stock(memcg, nr_pages);
- }
-@@ -6019,7 +6010,7 @@ void mem_cgroup_swapout(struct page *pag
- 	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg),
- 				   nr_entries);
- 	VM_BUG_ON_PAGE(oldid, page);
--	mem_cgroup_swap_statistics(swap_memcg, nr_entries);
-+	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
- 
- 	page->mem_cgroup = NULL;
- 
-@@ -6085,7 +6076,7 @@ int mem_cgroup_try_charge_swap(struct pa
- 		mem_cgroup_id_get_many(memcg, nr_pages - 1);
- 	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg), nr_pages);
- 	VM_BUG_ON_PAGE(oldid, page);
--	mem_cgroup_swap_statistics(memcg, nr_pages);
-+	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
- 
- 	return 0;
- }
-@@ -6113,7 +6104,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+@@ -2907,9 +2898,9 @@ int do_swap_page(struct vm_fault *vmf)
+ 				swap_readpage(page, true);
+ 			}
+ 		} else {
+-			if (vma_readahead)
++			if (swap_use_vma_readahead())
+ 				page = do_swap_page_readahead(entry,
+-					GFP_HIGHUSER_MOVABLE, vmf, &swap_ra);
++					GFP_HIGHUSER_MOVABLE, vmf);
  			else
- 				page_counter_uncharge(&memcg->memsw, nr_pages);
+ 				page = swapin_readahead(entry,
+ 				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+diff -puN mm/swap_state.c~mm-swap-clean-up-swap-readahead mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-clean-up-swap-readahead
++++ a/mm/swap_state.c
+@@ -332,32 +332,38 @@ struct page *lookup_swap_cache(swp_entry
+ 			       unsigned long addr)
+ {
+ 	struct page *page;
+-	unsigned long ra_info;
+-	int win, hits, readahead;
+ 
+ 	page = find_get_page(swap_address_space(entry), swp_offset(entry));
+ 
+ 	INC_CACHE_INFO(find_total);
+ 	if (page) {
++		bool vma_ra = swap_use_vma_readahead();
++		bool readahead = TestClearPageReadahead(page);
++
+ 		INC_CACHE_INFO(find_success);
+ 		if (unlikely(PageTransCompound(page)))
+ 			return page;
+-		readahead = TestClearPageReadahead(page);
+-		if (vma) {
+-			ra_info = GET_SWAP_RA_VAL(vma);
+-			win = SWAP_RA_WIN(ra_info);
+-			hits = SWAP_RA_HITS(ra_info);
++
++		if (vma && vma_ra) {
++			unsigned long ra_val;
++			int win, hits;
++
++			ra_val = GET_SWAP_RA_VAL(vma);
++			win = SWAP_RA_WIN(ra_val);
++			hits = SWAP_RA_HITS(ra_val);
+ 			if (readahead)
+ 				hits = min_t(int, hits + 1, SWAP_RA_HITS_MAX);
+ 			atomic_long_set(&vma->swap_readahead_info,
+ 					SWAP_RA_VAL(addr, win, hits));
  		}
--		mem_cgroup_swap_statistics(memcg, -nr_pages);
-+		mod_memcg_state(memcg, MEMCG_SWAP, -nr_pages);
- 		mem_cgroup_id_put_many(memcg, nr_pages);
++
+ 		if (readahead) {
+ 			count_vm_event(SWAP_RA_HIT);
+-			if (!vma)
++			if (!vma || !vma_ra)
+ 				atomic_inc(&swapin_readahead_hits);
+ 		}
  	}
- 	rcu_read_unlock();
++
+ 	return page;
+ }
+ 
+@@ -649,16 +655,15 @@ static inline void swap_ra_clamp_pfn(str
+ 		    PFN_DOWN((faddr & PMD_MASK) + PMD_SIZE));
+ }
+ 
+-struct page *swap_readahead_detect(struct vm_fault *vmf,
+-				   struct vma_swap_readahead *swap_ra)
++static void swap_ra_info(struct vm_fault *vmf,
++			struct vma_swap_readahead *ra_info)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	unsigned long swap_ra_info;
+-	struct page *page;
++	unsigned long ra_val;
+ 	swp_entry_t entry;
+ 	unsigned long faddr, pfn, fpfn;
+ 	unsigned long start, end;
+-	pte_t *pte;
++	pte_t *pte, *orig_pte;
+ 	unsigned int max_win, hits, prev_win, win, left;
+ #ifndef CONFIG_64BIT
+ 	pte_t *tpte;
+@@ -667,30 +672,32 @@ struct page *swap_readahead_detect(struc
+ 	max_win = 1 << min_t(unsigned int, READ_ONCE(page_cluster),
+ 			     SWAP_RA_ORDER_CEILING);
+ 	if (max_win == 1) {
+-		swap_ra->win = 1;
+-		return NULL;
++		ra_info->win = 1;
++		return;
+ 	}
+ 
+ 	faddr = vmf->address;
+-	entry = pte_to_swp_entry(vmf->orig_pte);
+-	if ((unlikely(non_swap_entry(entry))))
+-		return NULL;
+-	page = lookup_swap_cache(entry, vma, faddr);
+-	if (page)
+-		return page;
++	orig_pte = pte = pte_offset_map(vmf->pmd, faddr);
++	entry = pte_to_swp_entry(*pte);
++	if ((unlikely(non_swap_entry(entry)))) {
++		pte_unmap(orig_pte);
++		return;
++	}
+ 
+ 	fpfn = PFN_DOWN(faddr);
+-	swap_ra_info = GET_SWAP_RA_VAL(vma);
+-	pfn = PFN_DOWN(SWAP_RA_ADDR(swap_ra_info));
+-	prev_win = SWAP_RA_WIN(swap_ra_info);
+-	hits = SWAP_RA_HITS(swap_ra_info);
+-	swap_ra->win = win = __swapin_nr_pages(pfn, fpfn, hits,
++	ra_val = GET_SWAP_RA_VAL(vma);
++	pfn = PFN_DOWN(SWAP_RA_ADDR(ra_val));
++	prev_win = SWAP_RA_WIN(ra_val);
++	hits = SWAP_RA_HITS(ra_val);
++	ra_info->win = win = __swapin_nr_pages(pfn, fpfn, hits,
+ 					       max_win, prev_win);
+ 	atomic_long_set(&vma->swap_readahead_info,
+ 			SWAP_RA_VAL(faddr, win, 0));
+ 
+-	if (win == 1)
+-		return NULL;
++	if (win == 1) {
++		pte_unmap(orig_pte);
++		return;
++	}
+ 
+ 	/* Copy the PTEs because the page table may be unmapped */
+ 	if (fpfn == pfn + 1)
+@@ -703,23 +710,21 @@ struct page *swap_readahead_detect(struc
+ 		swap_ra_clamp_pfn(vma, faddr, fpfn - left, fpfn + win - left,
+ 				  &start, &end);
+ 	}
+-	swap_ra->nr_pte = end - start;
+-	swap_ra->offset = fpfn - start;
+-	pte = vmf->pte - swap_ra->offset;
++	ra_info->nr_pte = end - start;
++	ra_info->offset = fpfn - start;
++	pte -= ra_info->offset;
+ #ifdef CONFIG_64BIT
+-	swap_ra->ptes = pte;
++	ra_info->ptes = pte;
+ #else
+-	tpte = swap_ra->ptes;
++	tpte = ra_info->ptes;
+ 	for (pfn = start; pfn != end; pfn++)
+ 		*tpte++ = *pte++;
+ #endif
+-
+-	return NULL;
++	pte_unmap(orig_pte);
+ }
+ 
+ struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
+-				    struct vm_fault *vmf,
+-				    struct vma_swap_readahead *swap_ra)
++				    struct vm_fault *vmf)
+ {
+ 	struct blk_plug plug;
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -728,12 +733,14 @@ struct page *do_swap_page_readahead(swp_
+ 	swp_entry_t entry;
+ 	unsigned int i;
+ 	bool page_allocated;
++	struct vma_swap_readahead ra_info = {0,};
+ 
+-	if (swap_ra->win == 1)
++	swap_ra_info(vmf, &ra_info);
++	if (ra_info.win == 1)
+ 		goto skip;
+ 
+ 	blk_start_plug(&plug);
+-	for (i = 0, pte = swap_ra->ptes; i < swap_ra->nr_pte;
++	for (i = 0, pte = ra_info.ptes; i < ra_info.nr_pte;
+ 	     i++, pte++) {
+ 		pentry = *pte;
+ 		if (pte_none(pentry))
+@@ -749,7 +756,7 @@ struct page *do_swap_page_readahead(swp_
+ 			continue;
+ 		if (page_allocated) {
+ 			swap_readpage(page, false);
+-			if (i != swap_ra->offset &&
++			if (i != ra_info.offset &&
+ 			    likely(!PageTransCompound(page))) {
+ 				SetPageReadahead(page);
+ 				count_vm_event(SWAP_RA);
+@@ -761,7 +768,7 @@ struct page *do_swap_page_readahead(swp_
+ 	lru_add_drain();
+ skip:
+ 	return read_swap_cache_async(fentry, gfp_mask, vma, vmf->address,
+-				     swap_ra->win == 1);
++				     ra_info.win == 1);
+ }
+ 
+ #ifdef CONFIG_SYSFS
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch
-mm-memcontrol-implement-lruvec-stat-functions-on-top-of-each-other.patch
-mm-memcontrol-fix-excessive-complexity-in-memorystat-reporting.patch
+mm-swap-clean-up-swap-readahead.patch
+mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
 
