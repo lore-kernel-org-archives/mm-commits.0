@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + exec-avoid-rlimit_stack-races-with-prlimit.patch added to -mm
- tree
-Date: Mon, 27 Nov 2017 15:13:28 -0800
-Message-ID: <5a1c9c18.ro3IJpANbRrON8Ny%akpm__29304.0602854036$1511824411$gmane$org@linux-foundation.org>
+Subject: +
+ mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch added to -mm tree
+Date: Mon, 27 Nov 2017 15:29:04 -0800
+Message-ID: <5a1c9fc0.8iiVA/ewr5YaaKl7%akpm__1854.62325248427$1511825349$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45130 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751921AbdK0XN3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2017 18:13:29 -0500
+        with ESMTP id S1751921AbdK0X3G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2017 18:29:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, ben.hutchings@codethink.co.uk, james.l.morris@oracle.com, jslaby@suse.cz, luto@kernel.org, oleg@redhat.com, serge@hallyn.com, spender@grsecurity.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: chenjie6@huawei.com, aarcange@redhat.com, cotte@de.ibm.com, dan.j.williams@intel.com, guoxuenan@huawei.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, miaoxie@huawei.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, stable@vger.kernel.org, yi.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exec: avoid RLIMIT_STACK races with prlimit()
+     Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
 has been added to the -mm tree.  Its filename is
-     exec-avoid-rlimit_stack-races-with-prlimit.patch
+     mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-avoid-rlimit_stack-races-with-prlimit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-avoid-rlimit_stack-races-with-prlimit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: exec: avoid RLIMIT_STACK races with prlimit()
+From: chenjie <chenjie6@huawei.com>
+Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
 
-While the defense-in-depth RLIMIT_STACK limit on setuid processes was
-protected against races from other threads calling setrlimit(), I missed
-protecting it against races from external processes calling prlimit(). 
-This adds locking around the change and makes sure that rlim_max is set
-too.
+MADVISE_WILLNEED has always been a noop for DAX (formerly XIP) mappings. 
+Unfortunatelly madvise_willneed() doesn't communicate this information
+properly to the generic madvise syscall implementation.  The calling
+convention is quite subtle there.  madvise_vma() is supposed to either
+return an error or update &prev otherwise the main loop will never advance
+to the next vma and it will keep looping for ever without a way to get out
+of the kernel.
 
-Link: http://lkml.kernel.org/r/20171127193457.GA11348@beast
-Fixes: 64701dee4178e ("exec: Use sane stack rlimit under secureexec")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
-Reported-by: Brad Spengler <spender@grsecurity.net>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
+It seems this has been broken since introduction.  Nobody has noticed
+because nobody seems to be using MADVISE_WILLNEED on these DAX mappings.
+
+[mhocko@suse.com: rewrite changelog]
+Link: http://lkml.kernel.org/r/20171127115318.911-1-guoxuenan@huawei.com
+Fixes: fe77ba6f4f97 ("[PATCH] xip: madvice/fadvice: execute in place")
+Signed-off-by: chenjie <chenjie6@huawei.com>
+Signed-off-by: guoxuenan <guoxuenan@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: zhangyi (F) <yi.zhang@huawei.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/madvise.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit fs/exec.c
---- a/fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit
-+++ a/fs/exec.c
-@@ -1340,10 +1340,15 @@ void setup_new_exec(struct linux_binprm
- 		 * avoid bad behavior from the prior rlimits. This has to
- 		 * happen before arch_pick_mmap_layout(), which examines
- 		 * RLIMIT_STACK, but after the point of no return to avoid
--		 * needing to clean up the change on failure.
-+		 * races from other threads changing the limits. This also
-+		 * must be protected from races with prlimit() calls.
- 		 */
-+		task_lock(current->group_leader);
- 		if (current->signal->rlim[RLIMIT_STACK].rlim_cur > _STK_LIM)
- 			current->signal->rlim[RLIMIT_STACK].rlim_cur = _STK_LIM;
-+		if (current->signal->rlim[RLIMIT_STACK].rlim_max > _STK_LIM)
-+			current->signal->rlim[RLIMIT_STACK].rlim_max = _STK_LIM;
-+		task_unlock(current->group_leader);
+diff -puN mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances mm/madvise.c
+--- a/mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances
++++ a/mm/madvise.c
+@@ -276,15 +276,14 @@ static long madvise_willneed(struct vm_a
+ {
+ 	struct file *file = vma->vm_file;
+ 
++	*prev = vma;
+ #ifdef CONFIG_SWAP
+ 	if (!file) {
+-		*prev = vma;
+ 		force_swapin_readahead(vma, start, end);
+ 		return 0;
  	}
  
- 	arch_pick_mmap_layout(current->mm);
+ 	if (shmem_mapping(file->f_mapping)) {
+-		*prev = vma;
+ 		force_shm_swapin_readahead(vma, start, end,
+ 					file->f_mapping);
+ 		return 0;
+@@ -299,7 +298,6 @@ static long madvise_willneed(struct vm_a
+ 		return 0;
+ 	}
+ 
+-	*prev = vma;
+ 	start = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+ 	if (end > vma->vm_end)
+ 		end = vma->vm_end;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from chenjie6@huawei.com are
 
-exec-avoid-rlimit_stack-races-with-prlimit.patch
-makefile-move-stack-protector-compiler-breakage-test-earlier.patch
-makefile-move-stack-protector-availability-out-of-kconfig.patch
-makefile-introduce-config_cc_stackprotector_auto.patch
+mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch
 
