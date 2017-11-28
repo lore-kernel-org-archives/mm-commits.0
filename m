@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + proc-delete-children_seq_release.patch added to -mm tree
-Date: Tue, 28 Nov 2017 14:43:27 -0800
-Message-ID: <5a1de68f.IM66tHWJMTp6S3F1%akpm@linux-foundation.org>
+Subject: +
+ autofs-revert-take-more-care-to-not-update-last_used-on-path-walk.patch
+ added to -mm tree
+Date: Tue, 28 Nov 2017 15:24:15 -0800
+Message-ID: <5a1df01f.W1fa6wksdeTEIiGz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751497AbdK1Wn2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 17:43:28 -0500
+        with ESMTP id S1752676AbdK1XYR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:24:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, gorcunov@openvz.org, mm-commits@vger.kernel.org
+To: raven@themaw.net, dhowells@redhat.com, neilb@suse.com, oholy@redhat.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, walters@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/array.c: delete children_seq_release()
+     Subject: autofs: revert "autofs: take more care to not update last_used on path walk"
 has been added to the -mm tree.  Its filename is
-     proc-delete-children_seq_release.patch
+     autofs-revert-take-more-care-to-not-update-last_used-on-path-walk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-delete-children_seq_release.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-revert-take-more-care-to-not-update-last_used-on-path-walk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-delete-children_seq_release.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-revert-take-more-care-to-not-update-last_used-on-path-walk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,29 +40,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc/array.c: delete children_seq_release()
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: revert "autofs: take more care to not update last_used on path walk"
 
-It is 1:1 wrapper around seq_release().
+While 092a53452b ("autofs: take more care to not update last_used on path
+walk") helped (partially) resolve a problem where automounts were not
+expiring due to aggressive accesses from user space it has a side effect
+for very large environments.
 
-Link: http://lkml.kernel.org/r/20171122171510.GA12161@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+This change helps with the expire problem by making the expire more
+aggressive but, for very large environments, that means more mount
+requests from clients.  When there are a lot of clients that can mean
+fairly significant server load increases.
+
+It turns out I put the last_used in this position to solve this very
+problem and failed to update my own thinking of the autofs expire policy. 
+So the patch being reverted introduces a regression which should be fixed.
+
+Link: http://lkml.kernel.org/r/151174729420.6162.1832622523537052460.stgit@pluto.themaw.net
+Fixes: 092a53452b ("autofs: take more care to not update last_used on path walk")
+Signed-off-by: Ian Kent <raven@themaw.net>
+Reviewed-by: NeilBrown <neilb@suse.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>	[4.11+]
+Cc: Colin Walters <walters@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ondrej Holy <oholy@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ fs/autofs4/root.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/array.c~proc-delete-children_seq_release fs/proc/array.c
---- a/fs/proc/array.c~proc-delete-children_seq_release
-+++ a/fs/proc/array.c
-@@ -733,16 +733,10 @@ static int children_seq_open(struct inod
- 	return ret;
+diff -puN fs/autofs4/root.c~autofs-revert-take-more-care-to-not-update-last_used-on-path-walk fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs-revert-take-more-care-to-not-update-last_used-on-path-walk
++++ a/fs/autofs4/root.c
+@@ -281,8 +281,8 @@ static int autofs4_mount_wait(const stru
+ 		pr_debug("waiting for mount name=%pd\n", path->dentry);
+ 		status = autofs4_wait(sbi, path, NFY_MOUNT);
+ 		pr_debug("mount wait done status=%d\n", status);
+-		ino->last_used = jiffies;
+ 	}
++	ino->last_used = jiffies;
+ 	return status;
  }
  
--int children_seq_release(struct inode *inode, struct file *file)
--{
--	seq_release(inode, file);
--	return 0;
--}
+@@ -321,21 +321,16 @@ static struct dentry *autofs4_mountpoint
+ 	 */
+ 	if (autofs_type_indirect(sbi->type) && d_unhashed(dentry)) {
+ 		struct dentry *parent = dentry->d_parent;
++		struct autofs_info *ino;
+ 		struct dentry *new;
+ 
+ 		new = d_lookup(parent, &dentry->d_name);
+ 		if (!new)
+ 			return NULL;
+-		if (new == dentry)
+-			dput(new);
+-		else {
+-			struct autofs_info *ino;
