@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmoom-move-last-second-allocation-to-inside-the-oom-killer.patch added to
- -mm tree
-Date: Mon, 27 Nov 2017 16:06:30 -0800
-Message-ID: <5a1ca886.hFHFR/G09qaqu4ZF%akpm@linux-foundation.org>
+Subject: + lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch added to -mm tree
+Date: Mon, 27 Nov 2017 16:19:12 -0800
+Message-ID: <5a1cab80.3KXq3yQKfrTO7nXq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752406AbdK1AGc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2017 19:06:32 -0500
+        with ESMTP id S1752515AbdK1ATO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2017 19:19:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, aarcange@redhat.com, hannes@cmpxchg.org, mhocko@suse.com, mjaggi@caviumnetworks.com, oleg@redhat.com, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: ynorov@caviumnetworks.com, adobriyan@gmail.com, courbet@google.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom: move last second allocation to inside the OOM killer
+     Subject: lib/test_find_bit.c: rename to find_bit_benchmark.c
 has been added to the -mm tree.  Its filename is
-     mmoom-move-last-second-allocation-to-inside-the-oom-killer.patch
+     lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-move-last-second-allocation-to-inside-the-oom-killer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-move-last-second-allocation-to-inside-the-oom-killer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,191 +38,344 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom: move last second allocation to inside the OOM killer
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: lib/test_find_bit.c: rename to find_bit_benchmark.c
 
-Since selecting an OOM victim can take quite some time and the OOM
-situation might be resolved meanwhile, sometimes doing last second
-allocation attempt after selecting an OOM victim can succeed.
+As suggested in review comments, rename test_find_bit.c to
+find_bit_benchmark.c.
 
-Therefore, this patch moves last second allocation attempt to after
-selecting an OOM victim.  This patch is expected to reduce the time window
-for potentially premature OOM killing considerably.
-
-Link: http://lkml.kernel.org/r/1511607169-5084-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Manish Jaggi <mjaggi@caviumnetworks.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/20171124143040.a44jvhmnaiyedg2i@yury-thinkpad
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Clement Courbet <courbet@google.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |   13 ++++++++++++
- mm/oom_kill.c       |   14 +++++++++++++
- mm/page_alloc.c     |   44 ++++++++++++++++++++++++------------------
- 3 files changed, 53 insertions(+), 18 deletions(-)
+ lib/Kconfig.debug        |    2 
+ lib/Makefile             |    2 
+ lib/find_bit_benchmark.c |  144 +++++++++++++++++++++++++++++++++++++
+ lib/test_find_bit.c      |  144 -------------------------------------
+ 4 files changed, 146 insertions(+), 146 deletions(-)
 
-diff -puN include/linux/oom.h~mmoom-move-last-second-allocation-to-inside-the-oom-killer include/linux/oom.h
---- a/include/linux/oom.h~mmoom-move-last-second-allocation-to-inside-the-oom-killer
-+++ a/include/linux/oom.h
-@@ -14,6 +14,8 @@ struct zonelist;
- struct notifier_block;
- struct mem_cgroup;
- struct task_struct;
-+struct alloc_context;
-+struct page;
- 
- /*
-  * Details of the page allocation that triggered the oom killer that are used to
-@@ -38,6 +40,15 @@ struct oom_control {
- 	 */
- 	const int order;
- 
-+	/* Context for really last second allocation attempt. */
-+	const struct alloc_context *ac;
-+	/*
-+	 * Set by the OOM killer if ac != NULL and last second allocation
-+	 * attempt succeeded. If ac != NULL, the caller must check for
-+	 * page != NULL.
-+	 */
-+	struct page *page;
+diff -puN /dev/null lib/find_bit_benchmark.c
+--- /dev/null
++++ a/lib/find_bit_benchmark.c
+@@ -0,0 +1,144 @@
++/*
++ * Test for find_*_bit functions.
++ *
++ * Copyright (c) 2017 Cavium.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of version 2 of the GNU General Public
++ * License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ */
 +
- 	/* Used by oom implementation, do not set */
- 	unsigned long totalpages;
- 	struct task_struct *chosen;
-@@ -102,6 +113,8 @@ extern void oom_killer_enable(void);
- 
- extern struct task_struct *find_lock_task_mm(struct task_struct *p);
- 
-+extern struct page *alloc_pages_before_oomkill(const struct oom_control *oc);
++/*
++ * find_bit functions are widely used in kernel, so the successful boot
++ * is good enough test for correctness.
++ *
++ * This test is focused on performance of traversing bitmaps. Two typical
++ * scenarios are reproduced:
++ * - randomly filled bitmap with approximately equal number of set and
++ *   cleared bits;
++ * - sparse bitmap with few set bits at random positions.
++ */
 +
- /* sysctls */
- extern int sysctl_oom_dump_tasks;
- extern int sysctl_oom_kill_allocating_task;
-diff -puN mm/oom_kill.c~mmoom-move-last-second-allocation-to-inside-the-oom-killer mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-move-last-second-allocation-to-inside-the-oom-killer
-+++ a/mm/oom_kill.c
-@@ -1061,6 +1061,9 @@ bool out_of_memory(struct oom_control *o
- 	if (!is_memcg_oom(oc) && sysctl_oom_kill_allocating_task &&
- 	    current->mm && !oom_unkillable_task(current, NULL, oc->nodemask) &&
- 	    current->signal->oom_score_adj != OOM_SCORE_ADJ_MIN) {
-+		oc->page = alloc_pages_before_oomkill(oc);
-+		if (oc->page)
-+			return true;
- 		get_task_struct(current);
- 		oc->chosen = current;
- 		oom_kill_process(oc, "Out of memory (oom_kill_allocating_task)");
-@@ -1068,6 +1071,17 @@ bool out_of_memory(struct oom_control *o
- 	}
- 
- 	select_bad_process(oc);
-+	/*
-+	 * Try really last second allocation attempt after we selected an OOM
-+	 * victim, for somebody might have managed to free memory while we were
-+	 * selecting an OOM victim which can take quite some time.
-+	 */
-+	oc->page = alloc_pages_before_oomkill(oc);
-+	if (oc->page) {
-+		if (oc->chosen && oc->chosen != (void *)-1UL)
-+			put_task_struct(oc->chosen);
-+		return true;
-+	}
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
- 	if (!oc->chosen && !is_sysrq_oom(oc) && !is_memcg_oom(oc)) {
- 		dump_header(oc, NULL);
-diff -puN mm/page_alloc.c~mmoom-move-last-second-allocation-to-inside-the-oom-killer mm/page_alloc.c
---- a/mm/page_alloc.c~mmoom-move-last-second-allocation-to-inside-the-oom-killer
-+++ a/mm/page_alloc.c
-@@ -3325,8 +3325,9 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		.memcg = NULL,
- 		.gfp_mask = gfp_mask,
- 		.order = order,
-+		.ac = ac,
- 	};
--	struct page *page;
-+	struct page *page = NULL;
- 
- 	*did_some_progress = 0;
- 
-@@ -3340,19 +3341,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		return NULL;
- 	}
- 
--	/*
--	 * Go through the zonelist yet one more time, keep very high watermark
--	 * here, this is only to catch a parallel oom killing, we must fail if
--	 * we're still under heavy pressure. But make sure that this reclaim
--	 * attempt shall not depend on __GFP_DIRECT_RECLAIM && !__GFP_NORETRY
--	 * allocation which will never fail due to oom_lock already held.
--	 */
--	page = get_page_from_freelist((gfp_mask | __GFP_HARDWALL) &
--				      ~__GFP_DIRECT_RECLAIM, order,
--				      ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
--	if (page)
--		goto out;
--
- 	/* Coredumps can quickly deplete all memory reserves */
- 	if (current->flags & PF_DUMPCORE)
- 		goto out;
-@@ -3387,16 +3375,18 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		goto out;
- 
- 	/* Exhausted what can be done so it's blamo time */
--	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
-+	if (out_of_memory(&oc)) {
-+		*did_some_progress = 1;
-+		page = oc.page;
-+	} else if (WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
- 		*did_some_progress = 1;
- 
- 		/*
- 		 * Help non-failing allocations by giving them access to memory
- 		 * reserves
- 		 */
--		if (gfp_mask & __GFP_NOFAIL)
--			page = __alloc_pages_cpuset_fallback(gfp_mask, order,
--					ALLOC_NO_WATERMARKS, ac);
-+		page = __alloc_pages_cpuset_fallback(gfp_mask, order,
-+						     ALLOC_NO_WATERMARKS, ac);
- 	}
- out:
- 	mutex_unlock(&oom_lock);
-@@ -4156,6 +4146,24 @@ got_pg:
- 	return page;
- }
- 
-+struct page *alloc_pages_before_oomkill(const struct oom_control *oc)
++#include <linux/bitops.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/printk.h>
++#include <linux/random.h>
++
++#define BITMAP_LEN	(4096UL * 8 * 10)
++#define SPARSE		500
++
++static DECLARE_BITMAP(bitmap, BITMAP_LEN) __initdata;
++
++/*
++ * This is Schlemiel the Painter's algorithm. It should be called after
++ * all other tests for the same bitmap because it sets all bits of bitmap to 1.
++ */
++static int __init test_find_first_bit(void *bitmap, unsigned long len)
 +{
-+	/*
-+	 * Go through the zonelist yet one more time, keep very high watermark
-+	 * here, this is only to catch a parallel oom killing, we must fail if
-+	 * we're still under heavy pressure. But make sure that this reclaim
-+	 * attempt shall not depend on __GFP_DIRECT_RECLAIM && !__GFP_NORETRY
-+	 * allocation which will never fail due to oom_lock already held.
-+	 */
-+	int alloc_flags = ALLOC_CPUSET | ALLOC_WMARK_HIGH;
-+	gfp_t gfp_mask = oc->gfp_mask | __GFP_HARDWALL;
++	unsigned long i, cnt;
++	cycles_t cycles;
 +
-+	if (!oc->ac)
-+		return NULL;
-+	gfp_mask &= ~__GFP_DIRECT_RECLAIM;
-+	return get_page_from_freelist(gfp_mask, oc->order, alloc_flags, oc->ac);
++	cycles = get_cycles();
++	for (cnt = i = 0; i < len; cnt++) {
++		i = find_first_bit(bitmap, len);
++		__clear_bit(i, bitmap);
++	}
++	cycles = get_cycles() - cycles;
++	pr_err("find_first_bit:\t\t%llu cycles,\t%ld iterations\n",
++	       (u64)cycles, cnt);
++
++	return 0;
 +}
 +
- static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
- 		int preferred_nid, nodemask_t *nodemask,
- 		struct alloc_context *ac, gfp_t *alloc_mask,
-_
-
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
-
-dentry-fix-kmemcheck-splat-at-take_dentry_name_snapshot.patch
-mmvmscan-mark-register_shrinker-as-__must_check.patch
-mmoom-move-last-second-allocation-to-inside-the-oom-killer.patch
-mmoom-use-alloc_oom-for-oom-victims-last-second-allocation.patch
-mmoom-remove-oom_lock-serialization-from-the-oom-reaper.patch
-
++static int __init test_find_next_bit(const void *bitmap, unsigned long len)
++{
++	unsigned long i, cnt;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
++		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
++	cycles = get_cycles() - cycles;
++	pr_err("find_next_bit:\t\t%llu cycles,\t%ld iterations\n",
++	       (u64)cycles, cnt);
++
++	return 0;
++}
++
++static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
++{
++	unsigned long i, cnt;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
++		i = find_next_zero_bit(bitmap, len, i) + 1;
++	cycles = get_cycles() - cycles;
++	pr_err("find_next_zero_bit:\t%llu cycles,\t%ld iterations\n",
++	       (u64)cycles, cnt);
++
++	return 0;
++}
++
++static int __init test_find_last_bit(const void *bitmap, unsigned long len)
++{
++	unsigned long l, cnt = 0;
++	cycles_t cycles;
++
++	cycles = get_cycles();
++	do {
++		cnt++;
++		l = find_last_bit(bitmap, len);
++		if (l >= len)
++			break;
++		len = l;
++	} while (len);
++	cycles = get_cycles() - cycles;
++	pr_err("find_last_bit:\t\t%llu cycles,\t%ld iterations\n",
++	       (u64)cycles, cnt);
++
++	return 0;
++}
++
++static int __init find_bit_test(void)
++{
++	unsigned long nbits = BITMAP_LEN / SPARSE;
++
++	pr_err("\nStart testing find_bit() with random-filled bitmap\n");
++
++	get_random_bytes(bitmap, sizeof(bitmap));
++
++	test_find_next_bit(bitmap, BITMAP_LEN);
++	test_find_next_zero_bit(bitmap, BITMAP_LEN);
++	test_find_last_bit(bitmap, BITMAP_LEN);
++	test_find_first_bit(bitmap, BITMAP_LEN);
++
++	pr_err("\nStart testing find_bit() with sparse bitmap\n");
++
++	bitmap_zero(bitmap, BITMAP_LEN);
++
++	while (nbits--)
++		__set_bit(prandom_u32() % BITMAP_LEN, bitmap);
++
++	test_find_next_bit(bitmap, BITMAP_LEN);
++	test_find_next_zero_bit(bitmap, BITMAP_LEN);
++	test_find_last_bit(bitmap, BITMAP_LEN);
++	test_find_first_bit(bitmap, BITMAP_LEN);
++
++	return 0;
++}
++module_init(find_bit_test);
++
++static void __exit test_find_bit_cleanup(void)
++{
++}
++module_exit(test_find_bit_cleanup);
++
++MODULE_LICENSE("GPL");
+diff -puN lib/Kconfig.debug~lib-test_find_bitc-rename-to-find_bit_benchmarkc lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-test_find_bitc-rename-to-find_bit_benchmarkc
++++ a/lib/Kconfig.debug
+@@ -1860,7 +1860,7 @@ config TEST_BPF
+ 
+ 	  If unsure, say N.
+ 
+-config TEST_FIND_BIT
++config FIND_BIT_BENCHMARK
+ 	tristate "Test find_bit functions"
+ 	default n
+ 	help
+diff -puN lib/Makefile~lib-test_find_bitc-rename-to-find_bit_benchmarkc lib/Makefile
+--- a/lib/Makefile~lib-test_find_bitc-rename-to-find_bit_benchmarkc
++++ a/lib/Makefile
+@@ -46,8 +46,8 @@ obj-$(CONFIG_TEST_STRING_HELPERS) += tes
+ obj-y += hexdump.o
+ obj-$(CONFIG_TEST_HEXDUMP) += test_hexdump.o
+ obj-y += kstrtox.o
++obj-$(CONFIG_FIND_BIT_BENCHMARK) += find_bit_benchmark.o
+ obj-$(CONFIG_TEST_BPF) += test_bpf.o
+-obj-$(CONFIG_TEST_FIND_BIT) += test_find_bit.o
+ obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
+ obj-$(CONFIG_TEST_SYSCTL) += test_sysctl.o
+ obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
+diff -puN lib/test_find_bit.c~lib-test_find_bitc-rename-to-find_bit_benchmarkc /dev/null
+--- a/lib/test_find_bit.c
++++ /dev/null
+@@ -1,144 +0,0 @@
+-/*
+- * Test for find_*_bit functions.
+- *
+- * Copyright (c) 2017 Cavium.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of version 2 of the GNU General Public
+- * License as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+- * General Public License for more details.
+- */
+-
+-/*
+- * find_bit functions are widely used in kernel, so the successful boot
+- * is good enough test for correctness.
+- *
+- * This test is focused on performance of traversing bitmaps. Two typical
+- * scenarios are reproduced:
+- * - randomly filled bitmap with approximately equal number of set and
+- *   cleared bits;
+- * - sparse bitmap with few set bits at random positions.
+- */
+-
+-#include <linux/bitops.h>
+-#include <linux/kernel.h>
+-#include <linux/list.h>
+-#include <linux/module.h>
+-#include <linux/printk.h>
+-#include <linux/random.h>
+-
+-#define BITMAP_LEN	(4096UL * 8 * 10)
+-#define SPARSE		500
+-
+-static DECLARE_BITMAP(bitmap, BITMAP_LEN) __initdata;
+-
+-/*
+- * This is Schlemiel the Painter's algorithm. It should be called after
+- * all other tests for the same bitmap because it sets all bits of bitmap to 1.
+- */
+-static int __init test_find_first_bit(void *bitmap, unsigned long len)
+-{
+-	unsigned long i, cnt;
+-	cycles_t cycles;
+-
+-	cycles = get_cycles();
+-	for (cnt = i = 0; i < len; cnt++) {
+-		i = find_first_bit(bitmap, len);
+-		__clear_bit(i, bitmap);
+-	}
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_first_bit:\t\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
+-
+-	return 0;
+-}
+-
+-static int __init test_find_next_bit(const void *bitmap, unsigned long len)
+-{
+-	unsigned long i, cnt;
+-	cycles_t cycles;
+-
+-	cycles = get_cycles();
+-	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+-		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_next_bit:\t\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
+-
+-	return 0;
+-}
+-
+-static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
+-{
+-	unsigned long i, cnt;
+-	cycles_t cycles;
+-
+-	cycles = get_cycles();
+-	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+-		i = find_next_zero_bit(bitmap, len, i) + 1;
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_next_zero_bit:\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
+-
+-	return 0;
+-}
+-
+-static int __init test_find_last_bit(const void *bitmap, unsigned long len)
+-{
+-	unsigned long l, cnt = 0;
+-	cycles_t cycles;
+-
+-	cycles = get_cycles();
+-	do {
+-		cnt++;
+-		l = find_last_bit(bitmap, len);
+-		if (l >= len)
+-			break;
+-		len = l;
+-	} while (len);
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_last_bit:\t\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
+-
+-	return 0;
+-}
+-
+-static int __init find_bit_test(void)
+-{
+-	unsigned long nbits = BITMAP_LEN / SPARSE;
+-
+-	pr_err("\nStart testing find_bit() with random-filled bitmap\n");
+-
+-	get_random_bytes(bitmap, sizeof(bitmap));
+-
+-	test_find_next_bit(bitmap, BITMAP_LEN);
+-	test_find_next_zero_bit(bitmap, BITMAP_LEN);
+-	test_find_last_bit(bitmap, BITMAP_LEN);
+-	test_find_first_bit(bitmap, BITMAP_LEN);
+-
+-	pr_err("\nStart testing find_bit() with sparse bitmap\n");
+-
+-	bitmap_zero(bitmap, BITMAP_LEN);
+-
+-	while (nbits--)
+-		__set_bit(prandom_u32() % BITMAP_LEN, bitmap);
+-
+-	test_find_next_bit(bitmap, BITMAP_LEN);
+-	test_find_next_zero_bit(bitmap, BITMAP_LEN);
+-	test_find_last_bit(bitmap, BITMAP_LEN);
+-	test_find_first_bit(bitmap, BITMAP_LEN);
+-
+-	return 0;
+-}
+-module_init(find_bit_test);
+-
+-static void __exit test_find_bit_cleanup(void)
+-{
+-}
+-module_exit(test_find_bit_cleanup);
