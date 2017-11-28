@@ -1,86 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
- added to -mm tree
-Date: Tue, 28 Nov 2017 15:36:02 -0800
-Message-ID: <5a1df2e2.CwKGtn1FsHw9GH5J%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-cma-fix-alloc_contig_range-ret-code-potential-leak.patch removed from
+ -mm tree
+Date: Tue, 28 Nov 2017 15:39:31 -0800
+Message-ID: <5a1df3b3.PVTZrB/Qfh+Av9k5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52040 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbdK1XgD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:36:03 -0500
+        with ESMTP id S1751496AbdK1Xjc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:39:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, mina86@mina86.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix NULL-pointer dereference on 5-level paging machine
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
+     Subject: mm/cma: fix alloc_contig_range ret code/potential leak
+has been removed from the -mm tree.  Its filename was
+     mm-cma-fix-alloc_contig_range-ret-code-potential-leak.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/hugetlb: fix NULL-pointer dereference on 5-level paging machine
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/cma: fix alloc_contig_range ret code/potential leak
 
-I made a mistake during converting hugetlb code to 5-level paging: in
-huge_pte_alloc() we have to use p4d_alloc(), not p4d_offset().  Otherwise
-it leads to crash -- NULL-pointer dereference in pud_alloc() if p4d table
-is not yet allocated.
+In an attempt to make contiguous allocation routines more available to
+drivers, I have been experimenting with code similar to that used by
+alloc_gigantic_page().  While stressing this code with many other
+allocations and frees in progress, I would sometimes notice large
+'leaks' of page ranges.
 
-It only can happen in 5-level paging mode.  In 4-level paging mode
-p4d_offset() always returns pgd, so we are fine.
+I traced this down to the routine alloc_contig_range() itself.  In
+8ef5849fa8a2 ("mm/cma: always check which page caused allocation
+failure") the code was changed so that an -EBUSY returned by
+__alloc_contig_migrate_range() would not immediately return to the
+caller.  Rather, processing continues so that test_pages_isolated() is
+eventually called.  This is done because test_pages_isolated() has a
+tracepoint to identify the busy pages.
 
-Link: http://lkml.kernel.org/r/20171122121921.64822-1-kirill.shutemov@linux.intel.com
-Fixes: c2febafc6773 ("mm: convert generic code to 5-level paging")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+However, it is possible (observed in my testing) that pages which were
+busy when __alloc_contig_migrate_range was called may become available
+by the time test_pages_isolated is called.  Further, it is possible
+that the entire range can actually be allocated.  Unfortunately, in
+this case the return code originally set by
+__alloc_contig_migrate_range (-EBUSY) is returned to the calller. 
+Therefore, the caller assumes the range was not allocated and the pages
+are essentially leaked.
+
+The following patch simply updates the return code based on the value
+returned from test_pages_isolated.
+
+It is unlikely that we will hit this issue today based on the limited
+number of callers to alloc_contig_range.  However, I have Cc'ed stable
+because if we do hit this issue it has the potential to leak a large
+number of pages.
+
+If the call __alloc_contig_migrate_range() in alloc_contig_range returns
+-EBUSY, processing continues so that test_pages_isolated() is called where
+there is a tracepoint to identify the busy pages.  However, it is possible
+for busy pages to become available between the calls to these two
+routines.  In this case, the range of pages may be allocated. 
+Unfortunately, the original return code (ret == -EBUSY) is still set and
+returned to the caller.  Therefore, the caller believes the pages were not
+allocated and they are leaked.
+
+Update the return code with the value from test_pages_isolated().
+
+Link: http://lkml.kernel.org/r/20171120193930.23428-2-mike.kravetz@oracle.com
+Fixes: 8ef5849fa8a2 ("mm/cma: always check which page caused allocation failure")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[4.11+]
-
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine
-+++ a/mm/hugetlb.c
-@@ -4635,7 +4635,9 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	pte_t *pte = NULL;
+diff -puN mm/page_alloc.c~mm-cma-fix-alloc_contig_range-ret-code-potential-leak mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-fix-alloc_contig_range-ret-code-potential-leak
++++ a/mm/page_alloc.c
+@@ -7702,10 +7702,10 @@ int alloc_contig_range(unsigned long sta
+ 	}
  
- 	pgd = pgd_offset(mm, addr);
--	p4d = p4d_offset(pgd, addr);
-+	p4d = p4d_alloc(mm, pgd, addr);
-+	if (!p4d)
-+		return NULL;
- 	pud = pud_alloc(mm, p4d, addr);
- 	if (pud) {
- 		if (sz == PUD_SIZE) {
+ 	/* Make sure the range is really isolated. */
+-	if (test_pages_isolated(outer_start, end, false)) {
++	ret = test_pages_isolated(outer_start, end, false);
++	if (ret) {
+ 		pr_info_ratelimited("%s: [%lx, %lx) PFNs busy\n",
+ 			__func__, outer_start, end);
+-		ret = -EBUSY;
+ 		goto done;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
+mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2.patch
 
