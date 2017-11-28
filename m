@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch added to
- -mm tree
-Date: Tue, 28 Nov 2017 15:45:28 -0800
-Message-ID: <5a1df518.S7H1NrX+hMKUtUCh%akpm@linux-foundation.org>
+Subject: + mm-remove-unused-pgdat_reclaimable_pages.patch added to -mm
+ tree
+Date: Tue, 28 Nov 2017 15:46:24 -0800
+Message-ID: <5a1df550.y/tsObr+POJwDAL3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52298 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbdK1Xp3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:45:29 -0500
+        with ESMTP id S1751496AbdK1XqZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:46:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, dbueso@suse.de, jglisse@redhat.com, joonas.lahtinen@linux.intel.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rbtree,drm/mm: add rbtree_replace_node_cached()
+     Subject: mm: remove unused pgdat_reclaimable_pages()
 has been added to the -mm tree.  Its filename is
-     lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
+     mm-remove-unused-pgdat_reclaimable_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unused-pgdat_reclaimable_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unused-pgdat_reclaimable_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,100 +39,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: lib/rbtree,drm/mm: add rbtree_replace_node_cached()
+From: Jan Kara <jack@suse.cz>
+Subject: mm: remove unused pgdat_reclaimable_pages()
 
-Add a variant of rbtree_replace_node() that maintains the leftmost cache
-of struct rbtree_root_cached when replacing nodes within the rbtree.
+Remove unused function pgdat_reclaimable_pages() and
+node_page_state_snapshot() which becomes unused as well.
 
-As drm_mm is the only rb_replace_node() being used on an interval tree,
-the mistake looks fairly self-contained.  Furthermore the only user of
-drm_mm_replace_node() is its testsuite...
-
-Testcase: igt/drm_mm/replace
-
-Link: http://lkml.kernel.org/r/20171122100729.3742-1-chris@chris-wilson.co.uk
-Link: https://patchwork.freedesktop.org/patch/msgid/20171109212435.9265-1-chris@chris-wilson.co.uk
-Fixes: f808c13fd373 ("lib/interval_tree: fast overlap detection")
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Link: http://lkml.kernel.org/r/20171122094416.26019-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_mm.c |    8 +++++---
- include/linux/rbtree.h   |    2 ++
- lib/rbtree.c             |   10 ++++++++++
- 3 files changed, 17 insertions(+), 3 deletions(-)
+ include/linux/swap.h   |    1 -
+ include/linux/vmstat.h |   17 -----------------
+ mm/vmscan.c            |   16 ----------------
+ 3 files changed, 34 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_mm.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached drivers/gpu/drm/drm_mm.c
---- a/drivers/gpu/drm/drm_mm.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
-+++ a/drivers/gpu/drm/drm_mm.c
-@@ -575,21 +575,23 @@ EXPORT_SYMBOL(drm_mm_remove_node);
-  */
- void drm_mm_replace_node(struct drm_mm_node *old, struct drm_mm_node *new)
- {
-+	struct drm_mm *mm = old->mm;
-+
- 	DRM_MM_BUG_ON(!old->allocated);
+diff -puN include/linux/swap.h~mm-remove-unused-pgdat_reclaimable_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-unused-pgdat_reclaimable_pages
++++ a/include/linux/swap.h
+@@ -342,7 +342,6 @@ extern void lru_cache_add_active_or_unev
  
- 	*new = *old;
- 
- 	list_replace(&old->node_list, &new->node_list);
--	rb_replace_node(&old->rb, &new->rb, &old->mm->interval_tree.rb_root);
-+	rb_replace_node_cached(&old->rb, &new->rb, &mm->interval_tree);
- 
- 	if (drm_mm_hole_follows(old)) {
- 		list_replace(&old->hole_stack, &new->hole_stack);
- 		rb_replace_node(&old->rb_hole_size,
- 				&new->rb_hole_size,
--				&old->mm->holes_size);
-+				&mm->holes_size);
- 		rb_replace_node(&old->rb_hole_addr,
- 				&new->rb_hole_addr,
--				&old->mm->holes_addr);
-+				&mm->holes_addr);
- 	}
- 
- 	old->allocated = false;
-diff -puN include/linux/rbtree.h~lib-rbtreedrm-mm-add-rbtree_replace_node_cached include/linux/rbtree.h
---- a/include/linux/rbtree.h~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
-+++ a/include/linux/rbtree.h
-@@ -99,6 +99,8 @@ extern void rb_replace_node(struct rb_no
- 			    struct rb_root *root);
- extern void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
- 				struct rb_root *root);
-+extern void rb_replace_node_cached(struct rb_node *victim, struct rb_node *new,
-+				   struct rb_root_cached *root);
- 
- static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
- 				struct rb_node **rb_link)
-diff -puN lib/rbtree.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached lib/rbtree.c
---- a/lib/rbtree.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
-+++ a/lib/rbtree.c
-@@ -603,6 +603,16 @@ void rb_replace_node(struct rb_node *vic
+ /* linux/mm/vmscan.c */
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+-extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+ extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
+diff -puN include/linux/vmstat.h~mm-remove-unused-pgdat_reclaimable_pages include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-remove-unused-pgdat_reclaimable_pages
++++ a/include/linux/vmstat.h
+@@ -216,23 +216,6 @@ static inline unsigned long zone_page_st
+ 	return x;
  }
- EXPORT_SYMBOL(rb_replace_node);
  
-+void rb_replace_node_cached(struct rb_node *victim, struct rb_node *new,
-+			    struct rb_root_cached *root)
-+{
-+	rb_replace_node(victim, new, &root->rb_root);
-+
-+	if (root->rb_leftmost == victim)
-+		root->rb_leftmost = new;
-+}
-+EXPORT_SYMBOL(rb_replace_node_cached);
-+
- void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
- 			 struct rb_root *root)
- {
-_
-
-Patches currently in -mm which might be from chris@chris-wilson.co.uk are
-
-lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
-
+-static inline unsigned long node_page_state_snapshot(pg_data_t *pgdat,
+-					enum node_stat_item item)
+-{
+-	long x = atomic_long_read(&pgdat->vm_stat[item]);
+-
+-#ifdef CONFIG_SMP
+-	int cpu;
+-	for_each_online_cpu(cpu)
+-		x += per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->vm_node_stat_diff[item];
+-
+-	if (x < 0)
+-		x = 0;
+-#endif
+-	return x;
+-}
+-
+-
+ #ifdef CONFIG_NUMA
+ extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+diff -puN mm/vmscan.c~mm-remove-unused-pgdat_reclaimable_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-unused-pgdat_reclaimable_pages
++++ a/mm/vmscan.c
+@@ -220,22 +220,6 @@ unsigned long zone_reclaimable_pages(str
+ 	return nr;
+ }
+ 
+-unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+-{
+-	unsigned long nr;
+-
+-	nr = node_page_state_snapshot(pgdat, NR_ACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_INACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
+-
+-	if (get_nr_swap_pages() > 0)
+-		nr += node_page_state_snapshot(pgdat, NR_ACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_INACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
+-
+-	return nr;
+-}
