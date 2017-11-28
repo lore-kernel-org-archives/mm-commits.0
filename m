@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2.patch
- added to -mm tree
-Date: Tue, 28 Nov 2017 15:39:42 -0800
-Message-ID: <5a1df3be.kHH5SaciFd4+gMq+%akpm@linux-foundation.org>
+Subject: + lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch added to
+ -mm tree
+Date: Tue, 28 Nov 2017 15:45:28 -0800
+Message-ID: <5a1df518.S7H1NrX+hMKUtUCh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52286 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752213AbdK1Xjn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:39:43 -0500
+        with ESMTP id S1751496AbdK1Xp3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2017 18:45:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, labbott@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, mina86@mina86.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, dbueso@suse.de, jglisse@redhat.com, joonas.lahtinen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: fix alloc_contig_range ret code/potential leak
+     Subject: lib/rbtree,drm/mm: add rbtree_replace_node_cached()
 has been added to the -mm tree.  Its filename is
-     mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2.patch
+     lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/cma: fix alloc_contig_range ret code/potential leak
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: lib/rbtree,drm/mm: add rbtree_replace_node_cached()
 
-If the call __alloc_contig_migrate_range() in alloc_contig_range returns
--EBUSY, processing continues so that test_pages_isolated() is called where
-there is a tracepoint to identify the busy pages.  However, it is possible
-for busy pages to become available between the calls to these two
-routines.  In this case, the range of pages may be allocated. 
-Unfortunately, the original return code (ret == -EBUSY) is still set and
-returned to the caller.  Therefore, the caller believes the pages were not
-allocated and they are leaked.
+Add a variant of rbtree_replace_node() that maintains the leftmost cache
+of struct rbtree_root_cached when replacing nodes within the rbtree.
 
-Update comment to indicate that allocation is still possible even if
-__alloc_contig_migrate_range returns -EBUSY.  Also, clear return code in
-this case so that it is not accidentally used or returned to caller.
+As drm_mm is the only rb_replace_node() being used on an interval tree,
+the mistake looks fairly self-contained.  Furthermore the only user of
+drm_mm_replace_node() is its testsuite...
 
-Link: http://lkml.kernel.org/r/20171122185214.25285-1-mike.kravetz@oracle.com
-Fixes: 8ef5849fa8a2 ("mm/cma: always check which page caused allocation failure")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>
+Testcase: igt/drm_mm/replace
+
+Link: http://lkml.kernel.org/r/20171122100729.3742-1-chris@chris-wilson.co.uk
+Link: https://patchwork.freedesktop.org/patch/msgid/20171109212435.9265-1-chris@chris-wilson.co.uk
+Fixes: f808c13fd373 ("lib/interval_tree: fast overlap detection")
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Acked-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/drm_mm.c |    8 +++++---
+ include/linux/rbtree.h   |    2 ++
+ lib/rbtree.c             |   10 ++++++++++
+ 3 files changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2
-+++ a/mm/page_alloc.c
-@@ -7652,11 +7652,18 @@ int alloc_contig_range(unsigned long sta
+diff -puN drivers/gpu/drm/drm_mm.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached drivers/gpu/drm/drm_mm.c
+--- a/drivers/gpu/drm/drm_mm.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
++++ a/drivers/gpu/drm/drm_mm.c
+@@ -575,21 +575,23 @@ EXPORT_SYMBOL(drm_mm_remove_node);
+  */
+ void drm_mm_replace_node(struct drm_mm_node *old, struct drm_mm_node *new)
+ {
++	struct drm_mm *mm = old->mm;
++
+ 	DRM_MM_BUG_ON(!old->allocated);
  
- 	/*
- 	 * In case of -EBUSY, we'd like to know which page causes problem.
--	 * So, just fall through. We will check it in test_pages_isolated().
-+	 * So, just fall through. test_pages_isolated() has a tracepoint
-+	 * which will report the busy page.
-+	 *
-+	 * It is possible that busy pages could become available before
-+	 * the call to test_pages_isolated, and the range will actually be
-+	 * allocated.  So, if we fall through be sure to clear ret so that
-+	 * -EBUSY is not accidentally used or returned to caller.
- 	 */
- 	ret = __alloc_contig_migrate_range(&cc, start, end);
- 	if (ret && ret != -EBUSY)
- 		goto done;
-+	ret =0;
+ 	*new = *old;
  
- 	/*
- 	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
+ 	list_replace(&old->node_list, &new->node_list);
+-	rb_replace_node(&old->rb, &new->rb, &old->mm->interval_tree.rb_root);
++	rb_replace_node_cached(&old->rb, &new->rb, &mm->interval_tree);
+ 
+ 	if (drm_mm_hole_follows(old)) {
+ 		list_replace(&old->hole_stack, &new->hole_stack);
+ 		rb_replace_node(&old->rb_hole_size,
+ 				&new->rb_hole_size,
+-				&old->mm->holes_size);
++				&mm->holes_size);
+ 		rb_replace_node(&old->rb_hole_addr,
+ 				&new->rb_hole_addr,
+-				&old->mm->holes_addr);
++				&mm->holes_addr);
+ 	}
+ 
+ 	old->allocated = false;
+diff -puN include/linux/rbtree.h~lib-rbtreedrm-mm-add-rbtree_replace_node_cached include/linux/rbtree.h
+--- a/include/linux/rbtree.h~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
++++ a/include/linux/rbtree.h
+@@ -99,6 +99,8 @@ extern void rb_replace_node(struct rb_no
+ 			    struct rb_root *root);
+ extern void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
+ 				struct rb_root *root);
++extern void rb_replace_node_cached(struct rb_node *victim, struct rb_node *new,
++				   struct rb_root_cached *root);
+ 
+ static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
+ 				struct rb_node **rb_link)
+diff -puN lib/rbtree.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached lib/rbtree.c
+--- a/lib/rbtree.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
++++ a/lib/rbtree.c
+@@ -603,6 +603,16 @@ void rb_replace_node(struct rb_node *vic
+ }
+ EXPORT_SYMBOL(rb_replace_node);
+ 
++void rb_replace_node_cached(struct rb_node *victim, struct rb_node *new,
++			    struct rb_root_cached *root)
++{
++	rb_replace_node(victim, new, &root->rb_root);
++
++	if (root->rb_leftmost == victim)
++		root->rb_leftmost = new;
++}
++EXPORT_SYMBOL(rb_replace_node_cached);
++
+ void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
+ 			 struct rb_root *root)
+ {
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
 
-mm-cma-fix-alloc_contig_range-ret-code-potential-leak-v2.patch
+lib-rbtreedrm-mm-add-rbtree_replace_node_cached.patch
 
