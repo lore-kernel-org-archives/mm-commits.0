@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
- added to -mm tree
-Date: Wed, 29 Nov 2017 15:09:55 -0800
-Message-ID: <5a1f3e43.uTArp4NAeVOLrpE9%akpm@linux-foundation.org>
+Subject: + docs-correct-documentation-for-%pk.patch added to -mm tree
+Date: Wed, 29 Nov 2017 15:25:25 -0800
+Message-ID: <5a1f41e5.F5DFrFrCYDRbtJ0J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52074 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752616AbdK2XKE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 18:10:04 -0500
+        with ESMTP id S1753255AbdK2XZ1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 18:25:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namit@vmware.com, ebiggers3@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: me@tobin.cc, aryabinin@virtuozzo.com, catalin.marinas@arm.com, cfries@google.com, danielmicay@gmail.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, Golden_Miller83@protonmail.ch, gregkh@linuxfoundation.org, ijc@hellion.org.uk, Jason@zx2c4.com, joe@perches.com, keescook@chromium.org, olorin@google.com, pbonzini@redhat.com, pmladek@suse.com, rkrcmar@redhat.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, sfr@canb.auug.org.au, tixxdz@gmail.com, tj@kernel.org, tycho@tycho.ws, tytso@mit.edu, wilal.deacon@arm.com, william.c.roberts@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: change put_page/unlock_page order in hugetlbfs_fallocate()
+     Subject: docs: correct documentation for %pK
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
+     docs-correct-documentation-for-%pk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/docs-correct-documentation-for-%25pk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/docs-correct-documentation-for-%25pk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,64 +38,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: fs/hugetlbfs/inode.c: change put_page/unlock_page order in hugetlbfs_fallocate()
+From: "Tobin C. Harding" <me@tobin.cc>
+Subject: docs: correct documentation for %pK
 
-hugetlfs_fallocate() currently performs put_page() before unlock_page(). 
-This scenario opens a small time window, from the time the page is added
-to the page cache, until it is unlocked, in which the page might be
-removed from the page-cache by another core.  If the page is removed
-during this time windows, it might cause a memory corruption, as the wrong
-page will be unlocked.
+Patch series "hash addresses printed with %p", v11.
 
-It is arguable whether this scenario can happen in a real system, and
-there are several mitigating factors.  The issue was found by code
-inspection (actually grep), and not by actually triggering the flow.  Yet,
-since putting the page before unlocking is incorrect it should be fixed,
-if only to prevent future breakage or someone copy-pasting this code.
+Currently there exist approximately 14000 places in the Kernel where
+addresses are being printed using an unadorned %p.  This potentially leaks
+sensitive information regarding the Kernel layout in memory.  Many of
+these calls are stale, instead of fixing every call lets hash the address
+by default before printing.  This will of course break some users, forcing
+code printing needed addresses to be updated.  We can add a printk
+specifier for this purpose (%px) to give developers a clear upgrade path
+for breakages caused by applying this patch set.
 
-Mike said:
+The added advantage of hashing %p is that security is now opt-out, if you
+_really_ want the address you have to work a little harder and use %px.
 
-I am of the opinion that this does not need to be sent to stable. 
-Although the ordering is current code is incorrect, there is no way for
-this to be a problem with current locking.  In addition, I verified that
-the perhaps bigger issue with sys_fadvise64(POSIX_FADV_DONTNEED) for
-hugetlbfs and other filesystems is addressed in 3a77d214807c ("mm:
-fadvise: avoid fadvise for fs without backing device").
+The idea for creating the printk specifier %px to print the actual address
+was suggested by Kees Cook (see below for email threads by subject).
 
-Link: http://lkml.kernel.org/r/20170826191124.51642-1-namit@vmware.com
-Fixes: 70c3547e36f5c ("hugetlbfs: add hugetlbfs_fallocate()")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Eric Biggers <ebiggers3@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Newbie question: I don't know who is potentially going to want to apply
+this, I've CC'd Andrew Morton.  I'm guessing this should go into
+linux-next so we can see what breaks?  I do not know exactly how code gets
+into linux-next.  I've CC'd Stephen Rothwell.
+
+Here is the behaviour that this series implements.
+
+For kpt_restrict==0
+
+Randomness not ready:
+  printed with %p:                     (ptrval)     # NOTE: with padding
+Valid pointer:
+  printed with %pK:             deadbeefdeadbeef
+  printed with %p:              00000000deadbeef
+  malformed specifier (eg %i):  00000000deadbeef
+NULL pointer:
+  printed with %pK:             0000000000000000
+  printed with %p:                       (null)     # NOTE: with padding
+  malformed specifier (eg %i):           (null)
+
+For kpt_restrict==2
+
+Valid pointer:
+  printed with %pK:             0000000000000000
+
+All other output as for kptr_restrict==0
+
+
+
+This patch (of 5)"
+
+Current documentation indicates that %pK prints a leading '0x'.  This is
+not the case.
+
+Correct documentation for printk specifier %pK.
+
+Link: http://lkml.kernel.org/r/1511921105-3647-2-git-send-email-me@tobin.cc
+Signed-off-by: Tobin C. Harding <me@tobin.cc>
+Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Tycho Andersen <tycho@tycho.ws>
+Cc: "Roberts, William C" <william.c.roberts@intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jordan Glover <Golden_Miller83@protonmail.ch>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Ian Campbell <ijc@hellion.org.uk>
+Cc: Radim Krčmář <rkrcmar@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <wilal.deacon@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Chris Fries <cfries@google.com>
+Cc: Dave Weinstein <olorin@google.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Djalal Harouni <tixxdz@gmail.com>
+Cc: Radim Kr\u010dm\u0159 <rkrcmar@redhat.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/printk-formats.txt |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate
-+++ a/fs/hugetlbfs/inode.c
-@@ -639,11 +639,11 @@ static long hugetlbfs_fallocate(struct f
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+diff -puN Documentation/printk-formats.txt~docs-correct-documentation-for-%pk Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~docs-correct-documentation-for-%pk
++++ a/Documentation/printk-formats.txt
+@@ -85,13 +85,12 @@ Examples::
+ 	printk("Faulted at %pS\n", (void *)regs->ip);
+ 	printk(" %s%pB\n", (reliable ? "" : "? "), (void *)*stack);
  
- 		/*
--		 * page_put due to reference from alloc_huge_page()
- 		 * unlock_page because locked by add_to_page_cache()
-+		 * page_put due to reference from alloc_huge_page()
- 		 */
--		put_page(page);
- 		unlock_page(page);
-+		put_page(page);
- 	}
- 
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
-_
-
-Patches currently in -mm which might be from namit@vmware.com are
-
-hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
-
