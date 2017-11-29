@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-add-printk-specifier-%px.patch added to -mm tree
-Date: Wed, 29 Nov 2017 15:25:37 -0800
-Message-ID: <5a1f41f1.Me5qr9Cdk9Stq3JE%akpm@linux-foundation.org>
+Subject: + kasan-use-%px-to-print-addresses-instead-of-%p.patch added to
+ -mm tree
+Date: Wed, 29 Nov 2017 15:25:42 -0800
+Message-ID: <5a1f41f6.D6fkLi+OcuOVKbTC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52248 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752450AbdK2XZk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 18:25:40 -0500
+        with ESMTP id S1752450AbdK2XZp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 18:25:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: me@tobin.cc, aryabinin@virtuozzo.com, catalin.marinas@arm.com, cfries@google.com, danielmicay@gmail.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, Golden_Miller83@protonmail.ch, gregkh@linuxfoundation.org, ijc@hellion.org.uk, Jason@zx2c4.com, joe@perches.com, keescook@chromium.org, olorin@google.com, pbonzini@redhat.com, pmladek@suse.com, rkrcmar@redhat.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, sfr@canb.auug.org.au, tixxdz@gmail.com, tj@kernel.org, tycho@tycho.ws, tytso@mit.edu, wilal.deacon@arm.com, william.c.roberts@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vsprintf: add printk specifier %px
+     Subject: kasan: use %px to print addresses instead of %p
 has been added to the -mm tree.  Its filename is
-     vsprintf-add-printk-specifier-%px.patch
+     kasan-use-%px-to-print-addresses-instead-of-%p.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-add-printk-specifier-%25px.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-use-%25px-to-print-addresses-instead-of-%25p.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-add-printk-specifier-%25px.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-use-%25px-to-print-addresses-instead-of-%25p.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Tobin C. Harding" <me@tobin.cc>
-Subject: vsprintf: add printk specifier %px
+Subject: kasan: use %px to print addresses instead of %p
 
-printk specifier %p now hashes all addresses before printing.  Sometimes
-we need to see the actual unmodified address.  This can be achieved using
-%lx but then we face the risk that if in future we want to change the way
-the Kernel handles printing of pointers we will have to grep through the
-already existent 50 000 %lx call sites.  Let's add specifier %px as a
-clear, opt-in, way to print a pointer and maintain some level of isolation
-from all the other hex integer output within the Kernel.
+Pointers printed with %p are now hashed by default.  Kasan needs the
+actual address.  We can use the new printk specifier %px for this purpose.
 
-Add printk specifier %px to print the actual unmodified address.
+Use %px instead of %p to print addresses.
 
-Link: http://lkml.kernel.org/r/1511921105-3647-5-git-send-email-me@tobin.cc
+Link: http://lkml.kernel.org/r/1511921105-3647-6-git-send-email-me@tobin.cc
 Signed-off-by: Tobin C. Harding <me@tobin.cc>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -82,100 +78,48 @@ Cc: Will Deacon <wilal.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   18 +++++++++++++++++-
- lib/vsprintf.c                   |   18 ++++++++++++++++++
- scripts/checkpatch.pl            |    2 +-
- 3 files changed, 36 insertions(+), 2 deletions(-)
+ mm/kasan/report.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~vsprintf-add-printk-specifier-%px Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~vsprintf-add-printk-specifier-%px
-+++ a/Documentation/printk-formats.txt
-@@ -49,7 +49,8 @@ Pointer Types
+diff -puN mm/kasan/report.c~kasan-use-%px-to-print-addresses-instead-of-%p mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-use-%px-to-print-addresses-instead-of-%p
++++ a/mm/kasan/report.c
+@@ -134,7 +134,7 @@ static void print_error_description(stru
  
- Pointers printed without a specifier extension (i.e unadorned %p) are
- hashed to give a unique identifier without leaking kernel addresses to user
--space. On 64 bit machines the first 32 bits are zeroed.
-+space. On 64 bit machines the first 32 bits are zeroed. If you _really_
-+want the address see %px below.
- 
- ::
- 
-@@ -106,6 +107,21 @@ For printing kernel pointers which shoul
- users. The behaviour of ``%pK`` depends on the ``kptr_restrict sysctl`` - see
- Documentation/sysctl/kernel.txt for more details.
- 
-+Unmodified Addresses
-+====================
-+
-+::
-+
-+	%px	01234567 or 0123456789abcdef
-+
-+For printing pointers when you _really_ want to print the address. Please
-+consider whether or not you are leaking sensitive information about the
-+Kernel layout in memory before printing pointers with %px. %px is
-+functionally equivalent to %lx. %px is preferred to %lx because it is more
-+uniquely grep'able. If, in the future, we need to modify the way the Kernel
-+handles printing pointers it will be nice to be able to find the call
-+sites.
-+
- Struct Resources
- ================
- 
-diff -puN lib/vsprintf.c~vsprintf-add-printk-specifier-%px lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-add-printk-specifier-%px
-+++ a/lib/vsprintf.c
-@@ -1646,6 +1646,20 @@ char *device_node_string(char *buf, char
- 	return widen_string(buf, buf - buf_start, end, spec);
+ 	pr_err("BUG: KASAN: %s in %pS\n",
+ 		bug_type, (void *)info->ip);
+-	pr_err("%s of size %zu at addr %p by task %s/%d\n",
++	pr_err("%s of size %zu at addr %px by task %s/%d\n",
+ 		info->is_write ? "Write" : "Read", info->access_size,
+ 		info->access_addr, current->comm, task_pid_nr(current));
  }
+@@ -206,7 +206,7 @@ static void describe_object_addr(struct
+ 	const char *rel_type;
+ 	int rel_bytes;
  
-+static noinline_for_stack
-+char *pointer_string(char *buf, char *end, const void *ptr,
-+		     struct printf_spec spec)
-+{
-+	spec.base = 16;
-+	spec.flags |= SMALL;
-+	if (spec.field_width == -1) {
-+		spec.field_width = 2 * sizeof(ptr);
-+		spec.flags |= ZEROPAD;
-+	}
-+
-+	return number(buf, end, (unsigned long int)ptr, spec);
-+}
-+
- static bool have_filled_random_ptr_key __read_mostly;
- static siphash_key_t ptr_key __read_mostly;
+-	pr_err("The buggy address belongs to the object at %p\n"
++	pr_err("The buggy address belongs to the object at %px\n"
+ 	       " which belongs to the cache %s of size %d\n",
+ 		object, cache->name, cache->object_size);
  
-@@ -1818,6 +1832,8 @@ static char *ptr_to_id(char *buf, char *
-  *                        c major compatible string
-  *                        C full compatible string
-  *
-+ * - 'x' For printing the address. Equivalent to "%lx".
-+ *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
-  *
-  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
-@@ -1940,6 +1956,8 @@ char *pointer(const char *fmt, char *buf
- 		case 'F':
- 			return device_node_string(buf, end, ptr, spec, fmt + 1);
- 		}
-+	case 'x':
-+		return pointer_string(buf, end, ptr, spec);
+@@ -225,7 +225,7 @@ static void describe_object_addr(struct
  	}
  
- 	/* default is to _not_ leak addresses, hash before printing */
-diff -puN scripts/checkpatch.pl~vsprintf-add-printk-specifier-%px scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~vsprintf-add-printk-specifier-%px
-+++ a/scripts/checkpatch.pl
-@@ -5753,7 +5753,7 @@ sub process {
- 		        for (my $count = $linenr; $count <= $lc; $count++) {
- 				my $fmt = get_quoted_string($lines[$count - 1], raw_line($count, 0));
- 				$fmt =~ s/%%//g;
--				if ($fmt =~ /(\%[\*\d\.]*p(?![\WFfSsBKRraEhMmIiUDdgVCbGNO]).)/) {
-+				if ($fmt =~ /(\%[\*\d\.]*p(?![\WFfSsBKRraEhMmIiUDdgVCbGNOx]).)/) {
- 					$bad_extension = $1;
- 					last;
- 				}
+ 	pr_err("The buggy address is located %d bytes %s of\n"
+-	       " %d-byte region [%p, %p)\n",
++	       " %d-byte region [%px, %px)\n",
+ 		rel_bytes, rel_type, cache->object_size, (void *)object_addr,
+ 		(void *)(object_addr + cache->object_size));
+ }
+@@ -302,7 +302,7 @@ static void print_shadow_for_address(con
+ 		char shadow_buf[SHADOW_BYTES_PER_ROW];
+ 
+ 		snprintf(buffer, sizeof(buffer),
+-			(i == 0) ? ">%p: " : " %p: ", kaddr);
++			(i == 0) ? ">%px: " : " %px: ", kaddr);
+ 		/*
+ 		 * We should not pass a shadow pointer to generic
+ 		 * function, because generic functions may try to
 _
 
 Patches currently in -mm which might be from me@tobin.cc are
