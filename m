@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+Subject: +
+ list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
  added to -mm tree
-Date: Wed, 29 Nov 2017 13:37:23 -0800
-Message-ID: <5a1f2893.Sxl7cnnQiNg96gLh%akpm@linux-foundation.org>
+Date: Wed, 29 Nov 2017 13:53:26 -0800
+Message-ID: <5a1f2c56.kdpvjSMNbyaHJ1bb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35510 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752324AbdK2VhZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 16:37:25 -0500
+        with ESMTP id S1751770AbdK2Vx2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 16:53:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: longman@redhat.com, david@fromorbit.com, hannes@cmpxchg.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3
+     Subject: mm/list_lru.c: prefetch neighboring list entries before acquiring lock
 has been added to the -mm tree.  Its filename is
-     mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+     list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +40,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3
+From: Waiman Long <longman@redhat.com>
+Subject: mm/list_lru.c: prefetch neighboring list entries before acquiring lock
 
-add comment for vma_is_fsdax() check in get_vaddr_frames(), per Jan
+list_lru_del() removes the given item from the LRU list.  The operation
+looks simple, but it involves writing into the cachelines of the two
+neighboring list entries in order to get the deletion done.  That can take
+a while if the cachelines aren't there yet, thus prolonging the lock hold
+time.
 
-Link: http://lkml.kernel.org/r/151197874035.26211.4061781453123083667.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>
+To reduce the lock hold time, the cachelines of the two neighboring list
+entries are now prefetched before acquiring the list_lru_node's lock.
+
+Using a multi-threaded test program that created a large number of
+dentries and then killed them, the execution time was reduced from 38.5s
+to 36.6s after applying the patch on a 2-socket 36-core 72-thread x86-64
+system.
+
+Link: http://lkml.kernel.org/r/1511965054-6328-1-git-send-email-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frame_vector.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/list_lru.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/frame_vector.c~mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3 mm/frame_vector.c
---- a/mm/frame_vector.c~mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3
-+++ a/mm/frame_vector.c
-@@ -54,6 +54,14 @@ int get_vaddr_frames(unsigned long start
- 		goto out;
- 	}
+diff -puN mm/list_lru.c~list_lru-prefetch-neighboring-list-entries-before-acquiring-lock mm/list_lru.c
+--- a/mm/list_lru.c~list_lru-prefetch-neighboring-list-entries-before-acquiring-lock
++++ a/mm/list_lru.c
+@@ -132,8 +132,16 @@ bool list_lru_del(struct list_lru *lru,
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
  
 +	/*
-+	 * While get_vaddr_frames() could be used for transient (kernel
-+	 * controlled lifetime) pinning of memory pages all current
-+	 * users establish long term (userspace controlled lifetime)
-+	 * page pinning. Treat get_vaddr_frames() like
-+	 * get_user_pages_longterm() and disallow it for filesystem-dax
-+	 * mappings.
++	 * Prefetch the neighboring list entries to reduce lock hold time.
 +	 */
- 	if (vma_is_fsdax(vma))
- 		return -EOPNOTSUPP;
- 
++	if (unlikely(list_empty(item)))
++		return false;
++	prefetchw(item->prev);
++	prefetchw(item->next);
++
+ 	spin_lock(&nlru->lock);
+-	if (!list_empty(item)) {
++	if (likely(!list_empty(item))) {
+ 		l = list_lru_from_kmem(nlru, item);
+ 		list_del_init(item);
+ 		l->nr_items--;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
-mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3.patch
-mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write.patch
-mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
-mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths-v3.patch
-mm-replace-pmd_write-with-pmd_access_permitted-in-fault-gup-paths.patch
-mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
-mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
-device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
-mm-introduce-get_user_pages_longterm.patch
-mm-fail-get_vaddr_frames-for-filesystem-dax-mappings.patch
-mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
-v4l2-disable-filesystem-dax-mapping-support.patch
-ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
 
