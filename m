@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
- added to -mm tree
-Date: Wed, 29 Nov 2017 13:53:26 -0800
-Message-ID: <5a1f2c56.kdpvjSMNbyaHJ1bb%akpm@linux-foundation.org>
+Subject: + lib-optimize-cpumask_next_and-v6.patch added to -mm tree
+Date: Wed, 29 Nov 2017 14:26:48 -0800
+Message-ID: <5a1f3428.6oGpF6o8FQZoORNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48422 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751770AbdK2Vx2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 16:53:28 -0500
+        with ESMTP id S1751883AbdK2W0u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 17:26:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: longman@redhat.com, david@fromorbit.com, hannes@cmpxchg.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: courbet@google.com, adobriyan@gmail.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/list_lru.c: prefetch neighboring list entries before acquiring lock
+     Subject: lib-optimize-cpumask_next_and-v6
 has been added to the -mm tree.  Its filename is
-     list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
+     lib-optimize-cpumask_next_and-v6.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_next_and-v6.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_next_and-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +38,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/list_lru.c: prefetch neighboring list entries before acquiring lock
+From: Clement Courbet <courbet@google.com>
+Subject: lib-optimize-cpumask_next_and-v6
 
-list_lru_del() removes the given item from the LRU list.  The operation
-looks simple, but it involves writing into the cachelines of the two
-neighboring list entries in order to get the deletion done.  That can take
-a while if the cachelines aren't there yet, thus prolonging the lock hold
-time.
+ - Removed test for reference implementation, which was a temporary
+   artifact.
+ - Prettify test output.
 
-To reduce the lock hold time, the cachelines of the two neighboring list
-entries are now prefetched before acquiring the list_lru_node's lock.
-
-Using a multi-threaded test program that created a large number of
-dentries and then killed them, the execution time was reduced from 38.5s
-to 36.6s after applying the patch on a 2-socket 36-core 72-thread x86-64
-system.
-
-Link: http://lkml.kernel.org/r/1511965054-6328-1-git-send-email-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Chinner <david@fromorbit.com>
+Link: http://lkml.kernel.org/r/20171129095715.23430-1-courbet@google.com
+Signed-off-by: Clement Courbet <courbet@google.com>
+Cc: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/bitmap.h   |    2 +-
+ lib/find_bit_benchmark.c |   26 ++------------------------
+ 2 files changed, 3 insertions(+), 25 deletions(-)
 
-diff -puN mm/list_lru.c~list_lru-prefetch-neighboring-list-entries-before-acquiring-lock mm/list_lru.c
---- a/mm/list_lru.c~list_lru-prefetch-neighboring-list-entries-before-acquiring-lock
-+++ a/mm/list_lru.c
-@@ -132,8 +132,16 @@ bool list_lru_del(struct list_lru *lru,
- 	struct list_lru_node *nlru = &lru->node[nid];
- 	struct list_lru_one *l;
+diff -puN include/linux/bitmap.h~lib-optimize-cpumask_next_and-v6 include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-optimize-cpumask_next_and-v6
++++ a/include/linux/bitmap.h
+@@ -87,7 +87,7 @@
+  *                                      Position next zero bit in *addr >= bit
+  *  find_next_bit(addr, nbits, bit)     Position next set bit in *addr >= bit
+  *  find_next_and_bit(addr1, addr2, nbits, bit)
+- *                                      Same as find_first_bit, but in
++ *                                      Same as find_next_bit, but in
+  *                                      (*addr1 & *addr2)
+  *
+  */
+diff -puN lib/find_bit_benchmark.c~lib-optimize-cpumask_next_and-v6 lib/find_bit_benchmark.c
+--- a/lib/find_bit_benchmark.c~lib-optimize-cpumask_next_and-v6
++++ a/lib/find_bit_benchmark.c
+@@ -114,28 +114,8 @@ static int __init test_find_next_and_bit
+ 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+ 		i = find_next_and_bit(bitmap, bitmap2, BITMAP_LEN, i+1);
+ 	cycles = get_cycles() - cycles;
+-	pr_err("find_next_and_bit: %ld cycles, %ld iterations\n", (long)cycles,
+-		cnt);
+-
+-	return 0;
+-}
+-
+-static int __init test_find_next_and_bit_ref(const void *bitmap,
+-		const void *bitmap2, unsigned long len)
+-{
+-	unsigned long i, cnt;
+-	cycles_t cycles;
+-
+-	cycles = get_cycles();
+-	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+-		while ((i = find_next_bit(bitmap, BITMAP_LEN, i + 1))
+-			< BITMAP_LEN)
+-			if (test_bit(i, bitmap2))
+-				break;
+-
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_next_and_bit_ref: %ld cycles, %ld iterations\n",
+-		(long)cycles, cnt);
++	pr_err("find_next_and_bit:\t\t%llu cycles, %ld iterations\n",
++		(u64)cycles, cnt);
  
-+	/*
-+	 * Prefetch the neighboring list entries to reduce lock hold time.
-+	 */
-+	if (unlikely(list_empty(item)))
-+		return false;
-+	prefetchw(item->prev);
-+	prefetchw(item->next);
-+
- 	spin_lock(&nlru->lock);
--	if (!list_empty(item)) {
-+	if (likely(!list_empty(item))) {
- 		l = list_lru_from_kmem(nlru, item);
- 		list_del_init(item);
- 		l->nr_items--;
+ 	return 0;
+ }
+@@ -153,7 +133,6 @@ static int __init find_bit_test(void)
+ 	test_find_next_zero_bit(bitmap, BITMAP_LEN);
+ 	test_find_last_bit(bitmap, BITMAP_LEN);
+ 	test_find_first_bit(bitmap, BITMAP_LEN);
+-	test_find_next_and_bit_ref(bitmap, bitmap2, BITMAP_LEN);
+ 	test_find_next_and_bit(bitmap, bitmap2, BITMAP_LEN);
+ 
+ 	pr_err("\nStart testing find_bit() with sparse bitmap\n");
+@@ -170,7 +149,6 @@ static int __init find_bit_test(void)
+ 	test_find_next_zero_bit(bitmap, BITMAP_LEN);
+ 	test_find_last_bit(bitmap, BITMAP_LEN);
+ 	test_find_first_bit(bitmap, BITMAP_LEN);
+-	test_find_next_and_bit_ref(bitmap, bitmap2, BITMAP_LEN);
+ 	test_find_next_and_bit(bitmap, bitmap2, BITMAP_LEN);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from courbet@google.com are
 
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
+lib-optimize-cpumask_next_and.patch
+lib-optimize-cpumask_next_and-v6.patch
 
