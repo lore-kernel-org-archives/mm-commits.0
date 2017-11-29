@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-optimize-cpumask_next_and-v6.patch added to -mm tree
-Date: Wed, 29 Nov 2017 14:26:48 -0800
-Message-ID: <5a1f3428.6oGpF6o8FQZoORNh%akpm@linux-foundation.org>
+Subject: + ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2.patch
+ added to -mm tree
+Date: Wed, 29 Nov 2017 14:30:39 -0800
+Message-ID: <5a1f350f.mBshrdA9Ez+FuvR5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751883AbdK2W0u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 17:26:50 -0500
+        with ESMTP id S1750890AbdK2Wam (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 17:30:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: courbet@google.com, adobriyan@gmail.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
+To: ghe@suse.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-optimize-cpumask_next_and-v6
+     Subject: ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2
 has been added to the -mm tree.  Its filename is
-     lib-optimize-cpumask_next_and-v6.patch
+     ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_next_and-v6.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_next_and-v6.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,92 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Clement Courbet <courbet@google.com>
-Subject: lib-optimize-cpumask_next_and-v6
+From: Gang He <ghe@suse.com>
+Subject: ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2
 
- - Removed test for reference implementation, which was a temporary
-   artifact.
- - Prettify test output.
-
-Link: http://lkml.kernel.org/r/20171129095715.23430-1-courbet@google.com
-Signed-off-by: Clement Courbet <courbet@google.com>
-Cc: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: http://lkml.kernel.org/r/1511944612-9629-2-git-send-email-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h   |    2 +-
- lib/find_bit_benchmark.c |   26 ++------------------------
- 2 files changed, 3 insertions(+), 25 deletions(-)
+ fs/ocfs2/dlmglue.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-optimize-cpumask_next_and-v6 include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-optimize-cpumask_next_and-v6
-+++ a/include/linux/bitmap.h
-@@ -87,7 +87,7 @@
-  *                                      Position next zero bit in *addr >= bit
-  *  find_next_bit(addr, nbits, bit)     Position next set bit in *addr >= bit
-  *  find_next_and_bit(addr1, addr2, nbits, bit)
-- *                                      Same as find_first_bit, but in
-+ *                                      Same as find_next_bit, but in
-  *                                      (*addr1 & *addr2)
-  *
-  */
-diff -puN lib/find_bit_benchmark.c~lib-optimize-cpumask_next_and-v6 lib/find_bit_benchmark.c
---- a/lib/find_bit_benchmark.c~lib-optimize-cpumask_next_and-v6
-+++ a/lib/find_bit_benchmark.c
-@@ -114,28 +114,8 @@ static int __init test_find_next_and_bit
- 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
- 		i = find_next_and_bit(bitmap, bitmap2, BITMAP_LEN, i+1);
- 	cycles = get_cycles() - cycles;
--	pr_err("find_next_and_bit: %ld cycles, %ld iterations\n", (long)cycles,
--		cnt);
--
--	return 0;
--}
--
--static int __init test_find_next_and_bit_ref(const void *bitmap,
--		const void *bitmap2, unsigned long len)
--{
--	unsigned long i, cnt;
--	cycles_t cycles;
--
--	cycles = get_cycles();
--	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
--		while ((i = find_next_bit(bitmap, BITMAP_LEN, i + 1))
--			< BITMAP_LEN)
--			if (test_bit(i, bitmap2))
--				break;
--
--	cycles = get_cycles() - cycles;
--	pr_err("find_next_and_bit_ref: %ld cycles, %ld iterations\n",
--		(long)cycles, cnt);
-+	pr_err("find_next_and_bit:\t\t%llu cycles, %ld iterations\n",
-+		(u64)cycles, cnt);
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2 fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2
++++ a/fs/ocfs2/dlmglue.c
+@@ -1759,8 +1759,7 @@ int ocfs2_try_rw_lock(struct inode *inod
  
- 	return 0;
+ 	level = write ? DLM_LOCK_EX : DLM_LOCK_PR;
+ 
+-	status = ocfs2_cluster_lock(OCFS2_SB(inode->i_sb), lockres, level,
+-				    DLM_LKF_NOQUEUE, 0);
++	status = ocfs2_cluster_lock(osb, lockres, level, DLM_LKF_NOQUEUE, 0);
+ 	return status;
  }
-@@ -153,7 +133,6 @@ static int __init find_bit_test(void)
- 	test_find_next_zero_bit(bitmap, BITMAP_LEN);
- 	test_find_last_bit(bitmap, BITMAP_LEN);
- 	test_find_first_bit(bitmap, BITMAP_LEN);
--	test_find_next_and_bit_ref(bitmap, bitmap2, BITMAP_LEN);
- 	test_find_next_and_bit(bitmap, bitmap2, BITMAP_LEN);
  
- 	pr_err("\nStart testing find_bit() with sparse bitmap\n");
-@@ -170,7 +149,6 @@ static int __init find_bit_test(void)
- 	test_find_next_zero_bit(bitmap, BITMAP_LEN);
- 	test_find_last_bit(bitmap, BITMAP_LEN);
- 	test_find_first_bit(bitmap, BITMAP_LEN);
--	test_find_next_and_bit_ref(bitmap, bitmap2, BITMAP_LEN);
- 	test_find_next_and_bit(bitmap, bitmap2, BITMAP_LEN);
- 
- 	/*
 _
 
-Patches currently in -mm which might be from courbet@google.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
-lib-optimize-cpumask_next_and.patch
-lib-optimize-cpumask_next_and-v6.patch
+ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+ocfs2-move-some-definitions-to-header-file.patch
+ocfs2-fix-some-small-problems.patch
+ocfs2-add-kobject-for-online-file-check.patch
+ocfs2-add-duplicative-ino-number-check.patch
+ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock.patch
+ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock-v2.patch
+ocfs2-add-ocfs2_overwrite_io-function.patch
+ocfs2-add-ocfs2_overwrite_io-function-v2.patch
+ocfs2-nowait-aio-support.patch
+ocfs2-nowait-aio-support-v2.patch
 
