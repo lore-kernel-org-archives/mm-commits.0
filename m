@@ -1,147 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Wed, 29 Nov 2017 12:32:16 -0800
-Message-ID: <20171129203216.mcBk-Ul6m%akpm@linux-foundation.org>
+Subject: + mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+ added to -mm tree
+Date: Wed, 29 Nov 2017 13:37:23 -0800
+Message-ID: <5a1f2893.Sxl7cnnQiNg96gLh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34802 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750928AbdK2UcS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 15:32:18 -0500
+        with ESMTP id S1752324AbdK2VhZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 16:37:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3
+has been added to the -mm tree.  Its filename is
+     mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3
 
+add comment for vma_is_fsdax() check in get_vaddr_frames(), per Jan
+
+Link: http://lkml.kernel.org/r/151197874035.26211.4061781453123083667.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/super.c   |   38 --------------------------------------
- fs/cifs/cifsglob.h |    5 -----
- fs/jffs2/super.c   |    4 ----
- fs/nfs/internal.h  |    4 ----
- 4 files changed, 51 deletions(-)
+ mm/frame_vector.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/btrfs/super.c~linux-next-git-rejects fs/btrfs/super.c
---- a/fs/btrfs/super.c~linux-next-git-rejects
-+++ a/fs/btrfs/super.c
-@@ -1415,44 +1415,6 @@ static struct dentry *mount_subvol(const
- 	struct dentry *root;
- 	int ret;
+diff -puN mm/frame_vector.c~mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3 mm/frame_vector.c
+--- a/mm/frame_vector.c~mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3
++++ a/mm/frame_vector.c
+@@ -54,6 +54,14 @@ int get_vaddr_frames(unsigned long start
+ 		goto out;
+ 	}
  
--<<<<<<< HEAD
--	newargs = setup_root_args(data);
--	if (!newargs) {
--		root = ERR_PTR(-ENOMEM);
--		goto out;
--	}
--
--	mnt = vfs_kern_mount(&btrfs_fs_type, flags, device_name, newargs);
--	if (PTR_ERR_OR_ZERO(mnt) == -EBUSY) {
--		if (flags & SB_RDONLY) {
--			mnt = vfs_kern_mount(&btrfs_fs_type, flags & ~SB_RDONLY,
--					     device_name, newargs);
--		} else {
--			mnt = vfs_kern_mount(&btrfs_fs_type, flags | SB_RDONLY,
--					     device_name, newargs);
--			if (IS_ERR(mnt)) {
--				root = ERR_CAST(mnt);
--				mnt = NULL;
--				goto out;
--			}
--
--			down_write(&mnt->mnt_sb->s_umount);
--			ret = btrfs_remount(mnt->mnt_sb, &flags, NULL);
--			up_write(&mnt->mnt_sb->s_umount);
--			if (ret < 0) {
--				root = ERR_PTR(ret);
--				goto out;
--			}
--		}
--	}
--	if (IS_ERR(mnt)) {
--		root = ERR_CAST(mnt);
--		mnt = NULL;
--		goto out;
--	}
--
--=======
-->>>>>>> linux-next/akpm-base
- 	if (!subvol_name) {
- 		if (!subvol_objectid) {
- 			ret = get_default_subvol_objectid(btrfs_sb(mnt->mnt_sb),
-diff -puN fs/cifs/cifsglob.h~linux-next-git-rejects fs/cifs/cifsglob.h
---- a/fs/cifs/cifsglob.h~linux-next-git-rejects
-+++ a/fs/cifs/cifsglob.h
-@@ -559,13 +559,8 @@ struct smb_vol {
- 			 CIFS_MOUNT_MULTIUSER | CIFS_MOUNT_STRICT_IO | \
- 			 CIFS_MOUNT_CIFS_BACKUPUID | CIFS_MOUNT_CIFS_BACKUPGID)
- 
--<<<<<<< HEAD
--#define CIFS_MS_MASK (SB_RDONLY | SB_MANDLOCK | SB_NOEXEC | SB_NOSUID | \
--		      SB_NODEV | SB_SYNCHRONOUS)
--=======
- #define CIFS_MS_MASK (SB_RDONLY | SB_MANDLOCK | SB_SYNCHRONOUS | \
- 		      SB_NOEXEC | SB_NOSUID | SB_NODEV)
-->>>>>>> linux-next/akpm-base
- 
- struct cifs_mnt_data {
- 	struct cifs_sb_info *cifs_sb;
-diff -puN fs/jffs2/super.c~linux-next-git-rejects fs/jffs2/super.c
---- a/fs/jffs2/super.c~linux-next-git-rejects
-+++ a/fs/jffs2/super.c
-@@ -301,11 +301,7 @@ static int jffs2_fill_super(struct super
- 
- 	sb->s_op = &jffs2_super_operations;
- 	sb->s_export_op = &jffs2_export_ops;
--<<<<<<< HEAD
--	sb->s_flags = sb->s_flags | SB_NOATIME;
--=======
- 	sb->s_flags |= SB_NOATIME;
-->>>>>>> linux-next/akpm-base
- 	sb->s_xattr = jffs2_xattr_handlers;
- #ifdef CONFIG_JFFS2_FS_POSIX_ACL
- 	sb->s_flags |= SB_POSIXACL;
-diff -puN fs/nfs/internal.h~linux-next-git-rejects fs/nfs/internal.h
---- a/fs/nfs/internal.h~linux-next-git-rejects
-+++ a/fs/nfs/internal.h
-@@ -10,11 +10,7 @@
- #include <linux/nfs_page.h>
- #include <linux/wait_bit.h>
- 
--<<<<<<< HEAD
--#define NFS_MS_MASK (SB_RDONLY|SB_NOSUID|SB_NODEV|SB_NOEXEC|SB_SYNCHRONOUS)
--=======
- #define NFS_SB_MASK (SB_RDONLY|SB_NOSUID|SB_NODEV|SB_NOEXEC|SB_SYNCHRONOUS)
-->>>>>>> linux-next/akpm-base
- 
- extern const struct export_operations nfs_export_ops;
++	/*
++	 * While get_vaddr_frames() could be used for transient (kernel
++	 * controlled lifetime) pinning of memory pages all current
++	 * users establish long term (userspace controlled lifetime)
++	 * page pinning. Treat get_vaddr_frames() like
++	 * get_user_pages_longterm() and disallow it for filesystem-dax
++	 * mappings.
++	 */
+ 	if (vma_is_fsdax(vma))
+ 		return -EOPNOTSUPP;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-i-need-old-gcc.patch
-mm-introduce-get_user_pages_longterm-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
+mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3.patch
+mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write.patch
+mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths.patch
+mm-replace-pud_write-with-pud_access_permitted-in-fault-gup-paths-v3.patch
+mm-replace-pmd_write-with-pmd_access_permitted-in-fault-gup-paths.patch
+mm-replace-pte_write-with-pte_access_permitted-in-fault-gup-paths.patch
+mm-hugetlbfs-introduce-split-to-vm_operations_struct.patch
+device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
+mm-introduce-get_user_pages_longterm.patch
+mm-fail-get_vaddr_frames-for-filesystem-dax-mappings.patch
+mm-fail-get_vaddr_frames-for-filesystem-dax-mappings-v3.patch
+v4l2-disable-filesystem-dax-mapping-support.patch
+ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch
 
