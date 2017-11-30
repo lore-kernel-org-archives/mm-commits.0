@@ -1,80 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-memory=5Fhotplug-do-not-back-off-draining-pcp-free-page?=
- =?US-ASCII?Q?s-from-kworker-context.patch?= removed from -mm tree
-Date: Thu, 30 Nov 2017 12:18:00 -0800
-Message-ID: <20171130201800.CThzY-RkV%akpm@linux-foundation.org>
+ mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch removed
+ from -mm tree
+Date: Thu, 30 Nov 2017 12:18:04 -0800
+Message-ID: <20171130201804.kcTJwlS9x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750885AbdK3USC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:02 -0500
+        with ESMTP id S1751217AbdK3USG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org
+To: aarcange@redhat.com, guro@fb.com, khlebnikov@yandex-team.ru, liubo95@huawei.com, mhocko@suse.com, minchan@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, wangnan0@huawei.com, will.deacon@arm.com
 
 
 The patch titled
-     Subject: mm, memory_hotplug: do not back off draining pcp free pages from kworker context
+     Subject: mm, oom_reaper: gather each vma to prevent leaking TLB entry
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
+     mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: do not back off draining pcp free pages from kworker context
+From: Wang Nan <wangnan0@huawei.com>
+Subject: mm, oom_reaper: gather each vma to prevent leaking TLB entry
 
-drain_all_pages backs off when called from a kworker context since
-0ccce3b924212 ("mm, page_alloc: drain per-cpu pages from workqueue
-context") because the original IPI based pcp draining has been replaced by
-a WQ based one and the check wanted to prevent from recursion and inter
-workers dependencies.  This has made some sense at the time because the
-system WQ has been used and one worker holding the lock could be blocked
-while waiting for new workers to emerge which can be a problem under OOM
-conditions.
+tlb_gather_mmu(&tlb, mm, 0, -1) means gathering the whole virtual memory
+space.  In this case, tlb->fullmm is true.  Some archs like arm64 doesn't
+flush TLB when tlb->fullmm is true:
 
-Since then ce612879ddc7 ("mm: move pcp and lru-pcp draining into single
-wq") has moved draining to a dedicated (mm_percpu_wq) WQ with a rescuer so
-we shouldn't depend on any other WQ activity to make a forward progress so
-calling drain_all_pages from a worker context is safe as long as this
-doesn't happen from mm_percpu_wq itself which is not the case because all
-workers are required to _not_ depend on any MM locks.
+  commit 5a7862e83000 ("arm64: tlbflush: avoid flushing when fullmm == 1").
 
-Why is this a problem in the first place?  ACPI driven memory hot-remove
-(acpi_device_hotplug) is executed from the worker context.  We end up
-calling __offline_pages to free all the pages and that requires both
-lru_add_drain_all_cpuslocked and drain_all_pages to do their job otherwise
-we can have dangling pages on pcp lists and fail the offline operation
-(__test_page_isolated_in_pageblock would see a page with 0 ref.  count but
-without PageBuddy set).
+Which causes leaking of tlb entries.
 
-Fix the issue by removing the worker check in drain_all_pages. 
-lru_add_drain_all_cpuslocked doesn't have this restriction so it works as
-expected.
+Will clarifies his patch:
 
-Link: http://lkml.kernel.org/r/20170828093341.26341-1-mhocko@kernel.org
-Fixes: 0ccce3b924212 ("mm, page_alloc: drain per-cpu pages from workqueue context")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.11+]
+: Basically, we tag each address space with an ASID (PCID on x86) which
+: is resident in the TLB. This means we can elide TLB invalidation when
+: pulling down a full mm because we won't ever assign that ASID to another mm
+: without doing TLB invalidation elsewhere (which actually just nukes the
+: whole TLB).
+:
+: I think that means that we could potentially not fault on a kernel uaccess,
+: because we could hit in the TLB.
+
+There could be a window between complete_signal() sending IPI to other
+cores and all threads sharing this mm are really kicked off from cores. 
+In this window, the oom reaper may calls tlb_flush_mmu_tlbonly() to flush
+TLB then frees pages.  However, due to the above problem, the TLB entries
+are not really flushed on arm64.  Other threads are possible to access
+these pages through TLB entries.  Moreover, a copy_to_user() can also
+write to these pages without generating page fault, causes use-after-free
+bugs.
+
+This patch gathers each vma instead of gathering full vm space.  In this
+case tlb->fullmm is not true.  The behavior of oom reaper become similar
+to munmapping before do_exit, which should be safe for all archs.
+
+Link: http://lkml.kernel.org/r/20171107095453.179940-1-wangnan0@huawei.com
+Fixes: aac453635549 ("mm, oom: introduce oom reaper")
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Bob Liu <liubo95@huawei.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/oom_kill.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context
-+++ a/mm/page_alloc.c
-@@ -2507,10 +2507,6 @@ void drain_all_pages(struct zone *zone)
- 	if (WARN_ON_ONCE(!mm_percpu_wq))
- 		return;
+diff -puN mm/oom_kill.c~mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry
++++ a/mm/oom_kill.c
+@@ -550,7 +550,6 @@ static bool __oom_reap_task_mm(struct ta
+ 	 */
+ 	set_bit(MMF_UNSTABLE, &mm->flags);
  
--	/* Workqueues cannot recurse */
--	if (current->flags & PF_WQ_WORKER)
--		return;
+-	tlb_gather_mmu(&tlb, mm, 0, -1);
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+ 		if (!can_madv_dontneed_vma(vma))
+ 			continue;
+@@ -565,11 +564,13 @@ static bool __oom_reap_task_mm(struct ta
+ 		 * we do not want to block exit_mmap by keeping mm ref
+ 		 * count elevated without a good reason.
+ 		 */
+-		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
++		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
++			tlb_gather_mmu(&tlb, mm, vma->vm_start, vma->vm_end);
+ 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
+ 					 NULL);
++			tlb_finish_mmu(&tlb, vma->vm_start, vma->vm_end);
++		}
+ 	}
+-	tlb_finish_mmu(&tlb, 0, -1);
+ 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+ 			task_pid_nr(tsk), tsk->comm,
+ 			K(get_mm_counter(mm, MM_ANONPAGES)),
+_
+
+Patches currently in -mm which might be from wangnan0@huawei.com are
+
+
