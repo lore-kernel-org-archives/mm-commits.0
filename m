@@ -1,34 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ocfs2-add-ocfs2_overwrite_io-function-v2.patch
- removed from -mm tree
-Date: Thu, 30 Nov 2017 14:19:32 -0800
-Message-ID: <5a2083f4.zl3JStiKacDnH8Ey%akpm@linux-foundation.org>
+Subject: [folded-merged] ocfs2-nowait-aio-support-v2.patch removed from
+ -mm tree
+Date: Thu, 30 Nov 2017 14:20:00 -0800
+Message-ID: <5a208410.KOLo9X2tO3aI+EZ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750903AbdK3WTe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 17:19:34 -0500
+        with ESMTP id S1750923AbdK3WUB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 17:20:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ghe@suse.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-add-ocfs2_overwrite_io-function-v2
+     Subject:  ocfs2-nowait-aio-support-v2
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-ocfs2_overwrite_io-function-v2.patch
+     ocfs2-nowait-aio-support-v2.patch
 
-This patch was dropped because it was folded into ocfs2-add-ocfs2_overwrite_io-function.patch
+This patch was dropped because it was folded into ocfs2-nowait-aio-support.patch
 
 ------------------------------------------------------
 From: Gang He <ghe@suse.com>
-Subject: ocfs2-add-ocfs2_overwrite_io-function-v2
+Subject:  ocfs2-nowait-aio-support-v2
 
-Link: http://lkml.kernel.org/r/1511944612-9629-3-git-send-email-ghe@suse.com
+Return -EAGAIN if any of the following checks fail for
+direct I/O with nowait flag:
+Can not get the related locks immediately,
+Blocks are not allocated at the write location, it will trigger
+block allocation, this will block IO operations.
+
+Link: http://lkml.kernel.org/r/1511944612-9629-4-git-send-email-ghe@suse.com
 Signed-off-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -38,107 +44,79 @@ Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.c |   38 ++++++--------------------------------
- fs/ocfs2/extent_map.h |    4 ++--
- 2 files changed, 8 insertions(+), 34 deletions(-)
+ fs/ocfs2/file.c |   37 ++++++++++++++++++++++++++++---------
+ 1 file changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN fs/ocfs2/extent_map.c~ocfs2-add-ocfs2_overwrite_io-function-v2 fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-add-ocfs2_overwrite_io-function-v2
-+++ a/fs/ocfs2/extent_map.c
-@@ -833,34 +833,17 @@ out:
- }
- 
- /* Is IO overwriting allocated blocks? */
--int ocfs2_overwrite_io(struct inode *inode, u64 map_start, u64 map_len,
--		       int wait)
-+int ocfs2_overwrite_io(struct inode *inode, struct buffer_head *di_bh,
-+		       u64 map_start, u64 map_len)
+diff -puN fs/ocfs2/file.c~ocfs2-nowait-aio-support-v2 fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-nowait-aio-support-v2
++++ a/fs/ocfs2/file.c
+@@ -2136,9 +2136,10 @@ out:
+ static int ocfs2_prepare_inode_for_write(struct file *file,
+ 					 loff_t pos, size_t count, int wait)
  {
- 	int ret = 0, is_last;
- 	u32 mapping_end, cpos;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
--	struct buffer_head *di_bh = NULL;
- 	struct ocfs2_extent_rec rec;
+-	int ret = 0, meta_level = 0;
++	int ret = 0, meta_level = 0, overwrite_io = 0;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = d_inode(dentry);
++	struct buffer_head *di_bh = NULL;
+ 	loff_t end;
  
--	if (wait)
--		ret = ocfs2_inode_lock(inode, &di_bh, 0);
--	else
--		ret = ocfs2_try_inode_lock(inode, &di_bh, 0);
--	if (ret)
--		goto out;
--
--	if (wait)
--		down_read(&OCFS2_I(inode)->ip_alloc_sem);
--	else {
--		if (!down_read_trylock(&OCFS2_I(inode)->ip_alloc_sem)) {
--			ret = -EAGAIN;
--			goto out_unlock1;
--		}
--	}
--
- 	if ((OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) &&
- 	   ((map_start + map_len) <= i_size_read(inode)))
--		goto out_unlock2;
-+		goto out;
- 
- 	cpos = map_start >> osb->s_clustersize_bits;
- 	mapping_end = ocfs2_clusters_for_bytes(inode->i_sb,
-@@ -871,7 +854,7 @@ int ocfs2_overwrite_io(struct inode *ino
- 						 NULL, &rec, &is_last);
- 		if (ret) {
- 			mlog_errno(ret);
--			goto out_unlock2;
-+			goto out;
+ 	/*
+@@ -2149,7 +2150,8 @@ static int ocfs2_prepare_inode_for_write
+ 		if (wait)
+ 			ret = ocfs2_inode_lock(inode, NULL, meta_level);
+ 		else
+-			ret = ocfs2_try_inode_lock(inode, NULL, meta_level);
++			ret = ocfs2_try_inode_lock(inode,
++				overwrite_io ? NULL : &di_bh, meta_level);
+ 		if (ret < 0) {
+ 			meta_level = -1;
+ 			if (ret != -EAGAIN)
+@@ -2157,6 +2159,28 @@ static int ocfs2_prepare_inode_for_write
+ 			goto out;
  		}
  
- 		if (rec.e_blkno == 0ULL)
-@@ -885,18 +868,9 @@ int ocfs2_overwrite_io(struct inode *ino
++		/*
++		 * Check if IO will overwrite allocated blocks in case
++		 * IOCB_NOWAIT flag is set.
++		 */
++		if (!wait && !overwrite_io) {
++			overwrite_io = 1;
++			if (!down_read_trylock(&OCFS2_I(inode)->ip_alloc_sem)) {
++				ret = -EAGAIN;
++				goto out_unlock;
++			}
++
++			ret = ocfs2_overwrite_io(inode, di_bh, pos, count);
++			brelse(di_bh);
++			di_bh = NULL;
++			up_read(&OCFS2_I(inode)->ip_alloc_sem);
++			if (ret < 0) {
++				if (ret != -EAGAIN)
++					mlog_errno(ret);
++				goto out_unlock;
++			}
++		}
++
+ 		/* Clear suid / sgid if necessary. We do this here
+ 		 * instead of later in the write path because
+ 		 * remove_suid() calls ->setattr without any hint that
+@@ -2206,6 +2230,8 @@ out_unlock:
+ 	trace_ocfs2_prepare_inode_for_write(OCFS2_I(inode)->ip_blkno,
+ 					    pos, count, wait);
+ 
++	brelse(di_bh);
++
+ 	if (meta_level >= 0)
+ 		ocfs2_inode_unlock(inode, meta_level);
+ 
+@@ -2297,13 +2323,6 @@ static ssize_t ocfs2_file_write_iter(str
  	}
+ 	count = ret;
  
- 	if (cpos < mapping_end)
--		ret = 1;
--
--out_unlock2:
--	brelse(di_bh);
--
--	up_read(&OCFS2_I(inode)->ip_alloc_sem);
--
--out_unlock1:
--	ocfs2_inode_unlock(inode, 0);
--
-+		ret = -EAGAIN;
- out:
--	return (ret ? 0 : 1);
-+	return ret;
- }
- 
- int ocfs2_seek_data_hole_offset(struct file *file, loff_t *offset, int whence)
-diff -puN fs/ocfs2/extent_map.h~ocfs2-add-ocfs2_overwrite_io-function-v2 fs/ocfs2/extent_map.h
---- a/fs/ocfs2/extent_map.h~ocfs2-add-ocfs2_overwrite_io-function-v2
-+++ a/fs/ocfs2/extent_map.h
-@@ -53,8 +53,8 @@ int ocfs2_extent_map_get_blocks(struct i
- int ocfs2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
- 		 u64 map_start, u64 map_len);
- 
--int ocfs2_overwrite_io(struct inode *inode, u64 map_start, u64 map_len,
--		       int wait);
-+int ocfs2_overwrite_io(struct inode *inode, struct buffer_head *di_bh,
-+		       u64 map_start, u64 map_len);
- 
- int ocfs2_seek_data_hole_offset(struct file *file, loff_t *offset, int origin);
- 
-_
-
-Patches currently in -mm which might be from ghe@suse.com are
-
-ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
-ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
-ocfs2-move-some-definitions-to-header-file.patch
-ocfs2-fix-some-small-problems.patch
-ocfs2-add-kobject-for-online-file-check.patch
-ocfs2-add-duplicative-ino-number-check.patch
-ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock.patch
-ocfs2-add-ocfs2_overwrite_io-function.patch
-ocfs2-nowait-aio-support.patch
-ocfs2-nowait-aio-support-v2.patch
-
+-	if (direct_io && nowait) {
+-		if (!ocfs2_overwrite_io(inode, iocb->ki_pos, count, 0)) {
+-			ret = -EAGAIN;
+-			goto out;
+-		}
+-	}
