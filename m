@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
- added to -mm tree
-Date: Thu, 30 Nov 2017 12:47:42 -0800
-Message-ID: <5a206e6e.0YpNZhxi7s8yfUmR%akpm@linux-foundation.org>
+ sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch added to -mm tree
+Date: Thu, 30 Nov 2017 12:53:03 -0800
+Message-ID: <5a206faf.GIDYqGlsT/cM524k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54480 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751057AbdK3Urn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:47:43 -0500
+        with ESMTP id S1750849AbdK3UxE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:53:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fromorbit.com, hannes@cmpxchg.org, longman@redhat.com, sfr@canb.auug.org.au, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: hch@lst.de, mingo@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix
+     Subject: sched/wait: assert the wait_queue_head lock is held in __wake_up_common
 has been added to the -mm tree.  Its filename is
-     list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+     sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix
+From: Christoph Hellwig <hch@lst.de>
+Subject: sched/wait: assert the wait_queue_head lock is held in __wake_up_common
 
-include prefetch.h, remove unlocked list_empty() test, per Dave
+Patch series "waitqueue lockdep annotation".
 
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+This series adds a strategic lockdep_assert_held to __wake_up_common to
+ensure callers really do hold the wait_queue_head lock when calling the
+unlocked wake_up variants.  It turns out epoll did not do this for a
+fairly common path (hit all the time by systemd during bootup), so the
+second patch fixed this instance as well.
+
+This patch (of 2):
+
+Better ensure we actually hold the lock using lockdep than just commenting
+on it.  Due to the various exported _locked interfaces it is far too easy
+to get the locking wrong.
+
+Link: http://lkml.kernel.org/r/20171130142037.19339-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/sched/wait.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/list_lru.c~list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix mm/list_lru.c
---- a/mm/list_lru.c~list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix
-+++ a/mm/list_lru.c
-@@ -8,6 +8,7 @@
- #include <linux/module.h>
- #include <linux/mm.h>
- #include <linux/list_lru.h>
-+#include <linux/prefetch.h>
- #include <linux/slab.h>
- #include <linux/mutex.h>
- #include <linux/memcontrol.h>
-@@ -135,13 +136,11 @@ bool list_lru_del(struct list_lru *lru,
- 	/*
- 	 * Prefetch the neighboring list entries to reduce lock hold time.
- 	 */
--	if (unlikely(list_empty(item)))
--		return false;
- 	prefetchw(item->prev);
- 	prefetchw(item->next);
+diff -puN kernel/sched/wait.c~sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common kernel/sched/wait.c
+--- a/kernel/sched/wait.c~sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common
++++ a/kernel/sched/wait.c
+@@ -76,6 +76,8 @@ static int __wake_up_common(struct wait_
+ 	wait_queue_entry_t *curr, *next;
+ 	int cnt = 0;
  
- 	spin_lock(&nlru->lock);
--	if (likely(!list_empty(item))) {
-+	if (!list_empty(item)) {
- 		l = list_lru_from_kmem(nlru, item);
- 		list_del_init(item);
- 		l->nr_items--;
++	lockdep_assert_held(&wq_head->lock);
++
+ 	if (bookmark && (bookmark->flags & WQ_FLAG_BOOKMARK)) {
+ 		curr = list_next_entry(bookmark, entry);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch
+epoll-use-proper-wake_up-variant-in-ep_poll_callback.patch
 
