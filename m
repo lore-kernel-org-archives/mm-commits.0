@@ -1,72 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 22/28] mm: migrate: fix an incorrect call of
- prep_transhuge_page()
-Date: Wed, 29 Nov 2017 16:11:12 -0800
-Message-ID: <5a1f4ca0.NpCyQY0OBbM1XmTS%akpm__45159.7933927134$1512000679$gmane$org@linux-foundation.org>
+Subject: [patch 24/28] fs/fat/inode.c: fix sb_rdonly() change
+Date: Wed, 29 Nov 2017 16:11:19 -0800
+Message-ID: <5a1f4ca7.vqacpTpnCh2C8AdG%akpm__15666.7778770954$1512000682$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60804 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752959AbdK3ALN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:13 -0500
+        with ESMTP id S1753593AbdK3ALV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zi.yan@cs.rutgers.edu, ar@linux.vnet.ibm.com, jglisse@redhat.com, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, dhowells@redhat.com, joe@perches.com, stable@vger.kernel.org
 
-From: Zi Yan <zi.yan@cs.rutgers.edu>
-Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fs/fat/inode.c: fix sb_rdonly() change
 
-In https://lkml.org/lkml/2017/11/20/411, Andrea reported that during
-memory hotplug/hot remove prep_transhuge_page() is called incorrectly on
-non-THP pages for migration, when THP is on but THP migration is not
-enabled.  This leads to a bad state of target pages for migration.
+bc98a42c1f7d0f ("VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)")
+converted fat_remount():new_rdonly from a bool to an int.  However
+fat_remount() depends upon the compiler's conversion of a non-zero integer
+into boolean `true'.
 
-By inspecting the code, if called on a non-THP, prep_transhuge_page() will
+Fix it by switching `new_rdonly' back into a bool.
 
-1) change the value of the mapping of (page + 2), since it is used
-   for THP deferred list;
-
-2) change the lru value of (page + 1), since it is used for THP's
-   dtor.
-
-Both can lead to data corruption of these two pages.
-
-Andrea said:
-
-: Pragmatically and from the point of view of the memory_hotplug subsys, the
-: effect is a kernel crash when pages are being migrated during a memory hot
-: remove offline and migration target pages are found in a bad state.
-
-This patch fixes it by only calling prep_transhuge_page() when we are
-certain that the target page is THP.
-
-Link: http://lkml.kernel.org/r/20171121021855.50525-1-zi.yan@sent.com
-Fixes: 8135d8926c08 ("mm: memory_hotplug: memory hotremove supports thp migration")
-Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Reported-by: Andrea Reale <ar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
-Cc: <stable@vger.kernel.org>	[4.14]
+Link: http://lkml.kernel.org/r/87mv3d5x51.fsf@mail.parknet.co.jp
+Fixes: bc98a42c1f7d0f8 ("VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)")
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Joe Perches <joe@perches.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 +-
+ fs/fat/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page
-+++ a/include/linux/migrate.h
-@@ -54,7 +54,7 @@ static inline struct page *new_page_node
- 	new_page = __alloc_pages_nodemask(gfp_mask, order,
- 				preferred_nid, nodemask);
+diff -puN fs/fat/inode.c~fat-fix-sb_rdonly-change fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fix-sb_rdonly-change
++++ a/fs/fat/inode.c
+@@ -779,7 +779,7 @@ static void __exit fat_destroy_inodecach
  
--	if (new_page && PageTransHuge(page))
-+	if (new_page && PageTransHuge(new_page))
- 		prep_transhuge_page(new_page);
+ static int fat_remount(struct super_block *sb, int *flags, char *data)
+ {
+-	int new_rdonly;
++	bool new_rdonly;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	*flags |= SB_NODIRATIME | (sbi->options.isvfat ? 0 : SB_NOATIME);
  
- 	return new_page;
 _
