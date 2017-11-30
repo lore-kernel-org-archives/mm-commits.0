@@ -1,100 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under?=
- =?US-ASCII?Q?-special-circumstances.patch?= removed from -mm tree
-Date: Thu, 30 Nov 2017 12:18:55 -0800
-Message-ID: <20171130201855.m6ltMR-jv%akpm@linux-foundation.org>
+ =?US-ASCII?Q?revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtines?=
+ =?US-ASCII?Q?s-settings-are-illogical-was-re-mm-print-a-warning-once-the-?=
+ =?US-ASCII?Q?vm-dirtiness-settings-is-illogical.patch?= removed from -mm
+ tree
+Date: Thu, 30 Nov 2017 12:18:59 -0800
+Message-ID: <20171130201859.K-hWg-j13%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751787AbdK3US5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:57 -0500
+        with ESMTP id S1751815AbdK3UTA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, chenjie6@huawei.com, cotte@de.ibm.com, dan.j.williams@intel.com, guoxuenan@huawei.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, miaoxie@huawei.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, stable@vger.kernel.org, yi.zhang@huawei.com
+To: jack@suse.cz, laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp
 
 
 The patch titled
-     Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
+     Subject: Revert "mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical"
 has been removed from the -mm tree.  Its filename was
-     mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch
+     revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: chenjie <chenjie6@huawei.com>
-Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
+From: Michal Hocko <mhocko@suse.com>
+Subject: Revert "mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical"
 
-MADVISE_WILLNEED has always been a noop for DAX (formerly XIP) mappings. 
-Unfortunately madvise_willneed() doesn't communicate this information
-properly to the generic madvise syscall implementation.  The calling
-convention is quite subtle there.  madvise_vma() is supposed to either
-return an error or update &prev otherwise the main loop will never advance
-to the next vma and it will keep looping for ever without a way to get out
-of the kernel.
+This reverts commit 0f6d24f878568fa ("mm/page-writeback.c: print a warning
+if the vm dirtiness settings are illogical") because it causes false
+positive warnings during OOM situations as noticed by Tetsuo Handa:
 
-It seems this has been broken since introduction.  Nobody has noticed
-because nobody seems to be using MADVISE_WILLNEED on these DAX mappings.
+[  621.814512] Node 0 active_anon:3525940kB inactive_anon:8372kB active_file:216kB inactive_file:1872kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:2504kB dirty:52kB writeback:0kB shmem:8660kB s
+hmem_thp: 0kB shmem_pmdmapped: 0kB anon_thp: 636928kB writeback_tmp:0kB unstable:0kB all_unreclaimable? yes
+[  621.821534] Node 0 DMA free:14848kB min:284kB low:352kB high:420kB active_anon:992kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15988kB managed:15904kB mlocke
+d:0kB kernel_stack:0kB pagetables:24kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+[  621.829035] lowmem_reserve[]: 0 2687 3645 3645
+[  621.831655] Node 0 DMA32 free:53004kB min:49608kB low:62008kB high:74408kB active_anon:2712648kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:3129216kB managed:
+2773132kB mlocked:0kB kernel_stack:96kB pagetables:5096kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+[  621.839945] lowmem_reserve[]: 0 0 958 958
+[  621.842811] Node 0 Normal free:17140kB min:17684kB low:22104kB high:26524kB active_anon:812300kB inactive_anon:8372kB active_file:1228kB inactive_file:1868kB unevictable:0kB writepending:52kB present:1048576k
+B managed:981224kB mlocked:0kB kernel_stack:3520kB pagetables:8552kB bounce:0kB free_pcp:120kB local_pcp:120kB free_cma:0kB
+[  621.852473] lowmem_reserve[]: 0 0 0 0
+[...]
+[  621.891477] Out of memory: Kill process 8459 (a.out) score 999 or sacrifice child
+[  621.894363] Killed process 8459 (a.out) total-vm:4180kB, anon-rss:88kB, file-rss:0kB, shmem-rss:0kB
+[  621.897172] oom_reaper: reaped process 8459 (a.out), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+[  622.424664] vm direct limit must be set greater than background limit.
 
-[mhocko@suse.com: rewrite changelog]
-Link: http://lkml.kernel.org/r/20171127115318.911-1-guoxuenan@huawei.com
-Fixes: fe77ba6f4f97 ("[PATCH] xip: madvice/fadvice: execute in place")
-Signed-off-by: chenjie <chenjie6@huawei.com>
-Signed-off-by: guoxuenan <guoxuenan@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: zhangyi (F) <yi.zhang@huawei.com>
-Cc: Miao Xie <miaoxie@huawei.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Carsten Otte <cotte@de.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>
+The problem is that both thresh and bg_thresh will be 0 if
+available_memory is less than 4 pages when evaluating
+global_dirtyable_memory.  While this might be worked around the whole
+point of the warning is dubious at best.  We do rely on admins to do
+sensible things when changing tunable knobs.  Dirty memory writeback knobs
+are not any special in that regards so revert the warning rather than
+adding more hacks to work this around.
+
+Debugged by Yafang Shao.
+
+Link: http://lkml.kernel.org/r/20171127091939.tahb77nznytcxw55@dhcp22.suse.cz
+Fixes: 0f6d24f87856 ("mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt |    7 -------
+ mm/page-writeback.c         |    5 +----
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances mm/madvise.c
---- a/mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances
-+++ a/mm/madvise.c
-@@ -276,15 +276,14 @@ static long madvise_willneed(struct vm_a
- {
- 	struct file *file = vma->vm_file;
+diff -puN Documentation/sysctl/vm.txt~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/Documentation/sysctl/vm.txt
+@@ -158,10 +158,6 @@ Note: the minimum value allowed for dirt
+ value lower than this limit will be ignored and the old configuration will be
+ retained.
  
-+	*prev = vma;
- #ifdef CONFIG_SWAP
- 	if (!file) {
--		*prev = vma;
- 		force_swapin_readahead(vma, start, end);
- 		return 0;
- 	}
+-Note: the value of dirty_bytes also must be set greater than
+-dirty_background_bytes or the amount of memory corresponding to
+-dirty_background_ratio.
+-
+ ==============================================================
  
- 	if (shmem_mapping(file->f_mapping)) {
--		*prev = vma;
- 		force_shm_swapin_readahead(vma, start, end,
- 					file->f_mapping);
- 		return 0;
-@@ -299,7 +298,6 @@ static long madvise_willneed(struct vm_a
- 		return 0;
- 	}
+ dirty_expire_centisecs
+@@ -181,9 +177,6 @@ generating disk writes will itself start
  
--	*prev = vma;
- 	start = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 	if (end > vma->vm_end)
- 		end = vma->vm_end;
-_
-
-Patches currently in -mm which might be from chenjie6@huawei.com are
-
-
+ The total available memory is not equal to total system memory.
+ 
+-Note: dirty_ratio must be set greater than dirty_background_ratio or
+-ratio corresponding to dirty_background_bytes.
+-
+ ==============================================================
+ 
+ dirty_writeback_centisecs
+diff -puN mm/page-writeback.c~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
+--- a/mm/page-writeback.c~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/mm/page-writeback.c
+@@ -433,11 +433,8 @@ static void domain_dirty_limits(struct d
+ 	else
+ 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
+ 
+-	if (unlikely(bg_thresh >= thresh)) {
+-		pr_warn("vm direct limit must be set greater than background limit.\n");
++	if (bg_thresh >= thresh)
+ 		bg_thresh = thresh / 2;
+-	}
