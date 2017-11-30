@@ -1,87 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 17/28] mm/madvise.c: fix madvise() infinite loop under
- special circumstances
-Date: Wed, 29 Nov 2017 16:10:54 -0800
-Message-ID: <5a1f4c8e.v4DEKT0D2gETWmaa%akpm@linux-foundation.org>
+Subject: [patch 14/28] v4l2: disable filesystem-dax mapping support
+Date: Wed, 29 Nov 2017 16:10:43 -0800
+Message-ID: <5a1f4c83.QpQzhJMCgQtSOAyv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60646 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753144AbdK3AK4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:56 -0500
+        with ESMTP id S1753554AbdK3AKp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chenjie6@huawei.com, aarcange@redhat.com, cotte@de.ibm.com, dan.j.williams@intel.com, guoxuenan@huawei.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, miaoxie@huawei.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, stable@vger.kernel.org, yi.zhang@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, inki.dae@samsung.com, jack@suse.cz, jgg@mellanox.com, jmoyer@redhat.com, jy0922.shim@samsung.com, kyungmin.park@samsung.com, mchehab@kernel.org, mgorman@suse.de, ross.zwisler@linux.intel.com, sean.hefty@intel.com, stable@vger.kernel.org, sw0312.kim@samsung.com, vbabka@suse.cz
 
-From: chenjie <chenjie6@huawei.com>
-Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: v4l2: disable filesystem-dax mapping support
 
-MADVISE_WILLNEED has always been a noop for DAX (formerly XIP) mappings. 
-Unfortunately madvise_willneed() doesn't communicate this information
-properly to the generic madvise syscall implementation.  The calling
-convention is quite subtle there.  madvise_vma() is supposed to either
-return an error or update &prev otherwise the main loop will never advance
-to the next vma and it will keep looping for ever without a way to get out
-of the kernel.
+V4L2 memory registrations are incompatible with filesystem-dax that needs
+the ability to revoke dma access to a mapping at will, or otherwise allow
+the kernel to wait for completion of DMA.  The filesystem-dax
+implementation breaks the traditional solution of truncate of active file
+backed mappings since there is no page-cache page we can orphan to sustain
+ongoing DMA.
 
-It seems this has been broken since introduction.  Nobody has noticed
-because nobody seems to be using MADVISE_WILLNEED on these DAX mappings.
+If v4l2 wants to support long lived DMA mappings it needs to arrange to
+hold a file lease or use some other mechanism so that the kernel can
+coordinate revoking DMA access when the filesystem needs to truncate
+mappings.
 
-[mhocko@suse.com: rewrite changelog]
-Link: http://lkml.kernel.org/r/20171127115318.911-1-guoxuenan@huawei.com
-Fixes: fe77ba6f4f97 ("[PATCH] xip: madvice/fadvice: execute in place")
-Signed-off-by: chenjie <chenjie6@huawei.com>
-Signed-off-by: guoxuenan <guoxuenan@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: zhangyi (F) <yi.zhang@huawei.com>
-Cc: Miao Xie <miaoxie@huawei.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Carsten Otte <cotte@de.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: http://lkml.kernel.org/r/151068940499.7446.12846708245365671207.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances mm/madvise.c
---- a/mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances
-+++ a/mm/madvise.c
-@@ -276,15 +276,14 @@ static long madvise_willneed(struct vm_a
- {
- 	struct file *file = vma->vm_file;
+diff -puN drivers/media/v4l2-core/videobuf-dma-sg.c~v4l2-disable-filesystem-dax-mapping-support drivers/media/v4l2-core/videobuf-dma-sg.c
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c~v4l2-disable-filesystem-dax-mapping-support
++++ a/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -185,12 +185,13 @@ static int videobuf_dma_init_user_locked
+ 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
+ 		data, size, dma->nr_pages);
  
-+	*prev = vma;
- #ifdef CONFIG_SWAP
- 	if (!file) {
--		*prev = vma;
- 		force_swapin_readahead(vma, start, end);
- 		return 0;
+-	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
++	err = get_user_pages_longterm(data & PAGE_MASK, dma->nr_pages,
+ 			     flags, dma->pages, NULL);
+ 
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
+-		dprintk(1, "get_user_pages: err=%d [%d]\n", err, dma->nr_pages);
++		dprintk(1, "get_user_pages_longterm: err=%d [%d]\n", err,
++			dma->nr_pages);
+ 		return err < 0 ? err : -EINVAL;
  	}
- 
- 	if (shmem_mapping(file->f_mapping)) {
--		*prev = vma;
- 		force_shm_swapin_readahead(vma, start, end,
- 					file->f_mapping);
- 		return 0;
-@@ -299,7 +298,6 @@ static long madvise_willneed(struct vm_a
- 		return 0;
- 	}
- 
--	*prev = vma;
- 	start = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 	if (end > vma->vm_end)
- 		end = vma->vm_end;
+ 	return 0;
 _
