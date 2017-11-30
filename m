@@ -1,255 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 30 Nov 2017 12:17:38 -0800
-Message-ID: <20171130201738.56wMvZm3h%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?mm-memory=5Fhotplug-do-not-back-off-draining-pcp-free-page?=
+ =?US-ASCII?Q?s-from-kworker-context.patch?= removed from -mm tree
+Date: Thu, 30 Nov 2017 12:18:00 -0800
+Message-ID: <20171130201800.CThzY-RkV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751465AbdK3URk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:17:40 -0500
+        with ESMTP id S1750885AbdK3USC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm, memory_hotplug: do not back off draining pcp free pages from kworker context
+has been removed from the -mm tree.  Its filename was
+     mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: do not back off draining pcp free pages from kworker context
 
+drain_all_pages backs off when called from a kworker context since
+0ccce3b924212 ("mm, page_alloc: drain per-cpu pages from workqueue
+context") because the original IPI based pcp draining has been replaced by
+a WQ based one and the check wanted to prevent from recursion and inter
+workers dependencies.  This has made some sense at the time because the
+system WQ has been used and one worker holding the lock could be blocked
+while waiting for new workers to emerge which can be a problem under OOM
+conditions.
+
+Since then ce612879ddc7 ("mm: move pcp and lru-pcp draining into single
+wq") has moved draining to a dedicated (mm_percpu_wq) WQ with a rescuer so
+we shouldn't depend on any other WQ activity to make a forward progress so
+calling drain_all_pages from a worker context is safe as long as this
+doesn't happen from mm_percpu_wq itself which is not the case because all
+workers are required to _not_ depend on any MM locks.
+
+Why is this a problem in the first place?  ACPI driven memory hot-remove
+(acpi_device_hotplug) is executed from the worker context.  We end up
+calling __offline_pages to free all the pages and that requires both
+lru_add_drain_all_cpuslocked and drain_all_pages to do their job otherwise
+we can have dangling pages on pcp lists and fail the offline operation
+(__test_page_isolated_in_pageblock would see a page with 0 ref.  count but
+without PageBuddy set).
+
+Fix the issue by removing the worker check in drain_all_pages. 
+lru_add_drain_all_cpuslocked doesn't have this restriction so it works as
+expected.
+
+Link: http://lkml.kernel.org/r/20170828093341.26341-1-mhocko@kernel.org
+Fixes: 0ccce3b924212 ("mm, page_alloc: drain per-cpu pages from workqueue context")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/page_alloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/btrfs/compression.c~linux-next-git-rejects fs/btrfs/compression.c
---- a/fs/btrfs/compression.c~linux-next-git-rejects
-+++ a/fs/btrfs/compression.c
-@@ -1537,12 +1537,8 @@ unsigned int btrfs_compress_str2level(co
- 	if (*str == ':')
- 		str++;
+diff -puN mm/page_alloc.c~mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context
++++ a/mm/page_alloc.c
+@@ -2507,10 +2507,6 @@ void drain_all_pages(struct zone *zone)
+ 	if (WARN_ON_ONCE(!mm_percpu_wq))
+ 		return;
  
--<<<<<<< HEAD
--	return BTRFS_ZLIB_DEFAULT_LEVEL;
--=======
- 	if (kstrtoul(str, 10, &level))
- 		return BTRFS_ZLIB_DEFAULT_LEVEL;
- 
- 	return (level > max) ? BTRFS_ZLIB_DEFAULT_LEVEL : level;
-->>>>>>> linux-next/akpm-base
- }
-diff -puN fs/btrfs/file.c~linux-next-git-rejects fs/btrfs/file.c
---- a/fs/btrfs/file.c~linux-next-git-rejects
-+++ a/fs/btrfs/file.c
-@@ -1519,11 +1519,7 @@ lock_and_cleanup_extent_if_need(struct b
- 		clear_extent_bit(&inode->io_tree, start_pos, last_pos,
- 				 EXTENT_DIRTY | EXTENT_DELALLOC |
- 				 EXTENT_DO_ACCOUNTING | EXTENT_DEFRAG,
--<<<<<<< HEAD
--				 0, 0, cached_state, GFP_NOFS);
--=======
- 				 0, 0, cached_state);
-->>>>>>> linux-next/akpm-base
- 		*lockstart = start_pos;
- 		*lockend = last_pos;
- 		ret = 1;
-diff -puN fs/btrfs/volumes.c~linux-next-git-rejects fs/btrfs/volumes.c
---- a/fs/btrfs/volumes.c~linux-next-git-rejects
-+++ a/fs/btrfs/volumes.c
-@@ -260,13 +260,7 @@ static void free_fs_devices(struct btrfs
- 		device = list_entry(fs_devices->devices.next,
- 				    struct btrfs_device, dev_list);
- 		list_del(&device->dev_list);
--<<<<<<< HEAD
--		rcu_string_free(device->name);
--		bio_put(device->flush_bio);
--		kfree(device);
--=======
- 		free_device(device);
-->>>>>>> linux-next/akpm-base
- 	}
- 	kfree(fs_devices);
- }
-@@ -659,13 +653,7 @@ static void btrfs_free_stale_device(stru
- 			} else {
- 				fs_devs->num_devices--;
- 				list_del(&dev->dev_list);
--<<<<<<< HEAD
--				rcu_string_free(dev->name);
--				bio_put(dev->flush_bio);
--				kfree(dev);
--=======
- 				free_device(dev);
-->>>>>>> linux-next/akpm-base
- 			}
- 			break;
- 		}
-@@ -781,12 +769,7 @@ static noinline int device_list_add(cons
- 
- 		name = rcu_string_strdup(path, GFP_NOFS);
- 		if (!name) {
--<<<<<<< HEAD
--			bio_put(device->flush_bio);
--			kfree(device);
--=======
- 			free_device(device);
-->>>>>>> linux-next/akpm-base
- 			return -ENOMEM;
- 		}
- 		rcu_assign_pointer(device->name, name);
-@@ -898,12 +881,7 @@ static struct btrfs_fs_devices *clone_fs
- 			name = rcu_string_strdup(orig_dev->name->str,
- 					GFP_KERNEL);
- 			if (!name) {
--<<<<<<< HEAD
--				bio_put(device->flush_bio);
--				kfree(device);
--=======
- 				free_device(device);
-->>>>>>> linux-next/akpm-base
- 				goto error;
- 			}
- 			rcu_assign_pointer(device->name, name);
-@@ -967,13 +945,7 @@ again:
- 		}
- 		list_del_init(&device->dev_list);
- 		fs_devices->num_devices--;
--<<<<<<< HEAD
--		rcu_string_free(device->name);
--		bio_put(device->flush_bio);
--		kfree(device);
--=======
- 		free_device(device);
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	if (fs_devices->seed) {
-@@ -2451,11 +2423,6 @@ int btrfs_init_new_device(struct btrfs_f
- 
- 	name = rcu_string_strdup(device_path, GFP_KERNEL);
- 	if (!name) {
--<<<<<<< HEAD
--		bio_put(device->flush_bio);
--		kfree(device);
--=======
-->>>>>>> linux-next/akpm-base
- 		ret = -ENOMEM;
- 		goto error_free_device;
- 	}
-@@ -2463,12 +2430,6 @@ int btrfs_init_new_device(struct btrfs_f
- 
- 	trans = btrfs_start_transaction(root, 0);
- 	if (IS_ERR(trans)) {
--<<<<<<< HEAD
--		rcu_string_free(device->name);
--		bio_put(device->flush_bio);
--		kfree(device);
--=======
-->>>>>>> linux-next/akpm-base
- 		ret = PTR_ERR(trans);
- 		goto error_free_device;
- 	}
-@@ -2610,14 +2571,8 @@ error_trans:
- 		sb->s_flags |= SB_RDONLY;
- 	if (trans)
- 		btrfs_end_transaction(trans);
--<<<<<<< HEAD
--	rcu_string_free(device->name);
--	bio_put(device->flush_bio);
--	kfree(device);
--=======
- error_free_device:
- 	free_device(device);
-->>>>>>> linux-next/akpm-base
- error:
- 	blkdev_put(bdev, FMODE_EXCL);
- 	if (seeding_dev && !unlocked) {
-@@ -2683,12 +2638,7 @@ int btrfs_init_dev_replace_tgtdev(struct
- 
- 	name = rcu_string_strdup(device_path, GFP_KERNEL);
- 	if (!name) {
--<<<<<<< HEAD
--		bio_put(device->flush_bio);
--		kfree(device);
--=======
- 		free_device(device);
-->>>>>>> linux-next/akpm-base
- 		ret = -ENOMEM;
- 		goto error;
- 	}
-@@ -6404,12 +6354,7 @@ struct btrfs_device *btrfs_alloc_device(
- 
- 		ret = find_next_devid(fs_info, &tmp);
- 		if (ret) {
--<<<<<<< HEAD
--			bio_put(dev->flush_bio);
--			kfree(dev);
--=======
- 			free_device(dev);
-->>>>>>> linux-next/akpm-base
- 			return ERR_PTR(ret);
- 		}
- 	}
-diff -puN fs/lockd/host.c~linux-next-git-rejects fs/lockd/host.c
---- a/fs/lockd/host.c~linux-next-git-rejects
-+++ a/fs/lockd/host.c
-@@ -593,11 +593,7 @@ static void nlm_complain_hosts(struct ne
- 		if (net && host->net != net)
- 			continue;
- 		dprintk("       %s (cnt %d use %d exp %ld net %x)\n",
--<<<<<<< HEAD
--			host->h_name, atomic_read(&host->h_count),
--=======
- 			host->h_name, refcount_read(&host->h_count),
-->>>>>>> linux-next/akpm-base
- 			host->h_inuse, host->h_expires, host->net->ns.inum);
- 	}
- }
-@@ -670,11 +666,7 @@ nlm_gc_hosts(struct net *net)
- 		 || time_before(jiffies, host->h_expires)) {
- 			dprintk("nlm_gc_hosts skipping %s "
- 				"(cnt %d use %d exp %ld net %x)\n",
--<<<<<<< HEAD
--				host->h_name, atomic_read(&host->h_count),
--=======
- 				host->h_name, refcount_read(&host->h_count),
-->>>>>>> linux-next/akpm-base
- 				host->h_inuse, host->h_expires,
- 				host->net->ns.inum);
- 			continue;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
-
+-	/* Workqueues cannot recurse */
+-	if (current->flags & PF_WQ_WORKER)
+-		return;
