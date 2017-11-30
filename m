@@ -1,74 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 28/28] fs/hugetlbfs/inode.c: change put_page/unlock_page
- order in hugetlbfs_fallocate()
-Date: Wed, 29 Nov 2017 16:11:33 -0800
-Message-ID: <5a1f4cb5.wTXWqxdXrw55oZ7x%akpm@linux-foundation.org>
+Subject: +
+ fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch added to
+ -mm tree
+Date: Wed, 29 Nov 2017 19:50:15 -0800
+Message-ID: <20171130035015.47vPhhtCQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33914 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753474AbdK3ALg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:36 -0500
+        with ESMTP id S1751959AbdK3DuR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 22:50:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, namit@vmware.com, ebiggers3@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com
+To: Anna.Schumaker@netapp.com, mm-commits@vger.kernel.org, rostedt@goodmis.org, torvalds@linux-foundation.org, trond.myklebust@primarydata.com
 
-From: Nadav Amit <namit@vmware.com>
-Subject: fs/hugetlbfs/inode.c: change put_page/unlock_page order in hugetlbfs_fallocate()
 
-hugetlfs_fallocate() currently performs put_page() before unlock_page(). 
-This scenario opens a small time window, from the time the page is added
-to the page cache, until it is unlocked, in which the page might be
-removed from the page-cache by another core.  If the page is removed
-during this time windows, it might cause a memory corruption, as the wrong
-page will be unlocked.
+The patch titled
+     Subject: fs/nfs/nfs4state.c: work around gcc-4.4.4 union initializer bug
+has been added to the -mm tree.  Its filename is
+     fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch
 
-It is arguable whether this scenario can happen in a real system, and
-there are several mitigating factors.  The issue was found by code
-inspection (actually grep), and not by actually triggering the flow.  Yet,
-since putting the page before unlocking is incorrect it should be fixed,
-if only to prevent future breakage or someone copy-pasting this code.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch
 
-Mike said:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-I am of the opinion that this does not need to be sent to stable. 
-Although the ordering is current code is incorrect, there is no way for
-this to be a problem with current locking.  In addition, I verified that
-the perhaps bigger issue with sys_fadvise64(POSIX_FADV_DONTNEED) for
-hugetlbfs and other filesystems is addressed in 3a77d214807c ("mm:
-fadvise: avoid fadvise for fs without backing device").
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-Link: http://lkml.kernel.org/r/20170826191124.51642-1-namit@vmware.com
-Fixes: 70c3547e36f5c ("hugetlbfs: add hugetlbfs_fallocate()")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Eric Biggers <ebiggers3@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: fs/nfs/nfs4state.c: work around gcc-4.4.4 union initializer bug
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: Anna Schumaker <Anna.Schumaker@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate
-+++ a/fs/hugetlbfs/inode.c
-@@ -639,11 +639,11 @@ static long hugetlbfs_fallocate(struct f
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+diff -puN fs/nfs/nfs4state.c~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug fs/nfs/nfs4state.c
+--- a/fs/nfs/nfs4state.c~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug
++++ a/fs/nfs/nfs4state.c
+@@ -71,8 +71,7 @@ const nfs4_stateid zero_stateid = {
+ };
+ const nfs4_stateid invalid_stateid = {
+ 	{
+-		.seqid = cpu_to_be32(0xffffffffU),
+-		.other = { 0 },
++		{ .seqid = cpu_to_be32(0xffffffffU), .other = { 0 }, },
+ 	},
+ 	.type = NFS4_INVALID_STATEID_TYPE,
+ };
+diff -puN include/linux/nfs4.h~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug include/linux/nfs4.h
+--- a/include/linux/nfs4.h~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug
++++ a/include/linux/nfs4.h
+@@ -53,11 +53,11 @@ typedef struct { char data[NFS4_VERIFIER
  
- 		/*
--		 * page_put due to reference from alloc_huge_page()
- 		 * unlock_page because locked by add_to_page_cache()
-+		 * page_put due to reference from alloc_huge_page()
- 		 */
--		put_page(page);
- 		unlock_page(page);
-+		put_page(page);
- 	}
+ struct nfs4_stateid_struct {
+ 	union {
+-		char data[NFS4_STATEID_SIZE];
+ 		struct {
+ 			__be32 seqid;
+ 			char other[NFS4_STATEID_OTHER_SIZE];
+ 		} __attribute__ ((packed));
++		char data[NFS4_STATEID_SIZE];
+ 	};
  
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
+ 	enum {
 _
+
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
+
+fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch
+workaround-for-a-pci-restoring-bug.patch
+
