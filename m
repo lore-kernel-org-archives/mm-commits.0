@@ -1,80 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kmemleak-add-scheduling-point-to-kmemleak_scan.patch removed from -mm tree
-Date: Thu, 30 Nov 2017 12:19:08 -0800
-Message-ID: <20171130201908.QuehqO1M-%akpm@linux-foundation.org>
+Subject: [merged] fat-fix-sb_rdonly-change.patch removed from -mm
+ tree
+Date: Thu, 30 Nov 2017 12:19:17 -0800
+Message-ID: <20171130201917.xqdv3DwJE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750989AbdK3UTJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:09 -0500
+        with ESMTP id S1751303AbdK3UTS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, mhocko@kernel.org, mm-commits@vger.kernel.org, xieyisheng1@huawei.com
+To: dhowells@redhat.com, hirofumi@mail.parknet.co.jp, joe@perches.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak: add scheduling point to kmemleak_scan()
+     Subject: fs/fat/inode.c: fix sb_rdonly() change
 has been removed from the -mm tree.  Its filename was
-     kmemleak-add-scheduling-point-to-kmemleak_scan.patch
+     fat-fix-sb_rdonly-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: kmemleak: add scheduling point to kmemleak_scan()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fs/fat/inode.c: fix sb_rdonly() change
 
-kmemleak_scan() will scan struct page for each node and it can be really
-large and resulting in a soft lockup.  We have seen a soft lockup when do
-scan while compile kernel:
+bc98a42c1f7d0f ("VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)")
+converted fat_remount():new_rdonly from a bool to an int.  However
+fat_remount() depends upon the compiler's conversion of a non-zero integer
+into boolean `true'.
 
- [  220.561051] watchdog: BUG: soft lockup - CPU#53 stuck for 22s! [bash:10287]
- [...]
- [  220.753837] Call Trace:
- [  220.756296]  kmemleak_scan+0x21a/0x4c0
- [  220.760034]  kmemleak_write+0x312/0x350
- [  220.763866]  ? do_wp_page+0x147/0x4c0
- [  220.767521]  full_proxy_write+0x5a/0xa0
- [  220.771351]  __vfs_write+0x33/0x150
- [  220.774833]  ? __inode_security_revalidate+0x4c/0x60
- [  220.779782]  ? selinux_file_permission+0xda/0x130
- [  220.784479]  ? _cond_resched+0x15/0x30
- [  220.788221]  vfs_write+0xad/0x1a0
- [  220.791529]  SyS_write+0x52/0xc0
- [  220.794758]  do_syscall_64+0x61/0x1a0
- [  220.798411]  entry_SYSCALL64_slow_path+0x25/0x25
+Fix it by switching `new_rdonly' back into a bool.
 
-Fix this by adding cond_resched every MAX_SCAN_SIZE.
-
-Link: http://lkml.kernel.org/r/1511439788-20099-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/87mv3d5x51.fsf@mail.parknet.co.jp
+Fixes: bc98a42c1f7d0f8 ("VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)")
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Joe Perches <joe@perches.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/fat/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kmemleak.c~kmemleak-add-scheduling-point-to-kmemleak_scan mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-add-scheduling-point-to-kmemleak_scan
-+++ a/mm/kmemleak.c
-@@ -1523,6 +1523,8 @@ static void kmemleak_scan(void)
- 			if (page_count(page) == 0)
- 				continue;
- 			scan_block(page, page + 1, NULL);
-+			if (!(pfn % (MAX_SCAN_SIZE / sizeof(*page))))
-+				cond_resched();
- 		}
- 	}
- 	put_online_mems();
+diff -puN fs/fat/inode.c~fat-fix-sb_rdonly-change fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fix-sb_rdonly-change
++++ a/fs/fat/inode.c
+@@ -779,7 +779,7 @@ static void __exit fat_destroy_inodecach
+ 
+ static int fat_remount(struct super_block *sb, int *flags, char *data)
+ {
+-	int new_rdonly;
++	bool new_rdonly;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	*flags |= SB_NODIRATIME | (sbi->options.isvfat ? 0 : SB_NOATIME);
+ 
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-mm-mempolicy-remove-redundant-check-in-get_nodes.patch
-mm-mempolicy-fix-the-check-of-nodemask-from-user.patch
-mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
 
