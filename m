@@ -1,78 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/28] v4l2: disable filesystem-dax mapping support
-Date: Wed, 29 Nov 2017 16:10:43 -0800
-Message-ID: <5a1f4c83.QpQzhJMCgQtSOAyv%akpm@linux-foundation.org>
+Subject: [patch 18/28] Revert "mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical"
+Date: Wed, 29 Nov 2017 16:10:58 -0800
+Message-ID: <5a1f4c92.O70SJ4usTYNNHEuo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60728 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753554AbdK3AKp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:45 -0500
+        with ESMTP id S1753580AbdK3ALA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, inki.dae@samsung.com, jack@suse.cz, jgg@mellanox.com, jmoyer@redhat.com, jy0922.shim@samsung.com, kyungmin.park@samsung.com, mchehab@kernel.org, mgorman@suse.de, ross.zwisler@linux.intel.com, sean.hefty@intel.com, stable@vger.kernel.org, sw0312.kim@samsung.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, jack@suse.cz, laoar.shao@gmail.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: v4l2: disable filesystem-dax mapping support
+From: Michal Hocko <mhocko@suse.com>
+Subject: Revert "mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical"
 
-V4L2 memory registrations are incompatible with filesystem-dax that needs
-the ability to revoke dma access to a mapping at will, or otherwise allow
-the kernel to wait for completion of DMA.  The filesystem-dax
-implementation breaks the traditional solution of truncate of active file
-backed mappings since there is no page-cache page we can orphan to sustain
-ongoing DMA.
+This reverts commit 0f6d24f878568fa ("mm/page-writeback.c: print a warning
+if the vm dirtiness settings are illogical") because it causes false
+positive warnings during OOM situations as noticed by Tetsuo Handa:
 
-If v4l2 wants to support long lived DMA mappings it needs to arrange to
-hold a file lease or use some other mechanism so that the kernel can
-coordinate revoking DMA access when the filesystem needs to truncate
-mappings.
+[  621.814512] Node 0 active_anon:3525940kB inactive_anon:8372kB active_file:216kB inactive_file:1872kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:2504kB dirty:52kB writeback:0kB shmem:8660kB s
+hmem_thp: 0kB shmem_pmdmapped: 0kB anon_thp: 636928kB writeback_tmp:0kB unstable:0kB all_unreclaimable? yes
+[  621.821534] Node 0 DMA free:14848kB min:284kB low:352kB high:420kB active_anon:992kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15988kB managed:15904kB mlocke
+d:0kB kernel_stack:0kB pagetables:24kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+[  621.829035] lowmem_reserve[]: 0 2687 3645 3645
+[  621.831655] Node 0 DMA32 free:53004kB min:49608kB low:62008kB high:74408kB active_anon:2712648kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:3129216kB managed:
+2773132kB mlocked:0kB kernel_stack:96kB pagetables:5096kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+[  621.839945] lowmem_reserve[]: 0 0 958 958
+[  621.842811] Node 0 Normal free:17140kB min:17684kB low:22104kB high:26524kB active_anon:812300kB inactive_anon:8372kB active_file:1228kB inactive_file:1868kB unevictable:0kB writepending:52kB present:1048576k
+B managed:981224kB mlocked:0kB kernel_stack:3520kB pagetables:8552kB bounce:0kB free_pcp:120kB local_pcp:120kB free_cma:0kB
+[  621.852473] lowmem_reserve[]: 0 0 0 0
+[...]
+[  621.891477] Out of memory: Kill process 8459 (a.out) score 999 or sacrifice child
+[  621.894363] Killed process 8459 (a.out) total-vm:4180kB, anon-rss:88kB, file-rss:0kB, shmem-rss:0kB
+[  621.897172] oom_reaper: reaped process 8459 (a.out), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+[  622.424664] vm direct limit must be set greater than background limit.
 
-Link: http://lkml.kernel.org/r/151068940499.7446.12846708245365671207.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Joonyoung Shim <jy0922.shim@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+The problem is that both thresh and bg_thresh will be 0 if
+available_memory is less than 4 pages when evaluating
+global_dirtyable_memory.  While this might be worked around the whole
+point of the warning is dubious at best.  We do rely on admins to do
+sensible things when changing tunable knobs.  Dirty memory writeback knobs
+are not any special in that regards so revert the warning rather than
+adding more hacks to work this around.
+
+Debugged by Yafang Shao.
+
+Link: http://lkml.kernel.org/r/20171127091939.tahb77nznytcxw55@dhcp22.suse.cz
+Fixes: 0f6d24f87856 ("mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/sysctl/vm.txt |    7 -------
+ mm/page-writeback.c         |    5 +----
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/media/v4l2-core/videobuf-dma-sg.c~v4l2-disable-filesystem-dax-mapping-support drivers/media/v4l2-core/videobuf-dma-sg.c
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c~v4l2-disable-filesystem-dax-mapping-support
-+++ a/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -185,12 +185,13 @@ static int videobuf_dma_init_user_locked
- 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
- 		data, size, dma->nr_pages);
+diff -puN Documentation/sysctl/vm.txt~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/Documentation/sysctl/vm.txt
+@@ -158,10 +158,6 @@ Note: the minimum value allowed for dirt
+ value lower than this limit will be ignored and the old configuration will be
+ retained.
  
--	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
-+	err = get_user_pages_longterm(data & PAGE_MASK, dma->nr_pages,
- 			     flags, dma->pages, NULL);
+-Note: the value of dirty_bytes also must be set greater than
+-dirty_background_bytes or the amount of memory corresponding to
+-dirty_background_ratio.
+-
+ ==============================================================
  
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
--		dprintk(1, "get_user_pages: err=%d [%d]\n", err, dma->nr_pages);
-+		dprintk(1, "get_user_pages_longterm: err=%d [%d]\n", err,
-+			dma->nr_pages);
- 		return err < 0 ? err : -EINVAL;
- 	}
- 	return 0;
-_
+ dirty_expire_centisecs
+@@ -181,9 +177,6 @@ generating disk writes will itself start
+ 
+ The total available memory is not equal to total system memory.
+ 
+-Note: dirty_ratio must be set greater than dirty_background_ratio or
+-ratio corresponding to dirty_background_bytes.
+-
+ ==============================================================
+ 
+ dirty_writeback_centisecs
+diff -puN mm/page-writeback.c~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
+--- a/mm/page-writeback.c~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
++++ a/mm/page-writeback.c
+@@ -433,11 +433,8 @@ static void domain_dirty_limits(struct d
+ 	else
+ 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
+ 
+-	if (unlikely(bg_thresh >= thresh)) {
+-		pr_warn("vm direct limit must be set greater than background limit.\n");
++	if (bg_thresh >= thresh)
+ 		bg_thresh = thresh / 2;
+-	}
