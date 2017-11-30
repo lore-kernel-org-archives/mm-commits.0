@@ -1,71 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bloat-o-meter-dont-fail-with-division-by-0.patch
- removed from -mm tree
-Date: Thu, 30 Nov 2017 12:19:05 -0800
-Message-ID: <20171130201905.KPSjTF0lY%akpm@linux-foundation.org>
+Subject: [merged]
+ kmemleak-add-scheduling-point-to-kmemleak_scan.patch removed from -mm tree
+Date: Thu, 30 Nov 2017 12:19:08 -0800
+Message-ID: <20171130201908.QuehqO1M-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52430 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750989AbdK3UTG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:06 -0500
+        with ESMTP id S1750989AbdK3UTJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org, v.narang@samsung.com
+To: catalin.marinas@arm.com, mhocko@kernel.org, mm-commits@vger.kernel.org, xieyisheng1@huawei.com
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: don't fail with division by 0
+     Subject: kmemleak: add scheduling point to kmemleak_scan()
 has been removed from the -mm tree.  Its filename was
-     bloat-o-meter-dont-fail-with-division-by-0.patch
+     kmemleak-add-scheduling-point-to-kmemleak_scan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: scripts/bloat-o-meter: don't fail with division by 0
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: kmemleak: add scheduling point to kmemleak_scan()
 
-Under some circumstances it's possible to get a divider 0 which crashes
-the script.
+kmemleak_scan() will scan struct page for each node and it can be really
+large and resulting in a soft lockup.  We have seen a soft lockup when do
+scan while compile kernel:
 
-Traceback (most recent call last):
-  File "linux/scripts/bloat-o-meter", line 98, in <module>
-    print_result("Function", "tTdDbBrR", 2)
-  File "linux/scripts/bloat-o-meter", line 87, in print_result
-    (otot, ntot, (ntot - otot)*100.0/otot))
-ZeroDivisionError: float division by zero
+ [  220.561051] watchdog: BUG: soft lockup - CPU#53 stuck for 22s! [bash:10287]
+ [...]
+ [  220.753837] Call Trace:
+ [  220.756296]  kmemleak_scan+0x21a/0x4c0
+ [  220.760034]  kmemleak_write+0x312/0x350
+ [  220.763866]  ? do_wp_page+0x147/0x4c0
+ [  220.767521]  full_proxy_write+0x5a/0xa0
+ [  220.771351]  __vfs_write+0x33/0x150
+ [  220.774833]  ? __inode_security_revalidate+0x4c/0x60
+ [  220.779782]  ? selinux_file_permission+0xda/0x130
+ [  220.784479]  ? _cond_resched+0x15/0x30
+ [  220.788221]  vfs_write+0xad/0x1a0
+ [  220.791529]  SyS_write+0x52/0xc0
+ [  220.794758]  do_syscall_64+0x61/0x1a0
+ [  220.798411]  entry_SYSCALL64_slow_path+0x25/0x25
 
-Hide this by checking the divider first.
+Fix this by adding cond_resched every MAX_SCAN_SIZE.
 
-Link: http://lkml.kernel.org/r/20171123171219.31453-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Vaneet Narang <v.narang@samsung.com>
+Link: http://lkml.kernel.org/r/1511439788-20099-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/kmemleak.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/bloat-o-meter~bloat-o-meter-dont-fail-with-division-by-0 scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~bloat-o-meter-dont-fail-with-division-by-0
-+++ a/scripts/bloat-o-meter
-@@ -83,8 +83,11 @@ def print_result(symboltype, symbolforma
-     for d, n in delta:
-         if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
- 
--    print("Total: Before=%d, After=%d, chg %+.2f%%" % \
--        (otot, ntot, (ntot - otot)*100.0/otot))
-+    if otot:
-+        percent = (ntot - otot) * 100.0 / otot
-+    else:
-+        percent = 0
-+    print("Total: Before=%d, After=%d, chg %+.2f%%" % (otot, ntot, percent))
- 
- if sys.argv[1] == "-c":
-     print_result("Function", "tT", 3)
+diff -puN mm/kmemleak.c~kmemleak-add-scheduling-point-to-kmemleak_scan mm/kmemleak.c
+--- a/mm/kmemleak.c~kmemleak-add-scheduling-point-to-kmemleak_scan
++++ a/mm/kmemleak.c
+@@ -1523,6 +1523,8 @@ static void kmemleak_scan(void)
+ 			if (page_count(page) == 0)
+ 				continue;
+ 			scan_block(page, page + 1, NULL);
++			if (!(pfn % (MAX_SCAN_SIZE / sizeof(*page))))
++				cond_resched();
+ 		}
+ 	}
+ 	put_online_mems();
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
+mm-mempolicy-remove-redundant-check-in-get_nodes.patch
+mm-mempolicy-fix-the-check-of-nodemask-from-user.patch
+mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
 
