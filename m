@@ -1,85 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
+ mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
  removed from -mm tree
-Date: Thu, 30 Nov 2017 12:19:29 -0800
-Message-ID: <20171130201929.Q9GTVGrvQ%akpm@linux-foundation.org>
+Date: Thu, 30 Nov 2017 12:19:26 -0800
+Message-ID: <20171130201926.yWXgXXeZY%akpm__21203.8886420943$1512073175$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751250AbdK3UTa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:30 -0500
+        with ESMTP id S1751254AbdK3UT1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers3@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, namit@vmware.com
+To: kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: change put_page/unlock_page order in hugetlbfs_fallocate()
+     Subject: mm/hugetlb: fix NULL-pointer dereference on 5-level paging machine
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate.patch
+     mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: fs/hugetlbfs/inode.c: change put_page/unlock_page order in hugetlbfs_fallocate()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm/hugetlb: fix NULL-pointer dereference on 5-level paging machine
 
-hugetlfs_fallocate() currently performs put_page() before unlock_page(). 
-This scenario opens a small time window, from the time the page is added
-to the page cache, until it is unlocked, in which the page might be
-removed from the page-cache by another core.  If the page is removed
-during this time windows, it might cause a memory corruption, as the wrong
-page will be unlocked.
+I made a mistake during converting hugetlb code to 5-level paging: in
+huge_pte_alloc() we have to use p4d_alloc(), not p4d_offset().  Otherwise
+it leads to crash -- NULL-pointer dereference in pud_alloc() if p4d table
+is not yet allocated.
 
-It is arguable whether this scenario can happen in a real system, and
-there are several mitigating factors.  The issue was found by code
-inspection (actually grep), and not by actually triggering the flow.  Yet,
-since putting the page before unlocking is incorrect it should be fixed,
-if only to prevent future breakage or someone copy-pasting this code.
+It only can happen in 5-level paging mode.  In 4-level paging mode
+p4d_offset() always returns pgd, so we are fine.
 
-Mike said:
-
-I am of the opinion that this does not need to be sent to stable. 
-Although the ordering is current code is incorrect, there is no way for
-this to be a problem with current locking.  In addition, I verified that
-the perhaps bigger issue with sys_fadvise64(POSIX_FADV_DONTNEED) for
-hugetlbfs and other filesystems is addressed in 3a77d214807c ("mm:
-fadvise: avoid fadvise for fs without backing device").
-
-Link: http://lkml.kernel.org/r/20170826191124.51642-1-namit@vmware.com
-Fixes: 70c3547e36f5c ("hugetlbfs: add hugetlbfs_fallocate()")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20171122121921.64822-1-kirill.shutemov@linux.intel.com
+Fixes: c2febafc6773 ("mm: convert generic code to 5-level paging")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Eric Biggers <ebiggers3@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>	[4.11+]
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-change-put_page-unlock_page-order-in-hugetlbfs_fallocate
-+++ a/fs/hugetlbfs/inode.c
-@@ -639,11 +639,11 @@ static long hugetlbfs_fallocate(struct f
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-null-pointer-dereference-on-5-level-paging-machine
++++ a/mm/hugetlb.c
+@@ -4635,7 +4635,9 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 	pte_t *pte = NULL;
  
- 		/*
--		 * page_put due to reference from alloc_huge_page()
- 		 * unlock_page because locked by add_to_page_cache()
-+		 * page_put due to reference from alloc_huge_page()
- 		 */
--		put_page(page);
- 		unlock_page(page);
-+		put_page(page);
- 	}
- 
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
+ 	pgd = pgd_offset(mm, addr);
+-	p4d = p4d_offset(pgd, addr);
++	p4d = p4d_alloc(mm, pgd, addr);
++	if (!p4d)
++		return NULL;
+ 	pud = pud_alloc(mm, p4d, addr);
+ 	if (pud) {
+ 		if (sz == PUD_SIZE) {
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 
