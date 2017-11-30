@@ -1,132 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-use-%px-to-print-addresses-instead-of-%p.patch added to
- -mm tree
-Date: Wed, 29 Nov 2017 15:25:42 -0800
-Message-ID: <5a1f41f6.D6fkLi+OcuOVKbTC%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3.patch
+ removed from -mm tree
+Date: Wed, 29 Nov 2017 16:04:47 -0800
+Message-ID: <5a1f4b1f.zzTYX1HG339OdNKy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59538 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752450AbdK2XZp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 18:25:45 -0500
+        with ESMTP id S1752183AbdK3AEt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:04:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@tobin.cc, aryabinin@virtuozzo.com, catalin.marinas@arm.com, cfries@google.com, danielmicay@gmail.com, davem@davemloft.net, dvyukov@google.com, glider@google.com, Golden_Miller83@protonmail.ch, gregkh@linuxfoundation.org, ijc@hellion.org.uk, Jason@zx2c4.com, joe@perches.com, keescook@chromium.org, olorin@google.com, pbonzini@redhat.com, pmladek@suse.com, rkrcmar@redhat.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, sfr@canb.auug.org.au, tixxdz@gmail.com, tj@kernel.org, tycho@tycho.ws, tytso@mit.edu, wilal.deacon@arm.com, william.c.roberts@intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: use %px to print addresses instead of %p
-has been added to the -mm tree.  Its filename is
-     kasan-use-%px-to-print-addresses-instead-of-%p.patch
+     Subject: mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3
+has been removed from the -mm tree.  Its filename was
+     mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-use-%25px-to-print-addresses-instead-of-%25p.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-use-%25px-to-print-addresses-instead-of-%25p.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages.patch
 
 ------------------------------------------------------
-From: "Tobin C. Harding" <me@tobin.cc>
-Subject: kasan: use %px to print addresses instead of %p
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3
 
-Pointers printed with %p are now hashed by default.  Kasan needs the
-actual address.  We can use the new printk specifier %px for this purpose.
+* Switch from the "#define __HAVE_ARCH_PUD_WRITE" to "#define
+  pud_write". This incidentally fixes a powerpc compile error.
+  (Stephen)
 
-Use %px instead of %p to print addresses.
-
-Link: http://lkml.kernel.org/r/1511921105-3647-6-git-send-email-me@tobin.cc
-Signed-off-by: Tobin C. Harding <me@tobin.cc>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chris Fries <cfries@google.com>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Dave Weinstein <olorin@google.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Djalal Harouni <tixxdz@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Ian Campbell <ijc@hellion.org.uk>
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jordan Glover <Golden_Miller83@protonmail.ch>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Radim Krčmář <rkrcmar@redhat.com>
-Cc: "Roberts, William C" <william.c.roberts@intel.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Tycho Andersen <tycho@tycho.ws>
-Cc: Will Deacon <wilal.deacon@arm.com>
+Link: http://lkml.kernel.org/r/151129126165.37405.16031785266675461397.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm64/include/asm/pgtable.h    |    1 -
+ arch/sparc/include/asm/pgtable_64.h |    1 -
+ arch/x86/include/asm/pgtable.h      |    2 +-
+ include/asm-generic/pgtable.h       |    7 +++----
+ 4 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-use-%px-to-print-addresses-instead-of-%p mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-use-%px-to-print-addresses-instead-of-%p
-+++ a/mm/kasan/report.c
-@@ -134,7 +134,7 @@ static void print_error_description(stru
+diff -puN arch/arm64/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3 arch/arm64/include/asm/pgtable.h
+--- a/arch/arm64/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -354,7 +354,6 @@ static inline int pmd_protnone(pmd_t pmd
+ #define pfn_pmd(pfn,prot)	(__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot)))
+ #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
  
- 	pr_err("BUG: KASAN: %s in %pS\n",
- 		bug_type, (void *)info->ip);
--	pr_err("%s of size %zu at addr %p by task %s/%d\n",
-+	pr_err("%s of size %zu at addr %px by task %s/%d\n",
- 		info->is_write ? "Write" : "Read", info->access_size,
- 		info->access_addr, current->comm, task_pid_nr(current));
+-#define __HAVE_ARCH_PUD_WRITE
+ #define pud_write(pud)		pte_write(pud_pte(pud))
+ #define pud_pfn(pud)		(((pud_val(pud) & PUD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
+ 
+diff -puN arch/sparc/include/asm/pgtable_64.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3 arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -723,7 +723,6 @@ static inline unsigned long pmd_write(pm
+ 	return pte_write(pte);
  }
-@@ -206,7 +206,7 @@ static void describe_object_addr(struct
- 	const char *rel_type;
- 	int rel_bytes;
  
--	pr_err("The buggy address belongs to the object at %p\n"
-+	pr_err("The buggy address belongs to the object at %px\n"
- 	       " which belongs to the cache %s of size %d\n",
- 		object, cache->name, cache->object_size);
+-#define __HAVE_ARCH_PUD_WRITE
+ #define pud_write(pud)	pte_write(__pte(pud_val(pud)))
  
-@@ -225,7 +225,7 @@ static void describe_object_addr(struct
- 	}
- 
- 	pr_err("The buggy address is located %d bytes %s of\n"
--	       " %d-byte region [%p, %p)\n",
-+	       " %d-byte region [%px, %px)\n",
- 		rel_bytes, rel_type, cache->object_size, (void *)object_addr,
- 		(void *)(object_addr + cache->object_size));
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN arch/x86/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3 arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1088,7 +1088,7 @@ static inline void pmdp_set_wrprotect(st
+ 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pmdp);
  }
-@@ -302,7 +302,7 @@ static void print_shadow_for_address(con
- 		char shadow_buf[SHADOW_BYTES_PER_ROW];
  
- 		snprintf(buffer, sizeof(buffer),
--			(i == 0) ? ">%p: " : " %p: ", kaddr);
-+			(i == 0) ? ">%px: " : " %px: ", kaddr);
- 		/*
- 		 * We should not pass a shadow pointer to generic
- 		 * function, because generic functions may try to
-_
-
-Patches currently in -mm which might be from me@tobin.cc are
-
-docs-correct-documentation-for-%pk.patch
-vsprintf-refactor-%pk-code-out-of-pointer.patch
-printk-hash-addresses-printed-with-%p.patch
-vsprintf-add-printk-specifier-%px.patch
-kasan-use-%px-to-print-addresses-instead-of-%p.patch
-
+-#define __HAVE_ARCH_PUD_WRITE
++#define pud_write pud_write
+ static inline int pud_write(pud_t pud)
+ {
+ 	return pud_flags(pud) & _PAGE_RW;
+diff -puN include/asm-generic/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3 include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages-v3
++++ a/include/asm-generic/pgtable.h
+@@ -812,16 +812,15 @@ static inline int pmd_write(pmd_t pmd)
+ 	return 0;
+ }
+ #endif /* __HAVE_ARCH_PMD_WRITE */
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-#ifndef __HAVE_ARCH_PUD_WRITE
++#ifndef pud_write
+ static inline int pud_write(pud_t pud)
+ {
+ 	BUG();
+ 	return 0;
+ }
+-#endif /* __HAVE_ARCH_PUD_WRITE */
