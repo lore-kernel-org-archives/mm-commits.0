@@ -1,64 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 16/28] exec: avoid RLIMIT_STACK races with prlimit()
-Date: Wed, 29 Nov 2017 16:10:51 -0800
-Message-ID: <5a1f4c8b.l2x77wf4flCbY9y0%akpm@linux-foundation.org>
+Subject: [patch 11/28] device-dax: implement ->split() to catch invalid
+ munmap attempts
+Date: Wed, 29 Nov 2017 16:10:32 -0800
+Message-ID: <5a1f4c78.xg+OcEguT9vCS2cv%akpm__64.1037048355386$1512000657$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60570 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753487AbdK3AKw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:52 -0500
+        with ESMTP id S1753529AbdK3AKd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, ben.hutchings@codethink.co.uk, james.l.morris@oracle.com, jslaby@suse.cz, luto@kernel.org, oleg@redhat.com, serge@hallyn.com, spender@grsecurity.net, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, jmoyer@redhat.com, stable@vger.kernel.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: exec: avoid RLIMIT_STACK races with prlimit()
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: device-dax: implement ->split() to catch invalid munmap attempts
 
-While the defense-in-depth RLIMIT_STACK limit on setuid processes was
-protected against races from other threads calling setrlimit(), I missed
-protecting it against races from external processes calling prlimit(). 
-This adds locking around the change and makes sure that rlim_max is set
-too.
+Similar to how device-dax enforces that the 'address', 'offset', and 'len'
+parameters to mmap() be aligned to the device's fundamental alignment, the
+same constraints apply to munmap().  Implement ->split() to fail munmap
+calls that violate the alignment constraint.  Otherwise, we later fail
+VM_BUG_ON checks in the unmap_page_range() path with crash signatures of
+the form:
 
-Link: http://lkml.kernel.org/r/20171127193457.GA11348@beast
-Fixes: 64701dee4178e ("exec: Use sane stack rlimit under secureexec")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
-Reported-by: Brad Spengler <spender@grsecurity.net>
-Acked-by: Serge Hallyn <serge@hallyn.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
+    vma ffff8800b60c8a88 start 00007f88c0000000 end 00007f88c0e00000
+    next           (null) prev           (null) mm ffff8800b61150c0
+    prot 8000000000000027 anon_vma           (null) vm_ops ffffffffa0091240
+    pgoff 0 file ffff8800b638ef80 private_data           (null)
+    flags: 0x380000fb(read|write|shared|mayread|maywrite|mayexec|mayshare|softdirty|mixedmap|hugepage)
+    ------------[ cut here ]------------
+    kernel BUG at mm/huge_memory.c:2014!
+    [..]
+    RIP: 0010:__split_huge_pud+0x12a/0x180
+    [..]
+    Call Trace:
+     unmap_page_range+0x245/0xa40
+     ? __vma_adjust+0x301/0x990
+     unmap_vmas+0x4c/0xa0
+     unmap_region+0xae/0x120
+     ? __vma_rb_erase+0x11a/0x230
+     do_munmap+0x276/0x410
+     vm_munmap+0x6a/0xa0
+     SyS_munmap+0x1d/0x30
+
+Link: http://lkml.kernel.org/r/151130418681.4029.7118245855057952010.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/dax/device.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit fs/exec.c
---- a/fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit
-+++ a/fs/exec.c
-@@ -1340,10 +1340,15 @@ void setup_new_exec(struct linux_binprm
- 		 * avoid bad behavior from the prior rlimits. This has to
- 		 * happen before arch_pick_mmap_layout(), which examines
- 		 * RLIMIT_STACK, but after the point of no return to avoid
--		 * needing to clean up the change on failure.
-+		 * races from other threads changing the limits. This also
-+		 * must be protected from races with prlimit() calls.
- 		 */
-+		task_lock(current->group_leader);
- 		if (current->signal->rlim[RLIMIT_STACK].rlim_cur > _STK_LIM)
- 			current->signal->rlim[RLIMIT_STACK].rlim_cur = _STK_LIM;
-+		if (current->signal->rlim[RLIMIT_STACK].rlim_max > _STK_LIM)
-+			current->signal->rlim[RLIMIT_STACK].rlim_max = _STK_LIM;
-+		task_unlock(current->group_leader);
- 	}
+diff -puN drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts drivers/dax/device.c
+--- a/drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts
++++ a/drivers/dax/device.c
+@@ -428,9 +428,21 @@ static int dev_dax_fault(struct vm_fault
+ 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
+ }
  
- 	arch_pick_mmap_layout(current->mm);
++static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
++{
++	struct file *filp = vma->vm_file;
++	struct dev_dax *dev_dax = filp->private_data;
++	struct dax_region *dax_region = dev_dax->region;
++
++	if (!IS_ALIGNED(addr, dax_region->align))
++		return -EINVAL;
++	return 0;
++}
++
+ static const struct vm_operations_struct dax_vm_ops = {
+ 	.fault = dev_dax_fault,
+ 	.huge_fault = dev_dax_huge_fault,
++	.split = dev_dax_split,
+ };
+ 
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
 _
