@@ -1,94 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- device-dax-implement-split-to-catch-invalid-munmap-attempts.patch removed
+ ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch removed
  from -mm tree
-Date: Thu, 30 Nov 2017 12:18:33 -0800
-Message-ID: <20171130201833.n2RZ0CJBp%akpm__31143.96996466$1512073127$gmane$org@linux-foundation.org>
+Date: Thu, 30 Nov 2017 12:18:48 -0800
+Message-ID: <20171130201848.9VH3Ds-1w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52346 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750923AbdK3USj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:39 -0500
+        with ESMTP id S1751781AbdK3USu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, jmoyer@redhat.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: dan.j.williams@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, inki.dae@samsung.com, jack@suse.cz, jgg@mellanox.com, jmoyer@redhat.com, jy0922.shim@samsung.com, kyungmin.park@samsung.com, mchehab@kernel.org, mgorman@suse.de, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sean.hefty@intel.com, stable@vger.kernel.org, sw0312.kim@samsung.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: device-dax: implement ->split() to catch invalid munmap attempts
+     Subject: IB/core: disable memory registration of filesystem-dax vmas
 has been removed from the -mm tree.  Its filename was
-     device-dax-implement-split-to-catch-invalid-munmap-attempts.patch
+     ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax: implement ->split() to catch invalid munmap attempts
+Subject: IB/core: disable memory registration of filesystem-dax vmas
 
-Similar to how device-dax enforces that the 'address', 'offset', and 'len'
-parameters to mmap() be aligned to the device's fundamental alignment, the
-same constraints apply to munmap().  Implement ->split() to fail munmap
-calls that violate the alignment constraint.  Otherwise, we later fail
-VM_BUG_ON checks in the unmap_page_range() path with crash signatures of
-the form:
+Until there is a solution to the dma-to-dax vs truncate problem it is not
+safe to allow RDMA to create long standing memory registrations against
+filesytem-dax vmas.
 
-    vma ffff8800b60c8a88 start 00007f88c0000000 end 00007f88c0e00000
-    next           (null) prev           (null) mm ffff8800b61150c0
-    prot 8000000000000027 anon_vma           (null) vm_ops ffffffffa0091240
-    pgoff 0 file ffff8800b638ef80 private_data           (null)
-    flags: 0x380000fb(read|write|shared|mayread|maywrite|mayexec|mayshare|softdirty|mixedmap|hugepage)
-    ------------[ cut here ]------------
-    kernel BUG at mm/huge_memory.c:2014!
-    [..]
-    RIP: 0010:__split_huge_pud+0x12a/0x180
-    [..]
-    Call Trace:
-     unmap_page_range+0x245/0xa40
-     ? __vma_adjust+0x301/0x990
-     unmap_vmas+0x4c/0xa0
-     unmap_region+0xae/0x120
-     ? __vma_rb_erase+0x11a/0x230
-     do_munmap+0x276/0x410
-     vm_munmap+0x6a/0xa0
-     SyS_munmap+0x1d/0x30
-
-Link: http://lkml.kernel.org/r/151130418681.4029.7118245855057952010.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+Link: http://lkml.kernel.org/r/151068941011.7446.7766030590347262502.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+Acked-by: Doug Ledford <dledford@redhat.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/infiniband/core/umem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts drivers/dax/device.c
---- a/drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts
-+++ a/drivers/dax/device.c
-@@ -428,9 +428,21 @@ static int dev_dax_fault(struct vm_fault
- 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
- }
+diff -puN drivers/infiniband/core/umem.c~ib-core-disable-memory-registration-of-fileystem-dax-vmas drivers/infiniband/core/umem.c
+--- a/drivers/infiniband/core/umem.c~ib-core-disable-memory-registration-of-fileystem-dax-vmas
++++ a/drivers/infiniband/core/umem.c
+@@ -191,7 +191,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
+ 	sg_list_start = umem->sg_head.sgl;
  
-+static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
-+{
-+	struct file *filp = vma->vm_file;
-+	struct dev_dax *dev_dax = filp->private_data;
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	if (!IS_ALIGNED(addr, dax_region->align))
-+		return -EINVAL;
-+	return 0;
-+}
-+
- static const struct vm_operations_struct dax_vm_ops = {
- 	.fault = dev_dax_fault,
- 	.huge_fault = dev_dax_huge_fault,
-+	.split = dev_dax_split,
- };
- 
- static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 	while (npages) {
+-		ret = get_user_pages(cur_base,
++		ret = get_user_pages_longterm(cur_base,
+ 				     min_t(unsigned long, npages,
+ 					   PAGE_SIZE / sizeof (struct page *)),
+ 				     gup_flags, page_list, vma_list);
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
