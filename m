@@ -1,195 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write.patch
- removed from -mm tree
-Date: Thu, 30 Nov 2017 12:18:15 -0800
-Message-ID: <20171130201815.3mU8EGIBU%akpm@linux-foundation.org>
+ scripts-faddr2line-extend-usage-on-generic-arch.patch removed from -mm tree
+Date: Thu, 30 Nov 2017 12:18:27 -0800
+Message-ID: <20171130201827.uLvCbHfLb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52026 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751497AbdK3USb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:31 -0500
+        with ESMTP id S1751346AbdK3USf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@mellanox.com, dan.j.williams@intel.com, hpa@zytor.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org, oliveroh@au1.ibm.com, ralf@linux-mips.org, sfr@canb.auug.org.au
+To: changcheng.liu@intel.com, gregkh@linuxfoundation.org, kstewart@linuxfoundation.org, mm-commits@vger.kernel.org, neilb@suse.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: switch to 'define pmd_write' instead of __HAVE_ARCH_PMD_WRITE
+     Subject: scripts/faddr2line: extend usage on generic arch
 has been removed from the -mm tree.  Its filename was
-     mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write.patch
+     scripts-faddr2line-extend-usage-on-generic-arch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: switch to 'define pmd_write' instead of __HAVE_ARCH_PMD_WRITE
+From: "Liu, Changcheng" <changcheng.liu@intel.com>
+Subject: scripts/faddr2line: extend usage on generic arch
 
-In response to compile breakage introduced by a series that added the
-pud_write helper to x86, Stephen notes:
+When cross-compiling, fadd2line should use the binary tool used for the
+target system, rather than that of the host.
 
-    did you consider using the other paradigm:
-
-    In arch include files:
-    #define pud_write       pud_write
-    static inline int pud_write(pud_t pud)
-     .....
-
-    Then in include/asm-generic/pgtable.h:
-
-    #ifndef pud_write
-    tatic inline int pud_write(pud_t pud)
-    {
-            ....
-    }
-    #endif
-
-    If you had, then the powerpc code would have worked ... ;-) and many
-    of the other interfaces in include/asm-generic/pgtable.h are
-    protected that way ...
-
-Given that some architecture already define pmd_write() as a macro, it's a
-net reduction to drop the definition of __HAVE_ARCH_PMD_WRITE.
-
-Link: http://lkml.kernel.org/r/151129126721.37405.13339850900081557813.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Oliver OHalloran <oliveroh@au1.ibm.com>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/20171121092911.GA150711@sofia
+Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: NeilBrown <neilb@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/pgtable-3level.h        |    1 -
- arch/arm64/include/asm/pgtable.h             |    1 -
- arch/mips/include/asm/pgtable.h              |    2 +-
- arch/powerpc/include/asm/book3s/64/pgtable.h |    1 -
- arch/s390/include/asm/pgtable.h              |    2 +-
- arch/sparc/include/asm/pgtable_64.h          |    2 +-
- arch/tile/include/asm/pgtable.h              |    1 -
- arch/x86/include/asm/pgtable.h               |    2 +-
- include/asm-generic/pgtable.h                |    4 ++--
- 9 files changed, 6 insertions(+), 10 deletions(-)
+ scripts/faddr2line |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN arch/arm64/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/arm64/include/asm/pgtable.h
---- a/arch/arm64/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -345,7 +345,6 @@ static inline int pmd_protnone(pmd_t pmd
+diff -puN scripts/faddr2line~scripts-faddr2line-extend-usage-on-generic-arch scripts/faddr2line
+--- a/scripts/faddr2line~scripts-faddr2line-extend-usage-on-generic-arch
++++ a/scripts/faddr2line
+@@ -44,9 +44,16 @@
+ set -o errexit
+ set -o nounset
  
- #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
++READELF="${CROSS_COMPILE}readelf"
++ADDR2LINE="${CROSS_COMPILE}addr2line"
++SIZE="${CROSS_COMPILE}size"
++NM="${CROSS_COMPILE}nm"
++
+ command -v awk >/dev/null 2>&1 || die "awk isn't installed"
+-command -v readelf >/dev/null 2>&1 || die "readelf isn't installed"
+-command -v addr2line >/dev/null 2>&1 || die "addr2line isn't installed"
++command -v ${READELF} >/dev/null 2>&1 || die "readelf isn't installed"
++command -v ${ADDR2LINE} >/dev/null 2>&1 || die "addr2line isn't installed"
++command -v ${SIZE} >/dev/null 2>&1 || die "size isn't installed"
++command -v ${NM} >/dev/null 2>&1 || die "nm isn't installed"
  
--#define __HAVE_ARCH_PMD_WRITE
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+ usage() {
+ 	echo "usage: faddr2line <object file> <func+offset> <func+offset>..." >&2
+@@ -69,10 +76,10 @@ die() {
+ find_dir_prefix() {
+ 	local objfile=$1
  
- #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
-diff -puN arch/arm/include/asm/pgtable-3level.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/arm/include/asm/pgtable-3level.h
---- a/arch/arm/include/asm/pgtable-3level.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -221,7 +221,6 @@ static inline pte_t pte_mkspecial(pte_t
- }
- #define	__HAVE_ARCH_PTE_SPECIAL
+-	local start_kernel_addr=$(readelf -sW $objfile | awk '$8 == "start_kernel" {printf "0x%s", $2}')
++	local start_kernel_addr=$(${READELF} -sW $objfile | awk '$8 == "start_kernel" {printf "0x%s", $2}')
+ 	[[ -z $start_kernel_addr ]] && return
  
--#define __HAVE_ARCH_PMD_WRITE
- #define pmd_write(pmd)		(pmd_isclear((pmd), L_PMD_SECT_RDONLY))
- #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
- #define pud_page(pud)		pmd_page(__pmd(pud_val(pud)))
-diff -puN arch/mips/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -552,7 +552,7 @@ static inline pmd_t pmd_mkhuge(pmd_t pmd
- extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 		       pmd_t *pmdp, pmd_t pmd);
+-	local file_line=$(addr2line -e $objfile $start_kernel_addr)
++	local file_line=$(${ADDR2LINE} -e $objfile $start_kernel_addr)
+ 	[[ -z $file_line ]] && return
  
--#define __HAVE_ARCH_PMD_WRITE
-+#define pmd_write pmd_write
- static inline int pmd_write(pmd_t pmd)
- {
- 	return !!(pmd_val(pmd) & _PAGE_WRITE);
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1005,7 +1005,6 @@ static inline int pmd_protnone(pmd_t pmd
- }
- #endif /* CONFIG_NUMA_BALANCING */
+ 	local prefix=${file_line%init/main.c:*}
+@@ -104,7 +111,7 @@ __faddr2line() {
  
--#define __HAVE_ARCH_PMD_WRITE
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
- #define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
- #define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
-diff -puN arch/s390/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -709,7 +709,7 @@ static inline unsigned long pmd_pfn(pmd_
- 	return (pmd_val(pmd) & origin_mask) >> PAGE_SHIFT;
- }
+ 	# Go through each of the object's symbols which match the func name.
+ 	# In rare cases there might be duplicates.
+-	file_end=$(size -Ax $objfile | awk '$1 == ".text" {print $2}')
++	file_end=$(${SIZE} -Ax $objfile | awk '$1 == ".text" {print $2}')
+ 	while read symbol; do
+ 		local fields=($symbol)
+ 		local sym_base=0x${fields[0]}
+@@ -156,10 +163,10 @@ __faddr2line() {
  
--#define __HAVE_ARCH_PMD_WRITE
-+#define pmd_write pmd_write
- static inline int pmd_write(pmd_t pmd)
- {
- 	return (pmd_val(pmd) & _SEGMENT_ENTRY_WRITE) != 0;
-diff -puN arch/sparc/include/asm/pgtable_64.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -715,7 +715,7 @@ static inline unsigned long pmd_pfn(pmd_
- 	return pte_pfn(pte);
+ 		# pass real address to addr2line
+ 		echo "$func+$offset/$sym_size:"
+-		addr2line -fpie $objfile $addr | sed "s; $dir_prefix\(\./\)*; ;"
++		${ADDR2LINE} -fpie $objfile $addr | sed "s; $dir_prefix\(\./\)*; ;"
+ 		DONE=1
+ 
+-	done < <(nm -n $objfile | awk -v fn=$func -v end=$file_end '$3 == fn { found=1; line=$0; start=$1; next } found == 1 { found=0; print line, "0x"$1 } END {if (found == 1) print line, end; }')
++	done < <(${NM} -n $objfile | awk -v fn=$func -v end=$file_end '$3 == fn { found=1; line=$0; start=$1; next } found == 1 { found=0; print line, "0x"$1 } END {if (found == 1) print line, end; }')
  }
  
--#define __HAVE_ARCH_PMD_WRITE
-+#define pmd_write pmd_write
- static inline unsigned long pmd_write(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-diff -puN arch/tile/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/tile/include/asm/pgtable.h
---- a/arch/tile/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/tile/include/asm/pgtable.h
-@@ -475,7 +475,6 @@ static inline void pmd_clear(pmd_t *pmdp
- #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
- #define pmd_huge_page(pmd)	pte_huge(pmd_pte(pmd))
- #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
--#define __HAVE_ARCH_PMD_WRITE
- 
- #define pfn_pmd(pfn, pgprot)	pte_pmd(pfn_pte((pfn), (pgprot)))
- #define pmd_pfn(pmd)		pte_pfn(pmd_pte(pmd))
-diff -puN arch/x86/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1061,7 +1061,7 @@ extern int pmdp_clear_flush_young(struct
- 				  unsigned long address, pmd_t *pmdp);
- 
- 
--#define __HAVE_ARCH_PMD_WRITE
-+#define pmd_write pmd_write
- static inline int pmd_write(pmd_t pmd)
- {
- 	return pmd_flags(pmd) & _PAGE_RW;
-diff -puN include/asm-generic/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
-+++ a/include/asm-generic/pgtable.h
-@@ -805,13 +805,13 @@ static inline int pmd_trans_huge(pmd_t p
- {
- 	return 0;
- }
--#ifndef __HAVE_ARCH_PMD_WRITE
-+#ifndef pmd_write
- static inline int pmd_write(pmd_t pmd)
- {
- 	BUG();
- 	return 0;
- }
--#endif /* __HAVE_ARCH_PMD_WRITE */
-+#endif /* pmd_write */
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #ifndef pud_write
+ [[ $# -lt 2 ]] && usage
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from changcheng.liu@intel.com are
 
 
