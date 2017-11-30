@@ -1,55 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 23/28] mm, memcg: fix mem_cgroup_swapout() for THPs
-Date: Wed, 29 Nov 2017 16:11:15 -0800
-Message-ID: <5a1f4ca3.6zVgnUfosPaIUjsI%akpm@linux-foundation.org>
+Subject: [patch 22/28] mm: migrate: fix an incorrect call of
+ prep_transhuge_page()
+Date: Wed, 29 Nov 2017 16:11:12 -0800
+Message-ID: <5a1f4ca0.NpCyQY0OBbM1XmTS%akpm__45159.7933927134$1512000679$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753589AbdK3ALR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:17 -0500
+        with ESMTP id S1752959AbdK3ALN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, shakeelb@google.com, gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, vdavydov.dev@gmail.com, ying.huang@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zi.yan@cs.rutgers.edu, ar@linux.vnet.ibm.com, jglisse@redhat.com, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm, memcg: fix mem_cgroup_swapout() for THPs
+From: Zi Yan <zi.yan@cs.rutgers.edu>
+Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
 
-d6810d730022 ("memcg, THP, swap: make mem_cgroup_swapout() support THP")
-changed mem_cgroup_swapout() to support transparent huge page (THP). 
-However the patch missed one location which should be changed for
-correctly handling THPs.  The resulting bug will cause the memory cgroups
-whose THPs were swapped out to become zombies on deletion.
+In https://lkml.org/lkml/2017/11/20/411, Andrea reported that during
+memory hotplug/hot remove prep_transhuge_page() is called incorrectly on
+non-THP pages for migration, when THP is on but THP migration is not
+enabled.  This leads to a bad state of target pages for migration.
 
-Link: http://lkml.kernel.org/r/20171128161941.20931-1-shakeelb@google.com
-Fixes: d6810d730022 ("memcg, THP, swap: make mem_cgroup_swapout() support THP")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: <stable@vger.kernel.org>
+By inspecting the code, if called on a non-THP, prep_transhuge_page() will
 
+1) change the value of the mapping of (page + 2), since it is used
+   for THP deferred list;
+
+2) change the lru value of (page + 1), since it is used for THP's
+   dtor.
+
+Both can lead to data corruption of these two pages.
+
+Andrea said:
+
+: Pragmatically and from the point of view of the memory_hotplug subsys, the
+: effect is a kernel crash when pages are being migrated during a memory hot
+: remove offline and migration target pages are found in a bad state.
+
+This patch fixes it by only calling prep_transhuge_page() when we are
+certain that the target page is THP.
+
+Link: http://lkml.kernel.org/r/20171121021855.50525-1-zi.yan@sent.com
+Fixes: 8135d8926c08 ("mm: memory_hotplug: memory hotremove supports thp migration")
+Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
+Reported-by: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.14]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ include/linux/migrate.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-fix-mem_cgroup_swapout-for-thps mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-fix-mem_cgroup_swapout-for-thps
-+++ a/mm/memcontrol.c
-@@ -6044,7 +6044,7 @@ void mem_cgroup_swapout(struct page *pag
- 	memcg_check_events(memcg, page);
+diff -puN include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page
++++ a/include/linux/migrate.h
+@@ -54,7 +54,7 @@ static inline struct page *new_page_node
+ 	new_page = __alloc_pages_nodemask(gfp_mask, order,
+ 				preferred_nid, nodemask);
  
- 	if (!mem_cgroup_is_root(memcg))
--		css_put(&memcg->css);
-+		css_put_many(&memcg->css, nr_entries);
- }
+-	if (new_page && PageTransHuge(page))
++	if (new_page && PageTransHuge(new_page))
+ 		prep_transhuge_page(new_page);
  
- /**
+ 	return new_page;
 _
