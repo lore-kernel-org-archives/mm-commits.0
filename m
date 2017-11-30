@@ -1,86 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch removed from
- -mm tree
-Date: Thu, 30 Nov 2017 12:19:11 -0800
-Message-ID: <20171130201911.WVoQWAiXu%akpm@linux-foundation.org>
+Subject: [merged] fs-mbcache-make-count_objects-more-robust.patch
+ removed from -mm tree
+Date: Thu, 30 Nov 2017 12:19:02 -0800
+Message-ID: <20171130201902.Zd-YzmAAm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52442 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750923AbdK3UTM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:12 -0500
+        with ESMTP id S1751821AbdK3UTD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ar@linux.vnet.ibm.com, jglisse@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, zi.yan@cs.rutgers.edu
+To: jiang.biao2@zte.com.cn, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, zhong.weidong@zte.com.cn
 
 
 The patch titled
-     Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
+     Subject: fs/mbcache.c: make count_objects() more robust
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
+     fs-mbcache-make-count_objects-more-robust.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zi Yan <zi.yan@cs.rutgers.edu>
-Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
+From: Jiang Biao <jiang.biao2@zte.com.cn>
+Subject: fs/mbcache.c: make count_objects() more robust
 
-In https://lkml.org/lkml/2017/11/20/411, Andrea reported that during
-memory hotplug/hot remove prep_transhuge_page() is called incorrectly on
-non-THP pages for migration, when THP is on but THP migration is not
-enabled.  This leads to a bad state of target pages for migration.
+When running ltp stress test for 7*24 hours, vmscan occasionally emits the
+following warning continuously:
 
-By inspecting the code, if called on a non-THP, prep_transhuge_page() will
+mb_cache_scan+0x0/0x3f0 negative objects to delete
+nr=-9232265467809300450
+...
 
-1) change the value of the mapping of (page + 2), since it is used
-   for THP deferred list;
+Tracing shows the freeable(mb_cache_count returns) is -1, which causes the
+continuous accumulation and overflow of total_scan.
 
-2) change the lru value of (page + 1), since it is used for THP's
-   dtor.
+This patch makes sure that mb_cache_count() cannot return a negative
+value, which makes the mbcache shrinker more robust.
 
-Both can lead to data corruption of these two pages.
-
-Andrea said:
-
-: Pragmatically and from the point of view of the memory_hotplug subsys, the
-: effect is a kernel crash when pages are being migrated during a memory hot
-: remove offline and migration target pages are found in a bad state.
-
-This patch fixes it by only calling prep_transhuge_page() when we are
-certain that the target page is THP.
-
-Link: http://lkml.kernel.org/r/20171121021855.50525-1-zi.yan@sent.com
-Fixes: 8135d8926c08 ("mm: memory_hotplug: memory hotremove supports thp migration")
-Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Reported-by: Andrea Reale <ar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/1511753419-52328-1-git-send-email-jiang.biao2@zte.com.cn
+Signed-off-by: Jiang Biao <jiang.biao2@zte.com.cn>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
-Cc: <stable@vger.kernel.org>	[4.14]
+Cc: <zhong.weidong@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/mbcache.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page
-+++ a/include/linux/migrate.h
-@@ -54,7 +54,7 @@ static inline struct page *new_page_node
- 	new_page = __alloc_pages_nodemask(gfp_mask, order,
- 				preferred_nid, nodemask);
+diff -puN fs/mbcache.c~fs-mbcache-make-count_objects-more-robust fs/mbcache.c
+--- a/fs/mbcache.c~fs-mbcache-make-count_objects-more-robust
++++ a/fs/mbcache.c
+@@ -269,6 +269,9 @@ static unsigned long mb_cache_count(stru
+ 	struct mb_cache *cache = container_of(shrink, struct mb_cache,
+ 					      c_shrink);
  
--	if (new_page && PageTransHuge(page))
-+	if (new_page && PageTransHuge(new_page))
- 		prep_transhuge_page(new_page);
++	/* Unlikely, but not impossible */
++	if (unlikely(cache->c_entry_count < 0))
++		return 0;
+ 	return cache->c_entry_count;
+ }
  
- 	return new_page;
 _
 
-Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
+Patches currently in -mm which might be from jiang.biao2@zte.com.cn are
 
 
