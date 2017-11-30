@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-refactor-the-oom_kill_process-function.patch added to
- -mm tree
-Date: Thu, 30 Nov 2017 12:39:42 -0800
-Message-ID: <5a206c8e.wbalo1TBDw6pvTmU%akpm@linux-foundation.org>
+Subject: +
+ mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch added
+ to -mm tree
+Date: Thu, 30 Nov 2017 12:39:45 -0800
+Message-ID: <5a206c91.qdvSBA/Oj/wWyPrt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53524 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750872AbdK3Ujo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:39:44 -0500
+        with ESMTP id S1751394AbdK3Ujq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:39:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: refactor oom_kill_process()
+     Subject: mm: implement mem_cgroup_scan_tasks() for the root memory cgroup
 has been added to the -mm tree.  Its filename is
-     mm-oom-refactor-the-oom_kill_process-function.patch
+     mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-refactor-the-oom_kill_process-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-refactor-the-oom_kill_process-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,187 +41,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm, oom: refactor oom_kill_process()
+Subject: mm: implement mem_cgroup_scan_tasks() for the root memory cgroup
 
-Patch series "cgroup-aware OOM killer", v13.
+Implement mem_cgroup_scan_tasks() functionality for the root memory cgroup
+to use this function for looking for a OOM victim task in the root memory
+cgroup by the cgroup-ware OOM killer.
 
-This patchset makes the OOM killer cgroup-aware.
+The root memory cgroup is treated as a leaf cgroup, so only tasks which
+are directly belonging to the root cgroup are iterated over.
 
-This patch (of 7):
+This patch doesn't introduce any functional change as
+mem_cgroup_scan_tasks() is never called for the root memcg.  This is
+preparatory work for the cgroup-aware OOM killer, which will use this
+function to iterate over tasks belonging to the root memcg.
 
-oom_kill_process() consists of two logical parts: the first one is
-responsible for considering task's children as a potential victim and
-printing the debug information.  The second half is responsible for
-sending SIGKILL to all tasks sharing the mm struct with the given victim.
-
-This commit splits oom_kill_process() with an intention to re-use the the
-second half: __oom_kill_process().
-
-The cgroup-aware OOM killer will kill multiple tasks belonging to the
-victim cgroup.  We don't need to print the debug information for the each
-task, as well as play with task selection (considering task's children),
-so we can't use the existing oom_kill_process().
-
-Link: http://lkml.kernel.org/r/20171130152824.1591-2-guro@fb.com
+Link: http://lkml.kernel.org/r/20171130152824.1591-3-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |  123 +++++++++++++++++++++++++-----------------------
- 1 file changed, 65 insertions(+), 58 deletions(-)
+ mm/memcontrol.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-refactor-the-oom_kill_process-function mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-refactor-the-oom_kill_process-function
-+++ a/mm/oom_kill.c
-@@ -814,68 +814,12 @@ static bool task_will_free_mem(struct ta
- 	return ret;
- }
- 
--static void oom_kill_process(struct oom_control *oc, const char *message)
-+static void __oom_kill_process(struct task_struct *victim)
- {
--	struct task_struct *p = oc->chosen;
--	unsigned int points = oc->chosen_points;
--	struct task_struct *victim = p;
--	struct task_struct *child;
--	struct task_struct *t;
-+	struct task_struct *p;
- 	struct mm_struct *mm;
--	unsigned int victim_points = 0;
--	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
--					      DEFAULT_RATELIMIT_BURST);
- 	bool can_oom_reap = true;
- 
--	/*
--	 * If the task is already exiting, don't alarm the sysadmin or kill
--	 * its children or threads, just give it access to memory reserves
--	 * so it can die quickly
--	 */
--	task_lock(p);
--	if (task_will_free_mem(p)) {
--		mark_oom_victim(p);
--		wake_oom_reaper(p);
--		task_unlock(p);
--		put_task_struct(p);
--		return;
--	}
--	task_unlock(p);
--
--	if (__ratelimit(&oom_rs))
--		dump_header(oc, p);
--
--	pr_err("%s: Kill process %d (%s) score %u or sacrifice child\n",
--		message, task_pid_nr(p), p->comm, points);
--
--	/*
--	 * If any of p's children has a different mm and is eligible for kill,
--	 * the one with the highest oom_badness() score is sacrificed for its
--	 * parent.  This attempts to lose the minimal amount of work done while
--	 * still freeing memory.
--	 */
--	read_lock(&tasklist_lock);
--	for_each_thread(p, t) {
--		list_for_each_entry(child, &t->children, sibling) {
--			unsigned int child_points;
--
--			if (process_shares_mm(child, p->mm))
--				continue;
--			/*
--			 * oom_badness() returns 0 if the thread is unkillable
--			 */
--			child_points = oom_badness(child,
--				oc->memcg, oc->nodemask, oc->totalpages);
--			if (child_points > victim_points) {
--				put_task_struct(victim);
--				victim = child;
--				victim_points = child_points;
--				get_task_struct(victim);
--			}
--		}
--	}
--	read_unlock(&tasklist_lock);
--
- 	p = find_lock_task_mm(victim);
- 	if (!p) {
- 		put_task_struct(victim);
-@@ -949,6 +893,69 @@ static void oom_kill_process(struct oom_
- }
- #undef K
- 
-+static void oom_kill_process(struct oom_control *oc, const char *message)
-+{
-+	struct task_struct *p = oc->chosen;
-+	unsigned int points = oc->chosen_points;
-+	struct task_struct *victim = p;
-+	struct task_struct *child;
-+	struct task_struct *t;
-+	unsigned int victim_points = 0;
-+	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+					      DEFAULT_RATELIMIT_BURST);
-+
-+	/*
-+	 * If the task is already exiting, don't alarm the sysadmin or kill
-+	 * its children or threads, just give it access to memory reserves
-+	 * so it can die quickly
-+	 */
-+	task_lock(p);
-+	if (task_will_free_mem(p)) {
-+		mark_oom_victim(p);
-+		wake_oom_reaper(p);
-+		task_unlock(p);
-+		put_task_struct(p);
-+		return;
-+	}
-+	task_unlock(p);
-+
-+	if (__ratelimit(&oom_rs))
-+		dump_header(oc, p);
-+
-+	pr_err("%s: Kill process %d (%s) score %u or sacrifice child\n",
-+		message, task_pid_nr(p), p->comm, points);
-+
-+	/*
-+	 * If any of p's children has a different mm and is eligible for kill,
-+	 * the one with the highest oom_badness() score is sacrificed for its
-+	 * parent.  This attempts to lose the minimal amount of work done while
-+	 * still freeing memory.
-+	 */
-+	read_lock(&tasklist_lock);
-+	for_each_thread(p, t) {
-+		list_for_each_entry(child, &t->children, sibling) {
-+			unsigned int child_points;
-+
-+			if (process_shares_mm(child, p->mm))
-+				continue;
-+			/*
-+			 * oom_badness() returns 0 if the thread is unkillable
-+			 */
-+			child_points = oom_badness(child,
-+				oc->memcg, oc->nodemask, oc->totalpages);
-+			if (child_points > victim_points) {
-+				put_task_struct(victim);
-+				victim = child;
-+				victim_points = child_points;
-+				get_task_struct(victim);
-+			}
-+		}
-+	}
-+	read_unlock(&tasklist_lock);
-+
-+	__oom_kill_process(victim);
-+}
-+
- /*
-  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+diff -puN mm/memcontrol.c~mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup
++++ a/mm/memcontrol.c
+@@ -888,7 +888,8 @@ static void invalidate_reclaim_iterators
+  * value, the function breaks the iteration loop and returns the value.
+  * Otherwise, it will iterate over all tasks and return 0.
+  *
+- * This function must not be called for the root memory cgroup.
++ * If memcg is the root memory cgroup, this function will iterate only
++ * over tasks belonging directly to the root memory cgroup.
   */
+ int mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
+ 			  int (*fn)(struct task_struct *, void *), void *arg)
+@@ -896,8 +897,6 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+ 	struct mem_cgroup *iter;
+ 	int ret = 0;
+ 
+-	BUG_ON(memcg == root_mem_cgroup);
+-
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+ 		struct css_task_iter it;
+ 		struct task_struct *task;
+@@ -906,7 +905,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+ 		while (!ret && (task = css_task_iter_next(&it)))
+ 			ret = fn(task, arg);
+ 		css_task_iter_end(&it);
+-		if (ret) {
++		if (ret || memcg == root_mem_cgroup) {
+ 			mem_cgroup_iter_break(memcg, iter);
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from guro@fb.com are
