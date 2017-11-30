@@ -1,78 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-avoid-rlimit_stack-races-with-prlimit.patch
- removed from -mm tree
-Date: Thu, 30 Nov 2017 12:18:52 -0800
-Message-ID: <20171130201852.B0L2fDuOy%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch removed from
+ -mm tree
+Date: Thu, 30 Nov 2017 12:19:11 -0800
+Message-ID: <20171130201911.WVoQWAiXu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52442 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751488AbdK3USy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:54 -0500
+        with ESMTP id S1750923AbdK3UTM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben.hutchings@codethink.co.uk, james.l.morris@oracle.com, jslaby@suse.cz, keescook@chromium.org, luto@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, serge@hallyn.com, spender@grsecurity.net, stable@vger.kernel.org
+To: ar@linux.vnet.ibm.com, jglisse@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: exec: avoid RLIMIT_STACK races with prlimit()
+     Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
 has been removed from the -mm tree.  Its filename was
-     exec-avoid-rlimit_stack-races-with-prlimit.patch
+     mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: exec: avoid RLIMIT_STACK races with prlimit()
+From: Zi Yan <zi.yan@cs.rutgers.edu>
+Subject: mm: migrate: fix an incorrect call of prep_transhuge_page()
 
-While the defense-in-depth RLIMIT_STACK limit on setuid processes was
-protected against races from other threads calling setrlimit(), I missed
-protecting it against races from external processes calling prlimit(). 
-This adds locking around the change and makes sure that rlim_max is set
-too.
+In https://lkml.org/lkml/2017/11/20/411, Andrea reported that during
+memory hotplug/hot remove prep_transhuge_page() is called incorrectly on
+non-THP pages for migration, when THP is on but THP migration is not
+enabled.  This leads to a bad state of target pages for migration.
 
-Link: http://lkml.kernel.org/r/20171127193457.GA11348@beast
-Fixes: 64701dee4178e ("exec: Use sane stack rlimit under secureexec")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
-Reported-by: Brad Spengler <spender@grsecurity.net>
-Acked-by: Serge Hallyn <serge@hallyn.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: <stable@vger.kernel.org>
+By inspecting the code, if called on a non-THP, prep_transhuge_page() will
+
+1) change the value of the mapping of (page + 2), since it is used
+   for THP deferred list;
+
+2) change the lru value of (page + 1), since it is used for THP's
+   dtor.
+
+Both can lead to data corruption of these two pages.
+
+Andrea said:
+
+: Pragmatically and from the point of view of the memory_hotplug subsys, the
+: effect is a kernel crash when pages are being migrated during a memory hot
+: remove offline and migration target pages are found in a bad state.
+
+This patch fixes it by only calling prep_transhuge_page() when we are
+certain that the target page is THP.
+
+Link: http://lkml.kernel.org/r/20171121021855.50525-1-zi.yan@sent.com
+Fixes: 8135d8926c08 ("mm: memory_hotplug: memory hotremove supports thp migration")
+Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
+Reported-by: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.14]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/migrate.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit fs/exec.c
---- a/fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit
-+++ a/fs/exec.c
-@@ -1340,10 +1340,15 @@ void setup_new_exec(struct linux_binprm
- 		 * avoid bad behavior from the prior rlimits. This has to
- 		 * happen before arch_pick_mmap_layout(), which examines
- 		 * RLIMIT_STACK, but after the point of no return to avoid
--		 * needing to clean up the change on failure.
-+		 * races from other threads changing the limits. This also
-+		 * must be protected from races with prlimit() calls.
- 		 */
-+		task_lock(current->group_leader);
- 		if (current->signal->rlim[RLIMIT_STACK].rlim_cur > _STK_LIM)
- 			current->signal->rlim[RLIMIT_STACK].rlim_cur = _STK_LIM;
-+		if (current->signal->rlim[RLIMIT_STACK].rlim_max > _STK_LIM)
-+			current->signal->rlim[RLIMIT_STACK].rlim_max = _STK_LIM;
-+		task_unlock(current->group_leader);
- 	}
+diff -puN include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-fix-an-incorrect-call-of-prep_transhuge_page
++++ a/include/linux/migrate.h
+@@ -54,7 +54,7 @@ static inline struct page *new_page_node
+ 	new_page = __alloc_pages_nodemask(gfp_mask, order,
+ 				preferred_nid, nodemask);
  
- 	arch_pick_mmap_layout(current->mm);
+-	if (new_page && PageTransHuge(page))
++	if (new_page && PageTransHuge(new_page))
+ 		prep_transhuge_page(new_page);
+ 
+ 	return new_page;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
 
-makefile-move-stack-protector-compiler-breakage-test-earlier.patch
-makefile-move-stack-protector-availability-out-of-kconfig.patch
-makefile-introduce-config_cc_stackprotector_auto.patch
 
