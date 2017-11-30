@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch added to
+Subject: + mm-make-count-list_lru_one-nr_items-lockless-v2.patch added to
  -mm tree
-Date: Thu, 30 Nov 2017 13:02:11 -0800
-Message-ID: <5a2071d3.1MNulJfAIe2ZqPOz%akpm@linux-foundation.org>
+Date: Thu, 30 Nov 2017 13:06:48 -0800
+Message-ID: <5a2072e8.qvwHawabeB9/j1UO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56444 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750708AbdK3VCM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 16:02:12 -0500
+        with ESMTP id S1750708AbdK3VGu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 16:06:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, mhocko@kernel.org, torvalds@linux-foundation.org, xieyisheng1@huawei.com, mm-commits@vger.kernel.org
+To: ktkhai@virtuozzo.com, aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak.c: make cond_resched() rate-limiting more efficient
+     Subject: mm-make-count-list_lru_one-nr_items-lockless-v2
 has been added to the -mm tree.  Its filename is
-     mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
+     mm-make-count-list_lru_one-nr_items-lockless-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-count-list_lru_one-nr_items-lockless-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-count-list_lru_one-nr_items-lockless-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +39,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/kmemleak.c: make cond_resched() rate-limiting more efficient
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: mm-make-count-list_lru_one-nr_items-lockless-v2
 
-bde5f6bc68db5 ("kmemleak: add scheduling point to kmemleak_scan()") tries
-to rate-limit the frequency of cond_resched() calls, but does it in a way
-which might incur an expensive division operation in the inner loop. 
-Simplify this.
+v2: Rebase on kvmalloc() and kvfree().  Name of kvfree_rcu() was choosen
+to help not to skip this place, when someone will implement such the
+global interface.
 
-Fixes: bde5f6bc68db5 ("kmemleak: add scheduling point to kmemleak_scan()")
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: http://lkml.kernel.org/r/151203869520.3915.2587549826865799173.stgit@localhost.localdomain
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/list_lru.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient
-+++ a/mm/kmemleak.c
-@@ -1523,7 +1523,7 @@ static void kmemleak_scan(void)
- 			if (page_count(page) == 0)
- 				continue;
- 			scan_block(page, page + 1, NULL);
--			if (!(pfn % (MAX_SCAN_SIZE / sizeof(*page))))
-+			if (!(pfn & 63))
- 				cond_resched();
- 		}
- 	}
+diff -puN mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless-v2 mm/list_lru.c
+--- a/mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless-v2
++++ a/mm/list_lru.c
+@@ -336,7 +336,7 @@ static int memcg_init_list_lru_node(stru
+ 	int size = memcg_nr_cache_ids;
+ 
+ 	memcg_lrus = kvmalloc(sizeof(*memcg_lrus) +
+-			     size * sizeof(void *), GFP_KERNEL);
++			      size * sizeof(void *), GFP_KERNEL);
+ 	if (!memcg_lrus)
+ 		return -ENOMEM;
+ 
+@@ -354,13 +354,21 @@ static void memcg_destroy_list_lru_node(
+ 	struct list_lru_memcg *memcg_lrus;
+ 	/*
+ 	 * This is called when shrinker has already been unregistered,
+-	 * and nobody can use it. So, there is no need to use kfree_rcu().
++	 * and nobody can use it. So, there is no need to use kvfree_rcu().
+ 	 */
+ 	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus, true);
+ 	__memcg_destroy_list_lru_node(memcg_lrus, 0, memcg_nr_cache_ids);
+ 	kvfree(memcg_lrus);
+ }
+ 
++static void kvfree_rcu(struct rcu_head *head)
++{
++	struct list_lru_memcg *mlru;
++
++	mlru = container_of(head, struct list_lru_memcg, rcu);
++	kvfree(mlru);
++}
++
+ static int memcg_update_list_lru_node(struct list_lru_node *nlru,
+ 				      int old_size, int new_size)
+ {
+@@ -392,7 +400,7 @@ static int memcg_update_list_lru_node(st
+ 	rcu_assign_pointer(nlru->memcg_lrus, new);
+ 	spin_unlock_irq(&nlru->lock);
+ 
+-	kfree_rcu(old, rcu);
++	call_rcu(&old->rcu, kvfree_rcu);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ktkhai@virtuozzo.com are
 
-i-need-old-gcc.patch
-mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-make-count-list_lru_one-nr_items-lockless.patch
+mm-make-count-list_lru_one-nr_items-lockless-v2.patch
 
