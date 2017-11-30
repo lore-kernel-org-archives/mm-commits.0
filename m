@@ -1,85 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/28] device-dax: implement ->split() to catch invalid
- munmap attempts
-Date: Wed, 29 Nov 2017 16:10:32 -0800
-Message-ID: <5a1f4c78.xg+OcEguT9vCS2cv%akpm__64.1037048355386$1512000657$gmane$org@linux-foundation.org>
+Subject: [patch 17/28] mm/madvise.c: fix madvise() infinite loop under
+ special circumstances
+Date: Wed, 29 Nov 2017 16:10:54 -0800
+Message-ID: <5a1f4c8e.v4DEKT0D2gETWmaa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753529AbdK3AKd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:33 -0500
+        with ESMTP id S1753144AbdK3AK4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, jmoyer@redhat.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chenjie6@huawei.com, aarcange@redhat.com, cotte@de.ibm.com, dan.j.williams@intel.com, guoxuenan@huawei.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, miaoxie@huawei.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, stable@vger.kernel.org, yi.zhang@huawei.com
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax: implement ->split() to catch invalid munmap attempts
+From: chenjie <chenjie6@huawei.com>
+Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
 
-Similar to how device-dax enforces that the 'address', 'offset', and 'len'
-parameters to mmap() be aligned to the device's fundamental alignment, the
-same constraints apply to munmap().  Implement ->split() to fail munmap
-calls that violate the alignment constraint.  Otherwise, we later fail
-VM_BUG_ON checks in the unmap_page_range() path with crash signatures of
-the form:
+MADVISE_WILLNEED has always been a noop for DAX (formerly XIP) mappings. 
+Unfortunately madvise_willneed() doesn't communicate this information
+properly to the generic madvise syscall implementation.  The calling
+convention is quite subtle there.  madvise_vma() is supposed to either
+return an error or update &prev otherwise the main loop will never advance
+to the next vma and it will keep looping for ever without a way to get out
+of the kernel.
 
-    vma ffff8800b60c8a88 start 00007f88c0000000 end 00007f88c0e00000
-    next           (null) prev           (null) mm ffff8800b61150c0
-    prot 8000000000000027 anon_vma           (null) vm_ops ffffffffa0091240
-    pgoff 0 file ffff8800b638ef80 private_data           (null)
-    flags: 0x380000fb(read|write|shared|mayread|maywrite|mayexec|mayshare|softdirty|mixedmap|hugepage)
-    ------------[ cut here ]------------
-    kernel BUG at mm/huge_memory.c:2014!
-    [..]
-    RIP: 0010:__split_huge_pud+0x12a/0x180
-    [..]
-    Call Trace:
-     unmap_page_range+0x245/0xa40
-     ? __vma_adjust+0x301/0x990
-     unmap_vmas+0x4c/0xa0
-     unmap_region+0xae/0x120
-     ? __vma_rb_erase+0x11a/0x230
-     do_munmap+0x276/0x410
-     vm_munmap+0x6a/0xa0
-     SyS_munmap+0x1d/0x30
+It seems this has been broken since introduction.  Nobody has noticed
+because nobody seems to be using MADVISE_WILLNEED on these DAX mappings.
 
-Link: http://lkml.kernel.org/r/151130418681.4029.7118245855057952010.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
+[mhocko@suse.com: rewrite changelog]
+Link: http://lkml.kernel.org/r/20171127115318.911-1-guoxuenan@huawei.com
+Fixes: fe77ba6f4f97 ("[PATCH] xip: madvice/fadvice: execute in place")
+Signed-off-by: chenjie <chenjie6@huawei.com>
+Signed-off-by: guoxuenan <guoxuenan@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: zhangyi (F) <yi.zhang@huawei.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/madvise.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts drivers/dax/device.c
---- a/drivers/dax/device.c~device-dax-implement-split-to-catch-invalid-munmap-attempts
-+++ a/drivers/dax/device.c
-@@ -428,9 +428,21 @@ static int dev_dax_fault(struct vm_fault
- 	return dev_dax_huge_fault(vmf, PE_SIZE_PTE);
- }
+diff -puN mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances mm/madvise.c
+--- a/mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances
++++ a/mm/madvise.c
+@@ -276,15 +276,14 @@ static long madvise_willneed(struct vm_a
+ {
+ 	struct file *file = vma->vm_file;
  
-+static int dev_dax_split(struct vm_area_struct *vma, unsigned long addr)
-+{
-+	struct file *filp = vma->vm_file;
-+	struct dev_dax *dev_dax = filp->private_data;
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	if (!IS_ALIGNED(addr, dax_region->align))
-+		return -EINVAL;
-+	return 0;
-+}
-+
- static const struct vm_operations_struct dax_vm_ops = {
- 	.fault = dev_dax_fault,
- 	.huge_fault = dev_dax_huge_fault,
-+	.split = dev_dax_split,
- };
++	*prev = vma;
+ #ifdef CONFIG_SWAP
+ 	if (!file) {
+-		*prev = vma;
+ 		force_swapin_readahead(vma, start, end);
+ 		return 0;
+ 	}
  
- static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ 	if (shmem_mapping(file->f_mapping)) {
+-		*prev = vma;
+ 		force_shm_swapin_readahead(vma, start, end,
+ 					file->f_mapping);
+ 		return 0;
+@@ -299,7 +298,6 @@ static long madvise_willneed(struct vm_a
+ 		return 0;
+ 	}
+ 
+-	*prev = vma;
+ 	start = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+ 	if (end > vma->vm_end)
+ 		end = vma->vm_end;
 _
