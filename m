@@ -1,122 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/28] mm: fix device-dax pud write-faults triggered by
- get_user_pages()
-Date: Wed, 29 Nov 2017 16:10:06 -0800
-Message-ID: <5a1f4c5e.oeNroCi+BGnbmKlM%akpm@linux-foundation.org>
+Subject: [patch 02/28] mm, oom_reaper: gather each vma to prevent leaking
+ TLB entry
+Date: Wed, 29 Nov 2017 16:09:58 -0800
+Message-ID: <5a1f4c56.p/nAHhT9UFhoNKtH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753359AbdK3AKJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:09 -0500
+        with ESMTP id S1753506AbdK3AKA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, arnd@arndb.de, catalin.marinas@arm.com, dave.hansen@intel.com, davem@davemloft.net, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, sfr@canb.auug.org.au, stable@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wangnan0@huawei.com, aarcange@redhat.com, guro@fb.com, khlebnikov@yandex-team.ru, liubo95@huawei.com, mhocko@suse.com, minchan@kernel.org, mingo@kernel.org, rientjes@google.com, stable@vger.kernel.org, will.deacon@arm.com
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix device-dax pud write-faults triggered by get_user_pages()
+From: Wang Nan <wangnan0@huawei.com>
+Subject: mm, oom_reaper: gather each vma to prevent leaking TLB entry
 
-Currently only get_user_pages_fast() can safely handle the writable gup
-case due to its use of pud_access_permitted() to check whether the pud
-entry is writable.  In the gup slow path pud_write() is used instead of
-pud_access_permitted() and to date it has been unimplemented, just calls
-BUG_ON().
+tlb_gather_mmu(&tlb, mm, 0, -1) means gathering the whole virtual memory
+space.  In this case, tlb->fullmm is true.  Some archs like arm64 doesn't
+flush TLB when tlb->fullmm is true:
 
-    kernel BUG at ./include/linux/hugetlb.h:244!
-    [..]
-    RIP: 0010:follow_devmap_pud+0x482/0x490
-    [..]
-    Call Trace:
-     follow_page_mask+0x28c/0x6e0
-     __get_user_pages+0xe4/0x6c0
-     get_user_pages_unlocked+0x130/0x1b0
-     get_user_pages_fast+0x89/0xb0
-     iov_iter_get_pages_alloc+0x114/0x4a0
-     nfs_direct_read_schedule_iovec+0xd2/0x350
-     ? nfs_start_io_direct+0x63/0x70
-     nfs_file_direct_read+0x1e0/0x250
-     nfs_file_read+0x90/0xc0
+  commit 5a7862e83000 ("arm64: tlbflush: avoid flushing when fullmm == 1").
 
-For now this just implements a simple check for the _PAGE_RW bit similar
-to pmd_write.  However, this implies that the gup-slow-path check is
-missing the extra checks that the gup-fast-path performs with
-pud_access_permitted.  Later patches will align all checks to use the
-'access_permitted' helper if the architecture provides it.  Note that the
-generic 'access_permitted' helper fallback is the simple _PAGE_RW check on
-architectures that do not define the 'access_permitted' helper(s).
+Which causes leaking of tlb entries.
 
-[dan.j.williams@intel.com: fix powerpc compile error]
-  Link: http://lkml.kernel.org/r/151129126165.37405.16031785266675461397.stgit@dwillia2-desk3.amr.corp.intel.com
-Link: http://lkml.kernel.org/r/151043109938.2842.14834662818213616199.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: a00cc7d9dd93 ("mm, x86: add support for PUD-sized transparent hugepages")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>	[x86]
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Will clarifies his patch:
+
+: Basically, we tag each address space with an ASID (PCID on x86) which
+: is resident in the TLB. This means we can elide TLB invalidation when
+: pulling down a full mm because we won't ever assign that ASID to another mm
+: without doing TLB invalidation elsewhere (which actually just nukes the
+: whole TLB).
+:
+: I think that means that we could potentially not fault on a kernel uaccess,
+: because we could hit in the TLB.
+
+There could be a window between complete_signal() sending IPI to other
+cores and all threads sharing this mm are really kicked off from cores. 
+In this window, the oom reaper may calls tlb_flush_mmu_tlbonly() to flush
+TLB then frees pages.  However, due to the above problem, the TLB entries
+are not really flushed on arm64.  Other threads are possible to access
+these pages through TLB entries.  Moreover, a copy_to_user() can also
+write to these pages without generating page fault, causes use-after-free
+bugs.
+
+This patch gathers each vma instead of gathering full vm space.  In this
+case tlb->fullmm is not true.  The behavior of oom reaper become similar
+to munmapping before do_exit, which should be safe for all archs.
+
+Link: http://lkml.kernel.org/r/20171107095453.179940-1-wangnan0@huawei.com
+Fixes: aac453635549 ("mm, oom: introduce oom reaper")
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Will Deacon <will.deacon@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bob Liu <liubo95@huawei.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    6 ++++++
- include/asm-generic/pgtable.h  |    8 ++++++++
- include/linux/hugetlb.h        |    8 --------
- 3 files changed, 14 insertions(+), 8 deletions(-)
+ mm/oom_kill.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1088,6 +1088,12 @@ static inline void pmdp_set_wrprotect(st
- 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pmdp);
- }
+diff -puN mm/oom_kill.c~mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-gather-each-vma-to-prevent-leaking-tlb-entry
++++ a/mm/oom_kill.c
+@@ -550,7 +550,6 @@ static bool __oom_reap_task_mm(struct ta
+ 	 */
+ 	set_bit(MMF_UNSTABLE, &mm->flags);
  
-+#define pud_write pud_write
-+static inline int pud_write(pud_t pud)
-+{
-+	return pud_flags(pud) & _PAGE_RW;
-+}
-+
- /*
-  * clone_pgd_range(pgd_t *dst, pgd_t *src, int count);
-  *
-diff -puN include/asm-generic/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/include/asm-generic/pgtable.h
-@@ -814,6 +814,14 @@ static inline int pmd_write(pmd_t pmd)
- #endif /* __HAVE_ARCH_PMD_WRITE */
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
-+#ifndef pud_write
-+static inline int pud_write(pud_t pud)
-+{
-+	BUG();
-+	return 0;
-+}
-+#endif /* pud_write */
-+
- #if !defined(CONFIG_TRANSPARENT_HUGEPAGE) || \
- 	(defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
- 	 !defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
-diff -puN include/linux/hugetlb.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-fix-device-dax-pud-write-faults-triggered-by-get_user_pages
-+++ a/include/linux/hugetlb.h
-@@ -239,14 +239,6 @@ static inline int pgd_write(pgd_t pgd)
- }
- #endif
- 
--#ifndef pud_write
--static inline int pud_write(pud_t pud)
--{
--	BUG();
--	return 0;
--}
--#endif
+-	tlb_gather_mmu(&tlb, mm, 0, -1);
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+ 		if (!can_madv_dontneed_vma(vma))
+ 			continue;
+@@ -565,11 +564,13 @@ static bool __oom_reap_task_mm(struct ta
+ 		 * we do not want to block exit_mmap by keeping mm ref
+ 		 * count elevated without a good reason.
+ 		 */
+-		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
++		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
++			tlb_gather_mmu(&tlb, mm, vma->vm_start, vma->vm_end);
+ 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
+ 					 NULL);
++			tlb_finish_mmu(&tlb, vma->vm_start, vma->vm_end);
++		}
+ 	}
+-	tlb_finish_mmu(&tlb, 0, -1);
+ 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+ 			task_pid_nr(tsk), tsk->comm,
+ 			K(get_mm_counter(mm, MM_ANONPAGES)),
+_
