@@ -1,112 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtines?=
- =?US-ASCII?Q?s-settings-are-illogical-was-re-mm-print-a-warning-once-the-?=
- =?US-ASCII?Q?vm-dirtiness-settings-is-illogical.patch?= removed from -mm
- tree
-Date: Thu, 30 Nov 2017 12:18:59 -0800
-Message-ID: <20171130201859.K-hWg-j13%akpm@linux-foundation.org>
+Subject: [merged] exec-avoid-rlimit_stack-races-with-prlimit.patch
+ removed from -mm tree
+Date: Thu, 30 Nov 2017 12:18:52 -0800
+Message-ID: <20171130201852.B0L2fDuOy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52360 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751815AbdK3UTA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:19:00 -0500
+        with ESMTP id S1751488AbdK3USy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp
+To: ben.hutchings@codethink.co.uk, james.l.morris@oracle.com, jslaby@suse.cz, keescook@chromium.org, luto@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, serge@hallyn.com, spender@grsecurity.net, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical"
+     Subject: exec: avoid RLIMIT_STACK races with prlimit()
 has been removed from the -mm tree.  Its filename was
-     revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical.patch
+     exec-avoid-rlimit_stack-races-with-prlimit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: Revert "mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical"
+From: Kees Cook <keescook@chromium.org>
+Subject: exec: avoid RLIMIT_STACK races with prlimit()
 
-This reverts commit 0f6d24f878568fa ("mm/page-writeback.c: print a warning
-if the vm dirtiness settings are illogical") because it causes false
-positive warnings during OOM situations as noticed by Tetsuo Handa:
+While the defense-in-depth RLIMIT_STACK limit on setuid processes was
+protected against races from other threads calling setrlimit(), I missed
+protecting it against races from external processes calling prlimit(). 
+This adds locking around the change and makes sure that rlim_max is set
+too.
 
-[  621.814512] Node 0 active_anon:3525940kB inactive_anon:8372kB active_file:216kB inactive_file:1872kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:2504kB dirty:52kB writeback:0kB shmem:8660kB s
-hmem_thp: 0kB shmem_pmdmapped: 0kB anon_thp: 636928kB writeback_tmp:0kB unstable:0kB all_unreclaimable? yes
-[  621.821534] Node 0 DMA free:14848kB min:284kB low:352kB high:420kB active_anon:992kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15988kB managed:15904kB mlocke
-d:0kB kernel_stack:0kB pagetables:24kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-[  621.829035] lowmem_reserve[]: 0 2687 3645 3645
-[  621.831655] Node 0 DMA32 free:53004kB min:49608kB low:62008kB high:74408kB active_anon:2712648kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:3129216kB managed:
-2773132kB mlocked:0kB kernel_stack:96kB pagetables:5096kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-[  621.839945] lowmem_reserve[]: 0 0 958 958
-[  621.842811] Node 0 Normal free:17140kB min:17684kB low:22104kB high:26524kB active_anon:812300kB inactive_anon:8372kB active_file:1228kB inactive_file:1868kB unevictable:0kB writepending:52kB present:1048576k
-B managed:981224kB mlocked:0kB kernel_stack:3520kB pagetables:8552kB bounce:0kB free_pcp:120kB local_pcp:120kB free_cma:0kB
-[  621.852473] lowmem_reserve[]: 0 0 0 0
-[...]
-[  621.891477] Out of memory: Kill process 8459 (a.out) score 999 or sacrifice child
-[  621.894363] Killed process 8459 (a.out) total-vm:4180kB, anon-rss:88kB, file-rss:0kB, shmem-rss:0kB
-[  621.897172] oom_reaper: reaped process 8459 (a.out), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
-[  622.424664] vm direct limit must be set greater than background limit.
-
-The problem is that both thresh and bg_thresh will be 0 if
-available_memory is less than 4 pages when evaluating
-global_dirtyable_memory.  While this might be worked around the whole
-point of the warning is dubious at best.  We do rely on admins to do
-sensible things when changing tunable knobs.  Dirty memory writeback knobs
-are not any special in that regards so revert the warning rather than
-adding more hacks to work this around.
-
-Debugged by Yafang Shao.
-
-Link: http://lkml.kernel.org/r/20171127091939.tahb77nznytcxw55@dhcp22.suse.cz
-Fixes: 0f6d24f87856 ("mm/page-writeback.c: print a warning if the vm dirtiness settings are illogical")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20171127193457.GA11348@beast
+Fixes: 64701dee4178e ("exec: Use sane stack rlimit under secureexec")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
+Reported-by: Brad Spengler <spender@grsecurity.net>
+Acked-by: Serge Hallyn <serge@hallyn.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    7 -------
- mm/page-writeback.c         |    5 +----
- 2 files changed, 1 insertion(+), 11 deletions(-)
+ fs/exec.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
-+++ a/Documentation/sysctl/vm.txt
-@@ -158,10 +158,6 @@ Note: the minimum value allowed for dirt
- value lower than this limit will be ignored and the old configuration will be
- retained.
+diff -puN fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit fs/exec.c
+--- a/fs/exec.c~exec-avoid-rlimit_stack-races-with-prlimit
++++ a/fs/exec.c
+@@ -1340,10 +1340,15 @@ void setup_new_exec(struct linux_binprm
+ 		 * avoid bad behavior from the prior rlimits. This has to
+ 		 * happen before arch_pick_mmap_layout(), which examines
+ 		 * RLIMIT_STACK, but after the point of no return to avoid
+-		 * needing to clean up the change on failure.
++		 * races from other threads changing the limits. This also
++		 * must be protected from races with prlimit() calls.
+ 		 */
++		task_lock(current->group_leader);
+ 		if (current->signal->rlim[RLIMIT_STACK].rlim_cur > _STK_LIM)
+ 			current->signal->rlim[RLIMIT_STACK].rlim_cur = _STK_LIM;
++		if (current->signal->rlim[RLIMIT_STACK].rlim_max > _STK_LIM)
++			current->signal->rlim[RLIMIT_STACK].rlim_max = _STK_LIM;
++		task_unlock(current->group_leader);
+ 	}
  
--Note: the value of dirty_bytes also must be set greater than
--dirty_background_bytes or the amount of memory corresponding to
--dirty_background_ratio.
--
- ==============================================================
- 
- dirty_expire_centisecs
-@@ -181,9 +177,6 @@ generating disk writes will itself start
- 
- The total available memory is not equal to total system memory.
- 
--Note: dirty_ratio must be set greater than dirty_background_ratio or
--ratio corresponding to dirty_background_bytes.
--
- ==============================================================
- 
- dirty_writeback_centisecs
-diff -puN mm/page-writeback.c~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical mm/page-writeback.c
---- a/mm/page-writeback.c~revert-mm-page-writebackc-print-a-warning-if-the-vm-dirtiness-settings-are-illogical-was-re-mm-print-a-warning-once-the-vm-dirtiness-settings-is-illogical
-+++ a/mm/page-writeback.c
-@@ -433,11 +433,8 @@ static void domain_dirty_limits(struct d
- 	else
- 		bg_thresh = (bg_ratio * available_memory) / PAGE_SIZE;
- 
--	if (unlikely(bg_thresh >= thresh)) {
--		pr_warn("vm direct limit must be set greater than background limit.\n");
-+	if (bg_thresh >= thresh)
- 		bg_thresh = thresh / 2;
--	}
+ 	arch_pick_mmap_layout(current->mm);
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+makefile-move-stack-protector-compiler-breakage-test-earlier.patch
+makefile-move-stack-protector-availability-out-of-kconfig.patch
+makefile-introduce-config_cc_stackprotector_auto.patch
+
