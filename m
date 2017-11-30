@@ -1,75 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch removed
- from -mm tree
-Date: Thu, 30 Nov 2017 12:18:48 -0800
-Message-ID: <20171130201848.9VH3Ds-1w%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under?=
+ =?US-ASCII?Q?-special-circumstances.patch?= removed from -mm tree
+Date: Thu, 30 Nov 2017 12:18:55 -0800
+Message-ID: <20171130201855.m6ltMR-jv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52388 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751781AbdK3USu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:50 -0500
+        with ESMTP id S1751787AbdK3US5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 15:18:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, inki.dae@samsung.com, jack@suse.cz, jgg@mellanox.com, jmoyer@redhat.com, jy0922.shim@samsung.com, kyungmin.park@samsung.com, mchehab@kernel.org, mgorman@suse.de, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sean.hefty@intel.com, stable@vger.kernel.org, sw0312.kim@samsung.com, vbabka@suse.cz
+To: aarcange@redhat.com, chenjie6@huawei.com, cotte@de.ibm.com, dan.j.williams@intel.com, guoxuenan@huawei.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, miaoxie@huawei.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, rientjes@google.com, rppt@linux.vnet.ibm.com, shli@fb.com, stable@vger.kernel.org, yi.zhang@huawei.com
 
 
 The patch titled
-     Subject: IB/core: disable memory registration of filesystem-dax vmas
+     Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
 has been removed from the -mm tree.  Its filename was
-     ib-core-disable-memory-registration-of-fileystem-dax-vmas.patch
+     mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: IB/core: disable memory registration of filesystem-dax vmas
+From: chenjie <chenjie6@huawei.com>
+Subject: mm/madvise.c: fix madvise() infinite loop under special circumstances
 
-Until there is a solution to the dma-to-dax vs truncate problem it is not
-safe to allow RDMA to create long standing memory registrations against
-filesytem-dax vmas.
+MADVISE_WILLNEED has always been a noop for DAX (formerly XIP) mappings. 
+Unfortunately madvise_willneed() doesn't communicate this information
+properly to the generic madvise syscall implementation.  The calling
+convention is quite subtle there.  madvise_vma() is supposed to either
+return an error or update &prev otherwise the main loop will never advance
+to the next vma and it will keep looping for ever without a way to get out
+of the kernel.
 
-Link: http://lkml.kernel.org/r/151068941011.7446.7766030590347262502.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-Acked-by: Doug Ledford <dledford@redhat.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Joonyoung Shim <jy0922.shim@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+It seems this has been broken since introduction.  Nobody has noticed
+because nobody seems to be using MADVISE_WILLNEED on these DAX mappings.
+
+[mhocko@suse.com: rewrite changelog]
+Link: http://lkml.kernel.org/r/20171127115318.911-1-guoxuenan@huawei.com
+Fixes: fe77ba6f4f97 ("[PATCH] xip: madvice/fadvice: execute in place")
+Signed-off-by: chenjie <chenjie6@huawei.com>
+Signed-off-by: guoxuenan <guoxuenan@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: zhangyi (F) <yi.zhang@huawei.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/umem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/infiniband/core/umem.c~ib-core-disable-memory-registration-of-fileystem-dax-vmas drivers/infiniband/core/umem.c
---- a/drivers/infiniband/core/umem.c~ib-core-disable-memory-registration-of-fileystem-dax-vmas
-+++ a/drivers/infiniband/core/umem.c
-@@ -191,7 +191,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
- 	sg_list_start = umem->sg_head.sgl;
+diff -puN mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances mm/madvise.c
+--- a/mm/madvise.c~mmmadvise-bugfix-of-madvise-systemcall-infinite-loop-under-special-circumstances
++++ a/mm/madvise.c
+@@ -276,15 +276,14 @@ static long madvise_willneed(struct vm_a
+ {
+ 	struct file *file = vma->vm_file;
  
- 	while (npages) {
--		ret = get_user_pages(cur_base,
-+		ret = get_user_pages_longterm(cur_base,
- 				     min_t(unsigned long, npages,
- 					   PAGE_SIZE / sizeof (struct page *)),
- 				     gup_flags, page_list, vma_list);
++	*prev = vma;
+ #ifdef CONFIG_SWAP
+ 	if (!file) {
+-		*prev = vma;
+ 		force_swapin_readahead(vma, start, end);
+ 		return 0;
+ 	}
+ 
+ 	if (shmem_mapping(file->f_mapping)) {
+-		*prev = vma;
+ 		force_shm_swapin_readahead(vma, start, end,
+ 					file->f_mapping);
+ 		return 0;
+@@ -299,7 +298,6 @@ static long madvise_willneed(struct vm_a
+ 		return 0;
+ 	}
+ 
+-	*prev = vma;
+ 	start = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+ 	if (end > vma->vm_end)
+ 		end = vma->vm_end;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from chenjie6@huawei.com are
 
 
