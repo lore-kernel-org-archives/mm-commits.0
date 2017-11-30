@@ -1,105 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/28] mm, hugetlbfs: introduce ->split() to
- vm_operations_struct
-Date: Wed, 29 Nov 2017 16:10:28 -0800
-Message-ID: <5a1f4c74.6E3QsI7zlpYpXXYc%akpm__1412.62807087532$1512000634$gmane$org@linux-foundation.org>
+Subject: [patch 12/28] mm: introduce get_user_pages_longterm
+Date: Wed, 29 Nov 2017 16:10:35 -0800
+Message-ID: <5a1f4c7b.tMUYSoR7RFRcMRGm%akpm__7450.54432559318$1512000645$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60590 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753344AbdK3AKa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:30 -0500
+        with ESMTP id S1753065AbdK3AKh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, jmoyer@redhat.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com, hch@lst.de, inki.dae@samsung.com, jack@suse.cz, jgg@mellanox.com, jmoyer@redhat.com, jy0922.shim@samsung.com, kyungmin.park@samsung.com, mchehab@kernel.org, mgorman@suse.de, ross.zwisler@linux.intel.com, sean.hefty@intel.com, stable@vger.kernel.org, sw0312.kim@samsung.com, vbabka@suse.cz
 
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm, hugetlbfs: introduce ->split() to vm_operations_struct
+Subject: mm: introduce get_user_pages_longterm
 
-Patch series "device-dax: fix unaligned munmap handling"
+Patch series "introduce get_user_pages_longterm()", v2.
 
-When device-dax is operating in huge-page mode we want it to behave like
-hugetlbfs and fail attempts to split vmas into unaligned ranges.  It would
-be messy to teach the munmap path about device-dax alignment constraints
-in the same (hstate) way that hugetlbfs communicates this constraint. 
-Instead, these patches introduce a new ->split() vm operation.
+Here is a new get_user_pages api for cases where a driver intends to keep
+an elevated page count indefinitely.  This is distinct from usages like
+iov_iter_get_pages where the elevated page counts are transient.  The
+iov_iter_get_pages cases immediately turn around and submit the pages to a
+device driver which will put_page when the i/o operation completes (under
+kernel control).
+
+In the longterm case userspace is responsible for dropping the page
+reference at some undefined point in the future.  This is untenable for
+filesystem-dax case where the filesystem is in control of the lifetime of
+the block / page and needs reasonable limits on how long it can wait for
+pages in a mapping to become idle.
+
+Fixing filesystems to actually wait for dax pages to be idle before blocks
+from a truncate/hole-punch operation are repurposed is saved for a later
+patch series.
+
+Also, allowing longterm registration of dax mappings is a future patch
+series that introduces a "map with lease" semantic where the kernel can
+revoke a lease and force userspace to drop its page references.
+
+I have also tagged these for -stable to purposely break cases that might
+assume that longterm memory registrations for filesystem-dax mappings were
+supported by the kernel.  The behavior regression this policy change
+implies is one of the reasons we maintain the "dax enabled.  Warning:
+EXPERIMENTAL, use at your own risk" notification when mounting a
+filesystem in dax mode.
+
+It is worth noting the device-dax interface does not suffer the same
+constraints since it does not support file space management operations
+like hole-punch.
 
 
-This patch (of 2):
+This patch (of 4):
 
-The device-dax interface has similar constraints as hugetlbfs in that it
-requires the munmap path to unmap in huge page aligned units.  Rather than
-add more custom vma handling code in __split_vma() introduce a new vm
-operation to perform this vma specific check.
+Until there is a solution to the dma-to-dax vs truncate problem it is not
+safe to allow long standing memory registrations against filesytem-dax
+vmas.  Device-dax vmas do not have this problem and are explicitly
+allowed.
 
-Link: http://lkml.kernel.org/r/151130418135.4029.6783191281930729710.stgit@dwillia2-desk3.amr.corp.intel.com
-Fixes: dee410792419 ("/dev/dax, core: file operations and dax-mmap")
+This is temporary until a "memory registration with layout-lease"
+mechanism can be implemented for the affected sub-systems (RDMA and V4L2).
+
+[akpm@linux-foundation.org: use kcalloc()]
+Link: http://lkml.kernel.org/r/151068939435.7446.13560129395419350737.stgit@dwillia2-desk3.amr.corp.intel.com
+Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/hugetlb.c       |    8 ++++++++
- mm/mmap.c          |    8 +++++---
- 3 files changed, 14 insertions(+), 3 deletions(-)
+ include/linux/fs.h |   14 +++++++++
+ include/linux/mm.h |   13 ++++++++
+ mm/gup.c           |   64 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 91 insertions(+)
 
-diff -puN include/linux/mm.h~mm-hugetlbfs-introduce-split-to-vm_operations_struct include/linux/mm.h
---- a/include/linux/mm.h~mm-hugetlbfs-introduce-split-to-vm_operations_struct
-+++ a/include/linux/mm.h
-@@ -377,6 +377,7 @@ enum page_entry_size {
- struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
-+	int (*split)(struct vm_area_struct * area, unsigned long addr);
- 	int (*mremap)(struct vm_area_struct * area);
- 	int (*fault)(struct vm_fault *vmf);
- 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
-diff -puN mm/hugetlb.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct
-+++ a/mm/hugetlb.c
-@@ -3125,6 +3125,13 @@ static void hugetlb_vm_op_close(struct v
- 	}
+diff -puN include/linux/fs.h~mm-introduce-get_user_pages_longterm include/linux/fs.h
+--- a/include/linux/fs.h~mm-introduce-get_user_pages_longterm
++++ a/include/linux/fs.h
+@@ -3194,6 +3194,20 @@ static inline bool vma_is_dax(struct vm_
+ 	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
  }
  
-+static int hugetlb_vm_op_split(struct vm_area_struct *vma, unsigned long addr)
++static inline bool vma_is_fsdax(struct vm_area_struct *vma)
 +{
-+	if (addr & ~(huge_page_mask(hstate_vma(vma))))
-+		return -EINVAL;
-+	return 0;
++	struct inode *inode;
++
++	if (!vma->vm_file)
++		return false;
++	if (!vma_is_dax(vma))
++		return false;
++	inode = file_inode(vma->vm_file);
++	if (inode->i_mode == S_IFCHR)
++		return false; /* device-dax */
++	return true;
 +}
 +
- /*
-  * We cannot handle pagefaults against hugetlb pages at all.  They cause
-  * handle_mm_fault() to try to instantiate regular-sized pages in the
-@@ -3141,6 +3148,7 @@ const struct vm_operations_struct hugetl
- 	.fault = hugetlb_vm_op_fault,
- 	.open = hugetlb_vm_op_open,
- 	.close = hugetlb_vm_op_close,
-+	.split = hugetlb_vm_op_split,
- };
+ static inline int iocb_flags(struct file *file)
+ {
+ 	int res = 0;
+diff -puN include/linux/mm.h~mm-introduce-get_user_pages_longterm include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-get_user_pages_longterm
++++ a/include/linux/mm.h
+@@ -1380,6 +1380,19 @@ long get_user_pages_locked(unsigned long
+ 		    unsigned int gup_flags, struct page **pages, int *locked);
+ long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+ 		    struct page **pages, unsigned int gup_flags);
++#ifdef CONFIG_FS_DAX
++long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
++			    unsigned int gup_flags, struct page **pages,
++			    struct vm_area_struct **vmas);
++#else
++static inline long get_user_pages_longterm(unsigned long start,
++		unsigned long nr_pages, unsigned int gup_flags,
++		struct page **pages, struct vm_area_struct **vmas)
++{
++	return get_user_pages(start, nr_pages, gup_flags, pages, vmas);
++}
++#endif /* CONFIG_FS_DAX */
++
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages);
  
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
-diff -puN mm/mmap.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct mm/mmap.c
---- a/mm/mmap.c~mm-hugetlbfs-introduce-split-to-vm_operations_struct
-+++ a/mm/mmap.c
-@@ -2555,9 +2555,11 @@ int __split_vma(struct mm_struct *mm, st
- 	struct vm_area_struct *new;
- 	int err;
+diff -puN mm/gup.c~mm-introduce-get_user_pages_longterm mm/gup.c
+--- a/mm/gup.c~mm-introduce-get_user_pages_longterm
++++ a/mm/gup.c
+@@ -1095,6 +1095,70 @@ long get_user_pages(unsigned long start,
+ }
+ EXPORT_SYMBOL(get_user_pages);
  
--	if (is_vm_hugetlb_page(vma) && (addr &
--					~(huge_page_mask(hstate_vma(vma)))))
--		return -EINVAL;
-+	if (vma->vm_ops && vma->vm_ops->split) {
-+		err = vma->vm_ops->split(vma, addr);
-+		if (err)
-+			return err;
++#ifdef CONFIG_FS_DAX
++/*
++ * This is the same as get_user_pages() in that it assumes we are
++ * operating on the current task's mm, but it goes further to validate
++ * that the vmas associated with the address range are suitable for
++ * longterm elevated page reference counts. For example, filesystem-dax
++ * mappings are subject to the lifetime enforced by the filesystem and
++ * we need guarantees that longterm users like RDMA and V4L2 only
++ * establish mappings that have a kernel enforced revocation mechanism.
++ *
++ * "longterm" == userspace controlled elevated page count lifetime.
++ * Contrast this to iov_iter_get_pages() usages which are transient.
++ */
++long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
++		unsigned int gup_flags, struct page **pages,
++		struct vm_area_struct **vmas_arg)
++{
++	struct vm_area_struct **vmas = vmas_arg;
++	struct vm_area_struct *vma_prev = NULL;
++	long rc, i;
++
++	if (!pages)
++		return -EINVAL;
++
++	if (!vmas) {
++		vmas = kcalloc(nr_pages, sizeof(struct vm_area_struct *),
++			       GFP_KERNEL);
++		if (!vmas)
++			return -ENOMEM;
 +	}
- 
- 	new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 	if (!new)
++
++	rc = get_user_pages(start, nr_pages, gup_flags, pages, vmas);
++
++	for (i = 0; i < rc; i++) {
++		struct vm_area_struct *vma = vmas[i];
++
++		if (vma == vma_prev)
++			continue;
++
++		vma_prev = vma;
++
++		if (vma_is_fsdax(vma))
++			break;
++	}
++
++	/*
++	 * Either get_user_pages() failed, or the vma validation
++	 * succeeded, in either case we don't need to put_page() before
++	 * returning.
++	 */
++	if (i >= rc)
++		goto out;
++
++	for (i = 0; i < rc; i++)
++		put_page(pages[i]);
++	rc = -EOPNOTSUPP;
++out:
++	if (vmas != vmas_arg)
++		kfree(vmas);
++	return rc;
++}
++EXPORT_SYMBOL(get_user_pages_longterm);
++#endif /* CONFIG_FS_DAX */
++
+ /**
+  * populate_vma_page_range() -  populate a range of pages in the vma.
+  * @vma:   target vma
 _
