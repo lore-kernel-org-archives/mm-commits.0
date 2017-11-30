@@ -1,52 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 24/28] fs/fat/inode.c: fix sb_rdonly() change
-Date: Wed, 29 Nov 2017 16:11:19 -0800
-Message-ID: <5a1f4ca7.vqacpTpnCh2C8AdG%akpm__15666.7778770954$1512000682$gmane$org@linux-foundation.org>
+Subject: [patch 26/28] autofs: revert "autofs: fix AT_NO_AUTOMOUNT not
+ being honored"
+Date: Wed, 29 Nov 2017 16:11:26 -0800
+Message-ID: <5a1f4cae.+W+0vzG/a+da8iQG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60834 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753593AbdK3ALV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:21 -0500
+        with ESMTP id S1753424AbdK3AL2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:11:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, dhowells@redhat.com, joe@perches.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, dhowells@redhat.com, neilb@suse.com, oholy@redhat.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, walters@redhat.com
 
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fs/fat/inode.c: fix sb_rdonly() change
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: revert "autofs: fix AT_NO_AUTOMOUNT not being honored"
 
-bc98a42c1f7d0f ("VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)")
-converted fat_remount():new_rdonly from a bool to an int.  However
-fat_remount() depends upon the compiler's conversion of a non-zero integer
-into boolean `true'.
+42f4614821 ("autofs: fix AT_NO_AUTOMOUNT not being honored") allowed the
+fstatat(2) system call to properly honor the AT_NO_AUTOMOUNT flag but
+introduced a semantic change.
 
-Fix it by switching `new_rdonly' back into a bool.
+In order to honor AT_NO_AUTOMOUNT a semantic change was made to the
+negative dentry case for stat family system calls in follow_automount().
 
-Link: http://lkml.kernel.org/r/87mv3d5x51.fsf@mail.parknet.co.jp
-Fixes: bc98a42c1f7d0f8 ("VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)")
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Joe Perches <joe@perches.com>
+This changed the unconditional triggering of an automount in this case to
+no longer be done and an error returned instead.
+
+This has caused more problems than I expected so reverting the change is
+needed.
+
+In a discussion with Neil Brown it was concluded that the automount(8)
+daemon can implement this change without kernel modifications.  So that
+will be done instead and the autofs module documentation updated with a
+description of the problem and what needs to be done by module users for
+this specific case.
+
+Link: http://lkml.kernel.org/r/151174730120.6162.3848002191530283984.stgit@pluto.themaw.net
+Fixes: 42f4614821 ("autofs: fix AT_NO_AUTOMOUNT not being honored")
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Neil Brown <neilb@suse.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: Colin Walters <walters@redhat.com>
+Cc: Ondrej Holy <oholy@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/namei.c         |   15 +++------------
+ include/linux/fs.h |    3 ++-
+ 2 files changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN fs/fat/inode.c~fat-fix-sb_rdonly-change fs/fat/inode.c
---- a/fs/fat/inode.c~fat-fix-sb_rdonly-change
-+++ a/fs/fat/inode.c
-@@ -779,7 +779,7 @@ static void __exit fat_destroy_inodecach
+diff -puN fs/namei.c~autofs-revert-fix-at_no_automount-not-being-honored fs/namei.c
+--- a/fs/namei.c~autofs-revert-fix-at_no_automount-not-being-honored
++++ a/fs/namei.c
+@@ -1129,18 +1129,9 @@ static int follow_automount(struct path
+ 	 * of the daemon to instantiate them before they can be used.
+ 	 */
+ 	if (!(nd->flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
+-			   LOOKUP_OPEN | LOOKUP_CREATE |
+-			   LOOKUP_AUTOMOUNT))) {
+-		/* Positive dentry that isn't meant to trigger an
+-		 * automount, EISDIR will allow it to be used,
+-		 * otherwise there's no mount here "now" so return
+-		 * ENOENT.
+-		 */
+-		if (path->dentry->d_inode)
+-			return -EISDIR;
+-		else
+-			return -ENOENT;
+-	}
++			   LOOKUP_OPEN | LOOKUP_CREATE | LOOKUP_AUTOMOUNT)) &&
++	    path->dentry->d_inode)
++		return -EISDIR;
  
- static int fat_remount(struct super_block *sb, int *flags, char *data)
+ 	if (path->dentry->d_sb->s_user_ns != &init_user_ns)
+ 		return -EACCES;
+diff -puN include/linux/fs.h~autofs-revert-fix-at_no_automount-not-being-honored include/linux/fs.h
+--- a/include/linux/fs.h~autofs-revert-fix-at_no_automount-not-being-honored
++++ a/include/linux/fs.h
+@@ -3088,7 +3088,8 @@ static inline int vfs_lstat(const char _
+ static inline int vfs_fstatat(int dfd, const char __user *filename,
+ 			      struct kstat *stat, int flags)
  {
--	int new_rdonly;
-+	bool new_rdonly;
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	*flags |= SB_NODIRATIME | (sbi->options.isvfat ? 0 : SB_NOATIME);
- 
+-	return vfs_statx(dfd, filename, flags, stat, STATX_BASIC_STATS);
++	return vfs_statx(dfd, filename, flags | AT_NO_AUTOMOUNT,
++			 stat, STATX_BASIC_STATS);
+ }
+ static inline int vfs_fstat(int fd, struct kstat *stat)
+ {
 _
