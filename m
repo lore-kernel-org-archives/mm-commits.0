@@ -1,71 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/28] mm, memory_hotplug: do not back off draining pcp
- free pages from kworker context
-Date: Wed, 29 Nov 2017 16:09:54 -0800
-Message-ID: <5a1f4c52.AvBmfQnTOTzyZvRG%akpm__32261.1977150247$1512000614$gmane$org@linux-foundation.org>
+Subject: [patch 05/28] mm: switch to 'define pmd_write' instead of
+ __HAVE_ARCH_PMD_WRITE
+Date: Wed, 29 Nov 2017 16:10:10 -0800
+Message-ID: <5a1f4c62.Zcs2/aBPqkpQy1N9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753417AbdK3AJ4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:09:56 -0500
+        with ESMTP id S1753359AbdK3AKN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2017 19:10:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, mgorman@suse.de, stable@vger.kernel.org, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@mellanox.com, hpa@zytor.com, linux@armlinux.org.uk, oliveroh@au1.ibm.com, ralf@linux-mips.org, sfr@canb.auug.org.au
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: do not back off draining pcp free pages from kworker context
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: switch to 'define pmd_write' instead of __HAVE_ARCH_PMD_WRITE
 
-drain_all_pages backs off when called from a kworker context since
-0ccce3b924212 ("mm, page_alloc: drain per-cpu pages from workqueue
-context") because the original IPI based pcp draining has been replaced by
-a WQ based one and the check wanted to prevent from recursion and inter
-workers dependencies.  This has made some sense at the time because the
-system WQ has been used and one worker holding the lock could be blocked
-while waiting for new workers to emerge which can be a problem under OOM
-conditions.
+In response to compile breakage introduced by a series that added the
+pud_write helper to x86, Stephen notes:
 
-Since then ce612879ddc7 ("mm: move pcp and lru-pcp draining into single
-wq") has moved draining to a dedicated (mm_percpu_wq) WQ with a rescuer so
-we shouldn't depend on any other WQ activity to make a forward progress so
-calling drain_all_pages from a worker context is safe as long as this
-doesn't happen from mm_percpu_wq itself which is not the case because all
-workers are required to _not_ depend on any MM locks.
+    did you consider using the other paradigm:
 
-Why is this a problem in the first place?  ACPI driven memory hot-remove
-(acpi_device_hotplug) is executed from the worker context.  We end up
-calling __offline_pages to free all the pages and that requires both
-lru_add_drain_all_cpuslocked and drain_all_pages to do their job otherwise
-we can have dangling pages on pcp lists and fail the offline operation
-(__test_page_isolated_in_pageblock would see a page with 0 ref.  count but
-without PageBuddy set).
+    In arch include files:
+    #define pud_write       pud_write
+    static inline int pud_write(pud_t pud)
+     .....
 
-Fix the issue by removing the worker check in drain_all_pages. 
-lru_add_drain_all_cpuslocked doesn't have this restriction so it works as
-expected.
+    Then in include/asm-generic/pgtable.h:
 
-Link: http://lkml.kernel.org/r/20170828093341.26341-1-mhocko@kernel.org
-Fixes: 0ccce3b924212 ("mm, page_alloc: drain per-cpu pages from workqueue context")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.11+]
+    #ifndef pud_write
+    tatic inline int pud_write(pud_t pud)
+    {
+            ....
+    }
+    #endif
+
+    If you had, then the powerpc code would have worked ... ;-) and many
+    of the other interfaces in include/asm-generic/pgtable.h are
+    protected that way ...
+
+Given that some architecture already define pmd_write() as a macro, it's a
+net reduction to drop the definition of __HAVE_ARCH_PMD_WRITE.
+
+Link: http://lkml.kernel.org/r/151129126721.37405.13339850900081557813.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Oliver OHalloran <oliveroh@au1.ibm.com>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/arm/include/asm/pgtable-3level.h        |    1 -
+ arch/arm64/include/asm/pgtable.h             |    1 -
+ arch/mips/include/asm/pgtable.h              |    2 +-
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    1 -
+ arch/s390/include/asm/pgtable.h              |    2 +-
+ arch/sparc/include/asm/pgtable_64.h          |    2 +-
+ arch/tile/include/asm/pgtable.h              |    1 -
+ arch/x86/include/asm/pgtable.h               |    2 +-
+ include/asm-generic/pgtable.h                |    4 ++--
+ 9 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-do-not-back-off-draining-pcp-free-pages-from-kworker-context
-+++ a/mm/page_alloc.c
-@@ -2507,10 +2507,6 @@ void drain_all_pages(struct zone *zone)
- 	if (WARN_ON_ONCE(!mm_percpu_wq))
- 		return;
+diff -puN arch/arm64/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/arm64/include/asm/pgtable.h
+--- a/arch/arm64/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -345,7 +345,6 @@ static inline int pmd_protnone(pmd_t pmd
  
--	/* Workqueues cannot recurse */
--	if (current->flags & PF_WQ_WORKER)
--		return;
+ #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
+ 
+-#define __HAVE_ARCH_PMD_WRITE
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+ 
+ #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
+diff -puN arch/arm/include/asm/pgtable-3level.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/arm/include/asm/pgtable-3level.h
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -221,7 +221,6 @@ static inline pte_t pte_mkspecial(pte_t
+ }
+ #define	__HAVE_ARCH_PTE_SPECIAL
+ 
+-#define __HAVE_ARCH_PMD_WRITE
+ #define pmd_write(pmd)		(pmd_isclear((pmd), L_PMD_SECT_RDONLY))
+ #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
+ #define pud_page(pud)		pmd_page(__pmd(pud_val(pud)))
+diff -puN arch/mips/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/mips/include/asm/pgtable.h
+@@ -552,7 +552,7 @@ static inline pmd_t pmd_mkhuge(pmd_t pmd
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		       pmd_t *pmdp, pmd_t pmd);
+ 
+-#define __HAVE_ARCH_PMD_WRITE
++#define pmd_write pmd_write
+ static inline int pmd_write(pmd_t pmd)
+ {
+ 	return !!(pmd_val(pmd) & _PAGE_WRITE);
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1005,7 +1005,6 @@ static inline int pmd_protnone(pmd_t pmd
+ }
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+-#define __HAVE_ARCH_PMD_WRITE
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+ #define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
+ #define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
+diff -puN arch/s390/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/s390/include/asm/pgtable.h
+@@ -709,7 +709,7 @@ static inline unsigned long pmd_pfn(pmd_
+ 	return (pmd_val(pmd) & origin_mask) >> PAGE_SHIFT;
+ }
+ 
+-#define __HAVE_ARCH_PMD_WRITE
++#define pmd_write pmd_write
+ static inline int pmd_write(pmd_t pmd)
+ {
+ 	return (pmd_val(pmd) & _SEGMENT_ENTRY_WRITE) != 0;
+diff -puN arch/sparc/include/asm/pgtable_64.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -715,7 +715,7 @@ static inline unsigned long pmd_pfn(pmd_
+ 	return pte_pfn(pte);
+ }
+ 
+-#define __HAVE_ARCH_PMD_WRITE
++#define pmd_write pmd_write
+ static inline unsigned long pmd_write(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+diff -puN arch/tile/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/tile/include/asm/pgtable.h
+--- a/arch/tile/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/tile/include/asm/pgtable.h
+@@ -475,7 +475,6 @@ static inline void pmd_clear(pmd_t *pmdp
+ #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
+ #define pmd_huge_page(pmd)	pte_huge(pmd_pte(pmd))
+ #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
+-#define __HAVE_ARCH_PMD_WRITE
+ 
+ #define pfn_pmd(pfn, pgprot)	pte_pmd(pfn_pte((pfn), (pgprot)))
+ #define pmd_pfn(pmd)		pte_pfn(pmd_pte(pmd))
+diff -puN arch/x86/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1061,7 +1061,7 @@ extern int pmdp_clear_flush_young(struct
+ 				  unsigned long address, pmd_t *pmdp);
+ 
+ 
+-#define __HAVE_ARCH_PMD_WRITE
++#define pmd_write pmd_write
+ static inline int pmd_write(pmd_t pmd)
+ {
+ 	return pmd_flags(pmd) & _PAGE_RW;
+diff -puN include/asm-generic/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-switch-to-define-pmd_write-instead-of-__have_arch_pmd_write
++++ a/include/asm-generic/pgtable.h
+@@ -805,13 +805,13 @@ static inline int pmd_trans_huge(pmd_t p
+ {
+ 	return 0;
+ }
+-#ifndef __HAVE_ARCH_PMD_WRITE
++#ifndef pmd_write
+ static inline int pmd_write(pmd_t pmd)
+ {
+ 	BUG();
+ 	return 0;
+ }
+-#endif /* __HAVE_ARCH_PMD_WRITE */
++#endif /* pmd_write */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #ifndef pud_write
+_
