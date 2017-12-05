@@ -1,122 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ocfs2-nowait-aio-support-v2.patch removed from
- -mm tree
-Date: Thu, 30 Nov 2017 14:20:00 -0800
-Message-ID: <5a208410.KOLo9X2tO3aI+EZ3%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch removed
+ from -mm tree
+Date: Tue, 05 Dec 2017 11:24:31 -0800
+Message-ID: <20171205192431.gfsxKU1Wq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36900 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750923AbdK3WUB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2017 17:20:01 -0500
+        with ESMTP id S1751208AbdLETYe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2017 14:24:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: Anna.Schumaker@netapp.com, mm-commits@vger.kernel.org, rostedt@goodmis.org, torvalds@linux-foundation.org, trond.myklebust@primarydata.com
 
 
 The patch titled
-     Subject:  ocfs2-nowait-aio-support-v2
+     Subject: fs/nfs/nfs4state.c: work around gcc-4.4.4 union initializer bug
 has been removed from the -mm tree.  Its filename was
-     ocfs2-nowait-aio-support-v2.patch
+     fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug.patch
 
-This patch was dropped because it was folded into ocfs2-nowait-aio-support.patch
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject:  ocfs2-nowait-aio-support-v2
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: fs/nfs/nfs4state.c: work around gcc-4.4.4 union initializer bug
 
-Return -EAGAIN if any of the following checks fail for
-direct I/O with nowait flag:
-Can not get the related locks immediately,
-Blocks are not allocated at the write location, it will trigger
-block allocation, this will block IO operations.
-
-Link: http://lkml.kernel.org/r/1511944612-9629-4-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <ge.changwei@h3c.com>
+Reported-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Tested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: Anna Schumaker <Anna.Schumaker@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |   37 ++++++++++++++++++++++++++++---------
- 1 file changed, 28 insertions(+), 9 deletions(-)
+ fs/nfs/nfs4state.c   |    3 +--
+ include/linux/nfs4.h |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-nowait-aio-support-v2 fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-nowait-aio-support-v2
-+++ a/fs/ocfs2/file.c
-@@ -2136,9 +2136,10 @@ out:
- static int ocfs2_prepare_inode_for_write(struct file *file,
- 					 loff_t pos, size_t count, int wait)
- {
--	int ret = 0, meta_level = 0;
-+	int ret = 0, meta_level = 0, overwrite_io = 0;
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct inode *inode = d_inode(dentry);
-+	struct buffer_head *di_bh = NULL;
- 	loff_t end;
+diff -puN fs/nfs/nfs4state.c~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug fs/nfs/nfs4state.c
+--- a/fs/nfs/nfs4state.c~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug
++++ a/fs/nfs/nfs4state.c
+@@ -71,8 +71,7 @@ const nfs4_stateid zero_stateid = {
+ };
+ const nfs4_stateid invalid_stateid = {
+ 	{
+-		.seqid = cpu_to_be32(0xffffffffU),
+-		.other = { 0 },
++		{ .seqid = cpu_to_be32(0xffffffffU), .other = { 0 }, },
+ 	},
+ 	.type = NFS4_INVALID_STATEID_TYPE,
+ };
+diff -puN include/linux/nfs4.h~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug include/linux/nfs4.h
+--- a/include/linux/nfs4.h~fs-nfs-nfs4statec-work-around-gcc-444-union-initializer-bug
++++ a/include/linux/nfs4.h
+@@ -53,11 +53,11 @@ typedef struct { char data[NFS4_VERIFIER
  
- 	/*
-@@ -2149,7 +2150,8 @@ static int ocfs2_prepare_inode_for_write
- 		if (wait)
- 			ret = ocfs2_inode_lock(inode, NULL, meta_level);
- 		else
--			ret = ocfs2_try_inode_lock(inode, NULL, meta_level);
-+			ret = ocfs2_try_inode_lock(inode,
-+				overwrite_io ? NULL : &di_bh, meta_level);
- 		if (ret < 0) {
- 			meta_level = -1;
- 			if (ret != -EAGAIN)
-@@ -2157,6 +2159,28 @@ static int ocfs2_prepare_inode_for_write
- 			goto out;
- 		}
+ struct nfs4_stateid_struct {
+ 	union {
+-		char data[NFS4_STATEID_SIZE];
+ 		struct {
+ 			__be32 seqid;
+ 			char other[NFS4_STATEID_OTHER_SIZE];
+ 		} __attribute__ ((packed));
++		char data[NFS4_STATEID_SIZE];
+ 	};
  
-+		/*
-+		 * Check if IO will overwrite allocated blocks in case
-+		 * IOCB_NOWAIT flag is set.
-+		 */
-+		if (!wait && !overwrite_io) {
-+			overwrite_io = 1;
-+			if (!down_read_trylock(&OCFS2_I(inode)->ip_alloc_sem)) {
-+				ret = -EAGAIN;
-+				goto out_unlock;
-+			}
-+
-+			ret = ocfs2_overwrite_io(inode, di_bh, pos, count);
-+			brelse(di_bh);
-+			di_bh = NULL;
-+			up_read(&OCFS2_I(inode)->ip_alloc_sem);
-+			if (ret < 0) {
-+				if (ret != -EAGAIN)
-+					mlog_errno(ret);
-+				goto out_unlock;
-+			}
-+		}
-+
- 		/* Clear suid / sgid if necessary. We do this here
- 		 * instead of later in the write path because
- 		 * remove_suid() calls ->setattr without any hint that
-@@ -2206,6 +2230,8 @@ out_unlock:
- 	trace_ocfs2_prepare_inode_for_write(OCFS2_I(inode)->ip_blkno,
- 					    pos, count, wait);
- 
-+	brelse(di_bh);
-+
- 	if (meta_level >= 0)
- 		ocfs2_inode_unlock(inode, meta_level);
- 
-@@ -2297,13 +2323,6 @@ static ssize_t ocfs2_file_write_iter(str
- 	}
- 	count = ret;
- 
--	if (direct_io && nowait) {
--		if (!ocfs2_overwrite_io(inode, iocb->ki_pos, count, 0)) {
--			ret = -EAGAIN;
--			goto out;
--		}
--	}
+ 	enum {
+_
+
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
+
+workaround-for-a-pci-restoring-bug.patch
+
