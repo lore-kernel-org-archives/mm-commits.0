@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-duplicate-includes.patch added to -mm tree
-Date: Wed, 06 Dec 2017 15:31:07 -0800
-Message-ID: <5a287dbb.A6PndYgqvyx/t+4e%akpm@linux-foundation.org>
+Subject: + zswap-update-with-same-value-filled-page-feature.patch added to -mm tree
+Date: Wed, 06 Dec 2017 15:47:26 -0800
+Message-ID: <5a28818e.UMWaHlE6rKMkHLnr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41726 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751990AbdLFXbI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 18:31:08 -0500
+        with ESMTP id S1752240AbdLFXr1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 18:47:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pravin.shedge4linux@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: srividya.dr@samsung.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd.c: remove duplicate include
+     Subject: Documentation/vm/zswap.txt: update with same-value filled page feature
 has been added to the -mm tree.  Its filename is
-     mm-remove-duplicate-includes.patch
+     zswap-update-with-same-value-filled-page-feature.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-duplicate-includes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zswap-update-with-same-value-filled-page-feature.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-duplicate-includes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-update-with-same-value-filled-page-feature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,35 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pravin Shedge <pravin.shedge4linux@gmail.com>
-Subject: mm/userfaultfd.c: remove duplicate include
+From: Srividya Desireddy <srividya.dr@samsung.com>
+Subject: Documentation/vm/zswap.txt: update with same-value filled page feature
 
-These duplicate includes have been found with scripts/checkincludes.pl but
-they have been removed manually to avoid removing false positives.
+Update zswap document with details on same-value filled pages
+identification feature.  The usage of zswap.same_filled_pages_enabled
+module parameter is explained.
 
-Link: http://lkml.kernel.org/r/1512580957-6071-1-git-send-email-pravin.shedge4linux@gmail.com
-Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/20171206114852epcms5p6973b02a9f455d5d3c765eafda0fe2631@epcms5p6
+Signed-off-by: Srividya Desireddy <srividya.dr@samsung.com>
+Acked-by: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/vm/zswap.txt |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN mm/userfaultfd.c~mm-remove-duplicate-includes mm/userfaultfd.c
---- a/mm/userfaultfd.c~mm-remove-duplicate-includes
-+++ a/mm/userfaultfd.c
-@@ -16,7 +16,6 @@
- #include <linux/userfaultfd_k.h>
- #include <linux/mmu_notifier.h>
- #include <linux/hugetlb.h>
--#include <linux/pagemap.h>
- #include <linux/shmem_fs.h>
- #include <asm/tlbflush.h>
- #include "internal.h"
+diff -puN Documentation/vm/zswap.txt~zswap-update-with-same-value-filled-page-feature Documentation/vm/zswap.txt
+--- a/Documentation/vm/zswap.txt~zswap-update-with-same-value-filled-page-feature
++++ a/Documentation/vm/zswap.txt
+@@ -98,5 +98,25 @@ request is made for a page in an old zpo
+ original compressor.  Once all pages are removed from an old zpool, the zpool
+ and its compressor are freed.
+ 
++Some of the pages in zswap are same-value filled pages (i.e. contents of the
++page have same value or repetitive pattern). These pages include zero-filled
++pages and they are handled differently. During store operation, a page is
++checked if it is a same-value filled page before compressing it. If true, the
++compressed length of the page is set to zero and the pattern or same-filled
++value is stored.
++
++Same-value filled pages identification feature is enabled by default and can be
++disabled at boot time by setting the "same_filled_pages_enabled" attribute to 0,
++e.g. zswap.same_filled_pages_enabled=0. It can also be enabled and disabled at
++runtime using the sysfs "same_filled_pages_enabled" attribute, e.g.
++
++echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
++
++When zswap same-filled page identification is disabled at runtime, it will stop
++checking for the same-value filled pages during store operation. However, the
++existing pages which are marked as same-value filled pages remain stored
++unchanged in zswap until they are either loaded or invalidated.
++
+ A debugfs interface is provided for various statistic about pool size, number
+-of pages stored, and various counters for the reasons pages are rejected.
++of pages stored, same-value filled pages and various counters for the reasons
++pages are rejected.
 _
 
-Patches currently in -mm which might be from pravin.shedge4linux@gmail.com are
+Patches currently in -mm which might be from srividya.dr@samsung.com are
 
-mm-remove-duplicate-includes.patch
+zswap-same-filled-pages-handling.patch
+zswap-same-filled-pages-handling-v2.patch
+zswap-update-with-same-value-filled-page-feature.patch
 
