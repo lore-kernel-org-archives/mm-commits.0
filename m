@@ -1,79 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Wed, 06 Dec 2017 13:50:01 -0800
-Message-ID: <20171206215001.Z_SthBK1i%akpm@linux-foundation.org>
+Subject: + mm-terminate-shrink_slab-loop-if-signal-is-pending.patch added
+ to -mm tree
+Date: Wed, 06 Dec 2017 15:28:39 -0800
+Message-ID: <5a287d27.zPT1xyJWY9/HgZvX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752598AbdLFVuD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 16:50:03 -0500
+        with ESMTP id S1752338AbdLFX2l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 18:28:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: surenb@google.com, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, penberg@kernel.org, rientjes@google.com, timmurray@google.com, tkjos@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm/vmscan.c: terminate shrink_slab loop if signal is pending
+has been added to the -mm tree.  Its filename is
+     mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm/vmscan.c: terminate shrink_slab loop if signal is pending
 
+Slab shrinkers can be quite time consuming and when signal is pending they
+can delay handling of the signal.  If fatal signal is pending there is no
+point in shrinking that process since it will be killed anyway.  This
+change checks for pending fatal signals inside shrink_slab loop and if one
+is detected terminates this loop early.
+
+Link: http://lkml.kernel.org/r/20171206192026.25133-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Todd Kjos <tkjos@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/adc/meson_saradc.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/vmscan.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/iio/adc/meson_saradc.c~linux-next-git-rejects drivers/iio/adc/meson_saradc.c
---- a/drivers/iio/adc/meson_saradc.c~linux-next-git-rejects
-+++ a/drivers/iio/adc/meson_saradc.c
-@@ -756,11 +756,6 @@ err_adc_clk:
- 	regmap_update_bits(priv->regmap, MESON_SAR_ADC_REG3,
- 			   MESON_SAR_ADC_REG3_ADC_EN, 0);
- 	meson_sar_adc_set_bandgap(indio_dev, false);
--<<<<<<< HEAD
--	clk_disable_unprepare(priv->sana_clk);
--err_sana_clk:
--=======
-->>>>>>> linux-next/akpm-base
- 	clk_disable_unprepare(priv->core_clk);
- err_core_clk:
- 	regulator_disable(priv->vref);
-@@ -783,11 +778,6 @@ static int meson_sar_adc_hw_disable(stru
+diff -puN mm/vmscan.c~mm-terminate-shrink_slab-loop-if-signal-is-pending mm/vmscan.c
+--- a/mm/vmscan.c~mm-terminate-shrink_slab-loop-if-signal-is-pending
++++ a/mm/vmscan.c
+@@ -487,6 +487,13 @@ static unsigned long shrink_slab(gfp_t g
+ 		};
  
- 	regmap_update_bits(priv->regmap, MESON_SAR_ADC_REG3,
- 			   MESON_SAR_ADC_REG3_ADC_EN, 0);
--<<<<<<< HEAD
--
--	meson_sar_adc_set_bandgap(indio_dev, false);
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	meson_sar_adc_set_bandgap(indio_dev, false);
- 
+ 		/*
++		 * We are about to die and free our memory.
++		 * Stop shrinking which might delay signal handling.
++		 */
++		if (unlikely(fatal_signal_pending(current))
++			break;
++
++		/*
+ 		 * If kernel memory accounting is disabled, we ignore
+ 		 * SHRINKER_MEMCG_AWARE flag and call all shrinkers
+ 		 * passing NULL for memcg.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-i-need-old-gcc.patch
-mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
-stringh-work-around-for-increased-stack-usage-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
 
