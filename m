@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_owner-align-with-pageblock_nr_pages.patch added to -mm
- tree
-Date: Tue, 05 Dec 2017 16:58:30 -0800
-Message-ID: <5a2740b6.m3GkeSf9sTyxzkQS%akpm@linux-foundation.org>
+Subject: + cpumask-make-cpumask_size-return-unsigned-int.patch added to
+ -mm tree
+Date: Tue, 05 Dec 2017 16:42:41 -0800
+Message-ID: <5a273d01.C2nM5GZFul5HQw3n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36492 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753999AbdLFA6b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2017 19:58:31 -0500
+        with ESMTP id S1753249AbdLFAmm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2017 19:42:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: align with pageblock_nr_pages
+     Subject: cpumask: make cpumask_size() return "unsigned int"
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-align-with-pageblock_nr_pages.patch
+     cpumask-make-cpumask_size-return-unsigned-int.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-align-with-pageblock_nr_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cpumask-make-cpumask_size-return-unsigned-int.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-align-with-pageblock_nr_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cpumask-make-cpumask_size-return-unsigned-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm/page_owner: align with pageblock_nr_pages
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cpumask: make cpumask_size() return "unsigned int"
 
-Currently, init_pages_in_zone() walks the zone in pageblock_nr_pages
-steps.  MAX_ORDER_NR_PAGES is possible to have holes when
-CONFIG_HOLES_IN_ZONE is set.  it is likely to be different between
-MAX_ORDER_NR_PAGES and pageblock_nr_pages.  if we skip the size of
-MAX_ORDER_NR_PAGES, it will result in the second 2M memroy leak.
+CPUmasks are never big enough to warrant 64-bit code.
 
-Meanwhile, the change will make the code consistent.  because the entire
-function is based on the pageblock_nr_pages steps.
+Space savings:
 
-Link: http://lkml.kernel.org/r/1512395284-13588-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+	add/remove: 0/0 grow/shrink: 1/4 up/down: 3/-17 (-14)
+	Function                                     old     new   delta
+	sched_init_numa                             1530    1533      +3
+	compat_sys_sched_setaffinity                 160     159      -1
+	sys_sched_getaffinity                        197     195      -2
+	sys_sched_setaffinity                        183     176      -7
+	compat_sys_sched_getaffinity                 179     172      -7
+
+Link: http://lkml.kernel.org/r/20171204165531.GA8221@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cpumask.h |    2 +-
+ kernel/compat.c         |    2 +-
+ kernel/sched/core.c     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-align-with-pageblock_nr_pages mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-align-with-pageblock_nr_pages
-+++ a/mm/page_owner.c
-@@ -544,7 +544,7 @@ static void init_pages_in_zone(pg_data_t
- 	 */
- 	for (; pfn < end_pfn; ) {
- 		if (!pfn_valid(pfn)) {
--			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
-+			pfn = ALIGN(pfn + 1, pageblock_nr_pages);
- 			continue;
- 		}
+diff -puN include/linux/cpumask.h~cpumask-make-cpumask_size-return-unsigned-int include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-make-cpumask_size-return-unsigned-int
++++ a/include/linux/cpumask.h
+@@ -640,7 +640,7 @@ static inline int cpulist_parse(const ch
+ /**
+  * cpumask_size - size to allocate for a 'struct cpumask' in bytes
+  */
+-static inline size_t cpumask_size(void)
++static inline unsigned int cpumask_size(void)
+ {
+ 	return BITS_TO_LONGS(nr_cpumask_bits) * sizeof(long);
+ }
+diff -puN kernel/compat.c~cpumask-make-cpumask_size-return-unsigned-int kernel/compat.c
+--- a/kernel/compat.c~cpumask-make-cpumask_size-return-unsigned-int
++++ a/kernel/compat.c
+@@ -355,7 +355,7 @@ COMPAT_SYSCALL_DEFINE3(sched_getaffinity
  
+ 	ret = sched_getaffinity(pid, mask);
+ 	if (ret == 0) {
+-		size_t retlen = min_t(size_t, len, cpumask_size());
++		unsigned int retlen = min(len, cpumask_size());
+ 
+ 		if (compat_put_bitmap(user_mask_ptr, cpumask_bits(mask), retlen * 8))
+ 			ret = -EFAULT;
+diff -puN kernel/sched/core.c~cpumask-make-cpumask_size-return-unsigned-int kernel/sched/core.c
+--- a/kernel/sched/core.c~cpumask-make-cpumask_size-return-unsigned-int
++++ a/kernel/sched/core.c
+@@ -4799,7 +4799,7 @@ SYSCALL_DEFINE3(sched_getaffinity, pid_t
+ 
+ 	ret = sched_getaffinity(pid, mask);
+ 	if (ret == 0) {
+-		size_t retlen = min_t(size_t, len, cpumask_size());
++		unsigned int retlen = min(len, cpumask_size());
+ 
+ 		if (copy_to_user(user_mask_ptr, mask, retlen))
+ 			ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-page_owner-align-with-pageblock_nr_pages.patch
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
+proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
+proc-fix-proc-map_files-lookup.patch
+proc-simpler-proc-vmcore-cleanup.patch
+proc-less-memory-for-proc-map_files-readdir.patch
+proc-delete-children_seq_release.patch
+seq_file-delete-small-value-optimization.patch
+cpumask-make-cpumask_size-return-unsigned-int.patch
 
