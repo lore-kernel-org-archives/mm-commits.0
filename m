@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-check-pfn_valid-first-in-zero_resv_unavail.patch added to
- -mm tree
-Date: Thu, 07 Dec 2017 15:11:46 -0800
-Message-ID: <5a29cab2.7eRmL9bnuA1Iv4ah%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch added to -mm tree
+Date: Thu, 07 Dec 2017 15:21:22 -0800
+Message-ID: <5a29ccf2.C1nzGi7jSF3ZAIht%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56022 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750931AbdLGXLs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 18:11:48 -0500
+        with ESMTP id S1750862AbdLGXVX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 18:21:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dyoung@redhat.com, mhocko@kernel.org, pasha.tatashin@oracle.com, mm-commits@vger.kernel.org
+To: l.stach@pengutronix.de, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: check pfn_valid first in zero_resv_unavail
+     Subject: mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
 has been added to the -mm tree.  Its filename is
-     mm-check-pfn_valid-first-in-zero_resv_unavail.patch
+     mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-pfn_valid-first-in-zero_resv_unavail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-pfn_valid-first-in-zero_resv_unavail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,82 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: mm: check pfn_valid first in zero_resv_unavail
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
 
-With latest kernel I get below bug while testing kdump:
+Since 9cca35d42eb6 ("mm, page_alloc: enable/disable IRQs once when freeing
+a list of pages") we see excessive IRQ disabled times of up to 250ms on an
+embedded ARM system (tracing overhead included).
 
-[    0.000000] BUG: unable to handle kernel paging request at ffffea00034b1040
-[    0.000000] IP: zero_resv_unavail+0xbd/0x126
-[    0.000000] PGD 37b98067 P4D 37b98067 PUD 37b97067 PMD 0
-[    0.000000] Oops: 0002 [#1] SMP
-[    0.000000] Modules linked in:
-[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 4.15.0-rc1+ #316
-[    0.000000] Hardware name: LENOVO 20ARS1BJ02/20ARS1BJ02, BIOS GJET92WW (2.42 ) 03/03/2017
-[    0.000000] task: ffffffff81a0e4c0 task.stack: ffffffff81a00000
-[    0.000000] RIP: 0010:zero_resv_unavail+0xbd/0x126
-[    0.000000] RSP: 0000:ffffffff81a03d88 EFLAGS: 00010006
-[    0.000000] RAX: 0000000000000000 RBX: ffffea00034b1040 RCX: 0000000000000010
-[    0.000000] RDX: 0000000000000000 RSI: 0000000000000092 RDI: ffffea00034b1040
-[    0.000000] RBP: 00000000000d2c41 R08: 00000000000000c0 R09: 0000000000000a0d
-[    0.000000] R10: 0000000000000002 R11: 0000000000007f01 R12: ffffffff81a03d90
-[    0.000000] R13: ffffea0000000000 R14: 0000000000000063 R15: 0000000000000062
-[    0.000000] FS:  0000000000000000(0000) GS:ffffffff81c73000(0000) knlGS:0000000000000000
-[    0.000000] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    0.000000] CR2: ffffea00034b1040 CR3: 0000000037609000 CR4: 00000000000606b0
-[    0.000000] Call Trace:
-[    0.000000]  ? free_area_init_nodes+0x640/0x664
-[    0.000000]  ? zone_sizes_init+0x58/0x72
-[    0.000000]  ? setup_arch+0xb50/0xc6c
-[    0.000000]  ? start_kernel+0x64/0x43d
-[    0.000000]  ? secondary_startup_64+0xa5/0xb0
-[    0.000000] Code: c1 e8 0c 48 39 d8 76 27 48 89 de 48 c1 e3 06 48 c7 c7 7a 87 79 81 e8 b0 c0 3e ff 4c 01 eb b9 10 00 00 00 31 c0 48 89 df 49 ff c6 <f3> ab eb bc 6a 00 49
-c7 c0 f0 93 d1 81 31 d2 83 ce ff 41 54 49
-[    0.000000] RIP: zero_resv_unavail+0xbd/0x126 RSP: ffffffff81a03d88
-[    0.000000] CR2: ffffea00034b1040
-[    0.000000] ---[ end trace f5ba9e8f73c7ee26 ]---
+This is due to graphics buffers being freed back to the system via
+release_pages().  Graphics buffers can be huge, so it's not hard to hit
+cases where the list of pages to free has 2048 entries.  Disabling IRQs
+while freeing all those pages is clearly not a good idea.
 
-This is introduced by a4a3ede2132a ("mm: zero reserved and unavailable
-struct pages").
+Introduce a batch limit, which allows IRQ servicing once every few pages. 
+The batch count is the same as used in other parts of the MM subsystem
+when dealing with IRQ disabled regions.
 
-The reason is some efi reserved boot ranges is not reported in E820 ram.
-In my case it is a bgrt buffer:
-efi: mem00: [Boot Data          |RUN|  |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x00000000d2c41000-0x00000000d2c85fff] (0MB)
-
-Use "add_efi_memmap" can workaround the problem with another fix:
-http://lkml.kernel.org/r/20171130052327.GA3500@dhcp-128-65.nay.redhat.com
-
-In zero_resv_unavail it would be better to check pfn_valid first before zero
-the page struct. This fixes the problem and potential other similar problems.
-Also as Pavel Tatashin suggested checks pfn_valid at the beginning of the
-section.
-
-Link: http://lkml.kernel.org/r/20171201095048.GA3084@dhcp-128-65.nay.redhat.com
-Fixes: a4a3ede2132a ("mm: zero reserved and unavailable struct pages")
-Signed-off-by: Dave Young <dyoung@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Link: http://lkml.kernel.org/r/20171207170314.4419-1-l.stach@pengutronix.de
+Fixes: 9cca35d42eb6 ("mm, page_alloc: enable/disable IRQs once when freeing a list of pages")
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-check-pfn_valid-first-in-zero_resv_unavail mm/page_alloc.c
---- a/mm/page_alloc.c~mm-check-pfn_valid-first-in-zero_resv_unavail
+diff -puN mm/page_alloc.c~mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list
 +++ a/mm/page_alloc.c
-@@ -6249,6 +6249,8 @@ void __paginginit zero_resv_unavail(void
- 	pgcnt = 0;
- 	for_each_resv_unavail_range(i, &start, &end) {
- 		for (pfn = PFN_DOWN(start); pfn < PFN_UP(end); pfn++) {
-+			if (!pfn_valid(ALIGN_DOWN(pfn, pageblock_nr_pages)))
-+				continue;
- 			mm_zero_struct_page(pfn_to_page(pfn));
- 			pgcnt++;
- 		}
+@@ -2684,6 +2684,7 @@ void free_unref_page_list(struct list_he
+ {
+ 	struct page *page, *next;
+ 	unsigned long flags, pfn;
++	int batch_count = 0;
+ 
+ 	/* Prepare pages for freeing */
+ 	list_for_each_entry_safe(page, next, list, lru) {
+@@ -2700,6 +2701,16 @@ void free_unref_page_list(struct list_he
+ 		set_page_private(page, 0);
+ 		trace_mm_page_free_batched(page);
+ 		free_unref_page_commit(page, pfn);
++
++		/*
++		 * Guard against excessive IRQ disabled times when we get
++		 * a large list of pages to free.
++		 */
++		if (++batch_count == SWAP_CLUSTER_MAX) {
++			local_irq_restore(flags);
++			batch_count = 0;
++			local_irq_save(flags);
++		}
+ 	}
+ 	local_irq_restore(flags);
+ }
 _
 
-Patches currently in -mm which might be from dyoung@redhat.com are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
-mm-check-pfn_valid-first-in-zero_resv_unavail.patch
+mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
 
