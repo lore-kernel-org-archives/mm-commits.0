@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-fix-ipc-data-structures-inconsistency.patch added to -mm
- tree
-Date: Wed, 06 Dec 2017 16:37:15 -0800
-Message-ID: <5a288d3b.3+EpgnzMeI28EdED%akpm@linux-foundation.org>
+Subject: + fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
+ added to -mm tree
+Date: Wed, 06 Dec 2017 16:44:03 -0800
+Message-ID: <5a288ed3.KsDVHpMHBkQxpTg3%akpm__31548.8765285865$1512607445$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52690 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752374AbdLGAhR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 19:37:17 -0500
+        with ESMTP id S1752376AbdLGAoE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 19:44:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philippe.mikoyan@skat.systems, dbueso@suse.de, manfred@colorfullife.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, jolsa@kernel.org, keescook@chromium.org, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: fix ipc data structures inconsistency
+     Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
 has been added to the -mm tree.  Its filename is
-     ipc-fix-ipc-data-structures-inconsistency.patch
+     fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-fix-ipc-data-structures-inconsistency.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-fix-ipc-data-structures-inconsistency.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,194 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Philippe Mikoyan <philippe.mikoyan@skat.systems>
-Subject: ipc: fix ipc data structures inconsistency
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
 
-As described in the title, this patch fixes <ipc>id_ds inconsistency when
-<ipc>ctl_stat executes concurrently with some ds-changing function, e.g. 
-shmat, msgsnd or whatever.
+df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data") added a
+bounce buffer to avoid hardened usercopy checks.  Copying to the bounce
+buffer was implemented with a simple memcpy() assuming that it is always
+valid to read from kernel memory iff the kern_addr_valid() check passed.
 
-For instance, if shmctl(IPC_STAT) is running concurrently
-with shmat, following data structure can be returned:
-{... shm_lpid = 0, shm_nattch = 1, ...}
+A simple, but pointless, test case like "dd if=/proc/kcore of=/dev/null"
+now can easily crash the kernel, since the former execption handling on
+invalid kernel addresses now doesn't work anymore.
 
-Link: http://lkml.kernel.org/r/20171202153456.6514-1-philippe.mikoyan@skat.systems
-Signed-off-by: Philippe Mikoyan <philippe.mikoyan@skat.systems>
-Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Also adding a kern_addr_valid() implementation wouldn't help here.  Most
+architectures simply return 1 here, while a couple implemented a page
+table walk to figure out if something is mapped at the address in
+question.
+
+With DEBUG_PAGEALLOC active mappings are established and removed all the
+time, so that relying on the result of kern_addr_valid() before executing
+the memcpy() also doesn't work.
+
+Therefore simply use probe_kernel_read() to copy to the bounce buffer. 
+This also allows to simplify read_kcore().
+
+At least on s390 this fixes the observed crashes and doesn't introduce
+warnings that were removed with df04abfd181a ("fs/proc/kcore.c: Add bounce
+buffer for ktext data"), even though the generic probe_kernel_read()
+implementation uses uaccess functions.
+
+While looking into this I'm also wondering if kern_addr_valid() could be
+completely removed...(?)
+
+Link: http://lkml.kernel.org/r/20171202132739.99971-1-heiko.carstens@de.ibm.com
+Fixes: df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data")
+Fixes: f5509cc18daa ("mm: Hardened usercopy")
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |   20 ++++++++++++++------
- ipc/sem.c  |   10 ++++++++++
- ipc/shm.c  |   20 +++++++++++++++-----
- ipc/util.c |    5 ++++-
- 4 files changed, 43 insertions(+), 12 deletions(-)
+ fs/proc/kcore.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN ipc/msg.c~ipc-fix-ipc-data-structures-inconsistency ipc/msg.c
---- a/ipc/msg.c~ipc-fix-ipc-data-structures-inconsistency
-+++ a/ipc/msg.c
-@@ -476,9 +476,9 @@ static int msgctl_info(struct ipc_namesp
- static int msgctl_stat(struct ipc_namespace *ns, int msqid,
- 			 int cmd, struct msqid64_ds *p)
- {
--	int err;
- 	struct msg_queue *msq;
--	int success_return;
-+	int id = 0;
-+	int err;
- 
- 	memset(p, 0, sizeof(*p));
- 
-@@ -489,14 +489,13 @@ static int msgctl_stat(struct ipc_namesp
- 			err = PTR_ERR(msq);
- 			goto out_unlock;
- 		}
--		success_return = msq->q_perm.id;
-+		id = msq->q_perm.id;
- 	} else {
- 		msq = msq_obtain_object_check(ns, msqid);
- 		if (IS_ERR(msq)) {
- 			err = PTR_ERR(msq);
- 			goto out_unlock;
- 		}
--		success_return = 0;
- 	}
- 
- 	err = -EACCES;
-@@ -507,6 +506,14 @@ static int msgctl_stat(struct ipc_namesp
- 	if (err)
- 		goto out_unlock;
- 
-+	ipc_lock_object(&msq->q_perm);
-+
-+	if (!ipc_valid_object(&msq->q_perm)) {
-+		ipc_unlock_object(&msq->q_perm);
-+		err = -EIDRM;
-+		goto out_unlock;
-+	}
-+
- 	kernel_to_ipc64_perm(&msq->q_perm, &p->msg_perm);
- 	p->msg_stime  = msq->q_stime;
- 	p->msg_rtime  = msq->q_rtime;
-@@ -516,9 +523,10 @@ static int msgctl_stat(struct ipc_namesp
- 	p->msg_qbytes = msq->q_qbytes;
- 	p->msg_lspid  = msq->q_lspid;
- 	p->msg_lrpid  = msq->q_lrpid;
--	rcu_read_unlock();
- 
--	return success_return;
-+	ipc_unlock_object(&msq->q_perm);
-+	rcu_read_unlock();
-+	return id;
- 
- out_unlock:
- 	rcu_read_unlock();
-diff -puN ipc/sem.c~ipc-fix-ipc-data-structures-inconsistency ipc/sem.c
---- a/ipc/sem.c~ipc-fix-ipc-data-structures-inconsistency
-+++ a/ipc/sem.c
-@@ -1213,10 +1213,20 @@ static int semctl_stat(struct ipc_namesp
- 	if (err)
- 		goto out_unlock;
- 
-+	ipc_lock_object(&sma->sem_perm);
-+
-+	if (!ipc_valid_object(&sma->sem_perm)) {
-+		ipc_unlock_object(&sma->sem_perm);
-+		err = -EIDRM;
-+		goto out_unlock;
-+	}
-+
- 	kernel_to_ipc64_perm(&sma->sem_perm, &semid64->sem_perm);
- 	semid64->sem_otime = get_semotime(sma);
- 	semid64->sem_ctime = sma->sem_ctime;
- 	semid64->sem_nsems = sma->sem_nsems;
-+
-+	ipc_unlock_object(&sma->sem_perm);
- 	rcu_read_unlock();
- 	return id;
- 
-diff -puN ipc/shm.c~ipc-fix-ipc-data-structures-inconsistency ipc/shm.c
---- a/ipc/shm.c~ipc-fix-ipc-data-structures-inconsistency
-+++ a/ipc/shm.c
-@@ -909,9 +909,11 @@ static int shmctl_stat(struct ipc_namesp
- 			int cmd, struct shmid64_ds *tbuf)
- {
- 	struct shmid_kernel *shp;
--	int result;
-+	int id = 0;
- 	int err;
- 
-+	memset(tbuf, 0, sizeof(*tbuf));
-+
- 	rcu_read_lock();
- 	if (cmd == SHM_STAT) {
- 		shp = shm_obtain_object(ns, shmid);
-@@ -919,14 +921,13 @@ static int shmctl_stat(struct ipc_namesp
- 			err = PTR_ERR(shp);
- 			goto out_unlock;
- 		}
--		result = shp->shm_perm.id;
-+		id = shp->shm_perm.id;
- 	} else {
- 		shp = shm_obtain_object_check(ns, shmid);
- 		if (IS_ERR(shp)) {
- 			err = PTR_ERR(shp);
- 			goto out_unlock;
- 		}
--		result = 0;
- 	}
- 
- 	err = -EACCES;
-@@ -937,7 +938,14 @@ static int shmctl_stat(struct ipc_namesp
- 	if (err)
- 		goto out_unlock;
- 
--	memset(tbuf, 0, sizeof(*tbuf));
-+	ipc_lock_object(&shp->shm_perm);
-+
-+	if (!ipc_valid_object(&shp->shm_perm)) {
-+		ipc_unlock_object(&shp->shm_perm);
-+		err = -EIDRM;
-+		goto out_unlock;
-+	}
-+
- 	kernel_to_ipc64_perm(&shp->shm_perm, &tbuf->shm_perm);
- 	tbuf->shm_segsz	= shp->shm_segsz;
- 	tbuf->shm_atime	= shp->shm_atim;
-@@ -946,8 +954,10 @@ static int shmctl_stat(struct ipc_namesp
- 	tbuf->shm_cpid	= shp->shm_cprid;
- 	tbuf->shm_lpid	= shp->shm_lprid;
- 	tbuf->shm_nattch = shp->shm_nattch;
-+
-+	ipc_unlock_object(&shp->shm_perm);
- 	rcu_read_unlock();
--	return result;
-+	return id;
- 
- out_unlock:
- 	rcu_read_unlock();
-diff -puN ipc/util.c~ipc-fix-ipc-data-structures-inconsistency ipc/util.c
---- a/ipc/util.c~ipc-fix-ipc-data-structures-inconsistency
-+++ a/ipc/util.c
-@@ -23,9 +23,12 @@
-  *	    tree.
-  *	    - perform initial checks (capabilities, auditing and permission,
-  *	      etc).
-- *	    - perform read-only operations, such as STAT, INFO commands.
-+ *	    - perform read-only operations, such as INFO command, that
-+ *	      do not demand atomicity
-  *	      acquire the ipc lock (kern_ipc_perm.lock) through
-  *	      ipc_lock_object()
-+ *		- perform read-only operations that demand atomicity,
-+ *		  such as STAT command.
-  *		- perform data updates, such as SET, RMID commands and
-  *		  mechanism-specific operations (semop/semtimedop,
-  *		  msgsnd/msgrcv, shmat/shmdt).
+diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy
++++ a/fs/proc/kcore.c
+@@ -512,23 +512,15 @@ read_kcore(struct file *file, char __use
+ 				return -EFAULT;
+ 		} else {
+ 			if (kern_addr_valid(start)) {
+-				unsigned long n;
+-
+ 				/*
+ 				 * Using bounce buffer to bypass the
+ 				 * hardened user copy kernel text checks.
+ 				 */
+-				memcpy(buf, (char *) start, tsz);
+-				n = copy_to_user(buffer, buf, tsz);
+-				/*
+-				 * We cannot distinguish between fault on source
+-				 * and fault on destination. When this happens
+-				 * we clear too and hope it will trigger the
+-				 * EFAULT again.
+-				 */
+-				if (n) { 
+-					if (clear_user(buffer + tsz - n,
+-								n))
++				if (probe_kernel_read(buf, (void *) start, tsz)) {
++					if (clear_user(buffer, tsz))
++						return -EFAULT;
++				} else {
++					if (copy_to_user(buffer, buf, tsz))
+ 						return -EFAULT;
+ 				}
+ 			} else {
 _
 
-Patches currently in -mm which might be from philippe.mikoyan@skat.systems are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-ipc-fix-ipc-data-structures-inconsistency.patch
+fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
 
