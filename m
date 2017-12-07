@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch added to -mm tree
-Date: Thu, 07 Dec 2017 15:21:22 -0800
-Message-ID: <5a29ccf2.C1nzGi7jSF3ZAIht%akpm@linux-foundation.org>
+Subject: + mm-oom-cgroup-aware-oom-killer-fix.patch added to -mm tree
+Date: Thu, 07 Dec 2017 15:23:44 -0800
+Message-ID: <5a29cd80.EFCEKIWcnpYYrwY/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750862AbdLGXVX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 18:21:23 -0500
+        with ESMTP id S1752142AbdLGXXq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 18:23:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
+     Subject: mm-oom-cgroup-aware-oom-killer-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
+     mm-oom-cgroup-aware-oom-killer-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-cgroup-aware-oom-killer-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-cgroup-aware-oom-killer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +38,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom-cgroup-aware-oom-killer-fix
 
-Since 9cca35d42eb6 ("mm, page_alloc: enable/disable IRQs once when freeing
-a list of pages") we see excessive IRQ disabled times of up to 250ms on an
-embedded ARM system (tracing overhead included).
+two tweaks ariseing from merge fixups, per Roman
 
-This is due to graphics buffers being freed back to the system via
-release_pages().  Graphics buffers can be huge, so it's not hard to hit
-cases where the list of pages to free has 2048 entries.  Disabling IRQs
-while freeing all those pages is clearly not a good idea.
-
-Introduce a batch limit, which allows IRQ servicing once every few pages. 
-The batch count is the same as used in other parts of the MM subsystem
-when dealing with IRQ disabled regions.
-
-Link: http://lkml.kernel.org/r/20171207170314.4419-1-l.stach@pengutronix.de
-Fixes: 9cca35d42eb6 ("mm, page_alloc: enable/disable IRQs once when freeing a list of pages")
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/oom_kill.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list
-+++ a/mm/page_alloc.c
-@@ -2684,6 +2684,7 @@ void free_unref_page_list(struct list_he
- {
- 	struct page *page, *next;
- 	unsigned long flags, pfn;
-+	int batch_count = 0;
- 
- 	/* Prepare pages for freeing */
- 	list_for_each_entry_safe(page, next, list, lru) {
-@@ -2700,6 +2701,16 @@ void free_unref_page_list(struct list_he
- 		set_page_private(page, 0);
- 		trace_mm_page_free_batched(page);
- 		free_unref_page_commit(page, pfn);
-+
-+		/*
-+		 * Guard against excessive IRQ disabled times when we get
-+		 * a large list of pages to free.
-+		 */
-+		if (++batch_count == SWAP_CLUSTER_MAX) {
-+			local_irq_restore(flags);
-+			batch_count = 0;
-+			local_irq_save(flags);
-+		}
+diff -puN mm/oom_kill.c~mm-oom-cgroup-aware-oom-killer-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-cgroup-aware-oom-killer-fix
++++ a/mm/oom_kill.c
+@@ -1096,11 +1096,9 @@ bool out_of_memory(struct oom_control *o
+ 		return true;
  	}
- 	local_irq_restore(flags);
- }
+ 
+-	if (mem_cgroup_select_oom_victim(oc)) {
+-		if (oom_kill_memcg_victim(oc)) {
+-			delay = true;
+-			goto out;
+-		}
++	if (mem_cgroup_select_oom_victim(oc) && oom_kill_memcg_victim(oc)) {
++		delay = true;
++		goto out;
+ 	}
+ 
+ 	select_bad_process(oc);
+@@ -1109,7 +1107,7 @@ bool out_of_memory(struct oom_control *o
+ 		dump_header(oc, NULL);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+-	if (oc->chosen_task && oc->chosen_task != (void *)-1UL) {
++	if (oc->chosen_task && oc->chosen_task != INFLIGHT_VICTIM) {
+ 		oom_kill_process(oc, !is_memcg_oom(oc) ? "Out of memory" :
+ 				 "Memory cgroup out of memory");
+ 		delay = true;
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list.patch
+i-need-old-gcc.patch
+mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
+stringh-work-around-for-increased-stack-usage-fix.patch
+mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
