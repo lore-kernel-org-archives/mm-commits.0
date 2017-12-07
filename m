@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+Subject: + kconfig-make-strict_devmem-default-y-on-x86-and-arm64.patch
  added to -mm tree
-Date: Wed, 06 Dec 2017 16:49:33 -0800
-Message-ID: <5a28901d.ERRxqyjJG/YBKuux%akpm@linux-foundation.org>
+Date: Wed, 06 Dec 2017 16:53:04 -0800
+Message-ID: <5a2890f0.zJSyv4VKjeVkXMSm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54764 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752374AbdLGAtf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 19:49:35 -0500
+        with ESMTP id S1752071AbdLGAxF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 19:53:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingtianhong@huawei.com, aryabinin@virtuozzo.com, David.Laight@ACULAB.COM, mm-commits@vger.kernel.org
+To: keescook@chromium.org, hpa@zytor.com, labbott@redhat.com, mark.rutland@arm.com, mingo@elte.hu, rmk+kernel@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/ubsan.c: don't handle misaligned address when kernel supports unaligned access
+     Subject: Kconfig: make STRICT_DEVMEM default-y on x86 and arm64
 has been added to the -mm tree.  Its filename is
-     ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+     kconfig-make-strict_devmem-default-y-on-x86-and-arm64.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kconfig-make-strict_devmem-default-y-on-x86-and-arm64.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kconfig-make-strict_devmem-default-y-on-x86-and-arm64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ding Tianhong <dingtianhong@huawei.com>
-Subject: lib/ubsan.c: don't handle misaligned address when kernel supports unaligned access
+From: Kees Cook <keescook@chromium.org>
+Subject: Kconfig: make STRICT_DEVMEM default-y on x86 and arm64
 
-ubsan reports a warning like:
+Distros have been shipping with CONFIG_STRICT_DEVMEM=y for years now.  It
+is probably time to flip this default for x86 and arm64.
 
-UBSAN: Undefined behaviour in ../include/linux/etherdevice.h:386:9
-load of misaligned address ffffffc069ba0482 for type 'long unsigned int'
-which requires 8 byte alignment
-CPU: 0 PID: 901 Comm: sshd Not tainted 4.xx+ #1
-Hardware name: linux,dummy-virt (DT)
-Call trace:
-[<ffffffc000093600>] dump_backtrace+0x0/0x348
-[<ffffffc000093968>] show_stack+0x20/0x30
-[<ffffffc001651664>] dump_stack+0x144/0x1b4
-[<ffffffc0016519b0>] ubsan_epilogue+0x18/0x74
-[<ffffffc001651bac>] __ubsan_handle_type_mismatch+0x1a0/0x25c
-[<ffffffc00125d8a0>] dev_gro_receive+0x17d8/0x1830
-[<ffffffc00125d928>] napi_gro_receive+0x30/0x158
-[<ffffffc000f4f93c>] virtnet_receive+0xad4/0x1fa8
-
-The reason is that when enabling the CONFIG_UBSAN_ALIGNMENT, ubsan will
-report the unaligned access even if the system supports it
-(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y).  This produces a lot of noise
-in the log and causes confusion.
-
-Prevent the detection of unaligned access when the system support
-unaligned access.
-
-Link: http://lkml.kernel.org/r/5b905d56-609e-3822-096a-3b93b3eb7675@huawei.com
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Link: http://lkml.kernel.org/r/20171201201000.GA44539@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access lib/ubsan.c
---- a/lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access
-+++ a/lib/ubsan.c
-@@ -322,7 +322,8 @@ void __ubsan_handle_type_mismatch(struct
- 	if (!ptr)
- 		handle_null_ptr_deref(data);
- 	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment))
--		handle_missaligned_access(data, ptr);
-+		if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS))
-+			handle_missaligned_access(data, ptr);
- 	else
- 		handle_object_size_mismatch(data, ptr);
- }
+diff -puN lib/Kconfig.debug~kconfig-make-strict_devmem-default-y-on-x86-and-arm64 lib/Kconfig.debug
+--- a/lib/Kconfig.debug~kconfig-make-strict_devmem-default-y-on-x86-and-arm64
++++ a/lib/Kconfig.debug
+@@ -1985,7 +1985,7 @@ config STRICT_DEVMEM
+ 	bool "Filter access to /dev/mem"
+ 	depends on MMU && DEVMEM
+ 	depends on ARCH_HAS_DEVMEM_IS_ALLOWED
+-	default y if TILE || PPC
++	default y if TILE || PPC || X86 || ARM64
+ 	---help---
+ 	  If this option is disabled, you allow userspace (root) access to all
+ 	  of memory, including kernel and userspace memory. Accidental
 _
 
-Patches currently in -mm which might be from dingtianhong@huawei.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+makefile-move-stack-protector-compiler-breakage-test-earlier.patch
+makefile-move-stack-protector-availability-out-of-kconfig.patch
+makefile-introduce-config_cc_stackprotector_auto.patch
+kconfig-make-strict_devmem-default-y-on-x86-and-arm64.patch
 
