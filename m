@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
+Subject: +
+ ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
  added to -mm tree
-Date: Wed, 06 Dec 2017 16:44:03 -0800
-Message-ID: <5a288ed3.KsDVHpMHBkQxpTg3%akpm__31548.8765285865$1512607445$gmane$org@linux-foundation.org>
+Date: Wed, 06 Dec 2017 16:49:33 -0800
+Message-ID: <5a28901d.ERRxqyjJG/YBKuux%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52690 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53986 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752376AbdLGAoE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 19:44:04 -0500
+        with ESMTP id S1752374AbdLGAtf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2017 19:49:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, jolsa@kernel.org, keescook@chromium.org, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: dingtianhong@huawei.com, aryabinin@virtuozzo.com, David.Laight@ACULAB.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
+     Subject: lib/ubsan.c: don't handle misaligned address when kernel supports unaligned access
 has been added to the -mm tree.  Its filename is
-     fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
+     ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +40,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
+From: Ding Tianhong <dingtianhong@huawei.com>
+Subject: lib/ubsan.c: don't handle misaligned address when kernel supports unaligned access
 
-df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data") added a
-bounce buffer to avoid hardened usercopy checks.  Copying to the bounce
-buffer was implemented with a simple memcpy() assuming that it is always
-valid to read from kernel memory iff the kern_addr_valid() check passed.
+ubsan reports a warning like:
 
-A simple, but pointless, test case like "dd if=/proc/kcore of=/dev/null"
-now can easily crash the kernel, since the former execption handling on
-invalid kernel addresses now doesn't work anymore.
+UBSAN: Undefined behaviour in ../include/linux/etherdevice.h:386:9
+load of misaligned address ffffffc069ba0482 for type 'long unsigned int'
+which requires 8 byte alignment
+CPU: 0 PID: 901 Comm: sshd Not tainted 4.xx+ #1
+Hardware name: linux,dummy-virt (DT)
+Call trace:
+[<ffffffc000093600>] dump_backtrace+0x0/0x348
+[<ffffffc000093968>] show_stack+0x20/0x30
+[<ffffffc001651664>] dump_stack+0x144/0x1b4
+[<ffffffc0016519b0>] ubsan_epilogue+0x18/0x74
+[<ffffffc001651bac>] __ubsan_handle_type_mismatch+0x1a0/0x25c
+[<ffffffc00125d8a0>] dev_gro_receive+0x17d8/0x1830
+[<ffffffc00125d928>] napi_gro_receive+0x30/0x158
+[<ffffffc000f4f93c>] virtnet_receive+0xad4/0x1fa8
 
-Also adding a kern_addr_valid() implementation wouldn't help here.  Most
-architectures simply return 1 here, while a couple implemented a page
-table walk to figure out if something is mapped at the address in
-question.
+The reason is that when enabling the CONFIG_UBSAN_ALIGNMENT, ubsan will
+report the unaligned access even if the system supports it
+(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y).  This produces a lot of noise
+in the log and causes confusion.
 
-With DEBUG_PAGEALLOC active mappings are established and removed all the
-time, so that relying on the result of kern_addr_valid() before executing
-the memcpy() also doesn't work.
+Prevent the detection of unaligned access when the system support
+unaligned access.
 
-Therefore simply use probe_kernel_read() to copy to the bounce buffer. 
-This also allows to simplify read_kcore().
-
-At least on s390 this fixes the observed crashes and doesn't introduce
-warnings that were removed with df04abfd181a ("fs/proc/kcore.c: Add bounce
-buffer for ktext data"), even though the generic probe_kernel_read()
-implementation uses uaccess functions.
-
-While looking into this I'm also wondering if kern_addr_valid() could be
-completely removed...(?)
-
-Link: http://lkml.kernel.org/r/20171202132739.99971-1-heiko.carstens@de.ibm.com
-Fixes: df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data")
-Fixes: f5509cc18daa ("mm: Hardened usercopy")
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/5b905d56-609e-3822-096a-3b93b3eb7675@huawei.com
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ lib/ubsan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy fs/proc/kcore.c
---- a/fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy
-+++ a/fs/proc/kcore.c
-@@ -512,23 +512,15 @@ read_kcore(struct file *file, char __use
- 				return -EFAULT;
- 		} else {
- 			if (kern_addr_valid(start)) {
--				unsigned long n;
--
- 				/*
- 				 * Using bounce buffer to bypass the
- 				 * hardened user copy kernel text checks.
- 				 */
--				memcpy(buf, (char *) start, tsz);
--				n = copy_to_user(buffer, buf, tsz);
--				/*
--				 * We cannot distinguish between fault on source
--				 * and fault on destination. When this happens
--				 * we clear too and hope it will trigger the
--				 * EFAULT again.
--				 */
--				if (n) { 
--					if (clear_user(buffer + tsz - n,
--								n))
-+				if (probe_kernel_read(buf, (void *) start, tsz)) {
-+					if (clear_user(buffer, tsz))
-+						return -EFAULT;
-+				} else {
-+					if (copy_to_user(buffer, buf, tsz))
- 						return -EFAULT;
- 				}
- 			} else {
+diff -puN lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access lib/ubsan.c
+--- a/lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access
++++ a/lib/ubsan.c
+@@ -322,7 +322,8 @@ void __ubsan_handle_type_mismatch(struct
+ 	if (!ptr)
+ 		handle_null_ptr_deref(data);
+ 	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment))
+-		handle_missaligned_access(data, ptr);
++		if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS))
++			handle_missaligned_access(data, ptr);
+ 	else
+ 		handle_object_size_mismatch(data, ptr);
+ }
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from dingtianhong@huawei.com are
 
-fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
+ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
 
