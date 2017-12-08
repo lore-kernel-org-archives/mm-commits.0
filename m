@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-introduce-memoryoom_group-fix.patch added to -mm tree
-Date: Thu, 07 Dec 2017 17:37:39 -0800
-Message-ID: <5a29ece3.oNq9NU4kW+4emTLE%akpm@linux-foundation.org>
+Subject: + tools-slabinfo-gnuplot-force-to-use-bash-shell.patch added to
+ -mm tree
+Date: Fri, 08 Dec 2017 13:57:23 -0800
+Message-ID: <5a2b0ac3.TaFT8JOsDCEzn9vu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39608 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751001AbdLHBhn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 20:37:43 -0500
+        with ESMTP id S1752562AbdLHV5Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 16:57:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: changcheng.liu@intel.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: return error on access to memory.oom_group if groupoom is disabled
+     Subject: tools/slabinfo-gnuplot: force to use bash shell
 has been added to the -mm tree.  Its filename is
-     mm-oom-introduce-memoryoom_group-fix.patch
+     tools-slabinfo-gnuplot-force-to-use-bash-shell.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-memoryoom_group-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-slabinfo-gnuplot-force-to-use-bash-shell.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-memoryoom_group-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-slabinfo-gnuplot-force-to-use-bash-shell.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +39,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm, oom: return error on access to memory.oom_group if groupoom is disabled
+From: "Liu, Changcheng" <changcheng.liu@intel.com>
+Subject: tools/slabinfo-gnuplot: force to use bash shell
 
-Cgroup-aware OOM killer depends on cgroup mount option and is turned off
-by default, despite the user interface (memory.oom_group file) is always
-present.  As it might be confusing to a user, let's return -ENOTSUPP on an
-attempt to access to memory.oom_group if groupoom is not enabled globally.
+On some linux distributions, the default link of sh
+is dash which deoesn't support split array like
+${var//,/ }
+It's better to force to use bash shell directly.
 
-Example:
-  $ cd /sys/fs/cgroup/user.slice/
-  $ cat memory.oom_group
-    cat: memory.oom_group: Unknown error 524
-  $ echo 1 > memory.oom_group
-    -bash: echo: write error: Unknown error 524
-  $ mount -o remount,groupoom /sys/fs/cgroup
-  $ echo 1 > memory.oom_group
-  $ cat memory.oom_group
-    1
-
-Link: http://lkml.kernel.org/r/20171201170004.GA27436@castle.DHCP.thefacebook.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20171208093751.GA175471@sofia
+Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/vm/slabinfo-gnuplot.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-oom-introduce-memoryoom_group-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-oom-introduce-memoryoom_group-fix
-+++ a/mm/memcontrol.c
-@@ -5479,6 +5479,9 @@ static int memory_oom_group_show(struct
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
- 	bool oom_group = memcg->oom_group;
+diff -puN tools/vm/slabinfo-gnuplot.sh~tools-slabinfo-gnuplot-force-to-use-bash-shell tools/vm/slabinfo-gnuplot.sh
+--- a/tools/vm/slabinfo-gnuplot.sh~tools-slabinfo-gnuplot-force-to-use-bash-shell
++++ a/tools/vm/slabinfo-gnuplot.sh
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/bash
  
-+	if (!(cgrp_dfl_root.flags & CGRP_GROUP_OOM))
-+		return -ENOTSUPP;
-+
- 	seq_printf(m, "%d\n", oom_group);
- 
- 	return 0;
-@@ -5492,6 +5495,9 @@ static ssize_t memory_oom_group_write(st
- 	int oom_group;
- 	int err;
- 
-+	if (!(cgrp_dfl_root.flags & CGRP_GROUP_OOM))
-+		return -ENOTSUPP;
-+
- 	err = kstrtoint(strstrip(buf), 0, &oom_group);
- 	if (err)
- 		return err;
+ # Sergey Senozhatsky, 2015
+ # sergey.senozhatsky.work@gmail.com
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from changcheng.liu@intel.com are
 
-mm-show-total-hugetlb-memory-consumption-in-proc-meminfo.patch
-mm-oom-refactor-the-oom_kill_process-function.patch
-mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch
-mm-oom-cgroup-aware-oom-killer.patch
-mm-oom-introduce-memoryoom_group.patch
-mm-oom-introduce-memoryoom_group-fix.patch
-mm-oom-add-cgroup-v2-mount-option-for-cgroup-aware-oom-killer.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix.patch
-cgroup-list-groupoom-in-cgroup-features.patch
+scripts-faddr2line-fix-cross_compile-unset-error.patch
+tools-slabinfo-gnuplot-force-to-use-bash-shell.patch
 
