@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+Subject: + mm-huge_memory-fix-comment-in-__split_huge_pmd_locked.patch
  added to -mm tree
-Date: Thu, 07 Dec 2017 16:05:16 -0800
-Message-ID: <5a29d73c.PiTnMfeprfX+kq1s%akpm@linux-foundation.org>
+Date: Thu, 07 Dec 2017 16:11:51 -0800
+Message-ID: <5a29d8c7.b6sXiT+mi9WCBSIY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60278 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752182AbdLHAFR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 19:05:17 -0500
+        with ESMTP id S1752484AbdLHALw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 19:11:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, sergey.senozhatsky.work@gmail.com, surenb@google.com, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-terminate-shrink_slab-loop-if-signal-is-pending-fix
+     Subject: mm/huge_memory.c: fix comment in __split_huge_pmd_locked
 has been added to the -mm tree.  Its filename is
-     mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+     mm-huge_memory-fix-comment-in-__split_huge_pmd_locked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-fix-comment-in-__split_huge_pmd_locked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-fix-comment-in-__split_huge_pmd_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-terminate-shrink_slab-loop-if-signal-is-pending-fix
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/huge_memory.c: fix comment in __split_huge_pmd_locked
 
-fix build, per Sergey
+pmd_trans_splitting() was removed after THP refcounting redesign,
+therefore related comment should be updated.
 
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1512625745-59451-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-terminate-shrink_slab-loop-if-signal-is-pending-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-terminate-shrink_slab-loop-if-signal-is-pending-fix
-+++ a/mm/vmscan.c
-@@ -490,7 +490,7 @@ static unsigned long shrink_slab(gfp_t g
- 		 * We are about to die and free our memory.
- 		 * Stop shrinking which might delay signal handling.
- 		 */
--		if (unlikely(fatal_signal_pending(current))
-+		if (unlikely(fatal_signal_pending(current)))
- 			break;
- 
- 		/*
+diff -puN mm/huge_memory.c~mm-huge_memory-fix-comment-in-__split_huge_pmd_locked mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memory-fix-comment-in-__split_huge_pmd_locked
++++ a/mm/huge_memory.c
+@@ -2205,10 +2205,9 @@ static void __split_huge_pmd_locked(stru
+ 	 * for the same virtual address to be loaded simultaneously. So instead
+ 	 * of doing "pmd_populate(); flush_pmd_tlb_range();" we first mark the
+ 	 * current pmd notpresent (atomically because here the pmd_trans_huge
+-	 * and pmd_trans_splitting must remain set at all times on the pmd
+-	 * until the split is complete for this pmd), then we flush the SMP TLB
+-	 * and finally we write the non-huge version of the pmd entry with
+-	 * pmd_populate.
++	 * must remain set at all times on the pmd until the split is complete
++	 * for this pmd), then we flush the SMP TLB and finally we write the
++	 * non-huge version of the pmd entry with pmd_populate.
+ 	 */
+ 	pmdp_invalidate(vma, haddr, pmd);
+ 	pmd_populate(mm, pmd, pgtable);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
-i-need-old-gcc.patch
-mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
-stringh-work-around-for-increased-stack-usage-fix.patch
-mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+mm-mempolicy-remove-redundant-check-in-get_nodes.patch
+mm-mempolicy-fix-the-check-of-nodemask-from-user.patch
+mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
+mm-huge_memory-fix-comment-in-__split_huge_pmd_locked.patch
 
