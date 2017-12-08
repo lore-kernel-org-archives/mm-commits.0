@@ -1,123 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: +
- arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
- added to -mm tree
-Date: Fri, 08 Dec 2017 14:45:39 -0800
-Message-ID: <5a2b1613.ut1A63LfdvqEhV7+%akpm@linux-foundation.org>
+Subject: [nacked]
+ ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres.patch
+ removed from -mm tree
+Date: Fri, 08 Dec 2017 14:52:36 -0800
+Message-ID: <5a2b17b4.CoXOoDJylTL5mZfI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753478AbdLHWpl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:45:41 -0500
+        with ESMTP id S1752730AbdLHWwh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:52:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, linux@armlinux.org.uk, mgorman@techsingularity.net, mhocko@suse.com, mina86@mina86.com, minchan@kernel.org, m.szyprowski@samsung.com, riel@redhat.com, tony@atomide.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, alex.chen@huawei.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: CMA: avoid double mapping to the CMA area if CONFIG_HIGHMEM=y
-has been added to the -mm tree.  Its filename is
-     arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
+     Subject: ocfs2/dlm: wait for dlm recovery done when migrating all lockres
+has been removed from the -mm tree.  Its filename was
+     ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-%3D-y.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-%3D-y.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: ARM: CMA: avoid double mapping to the CMA area if CONFIG_HIGHMEM=y
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2/dlm: wait for dlm recovery done when migrating all lockres
 
-CMA area is now managed by the separate zone, ZONE_MOVABLE, to fix many MM
-related problems.  In this implementation, if CONFIG_HIGHMEM = y, then
-ZONE_MOVABLE is considered as HIGHMEM and the memory of the CMA area is
-also considered as HIGHMEM.  That means that they are considered as the
-page without direct mapping.  However, CMA area could be in a lowmem and
-the memory could have direct mapping.
+wait for dlm recovery done when migrating all lockres in case of new
+lockres to be left after leaving dlm domain.
 
-In ARM, when establishing a new mapping for DMA, direct mapping should be
-cleared since two mapping with different cache policy could cause unknown
-problem.  With this patch, PageHighmem() for the CMA memory located in
-lowmem returns true so that the function for DMA mapping cannot notice
-whether it needs to clear direct mapping or not, correctly.  To handle
-this situation, this patch always clears direct mapping for such CMA
-memory.
+      NodeA                       NodeB                NodeC
 
-Link: http://lkml.kernel.org/r/1512114786-5085-4-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will.deacon@arm.com>
+umount and migrate
+all lockres
+
+                                 node down
+
+do recovery for NodeB
+and collect a new lockres
+form other live nodes
+
+leave domain but the
+new lockres remains
+
+                                                  mount and join domain
+
+                                                  request for the owner
+                                                  of the new lockres, but
+                                                  all the other nodes said
+                                                  'NO', so NodeC decide to
+                                                  the owner, and send do
+                                                  assert msg to other nodes.
+
+                                                  other nodes receive the msg
+                                                  and found two masters exist.
+                                                  at last cause BUG in
+                                                  dlm_assert_master_handler()
+                                                  -->BUG();
+
+Link: http://lkml.kernel.org/r/59FFB7AD.90108@huawei.com
+Fixes: bc9838c4d44a ("dlm: allow dlm do recovery during shutdown")
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/dma-mapping.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmcommon.h   |    1 +
+ fs/ocfs2/dlm/dlmdomain.c   |   14 ++++++++++++++
+ fs/ocfs2/dlm/dlmrecovery.c |   13 ++++++++++---
+ 3 files changed, 25 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/mm/dma-mapping.c~arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y arch/arm/mm/dma-mapping.c
---- a/arch/arm/mm/dma-mapping.c~arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -466,6 +466,12 @@ void __init dma_contiguous_early_fixup(p
- void __init dma_contiguous_remap(void)
- {
- 	int i;
-+
-+	if (!dma_mmu_remap_num)
-+		return;
-+
-+	/* call flush_cache_all() since CMA area would be large enough */
-+	flush_cache_all();
- 	for (i = 0; i < dma_mmu_remap_num; i++) {
- 		phys_addr_t start = dma_mmu_remap[i].base;
- 		phys_addr_t end = start + dma_mmu_remap[i].size;
-@@ -498,7 +504,15 @@ void __init dma_contiguous_remap(void)
- 		flush_tlb_kernel_range(__phys_to_virt(start),
- 				       __phys_to_virt(end));
- 
--		iotable_init(&map, 1);
-+		/*
-+		 * All the memory in CMA region will be on ZONE_MOVABLE.
-+		 * If that zone is considered as highmem, the memory in CMA
-+		 * region is also considered as highmem even if it's
-+		 * physical address belong to lowmem. In this case,
-+		 * re-mapping isn't required.
-+		 */
-+		if (!is_highmem_idx(ZONE_MOVABLE))
-+			iotable_init(&map, 1);
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -140,6 +140,7 @@ struct dlm_ctxt
+ 	u8 node_num;
+ 	u32 key;
+ 	u8  joining_node;
++	u8 migrate_done; /* set to 1 means node has migrated all lockres */
+ 	wait_queue_head_t dlm_join_events;
+ 	unsigned long live_nodes_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
+ 	unsigned long domain_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -461,6 +461,18 @@ redo_bucket:
+ 		cond_resched_lock(&dlm->spinlock);
+ 		num += n;
  	}
++
++	if (!num) {
++		if (dlm->reco.state & DLM_RECO_STATE_ACTIVE) {
++			mlog(0, "%s: perhaps there are more lock resources need to "
++					"be migrated after dlm recovery\n", dlm->name);
++			ret = -EAGAIN;
++		} else {
++			mlog(0, "%s: we won't do dlm recovery after migrating all lockres",
++					dlm->name);
++			dlm->migrate_done = 1;
++		}
++	}
+ 	spin_unlock(&dlm->spinlock);
+ 	wake_up(&dlm->dlm_thread_wq);
+ 
+@@ -2052,6 +2064,8 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
+ 	dlm->joining_node = DLM_LOCK_RES_OWNER_UNKNOWN;
+ 	init_waitqueue_head(&dlm->dlm_join_events);
+ 
++	dlm->migrate_done = 0;
++
+ 	dlm->reco.new_master = O2NM_INVALID_NODE_NUM;
+ 	dlm->reco.dead_node = O2NM_INVALID_NODE_NUM;
+ 
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -423,12 +423,11 @@ void dlm_wait_for_recovery(struct dlm_ct
+ 
+ static void dlm_begin_recovery(struct dlm_ctxt *dlm)
+ {
+-	spin_lock(&dlm->spinlock);
++	assert_spin_locked(&dlm->spinlock);
+ 	BUG_ON(dlm->reco.state & DLM_RECO_STATE_ACTIVE);
+ 	printk(KERN_NOTICE "o2dlm: Begin recovery on domain %s for node %u\n",
+ 	       dlm->name, dlm->reco.dead_node);
+ 	dlm->reco.state |= DLM_RECO_STATE_ACTIVE;
+-	spin_unlock(&dlm->spinlock);
  }
+ 
+ static void dlm_end_recovery(struct dlm_ctxt *dlm)
+@@ -456,6 +455,13 @@ static int dlm_do_recovery(struct dlm_ct
+ 
+ 	spin_lock(&dlm->spinlock);
+ 
++	if (dlm->migrate_done) {
++		mlog(0, "%s: no need do recovery after migrating all lockres\n",
++				dlm->name);
++		spin_unlock(&dlm->spinlock);
++		return 0;
++	}
++
+ 	/* check to see if the new master has died */
+ 	if (dlm->reco.new_master != O2NM_INVALID_NODE_NUM &&
+ 	    test_bit(dlm->reco.new_master, dlm->recovery_map)) {
+@@ -490,12 +496,13 @@ static int dlm_do_recovery(struct dlm_ct
+ 	mlog(0, "%s(%d):recovery thread found node %u in the recovery map!\n",
+ 	     dlm->name, task_pid_nr(dlm->dlm_reco_thread_task),
+ 	     dlm->reco.dead_node);
+-	spin_unlock(&dlm->spinlock);
+ 
+ 	/* take write barrier */
+ 	/* (stops the list reshuffling thread, proxy ast handling) */
+ 	dlm_begin_recovery(dlm);
+ 
++	spin_unlock(&dlm->spinlock);
++
+ 	if (dlm->reco.new_master == dlm->node_num)
+ 		goto master_here;
  
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request.patch
-mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
-mm-cma-remove-alloc_cma.patch
-arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
 
