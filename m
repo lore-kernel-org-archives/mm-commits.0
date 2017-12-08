@@ -1,71 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres.patch
- removed from -mm tree
-Date: Fri, 08 Dec 2017 14:52:36 -0800
-Message-ID: <5a2b17b4.CoXOoDJylTL5mZfI%akpm@linux-foundation.org>
+Subject: +
+ renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch added to -mm tree
+Date: Fri, 08 Dec 2017 14:56:33 -0800
+Message-ID: <5a2b18a1.F0U0p2f5MeNFqqCm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56842 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752730AbdLHWwh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:52:37 -0500
+        with ESMTP id S1752662AbdLHW4e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:56:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, alex.chen@huawei.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: zhang.yangB@h3c.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: wait for dlm recovery done when migrating all lockres
-has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres.patch
+     Subject: ocfs2/cluster: close a race that fence can't be triggered
+has been added to the -mm tree.  Its filename is
+     renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/dlm: wait for dlm recovery done when migrating all lockres
+From: Yang Zhang <zhang.yangB@h3c.com>
+Subject: ocfs2/cluster: close a race that fence can't be triggered
 
-wait for dlm recovery done when migrating all lockres in case of new
-lockres to be left after leaving dlm domain.
+When some nodes of cluster face with TCP connection fault, ocfs2 will pick
+up a quorum to continue to work and other nodes will be fenced by
+resetting host.
 
-      NodeA                       NodeB                NodeC
+In order to decide which node should be fenced, ocfs2 leverages
+o2quo_state::qs_holds.  If that variable is reduced to zero, then a try to
+decide if fence local node is performed.  However, under a specific
+scenario that local node is not disconnected from others at the same time,
+above method has a problem to reduce ::qs_holds to zero.
 
-umount and migrate
-all lockres
+Because, o2net 90s idle timer corresponding to different nodes is
+triggered one after another.
 
-                                 node down
+node 2				node 3
+90s idle timer elapses
+clear ::qs_conn_bm
+set hold
+				40s is passed
+				90 idle timer elapses
+				clear ::qs_conn_bm
+				set hold
+still up timer elapses
+clear hold (NOT to zero )
+90s idle timer elapses AGAIN
+				still up timer elapses.
+				clear hold
+				still up timer elapses
 
-do recovery for NodeB
-and collect a new lockres
-form other live nodes
+To solve this issue, a node which has already be evicted from ::qs_conn_bm
+can't set hold again and again invoked from idle timer.
 
-leave domain but the
-new lockres remains
-
-                                                  mount and join domain
-
-                                                  request for the owner
-                                                  of the new lockres, but
-                                                  all the other nodes said
-                                                  'NO', so NodeC decide to
-                                                  the owner, and send do
-                                                  assert msg to other nodes.
-
-                                                  other nodes receive the msg
-                                                  and found two masters exist.
-                                                  at last cause BUG in
-                                                  dlm_assert_master_handler()
-                                                  -->BUG();
-
-Link: http://lkml.kernel.org/r/59FFB7AD.90108@huawei.com
-Fixes: bc9838c4d44a ("dlm: allow dlm do recovery during shutdown")
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F3F93B@H3CMLB12-EX.srv.huawei-3com.com
+Signed-off-by: Yang Zhang <zhang.yangB@h3c.com>
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -73,101 +83,32 @@ Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h   |    1 +
- fs/ocfs2/dlm/dlmdomain.c   |   14 ++++++++++++++
- fs/ocfs2/dlm/dlmrecovery.c |   13 ++++++++++---
- 3 files changed, 25 insertions(+), 3 deletions(-)
+ fs/ocfs2/cluster/quorum.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -140,6 +140,7 @@ struct dlm_ctxt
- 	u8 node_num;
- 	u32 key;
- 	u8  joining_node;
-+	u8 migrate_done; /* set to 1 means node has migrated all lockres */
- 	wait_queue_head_t dlm_join_events;
- 	unsigned long live_nodes_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
- 	unsigned long domain_map[BITS_TO_LONGS(O2NM_MAX_NODES)];
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -461,6 +461,18 @@ redo_bucket:
- 		cond_resched_lock(&dlm->spinlock);
- 		num += n;
+diff -puN fs/ocfs2/cluster/quorum.c~renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero fs/ocfs2/cluster/quorum.c
+--- a/fs/ocfs2/cluster/quorum.c~renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero
++++ a/fs/ocfs2/cluster/quorum.c
+@@ -314,12 +314,13 @@ void o2quo_conn_err(u8 node)
+ 				node, qs->qs_connected);
+ 
+ 		clear_bit(node, qs->qs_conn_bm);
++
++		if (test_bit(node, qs->qs_hb_bm))
++			o2quo_set_hold(qs, node);
  	}
-+
-+	if (!num) {
-+		if (dlm->reco.state & DLM_RECO_STATE_ACTIVE) {
-+			mlog(0, "%s: perhaps there are more lock resources need to "
-+					"be migrated after dlm recovery\n", dlm->name);
-+			ret = -EAGAIN;
-+		} else {
-+			mlog(0, "%s: we won't do dlm recovery after migrating all lockres",
-+					dlm->name);
-+			dlm->migrate_done = 1;
-+		}
-+	}
- 	spin_unlock(&dlm->spinlock);
- 	wake_up(&dlm->dlm_thread_wq);
  
-@@ -2052,6 +2064,8 @@ static struct dlm_ctxt *dlm_alloc_ctxt(c
- 	dlm->joining_node = DLM_LOCK_RES_OWNER_UNKNOWN;
- 	init_waitqueue_head(&dlm->dlm_join_events);
+ 	mlog(0, "node %u, %d total\n", node, qs->qs_connected);
  
-+	dlm->migrate_done = 0;
-+
- 	dlm->reco.new_master = O2NM_INVALID_NODE_NUM;
- 	dlm->reco.dead_node = O2NM_INVALID_NODE_NUM;
+-	if (test_bit(node, qs->qs_hb_bm))
+-		o2quo_set_hold(qs, node);
  
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -423,12 +423,11 @@ void dlm_wait_for_recovery(struct dlm_ct
- 
- static void dlm_begin_recovery(struct dlm_ctxt *dlm)
- {
--	spin_lock(&dlm->spinlock);
-+	assert_spin_locked(&dlm->spinlock);
- 	BUG_ON(dlm->reco.state & DLM_RECO_STATE_ACTIVE);
- 	printk(KERN_NOTICE "o2dlm: Begin recovery on domain %s for node %u\n",
- 	       dlm->name, dlm->reco.dead_node);
- 	dlm->reco.state |= DLM_RECO_STATE_ACTIVE;
--	spin_unlock(&dlm->spinlock);
+ 	spin_unlock(&qs->qs_lock);
  }
- 
- static void dlm_end_recovery(struct dlm_ctxt *dlm)
-@@ -456,6 +455,13 @@ static int dlm_do_recovery(struct dlm_ct
- 
- 	spin_lock(&dlm->spinlock);
- 
-+	if (dlm->migrate_done) {
-+		mlog(0, "%s: no need do recovery after migrating all lockres\n",
-+				dlm->name);
-+		spin_unlock(&dlm->spinlock);
-+		return 0;
-+	}
-+
- 	/* check to see if the new master has died */
- 	if (dlm->reco.new_master != O2NM_INVALID_NODE_NUM &&
- 	    test_bit(dlm->reco.new_master, dlm->recovery_map)) {
-@@ -490,12 +496,13 @@ static int dlm_do_recovery(struct dlm_ct
- 	mlog(0, "%s(%d):recovery thread found node %u in the recovery map!\n",
- 	     dlm->name, task_pid_nr(dlm->dlm_reco_thread_task),
- 	     dlm->reco.dead_node);
--	spin_unlock(&dlm->spinlock);
- 
- 	/* take write barrier */
- 	/* (stops the list reshuffling thread, proxy ast handling) */
- 	dlm_begin_recovery(dlm);
- 
-+	spin_unlock(&dlm->spinlock);
-+
- 	if (dlm->reco.new_master == dlm->node_num)
- 		goto master_here;
- 
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from zhang.yangB@h3c.com are
 
+renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+ocfs2-fix-qs_holds-may-could-not-be-zero.patch
 
