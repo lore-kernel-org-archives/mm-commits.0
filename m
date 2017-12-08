@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch added
- to -mm tree
-Date: Thu, 07 Dec 2017 16:15:50 -0800
-Message-ID: <5a29d9b6.TdwWb/XV+5xXKSg5%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-memoryoom_group-fix.patch added to -mm tree
+Date: Thu, 07 Dec 2017 17:37:39 -0800
+Message-ID: <5a29ece3.oNq9NU4kW+4emTLE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbdLHAPz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 19:15:55 -0500
+        with ESMTP id S1751001AbdLHBhn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2017 20:37:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rppt@linux.vnet.ibm.com, viro@zeniv.linux.org.UK, zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
+To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, userfaultfd, THP: avoid waiting when PMD under THP migration
+     Subject: mm, oom: return error on access to memory.oom_group if groupoom is disabled
 has been added to the -mm tree.  Its filename is
-     mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch
+     mm-oom-introduce-memoryoom_group-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-memoryoom_group-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-memoryoom_group-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,73 +38,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, userfaultfd, THP: avoid waiting when PMD under THP migration
+From: Roman Gushchin <guro@fb.com>
+Subject: mm, oom: return error on access to memory.oom_group if groupoom is disabled
 
-If THP migration is enabled, for a VMA handled by userfaultfd, consider
-the following situation,
+Cgroup-aware OOM killer depends on cgroup mount option and is turned off
+by default, despite the user interface (memory.oom_group file) is always
+present.  As it might be confusing to a user, let's return -ENOTSUPP on an
+attempt to access to memory.oom_group if groupoom is not enabled globally.
 
-do_page_fault()
-  __do_huge_pmd_anonymous_page()
-   handle_userfault()
-     userfault_msg()
-       /* a huge page is allocated and mapped at fault address */
-       /* the huge page is under migration, leaves migration entry
-          in page table */
-     userfaultfd_must_wait()
-       /* return true because !pmd_present() */
-     /* may wait in loop until fatal signal */
+Example:
+  $ cd /sys/fs/cgroup/user.slice/
+  $ cat memory.oom_group
+    cat: memory.oom_group: Unknown error 524
+  $ echo 1 > memory.oom_group
+    -bash: echo: write error: Unknown error 524
+  $ mount -o remount,groupoom /sys/fs/cgroup
+  $ echo 1 > memory.oom_group
+  $ cat memory.oom_group
+    1
 
-That is, it may be possible for userfaultfd_must_wait() encounters a PMD
-entry which is !pmd_none() && !pmd_present().  In the current
-implementation, we will wait for such PMD entries, which may cause
-unnecessary waiting, and potential soft lockup.
-
-This is fixed via avoiding to wait when !pmd_none() && !pmd_present(),
-only wait when pmd_none().
-
-This may be not a problem in practice, because userfaultfd_must_wait() is
-always called with mm->mmap_sem read-locked.  mremap() will write-lock
-mm->mmap_sem.  And UFFDIO_COPY doesn't support to copy THP mapping.  But
-the change introduced still makes the code more correct, and makes the PMD
-and PTE code more consistent.
-
-Link: http://lkml.kernel.org/r/20171207011752.3292-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.UK>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20171201170004.GA27436@castle.DHCP.thefacebook.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/userfaultfd.c~mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration fs/userfaultfd.c
---- a/fs/userfaultfd.c~mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration
-+++ a/fs/userfaultfd.c
-@@ -294,10 +294,13 @@ static inline bool userfaultfd_must_wait
- 	 * pmd_trans_unstable) of the pmd.
- 	 */
- 	_pmd = READ_ONCE(*pmd);
--	if (!pmd_present(_pmd))
-+	if (pmd_none(_pmd))
- 		goto out;
+diff -puN mm/memcontrol.c~mm-oom-introduce-memoryoom_group-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-oom-introduce-memoryoom_group-fix
++++ a/mm/memcontrol.c
+@@ -5479,6 +5479,9 @@ static int memory_oom_group_show(struct
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+ 	bool oom_group = memcg->oom_group;
  
- 	ret = false;
-+	if (!pmd_present(_pmd))
-+		goto out;
++	if (!(cgrp_dfl_root.flags & CGRP_GROUP_OOM))
++		return -ENOTSUPP;
 +
- 	if (pmd_trans_huge(_pmd))
- 		goto out;
+ 	seq_printf(m, "%d\n", oom_group);
  
+ 	return 0;
+@@ -5492,6 +5495,9 @@ static ssize_t memory_oom_group_write(st
+ 	int oom_group;
+ 	int err;
+ 
++	if (!(cgrp_dfl_root.flags & CGRP_GROUP_OOM))
++		return -ENOTSUPP;
++
+ 	err = kstrtoint(strstrip(buf), 0, &oom_group);
+ 	if (err)
+ 		return err;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from guro@fb.com are
 
-mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch
+mm-show-total-hugetlb-memory-consumption-in-proc-meminfo.patch
+mm-oom-refactor-the-oom_kill_process-function.patch
+mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch
+mm-oom-cgroup-aware-oom-killer.patch
+mm-oom-introduce-memoryoom_group.patch
+mm-oom-introduce-memoryoom_group-fix.patch
+mm-oom-add-cgroup-v2-mount-option-for-cgroup-aware-oom-killer.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix.patch
+cgroup-list-groupoom-in-cgroup-features.patch
 
