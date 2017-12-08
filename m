@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-remove-unneeded-kallsyms-include.patch added to -mm
+Subject: + workqueue-remove-unneeded-kallsyms-include.patch added to -mm
  tree
-Date: Fri, 08 Dec 2017 14:25:00 -0800
-Message-ID: <5a2b113c.mljf/BLLPTpTaF2+%akpm@linux-foundation.org>
+Date: Fri, 08 Dec 2017 14:24:57 -0800
+Message-ID: <5a2b1139.jZYr7Q7NzLcaLMKG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753536AbdLHWZB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:25:01 -0500
+        with ESMTP id S1752350AbdLHWY6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:24:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, jiangshanlai@gmail.com, sergey.senozhatsky@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hrtimer: remove unneeded kallsyms include
+     Subject: workqueue: remove unneeded kallsyms include
 has been added to the -mm tree.  Its filename is
-     hrtimer-remove-unneeded-kallsyms-include.patch
+     workqueue-remove-unneeded-kallsyms-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hrtimer-remove-unneeded-kallsyms-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/workqueue-remove-unneeded-kallsyms-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hrtimer-remove-unneeded-kallsyms-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/workqueue-remove-unneeded-kallsyms-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +40,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: hrtimer: remove unneeded kallsyms include
+Subject: workqueue: remove unneeded kallsyms include
 
-hrtimer does not seem to use any of kallsyms functions/defines.
+The file was converted from print_symbol() to %pf some time ago in
+044c782ce3a901fb ("workqueue: fix checkpatch issues").  kallsyms does not
+seem to be needed anymore.
 
-Link: http://lkml.kernel.org/r/20171208025616.16267-9-sergey.senozhatsky@gmail.com
+Link: http://lkml.kernel.org/r/20171208025616.16267-8-sergey.senozhatsky@gmail.com
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/hrtimer.c |    1 -
+ kernel/workqueue.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN kernel/time/hrtimer.c~hrtimer-remove-unneeded-kallsyms-include kernel/time/hrtimer.c
---- a/kernel/time/hrtimer.c~hrtimer-remove-unneeded-kallsyms-include
-+++ a/kernel/time/hrtimer.c
-@@ -37,7 +37,6 @@
- #include <linux/hrtimer.h>
- #include <linux/notifier.h>
- #include <linux/syscalls.h>
+diff -puN kernel/workqueue.c~workqueue-remove-unneeded-kallsyms-include kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-remove-unneeded-kallsyms-include
++++ a/kernel/workqueue.c
+@@ -38,7 +38,6 @@
+ #include <linux/hardirq.h>
+ #include <linux/mempolicy.h>
+ #include <linux/freezer.h>
 -#include <linux/kallsyms.h>
- #include <linux/interrupt.h>
- #include <linux/tick.h>
- #include <linux/seq_file.h>
+ #include <linux/debug_locks.h>
+ #include <linux/lockdep.h>
+ #include <linux/idr.h>
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
