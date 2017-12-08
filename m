@@ -1,76 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch removed
- from -mm tree
-Date: Fri, 08 Dec 2017 14:31:56 -0800
-Message-ID: <5a2b12dc.+z1SMkC7MJG4Zdzq%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request.patch
+ added to -mm tree
+Date: Fri, 08 Dec 2017 14:45:28 -0800
+Message-ID: <5a2b1608.fzedxVmuuLgSQW11%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55330 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752631AbdLHWb5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:31:57 -0500
+        with ESMTP id S1753099AbdLHWpa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:45:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 00moses.alexander00@gmail.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, khandual@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, linux-api@vger.kernel.org, linux@armlinux.org.uk, mgorman@techsingularity.net, mhocko@suse.com, mina86@mina86.com, minchan@kernel.org, m.szyprowski@samsung.com, riel@redhat.com, tony@atomide.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: enable soft offline of HugeTLB pages at PUD level
-has been removed from the -mm tree.  Its filename was
-     mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
+     Subject: mm/page_alloc: don't reserve ZONE_HIGHMEM for ZONE_MOVABLE request
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandru Moise <00moses.alexander00@gmail.com>
-Subject: mm/madvise: enable soft offline of HugeTLB pages at PUD level
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_alloc: don't reserve ZONE_HIGHMEM for ZONE_MOVABLE request
 
-Since 94310cbcaa3c2 ("mm/madvise: enable (soft|hard) offline of HugeTLB
-pages at PGD level") we've been able to soft offline 1G hugepages at the
-PGD level, however x86_64 gigantic hugepages are at the PUD level so we
-should add an extra check to account for hstate order at PUD level.
+Freepage on ZONE_HIGHMEM doesn't work for kernel memory so it's not that
+important to reserve.  When ZONE_MOVABLE is used, this problem would
+theorectically cause to decrease usable memory for GFP_HIGHUSER_MOVABLE
+allocation request which is mainly used for page cache and anon page
+allocation.  So, fix it by setting 0 to
+sysctl_lowmem_reserve_ratio[ZONE_HIGHMEM].
 
-It allows migration of 1G pages in general.  It also makes these pages
-allocated with GFP_HIGHUSER_MOVABLE instead of GFP_HIGHUSER.
+And, defining sysctl_lowmem_reserve_ratio array by MAX_NR_ZONES - 1 size
+makes code complex.  For example, if there is highmem system, following
+reserve ratio is activated for *NORMAL ZONE* which would be easyily
+misleading people.
 
-There's nothing changed in this regard in 5-level paging mode.  PUD is
-still one gig and there are no new page sizes.
+ #ifdef CONFIG_HIGHMEM
+ 32
+ #endif
 
-Tested with 4 level pagetable.
+This patch also fixes this situation by defining
+sysctl_lowmem_reserve_ratio array by MAX_NR_ZONES and place "#ifdef" to
+right place.
 
-Link: http://lkml.kernel.org/r/20170913101047.GA13026@gmail.com
-Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
+Link: http://lkml.kernel.org/r/1504672525-17915-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Tony Lindgren <tony@atomide.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/sysctl/vm.txt |    5 ++---
+ include/linux/mmzone.h      |    2 +-
+ mm/page_alloc.c             |   25 ++++++++++++++-----------
+ 3 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level
-+++ a/include/linux/hugetlb.h
-@@ -472,6 +472,7 @@ static inline bool hugepage_migration_su
- {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	if ((huge_page_shift(h) == PMD_SHIFT) ||
-+		(huge_page_shift(h) == PUD_SHIFT) ||
- 		(huge_page_shift(h) == PGDIR_SHIFT))
- 		return true;
- 	else
-_
-
-Patches currently in -mm which might be from 00moses.alexander00@gmail.com are
-
-
+diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request
++++ a/Documentation/sysctl/vm.txt
+@@ -312,8 +312,6 @@ The lowmem_reserve_ratio is an array. Yo
+ % cat /proc/sys/vm/lowmem_reserve_ratio
+ 256     256     32
+ -
+-Note: # of this elements is one fewer than number of zones. Because the highest
+-      zone's value is not necessary for following calculation.
+ 
+ But, these values are not used directly. The kernel calculates # of protection
+ pages for each zones from them. These are shown as array of protection pages
+@@ -364,7 +362,8 @@ As above expression, they are reciprocal
+ pages of higher zones on the node.
+ 
+ If you would like to protect more pages, smaller values are effective.
+-The minimum value is 1 (1/1 -> 100%).
++The minimum value is 1 (1/1 -> 100%). The value less than 1 completely
++disables protection of the pages.
+ 
+ ==============================================================
+ 
+diff -puN include/linux/mmzone.h~mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request
++++ a/include/linux/mmzone.h
+@@ -886,7 +886,7 @@ int min_free_kbytes_sysctl_handler(struc
+ 					void __user *, size_t *, loff_t *);
+ int watermark_scale_factor_sysctl_handler(struct ctl_table *, int,
+ 					void __user *, size_t *, loff_t *);
+-extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES-1];
++extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES];
+ int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *, int,
+ 					void __user *, size_t *, loff_t *);
+ int percpu_pagelist_fraction_sysctl_handler(struct ctl_table *, int,
+diff -puN mm/page_alloc.c~mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request
++++ a/mm/page_alloc.c
+@@ -204,17 +204,18 @@ static void __free_pages_ok(struct page
+  * TBD: should special case ZONE_DMA32 machines here - in those we normally
+  * don't need any ZONE_NORMAL reservation
+  */
+-int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES-1] = {
++int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES] = {
+ #ifdef CONFIG_ZONE_DMA
+-	 256,
++	[ZONE_DMA] = 256,
+ #endif
+ #ifdef CONFIG_ZONE_DMA32
+-	 256,
++	[ZONE_DMA32] = 256,
+ #endif
++	[ZONE_NORMAL] = 32,
+ #ifdef CONFIG_HIGHMEM
+-	 32,
++	[ZONE_HIGHMEM] = 0,
+ #endif
+-	 32,
++	[ZONE_MOVABLE] = 0,
+ };
+ 
+ EXPORT_SYMBOL(totalram_pages);
+@@ -6971,13 +6972,15 @@ static void setup_per_zone_lowmem_reserv
+ 				struct zone *lower_zone;
+ 
+ 				idx--;
+-
+-				if (sysctl_lowmem_reserve_ratio[idx] < 1)
+-					sysctl_lowmem_reserve_ratio[idx] = 1;
