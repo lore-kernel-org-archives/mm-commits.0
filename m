@@ -1,205 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock.patch removed from -mm tree
-Date: Fri, 08 Dec 2017 14:03:27 -0800
-Message-ID: <5a2b0c2f.YZtYDM3K6Kn2UX1A%akpm@linux-foundation.org>
+Subject: + mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct.patch
+ added to -mm tree
+Date: Fri, 08 Dec 2017 14:19:44 -0800
+Message-ID: <5a2b1000.G5Rk1eWws7t8P4n8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50908 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752597AbdLHWD3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:03:29 -0500
+        with ESMTP id S1752644AbdLHWTq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:19:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, benh@kernel.crashing.org, jane.chu@oracle.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix a potential 'ABBA' deadlock caused by 'l_lock' and 'dentry_attach_lock'
-has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock.patch
+     Subject: mm, hugetlbfs: introduce ->pagesize() to vm_operations_struct
+has been added to the -mm tree.  Its filename is
+     mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jun Piao <piaojun@huawei.com>
-Subject: ocfs2: fix a potential 'ABBA' deadlock caused by 'l_lock' and 'dentry_attach_lock'
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm, hugetlbfs: introduce ->pagesize() to vm_operations_struct
 
-       CPUA                                      CPUB
+When device-dax is operating in huge-page mode we want it to behave like
+hugetlbfs and report the MMU page mapping size that is being enforced by
+the vma.  Similar to 31383c6865a5 ("mm, hugetlbfs: introduce ->split() to
+vm_operations_struct") it would be messy to teach vma_mmu_pagesize() about
+device-dax page mapping sizes in the same (hstate) way that hugetlbfs
+communicates this attribute.  Instead, these patches introduce a new
+->pagesize() vm operation.
 
-ocfs2_dentry_convert_worker
-get 'l_lock'
-
-                                    get 'dentry_attach_lock'
-
-                                    interruptted by dio_end_io:
-                                      dio_end_io
-                                        dio_bio_end_aio
-                                          dio_complete
-                                            dio->end_io
-                                              ocfs2_dio_end_io
-                                                ocfs2_rw_unlock
-                                                ...
-                                                try to get 'l_lock'
-                                                but CPUA has got it.
-
-We try to get 'dentry_attach_lock', but CPUB has taken
-'dentry_attach_lock' and would not release it.
-
-So we need use spin_lock_irqsave() for 'dentry_attach_lock' to prevent
-interruption by softirq.
-
-Link: http://lkml.kernel.org/r/5A2925FB.2060908@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <ge.changwei@h3c.com>
+Link: http://lkml.kernel.org/r/151270385525.21215.16828596212056611775.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dcache.c  |   14 ++++++++------
- fs/ocfs2/dlmglue.c |   14 +++++++-------
- fs/ocfs2/namei.c   |    5 +++--
- 3 files changed, 18 insertions(+), 15 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |    5 ----
+ include/linux/hugetlb.h       |   30 ++++++++++++++++++++-----
+ include/linux/mm.h            |    1 
+ mm/hugetlb.c                  |   38 ++++++--------------------------
+ 4 files changed, 34 insertions(+), 40 deletions(-)
 
-diff -puN fs/ocfs2/dcache.c~ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock fs/ocfs2/dcache.c
---- a/fs/ocfs2/dcache.c~ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock
-+++ a/fs/ocfs2/dcache.c
-@@ -230,6 +230,7 @@ int ocfs2_dentry_attach_lock(struct dent
- 	int ret;
- 	struct dentry *alias;
- 	struct ocfs2_dentry_lock *dl = dentry->d_fsdata;
-+	unsigned long flags;
- 
- 	trace_ocfs2_dentry_attach_lock(dentry->d_name.len, dentry->d_name.name,
- 				       (unsigned long long)parent_blkno, dl);
-@@ -309,10 +310,10 @@ int ocfs2_dentry_attach_lock(struct dent
- 	ocfs2_dentry_lock_res_init(dl, parent_blkno, inode);
- 
- out_attach:
--	spin_lock(&dentry_attach_lock);
-+	spin_lock_irqsave(&dentry_attach_lock, flags);
- 	dentry->d_fsdata = dl;
- 	dl->dl_count++;
--	spin_unlock(&dentry_attach_lock);
-+	spin_unlock_irqrestore(&dentry_attach_lock, flags);
- 
- 	/*
- 	 * This actually gets us our PRMODE level lock. From now on,
-@@ -333,9 +334,9 @@ out_attach:
- 	if (ret < 0 && !alias) {
- 		ocfs2_lock_res_free(&dl->dl_lockres);
- 		BUG_ON(dl->dl_count != 1);
--		spin_lock(&dentry_attach_lock);
-+		spin_lock_irqsave(&dentry_attach_lock, flags);
- 		dentry->d_fsdata = NULL;
--		spin_unlock(&dentry_attach_lock);
-+		spin_unlock_irqrestore(&dentry_attach_lock, flags);
- 		kfree(dl);
- 		iput(inode);
- 	}
-@@ -379,13 +380,14 @@ void ocfs2_dentry_lock_put(struct ocfs2_
- 			   struct ocfs2_dentry_lock *dl)
- {
- 	int unlock = 0;
-+	unsigned long flags;
- 
- 	BUG_ON(dl->dl_count == 0);
- 
--	spin_lock(&dentry_attach_lock);
-+	spin_lock_irqsave(&dentry_attach_lock, flags);
- 	dl->dl_count--;
- 	unlock = !dl->dl_count;
--	spin_unlock(&dentry_attach_lock);
-+	spin_unlock_irqrestore(&dentry_attach_lock, flags);
- 
- 	if (unlock)
- 		ocfs2_drop_dentry_lock(osb, dl);
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3801,7 +3801,7 @@ static int ocfs2_dentry_convert_worker(s
- 	struct ocfs2_dentry_lock *dl = ocfs2_lock_res_dl(lockres);
- 	struct ocfs2_inode_info *oi = OCFS2_I(dl->dl_inode);
- 	struct dentry *dentry;
--	unsigned long flags;
-+	unsigned long flags, d_flags;
- 	int extra_ref = 0;
- 
- 	/*
-@@ -3831,13 +3831,13 @@ static int ocfs2_dentry_convert_worker(s
- 	 * flag.
- 	 */
- 	spin_lock_irqsave(&lockres->l_lock, flags);
--	spin_lock(&dentry_attach_lock);
-+	spin_lock_irqsave(&dentry_attach_lock, d_flags);
- 	if (!(lockres->l_flags & OCFS2_LOCK_FREEING)
- 	    && dl->dl_count) {
- 		dl->dl_count++;
- 		extra_ref = 1;
- 	}
--	spin_unlock(&dentry_attach_lock);
-+	spin_unlock_irqrestore(&dentry_attach_lock, d_flags);
- 	spin_unlock_irqrestore(&lockres->l_lock, flags);
- 
- 	mlog(0, "extra_ref = %d\n", extra_ref);
-@@ -3850,13 +3850,13 @@ static int ocfs2_dentry_convert_worker(s
- 	if (!extra_ref)
- 		return UNBLOCK_CONTINUE;
- 
--	spin_lock(&dentry_attach_lock);
-+	spin_lock_irqsave(&dentry_attach_lock, d_flags);
- 	while (1) {
- 		dentry = ocfs2_find_local_alias(dl->dl_inode,
- 						dl->dl_parent_blkno, 1);
- 		if (!dentry)
- 			break;
--		spin_unlock(&dentry_attach_lock);
-+		spin_unlock_irqrestore(&dentry_attach_lock, d_flags);
- 
- 		if (S_ISDIR(dl->dl_inode->i_mode))
- 			shrink_dcache_parent(dentry);
-@@ -3874,9 +3874,9 @@ static int ocfs2_dentry_convert_worker(s
- 		d_delete(dentry);
- 		dput(dentry);
- 
--		spin_lock(&dentry_attach_lock);
-+		spin_lock_irqsave(&dentry_attach_lock, d_flags);
- 	}
--	spin_unlock(&dentry_attach_lock);
-+	spin_unlock_irqrestore(&dentry_attach_lock, d_flags);
- 
- 	/*
- 	 * If we are the last holder of this dentry lock, there is no
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-a-potential-abba-deadlock-caused-by-l_lock-and-dentry_attach_lock
-+++ a/fs/ocfs2/namei.c
-@@ -223,13 +223,14 @@ static void ocfs2_cleanup_add_entry_fail
- 		struct dentry *dentry, struct inode *inode)
- {
- 	struct ocfs2_dentry_lock *dl = dentry->d_fsdata;
-+	unsigned long flags;
- 
- 	ocfs2_simple_drop_lockres(osb, &dl->dl_lockres);
- 	ocfs2_lock_res_free(&dl->dl_lockres);
- 	BUG_ON(dl->dl_count != 1);
--	spin_lock(&dentry_attach_lock);
-+	spin_lock_irqsave(&dentry_attach_lock, flags);
- 	dentry->d_fsdata = NULL;
--	spin_unlock(&dentry_attach_lock);
-+	spin_unlock_irqrestore(&dentry_attach_lock, flags);
- 	kfree(dl);
- 	iput(inode);
+diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -568,10 +568,7 @@ unsigned long vma_mmu_pagesize(struct vm
+ 	if (!radix_enabled())
+ 		return 1UL << mmu_psize_to_shift(psize);
+ #endif
+-	if (!is_vm_hugetlb_page(vma))
+-		return PAGE_SIZE;
+-
+-	return huge_page_size(hstate_vma(vma));
++	return vma_kernel_pagesize(vma);
  }
+ 
+ static inline bool is_power_of_4(unsigned long x)
+diff -puN include/linux/hugetlb.h~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct
++++ a/include/linux/hugetlb.h
+@@ -253,6 +253,30 @@ enum {
+ 	HUGETLB_ANONHUGE_INODE  = 2,
+ };
+ 
++/*
++ * Return the size of the pages allocated when backing a VMA. In the majority
++ * cases this will be same size as used by the page table entries.
++ */
++static inline unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
++{
++	if (vma->vm_ops && vma->vm_ops->pagesize)
++		return vma->vm_ops->pagesize(vma);
++	return PAGE_SIZE;
++}
++
++/*
++ * Return the page size being used by the MMU to back a VMA. In the majority
++ * of cases, the page size used by the kernel matches the MMU size. On
++ * architectures where it differs, an architecture-specific version of this
++ * function is required.
++ */
++#ifndef vma_mmu_pagesize
++static inline unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
++{
++	return vma_kernel_pagesize(vma);
++}
++#endif
++
+ #ifdef CONFIG_HUGETLBFS
+ struct hugetlbfs_sb_info {
+ 	long	max_inodes;   /* inodes allowed */
+@@ -394,10 +418,6 @@ static inline unsigned long huge_page_si
+ 	return (unsigned long)PAGE_SIZE << h->order;
+ }
+ 
+-extern unsigned long vma_kernel_pagesize(struct vm_area_struct *vma);
+-
+-extern unsigned long vma_mmu_pagesize(struct vm_area_struct *vma);
+-
+ static inline unsigned long huge_page_mask(struct hstate *h)
+ {
+ 	return h->mask;
+@@ -532,8 +552,6 @@ struct hstate {};
+ #define page_hstate(page) NULL
+ #define huge_page_size(h) PAGE_SIZE
+ #define huge_page_mask(h) PAGE_MASK
+-#define vma_kernel_pagesize(v) PAGE_SIZE
+-#define vma_mmu_pagesize(v) PAGE_SIZE
+ #define huge_page_order(h) 0
+ #define huge_page_shift(h) PAGE_SHIFT
+ static inline bool hstate_is_gigantic(struct hstate *h)
+diff -puN include/linux/mm.h~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct include/linux/mm.h
+--- a/include/linux/mm.h~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct
++++ a/include/linux/mm.h
+@@ -383,6 +383,7 @@ struct vm_operations_struct {
+ 	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
++	unsigned long (*pagesize)(struct vm_area_struct * area);
+ 
+ 	/* notification that a previously read-only page is about to become
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+diff -puN mm/hugetlb.c~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct
++++ a/mm/hugetlb.c
+@@ -630,36 +630,6 @@ pgoff_t linear_hugepage_index(struct vm_
+ EXPORT_SYMBOL_GPL(linear_hugepage_index);
+ 
+ /*
+- * Return the size of the pages allocated when backing a VMA. In the majority
+- * cases this will be same size as used by the page table entries.
+- */
+-unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
+-{
+-	struct hstate *hstate;
+-
+-	if (!is_vm_hugetlb_page(vma))
+-		return PAGE_SIZE;
+-
+-	hstate = hstate_vma(vma);
+-
+-	return 1UL << huge_page_shift(hstate);
+-}
+-EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
+-
+-/*
+- * Return the page size being used by the MMU to back a VMA. In the majority
+- * of cases, the page size used by the kernel matches the MMU size. On
+- * architectures where it differs, an architecture-specific version of this
+- * function is required.
+- */
+-#ifndef vma_mmu_pagesize
+-unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
+-{
+-	return vma_kernel_pagesize(vma);
+-}
+-#endif
+-
+-/*
+  * Flags for MAP_PRIVATE reservations.  These are stored in the bottom
+  * bits of the reservation map pointer, which are always clear due to
+  * alignment.
+@@ -3142,6 +3112,13 @@ static int hugetlb_vm_op_split(struct vm
+ 	return 0;
+ }
+ 
++static unsigned long hugetlb_vm_op_pagesize(struct vm_area_struct *vma)
++{
++	struct hstate *hstate = hstate_vma(vma);
++
++	return 1UL << huge_page_shift(hstate);
++}
++
+ /*
+  * We cannot handle pagefaults against hugetlb pages at all.  They cause
+  * handle_mm_fault() to try to instantiate regular-sized pages in the
+@@ -3159,6 +3136,7 @@ const struct vm_operations_struct hugetl
+ 	.open = hugetlb_vm_op_open,
+ 	.close = hugetlb_vm_op_close,
+ 	.split = hugetlb_vm_op_split,
++	.pagesize = hugetlb_vm_op_pagesize,
+ };
+ 
+ static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-ocfs2-dlm-wait-for-dlm-recovery-done-when-migrating-all-lockres.patch
+mm-hugetlbfs-introduce-pagesize-to-vm_operations_struct.patch
+device-dax-implement-pagesize-for-smaps-to-report-mmupagesize.patch
 
