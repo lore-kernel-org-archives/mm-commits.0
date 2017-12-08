@@ -1,80 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-remove-unneeded-kallsyms-include.patch added to -mm tree
-Date: Fri, 08 Dec 2017 14:25:02 -0800
-Message-ID: <5a2b113e.3fZaX+hoGVQGPaJQ%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch removed
+ from -mm tree
+Date: Fri, 08 Dec 2017 14:31:56 -0800
+Message-ID: <5a2b12dc.+z1SMkC7MJG4Zdzq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753536AbdLHWZD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:25:03 -0500
+        with ESMTP id S1752631AbdLHWb5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:31:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: 00moses.alexander00@gmail.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, khandual@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genirq: remove unneeded kallsyms include
-has been added to the -mm tree.  Its filename is
-     genirq-remove-unneeded-kallsyms-include.patch
+     Subject: mm/madvise: enable soft offline of HugeTLB pages at PUD level
+has been removed from the -mm tree.  Its filename was
+     mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genirq-remove-unneeded-kallsyms-include.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genirq-remove-unneeded-kallsyms-include.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: genirq: remove unneeded kallsyms include
+From: Alexandru Moise <00moses.alexander00@gmail.com>
+Subject: mm/madvise: enable soft offline of HugeTLB pages at PUD level
 
-The file was converted from print_symbol() to %pf some time ago in
-ef26f20cd117eb3c18 ("genirq: Print threaded handler in spurious debug
-output").  kallsyms does not seem to be needed anymore.
+Since 94310cbcaa3c2 ("mm/madvise: enable (soft|hard) offline of HugeTLB
+pages at PGD level") we've been able to soft offline 1G hugepages at the
+PGD level, however x86_64 gigantic hugepages are at the PUD level so we
+should add an extra check to account for hstate order at PUD level.
 
-Link: http://lkml.kernel.org/r/20171208025616.16267-10-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+It allows migration of 1G pages in general.  It also makes these pages
+allocated with GFP_HIGHUSER_MOVABLE instead of GFP_HIGHUSER.
+
+There's nothing changed in this regard in 5-level paging mode.  PUD is
+still one gig and there are no new page sizes.
+
+Tested with 4 level pagetable.
+
+Link: http://lkml.kernel.org/r/20170913101047.GA13026@gmail.com
+Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/spurious.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/hugetlb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/irq/spurious.c~genirq-remove-unneeded-kallsyms-include kernel/irq/spurious.c
---- a/kernel/irq/spurious.c~genirq-remove-unneeded-kallsyms-include
-+++ a/kernel/irq/spurious.c
-@@ -10,7 +10,6 @@
- #include <linux/jiffies.h>
- #include <linux/irq.h>
- #include <linux/module.h>
--#include <linux/kallsyms.h>
- #include <linux/interrupt.h>
- #include <linux/moduleparam.h>
- #include <linux/timer.h>
+diff -puN include/linux/hugetlb.h~mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-madvise-enable-soft-offline-of-hugetlb-pages-at-pud-level
++++ a/include/linux/hugetlb.h
+@@ -472,6 +472,7 @@ static inline bool hugepage_migration_su
+ {
+ #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	if ((huge_page_shift(h) == PMD_SHIFT) ||
++		(huge_page_shift(h) == PUD_SHIFT) ||
+ 		(huge_page_shift(h) == PGDIR_SHIFT))
+ 		return true;
+ 	else
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
+Patches currently in -mm which might be from 00moses.alexander00@gmail.com are
 
-sched-autogroup-remove-unneeded-kallsyms-include.patch
-mm-remove-unneeded-kallsyms-include.patch
-power-remove-unneeded-kallsyms-include.patch
-pci-remove-unneeded-kallsyms-include.patch
-pnp-remove-unneeded-kallsyms-include.patch
-workqueue-remove-unneeded-kallsyms-include.patch
-hrtimer-remove-unneeded-kallsyms-include.patch
-genirq-remove-unneeded-kallsyms-include.patch
 
