@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: +
- renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch added to -mm tree
-Date: Fri, 08 Dec 2017 14:56:33 -0800
-Message-ID: <5a2b18a1.F0U0p2f5MeNFqqCm%akpm@linux-foundation.org>
+Subject: + ocfs2-cluster-close-a-race-that-fence-cant-be-triggered.patch
+ added to -mm tree
+Date: Fri, 08 Dec 2017 14:56:50 -0800
+Message-ID: <5a2b18b2.GBTjOaKU0JCxXS/e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56842 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752662AbdLHW4e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:56:34 -0500
+        with ESMTP id S1752662AbdLHW4v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2017 17:56:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zhang.yangB@h3c.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
@@ -20,12 +20,12 @@ To: zhang.yangB@h3c.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilpl
 The patch titled
      Subject: ocfs2/cluster: close a race that fence can't be triggered
 has been added to the -mm tree.  Its filename is
-     renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+     ocfs2-cluster-close-a-race-that-fence-cant-be-triggered.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cluster-close-a-race-that-fence-cant-be-triggered.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cluster-close-a-race-that-fence-cant-be-triggered.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,8 +86,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/ocfs2/cluster/quorum.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/cluster/quorum.c~renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero fs/ocfs2/cluster/quorum.c
---- a/fs/ocfs2/cluster/quorum.c~renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero
+diff -puN fs/ocfs2/cluster/quorum.c~ocfs2-cluster-close-a-race-that-fence-cant-be-triggered fs/ocfs2/cluster/quorum.c
+--- a/fs/ocfs2/cluster/quorum.c~ocfs2-cluster-close-a-race-that-fence-cant-be-triggered
 +++ a/fs/ocfs2/cluster/quorum.c
 @@ -314,12 +314,13 @@ void o2quo_conn_err(u8 node)
  				node, qs->qs_connected);
@@ -109,6 +109,6 @@ _
 
 Patches currently in -mm which might be from zhang.yangB@h3c.com are
 
-renew-changelog-and-title-re-ocfs2-fix-qs_holds-may-could-not-be-zero.patch
+ocfs2-cluster-close-a-race-that-fence-cant-be-triggered.patch
 ocfs2-fix-qs_holds-may-could-not-be-zero.patch
 
