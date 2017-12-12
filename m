@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + get-7%-more-pages-in-a-pagevec.patch added to -mm tree
-Date: Tue, 12 Dec 2017 15:32:08 -0800
-Message-ID: <5a3066f8.b6jwpVWZaywhfhXg%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch added to -mm tree
+Date: Tue, 12 Dec 2017 15:34:04 -0800
+Message-ID: <5a30676c.JhwdMeHGZfsZKKHB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39766 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40216 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752807AbdLLXcJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 18:32:09 -0500
+        with ESMTP id S1752710AbdLLXeF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 18:34:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@infradead.org, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: get 7% more pages in a pagevec
+     Subject: ocfs2: use the OCFS2_XATTR_ROOT_SIZE macro in ocfs2_reflink_xattr_header()
 has been added to the -mm tree.  Its filename is
-     get-7%-more-pages-in-a-pagevec.patch
+     ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get-7%25-more-pages-in-a-pagevec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get-7%25-more-pages-in-a-pagevec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm: get 7% more pages in a pagevec
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: use the OCFS2_XATTR_ROOT_SIZE macro in ocfs2_reflink_xattr_header()
 
-We don't have to use an entire 'long' for the number of elements in the
-pagevec; we know it's a number between 0 and 14 (now 15).  So we can store
-it in a char, and then the bool packs next to it and we still have two or
-six bytes of padding for more elements in the header.  That gives us space
-to cram in an extra page.
+Use the OCFS2_XATTR_ROOT_SIZE macro improves the readability of the code.
 
-Link: http://lkml.kernel.org/r/20171206022521.GM26021@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/5A2E2488.70301@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/xattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pagevec.h~get-7%-more-pages-in-a-pagevec include/linux/pagevec.h
---- a/include/linux/pagevec.h~get-7%-more-pages-in-a-pagevec
-+++ a/include/linux/pagevec.h
-@@ -9,14 +9,14 @@
- #ifndef _LINUX_PAGEVEC_H
- #define _LINUX_PAGEVEC_H
- 
--/* 14 pointers + two long's align the pagevec structure to a power of two */
--#define PAGEVEC_SIZE	14
-+/* 15 pointers + header align the pagevec structure to a power of two */
-+#define PAGEVEC_SIZE	15
- 
- struct page;
- struct address_space;
- 
- struct pagevec {
--	unsigned long nr;
-+	unsigned char nr;
- 	bool percpu_pvec_drained;
- 	struct page *pages[PAGEVEC_SIZE];
- };
+diff -puN fs/ocfs2/xattr.c~ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header
++++ a/fs/ocfs2/xattr.c
+@@ -6415,7 +6415,7 @@ static int ocfs2_reflink_xattr_header(ha
+ 		 * and then insert the extents one by one.
+ 		 */
+ 		if (xv->xr_list.l_tree_depth) {
+-			memcpy(new_xv, &def_xv, sizeof(def_xv));
++			memcpy(new_xv, &def_xv, OCFS2_XATTR_ROOT_SIZE);
+ 			vb->vb_xv = new_xv;
+ 			vb->vb_bh = value_bh;
+ 			ocfs2_init_xattr_value_extent_tree(&data_et,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-mm-add-unmap_mapping_pages.patch
-get-7%-more-pages-in-a-pagevec.patch
+ocfs2-check-the-metadate-alloc-before-marking-extent-written.patch
+ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch
 
