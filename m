@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch added to -mm tree
-Date: Tue, 12 Dec 2017 14:20:23 -0800
-Message-ID: <5a305627.QZ3OjvnoHzF6TYmD%akpm@linux-foundation.org>
+Subject: + ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
+ added to -mm tree
+Date: Tue, 12 Dec 2017 14:31:07 -0800
+Message-ID: <5a3058ab.y+KUvO/IwaNsn2xP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59656 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32974 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752320AbdLLWUZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 17:20:25 -0500
+        with ESMTP id S1752320AbdLLWbI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 17:31:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thiago.becker@gmail.com, bfields@fieldses.org, mawilcox@microsoft.com, neilb@suse.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jhaws@sdl.usu.edu, arnd@arndb.de, bigeasy@linutronix.de, dave@stgolabs.net, deepa.kernel@gmail.com, manfred@colorfullife.com, mingo@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: make groups_sort calling a responsibility group_info allocators
+     Subject: ipc/mqueue.c: have RT tasks queue in by priority in wq_add()
 has been added to the -mm tree.  Its filename is
-     kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
+     ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,163 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Rafael Becker <thiago.becker@gmail.com>
-Subject: kernel: make groups_sort calling a responsibility group_info allocators
+From: Jonathan Haws <jhaws@sdl.usu.edu>
+Subject: ipc/mqueue.c: have RT tasks queue in by priority in wq_add()
 
-In testing, we found that nfsd threads may call set_groups in parallel for
-the same entry cached in auth.unix.gid, racing in the call of groups_sort,
-corrupting the groups for that entry and leading to permission denials for
-the client.
+Previous behavior added tasks to the work queue using the static_prio
+value instead of the dynamic priority value in prio.  This caused RT tasks
+to be added to the work queue in a FIFO manner rather than by priority. 
+Normal tasks were handled by priority.
 
-This patch:
- - Make groups_sort globally visible.
- - Move the call to groups_sort to the modifiers of group_info
- - Remove the call to groups_sort from set_groups
+This fix utilizes the dynamic priority of the task to ensure that both RT
+and normal tasks are added to the work queue in priority order.  Utilizing
+the dynamic priority (prio) rather than the base priority (normal_prio)
+was chosen to ensure that if a task had a boosted priority when it was
+added to the work queue, it would be woken sooner to to ensure that it
+releases any other locks it may be holding in a more timely manner.  It is
+understood that the task could have a lower priority when it wakes than
+when it was added to the queue in this (unlikely) case.
 
-Link: http://lkml.kernel.org/r/20171211151420.18655-1-thiago.becker@gmail.com
-Signed-off-by: Thiago Rafael Becker <thiago.becker@gmail.com>
-Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
-Reviewed-by: NeilBrown <neilb@suse.com>
-Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
+Link: http://lkml.kernel.org/r/1513006652-7014-1-git-send-email-jhaws@sdl.usu.edu
+Signed-off-by: Jonathan Haws <jhaws@sdl.usu.edu>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <stable@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/compat_linux.c   |    1 +
- fs/nfsd/auth.c                    |    3 +++
- include/linux/cred.h              |    1 +
- kernel/groups.c                   |    5 +++--
- kernel/uid16.c                    |    1 +
- net/sunrpc/auth_gss/gss_rpc_xdr.c |    1 +
- net/sunrpc/auth_gss/svcauth_gss.c |    1 +
- net/sunrpc/svcauth_unix.c         |    2 ++
- 8 files changed, 13 insertions(+), 2 deletions(-)
+ ipc/mqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators arch/s390/kernel/compat_linux.c
---- a/arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/arch/s390/kernel/compat_linux.c
-@@ -263,6 +263,7 @@ COMPAT_SYSCALL_DEFINE2(s390_setgroups16,
- 		return retval;
- 	}
+diff -puN ipc/mqueue.c~ipc-mqueue-wq_add-priority-changed-to-dynamic-priority ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-wq_add-priority-changed-to-dynamic-priority
++++ a/ipc/mqueue.c
+@@ -546,7 +546,7 @@ static void wq_add(struct mqueue_inode_i
+ 	ewp->task = current;
  
-+	groups_sort(group_info);
- 	retval = set_current_groups(group_info);
- 	put_group_info(group_info);
- 
-diff -puN fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators fs/nfsd/auth.c
---- a/fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/fs/nfsd/auth.c
-@@ -60,6 +60,9 @@ int nfsd_setuser(struct svc_rqst *rqstp,
- 				gi->gid[i] = exp->ex_anon_gid;
- 			else
- 				gi->gid[i] = rqgi->gid[i];
-+
-+			/* Each thread allocates its own gi, no race */
-+			groups_sort(gi);
+ 	list_for_each_entry(walk, &info->e_wait_q[sr].list, list) {
+-		if (walk->task->static_prio <= current->static_prio) {
++		if (walk->task->prio <= current->prio) {
+ 			list_add_tail(&ewp->list, &walk->list);
+ 			return;
  		}
- 	} else {
- 		gi = get_group_info(rqgi);
-diff -puN include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators include/linux/cred.h
---- a/include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/include/linux/cred.h
-@@ -83,6 +83,7 @@ extern int set_current_groups(struct gro
- extern void set_groups(struct cred *, struct group_info *);
- extern int groups_search(const struct group_info *, kgid_t);
- extern bool may_setgroups(void);
-+extern void groups_sort(struct group_info *);
- 
- /*
-  * The security context of a task
-diff -puN kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/groups.c
---- a/kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/kernel/groups.c
-@@ -86,11 +86,12 @@ static int gid_cmp(const void *_a, const
- 	return gid_gt(a, b) - gid_lt(a, b);
- }
- 
--static void groups_sort(struct group_info *group_info)
-+void groups_sort(struct group_info *group_info)
- {
- 	sort(group_info->gid, group_info->ngroups, sizeof(*group_info->gid),
- 	     gid_cmp, NULL);
- }
-+EXPORT_SYMBOL(groups_sort);
- 
- /* a simple bsearch */
- int groups_search(const struct group_info *group_info, kgid_t grp)
-@@ -122,7 +123,6 @@ int groups_search(const struct group_inf
- void set_groups(struct cred *new, struct group_info *group_info)
- {
- 	put_group_info(new->group_info);
--	groups_sort(group_info);
- 	get_group_info(group_info);
- 	new->group_info = group_info;
- }
-@@ -206,6 +206,7 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsi
- 		return retval;
- 	}
- 
-+	groups_sort(group_info);
- 	retval = set_current_groups(group_info);
- 	put_group_info(group_info);
- 
-diff -puN kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/uid16.c
---- a/kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/kernel/uid16.c
-@@ -192,6 +192,7 @@ SYSCALL_DEFINE2(setgroups16, int, gidset
- 		return retval;
- 	}
- 
-+	groups_sort(group_info);
- 	retval = set_current_groups(group_info);
- 	put_group_info(group_info);
- 
-diff -puN net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/gss_rpc_xdr.c
---- a/net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/net/sunrpc/auth_gss/gss_rpc_xdr.c
-@@ -231,6 +231,7 @@ static int gssx_dec_linux_creds(struct x
- 			goto out_free_groups;
- 		creds->cr_group_info->gid[i] = kgid;
- 	}
-+	groups_sort(creds->cr_group_info);
- 
- 	return 0;
- out_free_groups:
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -481,6 +481,7 @@ static int rsc_parse(struct cache_detail
- 				goto out;
- 			rsci.cred.cr_group_info->gid[i] = kgid;
- 		}
-+		groups_sort(rsci.cred.cr_group_info);
- 
- 		/* mech name */
- 		len = qword_get(&mesg, buf, mlen);
-diff -puN net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -520,6 +520,7 @@ static int unix_gid_parse(struct cache_d
- 		ug.gi->gid[i] = kgid;
- 	}
- 
-+	groups_sort(ug.gi);
- 	ugp = unix_gid_lookup(cd, uid);
- 	if (ugp) {
- 		struct cache_head *ch;
-@@ -819,6 +820,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
- 		kgid_t kgid = make_kgid(&init_user_ns, svc_getnl(argv));
- 		cred->cr_group_info->gid[i] = kgid;
- 	}
-+	groups_sort(cred->cr_group_info);
- 	if (svc_getu32(argv) != htonl(RPC_AUTH_NULL) || svc_getu32(argv) != 0) {
- 		*authp = rpc_autherr_badverf;
- 		return SVC_DENIED;
 _
 
-Patches currently in -mm which might be from thiago.becker@gmail.com are
+Patches currently in -mm which might be from jhaws@sdl.usu.edu are
 
-kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
+ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
 
