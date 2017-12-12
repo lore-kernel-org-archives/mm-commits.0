@@ -1,75 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- device-dax-implement-pagesize-for-smaps-to-report-mmupagesize.patch removed from -mm tree
-Date: Tue, 12 Dec 2017 13:34:31 -0800
-Message-ID: <5a304b67.eb0odngK4hVFb74M%akpm@linux-foundation.org>
+Subject: +
+ kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch added to -mm tree
+Date: Tue, 12 Dec 2017 14:20:23 -0800
+Message-ID: <5a305627.QZ3OjvnoHzF6TYmD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59656 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752522AbdLLVec (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 16:34:32 -0500
+        with ESMTP id S1752320AbdLLWUZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 17:20:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, benh@kernel.crashing.org, jane.chu@oracle.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: thiago.becker@gmail.com, bfields@fieldses.org, mawilcox@microsoft.com, neilb@suse.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: implement ->pagesize() for smaps to report MMUPageSize
-has been removed from the -mm tree.  Its filename was
-     device-dax-implement-pagesize-for-smaps-to-report-mmupagesize.patch
+     Subject: kernel: make groups_sort calling a responsibility group_info allocators
+has been added to the -mm tree.  Its filename is
+     kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: device-dax: implement ->pagesize() for smaps to report MMUPageSize
+From: Thiago Rafael Becker <thiago.becker@gmail.com>
+Subject: kernel: make groups_sort calling a responsibility group_info allocators
 
-Given that device-dax is making similar page mapping size guarantees as
-hugetlbfs, emit the size in smaps and any other kernel path that requests
-the mapping size of a vma.
+In testing, we found that nfsd threads may call set_groups in parallel for
+the same entry cached in auth.unix.gid, racing in the call of groups_sort,
+corrupting the groups for that entry and leading to permission denials for
+the client.
 
-Link: http://lkml.kernel.org/r/151270386082.21215.150215755680990629.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
+This patch:
+ - Make groups_sort globally visible.
+ - Move the call to groups_sort to the modifiers of group_info
+ - Remove the call to groups_sort from set_groups
+
+Link: http://lkml.kernel.org/r/20171211151420.18655-1-thiago.becker@gmail.com
+Signed-off-by: Thiago Rafael Becker <thiago.becker@gmail.com>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: NeilBrown <neilb@suse.com>
+Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/s390/kernel/compat_linux.c   |    1 +
+ fs/nfsd/auth.c                    |    3 +++
+ include/linux/cred.h              |    1 +
+ kernel/groups.c                   |    5 +++--
+ kernel/uid16.c                    |    1 +
+ net/sunrpc/auth_gss/gss_rpc_xdr.c |    1 +
+ net/sunrpc/auth_gss/svcauth_gss.c |    1 +
+ net/sunrpc/svcauth_unix.c         |    2 ++
+ 8 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dax/device.c~device-dax-implement-pagesize-for-smaps-to-report-mmupagesize drivers/dax/device.c
---- a/drivers/dax/device.c~device-dax-implement-pagesize-for-smaps-to-report-mmupagesize
-+++ a/drivers/dax/device.c
-@@ -439,10 +439,20 @@ static int dev_dax_split(struct vm_area_
- 	return 0;
+diff -puN arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators arch/s390/kernel/compat_linux.c
+--- a/arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/arch/s390/kernel/compat_linux.c
+@@ -263,6 +263,7 @@ COMPAT_SYSCALL_DEFINE2(s390_setgroups16,
+ 		return retval;
+ 	}
+ 
++	groups_sort(group_info);
+ 	retval = set_current_groups(group_info);
+ 	put_group_info(group_info);
+ 
+diff -puN fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators fs/nfsd/auth.c
+--- a/fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/fs/nfsd/auth.c
+@@ -60,6 +60,9 @@ int nfsd_setuser(struct svc_rqst *rqstp,
+ 				gi->gid[i] = exp->ex_anon_gid;
+ 			else
+ 				gi->gid[i] = rqgi->gid[i];
++
++			/* Each thread allocates its own gi, no race */
++			groups_sort(gi);
+ 		}
+ 	} else {
+ 		gi = get_group_info(rqgi);
+diff -puN include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators include/linux/cred.h
+--- a/include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/include/linux/cred.h
+@@ -83,6 +83,7 @@ extern int set_current_groups(struct gro
+ extern void set_groups(struct cred *, struct group_info *);
+ extern int groups_search(const struct group_info *, kgid_t);
+ extern bool may_setgroups(void);
++extern void groups_sort(struct group_info *);
+ 
+ /*
+  * The security context of a task
+diff -puN kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/groups.c
+--- a/kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/kernel/groups.c
+@@ -86,11 +86,12 @@ static int gid_cmp(const void *_a, const
+ 	return gid_gt(a, b) - gid_lt(a, b);
  }
  
-+static unsigned long dev_dax_pagesize(struct vm_area_struct *vma)
-+{
-+	struct file *filp = vma->vm_file;
-+	struct dev_dax *dev_dax = filp->private_data;
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	return dax_region->align;
-+}
-+
- static const struct vm_operations_struct dax_vm_ops = {
- 	.fault = dev_dax_fault,
- 	.huge_fault = dev_dax_huge_fault,
- 	.split = dev_dax_split,
-+	.pagesize = dev_dax_pagesize,
- };
+-static void groups_sort(struct group_info *group_info)
++void groups_sort(struct group_info *group_info)
+ {
+ 	sort(group_info->gid, group_info->ngroups, sizeof(*group_info->gid),
+ 	     gid_cmp, NULL);
+ }
++EXPORT_SYMBOL(groups_sort);
  
- static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+ /* a simple bsearch */
+ int groups_search(const struct group_info *group_info, kgid_t grp)
+@@ -122,7 +123,6 @@ int groups_search(const struct group_inf
+ void set_groups(struct cred *new, struct group_info *group_info)
+ {
+ 	put_group_info(new->group_info);
+-	groups_sort(group_info);
+ 	get_group_info(group_info);
+ 	new->group_info = group_info;
+ }
+@@ -206,6 +206,7 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsi
+ 		return retval;
+ 	}
+ 
++	groups_sort(group_info);
+ 	retval = set_current_groups(group_info);
+ 	put_group_info(group_info);
+ 
+diff -puN kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/uid16.c
+--- a/kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/kernel/uid16.c
+@@ -192,6 +192,7 @@ SYSCALL_DEFINE2(setgroups16, int, gidset
+ 		return retval;
+ 	}
+ 
++	groups_sort(group_info);
+ 	retval = set_current_groups(group_info);
+ 	put_group_info(group_info);
+ 
+diff -puN net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/gss_rpc_xdr.c
+--- a/net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/net/sunrpc/auth_gss/gss_rpc_xdr.c
+@@ -231,6 +231,7 @@ static int gssx_dec_linux_creds(struct x
+ 			goto out_free_groups;
+ 		creds->cr_group_info->gid[i] = kgid;
+ 	}
++	groups_sort(creds->cr_group_info);
+ 
+ 	return 0;
+ out_free_groups:
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -481,6 +481,7 @@ static int rsc_parse(struct cache_detail
+ 				goto out;
+ 			rsci.cred.cr_group_info->gid[i] = kgid;
+ 		}
++		groups_sort(rsci.cred.cr_group_info);
+ 
+ 		/* mech name */
+ 		len = qword_get(&mesg, buf, mlen);
+diff -puN net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/net/sunrpc/svcauth_unix.c
+@@ -520,6 +520,7 @@ static int unix_gid_parse(struct cache_d
+ 		ug.gi->gid[i] = kgid;
+ 	}
+ 
++	groups_sort(ug.gi);
+ 	ugp = unix_gid_lookup(cd, uid);
+ 	if (ugp) {
+ 		struct cache_head *ch;
+@@ -819,6 +820,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
+ 		kgid_t kgid = make_kgid(&init_user_ns, svc_getnl(argv));
+ 		cred->cr_group_info->gid[i] = kgid;
+ 	}
++	groups_sort(cred->cr_group_info);
+ 	if (svc_getu32(argv) != htonl(RPC_AUTH_NULL) || svc_getu32(argv) != 0) {
+ 		*authp = rpc_autherr_badverf;
+ 		return SVC_DENIED;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from thiago.becker@gmail.com are
 
+kernel-make-groups_sort-calling-a-responsibility-group_info-allocators.patch
 
