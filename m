@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-make-calculate_alignment-function-static.patch added to -mm tree
-Date: Tue, 12 Dec 2017 15:13:18 -0800
-Message-ID: <5a30628e.mu+Bxas7DXan16j/%akpm@linux-foundation.org>
+Subject: + make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
+ added to -mm tree
+Date: Tue, 12 Dec 2017 15:16:08 -0800
+Message-ID: <5a306338.gF6LcobmXVKQPZ4F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37342 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752690AbdLLXNT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 18:13:19 -0500
+        with ESMTP id S1752690AbdLLXQJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 18:16:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhlee.kernel@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: vincent.legoll@gmail.com, byungchul.park@lge.com, geert@linux-m68k.org, jpoimboe@redhat.com, mcgrof@kernel.org, mingo@kernel.org, npiggin@gmail.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rdunlap@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: make calculate_alignment() static
+     Subject: lib/: make RUNTIME_TESTS a menuconfig to ease disabling it all
 has been added to the -mm tree.  Its filename is
-     mm-slab-make-calculate_alignment-function-static.patch
+     make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-make-calculate_alignment-function-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-make-calculate_alignment-function-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,125 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Byongho Lee <bhlee.kernel@gmail.com>
-Subject: mm/slab_common.c: make calculate_alignment() static
+From: Vincent Legoll <vincent.legoll@gmail.com>
+Subject: lib/: make RUNTIME_TESTS a menuconfig to ease disabling it all
 
-calculate_alignment() function is only used inside slab_common.c.  So make
-it static and let the compiler do more optimizations.
+No need to get into the submenu to disable all related
+config entries.
 
-After this patch there's a small improvement in text and data size.
+This makes it easier to disable all RUNTIME_TESTS config options
+without entering the submenu. It will also enable one to see that
+en/dis-abled state from the outside menu.
 
-$ gcc --version
-  gcc (GCC) 7.2.1 20171128
+This is only intended to change menuconfig UI, not change
+the config dependencies.
 
-Before:
-  text	   data	    bss	    dec	     hex	filename
-  9890457  3828702  1212364 14931523 e3d643	vmlinux
-
-After:
-  text	   data	    bss	    dec	     hex	filename
-  9890437  3828670  1212364 14931471 e3d60f	vmlinux
-
-Also I fixed a style problem reported by checkpatch.
-
-  WARNING: Missing a blank line after declarations
-  #53: FILE: mm/slab_common.c:286:
-  +		unsigned long ralign = cache_line_size();
-  +		while (size <= ralign / 2)
-
-Link: http://lkml.kernel.org/r/20171210080132.406-1-bhlee.kernel@gmail.com
-Signed-off-by: Byongho Lee <bhlee.kernel@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20171209162742.7363-1-vincent.legoll@gmail.com
+Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Byungchul Park <byungchul.park@lge.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h        |    3 --
- mm/slab_common.c |   56 +++++++++++++++++++++++----------------------
- 2 files changed, 29 insertions(+), 30 deletions(-)
+ lib/Kconfig.debug |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-make-calculate_alignment-function-static mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-make-calculate_alignment-function-static
-+++ a/mm/slab_common.c
-@@ -268,6 +268,35 @@ static inline void memcg_unlink_cache(st
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+diff -puN lib/Kconfig.debug~make-runtime_tests-a-menuconfig-to-ease-disabling-it-all lib/Kconfig.debug
+--- a/lib/Kconfig.debug~make-runtime_tests-a-menuconfig-to-ease-disabling-it-all
++++ a/lib/Kconfig.debug
+@@ -1660,7 +1660,10 @@ config DMA_API_DEBUG
  
- /*
-+ * Figure out what the alignment of the objects will be given a set of
-+ * flags, a user specified alignment and the size of the objects.
-+ */
-+static unsigned long calculate_alignment(unsigned long flags,
-+		unsigned long align, unsigned long size)
-+{
-+	/*
-+	 * If the user wants hardware cache aligned objects then follow that
-+	 * suggestion if the object is sufficiently large.
-+	 *
-+	 * The hardware cache alignment cannot override the specified
-+	 * alignment though. If that is greater then use it.
-+	 */
-+	if (flags & SLAB_HWCACHE_ALIGN) {
-+		unsigned long ralign;
-+
-+		ralign = cache_line_size();
-+		while (size <= ralign / 2)
-+			ralign /= 2;
-+		align = max(align, ralign);
-+	}
-+
-+	if (align < ARCH_SLAB_MINALIGN)
-+		align = ARCH_SLAB_MINALIGN;
-+
-+	return ALIGN(align, sizeof(void *));
-+}
-+
-+/*
-  * Find a mergeable slab cache
-  */
- int slab_unmergeable(struct kmem_cache *s)
-@@ -337,33 +366,6 @@ struct kmem_cache *find_mergeable(size_t
- 	return NULL;
- }
+ 	  If unsure, say N.
  
--/*
-- * Figure out what the alignment of the objects will be given a set of
-- * flags, a user specified alignment and the size of the objects.
-- */
--unsigned long calculate_alignment(slab_flags_t flags,
--		unsigned long align, unsigned long size)
--{
--	/*
--	 * If the user wants hardware cache aligned objects then follow that
--	 * suggestion if the object is sufficiently large.
--	 *
--	 * The hardware cache alignment cannot override the specified
--	 * alignment though. If that is greater then use it.
--	 */
--	if (flags & SLAB_HWCACHE_ALIGN) {
--		unsigned long ralign = cache_line_size();
--		while (size <= ralign / 2)
--			ralign /= 2;
--		align = max(align, ralign);
--	}
--
--	if (align < ARCH_SLAB_MINALIGN)
--		align = ARCH_SLAB_MINALIGN;
--
--	return ALIGN(align, sizeof(void *));
--}
--
- static struct kmem_cache *create_cache(const char *name,
- 		size_t object_size, size_t size, size_t align,
- 		slab_flags_t flags, void (*ctor)(void *),
-diff -puN mm/slab.h~mm-slab-make-calculate_alignment-function-static mm/slab.h
---- a/mm/slab.h~mm-slab-make-calculate_alignment-function-static
-+++ a/mm/slab.h
-@@ -78,9 +78,6 @@ extern const struct kmalloc_info_struct
- 	unsigned long size;
- } kmalloc_info[];
+-menu "Runtime Testing"
++menuconfig RUNTIME_TESTING_MENU
++	bool "Runtime Testing"
++
++if RUNTIME_TESTING_MENU
  
--unsigned long calculate_alignment(slab_flags_t flags,
--		unsigned long align, unsigned long size);
+ config LKDTM
+ 	tristate "Linux Kernel Dump Test Tool Module"
+@@ -1948,7 +1951,7 @@ config TEST_DEBUG_VIRTUAL
+ 
+ 	  If unsure, say N.
+ 
+-endmenu # runtime tests
++endif # RUNTIME_TESTING_MENU
+ 
+ config MEMTEST
+ 	bool "Memtest"
+_
+
+Patches currently in -mm which might be from vincent.legoll@gmail.com are
+
+make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
+
