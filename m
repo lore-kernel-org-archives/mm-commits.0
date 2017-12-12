@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-optimize-cpumask_next_and-v6-fix.patch added to -mm tree
-Date: Tue, 12 Dec 2017 14:42:56 -0800
-Message-ID: <5a305b70.PERgVsKMgNjuHRGL%akpm@linux-foundation.org>
+Subject: + mm-oom_reaper-fix-memory-corruption.patch added to -mm tree
+Date: Tue, 12 Dec 2017 15:04:23 -0800
+Message-ID: <5a306077.eTLa+76/X9JqySyx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35808 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752657AbdLLWm6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 17:42:58 -0500
+        with ESMTP id S1752679AbdLLXEY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Dec 2017 18:04:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, courbet@google.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k/bitops: always include <asm-generic/bitops/find.h>
+     Subject: mm, oom_reaper: fix memory corruption
 has been added to the -mm tree.  Its filename is
-     lib-optimize-cpumask_next_and-v6-fix.patch
+     mm-oom_reaper-fix-memory-corruption.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_next_and-v6-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-fix-memory-corruption.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_next_and-v6-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-fix-memory-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,58 +38,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m68k/bitops: always include <asm-generic/bitops/find.h>
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom_reaper: fix memory corruption
 
-Currently <asm/bitops.h> only includes <asm-generic/bitops/find.h> if
-CONFIG_CPU_HAS_NO_BITFIELDS=y.  This used to be fine, as the code for
-CONFIG_CPU_HAS_NO_BITFIELDS=n implemented everything provided by
-<asm-generic/bitops/find.h>.
+David Rientjes has reported the following memory corruption while the oom
+reaper tries to unmap the victims address space
 
-However, e49c614e6b37254b ("lib: optimize cpumask_next_and()") added
-find_next_and_bit(), which is now not available if
-CONFIG_CPU_HAS_NO_BITFIELDS=y:
+BUG: Bad page map in process oom_reaper  pte:6353826300000000 pmd:00000000
+addr:00007f50cab1d000 vm_flags:08100073 anon_vma:ffff9eea335603f0 mapping:          (null) index:7f50cab1d
+file:          (null) fault:          (null) mmap:          (null) readpage:          (null)
+CPU: 2 PID: 1001 Comm: oom_reaper
+Call Trace:
+ [<ffffffffa4bd967d>] dump_stack+0x4d/0x70
+ [<ffffffffa4a03558>] unmap_page_range+0x1068/0x1130
+ [<ffffffffa4a2e07f>] __oom_reap_task_mm+0xd5/0x16b
+ [<ffffffffa4a2e226>] oom_reaper+0xff/0x14c
+ [<ffffffffa48d6ad1>] kthread+0xc1/0xe0
 
-    lib/find_bit_benchmark.c: In function `test_find_next_and_bit':
-    lib/find_bit_benchmark.c:115: error: implicit declaration of function `find_next_and_bit'
+Tetsuo Handa has noticed that the synchronization inside exit_mmap is
+insufficient.  We only synchronize with the oom reaper if
+tsk_is_oom_victim which is not true if the final __mmput is called from a
+different context than the oom victim exit path.  This can trivially
+happen from context of any task which has grabbed mm reference (e.g.  to
+read /proc/<pid>/ file which requires mm etc.).  The race would look like
+this
 
-Move the inclusion of <asm-generic/bitops/find.h> outside the #ifdef to
-fix this.
+oom_reaper		oom_victim		task
+						mmget_not_zero
+			do_exit
+			  mmput
+__oom_reap_task_mm				mmput
+  						  __mmput
+						    exit_mmap
+						      remove_vma
+  unmap_page_range
 
-Link: http://lkml.kernel.org/r/1512556816-28627-1-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Clement Courbet <courbet@google.com>
+Fix this issue by providing a new mm_is_oom_victim() helper which operates
+on the mm struct rather than a task.  Any context which operates on a
+remote mm struct should use this helper in place of tsk_is_oom_victim. 
+The flag is set in mark_oom_victim and never cleared so it is stable in
+the exit_mmap path.
+
+Debugged by Tetsuo Handa.
+
+Link: http://lkml.kernel.org/r/20171210095130.17110-1-mhocko@kernel.org
+Fixes: 212925802454 ("mm: oom: let oom_reap_task and exit_mmap run concurrently")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.14]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/oom.h            |    9 +++++++++
+ include/linux/sched/coredump.h |    1 +
+ mm/mmap.c                      |   10 +++++-----
+ mm/oom_kill.c                  |    4 +++-
+ 4 files changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN arch/m68k/include/asm/bitops.h~lib-optimize-cpumask_next_and-v6-fix arch/m68k/include/asm/bitops.h
---- a/arch/m68k/include/asm/bitops.h~lib-optimize-cpumask_next_and-v6-fix
-+++ a/arch/m68k/include/asm/bitops.h
-@@ -311,7 +311,6 @@ static inline int bfchg_mem_test_and_cha
-  *	functions.
-  */
- #if defined(CONFIG_CPU_HAS_NO_BITFIELDS)
--#include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/ffz.h>
- #else
+diff -puN include/linux/oom.h~mm-oom_reaper-fix-memory-corruption include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom_reaper-fix-memory-corruption
++++ a/include/linux/oom.h
+@@ -67,6 +67,15 @@ static inline bool tsk_is_oom_victim(str
+ }
  
-@@ -441,6 +440,8 @@ static inline unsigned long ffz(unsigned
- 
- #endif
- 
-+#include <asm-generic/bitops/find.h>
+ /*
++ * Use this helper if tsk->mm != mm and the victim mm needs a special
++ * handling. This is guaranteed to stay true after once set.
++ */
++static inline bool mm_is_oom_victim(struct mm_struct *mm)
++{
++	return test_bit(MMF_OOM_VICTIM, &mm->flags);
++}
 +
- #ifdef __KERNEL__
++/*
+  * Checks whether a page fault on the given mm is still reliable.
+  * This is no longer true if the oom reaper started to reap the
+  * address space which is reflected by MMF_UNSTABLE flag set in
+diff -puN include/linux/sched/coredump.h~mm-oom_reaper-fix-memory-corruption include/linux/sched/coredump.h
+--- a/include/linux/sched/coredump.h~mm-oom_reaper-fix-memory-corruption
++++ a/include/linux/sched/coredump.h
+@@ -70,6 +70,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+ #define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
++#define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
  
- #if defined(CONFIG_CPU_HAS_NO_BITFIELDS)
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+diff -puN mm/mmap.c~mm-oom_reaper-fix-memory-corruption mm/mmap.c
+--- a/mm/mmap.c~mm-oom_reaper-fix-memory-corruption
++++ a/mm/mmap.c
+@@ -3019,20 +3019,20 @@ void exit_mmap(struct mm_struct *mm)
+ 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
+ 	unmap_vmas(&tlb, vma, 0, -1);
+ 
+-	set_bit(MMF_OOM_SKIP, &mm->flags);
+-	if (unlikely(tsk_is_oom_victim(current))) {
++	if (unlikely(mm_is_oom_victim(mm))) {
+ 		/*
+ 		 * Wait for oom_reap_task() to stop working on this
+ 		 * mm. Because MMF_OOM_SKIP is already set before
+ 		 * calling down_read(), oom_reap_task() will not run
+ 		 * on this "mm" post up_write().
+ 		 *
+-		 * tsk_is_oom_victim() cannot be set from under us
+-		 * either because current->mm is already set to NULL
++		 * mm_is_oom_victim() cannot be set from under us
++		 * either because victim->mm is already set to NULL
+ 		 * under task_lock before calling mmput and oom_mm is
+-		 * set not NULL by the OOM killer only if current->mm
++		 * set not NULL by the OOM killer only if victim->mm
+ 		 * is found not NULL while holding the task_lock.
+ 		 */
++		set_bit(MMF_OOM_SKIP, &mm->flags);
+ 		down_write(&mm->mmap_sem);
+ 		up_write(&mm->mmap_sem);
+ 	}
+diff -puN mm/oom_kill.c~mm-oom_reaper-fix-memory-corruption mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-fix-memory-corruption
++++ a/mm/oom_kill.c
+@@ -683,8 +683,10 @@ static void mark_oom_victim(struct task_
+ 		return;
+ 
+ 	/* oom_mm is bound to the signal struct life time. */
+-	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm))
++	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm)) {
+ 		mmgrab(tsk->signal->oom_mm);
++		set_bit(MMF_OOM_VICTIM, &mm->flags);
++	}
+ 
+ 	/*
+ 	 * Make sure that the task is woken up from uninterruptible sleep
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure.patch
-lib-optimize-cpumask_next_and-v6-fix.patch
+mm-oom_reaper-fix-memory-corruption.patch
+mm-drop-hotplug-lock-from-lru_add_drain_all.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
 
