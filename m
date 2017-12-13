@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch added to -mm tree
-Date: Wed, 13 Dec 2017 15:47:41 -0800
-Message-ID: <5a31bc1d.isYJwtrl1/7Owp0t%akpm@linux-foundation.org>
+Subject: + acct-fix-the-acct-needcheck-check-in-check_free_space.patch
+ added to -mm tree
+Date: Wed, 13 Dec 2017 15:49:37 -0800
+Message-ID: <5a31bc91.3GSn4N8wDAevDZJ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55192 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55352 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751029AbdLMXrn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 18:47:43 -0500
+        with ESMTP id S1750748AbdLMXti (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 18:49:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert+renesas@glider.be, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, me@tobin.cc, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, stable@vger.kernel.org, tsukada@ascade.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab-do-not-hash-pointers-when-debugging-slab-v2
+     Subject: kernel/acct.c: fix the acct->needcheck check in check_free_space()
 has been added to the -mm tree.  Its filename is
-     mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
+     acct-fix-the-acct-needcheck-check-in-check_free_space.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/acct-fix-the-acct-needcheck-check-in-check_free_space.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/acct-fix-the-acct-needcheck-check-in-check_free_space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +39,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: mm-slab-do-not-hash-pointers-when-debugging-slab-v2
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: kernel/acct.c: fix the acct->needcheck check in check_free_space()
 
-  - Add Acked-by,
-  - Remove printing of pointer to last user, which refers to code.
+As Tsukada explains, the time_is_before_jiffies(acct->needcheck) check is
+very wrong, we need time_is_after_jiffies() to make sys_acct() work.
 
-Link: http://lkml.kernel.org/r/1513179267-2509-1-git-send-email-geert+renesas@glider.be
-Fixes: ad67b74d2469d9b8 ("printk: hash addresses printed with %p")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Tobin C . Harding" <me@tobin.cc>
-Cc: Kees Cook <keescook@chromium.org>
+Ignoring the overflows, the code should "goto out" if needcheck > jiffies,
+while currently it checks "needcheck < jiffies" and thus in the likely
+case check_free_space() does nothing until jiffies overflow.
+
+In particular this means that sys_acct() is simply broken, acct_on() sets
+acct->needcheck = jiffies and expects that check_free_space() should set
+acct->active = 1 after the free-space check, but this won't happen if
+jiffies increments in between.
+
+This was broken by commit 32dc73086015 ("get rid of timer in kern/acct.c")
+in 2011, then another (correct) commit 795a2f22a8ea ("acct() should honour
+the limits from the very beginning") made the problem more visible.
+
+Link: http://lkml.kernel.org/r/20171213133940.GA6554@redhat.com
+Fixes: 32dc73086015 ("get rid of timer in kern/acct.c")
+Reported-by: TSUKADA Koutaro <tsukada@ascade.co.jp>
+Suggested-by: TSUKADA Koutaro <tsukada@ascade.co.jp>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ kernel/acct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab-v2 mm/slab.c
---- a/mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab-v2
-+++ a/mm/slab.c
-@@ -1584,11 +1584,8 @@ static void print_objinfo(struct kmem_ca
- 		       *dbg_redzone2(cachep, objp));
- 	}
+diff -puN kernel/acct.c~acct-fix-the-acct-needcheck-check-in-check_free_space kernel/acct.c
+--- a/kernel/acct.c~acct-fix-the-acct-needcheck-check-in-check_free_space
++++ a/kernel/acct.c
+@@ -102,7 +102,7 @@ static int check_free_space(struct bsd_a
+ {
+ 	struct kstatfs sbuf;
  
--	if (cachep->flags & SLAB_STORE_USER) {
--		pr_err("Last user: [<%px>](%pSR)\n",
--		       *dbg_userword(cachep, objp),
--		       *dbg_userword(cachep, objp));
--	}
-+	if (cachep->flags & SLAB_STORE_USER)
-+		pr_err("Last user: (%pSR)\n", *dbg_userword(cachep, objp));
- 	realobj = (char *)objp + obj_offset(cachep);
- 	size = cachep->object_size;
- 	for (i = 0; i < size && lines; i += 16, lines--) {
+-	if (time_is_before_jiffies(acct->needcheck))
++	if (time_is_after_jiffies(acct->needcheck))
+ 		goto out;
+ 
+ 	/* May block */
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-slab-do-not-hash-pointers-when-debugging-slab.patch
-mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
+acct-fix-the-acct-needcheck-check-in-check_free_space.patch
 
