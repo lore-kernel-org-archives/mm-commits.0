@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-ignore-some-octal-permissions-of-0.patch added to
- -mm tree
-Date: Wed, 13 Dec 2017 15:45:24 -0800
-Message-ID: <5a31bb94.DPNk6w6OxaG41vjT%akpm@linux-foundation.org>
+Subject: + mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch added to -mm tree
+Date: Wed, 13 Dec 2017 15:47:41 -0800
+Message-ID: <5a31bc1d.isYJwtrl1/7Owp0t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55192 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750745AbdLMXpZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 18:45:25 -0500
+        with ESMTP id S1751029AbdLMXrn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 18:47:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, brgl@bgdev.pl, mm-commits@vger.kernel.org
+To: geert+renesas@glider.be, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, me@tobin.cc, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: ignore some octal permissions of 0
+     Subject: mm-slab-do-not-hash-pointers-when-debugging-slab-v2
 has been added to the -mm tree.  Its filename is
-     checkpatch-ignore-some-octal-permissions-of-0.patch
+     mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-ignore-some-octal-permissions-of-0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-ignore-some-octal-permissions-of-0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: ignore some octal permissions of 0
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: mm-slab-do-not-hash-pointers-when-debugging-slab-v2
 
-module_param and create_proc uses with a permissions use of a single 0 are
-"special" and should not emit any warning.
+  - Add Acked-by,
+  - Remove printing of pointer to last user, which refers to code.
 
-module_param uses with permission 0 is not visible in sysfs create_proc
-uses with permission 0 uses a default permission
-
-Link: http://lkml.kernel.org/r/b6583611bb529ea6f6d43786827fddbabbab0a71.1513190059.git.joe@perches.com
-Signed-off-by: Bartosz Golaszewski <brgl@bgdev.pl>
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1513179267-2509-1-git-send-email-geert+renesas@glider.be
+Fixes: ad67b74d2469d9b8 ("printk: hash addresses printed with %p")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Tobin C . Harding" <me@tobin.cc>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/slab.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-ignore-some-octal-permissions-of-0 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-ignore-some-octal-permissions-of-0
-+++ a/scripts/checkpatch.pl
-@@ -6285,6 +6285,10 @@ sub process {
+diff -puN mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab-v2 mm/slab.c
+--- a/mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab-v2
++++ a/mm/slab.c
+@@ -1584,11 +1584,8 @@ static void print_objinfo(struct kmem_ca
+ 		       *dbg_redzone2(cachep, objp));
+ 	}
  
- # Mode permission misuses where it seems decimal should be octal
- # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
-+# o Ignore module_param*(...) uses with a decimal 0 permission as that has a
-+#   specific definition of not visible in sysfs.
-+# o Ignore proc_create*(...) uses with a decimal 0 permission as that means
-+#   use the default permissions
- 		if ($^V && $^V ge 5.10.0 &&
- 		    defined $stat &&
- 		    $line =~ /$mode_perms_search/) {
-@@ -6308,8 +6312,9 @@ sub process {
- 				if ($stat =~ /$test/) {
- 					my $val = $1;
- 					$val = $6 if ($skip_args ne "");
--					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
--					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
-+					if (!($func =~ /^(?:module_param|proc_create)/ && $val eq "0") &&
-+					    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+					     ($val =~ /^$Octal$/ && length($val) ne 4))) {
- 						ERROR("NON_OCTAL_PERMISSIONS",
- 						      "Use 4 digit octal (0777) not decimal permissions\n" . "$here\n" . $stat_real);
- 					}
+-	if (cachep->flags & SLAB_STORE_USER) {
+-		pr_err("Last user: [<%px>](%pSR)\n",
+-		       *dbg_userword(cachep, objp),
+-		       *dbg_userword(cachep, objp));
+-	}
++	if (cachep->flags & SLAB_STORE_USER)
++		pr_err("Last user: (%pSR)\n", *dbg_userword(cachep, objp));
+ 	realobj = (char *)objp + obj_offset(cachep);
+ 	size = cachep->object_size;
+ 	for (i = 0; i < size && lines; i += 16, lines--) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
-checkpatch-ignore-some-octal-permissions-of-0.patch
+mm-slab-do-not-hash-pointers-when-debugging-slab.patch
+mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
 
