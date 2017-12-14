@@ -1,62 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 17/17] arch: define weak abort()
-Date: Thu, 14 Dec 2017 15:33:19 -0800
-Message-ID: <5a330a3f.VVzwoFCnvpRqT+I4%akpm@linux-foundation.org>
+Subject: [failures] crash_dump-is_kdump_kernel-can-be-boolean.patch
+ removed from -mm tree
+Date: Thu, 14 Dec 2017 15:38:31 -0800
+Message-ID: <5a330b77.2odSczYVzSx78DA6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54866 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754425AbdLNXdU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:20 -0500
+        with ESMTP id S1754223AbdLNXid (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:38:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, Alexey.Brodkin@synopsys.com, Vineet.Gupta1@synopsys.com
+To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: arch: define weak abort()
 
-gcc toggle -fisolate-erroneous-paths-dereference (default at -O2 onwards)
-isolates faulty code paths such as null pointer access, divide by zero
-etc.  If gcc port doesnt implement __builtin_trap, an abort() is generated
-which causes kernel link error.
+The patch titled
+     Subject: crash_dump: is_kdump_kernel can be boolean
+has been removed from the -mm tree.  Its filename was
+     crash_dump-is_kdump_kernel-can-be-boolean.patch
 
-In this case, gcc is generating abort due to 'divide by zero' in
-lib/mpi/mpih-div.c.
+This patch was dropped because it had testing failures
 
-Currently 'frv' and 'arc' are failing.  Previously other arch was also
-broken like m32r was fixed by d22e3d69ee1a ("m32r: fix build failure").
+------------------------------------------------------
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: crash_dump: is_kdump_kernel can be boolean
 
-Let's define this weak function which is common for all arch and fix the
-problem permanently.  We can even remove the arch specific 'abort' after
-this is done.
+Make is_kdump_kernel return bool due to this particular function only
+using either one or zero as its return value.
 
-Link: http://lkml.kernel.org/r/1513118956-8718-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
-Cc: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+No functional change.
+
+Link: http://lkml.kernel.org/r/1513266622-15860-8-git-send-email-baiyaowei@cmss.chinamobile.com
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/crash_dump.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/exit.c~arch-define-weak-abort kernel/exit.c
---- a/kernel/exit.c~arch-define-weak-abort
-+++ a/kernel/exit.c
-@@ -1755,3 +1755,11 @@ Efault:
- 	return -EFAULT;
+diff -puN include/linux/crash_dump.h~crash_dump-is_kdump_kernel-can-be-boolean include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~crash_dump-is_kdump_kernel-can-be-boolean
++++ a/include/linux/crash_dump.h
+@@ -52,13 +52,13 @@ void vmcore_cleanup(void);
+  * has passed the elf core header address on command line.
+  *
+  * This is not just a test if CONFIG_CRASH_DUMP is enabled or not. It will
+- * return 1 if CONFIG_CRASH_DUMP=y and if kernel is booting after a panic of
+- * previous kernel.
++ * return true if CONFIG_CRASH_DUMP=y and if kernel is booting after a panic
++ * of previous kernel.
+  */
+ 
+-static inline int is_kdump_kernel(void)
++static inline bool is_kdump_kernel(void)
+ {
+-	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
++	return elfcorehdr_addr != ELFCORE_ADDR_MAX;
  }
- #endif
-+
-+__weak void abort(void)
-+{
-+	BUG();
-+
-+	/* if that doesn't kill us, halt */
-+	panic("Oops failed to kill thread");
-+}
+ 
+ /* is_vmcore_usable() checks if the kernel is booting after a panic and
+@@ -89,7 +89,7 @@ extern int register_oldmem_pfn_is_ram(in
+ extern void unregister_oldmem_pfn_is_ram(void);
+ 
+ #else /* !CONFIG_CRASH_DUMP */
+-static inline int is_kdump_kernel(void) { return 0; }
++static inline bool is_kdump_kernel(void) { return false; }
+ #endif /* CONFIG_CRASH_DUMP */
+ 
+ extern unsigned long saved_max_pfn;
 _
+
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
+
+mm-memblock-memblock_is_map-region_memory-can-be-boolean.patch
+lib-lockref-__lockref_is_dead-can-be-boolean.patch
+kernel-cpuset-current_cpuset_is_being_rebound-can-be-boolean.patch
+kernel-resource-iomem_is_exclusive-can-be-boolean.patch
+kernel-module-module_is_live-can-be-boolean.patch
+kernel-mutex-mutex_is_locked-can-be-boolean.patch
+
