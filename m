@@ -1,95 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/17] exec: avoid gcc-8 warning for get_task_comm
-Date: Thu, 14 Dec 2017 15:32:41 -0800
-Message-ID: <5a330a19.uXwqfmeqSoxUIDM3%akpm@linux-foundation.org>
+Subject: [patch 07/17] Documentation/vm/zswap.txt: update with same-value
+ filled page feature
+Date: Thu, 14 Dec 2017 15:32:45 -0800
+Message-ID: <5a330a1d.pc77Q1mN7OVZvQq1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754223AbdLNXcn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:43 -0500
+        with ESMTP id S1754291AbdLNXcq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, asarai@suse.de, ebiederm@xmission.com, frederic@kernel.org, james.l.morris@oracle.com, keescook@chromium.org, mingo@kernel.org, peterz@infradead.org, serge@hallyn.com, tglx@linutronix.de, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, srividya.dr@samsung.com, ddstreet@ieee.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: exec: avoid gcc-8 warning for get_task_comm
+From: Srividya Desireddy <srividya.dr@samsung.com>
+Subject: Documentation/vm/zswap.txt: update with same-value filled page feature
 
-gcc-8 warns about using strncpy() with the source size as the limit:
+Update zswap document with details on same-value filled pages
+identification feature.  The usage of zswap.same_filled_pages_enabled
+module parameter is explained.
 
-fs/exec.c:1223:32: error: argument to 'sizeof' in 'strncpy' call is the same expression as the source; did you mean to use the size of the destination? [-Werror=sizeof-pointer-memaccess]
-
-This is indeed slightly suspicious, as it protects us from source
-arguments without NUL-termination, but does not guarantee that the
-destination is terminated.
-
-This keeps the strncpy() to ensure we have properly padded target buffer,
-but ensures that we use the correct length, by passing the actual length
-of the destination buffer as well as adding a build-time check to ensure
-it is exactly TASK_COMM_LEN.  There are only 23 callsites which I all
-reviewed to ensure this is currently the case.  We could get away with
-doing only the check or passing the right length, but it doesn't hurt to
-do both.
-
-Link: http://lkml.kernel.org/r/20171205151724.1764896-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Aleksa Sarai <asarai@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20171206114852epcms5p6973b02a9f455d5d3c765eafda0fe2631@epcms5p6
+Signed-off-by: Srividya Desireddy <srividya.dr@samsung.com>
+Acked-by: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    7 +++----
- include/linux/sched.h |    6 +++++-
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ Documentation/vm/zswap.txt |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-avoid-gcc-8-warning-for-get_task_comm fs/exec.c
---- a/fs/exec.c~exec-avoid-gcc-8-warning-for-get_task_comm
-+++ a/fs/exec.c
-@@ -1216,15 +1216,14 @@ killed:
- 	return -EAGAIN;
- }
+diff -puN Documentation/vm/zswap.txt~zswap-update-with-same-value-filled-page-feature Documentation/vm/zswap.txt
+--- a/Documentation/vm/zswap.txt~zswap-update-with-same-value-filled-page-feature
++++ a/Documentation/vm/zswap.txt
+@@ -98,5 +98,25 @@ request is made for a page in an old zpo
+ original compressor.  Once all pages are removed from an old zpool, the zpool
+ and its compressor are freed.
  
--char *get_task_comm(char *buf, struct task_struct *tsk)
-+char *__get_task_comm(char *buf, size_t buf_size, struct task_struct *tsk)
- {
--	/* buf must be at least sizeof(tsk->comm) in size */
- 	task_lock(tsk);
--	strncpy(buf, tsk->comm, sizeof(tsk->comm));
-+	strncpy(buf, tsk->comm, buf_size);
- 	task_unlock(tsk);
- 	return buf;
- }
--EXPORT_SYMBOL_GPL(get_task_comm);
-+EXPORT_SYMBOL_GPL(__get_task_comm);
- 
- /*
-  * These functions flushes out all traces of the currently running executable
-diff -puN include/linux/sched.h~exec-avoid-gcc-8-warning-for-get_task_comm include/linux/sched.h
---- a/include/linux/sched.h~exec-avoid-gcc-8-warning-for-get_task_comm
-+++ a/include/linux/sched.h
-@@ -1503,7 +1503,11 @@ static inline void set_task_comm(struct
- 	__set_task_comm(tsk, from, false);
- }
- 
--extern char *get_task_comm(char *to, struct task_struct *tsk);
-+extern char *__get_task_comm(char *to, size_t len, struct task_struct *tsk);
-+#define get_task_comm(buf, tsk) ({			\
-+	BUILD_BUG_ON(sizeof(buf) != TASK_COMM_LEN);	\
-+	__get_task_comm(buf, sizeof(buf), tsk);		\
-+})
- 
- #ifdef CONFIG_SMP
- void scheduler_ipi(void);
++Some of the pages in zswap are same-value filled pages (i.e. contents of the
++page have same value or repetitive pattern). These pages include zero-filled
++pages and they are handled differently. During store operation, a page is
++checked if it is a same-value filled page before compressing it. If true, the
++compressed length of the page is set to zero and the pattern or same-filled
++value is stored.
++
++Same-value filled pages identification feature is enabled by default and can be
++disabled at boot time by setting the "same_filled_pages_enabled" attribute to 0,
++e.g. zswap.same_filled_pages_enabled=0. It can also be enabled and disabled at
++runtime using the sysfs "same_filled_pages_enabled" attribute, e.g.
++
++echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
++
++When zswap same-filled page identification is disabled at runtime, it will stop
++checking for the same-value filled pages during store operation. However, the
++existing pages which are marked as same-value filled pages remain stored
++unchanged in zswap until they are either loaded or invalidated.
++
+ A debugfs interface is provided for various statistic about pool size, number
+-of pages stored, and various counters for the reasons pages are rejected.
++of pages stored, same-value filled pages and various counters for the reasons
++pages are rejected.
 _
