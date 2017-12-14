@@ -1,61 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/17] mm/memory.c: mark wp_huge_pmd() inline to prevent
- build failure
-Date: Thu, 14 Dec 2017 15:32:52 -0800
-Message-ID: <5a330a24.b1c+qPYGMEWUVP7X%akpm@linux-foundation.org>
+Subject: [patch 11/17] mm/slab.c: do not hash pointers when debugging slab
+Date: Thu, 14 Dec 2017 15:32:58 -0800
+Message-ID: <5a330a2a.Pc6DJGQcRb2kELyC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54384 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754331AbdLNXcx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:53 -0500
+        with ESMTP id S1754331AbdLNXdA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert+renesas@glider.be, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, me@tobin.cc, penberg@kernel.org, rientjes@google.com
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: mm/memory.c: mark wp_huge_pmd() inline to prevent build failure
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: mm/slab.c: do not hash pointers when debugging slab
 
-With gcc 4.1.2:
+If CONFIG_DEBUG_SLAB/CONFIG_DEBUG_SLAB_LEAK are enabled, the slab code
+prints extra debug information when e.g.  corruption is detected.  This
+includes pointers, which are not very useful when hashed.
 
-    mm/memory.o: In function `wp_huge_pmd':
-    memory.c:(.text+0x9b4): undefined reference to `do_huge_pmd_wp_page'
+Fix this by using %px to print unhashed pointers instead where it makes
+sense, and by removing the printing of a last user pointer referring to
+code.
 
-Interestingly, wp_huge_pmd() is emitted in the assembler output, but never
-called.
-
-Apparently replacing the call to pmd_write() in __handle_mm_fault() by a
-call to the more complex pmd_access_permitted() reduced the ability of the
-compiler to remove unused code.
-
-Fix this by marking wp_huge_pmd() inline, like was done in
-91a90140f9987101 ("mm/memory.c: mark create_huge_pmd() inline to prevent
-build failure") for a similar problem.
-
-[akpm@linux-foundation.org: add comment]
-Link: http://lkml.kernel.org/r/1512335500-10889-1-git-send-email-geert@linux-m68k.org
-Fixes: c7da82b894e9eef6 ("mm: replace pmd_write with pmd_access_permitted in fault + gup paths")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+[geert+renesas@glider.be: v2]
+  Link: http://lkml.kernel.org/r/1513179267-2509-1-git-send-email-geert+renesas@glider.be
+Link: http://lkml.kernel.org/r/1512641861-5113-1-git-send-email-geert+renesas@glider.be
+Fixes: ad67b74d2469d9b8 ("printk: hash addresses printed with %p")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Tobin C . Harding" <me@tobin.cc>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slab.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN mm/memory.c~mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure mm/memory.c
---- a/mm/memory.c~mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure
-+++ a/mm/memory.c
-@@ -3831,7 +3831,8 @@ static inline int create_huge_pmd(struct
- 	return VM_FAULT_FALLBACK;
+diff -puN mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab mm/slab.c
+--- a/mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab
++++ a/mm/slab.c
+@@ -1584,11 +1584,8 @@ static void print_objinfo(struct kmem_ca
+ 		       *dbg_redzone2(cachep, objp));
+ 	}
+ 
+-	if (cachep->flags & SLAB_STORE_USER) {
+-		pr_err("Last user: [<%p>](%pSR)\n",
+-		       *dbg_userword(cachep, objp),
+-		       *dbg_userword(cachep, objp));
+-	}
++	if (cachep->flags & SLAB_STORE_USER)
++		pr_err("Last user: (%pSR)\n", *dbg_userword(cachep, objp));
+ 	realobj = (char *)objp + obj_offset(cachep);
+ 	size = cachep->object_size;
+ 	for (i = 0; i < size && lines; i += 16, lines--) {
+@@ -1621,7 +1618,7 @@ static void check_poison_obj(struct kmem
+ 			/* Mismatch ! */
+ 			/* Print header */
+ 			if (lines == 0) {
+-				pr_err("Slab corruption (%s): %s start=%p, len=%d\n",
++				pr_err("Slab corruption (%s): %s start=%px, len=%d\n",
+ 				       print_tainted(), cachep->name,
+ 				       realobj, size);
+ 				print_objinfo(cachep, objp, 0);
+@@ -1650,13 +1647,13 @@ static void check_poison_obj(struct kmem
+ 		if (objnr) {
+ 			objp = index_to_obj(cachep, page, objnr - 1);
+ 			realobj = (char *)objp + obj_offset(cachep);
+-			pr_err("Prev obj: start=%p, len=%d\n", realobj, size);
++			pr_err("Prev obj: start=%px, len=%d\n", realobj, size);
+ 			print_objinfo(cachep, objp, 2);
+ 		}
+ 		if (objnr + 1 < cachep->num) {
+ 			objp = index_to_obj(cachep, page, objnr + 1);
+ 			realobj = (char *)objp + obj_offset(cachep);
+-			pr_err("Next obj: start=%p, len=%d\n", realobj, size);
++			pr_err("Next obj: start=%px, len=%d\n", realobj, size);
+ 			print_objinfo(cachep, objp, 2);
+ 		}
+ 	}
+@@ -2608,7 +2605,7 @@ static void slab_put_obj(struct kmem_cac
+ 	/* Verify double free bug */
+ 	for (i = page->active; i < cachep->num; i++) {
+ 		if (get_free_obj(page, i) == objnr) {
+-			pr_err("slab: double free detected in cache '%s', objp %p\n",
++			pr_err("slab: double free detected in cache '%s', objp %px\n",
+ 			       cachep->name, objp);
+ 			BUG();
+ 		}
+@@ -2772,7 +2769,7 @@ static inline void verify_redzone_free(s
+ 	else
+ 		slab_error(cache, "memory outside object was overwritten");
+ 
+-	pr_err("%p: redzone 1:0x%llx, redzone 2:0x%llx\n",
++	pr_err("%px: redzone 1:0x%llx, redzone 2:0x%llx\n",
+ 	       obj, redzone1, redzone2);
  }
  
--static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
-+/* `inline' is required to avoid gcc 4.1.2 build error */
-+static inline int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
- {
- 	if (vma_is_anonymous(vmf->vma))
- 		return do_huge_pmd_wp_page(vmf, orig_pmd);
+@@ -3078,7 +3075,7 @@ static void *cache_alloc_debugcheck_afte
+ 		if (*dbg_redzone1(cachep, objp) != RED_INACTIVE ||
+ 				*dbg_redzone2(cachep, objp) != RED_INACTIVE) {
+ 			slab_error(cachep, "double free, or memory outside object was overwritten");
+-			pr_err("%p: redzone 1:0x%llx, redzone 2:0x%llx\n",
++			pr_err("%px: redzone 1:0x%llx, redzone 2:0x%llx\n",
+ 			       objp, *dbg_redzone1(cachep, objp),
+ 			       *dbg_redzone2(cachep, objp));
+ 		}
+@@ -3091,7 +3088,7 @@ static void *cache_alloc_debugcheck_afte
+ 		cachep->ctor(objp);
+ 	if (ARCH_SLAB_MINALIGN &&
+ 	    ((unsigned long)objp & (ARCH_SLAB_MINALIGN-1))) {
+-		pr_err("0x%p: not aligned to ARCH_SLAB_MINALIGN=%d\n",
++		pr_err("0x%px: not aligned to ARCH_SLAB_MINALIGN=%d\n",
+ 		       objp, (int)ARCH_SLAB_MINALIGN);
+ 	}
+ 	return objp;
+@@ -4283,7 +4280,7 @@ static void show_symbol(struct seq_file
+ 		return;
+ 	}
+ #endif
+-	seq_printf(m, "%p", (void *)address);
++	seq_printf(m, "%px", (void *)address);
+ }
+ 
+ static int leaks_show(struct seq_file *m, void *p)
 _
