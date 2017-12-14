@@ -1,54 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/17] include/linux/idr.h: add #include <linux/bug.h>
-Date: Thu, 14 Dec 2017 15:32:24 -0800
-Message-ID: <5a330a08.Pae2jlkiyrn/BwoN%akpm@linux-foundation.org>
+Subject: [patch 02/17] lib/rbtree,drm/mm: add rbtree_replace_node_cached()
+Date: Thu, 14 Dec 2017 15:32:28 -0800
+Message-ID: <5a330a0c.9blsz1rj0ngBZaAJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54220 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754296AbdLNXc0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:26 -0500
+        with ESMTP id S1754331AbdLNXc3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wei.w.wang@intel.com, ebiggers@google.com, jack@suse.cz, mawilcox@microsoft.com, mhocko@kernel.org, tj@kernel.org, yamada.masahiro@socionext.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, dbueso@suse.de, jglisse@redhat.com, joonas.lahtinen@linux.intel.com
 
-From: Wei Wang <wei.w.wang@intel.com>
-Subject: include/linux/idr.h: add #include <linux/bug.h>
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: lib/rbtree,drm/mm: add rbtree_replace_node_cached()
 
-The <linux/bug.h> was removed from radix-tree.h by f5bba9d11a2
-("include/linux/radix-tree.h: remove unneeded #include <linux/bug.h>").
+Add a variant of rbtree_replace_node() that maintains the leftmost cache
+of struct rbtree_root_cached when replacing nodes within the rbtree.
 
-Since that commit, tools/testing/radix-tree/ couldn't pass compilation due
-to tools/testing/radix-tree/idr.c:17: undefined reference to WARN_ON_ONCE.
-This patch adds the bug.h header to idr.h to solve the issue.
+As drm_mm is the only rb_replace_node() being used on an interval tree,
+the mistake looks fairly self-contained.  Furthermore the only user of
+drm_mm_replace_node() is its testsuite...
 
-Link: http://lkml.kernel.org/r/1511963726-34070-2-git-send-email-wei.w.wang@intel.com
-Fixes: f5bba9d11a2 ("include/linux/radix-tree.h: remove unneeded #include <linux/bug.h>")
-Signed-off-by: Wei Wang <wei.w.wang@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Testcase: igt/drm_mm/replace
+
+Link: http://lkml.kernel.org/r/20171122100729.3742-1-chris@chris-wilson.co.uk
+Link: https://patchwork.freedesktop.org/patch/msgid/20171109212435.9265-1-chris@chris-wilson.co.uk
+Fixes: f808c13fd373 ("lib/interval_tree: fast overlap detection")
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Acked-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/drm_mm.c |    8 +++++---
+ include/linux/rbtree.h   |    2 ++
+ lib/rbtree.c             |   10 ++++++++++
+ 3 files changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/idr.h~idr-add-include-linux-bugh include/linux/idr.h
---- a/include/linux/idr.h~idr-add-include-linux-bugh
-+++ a/include/linux/idr.h
-@@ -15,6 +15,7 @@
- #include <linux/radix-tree.h>
- #include <linux/gfp.h>
- #include <linux/percpu.h>
-+#include <linux/bug.h>
+diff -puN drivers/gpu/drm/drm_mm.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached drivers/gpu/drm/drm_mm.c
+--- a/drivers/gpu/drm/drm_mm.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
++++ a/drivers/gpu/drm/drm_mm.c
+@@ -575,21 +575,23 @@ EXPORT_SYMBOL(drm_mm_remove_node);
+  */
+ void drm_mm_replace_node(struct drm_mm_node *old, struct drm_mm_node *new)
+ {
++	struct drm_mm *mm = old->mm;
++
+ 	DRM_MM_BUG_ON(!old->allocated);
  
- struct idr {
- 	struct radix_tree_root	idr_rt;
+ 	*new = *old;
+ 
+ 	list_replace(&old->node_list, &new->node_list);
+-	rb_replace_node(&old->rb, &new->rb, &old->mm->interval_tree.rb_root);
++	rb_replace_node_cached(&old->rb, &new->rb, &mm->interval_tree);
+ 
+ 	if (drm_mm_hole_follows(old)) {
+ 		list_replace(&old->hole_stack, &new->hole_stack);
+ 		rb_replace_node(&old->rb_hole_size,
+ 				&new->rb_hole_size,
+-				&old->mm->holes_size);
++				&mm->holes_size);
+ 		rb_replace_node(&old->rb_hole_addr,
+ 				&new->rb_hole_addr,
+-				&old->mm->holes_addr);
++				&mm->holes_addr);
+ 	}
+ 
+ 	old->allocated = false;
+diff -puN include/linux/rbtree.h~lib-rbtreedrm-mm-add-rbtree_replace_node_cached include/linux/rbtree.h
+--- a/include/linux/rbtree.h~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
++++ a/include/linux/rbtree.h
+@@ -99,6 +99,8 @@ extern void rb_replace_node(struct rb_no
+ 			    struct rb_root *root);
+ extern void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
+ 				struct rb_root *root);
++extern void rb_replace_node_cached(struct rb_node *victim, struct rb_node *new,
++				   struct rb_root_cached *root);
+ 
+ static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
+ 				struct rb_node **rb_link)
+diff -puN lib/rbtree.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached lib/rbtree.c
+--- a/lib/rbtree.c~lib-rbtreedrm-mm-add-rbtree_replace_node_cached
++++ a/lib/rbtree.c
+@@ -603,6 +603,16 @@ void rb_replace_node(struct rb_node *vic
+ }
+ EXPORT_SYMBOL(rb_replace_node);
+ 
++void rb_replace_node_cached(struct rb_node *victim, struct rb_node *new,
++			    struct rb_root_cached *root)
++{
++	rb_replace_node(victim, new, &root->rb_root);
++
++	if (root->rb_leftmost == victim)
++		root->rb_leftmost = new;
++}
++EXPORT_SYMBOL(rb_replace_node_cached);
++
+ void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
+ 			 struct rb_root *root)
+ {
 _
