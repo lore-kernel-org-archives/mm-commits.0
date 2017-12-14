@@ -1,74 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/17] mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
-Date: Thu, 14 Dec 2017 15:32:55 -0800
-Message-ID: <5a330a27.qDGmoM+vd/ASCYf0%akpm@linux-foundation.org>
+Subject: [patch 09/17] mm/memory.c: mark wp_huge_pmd() inline to prevent
+ build failure
+Date: Thu, 14 Dec 2017 15:32:52 -0800
+Message-ID: <5a330a24.b1c+qPYGMEWUVP7X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754327AbdLNXc5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:57 -0500
+        with ESMTP id S1754331AbdLNXcx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, l.stach@pengutronix.de, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org
 
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: mm/memory.c: mark wp_huge_pmd() inline to prevent build failure
 
-Since 9cca35d42eb6 ("mm, page_alloc: enable/disable IRQs once when
-freeing a list of pages") we see excessive IRQ disabled times of up to
-25ms on an embedded ARM system (tracing overhead included).
+With gcc 4.1.2:
 
-This is due to graphics buffers being freed back to the system via
-release_pages().  Graphics buffers can be huge, so it's not hard to hit
-cases where the list of pages to free has 2048 entries.  Disabling IRQs
-while freeing all those pages is clearly not a good idea.
+    mm/memory.o: In function `wp_huge_pmd':
+    memory.c:(.text+0x9b4): undefined reference to `do_huge_pmd_wp_page'
 
-Introduce a batch limit, which allows IRQ servicing once every few pages. 
-The batch count is the same as used in other parts of the MM subsystem
-when dealing with IRQ disabled regions.
+Interestingly, wp_huge_pmd() is emitted in the assembler output, but never
+called.
 
-Link: http://lkml.kernel.org/r/20171207170314.4419-1-l.stach@pengutronix.de
-Fixes: 9cca35d42eb6 ("mm, page_alloc: enable/disable IRQs once when freeing a list of pages")
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Apparently replacing the call to pmd_write() in __handle_mm_fault() by a
+call to the more complex pmd_access_permitted() reduced the ability of the
+compiler to remove unused code.
+
+Fix this by marking wp_huge_pmd() inline, like was done in
+91a90140f9987101 ("mm/memory.c: mark create_huge_pmd() inline to prevent
+build failure") for a similar problem.
+
+[akpm@linux-foundation.org: add comment]
+Link: http://lkml.kernel.org/r/1512335500-10889-1-git-send-email-geert@linux-m68k.org
+Fixes: c7da82b894e9eef6 ("mm: replace pmd_write with pmd_access_permitted in fault + gup paths")
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-excessive-irq-disabled-times-in-free_unref_page_list
-+++ a/mm/page_alloc.c
-@@ -2684,6 +2684,7 @@ void free_unref_page_list(struct list_he
- {
- 	struct page *page, *next;
- 	unsigned long flags, pfn;
-+	int batch_count = 0;
- 
- 	/* Prepare pages for freeing */
- 	list_for_each_entry_safe(page, next, list, lru) {
-@@ -2700,6 +2701,16 @@ void free_unref_page_list(struct list_he
- 		set_page_private(page, 0);
- 		trace_mm_page_free_batched(page);
- 		free_unref_page_commit(page, pfn);
-+
-+		/*
-+		 * Guard against excessive IRQ disabled times when we get
-+		 * a large list of pages to free.
-+		 */
-+		if (++batch_count == SWAP_CLUSTER_MAX) {
-+			local_irq_restore(flags);
-+			batch_count = 0;
-+			local_irq_save(flags);
-+		}
- 	}
- 	local_irq_restore(flags);
+diff -puN mm/memory.c~mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure mm/memory.c
+--- a/mm/memory.c~mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure
++++ a/mm/memory.c
+@@ -3831,7 +3831,8 @@ static inline int create_huge_pmd(struct
+ 	return VM_FAULT_FALLBACK;
  }
+ 
+-static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
++/* `inline' is required to avoid gcc 4.1.2 build error */
++static inline int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
+ {
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
 _
