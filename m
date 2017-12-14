@@ -1,64 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- stringh-work-around-for-increased-stack-usage-fix.patch removed from -mm
- tree
-Date: Thu, 14 Dec 2017 15:27:28 -0800
-Message-ID: <5a3308e0.uyMXh98BI6LDqvZF%akpm@linux-foundation.org>
+ mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
+ removed from -mm tree
+Date: Thu, 14 Dec 2017 15:27:54 -0800
+Message-ID: <5a3308fa.0RsHlUhKAW2KvLSQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53794 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754342AbdLNX13 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:27:29 -0500
+        with ESMTP id S1754295AbdLNX1z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:27:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stringh-work-around-for-increased-stack-usage-fix
+     Subject: mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix
 has been removed from the -mm tree.  Its filename was
-     stringh-work-around-for-increased-stack-usage-fix.patch
+     mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
 
-This patch was dropped because it was folded into stringh-work-around-for-increased-stack-usage.patch
+This patch was dropped because it was folded into mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: stringh-work-around-for-increased-stack-usage-fix
+Subject: mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix
 
 add comment
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Kees Cook <keescook@chromium.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/string.h~stringh-work-around-for-increased-stack-usage-fix include/linux/string.h
---- a/include/linux/string.h~stringh-work-around-for-increased-stack-usage-fix
-+++ a/include/linux/string.h
-@@ -259,6 +259,8 @@ __FORTIFY_INLINE __kernel_size_t strlen(
+diff -puN mm/memory.c~mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix mm/memory.c
+--- a/mm/memory.c~mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix
++++ a/mm/memory.c
+@@ -3831,6 +3831,7 @@ static inline int create_huge_pmd(struct
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
++/* `inline' is required to avoid gcc 4.1.2 build error */
+ static inline int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
  {
- 	__kernel_size_t ret;
- 	size_t p_size = __builtin_object_size(p, 0);
-+
-+	/* Work around gcc excess stack consumption issue */
- 	if (p_size == (size_t)-1 ||
- 	    (__builtin_constant_p(p[p_size - 1]) && p[p_size - 1] == '\0'))
- 		return __builtin_strlen(p);
+ 	if (vma_is_anonymous(vmf->vma))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
 mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
-stringh-work-around-for-increased-stack-usage.patch
-mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
+mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 mm.patch
 mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
