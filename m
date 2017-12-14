@@ -1,62 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch removed from -mm tree
-Date: Wed, 13 Dec 2017 17:02:02 -0800
-Message-ID: <5a31cd8a.pdk8BtBPVBEc5+e0%akpm@linux-foundation.org>
+Subject: + fs-elf-drop-map_fixed-usage-from-elf_map.patch added to -mm
+ tree
+Date: Thu, 14 Dec 2017 11:29:03 -0800
+Message-ID: <5a32d0ff.n7Dw3GjwOAXInuTL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37654 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750749AbdLNBCD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 20:02:03 -0500
+        with ESMTP id S1754470AbdLNT3F (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 14:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, mingo@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, abdhalee@linux.vnet.ibm.com, joel@jms.id.au, keescook@chromium.org, khalid.aziz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched/wait: assert the wait_queue_head lock is held in __wake_up_common
-has been removed from the -mm tree.  Its filename was
-     sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common.patch
+     Subject: fs, elf: drop MAP_FIXED usage from elf_map
+has been added to the -mm tree.  Its filename is
+     fs-elf-drop-map_fixed-usage-from-elf_map.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-elf-drop-map_fixed-usage-from-elf_map.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-elf-drop-map_fixed-usage-from-elf_map.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: sched/wait: assert the wait_queue_head lock is held in __wake_up_common
+From: Michal Hocko <mhocko@suse.com>
+Subject: fs, elf: drop MAP_FIXED usage from elf_map
 
-Better ensure we actually hold the lock using lockdep than just commenting
-on it.  Due to the various exported _locked interfaces it is far too easy
-to get the locking wrong.
+Both load_elf_interp and load_elf_binary rely on elf_map to map segments
+on a controlled address and they use MAP_FIXED to enforce that.  This is
+however dangerous thing prone to silent data corruption which can be even
+exploitable.  Let's take CVE-2017-1000253 as an example.  At the time
+(before eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE"))
+ELF_ET_DYN_BASE was at TASK_SIZE / 3 * 2 which is not that far away from
+the stack top on 32b (legacy) memory layout (only 1GB away).  Therefore we
+could end up mapping over the existing stack with some luck.
 
-Link: http://lkml.kernel.org/r/20171130142037.19339-2-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The issue has been fixed since then (a87938b2e246 ("fs/binfmt_elf.c: fix
+bug in loading of PIE binaries")), ELF_ET_DYN_BASE moved moved much
+further from the stack (eab09532d400 and later by c715b72c1ba4 ("mm:
+revert x86_64 and arm64 ELF_ET_DYN_BASE base changes")) and excessive
+stack consumption early during execve fully stopped by da029c11e6b1
+("exec: Limit arg stack to at most 75% of _STK_LIM").  So we should be
+safe and any attack should be impractical.  On the other hand this is just
+too subtle assumption so it can break quite easily and hard to spot.
+
+I believe that the MAP_FIXED usage in load_elf_binary (et.  al) is still
+fundamentally dangerous.  Moreover it shouldn't be even needed.  We are at
+the early process stage and so there shouldn't be unrelated mappings
+(except for stack and loader) existing so mmap for a given address should
+succeed even without MAP_FIXED.  Something is terribly wrong if this is
+not the case and we should rather fail than silently corrupt the
+underlying mapping.
+
+Address this issue by changing MAP_FIXED to the newly added
+MAP_FIXED_SAFE.  This will mean that mmap will fail if there is an
+existing mapping clashing with the requested one without clobbering it.
+
+Link: http://lkml.kernel.org/r/20171213092550.2774-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
+Cc: Joel Stanley <joel@jms.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/wait.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/metag/kernel/process.c |    6 +++++-
+ fs/binfmt_elf.c             |   12 ++++++++----
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sched/wait.c~sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common kernel/sched/wait.c
---- a/kernel/sched/wait.c~sched-wait-assert-the-wait_queue_head-lock-is-held-in-__wake_up_common
-+++ a/kernel/sched/wait.c
-@@ -76,6 +76,8 @@ static int __wake_up_common(struct wait_
- 	wait_queue_entry_t *curr, *next;
- 	int cnt = 0;
+diff -puN arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map arch/metag/kernel/process.c
+--- a/arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map
++++ a/arch/metag/kernel/process.c
+@@ -399,7 +399,7 @@ unsigned long __metag_elf_map(struct fil
+ 	tcm_tag = tcm_lookup_tag(addr);
  
-+	lockdep_assert_held(&wq_head->lock);
+ 	if (tcm_tag != TCM_INVALID_TAG)
+-		type &= ~MAP_FIXED;
++		type &= ~(MAP_FIXED | MAP_FIXED_SAFE);
+ 
+ 	/*
+ 	* total_size is the size of the ELF (interpreter) image.
+@@ -417,6 +417,10 @@ unsigned long __metag_elf_map(struct fil
+ 	} else
+ 		map_addr = vm_mmap(filep, addr, size, prot, type, off);
+ 
++	if ((type & MAP_FIXED_SAFE) && BAD_ADDR(map_addr))
++		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
++				task_pid_nr(current), tsk->comm, (void*)addr);
 +
- 	if (bookmark && (bookmark->flags & WQ_FLAG_BOOKMARK)) {
- 		curr = list_next_entry(bookmark, entry);
+ 	if (!BAD_ADDR(map_addr) && tcm_tag != TCM_INVALID_TAG) {
+ 		struct tcm_allocation *tcm;
+ 		unsigned long tcm_addr;
+diff -puN fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map
++++ a/fs/binfmt_elf.c
+@@ -377,6 +377,10 @@ static unsigned long elf_map(struct file
+ 	} else
+ 		map_addr = vm_mmap(filep, addr, size, prot, type, off);
  
++	if ((type & MAP_FIXED_SAFE) && BAD_ADDR(map_addr))
++		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
++				task_pid_nr(current), current->comm, (void*)addr);
++
+ 	return(map_addr);
+ }
+ 
+@@ -575,7 +579,7 @@ static unsigned long load_elf_interp(str
+ 				elf_prot |= PROT_EXEC;
+ 			vaddr = eppnt->p_vaddr;
+ 			if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
+-				elf_type |= MAP_FIXED;
++				elf_type |= MAP_FIXED_SAFE;
+ 			else if (no_base && interp_elf_ex->e_type == ET_DYN)
+ 				load_addr = -vaddr;
+ 
+@@ -939,7 +943,7 @@ static int load_elf_binary(struct linux_
+ 		 * the ET_DYN load_addr calculations, proceed normally.
+ 		 */
+ 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
+-			elf_flags |= MAP_FIXED;
++			elf_flags |= MAP_FIXED_SAFE;
+ 		} else if (loc->elf_ex.e_type == ET_DYN) {
+ 			/*
+ 			 * This logic is run once for the first LOAD Program
+@@ -975,7 +979,7 @@ static int load_elf_binary(struct linux_
+ 				load_bias = ELF_ET_DYN_BASE;
+ 				if (current->flags & PF_RANDOMIZE)
+ 					load_bias += arch_mmap_rnd();
+-				elf_flags |= MAP_FIXED;
++				elf_flags |= MAP_FIXED_SAFE;
+ 			} else
+ 				load_bias = 0;
+ 
+@@ -1234,7 +1238,7 @@ static int load_elf_library(struct file
+ 			(eppnt->p_filesz +
+ 			 ELF_PAGEOFFSET(eppnt->p_vaddr)),
+ 			PROT_READ | PROT_WRITE | PROT_EXEC,
+-			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE,
++			MAP_FIXED_SAFE | MAP_PRIVATE | MAP_DENYWRITE,
+ 			(eppnt->p_offset -
+ 			 ELF_PAGEOFFSET(eppnt->p_vaddr)));
+ 	if (error != ELF_PAGESTART(eppnt->p_vaddr))
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-oom_reaper-fix-memory-corruption.patch
+mm-drop-hotplug-lock-from-lru_add_drain_all.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+mm-introduce-map_fixed_safe.patch
+fs-elf-drop-map_fixed-usage-from-elf_map.patch
 
