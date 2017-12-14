@@ -1,173 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [patch 15/17] kernel: make groups_sort calling a responsibility
- group_info allocators
-Date: Thu, 14 Dec 2017 15:33:12 -0800
-Message-ID: <5a330a38.de2we227S3CqjJ3J%akpm@linux-foundation.org>
+Subject: [patch 16/17] mm, oom_reaper: fix memory corruption
+Date: Thu, 14 Dec 2017 15:33:15 -0800
+Message-ID: <5a330a3b.id35PDSBJ8go3SQ4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54436 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754425AbdLNXdO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:14 -0500
+        with ESMTP id S1754425AbdLNXdR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, thiago.becker@gmail.com, bfields@fieldses.org, mawilcox@microsoft.com, neilb@suse.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, andrea@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, stable@vger.kernel.org
 
-From: Thiago Rafael Becker <thiago.becker@gmail.com>
-Subject: kernel: make groups_sort calling a responsibility group_info allocators
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom_reaper: fix memory corruption
 
-In testing, we found that nfsd threads may call set_groups in parallel for
-the same entry cached in auth.unix.gid, racing in the call of groups_sort,
-corrupting the groups for that entry and leading to permission denials for
-the client.
+David Rientjes has reported the following memory corruption while the oom
+reaper tries to unmap the victims address space
 
-This patch:
- - Make groups_sort globally visible.
- - Move the call to groups_sort to the modifiers of group_info
- - Remove the call to groups_sort from set_groups
+BUG: Bad page map in process oom_reaper  pte:6353826300000000 pmd:00000000
+addr:00007f50cab1d000 vm_flags:08100073 anon_vma:ffff9eea335603f0 mapping:          (null) index:7f50cab1d
+file:          (null) fault:          (null) mmap:          (null) readpage:          (null)
+CPU: 2 PID: 1001 Comm: oom_reaper
+Call Trace:
+ [<ffffffffa4bd967d>] dump_stack+0x4d/0x70
+ [<ffffffffa4a03558>] unmap_page_range+0x1068/0x1130
+ [<ffffffffa4a2e07f>] __oom_reap_task_mm+0xd5/0x16b
+ [<ffffffffa4a2e226>] oom_reaper+0xff/0x14c
+ [<ffffffffa48d6ad1>] kthread+0xc1/0xe0
 
-Link: http://lkml.kernel.org/r/20171211151420.18655-1-thiago.becker@gmail.com
-Signed-off-by: Thiago Rafael Becker <thiago.becker@gmail.com>
-Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
-Reviewed-by: NeilBrown <neilb@suse.com>
-Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <stable@vger.kernel.org>
+Tetsuo Handa has noticed that the synchronization inside exit_mmap is
+insufficient.  We only synchronize with the oom reaper if
+tsk_is_oom_victim which is not true if the final __mmput is called from a
+different context than the oom victim exit path.  This can trivially
+happen from context of any task which has grabbed mm reference (e.g.  to
+read /proc/<pid>/ file which requires mm etc.).  The race would look like
+this
+
+oom_reaper		oom_victim		task
+						mmget_not_zero
+			do_exit
+			  mmput
+__oom_reap_task_mm				mmput
+  						  __mmput
+						    exit_mmap
+						      remove_vma
+  unmap_page_range
+
+Fix this issue by providing a new mm_is_oom_victim() helper which operates
+on the mm struct rather than a task.  Any context which operates on a
+remote mm struct should use this helper in place of tsk_is_oom_victim. 
+The flag is set in mark_oom_victim and never cleared so it is stable in
+the exit_mmap path.
+
+Debugged by Tetsuo Handa.
+
+Link: http://lkml.kernel.org/r/20171210095130.17110-1-mhocko@kernel.org
+Fixes: 212925802454 ("mm: oom: let oom_reap_task and exit_mmap run concurrently")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.14]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/compat_linux.c   |    1 +
- fs/nfsd/auth.c                    |    3 +++
- include/linux/cred.h              |    1 +
- kernel/groups.c                   |    5 +++--
- kernel/uid16.c                    |    1 +
- net/sunrpc/auth_gss/gss_rpc_xdr.c |    1 +
- net/sunrpc/auth_gss/svcauth_gss.c |    1 +
- net/sunrpc/svcauth_unix.c         |    2 ++
- 8 files changed, 13 insertions(+), 2 deletions(-)
+ include/linux/oom.h            |    9 +++++++++
+ include/linux/sched/coredump.h |    1 +
+ mm/mmap.c                      |   10 +++++-----
+ mm/oom_kill.c                  |    4 +++-
+ 4 files changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators arch/s390/kernel/compat_linux.c
---- a/arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/arch/s390/kernel/compat_linux.c
-@@ -263,6 +263,7 @@ COMPAT_SYSCALL_DEFINE2(s390_setgroups16,
- 		return retval;
- 	}
- 
-+	groups_sort(group_info);
- 	retval = set_current_groups(group_info);
- 	put_group_info(group_info);
- 
-diff -puN fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators fs/nfsd/auth.c
---- a/fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/fs/nfsd/auth.c
-@@ -60,6 +60,9 @@ int nfsd_setuser(struct svc_rqst *rqstp,
- 				gi->gid[i] = exp->ex_anon_gid;
- 			else
- 				gi->gid[i] = rqgi->gid[i];
-+
-+			/* Each thread allocates its own gi, no race */
-+			groups_sort(gi);
- 		}
- 	} else {
- 		gi = get_group_info(rqgi);
-diff -puN include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators include/linux/cred.h
---- a/include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/include/linux/cred.h
-@@ -83,6 +83,7 @@ extern int set_current_groups(struct gro
- extern void set_groups(struct cred *, struct group_info *);
- extern int groups_search(const struct group_info *, kgid_t);
- extern bool may_setgroups(void);
-+extern void groups_sort(struct group_info *);
+diff -puN include/linux/oom.h~mm-oom_reaper-fix-memory-corruption include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom_reaper-fix-memory-corruption
++++ a/include/linux/oom.h
+@@ -67,6 +67,15 @@ static inline bool tsk_is_oom_victim(str
+ }
  
  /*
-  * The security context of a task
-diff -puN kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/groups.c
---- a/kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/kernel/groups.c
-@@ -86,11 +86,12 @@ static int gid_cmp(const void *_a, const
- 	return gid_gt(a, b) - gid_lt(a, b);
- }
++ * Use this helper if tsk->mm != mm and the victim mm needs a special
++ * handling. This is guaranteed to stay true after once set.
++ */
++static inline bool mm_is_oom_victim(struct mm_struct *mm)
++{
++	return test_bit(MMF_OOM_VICTIM, &mm->flags);
++}
++
++/*
+  * Checks whether a page fault on the given mm is still reliable.
+  * This is no longer true if the oom reaper started to reap the
+  * address space which is reflected by MMF_UNSTABLE flag set in
+diff -puN include/linux/sched/coredump.h~mm-oom_reaper-fix-memory-corruption include/linux/sched/coredump.h
+--- a/include/linux/sched/coredump.h~mm-oom_reaper-fix-memory-corruption
++++ a/include/linux/sched/coredump.h
+@@ -70,6 +70,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+ #define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
++#define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
  
--static void groups_sort(struct group_info *group_info)
-+void groups_sort(struct group_info *group_info)
- {
- 	sort(group_info->gid, group_info->ngroups, sizeof(*group_info->gid),
- 	     gid_cmp, NULL);
- }
-+EXPORT_SYMBOL(groups_sort);
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+diff -puN mm/mmap.c~mm-oom_reaper-fix-memory-corruption mm/mmap.c
+--- a/mm/mmap.c~mm-oom_reaper-fix-memory-corruption
++++ a/mm/mmap.c
+@@ -3019,20 +3019,20 @@ void exit_mmap(struct mm_struct *mm)
+ 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
+ 	unmap_vmas(&tlb, vma, 0, -1);
  
- /* a simple bsearch */
- int groups_search(const struct group_info *group_info, kgid_t grp)
-@@ -122,7 +123,6 @@ int groups_search(const struct group_inf
- void set_groups(struct cred *new, struct group_info *group_info)
- {
- 	put_group_info(new->group_info);
--	groups_sort(group_info);
- 	get_group_info(group_info);
- 	new->group_info = group_info;
- }
-@@ -206,6 +206,7 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsi
- 		return retval;
+-	set_bit(MMF_OOM_SKIP, &mm->flags);
+-	if (unlikely(tsk_is_oom_victim(current))) {
++	if (unlikely(mm_is_oom_victim(mm))) {
+ 		/*
+ 		 * Wait for oom_reap_task() to stop working on this
+ 		 * mm. Because MMF_OOM_SKIP is already set before
+ 		 * calling down_read(), oom_reap_task() will not run
+ 		 * on this "mm" post up_write().
+ 		 *
+-		 * tsk_is_oom_victim() cannot be set from under us
+-		 * either because current->mm is already set to NULL
++		 * mm_is_oom_victim() cannot be set from under us
++		 * either because victim->mm is already set to NULL
+ 		 * under task_lock before calling mmput and oom_mm is
+-		 * set not NULL by the OOM killer only if current->mm
++		 * set not NULL by the OOM killer only if victim->mm
+ 		 * is found not NULL while holding the task_lock.
+ 		 */
++		set_bit(MMF_OOM_SKIP, &mm->flags);
+ 		down_write(&mm->mmap_sem);
+ 		up_write(&mm->mmap_sem);
  	}
+diff -puN mm/oom_kill.c~mm-oom_reaper-fix-memory-corruption mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-fix-memory-corruption
++++ a/mm/oom_kill.c
+@@ -683,8 +683,10 @@ static void mark_oom_victim(struct task_
+ 		return;
  
-+	groups_sort(group_info);
- 	retval = set_current_groups(group_info);
- 	put_group_info(group_info);
+ 	/* oom_mm is bound to the signal struct life time. */
+-	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm))
++	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm)) {
+ 		mmgrab(tsk->signal->oom_mm);
++		set_bit(MMF_OOM_VICTIM, &mm->flags);
++	}
  
-diff -puN kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/uid16.c
---- a/kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/kernel/uid16.c
-@@ -192,6 +192,7 @@ SYSCALL_DEFINE2(setgroups16, int, gidset
- 		return retval;
- 	}
- 
-+	groups_sort(group_info);
- 	retval = set_current_groups(group_info);
- 	put_group_info(group_info);
- 
-diff -puN net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/gss_rpc_xdr.c
---- a/net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/net/sunrpc/auth_gss/gss_rpc_xdr.c
-@@ -231,6 +231,7 @@ static int gssx_dec_linux_creds(struct x
- 			goto out_free_groups;
- 		creds->cr_group_info->gid[i] = kgid;
- 	}
-+	groups_sort(creds->cr_group_info);
- 
- 	return 0;
- out_free_groups:
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -481,6 +481,7 @@ static int rsc_parse(struct cache_detail
- 				goto out;
- 			rsci.cred.cr_group_info->gid[i] = kgid;
- 		}
-+		groups_sort(rsci.cred.cr_group_info);
- 
- 		/* mech name */
- 		len = qword_get(&mesg, buf, mlen);
-diff -puN net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -520,6 +520,7 @@ static int unix_gid_parse(struct cache_d
- 		ug.gi->gid[i] = kgid;
- 	}
- 
-+	groups_sort(ug.gi);
- 	ugp = unix_gid_lookup(cd, uid);
- 	if (ugp) {
- 		struct cache_head *ch;
-@@ -819,6 +820,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
- 		kgid_t kgid = make_kgid(&init_user_ns, svc_getnl(argv));
- 		cred->cr_group_info->gid[i] = kgid;
- 	}
-+	groups_sort(cred->cr_group_info);
- 	if (svc_getu32(argv) != htonl(RPC_AUTH_NULL) || svc_getu32(argv) != 0) {
- 		*authp = rpc_autherr_badverf;
- 		return SVC_DENIED;
+ 	/*
+ 	 * Make sure that the task is woken up from uninterruptible sleep
 _
