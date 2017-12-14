@@ -1,44 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/17] tools/slabinfo-gnuplot: force to use bash shell
-Date: Thu, 14 Dec 2017 15:33:05 -0800
-Message-ID: <5a330a31.e+UOrSU1o3K7bgU1%akpm@linux-foundation.org>
+Subject: [patch 14/17] mm/frame_vector.c: release a semaphore in
+ 'get_vaddr_frames()'
+Date: Thu, 14 Dec 2017 15:33:08 -0800
+Message-ID: <5a330a34.l8mVJ6HCyEyGgv7o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754395AbdLNXdH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:07 -0500
+        with ESMTP id S1754418AbdLNXdK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, changcheng.liu@intel.com, sergey.senozhatsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, christophe.jaillet@wanadoo.fr, borntraeger@de.ibm.com, dan.j.williams@intel.com, dsterba@suse.com, gregkh@linuxfoundation.org, mhocko@suse.com
 
-From: "Liu, Changcheng" <changcheng.liu@intel.com>
-Subject: tools/slabinfo-gnuplot: force to use bash shell
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: mm/frame_vector.c: release a semaphore in 'get_vaddr_frames()'
 
-On some linux distributions, the default link of sh
-is dash which deoesn't support split array like
-${var//,/ }
-It's better to force to use bash shell directly.
+A semaphore is acquired before this check, so we must release it before
+leaving.
 
-Link: http://lkml.kernel.org/r/20171208093751.GA175471@sofia
-Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20171211211009.4971-1-christophe.jaillet@wanadoo.fr
+Fixes: b7f0554a56f2 ("mm: fail get_vaddr_frames() for filesystem-dax mappings")
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/slabinfo-gnuplot.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/frame_vector.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN tools/vm/slabinfo-gnuplot.sh~tools-slabinfo-gnuplot-force-to-use-bash-shell tools/vm/slabinfo-gnuplot.sh
---- a/tools/vm/slabinfo-gnuplot.sh~tools-slabinfo-gnuplot-force-to-use-bash-shell
-+++ a/tools/vm/slabinfo-gnuplot.sh
-@@ -1,4 +1,4 @@
--#!/bin/sh
-+#!/bin/bash
+diff -puN mm/frame_vector.c~mm-release-a-semaphore-in-get_vaddr_frames mm/frame_vector.c
+--- a/mm/frame_vector.c~mm-release-a-semaphore-in-get_vaddr_frames
++++ a/mm/frame_vector.c
+@@ -62,8 +62,10 @@ int get_vaddr_frames(unsigned long start
+ 	 * get_user_pages_longterm() and disallow it for filesystem-dax
+ 	 * mappings.
+ 	 */
+-	if (vma_is_fsdax(vma))
+-		return -EOPNOTSUPP;
++	if (vma_is_fsdax(vma)) {
++		ret = -EOPNOTSUPP;
++		goto out;
++	}
  
- # Sergey Senozhatsky, 2015
- # sergey.senozhatsky.work@gmail.com
+ 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
+ 		vec->got_ref = true;
 _
