@@ -1,55 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/17] mm/frame_vector.c: release a semaphore in
- 'get_vaddr_frames()'
-Date: Thu, 14 Dec 2017 15:33:08 -0800
-Message-ID: <5a330a34.l8mVJ6HCyEyGgv7o%akpm@linux-foundation.org>
+Subject: [patch 15/17] kernel: make groups_sort calling a responsibility
+ group_info allocators
+Date: Thu, 14 Dec 2017 15:33:12 -0800
+Message-ID: <5a330a38.de2we227S3CqjJ3J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54418 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754418AbdLNXdK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:10 -0500
+        with ESMTP id S1754425AbdLNXdO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, christophe.jaillet@wanadoo.fr, borntraeger@de.ibm.com, dan.j.williams@intel.com, dsterba@suse.com, gregkh@linuxfoundation.org, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, thiago.becker@gmail.com, bfields@fieldses.org, mawilcox@microsoft.com, neilb@suse.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: mm/frame_vector.c: release a semaphore in 'get_vaddr_frames()'
+From: Thiago Rafael Becker <thiago.becker@gmail.com>
+Subject: kernel: make groups_sort calling a responsibility group_info allocators
 
-A semaphore is acquired before this check, so we must release it before
-leaving.
+In testing, we found that nfsd threads may call set_groups in parallel for
+the same entry cached in auth.unix.gid, racing in the call of groups_sort,
+corrupting the groups for that entry and leading to permission denials for
+the client.
 
-Link: http://lkml.kernel.org/r/20171211211009.4971-1-christophe.jaillet@wanadoo.fr
-Fixes: b7f0554a56f2 ("mm: fail get_vaddr_frames() for filesystem-dax mappings")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This patch:
+ - Make groups_sort globally visible.
+ - Move the call to groups_sort to the modifiers of group_info
+ - Remove the call to groups_sort from set_groups
+
+Link: http://lkml.kernel.org/r/20171211151420.18655-1-thiago.becker@gmail.com
+Signed-off-by: Thiago Rafael Becker <thiago.becker@gmail.com>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: NeilBrown <neilb@suse.com>
+Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frame_vector.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/s390/kernel/compat_linux.c   |    1 +
+ fs/nfsd/auth.c                    |    3 +++
+ include/linux/cred.h              |    1 +
+ kernel/groups.c                   |    5 +++--
+ kernel/uid16.c                    |    1 +
+ net/sunrpc/auth_gss/gss_rpc_xdr.c |    1 +
+ net/sunrpc/auth_gss/svcauth_gss.c |    1 +
+ net/sunrpc/svcauth_unix.c         |    2 ++
+ 8 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN mm/frame_vector.c~mm-release-a-semaphore-in-get_vaddr_frames mm/frame_vector.c
---- a/mm/frame_vector.c~mm-release-a-semaphore-in-get_vaddr_frames
-+++ a/mm/frame_vector.c
-@@ -62,8 +62,10 @@ int get_vaddr_frames(unsigned long start
- 	 * get_user_pages_longterm() and disallow it for filesystem-dax
- 	 * mappings.
- 	 */
--	if (vma_is_fsdax(vma))
--		return -EOPNOTSUPP;
-+	if (vma_is_fsdax(vma)) {
-+		ret = -EOPNOTSUPP;
-+		goto out;
-+	}
+diff -puN arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators arch/s390/kernel/compat_linux.c
+--- a/arch/s390/kernel/compat_linux.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/arch/s390/kernel/compat_linux.c
+@@ -263,6 +263,7 @@ COMPAT_SYSCALL_DEFINE2(s390_setgroups16,
+ 		return retval;
+ 	}
  
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
- 		vec->got_ref = true;
++	groups_sort(group_info);
+ 	retval = set_current_groups(group_info);
+ 	put_group_info(group_info);
+ 
+diff -puN fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators fs/nfsd/auth.c
+--- a/fs/nfsd/auth.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/fs/nfsd/auth.c
+@@ -60,6 +60,9 @@ int nfsd_setuser(struct svc_rqst *rqstp,
+ 				gi->gid[i] = exp->ex_anon_gid;
+ 			else
+ 				gi->gid[i] = rqgi->gid[i];
++
++			/* Each thread allocates its own gi, no race */
++			groups_sort(gi);
+ 		}
+ 	} else {
+ 		gi = get_group_info(rqgi);
+diff -puN include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators include/linux/cred.h
+--- a/include/linux/cred.h~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/include/linux/cred.h
+@@ -83,6 +83,7 @@ extern int set_current_groups(struct gro
+ extern void set_groups(struct cred *, struct group_info *);
+ extern int groups_search(const struct group_info *, kgid_t);
+ extern bool may_setgroups(void);
++extern void groups_sort(struct group_info *);
+ 
+ /*
+  * The security context of a task
+diff -puN kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/groups.c
+--- a/kernel/groups.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/kernel/groups.c
+@@ -86,11 +86,12 @@ static int gid_cmp(const void *_a, const
+ 	return gid_gt(a, b) - gid_lt(a, b);
+ }
+ 
+-static void groups_sort(struct group_info *group_info)
++void groups_sort(struct group_info *group_info)
+ {
+ 	sort(group_info->gid, group_info->ngroups, sizeof(*group_info->gid),
+ 	     gid_cmp, NULL);
+ }
++EXPORT_SYMBOL(groups_sort);
+ 
+ /* a simple bsearch */
+ int groups_search(const struct group_info *group_info, kgid_t grp)
+@@ -122,7 +123,6 @@ int groups_search(const struct group_inf
+ void set_groups(struct cred *new, struct group_info *group_info)
+ {
+ 	put_group_info(new->group_info);
+-	groups_sort(group_info);
+ 	get_group_info(group_info);
+ 	new->group_info = group_info;
+ }
+@@ -206,6 +206,7 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsi
+ 		return retval;
+ 	}
+ 
++	groups_sort(group_info);
+ 	retval = set_current_groups(group_info);
+ 	put_group_info(group_info);
+ 
+diff -puN kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators kernel/uid16.c
+--- a/kernel/uid16.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/kernel/uid16.c
+@@ -192,6 +192,7 @@ SYSCALL_DEFINE2(setgroups16, int, gidset
+ 		return retval;
+ 	}
+ 
++	groups_sort(group_info);
+ 	retval = set_current_groups(group_info);
+ 	put_group_info(group_info);
+ 
+diff -puN net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/gss_rpc_xdr.c
+--- a/net/sunrpc/auth_gss/gss_rpc_xdr.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/net/sunrpc/auth_gss/gss_rpc_xdr.c
+@@ -231,6 +231,7 @@ static int gssx_dec_linux_creds(struct x
+ 			goto out_free_groups;
+ 		creds->cr_group_info->gid[i] = kgid;
+ 	}
++	groups_sort(creds->cr_group_info);
+ 
+ 	return 0;
+ out_free_groups:
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -481,6 +481,7 @@ static int rsc_parse(struct cache_detail
+ 				goto out;
+ 			rsci.cred.cr_group_info->gid[i] = kgid;
+ 		}
++		groups_sort(rsci.cred.cr_group_info);
+ 
+ 		/* mech name */
+ 		len = qword_get(&mesg, buf, mlen);
+diff -puN net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~kernel-make-groups_sort-calling-a-responsibility-group_info-allocators
++++ a/net/sunrpc/svcauth_unix.c
+@@ -520,6 +520,7 @@ static int unix_gid_parse(struct cache_d
+ 		ug.gi->gid[i] = kgid;
+ 	}
+ 
++	groups_sort(ug.gi);
+ 	ugp = unix_gid_lookup(cd, uid);
+ 	if (ugp) {
+ 		struct cache_head *ch;
+@@ -819,6 +820,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
+ 		kgid_t kgid = make_kgid(&init_user_ns, svc_getnl(argv));
+ 		cred->cr_group_info->gid[i] = kgid;
+ 	}
++	groups_sort(cred->cr_group_info);
+ 	if (svc_getu32(argv) != htonl(RPC_AUTH_NULL) || svc_getu32(argv) != 0) {
+ 		*authp = rpc_autherr_badverf;
+ 		return SVC_DENIED;
 _
