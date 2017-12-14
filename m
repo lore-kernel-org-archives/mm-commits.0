@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
- added to -mm tree
-Date: Thu, 14 Dec 2017 12:40:54 -0800
-Message-ID: <5a32e1d6.2P08TfJl84Dt+pv6%akpm@linux-foundation.org>
+Subject: + ocfs2-add-trimfs-dlm-lock-resource.patch added to -mm tree
+Date: Thu, 14 Dec 2017 14:50:13 -0800
+Message-ID: <5a330025.3siYOAUBcioDSzS7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752376AbdLNUk4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 15:40:56 -0500
+        with ESMTP id S1754277AbdLNWuW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 17:50:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, mhocko@suse.com, npiggin@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ghe@suse.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect: add a cond_resched() inside change_pmd_range()
+     Subject: ocfs2: add trimfs dlm lock resource
 has been added to the -mm tree.  Its filename is
-     mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
+     ocfs2-add-trimfs-dlm-lock-resource.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-trimfs-dlm-lock-resource.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-trimfs-dlm-lock-resource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,88 +38,237 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/mprotect: add a cond_resched() inside change_pmd_range()
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: add trimfs dlm lock resource
 
-While testing on a large CPU system, detected the following RCU stall many
-times over the span of the workload.  This problem is solved by adding a
-cond_resched() in the change_pmd_range() function.
+Introduce a new dlm lock resource, which will be used to communicate
+during fstrimming of an ocfs2 device from cluster nodes.
 
-[  850.962530] INFO: rcu_sched detected stalls on CPUs/tasks:
-[  850.962584]  154-....: (670 ticks this GP) idle=022/140000000000000/0 softirq=2825/2825 fqs=612
-[  850.962605]  (detected by 955, t=6002 jiffies, g=4486, c=4485, q=90864)
-[  850.962895] Sending NMI from CPU 955 to CPUs 154:
-[  850.992667] NMI backtrace for cpu 154
-[  850.993069] CPU: 154 PID: 147071 Comm: workload Not tainted 4.15.0-rc3+ #3
-[  850.993258] NIP:  c0000000000b3f64 LR: c0000000000b33d4 CTR: 000000000000aa18
-[  850.993503] REGS: 00000000a4b0fb44 TRAP: 0501   Not tainted  (4.15.0-rc3+)
-[  850.993707] MSR:  8000000000009033 <SF,EE,ME,IR,DR,RI,LE>  CR: 22422082  XER: 00000000
-[  850.994386] CFAR: 00000000006cf8f0 SOFTE: 1
-GPR00: 0010000000000000 c00003ef9b1cb8c0 c0000000010cc600 0000000000000000
-GPR04: 8e0000018c32b200 40017b3858fd6e00 8e0000018c32b208 40017b3858fd6e00
-GPR08: 8e0000018c32b210 40017b3858fd6e00 8e0000018c32b218 40017b3858fd6e00
-GPR12: ffffffffffffffff c00000000fb25100
-[  850.995976] NIP [c0000000000b3f64] plpar_hcall9+0x44/0x7c
-[  850.996174] LR [c0000000000b33d4] pSeries_lpar_flush_hash_range+0x384/0x420
-[  850.996401] Call Trace:
-[  850.996600] [c00003ef9b1cb8c0] [c00003fa8fff7d40] 0xc00003fa8fff7d40 (unreliable)
-[  850.996959] [c00003ef9b1cba40] [c0000000000688a8] flush_hash_range+0x48/0x100
-[  850.997261] [c00003ef9b1cba90] [c000000000071b14] __flush_tlb_pending+0x44/0xd0
-[  850.997600] [c00003ef9b1cbac0] [c000000000071fa8] hpte_need_flush+0x408/0x470
-[  850.997958] [c00003ef9b1cbb30] [c0000000002c646c] change_protection_range+0xaac/0xf10
-[  850.998180] [c00003ef9b1cbcb0] [c0000000002f2510] change_prot_numa+0x30/0xb0
-[  850.998502] [c00003ef9b1cbce0] [c00000000013a950] task_numa_work+0x2d0/0x3e0
-[  850.998816] [c00003ef9b1cbda0] [c00000000011ea30] task_work_run+0x130/0x190
-[  850.999121] [c00003ef9b1cbe00] [c00000000001bcd8] do_notify_resume+0x118/0x120
-[  850.999421] [c00003ef9b1cbe30] [c00000000000b744] ret_from_except_lite+0x70/0x74
-[  850.999716] Instruction dump:
-[  850.999959] 60000000 f8810028 7ca42b78 7cc53378 7ce63b78 7d074378 7d284b78 7d495378
-[  851.000575] e9410060 e9610068 e9810070 44000022 <7d806378> e9810028 f88c0000 f8ac0008
-
-Link: http://lkml.kernel.org/r/20171214140551.5794-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Suggested-by: Nicholas Piggin <npiggin@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1513228484-2084-1-git-send-email-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlmglue.c      |   86 ++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/dlmglue.h      |   29 ++++++++++++
+ fs/ocfs2/ocfs2.h        |    1 
+ fs/ocfs2/ocfs2_lockid.h |    5 ++
+ 4 files changed, 121 insertions(+)
 
-diff -puN mm/mprotect.c~mm-mprotect-add-a-cond_resched-inside-change_pmd_range mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotect-add-a-cond_resched-inside-change_pmd_range
-+++ a/mm/mprotect.c
-@@ -166,7 +166,7 @@ static inline unsigned long change_pmd_r
- 		next = pmd_addr_end(addr, end);
- 		if (!is_swap_pmd(*pmd) && !pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)
- 				&& pmd_none_or_clear_bad(pmd))
--			continue;
-+			goto next;
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/dlmglue.c
+@@ -259,6 +259,10 @@ static struct ocfs2_lock_res_ops ocfs2_n
+ 	.flags		= 0,
+ };
  
- 		/* invoke the mmu notifier if the pmd is populated */
- 		if (!mni_start) {
-@@ -188,7 +188,7 @@ static inline unsigned long change_pmd_r
- 					}
++static struct ocfs2_lock_res_ops ocfs2_trim_fs_lops = {
++	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
++};
++
+ static struct ocfs2_lock_res_ops ocfs2_orphan_scan_lops = {
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
+ };
+@@ -676,6 +680,24 @@ static void ocfs2_nfs_sync_lock_res_init
+ 				   &ocfs2_nfs_sync_lops, osb);
+ }
  
- 					/* huge pmd was handled */
--					continue;
-+					goto next;
- 				}
- 			}
- 			/* fall through, the trans huge pmd just split */
-@@ -196,6 +196,8 @@ static inline unsigned long change_pmd_r
- 		this_pages = change_pte_range(vma, pmd, addr, next, newprot,
- 				 dirty_accountable, prot_numa);
- 		pages += this_pages;
-+next:
-+		cond_resched();
- 	} while (pmd++, addr = next, addr != end);
++void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb)
++{
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	ocfs2_lock_res_init_once(lockres);
++	ocfs2_build_lock_name(OCFS2_LOCK_TYPE_TRIM_FS, 0, 0, lockres->l_name);
++	ocfs2_lock_res_init_common(osb, lockres, OCFS2_LOCK_TYPE_TRIM_FS,
++				   &ocfs2_trim_fs_lops, osb);
++}
++
++void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb)
++{
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	ocfs2_simple_drop_lockres(osb, lockres);
++	ocfs2_lock_res_free(lockres);
++}
++
+ static void ocfs2_orphan_scan_lock_res_init(struct ocfs2_lock_res *res,
+ 					    struct ocfs2_super *osb)
+ {
+@@ -2776,6 +2798,70 @@ void ocfs2_nfs_sync_unlock(struct ocfs2_
+ 				     ex ? LKM_EXMODE : LKM_PRMODE);
+ }
  
- 	if (mni_start)
++int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
++		       struct ocfs2_trim_fs_info *info, int trylock)
++{
++	int status;
++	struct ocfs2_trim_fs_lvb *lvb;
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	if (info)
++		info->tf_valid = 0;
++
++	if (ocfs2_is_hard_readonly(osb))
++		return -EROFS;
++
++	if (ocfs2_mount_local(osb))
++		return 0;
++
++	status = ocfs2_cluster_lock(osb, lockres, DLM_LOCK_EX,
++				    trylock ? DLM_LKF_NOQUEUE : 0, 0);
++	if (status < 0) {
++		if (status != -EAGAIN)
++			mlog_errno(status);
++		return status;
++	}
++
++	if (info) {
++		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
++		if (ocfs2_dlm_lvb_valid(&lockres->l_lksb) &&
++		    lvb->lvb_version == OCFS2_TRIMFS_LVB_VERSION) {
++			info->tf_valid = 1;
++			info->tf_success = lvb->lvb_success;
++			info->tf_nodenum = be32_to_cpu(lvb->lvb_nodenum);
++			info->tf_start = be64_to_cpu(lvb->lvb_start);
++			info->tf_len = be64_to_cpu(lvb->lvb_len);
++			info->tf_minlen = be64_to_cpu(lvb->lvb_minlen);
++			info->tf_trimlen = be64_to_cpu(lvb->lvb_trimlen);
++		}
++	}
++
++	return status;
++}
++
++void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
++			  struct ocfs2_trim_fs_info *info)
++{
++	struct ocfs2_trim_fs_lvb *lvb;
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	if (ocfs2_mount_local(osb))
++		return;
++
++	if (info) {
++		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
++		lvb->lvb_version = OCFS2_TRIMFS_LVB_VERSION;
++		lvb->lvb_success = info->tf_success;
++		lvb->lvb_nodenum = cpu_to_be32(info->tf_nodenum);
++		lvb->lvb_start = cpu_to_be64(info->tf_start);
++		lvb->lvb_len = cpu_to_be64(info->tf_len);
++		lvb->lvb_minlen = cpu_to_be64(info->tf_minlen);
++		lvb->lvb_trimlen = cpu_to_be64(info->tf_trimlen);
++	}
++
++	ocfs2_cluster_unlock(osb, lockres, DLM_LOCK_EX);
++}
++
+ int ocfs2_dentry_lock(struct dentry *dentry, int ex)
+ {
+ 	int ret;
+diff -puN fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.h
+--- a/fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/dlmglue.h
+@@ -70,6 +70,29 @@ struct ocfs2_orphan_scan_lvb {
+ 	__be32	lvb_os_seqno;
+ };
+ 
++#define OCFS2_TRIMFS_LVB_VERSION 1
++
++struct ocfs2_trim_fs_lvb {
++	__u8	lvb_version;
++	__u8	lvb_success;
++	__u8	lvb_reserved[2];
++	__be32	lvb_nodenum;
++	__be64	lvb_start;
++	__be64	lvb_len;
++	__be64	lvb_minlen;
++	__be64	lvb_trimlen;
++};
++
++struct ocfs2_trim_fs_info {
++	u8	tf_valid;	/* lvb is valid, or not */
++	u8	tf_success;	/* trim is successful, or not */
++	u32	tf_nodenum;	/* osb node number */
++	u64	tf_start;	/* trim start offset in clusters */
++	u64	tf_len;		/* trim end offset in clusters */
++	u64	tf_minlen;	/* trim minimum contiguous free clusters */
++	u64	tf_trimlen;	/* trimmed length in bytes */
++};
++
+ struct ocfs2_lock_holder {
+ 	struct list_head oh_list;
+ 	struct pid *oh_owner_pid;
+@@ -157,6 +180,12 @@ int ocfs2_rename_lock(struct ocfs2_super
+ void ocfs2_rename_unlock(struct ocfs2_super *osb);
+ int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex);
+ void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex);
++void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb);
++void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb);
++int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
++		       struct ocfs2_trim_fs_info *info, int trylock);
++void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
++			  struct ocfs2_trim_fs_info *info);
+ int ocfs2_dentry_lock(struct dentry *dentry, int ex);
+ void ocfs2_dentry_unlock(struct dentry *dentry, int ex);
+ int ocfs2_file_lock(struct file *file, int ex, int trylock);
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/ocfs2.h
+@@ -406,6 +406,7 @@ struct ocfs2_super
+ 	struct ocfs2_lock_res osb_super_lockres;
+ 	struct ocfs2_lock_res osb_rename_lockres;
+ 	struct ocfs2_lock_res osb_nfs_sync_lockres;
++	struct ocfs2_lock_res osb_trim_fs_lockres;
+ 	struct ocfs2_dlm_debug *osb_dlm_debug;
+ 
+ 	struct dentry *osb_debug_root;
+diff -puN fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2_lockid.h
+--- a/fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/ocfs2_lockid.h
+@@ -50,6 +50,7 @@ enum ocfs2_lock_type {
+ 	OCFS2_LOCK_TYPE_NFS_SYNC,
+ 	OCFS2_LOCK_TYPE_ORPHAN_SCAN,
+ 	OCFS2_LOCK_TYPE_REFCOUNT,
++	OCFS2_LOCK_TYPE_TRIM_FS,
+ 	OCFS2_NUM_LOCK_TYPES
+ };
+ 
+@@ -93,6 +94,9 @@ static inline char ocfs2_lock_type_char(
+ 		case OCFS2_LOCK_TYPE_REFCOUNT:
+ 			c = 'T';
+ 			break;
++		case OCFS2_LOCK_TYPE_TRIM_FS:
++			c = 'I';
++			break;
+ 		default:
+ 			c = '\0';
+ 	}
+@@ -115,6 +119,7 @@ static char *ocfs2_lock_type_strings[] =
+ 	[OCFS2_LOCK_TYPE_NFS_SYNC] = "NFSSync",
+ 	[OCFS2_LOCK_TYPE_ORPHAN_SCAN] = "OrphanScan",
+ 	[OCFS2_LOCK_TYPE_REFCOUNT] = "Refcount",
++	[OCFS2_LOCK_TYPE_TRIM_FS] = "TrimFs",
+ };
+ 
+ static inline const char *ocfs2_lock_type_string(enum ocfs2_lock_type type)
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
-mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
+ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+ocfs2-move-some-definitions-to-header-file.patch
+ocfs2-fix-some-small-problems.patch
+ocfs2-add-kobject-for-online-file-check.patch
+ocfs2-add-duplicative-ino-number-check.patch
+ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock.patch
+ocfs2-add-ocfs2_overwrite_io-function.patch
+ocfs2-nowait-aio-support.patch
+ocfs2-add-trimfs-dlm-lock-resource.patch
+ocfs2-add-trimfs-lock-to-avoid-duplicated-trims-in-cluster.patch
 
