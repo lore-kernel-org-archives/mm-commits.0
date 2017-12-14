@@ -1,132 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- make-memory-debugging-a-menuconfig-to-ease-disabling-it-all.patch removed
- from -mm tree
-Date: Wed, 13 Dec 2017 15:51:38 -0800
-Message-ID: <5a31bd0a.yuzSseqEl5MSVRxn%akpm@linux-foundation.org>
+Subject: + asm-generic-provide-generic_pmdp_establish.patch added to -mm
+ tree
+Date: Wed, 13 Dec 2017 16:11:05 -0800
+Message-ID: <5a31c199.kPS+UcUnHzKWReo/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56794 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750751AbdLMXvk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 18:51:40 -0500
+        with ESMTP id S1751839AbdLNALH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 19:11:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vincent.legoll@gmail.com, byungchul.park@lge.com, geert@linux-m68k.org, jpoimboe@redhat.com, mcgrof@kernel.org, mingo@kernel.org, npiggin@gmail.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rdunlap@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, davem@davemloft.net, david.daney@cavium.com, hpa@zytor.com, hughd@google.com, mhocko@kernel.org, mingo@kernel.org, nitin.m.gupta@oracle.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, vbabka@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/: make "Memory Debugging" a menuconfig to ease disabling it all
-has been removed from the -mm tree.  Its filename was
-     make-memory-debugging-a-menuconfig-to-ease-disabling-it-all.patch
+     Subject: asm-generic: provide generic_pmdp_establish()
+has been added to the -mm tree.  Its filename is
+     asm-generic-provide-generic_pmdp_establish.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-provide-generic_pmdp_establish.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-provide-generic_pmdp_establish.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vincent Legoll <vincent.legoll@gmail.com>
-Subject: lib/: make "Memory Debugging" a menuconfig to ease disabling it all
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: asm-generic: provide generic_pmdp_establish()
 
-No need to get into the submenu to disable all "Memory Debugging"-related
-config entries.
+Patch series "Do not lose dirty bit on THP pages", v4.
 
-This makes it easier to disable all "Memory Debugging" config options
-without entering the submenu.  It will also enable one to see that
-en/dis-abled state from the outside menu.
+Vlastimil noted that pmdp_invalidate() is not atomic and we can lose
+dirty and access bits if CPU sets them after pmdp dereference, but
+before set_pmd_at().
 
-This is only intended to change menuconfig UI, not change the config
-dependencies.
+The bug can lead to data loss, but the race window is tiny and I haven't
+seen any reports that suggested that it happens in reality. So I don't
+think it worth sending it to stable.
 
-Link: http://lkml.kernel.org/r/20171209174033.9425-2-vincent.legoll@gmail.com
-Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
+Unfortunately, there's no way to address the issue in a generic way. We need to
+fix all architectures that support THP one-by-one.
+
+All architectures that have THP supported have to provide atomic
+pmdp_invalidate() that returns previous value.
+
+If generic implementation of pmdp_invalidate() is used, architecture needs to
+provide atomic pmdp_estabish().
+
+pmdp_estabish() is not used out-side generic implementation of
+pmdp_invalidate() so far, but I think this can change in the future.
+
+
+
+This patch (of 12):
+
+This is an implementation of pmdp_establish() that is only suitable for an
+architecture that doesn't have hardware dirty/accessed bits.  In this case
+we can't race with CPU which sets these bits and non-atomic approach is
+fine.
+
+Link: http://lkml.kernel.org/r/20171213105756.69879-2-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Daney <david.daney@cavium.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Byungchul Park <byungchul.park@lge.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |   28 +++++++++++++++++-----------
- lib/Kconfig.kasan |    3 ---
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ include/asm-generic/pgtable.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN lib/Kconfig.debug~make-memory-debugging-a-menuconfig-to-ease-disabling-it-all lib/Kconfig.debug
---- a/lib/Kconfig.debug~make-memory-debugging-a-menuconfig-to-ease-disabling-it-all
-+++ a/lib/Kconfig.debug
-@@ -436,7 +436,10 @@ config DEBUG_KERNEL
- 	  Say Y here if you are developing drivers or trying to debug and
- 	  identify kernel problems.
+diff -puN include/asm-generic/pgtable.h~asm-generic-provide-generic_pmdp_establish include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~asm-generic-provide-generic_pmdp_establish
++++ a/include/asm-generic/pgtable.h
+@@ -309,6 +309,21 @@ extern void pgtable_trans_huge_deposit(s
+ extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ #endif
  
--menu "Memory Debugging"
-+menuconfig DEBUG_MEMORY
-+	bool "Memory Debugging"
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++/*
++ * This is an implementation of pmdp_establish() that is only suitable for an
++ * architecture that doesn't have hardware dirty/accessed bits. In this case we
++ * can't race with CPU which sets these bits and non-atomic aproach is fine.
++ */
++static inline pmd_t generic_pmdp_establish(struct vm_area_struct *vma,
++		unsigned long address, pmd_t *pmdp, pmd_t pmd)
++{
++	pmd_t old_pmd = *pmdp;
++	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
++	return old_pmd;
++}
++#endif
 +
-+if DEBUG_MEMORY
- 
- source mm/Kconfig.debug
- 
-@@ -539,9 +542,6 @@ config SLUB_STATS
- 	  out which slabs are relevant to a particular load.
- 	  Try running: slabinfo -DA
- 
--config HAVE_DEBUG_KMEMLEAK
--	bool
--
- config DEBUG_KMEMLEAK
- 	bool "Kernel memory leak detector"
- 	depends on DEBUG_KERNEL && HAVE_DEBUG_KMEMLEAK
-@@ -636,9 +636,6 @@ config DEBUG_VM_PGFLAGS
- 
- 	  If unsure, say N.
- 
--config ARCH_HAS_DEBUG_VIRTUAL
--	bool
--
- config DEBUG_VIRTUAL
- 	bool "Debug VM translations"
- 	depends on DEBUG_KERNEL && ARCH_HAS_DEBUG_VIRTUAL
-@@ -708,9 +705,6 @@ config DEBUG_HIGHMEM
- 	  This option enables additional error checking for high memory
- 	  systems.  Disable for production systems.
- 
--config HAVE_DEBUG_STACKOVERFLOW
--	bool
--
- config DEBUG_STACKOVERFLOW
- 	bool "Check for stack overflows"
- 	depends on DEBUG_KERNEL && HAVE_DEBUG_STACKOVERFLOW
-@@ -731,7 +725,19 @@ config DEBUG_STACKOVERFLOW
- 
- source "lib/Kconfig.kasan"
- 
--endmenu # "Memory Debugging"
-+endif # DEBUG_MEMORY
-+
-+config HAVE_ARCH_KASAN
-+	bool
-+
-+config ARCH_HAS_DEBUG_VIRTUAL
-+	bool
-+
-+config HAVE_DEBUG_KMEMLEAK
-+	bool
-+
-+config HAVE_DEBUG_STACKOVERFLOW
-+	bool
- 
- config ARCH_HAS_KCOV
- 	bool
-diff -puN lib/Kconfig.kasan~make-memory-debugging-a-menuconfig-to-ease-disabling-it-all lib/Kconfig.kasan
---- a/lib/Kconfig.kasan~make-memory-debugging-a-menuconfig-to-ease-disabling-it-all
-+++ a/lib/Kconfig.kasan
-@@ -1,6 +1,3 @@
--config HAVE_ARCH_KASAN
--	bool
+ #ifndef __HAVE_ARCH_PMDP_INVALIDATE
+ extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 			    pmd_t *pmdp);
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+asm-generic-provide-generic_pmdp_establish.patch
+arc-use-generic_pmdp_establish-as-pmdp_establish.patch
+arm-mm-provide-pmdp_establish-helper.patch
+mips-use-generic_pmdp_establish-as-pmdp_establish.patch
+x86-mm-provide-pmdp_establish-helper.patch
+mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
+mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
+
