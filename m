@@ -1,65 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/17] Documentation/vm/zswap.txt: update with same-value
- filled page feature
-Date: Thu, 14 Dec 2017 15:32:45 -0800
-Message-ID: <5a330a1d.pc77Q1mN7OVZvQq1%akpm@linux-foundation.org>
+Subject: [patch 08/17] scripts/faddr2line: fix CROSS_COMPILE unset error
+Date: Thu, 14 Dec 2017 15:32:48 -0800
+Message-ID: <5a330a20.raCW2wsd2c7hWazC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754291AbdLNXcq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:46 -0500
+        with ESMTP id S1754277AbdLNXcu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, srividya.dr@samsung.com, ddstreet@ieee.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, changcheng.liu@intel.com, gregkh@linuxfoundation.org, neilb@suse.com, pombredanne@nexb.com, richard@nod.at, richard.weinberger@gmail.com, tglx@linutronix.de
 
-From: Srividya Desireddy <srividya.dr@samsung.com>
-Subject: Documentation/vm/zswap.txt: update with same-value filled page feature
+From: "Liu, Changcheng" <changcheng.liu@intel.com>
+Subject: scripts/faddr2line: fix CROSS_COMPILE unset error
 
-Update zswap document with details on same-value filled pages
-identification feature.  The usage of zswap.same_filled_pages_enabled
-module parameter is explained.
+faddr2line hit var unbound error when CROSS_COMPILE isn't set since
+nounset option is set in bash script.
 
-Link: http://lkml.kernel.org/r/20171206114852epcms5p6973b02a9f455d5d3c765eafda0fe2631@epcms5p6
-Signed-off-by: Srividya Desireddy <srividya.dr@samsung.com>
-Acked-by: Dan Streetman <ddstreet@ieee.org>
+Link: http://lkml.kernel.org/r/20171206013022.GA83929@sofia
+Fixes: 95a879825419 ("scripts/faddr2line: extend usage on generic arch")
+Signed-off-by: Liu Changcheng <changcheng.liu@intel.com>
+Reported-by: Richard Weinberger <richard.weinberger@gmail.com>
+Reviewed-by: Richard Weinberger <richard@nod.at>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: NeilBrown <neilb@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/zswap.txt |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ scripts/faddr2line |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/vm/zswap.txt~zswap-update-with-same-value-filled-page-feature Documentation/vm/zswap.txt
---- a/Documentation/vm/zswap.txt~zswap-update-with-same-value-filled-page-feature
-+++ a/Documentation/vm/zswap.txt
-@@ -98,5 +98,25 @@ request is made for a page in an old zpo
- original compressor.  Once all pages are removed from an old zpool, the zpool
- and its compressor are freed.
+diff -puN scripts/faddr2line~scripts-faddr2line-fix-cross_compile-unset-error scripts/faddr2line
+--- a/scripts/faddr2line~scripts-faddr2line-fix-cross_compile-unset-error
++++ a/scripts/faddr2line
+@@ -44,10 +44,10 @@
+ set -o errexit
+ set -o nounset
  
-+Some of the pages in zswap are same-value filled pages (i.e. contents of the
-+page have same value or repetitive pattern). These pages include zero-filled
-+pages and they are handled differently. During store operation, a page is
-+checked if it is a same-value filled page before compressing it. If true, the
-+compressed length of the page is set to zero and the pattern or same-filled
-+value is stored.
-+
-+Same-value filled pages identification feature is enabled by default and can be
-+disabled at boot time by setting the "same_filled_pages_enabled" attribute to 0,
-+e.g. zswap.same_filled_pages_enabled=0. It can also be enabled and disabled at
-+runtime using the sysfs "same_filled_pages_enabled" attribute, e.g.
-+
-+echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
-+
-+When zswap same-filled page identification is disabled at runtime, it will stop
-+checking for the same-value filled pages during store operation. However, the
-+existing pages which are marked as same-value filled pages remain stored
-+unchanged in zswap until they are either loaded or invalidated.
-+
- A debugfs interface is provided for various statistic about pool size, number
--of pages stored, and various counters for the reasons pages are rejected.
-+of pages stored, same-value filled pages and various counters for the reasons
-+pages are rejected.
+-READELF="${CROSS_COMPILE}readelf"
+-ADDR2LINE="${CROSS_COMPILE}addr2line"
+-SIZE="${CROSS_COMPILE}size"
+-NM="${CROSS_COMPILE}nm"
++READELF="${CROSS_COMPILE:-}readelf"
++ADDR2LINE="${CROSS_COMPILE:-}addr2line"
++SIZE="${CROSS_COMPILE:-}size"
++NM="${CROSS_COMPILE:-}nm"
+ 
+ command -v awk >/dev/null 2>&1 || die "awk isn't installed"
+ command -v ${READELF} >/dev/null 2>&1 || die "readelf isn't installed"
 _
