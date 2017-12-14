@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
- added to -mm tree
-Date: Wed, 13 Dec 2017 16:11:39 -0800
-Message-ID: <5a31c1bb.cJbENymvjoMFiEs7%akpm@linux-foundation.org>
+Subject: + mm-thp-remove-pmd_huge_split_prepare.patch added to -mm tree
+Date: Wed, 13 Dec 2017 16:11:45 -0800
+Message-ID: <5a31c1c1.OIIFtDOFQDZtwRoT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57100 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751090AbdLNALl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 19:11:41 -0500
+        with ESMTP id S1751090AbdLNALr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 19:11:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, davem@davemloft.net, david.daney@cavium.com, hpa@zytor.com, hughd@google.com, mhocko@kernel.org, mingo@kernel.org, nitin.m.gupta@oracle.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, vbabka@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, catalin.marinas@arm.com, davem@davemloft.net, david.daney@cavium.com, hpa@zytor.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mingo@kernel.org, nitin.m.gupta@oracle.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, vbabka@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not lose dirty and accessed bits in pmdp_invalidate()
+     Subject: mm/thp: remove pmd_huge_split_prepare()
 has been added to the -mm tree.  Its filename is
-     mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
+     mm-thp-remove-pmd_huge_split_prepare.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-remove-pmd_huge_split_prepare.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-remove-pmd_huge_split_prepare.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +38,24 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: do not lose dirty and accessed bits in pmdp_invalidate()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/thp: remove pmd_huge_split_prepare()
 
-Vlastimil noted that pmdp_invalidate() is not atomic and we can lose dirty
-and access bits if CPU sets them after pmdp dereference, but before
-set_pmd_at().
+Instead of marking the pmd ready for split, invalidate the pmd.  This
+should take care of powerpc requirement.  Only side effect is that we mark
+the pmd invalid early.  This can result in us blocking access to the page
+a bit longer if we race against a thp split.
 
-The patch change pmdp_invalidate() to make the entry non-present
-atomically and return previous value of the entry.  This value can be used
-to check if CPU set dirty/accessed bits under us.
-
-The race window is very small and I haven't seen any reports that can be
-attributed to the bug.  For this reason, I don't think backporting to
-stable trees needed.
-
-Link: http://lkml.kernel.org/r/20171213105756.69879-11-kirill.shutemov@linux.intel.com
+[kirill.shutemov@linux.intel.com: rebased, dirty THP once]
+Link: http://lkml.kernel.org/r/20171213105756.69879-13-kirill.shutemov@linux.intel.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Daney <david.daney@cavium.com>
 Cc: David Miller <davem@davemloft.net>
 Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -71,53 +63,228 @@ Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    2 +-
- mm/pgtable-generic.c          |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/powerpc/include/asm/book3s/64/hash-4k.h  |    2 
+ arch/powerpc/include/asm/book3s/64/hash-64k.h |    2 
+ arch/powerpc/include/asm/book3s/64/pgtable.h  |    9 --
+ arch/powerpc/include/asm/book3s/64/radix.h    |    6 -
+ arch/powerpc/mm/pgtable-hash64.c              |   22 ----
+ include/asm-generic/pgtable.h                 |    8 -
+ mm/huge_memory.c                              |   72 +++++++---------
+ 7 files changed, 35 insertions(+), 86 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate
-+++ a/include/asm-generic/pgtable.h
-@@ -325,7 +325,7 @@ static inline pmd_t generic_pmdp_establi
- #endif
+diff -puN arch/powerpc/include/asm/book3s/64/hash-4k.h~mm-thp-remove-pmd_huge_split_prepare arch/powerpc/include/asm/book3s/64/hash-4k.h
+--- a/arch/powerpc/include/asm/book3s/64/hash-4k.h~mm-thp-remove-pmd_huge_split_prepare
++++ a/arch/powerpc/include/asm/book3s/64/hash-4k.h
+@@ -101,8 +101,6 @@ extern pmd_t hash__pmdp_collapse_flush(s
+ extern void hash__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 					 pgtable_t pgtable);
+ extern pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+-extern void hash__pmdp_huge_split_prepare(struct vm_area_struct *vma,
+-				      unsigned long address, pmd_t *pmdp);
+ extern pmd_t hash__pmdp_huge_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr, pmd_t *pmdp);
+ extern int hash__has_transparent_hugepage(void);
+diff -puN arch/powerpc/include/asm/book3s/64/hash-64k.h~mm-thp-remove-pmd_huge_split_prepare arch/powerpc/include/asm/book3s/64/hash-64k.h
+--- a/arch/powerpc/include/asm/book3s/64/hash-64k.h~mm-thp-remove-pmd_huge_split_prepare
++++ a/arch/powerpc/include/asm/book3s/64/hash-64k.h
+@@ -203,8 +203,6 @@ extern pmd_t hash__pmdp_collapse_flush(s
+ extern void hash__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 					 pgtable_t pgtable);
+ extern pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+-extern void hash__pmdp_huge_split_prepare(struct vm_area_struct *vma,
+-				      unsigned long address, pmd_t *pmdp);
+ extern pmd_t hash__pmdp_huge_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr, pmd_t *pmdp);
+ extern int hash__has_transparent_hugepage(void);
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-thp-remove-pmd_huge_split_prepare arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-thp-remove-pmd_huge_split_prepare
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1140,15 +1140,6 @@ static inline pgtable_t pgtable_trans_hu
+ extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 			     pmd_t *pmdp);
  
- #ifndef __HAVE_ARCH_PMDP_INVALIDATE
--extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+-#define __HAVE_ARCH_PMDP_HUGE_SPLIT_PREPARE
+-static inline void pmdp_huge_split_prepare(struct vm_area_struct *vma,
+-					   unsigned long address, pmd_t *pmdp)
+-{
+-	if (radix_enabled())
+-		return radix__pmdp_huge_split_prepare(vma, address, pmdp);
+-	return hash__pmdp_huge_split_prepare(vma, address, pmdp);
+-}
+-
+ #define pmd_move_must_withdraw pmd_move_must_withdraw
+ struct spinlock;
+ static inline int pmd_move_must_withdraw(struct spinlock *new_pmd_ptl,
+diff -puN arch/powerpc/include/asm/book3s/64/radix.h~mm-thp-remove-pmd_huge_split_prepare arch/powerpc/include/asm/book3s/64/radix.h
+--- a/arch/powerpc/include/asm/book3s/64/radix.h~mm-thp-remove-pmd_huge_split_prepare
++++ a/arch/powerpc/include/asm/book3s/64/radix.h
+@@ -269,12 +269,6 @@ static inline pmd_t radix__pmd_mkhuge(pm
+ 		return __pmd(pmd_val(pmd) | _PAGE_PTE | R_PAGE_LARGE);
+ 	return __pmd(pmd_val(pmd) | _PAGE_PTE);
+ }
+-static inline void radix__pmdp_huge_split_prepare(struct vm_area_struct *vma,
+-					    unsigned long address, pmd_t *pmdp)
+-{
+-	/* Nothing to do for radix. */
+-	return;
+-}
+ 
+ extern unsigned long radix__pmd_hugepage_update(struct mm_struct *mm, unsigned long addr,
+ 					  pmd_t *pmdp, unsigned long clr,
+diff -puN arch/powerpc/mm/pgtable-hash64.c~mm-thp-remove-pmd_huge_split_prepare arch/powerpc/mm/pgtable-hash64.c
+--- a/arch/powerpc/mm/pgtable-hash64.c~mm-thp-remove-pmd_huge_split_prepare
++++ a/arch/powerpc/mm/pgtable-hash64.c
+@@ -296,28 +296,6 @@ pgtable_t hash__pgtable_trans_huge_withd
+ 	return pgtable;
+ }
+ 
+-void hash__pmdp_huge_split_prepare(struct vm_area_struct *vma,
+-			       unsigned long address, pmd_t *pmdp)
+-{
+-	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON(REGION_ID(address) != USER_REGION_ID);
+-	VM_BUG_ON(pmd_devmap(*pmdp));
+-
+-	/*
+-	 * We can't mark the pmd none here, because that will cause a race
+-	 * against exit_mmap. We need to continue mark pmd TRANS HUGE, while
+-	 * we spilt, but at the same time we wan't rest of the ppc64 code
+-	 * not to insert hash pte on this, because we will be modifying
+-	 * the deposited pgtable in the caller of this function. Hence
+-	 * clear the _PAGE_USER so that we move the fault handling to
+-	 * higher level function and that will serialize against ptl.
+-	 * We need to flush existing hash pte entries here even though,
+-	 * the translation is still valid, because we will withdraw
+-	 * pgtable_t after this.
+-	 */
+-	pmd_hugepage_update(vma->vm_mm, address, pmdp, 0, _PAGE_PRIVILEGED);
+-}
+-
+ /*
+  * A linux hugepage PMD was changed and the corresponding hash table entries
+  * neesd to be flushed.
+diff -puN include/asm-generic/pgtable.h~mm-thp-remove-pmd_huge_split_prepare include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-remove-pmd_huge_split_prepare
++++ a/include/asm-generic/pgtable.h
+@@ -329,14 +329,6 @@ extern pmd_t pmdp_invalidate(struct vm_a
  			    pmd_t *pmdp);
  #endif
  
-diff -puN mm/pgtable-generic.c~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate
-+++ a/mm/pgtable-generic.c
-@@ -181,12 +181,12 @@ pgtable_t pgtable_trans_huge_withdraw(st
- #endif
- 
- #ifndef __HAVE_ARCH_PMDP_INVALIDATE
--void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
+-#ifndef __HAVE_ARCH_PMDP_HUGE_SPLIT_PREPARE
+-static inline void pmdp_huge_split_prepare(struct vm_area_struct *vma,
+-					   unsigned long address, pmd_t *pmdp)
+-{
+-
+-}
+-#endif
+-
+ #ifndef __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t pte_a, pte_t pte_b)
  {
--	pmd_t entry = *pmdp;
--	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(entry));
-+	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotpresent(*pmdp));
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
-+	return old;
- }
- #endif
+diff -puN mm/huge_memory.c~mm-thp-remove-pmd_huge_split_prepare mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-remove-pmd_huge_split_prepare
++++ a/mm/huge_memory.c
+@@ -2063,7 +2063,7 @@ static void __split_huge_pmd_locked(stru
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct page *page;
+ 	pgtable_t pgtable;
+-	pmd_t old, _pmd;
++	pmd_t old_pmd, _pmd;
+ 	bool young, write, soft_dirty, pmd_migration = false;
+ 	unsigned long addr;
+ 	int i;
+@@ -2106,23 +2106,50 @@ static void __split_huge_pmd_locked(stru
+ 		return __split_huge_zero_page_pmd(vma, haddr, pmd);
+ 	}
  
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-asm-generic-provide-generic_pmdp_establish.patch
-arc-use-generic_pmdp_establish-as-pmdp_establish.patch
-arm-mm-provide-pmdp_establish-helper.patch
-mips-use-generic_pmdp_establish-as-pmdp_establish.patch
-x86-mm-provide-pmdp_establish-helper.patch
-mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
-mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
-
++	/*
++	 * Up to this point the pmd is present and huge and userland has the
++	 * whole access to the hugepage during the split (which happens in
++	 * place). If we overwrite the pmd with the not-huge version pointing
++	 * to the pte here (which of course we could if all CPUs were bug
++	 * free), userland could trigger a small page size TLB miss on the
++	 * small sized TLB while the hugepage TLB entry is still established in
++	 * the huge TLB. Some CPU doesn't like that.
++	 * See http://support.amd.com/us/Processor_TechDocs/41322.pdf, Erratum
++	 * 383 on page 93. Intel should be safe but is also warns that it's
++	 * only safe if the permission and cache attributes of the two entries
++	 * loaded in the two TLB is identical (which should be the case here).
++	 * But it is generally safer to never allow small and huge TLB entries
++	 * for the same virtual address to be loaded simultaneously. So instead
++	 * of doing "pmd_populate(); flush_pmd_tlb_range();" we first mark the
++	 * current pmd notpresent (atomically because here the pmd_trans_huge
++	 * must remain set at all times on the pmd until the split is complete
++	 * for this pmd), then we flush the SMP TLB and finally we write the
++	 * non-huge version of the pmd entry with pmd_populate.
++	 */
++	old_pmd = pmdp_invalidate(vma, haddr, pmd);
++
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+-	pmd_migration = is_pmd_migration_entry(*pmd);
++	pmd_migration = is_pmd_migration_entry(old_pmd);
+ 	if (pmd_migration) {
+ 		swp_entry_t entry;
+ 
+-		entry = pmd_to_swp_entry(*pmd);
++		entry = pmd_to_swp_entry(old_pmd);
+ 		page = pfn_to_page(swp_offset(entry));
+ 	} else
+ #endif
+-		page = pmd_page(*pmd);
++		page = pmd_page(old_pmd);
+ 	VM_BUG_ON_PAGE(!page_count(page), page);
+ 	page_ref_add(page, HPAGE_PMD_NR - 1);
+-	write = pmd_write(*pmd);
+-	young = pmd_young(*pmd);
+-	soft_dirty = pmd_soft_dirty(*pmd);
++	if (pmd_dirty(old_pmd))
++		SetPageDirty(page);
++	write = pmd_write(old_pmd);
++	young = pmd_young(old_pmd);
++	soft_dirty = pmd_soft_dirty(old_pmd);
+ 
+-	pmdp_huge_split_prepare(vma, haddr, pmd);
++	/*
++	 * Withdraw the table only after we mark the pmd entry invalid.
++	 * This's critical for some architectures (Power).
++	 */
+ 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+ 	pmd_populate(mm, &_pmd, pgtable);
+ 
+@@ -2176,35 +2203,6 @@ static void __split_huge_pmd_locked(stru
+ 	}
+ 
+ 	smp_wmb(); /* make pte visible before pmd */
+-	/*
+-	 * Up to this point the pmd is present and huge and userland has the
+-	 * whole access to the hugepage during the split (which happens in
+-	 * place). If we overwrite the pmd with the not-huge version pointing
+-	 * to the pte here (which of course we could if all CPUs were bug
+-	 * free), userland could trigger a small page size TLB miss on the
+-	 * small sized TLB while the hugepage TLB entry is still established in
+-	 * the huge TLB. Some CPU doesn't like that.
+-	 * See http://support.amd.com/us/Processor_TechDocs/41322.pdf, Erratum
+-	 * 383 on page 93. Intel should be safe but is also warns that it's
+-	 * only safe if the permission and cache attributes of the two entries
+-	 * loaded in the two TLB is identical (which should be the case here).
+-	 * But it is generally safer to never allow small and huge TLB entries
+-	 * for the same virtual address to be loaded simultaneously. So instead
+-	 * of doing "pmd_populate(); flush_pmd_tlb_range();" we first mark the
+-	 * current pmd notpresent (atomically because here the pmd_trans_huge
+-	 * must remain set at all times on the pmd until the split is complete
+-	 * for this pmd), then we flush the SMP TLB and finally we write the
+-	 * non-huge version of the pmd entry with pmd_populate.
+-	 */
+-	old = pmdp_invalidate(vma, haddr, pmd);
+-
+-	/*
+-	 * Transfer dirty bit using value returned by pmd_invalidate() to be
+-	 * sure we don't race with CPU that can set the bit under us.
+-	 */
+-	if (pmd_dirty(old))
+-		SetPageDirty(page);
