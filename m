@@ -1,73 +1,38 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch removed from -mm
- tree
-Date: Thu, 14 Dec 2017 15:28:25 -0800
-Message-ID: <5a330919.mOeAynOl7BJulYbg%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 14 Dec 2017 15:32:09 -0800
+Message-ID: <20171214153209.33a8e5634eebd40d492d9fc5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53844 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54176 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754404AbdLNX21 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:28:27 -0500
+        with ESMTP id S1754292AbdLNXcL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert+renesas@glider.be, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, me@tobin.cc, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
 
+17 fixes, based on 7c5cac1bc7170bfc726a69eb64947c55658d16ad:
 
-The patch titled
-     Subject: mm-slab-do-not-hash-pointers-when-debugging-slab-v2
-has been removed from the -mm tree.  Its filename was
-     mm-slab-do-not-hash-pointers-when-debugging-slab-v2.patch
-
-This patch was dropped because it was folded into mm-slab-do-not-hash-pointers-when-debugging-slab.patch
-
-------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: mm-slab-do-not-hash-pointers-when-debugging-slab-v2
-
-  - Add Acked-by,
-  - Remove printing of pointer to last user, which refers to code.
-
-Link: http://lkml.kernel.org/r/1513179267-2509-1-git-send-email-geert+renesas@glider.be
-Fixes: ad67b74d2469d9b8 ("printk: hash addresses printed with %p")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Tobin C . Harding" <me@tobin.cc>
-Cc: Kees Cook <keescook@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/slab.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-diff -puN mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab-v2 mm/slab.c
---- a/mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab-v2
-+++ a/mm/slab.c
-@@ -1584,11 +1584,8 @@ static void print_objinfo(struct kmem_ca
- 		       *dbg_redzone2(cachep, objp));
- 	}
- 
--	if (cachep->flags & SLAB_STORE_USER) {
--		pr_err("Last user: [<%px>](%pSR)\n",
--		       *dbg_userword(cachep, objp),
--		       *dbg_userword(cachep, objp));
--	}
-+	if (cachep->flags & SLAB_STORE_USER)
-+		pr_err("Last user: (%pSR)\n", *dbg_userword(cachep, objp));
- 	realobj = (char *)objp + obj_offset(cachep);
- 	size = cachep->object_size;
- 	for (i = 0; i < size && lines; i += 16, lines--) {
-_
-
-Patches currently in -mm which might be from geert+renesas@glider.be are
-
-mm-slab-do-not-hash-pointers-when-debugging-slab.patch
+Subject: include/linux/idr.h: add #include <linux/bug.h>
+Subject: lib/rbtree,drm/mm: add rbtree_replace_node_cached()
+Subject: mm/kmemleak.c: make cond_resched() rate-limiting more efficient
+Subject: string.h: workaround for increased stack usage
+Subject: autofs: fix careless error in recent commit
+Subject: exec: avoid gcc-8 warning for get_task_comm
+Subject: Documentation/vm/zswap.txt: update with same-value filled page feature
+Subject: scripts/faddr2line: fix CROSS_COMPILE unset error
+Subject: mm/memory.c: mark wp_huge_pmd() inline to prevent build failure
+Subject: mm/page_alloc.c: avoid excessive IRQ disabled times in free_unref_page_list()
+Subject: mm/slab.c: do not hash pointers when debugging slab
+Subject: kcov: fix comparison callback signature
+Subject: tools/slabinfo-gnuplot: force to use bash shell
+Subject: mm/frame_vector.c: release a semaphore in 'get_vaddr_frames()'
+Subject: kernel: make groups_sort calling a responsibility group_info allocators
+Subject: mm, oom_reaper: fix memory corruption
+Subject: arch: define weak abort()
 
