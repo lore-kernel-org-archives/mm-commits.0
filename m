@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-elf-drop-map_fixed-usage-from-elf_map.patch added to -mm
- tree
-Date: Thu, 14 Dec 2017 11:29:03 -0800
-Message-ID: <5a32d0ff.n7Dw3GjwOAXInuTL%akpm@linux-foundation.org>
+Subject: + fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 14 Dec 2017 11:32:43 -0800
+Message-ID: <5a32d1db.6Ks3FgxSg1260RMl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754470AbdLNT3F (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 14:29:05 -0500
+        with ESMTP id S1754043AbdLNTcp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 14:32:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, abdhalee@linux.vnet.ibm.com, joel@jms.id.au, keescook@chromium.org, khalid.aziz@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, elf: drop MAP_FIXED usage from elf_map
+     Subject: fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fs-elf-drop-map_fixed-usage-from-elf_map.patch
+     fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-elf-drop-map_fixed-usage-from-elf_map.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-elf-drop-map_fixed-usage-from-elf_map.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,132 +38,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: fs, elf: drop MAP_FIXED usage from elf_map
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
 
-Both load_elf_interp and load_elf_binary rely on elf_map to map segments
-on a controlled address and they use MAP_FIXED to enforce that.  This is
-however dangerous thing prone to silent data corruption which can be even
-exploitable.  Let's take CVE-2017-1000253 as an example.  At the time
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#8: 
 (before eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE"))
-ELF_ET_DYN_BASE was at TASK_SIZE / 3 * 2 which is not that far away from
-the stack top on 32b (legacy) memory layout (only 1GB away).  Therefore we
-could end up mapping over the existing stack with some luck.
 
-The issue has been fixed since then (a87938b2e246 ("fs/binfmt_elf.c: fix
-bug in loading of PIE binaries")), ELF_ET_DYN_BASE moved moved much
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#15: 
 further from the stack (eab09532d400 and later by c715b72c1ba4 ("mm:
-revert x86_64 and arm64 ELF_ET_DYN_BASE base changes")) and excessive
+
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#17: 
 stack consumption early during execve fully stopped by da029c11e6b1
-("exec: Limit arg stack to at most 75% of _STK_LIM").  So we should be
-safe and any attack should be impractical.  On the other hand this is just
-too subtle assumption so it can break quite easily and hard to spot.
 
-I believe that the MAP_FIXED usage in load_elf_binary (et.  al) is still
-fundamentally dangerous.  Moreover it shouldn't be even needed.  We are at
-the early process stage and so there shouldn't be unrelated mappings
-(except for stack and loader) existing so mmap for a given address should
-succeed even without MAP_FIXED.  Something is terribly wrong if this is
-not the case and we should rather fail than silently corrupt the
-underlying mapping.
+WARNING: 'segement' may be misspelled - perhaps 'segment'?
+#64: FILE: arch/metag/kernel/process.c:421:
++		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
 
-Address this issue by changing MAP_FIXED to the newly added
-MAP_FIXED_SAFE.  This will mean that mmap will fail if there is an
-existing mapping clashing with the requested one without clobbering it.
+ERROR: "(foo*)" should be "(foo *)"
+#65: FILE: arch/metag/kernel/process.c:422:
++				task_pid_nr(current), tsk->comm, (void*)addr);
 
-Link: http://lkml.kernel.org/r/20171213092550.2774-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-Cc: Joel Stanley <joel@jms.id.au>
+WARNING: 'segement' may be misspelled - perhaps 'segment'?
+#78: FILE: fs/binfmt_elf.c:381:
++		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
+
+WARNING: line over 80 characters
+#79: FILE: fs/binfmt_elf.c:382:
++				task_pid_nr(current), current->comm, (void*)addr);
+
+ERROR: "(foo*)" should be "(foo *)"
+#79: FILE: fs/binfmt_elf.c:382:
++				task_pid_nr(current), current->comm, (void*)addr);
+
+total: 5 errors, 3 warnings, 60 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/fs-elf-drop-map_fixed-usage-from-elf_map.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/kernel/process.c |    6 +++++-
- fs/binfmt_elf.c             |   12 ++++++++----
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ arch/metag/kernel/process.c |    4 ++--
+ fs/binfmt_elf.c             |    5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map arch/metag/kernel/process.c
---- a/arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map
+diff -puN arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes arch/metag/kernel/process.c
+--- a/arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
 +++ a/arch/metag/kernel/process.c
-@@ -399,7 +399,7 @@ unsigned long __metag_elf_map(struct fil
- 	tcm_tag = tcm_lookup_tag(addr);
- 
- 	if (tcm_tag != TCM_INVALID_TAG)
--		type &= ~MAP_FIXED;
-+		type &= ~(MAP_FIXED | MAP_FIXED_SAFE);
- 
- 	/*
- 	* total_size is the size of the ELF (interpreter) image.
-@@ -417,6 +417,10 @@ unsigned long __metag_elf_map(struct fil
- 	} else
+@@ -418,8 +418,8 @@ unsigned long __metag_elf_map(struct fil
  		map_addr = vm_mmap(filep, addr, size, prot, type, off);
  
-+	if ((type & MAP_FIXED_SAFE) && BAD_ADDR(map_addr))
-+		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
-+				task_pid_nr(current), tsk->comm, (void*)addr);
-+
+ 	if ((type & MAP_FIXED_SAFE) && BAD_ADDR(map_addr))
+-		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
+-				task_pid_nr(current), tsk->comm, (void*)addr);
++		pr_info("%d (%s): Uhuuh, elf segment at %p requested but the memory is mapped already\n",
++				task_pid_nr(current), tsk->comm, (void *)addr);
+ 
  	if (!BAD_ADDR(map_addr) && tcm_tag != TCM_INVALID_TAG) {
  		struct tcm_allocation *tcm;
- 		unsigned long tcm_addr;
-diff -puN fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map
+diff -puN fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
 +++ a/fs/binfmt_elf.c
-@@ -377,6 +377,10 @@ static unsigned long elf_map(struct file
- 	} else
+@@ -378,8 +378,9 @@ static unsigned long elf_map(struct file
  		map_addr = vm_mmap(filep, addr, size, prot, type, off);
  
-+	if ((type & MAP_FIXED_SAFE) && BAD_ADDR(map_addr))
-+		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
-+				task_pid_nr(current), current->comm, (void*)addr);
-+
+ 	if ((type & MAP_FIXED_SAFE) && BAD_ADDR(map_addr))
+-		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
+-				task_pid_nr(current), current->comm, (void*)addr);
++		pr_info("%d (%s): Uhuuh, elf segment at %p requested but the memory is mapped already\n",
++				task_pid_nr(current), current->comm,
++				(void *)addr);
+ 
  	return(map_addr);
  }
- 
-@@ -575,7 +579,7 @@ static unsigned long load_elf_interp(str
- 				elf_prot |= PROT_EXEC;
- 			vaddr = eppnt->p_vaddr;
- 			if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
--				elf_type |= MAP_FIXED;
-+				elf_type |= MAP_FIXED_SAFE;
- 			else if (no_base && interp_elf_ex->e_type == ET_DYN)
- 				load_addr = -vaddr;
- 
-@@ -939,7 +943,7 @@ static int load_elf_binary(struct linux_
- 		 * the ET_DYN load_addr calculations, proceed normally.
- 		 */
- 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
--			elf_flags |= MAP_FIXED;
-+			elf_flags |= MAP_FIXED_SAFE;
- 		} else if (loc->elf_ex.e_type == ET_DYN) {
- 			/*
- 			 * This logic is run once for the first LOAD Program
-@@ -975,7 +979,7 @@ static int load_elf_binary(struct linux_
- 				load_bias = ELF_ET_DYN_BASE;
- 				if (current->flags & PF_RANDOMIZE)
- 					load_bias += arch_mmap_rnd();
--				elf_flags |= MAP_FIXED;
-+				elf_flags |= MAP_FIXED_SAFE;
- 			} else
- 				load_bias = 0;
- 
-@@ -1234,7 +1238,7 @@ static int load_elf_library(struct file
- 			(eppnt->p_filesz +
- 			 ELF_PAGEOFFSET(eppnt->p_vaddr)),
- 			PROT_READ | PROT_WRITE | PROT_EXEC,
--			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE,
-+			MAP_FIXED_SAFE | MAP_PRIVATE | MAP_DENYWRITE,
- 			(eppnt->p_offset -
- 			 ELF_PAGEOFFSET(eppnt->p_vaddr)));
- 	if (error != ELF_PAGESTART(eppnt->p_vaddr))
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom_reaper-fix-memory-corruption.patch
-mm-drop-hotplug-lock-from-lru_add_drain_all.patch
-mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
-mm-introduce-map_fixed_safe.patch
-fs-elf-drop-map_fixed-usage-from-elf_map.patch
+i-need-old-gcc.patch
+mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
+stringh-work-around-for-increased-stack-usage-fix.patch
+mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
