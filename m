@@ -1,83 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/17] string.h: workaround for increased stack usage
-Date: Thu, 14 Dec 2017 15:32:34 -0800
-Message-ID: <5a330a12.9Cb9UAUNuWpJv46D%akpm__47505.2527421669$1513294361$gmane$org@linux-foundation.org>
+Subject: [patch 06/17] exec: avoid gcc-8 warning for get_task_comm
+Date: Thu, 14 Dec 2017 15:32:41 -0800
+Message-ID: <5a330a19.uXwqfmeqSoxUIDM3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54300 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754292AbdLNXcg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:36 -0500
+        with ESMTP id S1754223AbdLNXcn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:32:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, aryabinin@virtuozzo.com, danielmicay@gmail.com, dan.j.williams@intel.com, dvyukov@google.com, glider@google.com, gregkh@linuxfoundation.org, keescook@chromium.org, mchehab@kernel.org, mwilck@suse.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, asarai@suse.de, ebiederm@xmission.com, frederic@kernel.org, james.l.morris@oracle.com, keescook@chromium.org, mingo@kernel.org, peterz@infradead.org, serge@hallyn.com, tglx@linutronix.de, viro@zeniv.linux.org.uk
 
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: string.h: workaround for increased stack usage
+Subject: exec: avoid gcc-8 warning for get_task_comm
 
-The hardened strlen() function causes rather large stack usage in at least
-one file in the kernel, in particular when CONFIG_KASAN is enabled:
+gcc-8 warns about using strncpy() with the source size as the limit:
 
-drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
-drivers/media/usb/em28xx/em28xx-dvb.c:2062:1: error: the frame size of 3256 bytes is larger than 204 bytes [-Werror=frame-larger-than=]
+fs/exec.c:1223:32: error: argument to 'sizeof' in 'strncpy' call is the same expression as the source; did you mean to use the size of the destination? [-Werror=sizeof-pointer-memaccess]
 
-Analyzing this problem led to the discovery that gcc fails to merge the
-stack slots for the i2c_board_info[] structures after we strlcpy() into
-them, due to the 'noreturn' attribute on the source string length check.
+This is indeed slightly suspicious, as it protects us from source
+arguments without NUL-termination, but does not guarantee that the
+destination is terminated.
 
-I reported this as a gcc bug, but it is unlikely to get fixed for gcc-8,
-since it is relatively easy to work around, and it gets triggered rarely. 
-An earlier workaround I did added an empty inline assembly statement
-before the call to fortify_panic(), which works surprisingly well, but is
-really ugly and unintuitive.
+This keeps the strncpy() to ensure we have properly padded target buffer,
+but ensures that we use the correct length, by passing the actual length
+of the destination buffer as well as adding a build-time check to ensure
+it is exactly TASK_COMM_LEN.  There are only 23 callsites which I all
+reviewed to ensure this is currently the case.  We could get away with
+doing only the check or passing the right length, but it doesn't hurt to
+do both.
 
-This is a new approach to the same problem, this time addressing it by not
-calling the 'extern __real_strnlen()' function for string constants where
-__builtin_strlen() is a compile-time constant and therefore known to be
-safe.  We do this by checking if the last character in the string is a
-compile-time constant '\0'.  If it is, we can assume that strlen() of the
-string is also constant.  As a side-effect, this should also improve the
-object code output for any other call of strlen() on a string constant.
-
-[akpm@linux-foundation.org: add comment]
-Link: http://lkml.kernel.org/r/20171205215143.3085755-1-arnd@arndb.de
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
-Link: https://patchwork.kernel.org/patch/9980413/
-Link: https://patchwork.kernel.org/patch/9974047/
-Fixes: 6974f0c4555 ("include/linux/string.h: add the option of fortified string.h functions")
+Link: http://lkml.kernel.org/r/20171205151724.1764896-1-arnd@arndb.de
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Martin Wilck <mwilck@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>
+Suggested-by: Kees Cook <keescook@chromium.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Serge Hallyn <serge@hallyn.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Aleksa Sarai <asarai@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/exec.c             |    7 +++----
+ include/linux/sched.h |    6 +++++-
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/string.h~stringh-work-around-for-increased-stack-usage include/linux/string.h
---- a/include/linux/string.h~stringh-work-around-for-increased-stack-usage
-+++ a/include/linux/string.h
-@@ -259,7 +259,10 @@ __FORTIFY_INLINE __kernel_size_t strlen(
+diff -puN fs/exec.c~exec-avoid-gcc-8-warning-for-get_task_comm fs/exec.c
+--- a/fs/exec.c~exec-avoid-gcc-8-warning-for-get_task_comm
++++ a/fs/exec.c
+@@ -1216,15 +1216,14 @@ killed:
+ 	return -EAGAIN;
+ }
+ 
+-char *get_task_comm(char *buf, struct task_struct *tsk)
++char *__get_task_comm(char *buf, size_t buf_size, struct task_struct *tsk)
  {
- 	__kernel_size_t ret;
- 	size_t p_size = __builtin_object_size(p, 0);
--	if (p_size == (size_t)-1)
-+
-+	/* Work around gcc excess stack consumption issue */
-+	if (p_size == (size_t)-1 ||
-+	    (__builtin_constant_p(p[p_size - 1]) && p[p_size - 1] == '\0'))
- 		return __builtin_strlen(p);
- 	ret = strnlen(p, p_size);
- 	if (p_size <= ret)
+-	/* buf must be at least sizeof(tsk->comm) in size */
+ 	task_lock(tsk);
+-	strncpy(buf, tsk->comm, sizeof(tsk->comm));
++	strncpy(buf, tsk->comm, buf_size);
+ 	task_unlock(tsk);
+ 	return buf;
+ }
+-EXPORT_SYMBOL_GPL(get_task_comm);
++EXPORT_SYMBOL_GPL(__get_task_comm);
+ 
+ /*
+  * These functions flushes out all traces of the currently running executable
+diff -puN include/linux/sched.h~exec-avoid-gcc-8-warning-for-get_task_comm include/linux/sched.h
+--- a/include/linux/sched.h~exec-avoid-gcc-8-warning-for-get_task_comm
++++ a/include/linux/sched.h
+@@ -1503,7 +1503,11 @@ static inline void set_task_comm(struct
+ 	__set_task_comm(tsk, from, false);
+ }
+ 
+-extern char *get_task_comm(char *to, struct task_struct *tsk);
++extern char *__get_task_comm(char *to, size_t len, struct task_struct *tsk);
++#define get_task_comm(buf, tsk) ({			\
++	BUILD_BUG_ON(sizeof(buf) != TASK_COMM_LEN);	\
++	__get_task_comm(buf, sizeof(buf), tsk);		\
++})
+ 
+ #ifdef CONFIG_SMP
+ void scheduler_ipi(void);
 _
