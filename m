@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-update-pmdp_invalidate-to-return-old-pmd-value.patch
- added to -mm tree
-Date: Wed, 13 Dec 2017 16:11:27 -0800
-Message-ID: <5a31c1af.mLXBDyjbfTrdSgAI%akpm@linux-foundation.org>
+Subject: +
+ sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch added to
+ -mm tree
+Date: Wed, 13 Dec 2017 16:11:30 -0800
+Message-ID: <5a31c1b2.gwGOaEs73pEnraGI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56916 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751101AbdLNAL2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 19:11:28 -0500
+        with ESMTP id S1751101AbdLNALb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Dec 2017 19:11:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nitin.m.gupta@oracle.com, aarcange@redhat.com, davem@davemloft.net, kirill.shutemov@linux.intel.com, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, davem@davemloft.net, kirill.shutemov@linux.intel.com, mhocko@kernel.org, nitin.m.gupta@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc64: update pmdp_invalidate() to return old pmd value
+     Subject: sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix
 has been added to the -mm tree.  Its filename is
-     sparc64-update-pmdp_invalidate-to-return-old-pmd-value.patch
+     sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc64-update-pmdp_invalidate-to-return-old-pmd-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc64-update-pmdp_invalidate-to-return-old-pmd-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +40,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Subject: sparc64: update pmdp_invalidate() to return old pmd value
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix
 
-It's required to avoid losing dirty and accessed bits.
+add a `do' to the do-while loop
 
-Link: http://lkml.kernel.org/r/20171213105756.69879-9-kirill.shutemov@linux.intel.com
-Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |    2 +-
- arch/sparc/mm/tlb.c                 |   23 ++++++++++++++++++-----
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ arch/sparc/mm/tlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/pgtable_64.h~sparc64-update-pmdp_invalidate-to-return-old-pmd-value arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~sparc64-update-pmdp_invalidate-to-return-old-pmd-value
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -1010,7 +1010,7 @@ void update_mmu_cache_pmd(struct vm_area
- 			  pmd_t *pmd);
- 
- #define __HAVE_ARCH_PMDP_INVALIDATE
--extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 			    pmd_t *pmdp);
- 
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
-diff -puN arch/sparc/mm/tlb.c~sparc64-update-pmdp_invalidate-to-return-old-pmd-value arch/sparc/mm/tlb.c
---- a/arch/sparc/mm/tlb.c~sparc64-update-pmdp_invalidate-to-return-old-pmd-value
+diff -puN arch/sparc/mm/tlb.c~sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix arch/sparc/mm/tlb.c
+--- a/arch/sparc/mm/tlb.c~sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix
 +++ a/arch/sparc/mm/tlb.c
-@@ -219,17 +219,28 @@ void set_pmd_at(struct mm_struct *mm, un
- 	}
- }
- 
-+static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
-+		unsigned long address, pmd_t *pmdp, pmd_t pmd)
-+{
-+	pmd_t old;
-+
-+	{
-+		old = *pmdp;
-+	} while (cmpxchg64(&pmdp->pmd, old.pmd, pmd.pmd) != old.pmd);
-+
-+	return old;
-+}
-+
- /*
-  * This routine is only called when splitting a THP
-  */
--void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
+@@ -224,7 +224,7 @@ static inline pmd_t pmdp_establish(struc
  {
--	pmd_t entry = *pmdp;
+ 	pmd_t old;
+ 
+-	{
++	do {
+ 		old = *pmdp;
+ 	} while (cmpxchg64(&pmdp->pmd, old.pmd, pmd.pmd) != old.pmd);
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+mm-kmemleakc-make-cond_resched-rate-limiting-more-efficient.patch
+stringh-work-around-for-increased-stack-usage-fix.patch
+mm-memoryc-mark-wp_huge_pmd-inline-to-prevent-build-failure-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
