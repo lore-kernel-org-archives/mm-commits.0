@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
  added to -mm tree
-Date: Thu, 14 Dec 2017 12:40:40 -0800
-Message-ID: <5a32e1c8.ZvhTdCo8DHMnWxbs%akpm@linux-foundation.org>
+Date: Thu, 14 Dec 2017 12:40:54 -0800
+Message-ID: <5a32e1d6.2P08TfJl84Dt+pv6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49084 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752805AbdLNUkl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 15:40:41 -0500
+        with ESMTP id S1752376AbdLNUk4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 15:40:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, mhocko@suse.com, npiggin@gmail.com, mm-commits@vger.kernel.org
+To: khandual@linux.vnet.ibm.com, mhocko@suse.com, npiggin@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -81,6 +81,7 @@ Link: http://lkml.kernel.org/r/20171214140551.5794-1-khandual@linux.vnet.ibm.com
 Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Suggested-by: Nicholas Piggin <npiggin@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
