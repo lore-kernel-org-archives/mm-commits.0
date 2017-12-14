@@ -1,134 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/17] mm/slab.c: do not hash pointers when debugging slab
-Date: Thu, 14 Dec 2017 15:32:58 -0800
-Message-ID: <5a330a2a.Pc6DJGQcRb2kELyC%akpm@linux-foundation.org>
+Subject: [patch 12/17] kcov: fix comparison callback signature
+Date: Thu, 14 Dec 2017 15:33:02 -0800
+Message-ID: <5a330a2e.CM/PdbntsJc+TLF5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754331AbdLNXdA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:00 -0500
+        with ESMTP id S1754358AbdLNXdD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Dec 2017 18:33:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert+renesas@glider.be, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, me@tobin.cc, penberg@kernel.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, glider@google.com, quentin.casasnovas@oracle.com, vegard.nossum@oracle.com
 
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: mm/slab.c: do not hash pointers when debugging slab
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kcov: fix comparison callback signature
 
-If CONFIG_DEBUG_SLAB/CONFIG_DEBUG_SLAB_LEAK are enabled, the slab code
-prints extra debug information when e.g.  corruption is detected.  This
-includes pointers, which are not very useful when hashed.
+Fix a silly copy-paste bug.  We truncated u32 args to u16.
 
-Fix this by using %px to print unhashed pointers instead where it makes
-sense, and by removing the printing of a last user pointer referring to
-code.
-
-[geert+renesas@glider.be: v2]
-  Link: http://lkml.kernel.org/r/1513179267-2509-1-git-send-email-geert+renesas@glider.be
-Link: http://lkml.kernel.org/r/1512641861-5113-1-git-send-email-geert+renesas@glider.be
-Fixes: ad67b74d2469d9b8 ("printk: hash addresses printed with %p")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Tobin C . Harding" <me@tobin.cc>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20171207101134.107168-1-dvyukov@google.com
+Fixes: ded97d2c2b2c ("kcov: support comparison operands collection")
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: syzkaller@googlegroups.com
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ kernel/kcov.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab mm/slab.c
---- a/mm/slab.c~mm-slab-do-not-hash-pointers-when-debugging-slab
-+++ a/mm/slab.c
-@@ -1584,11 +1584,8 @@ static void print_objinfo(struct kmem_ca
- 		       *dbg_redzone2(cachep, objp));
- 	}
- 
--	if (cachep->flags & SLAB_STORE_USER) {
--		pr_err("Last user: [<%p>](%pSR)\n",
--		       *dbg_userword(cachep, objp),
--		       *dbg_userword(cachep, objp));
--	}
-+	if (cachep->flags & SLAB_STORE_USER)
-+		pr_err("Last user: (%pSR)\n", *dbg_userword(cachep, objp));
- 	realobj = (char *)objp + obj_offset(cachep);
- 	size = cachep->object_size;
- 	for (i = 0; i < size && lines; i += 16, lines--) {
-@@ -1621,7 +1618,7 @@ static void check_poison_obj(struct kmem
- 			/* Mismatch ! */
- 			/* Print header */
- 			if (lines == 0) {
--				pr_err("Slab corruption (%s): %s start=%p, len=%d\n",
-+				pr_err("Slab corruption (%s): %s start=%px, len=%d\n",
- 				       print_tainted(), cachep->name,
- 				       realobj, size);
- 				print_objinfo(cachep, objp, 0);
-@@ -1650,13 +1647,13 @@ static void check_poison_obj(struct kmem
- 		if (objnr) {
- 			objp = index_to_obj(cachep, page, objnr - 1);
- 			realobj = (char *)objp + obj_offset(cachep);
--			pr_err("Prev obj: start=%p, len=%d\n", realobj, size);
-+			pr_err("Prev obj: start=%px, len=%d\n", realobj, size);
- 			print_objinfo(cachep, objp, 2);
- 		}
- 		if (objnr + 1 < cachep->num) {
- 			objp = index_to_obj(cachep, page, objnr + 1);
- 			realobj = (char *)objp + obj_offset(cachep);
--			pr_err("Next obj: start=%p, len=%d\n", realobj, size);
-+			pr_err("Next obj: start=%px, len=%d\n", realobj, size);
- 			print_objinfo(cachep, objp, 2);
- 		}
- 	}
-@@ -2608,7 +2605,7 @@ static void slab_put_obj(struct kmem_cac
- 	/* Verify double free bug */
- 	for (i = page->active; i < cachep->num; i++) {
- 		if (get_free_obj(page, i) == objnr) {
--			pr_err("slab: double free detected in cache '%s', objp %p\n",
-+			pr_err("slab: double free detected in cache '%s', objp %px\n",
- 			       cachep->name, objp);
- 			BUG();
- 		}
-@@ -2772,7 +2769,7 @@ static inline void verify_redzone_free(s
- 	else
- 		slab_error(cache, "memory outside object was overwritten");
- 
--	pr_err("%p: redzone 1:0x%llx, redzone 2:0x%llx\n",
-+	pr_err("%px: redzone 1:0x%llx, redzone 2:0x%llx\n",
- 	       obj, redzone1, redzone2);
+diff -puN kernel/kcov.c~kcov-fix-comparison-callback-signature kernel/kcov.c
+--- a/kernel/kcov.c~kcov-fix-comparison-callback-signature
++++ a/kernel/kcov.c
+@@ -157,7 +157,7 @@ void notrace __sanitizer_cov_trace_cmp2(
  }
+ EXPORT_SYMBOL(__sanitizer_cov_trace_cmp2);
  
-@@ -3078,7 +3075,7 @@ static void *cache_alloc_debugcheck_afte
- 		if (*dbg_redzone1(cachep, objp) != RED_INACTIVE ||
- 				*dbg_redzone2(cachep, objp) != RED_INACTIVE) {
- 			slab_error(cachep, "double free, or memory outside object was overwritten");
--			pr_err("%p: redzone 1:0x%llx, redzone 2:0x%llx\n",
-+			pr_err("%px: redzone 1:0x%llx, redzone 2:0x%llx\n",
- 			       objp, *dbg_redzone1(cachep, objp),
- 			       *dbg_redzone2(cachep, objp));
- 		}
-@@ -3091,7 +3088,7 @@ static void *cache_alloc_debugcheck_afte
- 		cachep->ctor(objp);
- 	if (ARCH_SLAB_MINALIGN &&
- 	    ((unsigned long)objp & (ARCH_SLAB_MINALIGN-1))) {
--		pr_err("0x%p: not aligned to ARCH_SLAB_MINALIGN=%d\n",
-+		pr_err("0x%px: not aligned to ARCH_SLAB_MINALIGN=%d\n",
- 		       objp, (int)ARCH_SLAB_MINALIGN);
- 	}
- 	return objp;
-@@ -4283,7 +4280,7 @@ static void show_symbol(struct seq_file
- 		return;
- 	}
- #endif
--	seq_printf(m, "%p", (void *)address);
-+	seq_printf(m, "%px", (void *)address);
+-void notrace __sanitizer_cov_trace_cmp4(u16 arg1, u16 arg2)
++void notrace __sanitizer_cov_trace_cmp4(u32 arg1, u32 arg2)
+ {
+ 	write_comp_data(KCOV_CMP_SIZE(2), arg1, arg2, _RET_IP_);
  }
+@@ -183,7 +183,7 @@ void notrace __sanitizer_cov_trace_const
+ }
+ EXPORT_SYMBOL(__sanitizer_cov_trace_const_cmp2);
  
- static int leaks_show(struct seq_file *m, void *p)
+-void notrace __sanitizer_cov_trace_const_cmp4(u16 arg1, u16 arg2)
++void notrace __sanitizer_cov_trace_const_cmp4(u32 arg1, u32 arg2)
+ {
+ 	write_comp_data(KCOV_CMP_SIZE(2) | KCOV_CMP_CONST, arg1, arg2,
+ 			_RET_IP_);
 _
