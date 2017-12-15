@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-makefile-support-llvm-style-asan-parameters.patch added
- to -mm tree
-Date: Fri, 15 Dec 2017 15:57:00 -0800
-Message-ID: <5a34614c.RHDxQj+awjYLkXqY%akpm@linux-foundation.org>
+Subject: + kasan-add-tests-for-alloca-poisoning.patch added to -mm tree
+Date: Fri, 15 Dec 2017 15:57:06 -0800
+Message-ID: <5a346152.ru21mgvR2d946VBV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755795AbdLOX5B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Dec 2017 18:57:01 -0500
+        with ESMTP id S1755795AbdLOX5H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Dec 2017 18:57:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, paullawrence@google.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: paullawrence@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan/Makefile: support LLVM style asan parameters
+     Subject: kasan: add tests for alloca poisoning
 has been added to the -mm tree.  Its filename is
-     kasan-makefile-support-llvm-style-asan-parameters.patch
+     kasan-add-tests-for-alloca-poisoning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-makefile-support-llvm-style-asan-parameters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-add-tests-for-alloca-poisoning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-makefile-support-llvm-style-asan-parameters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-tests-for-alloca-poisoning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +38,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan/Makefile: support LLVM style asan parameters
+From: Paul Lawrence <paullawrence@google.com>
+Subject: kasan: add tests for alloca poisoning
 
-LLVM doesn't understand GCC-style paramters ("--param asan-foo=bar"), thus
-we currently we don't use inline/globals/stack instrumentation when
-building the kernel with clang.
-
-Add support for LLVM-style parameters ("-mllvm -asan-foo=bar") to enable
-all KASAN features.
-
-Link: http://lkml.kernel.org/r/20171204191735.132544-3-paullawrence@google.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Link: http://lkml.kernel.org/r/20171204191735.132544-5-paullawrence@google.com
+Signed-off-by: Greg Hackmann <ghackmann@google.com>
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Greg Hackmann <ghackmann@google.com>
 Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ lib/test_kasan.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters
-+++ a/scripts/Makefile.kasan
-@@ -10,10 +10,7 @@ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SH
+diff -puN lib/test_kasan.c~kasan-add-tests-for-alloca-poisoning lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-add-tests-for-alloca-poisoning
++++ a/lib/test_kasan.c
+@@ -472,6 +472,26 @@ static noinline void __init use_after_sc
+ 	p[1023] = 1;
+ }
  
- CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
- 
--CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
--		-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET) \
--		--param asan-stack=1 --param asan-globals=1 \
--		--param asan-instrumentation-with-call-threshold=$(call_threshold))
-+cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
- 
- ifeq ($(call cc-option, $(CFLAGS_KASAN_MINIMAL) -Werror),)
-    ifneq ($(CONFIG_COMPILE_TEST),y)
-@@ -21,13 +18,23 @@ ifeq ($(call cc-option, $(CFLAGS_KASAN_M
-             -fsanitize=kernel-address is not supported by compiler)
-    endif
- else
--    ifeq ($(CFLAGS_KASAN),)
--        ifneq ($(CONFIG_COMPILE_TEST),y)
--            $(warning CONFIG_KASAN: compiler does not support all options.\
--                Trying minimal configuration)
--        endif
--        CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
--    endif
-+   # -fasan-shadow-offset fails without -fsanitize
-+   CFLAGS_KASAN_SHADOW := $(call cc-option, -fsanitize=kernel-address \
-+			-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET), \
-+			$(call cc-option, -fsanitize=kernel-address \
-+			-mllvm -asan-mapping-offset=$(KASAN_SHADOW_OFFSET)))
++static noinline void __init kasan_alloca_oob_left(void)
++{
++	volatile int i = 10;
++	char alloca_array[i];
++	char *p = alloca_array - 1;
 +
-+   ifeq ($(strip $(CFLAGS_KASAN_SHADOW)),)
-+      CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
-+   else
-+      # Now add all the compiler specific options that are valid standalone
-+      CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
-+	$(call cc-param,asan-globals=1) \
-+	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
-+	$(call cc-param,asan-stack=1) \
-+	$(call cc-param,asan-use-after-scope=1)
-+   endif
++	pr_info("out-of-bounds to left on alloca\n");
++	*(volatile char *)p;
++}
 +
- endif
- 
- CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
++static noinline void __init kasan_alloca_oob_right(void)
++{
++	volatile int i = 10;
++	char alloca_array[i];
++	char *p = alloca_array + i;
++
++	pr_info("out-of-bounds to right on alloca\n");
++	*(volatile char *)p;
++}
++
+ static int __init kmalloc_tests_init(void)
+ {
+ 	/*
+@@ -502,6 +522,8 @@ static int __init kmalloc_tests_init(voi
+ 	memcg_accounted_kmem_cache();
+ 	kasan_stack_oob();
+ 	kasan_global_oob();
++	kasan_alloca_oob_left();
++	kasan_alloca_oob_right();
+ 	ksize_unpoisons_memory();
+ 	copy_user_test();
+ 	use_after_scope_test();
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from paullawrence@google.com are
 
-kasan-makefile-support-llvm-style-asan-parameters.patch
+kasan-add-compiler-support-for-clang.patch
+kasan-support-alloca-poisoning.patch
+kasan-add-tests-for-alloca-poisoning.patch
 
