@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-add-compiler-support-for-clang.patch added to -mm tree
-Date: Fri, 15 Dec 2017 15:56:57 -0800
-Message-ID: <5a346149.QRjdntXBrNOjSlAf%akpm@linux-foundation.org>
+Subject: + kasan-makefile-support-llvm-style-asan-parameters.patch added
+ to -mm tree
+Date: Fri, 15 Dec 2017 15:57:00 -0800
+Message-ID: <5a34614c.RHDxQj+awjYLkXqY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755795AbdLOX47 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Dec 2017 18:56:59 -0500
+        with ESMTP id S1755795AbdLOX5B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Dec 2017 18:57:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paullawrence@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, paullawrence@google.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add compiler support for clang
+     Subject: kasan/Makefile: support LLVM style asan parameters
 has been added to the -mm tree.  Its filename is
-     kasan-add-compiler-support-for-clang.patch
+     kasan-makefile-support-llvm-style-asan-parameters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-add-compiler-support-for-clang.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-makefile-support-llvm-style-asan-parameters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-compiler-support-for-clang.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-makefile-support-llvm-style-asan-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,52 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Lawrence <paullawrence@google.com>
-Subject: kasan: add compiler support for clang
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kasan/Makefile: support LLVM style asan parameters
 
-Patch series "kasan: support alloca, LLVM", v4.
+LLVM doesn't understand GCC-style paramters ("--param asan-foo=bar"), thus
+we currently we don't use inline/globals/stack instrumentation when
+building the kernel with clang.
 
+Add support for LLVM-style parameters ("-mllvm -asan-foo=bar") to enable
+all KASAN features.
 
-This patch (of 5):
-
-For now we can hard-code ASAN ABI level 5, since historical clang builds
-can't build the kernel anyway.  We also need to emulate gcc's
-__SANITIZE_ADDRESS__ flag, or memset() calls won't be instrumented.
-
-Link: http://lkml.kernel.org/r/20171204191735.132544-2-paullawrence@google.com
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
+Link: http://lkml.kernel.org/r/20171204191735.132544-3-paullawrence@google.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Greg Hackmann <ghackmann@google.com>
 Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/Makefile.kasan |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/compiler-clang.h~kasan-add-compiler-support-for-clang include/linux/compiler-clang.h
---- a/include/linux/compiler-clang.h~kasan-add-compiler-support-for-clang
-+++ a/include/linux/compiler-clang.h
-@@ -19,3 +19,11 @@
+diff -puN scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters scripts/Makefile.kasan
+--- a/scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters
++++ a/scripts/Makefile.kasan
+@@ -10,10 +10,7 @@ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SH
  
- #define randomized_struct_fields_start	struct {
- #define randomized_struct_fields_end	};
+ CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
+ 
+-CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
+-		-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET) \
+-		--param asan-stack=1 --param asan-globals=1 \
+-		--param asan-instrumentation-with-call-threshold=$(call_threshold))
++cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
+ 
+ ifeq ($(call cc-option, $(CFLAGS_KASAN_MINIMAL) -Werror),)
+    ifneq ($(CONFIG_COMPILE_TEST),y)
+@@ -21,13 +18,23 @@ ifeq ($(call cc-option, $(CFLAGS_KASAN_M
+             -fsanitize=kernel-address is not supported by compiler)
+    endif
+ else
+-    ifeq ($(CFLAGS_KASAN),)
+-        ifneq ($(CONFIG_COMPILE_TEST),y)
+-            $(warning CONFIG_KASAN: compiler does not support all options.\
+-                Trying minimal configuration)
+-        endif
+-        CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
+-    endif
++   # -fasan-shadow-offset fails without -fsanitize
++   CFLAGS_KASAN_SHADOW := $(call cc-option, -fsanitize=kernel-address \
++			-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET), \
++			$(call cc-option, -fsanitize=kernel-address \
++			-mllvm -asan-mapping-offset=$(KASAN_SHADOW_OFFSET)))
 +
-+/* all clang versions usable with the kernel support KASAN ABI version 5 */
-+#define KASAN_ABI_VERSION 5
++   ifeq ($(strip $(CFLAGS_KASAN_SHADOW)),)
++      CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
++   else
++      # Now add all the compiler specific options that are valid standalone
++      CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
++	$(call cc-param,asan-globals=1) \
++	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
++	$(call cc-param,asan-stack=1) \
++	$(call cc-param,asan-use-after-scope=1)
++   endif
 +
-+/* emulate gcc's __SANITIZE_ADDRESS__ flag */
-+#if __has_feature(address_sanitizer)
-+#define __SANITIZE_ADDRESS__
-+#endif
+ endif
+ 
+ CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
 _
 
-Patches currently in -mm which might be from paullawrence@google.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-kasan-add-compiler-support-for-clang.patch
-kasan-support-alloca-poisoning.patch
-kasan-add-tests-for-alloca-poisoning.patch
+kasan-makefile-support-llvm-style-asan-parameters.patch
 
