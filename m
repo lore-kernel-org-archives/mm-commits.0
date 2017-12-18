@@ -1,97 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-added-functions-for-unpoisoning-stack-variables.patch
- added to -mm tree
-Date: Fri, 15 Dec 2017 15:57:09 -0800
-Message-ID: <5a346155.1iq7IZ0jFOHpjoNx%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Mon, 18 Dec 2017 11:58:07 -0800
+Message-ID: <20171218195807.Q_PuGq2Zz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48736 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755795AbdLOX5L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Dec 2017 18:57:11 -0500
+        with ESMTP id S1758334AbdLRT6J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Dec 2017 14:58:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glider@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, mka@chromium.org, paullawrence@google.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add functions for unpoisoning stack variables
-has been added to the -mm tree.  Its filename is
-     kasan-added-functions-for-unpoisoning-stack-variables.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-added-functions-for-unpoisoning-stack-variables.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-added-functions-for-unpoisoning-stack-variables.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kasan: add functions for unpoisoning stack variables
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-As a code-size optimization, LLVM builds since r279383 may bulk-manipulate
-the shadow region when (un)poisoning large memory blocks.  This requires
-new callbacks that simply do an uninstrumented memset().
-
-This fixes linking the Clang-built kernel when using KASAN.
-
-[ghackmann@google.com: fix memset() parameters, and tweak commit message to describe new callbacks]
-Link: http://lkml.kernel.org/r/20171204191735.132544-6-paullawrence@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
-Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/base/power/main.c |    3 ---
+ include/linux/pm.h        |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-added-functions-for-unpoisoning-stack-variables mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-added-functions-for-unpoisoning-stack-variables
-+++ a/mm/kasan/kasan.c
-@@ -770,6 +770,21 @@ void __asan_allocas_unpoison(const void
+diff -puN drivers/base/power/main.c~linux-next-git-rejects drivers/base/power/main.c
+--- a/drivers/base/power/main.c~linux-next-git-rejects
++++ a/drivers/base/power/main.c
+@@ -541,8 +541,6 @@ void dev_pm_skip_next_resume_phases(stru
  }
- EXPORT_SYMBOL(__asan_allocas_unpoison);
  
-+/* Emitted by the compiler to [un]poison local variables. */
-+#define DEFINE_ASAN_SET_SHADOW(byte) \
-+	void __asan_set_shadow_##byte(const void *addr, size_t size)	\
-+	{								\
-+		__memset((void *)addr, 0x##byte, size);			\
-+	}								\
-+	EXPORT_SYMBOL(__asan_set_shadow_##byte)
-+
-+DEFINE_ASAN_SET_SHADOW(00);
-+DEFINE_ASAN_SET_SHADOW(f1);
-+DEFINE_ASAN_SET_SHADOW(f2);
-+DEFINE_ASAN_SET_SHADOW(f3);
-+DEFINE_ASAN_SET_SHADOW(f5);
-+DEFINE_ASAN_SET_SHADOW(f8);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int __meminit kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
+ /**
+-<<<<<<< HEAD
+-=======
+  * dev_pm_may_skip_resume - System-wide device resume optimization check.
+  * @dev: Target device.
+  *
+@@ -555,7 +553,6 @@ bool dev_pm_may_skip_resume(struct devic
+ }
+ 
+ /**
+->>>>>>> linux-next/akpm-base
+  * device_resume_noirq - Execute a "noirq resume" callback for given device.
+  * @dev: Device to handle.
+  * @state: PM transition of the system being carried out.
+diff -puN include/linux/pm.h~linux-next-git-rejects include/linux/pm.h
+--- a/include/linux/pm.h~linux-next-git-rejects
++++ a/include/linux/pm.h
+@@ -773,10 +773,7 @@ extern int pm_generic_poweroff(struct de
+ extern void pm_generic_complete(struct device *dev);
+ 
+ extern void dev_pm_skip_next_resume_phases(struct device *dev);
+-<<<<<<< HEAD
+-=======
+ extern bool dev_pm_may_skip_resume(struct device *dev);
+->>>>>>> linux-next/akpm-base
+ extern bool dev_pm_smart_suspend_and_suspended(struct device *dev);
+ 
+ #else /* !CONFIG_PM_SLEEP */
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-added-functions-for-unpoisoning-stack-variables.patch
-lib-stackdepot-use-a-non-instrumented-version-of-memcmp.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
