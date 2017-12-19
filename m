@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-improve-quoted-string-and-line-continuation-test.patch added to
+Subject: + provide-useful-debugging-information-for-vm_bug.patch added to
  -mm tree
-Date: Tue, 19 Dec 2017 14:52:39 -0800
-Message-ID: <5a399837./qoyrZL/O6Je0vpj%akpm@linux-foundation.org>
+Date: Tue, 19 Dec 2017 15:01:52 -0800
+Message-ID: <5a399a60.31lsvZjmmim6d4SU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56514 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752854AbdLSWwk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 17:52:40 -0500
+        with ESMTP id S1752361AbdLSXBx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 18:01:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: mawilcox@microsoft.com, me@tobin.cc, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve quoted string and line continuation test
+     Subject: mm/debug.c: provide useful debugging information for VM_BUG
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-quoted-string-and-line-continuation-test.patch
+     provide-useful-debugging-information-for-vm_bug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-quoted-string-and-line-continuation-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/provide-useful-debugging-information-for-vm_bug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-quoted-string-and-line-continuation-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/provide-useful-debugging-information-for-vm_bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,46 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve quoted string and line continuation test
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: mm/debug.c: provide useful debugging information for VM_BUG
 
-Given this patch context,
+With the recent addition of hashed kernel pointers, places which need to
+produce useful debug output have to specify %px, not %p.  This patch fixes
+all the VM debug to use %px.  This is appropriate because it's debug
+output that the user should never be able to trigger, and kernel
+developers need to see the actual pointers.
 
-+#define EFI_ST_DISK_IMG { \
-+       0x00000240, "\xbe\x5b\x7c\xac\x22\xc0\x74\x0b" /* .[|.".t. */ \
-+       }
-
-the current code misreports a quoted string line continuation defect as
-there is a single quote in comment.
-
-The 'raw' line should not be tested for quote count, the comment
-substituted line should be instead.
-
-Link: http://lkml.kernel.org/r/13f2735df10c33ca846e26f42f5cce6618157200.1513698599.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Link: http://lkml.kernel.org/r/20171219133236.GE13680@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: "Tobin C. Harding" <me@tobin.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/debug.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-quoted-string-and-line-continuation-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-quoted-string-and-line-continuation-test
-+++ a/scripts/checkpatch.pl
-@@ -5312,7 +5312,7 @@ sub process {
- 		}
+diff -puN mm/debug.c~provide-useful-debugging-information-for-vm_bug mm/debug.c
+--- a/mm/debug.c~provide-useful-debugging-information-for-vm_bug
++++ a/mm/debug.c
+@@ -50,7 +50,7 @@ void __dump_page(struct page *page, cons
+ 	 */
+ 	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
  
- # check for line continuations in quoted strings with odd counts of "
--		if ($rawline =~ /\\$/ && $rawline =~ tr/"/"/ % 2) {
-+		if ($rawline =~ /\\$/ && $sline =~ tr/"/"/ % 2) {
- 			WARN("LINE_CONTINUATIONS",
- 			     "Avoid line continuations in quoted strings\n" . $herecurr);
- 		}
+-	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
++	pr_emerg("page:%px count:%d mapcount:%d mapping:%px index:%#lx",
+ 		  page, page_ref_count(page), mapcount,
+ 		  page->mapping, page_to_pgoff(page));
+ 	if (PageCompound(page))
+@@ -69,7 +69,7 @@ void __dump_page(struct page *page, cons
+ 
+ #ifdef CONFIG_MEMCG
+ 	if (page->mem_cgroup)
+-		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
++		pr_alert("page->mem_cgroup:%px\n", page->mem_cgroup);
+ #endif
+ }
+ 
+@@ -84,10 +84,10 @@ EXPORT_SYMBOL(dump_page);
+ 
+ void dump_vma(const struct vm_area_struct *vma)
+ {
+-	pr_emerg("vma %p start %p end %p\n"
+-		"next %p prev %p mm %p\n"
+-		"prot %lx anon_vma %p vm_ops %p\n"
+-		"pgoff %lx file %p private_data %p\n"
++	pr_emerg("vma %px start %px end %px\n"
++		"next %px prev %px mm %px\n"
++		"prot %lx anon_vma %px vm_ops %px\n"
++		"pgoff %lx file %px private_data %px\n"
+ 		"flags: %#lx(%pGv)\n",
+ 		vma, (void *)vma->vm_start, (void *)vma->vm_end, vma->vm_next,
+ 		vma->vm_prev, vma->vm_mm,
+@@ -100,27 +100,27 @@ EXPORT_SYMBOL(dump_vma);
+ 
+ void dump_mm(const struct mm_struct *mm)
+ {
+-	pr_emerg("mm %p mmap %p seqnum %d task_size %lu\n"
++	pr_emerg("mm %px mmap %px seqnum %d task_size %lu\n"
+ #ifdef CONFIG_MMU
+-		"get_unmapped_area %p\n"
++		"get_unmapped_area %px\n"
+ #endif
+ 		"mmap_base %lu mmap_legacy_base %lu highest_vm_end %lu\n"
+-		"pgd %p mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
++		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
+ 		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
+ 		"pinned_vm %lx data_vm %lx exec_vm %lx stack_vm %lx\n"
+ 		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
+ 		"start_brk %lx brk %lx start_stack %lx\n"
+ 		"arg_start %lx arg_end %lx env_start %lx env_end %lx\n"
+-		"binfmt %p flags %lx core_state %p\n"
++		"binfmt %px flags %lx core_state %px\n"
+ #ifdef CONFIG_AIO
+-		"ioctx_table %p\n"
++		"ioctx_table %px\n"
+ #endif
+ #ifdef CONFIG_MEMCG
+-		"owner %p "
++		"owner %px "
+ #endif
+-		"exe_file %p\n"
++		"exe_file %px\n"
+ #ifdef CONFIG_MMU_NOTIFIER
+-		"mmu_notifier_mm %p\n"
++		"mmu_notifier_mm %px\n"
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+ 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mawilcox@microsoft.com are
 
-checkpatch-ignore-some-octal-permissions-of-0.patch
-checkpatch-improve-quoted-string-and-line-continuation-test.patch
+provide-useful-debugging-information-for-vm_bug.patch
 
