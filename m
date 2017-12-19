@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-exitc-export-abort-to-modules.patch added to -mm tree
-Date: Tue, 19 Dec 2017 13:56:20 -0800
-Message-ID: <5a398b04.23i5LtEGh7et7kcH%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-improve-quoted-string-and-line-continuation-test.patch added to
+ -mm tree
+Date: Tue, 19 Dec 2017 14:52:39 -0800
+Message-ID: <5a399837./qoyrZL/O6Je0vpj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752508AbdLSV4V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 16:56:21 -0500
+        with ESMTP id S1752854AbdLSWwk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 17:52:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Alexey.Brodkin@synopsys.com, arnd@arndb.de, sudipm.mukherjee@gmail.com, Vineet.Gupta1@synopsys.com, mm-commits@vger.kernel.org
+To: joe@perches.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/exit.c: export abort() to modules
+     Subject: checkpatch: improve quoted string and line continuation test
 has been added to the -mm tree.  Its filename is
-     kernel-exitc-export-abort-to-modules.patch
+     checkpatch-improve-quoted-string-and-line-continuation-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-exitc-export-abort-to-modules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-quoted-string-and-line-continuation-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-exitc-export-abort-to-modules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-quoted-string-and-line-continuation-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +40,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/exit.c: export abort() to modules
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve quoted string and line continuation test
 
-gcc -fisolate-erroneous-paths-dereference can generate calls to abort()
-from modular code too.
+Given this patch context,
 
-Reported-by: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Alexey Brodkin" <Alexey.Brodkin@synopsys.com>
++#define EFI_ST_DISK_IMG { \
++       0x00000240, "\xbe\x5b\x7c\xac\x22\xc0\x74\x0b" /* .[|.".t. */ \
++       }
+
+the current code misreports a quoted string line continuation defect as
+there is a single quote in comment.
+
+The 'raw' line should not be tested for quote count, the comment
+substituted line should be instead.
+
+Link: http://lkml.kernel.org/r/13f2735df10c33ca846e26f42f5cce6618157200.1513698599.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~kernel-exitc-export-abort-to-modules kernel/exit.c
---- a/kernel/exit.c~kernel-exitc-export-abort-to-modules
-+++ a/kernel/exit.c
-@@ -1763,3 +1763,4 @@ __weak void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
-+EXPORT_SYMBOL(abort);
+diff -puN scripts/checkpatch.pl~checkpatch-improve-quoted-string-and-line-continuation-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-quoted-string-and-line-continuation-test
++++ a/scripts/checkpatch.pl
+@@ -5312,7 +5312,7 @@ sub process {
+ 		}
+ 
+ # check for line continuations in quoted strings with odd counts of "
+-		if ($rawline =~ /\\$/ && $rawline =~ tr/"/"/ % 2) {
++		if ($rawline =~ /\\$/ && $sline =~ tr/"/"/ % 2) {
+ 			WARN("LINE_CONTINUATIONS",
+ 			     "Avoid line continuations in quoted strings\n" . $herecurr);
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-i-need-old-gcc.patch
-kernel-exitc-export-abort-to-modules.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing-fix.patch
-mm.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-x86-mm-provide-pmdp_establish-helper-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+checkpatch-ignore-some-octal-permissions-of-0.patch
+checkpatch-improve-quoted-string-and-line-continuation-test.patch
 
