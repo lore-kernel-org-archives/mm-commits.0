@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + provide-useful-debugging-information-for-vm_bug.patch added to
+Subject: + mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch added to
  -mm tree
-Date: Tue, 19 Dec 2017 15:01:52 -0800
-Message-ID: <5a399a60.31lsvZjmmim6d4SU%akpm@linux-foundation.org>
+Date: Tue, 19 Dec 2017 15:27:50 -0800
+Message-ID: <5a39a076.IYEoOwvX1z7WGeqh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752361AbdLSXBx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 18:01:53 -0500
+        with ESMTP id S1753280AbdLSX1v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 18:27:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, me@tobin.cc, mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akaraliou.dev@gmail.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug.c: provide useful debugging information for VM_BUG
+     Subject: mm-zsmalloc-simplify-shrinker-init-destroy-fix
 has been added to the -mm tree.  Its filename is
-     provide-useful-debugging-information-for-vm_bug.patch
+     mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/provide-useful-debugging-information-for-vm_bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/provide-useful-debugging-information-for-vm_bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,100 +39,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm/debug.c: provide useful debugging information for VM_BUG
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-zsmalloc-simplify-shrinker-init-destroy-fix
 
-With the recent addition of hashed kernel pointers, places which need to
-produce useful debug output have to specify %px, not %p.  This patch fixes
-all the VM debug to use %px.  This is appropriate because it's debug
-output that the user should never be able to trigger, and kernel
-developers need to see the actual pointers.
+update comment (Aliaksei), make zs_register_shrinker() return void
 
-Link: http://lkml.kernel.org/r/20171219133236.GE13680@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Tobin C. Harding" <me@tobin.cc>
+Cc: Aliaksei Karaliou <akaraliou.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/zsmalloc.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/debug.c~provide-useful-debugging-information-for-vm_bug mm/debug.c
---- a/mm/debug.c~provide-useful-debugging-information-for-vm_bug
-+++ a/mm/debug.c
-@@ -50,7 +50,7 @@ void __dump_page(struct page *page, cons
- 	 */
- 	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
- 
--	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
-+	pr_emerg("page:%px count:%d mapcount:%d mapping:%px index:%#lx",
- 		  page, page_ref_count(page), mapcount,
- 		  page->mapping, page_to_pgoff(page));
- 	if (PageCompound(page))
-@@ -69,7 +69,7 @@ void __dump_page(struct page *page, cons
- 
- #ifdef CONFIG_MEMCG
- 	if (page->mem_cgroup)
--		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
-+		pr_alert("page->mem_cgroup:%px\n", page->mem_cgroup);
- #endif
+diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-shrinker-init-destroy-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-simplify-shrinker-init-destroy-fix
++++ a/mm/zsmalloc.c
+@@ -2323,14 +2323,14 @@ static void zs_unregister_shrinker(struc
+ 	unregister_shrinker(&pool->shrinker);
  }
  
-@@ -84,10 +84,10 @@ EXPORT_SYMBOL(dump_page);
- 
- void dump_vma(const struct vm_area_struct *vma)
+-static int zs_register_shrinker(struct zs_pool *pool)
++static void zs_register_shrinker(struct zs_pool *pool)
  {
--	pr_emerg("vma %p start %p end %p\n"
--		"next %p prev %p mm %p\n"
--		"prot %lx anon_vma %p vm_ops %p\n"
--		"pgoff %lx file %p private_data %p\n"
-+	pr_emerg("vma %px start %px end %px\n"
-+		"next %px prev %px mm %px\n"
-+		"prot %lx anon_vma %px vm_ops %px\n"
-+		"pgoff %lx file %px private_data %px\n"
- 		"flags: %#lx(%pGv)\n",
- 		vma, (void *)vma->vm_start, (void *)vma->vm_end, vma->vm_next,
- 		vma->vm_prev, vma->vm_mm,
-@@ -100,27 +100,27 @@ EXPORT_SYMBOL(dump_vma);
+ 	pool->shrinker.scan_objects = zs_shrinker_scan;
+ 	pool->shrinker.count_objects = zs_shrinker_count;
+ 	pool->shrinker.batch = 0;
+ 	pool->shrinker.seeks = DEFAULT_SEEKS;
  
- void dump_mm(const struct mm_struct *mm)
- {
--	pr_emerg("mm %p mmap %p seqnum %d task_size %lu\n"
-+	pr_emerg("mm %px mmap %px seqnum %d task_size %lu\n"
- #ifdef CONFIG_MMU
--		"get_unmapped_area %p\n"
-+		"get_unmapped_area %px\n"
- #endif
- 		"mmap_base %lu mmap_legacy_base %lu highest_vm_end %lu\n"
--		"pgd %p mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
-+		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
- 		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
- 		"pinned_vm %lx data_vm %lx exec_vm %lx stack_vm %lx\n"
- 		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
- 		"start_brk %lx brk %lx start_stack %lx\n"
- 		"arg_start %lx arg_end %lx env_start %lx env_end %lx\n"
--		"binfmt %p flags %lx core_state %p\n"
-+		"binfmt %px flags %lx core_state %px\n"
- #ifdef CONFIG_AIO
--		"ioctx_table %p\n"
-+		"ioctx_table %px\n"
- #endif
- #ifdef CONFIG_MEMCG
--		"owner %p "
-+		"owner %px "
- #endif
--		"exe_file %p\n"
-+		"exe_file %px\n"
- #ifdef CONFIG_MMU_NOTIFIER
--		"mmu_notifier_mm %p\n"
-+		"mmu_notifier_mm %px\n"
- #endif
- #ifdef CONFIG_NUMA_BALANCING
- 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
+-	return register_shrinker(&pool->shrinker);
++	register_shrinker(&pool->shrinker);
+ }
+ 
+ /**
+@@ -2419,10 +2419,12 @@ struct zs_pool *zs_create_pool(const cha
+ 		goto err;
+ 
+ 	/*
+-	 * Not critical, we still can use the pool
+-	 * and user can trigger compaction manually.
++	 * Not critical since shrinker is only used to trigger internal
++	 * defragmentation of the pool which is pretty optional thing.  If
++	 * registration fails we still can use the pool normally and user can
++	 * trigger compaction manually. Thus, ignore return code.
+ 	 */
+-	(void) zs_register_shrinker(pool);
++	zs_register_shrinker(pool);
+ 
+ 	return pool;
+ 
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-provide-useful-debugging-information-for-vm_bug.patch
+i-need-old-gcc.patch
+kernel-exitc-export-abort-to-modules.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing-fix.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
