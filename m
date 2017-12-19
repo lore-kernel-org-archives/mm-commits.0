@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bugh-work-around-gcc-pr82365-in-bug.patch added to -mm tree
-Date: Tue, 19 Dec 2017 15:31:30 -0800
-Message-ID: <5a39a152.raMbIF2gwdJLvckb%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-replace-opencoded-4-level-page-walkers.patch added
+ to -mm tree
+Date: Tue, 19 Dec 2017 15:34:58 -0800
+Message-ID: <5a39a222.sQkECehlLbECS6mh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33748 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34940 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753433AbdLSXbc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 18:31:32 -0500
+        with ESMTP id S1753835AbdLSXfA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 18:35:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, davem@davemloft.net, fenghua.yu@intel.com, geert@linux-m68k.org, jesper.nilsson@axis.com, jpoimboe@redhat.com, keescook@chromium.org, mark.rutland@arm.com, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, sparse@chrisli.org, starvik@axis.com, tglx@linutronix.de, tony.luck@intel.com, vgupta@synopsys.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: chris@chris-wilson.co.uk, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bug.h: work around GCC PR82365 in BUG()
+     Subject: mm/vmalloc.c: replace opencoded 4-level page walkers
 has been added to the -mm tree.  Its filename is
-     bugh-work-around-gcc-pr82365-in-bug.patch
+     mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bugh-work-around-gcc-pr82365-in-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bugh-work-around-gcc-pr82365-in-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,249 +39,229 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: bug.h: work around GCC PR82365 in BUG()
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: mm/vmalloc.c: replace opencoded 4-level page walkers
 
-Looking at functions with large stack frames across all architectures led
-me discovering that BUG() suffers from the same problem as
-fortify_panic(), which I've added a workaround for already.  In short,
-variables that go out of scope by calling a noreturn function or
-__builtin_unreachable() keep using stack space in functions afterwards.
+Rather than open-code the intricacies of walking the 4-level page tables,
+use the generic page table walker apply_to_page_range() instead.
 
-A workaround that was identified is to insert an empty assembler statement
-just before calling the function that doesn't return.  I'm adding a macro
-"barrier_before_unreachable()" to document this, and insert calls to that
-in all instances of BUG() that currently suffer from this problem.
+The important change is that it now cleans up after an unsuccessful
+insertion and propagates the correct error.  The current failure may lead
+to a WARN if we encounter ENOMEM in one vmap_pte_range() and later retry
+with the same page range:
 
-The files that saw the largest change from this had these frame sizes
-before, and much less with my patch:
+WARNING: CPU: 0 PID: 605 at mm/vmalloc.c:136 vmap_page_range_noflush+0x2c1/0x340
+i.e. WARN_ON(!pte_none(*pte))
 
-fs/ext4/inode.c:82:1: warning: the frame size of 1672 bytes is larger than 800 bytes [-Wframe-larger-than=]
-fs/ext4/namei.c:434:1: warning: the frame size of 904 bytes is larger than 800 bytes [-Wframe-larger-than=]
-fs/ext4/super.c:2279:1: warning: the frame size of 1160 bytes is larger than 800 bytes [-Wframe-larger-than=]
-fs/ext4/xattr.c:146:1: warning: the frame size of 1168 bytes is larger than 800 bytes [-Wframe-larger-than=]
-fs/f2fs/inode.c:152:1: warning: the frame size of 1424 bytes is larger than 800 bytes [-Wframe-larger-than=]
-net/netfilter/ipvs/ip_vs_core.c:1195:1: warning: the frame size of 1068 bytes is larger than 800 bytes [-Wframe-larger-than=]
-net/netfilter/ipvs/ip_vs_core.c:395:1: warning: the frame size of 1084 bytes is larger than 800 bytes [-Wframe-larger-than=]
-net/netfilter/ipvs/ip_vs_ftp.c:298:1: warning: the frame size of 928 bytes is larger than 800 bytes [-Wframe-larger-than=]
-net/netfilter/ipvs/ip_vs_ftp.c:418:1: warning: the frame size of 908 bytes is larger than 800 bytes [-Wframe-larger-than=]
-net/netfilter/ipvs/ip_vs_lblcr.c:718:1: warning: the frame size of 960 bytes is larger than 800 bytes [-Wframe-larger-than=]
-drivers/net/xen-netback/netback.c:1500:1: warning: the frame size of 1088 bytes is larger than 800 bytes [-Wframe-larger-than=]
+v2: Don't convert the vunmap code over to apply_to_page_range() as it may
+try to allocate during atomic sections, such as exiting a task:
 
-In case of ARC and CRIS, it turns out that the BUG() implementation
-actually does return (or at least the compiler thinks it does), resulting
-in lots of warnings about uninitialized variable use and leaving noreturn
-functions, such as:
+[    9.837563]  [<ffffffff810519b0>] pte_alloc_one_kernel+0x10/0x20
+[    9.837568]  [<ffffffff811a7486>] __pte_alloc_kernel+0x16/0xa0
+[    9.837572]  [<ffffffff811aaa76>] apply_to_page_range+0x3f6/0x460
+[    9.837576]  [<ffffffff811b8888>] free_unmap_vmap_area_noflush+0x28/0x40
+[    9.837579]  [<ffffffff811b9dcd>] remove_vm_area+0x4d/0x60
+[    9.837582]  [<ffffffff811b9e09>] __vunmap+0x29/0x130
+[    9.837585]  [<ffffffff811b9f7d>] vfree+0x3d/0x90
+[    9.837589]  [<ffffffff8107ace6>] put_task_stack+0x76/0x130
 
-block/cfq-iosched.c: In function 'cfq_async_queue_prio':
-block/cfq-iosched.c:3804:1: error: control reaches end of non-void function [-Werror=return-type]
-include/linux/dmaengine.h: In function 'dma_maxpq':
-include/linux/dmaengine.h:1123:1: error: control reaches end of non-void function [-Werror=return-type]
+and it also upsets sparc64:
 
-This makes them call __builtin_trap() instead, which should normally dump
-the stack and kill the current process, like some of the other
-architectures already do.
+[    2.530785] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff,max_idle_ns: 19112604462750000 ns
+[    2.532359] kernel BUG at mm/memory.c:1881!
+[    2.532798]               \|/ ____ \|/
+[    2.532798]               "@'/ .. \`@"
+[    2.532798]               /_| \__/ |_\
+[    2.532798]                  \__U_/
+[    2.533250] swapper(1): Kernel bad sw trap 5 [#1]
+[    2.533705] CPU: 0 PID: 1 Comm: swapper Not tainted 4.9.0-rc2+ #1
+[    2.534129] task: fffff8001f0af620 task.stack: fffff8001f0b0000
+[    2.534505] TSTATE: 0000004480001605 TPC: 00000000005124d8 TNPC: 00000000005124dc Y: 00000035    Not tainted
+[    2.535112] TPC: <apply_to_page_range+0x2f8/0x3a0>
+[    2.535469] g0: 00000000009b1548 g1: 0000000000a4a990 g2: 0000000000a4a990 g3: 0000000000b37694
+[    2.535857] g4: fffff8001f0af620 g5: 0000000000000000 g6: fffff8001f0b0000 g7: 0000000000000000
+[    2.536236] o0: 000000000000001f o1: 00000000009ac2c0 o2: 0000000000000759 o3: 0000000000122000
+[    2.536695] o4: 0000000000000000 o5: 00000000009ac2c0 sp: fffff8001f0b2d61 ret_pc: 00000000005124d0
+[    2.537086] RPC: <apply_to_page_range+0x2f0/0x3a0>
+[    2.537454] l0: 0000000000000000 l1: 0000000000002000 l2: fffff8001f10b000 l3: 0000000100002000
+[    2.537843] l4: 0000000000aef910 l5: 0000000000a5e7e8 l6: 0000000100001fff l7: ffffffffff800000
+[    2.538229] i0: 0000000000a5e7e8 i1: 0000000100000000 i2: 0000000100002000 i3: 000000000051e5e0
+[    2.538613] i4: fffff8001f0b3708 i5: fffff8001f10c000 i6: fffff8001f0b2e51 i7: 000000000051e8e0
+[    2.539007] I7: <vmap_page_range_noflush+0x40/0x80>
+[    2.539387] Call Trace:
+[    2.539765]  [000000000051e8e0] vmap_page_range_noflush+0x40/0x80
+[    2.540139]  [000000000051e970] map_vm_area+0x50/0x80
+[    2.540492]  [000000000051f84c] __vmalloc_node_range+0x14c/0x260
+[    2.540848]  [000000000051f98c] __vmalloc_node+0x2c/0x40
+[    2.541198]  [00000000004d39cc] bpf_prog_alloc+0x2c/0xa0
+[    2.541554]  [00000000008129bc] bpf_prog_create+0x3c/0xa0
+[    2.541916]  [0000000000adb21c] ptp_classifier_init+0x20/0x4c
+[    2.542271]  [0000000000ad9808] sock_init+0x90/0xa0
+[    2.542622]  [0000000000426cb0] do_one_initcall+0x30/0x160
+[    2.542978]  [0000000000aaeaec] kernel_init_freeable+0x10c/0x1b0
+[    2.543332]  [00000000008e3324] kernel_init+0x4/0x100
+[    2.543681]  [0000000000405f04] ret_from_fork+0x1c/0x2c
 
-I tried adding barrier_before_unreachable() to panic() and fortify_panic()
-as well, but that had very little effect, so I'm not submitting that
-patch.
+which was a BUG_ON(pmd_huge(*pmd)) and seems to be a general problem
+pointed out by the generic pagewalkers that is handled by vunmap.  Perhaps
+we need a clear_page_range()?
 
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
-Link: http://lkml.kernel.org/r/20171219114112.939391-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Christopher Li <sparse@chrisli.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=98269
+References: msg-id:20161028171825.GA15116@roeck-us.net
+Link: http://lkml.kernel.org/r/20171219111025.28283-1-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/bug.h            |    3 ++-
- arch/cris/include/arch-v10/arch/bug.h |   11 +++++++++--
- arch/ia64/include/asm/bug.h           |    6 +++++-
- arch/m68k/include/asm/bug.h           |    3 +++
- arch/sparc/include/asm/bug.h          |    6 +++++-
- include/asm-generic/bug.h             |    1 +
- include/linux/compiler-gcc.h          |   15 ++++++++++++++-
- include/linux/compiler.h              |    5 +++++
- 8 files changed, 44 insertions(+), 6 deletions(-)
+ mm/vmalloc.c |  110 ++++++++++++-------------------------------------
+ 1 file changed, 27 insertions(+), 83 deletions(-)
 
-diff -puN arch/arc/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug arch/arc/include/asm/bug.h
---- a/arch/arc/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/arch/arc/include/asm/bug.h
-@@ -23,7 +23,8 @@ void die(const char *str, struct pt_regs
+diff -puN mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers
++++ a/mm/vmalloc.c
+@@ -131,80 +131,27 @@ static void vunmap_page_range(unsigned l
+ 	} while (pgd++, addr = next, addr != end);
+ }
  
- #define BUG()	do {								\
- 	pr_warn("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __func__); \
--	dump_stack();								\
-+	barrier_before_unreachable();						\
-+	__builtin_trap();							\
- } while (0)
+-static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	pte_t *pte;
+-
+-	/*
+-	 * nr is a running index into the array which helps higher level
+-	 * callers keep track of where we're up to.
+-	 */
+-
+-	pte = pte_alloc_kernel(pmd, addr);
+-	if (!pte)
+-		return -ENOMEM;
+-	do {
+-		struct page *page = pages[*nr];
+-
+-		if (WARN_ON(!pte_none(*pte)))
+-			return -EBUSY;
+-		if (WARN_ON(!page))
+-			return -ENOMEM;
+-		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+-		(*nr)++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	return 0;
+-}
++struct vmap_page {
++	pgprot_t prot;
++	struct page **pages;
++	unsigned long count;
++};
  
- #define HAVE_ARCH_BUG
-diff -puN arch/cris/include/arch-v10/arch/bug.h~bugh-work-around-gcc-pr82365-in-bug arch/cris/include/arch-v10/arch/bug.h
---- a/arch/cris/include/arch-v10/arch/bug.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/arch/cris/include/arch-v10/arch/bug.h
-@@ -44,18 +44,25 @@ struct bug_frame {
-  * not be used like this with newer versions of gcc.
-  */
- #define BUG()								\
-+do {									\
- 	__asm__ __volatile__ ("clear.d [" __stringify(BUG_MAGIC) "]\n\t"\
- 			      "movu.w " __stringify(__LINE__) ",$r0\n\t"\
- 			      "jump 0f\n\t"				\
- 			      ".section .rodata\n"			\
- 			      "0:\t.string \"" __FILE__ "\"\n\t"	\
--			      ".previous")
-+			      ".previous");				\
-+	unreachable();							\
-+} while (0)
- #endif
+-static int vmap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
++static int vmap_page(pte_t *pte, pgtable_t token,
++		     unsigned long addr, void *data)
+ {
+-	pmd_t *pmd;
+-	unsigned long next;
+-
+-	pmd = pmd_alloc(&init_mm, pud, addr);
+-	if (!pmd)
+-		return -ENOMEM;
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (vmap_pte_range(pmd, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (pmd++, addr = next, addr != end);
+-	return 0;
+-}
++	struct vmap_page *v = data;
++	struct page *page;
  
- #else
+-static int vmap_pud_range(p4d_t *p4d, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	pud_t *pud;
+-	unsigned long next;
++	if (WARN_ON(!pte_none(*pte)))
++		return -EBUSY;
  
- /* This just causes an oops. */
--#define BUG() (*(int *)0 = 0)
-+#define BUG()								\
-+do {									\
-+	barrier_before_unreachable();					\
-+	__builtin_trap();						\
-+} while (0)
+-	pud = pud_alloc(&init_mm, p4d, addr);
+-	if (!pud)
++	page = v->pages[v->count];
++	if (WARN_ON(!page))
+ 		return -ENOMEM;
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (vmap_pmd_range(pud, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (pud++, addr = next, addr != end);
+-	return 0;
+-}
+-
+-static int vmap_p4d_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	p4d_t *p4d;
+-	unsigned long next;
  
- #endif
+-	p4d = p4d_alloc(&init_mm, pgd, addr);
+-	if (!p4d)
+-		return -ENOMEM;
+-	do {
+-		next = p4d_addr_end(addr, end);
+-		if (vmap_pud_range(p4d, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (p4d++, addr = next, addr != end);
++	set_pte_at(&init_mm, addr, pte, mk_pte(page, v->prot));
++	v->count++;
+ 	return 0;
+ }
  
-diff -puN arch/ia64/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug arch/ia64/include/asm/bug.h
---- a/arch/ia64/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/arch/ia64/include/asm/bug.h
-@@ -4,7 +4,11 @@
- 
- #ifdef CONFIG_BUG
- #define ia64_abort()	__builtin_trap()
--#define BUG() do { printk("kernel BUG at %s:%d!\n", __FILE__, __LINE__); ia64_abort(); } while (0)
-+#define BUG() do {						\
-+	printk("kernel BUG at %s:%d!\n", __FILE__, __LINE__);	\
-+	barrier_before_unreachable();				\
-+	ia64_abort();						\
-+} while (0)
- 
- /* should this BUG be made generic? */
- #define HAVE_ARCH_BUG
-diff -puN arch/m68k/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug arch/m68k/include/asm/bug.h
---- a/arch/m68k/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/arch/m68k/include/asm/bug.h
-@@ -8,16 +8,19 @@
- #ifndef CONFIG_SUN3
- #define BUG() do { \
- 	pr_crit("kernel BUG at %s:%d!\n", __FILE__, __LINE__); \
-+	barrier_before_unreachable(); \
- 	__builtin_trap(); \
- } while (0)
- #else
- #define BUG() do { \
- 	pr_crit("kernel BUG at %s:%d!\n", __FILE__, __LINE__); \
-+	barrier_before_unreachable(); \
- 	panic("BUG!"); \
- } while (0)
- #endif
- #else
- #define BUG() do { \
-+	barrier_before_unreachable(); \
- 	__builtin_trap(); \
- } while (0)
- #endif
-diff -puN arch/sparc/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug arch/sparc/include/asm/bug.h
---- a/arch/sparc/include/asm/bug.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/arch/sparc/include/asm/bug.h
-@@ -9,10 +9,14 @@
- void do_BUG(const char *file, int line);
- #define BUG() do {					\
- 	do_BUG(__FILE__, __LINE__);			\
-+	barrier_before_unreachable();			\
- 	__builtin_trap();				\
- } while (0)
- #else
--#define BUG()		__builtin_trap()
-+#define BUG() do {					\
-+	barrier_before_unreachable();			\
-+	__builtin_trap();				\
-+} while (0)
- #endif
- 
- #define HAVE_ARCH_BUG
-diff -puN include/asm-generic/bug.h~bugh-work-around-gcc-pr82365-in-bug include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/include/asm-generic/bug.h
-@@ -52,6 +52,7 @@ struct bug_entry {
- #ifndef HAVE_ARCH_BUG
- #define BUG() do { \
- 	printk("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __func__); \
-+	barrier_before_unreachable(); \
- 	panic("BUG!"); \
- } while (0)
- #endif
-diff -puN include/linux/compiler-gcc.h~bugh-work-around-gcc-pr82365-in-bug include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/include/linux/compiler-gcc.h
-@@ -205,6 +205,15 @@
- #endif
- 
- /*
-+ * calling noreturn functions, __builtin_unreachable() and __builtin_trap()
-+ * confuse the stack allocation in gcc, leading to overly large stack
-+ * frames, see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
-+ *
-+ * Adding an empty inline assembly before it works around the problem
-+ */
-+#define barrier_before_unreachable() asm volatile("")
+@@ -217,22 +164,19 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ static int vmap_page_range_noflush(unsigned long start, unsigned long end,
+ 				   pgprot_t prot, struct page **pages)
+ {
+-	pgd_t *pgd;
+-	unsigned long next;
+-	unsigned long addr = start;
+-	int err = 0;
+-	int nr = 0;
+-
+-	BUG_ON(addr >= end);
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		err = vmap_p4d_range(pgd, addr, next, prot, pages, &nr);
+-		if (err)
+-			return err;
+-	} while (pgd++, addr = next, addr != end);
++	struct vmap_page v = { prot, pages };
++	int err;
 +
-+/*
-  * Mark a position in code as unreachable.  This can be used to
-  * suppress control flow warnings after asm blocks that transfer
-  * control elsewhere.
-@@ -214,7 +223,11 @@
-  * unreleased.  Really, we need to have autoconf for the kernel.
-  */
- #define unreachable() \
--	do { annotate_unreachable(); __builtin_unreachable(); } while (0)
-+	do {					\
-+		annotate_unreachable();		\
-+		barrier_before_unreachable();	\
-+		__builtin_unreachable();	\
-+	} while (0)
- 
- /* Mark a function definition as prohibited from being cloned. */
- #define __noclone	__attribute__((__noclone__, __optimize__("no-tracer")))
-diff -puN include/linux/compiler.h~bugh-work-around-gcc-pr82365-in-bug include/linux/compiler.h
---- a/include/linux/compiler.h~bugh-work-around-gcc-pr82365-in-bug
-+++ a/include/linux/compiler.h
-@@ -86,6 +86,11 @@ void ftrace_likely_update(struct ftrace_
- # define barrier_data(ptr) barrier()
- #endif
- 
-+/* workaround for GCC PR82365 if needed */
-+#ifndef barrier_before_unreachable
-+# define barrier_before_unreachable() do { } while (0)
-+#endif
++	if ((end - start) >> PAGE_SHIFT > INT_MAX)
++		return -EINVAL;
 +
- /* Unreachable code */
- #ifdef CONFIG_STACK_VALIDATION
- /*
++	err = apply_to_page_range(&init_mm, start, end - start, vmap_page, &v);
++	if (unlikely(err)) {
++		vunmap_page_range(start, start + (v.count << PAGE_SHIFT));
++		return err;
++	}
+ 
+-	return nr;
++	return v.count;
+ }
+ 
+ static int vmap_page_range(unsigned long start, unsigned long end,
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
 
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
-bugh-work-around-gcc-pr82365-in-bug.patch
+mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
 
