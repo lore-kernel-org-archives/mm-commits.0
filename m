@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-rearrange-struct-proc_dir_entry.patch added to -mm tree
-Date: Wed, 20 Dec 2017 14:43:25 -0800
-Message-ID: <5a3ae78d.w2MH/ohmWWFsfsDA%akpm@linux-foundation.org>
+Subject: + checkpatch-add-a-few-device_attr-style-tests.patch added to -mm tree
+Date: Wed, 20 Dec 2017 14:44:02 -0800
+Message-ID: <5a3ae7b2.0tma5dk+6b8LN364%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38240 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756529AbdLTWn1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Dec 2017 17:43:27 -0500
+        with ESMTP id S1751955AbdLTWoD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Dec 2017 17:44:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/internal.h: rearrange struct proc_dir_entry
+     Subject: checkpatch: add a few DEVICE_ATTR style tests
 has been added to the -mm tree.  Its filename is
-     proc-rearrange-struct-proc_dir_entry.patch
+     checkpatch-add-a-few-device_attr-style-tests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-rearrange-struct-proc_dir_entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-a-few-device_attr-style-tests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-rearrange-struct-proc_dir_entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-a-few-device_attr-style-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,115 +38,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc/internal.h: rearrange struct proc_dir_entry
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add a few DEVICE_ATTR style tests
 
-struct proc_dir_entry became bit messy over years:
+DEVICE_ATTR is a declaration macro that has a few alternate and preferred
+forms like DEVICE_ATTR_RW, DEVICE_ATTR_RO, and DEVICE_ATTR.
 
-* move 16-bit ->mode_t before namelen to get rid of padding
-* make ->in_use first field: it seems to be most used resulting in
-  smaller code on x86_64 (defconfig):
+As well, many uses of DEVICE_ATTR could use the preferred forms when the
+show or store functions are also named in a regular form.
 
-	add/remove: 0/0 grow/shrink: 7/13 up/down: 24/-67 (-43)
-	Function                                     old     new   delta
-	proc_readdir_de                              451     455      +4
-	proc_get_inode                               282     286      +4
-	pde_put                                       65      69      +4
-	remove_proc_subtree                          294     297      +3
-	remove_proc_entry                            297     300      +3
-	proc_register                                295     298      +3
-	proc_notify_change                            94      97      +3
-	unuse_pde                                     27      26      -1
-	proc_reg_write                                89      85      -4
-	proc_reg_unlocked_ioctl                       85      81      -4
-	proc_reg_read                                 89      85      -4
-	proc_reg_llseek                               87      83      -4
-	proc_reg_get_unmapped_area                   123     119      -4
-	proc_entry_rundown                           139     135      -4
-	proc_reg_poll                                 91      85      -6
-	proc_reg_mmap                                 79      73      -6
-	proc_get_link                                 55      49      -6
-	proc_reg_release                             108     101      -7
-	proc_reg_open                                298     291      -7
-	close_pdeo                                   228     218     -10
+Suggest the preferred forms when appropriate.
 
-* move writeable fields together to a first cacheline (on x86_64),
-  those include
-	* ->in_use: reference count, taken every open/read/write/close etc
-	* ->count: reference count, taken at readdir on every entry
-	* ->pde_openers: tracks (nearly) every open, dirtied
-	* ->pde_unload_lock: spinlock protecting ->pde_openers
-	* ->proc_iops, ->proc_fops, ->data: writeonce fields,
-	  used right together with previous group.
+Also emit a permissions warning if the the permissions are not the typical
+0644, 0444, or 0200.
 
-* other rarely written fields go into 1st/2nd and 2nd/3rd cacheline on
-  32-bit and 64-bit respectively.
-
-Additionally on 32-bit, ->subdir, ->subdir_node, ->namelen, ->name go
-fully into 2nd cacheline, separated from writeable fields.  They are all
-used during lookup.
-
-Link: http://lkml.kernel.org/r/20171220215914.GA7877@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/725864f363d91d1e1e6894a39fb57662eabd6d65.1513803306.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/internal.h |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |  114 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 93 insertions(+), 21 deletions(-)
 
-diff -puN fs/proc/internal.h~proc-rearrange-struct-proc_dir_entry fs/proc/internal.h
---- a/fs/proc/internal.h~proc-rearrange-struct-proc_dir_entry
-+++ a/fs/proc/internal.h
-@@ -31,24 +31,27 @@ struct mempolicy;
-  * subdir_node is used to build the rb tree "subdir" of the parent.
-  */
- struct proc_dir_entry {
-+	/*
-+	 * number of callers into module in progress;
-+	 * negative -> it's going away RSN
-+	 */
-+	atomic_t in_use;
-+	atomic_t count;		/* use count */
-+	struct list_head pde_openers;	/* who did ->open, but not ->release */
-+	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
-+	struct completion *pde_unload_completion;
-+	const struct inode_operations *proc_iops;
-+	const struct file_operations *proc_fops;
-+	void *data;
- 	unsigned int low_ino;
--	umode_t mode;
- 	nlink_t nlink;
- 	kuid_t uid;
- 	kgid_t gid;
- 	loff_t size;
--	const struct inode_operations *proc_iops;
--	const struct file_operations *proc_fops;
- 	struct proc_dir_entry *parent;
- 	struct rb_root_cached subdir;
- 	struct rb_node subdir_node;
--	void *data;
--	atomic_t count;		/* use count */
--	atomic_t in_use;	/* number of callers into module in progress; */
--			/* negative -> it's going away RSN */
--	struct completion *pde_unload_completion;
--	struct list_head pde_openers;	/* who did ->open, but not ->release */
--	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
-+	umode_t mode;
- 	u8 namelen;
- 	char name[];
- } __randomize_layout;
+diff -puN scripts/checkpatch.pl~checkpatch-add-a-few-device_attr-style-tests scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-a-few-device_attr-style-tests
++++ a/scripts/checkpatch.pl
+@@ -566,6 +566,7 @@ foreach my $entry (@mode_permission_func
+ 	$mode_perms_search .= '|' if ($mode_perms_search ne "");
+ 	$mode_perms_search .= $entry->[0];
+ }
++$mode_perms_search = "(?:${mode_perms_search})";
+ 
+ our $mode_perms_world_writable = qr{
+ 	S_IWUGO		|
+@@ -600,6 +601,37 @@ foreach my $entry (keys %mode_permission
+ 	$mode_perms_string_search .= '|' if ($mode_perms_string_search ne "");
+ 	$mode_perms_string_search .= $entry;
+ }
++our $single_mode_perms_string_search = "(?:${mode_perms_string_search})";
++our $multi_mode_perms_string_search = qr{
++	${single_mode_perms_string_search}
++	(?:\s*\|\s*${single_mode_perms_string_search})*
++}x;
++
++sub perms_to_octal {
++	my ($string) = @_;
++
++	return trim($string) if ($string =~ /^\s*0[0-7]{3,3}\s*$/);
++
++	my $val = "";
++	my $oval = "";
++	my $to = 0;
++	my $curpos = 0;
++	my $lastpos = 0;
++	while ($string =~ /\b(($single_mode_perms_string_search)\b(?:\s*\|\s*)?\s*)/g) {
++		$curpos = pos($string);
++		my $match = $2;
++		my $omatch = $1;
++		last if ($lastpos > 0 && ($curpos - length($omatch) != $lastpos));
++		$lastpos = $curpos;
++		$to |= $mode_permission_string_types{$match};
++		$val .= '\s*\|\s*' if ($val ne "");
++		$val .= $match;
++		$oval .= $omatch;
++	}
++	$oval =~ s/^\s*\|\s*//;
++	$oval =~ s/\s*\|\s*$//;
++	return sprintf("%04o", $to);
++}
+ 
+ our $allowed_asm_includes = qr{(?x:
+ 	irq|
+@@ -6261,6 +6293,63 @@ sub process {
+ 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
+ 		}
+ 
++# check for DEVICE_ATTR uses that could be DEVICE_ATTR_<FOO>
++# and whether or not function naming is typical and if
++# DEVICE_ATTR permissions uses are unusual too
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /\bDEVICE_ATTR\s*\(\s*(\w+)\s*,\s*\(?\s*(\s*(?:${multi_mode_perms_string_search}|0[0-7]{3,3})\s*)\s*\)?\s*,\s*(\w+)\s*,\s*(\w+)\s*\)/) {
++			my $var = $1;
++			my $perms = $2;
++			my $show = $3;
++			my $store = $4;
++			my $octal_perms = perms_to_octal($perms);
++			if ($show =~ /^${var}_show$/ &&
++			    $store =~ /^${var}_store$/ &&
++			    $octal_perms eq "0644") {
++				if (WARN("DEVICE_ATTR_RW",
++					 "Use DEVICE_ATTR_RW\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bDEVICE_ATTR\s*\(\s*$var\s*,\s*\Q$perms\E\s*,\s*$show\s*,\s*$store\s*\)/DEVICE_ATTR_RW(${var})/;
++				}
++			} elsif ($show =~ /^${var}_show$/ &&
++				 $store =~ /^NULL$/ &&
++				 $octal_perms eq "0444") {
++				if (WARN("DEVICE_ATTR_RO",
++					 "Use DEVICE_ATTR_RO\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bDEVICE_ATTR\s*\(\s*$var\s*,\s*\Q$perms\E\s*,\s*$show\s*,\s*NULL\s*\)/DEVICE_ATTR_RO(${var})/;
++				}
++			} elsif ($show =~ /^NULL$/ &&
++				 $store =~ /^${var}_store$/ &&
++				 $octal_perms eq "0200") {
++				if (WARN("DEVICE_ATTR_WO",
++					 "Use DEVICE_ATTR_WO\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bDEVICE_ATTR\s*\(\s*$var\s*,\s*\Q$perms\E\s*,\s*NULL\s*,\s*$store\s*\)/DEVICE_ATTR_WO(${var})/;
++				}
++			} elsif ($octal_perms eq "0644" ||
++				 $octal_perms eq "0444" ||
++				 $octal_perms eq "0200") {
++				my $newshow = "$show";
++				$newshow = "${var}_show" if ($show ne "NULL" && $show ne "${var}_show");
++				my $newstore = $store;
++				$newstore = "${var}_store" if ($store ne "NULL" && $store ne "${var}_store");
++				my $rename = "";
++				if ($show ne $newshow) {
++					$rename .= " '$show' to '$newshow'";
++				}
++				if ($store ne $newstore) {
++					$rename .= " '$store' to '$newstore'";
++				}
++				WARN("DEVICE_ATTR_FUNCTIONS",
++				     "Consider renaming function(s)$rename\n" . $herecurr);
++			} else {
++				WARN("DEVICE_ATTR_PERMS",
++				     "DEVICE_ATTR unusual permissions '$perms' used\n" . $herecurr);
++			}
++		}
++
+ # Mode permission misuses where it seems decimal should be octal
+ # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
+ # o Ignore module_param*(...) uses with a decimal 0 permission as that has a
+@@ -6305,30 +6394,13 @@ sub process {
+ 		}
+ 
+ # check for uses of S_<PERMS> that could be octal for readability
+-		if ($line =~ /\b$mode_perms_string_search\b/) {
+-			my $val = "";
+-			my $oval = "";
+-			my $to = 0;
+-			my $curpos = 0;
+-			my $lastpos = 0;
+-			while ($line =~ /\b(($mode_perms_string_search)\b(?:\s*\|\s*)?\s*)/g) {
+-				$curpos = pos($line);
+-				my $match = $2;
+-				my $omatch = $1;
+-				last if ($lastpos > 0 && ($curpos - length($omatch) != $lastpos));
+-				$lastpos = $curpos;
+-				$to |= $mode_permission_string_types{$match};
+-				$val .= '\s*\|\s*' if ($val ne "");
+-				$val .= $match;
+-				$oval .= $omatch;
+-			}
+-			$oval =~ s/^\s*\|\s*//;
+-			$oval =~ s/\s*\|\s*$//;
+-			my $octal = sprintf("%04o", $to);
++		if ($line =~ /\b($multi_mode_perms_string_search)\b/) {
++			my $oval = $1;
++			my $octal = perms_to_octal($oval);
+ 			if (WARN("SYMBOLIC_PERMS",
+ 				 "Symbolic permissions '$oval' are not preferred. Consider using octal permissions '$octal'.\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$fixlinenr] =~ s/$val/$octal/;
++				$fixed[$fixlinenr] =~ s/\Q$oval\E/$octal/;
+ 			}
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
-proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
-proc-fix-proc-map_files-lookup.patch
-proc-simpler-proc-vmcore-cleanup.patch
-proc-less-memory-for-proc-map_files-readdir.patch
-proc-delete-children_seq_release.patch
-proc-rearrange-struct-proc_dir_entry.patch
-seq_file-delete-small-value-optimization.patch
-cpumask-make-cpumask_size-return-unsigned-int.patch
+checkpatch-ignore-some-octal-permissions-of-0.patch
+checkpatch-improve-quoted-string-and-line-continuation-test.patch
+checkpatch-add-a-few-device_attr-style-tests.patch
 
