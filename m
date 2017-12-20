@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
+ rapidio-move-12-export_symbol_gpl-calls-to-function-implementations.patch
  added to -mm tree
-Date: Tue, 19 Dec 2017 16:05:59 -0800
-Message-ID: <5a39a967.W8TVWxzfWuAFqsFd%akpm@linux-foundation.org>
+Date: Tue, 19 Dec 2017 16:06:02 -0800
+Message-ID: <5a39a96a.0V5S4Zv0mb+8grPZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40376 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753724AbdLTAGA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 19:06:00 -0500
+        with ESMTP id S1753724AbdLTAGD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 19:06:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: elfring@users.sourceforge.net, alexandre.bounine@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: return an error code only as a constant in two functions
+     Subject: rapidio: move 12 EXPORT_SYMBOL_GPL() calls to function implementations
 has been added to the -mm tree.  Its filename is
-     rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
+     rapidio-move-12-export_symbol_gpl-calls-to-function-implementations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-move-12-export_symbol_gpl-calls-to-function-implementations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-move-12-export_symbol_gpl-calls-to-function-implementations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,87 +41,124 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: rapidio: return an error code only as a constant in two functions
+Subject: rapidio: move 12 EXPORT_SYMBOL_GPL() calls to function implementations
 
-* Return an error code without storing it in an intermediate variable.
+checkpatch pointed information out like the following.
 
-* Delete the label "out" and local variable "rc" which became unnecessary
-  with this refactoring.
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
 
-Link: http://lkml.kernel.org/r/8db441e1-c227-64e7-4747-095da63d7a2e@users.sourceforge.net
+Thus fix the affected source code places.
+
+Link: http://lkml.kernel.org/r/5f51f606-ece8-7bff-bb86-81d182c49b98@users.sourceforge.net
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Cc: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ drivers/rapidio/rio.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-return-an-error-code-only-as-a-constant-in-two-functions drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-return-an-error-code-only-as-a-constant-in-two-functions
+diff -puN drivers/rapidio/rio.c~rapidio-move-12-export_symbol_gpl-calls-to-function-implementations drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-move-12-export_symbol_gpl-calls-to-function-implementations
 +++ a/drivers/rapidio/rio.c
-@@ -402,13 +402,10 @@ rio_setup_inb_dbell(struct rio_mport *mp
- 		    void (*dinb) (struct rio_mport * mport, void *dev_id, u16 src, u16 dst,
- 				  u16 info))
- {
--	int rc = 0;
- 	struct rio_dbell *dbell = kmalloc(sizeof(*dbell), GFP_KERNEL);
+@@ -81,6 +81,7 @@ u16 rio_local_get_device_id(struct rio_m
  
--	if (!dbell) {
--		rc = -ENOMEM;
--		goto out;
--	}
-+	if (!dbell)
-+		return -ENOMEM;
- 
- 	dbell->res = res;
- 	dbell->dinb = dinb;
-@@ -417,9 +414,7 @@ rio_setup_inb_dbell(struct rio_mport *mp
- 	mutex_lock(&mport->lock);
- 	list_add_tail(&dbell->node, &mport->dbells);
- 	mutex_unlock(&mport->lock);
--
--      out:
--	return rc;
-+	return 0;
+ 	return (RIO_GET_DID(port->sys_size, result));
  }
++EXPORT_SYMBOL_GPL(rio_local_get_device_id);
  
  /**
-@@ -563,21 +558,17 @@ int rio_add_mport_pw_handler(struct rio_
- 			     int (*pwcback)(struct rio_mport *mport,
- 			     void *context, union rio_pw_msg *msg, int step))
- {
--	int rc = 0;
- 	struct rio_pwrite *pwrite = kzalloc(sizeof(*pwrite), GFP_KERNEL);
- 
--	if (!pwrite) {
--		rc = -ENOMEM;
--		goto out;
--	}
-+	if (!pwrite)
-+		return -ENOMEM;
- 
- 	pwrite->pwcback = pwcback;
- 	pwrite->context = context;
- 	mutex_lock(&mport->lock);
- 	list_add_tail(&pwrite->node, &mport->pwrites);
- 	mutex_unlock(&mport->lock);
--out:
--	return rc;
-+	return 0;
+  * rio_query_mport - Query mport device attributes
+@@ -275,6 +276,7 @@ int rio_request_inb_mbox(struct rio_mpor
+       out:
+ 	return rc;
  }
- EXPORT_SYMBOL_GPL(rio_add_mport_pw_handler);
++EXPORT_SYMBOL_GPL(rio_request_inb_mbox);
  
-_
-
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
-
-rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports.patch
-rapidio-adjust-12-checks-for-null-pointers.patch
-rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch
-rapidio-improve-a-size-determination-in-five-functions.patch
-rapidio-delete-an-unnecessary-variable-initialisation-in-three-functions.patch
-rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
-rapidio-move-12-export_symbol_gpl-calls-to-function-implementations.patch
-
+ /**
+  * rio_release_inb_mbox - release inbound mailbox message service
+@@ -303,6 +305,7 @@ int rio_release_inb_mbox(struct rio_mpor
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(rio_release_inb_mbox);
+ 
+ /**
+  * rio_request_outb_mbox - request outbound mailbox service
+@@ -357,6 +360,7 @@ int rio_request_outb_mbox(struct rio_mpo
+       out:
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(rio_request_outb_mbox);
+ 
+ /**
+  * rio_release_outb_mbox - release outbound mailbox message service
+@@ -385,6 +389,7 @@ int rio_release_outb_mbox(struct rio_mpo
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(rio_release_outb_mbox);
+ 
+ /**
+  * rio_setup_inb_dbell - bind inbound doorbell callback
+@@ -458,6 +463,7 @@ int rio_request_inb_dbell(struct rio_mpo
+       out:
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(rio_request_inb_dbell);
+ 
+ /**
+  * rio_release_inb_dbell - release inbound doorbell message service
+@@ -499,6 +505,7 @@ int rio_release_inb_dbell(struct rio_mpo
+       out:
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(rio_release_inb_dbell);
+ 
+ /**
+  * rio_request_outb_dbell - request outbound doorbell message range
+@@ -527,6 +534,7 @@ struct resource *rio_request_outb_dbell(
+ 
+ 	return res;
+ }
++EXPORT_SYMBOL_GPL(rio_request_outb_dbell);
+ 
+ /**
+  * rio_release_outb_dbell - release outbound doorbell message range
+@@ -544,6 +552,7 @@ int rio_release_outb_dbell(struct rio_de
+ 
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(rio_release_outb_dbell);
+ 
+ /**
+  * rio_add_mport_pw_handler - add port-write message handler into the list
+@@ -1450,6 +1459,7 @@ struct rio_dev *rio_get_asm(u16 vid, u16
+ 	spin_unlock(&rio_global_list_lock);
+ 	return rdev;
+ }
++EXPORT_SYMBOL_GPL(rio_get_asm);
+ 
+ /**
+  * rio_get_device - Begin or continue searching for a RIO device by vid/did
+@@ -1469,6 +1479,7 @@ struct rio_dev *rio_get_device(u16 vid,
+ {
+ 	return rio_get_asm(vid, did, RIO_ANY_ID, RIO_ANY_ID, from);
+ }
++EXPORT_SYMBOL_GPL(rio_get_device);
+ 
+ /**
+  * rio_std_route_add_entry - Add switch route table entry using standard
+@@ -2203,6 +2214,7 @@ no_disc:
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(rio_init_mports);
+ 
+ static int rio_get_hdid(int index)
+ {
+@@ -2317,16 +2329,3 @@ int rio_unregister_mport(struct rio_mpor
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(rio_unregister_mport);
