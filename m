@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports.patch added to -mm tree
-Date: Tue, 19 Dec 2017 16:05:45 -0800
-Message-ID: <5a39a959.rfPVMMMgjVpe+mlA%akpm@linux-foundation.org>
+Subject: + rapidio-adjust-12-checks-for-null-pointers.patch added to -mm
+ tree
+Date: Tue, 19 Dec 2017 16:05:48 -0800
+Message-ID: <5a39a95c.FsjVAXg7QAgdF/h5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40304 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752656AbdLTAFr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 19:05:47 -0500
+        with ESMTP id S1752656AbdLTAFt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 19:05:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: elfring@users.sourceforge.net, alexandre.bounine@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: delete an error message for a failed memory allocation in rio_init_mports()
+     Subject: rapidio: adjust 12 checks for null pointers
 has been added to the -mm tree.  Its filename is
-     rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports.patch
+     rapidio-adjust-12-checks-for-null-pointers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-adjust-12-checks-for-null-pointers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-adjust-12-checks-for-null-pointers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +40,107 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: rapidio: delete an error message for a failed memory allocation in rio_init_mports()
+Subject: rapidio: adjust 12 checks for null pointers
 
-Patch series "RapidIO: Adjustments for some function implementations".
+checkpatch pointed information out like the following.
 
-This patch (of 7):
+Comparison to NULL could be written ...
 
-Omit an extra message for a memory allocation failure in this function.
+Thus fix the affected source code places.
 
-This issue was detected by using the Coccinelle software.
-
-Link: http://lkml.kernel.org/r/dfd6887b-2521-cbf2-af5b-e70b5fa4c33c@users.sourceforge.net
+Link: http://lkml.kernel.org/r/739f9f1c-3ebe-c21b-c5e2-31976cfbc0ee@users.sourceforge.net
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Cc: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/rapidio/rio.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports
+diff -puN drivers/rapidio/rio.c~rapidio-adjust-12-checks-for-null-pointers drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-adjust-12-checks-for-null-pointers
 +++ a/drivers/rapidio/rio.c
-@@ -2189,7 +2189,6 @@ int rio_init_mports(void)
+@@ -243,7 +243,7 @@ int rio_request_inb_mbox(struct rio_mpor
+ 	int rc = -ENOSYS;
+ 	struct resource *res;
  
- 	work = kcalloc(n, sizeof *work, GFP_KERNEL);
- 	if (!work) {
--		pr_err("RIO: no memory for work struct\n");
- 		destroy_workqueue(rio_wq);
- 		goto no_disc;
+-	if (mport->ops->open_inb_mbox == NULL)
++	if (!mport->ops->open_inb_mbox)
+ 		goto out;
+ 
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+@@ -326,7 +326,7 @@ int rio_request_outb_mbox(struct rio_mpo
+ 	int rc = -ENOSYS;
+ 	struct resource *res;
+ 
+-	if (mport->ops->open_outb_mbox == NULL)
++	if (!mport->ops->open_outb_mbox)
+ 		goto out;
+ 
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+@@ -632,7 +632,7 @@ int rio_request_inb_pwrite(struct rio_de
+ 	int rc = 0;
+ 
+ 	spin_lock(&rio_global_list_lock);
+-	if (rdev->pwcback != NULL)
++	if (rdev->pwcback)
+ 		rc = -ENOMEM;
+ 	else
+ 		rdev->pwcback = pwcback;
+@@ -975,7 +975,7 @@ rio_chk_dev_route(struct rio_dev *rdev,
+ 		rdev = rdev->prev;
+ 	}
+ 
+-	if (prev == NULL)
++	if (!prev)
+ 		goto err_out;
+ 
+ 	p_port = prev->rswitch->route_table[rdev->destid];
+@@ -1054,7 +1054,7 @@ rio_get_input_status(struct rio_dev *rde
+ 		RIO_MNT_REQ_CMD_IS);
+ 
+ 	/* Exit if the response is not expected */
+-	if (lnkresp == NULL)
++	if (!lnkresp)
+ 		return 0;
+ 
+ 	checkcount = 3;
+@@ -1696,7 +1696,7 @@ int rio_route_add_entry(struct rio_dev *
+ 
+ 	spin_lock(&rdev->rswitch->lock);
+ 
+-	if (ops == NULL || ops->add_entry == NULL) {
++	if (!ops || !ops->add_entry) {
+ 		rc = rio_std_route_add_entry(rdev->net->hport, rdev->destid,
+ 					     rdev->hopcount, table,
+ 					     route_destid, route_port);
+@@ -1749,7 +1749,7 @@ int rio_route_get_entry(struct rio_dev *
+ 
+ 	spin_lock(&rdev->rswitch->lock);
+ 
+-	if (ops == NULL || ops->get_entry == NULL) {
++	if (!ops || !ops->get_entry) {
+ 		rc = rio_std_route_get_entry(rdev->net->hport, rdev->destid,
+ 					     rdev->hopcount, table,
+ 					     route_destid, route_port);
+@@ -1797,7 +1797,7 @@ int rio_route_clr_table(struct rio_dev *
+ 
+ 	spin_lock(&rdev->rswitch->lock);
+ 
+-	if (ops == NULL || ops->clr_table == NULL) {
++	if (!ops || !ops->clr_table) {
+ 		rc = rio_std_route_clr_table(rdev->net->hport, rdev->destid,
+ 					     rdev->hopcount, table);
+ 	} else if (try_module_get(ops->owner)) {
+@@ -1889,7 +1889,7 @@ struct dma_async_tx_descriptor *rio_dma_
+ {
+ 	struct rio_dma_ext rio_ext;
+ 
+-	if (dchan->device->device_prep_slave_sg == NULL) {
++	if (!dchan->device->device_prep_slave_sg) {
+ 		pr_err("%s: prep_rio_sg == NULL\n", __func__);
+ 		return NULL;
  	}
 _
 
