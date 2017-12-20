@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-adjust-12-checks-for-null-pointers.patch added to -mm
- tree
-Date: Tue, 19 Dec 2017 16:05:48 -0800
-Message-ID: <5a39a95c.FsjVAXg7QAgdF/h5%akpm@linux-foundation.org>
+Subject: +
+ rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch added to -mm tree
+Date: Tue, 19 Dec 2017 16:05:51 -0800
+Message-ID: <5a39a95f.nnWwFI4Rn4j/rBLz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40322 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752656AbdLTAFt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 19:05:49 -0500
+        with ESMTP id S1753632AbdLTAFw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Dec 2017 19:05:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: elfring@users.sourceforge.net, alexandre.bounine@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: adjust 12 checks for null pointers
+     Subject: rapidio: adjust five function calls together with a variable assignment
 has been added to the -mm tree.  Its filename is
-     rapidio-adjust-12-checks-for-null-pointers.patch
+     rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-adjust-12-checks-for-null-pointers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-adjust-12-checks-for-null-pointers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,108 +40,89 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: rapidio: adjust 12 checks for null pointers
+Subject: rapidio: adjust five function calls together with a variable assignment
 
 checkpatch pointed information out like the following.
 
-Comparison to NULL could be written ...
+ERROR: do not use assignment in if condition
 
 Thus fix the affected source code places.
 
-Link: http://lkml.kernel.org/r/739f9f1c-3ebe-c21b-c5e2-31976cfbc0ee@users.sourceforge.net
+Link: http://lkml.kernel.org/r/6f5631ed-ec3e-503d-850a-ab09b5736dbe@users.sourceforge.net
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Cc: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/rapidio/rio.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-adjust-12-checks-for-null-pointers drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-adjust-12-checks-for-null-pointers
+diff -puN drivers/rapidio/rio.c~rapidio-adjust-five-function-calls-together-with-a-variable-assignment drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-adjust-five-function-calls-together-with-a-variable-assignment
 +++ a/drivers/rapidio/rio.c
-@@ -243,7 +243,7 @@ int rio_request_inb_mbox(struct rio_mpor
- 	int rc = -ENOSYS;
- 	struct resource *res;
+@@ -252,9 +252,9 @@ int rio_request_inb_mbox(struct rio_mpor
+ 		rio_init_mbox_res(res, mbox, mbox);
  
--	if (mport->ops->open_inb_mbox == NULL)
-+	if (!mport->ops->open_inb_mbox)
- 		goto out;
+ 		/* Make sure this mailbox isn't in use */
+-		if ((rc =
+-		     request_resource(&mport->riores[RIO_INB_MBOX_RESOURCE],
+-				      res)) < 0) {
++		rc = request_resource(&mport->riores[RIO_INB_MBOX_RESOURCE],
++				      res);
++		if (rc < 0) {
+ 			kfree(res);
+ 			goto out;
+ 		}
+@@ -335,9 +335,9 @@ int rio_request_outb_mbox(struct rio_mpo
+ 		rio_init_mbox_res(res, mbox, mbox);
  
- 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
-@@ -326,7 +326,7 @@ int rio_request_outb_mbox(struct rio_mpo
- 	int rc = -ENOSYS;
- 	struct resource *res;
- 
--	if (mport->ops->open_outb_mbox == NULL)
-+	if (!mport->ops->open_outb_mbox)
- 		goto out;
- 
- 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
-@@ -632,7 +632,7 @@ int rio_request_inb_pwrite(struct rio_de
- 	int rc = 0;
- 
- 	spin_lock(&rio_global_list_lock);
--	if (rdev->pwcback != NULL)
-+	if (rdev->pwcback)
- 		rc = -ENOMEM;
- 	else
- 		rdev->pwcback = pwcback;
-@@ -975,7 +975,7 @@ rio_chk_dev_route(struct rio_dev *rdev,
- 		rdev = rdev->prev;
- 	}
- 
--	if (prev == NULL)
-+	if (!prev)
- 		goto err_out;
- 
- 	p_port = prev->rswitch->route_table[rdev->destid];
-@@ -1054,7 +1054,7 @@ rio_get_input_status(struct rio_dev *rde
- 		RIO_MNT_REQ_CMD_IS);
- 
- 	/* Exit if the response is not expected */
--	if (lnkresp == NULL)
-+	if (!lnkresp)
- 		return 0;
- 
- 	checkcount = 3;
-@@ -1696,7 +1696,7 @@ int rio_route_add_entry(struct rio_dev *
- 
- 	spin_lock(&rdev->rswitch->lock);
- 
--	if (ops == NULL || ops->add_entry == NULL) {
-+	if (!ops || !ops->add_entry) {
- 		rc = rio_std_route_add_entry(rdev->net->hport, rdev->destid,
- 					     rdev->hopcount, table,
- 					     route_destid, route_port);
-@@ -1749,7 +1749,7 @@ int rio_route_get_entry(struct rio_dev *
- 
- 	spin_lock(&rdev->rswitch->lock);
- 
--	if (ops == NULL || ops->get_entry == NULL) {
-+	if (!ops || !ops->get_entry) {
- 		rc = rio_std_route_get_entry(rdev->net->hport, rdev->destid,
- 					     rdev->hopcount, table,
- 					     route_destid, route_port);
-@@ -1797,7 +1797,7 @@ int rio_route_clr_table(struct rio_dev *
- 
- 	spin_lock(&rdev->rswitch->lock);
- 
--	if (ops == NULL || ops->clr_table == NULL) {
-+	if (!ops || !ops->clr_table) {
- 		rc = rio_std_route_clr_table(rdev->net->hport, rdev->destid,
- 					     rdev->hopcount, table);
- 	} else if (try_module_get(ops->owner)) {
-@@ -1889,7 +1889,7 @@ struct dma_async_tx_descriptor *rio_dma_
+ 		/* Make sure this outbound mailbox isn't in use */
+-		if ((rc =
+-		     request_resource(&mport->riores[RIO_OUTB_MBOX_RESOURCE],
+-				      res)) < 0) {
++		rc = request_resource(&mport->riores[RIO_OUTB_MBOX_RESOURCE],
++				      res);
++		if (rc < 0) {
+ 			kfree(res);
+ 			goto out;
+ 		}
+@@ -406,9 +406,9 @@ rio_setup_inb_dbell(struct rio_mport *mp
+ 				  u16 info))
  {
- 	struct rio_dma_ext rio_ext;
+ 	int rc = 0;
+-	struct rio_dbell *dbell;
++	struct rio_dbell *dbell = kmalloc(sizeof(*dbell), GFP_KERNEL);
  
--	if (dchan->device->device_prep_slave_sg == NULL) {
-+	if (!dchan->device->device_prep_slave_sg) {
- 		pr_err("%s: prep_rio_sg == NULL\n", __func__);
- 		return NULL;
+-	if (!(dbell = kmalloc(sizeof(struct rio_dbell), GFP_KERNEL))) {
++	if (!dbell) {
+ 		rc = -ENOMEM;
+ 		goto out;
  	}
+@@ -452,9 +452,9 @@ int rio_request_inb_dbell(struct rio_mpo
+ 		rio_init_dbell_res(res, start, end);
+ 
+ 		/* Make sure these doorbells aren't in use */
+-		if ((rc =
+-		     request_resource(&mport->riores[RIO_DOORBELL_RESOURCE],
+-				      res)) < 0) {
++		rc = request_resource(&mport->riores[RIO_DOORBELL_RESOURCE],
++				      res);
++		if (rc < 0) {
+ 			kfree(res);
+ 			goto out;
+ 		}
+@@ -1411,7 +1411,9 @@ rio_mport_get_feature(struct rio_mport *
+ 						 ext_ftr_ptr, &ftr_header);
+ 		if (RIO_GET_BLOCK_ID(ftr_header) == ftr)
+ 			return ext_ftr_ptr;
+-		if (!(ext_ftr_ptr = RIO_GET_BLOCK_PTR(ftr_header)))
++
++		ext_ftr_ptr = RIO_GET_BLOCK_PTR(ftr_header);
++		if (!ext_ftr_ptr)
+ 			break;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from elfring@users.sourceforge.net are
