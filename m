@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-add-sealing-support-to-hugetlb-backed-memfd.patch added
- to -mm tree
-Date: Wed, 20 Dec 2017 16:25:17 -0800
-Message-ID: <5a3aff6d.hkgErtw/zdBwBdOf%akpm@linux-foundation.org>
+Subject: + memfd-test-test-hugetlbfs-sealing.patch added to -mm tree
+Date: Wed, 20 Dec 2017 16:25:20 -0800
+Message-ID: <5a3aff70.ryeBnI2JWEQCYIl9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755795AbdLUAZS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Dec 2017 19:25:18 -0500
+        with ESMTP id S1755795AbdLUAZV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Dec 2017 19:25:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: marcandre.lureau@redhat.com, aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: add sealing support to hugetlb-backed memfd
+     Subject: memfd-test: test hugetlbfs sealing
 has been added to the -mm tree.  Its filename is
-     shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
+     memfd-test-test-hugetlbfs-sealing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memfd-test-test-hugetlbfs-sealing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memfd-test-test-hugetlbfs-sealing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: shmem: add sealing support to hugetlb-backed memfd
+Subject: memfd-test: test hugetlbfs sealing
 
-Adapt add_seals()/get_seals() to work with hugetbfs-backed memory.
+Remove most of the special-casing of hugetlbfs now that sealing
+is supported.
 
-Teach memfd_create() to allow sealing operations on MFD_HUGETLB.
-
-Link: http://lkml.kernel.org/r/20171107122800.25517-6-marcandre.lureau@redhat.com
+Link: http://lkml.kernel.org/r/20171107122800.25517-7-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -56,139 +54,260 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   47 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ tools/testing/selftests/memfd/memfd_test.c |  150 +------------------
+ 1 file changed, 15 insertions(+), 135 deletions(-)
 
-diff -puN mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd mm/shmem.c
---- a/mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd
-+++ a/mm/shmem.c
-@@ -2720,6 +2720,19 @@ continue_resched:
- 	return error;
+diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-test-hugetlbfs-sealing tools/testing/selftests/memfd/memfd_test.c
+--- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-test-hugetlbfs-sealing
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -513,6 +513,10 @@ static void mfd_assert_grow_write(int fd
+ 	static char *buf;
+ 	ssize_t l;
+ 
++	/* hugetlbfs does not support write */
++	if (hugetlbfs_test)
++		return;
++
+ 	buf = malloc(mfd_def_size * 8);
+ 	if (!buf) {
+ 		printf("malloc(%zu) failed: %m\n", mfd_def_size * 8);
+@@ -533,6 +537,10 @@ static void mfd_fail_grow_write(int fd)
+ 	static char *buf;
+ 	ssize_t l;
+ 
++	/* hugetlbfs does not support write */
++	if (hugetlbfs_test)
++		return;
++
+ 	buf = malloc(mfd_def_size * 8);
+ 	if (!buf) {
+ 		printf("malloc(%zu) failed: %m\n", mfd_def_size * 8);
+@@ -627,18 +635,13 @@ static void test_create(void)
+ 	fd = mfd_assert_new("", 0, MFD_CLOEXEC);
+ 	close(fd);
+ 
+-	if (!hugetlbfs_test) {
+-		/* verify MFD_ALLOW_SEALING is allowed */
+-		fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
+-		close(fd);
+-
+-		/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
+-		fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
+-		close(fd);
+-	} else {
+-		/* sealing is not supported on hugetlbfs */
+-		mfd_fail_new("", MFD_ALLOW_SEALING);
+-	}
++	/* verify MFD_ALLOW_SEALING is allowed */
++	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
++	close(fd);
++
++	/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
++	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
++	close(fd);
  }
  
-+static unsigned int *memfd_file_seals_ptr(struct file *file)
-+{
-+	if (file->f_op == &shmem_file_operations)
-+		return &SHMEM_I(file_inode(file))->seals;
-+
-+#ifdef CONFIG_HUGETLBFS
-+	if (file->f_op == &hugetlbfs_file_operations)
-+		return &HUGETLBFS_I(file_inode(file))->seals;
-+#endif
-+
-+	return NULL;
-+}
-+
- #define F_ALL_SEALS (F_SEAL_SEAL | \
- 		     F_SEAL_SHRINK | \
- 		     F_SEAL_GROW | \
-@@ -2728,7 +2741,7 @@ continue_resched:
- static int memfd_add_seals(struct file *file, unsigned int seals)
+ /*
+@@ -649,10 +652,6 @@ static void test_basic(void)
  {
- 	struct inode *inode = file_inode(file);
--	struct shmem_inode_info *info = SHMEM_I(inode);
-+	unsigned int *file_seals;
- 	int error;
+ 	int fd;
  
- 	/*
-@@ -2761,8 +2774,6 @@ static int memfd_add_seals(struct file *
- 	 * other file types.
- 	 */
+-	/* hugetlbfs does not contain sealing support */
+-	if (hugetlbfs_test)
+-		return;
+-
+ 	printf("%s BASIC\n", MEMFD_STR);
  
--	if (file->f_op != &shmem_file_operations)
--		return -EINVAL;
- 	if (!(file->f_mode & FMODE_WRITE))
- 		return -EPERM;
- 	if (seals & ~(unsigned int)F_ALL_SEALS)
-@@ -2770,12 +2781,18 @@ static int memfd_add_seals(struct file *
- 
- 	inode_lock(inode);
- 
--	if (info->seals & F_SEAL_SEAL) {
-+	file_seals = memfd_file_seals_ptr(file);
-+	if (!file_seals) {
-+		error = -EINVAL;
-+		goto unlock;
-+	}
-+
-+	if (*file_seals & F_SEAL_SEAL) {
- 		error = -EPERM;
- 		goto unlock;
- 	}
- 
--	if ((seals & F_SEAL_WRITE) && !(info->seals & F_SEAL_WRITE)) {
-+	if ((seals & F_SEAL_WRITE) && !(*file_seals & F_SEAL_WRITE)) {
- 		error = mapping_deny_writable(file->f_mapping);
- 		if (error)
- 			goto unlock;
-@@ -2787,7 +2804,7 @@ static int memfd_add_seals(struct file *
- 		}
- 	}
- 
--	info->seals |= seals;
-+	*file_seals |= seals;
- 	error = 0;
- 
- unlock:
-@@ -2797,10 +2814,9 @@ unlock:
- 
- static int memfd_get_seals(struct file *file)
- {
--	if (file->f_op != &shmem_file_operations)
--		return -EINVAL;
-+	unsigned int *seals = memfd_file_seals_ptr(file);
- 
--	return SHMEM_I(file_inode(file))->seals;
-+	return seals ? *seals : -EINVAL;
+ 	fd = mfd_assert_new("kern_memfd_basic",
+@@ -698,28 +697,6 @@ static void test_basic(void)
  }
  
- long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
-@@ -3658,7 +3674,7 @@ SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
- 		unsigned int, flags)
+ /*
+- * hugetlbfs doesn't support seals or write, so just verify grow and shrink
+- * on a hugetlbfs file created via memfd_create.
+- */
+-static void test_hugetlbfs_grow_shrink(void)
+-{
+-	int fd;
+-
+-	printf("%s HUGETLBFS-GROW-SHRINK\n", MEMFD_STR);
+-
+-	fd = mfd_assert_new("kern_memfd_seal_write",
+-			    mfd_def_size,
+-			    MFD_CLOEXEC);
+-
+-	mfd_assert_read(fd);
+-	mfd_assert_write(fd);
+-	mfd_assert_shrink(fd);
+-	mfd_assert_grow(fd);
+-
+-	close(fd);
+-}
+-
+-/*
+  * Test SEAL_WRITE
+  * Test whether SEAL_WRITE actually prevents modifications.
+  */
+@@ -727,13 +704,6 @@ static void test_seal_write(void)
  {
--	struct shmem_inode_info *info;
-+	unsigned int *file_seals;
- 	struct file *file;
- 	int fd, error;
- 	char *name;
-@@ -3668,9 +3684,6 @@ SYSCALL_DEFINE2(memfd_create,
- 		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
- 			return -EINVAL;
- 	} else {
--		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
--		if (flags & MFD_ALLOW_SEALING)
--			return -EINVAL;
- 		/* Allow huge page size encoding in flags. */
- 		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
- 				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
-@@ -3723,12 +3736,8 @@ SYSCALL_DEFINE2(memfd_create,
- 	file->f_flags |= O_RDWR | O_LARGEFILE;
+ 	int fd;
  
- 	if (flags & MFD_ALLOW_SEALING) {
--		/*
--		 * flags check at beginning of function ensures
--		 * this is not a hugetlbfs (MFD_HUGETLB) file.
--		 */
--		info = SHMEM_I(file_inode(file));
--		info->seals &= ~F_SEAL_SEAL;
-+		file_seals = memfd_file_seals_ptr(file);
-+		*file_seals &= ~F_SEAL_SEAL;
- 	}
+-	/*
+-	 * hugetlbfs does not contain sealing or write support.  Just test
+-	 * basic grow and shrink via test_hugetlbfs_grow_shrink.
+-	 */
+-	if (hugetlbfs_test)
+-		return test_hugetlbfs_grow_shrink();
+-
+ 	printf("%s SEAL-WRITE\n", MEMFD_STR);
  
- 	fd_install(fd, file);
-_
-
-Patches currently in -mm which might be from marcandre.lureau@redhat.com are
-
-shmem-unexport-shmem_add_seals-shmem_get_seals.patch
-shmem-rename-functions-that-are-memfd-related.patch
-hugetlb-expose-hugetlbfs_inode_info-in-header.patch
-hugetlb-implement-memfd-sealing.patch
-shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
-memfd-test-test-hugetlbfs-sealing.patch
-memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs.patch
-memfd-test-move-common-code-to-a-shared-unit.patch
-memfd-test-run-fuse-test-on-hugetlb-backend-memory.patch
-mm-page_owner-align-with-pageblock_nr_pages.patch
-
+ 	fd = mfd_assert_new("kern_memfd_seal_write",
+@@ -760,10 +730,6 @@ static void test_seal_shrink(void)
+ {
+ 	int fd;
+ 
+-	/* hugetlbfs does not contain sealing support */
+-	if (hugetlbfs_test)
+-		return;
+-
+ 	printf("%s SEAL-SHRINK\n", MEMFD_STR);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_shrink",
+@@ -790,10 +756,6 @@ static void test_seal_grow(void)
+ {
+ 	int fd;
+ 
+-	/* hugetlbfs does not contain sealing support */
+-	if (hugetlbfs_test)
+-		return;
+-
+ 	printf("%s SEAL-GROW\n", MEMFD_STR);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_grow",
+@@ -820,10 +782,6 @@ static void test_seal_resize(void)
+ {
+ 	int fd;
+ 
+-	/* hugetlbfs does not contain sealing support */
+-	if (hugetlbfs_test)
+-		return;
+-
+ 	printf("%s SEAL-RESIZE\n", MEMFD_STR);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_resize",
+@@ -843,32 +801,6 @@ static void test_seal_resize(void)
+ }
+ 
+ /*
+- * hugetlbfs does not support seals.  Basic test to dup the memfd created
+- * fd and perform some basic operations on it.
+- */
+-static void hugetlbfs_dup(char *b_suffix)
+-{
+-	int fd, fd2;
+-
+-	printf("%s HUGETLBFS-DUP %s\n", MEMFD_STR, b_suffix);
+-
+-	fd = mfd_assert_new("kern_memfd_share_dup",
+-			    mfd_def_size,
+-			    MFD_CLOEXEC);
+-
+-	fd2 = mfd_assert_dup(fd);
+-
+-	mfd_assert_read(fd);
+-	mfd_assert_write(fd);
+-
+-	mfd_assert_shrink(fd2);
+-	mfd_assert_grow(fd2);
+-
+-	close(fd2);
+-	close(fd);
+-}
+-
+-/*
+  * Test sharing via dup()
+  * Test that seals are shared between dupped FDs and they're all equal.
+  */
+@@ -876,15 +808,6 @@ static void test_share_dup(char *banner,
+ {
+ 	int fd, fd2;
+ 
+-	/*
+-	 * hugetlbfs does not contain sealing support.  Perform some
+-	 * basic testing on dup'ed fd instead via hugetlbfs_dup.
+-	 */
+-	if (hugetlbfs_test) {
+-		hugetlbfs_dup(b_suffix);
+-		return;
+-	}
+-
+ 	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_dup",
+@@ -927,10 +850,6 @@ static void test_share_mmap(char *banner
+ 	int fd;
+ 	void *p;
+ 
+-	/* hugetlbfs does not contain sealing support */
+-	if (hugetlbfs_test)
+-		return;
+-
+ 	printf("%s %s %s\n", MEMFD_STR,  banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_mmap",
+@@ -956,32 +875,6 @@ static void test_share_mmap(char *banner
+ }
+ 
+ /*
+- * Basic test to make sure we can open the hugetlbfs fd via /proc and
+- * perform some simple operations on it.
+- */
+-static void hugetlbfs_proc_open(char *b_suffix)
+-{
+-	int fd, fd2;
+-
+-	printf("%s HUGETLBFS-PROC-OPEN %s\n", MEMFD_STR, b_suffix);
+-
+-	fd = mfd_assert_new("kern_memfd_share_open",
+-			    mfd_def_size,
+-			    MFD_CLOEXEC);
+-
+-	fd2 = mfd_assert_open(fd, O_RDWR, 0);
+-
+-	mfd_assert_read(fd);
+-	mfd_assert_write(fd);
+-
+-	mfd_assert_shrink(fd2);
+-	mfd_assert_grow(fd2);
+-
+-	close(fd2);
+-	close(fd);
+-}
+-
+-/*
+  * Test sealing with open(/proc/self/fd/%d)
+  * Via /proc we can get access to a separate file-context for the same memfd.
+  * This is *not* like dup(), but like a real separate open(). Make sure the
+@@ -991,15 +884,6 @@ static void test_share_open(char *banner
+ {
+ 	int fd, fd2;
+ 
+-	/*
+-	 * hugetlbfs does not contain sealing support.  So test basic
+-	 * functionality of using /proc fd via hugetlbfs_proc_open
+-	 */
+-	if (hugetlbfs_test) {
+-		hugetlbfs_proc_open(b_suffix);
+-		return;
+-	}
+-
+ 	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_open",
+@@ -1043,10 +927,6 @@ static void test_share_fork(char *banner
+ 	int fd;
+ 	pid_t pid;
+ 
+-	/* hugetlbfs does not contain sealing support */
+-	if (hugetlbfs_test)
+-		return;
