@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-expose-hugetlbfs_inode_info-in-header.patch added to
- -mm tree
-Date: Wed, 20 Dec 2017 16:25:11 -0800
-Message-ID: <5a3aff67.vE6sWoMqt/jfNM8P%akpm@linux-foundation.org>
+Subject: + hugetlb-implement-memfd-sealing.patch added to -mm tree
+Date: Wed, 20 Dec 2017 16:25:14 -0800
+Message-ID: <5a3aff6a.ReC5qrAWaytfB7Nq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756134AbdLUAZM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Dec 2017 19:25:12 -0500
+        with ESMTP id S1756134AbdLUAZP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Dec 2017 19:25:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: marcandre.lureau@redhat.com, aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: expose hugetlbfs_inode_info in header
+     Subject: hugetlb: implement memfd sealing
 has been added to the -mm tree.  Its filename is
-     hugetlb-expose-hugetlbfs_inode_info-in-header.patch
+     hugetlb-implement-memfd-sealing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-expose-hugetlbfs_inode_info-in-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-implement-memfd-sealing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-expose-hugetlbfs_inode_info-in-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-implement-memfd-sealing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: hugetlb: expose hugetlbfs_inode_info in header
+Subject: hugetlb: implement memfd sealing
 
-hugetlbfs inode information will need to be accessed by code in mm/shmem.c
-for file sealing operations.  Move inode information definition from .c
-file to header for needed access.
+Implements memfd sealing, similar to shmem:
+- WRITE: deny fallocate(PUNCH_HOLE). mmap() write is denied in
+  memfd_add_seals(). write() doesn't exist for hugetlbfs.
+- SHRINK: added similar check as shmem_setattr()
+- GROW: added similar check as shmem_setattr() & shmem_fallocate()
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-4-marcandre.lureau@redhat.com
+Except write() operation that doesn't exist with hugetlbfs, that
+should make sealing as close as it can be to shmem support.
+
+Link: http://lkml.kernel.org/r/20171107122800.25517-5-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -56,50 +60,105 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   10 ----------
- include/linux/hugetlb.h |   10 ++++++++++
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ fs/hugetlbfs/inode.c    |   29 +++++++++++++++++++++++++++--
+ include/linux/hugetlb.h |    1 +
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlb-expose-hugetlbfs_inode_info-in-header fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlb-expose-hugetlbfs_inode_info-in-header
+diff -puN fs/hugetlbfs/inode.c~hugetlb-implement-memfd-sealing fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-implement-memfd-sealing
 +++ a/fs/hugetlbfs/inode.c
-@@ -55,16 +55,6 @@ struct hugetlbfs_config {
- 	umode_t			mode;
+@@ -510,8 +510,16 @@ static long hugetlbfs_punch_hole(struct
+ 
+ 	if (hole_end > hole_start) {
+ 		struct address_space *mapping = inode->i_mapping;
++		struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 
+ 		inode_lock(inode);
++
++		/* protected by i_mutex */
++		if (info->seals & F_SEAL_WRITE) {
++			inode_unlock(inode);
++			return -EPERM;
++		}
++
+ 		i_mmap_lock_write(mapping);
+ 		if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
+ 			hugetlb_vmdelete_list(&mapping->i_mmap,
+@@ -529,6 +537,7 @@ static long hugetlbfs_fallocate(struct f
+ 				loff_t len)
+ {
+ 	struct inode *inode = file_inode(file);
++	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct hstate *h = hstate_inode(inode);
+ 	struct vm_area_struct pseudo_vma;
+@@ -560,6 +569,11 @@ static long hugetlbfs_fallocate(struct f
+ 	if (error)
+ 		goto out;
+ 
++	if ((info->seals & F_SEAL_GROW) && offset + len > inode->i_size) {
++		error = -EPERM;
++		goto out;
++	}
++
+ 	/*
+ 	 * Initialize a pseudo vma as this is required by the huge page
+ 	 * allocation routines.  If NUMA is configured, use page index
+@@ -650,6 +664,7 @@ static int hugetlbfs_setattr(struct dent
+ 	struct hstate *h = hstate_inode(inode);
+ 	int error;
+ 	unsigned int ia_valid = attr->ia_valid;
++	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 
+ 	BUG_ON(!inode);
+ 
+@@ -658,9 +673,16 @@ static int hugetlbfs_setattr(struct dent
+ 		return error;
+ 
+ 	if (ia_valid & ATTR_SIZE) {
+-		if (attr->ia_size & ~huge_page_mask(h))
++		loff_t oldsize = inode->i_size;
++		loff_t newsize = attr->ia_size;
++
++		if (newsize & ~huge_page_mask(h))
+ 			return -EINVAL;
+-		error = hugetlb_vmtruncate(inode, attr->ia_size);
++		/* protected by i_mutex */
++		if ((newsize < oldsize && (info->seals & F_SEAL_SHRINK)) ||
++		    (newsize > oldsize && (info->seals & F_SEAL_GROW)))
++			return -EPERM;
++		error = hugetlb_vmtruncate(inode, newsize);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -712,6 +734,8 @@ static struct inode *hugetlbfs_get_inode
+ 
+ 	inode = new_inode(sb);
+ 	if (inode) {
++		struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
++
+ 		inode->i_ino = get_next_ino();
+ 		inode_init_owner(inode, dir, mode);
+ 		lockdep_set_class(&inode->i_mapping->i_mmap_rwsem,
+@@ -719,6 +743,7 @@ static struct inode *hugetlbfs_get_inode
+ 		inode->i_mapping->a_ops = &hugetlbfs_aops;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+ 		inode->i_mapping->private_data = resv_map;
++		info->seals = F_SEAL_SEAL;
+ 		switch (mode & S_IFMT) {
+ 		default:
+ 			init_special_inode(inode, mode, dev);
+diff -puN include/linux/hugetlb.h~hugetlb-implement-memfd-sealing include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-implement-memfd-sealing
++++ a/include/linux/hugetlb.h
+@@ -273,6 +273,7 @@ static inline struct hugetlbfs_sb_info *
+ struct hugetlbfs_inode_info {
+ 	struct shared_policy policy;
+ 	struct inode vfs_inode;
++	unsigned int seals;
  };
  
--struct hugetlbfs_inode_info {
--	struct shared_policy policy;
--	struct inode vfs_inode;
--};
--
--static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
--{
--	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
--}
--
- int sysctl_hugetlb_shm_group;
- 
- enum {
-diff -puN include/linux/hugetlb.h~hugetlb-expose-hugetlbfs_inode_info-in-header include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-expose-hugetlbfs_inode_info-in-header
-+++ a/include/linux/hugetlb.h
-@@ -270,6 +270,16 @@ static inline struct hugetlbfs_sb_info *
- 	return sb->s_fs_info;
- }
- 
-+struct hugetlbfs_inode_info {
-+	struct shared_policy policy;
-+	struct inode vfs_inode;
-+};
-+
-+static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
-+{
-+	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
-+}
-+
- extern const struct file_operations hugetlbfs_file_operations;
- extern const struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
+ static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
 _
 
 Patches currently in -mm which might be from marcandre.lureau@redhat.com are
