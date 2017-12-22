@@ -1,27 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 21 Dec 2017 12:04:14 -0800
-Message-ID: <20171221200414.-2G4klAfw%akpm@linux-foundation.org>
+Subject: + mm-introduce-map_fixed_safe-fix.patch added to -mm tree
+Date: Thu, 21 Dec 2017 16:27:25 -0800
+Message-ID: <5a3c516d.Txqoz18rNA/JdE7Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752601AbdLUUEQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Dec 2017 15:04:16 -0500
+        with ESMTP id S1755826AbdLVA10 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Dec 2017 19:27:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-introduce-map_fixed_safe-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-introduce-map_fixed_safe-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-map_fixed_safe-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-map_fixed_safe-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,81 +38,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: mm-introduce-map_fixed_safe-fix
+
+There's also a couple of stray whitespace changes in the version in
+linux-next, and some inconsistent whitespace between the various mman.h
+changes. Patch below to fix them up.
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/mips/include/uapi/asm/mman.h   |    3 +--
+ arch/parisc/include/uapi/asm/mman.h |    3 +--
+ arch/sparc/include/uapi/asm/mman.h  |    1 +
+ arch/xtensa/include/uapi/asm/mman.h |    3 +--
+ 4 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kvm/x86.c~linux-next-git-rejects arch/x86/kvm/x86.c
---- a/arch/x86/kvm/x86.c~linux-next-git-rejects
-+++ a/arch/x86/kvm/x86.c
-@@ -7336,10 +7336,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_v
- {
- 	int r;
+diff -puN arch/mips/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -50,8 +50,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
  
--<<<<<<< HEAD
--=======
- 	vcpu_load(vcpu);
-->>>>>>> linux-next/akpm-base
- 	kvm_sigset_activate(vcpu);
- 	kvm_load_guest_fpu(vcpu);
+ /*
+  * Flags for msync
+diff -puN arch/parisc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -26,8 +26,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
  
-diff -puN tools/kvm/kvm_stat/kvm_stat~linux-next-git-rejects tools/kvm/kvm_stat/kvm_stat
---- a/tools/kvm/kvm_stat/kvm_stat~linux-next-git-rejects
-+++ a/tools/kvm/kvm_stat/kvm_stat
-@@ -1579,15 +1579,6 @@ def main():
+ #define MS_SYNC		1		/* synchronous memory sync */
+ #define MS_ASYNC	2		/* sync memory asynchronously */
+diff -puN arch/sparc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/sparc/include/uapi/asm/mman.h
+--- a/arch/sparc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/sparc/include/uapi/asm/mman.h
+@@ -25,4 +25,5 @@
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
  
-     stats = Stats(options)
++
+ #endif /* _UAPI__SPARC_MMAN_H__ */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -57,7 +57,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
+ #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
+ # define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
+ 					 * uninitialized */
+@@ -65,7 +65,6 @@
+ # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+ #endif
  
--<<<<<<< HEAD
--    if options.fields == 'help':
--        stats.fields_filter = None
--        event_list = []
--        for key in stats.get().keys():
--            event_list.append(key.split('(', 1)[0])
--        sys.stdout.write('  ' + '\n  '.join(sorted(set(event_list))) + '\n')
--        sys.exit(0)
--=======
-     if options.fields == "help":
-         stats.fields_filter = None
-         event_list = "\n"
-@@ -1599,7 +1590,6 @@ def main():
-                 event_list += key + '\n'
-         sys.stdout.write(event_list)
-         return ""
-->>>>>>> linux-next/akpm-base
- 
-     if options.log:
-         log(stats)
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-kernel-exitc-export-abort-to-modules.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing-fix.patch
-mm.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-x86-mm-provide-pmdp_establish-helper-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
-
