@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch added to -mm tree
-Date: Thu, 28 Dec 2017 15:22:44 -0800
-Message-ID: <5a457cc4.ELfPZZFZYk6hNbPn%akpm@linux-foundation.org>
+Subject: + bitmap-replace-bitmap_fromto_u32array.patch added to -mm tree
+Date: Thu, 28 Dec 2017 15:22:49 -0800
+Message-ID: <5a457cc9.8vaj5FYbLjmYEj1O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37052 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752029AbdL1XWr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 18:22:47 -0500
+        with ESMTP id S1752029AbdL1XWv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 18:22:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ynorov@caviumnetworks.com, ben@decadent.org.uk, davem@davemloft.net, decot@googlers.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitmap: new bitmap_copy_safe and bitmap_{from,to}_arr32
+     Subject: bitmap: replace bitmap_{from,to}_u32array
 has been added to the -mm tree.  Its filename is
-     bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
+     bitmap-replace-bitmap_fromto_u32array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-replace-bitmap_fromto_u32array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-replace-bitmap_fromto_u32array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: bitmap: new bitmap_copy_safe and bitmap_{from,to}_arr32
+Subject: bitmap: replace bitmap_{from,to}_u32array
 
-This patchset replaces bitmap_{to,from}_u32array with more simple and
-standard looking copy-like functions.
+with bitmap_{from,to}_arr32 over the kernel. Additionally to it:
+* __check_eq_bitmap() now takes single nbits argument.
+* __check_eq_u32_array is not used in new test but may be used in
+  future. So I don't remove it here, but annotate as __used.
 
-bitmap_from_u32array() takes 4 arguments (bitmap_to_u32array is similar):
- - unsigned long *bitmap, which is destination;
- - unsigned int nbits, the length of destination bitmap, in bits;
- - const u32 *buf, the source; and
- - unsigned int nwords, the length of source buffer in ints.
+Tested on arm64 and 32-bit BE mips.
 
-In description to the function it is detailed like:
-* copy min(nbits, 32*nwords) bits from @buf to @bitmap, remaining
-* bits between nword and nbits in @bitmap (if any) are cleared.
-
-Having two size arguments looks unneeded and potentially dangerous.
-
-It is unneeded because normally user of copy-like function should
-take care of the size of destination and make it big enough to fit
-source data.
-
-And it is dangerous because function may hide possible error if user
-doesn't provide big enough bitmap, and data becomes silently dropped.
-
-That's why all copy-like functions have 1 argument for size of copying
-data, and I don't see any reason to make bitmap_from_u32array()
-different.
-
-One exception that comes in mind is strncpy() which also provides size
-of destination in arguments, but it's strongly argued by the possibility
-of taking broken strings in source. This is not the case of
-bitmap_{from,to}_u32array().
-
-There is no many real users of bitmap_{from,to}_u32array(), and they all
-very clearly provide size of destination matched with the size of
-source, so additional functionality is not used in fact. Like this:
-bitmap_from_u32array(to->link_modes.supported,
-		__ETHTOOL_LINK_MODE_MASK_NBITS,
-		link_usettings.link_modes.supported,
-		__ETHTOOL_LINK_MODE_MASK_NU32);
-Where:
-#define __ETHTOOL_LINK_MODE_MASK_NU32 \
-	DIV_ROUND_UP(__ETHTOOL_LINK_MODE_MASK_NBITS, 32)
-
-In this patch, bitmap_copy_safe and bitmap_{from,to}_arr32 are introduced.
-
-'Safe' in bitmap_copy_safe() stands for clearing unused bits in bitmap
-beyond last bit till the end of last word. It is useful for hardening
-API when bitmap is assumed to be exposed to userspace.
-
-bitmap_{from,to}_arr32 functions are replacements for
-bitmap_{from,to}_u32array. They don't take unneeded nwords argument, and
-so simpler in implementation and understanding.
-
-This patch suggests optimization for 32-bit systems - aliasing
-bitmap_{from,to}_arr32 to bitmap_copy_safe.
-
-Other possible optimization is aliasing 64-bit LE bitmap_{from,to}_arr32 to
-more generic function(s). But I didn't end up with the function that would
-be helpful by itself, and can be used to alias 64-bit LE
-bitmap_{from,to}_arr32, like bitmap_copy_safe() does. So I preferred to
-leave things as is.
-
-The following patch switches kernel to new API and introduces test for it.
-
-Discussion is here: https://lkml.org/lkml/2017/11/15/592
-
-Link: http://lkml.kernel.org/r/20171228150019.27953-1-ynorov@caviumnetworks.com
+Link: http://lkml.kernel.org/r/20171228150019.27953-2-ynorov@caviumnetworks.com
 Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
 Cc: Ben Hutchings <ben@decadent.org.uk>
 Cc: David Decotigny <decot@googlers.com>,
@@ -117,121 +59,486 @@ Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |   31 +++++++++++++++++++++
- lib/bitmap.c           |   56 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 87 insertions(+)
+ arch/arm64/kernel/perf_event.c |    5 
+ include/linux/bitmap.h         |   11 -
+ lib/bitmap.c                   |   87 -------------
+ lib/test_bitmap.c              |  206 ++++---------------------------
+ net/core/ethtool.c             |   53 +++----
+ 5 files changed, 55 insertions(+), 307 deletions(-)
 
-diff -puN include/linux/bitmap.h~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32 include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32
-+++ a/include/linux/bitmap.h
-@@ -66,6 +66,8 @@
-  *  bitmap_allocate_region(bitmap, pos, order)  Allocate specified bit region
-  *  bitmap_from_u32array(dst, nbits, buf, nwords)  *dst = *buf (nwords 32b words)
-  *  bitmap_to_u32array(buf, nwords, src, nbits) *buf = *dst (nwords 32b words)
-+ *  bitmap_from_arr32(dst, buf, nbits)          Copy nbits from u32[] buf to dst
-+ *  bitmap_to_arr32(buf, src, nbits)            Copy nbits from buf to u32[] dst
-  *
-  */
+diff -puN arch/arm64/kernel/perf_event.c~bitmap-replace-bitmap_fromto_u32array arch/arm64/kernel/perf_event.c
+--- a/arch/arm64/kernel/perf_event.c~bitmap-replace-bitmap_fromto_u32array
++++ a/arch/arm64/kernel/perf_event.c
+@@ -925,9 +925,8 @@ static void __armv8pmu_probe_pmu(void *i
+ 	pmceid[0] = read_sysreg(pmceid0_el0);
+ 	pmceid[1] = read_sysreg(pmceid1_el0);
  
-@@ -228,6 +230,35 @@ static inline void bitmap_copy(unsigned
+-	bitmap_from_u32array(cpu_pmu->pmceid_bitmap,
+-			     ARMV8_PMUV3_MAX_COMMON_EVENTS, pmceid,
+-			     ARRAY_SIZE(pmceid));
++	bitmap_from_arr32(cpu_pmu->pmceid_bitmap,
++			     pmceid, ARMV8_PMUV3_MAX_COMMON_EVENTS);
+ }
+ 
+ static int armv8pmu_probe_pmu(struct arm_pmu *cpu_pmu)
+diff -puN include/linux/bitmap.h~bitmap-replace-bitmap_fromto_u32array include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-replace-bitmap_fromto_u32array
++++ a/include/linux/bitmap.h
+@@ -64,8 +64,6 @@
+  *  bitmap_find_free_region(bitmap, bits, order)  Find and allocate bit region
+  *  bitmap_release_region(bitmap, pos, order)   Free specified bit region
+  *  bitmap_allocate_region(bitmap, pos, order)  Allocate specified bit region
+- *  bitmap_from_u32array(dst, nbits, buf, nwords)  *dst = *buf (nwords 32b words)
+- *  bitmap_to_u32array(buf, nwords, src, nbits) *buf = *dst (nwords 32b words)
+  *  bitmap_from_arr32(dst, buf, nbits)          Copy nbits from u32[] buf to dst
+  *  bitmap_to_arr32(buf, src, nbits)            Copy nbits from buf to u32[] dst
+  *
+@@ -176,14 +174,7 @@ extern void bitmap_fold(unsigned long *d
+ extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
+ extern void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order);
+ extern int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order);
+-extern unsigned int bitmap_from_u32array(unsigned long *bitmap,
+-					 unsigned int nbits,
+-					 const u32 *buf,
+-					 unsigned int nwords);
+-extern unsigned int bitmap_to_u32array(u32 *buf,
+-				       unsigned int nwords,
+-				       const unsigned long *bitmap,
+-				       unsigned int nbits);
++
+ #ifdef __BIG_ENDIAN
+ extern void bitmap_copy_le(unsigned long *dst, const unsigned long *src, unsigned int nbits);
+ #else
+diff -puN lib/bitmap.c~bitmap-replace-bitmap_fromto_u32array lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-replace-bitmap_fromto_u32array
++++ a/lib/bitmap.c
+@@ -1106,93 +1106,6 @@ int bitmap_allocate_region(unsigned long
+ EXPORT_SYMBOL(bitmap_allocate_region);
+ 
+ /**
+- * bitmap_from_u32array - copy the contents of a u32 array of bits to bitmap
+- *	@bitmap: array of unsigned longs, the destination bitmap, non NULL
+- *	@nbits: number of bits in @bitmap
+- *	@buf: array of u32 (in host byte order), the source bitmap, non NULL
+- *	@nwords: number of u32 words in @buf
+- *
+- * copy min(nbits, 32*nwords) bits from @buf to @bitmap, remaining
+- * bits between nword and nbits in @bitmap (if any) are cleared. In
+- * last word of @bitmap, the bits beyond nbits (if any) are kept
+- * unchanged.
+- *
+- * Return the number of bits effectively copied.
+- */
+-unsigned int
+-bitmap_from_u32array(unsigned long *bitmap, unsigned int nbits,
+-		     const u32 *buf, unsigned int nwords)
+-{
+-	unsigned int dst_idx, src_idx;
+-
+-	for (src_idx = dst_idx = 0; dst_idx < BITS_TO_LONGS(nbits); ++dst_idx) {
+-		unsigned long part = 0;
+-
+-		if (src_idx < nwords)
+-			part = buf[src_idx++];
+-
+-#if BITS_PER_LONG == 64
+-		if (src_idx < nwords)
+-			part |= ((unsigned long) buf[src_idx++]) << 32;
+-#endif
+-
+-		if (dst_idx < nbits/BITS_PER_LONG)
+-			bitmap[dst_idx] = part;
+-		else {
+-			unsigned long mask = BITMAP_LAST_WORD_MASK(nbits);
+-
+-			bitmap[dst_idx] = (bitmap[dst_idx] & ~mask)
+-				| (part & mask);
+-		}
+-	}
+-
+-	return min_t(unsigned int, nbits, 32*nwords);
+-}
+-EXPORT_SYMBOL(bitmap_from_u32array);
+-
+-/**
+- * bitmap_to_u32array - copy the contents of bitmap to a u32 array of bits
+- *	@buf: array of u32 (in host byte order), the dest bitmap, non NULL
+- *	@nwords: number of u32 words in @buf
+- *	@bitmap: array of unsigned longs, the source bitmap, non NULL
+- *	@nbits: number of bits in @bitmap
+- *
+- * copy min(nbits, 32*nwords) bits from @bitmap to @buf. Remaining
+- * bits after nbits in @buf (if any) are cleared.
+- *
+- * Return the number of bits effectively copied.
+- */
+-unsigned int
+-bitmap_to_u32array(u32 *buf, unsigned int nwords,
+-		   const unsigned long *bitmap, unsigned int nbits)
+-{
+-	unsigned int dst_idx = 0, src_idx = 0;
+-
+-	while (dst_idx < nwords) {
+-		unsigned long part = 0;
+-
+-		if (src_idx < BITS_TO_LONGS(nbits)) {
+-			part = bitmap[src_idx];
+-			if (src_idx >= nbits/BITS_PER_LONG)
+-				part &= BITMAP_LAST_WORD_MASK(nbits);
+-			src_idx++;
+-		}
+-
+-		buf[dst_idx++] = part & 0xffffffffUL;
+-
+-#if BITS_PER_LONG == 64
+-		if (dst_idx < nwords) {
+-			part >>= 32;
+-			buf[dst_idx++] = part & 0xffffffffUL;
+-		}
+-#endif
+-	}
+-
+-	return min_t(unsigned int, nbits, 32*nwords);
+-}
+-EXPORT_SYMBOL(bitmap_to_u32array);
+-
+-/**
+  * bitmap_copy_le - copy a bitmap, putting the bits into little-endian order.
+  * @dst:   destination buffer
+  * @src:   bitmap to copy
+diff -puN lib/test_bitmap.c~bitmap-replace-bitmap_fromto_u32array lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-replace-bitmap_fromto_u32array
++++ a/lib/test_bitmap.c
+@@ -23,7 +23,7 @@ __check_eq_uint(const char *srcfile, uns
+ 		const unsigned int exp_uint, unsigned int x)
+ {
+ 	if (exp_uint != x) {
+-		pr_warn("[%s:%u] expected %u, got %u\n",
++		pr_err("[%s:%u] expected %u, got %u\n",
+ 			srcfile, line, exp_uint, x);
+ 		return false;
+ 	}
+@@ -33,19 +33,13 @@ __check_eq_uint(const char *srcfile, uns
+ 
+ static bool __init
+ __check_eq_bitmap(const char *srcfile, unsigned int line,
+-		  const unsigned long *exp_bmap, unsigned int exp_nbits,
+-		  const unsigned long *bmap, unsigned int nbits)
++		  const unsigned long *exp_bmap, const unsigned long *bmap,
++		  unsigned int nbits)
+ {
+-	if (exp_nbits != nbits) {
+-		pr_warn("[%s:%u] bitmap length mismatch: expected %u, got %u\n",
+-			srcfile, line, exp_nbits, nbits);
+-		return false;
+-	}
+-
+ 	if (!bitmap_equal(exp_bmap, bmap, nbits)) {
+ 		pr_warn("[%s:%u] bitmaps contents differ: expected \"%*pbl\", got \"%*pbl\"\n",
+ 			srcfile, line,
+-			exp_nbits, exp_bmap, nbits, bmap);
++			nbits, exp_bmap, nbits, bmap);
+ 		return false;
+ 	}
+ 	return true;
+@@ -69,6 +63,10 @@ __check_eq_pbl(const char *srcfile, unsi
+ static bool __init
+ __check_eq_u32_array(const char *srcfile, unsigned int line,
+ 		     const u32 *exp_arr, unsigned int exp_len,
++		     const u32 *arr, unsigned int len) __used;
++static bool __init
++__check_eq_u32_array(const char *srcfile, unsigned int line,
++		     const u32 *exp_arr, unsigned int exp_len,
+ 		     const u32 *arr, unsigned int len)
+ {
+ 	if (exp_len != len) {
+@@ -255,171 +253,29 @@ static void __init test_bitmap_parselist
  	}
  }
  
-+/*
-+ * Copy bitmap and clear tail bits in last word.
-+ */
-+static inline void bitmap_copy_safe(unsigned long *dst,
-+		const unsigned long *src, unsigned int nbits)
-+{
-+	bitmap_copy(dst, src, nbits);
-+	if (nbits % BITS_PER_LONG)
-+		dst[nbits / BITS_PER_LONG] &= BITMAP_LAST_WORD_MASK(nbits);
-+}
-+
-+/*
-+ * On 32-bit systems bitmaps are represented as u32 arrays internally, and
-+ * therefore conversion is not needed when copying data from/to arrays of u32.
-+ */
-+#if BITS_PER_LONG == 64
-+extern void bitmap_from_arr32(unsigned long *bitmap, const u32 *buf,
-+							unsigned int nbits);
-+extern void bitmap_to_arr32(u32 *buf, const unsigned long *bitmap,
-+							unsigned int nbits);
-+#else
-+#define bitmap_from_arr32(bitmap, buf, nbits)		\
-+	bitmap_copy_safe((unsigned long *) (bitmap),	\
-+			(const unsigned long *) (buf), (nbits))
-+#define bitmap_to_arr32(buf, bitmap, nbits)		\
-+	bitmap_copy_safe((unsigned long *) (buf),	\
-+			(const unsigned long *) (bitmap), (nbits))
-+#endif
-+
- static inline int bitmap_and(unsigned long *dst, const unsigned long *src1,
- 			const unsigned long *src2, unsigned int nbits)
+-static void __init test_bitmap_u32_array_conversions(void)
++static void __init test_bitmap_arr32(void)
  {
-diff -puN lib/bitmap.c~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32 lib/bitmap.c
---- a/lib/bitmap.c~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32
-+++ a/lib/bitmap.c
-@@ -1214,3 +1214,59 @@ void bitmap_copy_le(unsigned long *dst,
+-	DECLARE_BITMAP(bmap1, 1024);
+-	DECLARE_BITMAP(bmap2, 1024);
+-	u32 exp_arr[32], arr[32];
+-	unsigned nbits;
+-
+-	for (nbits = 0 ; nbits < 257 ; ++nbits) {
+-		const unsigned int used_u32s = DIV_ROUND_UP(nbits, 32);
+-		unsigned int i, rv;
+-
+-		bitmap_zero(bmap1, nbits);
+-		bitmap_set(bmap1, nbits, 1024 - nbits);  /* garbage */
+-
+-		memset(arr, 0xff, sizeof(arr));
+-		rv = bitmap_to_u32array(arr, used_u32s, bmap1, nbits);
+-		expect_eq_uint(nbits, rv);
+-
+-		memset(exp_arr, 0xff, sizeof(exp_arr));
+-		memset(exp_arr, 0, used_u32s*sizeof(*exp_arr));
+-		expect_eq_u32_array(exp_arr, 32, arr, 32);
+-
+-		bitmap_fill(bmap2, 1024);
+-		rv = bitmap_from_u32array(bmap2, nbits, arr, used_u32s);
+-		expect_eq_uint(nbits, rv);
+-		expect_eq_bitmap(bmap1, 1024, bmap2, 1024);
+-
+-		for (i = 0 ; i < nbits ; ++i) {
+-			/*
+-			 * test conversion bitmap -> u32[]
+-			 */
+-
+-			bitmap_zero(bmap1, 1024);
+-			__set_bit(i, bmap1);
+-			bitmap_set(bmap1, nbits, 1024 - nbits);  /* garbage */
+-
+-			memset(arr, 0xff, sizeof(arr));
+-			rv = bitmap_to_u32array(arr, used_u32s, bmap1, nbits);
+-			expect_eq_uint(nbits, rv);
+-
+-			/* 1st used u32 words contain expected bit set, the
+-			 * remaining words are left unchanged (0xff)
+-			 */
+-			memset(exp_arr, 0xff, sizeof(exp_arr));
+-			memset(exp_arr, 0, used_u32s*sizeof(*exp_arr));
+-			exp_arr[i/32] = (1U<<(i%32));
+-			expect_eq_u32_array(exp_arr, 32, arr, 32);
+-
+-
+-			/* same, with longer array to fill
+-			 */
+-			memset(arr, 0xff, sizeof(arr));
+-			rv = bitmap_to_u32array(arr, 32, bmap1, nbits);
+-			expect_eq_uint(nbits, rv);
+-
+-			/* 1st used u32 words contain expected bit set, the
+-			 * remaining words are all 0s
+-			 */
+-			memset(exp_arr, 0, sizeof(exp_arr));
+-			exp_arr[i/32] = (1U<<(i%32));
+-			expect_eq_u32_array(exp_arr, 32, arr, 32);
+-
+-			/*
+-			 * test conversion u32[] -> bitmap
+-			 */
+-
+-			/* the 1st nbits of bmap2 are identical to
+-			 * bmap1, the remaining bits of bmap2 are left
+-			 * unchanged (all 1s)
+-			 */
+-			bitmap_fill(bmap2, 1024);
+-			rv = bitmap_from_u32array(bmap2, nbits,
+-						  exp_arr, used_u32s);
+-			expect_eq_uint(nbits, rv);
+-
+-			expect_eq_bitmap(bmap1, 1024, bmap2, 1024);
+-
+-			/* same, with more bits to fill
+-			 */
+-			memset(arr, 0xff, sizeof(arr));  /* garbage */
+-			memset(arr, 0, used_u32s*sizeof(u32));
+-			arr[i/32] = (1U<<(i%32));
+-
+-			bitmap_fill(bmap2, 1024);
+-			rv = bitmap_from_u32array(bmap2, 1024, arr, used_u32s);
+-			expect_eq_uint(used_u32s*32, rv);
+-
+-			/* the 1st nbits of bmap2 are identical to
+-			 * bmap1, the remaining bits of bmap2 are cleared
+-			 */
+-			bitmap_zero(bmap1, 1024);
+-			__set_bit(i, bmap1);
+-			expect_eq_bitmap(bmap1, 1024, bmap2, 1024);
+-
+-
+-			/*
+-			 * test short conversion bitmap -> u32[] (1
+-			 * word too short)
+-			 */
+-			if (used_u32s > 1) {
+-				bitmap_zero(bmap1, 1024);
+-				__set_bit(i, bmap1);
+-				bitmap_set(bmap1, nbits,
+-					   1024 - nbits);  /* garbage */
+-				memset(arr, 0xff, sizeof(arr));
+-
+-				rv = bitmap_to_u32array(arr, used_u32s - 1,
+-							bmap1, nbits);
+-				expect_eq_uint((used_u32s - 1)*32, rv);
+-
+-				/* 1st used u32 words contain expected
+-				 * bit set, the remaining words are
+-				 * left unchanged (0xff)
+-				 */
+-				memset(exp_arr, 0xff, sizeof(exp_arr));
+-				memset(exp_arr, 0,
+-				       (used_u32s-1)*sizeof(*exp_arr));
+-				if ((i/32) < (used_u32s - 1))
+-					exp_arr[i/32] = (1U<<(i%32));
+-				expect_eq_u32_array(exp_arr, 32, arr, 32);
+-			}
+-
+-			/*
+-			 * test short conversion u32[] -> bitmap (3
+-			 * bits too short)
+-			 */
+-			if (nbits > 3) {
+-				memset(arr, 0xff, sizeof(arr));  /* garbage */
+-				memset(arr, 0, used_u32s*sizeof(*arr));
+-				arr[i/32] = (1U<<(i%32));
+-
+-				bitmap_zero(bmap1, 1024);
+-				rv = bitmap_from_u32array(bmap1, nbits - 3,
+-							  arr, used_u32s);
+-				expect_eq_uint(nbits - 3, rv);
+-
+-				/* we are expecting the bit < nbits -
+-				 * 3 (none otherwise), and the rest of
+-				 * bmap1 unchanged (0-filled)
+-				 */
+-				bitmap_zero(bmap2, 1024);
+-				if (i < nbits - 3)
+-					__set_bit(i, bmap2);
+-				expect_eq_bitmap(bmap2, 1024, bmap1, 1024);
+-
+-				/* do the same with bmap1 initially
+-				 * 1-filled
+-				 */
+-
+-				bitmap_fill(bmap1, 1024);
+-				rv = bitmap_from_u32array(bmap1, nbits - 3,
+-							 arr, used_u32s);
+-				expect_eq_uint(nbits - 3, rv);
+-
+-				/* we are expecting the bit < nbits -
+-				 * 3 (none otherwise), and the rest of
+-				 * bmap1 unchanged (1-filled)
+-				 */
+-				bitmap_zero(bmap2, 1024);
+-				if (i < nbits - 3)
+-					__set_bit(i, bmap2);
+-				bitmap_set(bmap2, nbits-3, 1024 - nbits + 3);
+-				expect_eq_bitmap(bmap2, 1024, bmap1, 1024);
+-			}
+-		}
++	unsigned int nbits, next_bit, len = sizeof(exp) * 8;
++	u32 arr[sizeof(exp) / 4];
++	DECLARE_BITMAP(bmap2, len);
++
++	memset(arr, 0xa5, sizeof(arr));
++
++	for (nbits = 0; nbits < len; ++nbits) {
++		bitmap_to_arr32(arr, exp, nbits);
++		bitmap_from_arr32(bmap2, arr, nbits);
++		expect_eq_bitmap(bmap2, exp, nbits);
++
++		next_bit = find_next_bit(bmap2,
++				round_up(nbits, BITS_PER_LONG), nbits);
++		if (next_bit < round_up(nbits, BITS_PER_LONG))
++			pr_err("bitmap_copy_arr32(nbits == %d:"
++				" tail is not safely cleared: %d\n",
++				nbits, next_bit);
++
++		if (nbits < len - 32)
++			expect_eq_uint(arr[DIV_ROUND_UP(nbits, 32)],
++								0xa5a5a5a5);
+ 	}
  }
- EXPORT_SYMBOL(bitmap_copy_le);
- #endif
-+
-+#if BITS_PER_LONG == 64
-+/**
-+ * bitmap_from_arr32 - copy the contents of u32 array of bits to bitmap
-+ *	@bitmap: array of unsigned longs, the destination bitmap
-+ *	@buf: array of u32 (in host byte order), the source bitmap
-+ *	@nbits: number of bits in @bitmap
-+ */
-+void bitmap_from_arr32(unsigned long *bitmap, const u32 *buf,
-+						unsigned int nbits)
-+{
-+	unsigned int i, halfwords;
-+
-+	if (!nbits)
-+		return;
-+
-+	halfwords = DIV_ROUND_UP(nbits, 32);
-+	for (i = 0; i < halfwords; i++) {
-+		bitmap[i/2] = (unsigned long) buf[i];
-+		if (++i < halfwords)
-+			bitmap[i/2] |= ((unsigned long) buf[i]) << 32;
-+	}
-+
-+	/* Clear tail bits in last word beyond nbits. */
-+	if (nbits % BITS_PER_LONG)
-+		bitmap[(halfwords - 1) / 2] &= BITMAP_LAST_WORD_MASK(nbits);
-+}
-+EXPORT_SYMBOL(bitmap_from_arr32);
-+
-+/**
-+ * bitmap_to_arr32 - copy the contents of bitmap to a u32 array of bits
-+ *	@buf: array of u32 (in host byte order), the dest bitmap
-+ *	@bitmap: array of unsigned longs, the source bitmap
-+ *	@nbits: number of bits in @bitmap
-+ */
-+void bitmap_to_arr32(u32 *buf, const unsigned long *bitmap, unsigned int nbits)
-+{
-+	unsigned int i, halfwords;
-+
-+	if (!nbits)
-+		return;
-+
-+	halfwords = DIV_ROUND_UP(nbits, 32);
-+	for (i = 0; i < halfwords; i++) {
-+		buf[i] = (u32) (bitmap[i/2] & UINT_MAX);
-+		if (++i < halfwords)
-+			buf[i] = (u32) (bitmap[i/2] >> 32);
-+	}
-+
-+	/* Clear tail bits in last element of array beyond nbits. */
-+	if (nbits % BITS_PER_LONG)
-+		buf[halfwords - 1] &= (u32) (UINT_MAX >> ((-nbits) & 31));
-+}
-+EXPORT_SYMBOL(bitmap_to_arr32);
-+
-+#endif
+ 
+@@ -454,7 +310,7 @@ static void noinline __init test_mem_opt
+ static int __init test_bitmap_init(void)
+ {
+ 	test_zero_fill_copy();
+-	test_bitmap_u32_array_conversions();
++	test_bitmap_arr32();
+ 	test_bitmap_parselist();
+ 	test_mem_optimisations();
+ 
+diff -puN net/core/ethtool.c~bitmap-replace-bitmap_fromto_u32array net/core/ethtool.c
+--- a/net/core/ethtool.c~bitmap-replace-bitmap_fromto_u32array
++++ a/net/core/ethtool.c
+@@ -615,18 +615,15 @@ static int load_link_ksettings_from_user
+ 		return -EFAULT;
+ 
+ 	memcpy(&to->base, &link_usettings.base, sizeof(to->base));
+-	bitmap_from_u32array(to->link_modes.supported,
+-			     __ETHTOOL_LINK_MODE_MASK_NBITS,
+-			     link_usettings.link_modes.supported,
+-			     __ETHTOOL_LINK_MODE_MASK_NU32);
+-	bitmap_from_u32array(to->link_modes.advertising,
+-			     __ETHTOOL_LINK_MODE_MASK_NBITS,
+-			     link_usettings.link_modes.advertising,
+-			     __ETHTOOL_LINK_MODE_MASK_NU32);
+-	bitmap_from_u32array(to->link_modes.lp_advertising,
+-			     __ETHTOOL_LINK_MODE_MASK_NBITS,
+-			     link_usettings.link_modes.lp_advertising,
+-			     __ETHTOOL_LINK_MODE_MASK_NU32);
++	bitmap_from_arr32(to->link_modes.supported,
++			  link_usettings.link_modes.supported,
++			  __ETHTOOL_LINK_MODE_MASK_NBITS);
++	bitmap_from_arr32(to->link_modes.advertising,
++			  link_usettings.link_modes.advertising,
++			  __ETHTOOL_LINK_MODE_MASK_NBITS);
++	bitmap_from_arr32(to->link_modes.lp_advertising,
++			  link_usettings.link_modes.lp_advertising,
++			  __ETHTOOL_LINK_MODE_MASK_NBITS);
+ 
+ 	return 0;
+ }
+@@ -642,18 +639,15 @@ store_link_ksettings_for_user(void __use
+ 	struct ethtool_link_usettings link_usettings;
+ 
+ 	memcpy(&link_usettings.base, &from->base, sizeof(link_usettings));
+-	bitmap_to_u32array(link_usettings.link_modes.supported,
+-			   __ETHTOOL_LINK_MODE_MASK_NU32,
+-			   from->link_modes.supported,
+-			   __ETHTOOL_LINK_MODE_MASK_NBITS);
+-	bitmap_to_u32array(link_usettings.link_modes.advertising,
+-			   __ETHTOOL_LINK_MODE_MASK_NU32,
+-			   from->link_modes.advertising,
+-			   __ETHTOOL_LINK_MODE_MASK_NBITS);
+-	bitmap_to_u32array(link_usettings.link_modes.lp_advertising,
+-			   __ETHTOOL_LINK_MODE_MASK_NU32,
+-			   from->link_modes.lp_advertising,
+-			   __ETHTOOL_LINK_MODE_MASK_NBITS);
++	bitmap_to_arr32(link_usettings.link_modes.supported,
++			from->link_modes.supported,
++			__ETHTOOL_LINK_MODE_MASK_NU32);
++	bitmap_to_arr32(link_usettings.link_modes.advertising,
++			from->link_modes.advertising,
++			__ETHTOOL_LINK_MODE_MASK_NU32);
++	bitmap_to_arr32(link_usettings.link_modes.lp_advertising,
++			from->link_modes.lp_advertising,
++			__ETHTOOL_LINK_MODE_MASK_NU32);
+ 
+ 	if (copy_to_user(to, &link_usettings, sizeof(link_usettings)))
+ 		return -EFAULT;
+@@ -2359,10 +2353,8 @@ static int ethtool_get_per_queue_coalesc
+ 
+ 	useraddr += sizeof(*per_queue_opt);
+ 
+-	bitmap_from_u32array(queue_mask,
+-			     MAX_NUM_QUEUE,
+-			     per_queue_opt->queue_mask,
+-			     DIV_ROUND_UP(MAX_NUM_QUEUE, 32));
++	bitmap_from_arr32(queue_mask, per_queue_opt->queue_mask,
++			  MAX_NUM_QUEUE);
+ 
+ 	for_each_set_bit(bit, queue_mask, MAX_NUM_QUEUE) {
+ 		struct ethtool_coalesce coalesce = { .cmd = ETHTOOL_GCOALESCE };
+@@ -2394,10 +2386,7 @@ static int ethtool_set_per_queue_coalesc
+ 
+ 	useraddr += sizeof(*per_queue_opt);
+ 
+-	bitmap_from_u32array(queue_mask,
+-			     MAX_NUM_QUEUE,
+-			     per_queue_opt->queue_mask,
+-			     DIV_ROUND_UP(MAX_NUM_QUEUE, 32));
++	bitmap_from_arr32(queue_mask, per_queue_opt->queue_mask, MAX_NUM_QUEUE);
+ 	n_queue = bitmap_weight(queue_mask, MAX_NUM_QUEUE);
+ 	tmp = backup = kmalloc_array(n_queue, sizeof(*backup), GFP_KERNEL);
+ 	if (!backup)
 _
 
 Patches currently in -mm which might be from ynorov@caviumnetworks.com are
