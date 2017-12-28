@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-replace-bitmap_fromto_u32array.patch added to -mm tree
-Date: Thu, 28 Dec 2017 15:22:49 -0800
-Message-ID: <5a457cc9.8vaj5FYbLjmYEj1O%akpm@linux-foundation.org>
+Subject: +
+ pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch added to -mm tree
+Date: Thu, 28 Dec 2017 15:26:03 -0800
+Message-ID: <5a457d8b.j2F1Dq0Rv6WuTvdm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38294 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752029AbdL1XWv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 18:22:51 -0500
+        with ESMTP id S1754505AbdL1X0F (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 18:26:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ynorov@caviumnetworks.com, ben@decadent.org.uk, davem@davemloft.net, decot@googlers.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, davej@codemonkey.org.uk, gs051095@gmail.com, oleg@redhat.com, riel@redhat.com, viro@zeniv.linux.org.uk, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitmap: replace bitmap_{from,to}_u32array
+     Subject: pid: handle failure to allocate the first pid in a pid namespace
 has been added to the -mm tree.  Its filename is
-     bitmap-replace-bitmap_fromto_u32array.patch
+     pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-replace-bitmap_fromto_u32array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-replace-bitmap_fromto_u32array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,513 +39,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: bitmap: replace bitmap_{from,to}_u32array
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: pid: handle failure to allocate the first pid in a pid namespace
 
-with bitmap_{from,to}_arr32 over the kernel. Additionally to it:
-* __check_eq_bitmap() now takes single nbits argument.
-* __check_eq_u32_array is not used in new test but may be used in
-  future. So I don't remove it here, but annotate as __used.
+With the replacement of the pid bitmap and hashtable with an idr in
+alloc_pid started occassionally failing when allocating the first pid in a
+pid namespace.  Things were not completely reset resulting in the first
+allocated pid getting the number 2 (not 1).  Which further resulted in
+ns->proc_mnt not getting set and eventually causing an oops in
+proc_flush_task.
 
-Tested on arm64 and 32-bit BE mips.
+Oops: 0000 [#1] SMP
+CPU: 2 PID: 6743 Comm: trinity-c117 Not tainted 4.15.0-rc4-think+ #2
+RIP: 0010:proc_flush_task+0x8e/0x1b0
+RSP: 0018:ffffc9000bbffc40 EFLAGS: 00010286
+RAX: 0000000000000001 RBX: 0000000000000001 RCX: 00000000fffffffb
+RDX: 0000000000000000 RSI: ffffc9000bbffc50 RDI: 0000000000000000
+RBP: ffffc9000bbffc63 R08: 0000000000000000 R09: 0000000000000002
+R10: ffffc9000bbffb70 R11: ffffc9000bbffc64 R12: 0000000000000003
+R13: 0000000000000000 R14: 0000000000000003 R15: ffff8804c10d7840
+FS:  00007f7cb8965700(0000) GS:ffff88050a200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 00000003e21ae003 CR4: 00000000001606e0
+DR0: 00007fb1d6c22000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000600
+Call Trace:
+ ? release_task+0xaf/0x680
+ release_task+0xd2/0x680
+ ? wait_consider_task+0xb82/0xce0
+ wait_consider_task+0xbe9/0xce0
+ ? do_wait+0xe1/0x330
+ do_wait+0x151/0x330
+ kernel_wait4+0x8d/0x150
+ ? task_stopped_code+0x50/0x50
+ SYSC_wait4+0x95/0xa0
+ ? rcu_read_lock_sched_held+0x6c/0x80
+ ? syscall_trace_enter+0x2d7/0x340
+ ? do_syscall_64+0x60/0x210
+ do_syscall_64+0x60/0x210
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x7f7cb82603aa
+RSP: 002b:00007ffd60770bc8 EFLAGS: 00000246
+ ORIG_RAX: 000000000000003d
+RAX: ffffffffffffffda RBX: 00007f7cb6cd4000 RCX: 00007f7cb82603aa
+RDX: 000000000000000b RSI: 00007ffd60770bd0 RDI: 0000000000007cca
+RBP: 0000000000007cca R08: 00007f7cb8965700 R09: 00007ffd607c7080
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffd60770bd0 R14: 00007f7cb6cd4058 R15: 00000000cccccccd
+Code: c1 e2 04 44 8b 60 30 48 8b 40 38 44 8b 34 11 48 c7 c2 60 3a f5 81 44 89 e1 4c 8b 68 58 e8 4b b4 77 00 89 44 24 14 48 8d 74 24 10 <49> 8b 7d 00 e8 b9 6a f9 ff 48 85 c0 74 1a 48 89 c7 48 89 44 24
+RIP: proc_flush_task+0x8e/0x1b0 RSP: ffffc9000bbffc40
+CR2: 0000000000000000
+---[ end trace 53d67a6481059862 ]---
 
-Link: http://lkml.kernel.org/r/20171228150019.27953-2-ynorov@caviumnetworks.com
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: David Decotigny <decot@googlers.com>,
-Cc: David S. Miller <davem@davemloft.net>,
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Improve the quality of the implementation by resetting the place to start
+allocating pids on failure to allocate the first pid.
+
+As improving the quality of the implementation is the goal remove the now
+unnecesarry disable_pid_allocations call when we fail to mount proc.
+
+Link: http://lkml.kernel.org/r/87efnkdde4.fsf_-_@xmission.com
+Fixes: 95846ecf9dac ("pid: replace pid bitmap implementation with IDR API")
+Fixes: 8ef047aaaeb8 ("pid namespaces: make alloc_pid(), free_pid() and put_pid() work with struct upid")
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Reported-by: Dave Jones <davej@codemonkey.org.uk>
+Cc: Gargi Sharma <gs051095@gmail.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/perf_event.c |    5 
- include/linux/bitmap.h         |   11 -
- lib/bitmap.c                   |   87 -------------
- lib/test_bitmap.c              |  206 ++++---------------------------
- net/core/ethtool.c             |   53 +++----
- 5 files changed, 55 insertions(+), 307 deletions(-)
+ kernel/pid.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm64/kernel/perf_event.c~bitmap-replace-bitmap_fromto_u32array arch/arm64/kernel/perf_event.c
---- a/arch/arm64/kernel/perf_event.c~bitmap-replace-bitmap_fromto_u32array
-+++ a/arch/arm64/kernel/perf_event.c
-@@ -925,9 +925,8 @@ static void __armv8pmu_probe_pmu(void *i
- 	pmceid[0] = read_sysreg(pmceid0_el0);
- 	pmceid[1] = read_sysreg(pmceid1_el0);
- 
--	bitmap_from_u32array(cpu_pmu->pmceid_bitmap,
--			     ARMV8_PMUV3_MAX_COMMON_EVENTS, pmceid,
--			     ARRAY_SIZE(pmceid));
-+	bitmap_from_arr32(cpu_pmu->pmceid_bitmap,
-+			     pmceid, ARMV8_PMUV3_MAX_COMMON_EVENTS);
- }
- 
- static int armv8pmu_probe_pmu(struct arm_pmu *cpu_pmu)
-diff -puN include/linux/bitmap.h~bitmap-replace-bitmap_fromto_u32array include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-replace-bitmap_fromto_u32array
-+++ a/include/linux/bitmap.h
-@@ -64,8 +64,6 @@
-  *  bitmap_find_free_region(bitmap, bits, order)  Find and allocate bit region
-  *  bitmap_release_region(bitmap, pos, order)   Free specified bit region
-  *  bitmap_allocate_region(bitmap, pos, order)  Allocate specified bit region
-- *  bitmap_from_u32array(dst, nbits, buf, nwords)  *dst = *buf (nwords 32b words)
-- *  bitmap_to_u32array(buf, nwords, src, nbits) *buf = *dst (nwords 32b words)
-  *  bitmap_from_arr32(dst, buf, nbits)          Copy nbits from u32[] buf to dst
-  *  bitmap_to_arr32(buf, src, nbits)            Copy nbits from buf to u32[] dst
-  *
-@@ -176,14 +174,7 @@ extern void bitmap_fold(unsigned long *d
- extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
- extern void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order);
- extern int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order);
--extern unsigned int bitmap_from_u32array(unsigned long *bitmap,
--					 unsigned int nbits,
--					 const u32 *buf,
--					 unsigned int nwords);
--extern unsigned int bitmap_to_u32array(u32 *buf,
--				       unsigned int nwords,
--				       const unsigned long *bitmap,
--				       unsigned int nbits);
-+
- #ifdef __BIG_ENDIAN
- extern void bitmap_copy_le(unsigned long *dst, const unsigned long *src, unsigned int nbits);
- #else
-diff -puN lib/bitmap.c~bitmap-replace-bitmap_fromto_u32array lib/bitmap.c
---- a/lib/bitmap.c~bitmap-replace-bitmap_fromto_u32array
-+++ a/lib/bitmap.c
-@@ -1106,93 +1106,6 @@ int bitmap_allocate_region(unsigned long
- EXPORT_SYMBOL(bitmap_allocate_region);
- 
- /**
-- * bitmap_from_u32array - copy the contents of a u32 array of bits to bitmap
-- *	@bitmap: array of unsigned longs, the destination bitmap, non NULL
-- *	@nbits: number of bits in @bitmap
-- *	@buf: array of u32 (in host byte order), the source bitmap, non NULL
-- *	@nwords: number of u32 words in @buf
-- *
-- * copy min(nbits, 32*nwords) bits from @buf to @bitmap, remaining
-- * bits between nword and nbits in @bitmap (if any) are cleared. In
-- * last word of @bitmap, the bits beyond nbits (if any) are kept
-- * unchanged.
-- *
-- * Return the number of bits effectively copied.
-- */
--unsigned int
--bitmap_from_u32array(unsigned long *bitmap, unsigned int nbits,
--		     const u32 *buf, unsigned int nwords)
--{
--	unsigned int dst_idx, src_idx;
--
--	for (src_idx = dst_idx = 0; dst_idx < BITS_TO_LONGS(nbits); ++dst_idx) {
--		unsigned long part = 0;
--
--		if (src_idx < nwords)
--			part = buf[src_idx++];
--
--#if BITS_PER_LONG == 64
--		if (src_idx < nwords)
--			part |= ((unsigned long) buf[src_idx++]) << 32;
--#endif
--
--		if (dst_idx < nbits/BITS_PER_LONG)
--			bitmap[dst_idx] = part;
--		else {
--			unsigned long mask = BITMAP_LAST_WORD_MASK(nbits);
--
--			bitmap[dst_idx] = (bitmap[dst_idx] & ~mask)
--				| (part & mask);
--		}
--	}
--
--	return min_t(unsigned int, nbits, 32*nwords);
--}
--EXPORT_SYMBOL(bitmap_from_u32array);
--
--/**
-- * bitmap_to_u32array - copy the contents of bitmap to a u32 array of bits
-- *	@buf: array of u32 (in host byte order), the dest bitmap, non NULL
-- *	@nwords: number of u32 words in @buf
-- *	@bitmap: array of unsigned longs, the source bitmap, non NULL
-- *	@nbits: number of bits in @bitmap
-- *
-- * copy min(nbits, 32*nwords) bits from @bitmap to @buf. Remaining
-- * bits after nbits in @buf (if any) are cleared.
-- *
-- * Return the number of bits effectively copied.
-- */
--unsigned int
--bitmap_to_u32array(u32 *buf, unsigned int nwords,
--		   const unsigned long *bitmap, unsigned int nbits)
--{
--	unsigned int dst_idx = 0, src_idx = 0;
--
--	while (dst_idx < nwords) {
--		unsigned long part = 0;
--
--		if (src_idx < BITS_TO_LONGS(nbits)) {
--			part = bitmap[src_idx];
--			if (src_idx >= nbits/BITS_PER_LONG)
--				part &= BITMAP_LAST_WORD_MASK(nbits);
--			src_idx++;
--		}
--
--		buf[dst_idx++] = part & 0xffffffffUL;
--
--#if BITS_PER_LONG == 64
--		if (dst_idx < nwords) {
--			part >>= 32;
--			buf[dst_idx++] = part & 0xffffffffUL;
--		}
--#endif
--	}
--
--	return min_t(unsigned int, nbits, 32*nwords);
--}
--EXPORT_SYMBOL(bitmap_to_u32array);
--
--/**
-  * bitmap_copy_le - copy a bitmap, putting the bits into little-endian order.
-  * @dst:   destination buffer
-  * @src:   bitmap to copy
-diff -puN lib/test_bitmap.c~bitmap-replace-bitmap_fromto_u32array lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-replace-bitmap_fromto_u32array
-+++ a/lib/test_bitmap.c
-@@ -23,7 +23,7 @@ __check_eq_uint(const char *srcfile, uns
- 		const unsigned int exp_uint, unsigned int x)
- {
- 	if (exp_uint != x) {
--		pr_warn("[%s:%u] expected %u, got %u\n",
-+		pr_err("[%s:%u] expected %u, got %u\n",
- 			srcfile, line, exp_uint, x);
- 		return false;
+diff -puN kernel/pid.c~pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace kernel/pid.c
+--- a/kernel/pid.c~pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace
++++ a/kernel/pid.c
+@@ -193,10 +193,8 @@ struct pid *alloc_pid(struct pid_namespa
  	}
-@@ -33,19 +33,13 @@ __check_eq_uint(const char *srcfile, uns
  
- static bool __init
- __check_eq_bitmap(const char *srcfile, unsigned int line,
--		  const unsigned long *exp_bmap, unsigned int exp_nbits,
--		  const unsigned long *bmap, unsigned int nbits)
-+		  const unsigned long *exp_bmap, const unsigned long *bmap,
-+		  unsigned int nbits)
- {
--	if (exp_nbits != nbits) {
--		pr_warn("[%s:%u] bitmap length mismatch: expected %u, got %u\n",
--			srcfile, line, exp_nbits, nbits);
--		return false;
--	}
--
- 	if (!bitmap_equal(exp_bmap, bmap, nbits)) {
- 		pr_warn("[%s:%u] bitmaps contents differ: expected \"%*pbl\", got \"%*pbl\"\n",
- 			srcfile, line,
--			exp_nbits, exp_bmap, nbits, bmap);
-+			nbits, exp_bmap, nbits, bmap);
- 		return false;
- 	}
- 	return true;
-@@ -69,6 +63,10 @@ __check_eq_pbl(const char *srcfile, unsi
- static bool __init
- __check_eq_u32_array(const char *srcfile, unsigned int line,
- 		     const u32 *exp_arr, unsigned int exp_len,
-+		     const u32 *arr, unsigned int len) __used;
-+static bool __init
-+__check_eq_u32_array(const char *srcfile, unsigned int line,
-+		     const u32 *exp_arr, unsigned int exp_len,
- 		     const u32 *arr, unsigned int len)
- {
- 	if (exp_len != len) {
-@@ -255,171 +253,29 @@ static void __init test_bitmap_parselist
- 	}
- }
- 
--static void __init test_bitmap_u32_array_conversions(void)
-+static void __init test_bitmap_arr32(void)
- {
--	DECLARE_BITMAP(bmap1, 1024);
--	DECLARE_BITMAP(bmap2, 1024);
--	u32 exp_arr[32], arr[32];
--	unsigned nbits;
--
--	for (nbits = 0 ; nbits < 257 ; ++nbits) {
--		const unsigned int used_u32s = DIV_ROUND_UP(nbits, 32);
--		unsigned int i, rv;
--
--		bitmap_zero(bmap1, nbits);
--		bitmap_set(bmap1, nbits, 1024 - nbits);  /* garbage */
--
--		memset(arr, 0xff, sizeof(arr));
--		rv = bitmap_to_u32array(arr, used_u32s, bmap1, nbits);
--		expect_eq_uint(nbits, rv);
--
--		memset(exp_arr, 0xff, sizeof(exp_arr));
--		memset(exp_arr, 0, used_u32s*sizeof(*exp_arr));
--		expect_eq_u32_array(exp_arr, 32, arr, 32);
--
--		bitmap_fill(bmap2, 1024);
--		rv = bitmap_from_u32array(bmap2, nbits, arr, used_u32s);
--		expect_eq_uint(nbits, rv);
--		expect_eq_bitmap(bmap1, 1024, bmap2, 1024);
--
--		for (i = 0 ; i < nbits ; ++i) {
--			/*
--			 * test conversion bitmap -> u32[]
--			 */
--
--			bitmap_zero(bmap1, 1024);
--			__set_bit(i, bmap1);
--			bitmap_set(bmap1, nbits, 1024 - nbits);  /* garbage */
--
--			memset(arr, 0xff, sizeof(arr));
--			rv = bitmap_to_u32array(arr, used_u32s, bmap1, nbits);
--			expect_eq_uint(nbits, rv);
--
--			/* 1st used u32 words contain expected bit set, the
--			 * remaining words are left unchanged (0xff)
--			 */
--			memset(exp_arr, 0xff, sizeof(exp_arr));
--			memset(exp_arr, 0, used_u32s*sizeof(*exp_arr));
--			exp_arr[i/32] = (1U<<(i%32));
--			expect_eq_u32_array(exp_arr, 32, arr, 32);
--
--
--			/* same, with longer array to fill
--			 */
--			memset(arr, 0xff, sizeof(arr));
--			rv = bitmap_to_u32array(arr, 32, bmap1, nbits);
--			expect_eq_uint(nbits, rv);
--
--			/* 1st used u32 words contain expected bit set, the
--			 * remaining words are all 0s
--			 */
--			memset(exp_arr, 0, sizeof(exp_arr));
--			exp_arr[i/32] = (1U<<(i%32));
--			expect_eq_u32_array(exp_arr, 32, arr, 32);
--
--			/*
--			 * test conversion u32[] -> bitmap
--			 */
--
--			/* the 1st nbits of bmap2 are identical to
--			 * bmap1, the remaining bits of bmap2 are left
--			 * unchanged (all 1s)
--			 */
--			bitmap_fill(bmap2, 1024);
--			rv = bitmap_from_u32array(bmap2, nbits,
--						  exp_arr, used_u32s);
--			expect_eq_uint(nbits, rv);
--
--			expect_eq_bitmap(bmap1, 1024, bmap2, 1024);
--
--			/* same, with more bits to fill
--			 */
--			memset(arr, 0xff, sizeof(arr));  /* garbage */
--			memset(arr, 0, used_u32s*sizeof(u32));
--			arr[i/32] = (1U<<(i%32));
--
--			bitmap_fill(bmap2, 1024);
--			rv = bitmap_from_u32array(bmap2, 1024, arr, used_u32s);
--			expect_eq_uint(used_u32s*32, rv);
--
--			/* the 1st nbits of bmap2 are identical to
--			 * bmap1, the remaining bits of bmap2 are cleared
--			 */
--			bitmap_zero(bmap1, 1024);
--			__set_bit(i, bmap1);
--			expect_eq_bitmap(bmap1, 1024, bmap2, 1024);
--
--
--			/*
--			 * test short conversion bitmap -> u32[] (1
--			 * word too short)
--			 */
--			if (used_u32s > 1) {
--				bitmap_zero(bmap1, 1024);
--				__set_bit(i, bmap1);
--				bitmap_set(bmap1, nbits,
--					   1024 - nbits);  /* garbage */
--				memset(arr, 0xff, sizeof(arr));
--
--				rv = bitmap_to_u32array(arr, used_u32s - 1,
--							bmap1, nbits);
--				expect_eq_uint((used_u32s - 1)*32, rv);
--
--				/* 1st used u32 words contain expected
--				 * bit set, the remaining words are
--				 * left unchanged (0xff)
--				 */
--				memset(exp_arr, 0xff, sizeof(exp_arr));
--				memset(exp_arr, 0,
--				       (used_u32s-1)*sizeof(*exp_arr));
--				if ((i/32) < (used_u32s - 1))
--					exp_arr[i/32] = (1U<<(i%32));
--				expect_eq_u32_array(exp_arr, 32, arr, 32);
--			}
--
--			/*
--			 * test short conversion u32[] -> bitmap (3
--			 * bits too short)
--			 */
--			if (nbits > 3) {
--				memset(arr, 0xff, sizeof(arr));  /* garbage */
--				memset(arr, 0, used_u32s*sizeof(*arr));
--				arr[i/32] = (1U<<(i%32));
--
--				bitmap_zero(bmap1, 1024);
--				rv = bitmap_from_u32array(bmap1, nbits - 3,
--							  arr, used_u32s);
--				expect_eq_uint(nbits - 3, rv);
--
--				/* we are expecting the bit < nbits -
--				 * 3 (none otherwise), and the rest of
--				 * bmap1 unchanged (0-filled)
--				 */
--				bitmap_zero(bmap2, 1024);
--				if (i < nbits - 3)
--					__set_bit(i, bmap2);
--				expect_eq_bitmap(bmap2, 1024, bmap1, 1024);
--
--				/* do the same with bmap1 initially
--				 * 1-filled
--				 */
--
--				bitmap_fill(bmap1, 1024);
--				rv = bitmap_from_u32array(bmap1, nbits - 3,
--							 arr, used_u32s);
--				expect_eq_uint(nbits - 3, rv);
--
--				/* we are expecting the bit < nbits -
--				 * 3 (none otherwise), and the rest of
--				 * bmap1 unchanged (1-filled)
--				 */
--				bitmap_zero(bmap2, 1024);
--				if (i < nbits - 3)
--					__set_bit(i, bmap2);
--				bitmap_set(bmap2, nbits-3, 1024 - nbits + 3);
--				expect_eq_bitmap(bmap2, 1024, bmap1, 1024);
--			}
+ 	if (unlikely(is_child_reaper(pid))) {
+-		if (pid_ns_prepare_proc(ns)) {
+-			disable_pid_allocation(ns);
++		if (pid_ns_prepare_proc(ns))
+ 			goto out_free;
 -		}
-+	unsigned int nbits, next_bit, len = sizeof(exp) * 8;
-+	u32 arr[sizeof(exp) / 4];
-+	DECLARE_BITMAP(bmap2, len);
-+
-+	memset(arr, 0xa5, sizeof(arr));
-+
-+	for (nbits = 0; nbits < len; ++nbits) {
-+		bitmap_to_arr32(arr, exp, nbits);
-+		bitmap_from_arr32(bmap2, arr, nbits);
-+		expect_eq_bitmap(bmap2, exp, nbits);
-+
-+		next_bit = find_next_bit(bmap2,
-+				round_up(nbits, BITS_PER_LONG), nbits);
-+		if (next_bit < round_up(nbits, BITS_PER_LONG))
-+			pr_err("bitmap_copy_arr32(nbits == %d:"
-+				" tail is not safely cleared: %d\n",
-+				nbits, next_bit);
-+
-+		if (nbits < len - 32)
-+			expect_eq_uint(arr[DIV_ROUND_UP(nbits, 32)],
-+								0xa5a5a5a5);
  	}
- }
  
-@@ -454,7 +310,7 @@ static void noinline __init test_mem_opt
- static int __init test_bitmap_init(void)
- {
- 	test_zero_fill_copy();
--	test_bitmap_u32_array_conversions();
-+	test_bitmap_arr32();
- 	test_bitmap_parselist();
- 	test_mem_optimisations();
+ 	get_pid_ns(ns);
+@@ -226,6 +224,10 @@ out_free:
+ 	while (++i <= ns->level)
+ 		idr_remove(&ns->idr, (pid->numbers + i)->nr);
  
-diff -puN net/core/ethtool.c~bitmap-replace-bitmap_fromto_u32array net/core/ethtool.c
---- a/net/core/ethtool.c~bitmap-replace-bitmap_fromto_u32array
-+++ a/net/core/ethtool.c
-@@ -615,18 +615,15 @@ static int load_link_ksettings_from_user
- 		return -EFAULT;
++	/* On failure to allocate the first pid, reset the state */
++	if (ns->pid_allocated == PIDNS_ADDING)
++		idr_set_cursor(&ns->idr, 0);
++
+ 	spin_unlock_irq(&pidmap_lock);
  
- 	memcpy(&to->base, &link_usettings.base, sizeof(to->base));
--	bitmap_from_u32array(to->link_modes.supported,
--			     __ETHTOOL_LINK_MODE_MASK_NBITS,
--			     link_usettings.link_modes.supported,
--			     __ETHTOOL_LINK_MODE_MASK_NU32);
--	bitmap_from_u32array(to->link_modes.advertising,
--			     __ETHTOOL_LINK_MODE_MASK_NBITS,
--			     link_usettings.link_modes.advertising,
--			     __ETHTOOL_LINK_MODE_MASK_NU32);
--	bitmap_from_u32array(to->link_modes.lp_advertising,
--			     __ETHTOOL_LINK_MODE_MASK_NBITS,
--			     link_usettings.link_modes.lp_advertising,
--			     __ETHTOOL_LINK_MODE_MASK_NU32);
-+	bitmap_from_arr32(to->link_modes.supported,
-+			  link_usettings.link_modes.supported,
-+			  __ETHTOOL_LINK_MODE_MASK_NBITS);
-+	bitmap_from_arr32(to->link_modes.advertising,
-+			  link_usettings.link_modes.advertising,
-+			  __ETHTOOL_LINK_MODE_MASK_NBITS);
-+	bitmap_from_arr32(to->link_modes.lp_advertising,
-+			  link_usettings.link_modes.lp_advertising,
-+			  __ETHTOOL_LINK_MODE_MASK_NBITS);
- 
- 	return 0;
- }
-@@ -642,18 +639,15 @@ store_link_ksettings_for_user(void __use
- 	struct ethtool_link_usettings link_usettings;
- 
- 	memcpy(&link_usettings.base, &from->base, sizeof(link_usettings));
--	bitmap_to_u32array(link_usettings.link_modes.supported,
--			   __ETHTOOL_LINK_MODE_MASK_NU32,
--			   from->link_modes.supported,
--			   __ETHTOOL_LINK_MODE_MASK_NBITS);
--	bitmap_to_u32array(link_usettings.link_modes.advertising,
--			   __ETHTOOL_LINK_MODE_MASK_NU32,
--			   from->link_modes.advertising,
--			   __ETHTOOL_LINK_MODE_MASK_NBITS);
--	bitmap_to_u32array(link_usettings.link_modes.lp_advertising,
--			   __ETHTOOL_LINK_MODE_MASK_NU32,
--			   from->link_modes.lp_advertising,
--			   __ETHTOOL_LINK_MODE_MASK_NBITS);
-+	bitmap_to_arr32(link_usettings.link_modes.supported,
-+			from->link_modes.supported,
-+			__ETHTOOL_LINK_MODE_MASK_NU32);
-+	bitmap_to_arr32(link_usettings.link_modes.advertising,
-+			from->link_modes.advertising,
-+			__ETHTOOL_LINK_MODE_MASK_NU32);
-+	bitmap_to_arr32(link_usettings.link_modes.lp_advertising,
-+			from->link_modes.lp_advertising,
-+			__ETHTOOL_LINK_MODE_MASK_NU32);
- 
- 	if (copy_to_user(to, &link_usettings, sizeof(link_usettings)))
- 		return -EFAULT;
-@@ -2359,10 +2353,8 @@ static int ethtool_get_per_queue_coalesc
- 
- 	useraddr += sizeof(*per_queue_opt);
- 
--	bitmap_from_u32array(queue_mask,
--			     MAX_NUM_QUEUE,
--			     per_queue_opt->queue_mask,
--			     DIV_ROUND_UP(MAX_NUM_QUEUE, 32));
-+	bitmap_from_arr32(queue_mask, per_queue_opt->queue_mask,
-+			  MAX_NUM_QUEUE);
- 
- 	for_each_set_bit(bit, queue_mask, MAX_NUM_QUEUE) {
- 		struct ethtool_coalesce coalesce = { .cmd = ETHTOOL_GCOALESCE };
-@@ -2394,10 +2386,7 @@ static int ethtool_set_per_queue_coalesc
- 
- 	useraddr += sizeof(*per_queue_opt);
- 
--	bitmap_from_u32array(queue_mask,
--			     MAX_NUM_QUEUE,
--			     per_queue_opt->queue_mask,
--			     DIV_ROUND_UP(MAX_NUM_QUEUE, 32));
-+	bitmap_from_arr32(queue_mask, per_queue_opt->queue_mask, MAX_NUM_QUEUE);
- 	n_queue = bitmap_weight(queue_mask, MAX_NUM_QUEUE);
- 	tmp = backup = kmalloc_array(n_queue, sizeof(*backup), GFP_KERNEL);
- 	if (!backup)
+ 	kmem_cache_free(ns->pid_cachep, pid);
 _
 
-Patches currently in -mm which might be from ynorov@caviumnetworks.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
-bitmap-replace-bitmap_fromto_u32array.patch
-lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
-lib-find_bit_benchmarkc-improvements.patch
+pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
 
