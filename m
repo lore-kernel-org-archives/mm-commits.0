@@ -1,320 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2017-12-22-17-55 uploaded
-Date: Fri, 22 Dec 2017 17:55:54 -0800
-Message-ID: <20171223015554.hUf4THsJR%akpm@linux-foundation.org>
+Subject: + bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch added to -mm tree
+Date: Thu, 28 Dec 2017 15:22:44 -0800
+Message-ID: <5a457cc4.ELfPZZFZYk6hNbPn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37016 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756993AbdLWBz5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Dec 2017 20:55:57 -0500
+        with ESMTP id S1752029AbdL1XWr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 18:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-
-The mm-of-the-moment snapshot 2017-12-22-17-55 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: ynorov@caviumnetworks.com, ben@decadent.org.uk, davem@davemloft.net, decot@googlers.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: bitmap: new bitmap_copy_safe and bitmap_{from,to}_arr32
+has been added to the -mm tree.  Its filename is
+     bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: bitmap: new bitmap_copy_safe and bitmap_{from,to}_arr32
 
+This patchset replaces bitmap_{to,from}_u32array with more simple and
+standard looking copy-like functions.
 
+bitmap_from_u32array() takes 4 arguments (bitmap_to_u32array is similar):
+ - unsigned long *bitmap, which is destination;
+ - unsigned int nbits, the length of destination bitmap, in bits;
+ - const u32 *buf, the source; and
+ - unsigned int nwords, the length of source buffer in ints.
 
+In description to the function it is detailed like:
+* copy min(nbits, 32*nwords) bits from @buf to @bitmap, remaining
+* bits between nword and nbits in @bitmap (if any) are cleared.
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Having two size arguments looks unneeded and potentially dangerous.
 
-A git copy of this tree is available at
+It is unneeded because normally user of copy-like function should
+take care of the size of destination and make it big enough to fit
+source data.
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+And it is dangerous because function may hide possible error if user
+doesn't provide big enough bitmap, and data becomes silently dropped.
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+That's why all copy-like functions have 1 argument for size of copying
+data, and I don't see any reason to make bitmap_from_u32array()
+different.
 
+One exception that comes in mind is strncpy() which also provides size
+of destination in arguments, but it's strongly argued by the possibility
+of taking broken strings in source. This is not the case of
+bitmap_{from,to}_u32array().
 
-This mmotm tree contains the following patches against 4.15-rc4:
-(patches marked "*" will be included in linux-next)
+There is no many real users of bitmap_{from,to}_u32array(), and they all
+very clearly provide size of destination matched with the size of
+source, so additional functionality is not used in fact. Like this:
+bitmap_from_u32array(to->link_modes.supported,
+		__ETHTOOL_LINK_MODE_MASK_NBITS,
+		link_usettings.link_modes.supported,
+		__ETHTOOL_LINK_MODE_MASK_NU32);
+Where:
+#define __ETHTOOL_LINK_MODE_MASK_NU32 \
+	DIV_ROUND_UP(__ETHTOOL_LINK_MODE_MASK_NBITS, 32)
 
-  origin.patch
-  i-need-old-gcc.patch
-* scripts-decodecode-fix-decoding-for-aarch64-arm64-instructions.patch
-* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
-* ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
-* ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2.patch
-* mm-check-pfn_valid-first-in-zero_resv_unavail.patch
-* acct-fix-the-acct-needcheck-check-in-check_free_space.patch
-* mm-mprotect-add-a-cond_resched-inside-change_pmd_range.patch
-* kernel-exitc-export-abort-to-modules.patch
-* provide-useful-debugging-information-for-vm_bug.patch
-* zsmalloc-add-fsh-include.patch
-* mm-sparsec-wrong-allocation-for-mem_section.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* prctl-add-pr_et_pdeathsig_proc.patch
-* scripts-decodecode-make-it-take-multiline-code-line.patch
-* scripts-tags-change-find_other_sources-for-include-folders.patch
-* ntfs-remove-i_version-handling.patch
-* ocfs2-dlm-clean-dead-code-up.patch
-* ocfs2-cluster-neaten-a-member-of-o2net_msg_handler.patch
-* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
-* ocfs2-cluster-close-a-race-that-fence-cant-be-triggered.patch
-* ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch
-* ocfs2-clean-dead-code-in-suballocc.patch
-* ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
-* ocfs2-move-some-definitions-to-header-file.patch
-* ocfs2-fix-some-small-problems.patch
-* ocfs2-add-kobject-for-online-file-check.patch
-* ocfs2-add-duplicative-ino-number-check.patch
-* ocfs2-add-ocfs2_try_rw_lock-and-ocfs2_try_inode_lock.patch
-* ocfs2-add-ocfs2_overwrite_io-function.patch
-* ocfs2-nowait-aio-support.patch
-* ocfs2-add-trimfs-dlm-lock-resource.patch
-* ocfs2-add-trimfs-lock-to-avoid-duplicated-trims-in-cluster.patch
-* ocfs2-dont-merge-rightmost-extent-block-if-it-was-locked.patch
-* ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing.patch
-* ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing-fix.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* dentry-fix-kmemcheck-splat-at-take_dentry_name_snapshot.patch
-  mm.patch
-* mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
-* mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-* mm-slab-make-calculate_alignment-function-static.patch
-* mm-slab-remove-redundant-assignments-for-slab_state.patch
-* include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-* mm-kmemleak-remove-unused-hardirqh.patch
-* zswap-same-filled-pages-handling.patch
-* zswap-same-filled-pages-handling-v2.patch
-* mm-relax-deferred-struct-page-requirements.patch
-* mm-mempolicy-remove-redundant-check-in-get_nodes.patch
-* mm-mempolicy-fix-the-check-of-nodemask-from-user.patch
-* mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
-* mm-drop-hotplug-lock-from-lru_add_drain_all.patch
-* mm-show-total-hugetlb-memory-consumption-in-proc-meminfo.patch
-* mm-use-sc-priority-for-slab-shrink-targets.patch
-* mm-mlock-vmscan-no-more-skipping-pagevecs.patch
-* mmvmscan-mark-register_shrinker-as-__must_check.patch
-* mm-split-deferred_init_range-into-initializing-and-freeing-parts.patch
-* mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-* mm-filemap-remove-include-of-hardirqh.patch
-* mm-memcontrol-eliminate-raw-access-to-stat-and-event-counters.patch
-* mm-memcontrol-implement-lruvec-stat-functions-on-top-of-each-other.patch
-* mm-memcontrol-fix-excessive-complexity-in-memorystat-reporting.patch
-* mm-memcontrol-fix-excessive-complexity-in-memorystat-reporting-fix.patch
-* mm-swap-clean-up-swap-readahead.patch
-* mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
-* mm-page_owner-use-ptr_err_or_zero.patch
-* mm-page_alloc-fix-comment-is-__get_free_pages.patch
-* mm-do-not-stall-register_shrinker.patch
-* mm-do-not-stall-register_shrinker-fix.patch
-* selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory.patch
-* selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-* mm-use-vma_pages-helper.patch
-* mm-remove-unused-pgdat_reclaimable_pages.patch
-* list_lru-prefetch-neighboring-list-entries-before-acquiring-lock.patch
-* list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-* mm-oom-refactor-the-oom_kill_process-function.patch
-* mm-implement-mem_cgroup_scan_tasks-for-the-root-memory-cgroup.patch
-* mm-oom-cgroup-aware-oom-killer.patch
-* mm-oom-cgroup-aware-oom-killer-fix.patch
-* mm-oom-introduce-memoryoom_group.patch
-* mm-oom-introduce-memoryoom_group-fix.patch
-* mm-oom-add-cgroup-v2-mount-option-for-cgroup-aware-oom-killer.patch
-* mm-oom-docs-describe-the-cgroup-aware-oom-killer.patch
-* mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix.patch
-* cgroup-list-groupoom-in-cgroup-features.patch
-* mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
-* mm-memory_hotplug-remove-unnecesary-check-from-register_page_bootmem_info_section.patch
-* mm-update-comment-describing-tlb_gather_mmu.patch
-* mm-readahead-increase-maximum-readahead-window.patch
-* proc-do-not-show-vmexe-bigger-than-total-executable-virtual-memory.patch
-* mm-add-strictlimit-knob-v2.patch
-* mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section.patch
-* mm-huge_memory-fix-comment-in-__split_huge_pmd_locked.patch
-* mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch
-* mm-page_alloc-dont-reserve-zone_highmem-for-zone_movable-request.patch
-* mm-cma-manage-the-memory-of-the-cma-area-by-using-the-zone_movable.patch
-* mm-cma-remove-alloc_cma.patch
-* arm-cma-avoid-double-mapping-to-the-cma-area-if-config_highmem-=-y.patch
-* mm-add-unmap_mapping_pages.patch
-* get-7%-more-pages-in-a-pagevec.patch
-* asm-generic-provide-generic_pmdp_establish.patch
-* arc-use-generic_pmdp_establish-as-pmdp_establish.patch
-* arm-mm-provide-pmdp_establish-helper.patch
-* arm64-provide-pmdp_establish-helper.patch
-* mips-use-generic_pmdp_establish-as-pmdp_establish.patch
-* powerpc-mm-update-pmdp_invalidate-to-return-old-pmd-value.patch
-* s390-mm-modify-pmdp_invalidate-to-return-old-value.patch
-* sparc64-update-pmdp_invalidate-to-return-old-pmd-value.patch
-* sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-* x86-mm-provide-pmdp_establish-helper.patch
-* x86-mm-provide-pmdp_establish-helper-fix.patch
-* mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
-* mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
-* mm-thp-remove-pmd_huge_split_prepare.patch
-* mm-introduce-map_fixed_safe.patch
-* mm-introduce-map_fixed_safe-fix.patch
-* fs-elf-drop-map_fixed-usage-from-elf_map.patch
-* fs-elf-drop-map_fixed-usage-from-elf_map-fix.patch
-* fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-* mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
-* mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-* mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
-* mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-* mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
-* mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-* mm-oom-avoid-reaping-only-for-mms-with-blockable-invalidate-callbacks.patch
-* mm-zsmalloc-simplify-shrinker-init-destroy.patch
-* mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-* mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
-* mm-align-struct-page-more-aesthetically.patch
-* mm-de-indent-struct-page.patch
-* mm-remove-misleading-alignment-claims.patch
-* mm-improve-comment-on-page-mapping.patch
-* mm-introduce-_slub_counter_t.patch
-* mm-store-compound_dtor-compound_order-as-bytes.patch
-* mm-store-compound_dtor-compound_order-as-bytes-fix.patch
-* mm-document-how-to-use-struct-page.patch
-* mm-remove-reference-to-pg_buddy.patch
-* shmem-unexport-shmem_add_seals-shmem_get_seals.patch
-* shmem-rename-functions-that-are-memfd-related.patch
-* hugetlb-expose-hugetlbfs_inode_info-in-header.patch
-* hugetlb-implement-memfd-sealing.patch
-* shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
-* memfd-test-test-hugetlbfs-sealing.patch
-* memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs.patch
-* memfd-test-move-common-code-to-a-shared-unit.patch
-* memfd-test-run-fuse-test-on-hugetlb-backend-memory.patch
-* mm-page_owner-align-with-pageblock_nr_pages.patch
-* mm-make-count-list_lru_one-nr_items-lockless.patch
-* mm-make-count-list_lru_one-nr_items-lockless-v2.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* kasan-add-compiler-support-for-clang.patch
-* kasan-makefile-support-llvm-style-asan-parameters.patch
-* kasan-support-alloca-poisoning.patch
-* kasan-add-tests-for-alloca-poisoning.patch
-* kasan-added-functions-for-unpoisoning-stack-variables.patch
-* proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
-* proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
-* proc-fix-proc-map_files-lookup.patch
-* proc-simpler-proc-vmcore-cleanup.patch
-* proc-less-memory-for-proc-map_files-readdir.patch
-* proc-delete-children_seq_release.patch
-* fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
-* proc-rearrange-struct-proc_dir_entry.patch
-* makefile-move-stack-protector-compiler-breakage-test-earlier.patch
-* makefile-move-stack-protector-availability-out-of-kconfig.patch
-* makefile-introduce-config_cc_stackprotector_auto.patch
-* bugh-work-around-gcc-pr82365-in-bug.patch
-* revert-async-simplify-lowest_in_progress.patch
-* lib-stackdepot-use-a-non-instrumented-version-of-memcmp.patch
-* lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
-* lib-find_bit_benchmarkc-improvements.patch
-* lib-optimize-cpumask_next_and.patch
-* lib-optimize-cpumask_next_and-v6.patch
-* lib-optimize-cpumask_next_and-v6-fix.patch
-* make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
-* lib-add-module-unload-support-to-sort-tests.patch
-* checkpatch-allow-long-lines-containing-url.patch
-* checkpatch-ignore-some-octal-permissions-of-0.patch
-* checkpatch-improve-quoted-string-and-line-continuation-test.patch
-* checkpatch-add-a-few-device_attr-style-tests.patch
-* checkpatch-improve-the-tabstop-test-to-include-declarations.patch
-* hfsplus-honor-setgid-flag-on-directories.patch
-* seq_file-delete-small-value-optimization.patch
-* forkc-check-error-and-return-early.patch
-* forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces.patch
-* cpumask-make-cpumask_size-return-unsigned-int.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports.patch
-* rapidio-adjust-12-checks-for-null-pointers.patch
-* rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch
-* rapidio-improve-a-size-determination-in-five-functions.patch
-* rapidio-delete-an-unnecessary-variable-initialisation-in-three-functions.patch
-* rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
-* rapidio-move-12-export_symbol_gpl-calls-to-function-implementations.patch
-* rapidio-tsi721_dma-delete-an-error-message-for-a-failed-memory-allocation-in-tsi721_alloc_chan_resources.patch
-* rapidio-tsi721_dma-delete-an-unnecessary-variable-initialisation-in-tsi721_alloc_chan_resources.patch
-* rapidio-tsi721_dma-adjust-six-checks-for-null-pointers.patch
-* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
-* pids-introduce-find_get_task_by_vpid-helper.patch
-* lib-ubsanc-s-missaligned-misaligned.patch
-* ipc-fix-ipc-data-structures-inconsistency.patch
-* ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
-* lustre-dont-set-f_version-in-ll_readdir.patch
-  linux-next.patch
-  linux-next-rejects.patch
-  linux-next-git-rejects.patch
-* tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-* vfs-remove-might_sleep-from-clear_inode.patch
-* mm-remove-duplicate-includes.patch
-* ipc-mqueue-lazy-call-kern_mount_data-in-new-namespaces.patch
-* mm-remove-unneeded-kallsyms-include.patch
-* hrtimer-remove-unneeded-kallsyms-include.patch
-* genirq-remove-unneeded-kallsyms-include.patch
-* mm-memblock-memblock_is_map-region_memory-can-be-boolean.patch
-* lib-lockref-__lockref_is_dead-can-be-boolean.patch
-* kernel-cpuset-current_cpuset_is_being_rebound-can-be-boolean.patch
-* kernel-resource-iomem_is_exclusive-can-be-boolean.patch
-* kernel-module-module_is_live-can-be-boolean.patch
-* kernel-mutex-mutex_is_locked-can-be-boolean.patch
-* crash_dump-is_kdump_kernel-can-be-boolean.patch
-* fix-const-confusion-in-certs-blacklist.patch
-* fix-read-buffer-overflow-in-delta-ipc.patch
-* fix-const-confusion-in-intel-mid-x86-platform-drivers.patch
-* kasan-rework-kconfig-settings.patch
-* sparc64-ng4-memset-32-bits-overflow.patch
-* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  workaround-for-a-pci-restoring-bug.patch
+In this patch, bitmap_copy_safe and bitmap_{from,to}_arr32 are introduced.
+
+'Safe' in bitmap_copy_safe() stands for clearing unused bits in bitmap
+beyond last bit till the end of last word. It is useful for hardening
+API when bitmap is assumed to be exposed to userspace.
+
+bitmap_{from,to}_arr32 functions are replacements for
+bitmap_{from,to}_u32array. They don't take unneeded nwords argument, and
+so simpler in implementation and understanding.
+
+This patch suggests optimization for 32-bit systems - aliasing
+bitmap_{from,to}_arr32 to bitmap_copy_safe.
+
+Other possible optimization is aliasing 64-bit LE bitmap_{from,to}_arr32 to
+more generic function(s). But I didn't end up with the function that would
+be helpful by itself, and can be used to alias 64-bit LE
+bitmap_{from,to}_arr32, like bitmap_copy_safe() does. So I preferred to
+leave things as is.
+
+The following patch switches kernel to new API and introduces test for it.
+
+Discussion is here: https://lkml.org/lkml/2017/11/15/592
+
+Link: http://lkml.kernel.org/r/20171228150019.27953-1-ynorov@caviumnetworks.com
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: David Decotigny <decot@googlers.com>,
+Cc: David S. Miller <davem@davemloft.net>,
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/bitmap.h |   31 +++++++++++++++++++++
+ lib/bitmap.c           |   56 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
+
+diff -puN include/linux/bitmap.h~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32 include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32
++++ a/include/linux/bitmap.h
+@@ -66,6 +66,8 @@
+  *  bitmap_allocate_region(bitmap, pos, order)  Allocate specified bit region
+  *  bitmap_from_u32array(dst, nbits, buf, nwords)  *dst = *buf (nwords 32b words)
+  *  bitmap_to_u32array(buf, nwords, src, nbits) *buf = *dst (nwords 32b words)
++ *  bitmap_from_arr32(dst, buf, nbits)          Copy nbits from u32[] buf to dst
++ *  bitmap_to_arr32(buf, src, nbits)            Copy nbits from buf to u32[] dst
+  *
+  */
+ 
+@@ -228,6 +230,35 @@ static inline void bitmap_copy(unsigned
+ 	}
+ }
+ 
++/*
++ * Copy bitmap and clear tail bits in last word.
++ */
++static inline void bitmap_copy_safe(unsigned long *dst,
++		const unsigned long *src, unsigned int nbits)
++{
++	bitmap_copy(dst, src, nbits);
++	if (nbits % BITS_PER_LONG)
++		dst[nbits / BITS_PER_LONG] &= BITMAP_LAST_WORD_MASK(nbits);
++}
++
++/*
++ * On 32-bit systems bitmaps are represented as u32 arrays internally, and
++ * therefore conversion is not needed when copying data from/to arrays of u32.
++ */
++#if BITS_PER_LONG == 64
++extern void bitmap_from_arr32(unsigned long *bitmap, const u32 *buf,
++							unsigned int nbits);
++extern void bitmap_to_arr32(u32 *buf, const unsigned long *bitmap,
++							unsigned int nbits);
++#else
++#define bitmap_from_arr32(bitmap, buf, nbits)		\
++	bitmap_copy_safe((unsigned long *) (bitmap),	\
++			(const unsigned long *) (buf), (nbits))
++#define bitmap_to_arr32(buf, bitmap, nbits)		\
++	bitmap_copy_safe((unsigned long *) (buf),	\
++			(const unsigned long *) (bitmap), (nbits))
++#endif
++
+ static inline int bitmap_and(unsigned long *dst, const unsigned long *src1,
+ 			const unsigned long *src2, unsigned int nbits)
+ {
+diff -puN lib/bitmap.c~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32 lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32
++++ a/lib/bitmap.c
+@@ -1214,3 +1214,59 @@ void bitmap_copy_le(unsigned long *dst,
+ }
+ EXPORT_SYMBOL(bitmap_copy_le);
+ #endif
++
++#if BITS_PER_LONG == 64
++/**
++ * bitmap_from_arr32 - copy the contents of u32 array of bits to bitmap
++ *	@bitmap: array of unsigned longs, the destination bitmap
++ *	@buf: array of u32 (in host byte order), the source bitmap
++ *	@nbits: number of bits in @bitmap
++ */
++void bitmap_from_arr32(unsigned long *bitmap, const u32 *buf,
++						unsigned int nbits)
++{
++	unsigned int i, halfwords;
++
++	if (!nbits)
++		return;
++
++	halfwords = DIV_ROUND_UP(nbits, 32);
++	for (i = 0; i < halfwords; i++) {
++		bitmap[i/2] = (unsigned long) buf[i];
++		if (++i < halfwords)
++			bitmap[i/2] |= ((unsigned long) buf[i]) << 32;
++	}
++
++	/* Clear tail bits in last word beyond nbits. */
++	if (nbits % BITS_PER_LONG)
++		bitmap[(halfwords - 1) / 2] &= BITMAP_LAST_WORD_MASK(nbits);
++}
++EXPORT_SYMBOL(bitmap_from_arr32);
++
++/**
++ * bitmap_to_arr32 - copy the contents of bitmap to a u32 array of bits
++ *	@buf: array of u32 (in host byte order), the dest bitmap
++ *	@bitmap: array of unsigned longs, the source bitmap
++ *	@nbits: number of bits in @bitmap
++ */
++void bitmap_to_arr32(u32 *buf, const unsigned long *bitmap, unsigned int nbits)
++{
++	unsigned int i, halfwords;
++
++	if (!nbits)
++		return;
++
++	halfwords = DIV_ROUND_UP(nbits, 32);
++	for (i = 0; i < halfwords; i++) {
++		buf[i] = (u32) (bitmap[i/2] & UINT_MAX);
++		if (++i < halfwords)
++			buf[i] = (u32) (bitmap[i/2] >> 32);
++	}
++
++	/* Clear tail bits in last element of array beyond nbits. */
++	if (nbits % BITS_PER_LONG)
++		buf[halfwords - 1] &= (u32) (UINT_MAX >> ((-nbits) & 31));
++}
++EXPORT_SYMBOL(bitmap_to_arr32);
++
++#endif
+_
+
+Patches currently in -mm which might be from ynorov@caviumnetworks.com are
+
+bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
+bitmap-replace-bitmap_fromto_u32array.patch
+lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
+lib-find_bit_benchmarkc-improvements.patch
+
