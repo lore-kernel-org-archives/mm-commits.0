@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch added to -mm tree
-Date: Thu, 28 Dec 2017 15:26:03 -0800
-Message-ID: <5a457d8b.j2F1Dq0Rv6WuTvdm%akpm@linux-foundation.org>
+Subject: + kasan-detect-invalid-frees-for-large-objects.patch added to -mm tree
+Date: Thu, 28 Dec 2017 16:06:31 -0800
+Message-ID: <5a458707.osHYT4/+arslrqt7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43174 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754505AbdL1X0F (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 18:26:05 -0500
+        with ESMTP id S1751253AbdL2AGc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 19:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, davej@codemonkey.org.uk, gs051095@gmail.com, oleg@redhat.com, riel@redhat.com, viro@zeniv.linux.org.uk, xemul@openvz.org, mm-commits@vger.kernel.org
+To: dvyukov@google.com, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid: handle failure to allocate the first pid in a pid namespace
+     Subject: kasan: detect invalid frees for large objects
 has been added to the -mm tree.  Its filename is
-     pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
+     kasan-detect-invalid-frees-for-large-objects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-detect-invalid-frees-for-large-objects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-detect-invalid-frees-for-large-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,109 +38,198 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: pid: handle failure to allocate the first pid in a pid namespace
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: detect invalid frees for large objects
 
-With the replacement of the pid bitmap and hashtable with an idr in
-alloc_pid started occassionally failing when allocating the first pid in a
-pid namespace.  Things were not completely reset resulting in the first
-allocated pid getting the number 2 (not 1).  Which further resulted in
-ns->proc_mnt not getting set and eventually causing an oops in
-proc_flush_task.
+Patch series "kasan: detect invalid frees".
 
-Oops: 0000 [#1] SMP
-CPU: 2 PID: 6743 Comm: trinity-c117 Not tainted 4.15.0-rc4-think+ #2
-RIP: 0010:proc_flush_task+0x8e/0x1b0
-RSP: 0018:ffffc9000bbffc40 EFLAGS: 00010286
-RAX: 0000000000000001 RBX: 0000000000000001 RCX: 00000000fffffffb
-RDX: 0000000000000000 RSI: ffffc9000bbffc50 RDI: 0000000000000000
-RBP: ffffc9000bbffc63 R08: 0000000000000000 R09: 0000000000000002
-R10: ffffc9000bbffb70 R11: ffffc9000bbffc64 R12: 0000000000000003
-R13: 0000000000000000 R14: 0000000000000003 R15: ffff8804c10d7840
-FS:  00007f7cb8965700(0000) GS:ffff88050a200000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000000 CR3: 00000003e21ae003 CR4: 00000000001606e0
-DR0: 00007fb1d6c22000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000600
-Call Trace:
- ? release_task+0xaf/0x680
- release_task+0xd2/0x680
- ? wait_consider_task+0xb82/0xce0
- wait_consider_task+0xbe9/0xce0
- ? do_wait+0xe1/0x330
- do_wait+0x151/0x330
- kernel_wait4+0x8d/0x150
- ? task_stopped_code+0x50/0x50
- SYSC_wait4+0x95/0xa0
- ? rcu_read_lock_sched_held+0x6c/0x80
- ? syscall_trace_enter+0x2d7/0x340
- ? do_syscall_64+0x60/0x210
- do_syscall_64+0x60/0x210
- entry_SYSCALL64_slow_path+0x25/0x25
-RIP: 0033:0x7f7cb82603aa
-RSP: 002b:00007ffd60770bc8 EFLAGS: 00000246
- ORIG_RAX: 000000000000003d
-RAX: ffffffffffffffda RBX: 00007f7cb6cd4000 RCX: 00007f7cb82603aa
-RDX: 000000000000000b RSI: 00007ffd60770bd0 RDI: 0000000000007cca
-RBP: 0000000000007cca R08: 00007f7cb8965700 R09: 00007ffd607c7080
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007ffd60770bd0 R14: 00007f7cb6cd4058 R15: 00000000cccccccd
-Code: c1 e2 04 44 8b 60 30 48 8b 40 38 44 8b 34 11 48 c7 c2 60 3a f5 81 44 89 e1 4c 8b 68 58 e8 4b b4 77 00 89 44 24 14 48 8d 74 24 10 <49> 8b 7d 00 e8 b9 6a f9 ff 48 85 c0 74 1a 48 89 c7 48 89 44 24
-RIP: proc_flush_task+0x8e/0x1b0 RSP: ffffc9000bbffc40
-CR2: 0000000000000000
----[ end trace 53d67a6481059862 ]---
+KASAN detects double-frees, but does not detect invalid-frees (when a
+pointer into a middle of heap object is passed to free).  We recently had
+a very unpleasant case in crypto code which freed an inner object inside
+of a heap allocation.  This left unnoticed during free, but totally
+corrupted heap and later lead to a bunch of random crashes all over kernel
+code.
 
-Improve the quality of the implementation by resetting the place to start
-allocating pids on failure to allocate the first pid.
+Detect invalid frees.
 
-As improving the quality of the implementation is the goal remove the now
-unnecesarry disable_pid_allocations call when we fail to mount proc.
 
-Link: http://lkml.kernel.org/r/87efnkdde4.fsf_-_@xmission.com
-Fixes: 95846ecf9dac ("pid: replace pid bitmap implementation with IDR API")
-Fixes: 8ef047aaaeb8 ("pid namespaces: make alloc_pid(), free_pid() and put_pid() work with struct upid")
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reported-by: Dave Jones <davej@codemonkey.org.uk>
-Cc: Gargi Sharma <gs051095@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
+This patch (of 5):
+
+Detect frees of pointers into middle of large heap objects.
+
+I dropped const from kasan_kfree_large() because it starts propagating
+through a bunch of functions in kasan_report.c, slab/slub nearest_obj(),
+all of their local variables, fixup_red_left(), etc.
+
+Link: http://lkml.kernel.org/r/1b45b4fe1d20fc0de1329aab674c1dd973fee723.1514378558.git.dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/kasan.h |    4 ++--
+ lib/test_kasan.c      |   33 +++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.c      |   12 +++++-------
+ mm/kasan/kasan.h      |    3 +--
+ mm/kasan/report.c     |    3 +--
+ mm/slub.c             |    4 ++--
+ 6 files changed, 44 insertions(+), 15 deletions(-)
 
-diff -puN kernel/pid.c~pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace kernel/pid.c
---- a/kernel/pid.c~pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace
-+++ a/kernel/pid.c
-@@ -193,10 +193,8 @@ struct pid *alloc_pid(struct pid_namespa
- 	}
+diff -puN include/linux/kasan.h~kasan-detect-invalid-frees-for-large-objects include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-detect-invalid-frees-for-large-objects
++++ a/include/linux/kasan.h
+@@ -56,7 +56,7 @@ void kasan_poison_object_data(struct kme
+ void kasan_init_slab_obj(struct kmem_cache *cache, const void *object);
  
- 	if (unlikely(is_child_reaper(pid))) {
--		if (pid_ns_prepare_proc(ns)) {
--			disable_pid_allocation(ns);
-+		if (pid_ns_prepare_proc(ns))
- 			goto out_free;
--		}
- 	}
+ void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
+-void kasan_kfree_large(const void *ptr);
++void kasan_kfree_large(void *ptr);
+ void kasan_poison_kfree(void *ptr);
+ void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
+ 		  gfp_t flags);
+@@ -108,7 +108,7 @@ static inline void kasan_init_slab_obj(s
+ 				const void *object) {}
  
- 	get_pid_ns(ns);
-@@ -226,6 +224,10 @@ out_free:
- 	while (++i <= ns->level)
- 		idr_remove(&ns->idr, (pid->numbers + i)->nr);
- 
-+	/* On failure to allocate the first pid, reset the state */
-+	if (ns->pid_allocated == PIDNS_ADDING)
-+		idr_set_cursor(&ns->idr, 0);
+ static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
+-static inline void kasan_kfree_large(const void *ptr) {}
++static inline void kasan_kfree_large(void *ptr) {}
+ static inline void kasan_poison_kfree(void *ptr) {}
+ static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
+ 				size_t size, gfp_t flags) {}
+diff -puN lib/test_kasan.c~kasan-detect-invalid-frees-for-large-objects lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-detect-invalid-frees-for-large-objects
++++ a/lib/test_kasan.c
+@@ -94,6 +94,37 @@ static noinline void __init kmalloc_page
+ 	ptr[size] = 0;
+ 	kfree(ptr);
+ }
 +
- 	spin_unlock_irq(&pidmap_lock);
++static noinline void __init kmalloc_pagealloc_uaf(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
++
++	pr_info("kmalloc pagealloc allocation: use-after-free\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr);
++	ptr[0] = 0;
++}
++
++static noinline void __init kmalloc_pagealloc_invalid_free(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
++
++	pr_info("kmalloc pagealloc allocation: invalid-free\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr + 1);
++}
+ #endif
  
- 	kmem_cache_free(ns->pid_cachep, pid);
+ static noinline void __init kmalloc_large_oob_right(void)
+@@ -505,6 +536,8 @@ static int __init kmalloc_tests_init(voi
+ 	kmalloc_node_oob_right();
+ #ifdef CONFIG_SLUB
+ 	kmalloc_pagealloc_oob_right();
++	kmalloc_pagealloc_uaf();
++	kmalloc_pagealloc_invalid_free();
+ #endif
+ 	kmalloc_large_oob_right();
+ 	kmalloc_oob_krealloc_more();
+diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-objects mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/kasan/kasan.c
+@@ -511,8 +511,7 @@ bool kasan_slab_free(struct kmem_cache *
+ 
+ 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
+ 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
+-		kasan_report_double_free(cache, object,
+-				__builtin_return_address(1));
++		kasan_report_invalid_free(object, __builtin_return_address(1));
+ 		return true;
+ 	}
+ 
+@@ -602,12 +601,11 @@ void kasan_poison_kfree(void *ptr)
+ 		kasan_poison_slab_free(page->slab_cache, ptr);
+ }
+ 
+-void kasan_kfree_large(const void *ptr)
++void kasan_kfree_large(void *ptr)
+ {
+-	struct page *page = virt_to_page(ptr);
+-
+-	kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
+-			KASAN_FREE_PAGE);
++	if (ptr != page_address(virt_to_head_page(ptr)))
++		kasan_report_invalid_free(ptr, __builtin_return_address(1));
++	/* The object will be poisoned by page_alloc. */
+ }
+ 
+ int kasan_module_alloc(void *addr, size_t size)
+diff -puN mm/kasan/kasan.h~kasan-detect-invalid-frees-for-large-objects mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/kasan/kasan.h
+@@ -107,8 +107,7 @@ static inline const void *kasan_shadow_t
+ 
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+-void kasan_report_double_free(struct kmem_cache *cache, void *object,
+-					void *ip);
++void kasan_report_invalid_free(void *object, void *ip);
+ 
+ #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
+ void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
+diff -puN mm/kasan/report.c~kasan-detect-invalid-frees-for-large-objects mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/kasan/report.c
+@@ -326,8 +326,7 @@ static void print_shadow_for_address(con
+ 	}
+ }
+ 
+-void kasan_report_double_free(struct kmem_cache *cache, void *object,
+-				void *ip)
++void kasan_report_invalid_free(void *object, void *ip)
+ {
+ 	unsigned long flags;
+ 
+diff -puN mm/slub.c~kasan-detect-invalid-frees-for-large-objects mm/slub.c
+--- a/mm/slub.c~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/slub.c
+@@ -1354,7 +1354,7 @@ static inline void kmalloc_large_node_ho
+ 	kasan_kmalloc_large(ptr, size, flags);
+ }
+ 
+-static inline void kfree_hook(const void *x)
++static inline void kfree_hook(void *x)
+ {
+ 	kmemleak_free(x);
+ 	kasan_kfree_large(x);
+@@ -3892,7 +3892,7 @@ void kfree(const void *x)
+ 	page = virt_to_head_page(x);
+ 	if (unlikely(!PageSlab(page))) {
+ 		BUG_ON(!PageCompound(page));
+-		kfree_hook(x);
++		kfree_hook(object);
+ 		__free_pages(page, compound_order(page));
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
+kasan-detect-invalid-frees-for-large-objects.patch
+kasan-dont-use-__builtin_return_address1.patch
+kasan-detect-invalid-frees-for-large-mempool-objects.patch
+kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch
+kasan-detect-invalid-frees.patch
 
