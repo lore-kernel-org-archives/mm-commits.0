@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch added to -mm tree
-Date: Thu, 28 Dec 2017 16:06:41 -0800
-Message-ID: <5a458711.wx3K3yaF5NvUWKty%akpm@linux-foundation.org>
+Subject: + kasan-detect-invalid-frees.patch added to -mm tree
+Date: Thu, 28 Dec 2017 16:06:44 -0800
+Message-ID: <5a458714.Cf6FW9kc3XSZ5uZA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751253AbdL2AGm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 19:06:42 -0500
+        with ESMTP id S1751253AbdL2AGp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 19:06:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dvyukov@google.com, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: unify code between kasan_slab_free() and kasan_poison_kfree()
+     Subject: kasan: detect invalid frees
 has been added to the -mm tree.  Its filename is
-     kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch
+     kasan-detect-invalid-frees.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-detect-invalid-frees.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-detect-invalid-frees.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,87 +39,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: unify code between kasan_slab_free() and kasan_poison_kfree()
+Subject: kasan: detect invalid frees
 
-Both of these functions deal with freeing of slab objects.
-However, kasan_poison_kfree() mishandles SLAB_TYPESAFE_BY_RCU
-(must also not poison such objects) and does not detect double-frees.
+Detect frees of pointers into middle of heap objects.
 
-Unify code between these functions.
-This solves both of the problems and allows to add more common code
-(e.g. detection of invalid frees).
-
-Link: http://lkml.kernel.org/r/385493d863acf60408be219a021c3c8e27daa96f.1514378558.git.dvyukov@google.com
+Link: http://lkml.kernel.org/r/cb569193190356beb018a03bb8d6fbae67e7adbc.1514378558.git.dvyukov@google.com
 Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ lib/test_kasan.c |   50 +++++++++++++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.c |    6 +++++
+ 2 files changed, 56 insertions(+)
 
-diff -puN mm/kasan/kasan.c~kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree
-+++ a/mm/kasan/kasan.c
-@@ -489,21 +489,11 @@ void kasan_slab_alloc(struct kmem_cache
- 	kasan_kmalloc(cache, object, cache->object_size, flags);
+diff -puN lib/test_kasan.c~kasan-detect-invalid-frees lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-detect-invalid-frees
++++ a/lib/test_kasan.c
+@@ -523,6 +523,54 @@ static noinline void __init kasan_alloca
+ 	*(volatile char *)p;
  }
  
--static void kasan_poison_slab_free(struct kmem_cache *cache, void *object)
--{
--	unsigned long size = cache->object_size;
--	unsigned long rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
--
--	/* RCU slabs could be legally used after free within the RCU period */
--	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
--		return;
--
--	kasan_poison_shadow(object, rounded_up_size, KASAN_KMALLOC_FREE);
--}
--
--bool kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
-+static bool __kasan_slab_free(struct kmem_cache *cache, void *object,
-+			      unsigned long ip, bool quarantine)
- {
- 	s8 shadow_byte;
-+	unsigned long rounded_up_size;
- 
- 	/* RCU slabs could be legally used after free within the RCU period */
- 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
-@@ -515,9 +505,10 @@ bool kasan_slab_free(struct kmem_cache *
- 		return true;
- 	}
- 
--	kasan_poison_slab_free(cache, object);
-+	rounded_up_size = round_up(cache->object_size, KASAN_SHADOW_SCALE_SIZE);
-+	kasan_poison_shadow(object, rounded_up_size, KASAN_KMALLOC_FREE);
- 
--	if (unlikely(!(cache->flags & SLAB_KASAN)))
-+	if (!quarantine || unlikely(!(cache->flags & SLAB_KASAN)))
- 		return false;
- 
- 	set_track(&get_alloc_info(cache, object)->free_track, GFP_NOWAIT);
-@@ -525,6 +516,11 @@ bool kasan_slab_free(struct kmem_cache *
- 	return true;
- }
- 
-+bool kasan_slab_free(struct kmem_cache *cache, void *object, unsigned long ip)
++static noinline void __init kmem_cache_double_free(void)
 +{
-+	return __kasan_slab_free(cache, object, ip, true);
++	char *p;
++	size_t size = 200;
++	struct kmem_cache *cache;
++
++	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
++	if (!cache) {
++		pr_err("Cache allocation failed\n");
++		return;
++	}
++	pr_info("double-free on heap object\n");
++	p = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p) {
++		pr_err("Allocation failed\n");
++		kmem_cache_destroy(cache);
++		return;
++	}
++
++	kmem_cache_free(cache, p);
++	kmem_cache_free(cache, p);
++	kmem_cache_destroy(cache);
 +}
 +
- void kasan_kmalloc(struct kmem_cache *cache, const void *object, size_t size,
- 		   gfp_t flags)
++static noinline void __init kmem_cache_invalid_free(void)
++{
++	char *p;
++	size_t size = 200;
++	struct kmem_cache *cache;
++
++	cache = kmem_cache_create("test_cache", size, 0, SLAB_TYPESAFE_BY_RCU,
++				  NULL);
++	if (!cache) {
++		pr_err("Cache allocation failed\n");
++		return;
++	}
++	pr_info("invalid-free of heap object\n");
++	p = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p) {
++		pr_err("Allocation failed\n");
++		kmem_cache_destroy(cache);
++		return;
++	}
++
++	kmem_cache_free(cache, p + 1);
++	kmem_cache_destroy(cache);
++}
++
+ static int __init kmalloc_tests_init(void)
  {
-@@ -602,7 +598,7 @@ void kasan_poison_kfree(void *ptr, unsig
- 		kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
- 				KASAN_FREE_PAGE);
- 	} else {
--		kasan_poison_slab_free(page->slab_cache, ptr);
-+		__kasan_slab_free(page->slab_cache, ptr, ip, false);
- 	}
- }
+ 	/*
+@@ -560,6 +608,8 @@ static int __init kmalloc_tests_init(voi
+ 	ksize_unpoisons_memory();
+ 	copy_user_test();
+ 	use_after_scope_test();
++	kmem_cache_double_free();
++	kmem_cache_invalid_free();
  
+ 	kasan_restore_multi_shot(multishot);
+ 
+diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-detect-invalid-frees
++++ a/mm/kasan/kasan.c
+@@ -495,6 +495,12 @@ static bool __kasan_slab_free(struct kme
+ 	s8 shadow_byte;
+ 	unsigned long rounded_up_size;
+ 
++	if (unlikely(nearest_obj(cache, virt_to_head_page(object), object) !=
++	    object)) {
++		kasan_report_invalid_free(object, ip);
++		return true;
++	}
++
+ 	/* RCU slabs could be legally used after free within the RCU period */
+ 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
+ 		return false;
 _
 
 Patches currently in -mm which might be from dvyukov@google.com are
