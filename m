@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-detect-invalid-frees.patch added to -mm tree
-Date: Thu, 28 Dec 2017 16:06:44 -0800
-Message-ID: <5a458714.Cf6FW9kc3XSZ5uZA%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch added to
+ -mm tree
+Date: Thu, 28 Dec 2017 16:12:40 -0800
+Message-ID: <5a458878.1TmL3LMnRqVLwGE0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43672 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751253AbdL2AGp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 19:06:45 -0500
+        with ESMTP id S1751253AbdL2AMl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Dec 2017 19:12:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: detect invalid frees
+     Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
 has been added to the -mm tree.  Its filename is
-     kasan-detect-invalid-frees.patch
+     ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-detect-invalid-frees.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-detect-invalid-frees.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,111 +40,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: detect invalid frees
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
 
-Detect frees of pointers into middle of heap objects.
+If metadata is corrupted such as 'invalid inode block', we will get failed
+by calling 'mount()' and then set filesystem readonly as below:
 
-Link: http://lkml.kernel.org/r/cb569193190356beb018a03bb8d6fbae67e7adbc.1514378558.git.dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
+ocfs2_mount
+  ocfs2_initialize_super
+    ocfs2_init_global_system_inodes
+      ocfs2_iget
+        ocfs2_read_locked_inode
+          ocfs2_validate_inode_block
+	    ocfs2_error
+	      ocfs2_handle_error
+	        ocfs2_set_ro_flag(osb, 0);  // set readonly
+
+In this situation we need return -EROFS to 'mount.ocfs2', so that user can
+fix it by fsck.  And then mount again.  In addition, 'mount.ocfs2' should
+be updated correspondingly as it only return 1 for all errno.  And I will
+post a patch for 'mount.ocfs2' too.
+
+Link: http://lkml.kernel.org/r/5A4302FA.2010606@huawei.com
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   50 +++++++++++++++++++++++++++++++++++++++++++++
- mm/kasan/kasan.c |    6 +++++
- 2 files changed, 56 insertions(+)
+ fs/ocfs2/super.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-detect-invalid-frees lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-detect-invalid-frees
-+++ a/lib/test_kasan.c
-@@ -523,6 +523,54 @@ static noinline void __init kasan_alloca
- 	*(volatile char *)p;
- }
- 
-+static noinline void __init kmem_cache_double_free(void)
-+{
-+	char *p;
-+	size_t size = 200;
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
-+	if (!cache) {
-+		pr_err("Cache allocation failed\n");
-+		return;
-+	}
-+	pr_info("double-free on heap object\n");
-+	p = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p) {
-+		pr_err("Allocation failed\n");
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	kmem_cache_free(cache, p);
-+	kmem_cache_free(cache, p);
-+	kmem_cache_destroy(cache);
-+}
-+
-+static noinline void __init kmem_cache_invalid_free(void)
-+{
-+	char *p;
-+	size_t size = 200;
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, SLAB_TYPESAFE_BY_RCU,
-+				  NULL);
-+	if (!cache) {
-+		pr_err("Cache allocation failed\n");
-+		return;
-+	}
-+	pr_info("invalid-free of heap object\n");
-+	p = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p) {
-+		pr_err("Allocation failed\n");
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	kmem_cache_free(cache, p + 1);
-+	kmem_cache_destroy(cache);
-+}
-+
- static int __init kmalloc_tests_init(void)
- {
- 	/*
-@@ -560,6 +608,8 @@ static int __init kmalloc_tests_init(voi
- 	ksize_unpoisons_memory();
- 	copy_user_test();
- 	use_after_scope_test();
-+	kmem_cache_double_free();
-+	kmem_cache_invalid_free();
- 
- 	kasan_restore_multi_shot(multishot);
- 
-diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-detect-invalid-frees
-+++ a/mm/kasan/kasan.c
-@@ -495,6 +495,12 @@ static bool __kasan_slab_free(struct kme
- 	s8 shadow_byte;
- 	unsigned long rounded_up_size;
- 
-+	if (unlikely(nearest_obj(cache, virt_to_head_page(object), object) !=
-+	    object)) {
-+		kasan_report_invalid_free(object, ip);
-+		return true;
-+	}
-+
- 	/* RCU slabs could be legally used after free within the RCU period */
- 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
- 		return false;
+diff -puN fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid
++++ a/fs/ocfs2/super.c
+@@ -474,9 +474,8 @@ static int ocfs2_init_global_system_inod
+ 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
+ 		if (!new) {
+ 			ocfs2_release_system_inodes(osb);
+-			status = -EINVAL;
++			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
+ 			mlog_errno(status);
+-			/* FIXME: Should ERROR_RO_FS */
+ 			mlog(ML_ERROR, "Unable to load system inode %d, "
+ 			     "possibly corrupt fs?", i);
+ 			goto bail;
+@@ -505,7 +504,7 @@ static int ocfs2_init_local_system_inode
+ 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
+ 		if (!new) {
+ 			ocfs2_release_system_inodes(osb);
+-			status = -EINVAL;
++			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
+ 			mlog(ML_ERROR, "status=%d, sysfile=%d, slot=%d\n",
+ 			     status, i, osb->slot_num);
+ 			goto bail;
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-kasan-detect-invalid-frees-for-large-objects.patch
-kasan-dont-use-__builtin_return_address1.patch
-kasan-detect-invalid-frees-for-large-mempool-objects.patch
-kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch
-kasan-detect-invalid-frees.patch
+ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
 
