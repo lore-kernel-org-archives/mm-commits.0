@@ -1,55 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lustre-dont-set-f_version-in-ll_readdir.patch
+Subject: [nacked] mm-readahead-increase-maximum-readahead-window.patch
  removed from -mm tree
-Date: Tue, 02 Jan 2018 11:54:20 -0800
-Message-ID: <20180102195420.lXeM6EU3q%akpm@linux-foundation.org>
+Date: Tue, 02 Jan 2018 14:04:53 -0800
+Message-ID: <5a4c0205.H3QiJ9k7ko3J043w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59442 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47914 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751014AbeABTyX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jan 2018 14:54:23 -0500
+        with ESMTP id S1750726AbeABWEz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jan 2018 17:04:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.dilger@intel.com, anton@tuxera.com, jlayton@redhat.com, jsimmons@infradead.org, mikulas@artax.karlin.mff.cuni.cz, mm-commits@vger.kernel.org, oleg.drokin@intel.com, viro@zeniv.linux.org.uk
+To: jack@suse.cz, darrick.wong@oracle.com, david@fromorbit.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lustre: don't set f_version in ll_readdir
+     Subject: mm: readahead: increase maximum readahead window
 has been removed from the -mm tree.  Its filename was
-     lustre-dont-set-f_version-in-ll_readdir.patch
+     mm-readahead-increase-maximum-readahead-window.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@redhat.com>
-Subject: lustre: don't set f_version in ll_readdir
+From: Jan Kara <jack@suse.cz>
+Subject: mm: readahead: increase maximum readahead window
 
-f_version is only ever used by filesystem-specific code.  Generic VFS code
-never uses it.
+Increase default maximum allowed readahead window from 128 KB to 512 KB. 
+This improves performance for some workloads (see below for details) where
+ability to scale readahead window to larger sizes allows for better total
+throughput while chances for regression are rather low given readahead
+window size is dynamically computed based on observation (and thus it
+never grows large for workloads with a random read pattern).
 
-Nothing in lustre ever looks at it, so just remove this.
+Note that the same tuning can be done using udev rules or by manually
+setting the sysctl parameter however we believe the new value is a better
+default most users will want to use.  As a data point we carry this patch
+in SUSE kernels for over 8 years.
 
-Link: http://lkml.kernel.org/r/20171207113206.31544-2-jlayton@kernel.org
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Reviewed-by: Andreas Dilger <andreas.dilger@intel.com>
+Some data from the last evaluation of this patch (on 4.4-based kernel, I
+can rerun those tests on a newer kernel but nothing has changed in the
+readahead area since 4.4).  The patch was evaluated on two machines o a
+UMA machine, 8 cores and rotary storage o A NUMA machine, 4 socket, 48
+cores and SSD storage
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Anton Altaparmakov <anton@tuxera.com>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Cc: Oleg Drokin <oleg.drokin@intel.com>
+Five basic tests were conducted;
+
+1. paralleldd-single
+   paralleldd uses different instances of dd to access a single file and
+   write the contents to /dev/null. The performance of it depends on how
+   well readahead works for a single file. It's mostly sequential IO.
+
+2. paralleldd-multi
+   Similar to test 1 except each instance of dd accesses a different file
+   so each instance of dd is accessing data sequentially but the timing
+   makes it look like random read IO.
+
+3. pgbench-small
+   A standard init of pgbench and execution with a small data set
+
+4. pgbench-large
+   A standard init of pgbench and execution with a large data set
+
+5. bonnie++ with dataset sizes 2X RAM and in asyncronous mode
+
+UMA paralleldd-single on ext3 (ext4 -o nodelalloc):
+                                  4.4.0                 4.4.0
+                                vanilla        readahead-v1r1
+Amean    Elapsd-1        5.42 (  0.00%)        5.40 (  0.50%)
+Amean    Elapsd-3        7.51 (  0.00%)        5.54 ( 26.25%)
+Amean    Elapsd-5        7.15 (  0.00%)        5.90 ( 17.46%)
+Amean    Elapsd-7        5.81 (  0.00%)        5.61 (  3.42%)
+Amean    Elapsd-8        6.05 (  0.00%)        5.73 (  5.36%)
+
+Results speak for themselves, readahead is a major boost when there
+are multiple readers of data. It's not displayed but system CPU
+usage is overall. The IO stats support the results
+
+                       4.4.0       4.4.0
+                     vanillareadahead-v1r1
+Mean sda-avgqusz        7.44        8.59
+Mean sda-avgrqsz      279.77      722.52
+Mean sda-await         31.95       48.82
+Mean sda-r_await        3.32       11.58
+Mean sda-w_await      127.51      119.60
+Mean sda-svctm          1.47        3.46
+Mean sda-rrqm          27.82       23.52
+Mean sda-wrqm           4.52        5.00
+
+It shows that the average request size is 2.5 times larger even
+though the merging stats are similar. It's also interesting to
+note that average wait times are higher but more IO is being
+initiated per dd instance.
+
+It's interesting to note that this is specific to ext3 and that xfs showed
+a small regression with larger readahead.
+
+UMA paralleldd-single on xfs
+                                  4.4.0                 4.4.0
+                                vanilla        readahead-v1r1
+Min      Elapsd-1        6.91 (  0.00%)        7.10 ( -2.75%)
+Min      Elapsd-3        6.77 (  0.00%)        6.93 ( -2.36%)
+Min      Elapsd-5        6.82 (  0.00%)        7.00 ( -2.64%)
+Min      Elapsd-7        6.84 (  0.00%)        7.05 ( -3.07%)
+Min      Elapsd-8        7.02 (  0.00%)        7.04 ( -0.28%)
+Amean    Elapsd-1        7.08 (  0.00%)        7.20 ( -1.68%)
+Amean    Elapsd-3        7.03 (  0.00%)        7.12 ( -1.40%)
+Amean    Elapsd-5        7.22 (  0.00%)        7.38 ( -2.34%)
+Amean    Elapsd-7        7.07 (  0.00%)        7.19 ( -1.75%)
+Amean    Elapsd-8        7.23 (  0.00%)        7.23 ( -0.10%)
+
+The IO stats are not displayed but show a similar ratio to ext3 and system
+CPU usage is also lower.  Hence, this slowdown is unexplained but may be
+due to differences in XFS in the read path and how it locks even though
+direct IO is not a factor.  Tracing was not enabled to see what flags are
+passed into xfs_ilock to see if the IO is all behind one lock but it's one
+potential explanation.
+
+UMA paralleldd-single on ext3 (ext4 -o nodelalloc)
+
+This showed nothing interesting as the test was too short-lived to draw
+any conclusions.  There was some difference in the kernels but it was
+within the noise.  The same applies for XFS.
+
+UMA pgbench-small on ext3 (ext4 -o nodelalloc)
+
+This showed very little that was interesting.  The database load time was
+slower but by a very small margin.  The actual transaction times were
+highly variable and inconclusive.
+
+NUMA pgbench-small on ext3 (ext4 -o nodelalloc)
+
+Load times are not reported but they completed 1.5% faster.
+
+                             4.4.0                 4.4.0
+                           vanilla        readahead-v1r1
+Hmean    1       3000.54 (  0.00%)     2895.28 ( -3.51%)
+Hmean    8      20596.33 (  0.00%)    19291.92 ( -6.33%)
+Hmean    12     30760.68 (  0.00%)    30019.58 ( -2.41%)
+Hmean    24     74383.22 (  0.00%)    73580.80 ( -1.08%)
+Hmean    32     88377.30 (  0.00%)    88928.70 (  0.62%)
+Hmean    48     88133.53 (  0.00%)    96099.16 (  9.04%)
+Hmean    80     55981.37 (  0.00%)    76886.10 ( 37.34%)
+Hmean    112    74060.29 (  0.00%)    87632.95 ( 18.33%)
+Hmean    144    51331.50 (  0.00%)    66135.77 ( 28.84%)
+Hmean    172    44256.92 (  0.00%)    63521.73 ( 43.53%)
+Hmean    192    35942.74 (  0.00%)    71121.35 ( 97.87%)
+
+The impact here is substantial particularly for higher thread-counts. 
+It's interesting to note that there is an apparent regression for low
+thread counts.  In general, there was a high degree of variability but the
+gains were all outside of the noise.  In general, the io stats did not
+show any particular pattern about request size as the workload is mostly
+resident in memory.  The real curiousity is that readahead should have had
+little or no impact here as the data is mostly resident in memory. 
+Observing the transactions over time, there was a lot of variability and
+the performance is likely dominated by whether the data happened to be
+local or not.  In itself, this test does not push for inclusion of the
+patch due to the lack of IO but is included for completeness.
+
+UMA pgbench-small on xfs
+
+Similar observations to ext3 on the load times. The transaction times
+were stable but showed no significant performance difference.
+
+UMA pgbench-large on ext3 (ext4 -o nodelalloc)
+
+Database load times were slightly faster (3.36%). The transaction times
+were slower on average, more variable but still very close to the noise.
+
+UMA pgbench-large on xfs
+
+No significant difference on either database load times or transactions.
+
+UMA bonnie on ext3 (ext4 -o nodelalloc)
+
+                                               4.4.0                       4.4.0
+                                             vanilla              readahead-v1r1
+Hmean    SeqOut Char            81079.98 (  0.00%)        81172.05 (  0.11%)
+Hmean    SeqOut Block          104416.12 (  0.00%)       104116.24 ( -0.29%)
+Hmean    SeqOut Rewrite         44153.34 (  0.00%)        44596.23 (  1.00%)
+Hmean    SeqIn  Char            88144.56 (  0.00%)        91702.67 (  4.04%)
+Hmean    SeqIn  Block          134581.06 (  0.00%)       137245.71 (  1.98%)
+Hmean    Random seeks             258.46 (  0.00%)          280.82 (  8.65%)
+Hmean    SeqCreate ops              2.25 (  0.00%)            2.25 (  0.00%)
+Hmean    SeqCreate read             2.25 (  0.00%)            2.25 (  0.00%)
+Hmean    SeqCreate del            911.29 (  0.00%)          880.24 ( -3.41%)
+Hmean    RandCreate ops             2.25 (  0.00%)            2.25 (  0.00%)
+Hmean    RandCreate read            2.00 (  0.00%)            2.25 ( 12.50%)
+Hmean    RandCreate del           911.89 (  0.00%)          878.80 ( -3.63%)
+
+The difference in headline performance figures is marginal and well within noise.
+The system CPU usage tells a slightly different story
+
+               4.4.0       4.4.0
+             vanillareadahead-v1r1
+User         1817.53     1798.89
+System        499.40      420.65
+Elapsed     10692.67    10588.08
+
+As do the IO stats
+
+                      4.4.0       4.4.0
+                     vanillareadahead-v1r1
+Mean sda-avgqusz     1079.16     1083.35
+Mean sda-avgrqsz      807.95     1225.08
+Mean sda-await       7308.06     9647.13
+Mean sda-r_await      119.04      133.27
+Mean sda-w_await    19106.20    20255.41
+Mean sda-svctm          4.67        7.02
+Mean sda-rrqm           1.80        0.99
+Mean sda-wrqm        5597.12     5723.32
+
+NUMA bonnie on ext3 (ext4 -o nodelalloc)
+
+bonnie
+                                               4.4.0                       4.4.0
+                                             vanilla              readahead-v1r1
+Hmean    SeqOut Char            58660.72 (  0.00%)        58930.39 (  0.46%)
+Hmean    SeqOut Block          253950.92 (  0.00%)       261466.37 (  2.96%)
+Hmean    SeqOut Rewrite        151960.60 (  0.00%)       161300.48 (  6.15%)
+Hmean    SeqIn  Char            57015.41 (  0.00%)        55699.16 ( -2.31%)
+Hmean    SeqIn  Block          600448.14 (  0.00%)       627565.09 (  4.52%)
+Hmean    Random seeks               0.00 (  0.00%)            0.00 (  0.00%)
+Hmean    SeqCreate ops              1.00 (  0.00%)            1.00 (  0.00%)
+Hmean    SeqCreate read             3.00 (  0.00%)            3.00 (  0.00%)
+Hmean    SeqCreate del             90.91 (  0.00%)           79.88 (-12.14%)
+Hmean    RandCreate ops             1.00 (  0.00%)            1.50 ( 50.00%)
+Hmean    RandCreate read            3.00 (  0.00%)            3.00 (  0.00%)
+Hmean    RandCreate del            92.95 (  0.00%)           93.97 (  1.10%)
+
+The impact is small but in line with the UMA machine in a number of
+details.  As before, the CPU usage is lower even if the iostats show very
+little differences overall.
+
+Overall, the headline performance figures are mostly improved or show
+little difference.  There is a small anomaly with XFS that indicates it
+may not always win there due to other factors.  There is also the
+possibility that a mostly random read workload that was larger than memory
+with each read spanning multiple pages but less than the max readahead
+window would suffer but the probability is low as the readahead window
+should scale properly.  On balance, this is a win -- particularly on the
+large read workloads.
+
+Link: http://lkml.kernel.org/r/20171004091205.468-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/llite/dir.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/lustre/lustre/llite/dir.c~lustre-dont-set-f_version-in-ll_readdir drivers/staging/lustre/lustre/llite/dir.c
---- a/drivers/staging/lustre/lustre/llite/dir.c~lustre-dont-set-f_version-in-ll_readdir
-+++ a/drivers/staging/lustre/lustre/llite/dir.c
-@@ -369,8 +369,6 @@ static int ll_readdir(struct file *filp,
- 	}
- 	ctx->pos = pos;
- 	ll_finish_md_op_data(op_data);
--	filp->f_version = inode->i_version;
+diff -puN include/linux/mm.h~mm-readahead-increase-maximum-readahead-window include/linux/mm.h
+--- a/include/linux/mm.h~mm-readahead-increase-maximum-readahead-window
++++ a/include/linux/mm.h
+@@ -2285,7 +2285,7 @@ int __must_check write_one_page(struct p
+ void task_dirty_inc(struct task_struct *tsk);
+ 
+ /* readahead.c */
+-#define VM_MAX_READAHEAD	128	/* kbytes */
++#define VM_MAX_READAHEAD	512	/* kbytes */
+ #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
+ 
+ int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+mm-remove-unused-pgdat_reclaimable_pages.patch
+
