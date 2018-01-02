@@ -1,123 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing.patch removed from -mm tree
-Date: Tue, 02 Jan 2018 14:09:46 -0800
-Message-ID: <5a4c032a.L4snJg2eUpFlV9oX%akpm@linux-foundation.org>
+Subject: + kernel-exitc-export-abort-to-modules-fix.patch added to -mm
+ tree
+Date: Tue, 02 Jan 2018 15:33:25 -0800
+Message-ID: <5a4c16c5.p38TXUQrNJA3uaIA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59142 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750960AbeABWJs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jan 2018 17:09:48 -0500
+        with ESMTP id S1750989AbeABXd1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jan 2018 18:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, alex.chen@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, Jose.Abreu@synopsys.com, rmk+kernel@armlinux.org.uk, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fall back to buffer IO when append dio is disabled with file hole existing
-has been removed from the -mm tree.  Its filename was
-     ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing.patch
+     Subject: arch: drop duplicate exports of abort()
+has been added to the -mm tree.  Its filename is
+     kernel-exitc-export-abort-to-modules-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-exitc-export-abort-to-modules-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-exitc-export-abort-to-modules-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2: fall back to buffer IO when append dio is disabled with file hole existing
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: arch: drop duplicate exports of abort()
 
-Before ocfs2 supporting allocating clusters while doing append-dio, all
-append dio will fall back to buffer io to allocate clusters firstly. 
-Also, when it steps on a file hole, it will fall back to buffer io, too. 
-But for current code, writing to file hole will leverage dio to allocate
-clusters.  This is not right, since whether append-io is enabled tells the
-capability whether ocfs2 can allocate space while doing dio.
+We now have exports in both architecture code in in common code, which
+causes a link failure when symbol versioning is eanbled, on four
+architectures:
 
-So introduce file hole check function back into ocfs2.  Once ocfs2 is
-doing dio upon a file hole with append-dio disabled, it will fall back to
-buffer IO to allocate clusters.
+kernel/exit.o: In function `__crc_abort':
+exit.c:(*ABS*+0xc0e2ec8b): multiple definition of `__crc_abort'
 
-[akpm@linux-foundation.org: rename ocfs2_check_range_for_holes(), make it return bool]
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F5C2CE@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: alex chen <alex.chen@huawei.com>
+This removes the four architecture specific exports and only leaves the
+export next to the __weak symbol.
+
+Link: http://lkml.kernel.org/r/20180102103311.706364-1-arnd@arndb.de
+Fixes: mmotm ("kernel/exit.c: export abort() to modules")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>	[arm]
+Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   43 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 41 insertions(+), 2 deletions(-)
+ arch/arm/kernel/traps.c       |    1 -
+ arch/m32r/kernel/traps.c      |    1 -
+ arch/unicore32/kernel/traps.c |    1 -
+ 3 files changed, 3 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-fall-back-to-buffer-io-when-append-dio-is-disabled-with-file-hole-existing
-+++ a/fs/ocfs2/aops.c
-@@ -2414,6 +2414,43 @@ static int ocfs2_dio_end_io(struct kiocb
- 	return ret;
+diff -puN arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/arm/kernel/traps.c
+--- a/arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
++++ a/arch/arm/kernel/traps.c
+@@ -793,7 +793,6 @@ void abort(void)
+ 	/* if that doesn't kill us, halt */
+ 	panic("Oops failed to kill thread");
  }
+-EXPORT_SYMBOL(abort);
  
-+/*
-+ * Will look for holes and unwritten extents in the range starting at
-+ * pos for count bytes (inclusive).
-+ */
-+static bool ocfs2_range_has_holes(struct inode *inode, loff_t pos, size_t count)
-+{
-+	bool ret = false;
-+	unsigned int extent_flags;
-+	u32 cpos, clusters, extent_len, phys_cpos;
-+	struct super_block *sb = inode->i_sb;
-+
-+	cpos = pos >> OCFS2_SB(sb)->s_clustersize_bits;
-+	clusters = ocfs2_clusters_for_bytes(sb, pos + count) - cpos;
-+
-+	while (clusters) {
-+		ret = ocfs2_get_clusters(inode, cpos, &phys_cpos, &extent_len,
-+					 &extent_flags);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
-+		if (phys_cpos == 0 || (extent_flags & OCFS2_EXT_UNWRITTEN)) {
-+			ret = true;
-+			goto out;
-+		}
-+
-+		if (extent_len > clusters)
-+			extent_len = clusters;
-+
-+		clusters -= extent_len;
-+		cpos += extent_len;
-+	}
-+out:
-+	return ret;
-+}
-+
- static ssize_t ocfs2_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ void __init trap_init(void)
  {
- 	struct file *file = iocb->ki_filp;
-@@ -2429,8 +2466,10 @@ static ssize_t ocfs2_direct_IO(struct ki
- 		return 0;
+diff -puN arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/m32r/kernel/traps.c
+--- a/arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
++++ a/arch/m32r/kernel/traps.c
+@@ -122,7 +122,6 @@ void abort(void)
+ 	/* if that doesn't kill us, halt */
+ 	panic("Oops failed to kill thread");
+ }
+-EXPORT_SYMBOL(abort);
  
- 	/* Fallback to buffered I/O if we do not support append dio. */
--	if (iocb->ki_pos + iter->count > i_size_read(inode) &&
--	    !ocfs2_supports_append_dio(osb))
-+	if (!ocfs2_supports_append_dio(osb) &&
-+			(iocb->ki_pos + iter->count > i_size_read(inode) ||
-+			 ocfs2_range_has_holes(inode, iocb->ki_pos,
-+						     iter->count)))
- 		return 0;
+ void __init trap_init(void)
+ {
+diff -puN arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/unicore32/kernel/traps.c
+--- a/arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
++++ a/arch/unicore32/kernel/traps.c
+@@ -298,7 +298,6 @@ void abort(void)
+ 	/* if that doesn't kill us, halt */
+ 	panic("Oops failed to kill thread");
+ }
+-EXPORT_SYMBOL(abort);
  
- 	if (iov_iter_rw(iter) == READ)
+ void __init trap_init(void)
+ {
 _
 
-Patches currently in -mm which might be from ge.changwei@h3c.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-ocfs2-dlm-clean-dead-code-up.patch
-ocfs2-cluster-neaten-a-member-of-o2net_msg_handler.patch
-ocfs2-clean-dead-code-in-suballocc.patch
+kernel-exitc-export-abort-to-modules-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
+bugh-work-around-gcc-pr82365-in-bug.patch
+kasan-rework-kconfig-settings.patch
 
