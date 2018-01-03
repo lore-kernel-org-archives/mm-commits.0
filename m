@@ -1,275 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked]
- mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch removed from -mm tree
-Date: Tue, 02 Jan 2018 16:23:34 -0800
-Message-ID: <5a4c2286.LTjfN5OKcLEawbJF%akpm@linux-foundation.org>
+Subject: [merged]
+ pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
+ removed from -mm tree
+Date: Wed, 03 Jan 2018 15:12:51 -0800
+Message-ID: <20180103231251.FeUZirB2n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57098 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751046AbeACAXg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jan 2018 19:23:36 -0500
+        with ESMTP id S1750913AbeACXMx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jan 2018 18:12:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hughd@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: davej@codemonkey.org.uk, ebiederm@xmission.com, gs051095@gmail.com, mm-commits@vger.kernel.org, oleg@redhat.com, riel@redhat.com, viro@zeniv.linux.org.uk, xemul@openvz.org
 
 
 The patch titled
-     Subject: mm: swap: unify cluster-based and vma-based swap readahead
+     Subject: pid: handle failure to allocate the first pid in a pid namespace
 has been removed from the -mm tree.  Its filename was
-     mm-swap-unify-cluster-based-and-vma-based-swap-readahead.patch
+     pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: swap: unify cluster-based and vma-based swap readahead
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: pid: handle failure to allocate the first pid in a pid namespace
 
-This patch makes do_swap_page() not need to be aware of two different swap
-readahead algorithms.  Just unify cluster-based and vma-based readahead
-function call.
+With the replacement of the pid bitmap and hashtable with an idr in
+alloc_pid started occassionally failing when allocating the first pid in a
+pid namespace.  Things were not completely reset resulting in the first
+allocated pid getting the number 2 (not 1).  Which further resulted in
+ns->proc_mnt not getting set and eventually causing an oops in
+proc_flush_task.
 
-Link: http://lkml.kernel.org/r/1509520520-32367-3-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Oops: 0000 [#1] SMP
+CPU: 2 PID: 6743 Comm: trinity-c117 Not tainted 4.15.0-rc4-think+ #2
+RIP: 0010:proc_flush_task+0x8e/0x1b0
+RSP: 0018:ffffc9000bbffc40 EFLAGS: 00010286
+RAX: 0000000000000001 RBX: 0000000000000001 RCX: 00000000fffffffb
+RDX: 0000000000000000 RSI: ffffc9000bbffc50 RDI: 0000000000000000
+RBP: ffffc9000bbffc63 R08: 0000000000000000 R09: 0000000000000002
+R10: ffffc9000bbffb70 R11: ffffc9000bbffc64 R12: 0000000000000003
+R13: 0000000000000000 R14: 0000000000000003 R15: ffff8804c10d7840
+FS:  00007f7cb8965700(0000) GS:ffff88050a200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 00000003e21ae003 CR4: 00000000001606e0
+DR0: 00007fb1d6c22000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000600
+Call Trace:
+ ? release_task+0xaf/0x680
+ release_task+0xd2/0x680
+ ? wait_consider_task+0xb82/0xce0
+ wait_consider_task+0xbe9/0xce0
+ ? do_wait+0xe1/0x330
+ do_wait+0x151/0x330
+ kernel_wait4+0x8d/0x150
+ ? task_stopped_code+0x50/0x50
+ SYSC_wait4+0x95/0xa0
+ ? rcu_read_lock_sched_held+0x6c/0x80
+ ? syscall_trace_enter+0x2d7/0x340
+ ? do_syscall_64+0x60/0x210
+ do_syscall_64+0x60/0x210
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x7f7cb82603aa
+RSP: 002b:00007ffd60770bc8 EFLAGS: 00000246
+ ORIG_RAX: 000000000000003d
+RAX: ffffffffffffffda RBX: 00007f7cb6cd4000 RCX: 00007f7cb82603aa
+RDX: 000000000000000b RSI: 00007ffd60770bd0 RDI: 0000000000007cca
+RBP: 0000000000007cca R08: 00007f7cb8965700 R09: 00007ffd607c7080
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffd60770bd0 R14: 00007f7cb6cd4058 R15: 00000000cccccccd
+Code: c1 e2 04 44 8b 60 30 48 8b 40 38 44 8b 34 11 48 c7 c2 60 3a f5 81 44 89 e1 4c 8b 68 58 e8 4b b4 77 00 89 44 24 14 48 8d 74 24 10 <49> 8b 7d 00 e8 b9 6a f9 ff 48 85 c0 74 1a 48 89 c7 48 89 44 24
+RIP: proc_flush_task+0x8e/0x1b0 RSP: ffffc9000bbffc40
+CR2: 0000000000000000
+---[ end trace 53d67a6481059862 ]---
+
+Improve the quality of the implementation by resetting the place to start
+allocating pids on failure to allocate the first pid.
+
+As improving the quality of the implementation is the goal remove the now
+unnecesarry disable_pid_allocations call when we fail to mount proc.
+
+Link: http://lkml.kernel.org/r/87efnkdde4.fsf_-_@xmission.com
+Fixes: 95846ecf9dac ("pid: replace pid bitmap implementation with IDR API")
+Fixes: 8ef047aaaeb8 ("pid namespaces: make alloc_pid(), free_pid() and put_pid() work with struct upid")
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Reported-by: Dave Jones <davej@codemonkey.org.uk>
+Cc: Gargi Sharma <gs051095@gmail.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   27 ++++++-----------------
- mm/memory.c          |   11 +++------
- mm/shmem.c           |    5 +++-
- mm/swap_state.c      |   48 +++++++++++++++++++++++++++++++----------
- 4 files changed, 53 insertions(+), 38 deletions(-)
+ kernel/pid.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-unify-cluster-based-and-vma-based-swap-readahead include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/include/linux/swap.h
-@@ -401,7 +401,6 @@ int generic_swapfile_activate(struct swa
- #define SWAP_ADDRESS_SPACE_SHIFT	14
- #define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
- extern struct address_space *swapper_spaces[];
--extern bool swap_vma_readahead;
- #define swap_address_space(entry)			    \
- 	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
- 		>> SWAP_ADDRESS_SPACE_SHIFT])
-@@ -423,10 +422,10 @@ extern struct page *read_swap_cache_asyn
- extern struct page *__read_swap_cache_async(swp_entry_t, gfp_t,
- 			struct vm_area_struct *vma, unsigned long addr,
- 			bool *new_page_allocated);
--extern struct page *swapin_readahead(swp_entry_t, gfp_t,
--			struct vm_area_struct *vma, unsigned long addr);
--extern struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
--					   struct vm_fault *vmf);
-+extern struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
-+				struct vm_fault *vmf);
-+extern struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
-+				struct vm_fault *vmf);
+diff -puN kernel/pid.c~pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace kernel/pid.c
+--- a/kernel/pid.c~pid-handle-failure-to-allocate-the-first-pid-in-a-pid-namespace
++++ a/kernel/pid.c
+@@ -193,10 +193,8 @@ struct pid *alloc_pid(struct pid_namespa
+ 	}
  
- /* linux/mm/swapfile.c */
- extern atomic_long_t nr_swap_pages;
-@@ -434,11 +433,6 @@ extern long total_swap_pages;
- extern atomic_t nr_rotate_swap;
- extern bool has_usable_swap(void);
+ 	if (unlikely(is_child_reaper(pid))) {
+-		if (pid_ns_prepare_proc(ns)) {
+-			disable_pid_allocation(ns);
++		if (pid_ns_prepare_proc(ns))
+ 			goto out_free;
+-		}
+ 	}
  
--static inline bool swap_use_vma_readahead(void)
--{
--	return READ_ONCE(swap_vma_readahead) && !atomic_read(&nr_rotate_swap);
--}
--
- /* Swap 50% full? Release swapcache more aggressively.. */
- static inline bool vm_swap_full(void)
- {
-@@ -534,19 +528,14 @@ static inline void put_swap_page(struct
- {
- }
+ 	get_pid_ns(ns);
+@@ -226,6 +224,10 @@ out_free:
+ 	while (++i <= ns->level)
+ 		idr_remove(&ns->idr, (pid->numbers + i)->nr);
  
--static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
--			struct vm_area_struct *vma, unsigned long addr)
-+static inline struct page *swap_cluster_readahead(swp_entry_t entry,
-+				gfp_t gfp_mask, struct vm_fault *vmf)
- {
- 	return NULL;
- }
- 
--static inline bool swap_use_vma_readahead(void)
--{
--	return false;
--}
--
--static inline struct page *do_swap_page_readahead(swp_entry_t fentry,
--				gfp_t gfp_mask, struct vm_fault *vmf)
-+static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
-+			struct vm_fault *vmf)
- {
- 	return NULL;
- }
-diff -puN mm/memory.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead mm/memory.c
---- a/mm/memory.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/mm/memory.c
-@@ -2889,7 +2889,8 @@ int do_swap_page(struct vm_fault *vmf)
- 		if (si->flags & SWP_SYNCHRONOUS_IO &&
- 				__swap_count(si, entry) == 1) {
- 			/* skip swapcache */
--			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
-+							vmf->address);
- 			if (page) {
- 				__SetPageLocked(page);
- 				__SetPageSwapBacked(page);
-@@ -2898,12 +2899,8 @@ int do_swap_page(struct vm_fault *vmf)
- 				swap_readpage(page, true);
- 			}
- 		} else {
--			if (swap_use_vma_readahead())
--				page = do_swap_page_readahead(entry,
--					GFP_HIGHUSER_MOVABLE, vmf);
--			else
--				page = swapin_readahead(entry,
--				       GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
-+						vmf);
- 			swapcache = page;
- 		}
- 
-diff -puN mm/shmem.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead mm/shmem.c
---- a/mm/shmem.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/mm/shmem.c
-@@ -1413,9 +1413,12 @@ static struct page *shmem_swapin(swp_ent
- {
- 	struct vm_area_struct pvma;
- 	struct page *page;
-+	struct vm_fault vmf;
- 
- 	shmem_pseudo_vma_init(&pvma, info, index);
--	page = swapin_readahead(swap, gfp, &pvma, 0);
-+	vmf.vma = &pvma;
-+	vmf.address = 0;
-+	page = swap_cluster_readahead(swap, gfp, &vmf);
- 	shmem_pseudo_vma_destroy(&pvma);
- 
- 	return page;
-diff -puN mm/swap_state.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-unify-cluster-based-and-vma-based-swap-readahead
-+++ a/mm/swap_state.c
-@@ -38,7 +38,7 @@ static const struct address_space_operat
- 
- struct address_space *swapper_spaces[MAX_SWAPFILES] __read_mostly;
- static unsigned int nr_swapper_spaces[MAX_SWAPFILES] __read_mostly;
--bool swap_vma_readahead __read_mostly = true;
-+bool enable_vma_readahead __read_mostly = true;
- 
- #define SWAP_RA_WIN_SHIFT	(PAGE_SHIFT / 2)
- #define SWAP_RA_HITS_MASK	((1UL << SWAP_RA_WIN_SHIFT) - 1)
-@@ -322,6 +322,11 @@ void free_pages_and_swap_cache(struct pa
- 	release_pages(pagep, nr);
- }
- 
-+static inline bool swap_use_vma_readahead(void)
-+{
-+	return READ_ONCE(enable_vma_readahead) && !atomic_read(&nr_rotate_swap);
-+}
++	/* On failure to allocate the first pid, reset the state */
++	if (ns->pid_allocated == PIDNS_ADDING)
++		idr_set_cursor(&ns->idr, 0);
 +
- /*
-  * Lookup a swap entry in the swap cache. A found page will be returned
-  * unlocked and with its refcount incremented - we rely on the kernel
-@@ -539,11 +544,10 @@ static unsigned long swapin_nr_pages(uns
- }
+ 	spin_unlock_irq(&pidmap_lock);
  
- /**
-- * swapin_readahead - swap in pages in hope we need them soon
-+ * swap_cluster_readahead - swap in pages in hope we need them soon
-  * @entry: swap entry of this memory
-  * @gfp_mask: memory allocation flags
-- * @vma: user vma this address belongs to
-- * @addr: target address for mempolicy
-+ * @vmf: fault information
-  *
-  * Returns the struct page for entry and addr, after queueing swapin.
-  *
-@@ -555,10 +559,10 @@ static unsigned long swapin_nr_pages(uns
-  * This has been extended to use the NUMA policies from the mm triggering
-  * the readahead.
-  *
-- * Caller must hold down_read on the vma->vm_mm if vma is not NULL.
-+ * Caller must hold down_read on the vma->vm_mm if vmf->vma is not NULL.
-  */
--struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
--			struct vm_area_struct *vma, unsigned long addr)
-+struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
-+				struct vm_fault *vmf)
- {
- 	struct page *page;
- 	unsigned long entry_offset = swp_offset(entry);
-@@ -568,6 +572,8 @@ struct page *swapin_readahead(swp_entry_
- 	struct swap_info_struct *si = swp_swap_info(entry);
- 	struct blk_plug plug;
- 	bool do_poll = true, page_allocated;
-+	struct vm_area_struct *vma = vmf->vma;
-+	unsigned long addr = vmf->address;
- 
- 	mask = swapin_nr_pages(offset) - 1;
- 	if (!mask)
-@@ -723,7 +729,7 @@ static void swap_ra_info(struct vm_fault
- 	pte_unmap(orig_pte);
- }
- 
--struct page *do_swap_page_readahead(swp_entry_t fentry, gfp_t gfp_mask,
-+struct page *swap_vma_readahead(swp_entry_t fentry, gfp_t gfp_mask,
- 				    struct vm_fault *vmf)
- {
- 	struct blk_plug plug;
-@@ -771,20 +777,40 @@ skip:
- 				     ra_info.win == 1);
- }
- 
-+/**
-+ * swapin_readahead - swap in pages in hope we need them soon
-+ * @entry: swap entry of this memory
-+ * @gfp_mask: memory allocation flags
-+ * @vmf: fault information
-+ *
-+ * Returns the struct page for entry and addr, after queueing swapin.
-+ *
-+ * It's a main entry function for swap readahead. By the configuration,
-+ * it will read ahead blocks by cluster-based(ie, physical disk based)
-+ * or vma-based(ie, virtual address based on faulty address) readahead.
-+ */
-+struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
-+				struct vm_fault *vmf)
-+{
-+	return swap_use_vma_readahead() ?
-+			swap_vma_readahead(entry, gfp_mask, vmf) :
-+			swap_cluster_readahead(entry, gfp_mask, vmf);
-+}
-+
- #ifdef CONFIG_SYSFS
- static ssize_t vma_ra_enabled_show(struct kobject *kobj,
- 				     struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%s\n", swap_vma_readahead ? "true" : "false");
-+	return sprintf(buf, "%s\n", enable_vma_readahead ? "true" : "false");
- }
- static ssize_t vma_ra_enabled_store(struct kobject *kobj,
- 				      struct kobj_attribute *attr,
- 				      const char *buf, size_t count)
- {
- 	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
--		swap_vma_readahead = true;
-+		enable_vma_readahead = true;
- 	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
--		swap_vma_readahead = false;
-+		enable_vma_readahead = false;
- 	else
- 		return -EINVAL;
- 
+ 	kmem_cache_free(ns->pid_cachep, pid);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-mm-release-locked-page-in-do_swap_page.patch
-mm-do-not-stall-register_shrinker.patch
 
