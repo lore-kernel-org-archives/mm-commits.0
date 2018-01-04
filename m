@@ -1,27 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 04 Jan 2018 13:54:38 -0800
-Message-ID: <20180104215438.H0X6G7J-w%akpm@linux-foundation.org>
+Subject: + proc-spread-likely-unlikely-a-bit.patch added to -mm tree
+Date: Thu, 04 Jan 2018 14:40:46 -0800
+Message-ID: <5a4ead6e.4TMESxC2nSNPG5dI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41372 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753287AbeADVyl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 16:54:41 -0500
+        with ESMTP id S1752550AbeADWkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 17:40:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: proc: spread likely/unlikely a bit
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     proc-spread-likely-unlikely-a-bit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-spread-likely-unlikely-a-bit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-spread-likely-unlikely-a-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,54 +38,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: spread likely/unlikely a bit
 
+use_pde() is used at every open/read/write/...  of every random /proc
+file.  Negative refcount happens only if PDE is being deleted by module
+(read: never).  So it gets "likely".
+
+unuse_pde() gets "unlikely" for the same reason.
+
+close_pdeo() gets unlikely as the completion is filled only if there is a
+race between PDE removal and close() (read: never ever).
+
+It even saves code on x86_64 defconfig:
+
+	add/remove: 0/0 grow/shrink: 1/2 up/down: 2/-20 (-18)
+	Function                                     old     new   delta
+	close_pdeo                                   183     185      +2
+	proc_reg_get_unmapped_area                   119     111      -8
+	proc_reg_poll                                 85      73     -12
+
+Link: http://lkml.kernel.org/r/20180104175657.GA5204@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ fs/proc/inode.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/boot/dts/aspeed-g4.dtsi~linux-next-git-rejects arch/arm/boot/dts/aspeed-g4.dtsi
---- a/arch/arm/boot/dts/aspeed-g4.dtsi~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/aspeed-g4.dtsi
-@@ -203,11 +203,7 @@
- 				reg = <0x1e787000 0x40>;
- 				reg-shift = <2>;
- 				interrupts = <8>;
--<<<<<<< HEAD
--				clocks = <&clk_uart>;
--=======
- 				clocks = <&syscon ASPEED_CLK_APB>;
-->>>>>>> linux-next/akpm-base
- 				no-loopback-test;
- 				status = "disabled";
- 			};
+diff -puN fs/proc/inode.c~proc-spread-likely-unlikely-a-bit fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-spread-likely-unlikely-a-bit
++++ a/fs/proc/inode.c
+@@ -129,12 +129,12 @@ enum {BIAS = -1U<<31};
+ 
+ static inline int use_pde(struct proc_dir_entry *pde)
+ {
+-	return atomic_inc_unless_negative(&pde->in_use);
++	return likely(atomic_inc_unless_negative(&pde->in_use));
+ }
+ 
+ static void unuse_pde(struct proc_dir_entry *pde)
+ {
+-	if (atomic_dec_return(&pde->in_use) == BIAS)
++	if (unlikely(atomic_dec_return(&pde->in_use) == BIAS))
+ 		complete(pde->pde_unload_completion);
+ }
+ 
+@@ -167,7 +167,7 @@ static void close_pdeo(struct proc_dir_e
+ 		spin_lock(&pde->pde_unload_lock);
+ 		/* After ->release. */
+ 		list_del(&pdeo->lh);
+-		if (pdeo->c)
++		if (unlikely(pdeo->c))
+ 			complete(pdeo->c);
+ 		kfree(pdeo);
+ 	}
+@@ -421,7 +421,7 @@ static const char *proc_get_link(struct
+ 				 struct delayed_call *done)
+ {
+ 	struct proc_dir_entry *pde = PDE(inode);
+-	if (unlikely(!use_pde(pde)))
++	if (!use_pde(pde))
+ 		return ERR_PTR(-EINVAL);
+ 	set_delayed_call(done, proc_put_link, pde);
+ 	return pde->data;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-i-need-old-gcc.patch
-kernel-exitc-export-abort-to-modules.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-x86-mm-provide-pmdp_establish-helper-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
+proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
+proc-fix-proc-map_files-lookup.patch
+proc-simpler-proc-vmcore-cleanup.patch
+proc-less-memory-for-proc-map_files-readdir.patch
+proc-delete-children_seq_release.patch
+proc-rearrange-struct-proc_dir_entry.patch
+proc-fixup-comment.patch
+proc-spread-__ro_after_init.patch
+proc-spread-likely-unlikely-a-bit.patch
+uuid-cleanup-uapi-linux-uuidh.patch
+seq_file-delete-small-value-optimization.patch
+cpumask-make-cpumask_size-return-unsigned-int.patch
 
