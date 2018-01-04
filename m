@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-spread-likely-unlikely-a-bit.patch added to -mm tree
-Date: Thu, 04 Jan 2018 14:40:46 -0800
-Message-ID: <5a4ead6e.4TMESxC2nSNPG5dI%akpm@linux-foundation.org>
+Subject: + proc-rearrange-args.patch added to -mm tree
+Date: Thu, 04 Jan 2018 14:41:17 -0800
+Message-ID: <5a4ead8d.R7+E8uy9LdwptsN1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41408 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752550AbeADWkr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 17:40:47 -0500
+        with ESMTP id S1752550AbeADWlS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 17:41:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: spread likely/unlikely a bit
+     Subject: proc: rearrange args
 has been added to the -mm tree.  Its filename is
-     proc-spread-likely-unlikely-a-bit.patch
+     proc-rearrange-args.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-spread-likely-unlikely-a-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-rearrange-args.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-spread-likely-unlikely-a-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-rearrange-args.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,142 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: spread likely/unlikely a bit
+Subject: proc: rearrange args
 
-use_pde() is used at every open/read/write/...  of every random /proc
-file.  Negative refcount happens only if PDE is being deleted by module
-(read: never).  So it gets "likely".
+Rearrange args for smaller code.
 
-unuse_pde() gets "unlikely" for the same reason.
+lookup revolves around memcmp() which gets len 3rd arg, so propagate
+length as 3rd arg.
 
-close_pdeo() gets unlikely as the completion is filled only if there is a
-race between PDE removal and close() (read: never ever).
+readdir and lookup add additional arg to VFS ->readdir and ->lookup, so
+better add it to the end.
 
-It even saves code on x86_64 defconfig:
+Space savings on x86_64:
 
-	add/remove: 0/0 grow/shrink: 1/2 up/down: 2/-20 (-18)
+	add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-18 (-18)
 	Function                                     old     new   delta
-	close_pdeo                                   183     185      +2
-	proc_reg_get_unmapped_area                   119     111      -8
-	proc_reg_poll                                 85      73     -12
+	proc_readdir                                  22      13      -9
+	proc_lookup                                   18       9      -9
 
-Link: http://lkml.kernel.org/r/20180104175657.GA5204@avx2
+proc_match() is smaller if not inlined, I promise!
+
+Link: http://lkml.kernel.org/r/20180104175958.GB5204@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/generic.c  |   18 +++++++++---------
+ fs/proc/internal.h |    5 ++---
+ fs/proc/proc_net.c |    4 ++--
+ 3 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-spread-likely-unlikely-a-bit fs/proc/inode.c
---- a/fs/proc/inode.c~proc-spread-likely-unlikely-a-bit
-+++ a/fs/proc/inode.c
-@@ -129,12 +129,12 @@ enum {BIAS = -1U<<31};
+diff -puN fs/proc/generic.c~proc-rearrange-args fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-rearrange-args
++++ a/fs/proc/generic.c
+@@ -28,7 +28,7 @@
  
- static inline int use_pde(struct proc_dir_entry *pde)
+ static DEFINE_RWLOCK(proc_subdir_lock);
+ 
+-static int proc_match(unsigned int len, const char *name, struct proc_dir_entry *de)
++static int proc_match(const char *name, struct proc_dir_entry *de, unsigned int len)
  {
--	return atomic_inc_unless_negative(&pde->in_use);
-+	return likely(atomic_inc_unless_negative(&pde->in_use));
+ 	if (len < de->namelen)
+ 		return -1;
+@@ -60,7 +60,7 @@ static struct proc_dir_entry *pde_subdir
+ 		struct proc_dir_entry *de = rb_entry(node,
+ 						     struct proc_dir_entry,
+ 						     subdir_node);
+-		int result = proc_match(len, name, de);
++		int result = proc_match(name, de, len);
+ 
+ 		if (result < 0)
+ 			node = node->rb_left;
+@@ -84,7 +84,7 @@ static bool pde_subdir_insert(struct pro
+ 		struct proc_dir_entry *this = rb_entry(*new,
+ 						       struct proc_dir_entry,
+ 						       subdir_node);
+-		int result = proc_match(de->namelen, de->name, this);
++		int result = proc_match(de->name, this, de->namelen);
+ 
+ 		parent = *new;
+ 		if (result < 0)
+@@ -211,8 +211,8 @@ void proc_free_inum(unsigned int inum)
+  * Don't create negative dentries here, return -ENOENT by hand
+  * instead.
+  */
+-struct dentry *proc_lookup_de(struct proc_dir_entry *de, struct inode *dir,
+-		struct dentry *dentry)
++struct dentry *proc_lookup_de(struct inode *dir, struct dentry *dentry,
++			      struct proc_dir_entry *de)
+ {
+ 	struct inode *inode;
+ 
+@@ -235,7 +235,7 @@ struct dentry *proc_lookup_de(struct pro
+ struct dentry *proc_lookup(struct inode *dir, struct dentry *dentry,
+ 		unsigned int flags)
+ {
+-	return proc_lookup_de(PDE(dir), dir, dentry);
++	return proc_lookup_de(dir, dentry, PDE(dir));
  }
  
- static void unuse_pde(struct proc_dir_entry *pde)
+ /*
+@@ -247,8 +247,8 @@ struct dentry *proc_lookup(struct inode
+  * value of the readdir() call, as long as it's non-negative
+  * for success..
+  */
+-int proc_readdir_de(struct proc_dir_entry *de, struct file *file,
+-		    struct dir_context *ctx)
++int proc_readdir_de(struct file *file, struct dir_context *ctx,
++		    struct proc_dir_entry *de)
  {
--	if (atomic_dec_return(&pde->in_use) == BIAS)
-+	if (unlikely(atomic_dec_return(&pde->in_use) == BIAS))
- 		complete(pde->pde_unload_completion);
+ 	int i;
+ 
+@@ -292,7 +292,7 @@ int proc_readdir(struct file *file, stru
+ {
+ 	struct inode *inode = file_inode(file);
+ 
+-	return proc_readdir_de(PDE(inode), file, ctx);
++	return proc_readdir_de(file, ctx, PDE(inode));
  }
  
-@@ -167,7 +167,7 @@ static void close_pdeo(struct proc_dir_e
- 		spin_lock(&pde->pde_unload_lock);
- 		/* After ->release. */
- 		list_del(&pdeo->lh);
--		if (pdeo->c)
-+		if (unlikely(pdeo->c))
- 			complete(pdeo->c);
- 		kfree(pdeo);
+ /*
+diff -puN fs/proc/internal.h~proc-rearrange-args fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-rearrange-args
++++ a/fs/proc/internal.h
+@@ -153,10 +153,9 @@ extern bool proc_fill_cache(struct file
+  * generic.c
+  */
+ extern struct dentry *proc_lookup(struct inode *, struct dentry *, unsigned int);
+-extern struct dentry *proc_lookup_de(struct proc_dir_entry *, struct inode *,
+-				     struct dentry *);
++struct dentry *proc_lookup_de(struct inode *, struct dentry *, struct proc_dir_entry *);
+ extern int proc_readdir(struct file *, struct dir_context *);
+-extern int proc_readdir_de(struct proc_dir_entry *, struct file *, struct dir_context *);
++int proc_readdir_de(struct file *, struct dir_context *, struct proc_dir_entry *);
+ 
+ static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
+ {
+diff -puN fs/proc/proc_net.c~proc-rearrange-args fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~proc-rearrange-args
++++ a/fs/proc/proc_net.c
+@@ -135,7 +135,7 @@ static struct dentry *proc_tgid_net_look
+ 	de = ERR_PTR(-ENOENT);
+ 	net = get_proc_task_net(dir);
+ 	if (net != NULL) {
+-		de = proc_lookup_de(net->proc_net, dir, dentry);
++		de = proc_lookup_de(dir, dentry, net->proc_net);
+ 		put_net(net);
  	}
-@@ -421,7 +421,7 @@ static const char *proc_get_link(struct
- 				 struct delayed_call *done)
- {
- 	struct proc_dir_entry *pde = PDE(inode);
--	if (unlikely(!use_pde(pde)))
-+	if (!use_pde(pde))
- 		return ERR_PTR(-EINVAL);
- 	set_delayed_call(done, proc_put_link, pde);
- 	return pde->data;
+ 	return de;
+@@ -172,7 +172,7 @@ static int proc_tgid_net_readdir(struct
+ 	ret = -EINVAL;
+ 	net = get_proc_task_net(file_inode(file));
+ 	if (net != NULL) {
+-		ret = proc_readdir_de(net->proc_net, file, ctx);
++		ret = proc_readdir_de(file, ctx, net->proc_net);
+ 		put_net(net);
+ 	}
+ 	return ret;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
@@ -116,6 +189,7 @@ proc-rearrange-struct-proc_dir_entry.patch
 proc-fixup-comment.patch
 proc-spread-__ro_after_init.patch
 proc-spread-likely-unlikely-a-bit.patch
+proc-rearrange-args.patch
 uuid-cleanup-uapi-linux-uuidh.patch
 seq_file-delete-small-value-optimization.patch
 cpumask-make-cpumask_size-return-unsigned-int.patch
