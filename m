@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch added to
- -mm tree
-Date: Fri, 05 Jan 2018 12:54:10 -0800
-Message-ID: <5a4fe5f2.hkonm7Ipo0nLEa+A%akpm@linux-foundation.org>
+Subject: + mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
+ added to -mm tree
+Date: Fri, 05 Jan 2018 12:57:41 -0800
+Message-ID: <5a4fe6c5.Lauz7vs9J9puOpD2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60286 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752948AbeAEUyM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jan 2018 15:54:12 -0500
+        with ESMTP id S1751537AbeAEU5m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jan 2018 15:57:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jinli.zjl@alibaba-inc.com, mgorman@techsingularity.net, shidao.ytt@alibaba-inc.com, zhiche.yy@alibaba-inc.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix
+     Subject: mm, memory-failure: fix migration callback
 has been added to the -mm tree.  Its filename is
-     mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+     mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory-failure: fix migration callback
 
-tweak code comment
+kbuild robot has noticed
+>> mm/memory-failure.c:1587:33: error: passing argument 2 of 'migrate_pages' from incompatible pointer type [-Werror=incompatible-pointer-types]
+     ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+                                    ^~~~~~~~
+   In file included from mm/memory-failure.c:51:0:
+   include/linux/migrate.h:68:12: note: expected 'struct page * (*)(struct page *, long unsigned int)' but argument is of type 'struct page * (*)(struct page *, long unsigned int,  int **)'
+    extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
+               ^~~~~~~~~~~~~
+   mm/memory-failure.c: In function '__soft_offline_page':
+   mm/memory-failure.c:1665:34: error: passing argument 2 of 'migrate_pages' from incompatible pointer type [-Werror=incompatible-pointer-types]
+      ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+                                     ^~~~~~~~
+   In file included from mm/memory-failure.c:51:0:
+   include/linux/migrate.h:68:12: note: expected 'struct page * (*)(struct page *, long unsigned int)' but argument is of type 'struct page * (*)(struct page *, long unsigned int,  int **)'
+    extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
+               ^~~~~~~~~~~~~
 
-Cc: Caspar Zhang <jinli.zjl@alibaba-inc.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Oliver Yang <zhiche.yy@alibaba-inc.com>
-Cc: shidao.ytt <shidao.ytt@alibaba-inc.com>
+Fix this by removing the excessive argument.
+
+Link: http://lkml.kernel.org/r/20180105085259.GH2801@dhcp22.suse.cz
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix
-+++ a/mm/fadvise.c
-@@ -128,12 +128,11 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
- 		end_index = (endbyte >> PAGE_SHIFT);
- 		/*
--		 * page at end_index will be inclusively discarded according
--		 * to invalidate_mapping_pages() implementation, thus, minus
--		 * end_index by 1 means we would skip the last page.
--		 * Yet, if endbyte is page-aligned, or it is at the end of
--		 * file, we should not skip, discarding the last page is just
--		 * safe enough.
-+		 * The page at end_index will be inclusively discarded according
-+		 * by invalidate_mapping_pages(), so subtracting 1 from
-+		 * end_index means we will skip the last page.  But if endbyte
-+		 * is page aligned or is at the end of file, we should not skip
-+		 * that page - discarding the last page is safe enough.
- 		 */
- 		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
- 				endbyte != inode->i_size - 1) {
+diff -puN mm/memory-failure.c~mm-migrate-remove-reason-argument-from-new_page_t-fix-3 mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migrate-remove-reason-argument-from-new_page_t-fix-3
++++ a/mm/memory-failure.c
+@@ -1483,7 +1483,7 @@ int unpoison_memory(unsigned long pfn)
+ }
+ EXPORT_SYMBOL(unpoison_memory);
+ 
+-static struct page *new_page(struct page *p, unsigned long private, int **x)
++static struct page *new_page(struct page *p, unsigned long private)
+ {
+ 	int nid = page_to_nid(p);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-kernel-exitc-export-abort-to-modules.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-x86-mm-provide-pmdp_establish-helper-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-drop-hotplug-lock-from-lru_add_drain_all.patch
+mm-hugetlb-drop-hugepages_treat_as_movable-sysctl.patch
+mm-introduce-map_fixed_safe.patch
+fs-elf-drop-map_fixed-usage-from-elf_map.patch
+mm-numa-rework-do_pages_move.patch
+mm-migrate-remove-reason-argument-from-new_page_t.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
+mm-unclutter-thp-migration.patch
+mm-hugetlb-unify-core-page-allocation-accounting-and-initialization.patch
+mm-hugetlb-integrate-giga-hugetlb-more-naturally-to-the-allocation-path.patch
+mm-hugetlb-do-not-rely-on-overcommit-limit-during-migration.patch
+mm-hugetlb-get-rid-of-surplus-page-accounting-tricks.patch
+mm-hugetlb-further-simplify-hugetlb-allocation-api.patch
+hugetlb-mempolicy-fix-the-mbind-hugetlb-migration.patch
+a.patch
 
