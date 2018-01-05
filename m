@@ -1,196 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + proc-rearrange-args.patch added to -mm tree
-Date: Thu, 04 Jan 2018 14:41:17 -0800
-Message-ID: <5a4ead8d.R7+E8uy9LdwptsN1%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2.patch removed from -mm tree
+Date: Thu, 04 Jan 2018 16:12:30 -0800
+Message-ID: <5a4ec2ee./t9Zf595ScHWVGVD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34570 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752550AbeADWlS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 17:41:18 -0500
+        with ESMTP id S1751108AbeAEAMc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:12:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: dingtianhong@huawei.com, aryabinin@virtuozzo.com, David.Laight@ACULAB.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: rearrange args
-has been added to the -mm tree.  Its filename is
-     proc-rearrange-args.patch
+     Subject: ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2
+has been removed from the -mm tree.  Its filename was
+     ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-rearrange-args.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-rearrange-args.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: rearrange args
+From: Ding Tianhong <dingtianhong@huawei.com>
+Subject: ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2
 
-Rearrange args for smaller code.
+add braces around if block
 
-lookup revolves around memcmp() which gets len 3rd arg, so propagate
-length as 3rd arg.
-
-readdir and lookup add additional arg to VFS ->readdir and ->lookup, so
-better add it to the end.
-
-Space savings on x86_64:
-
-	add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-18 (-18)
-	Function                                     old     new   delta
-	proc_readdir                                  22      13      -9
-	proc_lookup                                   18       9      -9
-
-proc_match() is smaller if not inlined, I promise!
-
-Link: http://lkml.kernel.org/r/20180104175958.GB5204@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   18 +++++++++---------
- fs/proc/internal.h |    5 ++---
- fs/proc/proc_net.c |    4 ++--
- 3 files changed, 13 insertions(+), 14 deletions(-)
+ lib/ubsan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-rearrange-args fs/proc/generic.c
---- a/fs/proc/generic.c~proc-rearrange-args
-+++ a/fs/proc/generic.c
-@@ -28,7 +28,7 @@
+diff -puN lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2 lib/ubsan.c
+--- a/lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access-v2
++++ a/lib/ubsan.c
+@@ -321,10 +321,10 @@ void __ubsan_handle_type_mismatch(struct
  
- static DEFINE_RWLOCK(proc_subdir_lock);
- 
--static int proc_match(unsigned int len, const char *name, struct proc_dir_entry *de)
-+static int proc_match(const char *name, struct proc_dir_entry *de, unsigned int len)
- {
- 	if (len < de->namelen)
- 		return -1;
-@@ -60,7 +60,7 @@ static struct proc_dir_entry *pde_subdir
- 		struct proc_dir_entry *de = rb_entry(node,
- 						     struct proc_dir_entry,
- 						     subdir_node);
--		int result = proc_match(len, name, de);
-+		int result = proc_match(name, de, len);
- 
- 		if (result < 0)
- 			node = node->rb_left;
-@@ -84,7 +84,7 @@ static bool pde_subdir_insert(struct pro
- 		struct proc_dir_entry *this = rb_entry(*new,
- 						       struct proc_dir_entry,
- 						       subdir_node);
--		int result = proc_match(de->namelen, de->name, this);
-+		int result = proc_match(de->name, this, de->namelen);
- 
- 		parent = *new;
- 		if (result < 0)
-@@ -211,8 +211,8 @@ void proc_free_inum(unsigned int inum)
-  * Don't create negative dentries here, return -ENOENT by hand
-  * instead.
-  */
--struct dentry *proc_lookup_de(struct proc_dir_entry *de, struct inode *dir,
--		struct dentry *dentry)
-+struct dentry *proc_lookup_de(struct inode *dir, struct dentry *dentry,
-+			      struct proc_dir_entry *de)
- {
- 	struct inode *inode;
- 
-@@ -235,7 +235,7 @@ struct dentry *proc_lookup_de(struct pro
- struct dentry *proc_lookup(struct inode *dir, struct dentry *dentry,
- 		unsigned int flags)
- {
--	return proc_lookup_de(PDE(dir), dir, dentry);
-+	return proc_lookup_de(dir, dentry, PDE(dir));
+ 	if (!ptr)
+ 		handle_null_ptr_deref(data);
+-	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment))
++	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment)) {
+ 		if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS))
+ 			handle_missaligned_access(data, ptr);
+-	else
++	} else
+ 		handle_object_size_mismatch(data, ptr);
  }
- 
- /*
-@@ -247,8 +247,8 @@ struct dentry *proc_lookup(struct inode
-  * value of the readdir() call, as long as it's non-negative
-  * for success..
-  */
--int proc_readdir_de(struct proc_dir_entry *de, struct file *file,
--		    struct dir_context *ctx)
-+int proc_readdir_de(struct file *file, struct dir_context *ctx,
-+		    struct proc_dir_entry *de)
- {
- 	int i;
- 
-@@ -292,7 +292,7 @@ int proc_readdir(struct file *file, stru
- {
- 	struct inode *inode = file_inode(file);
- 
--	return proc_readdir_de(PDE(inode), file, ctx);
-+	return proc_readdir_de(file, ctx, PDE(inode));
- }
- 
- /*
-diff -puN fs/proc/internal.h~proc-rearrange-args fs/proc/internal.h
---- a/fs/proc/internal.h~proc-rearrange-args
-+++ a/fs/proc/internal.h
-@@ -153,10 +153,9 @@ extern bool proc_fill_cache(struct file
-  * generic.c
-  */
- extern struct dentry *proc_lookup(struct inode *, struct dentry *, unsigned int);
--extern struct dentry *proc_lookup_de(struct proc_dir_entry *, struct inode *,
--				     struct dentry *);
-+struct dentry *proc_lookup_de(struct inode *, struct dentry *, struct proc_dir_entry *);
- extern int proc_readdir(struct file *, struct dir_context *);
--extern int proc_readdir_de(struct proc_dir_entry *, struct file *, struct dir_context *);
-+int proc_readdir_de(struct file *, struct dir_context *, struct proc_dir_entry *);
- 
- static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
- {
-diff -puN fs/proc/proc_net.c~proc-rearrange-args fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~proc-rearrange-args
-+++ a/fs/proc/proc_net.c
-@@ -135,7 +135,7 @@ static struct dentry *proc_tgid_net_look
- 	de = ERR_PTR(-ENOENT);
- 	net = get_proc_task_net(dir);
- 	if (net != NULL) {
--		de = proc_lookup_de(net->proc_net, dir, dentry);
-+		de = proc_lookup_de(dir, dentry, net->proc_net);
- 		put_net(net);
- 	}
- 	return de;
-@@ -172,7 +172,7 @@ static int proc_tgid_net_readdir(struct
- 	ret = -EINVAL;
- 	net = get_proc_task_net(file_inode(file));
- 	if (net != NULL) {
--		ret = proc_readdir_de(net->proc_net, file, ctx);
-+		ret = proc_readdir_de(file, ctx, net->proc_net);
- 		put_net(net);
- 	}
- 	return ret;
+ EXPORT_SYMBOL(__ubsan_handle_type_mismatch);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dingtianhong@huawei.com are
 
-proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
-proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
-proc-fix-proc-map_files-lookup.patch
-proc-simpler-proc-vmcore-cleanup.patch
-proc-less-memory-for-proc-map_files-readdir.patch
-proc-delete-children_seq_release.patch
-proc-rearrange-struct-proc_dir_entry.patch
-proc-fixup-comment.patch
-proc-spread-__ro_after_init.patch
-proc-spread-likely-unlikely-a-bit.patch
-proc-rearrange-args.patch
-uuid-cleanup-uapi-linux-uuidh.patch
-seq_file-delete-small-value-optimization.patch
-cpumask-make-cpumask_size-return-unsigned-int.patch
+ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
 
