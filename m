@@ -1,83 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/9] kernel/exit.c: export abort() to modules
-Date: Thu, 04 Jan 2018 16:17:56 -0800
-Message-ID: <5a4ec434.ukRhyh/mqYst4zvD%akpm@linux-foundation.org>
+Subject: [patch 5/9] mm/debug.c: provide useful debugging information for
+ VM_BUG
+Date: Thu, 04 Jan 2018 16:17:59 -0800
+Message-ID: <5a4ec437.gW2xycF6d4emDnBe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35410 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751108AbeAEAR5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:17:57 -0500
+        with ESMTP id S1751108AbeAEASA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:18:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Alexey.Brodkin@synopsys.com, arnd@arndb.de, Jose.Abreu@synopsys.com, rmk+kernel@armlinux.org.uk, sudipm.mukherjee@gmail.com, Vineet.Gupta1@synopsys.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mawilcox@microsoft.com, me@tobin.cc, mhocko@suse.com
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/exit.c: export abort() to modules
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: mm/debug.c: provide useful debugging information for VM_BUG
 
-gcc -fisolate-erroneous-paths-dereference can generate calls to abort()
-from modular code too.
+With the recent addition of hashed kernel pointers, places which need to
+produce useful debug output have to specify %px, not %p.  This patch fixes
+all the VM debug to use %px.  This is appropriate because it's debug
+output that the user should never be able to trigger, and kernel
+developers need to see the actual pointers.
 
-[arnd@arndb.de: drop duplicate exports of abort()]
-  Link: http://lkml.kernel.org/r/20180102103311.706364-1-arnd@arndb.de
-Reported-by: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>
+Link: http://lkml.kernel.org/r/20171219133236.GE13680@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: "Tobin C. Harding" <me@tobin.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
 
- arch/arm/kernel/traps.c       |    1 -
- arch/m32r/kernel/traps.c      |    1 -
- arch/unicore32/kernel/traps.c |    1 -
- kernel/exit.c                 |    1 +
- 4 files changed, 1 insertion(+), 3 deletions(-)
+ mm/debug.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules arch/arm/kernel/traps.c
---- a/arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules
-+++ a/arch/arm/kernel/traps.c
-@@ -793,7 +793,6 @@ void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
--EXPORT_SYMBOL(abort);
+diff -puN mm/debug.c~provide-useful-debugging-information-for-vm_bug mm/debug.c
+--- a/mm/debug.c~provide-useful-debugging-information-for-vm_bug
++++ a/mm/debug.c
+@@ -50,7 +50,7 @@ void __dump_page(struct page *page, cons
+ 	 */
+ 	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
  
- void __init trap_init(void)
- {
-diff -puN arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules arch/m32r/kernel/traps.c
---- a/arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules
-+++ a/arch/m32r/kernel/traps.c
-@@ -122,7 +122,6 @@ void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
--EXPORT_SYMBOL(abort);
+-	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
++	pr_emerg("page:%px count:%d mapcount:%d mapping:%px index:%#lx",
+ 		  page, page_ref_count(page), mapcount,
+ 		  page->mapping, page_to_pgoff(page));
+ 	if (PageCompound(page))
+@@ -69,7 +69,7 @@ void __dump_page(struct page *page, cons
  
- void __init trap_init(void)
- {
-diff -puN arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules arch/unicore32/kernel/traps.c
---- a/arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules
-+++ a/arch/unicore32/kernel/traps.c
-@@ -298,7 +298,6 @@ void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
+ #ifdef CONFIG_MEMCG
+ 	if (page->mem_cgroup)
+-		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
++		pr_alert("page->mem_cgroup:%px\n", page->mem_cgroup);
+ #endif
  }
--EXPORT_SYMBOL(abort);
  
- void __init trap_init(void)
+@@ -84,10 +84,10 @@ EXPORT_SYMBOL(dump_page);
+ 
+ void dump_vma(const struct vm_area_struct *vma)
  {
-diff -puN kernel/exit.c~kernel-exitc-export-abort-to-modules kernel/exit.c
---- a/kernel/exit.c~kernel-exitc-export-abort-to-modules
-+++ a/kernel/exit.c
-@@ -1763,3 +1763,4 @@ __weak void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
-+EXPORT_SYMBOL(abort);
+-	pr_emerg("vma %p start %p end %p\n"
+-		"next %p prev %p mm %p\n"
+-		"prot %lx anon_vma %p vm_ops %p\n"
+-		"pgoff %lx file %p private_data %p\n"
++	pr_emerg("vma %px start %px end %px\n"
++		"next %px prev %px mm %px\n"
++		"prot %lx anon_vma %px vm_ops %px\n"
++		"pgoff %lx file %px private_data %px\n"
+ 		"flags: %#lx(%pGv)\n",
+ 		vma, (void *)vma->vm_start, (void *)vma->vm_end, vma->vm_next,
+ 		vma->vm_prev, vma->vm_mm,
+@@ -100,27 +100,27 @@ EXPORT_SYMBOL(dump_vma);
+ 
+ void dump_mm(const struct mm_struct *mm)
+ {
+-	pr_emerg("mm %p mmap %p seqnum %d task_size %lu\n"
++	pr_emerg("mm %px mmap %px seqnum %d task_size %lu\n"
+ #ifdef CONFIG_MMU
+-		"get_unmapped_area %p\n"
++		"get_unmapped_area %px\n"
+ #endif
+ 		"mmap_base %lu mmap_legacy_base %lu highest_vm_end %lu\n"
+-		"pgd %p mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
++		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
+ 		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
+ 		"pinned_vm %lx data_vm %lx exec_vm %lx stack_vm %lx\n"
+ 		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
+ 		"start_brk %lx brk %lx start_stack %lx\n"
+ 		"arg_start %lx arg_end %lx env_start %lx env_end %lx\n"
+-		"binfmt %p flags %lx core_state %p\n"
++		"binfmt %px flags %lx core_state %px\n"
+ #ifdef CONFIG_AIO
+-		"ioctx_table %p\n"
++		"ioctx_table %px\n"
+ #endif
+ #ifdef CONFIG_MEMCG
+-		"owner %p "
++		"owner %px "
+ #endif
+-		"exe_file %p\n"
++		"exe_file %px\n"
+ #ifdef CONFIG_MMU_NOTIFIER
+-		"mmu_notifier_mm %p\n"
++		"mmu_notifier_mm %px\n"
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+ 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
 _
