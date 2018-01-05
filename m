@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch
- added to -mm tree
-Date: Fri, 05 Jan 2018 12:51:54 -0800
-Message-ID: <5a4fe56a.n/5tXGB+qYFfOT4T%akpm@linux-foundation.org>
+Subject: +
+ mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch added to
+ -mm tree
+Date: Fri, 05 Jan 2018 12:54:10 -0800
+Message-ID: <5a4fe5f2.hkonm7Ipo0nLEa+A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752183AbeAEUvz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jan 2018 15:51:55 -0500
+        with ESMTP id S1752948AbeAEUyM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jan 2018 15:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shidao.ytt@alibaba-inc.com, jinli.zjl@alibaba-inc.com, mgorman@techsingularity.net, zhiche.yy@alibaba-inc.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jinli.zjl@alibaba-inc.com, mgorman@techsingularity.net, shidao.ytt@alibaba-inc.com, zhiche.yy@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/fadvise: discard partial page if endbyte is also EOF
+     Subject: mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix
 has been added to the -mm tree.  Its filename is
-     mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch
+     mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,217 +40,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: shidao.ytt <shidao.ytt@alibaba-inc.com>
-Subject: mm/fadvise: discard partial page if endbyte is also EOF
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix
 
-During our recent testing with fadvise(FADV_DONTNEED), we find that if
-given offset/length is not page-aligned, the last page will not be
-discarded.  The tool we use is vmtouch (https://hoytech.com/vmtouch/), we
-map a 10KB-sized file into memory and then try to run this tool to evict
-the whole file mapping, but the last single page always remains staying in
-the memory:
+tweak code comment
 
-$./vmtouch -e test_10K
-           Files: 1
-     Directories: 0
-   Evicted Pages: 3 (12K)
-         Elapsed: 2.1e-05 seconds
-
-$./vmtouch test_10K
-           Files: 1
-     Directories: 0
-  Resident Pages: 1/3  4K/12K  33.3%
-         Elapsed: 5.5e-05 seconds
-
-However when we test with an older kernel, say 3.10, this problem is
-gone. So we wonder if this is a regression:
-
-$./vmtouch -e test_10K
-           Files: 1
-     Directories: 0
-   Evicted Pages: 3 (12K)
-         Elapsed: 8.2e-05 seconds
-
-$./vmtouch test_10K
-           Files: 1
-     Directories: 0
-  Resident Pages: 0/3  0/12K  0%  <-- partial page also discarded
-         Elapsed: 5e-05 seconds
-
-After digging a little bit into this problem, we find it seems not a
-regression.  Not discarding partial page is likely to be on purpose
-according to commit 441c228f817f7 ("mm: fadvise: document the
-fadvise(FADV_DONTNEED) behaviour for partial pages") written by Mel
-Gorman.  He explained why partial pages should be preserved instead of
-being discarded when using fadvise(FADV_DONTNEED).  However, the
-interesting part is that the actual code did NOT work as the same as it
-was described, the partial page was still discarded anyway, due to a
-calculation mistake of `end_index' passed to invalidate_mapping_pages(). 
-This mistake has not been fixed until recently, that's why we fail to
-reproduce our problem in old kernels.  The fix is done in commit
-18aba41cbf ("mm/fadvise.c: do not discard partial pages with
-POSIX_FADV_DONTNEED") by Oleg Drokin.
-
-Back to the original testing, our problem becomes that there is a speical
-case that, if the page-unaligned `endbyte' is also the end of file, it is
-not necessary at all to preserve the last partial page, as we all know no
-one else will use the rest of it.  It should be safe enough if we just
-discard the whole page.  So we add an EOF check in this patch.
-
-We also find a poosbile real world issue in mainline kernel.  Assume such
-scenario: A userspace backup application want to backup a huge amount of
-small files (<4k) at once, the developer might (I guess) want to use
-fadvise(FADV_DONTNEED) to save memory.  However, FADV_DONTNEED won't
-really happen since the only page mapped is a partial page, and kernel
-will preserve it.  Our patch also fixes this problem, since we know the
-endbyte is EOF, so we discard it.
-
-Here is a simple reproducer to reproduce and verify each scenario we
-described above:
-
-  test_fadvise.c
-  ==============================
-  #include <sys/mman.h>
-  #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <stdio.h>
-  #include <unistd.h>
-
-  int main(int argc, char **argv)
-  {
-  	int i, fd, ret, len;
-  	struct stat buf;
-  	void *addr;
-  	unsigned char *vec;
-  	char *strbuf;
-  	ssize_t pagesize = getpagesize();
-  	ssize_t filesize;
-
-  	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-  	if (fd < 0)
-  		return -1;
-  	filesize = strtoul(argv[2], NULL, 10);
-
-  	strbuf = malloc(filesize);
-  	memset(strbuf, 42, filesize);
-  	write(fd, strbuf, filesize);
-  	free(strbuf);
-  	fsync(fd);
-
-  	len = (filesize + pagesize - 1) / pagesize;
-  	printf("length of pages: %d\n", len);
-
-  	addr = mmap(NULL, filesize, PROT_READ, MAP_SHARED, fd, 0);
-  	if (addr == MAP_FAILED)
-  		return -1;
-
-  	ret = posix_fadvise(fd, 0, filesize, POSIX_FADV_DONTNEED);
-  	if (ret < 0)
-  		return -1;
-
-  	vec = malloc(len);
-  	ret = mincore(addr, filesize, (void *)vec);
-  	if (ret < 0)
-  		return -1;
-
-  	for (i = 0; i < len; i++)
-  		printf("pages[%d]: %x\n", i, vec[i] & 0x1);
-
-  	free(vec);
-  	close(fd);
-
-  	return 0;
-  }
-  ==============================
-
-Test 1: running on kernel with commit 18aba41cbf reverted:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6.revert+
-[root@caspar ~]# ./test_fadvise file1 1024
-length of pages: 1
-pages[0]: 0    # <-- partial page discarded
-[root@caspar ~]# ./test_fadvise file2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise file3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 0    # <-- partial page discarded
-
-Test 2: running on mainline kernel:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6+
-[root@caspar ~]# ./test_fadvise test1 1024
-length of pages: 1
-pages[0]: 1    # <-- partial and the only page not discarded
-[root@caspar ~]# ./test_fadvise test2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise test3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 1    # <-- partial page not discarded
-
-Test 3: running on kernel with this patch:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6.patched+
-[root@caspar ~]# ./test_fadvise test1 1024
-length of pages: 1
-pages[0]: 0    # <-- partial page and EOF, discarded
-[root@caspar ~]# ./test_fadvise test2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise test3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 0    # <-- partial page and EOF, discarded
-
-Link: http://lkml.kernel.org/r/5222da9ee20e1695eaabb69f631f200d6e6b8876.1515132470.git.jinli.zjl@alibaba-inc.com
-Signed-off-by: shidao.ytt <shidao.ytt@alibaba-inc.com>
-Signed-off-by: Caspar Zhang <jinli.zjl@alibaba-inc.com>
-Reviewed-by: Oliver Yang <zhiche.yy@alibaba-inc.com>
+Cc: Caspar Zhang <jinli.zjl@alibaba-inc.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Oliver Yang <zhiche.yy@alibaba-inc.com>
+Cc: shidao.ytt <shidao.ytt@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ mm/fadvise.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof
+diff -puN mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix
 +++ a/mm/fadvise.c
-@@ -127,7 +127,16 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		 */
+@@ -128,12 +128,11 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
  		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
  		end_index = (endbyte >> PAGE_SHIFT);
--		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK) {
-+		/*
-+		 * page at end_index will be inclusively discarded according
-+		 * to invalidate_mapping_pages() implementation, thus, minus
-+		 * end_index by 1 means we would skip the last page.
-+		 * Yet, if endbyte is page-aligned, or it is at the end of
-+		 * file, we should not skip, discarding the last page is just
-+		 * safe enough.
-+		 */
-+		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
-+				endbyte != inode->i_size - 1) {
- 			/* First page is tricky as 0 - 1 = -1, but pgoff_t
- 			 * is unsigned, so the end_index >= start_index
- 			 * check below would be true and we'll discard the whole
+ 		/*
+-		 * page at end_index will be inclusively discarded according
+-		 * to invalidate_mapping_pages() implementation, thus, minus
+-		 * end_index by 1 means we would skip the last page.
+-		 * Yet, if endbyte is page-aligned, or it is at the end of
+-		 * file, we should not skip, discarding the last page is just
+-		 * safe enough.
++		 * The page at end_index will be inclusively discarded according
++		 * by invalidate_mapping_pages(), so subtracting 1 from
++		 * end_index means we will skip the last page.  But if endbyte
++		 * is page aligned or is at the end of file, we should not skip
++		 * that page - discarding the last page is safe enough.
+ 		 */
+ 		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
+ 				endbyte != inode->i_size - 1) {
 _
 
-Patches currently in -mm which might be from shidao.ytt@alibaba-inc.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch
+i-need-old-gcc.patch
+kernel-exitc-export-abort-to-modules.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
