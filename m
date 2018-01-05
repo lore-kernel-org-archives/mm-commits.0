@@ -1,89 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+Subject: [folded-merged] kernel-exitc-export-abort-to-modules-fix.patch
  removed from -mm tree
-Date: Thu, 04 Jan 2018 16:12:55 -0800
-Message-ID: <5a4ec307.UFyPPU3pMUDcXCU/%akpm@linux-foundation.org>
+Date: Thu, 04 Jan 2018 16:14:27 -0800
+Message-ID: <5a4ec363.gx4UgzbCqNovkrbq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34802 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751108AbeAEAM5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:12:57 -0500
+        with ESMTP id S1751108AbeAEAO3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:14:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingtianhong@huawei.com, aryabinin@virtuozzo.com, David.Laight@ACULAB.COM, mm-commits@vger.kernel.org
+To: arnd@arndb.de, Jose.Abreu@synopsys.com, rmk+kernel@armlinux.org.uk, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/ubsan.c: don't handle misaligned address when kernel supports unaligned access
+     Subject: arch: drop duplicate exports of abort()
 has been removed from the -mm tree.  Its filename was
-     ubsan-dont-handle-misaligned-address-when-support-unaligned-access.patch
+     kernel-exitc-export-abort-to-modules-fix.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was folded into kernel-exitc-export-abort-to-modules.patch
 
 ------------------------------------------------------
-From: Ding Tianhong <dingtianhong@huawei.com>
-Subject: lib/ubsan.c: don't handle misaligned address when kernel supports unaligned access
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: arch: drop duplicate exports of abort()
 
-ubsan reports a warning like:
+We now have exports in both architecture code in in common code, which
+causes a link failure when symbol versioning is eanbled, on four
+architectures:
 
-UBSAN: Undefined behaviour in ../include/linux/etherdevice.h:386:9
-load of misaligned address ffffffc069ba0482 for type 'long unsigned int'
-which requires 8 byte alignment
-CPU: 0 PID: 901 Comm: sshd Not tainted 4.xx+ #1
-Hardware name: linux,dummy-virt (DT)
-Call trace:
-[<ffffffc000093600>] dump_backtrace+0x0/0x348
-[<ffffffc000093968>] show_stack+0x20/0x30
-[<ffffffc001651664>] dump_stack+0x144/0x1b4
-[<ffffffc0016519b0>] ubsan_epilogue+0x18/0x74
-[<ffffffc001651bac>] __ubsan_handle_type_mismatch+0x1a0/0x25c
-[<ffffffc00125d8a0>] dev_gro_receive+0x17d8/0x1830
-[<ffffffc00125d928>] napi_gro_receive+0x30/0x158
-[<ffffffc000f4f93c>] virtnet_receive+0xad4/0x1fa8
+kernel/exit.o: In function `__crc_abort':
+exit.c:(*ABS*+0xc0e2ec8b): multiple definition of `__crc_abort'
 
-The reason is that when enabling the CONFIG_UBSAN_ALIGNMENT, ubsan will
-report the unaligned access even if the system supports it
-(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y).  This produces a lot of noise
-in the log and causes confusion.
+This removes the four architecture specific exports and only leaves the
+export next to the __weak symbol.
 
-Prevent the detection of unaligned access when the system support
-unaligned access.
-
-[dingtianhong@huawei.com: add braces around if block]
-Link: http://lkml.kernel.org/r/5b905d56-609e-3822-096a-3b93b3eb7675@huawei.com
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Link: http://lkml.kernel.org/r/20180102103311.706364-1-arnd@arndb.de
+Fixes: mmotm ("kernel/exit.c: export abort() to modules")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>	[arm]
+Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/kernel/traps.c       |    1 -
+ arch/m32r/kernel/traps.c      |    1 -
+ arch/unicore32/kernel/traps.c |    1 -
+ 3 files changed, 3 deletions(-)
 
-diff -puN lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access lib/ubsan.c
---- a/lib/ubsan.c~ubsan-dont-handle-misaligned-address-when-support-unaligned-access
-+++ a/lib/ubsan.c
-@@ -321,9 +321,10 @@ void __ubsan_handle_type_mismatch(struct
- 
- 	if (!ptr)
- 		handle_null_ptr_deref(data);
--	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment))
--		handle_missaligned_access(data, ptr);
--	else
-+	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment)) {
-+		if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS))
-+			handle_missaligned_access(data, ptr);
-+	} else
- 		handle_object_size_mismatch(data, ptr);
+diff -puN arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/arm/kernel/traps.c
+--- a/arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
++++ a/arch/arm/kernel/traps.c
+@@ -793,7 +793,6 @@ void abort(void)
+ 	/* if that doesn't kill us, halt */
+ 	panic("Oops failed to kill thread");
  }
- EXPORT_SYMBOL(__ubsan_handle_type_mismatch);
+-EXPORT_SYMBOL(abort);
+ 
+ void __init trap_init(void)
+ {
+diff -puN arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/m32r/kernel/traps.c
+--- a/arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
++++ a/arch/m32r/kernel/traps.c
+@@ -122,7 +122,6 @@ void abort(void)
+ 	/* if that doesn't kill us, halt */
+ 	panic("Oops failed to kill thread");
+ }
+-EXPORT_SYMBOL(abort);
+ 
+ void __init trap_init(void)
+ {
+diff -puN arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/unicore32/kernel/traps.c
+--- a/arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
++++ a/arch/unicore32/kernel/traps.c
+@@ -298,7 +298,6 @@ void abort(void)
+ 	/* if that doesn't kill us, halt */
+ 	panic("Oops failed to kill thread");
+ }
+-EXPORT_SYMBOL(abort);
+ 
+ void __init trap_init(void)
+ {
 _
 
-Patches currently in -mm which might be from dingtianhong@huawei.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kernel-exitc-export-abort-to-modules.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
+bugh-work-around-gcc-pr82365-in-bug.patch
+kasan-rework-kconfig-settings.patch
 
