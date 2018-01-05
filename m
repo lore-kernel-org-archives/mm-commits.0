@@ -1,97 +1,30 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged] kernel-exitc-export-abort-to-modules-fix.patch
- removed from -mm tree
-Date: Thu, 04 Jan 2018 16:14:27 -0800
-Message-ID: <5a4ec363.gx4UgzbCqNovkrbq%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 4 Jan 2018 16:17:32 -0800
+Message-ID: <20180104161732.40ac5445619607f336b2adf3@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35308 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751108AbeAEAO3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:14:29 -0500
+        with ESMTP id S1751108AbeAEARe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jan 2018 19:17:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, Jose.Abreu@synopsys.com, rmk+kernel@armlinux.org.uk, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
 
+9 fixes, based on e1915c8195b38393005be9b74bfa6a3a367c83b3:
 
-The patch titled
-     Subject: arch: drop duplicate exports of abort()
-has been removed from the -mm tree.  Its filename was
-     kernel-exitc-export-abort-to-modules-fix.patch
-
-This patch was dropped because it was folded into kernel-exitc-export-abort-to-modules.patch
-
-------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: arch: drop duplicate exports of abort()
-
-We now have exports in both architecture code in in common code, which
-causes a link failure when symbol versioning is eanbled, on four
-architectures:
-
-kernel/exit.o: In function `__crc_abort':
-exit.c:(*ABS*+0xc0e2ec8b): multiple definition of `__crc_abort'
-
-This removes the four architecture specific exports and only leaves the
-export next to the __weak symbol.
-
-Link: http://lkml.kernel.org/r/20180102103311.706364-1-arnd@arndb.de
-Fixes: mmotm ("kernel/exit.c: export abort() to modules")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>	[arm]
-Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/arm/kernel/traps.c       |    1 -
- arch/m32r/kernel/traps.c      |    1 -
- arch/unicore32/kernel/traps.c |    1 -
- 3 files changed, 3 deletions(-)
-
-diff -puN arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/arm/kernel/traps.c
---- a/arch/arm/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
-+++ a/arch/arm/kernel/traps.c
-@@ -793,7 +793,6 @@ void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
--EXPORT_SYMBOL(abort);
- 
- void __init trap_init(void)
- {
-diff -puN arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/m32r/kernel/traps.c
---- a/arch/m32r/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
-+++ a/arch/m32r/kernel/traps.c
-@@ -122,7 +122,6 @@ void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
--EXPORT_SYMBOL(abort);
- 
- void __init trap_init(void)
- {
-diff -puN arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix arch/unicore32/kernel/traps.c
---- a/arch/unicore32/kernel/traps.c~kernel-exitc-export-abort-to-modules-fix
-+++ a/arch/unicore32/kernel/traps.c
-@@ -298,7 +298,6 @@ void abort(void)
- 	/* if that doesn't kill us, halt */
- 	panic("Oops failed to kill thread");
- }
--EXPORT_SYMBOL(abort);
- 
- void __init trap_init(void)
- {
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-kernel-exitc-export-abort-to-modules.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
-bugh-work-around-gcc-pr82365-in-bug.patch
-kasan-rework-kconfig-settings.patch
+Subject: mm: check pfn_valid first in zero_resv_unavail
+Subject: kernel/acct.c: fix the acct->needcheck check in check_free_space()
+Subject: mm/mprotect: add a cond_resched() inside change_pmd_range()
+Subject: kernel/exit.c: export abort() to modules
+Subject: mm/debug.c: provide useful debugging information for VM_BUG
+Subject: mm/zsmalloc.c: include fs.h
+Subject: mm/sparse.c: wrong allocation for mem_section
+Subject: userfaultfd: clear the vma->vm_userfaultfd_ctx if UFFD_EVENT_FORK fails
+Subject: mailmap: update Mark Yao's email address
 
