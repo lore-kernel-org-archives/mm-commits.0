@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + build_bugh-remove-build_bug_on_null.patch added to -mm tree
-Date: Fri, 05 Jan 2018 13:01:18 -0800
-Message-ID: <5a4fe79e.XU3jnTrpGw8awNYp%akpm@linux-foundation.org>
+Subject: + mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch added to -mm tree
+Date: Mon, 08 Jan 2018 13:33:35 -0800
+Message-ID: <5a53e3af.YtK24N4bN0l68JrJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753056AbeAEVBT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Jan 2018 16:01:19 -0500
+        with ESMTP id S1756468AbeAHVdh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 16:33:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, abbotti@mev.co.uk, davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: build_bug.h: remove BUILD_BUG_ON_NULL()
+     Subject: mm-migrate-remove-reason-argument-from-new_page_t-fix-fix
 has been added to the -mm tree.  Its filename is
-     build_bugh-remove-build_bug_on_null.patch
+     mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/build_bugh-remove-build_bug_on_null.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/build_bugh-remove-build_bug_on_null.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: build_bug.h: remove BUILD_BUG_ON_NULL()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-migrate-remove-reason-argument-from-new_page_t-fix-fix
 
-This macro is only used by net/ipv6/mcast.c, but there is no reason
-why it must be BUILD_BUG_ON_NULL().
+fix alloc_misplaced_dst_page()
 
-Replace it with BUILD_BUG_ON_ZERO(), and remove BUILD_BUG_ON_NULL()
-definition from <linux/build_bug.h>.
-
-Link: http://lkml.kernel.org/r/1515121833-3174-3-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Ian Abbott <abbotti@mev.co.uk>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/build_bug.h |    2 --
- net/ipv6/mcast.c          |    8 ++++----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ mm/migrate.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/build_bug.h~build_bugh-remove-build_bug_on_null include/linux/build_bug.h
---- a/include/linux/build_bug.h~build_bugh-remove-build_bug_on_null
-+++ a/include/linux/build_bug.h
-@@ -8,7 +8,6 @@
- #define __BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
- #define BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
- #define BUILD_BUG_ON_ZERO(e) (0)
--#define BUILD_BUG_ON_NULL(e) ((void *)0)
- #define BUILD_BUG_ON_INVALID(e) (0)
- #define BUILD_BUG_ON_MSG(cond, msg) (0)
- #define BUILD_BUG_ON(condition) (0)
-@@ -28,7 +27,6 @@
-  * aren't permitted).
-  */
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
--#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:(-!!(e)); }))
+diff -puN mm/migrate.c~mm-migrate-remove-reason-argument-from-new_page_t-fix-fix mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-remove-reason-argument-from-new_page_t-fix-fix
++++ a/mm/migrate.c
+@@ -1784,8 +1784,7 @@ static bool migrate_balanced_pgdat(struc
+ }
  
- /*
-  * BUILD_BUG_ON_INVALID() permits the compiler to check the validity of the
-diff -puN net/ipv6/mcast.c~build_bugh-remove-build_bug_on_null net/ipv6/mcast.c
---- a/net/ipv6/mcast.c~build_bugh-remove-build_bug_on_null
-+++ a/net/ipv6/mcast.c
-@@ -65,10 +65,10 @@
- #include <net/ip6_checksum.h>
- 
- /* Ensure that we have struct in6_addr aligned on 32bit word. */
--static void *__mld2_query_bugs[] __attribute__((__unused__)) = {
--	BUILD_BUG_ON_NULL(offsetof(struct mld2_query, mld2q_srcs) % 4),
--	BUILD_BUG_ON_NULL(offsetof(struct mld2_report, mld2r_grec) % 4),
--	BUILD_BUG_ON_NULL(offsetof(struct mld2_grec, grec_mca) % 4)
-+static int __mld2_query_bugs[] __attribute__((__unused__)) = {
-+	BUILD_BUG_ON_ZERO(offsetof(struct mld2_query, mld2q_srcs) % 4),
-+	BUILD_BUG_ON_ZERO(offsetof(struct mld2_report, mld2r_grec) % 4),
-+	BUILD_BUG_ON_ZERO(offsetof(struct mld2_grec, grec_mca) % 4)
- };
- 
- static struct in6_addr mld2_all_mcr = MLD2_ALL_MCR_INIT;
+ static struct page *alloc_misplaced_dst_page(struct page *page,
+-					   unsigned long data,
+-					   int **result)
++					   unsigned long data)
+ {
+ 	int nid = (int) data;
+ 	struct page *newpage;
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-genl_magic-remove-own-build_bug_on-defines.patch
-build_bugh-remove-build_bug_on_null.patch
+i-need-old-gcc.patch
+kernel-exitc-export-abort-to-modules.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
