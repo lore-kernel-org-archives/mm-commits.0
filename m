@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + lib-strscpy-remove-word-at-a-time-optimization.patch added to
- -mm tree
-Date: Tue, 09 Jan 2018 15:28:55 -0800
-Message-ID: <5a555037.VXGDzwA8fmq1xwXQ%akpm@linux-foundation.org>
+Subject: +
+ mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
+ added to -mm tree
+Date: Tue, 09 Jan 2018 15:30:54 -0800
+Message-ID: <5a5550ae.aR9FiQP3iFKHJ1EC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59502 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757586AbeAIX3B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:29:01 -0500
+        with ESMTP id S1759187AbeAIXaz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:30:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, David.Laight@ACULAB.COM, dvyukov@google.com, eguan@redhat.com, glider@google.com, keescook@chromium.org, metcalf@alum.mit.edu, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: osalvador@techadventures.net, ayush.m@samsung.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/strscpy: remove word-at-a-time optimization.
+     Subject: mm/page_owner.c: remove drain_all_pages from init_early_allocated_pages
 has been added to the -mm tree.  Its filename is
-     lib-strscpy-remove-word-at-a-time-optimization.patch
+     mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-strscpy-remove-word-at-a-time-optimization.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-strscpy-remove-word-at-a-time-optimization.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +40,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: lib/strscpy: remove word-at-a-time optimization.
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm/page_owner.c: remove drain_all_pages from init_early_allocated_pages
 
-strscpy() performs the word-at-a-time optimistic reads.  So it may may
-access the memory past the end of the object, which is perfectly fine
-since strscpy() doesn't use that (past-the-end) data and makes sure the
-optimistic read won't cross a page boundary.
+When setting page_owner = on, the following warning can be seen in the
+boot log:
 
-But KASAN doesn't know anything about that so it will complain.  There are
-several possible ways to address this issue, but none are perfect.  See
-https://lkml.kernel.org/r/9f0a9cf6-51f7-cd1f-5dc6-6d510a7b8ec4@virtuozzo.com
+ WARNING: CPU: 0 PID: 0 at mm/page_alloc.c:2537 drain_all_pages+0x171/0x1a0
+ Modules linked in:
+ CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.15.0-rc7-next-20180109-1-default+ #7
+ Hardware name: Dell Inc. Latitude E7470/0T6HHJ, BIOS 1.11.3 11/09/2016
+ RIP: 0010:drain_all_pages+0x171/0x1a0
+ RSP: 0000:ffffffff82003ea8 EFLAGS: 00010246
+ RAX: 000000000000000f RBX: ffffffffffffffff RCX: ffffffff8205b388
+ RDX: 0000000000000001 RSI: 0000000000000096 RDI: 0000000000000202
+ RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000000000af
+ R10: 0000000000000004 R11: 00000000000000ae R12: ffff88024dfdcec0
+ R13: ffffffff82530740 R14: 0000000000000000 R15: 00000000a8831448
+ FS:  0000000000000000(0000) GS:ffff88024dc00000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: ffff88024dfff000 CR3: 000000000200a001 CR4: 00000000000606b0
+ DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ Call Trace:
+  init_page_owner+0x4e/0x260
+  start_kernel+0x3e6/0x4a6
+  ? set_init_arg+0x55/0x55
+  secondary_startup_64+0xa5/0xb0
+ Code: c5 ed ff 89 df 48 c7 c6 20 3b 71 82 e8 f9 4b 52 00 3b 05 d7 0b f8 00 89 c3 72 d5 5b 5d 41 5
+ ---[ end trace 45da7f0cb4aef07b ]---
 
-It seems the best solution is to simply disable word-at-a-time
-optimization.  My trivial testing shows that byte-at-a-time could be up to
-x4.3 times slower than word-at-a-time.  It may seems like a lot, but it's
-actually ~1.2e-10 sec per symbol vs ~4.8e-10 sec per symbol on modern
-hardware.  And we don't use strscpy() in a performance critical paths to
-copy large amounts of data, so it shouldn't matter anyway.
+This warning is shown because we are calling drain_all_pages() in
+init_early_allocated_pages(), but mm_percpu_wq is not up yet, it is being
+set up later on in kernel_init_freeable() -> init_mm_internals().
 
-Link: http://lkml.kernel.org/r/20180109163745.3692-1-aryabinin@virtuozzo.com
-Fixes: 30035e45753b7 ("string: provide strscpy()")
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Eryu Guan <eguan@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Chris Metcalf <metcalf@alum.mit.edu>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20180109153921.GA13070@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Ayush Mittal <ayush.m@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   38 --------------------------------------
- 1 file changed, 38 deletions(-)
+ mm/page_owner.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/string.c~lib-strscpy-remove-word-at-a-time-optimization lib/string.c
---- a/lib/string.c~lib-strscpy-remove-word-at-a-time-optimization
-+++ a/lib/string.c
-@@ -29,7 +29,6 @@
- #include <linux/errno.h>
- 
- #include <asm/byteorder.h>
--#include <asm/word-at-a-time.h>
- #include <asm/page.h>
- 
- #ifndef __HAVE_ARCH_STRNCASECMP
-@@ -177,45 +176,8 @@ EXPORT_SYMBOL(strlcpy);
-  */
- ssize_t strscpy(char *dest, const char *src, size_t count)
+diff -puN mm/page_owner.c~mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages
++++ a/mm/page_owner.c
+@@ -616,7 +616,6 @@ static void init_early_allocated_pages(v
  {
--	const struct word_at_a_time constants = WORD_AT_A_TIME_CONSTANTS;
--	size_t max = count;
- 	long res = 0;
+ 	pg_data_t *pgdat;
  
--	if (count == 0)
--		return -E2BIG;
--
--#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
--	/*
--	 * If src is unaligned, don't cross a page boundary,
--	 * since we don't know if the next page is mapped.
--	 */
--	if ((long)src & (sizeof(long) - 1)) {
--		size_t limit = PAGE_SIZE - ((long)src & (PAGE_SIZE - 1));
--		if (limit < max)
--			max = limit;
--	}
--#else
--	/* If src or dest is unaligned, don't do word-at-a-time. */
--	if (((long) dest | (long) src) & (sizeof(long) - 1))
--		max = 0;
--#endif
--
--	while (max >= sizeof(unsigned long)) {
--		unsigned long c, data;
--
--		c = *(unsigned long *)(src+res);
--		if (has_zero(c, &data, &constants)) {
--			data = prep_zero_mask(c, data, &constants);
--			data = create_zero_mask(data);
--			*(unsigned long *)(dest+res) = c & zero_bytemask(data);
--			return res + find_zero(data);
--		}
--		*(unsigned long *)(dest+res) = c;
--		res += sizeof(unsigned long);
--		count -= sizeof(unsigned long);
--		max -= sizeof(unsigned long);
--	}
+-	drain_all_pages(NULL);
+ 	for_each_online_pgdat(pgdat)
+ 		init_zones_in_node(pgdat);
+ }
+_
+
+Patches currently in -mm which might be from osalvador@techadventures.net are
+
+mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
+mm-slab-remove-redundant-assignments-for-slab_state.patch
+mm-memory_hotplug-remove-unnecesary-check-from-register_page_bootmem_info_section.patch
+mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section.patch
+
