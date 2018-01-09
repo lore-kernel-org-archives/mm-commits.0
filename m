@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch added to -mm tree
-Date: Mon, 08 Jan 2018 16:21:24 -0800
-Message-ID: <5a540b04.qnCLq/fHhO4JT9Kg%akpm@linux-foundation.org>
+Subject: + memcg-refactor-mem_cgroup_resize_limit.patch added to -mm tree
+Date: Mon, 08 Jan 2018 16:22:46 -0800
+Message-ID: <5a540b56.Pm8h5A1Mh9+LOpT4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751937AbeAIAVZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 19:21:25 -0500
+        with ESMTP id S1751835AbeAIAWr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 19:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yuzhao@google.com, ddstreet@ieee.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: only save zswap header if zpool is shrinkable
+     Subject: memcg: refactor mem_cgroup_resize_limit()
 has been added to the -mm tree.  Its filename is
-     zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
+     memcg-refactor-mem_cgroup_resize_limit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-refactor-mem_cgroup_resize_limit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-refactor-mem_cgroup_resize_limit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,141 +39,155 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: zswap: only save zswap header if zpool is shrinkable
+Subject: memcg: refactor mem_cgroup_resize_limit()
 
-We waste sizeof(swp_entry_t) for zswap header when using zsmalloc
-as zpool driver because zsmalloc doesn't support eviction.
+mem_cgroup_resize_limit() and mem_cgroup_resize_memsw_limit() have
+identical logics.  Refactor code so we don't need to keep two pieces of
+code that does same thing.
 
-Add zpool_shrinkable() to detect if zpool is shrinkable, and use
-it in zswap to avoid waste memory for zswap header.
-
-Link: http://lkml.kernel.org/r/20180108225101.15790-1-yuzhao@google.com
+Link: http://lkml.kernel.org/r/20180108224238.14583-1-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zpool.h |    2 ++
- mm/zpool.c            |   17 ++++++++++++++++-
- mm/zsmalloc.c         |    7 -------
- mm/zswap.c            |   16 ++++++++--------
- 4 files changed, 26 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |   77 ++++++++++------------------------------------
+ 1 file changed, 17 insertions(+), 60 deletions(-)
 
-diff -puN include/linux/zpool.h~zswap-only-save-zswap-header-if-zpool-is-shrinkable include/linux/zpool.h
---- a/include/linux/zpool.h~zswap-only-save-zswap-header-if-zpool-is-shrinkable
-+++ a/include/linux/zpool.h
-@@ -108,4 +108,6 @@ void zpool_register_driver(struct zpool_
+diff -puN mm/memcontrol.c~memcg-refactor-mem_cgroup_resize_limit mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-refactor-mem_cgroup_resize_limit
++++ a/mm/memcontrol.c
+@@ -2460,13 +2460,15 @@ static inline int mem_cgroup_move_swap_a
+ static DEFINE_MUTEX(memcg_limit_mutex);
  
- int zpool_unregister_driver(struct zpool_driver *driver);
- 
-+bool zpool_shrinkable(struct zpool *pool);
-+
- #endif
-diff -puN mm/zpool.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable mm/zpool.c
---- a/mm/zpool.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable
-+++ a/mm/zpool.c
-@@ -296,7 +296,8 @@ void zpool_free(struct zpool *zpool, uns
- int zpool_shrink(struct zpool *zpool, unsigned int pages,
- 			unsigned int *reclaimed)
+ static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
+-				   unsigned long limit)
++				   unsigned long limit, bool memsw)
  {
--	return zpool->driver->shrink(zpool->pool, pages, reclaimed);
-+	return zpool_shrinkable(zpool) ?
-+	       zpool->driver->shrink(zpool->pool, pages, reclaimed) : -EINVAL;
- }
+ 	unsigned long curusage;
+ 	unsigned long oldusage;
+ 	bool enlarge = false;
+ 	int retry_count;
+ 	int ret;
++	bool limits_invariant;
++	struct page_counter *counter = memsw ? &memcg->memsw : &memcg->memory;
  
- /**
-@@ -355,6 +356,20 @@ u64 zpool_get_total_size(struct zpool *z
- 	return zpool->driver->total_size(zpool->pool);
- }
+ 	/*
+ 	 * For keeping hierarchical_reclaim simple, how long we should retry
+@@ -2476,7 +2478,7 @@ static int mem_cgroup_resize_limit(struc
+ 	retry_count = MEM_CGROUP_RECLAIM_RETRIES *
+ 		      mem_cgroup_count_children(memcg);
  
-+/**
-+ * zpool_shrinkable() - Test if zpool is shrinkable
-+ * @pool	The zpool to test
-+ *
-+ * Zpool is only shrinkable when it's created with struct
-+ * zpool_ops.evict and its driver implements struct zpool_driver.shrink.
-+ *
-+ * Returns: true if shrinkable; false otherwise.
-+ */
-+bool zpool_shrinkable(struct zpool *zpool)
-+{
-+	return zpool->ops && zpool->ops->evict && zpool->driver->shrink;
-+}
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Dan Streetman <ddstreet@ieee.org>");
- MODULE_DESCRIPTION("Common API for compressed memory storage");
-diff -puN mm/zsmalloc.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable mm/zsmalloc.c
---- a/mm/zsmalloc.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable
-+++ a/mm/zsmalloc.c
-@@ -404,12 +404,6 @@ static void zs_zpool_free(void *pool, un
- 	zs_free(pool, handle);
- }
+-	oldusage = page_counter_read(&memcg->memory);
++	oldusage = page_counter_read(counter);
  
--static int zs_zpool_shrink(void *pool, unsigned int pages,
--			unsigned int *reclaimed)
--{
--	return -EINVAL;
+ 	do {
+ 		if (signal_pending(current)) {
+@@ -2485,73 +2487,28 @@ static int mem_cgroup_resize_limit(struc
+ 		}
+ 
+ 		mutex_lock(&memcg_limit_mutex);
+-		if (limit > memcg->memsw.limit) {
+-			mutex_unlock(&memcg_limit_mutex);
+-			ret = -EINVAL;
+-			break;
+-		}
+-		if (limit > memcg->memory.limit)
+-			enlarge = true;
+-		ret = page_counter_limit(&memcg->memory, limit);
+-		mutex_unlock(&memcg_limit_mutex);
+-
+-		if (!ret)
+-			break;
+-
+-		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, true);
+-
+-		curusage = page_counter_read(&memcg->memory);
+-		/* Usage is reduced ? */
+-		if (curusage >= oldusage)
+-			retry_count--;
+-		else
+-			oldusage = curusage;
+-	} while (retry_count);
+-
+-	if (!ret && enlarge)
+-		memcg_oom_recover(memcg);
+-
+-	return ret;
 -}
 -
- static void *zs_zpool_map(void *pool, unsigned long handle,
- 			enum zpool_mapmode mm)
- {
-@@ -447,7 +441,6 @@ static struct zpool_driver zs_zpool_driv
- 	.destroy =	zs_zpool_destroy,
- 	.malloc =	zs_zpool_malloc,
- 	.free =		zs_zpool_free,
--	.shrink =	zs_zpool_shrink,
- 	.map =		zs_zpool_map,
- 	.unmap =	zs_zpool_unmap,
- 	.total_size =	zs_zpool_total_size,
-diff -puN mm/zswap.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable mm/zswap.c
---- a/mm/zswap.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable
-+++ a/mm/zswap.c
-@@ -1063,8 +1063,8 @@ static int zswap_frontswap_store(unsigne
- 	}
+-static int mem_cgroup_resize_memsw_limit(struct mem_cgroup *memcg,
+-					 unsigned long limit)
+-{
+-	unsigned long curusage;
+-	unsigned long oldusage;
+-	bool enlarge = false;
+-	int retry_count;
+-	int ret;
+-
+-	/* see mem_cgroup_resize_res_limit */
+-	retry_count = MEM_CGROUP_RECLAIM_RETRIES *
+-		      mem_cgroup_count_children(memcg);
+-
+-	oldusage = page_counter_read(&memcg->memsw);
+-
+-	do {
+-		if (signal_pending(current)) {
+-			ret = -EINTR;
+-			break;
+-		}
+-
+-		mutex_lock(&memcg_limit_mutex);
+-		if (limit < memcg->memory.limit) {
++		/*
++		 * Make sure that the new limit (memsw or memory limit) doesn't
++		 * break our basic invariant rule memory.limit <= memsw.limit.
++		 */
++		limits_invariant = memsw ? limit >= memcg->memory.limit :
++					   limit <= memcg->memsw.limit;
++		if (!limits_invariant) {
+ 			mutex_unlock(&memcg_limit_mutex);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+-		if (limit > memcg->memsw.limit)
++		if (limit > counter->limit)
+ 			enlarge = true;
+-		ret = page_counter_limit(&memcg->memsw, limit);
++		ret = page_counter_limit(counter, limit);
+ 		mutex_unlock(&memcg_limit_mutex);
  
- 	/* store */
--	len = dlen + sizeof(struct zswap_header);
--	ret = zpool_malloc(entry->pool->zpool, len,
-+	hlen = zpool_shrinkable(entry->pool->zpool) ? sizeof(zhdr) : 0;
-+	ret = zpool_malloc(entry->pool->zpool, hlen + dlen,
- 			   __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM,
- 			   &handle);
- 	if (ret == -ENOSPC) {
-@@ -1075,10 +1075,9 @@ static int zswap_frontswap_store(unsigne
- 		zswap_reject_alloc_fail++;
- 		goto put_dstmem;
- 	}
--	zhdr = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
--	zhdr->swpentry = swp_entry(type, offset);
--	buf = (u8 *)(zhdr + 1);
--	memcpy(buf, dst, dlen);
-+	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
-+	memcpy(buf, &zhdr, hlen);
-+	memcpy(buf + hlen, dst, dlen);
- 	zpool_unmap_handle(entry->pool->zpool, handle);
- 	put_cpu_var(zswap_dstmem);
+ 		if (!ret)
+ 			break;
  
-@@ -1149,8 +1148,9 @@ static int zswap_frontswap_load(unsigned
+-		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, false);
++		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, !memsw);
  
- 	/* decompress */
- 	dlen = PAGE_SIZE;
--	src = (u8 *)zpool_map_handle(entry->pool->zpool, entry->handle,
--			ZPOOL_MM_RO) + sizeof(struct zswap_header);
-+	src = zpool_map_handle(entry->pool->zpool, entry->handle, ZPOOL_MM_RO);
-+	if (zpool_shrinkable(entry->pool->zpool))
-+		src += sizeof(struct zswap_header);
- 	dst = kmap_atomic(page);
- 	tfm = *get_cpu_ptr(entry->pool->tfm);
- 	ret = crypto_comp_decompress(tfm, src, entry->length, dst, &dlen);
+-		curusage = page_counter_read(&memcg->memsw);
++		curusage = page_counter_read(counter);
+ 		/* Usage is reduced ? */
+ 		if (curusage >= oldusage)
+ 			retry_count--;
+@@ -3231,10 +3188,10 @@ static ssize_t mem_cgroup_write(struct k
+ 		}
+ 		switch (MEMFILE_TYPE(of_cft(of)->private)) {
+ 		case _MEM:
+-			ret = mem_cgroup_resize_limit(memcg, nr_pages);
++			ret = mem_cgroup_resize_limit(memcg, nr_pages, false);
+ 			break;
+ 		case _MEMSWAP:
+-			ret = mem_cgroup_resize_memsw_limit(memcg, nr_pages);
++			ret = mem_cgroup_resize_limit(memcg, nr_pages, true);
+ 			break;
+ 		case _KMEM:
+ 			ret = memcg_update_kmem_limit(memcg, nr_pages);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
 
 mm-dont-expose-page-to-fast-gup-before-its-ready.patch
 zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
+memcg-refactor-mem_cgroup_resize_limit.patch
 
