@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
- added to -mm tree
-Date: Tue, 09 Jan 2018 15:25:19 -0800
-Message-ID: <5a554f5f.8G+AZUEqRY4AUl1P%akpm@linux-foundation.org>
+Subject: + bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch added
+ to -mm tree
+Date: Tue, 09 Jan 2018 15:25:22 -0800
+Message-ID: <5a554f62.NHqO1KNAqZyFnAAY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58506 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753895AbeAIXZU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:25:20 -0500
+        with ESMTP id S1753895AbeAIXZX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:25:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, rdunlap@infradead.org, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
+     Subject: include/linux/bitmap.h: make bitmap_fill() and bitmap_zero() consistent
 has been added to the -mm tree.  Its filename is
-     bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+     bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,79 +40,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
+Subject: include/linux/bitmap.h: make bitmap_fill() and bitmap_zero() consistent
 
-Since we have separate explicit test cases for bitmap_zero() /
-bitmap_clear() and bitmap_fill() / bitmap_set(), clean up
-test_zero_fill_copy() to only test bitmap_copy() functionality and thus
-rename a function to reflect the changes.
+Behaviour of bitmap_fill() differs from bitmap_zero() in a way how bits
+behind bitmap are handed.  bitmap_zero() clears entire bitmap by unsigned
+long boundary, while bitmap_fill() mimics bitmap_set().
 
-While here, replace bitmap_fill() by bitmap_set() with proper values.
+Here we change bitmap_fill() behaviour to be consistent with bitmap_zero()
+and add a note to documentation.
 
-Link: http://lkml.kernel.org/r/20180109172430.87452-3-andriy.shevchenko@linux.intel.com
+The change might reveal some bugs in the code where unused bits are
+handled differently and in such cases bitmap_set() has to be used.
+
+Link: http://lkml.kernel.org/r/20180109172430.87452-4-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Yury Norov <ynorov@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   29 +++++------------------------
- 1 file changed, 5 insertions(+), 24 deletions(-)
+ include/linux/bitmap.h |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename
-+++ a/lib/test_bitmap.c
-@@ -163,7 +163,7 @@ static void __init test_fill_set(void)
- 	expect_eq_pbl("0-1023", bmap, 1024);
+diff -puN include/linux/bitmap.h~bitmap-make-bitmap_fill-and-bitmap_zero-consistent include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-make-bitmap_fill-and-bitmap_zero-consistent
++++ a/include/linux/bitmap.h
+@@ -67,6 +67,11 @@
+  *  bitmap_from_arr32(dst, buf, nbits)          Copy nbits from u32[] buf to dst
+  *  bitmap_to_arr32(buf, src, nbits)            Copy nbits from buf to u32[] dst
+  *
++ * Note, bitmap_zero() and bitmap_fill() operate over the region of
++ * unsigned longs, that is, bits behind bitmap till the unsigned long
++ * boundary will be zeroed or filled as well. Consider to use
++ * bitmap_clear() or bitmap_set() to make explicit zeroing or filling
++ * respectively.
+  */
+ 
+ /**
+@@ -202,12 +207,12 @@ static inline void bitmap_zero(unsigned
+ 
+ static inline void bitmap_fill(unsigned long *dst, unsigned int nbits)
+ {
+-	unsigned int nlongs = BITS_TO_LONGS(nbits);
+-	if (!small_const_nbits(nbits)) {
+-		unsigned int len = (nlongs - 1) * sizeof(unsigned long);
+-		memset(dst, 0xff,  len);
++	if (small_const_nbits(nbits))
++		*dst = ~0UL;
++	else {
++		unsigned int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
++		memset(dst, 0xff, len);
+ 	}
+-	dst[nlongs - 1] = BITMAP_LAST_WORD_MASK(nbits);
  }
  
--static void __init test_zero_fill_copy(void)
-+static void __init test_copy(void)
- {
- 	DECLARE_BITMAP(bmap1, 1024);
- 	DECLARE_BITMAP(bmap2, 1024);
-@@ -172,36 +172,20 @@ static void __init test_zero_fill_copy(v
- 	bitmap_zero(bmap2, 1024);
- 
- 	/* single-word bitmaps */
--	expect_eq_pbl("", bmap1, 23);
--
--	bitmap_fill(bmap1, 19);
--	expect_eq_pbl("0-18", bmap1, 1024);
--
-+	bitmap_set(bmap1, 0, 19);
- 	bitmap_copy(bmap2, bmap1, 23);
- 	expect_eq_pbl("0-18", bmap2, 1024);
- 
--	bitmap_fill(bmap2, 23);
--	expect_eq_pbl("0-22", bmap2, 1024);
--
-+	bitmap_set(bmap2, 0, 23);
- 	bitmap_copy(bmap2, bmap1, 23);
- 	expect_eq_pbl("0-18", bmap2, 1024);
- 
--	bitmap_zero(bmap1, 23);
--	expect_eq_pbl("", bmap1, 1024);
--
- 	/* multi-word bitmaps */
--	bitmap_zero(bmap1, 1024);
--	expect_eq_pbl("", bmap1, 1024);
--
--	bitmap_fill(bmap1, 109);
--	expect_eq_pbl("0-108", bmap1, 1024);
--
-+	bitmap_set(bmap1, 0, 109);
- 	bitmap_copy(bmap2, bmap1, 1024);
- 	expect_eq_pbl("0-108", bmap2, 1024);
- 
- 	bitmap_fill(bmap2, 1024);
--	expect_eq_pbl("0-1023", bmap2, 1024);
--
- 	bitmap_copy(bmap2, bmap1, 1024);
- 	expect_eq_pbl("0-108", bmap2, 1024);
- 
-@@ -216,9 +200,6 @@ static void __init test_zero_fill_copy(v
- 	bitmap_fill(bmap2, 1024);
- 	bitmap_copy(bmap2, bmap1, 97);  /* ... but aligned on word length */
- 	expect_eq_pbl("0-108,128-1023", bmap2, 1024);
+ static inline void bitmap_copy(unsigned long *dst, const unsigned long *src,
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+scripts-decodecode-make-it-take-multiline-code-line.patch
+bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
+bitmap-add-bitmap_fill-bitmap_set-test-cases.patch
+bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
+
