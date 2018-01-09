@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch added to -mm tree
-Date: Tue, 09 Jan 2018 13:59:53 -0800
-Message-ID: <5a553b59./4zYwrVGnu7eMwk7%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix.patch
+ added to -mm tree
+Date: Tue, 09 Jan 2018 15:13:35 -0800
+Message-ID: <5a554c9f.t3OaKjdozTHUBg3O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35844 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754962AbeAIV7z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 16:59:55 -0500
+        with ESMTP id S932091AbeAIXNg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:13:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, christian.koenig@amd.com, mhocko@suse.com, pbonzini@redhat.com, sivanich@hpe.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mmu_notifier: annotate mmu notifiers with blockable invalidate callbacks fix fix
+     Subject: mm, hugetlb: fix a double unlock bug in alloc_surplus_huge_page()
 has been added to the -mm tree.  Its filename is
-     mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
+     mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, mmu_notifier: annotate mmu notifiers with blockable invalidate callbacks fix fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm, hugetlb: fix a double unlock bug in alloc_surplus_huge_page()
 
-Fix mmu_notifier.h comments in "mm, mmu_notifier: annotate mmu notifiers
-with blockable invalidate callbacks".
+We aren't holding the hugetlb_lock so there is no need to unlock.
 
-mmu_notifier_invalidate_range_end() can also call the invalidate_range()
-callback, so it must not block for MMU_INVALIDATE_DOES_NOT_BLOCK to be
-set.
-
-Also remove a bogus comment about invalidate_range() always being called
-under the ptl spinlock.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801091339570.240101@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Paolo Bonzini <pbonzini@redhat.com>
-Acked-by: Christian König <christian.koenig@amd.com>
-Acked-by: Dimitri Sivanich <sivanich@hpe.com>
+Link: http://lkml.kernel.org/r/20180109200559.g3iz5kvbdrz7yydp@mwanda
+Fixes: b27f11e5e675 ("mm, hugetlb: get rid of surplus page accounting tricks")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmu_notifier.h~mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix
-+++ a/include/linux/mmu_notifier.h
-@@ -34,8 +34,8 @@ struct mmu_notifier_ops {
- 	 * Flags to specify behavior of callbacks for this MMU notifier.
- 	 * Used to determine which context an operation may be called.
- 	 *
--	 * MMU_INVALIDATE_DOES_NOT_BLOCK: invalidate_{start,end} does not
--	 *				  block
-+	 * MMU_INVALIDATE_DOES_NOT_BLOCK: invalidate_range_* callbacks do not
-+	 *	block
- 	 */
- 	int flags;
+diff -puN mm/hugetlb.c~mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix
++++ a/mm/hugetlb.c
+@@ -1552,7 +1552,7 @@ static struct page *__alloc_surplus_huge
  
-@@ -151,8 +151,9 @@ struct mmu_notifier_ops {
- 	 * address space but may still be referenced by sptes until
- 	 * the last refcount is dropped.
- 	 *
--	 * If both of these callbacks cannot block, mmu_notifier_ops.flags
--	 * should have MMU_INVALIDATE_DOES_NOT_BLOCK set.
-+	 * If both of these callbacks cannot block, and invalidate_range
-+	 * cannot block, mmu_notifier_ops.flags should have
-+	 * MMU_INVALIDATE_DOES_NOT_BLOCK set.
- 	 */
- 	void (*invalidate_range_start)(struct mmu_notifier *mn,
- 				       struct mm_struct *mm,
-@@ -175,12 +176,13 @@ struct mmu_notifier_ops {
- 	 * external TLB range needs to be flushed. For more in depth
- 	 * discussion on this see Documentation/vm/mmu_notifier.txt
- 	 *
--	 * The invalidate_range() function is called under the ptl
--	 * spin-lock and not allowed to sleep.
--	 *
- 	 * Note that this function might be called with just a sub-range
- 	 * of what was passed to invalidate_range_start()/end(), if
- 	 * called between those functions.
-+	 *
-+	 * If this callback cannot block, and invalidate_range_{start,end}
-+	 * cannot block, mmu_notifier_ops.flags should have
-+	 * MMU_INVALIDATE_DOES_NOT_BLOCK set.
- 	 */
- 	void (*invalidate_range)(struct mmu_notifier *mn, struct mm_struct *mm,
- 				 unsigned long start, unsigned long end);
+ 	page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask, nid, nmask);
+ 	if (!page)
+-		goto out_unlock;
++		return NULL;
+ 
+ 	spin_lock(&hugetlb_lock);
+ 	/*
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
-mm-oom-avoid-reaping-only-for-mms-with-blockable-invalidate-callbacks.patch
+mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix.patch
 
