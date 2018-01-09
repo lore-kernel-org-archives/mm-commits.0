@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-expose-page-to-fast-gup-before-its-ready.patch added to -mm tree
-Date: Mon, 08 Jan 2018 16:19:04 -0800
-Message-ID: <5a540a78.nFilW7RD6glDOLbP%akpm@linux-foundation.org>
+Subject: + zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch added to -mm tree
+Date: Mon, 08 Jan 2018 16:21:24 -0800
+Message-ID: <5a540b04.qnCLq/fHhO4JT9Kg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43426 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751398AbeAIATG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 19:19:06 -0500
+        with ESMTP id S1751937AbeAIAVZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 19:21:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yuzhao@google.com, hannes@cmpxchg.org, jack@suse.cz, minchan@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, ddstreet@ieee.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't expose page to fast gup before it's ready
+     Subject: zswap: only save zswap header if zpool is shrinkable
 has been added to the -mm tree.  Its filename is
-     mm-dont-expose-page-to-fast-gup-before-its-ready.patch
+     zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-expose-page-to-fast-gup-before-its-ready.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-expose-page-to-fast-gup-before-its-ready.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +39,141 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: don't expose page to fast gup before it's ready
+Subject: zswap: only save zswap header if zpool is shrinkable
 
-We don't want to expose page before it's properly setup.  During page
-setup, we may call page_add_new_anon_rmap() which uses non- atomic bit op.
-If page is exposed before it's done, we could overwrite page flags that
-are set by get_user_pages_fast() or its callers.  Here is a non-fatal
-scenario (there might be other fatal problems that I didn't look into):
+We waste sizeof(swp_entry_t) for zswap header when using zsmalloc
+as zpool driver because zsmalloc doesn't support eviction.
 
-	CPU 1				CPU1
-set_pte_at()			get_user_pages_fast()
-page_add_new_anon_rmap()		gup_pte_range()
-	__SetPageSwapBacked()			SetPageReferenced()
+Add zpool_shrinkable() to detect if zpool is shrinkable, and use
+it in zswap to avoid waste memory for zswap header.
 
-Fix the problem by delaying set_pte_at() until page is ready.
-
-Link: http://lkml.kernel.org/r/20180108225632.16332-1-yuzhao@google.com
+Link: http://lkml.kernel.org/r/20180108225101.15790-1-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c   |    2 +-
- mm/swapfile.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/zpool.h |    2 ++
+ mm/zpool.c            |   17 ++++++++++++++++-
+ mm/zsmalloc.c         |    7 -------
+ mm/zswap.c            |   16 ++++++++--------
+ 4 files changed, 26 insertions(+), 16 deletions(-)
 
-diff -puN mm/memory.c~mm-dont-expose-page-to-fast-gup-before-its-ready mm/memory.c
---- a/mm/memory.c~mm-dont-expose-page-to-fast-gup-before-its-ready
-+++ a/mm/memory.c
-@@ -3042,7 +3042,6 @@ int do_swap_page(struct vm_fault *vmf)
- 	flush_icache_page(vma, page);
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
--	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	vmf->orig_pte = pte;
+diff -puN include/linux/zpool.h~zswap-only-save-zswap-header-if-zpool-is-shrinkable include/linux/zpool.h
+--- a/include/linux/zpool.h~zswap-only-save-zswap-header-if-zpool-is-shrinkable
++++ a/include/linux/zpool.h
+@@ -108,4 +108,6 @@ void zpool_register_driver(struct zpool_
  
- 	/* ksm created a completely new copy */
-@@ -3055,6 +3054,7 @@ int do_swap_page(struct vm_fault *vmf)
- 		mem_cgroup_commit_charge(page, memcg, true, false);
- 		activate_page(page);
- 	}
-+	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
+ int zpool_unregister_driver(struct zpool_driver *driver);
  
- 	swap_free(entry);
- 	if (mem_cgroup_swap_full(page) ||
-diff -puN mm/swapfile.c~mm-dont-expose-page-to-fast-gup-before-its-ready mm/swapfile.c
---- a/mm/swapfile.c~mm-dont-expose-page-to-fast-gup-before-its-ready
-+++ a/mm/swapfile.c
-@@ -1800,8 +1800,6 @@ static int unuse_pte(struct vm_area_stru
- 	dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
- 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 	get_page(page);
--	set_pte_at(vma->vm_mm, addr, pte,
--		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
- 	if (page == swapcache) {
- 		page_add_anon_rmap(page, vma, addr, false);
- 		mem_cgroup_commit_charge(page, memcg, true, false);
-@@ -1810,6 +1808,8 @@ static int unuse_pte(struct vm_area_stru
- 		mem_cgroup_commit_charge(page, memcg, false, false);
- 		lru_cache_add_active_or_unevictable(page, vma);
++bool zpool_shrinkable(struct zpool *pool);
++
+ #endif
+diff -puN mm/zpool.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable mm/zpool.c
+--- a/mm/zpool.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable
++++ a/mm/zpool.c
+@@ -296,7 +296,8 @@ void zpool_free(struct zpool *zpool, uns
+ int zpool_shrink(struct zpool *zpool, unsigned int pages,
+ 			unsigned int *reclaimed)
+ {
+-	return zpool->driver->shrink(zpool->pool, pages, reclaimed);
++	return zpool_shrinkable(zpool) ?
++	       zpool->driver->shrink(zpool->pool, pages, reclaimed) : -EINVAL;
+ }
+ 
+ /**
+@@ -355,6 +356,20 @@ u64 zpool_get_total_size(struct zpool *z
+ 	return zpool->driver->total_size(zpool->pool);
+ }
+ 
++/**
++ * zpool_shrinkable() - Test if zpool is shrinkable
++ * @pool	The zpool to test
++ *
++ * Zpool is only shrinkable when it's created with struct
++ * zpool_ops.evict and its driver implements struct zpool_driver.shrink.
++ *
++ * Returns: true if shrinkable; false otherwise.
++ */
++bool zpool_shrinkable(struct zpool *zpool)
++{
++	return zpool->ops && zpool->ops->evict && zpool->driver->shrink;
++}
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Dan Streetman <ddstreet@ieee.org>");
+ MODULE_DESCRIPTION("Common API for compressed memory storage");
+diff -puN mm/zsmalloc.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable
++++ a/mm/zsmalloc.c
+@@ -404,12 +404,6 @@ static void zs_zpool_free(void *pool, un
+ 	zs_free(pool, handle);
+ }
+ 
+-static int zs_zpool_shrink(void *pool, unsigned int pages,
+-			unsigned int *reclaimed)
+-{
+-	return -EINVAL;
+-}
+-
+ static void *zs_zpool_map(void *pool, unsigned long handle,
+ 			enum zpool_mapmode mm)
+ {
+@@ -447,7 +441,6 @@ static struct zpool_driver zs_zpool_driv
+ 	.destroy =	zs_zpool_destroy,
+ 	.malloc =	zs_zpool_malloc,
+ 	.free =		zs_zpool_free,
+-	.shrink =	zs_zpool_shrink,
+ 	.map =		zs_zpool_map,
+ 	.unmap =	zs_zpool_unmap,
+ 	.total_size =	zs_zpool_total_size,
+diff -puN mm/zswap.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable mm/zswap.c
+--- a/mm/zswap.c~zswap-only-save-zswap-header-if-zpool-is-shrinkable
++++ a/mm/zswap.c
+@@ -1063,8 +1063,8 @@ static int zswap_frontswap_store(unsigne
  	}
-+	set_pte_at(vma->vm_mm, addr, pte,
-+		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
- 	swap_free(entry);
- 	/*
- 	 * Move the page to the active list so it is not
+ 
+ 	/* store */
+-	len = dlen + sizeof(struct zswap_header);
+-	ret = zpool_malloc(entry->pool->zpool, len,
++	hlen = zpool_shrinkable(entry->pool->zpool) ? sizeof(zhdr) : 0;
++	ret = zpool_malloc(entry->pool->zpool, hlen + dlen,
+ 			   __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM,
+ 			   &handle);
+ 	if (ret == -ENOSPC) {
+@@ -1075,10 +1075,9 @@ static int zswap_frontswap_store(unsigne
+ 		zswap_reject_alloc_fail++;
+ 		goto put_dstmem;
+ 	}
+-	zhdr = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
+-	zhdr->swpentry = swp_entry(type, offset);
+-	buf = (u8 *)(zhdr + 1);
+-	memcpy(buf, dst, dlen);
++	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
++	memcpy(buf, &zhdr, hlen);
++	memcpy(buf + hlen, dst, dlen);
+ 	zpool_unmap_handle(entry->pool->zpool, handle);
+ 	put_cpu_var(zswap_dstmem);
+ 
+@@ -1149,8 +1148,9 @@ static int zswap_frontswap_load(unsigned
+ 
+ 	/* decompress */
+ 	dlen = PAGE_SIZE;
+-	src = (u8 *)zpool_map_handle(entry->pool->zpool, entry->handle,
+-			ZPOOL_MM_RO) + sizeof(struct zswap_header);
++	src = zpool_map_handle(entry->pool->zpool, entry->handle, ZPOOL_MM_RO);
++	if (zpool_shrinkable(entry->pool->zpool))
++		src += sizeof(struct zswap_header);
+ 	dst = kmap_atomic(page);
+ 	tfm = *get_cpu_ptr(entry->pool->tfm);
+ 	ret = crypto_comp_decompress(tfm, src, entry->length, dst, &dlen);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
 
 mm-dont-expose-page-to-fast-gup-before-its-ready.patch
+zswap-only-save-zswap-header-if-zpool-is-shrinkable.patch
 
