@@ -1,253 +1,318 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- mm-vmalloc-replace-opencoded-4-level-page-walkers.patch removed from -mm
- tree
-Date: Mon, 08 Jan 2018 17:19:53 -0800
-Message-ID: <5a5418b9.8cLva6+p1k9FmyaO%akpm@linux-foundation.org>
+Subject: + tools-fix-cross-compile-var-clobbering.patch added to -mm tree
+Date: Mon, 08 Jan 2018 17:27:36 -0800
+Message-ID: <5a541a88.3DhHcZkP9yQCghuT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60746 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33530 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933434AbeAIBT5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 20:19:57 -0500
+        with ESMTP id S1753595AbeAIB1i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jan 2018 20:27:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chris-wilson.co.uk, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
+To: martin@martingkelly.com, acme@kernel.org, broonie@kernel.org, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, jacek.anaszewski@gmail.com, jic23@kernel.org, kys@microsoft.com, linus.walleij@linaro.org, lizefan@huawei.com, lv.zheng@intel.com, mario.limonciello@dell.com, mingo@redhat.com, pali.rohar@gmail.com, pavel@ucw.cz, peterz@infradead.org, rafael.j.wysocki@intel.com, robert.moore@intel.com, rpurdie@rpsys.net, shuah@kernel.org, sthemmin@microsoft.com, tj@kernel.org, valentina.manea.m@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: replace opencoded 4-level page walkers
-has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
+     Subject: tools: fix cross-compile var clobbering
+has been added to the -mm tree.  Its filename is
+     tools-fix-cross-compile-var-clobbering.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-fix-cross-compile-var-clobbering.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-fix-cross-compile-var-clobbering.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: mm/vmalloc.c: replace opencoded 4-level page walkers
+From: Martin Kelly <martin@martingkelly.com>
+Subject: tools: fix cross-compile var clobbering
 
-Rather than open-code the intricacies of walking the 4-level page tables,
-use the generic page table walker apply_to_page_range() instead.
+Currently a number of Makefiles break when used with toolchains that pass
+extra flags in CC and other cross-compile related variables (such as
+--sysroot). Thus we get this error when we use a toolchain that puts
+--sysroot in the CC var:
 
-The important change is that it now cleans up after an unsuccessful
-insertion and propagates the correct error.  The current failure may lead
-to a WARN if we encounter ENOMEM in one vmap_pte_range() and later retry
-with the same page range:
+~/src/linux/tools$ make iio
+[snip]
+iio_event_monitor.c:18:10: fatal error: unistd.h: No such file or directory
+  #include <unistd.h>
+           ^~~~~~~~~~
 
-WARNING: CPU: 0 PID: 605 at mm/vmalloc.c:136 vmap_page_range_noflush+0x2c1/0x340
-i.e. WARN_ON(!pte_none(*pte))
+This occurs because we clobber several env vars related to cross-compiling
+with lines like this:
 
-v2: Don't convert the vunmap code over to apply_to_page_range() as it may
-try to allocate during atomic sections, such as exiting a task:
+CC = $(CROSS_COMPILE)gcc
 
-[    9.837563]  [<ffffffff810519b0>] pte_alloc_one_kernel+0x10/0x20
-[    9.837568]  [<ffffffff811a7486>] __pte_alloc_kernel+0x16/0xa0
-[    9.837572]  [<ffffffff811aaa76>] apply_to_page_range+0x3f6/0x460
-[    9.837576]  [<ffffffff811b8888>] free_unmap_vmap_area_noflush+0x28/0x40
-[    9.837579]  [<ffffffff811b9dcd>] remove_vm_area+0x4d/0x60
-[    9.837582]  [<ffffffff811b9e09>] __vunmap+0x29/0x130
-[    9.837585]  [<ffffffff811b9f7d>] vfree+0x3d/0x90
-[    9.837589]  [<ffffffff8107ace6>] put_task_stack+0x76/0x130
+Although this will point to a valid cross-compiler, we lose any extra
+flags that might exist in the CC variable, which can break toolchains that
+rely on them (for example, those that use --sysroot).  This easily shows
+up using a Yocto SDK:
 
-and it also upsets sparc64:
+$ . [snip]/sdk/environment-setup-cortexa8hf-neon-poky-linux-gnueabi
 
-[    2.530785] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff,max_idle_ns: 19112604462750000 ns
-[    2.532359] kernel BUG at mm/memory.c:1881!
-[    2.532798]               \|/ ____ \|/
-[    2.532798]               "@'/ .. \`@"
-[    2.532798]               /_| \__/ |_\
-[    2.532798]                  \__U_/
-[    2.533250] swapper(1): Kernel bad sw trap 5 [#1]
-[    2.533705] CPU: 0 PID: 1 Comm: swapper Not tainted 4.9.0-rc2+ #1
-[    2.534129] task: fffff8001f0af620 task.stack: fffff8001f0b0000
-[    2.534505] TSTATE: 0000004480001605 TPC: 00000000005124d8 TNPC: 00000000005124dc Y: 00000035    Not tainted
-[    2.535112] TPC: <apply_to_page_range+0x2f8/0x3a0>
-[    2.535469] g0: 00000000009b1548 g1: 0000000000a4a990 g2: 0000000000a4a990 g3: 0000000000b37694
-[    2.535857] g4: fffff8001f0af620 g5: 0000000000000000 g6: fffff8001f0b0000 g7: 0000000000000000
-[    2.536236] o0: 000000000000001f o1: 00000000009ac2c0 o2: 0000000000000759 o3: 0000000000122000
-[    2.536695] o4: 0000000000000000 o5: 00000000009ac2c0 sp: fffff8001f0b2d61 ret_pc: 00000000005124d0
-[    2.537086] RPC: <apply_to_page_range+0x2f0/0x3a0>
-[    2.537454] l0: 0000000000000000 l1: 0000000000002000 l2: fffff8001f10b000 l3: 0000000100002000
-[    2.537843] l4: 0000000000aef910 l5: 0000000000a5e7e8 l6: 0000000100001fff l7: ffffffffff800000
-[    2.538229] i0: 0000000000a5e7e8 i1: 0000000100000000 i2: 0000000100002000 i3: 000000000051e5e0
-[    2.538613] i4: fffff8001f0b3708 i5: fffff8001f10c000 i6: fffff8001f0b2e51 i7: 000000000051e8e0
-[    2.539007] I7: <vmap_page_range_noflush+0x40/0x80>
-[    2.539387] Call Trace:
-[    2.539765]  [000000000051e8e0] vmap_page_range_noflush+0x40/0x80
-[    2.540139]  [000000000051e970] map_vm_area+0x50/0x80
-[    2.540492]  [000000000051f84c] __vmalloc_node_range+0x14c/0x260
-[    2.540848]  [000000000051f98c] __vmalloc_node+0x2c/0x40
-[    2.541198]  [00000000004d39cc] bpf_prog_alloc+0x2c/0xa0
-[    2.541554]  [00000000008129bc] bpf_prog_create+0x3c/0xa0
-[    2.541916]  [0000000000adb21c] ptp_classifier_init+0x20/0x4c
-[    2.542271]  [0000000000ad9808] sock_init+0x90/0xa0
-[    2.542622]  [0000000000426cb0] do_one_initcall+0x30/0x160
-[    2.542978]  [0000000000aaeaec] kernel_init_freeable+0x10c/0x1b0
-[    2.543332]  [00000000008e3324] kernel_init+0x4/0x100
-[    2.543681]  [0000000000405f04] ret_from_fork+0x1c/0x2c
+$ echo $CC
+arm-poky-linux-gnueabi-gcc -march=armv7-a -mfpu=neon -mfloat-abi=hard
+-mcpu=cortex-a8
+--sysroot=[snip]/sdk/sysroots/cortexa8hf-neon-poky-linux-gnueabi
 
-which was a BUG_ON(pmd_huge(*pmd)) and seems to be a general problem
-pointed out by the generic pagewalkers that is handled by vunmap.  Perhaps
-we need a clear_page_range()?
+$ echo $CROSS_COMPILE
+arm-poky-linux-gnueabi-
 
-Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=98269
-References: msg-id:20161028171825.GA15116@roeck-us.net
-Link: http://lkml.kernel.org/r/20171219111025.28283-1-chris@chris-wilson.co.uk
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+$ echo ${CROSS_COMPILE}gcc
+krm-poky-linux-gnueabi-gcc
+
+Although arm-poky-linux-gnueabi-gcc is a cross-compiler, we've lost the
+--sysroot and other flags that enable us to find the right libraries to
+link against, so we can't find unistd.h and other libraries and headers. 
+Normally with the --sysroot flag we would find unistd.h in the sdk
+directory in the sysroot:
+
+$ find [snip]/sdk/sysroots -path '*/usr/include/unistd.h'
+[snip]/sdk/sysroots/cortexa8hf-neon-poky-linux-gnueabi/usr/include/unistd.h
+
+The perf Makefile adds CC = $(CROSS_COMPILE)gcc if and only if CC is not
+already set, and it compiles correctly with the above toolchain.
+
+So, generalize the logic that perf uses in the common Makefile and remove
+the manual CC = $(CROSS_COMPILE)gcc lines from each Makefile.
+
+Note that this patch does not fix cross-compile for all the tools (some
+have other bugs), but it does fix it for all except usb and acpi, which
+still have other unrelated issues.
+
+I tested both with and without the patch on native and cross-build and
+there appear to be no regressions.
+
+Link: http://lkml.kernel.org/r/20180107214028.23771-1-martin@martingkelly.com
+Signed-off-by: Martin Kelly <martin@martingkelly.com>
+Acked-by: Mark Brown <broonie@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Li Zefan <lizefan@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Pali Rohár <pali.rohar@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Valentina Manea <valentina.manea.m@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mario Limonciello <mario.limonciello@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |  110 ++++++++++++-------------------------------------
- 1 file changed, 27 insertions(+), 83 deletions(-)
+ tools/cgroup/Makefile            |    1 -
+ tools/gpio/Makefile              |    2 --
+ tools/hv/Makefile                |    1 -
+ tools/iio/Makefile               |    2 --
+ tools/laptop/freefall/Makefile   |    1 -
+ tools/leds/Makefile              |    1 -
+ tools/perf/Makefile.perf         |    6 ------
+ tools/power/acpi/Makefile.config |    3 ---
+ tools/scripts/Makefile.include   |   18 ++++++++++++++++++
+ tools/spi/Makefile               |    2 --
+ tools/usb/Makefile               |    1 -
+ tools/vm/Makefile                |    1 -
+ tools/wmi/Makefile               |    1 -
+ 13 files changed, 18 insertions(+), 22 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers
-+++ a/mm/vmalloc.c
-@@ -131,80 +131,27 @@ static void vunmap_page_range(unsigned l
- 	} while (pgd++, addr = next, addr != end);
- }
+diff -puN tools/cgroup/Makefile~tools-fix-cross-compile-var-clobbering tools/cgroup/Makefile
+--- a/tools/cgroup/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/cgroup/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for cgroup tools
  
--static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
--{
--	pte_t *pte;
--
--	/*
--	 * nr is a running index into the array which helps higher level
--	 * callers keep track of where we're up to.
--	 */
--
--	pte = pte_alloc_kernel(pmd, addr);
--	if (!pte)
--		return -ENOMEM;
--	do {
--		struct page *page = pages[*nr];
--
--		if (WARN_ON(!pte_none(*pte)))
--			return -EBUSY;
--		if (WARN_ON(!page))
--			return -ENOMEM;
--		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
--		(*nr)++;
--	} while (pte++, addr += PAGE_SIZE, addr != end);
--	return 0;
--}
-+struct vmap_page {
-+	pgprot_t prot;
-+	struct page **pages;
-+	unsigned long count;
-+};
+-CC = $(CROSS_COMPILE)gcc
+ CFLAGS = -Wall -Wextra
  
--static int vmap_pmd_range(pud_t *pud, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
-+static int vmap_page(pte_t *pte, pgtable_t token,
-+		     unsigned long addr, void *data)
- {
--	pmd_t *pmd;
--	unsigned long next;
+ all: cgroup_event_listener
+diff -puN tools/gpio/Makefile~tools-fix-cross-compile-var-clobbering tools/gpio/Makefile
+--- a/tools/gpio/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/gpio/Makefile
+@@ -12,8 +12,6 @@ endif
+ # (this improves performance and avoids hard-to-debug behaviour);
+ MAKEFLAGS += -r
+ 
+-CC = $(CROSS_COMPILE)gcc
+-LD = $(CROSS_COMPILE)ld
+ CFLAGS += -O2 -Wall -g -D_GNU_SOURCE -I$(OUTPUT)include
+ 
+ ALL_TARGETS := lsgpio gpio-hammer gpio-event-mon
+diff -puN tools/hv/Makefile~tools-fix-cross-compile-var-clobbering tools/hv/Makefile
+--- a/tools/hv/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/hv/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for Hyper-V tools
+ 
+-CC = $(CROSS_COMPILE)gcc
+ WARNINGS = -Wall -Wextra
+ CFLAGS = $(WARNINGS) -g $(shell getconf LFS_CFLAGS)
+ 
+diff -puN tools/iio/Makefile~tools-fix-cross-compile-var-clobbering tools/iio/Makefile
+--- a/tools/iio/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/iio/Makefile
+@@ -12,8 +12,6 @@ endif
+ # (this improves performance and avoids hard-to-debug behaviour);
+ MAKEFLAGS += -r
+ 
+-CC = $(CROSS_COMPILE)gcc
+-LD = $(CROSS_COMPILE)ld
+ CFLAGS += -O2 -Wall -g -D_GNU_SOURCE -I$(OUTPUT)include
+ 
+ ALL_TARGETS := iio_event_monitor lsiio iio_generic_buffer
+diff -puN tools/laptop/freefall/Makefile~tools-fix-cross-compile-var-clobbering tools/laptop/freefall/Makefile
+--- a/tools/laptop/freefall/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/laptop/freefall/Makefile
+@@ -2,7 +2,6 @@
+ PREFIX ?= /usr
+ SBINDIR ?= sbin
+ INSTALL ?= install
+-CC = $(CROSS_COMPILE)gcc
+ 
+ TARGET = freefall
+ 
+diff -puN tools/leds/Makefile~tools-fix-cross-compile-var-clobbering tools/leds/Makefile
+--- a/tools/leds/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/leds/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for LEDs tools
+ 
+-CC = $(CROSS_COMPILE)gcc
+ CFLAGS = -Wall -Wextra -g -I../../include/uapi
+ 
+ all: uledmon led_hw_brightness_mon
+diff -puN tools/perf/Makefile.perf~tools-fix-cross-compile-var-clobbering tools/perf/Makefile.perf
+--- a/tools/perf/Makefile.perf~tools-fix-cross-compile-var-clobbering
++++ a/tools/perf/Makefile.perf
+@@ -144,12 +144,6 @@ define allow-override
+     $(eval $(1) = $(2)))
+ endef
+ 
+-# Allow setting CC and AR and LD, or setting CROSS_COMPILE as a prefix.
+-$(call allow-override,CC,$(CROSS_COMPILE)gcc)
+-$(call allow-override,AR,$(CROSS_COMPILE)ar)
+-$(call allow-override,LD,$(CROSS_COMPILE)ld)
+-$(call allow-override,CXX,$(CROSS_COMPILE)g++)
 -
--	pmd = pmd_alloc(&init_mm, pud, addr);
--	if (!pmd)
--		return -ENOMEM;
--	do {
--		next = pmd_addr_end(addr, end);
--		if (vmap_pte_range(pmd, addr, next, prot, pages, nr))
--			return -ENOMEM;
--	} while (pmd++, addr = next, addr != end);
--	return 0;
--}
-+	struct vmap_page *v = data;
-+	struct page *page;
+ LD += $(EXTRA_LDFLAGS)
  
--static int vmap_pud_range(p4d_t *p4d, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
--{
--	pud_t *pud;
--	unsigned long next;
-+	if (WARN_ON(!pte_none(*pte)))
-+		return -EBUSY;
+ HOSTCC  ?= gcc
+diff -puN tools/power/acpi/Makefile.config~tools-fix-cross-compile-var-clobbering tools/power/acpi/Makefile.config
+--- a/tools/power/acpi/Makefile.config~tools-fix-cross-compile-var-clobbering
++++ a/tools/power/acpi/Makefile.config
+@@ -56,9 +56,6 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
+ # to compile vs uClibc, that can be done here as well.
+ CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
+ CROSS_COMPILE ?= $(CROSS)
+-CC = $(CROSS_COMPILE)gcc
+-LD = $(CROSS_COMPILE)gcc
+-STRIP = $(CROSS_COMPILE)strip
+ HOSTCC = gcc
  
--	pud = pud_alloc(&init_mm, p4d, addr);
--	if (!pud)
-+	page = v->pages[v->count];
-+	if (WARN_ON(!page))
- 		return -ENOMEM;
--	do {
--		next = pud_addr_end(addr, end);
--		if (vmap_pmd_range(pud, addr, next, prot, pages, nr))
--			return -ENOMEM;
--	} while (pud++, addr = next, addr != end);
--	return 0;
--}
--
--static int vmap_p4d_range(pgd_t *pgd, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
--{
--	p4d_t *p4d;
--	unsigned long next;
+ # check if compiler option is supported
+diff -puN tools/scripts/Makefile.include~tools-fix-cross-compile-var-clobbering tools/scripts/Makefile.include
+--- a/tools/scripts/Makefile.include~tools-fix-cross-compile-var-clobbering
++++ a/tools/scripts/Makefile.include
+@@ -42,6 +42,24 @@ EXTRA_WARNINGS += -Wformat
  
--	p4d = p4d_alloc(&init_mm, pgd, addr);
--	if (!p4d)
--		return -ENOMEM;
--	do {
--		next = p4d_addr_end(addr, end);
--		if (vmap_pud_range(p4d, addr, next, prot, pages, nr))
--			return -ENOMEM;
--	} while (p4d++, addr = next, addr != end);
-+	set_pte_at(&init_mm, addr, pte, mk_pte(page, v->prot));
-+	v->count++;
- 	return 0;
- }
+ CC_NO_CLANG := $(shell $(CC) -dM -E -x c /dev/null | grep -Fq "__clang__"; echo $$?)
  
-@@ -217,22 +164,19 @@ static int vmap_p4d_range(pgd_t *pgd, un
- static int vmap_page_range_noflush(unsigned long start, unsigned long end,
- 				   pgprot_t prot, struct page **pages)
- {
--	pgd_t *pgd;
--	unsigned long next;
--	unsigned long addr = start;
--	int err = 0;
--	int nr = 0;
--
--	BUG_ON(addr >= end);
--	pgd = pgd_offset_k(addr);
--	do {
--		next = pgd_addr_end(addr, end);
--		err = vmap_p4d_range(pgd, addr, next, prot, pages, &nr);
--		if (err)
--			return err;
--	} while (pgd++, addr = next, addr != end);
-+	struct vmap_page v = { prot, pages };
-+	int err;
++# Makefiles suck: This macro sets a default value of $(2) for the
++# variable named by $(1), unless the variable has been set by
++# environment or command line. This is necessary for CC and AR
++# because make sets default values, so the simpler ?= approach
++# won't work as expected.
++define allow-override
++  $(if $(or $(findstring environment,$(origin $(1))),\
++            $(findstring command line,$(origin $(1)))),,\
++    $(eval $(1) = $(2)))
++endef
 +
-+	if ((end - start) >> PAGE_SHIFT > INT_MAX)
-+		return -EINVAL;
++# Allow setting various cross-compile vars or setting CROSS_COMPILE as a prefix.
++$(call allow-override,CC,$(CROSS_COMPILE)gcc)
++$(call allow-override,AR,$(CROSS_COMPILE)ar)
++$(call allow-override,LD,$(CROSS_COMPILE)ld)
++$(call allow-override,CXX,$(CROSS_COMPILE)g++)
++$(call allow-override,STRIP,$(CROSS_COMPILE)strip)
 +
-+	err = apply_to_page_range(&init_mm, start, end - start, vmap_page, &v);
-+	if (unlikely(err)) {
-+		vunmap_page_range(start, start + (v.count << PAGE_SHIFT));
-+		return err;
-+	}
+ ifeq ($(CC_NO_CLANG), 1)
+ EXTRA_WARNINGS += -Wstrict-aliasing=3
+ endif
+diff -puN tools/spi/Makefile~tools-fix-cross-compile-var-clobbering tools/spi/Makefile
+--- a/tools/spi/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/spi/Makefile
+@@ -11,8 +11,6 @@ endif
+ # (this improves performance and avoids hard-to-debug behaviour);
+ MAKEFLAGS += -r
  
--	return nr;
-+	return v.count;
- }
+-CC = $(CROSS_COMPILE)gcc
+-LD = $(CROSS_COMPILE)ld
+ CFLAGS += -O2 -Wall -g -D_GNU_SOURCE -I$(OUTPUT)include
  
- static int vmap_page_range(unsigned long start, unsigned long end,
+ ALL_TARGETS := spidev_test spidev_fdx
+diff -puN tools/usb/Makefile~tools-fix-cross-compile-var-clobbering tools/usb/Makefile
+--- a/tools/usb/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/usb/Makefile
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for USB tools
+ 
+-CC = $(CROSS_COMPILE)gcc
+ PTHREAD_LIBS = -lpthread
+ WARNINGS = -Wall -Wextra
+ CFLAGS = $(WARNINGS) -g -I../include
+diff -puN tools/vm/Makefile~tools-fix-cross-compile-var-clobbering tools/vm/Makefile
+--- a/tools/vm/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/vm/Makefile
+@@ -6,7 +6,6 @@ TARGETS=page-types slabinfo page_owner_s
+ LIB_DIR = ../lib/api
+ LIBS = $(LIB_DIR)/libapi.a
+ 
+-CC = $(CROSS_COMPILE)gcc
+ CFLAGS = -Wall -Wextra -I../lib/
+ LDFLAGS = $(LIBS)
+ 
+diff -puN tools/wmi/Makefile~tools-fix-cross-compile-var-clobbering tools/wmi/Makefile
+--- a/tools/wmi/Makefile~tools-fix-cross-compile-var-clobbering
++++ a/tools/wmi/Makefile
+@@ -2,7 +2,6 @@ PREFIX ?= /usr
+ SBINDIR ?= sbin
+ INSTALL ?= install
+ CFLAGS += -D__EXPORTED_HEADERS__ -I../../include/uapi -I../../include
+-CC = $(CROSS_COMPILE)gcc
+ 
+ TARGET = dell-smbios-example
+ 
 _
 
-Patches currently in -mm which might be from chris@chris-wilson.co.uk are
+Patches currently in -mm which might be from martin@martingkelly.com are
 
+tools-fix-cross-compile-var-clobbering.patch
 
