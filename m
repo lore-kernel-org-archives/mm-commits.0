@@ -1,61 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- fix-const-confusion-in-intel-mid-x86-platform-drivers.patch removed from
+Subject: + bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch added to
  -mm tree
-Date: Tue, 09 Jan 2018 15:19:13 -0800
-Message-ID: <5a554df1.cADnYOl9QzL84Gtt%akpm@linux-foundation.org>
+Date: Tue, 09 Jan 2018 15:25:13 -0800
+Message-ID: <5a554f59.CsCF/ujTW/EjynLO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58466 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753329AbeAIXTQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:19:16 -0500
+        with ESMTP id S1753895AbeAIXZO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:25:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, dvhart@infradead.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, rdunlap@infradead.org, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/platform/intel-mid/device_libs/platform_bt.c: fix const confusion
-has been removed from the -mm tree.  Its filename was
-     fix-const-confusion-in-intel-mid-x86-platform-drivers.patch
+     Subject: lib/test_bitmap.c: add bitmap_zero()/bitmap_clear() test cases
+has been added to the -mm tree.  Its filename is
+     bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: arch/x86/platform/intel-mid/device_libs/platform_bt.c: fix const confusion
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/test_bitmap.c: add bitmap_zero()/bitmap_clear() test cases
 
-const must be marked __initconst, not __initdata
+Explicitly test bitmap_zero() and bitmap_clear() functions.
 
-Link: http://lkml.kernel.org/r/20171222001443.2067-1-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Reviewed-by: Darren Hart (VMware) <dvhart@infradead.org>
+Link: http://lkml.kernel.org/r/20180109172430.87452-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Yury Norov <ynorov@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/intel-mid/device_libs/platform_bt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_bitmap.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN arch/x86/platform/intel-mid/device_libs/platform_bt.c~fix-const-confusion-in-intel-mid-x86-platform-drivers arch/x86/platform/intel-mid/device_libs/platform_bt.c
---- a/arch/x86/platform/intel-mid/device_libs/platform_bt.c~fix-const-confusion-in-intel-mid-x86-platform-drivers
-+++ a/arch/x86/platform/intel-mid/device_libs/platform_bt.c
-@@ -60,7 +60,7 @@ static int __init tng_bt_sfi_setup(struc
- 	return 0;
- }
+diff -puN lib/test_bitmap.c~bitmap-add-bitmap_zero-bitmap_clear-test-cases lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-add-bitmap_zero-bitmap_clear-test-cases
++++ a/lib/test_bitmap.c
+@@ -105,6 +105,35 @@ __check_eq_u32_array(const char *srcfile
+ #define expect_eq_pbl(...)		__expect_eq(pbl, ##__VA_ARGS__)
+ #define expect_eq_u32_array(...)	__expect_eq(u32_array, ##__VA_ARGS__)
  
--static const struct bt_sfi_data tng_bt_sfi_data __initdata = {
-+static const struct bt_sfi_data tng_bt_sfi_data __initconst = {
- 	.setup	= tng_bt_sfi_setup,
- };
++static void __init test_zero_clear(void)
++{
++	DECLARE_BITMAP(bmap, 1024);
++
++	/* Known way to set all bits */
++	memset(bmap, 0xff, 128);
++
++	expect_eq_pbl("0-22", bmap, 23);
++	expect_eq_pbl("0-1023", bmap, 1024);
++
++	/* single-word bitmaps */
++	bitmap_clear(bmap, 0, 9);
++	expect_eq_pbl("9-1023", bmap, 1024);
++
++	bitmap_zero(bmap, 35);
++	expect_eq_pbl("64-1023", bmap, 1024);
++
++	/* cross boundaries operations */
++	bitmap_clear(bmap, 79, 19);
++	expect_eq_pbl("64-78,98-1023", bmap, 1024);
++
++	bitmap_zero(bmap, 115);
++	expect_eq_pbl("128-1023", bmap, 1024);
++
++	/* Zeroing entire area */
++	bitmap_zero(bmap, 1024);
++	expect_eq_pbl("", bmap, 1024);
++}
++
+ static void __init test_zero_fill_copy(void)
+ {
+ 	DECLARE_BITMAP(bmap1, 1024);
+@@ -309,6 +338,7 @@ static void noinline __init test_mem_opt
  
+ static int __init test_bitmap_init(void)
+ {
++	test_zero_clear();
+ 	test_zero_fill_copy();
+ 	test_bitmap_arr32();
+ 	test_bitmap_parselist();
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-fix-const-confusion-in-certs-blacklist.patch
-fix-read-buffer-overflow-in-delta-ipc.patch
+scripts-decodecode-make-it-take-multiline-code-line.patch
+bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
+bitmap-add-bitmap_fill-bitmap_set-test-cases.patch
+bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
 
