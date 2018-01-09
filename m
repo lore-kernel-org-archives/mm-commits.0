@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
- added to -mm tree
-Date: Tue, 09 Jan 2018 15:30:54 -0800
-Message-ID: <5a5550ae.aR9FiQP3iFKHJ1EC%akpm@linux-foundation.org>
+Subject: + ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch added to -mm tree
+Date: Tue, 09 Jan 2018 15:33:02 -0800
+Message-ID: <5a55512e.nVS4qEdBLyiMa5DU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59774 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759187AbeAIXaz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:30:55 -0500
+        with ESMTP id S932267AbeAIXdD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jan 2018 18:33:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: osalvador@techadventures.net, ayush.m@samsung.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner.c: remove drain_all_pages from init_early_allocated_pages
+     Subject: ipc/mqueue: add missing error code in init_mqueue_fs()
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
+     ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +38,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@techadventures.net>
-Subject: mm/page_owner.c: remove drain_all_pages from init_early_allocated_pages
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ipc/mqueue: add missing error code in init_mqueue_fs()
 
-When setting page_owner = on, the following warning can be seen in the
-boot log:
+We should propogate the error code here but we accidentally return
+success.
 
- WARNING: CPU: 0 PID: 0 at mm/page_alloc.c:2537 drain_all_pages+0x171/0x1a0
- Modules linked in:
- CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.15.0-rc7-next-20180109-1-default+ #7
- Hardware name: Dell Inc. Latitude E7470/0T6HHJ, BIOS 1.11.3 11/09/2016
- RIP: 0010:drain_all_pages+0x171/0x1a0
- RSP: 0000:ffffffff82003ea8 EFLAGS: 00010246
- RAX: 000000000000000f RBX: ffffffffffffffff RCX: ffffffff8205b388
- RDX: 0000000000000001 RSI: 0000000000000096 RDI: 0000000000000202
- RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000000000af
- R10: 0000000000000004 R11: 00000000000000ae R12: ffff88024dfdcec0
- R13: ffffffff82530740 R14: 0000000000000000 R15: 00000000a8831448
- FS:  0000000000000000(0000) GS:ffff88024dc00000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: ffff88024dfff000 CR3: 000000000200a001 CR4: 00000000000606b0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- Call Trace:
-  init_page_owner+0x4e/0x260
-  start_kernel+0x3e6/0x4a6
-  ? set_init_arg+0x55/0x55
-  secondary_startup_64+0xa5/0xb0
- Code: c5 ed ff 89 df 48 c7 c6 20 3b 71 82 e8 f9 4b 52 00 3b 05 d7 0b f8 00 89 c3 72 d5 5b 5d 41 5
- ---[ end trace 45da7f0cb4aef07b ]---
-
-This warning is shown because we are calling drain_all_pages() in
-init_early_allocated_pages(), but mm_percpu_wq is not up yet, it is being
-set up later on in kernel_init_freeable() -> init_mm_internals().
-
-Link: http://lkml.kernel.org/r/20180109153921.GA13070@techadventures.net
-Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Ayush Mittal <ayush.m@samsung.com>
+Link: http://lkml.kernel.org/r/20180109092919.ndrvscdllrmzz6jo@mwanda
+Fixes: 946086abeddf ("mqueue: switch to on-demand creation of internal mount")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    1 -
- 1 file changed, 1 deletion(-)
+ ipc/mqueue.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages
-+++ a/mm/page_owner.c
-@@ -616,7 +616,6 @@ static void init_early_allocated_pages(v
- {
- 	pg_data_t *pgdat;
+diff -puN ipc/mqueue.c~ipc-mqueue-add-missing-error-code-in-init_mqueue_fs ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-add-missing-error-code-in-init_mqueue_fs
++++ a/ipc/mqueue.c
+@@ -1610,8 +1610,10 @@ static int __init init_mqueue_fs(void)
+ 		goto out_filesystem;
  
--	drain_all_pages(NULL);
- 	for_each_online_pgdat(pgdat)
- 		init_zones_in_node(pgdat);
- }
+ 	m = kern_mount_data(&mqueue_fs_type, &init_ipc_ns);
+-	if (IS_ERR(m))
++	if (IS_ERR(m)) {
++		error = PTR_ERR(m);
+ 		goto out_filesystem;
++	}
+ 	init_ipc_ns.mq_mnt = m;
+ 	return 0;
+ 
 _
 
-Patches currently in -mm which might be from osalvador@techadventures.net are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-page_owner-remove-drain_all_pages-from-init_early_allocated_pages.patch
-mm-slab-remove-redundant-assignments-for-slab_state.patch
-mm-memory_hotplug-remove-unnecesary-check-from-register_page_bootmem_info_section.patch
-mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section.patch
+mm-hugetlb-get-rid-of-surplus-page-accounting-tricks-fix.patch
+ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch
 
