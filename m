@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
- added to -mm tree
-Date: Wed, 10 Jan 2018 14:36:07 -0800
-Message-ID: <5a569557.k4qtl3RJOHWXlRMA%akpm@linux-foundation.org>
+Subject: + mm-page_owner-clean-up-init_pages_in_zone.patch added to -mm
+ tree
+Date: Wed, 10 Jan 2018 14:38:50 -0800
+Message-ID: <5a5695fa.DMSwRh/f2V2BgRMY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48356 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750782AbeAJWgJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jan 2018 17:36:09 -0500
+        with ESMTP id S1751561AbeAJWiv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jan 2018 17:38:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, mhocko@kernel.org, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: osalvador@techadventures.net, iamjoonsoo.kim@lge.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: fix a double unlock bug in alloc_surplus_huge_page()
+     Subject: mm/page_owner.c: clean up init_pages_in_zone()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+     mm-page_owner-clean-up-init_pages_in_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-clean-up-init_pages_in_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-clean-up-init_pages_in_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: mm, hugetlb: fix a double unlock bug in alloc_surplus_huge_page()
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm/page_owner.c: clean up init_pages_in_zone()
 
-We aren't holding the hugetlb_lock so there is no need to unlock.
+Remove two redundant assignments in init_pages_in_zone().
 
-Link: http://lkml.kernel.org/r/20180109200559.g3iz5kvbdrz7yydp@mwanda
-Fixes: b27f11e5e675 ("mm, hugetlb: get rid of surplus page accounting tricks")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/20180110084355.GA22822@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-further-simplify-hugetlb-allocation-api-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-further-simplify-hugetlb-allocation-api-fix
-+++ a/mm/hugetlb.c
-@@ -1567,7 +1567,7 @@ static struct page *alloc_surplus_huge_p
+diff -puN mm/page_owner.c~mm-page_owner-clean-up-init_pages_in_zone mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-clean-up-init_pages_in_zone
++++ a/mm/page_owner.c
+@@ -528,14 +528,11 @@ read_page_owner(struct file *file, char
  
- 	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask);
- 	if (!page)
--		goto out_unlock;
-+		return NULL;
+ static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
+ {
+-	struct page *page;
+-	struct page_ext *page_ext;
+ 	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
+ 	unsigned long end_pfn = pfn + zone->spanned_pages;
+ 	unsigned long count = 0;
  
- 	spin_lock(&hugetlb_lock);
+ 	/* Scan block by block. First and last block may be incomplete */
+-	pfn = zone->zone_start_pfn;
+ 
  	/*
-_
-
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
-
-mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
-ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch
-
+ 	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
+@@ -551,9 +548,9 @@ static void init_pages_in_zone(pg_data_t
+ 		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+ 		block_end_pfn = min(block_end_pfn, end_pfn);
+ 
+-		page = pfn_to_page(pfn);
