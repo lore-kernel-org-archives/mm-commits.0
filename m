@@ -1,104 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-try-harder-to-decrease-limit_in_bytes.patch added to
- -mm tree
-Date: Wed, 10 Jan 2018 14:31:37 -0800
-Message-ID: <5a569449.nY7IWgTPLAchyHni%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+ added to -mm tree
+Date: Wed, 10 Jan 2018 14:36:07 -0800
+Message-ID: <5a569557.k4qtl3RJOHWXlRMA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47140 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752312AbeAJWbx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jan 2018 17:31:53 -0500
+        with ESMTP id S1750782AbeAJWgJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jan 2018 17:36:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, mhocko@kernel.org, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9tZW1jb250cm9sLmM6IHRyeSBo
-YXJkZXIgdG8gZGVjcmVhc2UgW21lbW9yeSxtZW1zd10ubGltaXRfaW5fYnl0ZXMKaGFzIGJl
-ZW4gYWRkZWQgdG8gdGhlIC1tbSB0cmVlLiAgSXRzIGZpbGVuYW1lIGlzCiAgICAgbW0tbWVt
-Y2ctdHJ5LWhhcmRlci10by1kZWNyZWFzZS1saW1pdF9pbl9ieXRlcy5wYXRjaAoKVGhpcyBw
-YXRjaCBzaG91bGQgc29vbiBhcHBlYXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35ha3Bt
-L21tb3RzL2Jyb2tlbi1vdXQvbW0tbWVtY2ctdHJ5LWhhcmRlci10by1kZWNyZWFzZS1saW1p
-dF9pbl9ieXRlcy5wYXRjaAphbmQgbGF0ZXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35h
-a3BtL21tb3RtL2Jyb2tlbi1vdXQvbW0tbWVtY2ctdHJ5LWhhcmRlci10by1kZWNyZWFzZS1s
-aW1pdF9pbl9ieXRlcy5wYXRjaAoKQmVmb3JlIHlvdSBqdXN0IGdvIGFuZCBoaXQgInJlcGx5
-IiwgcGxlYXNlOgogICBhKSBDb25zaWRlciB3aG8gZWxzZSBzaG91bGQgYmUgY2MnZWQKICAg
-YikgUHJlZmVyIHRvIGNjIGEgc3VpdGFibGUgbWFpbGluZyBsaXN0IGFzIHdlbGwKICAgYykg
-SWRlYWxseTogZmluZCB0aGUgb3JpZ2luYWwgcGF0Y2ggb24gdGhlIG1haWxpbmcgbGlzdCBh
-bmQgZG8gYQogICAgICByZXBseS10by1hbGwgdG8gdGhhdCwgYWRkaW5nIHN1aXRhYmxlIGFk
-ZGl0aW9uYWwgY2MncwoKKioqIFJlbWVtYmVyIHRvIHVzZSBEb2N1bWVudGF0aW9uL1N1Ym1p
-dENoZWNrbGlzdCB3aGVuIHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlz
-IGluY2x1ZGVkIGludG8gbGludXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAz
-LTQgd29ya2luZyBkYXlzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KRnJvbTogQW5kcmV5IFJ5YWJpbmluIDxhcnlhYmluaW5Admly
-dHVvenpvLmNvbT4KU3ViamVjdDogbW0vbWVtY29udHJvbC5jOiB0cnkgaGFyZGVyIHRvIGRl
-Y3JlYXNlIFttZW1vcnksbWVtc3ddLmxpbWl0X2luX2J5dGVzCgptZW1fY2dyb3VwX3Jlc2l6
-ZV9bbWVtc3cQXV9saW1pdCgpIHRyaWVzIHRvIGZyZWUgb25seSAzMgooU1dBUF9DTFVTVEVS
-X01BWCkgcGFnZXMgb24gZWFjaCBpdGVyYXRpb24uICBUaGlzIG1ha2VzIGl0IHByYWN0aWNh
-bGx5CmltcG9zc2libGUgdG8gZGVjcmVhc2UgbGltaXQgb2YgbWVtb3J5IGNncm91cC4gIFRh
-c2tzIGNvdWxkIGVhc2lseQphbGxvY2F0ZSBiYWNrIDMyIHBhZ2VzLCBzbyB3ZSBjYW4ndCBy
-ZWR1Y2UgbWVtb3J5IHVzYWdlLCBhbmQgb25jZQpyZXRyeV9jb3VudCByZWFjaGVzIHplcm8g
-d2UgcmV0dXJuIC1FQlVTWS4KCkVhc3kgdG8gcmVwcm9kdWNlIHRoZSBwcm9ibGVtIGJ5IHJ1
-bm5pbmcgdGhlIGZvbGxvd2luZyBjb21tYW5kczoKCiAgbWtkaXIgL3N5cy9mcy9jZ3JvdXAv
-bWVtb3J5L3Rlc3QKICBlY2hvICQkID4+IC9zeXMvZnMvY2dyb3VwL21lbW9yeS90ZXN0L3Rh
-c2tzCiAgY2F0IGJpZ19maWxlID4gL2Rldi9udWxsICYKICBzbGVlcCAxICYmIGVjaG8gJCgo
-MTAwKjEwMjQqMTAyNCkpID4gL3N5cy9mcy9jZ3JvdXAvbWVtb3J5L3Rlc3QvbWVtb3J5Lmxp
-bWl0X2luX2J5dGVzCiAgLWJhc2g6IGVjaG86IHdyaXRlIGVycm9yOiBEZXZpY2Ugb3IgcmVz
-b3VyY2UgYnVzeQoKSW5zdGVhZCBvZiByZWx5aW5nIG9uIHJldHJ5X2NvdW50LCBrZWVwIHJl
-dHJ5aW5nIHRoZSByZWNsYWltIHVudGlsCnRoZSBkZXNpcmVkIGxpbWl0IGlzIHJlYWNoEGVk
-IG9yIGZhaWwgaWYgdGhlIHJlY2xhaW0gZG9lc24ndCBtYWtlCmFueSBwcm9ncmVzcyBvciBh
-IHNpZ25hbCBpcyBwZW5kaW5nLgoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yLzIw
-MTgwMTEwMTI0MzE3LjI4ODg3LTEtYXJ5YWJpbmluQHZpcnR1b3p6by5jb20KU2lnbmVkLW9m
-Zi1ieTogQW5kcmV5IFJ5YWJpbmluIDxhcnlhYmluaW5AdmlydHVvenpvLmNvbT4KUmV2aWV3
-ZWQtYnk6IFNoYWtlZWwgQnV0dCA8c2hha2VlbGJAZ29vZ2xlLmNvbT4KQ2M6IE1pY2hhbCBI
-b2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+CkNjOiBKb2hhbm5lcyBXZWluZXIgPGhhbm5lc0Bj
-bXB4Y2hnLm9yZz4KQ2M6IFZsYWRpbWlyIERhdnlkb3YgPHZkYXZ5ZG92LmRldkBnbWFpbC5j
-b20+ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlv
-bi5vcmc+Ci0tLQoKIG1tL21lbWNvbnRyb2wuYyB8ICAgNDQgKysrKysrKystLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlv
-bnMoKyksIDM2IGRlbGV0aW9ucygtKQoKZGlmZiAtcHVOIG1tL21lbWNvbnRyb2wuY35tbS1t
-ZW1jZy10cnktaGFyZGVyLXRvLWRlY3JlYXNlLWxpbWl0X2luX2J5dGVzIG1tL21lbWNvbnRy
-b2wuYwotLS0gYS9tbS9tZW1jb250cm9sLmN+bW0tbWVtY2ctdHJ5LWhhcmRlci10by1kZWNy
-ZWFzZS1saW1pdF9pbl9ieXRlcworKysgYS9tbS9tZW1jb250cm9sLmMKQEAgLTExNzYsMjAg
-KzExNzYsNiBAQCB2b2lkIG1lbV9jZ3JvdXBfcHJpbnRfb29tX2luZm8oc3RydWN0IG1lCiB9
-CiAKIC8qCi0gKiBUaGlzIGZ1bmN0aW9uIHJldHVybnMgdGhlIG51bWJlciBvZiBtZW1jZyB1
-bmRlciBoaWVyYXJjaHkgdHJlZS4gUmV0dXJucwotICogMShzZWxmIGNvdW50KSBpZiBubyBj
-aGlsZHJlbi4KLSAqLwotc3RhdGljIGludCBtZW1fY2dyb3VwX2NvdW50X2NoaWxkcmVuKHN0
-cnVjdCBtZW1fY2dyb3VwICptZW1jZykKLXsKLQlpbnQgbnVtID0gMDsKLQlzdHJ1Y3QgbWVt
-X2Nncm91cCAqaXRlcjsKLQotCWZvcl9lYWNoX21lbV9jZ3JvdXBfdHJlZShpdGVyLCBtZW1j
-ZykKLQkJbnVtKys7Ci0JcmV0dXJuIG51bTsKLX0KLQotLyoKICAqIFJldHVybiB0aGUgbWVt
-b3J5IChhbmQgc3dhcCwgaWYgY29uZmlndXJlZCkgbGltaXQgZm9yIGEgbWVtY2cuCiAgKi8K
-IHVuc2lnbmVkIGxvbmcgbWVtX2Nncm91cF9nZXRfbGltaXQoc3RydWN0IG1lbV9jZ3JvdXAg
-Km1lbWNnKQpAQCAtMjQ2MiwyNCArMjQ0OCwxMiBAQCBzdGF0aWMgREVGSU5FX01VVEVYKG1l
-bWNnX2xpbWl0X211dGV4KTsKIHN0YXRpYyBpbnQgbWVtX2Nncm91cF9yZXNpemVfbGltaXQo
-c3RydWN0IG1lbV9jZ3JvdXAgKm1lbWNnLAogCQkJCSAgIHVuc2lnbmVkIGxvbmcgbGltaXQs
-IGJvb2wgbWVtc3cpCiB7Ci0JdW5zaWduZWQgbG9uZyBjdXJ1c2FnZTsKLQl1bnNpZ25lZCBs
-b25nIG9sZHVzYWdlOworCXVuc2lnbmVkIGxvbmcgdXNhZ2U7CiAJYm9vbCBlbmxhcmdlID0g
-ZmFsc2U7Ci0JaW50IHJldHJ5X2NvdW50OwogCWludCByZXQ7CiAJYm9vbCBsaW1pdHNfaW52
-YXJpYW50OwogCXN0cnVjdCBwYWdlX2NvdW50ZXIgKmNvdW50ZXIgPSBtZW1zdyA/ICZtZW1j
-Zy0+bWVtc3cgOiAmbWVtY2ctPm1lbW9yeTsKIAotCS8qCi0JICogRm9yIGtlZXBpbmcgaGll
-cmFyY2hpY2FsX3JlY2xhaW0gc2ltcGxlLCBob3cgbG9uZyB3ZSBzaG91bGQgcmV0cnkKLQkg
-KiBpcyBkZXBlbmRzIG9uIGNhbGxlcnMuIFdlIHNldCBvdXIgcmV0cnktY291bnQgdG8gYmUg
-ZnVuY3Rpb24KLQkgKiBvZiAjIG9mIGNoaWxkcmVuIHdoaWNoIHdlIHNob3VsZCB2aXNpdCBp
-biB0aGlzIGxvb3AuCi0JICovCi0JcmV0cnlfY291bnQgPSBNRU1fQ0dST1VQX1JFQ0xBSU1f
-UkVUUklFUyAqCi0JCSAgICAgIG1lbV9jZ3JvdXBfY291bnRfY2hpbGRyZW4obWVtY2cpOwot
-Ci0Jb2xkdXNhZ2UgPSBwYWdlX2NvdW50ZXJfcmVhZChjb3VudGVyKTsKLQogCWRvIHsKIAkJ
-aWYgKHNpZ25hbF9wZW5kaW5nKGN1cnJlbnQpKSB7CiAJCQlyZXQgPSAtRUlOVFI7CkBAIC0y
-NTA2LDE1ICsyNDgwLDEzIEBAIHN0YXRpYyBpbnQgbWVtX2Nncm91cF9yZXNpemVfbGltaXQo
-c3RydWMKIAkJaWYgKCFyZXQpCiAJCQlicmVhazsKIAotCQl0cnlfdG9fZnJlZV9tZW1fY2dy
-b3VwX3BhZ2VzKG1lbWNnLCAxLCBHRlBfS0VSTkVMLCAhbWVtc3cpOwotCi0JCWN1cnVzYWdl
-ID0gcGFnZV9jb3VudGVyX3JlYWQoY291bnRlcik7Ci0JCS8qIFVzYWdlIGlzIHJlZHVjZWQg
-PyAqLwotCQlpZiAoY3VydXNhZ2UgPj0gb2xkdXNhZ2UpCi0JCQlyZXRyeV9jb3VudC0tOwot
-CQllbHNlCi0JCQlvbGR1c2FnZSA9IGN1cnVzYWdlOwotCX0gd2hpbGUgKHJldHJ5X2NvdW50
-KTsKKwkJdXNhZ2UgPSBwYWdlX2NvdW50ZXJfcmVhZChjb3VudGVyKTsKKwkJaWYgKCF0cnlf
-dG9fZnJlZV9tZW1fY2dyb3VwX3BhZ2VzKG1lbWNnLCB1c2FnZSAtIGxpbWl0LAorCQkJCQkJ
-R0ZQX0tFUk5FTCwgIW1lbXN3KSkgeworCQkJcmV0ID0gLUVCVVNZOworCQkJYnJlYWs7CisJ
-CX0KKwl9IHdoaWxlICh0cnVlKTsKIAogCWlmICghcmV0ICYmIGVubGFyZ2UpCiAJCW1lbWNn
-X29vbV9yZWNvdmVyKG1lbWNnKTsKXwoKUGF0Y2hlcyBjdXJyZW50bHkgaW4gLW1tIHdoaWNo
-IG1pZ2h0IGJlIGZyb20gYXJ5YWJpbmluQHZpcnR1b3p6by5jb20gYXJlCgptbS1tZW1jZy10
-cnktaGFyZGVyLXRvLWRlY3JlYXNlLWxpbWl0X2luX2J5dGVzLnBhdGNoCmthc2FuLW1ha2Vm
-aWxlLXN1cHBvcnQtbGx2bS1zdHlsZS1hc2FuLXBhcmFtZXRlcnMucGF0Y2gKbGliLXN0cnNj
-cHktcmVtb3ZlLXdvcmQtYXQtYS10aW1lLW9wdGltaXphdGlvbi5wYXRjaAoK
+
+The patch titled
+     Subject: mm, hugetlb: fix a double unlock bug in alloc_surplus_huge_page()
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm, hugetlb: fix a double unlock bug in alloc_surplus_huge_page()
+
+We aren't holding the hugetlb_lock so there is no need to unlock.
+
+Link: http://lkml.kernel.org/r/20180109200559.g3iz5kvbdrz7yydp@mwanda
+Fixes: b27f11e5e675 ("mm, hugetlb: get rid of surplus page accounting tricks")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN mm/hugetlb.c~mm-hugetlb-further-simplify-hugetlb-allocation-api-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-further-simplify-hugetlb-allocation-api-fix
++++ a/mm/hugetlb.c
+@@ -1567,7 +1567,7 @@ static struct page *alloc_surplus_huge_p
+ 
+ 	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask);
+ 	if (!page)
+-		goto out_unlock;
++		return NULL;
+ 
+ 	spin_lock(&hugetlb_lock);
+ 	/*
+_
+
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
+
+mm-hugetlb-further-simplify-hugetlb-allocation-api-fix.patch
+ipc-mqueue-add-missing-error-code-in-init_mqueue_fs.patch
+
