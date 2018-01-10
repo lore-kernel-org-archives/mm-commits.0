@@ -1,78 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Wed, 10 Jan 2018 11:49:59 -0800
-Message-ID: <20180110194959.xVe3icp2y%akpm@linux-foundation.org>
+Subject: + mm-memcg-try-harder-to-decrease-limit_in_bytes.patch added to
+ -mm tree
+Date: Wed, 10 Jan 2018 14:31:37 -0800
+Message-ID: <5a569449.nY7IWgTPLAchyHni%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44332 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751405AbeAJTuB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jan 2018 14:50:01 -0500
+        with ESMTP id S1752312AbeAJWbx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jan 2018 17:31:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
-
-The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
-
-This patch was dropped because it is obsolete
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
-
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
-diff -puN drivers/infiniband/ulp/srpt/ib_srpt.c~linux-next-git-rejects drivers/infiniband/ulp/srpt/ib_srpt.c
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c~linux-next-git-rejects
-+++ a/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2126,15 +2126,8 @@ static int srpt_cm_req_recv(struct ib_cm
- 		goto destroy_ib;
- 	}
- 
--<<<<<<< HEAD
--	guid = (__be16 *)&param->primary_path->dgid.global.interface_id;
--	snprintf(ch->ini_guid, sizeof(ch->ini_guid), "%04x:%04x:%04x:%04x",
--		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
--		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
--=======
- 	srpt_format_guid(ch->ini_guid, sizeof(ch->ini_guid),
- 			 &param->primary_path->dgid.global.interface_id);
-->>>>>>> linux-next/akpm-base
- 	snprintf(ch->sess_name, sizeof(ch->sess_name), "0x%016llx%016llx",
- 			be64_to_cpu(*(__be64 *)ch->i_port_id),
- 			be64_to_cpu(*(__be64 *)(ch->i_port_id + 8)));
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-x86-mm-provide-pmdp_establish-helper-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9tZW1jb250cm9sLmM6IHRyeSBo
+YXJkZXIgdG8gZGVjcmVhc2UgW21lbW9yeSxtZW1zd10ubGltaXRfaW5fYnl0ZXMKaGFzIGJl
+ZW4gYWRkZWQgdG8gdGhlIC1tbSB0cmVlLiAgSXRzIGZpbGVuYW1lIGlzCiAgICAgbW0tbWVt
+Y2ctdHJ5LWhhcmRlci10by1kZWNyZWFzZS1saW1pdF9pbl9ieXRlcy5wYXRjaAoKVGhpcyBw
+YXRjaCBzaG91bGQgc29vbiBhcHBlYXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35ha3Bt
+L21tb3RzL2Jyb2tlbi1vdXQvbW0tbWVtY2ctdHJ5LWhhcmRlci10by1kZWNyZWFzZS1saW1p
+dF9pbl9ieXRlcy5wYXRjaAphbmQgbGF0ZXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35h
+a3BtL21tb3RtL2Jyb2tlbi1vdXQvbW0tbWVtY2ctdHJ5LWhhcmRlci10by1kZWNyZWFzZS1s
+aW1pdF9pbl9ieXRlcy5wYXRjaAoKQmVmb3JlIHlvdSBqdXN0IGdvIGFuZCBoaXQgInJlcGx5
+IiwgcGxlYXNlOgogICBhKSBDb25zaWRlciB3aG8gZWxzZSBzaG91bGQgYmUgY2MnZWQKICAg
+YikgUHJlZmVyIHRvIGNjIGEgc3VpdGFibGUgbWFpbGluZyBsaXN0IGFzIHdlbGwKICAgYykg
+SWRlYWxseTogZmluZCB0aGUgb3JpZ2luYWwgcGF0Y2ggb24gdGhlIG1haWxpbmcgbGlzdCBh
+bmQgZG8gYQogICAgICByZXBseS10by1hbGwgdG8gdGhhdCwgYWRkaW5nIHN1aXRhYmxlIGFk
+ZGl0aW9uYWwgY2MncwoKKioqIFJlbWVtYmVyIHRvIHVzZSBEb2N1bWVudGF0aW9uL1N1Ym1p
+dENoZWNrbGlzdCB3aGVuIHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlz
+IGluY2x1ZGVkIGludG8gbGludXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAz
+LTQgd29ya2luZyBkYXlzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0KRnJvbTogQW5kcmV5IFJ5YWJpbmluIDxhcnlhYmluaW5Admly
+dHVvenpvLmNvbT4KU3ViamVjdDogbW0vbWVtY29udHJvbC5jOiB0cnkgaGFyZGVyIHRvIGRl
+Y3JlYXNlIFttZW1vcnksbWVtc3ddLmxpbWl0X2luX2J5dGVzCgptZW1fY2dyb3VwX3Jlc2l6
+ZV9bbWVtc3cQXV9saW1pdCgpIHRyaWVzIHRvIGZyZWUgb25seSAzMgooU1dBUF9DTFVTVEVS
+X01BWCkgcGFnZXMgb24gZWFjaCBpdGVyYXRpb24uICBUaGlzIG1ha2VzIGl0IHByYWN0aWNh
+bGx5CmltcG9zc2libGUgdG8gZGVjcmVhc2UgbGltaXQgb2YgbWVtb3J5IGNncm91cC4gIFRh
+c2tzIGNvdWxkIGVhc2lseQphbGxvY2F0ZSBiYWNrIDMyIHBhZ2VzLCBzbyB3ZSBjYW4ndCBy
+ZWR1Y2UgbWVtb3J5IHVzYWdlLCBhbmQgb25jZQpyZXRyeV9jb3VudCByZWFjaGVzIHplcm8g
+d2UgcmV0dXJuIC1FQlVTWS4KCkVhc3kgdG8gcmVwcm9kdWNlIHRoZSBwcm9ibGVtIGJ5IHJ1
+bm5pbmcgdGhlIGZvbGxvd2luZyBjb21tYW5kczoKCiAgbWtkaXIgL3N5cy9mcy9jZ3JvdXAv
+bWVtb3J5L3Rlc3QKICBlY2hvICQkID4+IC9zeXMvZnMvY2dyb3VwL21lbW9yeS90ZXN0L3Rh
+c2tzCiAgY2F0IGJpZ19maWxlID4gL2Rldi9udWxsICYKICBzbGVlcCAxICYmIGVjaG8gJCgo
+MTAwKjEwMjQqMTAyNCkpID4gL3N5cy9mcy9jZ3JvdXAvbWVtb3J5L3Rlc3QvbWVtb3J5Lmxp
+bWl0X2luX2J5dGVzCiAgLWJhc2g6IGVjaG86IHdyaXRlIGVycm9yOiBEZXZpY2Ugb3IgcmVz
+b3VyY2UgYnVzeQoKSW5zdGVhZCBvZiByZWx5aW5nIG9uIHJldHJ5X2NvdW50LCBrZWVwIHJl
+dHJ5aW5nIHRoZSByZWNsYWltIHVudGlsCnRoZSBkZXNpcmVkIGxpbWl0IGlzIHJlYWNoEGVk
+IG9yIGZhaWwgaWYgdGhlIHJlY2xhaW0gZG9lc24ndCBtYWtlCmFueSBwcm9ncmVzcyBvciBh
+IHNpZ25hbCBpcyBwZW5kaW5nLgoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yLzIw
+MTgwMTEwMTI0MzE3LjI4ODg3LTEtYXJ5YWJpbmluQHZpcnR1b3p6by5jb20KU2lnbmVkLW9m
+Zi1ieTogQW5kcmV5IFJ5YWJpbmluIDxhcnlhYmluaW5AdmlydHVvenpvLmNvbT4KUmV2aWV3
+ZWQtYnk6IFNoYWtlZWwgQnV0dCA8c2hha2VlbGJAZ29vZ2xlLmNvbT4KQ2M6IE1pY2hhbCBI
+b2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+CkNjOiBKb2hhbm5lcyBXZWluZXIgPGhhbm5lc0Bj
+bXB4Y2hnLm9yZz4KQ2M6IFZsYWRpbWlyIERhdnlkb3YgPHZkYXZ5ZG92LmRldkBnbWFpbC5j
+b20+ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlv
+bi5vcmc+Ci0tLQoKIG1tL21lbWNvbnRyb2wuYyB8ICAgNDQgKysrKysrKystLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlv
+bnMoKyksIDM2IGRlbGV0aW9ucygtKQoKZGlmZiAtcHVOIG1tL21lbWNvbnRyb2wuY35tbS1t
+ZW1jZy10cnktaGFyZGVyLXRvLWRlY3JlYXNlLWxpbWl0X2luX2J5dGVzIG1tL21lbWNvbnRy
+b2wuYwotLS0gYS9tbS9tZW1jb250cm9sLmN+bW0tbWVtY2ctdHJ5LWhhcmRlci10by1kZWNy
+ZWFzZS1saW1pdF9pbl9ieXRlcworKysgYS9tbS9tZW1jb250cm9sLmMKQEAgLTExNzYsMjAg
+KzExNzYsNiBAQCB2b2lkIG1lbV9jZ3JvdXBfcHJpbnRfb29tX2luZm8oc3RydWN0IG1lCiB9
+CiAKIC8qCi0gKiBUaGlzIGZ1bmN0aW9uIHJldHVybnMgdGhlIG51bWJlciBvZiBtZW1jZyB1
+bmRlciBoaWVyYXJjaHkgdHJlZS4gUmV0dXJucwotICogMShzZWxmIGNvdW50KSBpZiBubyBj
+aGlsZHJlbi4KLSAqLwotc3RhdGljIGludCBtZW1fY2dyb3VwX2NvdW50X2NoaWxkcmVuKHN0
+cnVjdCBtZW1fY2dyb3VwICptZW1jZykKLXsKLQlpbnQgbnVtID0gMDsKLQlzdHJ1Y3QgbWVt
+X2Nncm91cCAqaXRlcjsKLQotCWZvcl9lYWNoX21lbV9jZ3JvdXBfdHJlZShpdGVyLCBtZW1j
+ZykKLQkJbnVtKys7Ci0JcmV0dXJuIG51bTsKLX0KLQotLyoKICAqIFJldHVybiB0aGUgbWVt
+b3J5IChhbmQgc3dhcCwgaWYgY29uZmlndXJlZCkgbGltaXQgZm9yIGEgbWVtY2cuCiAgKi8K
+IHVuc2lnbmVkIGxvbmcgbWVtX2Nncm91cF9nZXRfbGltaXQoc3RydWN0IG1lbV9jZ3JvdXAg
+Km1lbWNnKQpAQCAtMjQ2MiwyNCArMjQ0OCwxMiBAQCBzdGF0aWMgREVGSU5FX01VVEVYKG1l
+bWNnX2xpbWl0X211dGV4KTsKIHN0YXRpYyBpbnQgbWVtX2Nncm91cF9yZXNpemVfbGltaXQo
+c3RydWN0IG1lbV9jZ3JvdXAgKm1lbWNnLAogCQkJCSAgIHVuc2lnbmVkIGxvbmcgbGltaXQs
+IGJvb2wgbWVtc3cpCiB7Ci0JdW5zaWduZWQgbG9uZyBjdXJ1c2FnZTsKLQl1bnNpZ25lZCBs
+b25nIG9sZHVzYWdlOworCXVuc2lnbmVkIGxvbmcgdXNhZ2U7CiAJYm9vbCBlbmxhcmdlID0g
+ZmFsc2U7Ci0JaW50IHJldHJ5X2NvdW50OwogCWludCByZXQ7CiAJYm9vbCBsaW1pdHNfaW52
+YXJpYW50OwogCXN0cnVjdCBwYWdlX2NvdW50ZXIgKmNvdW50ZXIgPSBtZW1zdyA/ICZtZW1j
+Zy0+bWVtc3cgOiAmbWVtY2ctPm1lbW9yeTsKIAotCS8qCi0JICogRm9yIGtlZXBpbmcgaGll
+cmFyY2hpY2FsX3JlY2xhaW0gc2ltcGxlLCBob3cgbG9uZyB3ZSBzaG91bGQgcmV0cnkKLQkg
+KiBpcyBkZXBlbmRzIG9uIGNhbGxlcnMuIFdlIHNldCBvdXIgcmV0cnktY291bnQgdG8gYmUg
+ZnVuY3Rpb24KLQkgKiBvZiAjIG9mIGNoaWxkcmVuIHdoaWNoIHdlIHNob3VsZCB2aXNpdCBp
+biB0aGlzIGxvb3AuCi0JICovCi0JcmV0cnlfY291bnQgPSBNRU1fQ0dST1VQX1JFQ0xBSU1f
+UkVUUklFUyAqCi0JCSAgICAgIG1lbV9jZ3JvdXBfY291bnRfY2hpbGRyZW4obWVtY2cpOwot
+Ci0Jb2xkdXNhZ2UgPSBwYWdlX2NvdW50ZXJfcmVhZChjb3VudGVyKTsKLQogCWRvIHsKIAkJ
+aWYgKHNpZ25hbF9wZW5kaW5nKGN1cnJlbnQpKSB7CiAJCQlyZXQgPSAtRUlOVFI7CkBAIC0y
+NTA2LDE1ICsyNDgwLDEzIEBAIHN0YXRpYyBpbnQgbWVtX2Nncm91cF9yZXNpemVfbGltaXQo
+c3RydWMKIAkJaWYgKCFyZXQpCiAJCQlicmVhazsKIAotCQl0cnlfdG9fZnJlZV9tZW1fY2dy
+b3VwX3BhZ2VzKG1lbWNnLCAxLCBHRlBfS0VSTkVMLCAhbWVtc3cpOwotCi0JCWN1cnVzYWdl
+ID0gcGFnZV9jb3VudGVyX3JlYWQoY291bnRlcik7Ci0JCS8qIFVzYWdlIGlzIHJlZHVjZWQg
+PyAqLwotCQlpZiAoY3VydXNhZ2UgPj0gb2xkdXNhZ2UpCi0JCQlyZXRyeV9jb3VudC0tOwot
+CQllbHNlCi0JCQlvbGR1c2FnZSA9IGN1cnVzYWdlOwotCX0gd2hpbGUgKHJldHJ5X2NvdW50
+KTsKKwkJdXNhZ2UgPSBwYWdlX2NvdW50ZXJfcmVhZChjb3VudGVyKTsKKwkJaWYgKCF0cnlf
+dG9fZnJlZV9tZW1fY2dyb3VwX3BhZ2VzKG1lbWNnLCB1c2FnZSAtIGxpbWl0LAorCQkJCQkJ
+R0ZQX0tFUk5FTCwgIW1lbXN3KSkgeworCQkJcmV0ID0gLUVCVVNZOworCQkJYnJlYWs7CisJ
+CX0KKwl9IHdoaWxlICh0cnVlKTsKIAogCWlmICghcmV0ICYmIGVubGFyZ2UpCiAJCW1lbWNn
+X29vbV9yZWNvdmVyKG1lbWNnKTsKXwoKUGF0Y2hlcyBjdXJyZW50bHkgaW4gLW1tIHdoaWNo
+IG1pZ2h0IGJlIGZyb20gYXJ5YWJpbmluQHZpcnR1b3p6by5jb20gYXJlCgptbS1tZW1jZy10
+cnktaGFyZGVyLXRvLWRlY3JlYXNlLWxpbWl0X2luX2J5dGVzLnBhdGNoCmthc2FuLW1ha2Vm
+aWxlLXN1cHBvcnQtbGx2bS1zdHlsZS1hc2FuLXBhcmFtZXRlcnMucGF0Y2gKbGliLXN0cnNj
+cHktcmVtb3ZlLXdvcmQtYXQtYS10aW1lLW9wdGltaXphdGlvbi5wYXRjaAoK
