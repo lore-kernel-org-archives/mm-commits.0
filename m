@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
  checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test.patch added to -mm tree
-Date: Thu, 11 Jan 2018 15:11:21 -0800
-Message-ID: <5a57ef19.bbxAGROCILQT+9EW%akpm@linux-foundation.org>
+Date: Thu, 11 Jan 2018 15:11:28 -0800
+Message-ID: <5a57ef20.9Skn7a4u4iLiXK7J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53420 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbeAKXL1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 18:11:27 -0500
+        with ESMTP id S1751757AbeAKXLd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 18:11:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
