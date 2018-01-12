@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch added to -mm tree
-Date: Fri, 12 Jan 2018 15:33:19 -0800
-Message-ID: <5a5945bf.pAlvCITuMHsTiVaq%akpm@linux-foundation.org>
+Subject: +
+ kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch added to -mm tree
+Date: Fri, 12 Jan 2018 15:40:34 -0800
+Message-ID: <5a594772.BvjR09xOSMJfhzys%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59682 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965302AbeALXdU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Jan 2018 18:33:20 -0500
+        with ESMTP id S965331AbeALXkf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Jan 2018 18:40:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, adobriyan@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, bhe@redhat.com, dyoung@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com, mingo@redhat.com, stable@vger.kernel.org, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: add seq_put_hex_ll to speed up /proc/pid/maps
+     Subject: kdump: write correct address of mem_section into vmcoreinfo
 has been added to the -mm tree.  Its filename is
-     procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
+     kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,227 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@openvz.org>
-Subject: procfs: add seq_put_hex_ll to speed up /proc/pid/maps
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: kdump: write correct address of mem_section into vmcoreinfo
 
-seq_put_hex_ll() prints a number in hexadecimal notation and works faster
-than seq_printf().
+Depending on configuration mem_section can now be an array or a pointer to
+an array allocated dynamically.  In most cases, we can continue to refer
+to it as 'mem_section' regardless of what it is.
 
-== test.py
-num = 0
-with open("/proc/1/maps") as f:
-        while num < 10000 :
-                data = f.read()
-                f.seek(0, 0)
-                num = num + 1
-==
+But there's one exception: '&mem_section' means "address of the array" if
+mem_section is an array, but if mem_section is a pointer, it would mean
+"address of the pointer".
 
-== Before patch ==
-$  time python test.py
+We've stepped onto this in kdump code.  VMCOREINFO_SYMBOL(mem_section)
+writes down address of pointer into vmcoreinfo, not array as we wanted.
 
-real	0m1.561s
-user	0m0.257s
-sys	0m1.302s
+Let's introduce VMCOREINFO_SYMBOL_ARRAY() that would handle the situation
+correctly for both cases.
 
-== After patch ==
-$ time python test.py
-
-real	0m0.986s
-user	0m0.279s
-sys	0m0.707s
-
-$ perf -g record python test.py:
-
-== Before patch ==
--   67.42%     2.82%  python   [kernel.kallsyms] [k] show_map_vma.isra.22
-   - 64.60% show_map_vma.isra.22
-      - 44.98% seq_printf
-         - seq_vprintf
-            - vsnprintf
-               + 14.85% number
-               + 12.22% format_decode
-                 5.56% memcpy_erms
-      + 15.06% seq_path
-      + 4.42% seq_pad
-   + 2.45% __GI___libc_read
-
-== After patch ==
--   47.35%     3.38%  python   [kernel.kallsyms] [k] show_map_vma.isra.23
-   - 43.97% show_map_vma.isra.23
-      + 20.84% seq_path
-      - 15.73% show_vma_header_prefix
-           10.55% seq_put_hex_ll
-         + 2.65% seq_put_decimal_ull
-           0.95% seq_putc
-      + 6.96% seq_pad
-   + 2.94% __GI___libc_read
-
-Link: http://lkml.kernel.org/r/20180112185812.7710-1-avagin@openvz.org
-Signed-off-by: Andrei Vagin <avagin@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Link: http://lkml.kernel.org/r/20180112162532.35896-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: 83e3c48729d9 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y")
+Acked-by: Baoquan He <bhe@redhat.com>
+Acked-by: Dave Young <dyoung@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c       |   21 ++++++----
- fs/seq_file.c            |   74 +++++++++++++++++++++++++++++++------
- include/linux/seq_file.h |    3 +
- 3 files changed, 77 insertions(+), 21 deletions(-)
+ include/linux/crash_core.h |    2 ++
+ kernel/crash_core.c        |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps
-+++ a/fs/proc/task_mmu.c
-@@ -287,15 +287,18 @@ static void show_vma_header_prefix(struc
- 				   dev_t dev, unsigned long ino)
- {
- 	seq_setwidth(m, 25 + sizeof(void *) * 6 - 1);
--	seq_printf(m, "%08lx-%08lx %c%c%c%c %08llx %02x:%02x %lu ",
--		   start,
--		   end,
--		   flags & VM_READ ? 'r' : '-',
--		   flags & VM_WRITE ? 'w' : '-',
--		   flags & VM_EXEC ? 'x' : '-',
--		   flags & VM_MAYSHARE ? 's' : 'p',
--		   pgoff,
--		   MAJOR(dev), MINOR(dev), ino);
-+	seq_put_hex_ll(m, NULL, start, 8);
-+	seq_put_hex_ll(m, "-", end, 8);
-+	seq_putc(m, ' ');
-+	seq_putc(m, flags & VM_READ ? 'r' : '-');
-+	seq_putc(m, flags & VM_WRITE ? 'w' : '-');
-+	seq_putc(m, flags & VM_EXEC ? 'x' : '-');
-+	seq_putc(m, flags & VM_MAYSHARE ? 's' : 'p');
-+	seq_put_hex_ll(m, " ", pgoff, 8);
-+	seq_put_hex_ll(m, " ", MAJOR(dev), 2);
-+	seq_put_hex_ll(m, ":", MINOR(dev), 2);
-+	seq_put_decimal_ull(m, " ", ino);
-+	seq_putc(m, ' ');
- }
- 
- static void
-diff -puN fs/seq_file.c~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps fs/seq_file.c
---- a/fs/seq_file.c~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps
-+++ a/fs/seq_file.c
-@@ -670,6 +670,26 @@ void seq_puts(struct seq_file *m, const
- }
- EXPORT_SYMBOL(seq_puts);
- 
-+static inline void seq_put_delimeter(struct seq_file *m, const char *delimiter)
-+{
-+	int len;
-+
-+	if (!delimiter || !delimiter[0])
-+		return;
-+
-+	if (delimiter[1] == 0)
-+		return seq_putc(m, delimiter[0]);
-+
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size) {
-+		seq_set_overflow(m);
-+		return;
-+	}
-+
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
-+}
-+
- /*
-  * A helper routine for putting decimal numbers without rich format of printf().
-  * only 'unsigned long long' is supported.
-@@ -685,12 +705,7 @@ void seq_put_decimal_ull(struct seq_file
- 	if (m->count + 2 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
- 
--	len = strlen(delimiter);
--	if (m->count + len >= m->size)
--		goto overflow;
--
--	memcpy(m->buf + m->count, delimiter, len);
--	m->count += len;
-+	seq_put_delimeter(m, delimiter);
- 
- 	if (m->count + 1 >= m->size)
- 		goto overflow;
-@@ -712,6 +727,46 @@ overflow:
- }
- EXPORT_SYMBOL(seq_put_decimal_ull);
- 
-+/**
-+ * seq_put_hex_ll - put a number in hexadecimal notation
-+ * @m: seq_file identifying the buffer to which data should be written
-+ * @delimiter: a string which is printed before the number
-+ * @v: the number
-+ * @width: a minimum field width
-+ *
-+ * seq_put_hex_ll(m, "", v, 8) is equal to seq_printf(m, "0x08llx", v)
-+ *
-+ * This routine is very quick when you show lots of numbers.
-+ * In usual cases, it will be better to use seq_printf(). It's easier to read.
-+ */
-+void seq_put_hex_ll(struct seq_file *m, const char *delimiter,
-+				unsigned long long v, int width)
-+{
-+	int i, len;
-+
-+	seq_put_delimeter(m, delimiter);
-+
-+	len = (sizeof(v) * 8 - __builtin_clzll(v) + 3) / 4;
-+
-+	if (unlikely(len == 0))
-+		len = 1;
-+
-+	if (len < width)
-+		len = width;
-+
-+	if (m->count + len > m->size)
-+		goto overflow;
-+
-+	for (i = len - 1; i >= 0; i--) {
-+		m->buf[m->count + i] = hex_asc[0xf & v];
-+		v = v >> 4;
-+	}
-+	m->count += len;
-+	return;
-+overflow:
-+	seq_set_overflow(m);
-+}
-+
- void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num)
- {
- 	int len;
-@@ -719,12 +774,7 @@ void seq_put_decimal_ll(struct seq_file
- 	if (m->count + 3 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
- 
--	len = strlen(delimiter);
--	if (m->count + len >= m->size)
--		goto overflow;
--
--	memcpy(m->buf + m->count, delimiter, len);
--	m->count += len;
-+	seq_put_delimeter(m, delimiter);
- 
- 	if (m->count + 2 >= m->size)
- 		goto overflow;
-diff -puN include/linux/seq_file.h~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps include/linux/seq_file.h
---- a/include/linux/seq_file.h~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps
-+++ a/include/linux/seq_file.h
-@@ -121,6 +121,9 @@ void seq_puts(struct seq_file *m, const
- void seq_put_decimal_ull(struct seq_file *m, const char *delimiter,
- 			 unsigned long long num);
- void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num);
-+void seq_put_hex_ll(struct seq_file *m, const char *delimiter,
-+		    unsigned long long v, int width);
-+
- void seq_escape(struct seq_file *m, const char *s, const char *esc);
- 
- void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
+diff -puN include/linux/crash_core.h~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo include/linux/crash_core.h
+--- a/include/linux/crash_core.h~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo
++++ a/include/linux/crash_core.h
+@@ -42,6 +42,8 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
+ #define VMCOREINFO_SYMBOL(name) \
+ 	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)&name)
++#define VMCOREINFO_SYMBOL_ARRAY(name) \
++	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)name)
+ #define VMCOREINFO_SIZE(name) \
+ 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
+ 			      (unsigned long)sizeof(name))
+diff -puN kernel/crash_core.c~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo kernel/crash_core.c
+--- a/kernel/crash_core.c~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo
++++ a/kernel/crash_core.c
+@@ -410,7 +410,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_SYMBOL(contig_page_data);
+ #endif
+ #ifdef CONFIG_SPARSEMEM
+-	VMCOREINFO_SYMBOL(mem_section);
++	VMCOREINFO_SYMBOL_ARRAY(mem_section);
+ 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
+ 	VMCOREINFO_STRUCT_SIZE(mem_section);
+ 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-fs-elf-drop-map_fixed-usage-from-elf_map-fix.patch
-procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
-procfs-optimize-seq_pad-to-speed-up-proc-pid-maps.patch
+kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch
+asm-generic-provide-generic_pmdp_establish.patch
+arc-use-generic_pmdp_establish-as-pmdp_establish.patch
+arm-mm-provide-pmdp_establish-helper.patch
+mips-use-generic_pmdp_establish-as-pmdp_establish.patch
+x86-mm-provide-pmdp_establish-helper.patch
+mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
+mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
 
