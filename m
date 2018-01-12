@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch added to -mm tree
-Date: Thu, 11 Jan 2018 16:16:18 -0800
-Message-ID: <5a57fe52.cO5cKRhqqnWuph/k%akpm@linux-foundation.org>
+Subject: + pipe-simplify-round_pipe_size.patch added to -mm tree
+Date: Thu, 11 Jan 2018 16:16:27 -0800
+Message-ID: <5a57fe5b.Plenl7bgFlM4fOse%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43806 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754006AbeALAQU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 19:16:20 -0500
+        with ESMTP id S932074AbeALAQ2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 19:16:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: actually allow root to exceed the pipe buffer limits
+     Subject: pipe: simplify round_pipe_size()
 has been added to the -mm tree.  Its filename is
-     pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
+     pipe-simplify-round_pipe_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pipe-simplify-round_pipe_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-simplify-round_pipe_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,22 +39,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Eric Biggers <ebiggers@google.com>
-Subject: pipe: actually allow root to exceed the pipe buffer limits
+Subject: pipe: simplify round_pipe_size()
 
-pipe-user-pages-hard and pipe-user-pages-soft are only supposed to apply
-to unprivileged users, as documented in both Documentation/sysctl/fs.txt
-and the pipe(7) man page.
+round_pipe_size() calculates the number of pages the requested size
+corresponds to, then rounds the page count up to the next power of 2.
 
-However, the capabilities are actually only checked when increasing a
-pipe's size using F_SETPIPE_SZ, not when creating a new pipe.  Therefore,
-if pipe-user-pages-hard has been set, the root user can run into it and be
-unable to create pipes.  Similarly, if pipe-user-pages-soft has been set,
-the root user can run into it and have their pipes limited to 1 page each.
+However, it also rounds everything < PAGE_SIZE up to PAGE_SIZE. 
+Therefore, there's no need to actually translate the size into a page
+count; we just need to round the size up to the next power of 2.
 
-Fix this by allowing the privileged override in both cases.
+We do need to verify the size isn't greater than (1 << 31), since on
+32-bit systems roundup_pow_of_two() would be undefined in that case.  But
+that can just be combined with the UINT_MAX check which we need anyway
+now.
 
-Link: http://lkml.kernel.org/r/20180111052902.14409-4-ebiggers3@gmail.com
-Fixes: 759c01142a5d ("pipe: limit the per-user amount of pages allocated in pipes")
+Finally, update pipe_set_size() to not redundantly check the return value
+of round_pipe_size() for the "invalid size" case twice.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-7-ebiggers3@gmail.com
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
@@ -63,52 +65,48 @@ Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Willy Tarreau <w@1wt.eu>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/pipe.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits fs/pipe.c
---- a/fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits
+diff -puN fs/pipe.c~pipe-simplify-round_pipe_size fs/pipe.c
+--- a/fs/pipe.c~pipe-simplify-round_pipe_size
 +++ a/fs/pipe.c
-@@ -613,6 +613,11 @@ static bool too_many_pipe_buffers_hard(u
- 	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
+@@ -1022,20 +1022,14 @@ const struct file_operations pipefifo_fo
+  */
+ unsigned int round_pipe_size(unsigned long size)
+ {
+-	unsigned long nr_pages;
+-
+-	if (size > UINT_MAX)
++	if (size > (1U << 31))
+ 		return 0;
+ 
+ 	/* Minimum pipe size, as required by POSIX */
+ 	if (size < PAGE_SIZE)
+-		size = PAGE_SIZE;
+-
+-	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	if (nr_pages == 0)
+-		return 0;
++		return PAGE_SIZE;
+ 
+-	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
++	return roundup_pow_of_two(size);
  }
  
-+static bool is_unprivileged_user(void)
-+{
-+	return !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN);
-+}
-+
- struct pipe_inode_info *alloc_pipe_info(void)
- {
- 	struct pipe_inode_info *pipe;
-@@ -629,12 +634,12 @@ struct pipe_inode_info *alloc_pipe_info(
+ /*
+@@ -1050,8 +1044,6 @@ static long pipe_set_size(struct pipe_in
+ 	long ret = 0;
  
- 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+ 	size = round_pipe_size(arg);
+-	if (size == 0)
+-		return -EINVAL;
+ 	nr_pages = size >> PAGE_SHIFT;
  
--	if (too_many_pipe_buffers_soft(user_bufs)) {
-+	if (too_many_pipe_buffers_soft(user_bufs) && is_unprivileged_user()) {
- 		user_bufs = account_pipe_buffers(user, pipe_bufs, 1);
- 		pipe_bufs = 1;
- 	}
- 
--	if (too_many_pipe_buffers_hard(user_bufs))
-+	if (too_many_pipe_buffers_hard(user_bufs) && is_unprivileged_user())
- 		goto out_revert_acct;
- 
- 	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
-@@ -1065,7 +1070,7 @@ static long pipe_set_size(struct pipe_in
- 	if (nr_pages > pipe->buffers &&
- 			(too_many_pipe_buffers_hard(user_bufs) ||
- 			 too_many_pipe_buffers_soft(user_bufs)) &&
--			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
-+			is_unprivileged_user()) {
- 		ret = -EPERM;
- 		goto out_revert_acct;
- 	}
+ 	if (!nr_pages)
 _
 
 Patches currently in -mm which might be from ebiggers@google.com are
