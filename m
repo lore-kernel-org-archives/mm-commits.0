@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
- added to -mm tree
-Date: Thu, 11 Jan 2018 16:37:02 -0800
-Message-ID: <5a58032e.2tOXs3/vYlwZKzZT%akpm@linux-foundation.org>
+Subject: + zsmalloc-use-u-suffix-for-negative-literals-being-shifted.patch added to -mm tree
+Date: Thu, 11 Jan 2018 16:39:25 -0800
+Message-ID: <5a5803bd.qH39MDCByJJnbnik%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51778 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753877AbeALAhD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 19:37:03 -0500
+        with ESMTP id S1753877AbeALAj1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 19:39:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: nick.desaulniers@gmail.com, andy.shevchenko@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/xattr: assign errno to 'ret' in ocfs2_calc_xattr_init()
+     Subject: zsmalloc: use U suffix for negative literals being shifted
 has been added to the -mm tree.  Its filename is
-     ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
+     zsmalloc-use-u-suffix-for-negative-literals-being-shifted.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-use-u-suffix-for-negative-literals-being-shifted.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-use-u-suffix-for-negative-literals-being-shifted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/xattr: assign errno to 'ret' in ocfs2_calc_xattr_init()
+From: Nick Desaulniers <nick.desaulniers@gmail.com>
+Subject: zsmalloc: use U suffix for negative literals being shifted
 
-We need catch the errno returned by ocfs2_xattr_get_nolock() and assign
-it to 'ret' for printing and noticing upper callers.
+Fix warning about shifting unsigned literals being undefined behavior.
 
-Link: http://lkml.kernel.org/r/5A571CAF.8050709@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Acked-by: Gang He <ghe@suse.com>
-Acked-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/1515642078-4259-1-git-send-email-nick.desaulniers@gmail.com
+Signed-off-by: Nick Desaulniers <nick.desaulniers@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nick Desaulniers <nick.desaulniers@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init
-+++ a/fs/ocfs2/xattr.c
-@@ -646,6 +646,7 @@ int ocfs2_calc_xattr_init(struct inode *
- 			if (S_ISDIR(mode))
- 				a_size <<= 1;
- 		} else if (acl_len != 0 && acl_len != -ENODATA) {
-+			ret = acl_len;
- 			mlog_errno(ret);
- 			return ret;
+diff -puN mm/zsmalloc.c~zsmalloc-use-u-suffix-for-negative-literals-being-shifted mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-u-suffix-for-negative-literals-being-shifted
++++ a/mm/zsmalloc.c
+@@ -1047,7 +1047,7 @@ static void init_zspage(struct size_clas
+ 			 * Reset OBJ_TAG_BITS bit to last link to tell
+ 			 * whether it's allocated object or not.
+ 			 */
+-			link->next = -1 << OBJ_TAG_BITS;
++			link->next = -1UL << OBJ_TAG_BITS;
  		}
+ 		kunmap_atomic(vaddr);
+ 		page = next_page;
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from nick.desaulniers@gmail.com are
 
-ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
-ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
+zsmalloc-use-u-suffix-for-negative-literals-being-shifted.patch
 
