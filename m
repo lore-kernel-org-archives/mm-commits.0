@@ -1,68 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-sparsec-wrong-allocation-for-mem_section.patch
- removed from -mm tree
-Date: Fri, 12 Jan 2018 13:44:02 -0800
-Message-ID: <20180112214402.M0x7r0dYs%akpm__3463.76484162665$1515793338$gmane$org@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 12 Jan 2018 13:44:59 -0800
+Message-ID: <20180112214459.c8-wu0ztv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54928 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965253AbeALVoK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Jan 2018 16:44:10 -0500
+        with ESMTP id S965189AbeALVpB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Jan 2018 16:45:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ats-kumagai@wm.jp.nec.com, bhe@redhat.com, dyoung@redhat.com, kirill.shutemov@linux.intel.com, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sparse.c: wrong allocation for mem_section
-has been removed from the -mm tree.  Its filename was
-     mm-sparsec-wrong-allocation-for-mem_section.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/sparse.c: wrong allocation for mem_section
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-In 83e3c48729 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y") mem_section is allocated at runtime to save memory. While it allocates
-the first dimension of array with sizeof(struct mem_section). It costs
-extra memory, should be sizeof(struct mem_section*).
-
-Fix it.
-
-Link: http://lkml.kernel.org/r/1513932498-20350-1-git-send-email-bhe@redhat.com
-Fixes: 83e3c48729 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Tested-by: Dave Young <dyoung@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Atsushi Kumagai <ats-kumagai@wm.jp.nec.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/bpf/arraymap.c |   13 -------------
+ kernel/bpf/verifier.c |    4 ----
+ net/sctp/socket.c     |    4 ----
+ 3 files changed, 21 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparsec-wrong-allocation-for-mem_section mm/sparse.c
---- a/mm/sparse.c~mm-sparsec-wrong-allocation-for-mem_section
-+++ a/mm/sparse.c
-@@ -211,7 +211,7 @@ void __init memory_present(int nid, unsi
- 	if (unlikely(!mem_section)) {
- 		unsigned long size, align;
+diff -puN kernel/bpf/arraymap.c~linux-next-git-rejects kernel/bpf/arraymap.c
+--- a/kernel/bpf/arraymap.c~linux-next-git-rejects
++++ a/kernel/bpf/arraymap.c
+@@ -56,11 +56,7 @@ static struct bpf_map *array_map_alloc(u
+ 	u32 elem_size, index_mask, max_entries;
+ 	bool unpriv = !capable(CAP_SYS_ADMIN);
+ 	struct bpf_array *array;
+-<<<<<<< HEAD
+-	u64 array_size;
+-=======
+ 	u64 array_size, mask64;
+->>>>>>> linux-next/akpm-base
  
--		size = sizeof(struct mem_section) * NR_SECTION_ROOTS;
-+		size = sizeof(struct mem_section*) * NR_SECTION_ROOTS;
- 		align = 1 << (INTERNODE_CACHE_SHIFT);
- 		mem_section = memblock_virt_alloc(size, align);
+ 	/* check sanity of attributes */
+ 	if (attr->max_entries == 0 || attr->key_size != 4 ||
+@@ -78,11 +74,6 @@ static struct bpf_map *array_map_alloc(u
+ 	elem_size = round_up(attr->value_size, 8);
+ 
+ 	max_entries = attr->max_entries;
+-<<<<<<< HEAD
+-	index_mask = roundup_pow_of_two(max_entries) - 1;
+-
+-	if (unpriv)
+-=======
+ 
+ 	/* On 32 bit archs roundup_pow_of_two() with max_entries that has
+ 	 * upper most bit set in u32 space is undefined behavior due to
+@@ -94,18 +85,14 @@ static struct bpf_map *array_map_alloc(u
+ 
+ 	index_mask = mask64;
+ 	if (unpriv) {
+->>>>>>> linux-next/akpm-base
+ 		/* round up array size to nearest power of 2,
+ 		 * since cpu will speculate within index_mask limits
+ 		 */
+ 		max_entries = index_mask + 1;
+-<<<<<<< HEAD
+-=======
+ 		/* Check for overflows. */
+ 		if (max_entries < attr->max_entries)
+ 			return ERR_PTR(-E2BIG);
  	}
+->>>>>>> linux-next/akpm-base
+ 
+ 	array_size = sizeof(*array);
+ 	if (percpu)
+diff -puN kernel/bpf/verifier.c~linux-next-git-rejects kernel/bpf/verifier.c
+--- a/kernel/bpf/verifier.c~linux-next-git-rejects
++++ a/kernel/bpf/verifier.c
+@@ -5349,11 +5349,7 @@ static int fixup_bpf_calls(struct bpf_ve
+ 			 */
+ 			map_ptr = env->insn_aux_data[i + delta].map_ptr;
+ 			if (map_ptr == BPF_MAP_PTR_POISON) {
+-<<<<<<< HEAD
+-				verbose(env, "tail_call obusing map_ptr\n");
+-=======
+ 				verbose(env, "tail_call abusing map_ptr\n");
+->>>>>>> linux-next/akpm-base
+ 				return -EINVAL;
+ 			}
+ 			if (!map_ptr->unpriv_array)
+diff -puN net/sctp/socket.c~linux-next-git-rejects net/sctp/socket.c
+--- a/net/sctp/socket.c~linux-next-git-rejects
++++ a/net/sctp/socket.c
+@@ -5085,11 +5085,7 @@ static int sctp_getsockopt_autoclose(str
+ 	len = sizeof(int);
+ 	if (put_user(len, optlen))
+ 		return -EFAULT;
+-<<<<<<< HEAD
+-	if (copy_to_user(optval, &sctp_sk(sk)->autoclose, len))
+-=======
+ 	if (put_user(sctp_sk(sk)->autoclose, (int __user *)optval))
+->>>>>>> linux-next/akpm-base
+ 		return -EFAULT;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
