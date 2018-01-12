@@ -1,27 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 12 Jan 2018 13:44:59 -0800
-Message-ID: <20180112214459.c8-wu0ztv%akpm@linux-foundation.org>
+Subject: + elf-fix-nt_file-integer-overflow.patch added to -mm tree
+Date: Fri, 12 Jan 2018 14:52:20 -0800
+Message-ID: <5a593c24.vv5YlKR/vintUSYH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965189AbeALVpB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Jan 2018 16:45:01 -0500
+        with ESMTP id S965257AbeALWwV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Jan 2018 17:52:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: elf: fix NT_FILE integer overflow
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     elf-fix-nt_file-integer-overflow.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/elf-fix-nt_file-integer-overflow.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/elf-fix-nt_file-integer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,119 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: elf: fix NT_FILE integer overflow
 
+If vm.max_map_count bumped above 2^26 (67+ mil) and system has enough RAM
+to allocate all the VMAs (~12.8 GB on Fedora 27 with 200-byte VMAs), then
+it should be possible to overflow 32-bit "size", pass paranoia check,
+allocate very little vmalloc space and oops while writing into vmalloc
+guard page...
+
+But I didn't test this, only coredump of regular process.
+
+Link: http://lkml.kernel.org/r/20180112203427.GA9109@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/bpf/arraymap.c |   13 -------------
- kernel/bpf/verifier.c |    4 ----
- net/sctp/socket.c     |    4 ----
- 3 files changed, 21 deletions(-)
+ fs/binfmt_elf.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/bpf/arraymap.c~linux-next-git-rejects kernel/bpf/arraymap.c
---- a/kernel/bpf/arraymap.c~linux-next-git-rejects
-+++ a/kernel/bpf/arraymap.c
-@@ -56,11 +56,7 @@ static struct bpf_map *array_map_alloc(u
- 	u32 elem_size, index_mask, max_entries;
- 	bool unpriv = !capable(CAP_SYS_ADMIN);
- 	struct bpf_array *array;
--<<<<<<< HEAD
--	u64 array_size;
--=======
- 	u64 array_size, mask64;
-->>>>>>> linux-next/akpm-base
+diff -puN fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow
++++ a/fs/binfmt_elf.c
+@@ -1604,6 +1604,8 @@ static int fill_files_note(struct memelf
  
- 	/* check sanity of attributes */
- 	if (attr->max_entries == 0 || attr->key_size != 4 ||
-@@ -78,11 +74,6 @@ static struct bpf_map *array_map_alloc(u
- 	elem_size = round_up(attr->value_size, 8);
+ 	/* *Estimated* file count and total data size needed */
+ 	count = current->mm->map_count;
++	if (count > UINT_MAX / 64)
++		return -EINVAL;
+ 	size = count * 64;
  
- 	max_entries = attr->max_entries;
--<<<<<<< HEAD
--	index_mask = roundup_pow_of_two(max_entries) - 1;
--
--	if (unpriv)
--=======
- 
- 	/* On 32 bit archs roundup_pow_of_two() with max_entries that has
- 	 * upper most bit set in u32 space is undefined behavior due to
-@@ -94,18 +85,14 @@ static struct bpf_map *array_map_alloc(u
- 
- 	index_mask = mask64;
- 	if (unpriv) {
-->>>>>>> linux-next/akpm-base
- 		/* round up array size to nearest power of 2,
- 		 * since cpu will speculate within index_mask limits
- 		 */
- 		max_entries = index_mask + 1;
--<<<<<<< HEAD
--=======
- 		/* Check for overflows. */
- 		if (max_entries < attr->max_entries)
- 			return ERR_PTR(-E2BIG);
- 	}
-->>>>>>> linux-next/akpm-base
- 
- 	array_size = sizeof(*array);
- 	if (percpu)
-diff -puN kernel/bpf/verifier.c~linux-next-git-rejects kernel/bpf/verifier.c
---- a/kernel/bpf/verifier.c~linux-next-git-rejects
-+++ a/kernel/bpf/verifier.c
-@@ -5349,11 +5349,7 @@ static int fixup_bpf_calls(struct bpf_ve
- 			 */
- 			map_ptr = env->insn_aux_data[i + delta].map_ptr;
- 			if (map_ptr == BPF_MAP_PTR_POISON) {
--<<<<<<< HEAD
--				verbose(env, "tail_call obusing map_ptr\n");
--=======
- 				verbose(env, "tail_call abusing map_ptr\n");
-->>>>>>> linux-next/akpm-base
- 				return -EINVAL;
- 			}
- 			if (!map_ptr->unpriv_array)
-diff -puN net/sctp/socket.c~linux-next-git-rejects net/sctp/socket.c
---- a/net/sctp/socket.c~linux-next-git-rejects
-+++ a/net/sctp/socket.c
-@@ -5085,11 +5085,7 @@ static int sctp_getsockopt_autoclose(str
- 	len = sizeof(int);
- 	if (put_user(len, optlen))
- 		return -EFAULT;
--<<<<<<< HEAD
--	if (copy_to_user(optval, &sctp_sk(sk)->autoclose, len))
--=======
- 	if (put_user(sctp_sk(sk)->autoclose, (int __user *)optval))
-->>>>>>> linux-next/akpm-base
- 		return -EFAULT;
- 	return 0;
- }
+ 	names_ofs = (2 + 3 * count) * sizeof(data[0]);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
-mm-do-not-stall-register_shrinker-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
-x86-mm-provide-pmdp_establish-helper-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
+proc-dont-use-read_once-write_once-for-proc-fail-nth.patch
+proc-fix-proc-map_files-lookup.patch
+proc-simpler-proc-vmcore-cleanup.patch
+proc-less-memory-for-proc-map_files-readdir.patch
+proc-delete-children_seq_release.patch
+proc-rearrange-struct-proc_dir_entry.patch
+proc-fixup-comment.patch
+proc-spread-__ro_after_init.patch
+proc-spread-likely-unlikely-a-bit.patch
+proc-rearrange-args.patch
+uuid-cleanup-uapi-linux-uuidh.patch
+elf-fix-nt_file-integer-overflow.patch
+seq_file-delete-small-value-optimization.patch
+cpumask-make-cpumask_size-return-unsigned-int.patch
 
