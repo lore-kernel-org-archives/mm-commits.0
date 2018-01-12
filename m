@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter.patch added to
- -mm tree
-Date: Thu, 11 Jan 2018 16:16:12 -0800
-Message-ID: <5a57fe4c.Y4rJb/wmRzHT+hfS%akpm@linux-foundation.org>
+Subject: + pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch added to -mm tree
+Date: Thu, 11 Jan 2018 16:16:18 -0800
+Message-ID: <5a57fe52.cO5cKRhqqnWuph/k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753186AbeALAQO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 19:16:14 -0500
+        with ESMTP id S1754006AbeALAQU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jan 2018 19:16:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe, sysctl: drop 'min' parameter from pipe-max-size converter
+     Subject: pipe: actually allow root to exceed the pipe buffer limits
 has been added to the -mm tree.  Its filename is
-     pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter.patch
+     pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,32 +39,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Eric Biggers <ebiggers@google.com>
-Subject: pipe, sysctl: drop 'min' parameter from pipe-max-size converter
+Subject: pipe: actually allow root to exceed the pipe buffer limits
 
-Patch series "pipe: buffer limits fixes and cleanups", v2.
+pipe-user-pages-hard and pipe-user-pages-soft are only supposed to apply
+to unprivileged users, as documented in both Documentation/sysctl/fs.txt
+and the pipe(7) man page.
 
-This series simplifies the sysctl handler for pipe-max-size and fixes
-another set of bugs related to the pipe buffer limits:
+However, the capabilities are actually only checked when increasing a
+pipe's size using F_SETPIPE_SZ, not when creating a new pipe.  Therefore,
+if pipe-user-pages-hard has been set, the root user can run into it and be
+unable to create pipes.  Similarly, if pipe-user-pages-soft has been set,
+the root user can run into it and have their pipes limited to 1 page each.
 
-- The root user wasn't allowed to exceed the limits when creating new
-  pipes.
+Fix this by allowing the privileged override in both cases.
 
-- There was an off-by-one error when checking the limits, so a limit of
-  N was actually treated as N - 1.
-
-- F_SETPIPE_SZ accepted values over UINT_MAX.
-
-- Reading the pipe buffer limits could be racy.
-
-
-This patch (of 7):
-
-Before validating the given value against pipe_min_size,
-do_proc_dopipe_max_size_conv() calls round_pipe_size(), which rounds the
-value up to pipe_min_size.  Therefore, the second check against
-pipe_min_size is redundant.  Remove it.
-
-Link: http://lkml.kernel.org/r/20180111052902.14409-2-ebiggers3@gmail.com
+Link: http://lkml.kernel.org/r/20180111052902.14409-4-ebiggers3@gmail.com
+Fixes: 759c01142a5d ("pipe: limit the per-user amount of pages allocated in pipes")
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
@@ -75,104 +63,52 @@ Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Willy Tarreau <w@1wt.eu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |   10 +++-------
- include/linux/pipe_fs_i.h |    2 +-
- kernel/sysctl.c           |   15 +--------------
- 3 files changed, 5 insertions(+), 22 deletions(-)
+ fs/pipe.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/pipe.c~pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter fs/pipe.c
---- a/fs/pipe.c~pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter
+diff -puN fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits fs/pipe.c
+--- a/fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits
 +++ a/fs/pipe.c
-@@ -35,11 +35,6 @@
-  */
- unsigned int pipe_max_size = 1048576;
- 
--/*
-- * Minimum pipe size, as required by POSIX
-- */
--unsigned int pipe_min_size = PAGE_SIZE;
--
- /* Maximum allocatable pages per user. Hard limit is unset by default, soft
-  * matches default values.
-  */
-@@ -1024,8 +1019,9 @@ unsigned int round_pipe_size(unsigned in
- {
- 	unsigned long nr_pages;
- 
--	if (size < pipe_min_size)
--		size = pipe_min_size;
-+	/* Minimum pipe size, as required by POSIX */
-+	if (size < PAGE_SIZE)
-+		size = PAGE_SIZE;
- 
- 	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (nr_pages == 0)
-diff -puN include/linux/pipe_fs_i.h~pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter
-+++ a/include/linux/pipe_fs_i.h
-@@ -167,7 +167,7 @@ void pipe_lock(struct pipe_inode_info *)
- void pipe_unlock(struct pipe_inode_info *);
- void pipe_double_lock(struct pipe_inode_info *, struct pipe_inode_info *);
- 
--extern unsigned int pipe_max_size, pipe_min_size;
-+extern unsigned int pipe_max_size;
- extern unsigned long pipe_user_pages_hard;
- extern unsigned long pipe_user_pages_soft;
- int pipe_proc_fn(struct ctl_table *, int, void __user *, size_t *, loff_t *);
-diff -puN kernel/sysctl.c~pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter
-+++ a/kernel/sysctl.c
-@@ -1813,7 +1813,6 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(pipe_max_size),
- 		.mode		= 0644,
- 		.proc_handler	= &pipe_proc_fn,
--		.extra1		= &pipe_min_size,
- 	},
- 	{
- 		.procname	= "pipe-user-pages-hard",
-@@ -2615,16 +2614,10 @@ int proc_douintvec_minmax(struct ctl_tab
- 				 do_proc_douintvec_minmax_conv, &param);
+@@ -613,6 +613,11 @@ static bool too_many_pipe_buffers_hard(u
+ 	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
  }
  
--struct do_proc_dopipe_max_size_conv_param {
--	unsigned int *min;
--};
--
- static int do_proc_dopipe_max_size_conv(unsigned long *lvalp,
- 					unsigned int *valp,
- 					int write, void *data)
++static bool is_unprivileged_user(void)
++{
++	return !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN);
++}
++
+ struct pipe_inode_info *alloc_pipe_info(void)
  {
--	struct do_proc_dopipe_max_size_conv_param *param = data;
--
- 	if (write) {
- 		unsigned int val;
+ 	struct pipe_inode_info *pipe;
+@@ -629,12 +634,12 @@ struct pipe_inode_info *alloc_pipe_info(
  
-@@ -2635,9 +2628,6 @@ static int do_proc_dopipe_max_size_conv(
- 		if (val == 0)
- 			return -EINVAL;
+ 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
  
--		if (param->min && *param->min > val)
--			return -ERANGE;
--
- 		*valp = val;
- 	} else {
- 		unsigned int val = *valp;
-@@ -2650,11 +2640,8 @@ static int do_proc_dopipe_max_size_conv(
- int proc_dopipe_max_size(struct ctl_table *table, int write,
- 			 void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--	struct do_proc_dopipe_max_size_conv_param param = {
--		.min = (unsigned int *) table->extra1,
--	};
- 	return do_proc_douintvec(table, write, buffer, lenp, ppos,
--				 do_proc_dopipe_max_size_conv, &param);
-+				 do_proc_dopipe_max_size_conv, NULL);
- }
+-	if (too_many_pipe_buffers_soft(user_bufs)) {
++	if (too_many_pipe_buffers_soft(user_bufs) && is_unprivileged_user()) {
+ 		user_bufs = account_pipe_buffers(user, pipe_bufs, 1);
+ 		pipe_bufs = 1;
+ 	}
  
- static void validate_coredump_safety(void)
+-	if (too_many_pipe_buffers_hard(user_bufs))
++	if (too_many_pipe_buffers_hard(user_bufs) && is_unprivileged_user())
+ 		goto out_revert_acct;
+ 
+ 	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
+@@ -1065,7 +1070,7 @@ static long pipe_set_size(struct pipe_in
+ 	if (nr_pages > pipe->buffers &&
+ 			(too_many_pipe_buffers_hard(user_bufs) ||
+ 			 too_many_pipe_buffers_soft(user_bufs)) &&
+-			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
++			is_unprivileged_user()) {
+ 		ret = -EPERM;
+ 		goto out_revert_acct;
+ 	}
 _
 
 Patches currently in -mm which might be from ebiggers@google.com are
