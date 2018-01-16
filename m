@@ -1,68 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kmemleak-allow-to-coexist-with-fault-injection.patch removed from -mm tree
-Date: Tue, 16 Jan 2018 11:30:28 -0800
-Message-ID: <20180116193028.Dv5kDI5wO%akpm@linux-foundation.org>
+ kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch removed
+ from -mm tree
+Date: Tue, 16 Jan 2018 11:30:31 -0800
+Message-ID: <20180116193031.HGSbKJomE%akpm__837.639792780642$1516130919$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41608 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751816AbeAPTa3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 14:30:29 -0500
+        with ESMTP id S1751505AbeAPTad (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 14:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, dvyukov@google.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, dyoung@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tglx@linutronix.de, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: kmemleak: allow to coexist with fault injection
+     Subject: kdump: write correct address of mem_section into vmcoreinfo
 has been removed from the -mm tree.  Its filename was
-     kmemleak-allow-to-coexist-with-fault-injection.patch
+     kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kmemleak: allow to coexist with fault injection
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: kdump: write correct address of mem_section into vmcoreinfo
 
-kmemleak does one slab allocation per user allocation.  So if slab fault
-injection is enabled to any degree, kmemleak instantly fails to allocate
-and turns itself off.  However, it's useful to use kmemleak with fault
-injection to find leaks on error paths.  On the other hand, checking
-kmemleak itself is not so useful because (1) it's a debugging tool and (2)
-it has a very regular allocation pattern (basically a single allocation
-site, so it either works or not).
+Depending on configuration mem_section can now be an array or a pointer to
+an array allocated dynamically.  In most cases, we can continue to refer
+to it as 'mem_section' regardless of what it is.
 
-Turn off fault injection for kmemleak allocations.
+But there's one exception: '&mem_section' means "address of the array" if
+mem_section is an array, but if mem_section is a pointer, it would mean
+"address of the pointer".
 
-Link: http://lkml.kernel.org/r/20180109192243.19316-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+We've stepped onto this in kdump code.  VMCOREINFO_SYMBOL(mem_section)
+writes down address of pointer into vmcoreinfo, not array as we wanted.
+
+Let's introduce VMCOREINFO_SYMBOL_ARRAY() that would handle the situation
+correctly for both cases.
+
+Link: http://lkml.kernel.org/r/20180112162532.35896-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: 83e3c48729d9 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y")
+Acked-by: Baoquan He <bhe@redhat.com>
+Acked-by: Dave Young <dyoung@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/crash_core.h |    2 ++
+ kernel/crash_core.c        |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/kmemleak.c~kmemleak-allow-to-coexist-with-fault-injection mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-allow-to-coexist-with-fault-injection
-+++ a/mm/kmemleak.c
-@@ -127,7 +127,7 @@
- /* GFP bitmask for kmemleak internal allocations */
- #define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC)) | \
- 				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
--				 __GFP_NOWARN)
-+				 __GFP_NOWARN | __GFP_NOFAIL)
- 
- /* scanning area inside a memory block */
- struct kmemleak_scan_area {
+diff -puN include/linux/crash_core.h~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo include/linux/crash_core.h
+--- a/include/linux/crash_core.h~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo
++++ a/include/linux/crash_core.h
+@@ -42,6 +42,8 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
+ #define VMCOREINFO_SYMBOL(name) \
+ 	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)&name)
++#define VMCOREINFO_SYMBOL_ARRAY(name) \
++	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)name)
+ #define VMCOREINFO_SIZE(name) \
+ 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
+ 			      (unsigned long)sizeof(name))
+diff -puN kernel/crash_core.c~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo kernel/crash_core.c
+--- a/kernel/crash_core.c~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo
++++ a/kernel/crash_core.c
+@@ -410,7 +410,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_SYMBOL(contig_page_data);
+ #endif
+ #ifdef CONFIG_SPARSEMEM
+-	VMCOREINFO_SYMBOL(mem_section);
++	VMCOREINFO_SYMBOL_ARRAY(mem_section);
+ 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
+ 	VMCOREINFO_STRUCT_SIZE(mem_section);
+ 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-kasan-detect-invalid-frees-for-large-objects.patch
-kasan-dont-use-__builtin_return_address1.patch
-kasan-detect-invalid-frees-for-large-mempool-objects.patch
-kasan-unify-code-between-kasan_slab_free-and-kasan_poison_kfree.patch
-kasan-detect-invalid-frees.patch
+asm-generic-provide-generic_pmdp_establish.patch
+arc-use-generic_pmdp_establish-as-pmdp_establish.patch
+arm-mm-provide-pmdp_establish-helper.patch
+mips-use-generic_pmdp_establish-as-pmdp_establish.patch
+x86-mm-provide-pmdp_establish-helper.patch
+mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
+mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
 
