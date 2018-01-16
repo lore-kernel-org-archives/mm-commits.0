@@ -1,98 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch removed
+ tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch removed
  from -mm tree
-Date: Tue, 16 Jan 2018 11:30:31 -0800
-Message-ID: <20180116193031.HGSbKJomE%akpm__837.639792780642$1516130919$gmane$org@linux-foundation.org>
+Date: Tue, 16 Jan 2018 11:30:34 -0800
+Message-ID: <20180116193034.hjU0Gn6Dr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41620 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751505AbeAPTad (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 14:30:33 -0500
+        with ESMTP id S1750811AbeAPTaf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 14:30:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dyoung@redhat.com, gregkh@linuxfoundation.org, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tglx@linutronix.de, vgoyal@redhat.com
+To: akpm@linux-foundation.org, jpoimboe@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org, nicolasbock@gentoo.org
 
 
 The patch titled
-     Subject: kdump: write correct address of mem_section into vmcoreinfo
+     Subject: tools/objtool/Makefile: don't assume sync-check.sh is executable
 has been removed from the -mm tree.  Its filename was
-     kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo.patch
+     tools-objtool-makefile-dont-assume-sync-checksh-is-executable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: kdump: write correct address of mem_section into vmcoreinfo
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tools/objtool/Makefile: don't assume sync-check.sh is executable
 
-Depending on configuration mem_section can now be an array or a pointer to
-an array allocated dynamically.  In most cases, we can continue to refer
-to it as 'mem_section' regardless of what it is.
+patch(1) loses the x bit.  So if a user follows our patching instructions
+in Documentation/admin-guide/README.rst, their kernel will not compile.
 
-But there's one exception: '&mem_section' means "address of the array" if
-mem_section is an array, but if mem_section is a pointer, it would mean
-"address of the pointer".
-
-We've stepped onto this in kdump code.  VMCOREINFO_SYMBOL(mem_section)
-writes down address of pointer into vmcoreinfo, not array as we wanted.
-
-Let's introduce VMCOREINFO_SYMBOL_ARRAY() that would handle the situation
-correctly for both cases.
-
-Link: http://lkml.kernel.org/r/20180112162532.35896-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Fixes: 83e3c48729d9 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y")
-Acked-by: Baoquan He <bhe@redhat.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 3bd51c5a371de ("objtool: Move kernel headers/code sync check to a script")
+Reported-by: Nicolas Bock <nicolasbock@gentoo.org>
+Reported-by Joakim Tjernlund <Joakim.Tjernlund@infinera.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_core.h |    2 ++
- kernel/crash_core.c        |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ tools/objtool/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/crash_core.h~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo include/linux/crash_core.h
---- a/include/linux/crash_core.h~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo
-+++ a/include/linux/crash_core.h
-@@ -42,6 +42,8 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
- #define VMCOREINFO_SYMBOL(name) \
- 	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)&name)
-+#define VMCOREINFO_SYMBOL_ARRAY(name) \
-+	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)name)
- #define VMCOREINFO_SIZE(name) \
- 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
- 			      (unsigned long)sizeof(name))
-diff -puN kernel/crash_core.c~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo kernel/crash_core.c
---- a/kernel/crash_core.c~kdump-write-a-correct-address-of-mem_section-into-vmcoreinfo
-+++ a/kernel/crash_core.c
-@@ -410,7 +410,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_SYMBOL(contig_page_data);
- #endif
- #ifdef CONFIG_SPARSEMEM
--	VMCOREINFO_SYMBOL(mem_section);
-+	VMCOREINFO_SYMBOL_ARRAY(mem_section);
- 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
- 	VMCOREINFO_STRUCT_SIZE(mem_section);
- 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
+diff -puN tools/objtool/Makefile~tools-objtool-makefile-dont-assume-sync-checksh-is-executable tools/objtool/Makefile
+--- a/tools/objtool/Makefile~tools-objtool-makefile-dont-assume-sync-checksh-is-executable
++++ a/tools/objtool/Makefile
+@@ -46,7 +46,7 @@ $(OBJTOOL_IN): fixdep FORCE
+ 	@$(MAKE) $(build)=objtool
+ 
+ $(OBJTOOL): $(LIBSUBCMD) $(OBJTOOL_IN)
+-	@./sync-check.sh
++	@$(CONFIG_SHELL) ./sync-check.sh
+ 	$(QUIET_LINK)$(CC) $(OBJTOOL_IN) $(LDFLAGS) -o $@
+ 
+ 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-asm-generic-provide-generic_pmdp_establish.patch
-arc-use-generic_pmdp_establish-as-pmdp_establish.patch
-arm-mm-provide-pmdp_establish-helper.patch
-mips-use-generic_pmdp_establish-as-pmdp_establish.patch
-x86-mm-provide-pmdp_establish-helper.patch
-mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate.patch
-mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
