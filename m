@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-use-seq_putc-in-show_console_dev.patch added to -mm
- tree
-Date: Tue, 16 Jan 2018 14:19:43 -0800
-Message-ID: <5a5e7a7f.8egZWaGdXHkltgEd%akpm@linux-foundation.org>
+Subject: + mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+ added to -mm tree
+Date: Tue, 16 Jan 2018 14:21:33 -0800
+Message-ID: <5a5e7aed.9RE3SMvXAtR4Ojuu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47980 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750772AbeAPWTo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 17:19:44 -0500
+        with ESMTP id S1750796AbeAPWVe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 17:21:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, mm-commits@vger.kernel.org
+To: yang.shi@linux.alibaba.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/consoles.c: use seq_putc() in show_console_dev()
+     Subject: mm/compaction.c: fix comment for try_to_compact_pages()
 has been added to the -mm tree.  Its filename is
-     fs-proc-use-seq_putc-in-show_console_dev.patch
+     mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-use-seq_putc-in-show_console_dev.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-use-seq_putc-in-show_console_dev.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: fs/proc/consoles.c: use seq_putc() in show_console_dev()
-Date: Sat, 13 Jan 2018 17:17:59 +0100
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm/compaction.c: fix comment for try_to_compact_pages()
 
-A single character (line break) should be put into a sequence.  Thus use
-the corresponding function "seq_putc".
+"mode" argument is not used by try_to_compact_pages() and sub functions
+anymore, it has been replaced by "prio".  Fix the comment to explain the
+use of "prio" argument.
 
-This issue was detected by using the Coccinelle software.
-
-Link: http://lkml.kernel.org/r/04fb69fe-d820-9141-820f-07e9a48f4635@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Link: http://lkml.kernel.org/r/1515801336-20611-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/consoles.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/consoles.c~fs-proc-use-seq_putc-in-show_console_dev fs/proc/consoles.c
---- a/fs/proc/consoles.c~fs-proc-use-seq_putc-in-show_console_dev
-+++ a/fs/proc/consoles.c
-@@ -55,8 +55,7 @@ static int show_console_dev(struct seq_f
- 	if (dev)
- 		seq_printf(m, " %4d:%d", MAJOR(dev), MINOR(dev));
- 
--	seq_printf(m, "\n");
+diff -puN mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages
++++ a/mm/compaction.c
+@@ -1736,7 +1736,7 @@ int sysctl_extfrag_threshold = 500;
+  * @order: The order of the current allocation
+  * @alloc_flags: The allocation flags of the current allocation
+  * @ac: The context of current allocation
+- * @mode: The migration mode for async, sync light, or sync migration
++ * @prio: Determines how hard direct compaction should try to succeed
+  *
+  * This is the main entry point for direct page compaction.
+  */
+_
+
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+
+mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+
