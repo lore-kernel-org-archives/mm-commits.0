@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-fix-prototype-author-email-address.patch added to -mm
- tree
-Date: Tue, 16 Jan 2018 13:56:41 -0800
-Message-ID: <5a5e7519.2QFe3prRWqXQgqc/%akpm@linux-foundation.org>
+Subject: + kasan-clean-up-kasan_shadow_scale_shift-usage.patch added to
+ -mm tree
+Date: Tue, 16 Jan 2018 13:56:44 -0800
+Message-ID: <5a5e751c.HGYP2slByWCMZG4c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42994 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbeAPV4n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 16:56:43 -0500
+        with ESMTP id S1750796AbeAPV4r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 16:56:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix prototype author email address
+     Subject: kasan: clean up KASAN_SHADOW_SCALE_SHIFT usage
 has been added to the -mm tree.  Its filename is
-     kasan-fix-prototype-author-email-address.patch
+     kasan-clean-up-kasan_shadow_scale_shift-usage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-prototype-author-email-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-clean-up-kasan_shadow_scale_shift-usage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-prototype-author-email-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-clean-up-kasan_shadow_scale_shift-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +40,126 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix prototype author email address
+Subject: kasan: clean up KASAN_SHADOW_SCALE_SHIFT usage
 
-Use the new one.
+Right now the fact that KASAN uses a single shadow byte for 8 bytes of
+memory is scattered all over the code.
 
-Link: http://lkml.kernel.org/r/de3b7ffc30a55178913a7d3865216aa7accf6c40.1515775666.git.andreyknvl@google.com
+This change defines KASAN_SHADOW_SCALE_SHIFT early in asm include files
+and makes use of this constant where necessary.
+
+Link: http://lkml.kernel.org/r/34937ca3b90736eaad91b568edf5684091f662e3.1515775666.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c  |    2 +-
- mm/kasan/report.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/kasan.h  |   17 ++++++++++-------
+ arch/arm64/include/asm/memory.h |    3 ++-
+ arch/arm64/mm/kasan_init.c      |    3 ++-
+ arch/x86/include/asm/kasan.h    |   12 ++++++++----
+ include/linux/kasan.h           |    2 --
+ 5 files changed, 22 insertions(+), 15 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-fix-prototype-author-email-address mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-fix-prototype-author-email-address
-+++ a/mm/kasan/kasan.c
-@@ -5,7 +5,7 @@
-  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+diff -puN arch/arm64/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage arch/arm64/include/asm/kasan.h
+--- a/arch/arm64/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage
++++ a/arch/arm64/include/asm/kasan.h
+@@ -12,7 +12,8 @@
+ 
+ /*
+  * KASAN_SHADOW_START: beginning of the kernel virtual addresses.
+- * KASAN_SHADOW_END: KASAN_SHADOW_START + 1/8 of kernel virtual addresses.
++ * KASAN_SHADOW_END: KASAN_SHADOW_START + 1/N of kernel virtual addresses,
++ * where N = (1 << KASAN_SHADOW_SCALE_SHIFT).
+  */
+ #define KASAN_SHADOW_START      (VA_START)
+ #define KASAN_SHADOW_END        (KASAN_SHADOW_START + KASAN_SHADOW_SIZE)
+@@ -20,14 +21,16 @@
+ /*
+  * This value is used to map an address to the corresponding shadow
+  * address by the following formula:
+- *     shadow_addr = (address >> 3) + KASAN_SHADOW_OFFSET;
++ *     shadow_addr = (address >> KASAN_SHADOW_SCALE_SHIFT) + KASAN_SHADOW_OFFSET
   *
-  * Some code borrowed from https://github.com/xairy/kasan-prototype by
-- *        Andrey Konovalov <adech.fo@gmail.com>
-+ *        Andrey Konovalov <andreyknvl@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff -puN mm/kasan/report.c~kasan-fix-prototype-author-email-address mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-fix-prototype-author-email-address
-+++ a/mm/kasan/report.c
-@@ -5,7 +5,7 @@
-  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-  *
-  * Some code borrowed from https://github.com/xairy/kasan-prototype by
-- *        Andrey Konovalov <adech.fo@gmail.com>
-+ *        Andrey Konovalov <andreyknvl@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-_
-
-Patches currently in -mm which might be from andreyknvl@google.com are
-
-kasan-fix-prototype-author-email-address.patch
-kasan-clean-up-kasan_shadow_scale_shift-usage.patch
-
+- * (1 << 61) shadow addresses - [KASAN_SHADOW_OFFSET,KASAN_SHADOW_END]
+- * cover all 64-bits of virtual addresses. So KASAN_SHADOW_OFFSET
+- * should satisfy the following equation:
+- *      KASAN_SHADOW_OFFSET = KASAN_SHADOW_END - (1ULL << 61)
++ * (1 << (64 - KASAN_SHADOW_SCALE_SHIFT)) shadow addresses that lie in range
++ * [KASAN_SHADOW_OFFSET, KASAN_SHADOW_END) cover all 64-bits of virtual
++ * addresses. So KASAN_SHADOW_OFFSET should satisfy the following equation:
++ *      KASAN_SHADOW_OFFSET = KASAN_SHADOW_END -
++ * 				(1ULL << (64 - KASAN_SHADOW_SCALE_SHIFT))
+  */
+-#define KASAN_SHADOW_OFFSET     (KASAN_SHADOW_END - (1ULL << (64 - 3)))
++#define KASAN_SHADOW_OFFSET     (KASAN_SHADOW_END - (1ULL << \
++					(64 - KASAN_SHADOW_SCALE_SHIFT)))
+ 
+ void kasan_init(void);
+ void kasan_copy_shadow(pgd_t *pgdir);
+diff -puN arch/arm64/include/asm/memory.h~kasan-clean-up-kasan_shadow_scale_shift-usage arch/arm64/include/asm/memory.h
+--- a/arch/arm64/include/asm/memory.h~kasan-clean-up-kasan_shadow_scale_shift-usage
++++ a/arch/arm64/include/asm/memory.h
+@@ -85,7 +85,8 @@
+  * stack size when KASAN is in use.
+  */
+ #ifdef CONFIG_KASAN
+-#define KASAN_SHADOW_SIZE	(UL(1) << (VA_BITS - 3))
++#define KASAN_SHADOW_SCALE_SHIFT 3
++#define KASAN_SHADOW_SIZE	(UL(1) << (VA_BITS - KASAN_SHADOW_SCALE_SHIFT))
+ #define KASAN_THREAD_SHIFT	1
+ #else
+ #define KASAN_SHADOW_SIZE	(0)
+diff -puN arch/arm64/mm/kasan_init.c~kasan-clean-up-kasan_shadow_scale_shift-usage arch/arm64/mm/kasan_init.c
+--- a/arch/arm64/mm/kasan_init.c~kasan-clean-up-kasan_shadow_scale_shift-usage
++++ a/arch/arm64/mm/kasan_init.c
+@@ -135,7 +135,8 @@ static void __init kasan_pgd_populate(un
+ /* The early shadow maps everything to a single page of zeroes */
+ asmlinkage void __init kasan_early_init(void)
+ {
+-	BUILD_BUG_ON(KASAN_SHADOW_OFFSET != KASAN_SHADOW_END - (1UL << 61));
++	BUILD_BUG_ON(KASAN_SHADOW_OFFSET !=
++		KASAN_SHADOW_END - (1UL << (64 - KASAN_SHADOW_SCALE_SHIFT)));
+ 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_START, PGDIR_SIZE));
+ 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_END, PGDIR_SIZE));
+ 	kasan_pgd_populate(KASAN_SHADOW_START, KASAN_SHADOW_END, NUMA_NO_NODE,
+diff -puN arch/x86/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage arch/x86/include/asm/kasan.h
+--- a/arch/x86/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage
++++ a/arch/x86/include/asm/kasan.h
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/const.h>
+ #define KASAN_SHADOW_OFFSET _AC(CONFIG_KASAN_SHADOW_OFFSET, UL)
++#define KASAN_SHADOW_SCALE_SHIFT 3
+ 
+ /*
+  * Compiler uses shadow offset assuming that addresses start
+@@ -12,12 +13,15 @@
+  * 'kernel address space start' >> KASAN_SHADOW_SCALE_SHIFT
+  */
+ #define KASAN_SHADOW_START      (KASAN_SHADOW_OFFSET + \
+-					((-1UL << __VIRTUAL_MASK_SHIFT) >> 3))
++					((-1UL << __VIRTUAL_MASK_SHIFT) >> \
++						KASAN_SHADOW_SCALE_SHIFT))
+ /*
+- * 47 bits for kernel address -> (47 - 3) bits for shadow
+- * 56 bits for kernel address -> (56 - 3) bits for shadow
++ * 47 bits for kernel address -> (47 - KASAN_SHADOW_SCALE_SHIFT) bits for shadow
++ * 56 bits for kernel address -> (56 - KASAN_SHADOW_SCALE_SHIFT) bits for shadow
+  */
+-#define KASAN_SHADOW_END        (KASAN_SHADOW_START + (1ULL << (__VIRTUAL_MASK_SHIFT - 3)))
++#define KASAN_SHADOW_END        (KASAN_SHADOW_START + \
++					(1ULL << (__VIRTUAL_MASK_SHIFT - \
++						  KASAN_SHADOW_SCALE_SHIFT)))
+ 
+ #ifndef __ASSEMBLY__
+ 
+diff -puN include/linux/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage
++++ a/include/linux/kasan.h
+@@ -11,8 +11,6 @@ struct task_struct;
+ 
+ #ifdef CONFIG_KASAN
+ 
+-#define KASAN_SHADOW_SCALE_SHIFT 3
