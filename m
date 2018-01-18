@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+Subject: +
+ ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
  added to -mm tree
-Date: Tue, 16 Jan 2018 14:21:33 -0800
-Message-ID: <5a5e7aed.9RE3SMvXAtR4Ojuu%akpm@linux-foundation.org>
+Date: Thu, 18 Jan 2018 11:32:34 -0800
+Message-ID: <5a60f652.ivaOT9fZDmWLL510%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48784 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbeAPWVe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jan 2018 17:21:34 -0500
+        with ESMTP id S932457AbeARTcg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jan 2018 14:32:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linux.alibaba.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction.c: fix comment for try_to_compact_pages()
+     Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
 has been added to the -mm tree.  Its filename is
-     mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+     ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +40,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm/compaction.c: fix comment for try_to_compact_pages()
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
 
-"mode" argument is not used by try_to_compact_pages() and sub functions
-anymore, it has been replaced by "prio".  Fix the comment to explain the
-use of "prio" argument.
+The race between *set_acl and *get_acl will cause getting incomplete xattr
+data as below:
 
-Link: http://lkml.kernel.org/r/1515801336-20611-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
+processA                                    processB
+
+ocfs2_set_acl
+  ocfs2_xattr_set
+    __ocfs2_xattr_set_handle
+
+                                            ocfs2_get_acl_nolock
+                                              ocfs2_xattr_get_nolock:
+
+processB may get incomplete xattr data if processA hasn't set_acl done. 
+So we should use 'ip_xattr_sem' to protect getting extended attribute in
+ocfs2_get_acl_nolock(), as other processes could be changing it
+concurrently.
+
+Link: http://lkml.kernel.org/r/5A5DDCFF.7030001@huawei.com
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/acl.c   |    6 ++++++
+ fs/ocfs2/xattr.c |    2 ++
+ 2 files changed, 8 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages
-+++ a/mm/compaction.c
-@@ -1736,7 +1736,7 @@ int sysctl_extfrag_threshold = 500;
-  * @order: The order of the current allocation
-  * @alloc_flags: The allocation flags of the current allocation
-  * @ac: The context of current allocation
-- * @mode: The migration mode for async, sync light, or sync migration
-+ * @prio: Determines how hard direct compaction should try to succeed
-  *
-  * This is the main entry point for direct page compaction.
-  */
+diff -puN fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
++++ a/fs/ocfs2/acl.c
+@@ -311,7 +311,9 @@ struct posix_acl *ocfs2_iop_get_acl(stru
+ 	if (had_lock < 0)
+ 		return ERR_PTR(had_lock);
+ 
++	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
++	up_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 
+ 	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 	brelse(di_bh);
+@@ -330,7 +332,9 @@ int ocfs2_acl_chmod(struct inode *inode,
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return 0;
+ 
++	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	acl = ocfs2_get_acl_nolock(inode, ACL_TYPE_ACCESS, bh);
++	up_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	if (IS_ERR(acl) || !acl)
+ 		return PTR_ERR(acl);
+ 	ret = __posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
+@@ -361,8 +365,10 @@ int ocfs2_init_acl(handle_t *handle,
+ 
+ 	if (!S_ISLNK(inode->i_mode)) {
+ 		if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
++			down_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 			acl = ocfs2_get_acl_nolock(dir, ACL_TYPE_DEFAULT,
+ 						   dir_bh);
++			up_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 			if (IS_ERR(acl))
+ 				return PTR_ERR(acl);
+ 		}
+diff -puN fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
++++ a/fs/ocfs2/xattr.c
+@@ -638,9 +638,11 @@ int ocfs2_calc_xattr_init(struct inode *
+ 						     si->value_len);
+ 
+ 	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
++		down_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 		acl_len = ocfs2_xattr_get_nolock(dir, dir_bh,
+ 					OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT,
+ 					"", NULL, 0);
++		up_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 		if (acl_len > 0) {
+ 			a_size = ocfs2_xattr_entry_real_size(0, acl_len);
+ 			if (S_ISDIR(mode))
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
+ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
+ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
+ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
 
