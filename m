@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
- added to -mm tree
-Date: Thu, 18 Jan 2018 11:32:34 -0800
-Message-ID: <5a60f652.ivaOT9fZDmWLL510%akpm@linux-foundation.org>
+Subject: + scripts-gdb-fix-get_thread_info.patch added to -mm tree
+Date: Thu, 18 Jan 2018 13:51:09 -0800
+Message-ID: <5a6116cd.2X+2RNeTF4q3ypPg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38648 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932457AbeARTcg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jan 2018 14:32:36 -0500
+        with ESMTP id S1750718AbeARVvK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jan 2018 16:51:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: imxikangjie@gmail.com, jan.kiszka@siemens.com, kbingham@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
+     Subject: scripts/gdb/linux/tasks.py: fix get_thread_info
 has been added to the -mm tree.  Its filename is
-     ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
+     scripts-gdb-fix-get_thread_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-fix-get_thread_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-fix-get_thread_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,95 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
+From: Xi Kangjie <imxikangjie@gmail.com>
+Subject: scripts/gdb/linux/tasks.py: fix get_thread_info
 
-The race between *set_acl and *get_acl will cause getting incomplete xattr
-data as below:
+Since kernel 4.9, the thread_info has been moved into task_struct, no
+longer locates at the bottom of kernel stack.
 
-processA                                    processB
+See c65eacbe290b ("sched/core: Allow putting thread_info into
+task_struct") and 15f4eae70d36 ("x86: Move thread_info into task_struct").
 
-ocfs2_set_acl
-  ocfs2_xattr_set
-    __ocfs2_xattr_set_handle
+Before fix:
+(gdb) set $current = $lx_current()
+(gdb) p $lx_thread_info($current)
+$1 = {flags = 1470918301}
+(gdb) p $current.thread_info
+$2 = {flags = 2147483648}
 
-                                            ocfs2_get_acl_nolock
-                                              ocfs2_xattr_get_nolock:
+After fix:
+(gdb) p $lx_thread_info($current)
+$1 = {flags = 2147483648}
+(gdb) p $current.thread_info
+$2 = {flags = 2147483648}
 
-processB may get incomplete xattr data if processA hasn't set_acl done. 
-So we should use 'ip_xattr_sem' to protect getting extended attribute in
-ocfs2_get_acl_nolock(), as other processes could be changing it
-concurrently.
-
-Link: http://lkml.kernel.org/r/5A5DDCFF.7030001@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <ge.changwei@h3c.com>
+Link: http://lkml.kernel.org/r/20180118210159.17223-1-imxikangjie@gmail.com
+Fixes: 15f4eae70d36 ("x86: Move thread_info into task_struct")
+Signed-off-by: Xi Kangjie <imxikangjie@gmail.com>
+Acked-by: Jan Kiszka <jan.kiszka@siemens.com>
+Acked-by: Kieran Bingham <kbingham@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c   |    6 ++++++
- fs/ocfs2/xattr.c |    2 ++
- 2 files changed, 8 insertions(+)
+ scripts/gdb/linux/tasks.py |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
-+++ a/fs/ocfs2/acl.c
-@@ -311,7 +311,9 @@ struct posix_acl *ocfs2_iop_get_acl(stru
- 	if (had_lock < 0)
- 		return ERR_PTR(had_lock);
+diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-fix-get_thread_info scripts/gdb/linux/tasks.py
+--- a/scripts/gdb/linux/tasks.py~scripts-gdb-fix-get_thread_info
++++ a/scripts/gdb/linux/tasks.py
+@@ -96,6 +96,8 @@ def get_thread_info(task):
+         thread_info_addr = task.address + ia64_task_size
+         thread_info = thread_info_addr.cast(thread_info_ptr_type)
+     else:
++        if task.type.fields()[0].type == thread_info_type.get_type():
++            return task['thread_info']
+         thread_info = task['stack'].cast(thread_info_ptr_type)
+     return thread_info.dereference()
  
-+	down_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
-+	up_read(&OCFS2_I(inode)->ip_xattr_sem);
- 
- 	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
- 	brelse(di_bh);
-@@ -330,7 +332,9 @@ int ocfs2_acl_chmod(struct inode *inode,
- 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
- 		return 0;
- 
-+	down_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	acl = ocfs2_get_acl_nolock(inode, ACL_TYPE_ACCESS, bh);
-+	up_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	if (IS_ERR(acl) || !acl)
- 		return PTR_ERR(acl);
- 	ret = __posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
-@@ -361,8 +365,10 @@ int ocfs2_init_acl(handle_t *handle,
- 
- 	if (!S_ISLNK(inode->i_mode)) {
- 		if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
-+			down_read(&OCFS2_I(dir)->ip_xattr_sem);
- 			acl = ocfs2_get_acl_nolock(dir, ACL_TYPE_DEFAULT,
- 						   dir_bh);
-+			up_read(&OCFS2_I(dir)->ip_xattr_sem);
- 			if (IS_ERR(acl))
- 				return PTR_ERR(acl);
- 		}
-diff -puN fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
-+++ a/fs/ocfs2/xattr.c
-@@ -638,9 +638,11 @@ int ocfs2_calc_xattr_init(struct inode *
- 						     si->value_len);
- 
- 	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
-+		down_read(&OCFS2_I(dir)->ip_xattr_sem);
- 		acl_len = ocfs2_xattr_get_nolock(dir, dir_bh,
- 					OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT,
- 					"", NULL, 0);
-+		up_read(&OCFS2_I(dir)->ip_xattr_sem);
- 		if (acl_len > 0) {
- 			a_size = ocfs2_xattr_entry_real_size(0, acl_len);
- 			if (S_ISDIR(mode))
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from imxikangjie@gmail.com are
 
-ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
-ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
-ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
+scripts-gdb-fix-get_thread_info.patch
 
