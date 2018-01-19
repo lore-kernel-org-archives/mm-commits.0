@@ -1,142 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-memcg-try-harder-to-decrease-limit_in_bytes.patch
- removed from -mm tree
-Date: Fri, 19 Jan 2018 12:46:53 -0800
-Message-ID: <5a62593d.SLYRCw5e5azUavJm%akpm@linux-foundation.org>
+Subject: +
+ fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch added
+ to -mm tree
+Date: Fri, 19 Jan 2018 12:59:19 -0800
+Message-ID: <5a625c27.Jiy0jcvXZovZeKr6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754118AbeASUqz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jan 2018 15:46:55 -0500
+        with ESMTP id S1751466AbeASU7U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jan 2018 15:59:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: ptesarik@suse.com, aryabinin@virtuozzo.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: try harder to decrease [memory,memsw].limit_in_bytes
-has been removed from the -mm tree.  Its filename was
-     mm-memcg-try-harder-to-decrease-limit_in_bytes.patch
+     Subject: include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer
+has been added to the -mm tree.  Its filename is
+     fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/memcontrol.c: try harder to decrease [memory,memsw].limit_in_bytes
+From: Petr Tesarik <ptesarik@suse.com>
+Subject: include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer
 
-mem_cgroup_resize_[memsw]_limit() tries to free only 32 (SWAP_CLUSTER_MAX)
-pages on each iteration.  This makes it practically impossible to decrease
-limit of memory cgroup.  Tasks could easily allocate back 32 pages, so we
-can't reduce memory usage, and once retry_count reaches zero we return
--EBUSY.
+The comment is confusing.  On the one hand, it refers to 32-bit alignment
+(struct page alignment on 32-bit platforms), but this would only guarantee
+that the 2 lowest bits must be zero.  On the other hand, it claims that at
+least 3 bits are available, and 3 bits are actually used.
 
-Easy to reproduce the problem by running the following commands:
+This is not broken, because there is a stronger alignment guarantee, just
+less obvious.  Let's fix the comment to make it clear how many bits are
+available and why.
 
-  mkdir /sys/fs/cgroup/memory/test
-  echo $$ >> /sys/fs/cgroup/memory/test/tasks
-  cat big_file > /dev/null &
-  sleep 1 && echo $((100*1024*1024)) > /sys/fs/cgroup/memory/test/memory.limit_in_bytes
-  -bash: echo: write error: Device or resource busy
-
-Instead of relying on retry_count, keep retrying the reclaim until the
-desired limit is reached or fail if the reclaim doesn't make any progress
-or a signal is pending.
-
-Link: http://lkml.kernel.org/r/20180110124317.28887-1-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/20180119080908.3a662e6f@ezekiel.suse.cz
+Signed-off-by: Petr Tesarik <ptesarik@suse.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Kemi Wang <kemi.wang@intel.com>
+Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   44 ++++++++------------------------------------
- 1 file changed, 8 insertions(+), 36 deletions(-)
+ include/linux/mmzone.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-try-harder-to-decrease-limit_in_bytes mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-try-harder-to-decrease-limit_in_bytes
-+++ a/mm/memcontrol.c
-@@ -1176,20 +1176,6 @@ void mem_cgroup_print_oom_info(struct me
- }
+diff -puN include/linux/mmzone.h~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer include/linux/mmzone.h
+--- a/include/linux/mmzone.h~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer
++++ a/include/linux/mmzone.h
+@@ -1166,8 +1166,16 @@ extern unsigned long usemap_size(void);
  
  /*
-- * This function returns the number of memcg under hierarchy tree. Returns
-- * 1(self count) if no children.
-- */
--static int mem_cgroup_count_children(struct mem_cgroup *memcg)
--{
--	int num = 0;
--	struct mem_cgroup *iter;
--
--	for_each_mem_cgroup_tree(iter, memcg)
--		num++;
--	return num;
--}
--
--/*
-  * Return the memory (and swap, if configured) limit for a memcg.
+  * We use the lower bits of the mem_map pointer to store
+- * a little bit of information.  There should be at least
+- * 3 bits here due to 32-bit alignment.
++ * a little bit of information.  The pointer is calculated
++ * as mem_map - section_nr_to_pfn(pnum).  The result is
++ * aligned to the minimum alignment of the two values:
++ *   1. All mem_map arrays are page-aligned.
++ *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
++ *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
++ *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
++ *      worst combination is powerpc with 256k pages,
++ *      which results in PFN_SECTION_SHIFT equal 6.
++ * To sum it up, at least 6 bits are available.
   */
- unsigned long mem_cgroup_get_limit(struct mem_cgroup *memcg)
-@@ -2462,24 +2448,12 @@ static DEFINE_MUTEX(memcg_limit_mutex);
- static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
- 				   unsigned long limit, bool memsw)
- {
--	unsigned long curusage;
--	unsigned long oldusage;
-+	unsigned long usage;
- 	bool enlarge = false;
--	int retry_count;
- 	int ret;
- 	bool limits_invariant;
- 	struct page_counter *counter = memsw ? &memcg->memsw : &memcg->memory;
- 
--	/*
--	 * For keeping hierarchical_reclaim simple, how long we should retry
--	 * is depends on callers. We set our retry-count to be function
--	 * of # of children which we should visit in this loop.
--	 */
--	retry_count = MEM_CGROUP_RECLAIM_RETRIES *
--		      mem_cgroup_count_children(memcg);
--
--	oldusage = page_counter_read(counter);
--
- 	do {
- 		if (signal_pending(current)) {
- 			ret = -EINTR;
-@@ -2506,15 +2480,13 @@ static int mem_cgroup_resize_limit(struc
- 		if (!ret)
- 			break;
- 
--		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, !memsw);
--
--		curusage = page_counter_read(counter);
--		/* Usage is reduced ? */
--		if (curusage >= oldusage)
--			retry_count--;
--		else
--			oldusage = curusage;
--	} while (retry_count);
-+		usage = page_counter_read(counter);
-+		if (!try_to_free_mem_cgroup_pages(memcg, usage - limit,
-+						GFP_KERNEL, !memsw)) {
-+			ret = -EBUSY;
-+			break;
-+		}
-+	} while (true);
- 
- 	if (!ret && enlarge)
- 		memcg_oom_recover(memcg);
+ #define	SECTION_MARKED_PRESENT	(1UL<<0)
+ #define SECTION_HAS_MEM_MAP	(1UL<<1)
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from ptesarik@suse.com are
 
-kasan-makefile-support-llvm-style-asan-parameters.patch
-lib-strscpy-remove-word-at-a-time-optimization.patch
-lib-ubsan-add-type-mismatch-handler-for-new-gcc-clang.patch
-lib-ubsan-remove-returns-nonnull-attribute-checks.patch
+fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
 
