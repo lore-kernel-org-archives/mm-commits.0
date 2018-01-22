@@ -1,89 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-release-locked-page-in-do_swap_page.patch
- removed from -mm tree
-Date: Mon, 22 Jan 2018 12:54:27 -0800
-Message-ID: <20180122205427.XWKsjggoU%akpm@linux-foundation.org>
+Subject: [merged] scripts-gdb-fix-get_thread_info.patch removed
+ from -mm tree
+Date: Mon, 22 Jan 2018 12:54:33 -0800
+Message-ID: <20180122205433.XEx79BCJc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750895AbeAVUy2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Jan 2018 15:54:28 -0500
+        with ESMTP id S1750973AbeAVUye (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Jan 2018 15:54:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 1514407817.4169.4.camel@HansenPartnership.com, hughd@google.com, James.Bottomley@hansenpartnership.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ying.huang@intel.com
+To: imxikangjie@gmail.com, jan.kiszka@siemens.com, kbingham@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: release locked page in do_swap_page()
+     Subject: scripts/gdb/linux/tasks.py: fix get_thread_info
 has been removed from the -mm tree.  Its filename was
-     mm-release-locked-page-in-do_swap_page.patch
+     scripts-gdb-fix-get_thread_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm/memory.c: release locked page in do_swap_page()
+From: Xi Kangjie <imxikangjie@gmail.com>
+Subject: scripts/gdb/linux/tasks.py: fix get_thread_info
 
-James reported a bug in swap paging-in from his testing.  It is that
-do_swap_page doesn't release locked page so system hang-up happens due to
-a deadlock on PG_locked.
+Since kernel 4.9, the thread_info has been moved into task_struct, no
+longer locates at the bottom of kernel stack.
 
-It was introduced by 0bcac06f27d7 ("mm, swap: skip swapcache for swapin of
-synchronous device") because I missed swap cache hit places to update
-swapcache variable to work well with other logics against swapcache in
-do_swap_page.
+See c65eacbe290b ("sched/core: Allow putting thread_info into
+task_struct") and 15f4eae70d36 ("x86: Move thread_info into task_struct").
 
-This patch fixes it.
+Before fix:
+(gdb) set $current = $lx_current()
+(gdb) p $lx_thread_info($current)
+$1 = {flags = 1470918301}
+(gdb) p $current.thread_info
+$2 = {flags = 2147483648}
 
-Debugged by James Bottomley.
+After fix:
+(gdb) p $lx_thread_info($current)
+$1 = {flags = 2147483648}
+(gdb) p $current.thread_info
+$2 = {flags = 2147483648}
 
-Link: http://lkml.kernel.org/r/<1514407817.4169.4.camel@HansenPartnership.com>
-Link: http://lkml.kernel.org/r/20180102235606.GA19438@bbox
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: James Bottomley <James.Bottomley@hansenpartnership.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Link: http://lkml.kernel.org/r/20180118210159.17223-1-imxikangjie@gmail.com
+Fixes: 15f4eae70d36 ("x86: Move thread_info into task_struct")
+Signed-off-by: Xi Kangjie <imxikangjie@gmail.com>
+Acked-by: Jan Kiszka <jan.kiszka@siemens.com>
+Acked-by: Kieran Bingham <kbingham@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/tasks.py |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memory.c~mm-release-locked-page-in-do_swap_page mm/memory.c
---- a/mm/memory.c~mm-release-locked-page-in-do_swap_page
-+++ a/mm/memory.c
-@@ -2857,8 +2857,11 @@ int do_swap_page(struct vm_fault *vmf)
- 	int ret = 0;
- 	bool vma_readahead = swap_use_vma_readahead();
- 
--	if (vma_readahead)
-+	if (vma_readahead) {
- 		page = swap_readahead_detect(vmf, &swap_ra);
-+		swapcache = page;
-+	}
-+
- 	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte)) {
- 		if (page)
- 			put_page(page);
-@@ -2889,9 +2892,12 @@ int do_swap_page(struct vm_fault *vmf)
- 
- 
- 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
--	if (!page)
-+	if (!page) {
- 		page = lookup_swap_cache(entry, vma_readahead ? vma : NULL,
- 					 vmf->address);
-+		swapcache = page;
-+	}
-+
- 	if (!page) {
- 		struct swap_info_struct *si = swp_swap_info(entry);
+diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-fix-get_thread_info scripts/gdb/linux/tasks.py
+--- a/scripts/gdb/linux/tasks.py~scripts-gdb-fix-get_thread_info
++++ a/scripts/gdb/linux/tasks.py
+@@ -96,6 +96,8 @@ def get_thread_info(task):
+         thread_info_addr = task.address + ia64_task_size
+         thread_info = thread_info_addr.cast(thread_info_ptr_type)
+     else:
++        if task.type.fields()[0].type == thread_info_type.get_type():
++            return task['thread_info']
+         thread_info = task['stack'].cast(thread_info_ptr_type)
+     return thread_info.dereference()
  
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from imxikangjie@gmail.com are
 
-mm-do-not-stall-register_shrinker.patch
 
