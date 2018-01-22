@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-add-__asan_report_loadn-storen_noabort-callbacks.patch
+Subject: + lib-ubsan-remove-returns-nonnull-attribute-checks-fix.patch
  added to -mm tree
-Date: Mon, 22 Jan 2018 13:05:00 -0800
-Message-ID: <5a6651fc.3oaBgMG+C0PS34NO%akpm@linux-foundation.org>
+Date: Mon, 22 Jan 2018 13:06:05 -0800
+Message-ID: <5a66523d.sT9JhLUkr3rJR+js%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54418 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751126AbeAVVFB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Jan 2018 16:05:01 -0500
+        with ESMTP id S1750878AbeAVVGG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Jan 2018 16:06:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, ndesaulniers@google.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, psodagud@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add __asan_report_loadN/storeN_noabort callbacks
+     Subject: lib-ubsan-remove-returns-nonnull-attribute-checks-fix
 has been added to the -mm tree.  Its filename is
-     kasan-add-__asan_report_loadn-storen_noabort-callbacks.patch
+     lib-ubsan-remove-returns-nonnull-attribute-checks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-add-__asan_report_loadn-storen_noabort-callbacks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-ubsan-remove-returns-nonnull-attribute-checks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-__asan_report_loadn-storen_noabort-callbacks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-ubsan-remove-returns-nonnull-attribute-checks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +39,30 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add __asan_report_loadN/storeN_noabort callbacks
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: lib-ubsan-remove-returns-nonnull-attribute-checks-fix
 
-Instead of __asan_report_load_n_noabort and __asan_report_store_n_noabort
-callbacks Clang emits differently named __asan_report_loadN_noabort and
-__asan_report_storeN_noabort (similar to __asan_loadN/storeN_noabort,
-whose names both GCC and Clang agree on).
+Link: http://lkml.kernel.org/r/20180122165711.11510-1-aryabinin@virtuozzo.com
+Fixes:
+ lib/ubsan.c:144:13: warning: `location_is_valid' defined but not used [-Wunused-function]
+ static bool location_is_valid(struct source_location *loc)
 
-Add callback implementation for __asan_report_loadN/storeN_noabort.
-
-Link: http://lkml.kernel.org/r/891fbd1fe77f46701fb1958e77bdd89651c12643.1516383788.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Sodagudi Prasad <psodagud@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/ubsan.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-add-__asan_report_loadn-storen_noabort-callbacks mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-add-__asan_report_loadn-storen_noabort-callbacks
-+++ a/mm/kasan/report.c
-@@ -449,3 +449,15 @@ void __asan_report_store_n_noabort(unsig
- 	kasan_report(addr, size, true, _RET_IP_);
+diff -puN lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks-fix lib/ubsan.c
+--- a/lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks-fix
++++ a/lib/ubsan.c
+@@ -141,11 +141,6 @@ static void val_to_string(char *str, siz
+ 	}
  }
- EXPORT_SYMBOL(__asan_report_store_n_noabort);
-+
-+void __asan_report_loadN_noabort(unsigned long addr, size_t size)
-+{
-+	kasan_report(addr, size, false, _RET_IP_);
-+}
-+EXPORT_SYMBOL(__asan_report_loadN_noabort);
-+
-+void __asan_report_storeN_noabort(unsigned long addr, size_t size)
-+{
-+	kasan_report(addr, size, true, _RET_IP_);
-+}
-+EXPORT_SYMBOL(__asan_report_storeN_noabort);
-_
-
-Patches currently in -mm which might be from andreyknvl@google.com are
-
-kasan-dont-emit-builtin-calls-when-sanitization-is-off.patch
-kasan-fix-prototype-author-email-address.patch
-kasan-clean-up-kasan_shadow_scale_shift-usage.patch
-kasan-add-__asan_report_loadn-storen_noabort-callbacks.patch
-
+ 
+-static bool location_is_valid(struct source_location *loc)
+-{
+-	return loc->file_name != NULL;
+-}
