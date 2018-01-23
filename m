@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slubc-fix-wrong-address-during-slab-padding-restoration.patch added to
- -mm tree
-Date: Tue, 23 Jan 2018 14:50:49 -0800
-Message-ID: <5a67bc49.Kam1OpwRc4xeGY1w%akpm@linux-foundation.org>
+Subject: + mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
+ added to -mm tree
+Date: Tue, 23 Jan 2018 15:58:59 -0800
+Message-ID: <5a67cc43.QZOrBstDaYY2jolD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932364AbeAWWuv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jan 2018 17:50:51 -0500
+        with ESMTP id S1752099AbeAWX7B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jan 2018 18:59:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balasubramani_vivekanandan@mentor.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: henry.willard@oracle.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gregkh@linuxfoundation.org, haakon.bugge@oracle.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, mgorman@suse.de, pombredanne@nexb.com, zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: fix wrong address during slab padding restoration
+     Subject: mm: numa: do not trap faults on shared data section pages.
 has been added to the -mm tree.  Its filename is
-     mm-slubc-fix-wrong-address-during-slab-padding-restoration.patch
+     mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slubc-fix-wrong-address-during-slab-padding-restoration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slubc-fix-wrong-address-during-slab-padding-restoration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +39,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
-Subject: mm/slub.c: fix wrong address during slab padding restoration
+From: Henry Willard <henry.willard@oracle.com>
+Subject: mm: numa: do not trap faults on shared data section pages.
 
-Start address calculated for slab padding restoration was wrong.  Wrong
-address would point to some section before padding and could cause
-corruption
+Workloads consisting of a large number of processes running the same
+program with a very large shared data segment may experience performance
+problems when numa balancing attempts to migrate the shared cow pages. 
+This manifests itself with many processes or tasks in TASK_UNINTERRUPTIBLE
+state waiting for the shared pages to be migrated.
 
-Link: http://lkml.kernel.org/r/1516604578-4577-1-git-send-email-balasubramani_vivekanandan@mentor.com
-Signed-off-by: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+The program listed below simulates the conditions with these results when
+run with 288 processes on a 144 core/8 socket machine.
+
+Average throughput 	Average throughput     Average throughput
+with numa_balancing=0	with numa_balancing=1  with numa_balancing=1
+     			without the patch      with the patch
+---------------------	---------------------  ---------------------
+2118782			2021534		       2107979
+
+Complex production environments show less variability and fewer poorly
+performing outliers accompanied with a smaller number of processes waiting
+on NUMA page migration with this patch applied. In some cases, %iowait drops
+from 16%-26% to 0.
+
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+ */
+#include <sys/time.h>
+#include <stdio.h>
+#include <wait.h>
+#include <sys/mman.h>
+
+int a[1000000] = {13};
+
+int  main(int argc, const char **argv)
+{
+	int n = 0;
+	int i;
+	pid_t pid;
+	int stat;
+	int *count_array;
+	int cpu_count = 288;
+	long total = 0;
+
+	struct timeval t1, t2 = {(argc > 1 ? atoi(argv[1]) : 10), 0};
+
+	if (argc > 2)
+		cpu_count = atoi(argv[2]);
+
+	count_array = mmap(NULL, cpu_count * sizeof(int),
+			   (PROT_READ|PROT_WRITE),
+			   (MAP_SHARED|MAP_ANONYMOUS), 0, 0);
+
+	if (count_array == MAP_FAILED) {
+		perror("mmap:");
+		return 0;
+	}
+
+	for (i = 0; i < cpu_count; ++i) {
+		pid = fork();
+		if (pid <= 0)
+			break;
+		if ((i & 0xf) == 0)
+			usleep(2);
+	}
+
+	if (pid != 0) {
+		if (i == 0) {
+			perror("fork:");
+			return 0;
+		}
+
+		for (;;) {
+			pid = wait(&stat);
+			if (pid < 0)
+				break;
+		}
+
+		for (i = 0; i < cpu_count; ++i)
+			total += count_array[i];
+
+		printf("Total %ld\n", total);
+		munmap(count_array, cpu_count * sizeof(int));
+		return 0;
+	}
+
+	gettimeofday(&t1, 0);
+	timeradd(&t1, &t2, &t1);
+	while (timercmp(&t2, &t1, <)) {
+		int b = 0;
+		int j;
+
+		for (j = 0; j < 1000000; j++)
+			b += a[j];
+		gettimeofday(&t2, 0);
+		n++;
+	}
+	count_array[i] = n;
+	return 0;
+}
+
+This patch changes change_pte_range() to skip shared copy-on-write pages
+when called from change_prot_numa().
+
+NOTE: change_prot_numa() is nominally called from task_numa_work() and
+queue_pages_test_walk().  task_numa_work() is the auto NUMA balancing
+path, and queue_pages_test_walk() is part of explicit NUMA policy
+management.  However, queue_pages_test_walk() only calls
+change_prot_numa() when MPOL_MF_LAZY is specified and currently that is
+not allowed, so change_prot_numa() is only called from auto NUMA
+balancing.
+
+In the case of explicit NUMA policy management, shared pages are not
+migrated unless MPOL_MF_MOVE_ALL is specified, and MPOL_MF_MOVE_ALL
+depends on CAP_SYS_NICE.  Currently, there is no way to pass information
+about MPOL_MF_MOVE_ALL to change_pte_range.  This will have to be fixed if
+MPOL_MF_LAZY is enabled and MPOL_MF_MOVE_ALL is to be honored in lazy
+migration mode.
+
+task_numa_work() skips the read-only VMAs of programs and shared
+libraries.
+
+Link: http://lkml.kernel.org/r/1516751617-7369-1-git-send-email-henry.willard@oracle.com
+Signed-off-by: Henry Willard <henry.willard@oracle.com>
+Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Steve Sistare steven.sistare@oracle.com
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/mprotect.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/slub.c~mm-slubc-fix-wrong-address-during-slab-padding-restoration mm/slub.c
---- a/mm/slub.c~mm-slubc-fix-wrong-address-during-slab-padding-restoration
-+++ a/mm/slub.c
-@@ -838,6 +838,7 @@ static int slab_pad_check(struct kmem_ca
- 	u8 *start;
- 	u8 *fault;
- 	u8 *end;
-+	u8 *pad;
- 	int length;
- 	int remainder;
+diff -puN mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages
++++ a/mm/mprotect.c
+@@ -84,6 +84,11 @@ static unsigned long change_pte_range(st
+ 				if (!page || PageKsm(page))
+ 					continue;
  
-@@ -851,8 +852,9 @@ static int slab_pad_check(struct kmem_ca
- 	if (!remainder)
- 		return 1;
- 
-+	pad = end - remainder;
- 	metadata_access_enable();
--	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
-+	fault = memchr_inv(pad, POISON_INUSE, remainder);
- 	metadata_access_disable();
- 	if (!fault)
- 		return 1;
-@@ -860,9 +862,9 @@ static int slab_pad_check(struct kmem_ca
- 		end--;
- 
- 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
--	print_section(KERN_ERR, "Padding ", end - remainder, remainder);
-+	print_section(KERN_ERR, "Padding ", pad, remainder);
- 
--	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
-+	restore_bytes(s, "slab padding", POISON_INUSE, fault, end);
- 	return 0;
- }
- 
++				/* Also skip shared copy-on-write pages */
++				if (is_cow_mapping(vma->vm_flags) &&
++				    page_mapcount(page) != 1)
++					continue;
++
+ 				/* Avoid TLB flush if possible */
+ 				if (pte_protnone(oldpte))
+ 					continue;
 _
 
-Patches currently in -mm which might be from balasubramani_vivekanandan@mentor.com are
+Patches currently in -mm which might be from henry.willard@oracle.com are
 
-mm-slubc-fix-wrong-address-during-slab-padding-restoration.patch
+mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
 
