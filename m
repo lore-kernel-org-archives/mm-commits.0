@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-docs-fix-parameter-names-mismatch.patch added to -mm tree
-Date: Tue, 23 Jan 2018 14:34:03 -0800
-Message-ID: <5a67b85b.PYDP6HUmFAujW616%akpm@linux-foundation.org>
+Subject: + mm-docs-fixup-punctuation.patch added to -mm tree
+Date: Tue, 23 Jan 2018 14:33:59 -0800
+Message-ID: <5a67b857.C0bTTRupaCJ0lozo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48690 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932150AbeAWWeF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jan 2018 17:34:05 -0500
+        with ESMTP id S932150AbeAWWeA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jan 2018 17:34:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rppt@linux.vnet.ibm.com, corbet@lwn.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: docs: fix parameter names mismatch
+     Subject: mm: docs: fixup punctuation
 has been added to the -mm tree.  Its filename is
-     mm-docs-fix-parameter-names-mismatch.patch
+     mm-docs-fixup-punctuation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-docs-fix-parameter-names-mismatch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-docs-fixup-punctuation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-docs-fix-parameter-names-mismatch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-docs-fixup-punctuation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,143 +39,122 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: mm: docs: fix parameter names mismatch
+Subject: mm: docs: fixup punctuation
 
-There are several places where parameter descriptions do no match the
-actual code.  Fix it.
+so that kernel-doc will properly recognize the parameter and function
+descriptions.
 
-Link: http://lkml.kernel.org/r/1516700871-22279-3-git-send-email-rppt@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1516700871-22279-2-git-send-email-rppt@linux.vnet.ibm.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c           |    2 +-
- mm/maccess.c           |    2 +-
- mm/memcontrol.c        |    2 +-
- mm/process_vm_access.c |    2 +-
- mm/swap.c              |    4 ++--
- mm/z3fold.c            |    4 ++--
- mm/zbud.c              |    4 ++--
- mm/zpool.c             |   20 ++++++++++----------
- 8 files changed, 20 insertions(+), 20 deletions(-)
+ mm/ksm.c            |    2 -
+ mm/memcontrol.c     |    4 +--
+ mm/mlock.c          |    2 -
+ mm/nommu.c          |    2 -
+ mm/sparse-vmemmap.c |    4 +--
+ mm/zpool.c          |   44 +++++++++++++++++++++---------------------
+ 6 files changed, 29 insertions(+), 29 deletions(-)
 
-diff -puN mm/bootmem.c~mm-docs-fix-parameter-names-mismatch mm/bootmem.c
---- a/mm/bootmem.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/bootmem.c
-@@ -410,7 +410,7 @@ void __init free_bootmem_node(pg_data_t
+diff -puN mm/ksm.c~mm-docs-fixup-punctuation mm/ksm.c
+--- a/mm/ksm.c~mm-docs-fixup-punctuation
++++ a/mm/ksm.c
+@@ -2309,7 +2309,7 @@ next_mm:
  
  /**
-  * free_bootmem - mark a page range as usable
-- * @addr: starting physical address of the range
-+ * @physaddr: starting physical address of the range
-  * @size: size of the range in bytes
-  *
-  * Partial pages will be considered reserved and left as they are.
-diff -puN mm/maccess.c~mm-docs-fix-parameter-names-mismatch mm/maccess.c
---- a/mm/maccess.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/maccess.c
-@@ -70,7 +70,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_write);
-  * strncpy_from_unsafe: - Copy a NUL terminated string from unsafe address.
-  * @dst:   Destination address, in kernel space.  This buffer must be at
-  *         least @count bytes long.
-- * @src:   Unsafe address.
-+ * @unsafe_addr: Unsafe address.
-  * @count: Maximum number of bytes to copy, including the trailing NUL.
-  *
-  * Copies a NUL-terminated string from unsafe address to kernel buffer.
-diff -puN mm/memcontrol.c~mm-docs-fix-parameter-names-mismatch mm/memcontrol.c
---- a/mm/memcontrol.c~mm-docs-fix-parameter-names-mismatch
+  * ksm_do_scan  - the ksm scanner main worker function.
+- * @scan_npages - number of pages we want to scan before we return.
++ * @scan_npages:  number of pages we want to scan before we return.
+  */
+ static void ksm_do_scan(unsigned int scan_npages)
+ {
+diff -puN mm/memcontrol.c~mm-docs-fixup-punctuation mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-docs-fixup-punctuation
 +++ a/mm/memcontrol.c
-@@ -916,7 +916,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+@@ -6090,8 +6090,8 @@ bool mem_cgroup_charge_skmem(struct mem_
+ 
  /**
-  * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
-  * @page: the page
-- * @zone: zone of the page
-+ * @pgdat: pgdat of the page
-  *
-  * This function is only safe when following the LRU page isolation
-  * and putback protocol: the LRU lock must be held, and the page must
-diff -puN mm/process_vm_access.c~mm-docs-fix-parameter-names-mismatch mm/process_vm_access.c
---- a/mm/process_vm_access.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/process_vm_access.c
-@@ -25,7 +25,7 @@
+  * mem_cgroup_uncharge_skmem - uncharge socket memory
+- * @memcg - memcg to uncharge
+- * @nr_pages - number of pages to uncharge
++ * @memcg: memcg to uncharge
++ * @nr_pages: number of pages to uncharge
+  */
+ void mem_cgroup_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages)
+ {
+diff -puN mm/mlock.c~mm-docs-fixup-punctuation mm/mlock.c
+--- a/mm/mlock.c~mm-docs-fixup-punctuation
++++ a/mm/mlock.c
+@@ -163,7 +163,7 @@ static void __munlock_isolation_failed(s
+ 
  /**
-  * process_vm_rw_pages - read/write pages from task specified
-  * @pages: array of pointers to pages we want to copy
-- * @start_offset: offset in page to start copying from/to
-+ * @offset: offset in page to start copying from/to
-  * @len: number of bytes to copy
-  * @iter: where to copy to/from locally
-  * @vm_write: 0 means copy from, 1 means copy to
-diff -puN mm/swap.c~mm-docs-fix-parameter-names-mismatch mm/swap.c
---- a/mm/swap.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/swap.c
-@@ -925,11 +925,11 @@ EXPORT_SYMBOL(__pagevec_lru_add);
-  * @pvec:	Where the resulting entries are placed
-  * @mapping:	The address_space to search
-  * @start:	The starting entry index
-- * @nr_entries:	The maximum number of entries
-+ * @nr_pages:	The maximum number of pages
-  * @indices:	The cache indices corresponding to the entries in @pvec
+  * munlock_vma_page - munlock a vma page
+- * @page - page to be unlocked, either a normal page or THP page head
++ * @page: page to be unlocked, either a normal page or THP page head
   *
-  * pagevec_lookup_entries() will search for and return a group of up
-- * to @nr_entries pages and shadow entries in the mapping.  All
-+ * to @nr_pages pages and shadow entries in the mapping.  All
-  * entries are placed in @pvec.  pagevec_lookup_entries() takes a
-  * reference against actual pages in @pvec.
-  *
-diff -puN mm/z3fold.c~mm-docs-fix-parameter-names-mismatch mm/z3fold.c
---- a/mm/z3fold.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/z3fold.c
-@@ -769,7 +769,7 @@ static void z3fold_free(struct z3fold_po
+  * returns the size of the page as a page mask (0 for normal page,
+  *         HPAGE_PMD_NR - 1 for THP head page)
+diff -puN mm/nommu.c~mm-docs-fixup-punctuation mm/nommu.c
+--- a/mm/nommu.c~mm-docs-fixup-punctuation
++++ a/mm/nommu.c
+@@ -1836,7 +1836,7 @@ int __access_remote_vm(struct task_struc
+ }
+ 
  /**
-  * z3fold_reclaim_page() - evicts allocations from a pool page and frees it
-  * @pool:	pool from which a page will attempt to be evicted
-- * @retires:	number of pages on the LRU list for which eviction will
-+ * @retries:	number of pages on the LRU list for which eviction will
-  *		be attempted before failing
-  *
-  * z3fold reclaim is different from normal system reclaim in that it is done
-@@ -779,7 +779,7 @@ static void z3fold_free(struct z3fold_po
-  * z3fold and the user, however.
-  *
-  * To avoid these, this is how z3fold_reclaim_page() should be called:
--
-+ *
-  * The user detects a page should be reclaimed and calls z3fold_reclaim_page().
-  * z3fold_reclaim_page() will remove a z3fold page from the pool LRU list and
-  * call the user-defined eviction handler with the pool and handle as
-diff -puN mm/zbud.c~mm-docs-fix-parameter-names-mismatch mm/zbud.c
---- a/mm/zbud.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/zbud.c
-@@ -466,7 +466,7 @@ void zbud_free(struct zbud_pool *pool, u
+- * @access_remote_vm - access another process' address space
++ * access_remote_vm - access another process' address space
+  * @mm:		the mm_struct of the target address space
+  * @addr:	start address to access
+  * @buf:	source or destination buffer
+diff -puN mm/sparse-vmemmap.c~mm-docs-fixup-punctuation mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~mm-docs-fixup-punctuation
++++ a/mm/sparse-vmemmap.c
+@@ -108,8 +108,8 @@ static unsigned long __meminit vmem_altm
+ 
  /**
-  * zbud_reclaim_page() - evicts allocations from a pool page and frees it
-  * @pool:	pool from which a page will attempt to be evicted
-- * @retires:	number of pages on the LRU list for which eviction will
-+ * @retries:	number of pages on the LRU list for which eviction will
-  *		be attempted before failing
+  * vmem_altmap_alloc - allocate pages from the vmem_altmap reservation
+- * @altmap - reserved page pool for the allocation
+- * @nr_pfns - size (in pages) of the allocation
++ * @altmap: reserved page pool for the allocation
++ * @nr_pfns: size (in pages) of the allocation
   *
-  * zbud reclaim is different from normal system reclaim in that the reclaim is
-@@ -476,7 +476,7 @@ void zbud_free(struct zbud_pool *pool, u
-  * the user, however.
-  *
-  * To avoid these, this is how zbud_reclaim_page() should be called:
--
-+ *
-  * The user detects a page should be reclaimed and calls zbud_reclaim_page().
-  * zbud_reclaim_page() will remove a zbud page from the pool LRU list and call
-  * the user-defined eviction handler with the pool and handle as arguments.
-diff -puN mm/zpool.c~mm-docs-fix-parameter-names-mismatch mm/zpool.c
---- a/mm/zpool.c~mm-docs-fix-parameter-names-mismatch
+  * Allocations are aligned to the size of the request
+  */
+diff -puN mm/zpool.c~mm-docs-fixup-punctuation mm/zpool.c
+--- a/mm/zpool.c~mm-docs-fixup-punctuation
 +++ a/mm/zpool.c
+@@ -101,7 +101,7 @@ static void zpool_put_driver(struct zpoo
+ 
+ /**
+  * zpool_has_pool() - Check if the pool driver is available
+- * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
++ * @type:	The type of the zpool to check (e.g. zbud, zsmalloc)
+  *
+  * This checks if the @type pool driver is available.  This will try to load
+  * the requested module, if needed, but there is no guarantee the module will
+@@ -136,10 +136,10 @@ EXPORT_SYMBOL(zpool_has_pool);
+ 
+ /**
+  * zpool_create_pool() - Create a new zpool
+- * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
+- * @name	The name of the zpool (e.g. zram0, zswap)
+- * @gfp		The GFP flags to use when allocating the pool.
+- * @ops		The optional ops callback.
++ * @type:	The type of the zpool to create (e.g. zbud, zsmalloc)
++ * @name:	The name of the zpool (e.g. zram0, zswap)
++ * @gfp:	The GFP flags to use when allocating the pool.
++ * @ops:	The optional ops callback.
+  *
+  * This creates a new zpool of the specified type.  The gfp flags will be
+  * used when allocating memory, if the implementation supports it.  If the
 @@ -201,7 +201,7 @@ struct zpool *zpool_create_pool(const ch
  
  /**
   * zpool_destroy_pool() - Destroy a zpool
-- * @pool:	The zpool to destroy.
-+ * @zpool:	The zpool to destroy.
+- * @pool	The zpool to destroy.
++ * @pool:	The zpool to destroy.
   *
   * Implementations must guarantee this to be thread-safe,
   * however only when destroying different pools.  The same
@@ -183,68 +162,80 @@ diff -puN mm/zpool.c~mm-docs-fix-parameter-names-mismatch mm/zpool.c
  
  /**
   * zpool_get_type() - Get the type of the zpool
-- * @pool:	The zpool to check
-+ * @zpool:	The zpool to check
+- * @pool	The zpool to check
++ * @pool:	The zpool to check
   *
   * This returns the type of the pool.
   *
-@@ -239,7 +239,7 @@ const char *zpool_get_type(struct zpool
+@@ -239,10 +239,10 @@ const char *zpool_get_type(struct zpool
  
  /**
   * zpool_malloc() - Allocate memory
-- * @pool:	The zpool to allocate from.
-+ * @zpool:	The zpool to allocate from.
-  * @size:	The amount of memory to allocate.
-  * @gfp:	The GFP flags to use when allocating memory.
-  * @handle:	Pointer to the handle to set
-@@ -261,7 +261,7 @@ int zpool_malloc(struct zpool *zpool, si
+- * @pool	The zpool to allocate from.
+- * @size	The amount of memory to allocate.
+- * @gfp		The GFP flags to use when allocating memory.
+- * @handle	Pointer to the handle to set
++ * @pool:	The zpool to allocate from.
++ * @size:	The amount of memory to allocate.
++ * @gfp:	The GFP flags to use when allocating memory.
++ * @handle:	Pointer to the handle to set
+  *
+  * This allocates the requested amount of memory from the pool.
+  * The gfp flags will be used when allocating memory, if the
+@@ -261,8 +261,8 @@ int zpool_malloc(struct zpool *zpool, si
  
  /**
   * zpool_free() - Free previously allocated memory
-- * @pool:	The zpool that allocated the memory.
-+ * @zpool:	The zpool that allocated the memory.
-  * @handle:	The handle to the memory to free.
+- * @pool	The zpool that allocated the memory.
+- * @handle	The handle to the memory to free.
++ * @pool:	The zpool that allocated the memory.
++ * @handle:	The handle to the memory to free.
   *
   * This frees previously allocated memory.  This does not guarantee
-@@ -280,7 +280,7 @@ void zpool_free(struct zpool *zpool, uns
+  * that the pool will actually free memory, only that the memory
+@@ -280,9 +280,9 @@ void zpool_free(struct zpool *zpool, uns
  
  /**
   * zpool_shrink() - Shrink the pool size
-- * @pool:	The zpool to shrink.
-+ * @zpool:	The zpool to shrink.
-  * @pages:	The number of pages to shrink the pool.
-  * @reclaimed:	The number of pages successfully evicted.
+- * @pool	The zpool to shrink.
+- * @pages	The number of pages to shrink the pool.
+- * @reclaimed	The number of pages successfully evicted.
++ * @pool:	The zpool to shrink.
++ * @pages:	The number of pages to shrink the pool.
++ * @reclaimed:	The number of pages successfully evicted.
   *
-@@ -304,11 +304,11 @@ int zpool_shrink(struct zpool *zpool, un
+  * This attempts to shrink the actual memory size of the pool
+  * by evicting currently used handle(s).  If the pool was
+@@ -304,9 +304,9 @@ int zpool_shrink(struct zpool *zpool, un
  
  /**
   * zpool_map_handle() - Map a previously allocated handle into memory
-- * @pool:	The zpool that the handle was allocated from
-+ * @zpool:	The zpool that the handle was allocated from
-  * @handle:	The handle to map
-- * @mm:		How the memory should be mapped
-+ * @mapmode:	How the memory should be mapped
+- * @pool	The zpool that the handle was allocated from
+- * @handle	The handle to map
+- * @mm		How the memory should be mapped
++ * @pool:	The zpool that the handle was allocated from
++ * @handle:	The handle to map
++ * @mm:		How the memory should be mapped
   *
-- * This maps a previously allocated handle into memory.  The @mm
-+ * This maps a previously allocated handle into memory.  The @mapmode
+  * This maps a previously allocated handle into memory.  The @mm
   * param indicates to the implementation how the memory will be
-  * used, i.e. read-only, write-only, read-write.  If the
-  * implementation does not support it, the memory will be treated
-@@ -332,7 +332,7 @@ void *zpool_map_handle(struct zpool *zpo
+@@ -332,8 +332,8 @@ void *zpool_map_handle(struct zpool *zpo
  
  /**
   * zpool_unmap_handle() - Unmap a previously mapped handle
-- * @pool:	The zpool that the handle was allocated from
-+ * @zpool:	The zpool that the handle was allocated from
-  * @handle:	The handle to unmap
+- * @pool	The zpool that the handle was allocated from
+- * @handle	The handle to unmap
++ * @pool:	The zpool that the handle was allocated from
++ * @handle:	The handle to unmap
   *
   * This unmaps a previously mapped handle.  Any locks or other
+  * actions that the implementation took in zpool_map_handle()
 @@ -347,7 +347,7 @@ void zpool_unmap_handle(struct zpool *zp
  
  /**
   * zpool_get_total_size() - The total size of the pool
-- * @pool:	The zpool to check
-+ * @zpool:	The zpool to check
+- * @pool	The zpool to check
++ * @pool:	The zpool to check
   *
   * This returns the total size in bytes of the pool.
   *
