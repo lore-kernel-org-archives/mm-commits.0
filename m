@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
- added to -mm tree
-Date: Tue, 23 Jan 2018 15:58:59 -0800
-Message-ID: <5a67cc43.QZOrBstDaYY2jolD%akpm@linux-foundation.org>
+Subject: + m32r-remove-abort.patch added to -mm tree
+Date: Thu, 25 Jan 2018 14:29:40 -0800
+Message-ID: <5a6a5a54.kqYD2Vs+an98hNnw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752099AbeAWX7B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jan 2018 18:59:01 -0500
+        with ESMTP id S1751643AbeAYW3l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jan 2018 17:29:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: henry.willard@oracle.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gregkh@linuxfoundation.org, haakon.bugge@oracle.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, mgorman@suse.de, pombredanne@nexb.com, zi.yan@cs.rutgers.edu, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: do not trap faults on shared data section pages.
+     Subject: m32r: remove abort()
 has been added to the -mm tree.  Its filename is
-     mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
+     m32r-remove-abort.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m32r-remove-abort.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-remove-abort.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,165 +38,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Henry Willard <henry.willard@oracle.com>
-Subject: mm: numa: do not trap faults on shared data section pages.
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: remove abort()
 
-Workloads consisting of a large number of processes running the same
-program with a very large shared data segment may experience performance
-problems when numa balancing attempts to migrate the shared cow pages. 
-This manifests itself with many processes or tasks in TASK_UNINTERRUPTIBLE
-state waiting for the shared pages to be migrated.
+7c2c11b208be ("arch: define weak abort()") has introduced a weak abort()
+which is common for all arch.  And, so we will not need arch specific
+abort which has the same code as the weak abort().  Remove the abort() for
+m32r.
 
-The program listed below simulates the conditions with these results when
-run with 288 processes on a 144 core/8 socket machine.
-
-Average throughput 	Average throughput     Average throughput
-with numa_balancing=0	with numa_balancing=1  with numa_balancing=1
-     			without the patch      with the patch
----------------------	---------------------  ---------------------
-2118782			2021534		       2107979
-
-Complex production environments show less variability and fewer poorly
-performing outliers accompanied with a smaller number of processes waiting
-on NUMA page migration with this patch applied. In some cases, %iowait drops
-from 16%-26% to 0.
-
-// SPDX-License-Identifier: GPL-2.0
-/*
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
- */
-#include <sys/time.h>
-#include <stdio.h>
-#include <wait.h>
-#include <sys/mman.h>
-
-int a[1000000] = {13};
-
-int  main(int argc, const char **argv)
-{
-	int n = 0;
-	int i;
-	pid_t pid;
-	int stat;
-	int *count_array;
-	int cpu_count = 288;
-	long total = 0;
-
-	struct timeval t1, t2 = {(argc > 1 ? atoi(argv[1]) : 10), 0};
-
-	if (argc > 2)
-		cpu_count = atoi(argv[2]);
-
-	count_array = mmap(NULL, cpu_count * sizeof(int),
-			   (PROT_READ|PROT_WRITE),
-			   (MAP_SHARED|MAP_ANONYMOUS), 0, 0);
-
-	if (count_array == MAP_FAILED) {
-		perror("mmap:");
-		return 0;
-	}
-
-	for (i = 0; i < cpu_count; ++i) {
-		pid = fork();
-		if (pid <= 0)
-			break;
-		if ((i & 0xf) == 0)
-			usleep(2);
-	}
-
-	if (pid != 0) {
-		if (i == 0) {
-			perror("fork:");
-			return 0;
-		}
-
-		for (;;) {
-			pid = wait(&stat);
-			if (pid < 0)
-				break;
-		}
-
-		for (i = 0; i < cpu_count; ++i)
-			total += count_array[i];
-
-		printf("Total %ld\n", total);
-		munmap(count_array, cpu_count * sizeof(int));
-		return 0;
-	}
-
-	gettimeofday(&t1, 0);
-	timeradd(&t1, &t2, &t1);
-	while (timercmp(&t2, &t1, <)) {
-		int b = 0;
-		int j;
-
-		for (j = 0; j < 1000000; j++)
-			b += a[j];
-		gettimeofday(&t2, 0);
-		n++;
-	}
-	count_array[i] = n;
-	return 0;
-}
-
-This patch changes change_pte_range() to skip shared copy-on-write pages
-when called from change_prot_numa().
-
-NOTE: change_prot_numa() is nominally called from task_numa_work() and
-queue_pages_test_walk().  task_numa_work() is the auto NUMA balancing
-path, and queue_pages_test_walk() is part of explicit NUMA policy
-management.  However, queue_pages_test_walk() only calls
-change_prot_numa() when MPOL_MF_LAZY is specified and currently that is
-not allowed, so change_prot_numa() is only called from auto NUMA
-balancing.
-
-In the case of explicit NUMA policy management, shared pages are not
-migrated unless MPOL_MF_MOVE_ALL is specified, and MPOL_MF_MOVE_ALL
-depends on CAP_SYS_NICE.  Currently, there is no way to pass information
-about MPOL_MF_MOVE_ALL to change_pte_range.  This will have to be fixed if
-MPOL_MF_LAZY is enabled and MPOL_MF_MOVE_ALL is to be honored in lazy
-migration mode.
-
-task_numa_work() skips the read-only VMAs of programs and shared
-libraries.
-
-Link: http://lkml.kernel.org/r/1516751617-7369-1-git-send-email-henry.willard@oracle.com
-Signed-off-by: Henry Willard <henry.willard@oracle.com>
-Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Steve Sistare steven.sistare@oracle.com
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Link: http://lkml.kernel.org/r/1516912339-5665-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/m32r/kernel/traps.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages
-+++ a/mm/mprotect.c
-@@ -84,6 +84,11 @@ static unsigned long change_pte_range(st
- 				if (!page || PageKsm(page))
- 					continue;
+diff -puN arch/m32r/kernel/traps.c~m32r-remove-abort arch/m32r/kernel/traps.c
+--- a/arch/m32r/kernel/traps.c~m32r-remove-abort
++++ a/arch/m32r/kernel/traps.c
+@@ -115,14 +115,6 @@ static void set_eit_vector_entries(void)
+ 	_flush_cache_copyback_all();
+ }
  
-+				/* Also skip shared copy-on-write pages */
-+				if (is_cow_mapping(vma->vm_flags) &&
-+				    page_mapcount(page) != 1)
-+					continue;
-+
- 				/* Avoid TLB flush if possible */
- 				if (pte_protnone(oldpte))
- 					continue;
-_
-
-Patches currently in -mm which might be from henry.willard@oracle.com are
-
-mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
-
+-void abort(void)
+-{
+-	BUG();
+-
+-	/* if that doesn't kill us, halt */
+-	panic("Oops failed to kill thread");
+-}
