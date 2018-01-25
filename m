@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch added to -mm tree
-Date: Thu, 25 Jan 2018 14:45:35 -0800
-Message-ID: <5a6a5e0f.tzy4/fZYsnH/fe6C%akpm@linux-foundation.org>
+Subject: + ocfs2-unlock-bh_state-if-bg-check-fails.patch added to -mm tree
+Date: Thu, 25 Jan 2018 14:49:04 -0800
+Message-ID: <5a6a5ee0.mFJ3D2vKj/Idjice%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48348 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751403AbeAYWpg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jan 2018 17:45:36 -0500
+        with ESMTP id S1751238AbeAYWtF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jan 2018 17:49:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: ge.changwei@h3c.com, akpm@linux-foundation.org, jack@suse.cz, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+     Subject: ocfs2: unlock bh_state if bg check fails
 has been added to the -mm tree.  Its filename is
-     ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+     ocfs2-unlock-bh_state-if-bg-check-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-unlock-bh_state-if-bg-check-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-unlock-bh_state-if-bg-check-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +38,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2: unlock bh_state if bg check fails
 
-We should not reuse the dirty bh in jbd2 directly due to the following
-situation:
+We should unlock bh_stat if bg->bg_free_bits_count > bg->bg_bits
 
-1. When removing extent rec, we will dirty the bhs of extent rec and
-   truncate log at the same time, and hand them over to jbd2.
-2. The bhs are not flushed to disk due to abnormal storage link.
-3. After a while the storage link become normal. Truncate log flush
-   worker triggered by the next space reclaiming found the dirty bh of
-   truncate log and clear its 'BH_Write_EIO' and then set it uptodate
-   in __ocfs2_journal_access():
-
-ocfs2_truncate_log_worker
-  ocfs2_flush_truncate_log
-    __ocfs2_flush_truncate_log
-      ocfs2_replay_truncate_records
-        ocfs2_journal_access_di
-          __ocfs2_journal_access // here we clear io_error and set 'tl_bh' uptodata.
-
-4. Then jbd2 will flush the bh of truncate log to disk, but the bh of
-   extent rec is still in error state, and unfortunately nobody will
-   take care of it.
-5. At last the space of extent rec was not reduced, but truncate log
-   flush worker have given it back to globalalloc. That will cause
-   duplicate cluster problem which could be identified by fsck.ocfs2.
-
-So we should return -EIO in case of ruining atomicity and consistency
-of space reclaim.
-
-Link: http://lkml.kernel.org/r/5A6943BC.5010406@huawei.com
-Fixes: acf8fdbe6afb ("ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access")
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Link: http://lkml.kernel.org/r/1516843095-23680-1-git-send-email-ge.changwei@h3c.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -82,59 +55,30 @@ Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   45 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 35 insertions(+), 10 deletions(-)
+ fs/ocfs2/suballoc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2 fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2
-+++ a/fs/ocfs2/journal.c
-@@ -666,21 +666,46 @@ static int __ocfs2_journal_access(handle
- 	/* we can safely remove this assertion after testing. */
- 	if (!buffer_uptodate(bh)) {
- 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
--		mlog(ML_ERROR, "b_blocknr=%llu\n",
--		     (unsigned long long)bh->b_blocknr);
-+		mlog(ML_ERROR, "b_blocknr=%llu, b_state=0x%lx\n",
-+		     (unsigned long long)bh->b_blocknr, bh->b_state);
- 
- 		lock_buffer(bh);
- 		/*
--		 * A previous attempt to write this buffer head failed.
--		 * Nothing we can do but to retry the write and hope for
--		 * the best.
-+		 * We should not reuse the dirty bh directly due to the
-+		 * following situation:
-+		 *
-+		 * 1. When removing extent rec, we will dirty the bhs of
-+		 *    extent rec and truncate log at the same time, and
-+		 *    hand them over to jbd2.
-+		 * 2. The bhs are not flushed to disk due to abnormal
-+		 *    storage link.
-+		 * 3. After a while the storage link become normal.
-+		 *    Truncate log flush worker triggered by the next
-+		 *    space reclaiming found the dirty bh of truncate log
-+		 *    and clear its 'BH_Write_EIO' and then set it uptodate
-+		 *    in __ocfs2_journal_access():
-+		 *
-+		 *    ocfs2_truncate_log_worker
-+		 *      ocfs2_flush_truncate_log
-+		 *        __ocfs2_flush_truncate_log
-+		 *          ocfs2_replay_truncate_records
-+		 *            ocfs2_journal_access_di
-+		 *              __ocfs2_journal_access
-+		 *
-+		 * 4. Then jbd2 will flush the bh of truncate log to disk,
-+		 *    but the bh of extent rec is still in error state, and
-+		 *    unfortunately nobody will take care of it.
-+		 * 5. At last the space of extent rec was not reduced,
-+		 *    but truncate log flush worker have given it back to
-+		 *    globalalloc. That will cause duplicate cluster problem
-+		 *    which could be identified by fsck.ocfs2.
-+		 *
-+		 * So we should return -EIO in case of ruining atomicity
-+		 * and consistency of space reclaim.
- 		 */
- 		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
--			clear_buffer_write_io_error(bh);
--			set_buffer_uptodate(bh);
--		}
+diff -puN fs/ocfs2/suballoc.c~ocfs2-unlock-bh_state-if-bg-check-fails fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-unlock-bh_state-if-bg-check-fails
++++ a/fs/ocfs2/suballoc.c
+@@ -2438,6 +2438,8 @@ static int ocfs2_block_group_clear_bits(
+ 	}
+ 	le16_add_cpu(&bg->bg_free_bits_count, num_bits);
+ 	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
++		if (undo_fn)
++			jbd_unlock_bh_state(group_bh);
+ 		return ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit count %u but claims %u are freed. num_bits %d\n",
+ 				   (unsigned long long)le64_to_cpu(bg->bg_blkno),
+ 				   le16_to_cpu(bg->bg_bits),
+_
+
+Patches currently in -mm which might be from ge.changwei@h3c.com are
+
+ocfs2-dlm-clean-dead-code-up.patch
+ocfs2-cluster-neaten-a-member-of-o2net_msg_handler.patch
+ocfs2-clean-dead-code-in-suballocc.patch
+ocfs2-clean-dead-code-up-in-allocc.patch
+ocfs2-make-metadata-estimation-accurate-and-clear.patch
+ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc.patch
+ocfs2-unlock-bh_state-if-bg-check-fails.patch
+
