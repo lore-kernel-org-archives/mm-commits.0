@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2.patch
- added to -mm tree
-Date: Thu, 25 Jan 2018 14:43:22 -0800
-Message-ID: <5a6a5d8a.gS2f3A0uMQwrPHMa%akpm@linux-foundation.org>
+ ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch added to -mm tree
+Date: Thu, 25 Jan 2018 14:45:35 -0800
+Message-ID: <5a6a5e0f.tzy4/fZYsnH/fe6C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47374 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751238AbeAYWnX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jan 2018 17:43:23 -0500
+        with ESMTP id S1751403AbeAYWpg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jan 2018 17:45:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ptesarik@suse.com, aryabinin@virtuozzo.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2
+     Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
 has been added to the -mm tree.  Its filename is
-     fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2.patch
+     ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +39,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.com>
-Subject: fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
 
-Link: http://lkml.kernel.org/r/20180125100516.589ea6af@ezekiel.suse.cz
-Signed-off-by: Petr Tesarik <ptesarik@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemi Wang <kemi.wang@intel.com>
-Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+We should not reuse the dirty bh in jbd2 directly due to the following
+situation:
+
+1. When removing extent rec, we will dirty the bhs of extent rec and
+   truncate log at the same time, and hand them over to jbd2.
+2. The bhs are not flushed to disk due to abnormal storage link.
+3. After a while the storage link become normal. Truncate log flush
+   worker triggered by the next space reclaiming found the dirty bh of
+   truncate log and clear its 'BH_Write_EIO' and then set it uptodate
+   in __ocfs2_journal_access():
+
+ocfs2_truncate_log_worker
+  ocfs2_flush_truncate_log
+    __ocfs2_flush_truncate_log
+      ocfs2_replay_truncate_records
+        ocfs2_journal_access_di
+          __ocfs2_journal_access // here we clear io_error and set 'tl_bh' uptodata.
+
+4. Then jbd2 will flush the bh of truncate log to disk, but the bh of
+   extent rec is still in error state, and unfortunately nobody will
+   take care of it.
+5. At last the space of extent rec was not reduced, but truncate log
+   flush worker have given it back to globalalloc. That will cause
+   duplicate cluster problem which could be identified by fsck.ocfs2.
+
+So we should return -EIO in case of ruining atomicity and consistency
+of space reclaim.
+
+Link: http://lkml.kernel.org/r/5A6943BC.5010406@huawei.com
+Fixes: acf8fdbe6afb ("ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access")
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/ocfs2/journal.c |   45 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 10 deletions(-)
 
-diff -puN mm/sparse.c~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2 mm/sparse.c
---- a/mm/sparse.c~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2
-+++ a/mm/sparse.c
-@@ -264,7 +264,11 @@ unsigned long __init node_memmap_size_by
-  */
- static unsigned long sparse_encode_mem_map(struct page *mem_map, unsigned long pnum)
- {
--	return (unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
-+	unsigned long coded_mem_map =
-+		(unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
-+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > (1UL<<PFN_SECTION_SHIFT));
-+	BUG_ON(coded_mem_map & ~SECTION_MAP_MASK);
-+	return coded_mem_map;
- }
+diff -puN fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2 fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2
++++ a/fs/ocfs2/journal.c
+@@ -666,21 +666,46 @@ static int __ocfs2_journal_access(handle
+ 	/* we can safely remove this assertion after testing. */
+ 	if (!buffer_uptodate(bh)) {
+ 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
+-		mlog(ML_ERROR, "b_blocknr=%llu\n",
+-		     (unsigned long long)bh->b_blocknr);
++		mlog(ML_ERROR, "b_blocknr=%llu, b_state=0x%lx\n",
++		     (unsigned long long)bh->b_blocknr, bh->b_state);
  
- /*
-_
-
-Patches currently in -mm which might be from ptesarik@suse.com are
-
-fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
-fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer-v2.patch
-
+ 		lock_buffer(bh);
+ 		/*
+-		 * A previous attempt to write this buffer head failed.
+-		 * Nothing we can do but to retry the write and hope for
+-		 * the best.
++		 * We should not reuse the dirty bh directly due to the
++		 * following situation:
++		 *
++		 * 1. When removing extent rec, we will dirty the bhs of
++		 *    extent rec and truncate log at the same time, and
++		 *    hand them over to jbd2.
++		 * 2. The bhs are not flushed to disk due to abnormal
++		 *    storage link.
++		 * 3. After a while the storage link become normal.
++		 *    Truncate log flush worker triggered by the next
++		 *    space reclaiming found the dirty bh of truncate log
++		 *    and clear its 'BH_Write_EIO' and then set it uptodate
++		 *    in __ocfs2_journal_access():
++		 *
++		 *    ocfs2_truncate_log_worker
++		 *      ocfs2_flush_truncate_log
++		 *        __ocfs2_flush_truncate_log
++		 *          ocfs2_replay_truncate_records
++		 *            ocfs2_journal_access_di
++		 *              __ocfs2_journal_access
++		 *
++		 * 4. Then jbd2 will flush the bh of truncate log to disk,
++		 *    but the bh of extent rec is still in error state, and
++		 *    unfortunately nobody will take care of it.
++		 * 5. At last the space of extent rec was not reduced,
++		 *    but truncate log flush worker have given it back to
++		 *    globalalloc. That will cause duplicate cluster problem
++		 *    which could be identified by fsck.ocfs2.
++		 *
++		 * So we should return -EIO in case of ruining atomicity
++		 * and consistency of space reclaim.
+ 		 */
+ 		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
+-			clear_buffer_write_io_error(bh);
+-			set_buffer_uptodate(bh);
+-		}
