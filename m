@@ -1,14 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-docs-fixup-punctuation.patch removed from
- -mm tree
-Date: Fri, 26 Jan 2018 12:07:18 -0800
-Message-ID: <20180126200718.zQ4ndahTv%akpm@linux-foundation.org>
+Subject: + mm-docs-fixup-punctuation.patch added to -mm tree
+Date: Fri, 26 Jan 2018 12:09:05 -0800
+Message-ID: <20180126200905.GuzinAiwK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751484AbeAZUHU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jan 2018 15:07:20 -0500
+        with ESMTP id S1751484AbeAZUJH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jan 2018 15:09:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
@@ -16,10 +15,24 @@ To: corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
 
 The patch titled
      Subject: mm: docs: fixup punctuation
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-docs-fixup-punctuation.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-docs-fixup-punctuation.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-docs-fixup-punctuation.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
@@ -34,18 +47,17 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c            |    2 -
- mm/memcontrol.c     |    4 +--
- mm/mlock.c          |    2 -
- mm/nommu.c          |    2 -
- mm/sparse-vmemmap.c |    4 +--
- mm/zpool.c          |   44 +++++++++++++++++++++---------------------
- 6 files changed, 29 insertions(+), 29 deletions(-)
+ mm/ksm.c        |    2 +-
+ mm/memcontrol.c |    4 ++--
+ mm/mlock.c      |    2 +-
+ mm/nommu.c      |    2 +-
+ mm/zpool.c      |   44 ++++++++++++++++++++++----------------------
+ 5 files changed, 27 insertions(+), 27 deletions(-)
 
 diff -puN mm/ksm.c~mm-docs-fixup-punctuation mm/ksm.c
 --- a/mm/ksm.c~mm-docs-fixup-punctuation
 +++ a/mm/ksm.c
-@@ -2309,7 +2309,7 @@ next_mm:
+@@ -2302,7 +2302,7 @@ next_mm:
  
  /**
   * ksm_do_scan  - the ksm scanner main worker function.
@@ -57,7 +69,7 @@ diff -puN mm/ksm.c~mm-docs-fixup-punctuation mm/ksm.c
 diff -puN mm/memcontrol.c~mm-docs-fixup-punctuation mm/memcontrol.c
 --- a/mm/memcontrol.c~mm-docs-fixup-punctuation
 +++ a/mm/memcontrol.c
-@@ -6090,8 +6090,8 @@ bool mem_cgroup_charge_skmem(struct mem_
+@@ -6060,8 +6060,8 @@ bool mem_cgroup_charge_skmem(struct mem_
  
  /**
   * mem_cgroup_uncharge_skmem - uncharge socket memory
@@ -93,19 +105,6 @@ diff -puN mm/nommu.c~mm-docs-fixup-punctuation mm/nommu.c
   * @addr:	start address to access
   * @buf:	source or destination buffer
 diff -puN mm/sparse-vmemmap.c~mm-docs-fixup-punctuation mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-docs-fixup-punctuation
-+++ a/mm/sparse-vmemmap.c
-@@ -108,8 +108,8 @@ static unsigned long __meminit vmem_altm
- 
- /**
-  * vmem_altmap_alloc - allocate pages from the vmem_altmap reservation
-- * @altmap - reserved page pool for the allocation
-- * @nr_pfns - size (in pages) of the allocation
-+ * @altmap: reserved page pool for the allocation
-+ * @nr_pfns: size (in pages) of the allocation
-  *
-  * Allocations are aligned to the size of the request
-  */
 diff -puN mm/zpool.c~mm-docs-fixup-punctuation mm/zpool.c
 --- a/mm/zpool.c~mm-docs-fixup-punctuation
 +++ a/mm/zpool.c
@@ -231,4 +230,5 @@ mm-update-comment-describing-tlb_gather_mmu.patch
 pids-introduce-find_get_task_by_vpid-helper.patch
 mm-docs-fix-parameter-names-mismatch.patch
 mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors.patch
+mm-docs-fixup-punctuation.patch
 
