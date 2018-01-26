@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + slub-remove-obsolete-comments-of-put_cpu_partial.patch added to -mm tree
-Date: Fri, 26 Jan 2018 13:04:32 -0800
-Message-ID: <5a6b97e0./GwcqHKGMyihDy1x%akpm@linux-foundation.org>
+Date: Fri, 26 Jan 2018 13:06:10 -0800
+Message-ID: <5a6b9842.P2vsIUCVyYup9k48%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37624 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751710AbeAZVEd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jan 2018 16:04:33 -0500
+        with ESMTP id S1751311AbeAZVGM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jan 2018 16:06:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miles.chen@mediatek.com, akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: miles.chen@mediatek.com, akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -55,7 +55,7 @@ Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
