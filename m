@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-rework-do_pages_move-fix.patch added to -mm tree
-Date: Mon, 29 Jan 2018 14:35:34 -0800
-Message-ID: <5a6fa1b6.kllw/74KIYfcj7eb%akpm@linux-foundation.org>
+Subject: + maintainers-update-sboyds-email-address.patch added to -mm tree
+Date: Mon, 29 Jan 2018 14:37:23 -0800
+Message-ID: <5a6fa223.RbZl2bi9KnCVdzo3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751833AbeA2Wff (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 17:35:35 -0500
+        with ESMTP id S1751528AbeA2WhY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 17:37:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zi.yan@cs.rutgers.edu, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-numa-rework-do_pages_move-fix
+     Subject: MAINTAINERS: update sboyd's email address
 has been added to the -mm tree.  Its filename is
-     mm-numa-rework-do_pages_move-fix.patch
+     maintainers-update-sboyds-email-address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-rework-do_pages_move-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-sboyds-email-address.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-rework-do_pages_move-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-sboyds-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Zi Yan" <zi.yan@cs.rutgers.edu>
-Subject: mm-numa-rework-do_pages_move-fix
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: MAINTAINERS: update sboyd's email address
 
-I discover that this patch does not hold mmap_sem while migrating pages i=
-n do_move_pages_to_node().
+Replace my codeaurora.org address with my kernel.org address so that
+emails don't bounce.
 
-A simple fix below moves mmap_sem from add_page_for_migration()
-to the outmost do_pages_move():
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Link: http://lkml.kernel.org/r/20180129173258.10643-1-sboyd@codeaurora.org
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/migrate.c~mm-numa-rework-do_pages_move-fix mm/migrate.c
---- a/mm/migrate.c~mm-numa-rework-do_pages_move-fix
-+++ a/mm/migrate.c
-@@ -1486,7 +1486,6 @@ static int add_page_for_migration(struct
- 	unsigned int follflags;
- 	int err;
+diff -puN MAINTAINERS~maintainers-update-sboyds-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-sboyds-email-address
++++ a/MAINTAINERS
+@@ -3549,7 +3549,7 @@ F:	drivers/media/platform/coda/
  
--	down_read(&mm->mmap_sem);
- 	err = -EFAULT;
- 	vma = find_vma(mm, addr);
- 	if (!vma || addr < vma->vm_start || !vma_migratable(vma))
-@@ -1541,7 +1540,6 @@ out_putpage:
- 	 */
- 	put_page(page);
- out:
--	up_read(&mm->mmap_sem);
- 	return err;
- }
+ COMMON CLK FRAMEWORK
+ M:	Michael Turquette <mturquette@baylibre.com>
+-M:	Stephen Boyd <sboyd@codeaurora.org>
++M:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-clk@vger.kernel.org
+ Q:	http://patchwork.kernel.org/project/linux-clk/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux.git
+@@ -10160,7 +10160,7 @@ F:	include/uapi/linux/openvswitch.h
+ OPERATING PERFORMANCE POINTS (OPP)
+ M:	Viresh Kumar <vireshk@kernel.org>
+ M:	Nishanth Menon <nm@ti.com>
+-M:	Stephen Boyd <sboyd@codeaurora.org>
++M:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/vireshk/pm.git
+@@ -12827,7 +12827,7 @@ F:	Documentation/networking/spider_net.t
+ F:	drivers/net/ethernet/toshiba/spider_net*
  
-@@ -1562,6 +1560,7 @@ static int do_pages_move(struct mm_struc
- 
- 	migrate_prep();
- 
-+	down_read(&mm->mmap_sem);
- 	for (i = start = 0; i < nr_pages; i++) {
- 		const void __user *p;
- 		unsigned long addr;
-@@ -1629,6 +1628,7 @@ out_flush:
- 	if (!err)
- 		err = err1;
- out:
-+	up_read(&mm->mmap_sem);
- 	return err;
- }
- 
+ SPMI SUBSYSTEM
+-R:	Stephen Boyd <sboyd@codeaurora.org>
++R:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-arm-msm@vger.kernel.org
+ F:	Documentation/devicetree/bindings/spmi/
+ F:	drivers/spmi/
+@@ -13705,7 +13705,7 @@ F:	include/linux/usb/tilegx.h
+ TIMEKEEPING, CLOCKSOURCE CORE, NTP, ALARMTIMER
+ M:	John Stultz <john.stultz@linaro.org>
+ M:	Thomas Gleixner <tglx@linutronix.de>
+-R:	Stephen Boyd <sboyd@codeaurora.org>
++R:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git timers/core
+ S:	Supported
 _
 
-Patches currently in -mm which might be from zi.yan@cs.rutgers.edu are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-mm-numa-rework-do_pages_move-fix.patch
+maintainers-update-sboyds-email-address.patch
 
