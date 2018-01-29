@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-cortina-gemini-patterns.patch added to -mm
- tree
-Date: Mon, 29 Jan 2018 15:40:33 -0800
-Message-ID: <5a6fb0f1.hgOVnU+nLSOH2t8X%akpm@linux-foundation.org>
+Subject: + maintainers-remove-android-ion-pattern.patch added to -mm tree
+Date: Mon, 29 Jan 2018 15:40:27 -0800
+Message-ID: <5a6fb0eb.ZLssJeWIHjQReAKl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751547AbeA2Xke (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:40:34 -0500
+        with ESMTP id S1751417AbeA2Xk3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:40:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, davem@davemloft.net, linus.walleij@linaro.org, ulli.kroll@googlemail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, akpm@linux-foundation.org, labbott@redhat.com, sumit.semwal@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update Cortina/Gemini patterns
+     Subject: MAINTAINERS: remove ANDROID ION pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-cortina-gemini-patterns.patch
+     maintainers-remove-android-ion-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-cortina-gemini-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-android-ion-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-cortina-gemini-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-android-ion-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update Cortina/Gemini patterns
+Subject: MAINTAINERS: remove ANDROID ION pattern
 
-4d5ae32f5e1e ("net: ethernet: Add a driver for Gemini gigabit ethernet")
-added invalid patterns.  Fix it.
+File drivers/staging/android/uapi/ion_test.h was removed by 9828282e33a0
+("staging: android: ion: Remove old platform support")
 
-Link: http://lkml.kernel.org/r/65b104609e0071d0fbe0dcce3a8e6138a4cf8c25.1517147485.git.joe@perches.com
+Remove the pattern.
+
+Link: http://lkml.kernel.org/r/182debec22002c9a1de44e79a7441288942b205c.1517147485.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Acked-by: Laura Abbott <labbott@redhat.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hans Ulli Kroll <ulli.kroll@googlemail.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-cortina-gemini-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-cortina-gemini-patterns
+diff -puN MAINTAINERS~maintainers-remove-android-ion-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-android-ion-pattern
 +++ a/MAINTAINERS
-@@ -1358,7 +1358,7 @@ F:	Documentation/devicetree/bindings/pin
- F:	Documentation/devicetree/bindings/net/cortina,gemini-ethernet.txt
- F:	Documentation/devicetree/bindings/rtc/faraday,ftrtc010.txt
- F:	arch/arm/mach-gemini/
--F:	drivers/net/ethernet/cortina/gemini/*
-+F:	drivers/net/ethernet/cortina/
- F:	drivers/pinctrl/pinctrl-gemini.c
- F:	drivers/rtc/rtc-ftrtc010.c
+@@ -903,7 +903,6 @@ L:	devel@driverdev.osuosl.org
+ S:	Supported
+ F:	drivers/staging/android/ion
+ F:	drivers/staging/android/uapi/ion.h
+-F:	drivers/staging/android/uapi/ion_test.h
  
+ AOA (Apple Onboard Audio) ALSA DRIVER
+ M:	Johannes Berg <johannes@sipsolutions.net>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
