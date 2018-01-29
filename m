@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-correct-comments-regarding-do_fault_around.patch added to
+Subject: + revert-kernel-relayc-fix-potential-memory-leak.patch added to
  -mm tree
-Date: Mon, 29 Jan 2018 15:55:51 -0800
-Message-ID: <5a6fb487.3OU0T51eOdWrxvEL%akpm@linux-foundation.org>
+Date: Mon, 29 Jan 2018 15:58:35 -0800
+Message-ID: <5a6fb52b.uKW4M53ZrcvmtGNi%akpm__39671.8332930051$1517270221$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55276 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751273AbeA2Xzw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:55:52 -0500
+        with ESMTP id S1751394AbeA2X6g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:58:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: william.kucharski@oracle.com, kirill.shutemov@linux.intel.com, larry.bassel@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: ebiggers@google.com, akpm@linux-foundation.org, axboe@kernel.dk, stable@vger.kernel.org, syzkaller@googlegroups.com, yizhouzhou@ict.ac.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: correct comments regarding do_fault_around()
+     Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
 has been added to the -mm tree.  Its filename is
-     mm-correct-comments-regarding-do_fault_around.patch
+     revert-kernel-relayc-fix-potential-memory-leak.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-correct-comments-regarding-do_fault_around.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-kernel-relayc-fix-potential-memory-leak.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-correct-comments-regarding-do_fault_around.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-kernel-relayc-fix-potential-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: William Kucharski <william.kucharski@oracle.com>
-Subject: mm: correct comments regarding do_fault_around()
+From: Eric Biggers <ebiggers@google.com>
+Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
 
-There are multiple comments surrounding do_fault_around that memtion
-fault_around_pages() and fault_around_mask(), two routines that do not
-exist.  These comments should be reworded to reference fault_around_bytes,
-the value which is used to determine how much do_fault_around() will
-attempt to read when processing a fault.
+This reverts ba62bafe942b159a6 ("kernel/relay.c: fix potential memory leak").
 
-These comments should have been updated when fault_around_pages() and
-fault_around_mask() were removed in aecd6f44266c1 ("mm: close race between
-do_fault_around() and fault_around_bytes_set()").
+This commit introduced a double free bug, because 'chan' is already
+freed by the line:
 
-Fixes: aecd6f44266c1 ("mm: close race between do_fault_around() and fault_around_bytes_set()")
-Link: http://lkml.kernel.org/r/302D0B14-C7E9-44C6-8BED-033F9ACBD030@oracle.com
-Signed-off-by: William Kucharski <william.kucharski@oracle.com>
-Reviewed-by: Larry Bassel <larry.bassel@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+    kref_put(&chan->kref, relay_destroy_channel);
+
+This bug was found by syzkaller, using the BLKTRACESETUP ioctl.
+
+Link: http://lkml.kernel.org/r/20180127004759.101823-1-ebiggers3@gmail.com
+Fixes: ba62bafe942b ("kernel/relay.c: fix potential memory leak")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>	[4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ kernel/relay.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory.c~mm-correct-comments-regarding-do_fault_around mm/memory.c
---- a/mm/memory.c~mm-correct-comments-regarding-do_fault_around
-+++ a/mm/memory.c
-@@ -3511,9 +3511,8 @@ static int fault_around_bytes_get(void *
+diff -puN kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak kernel/relay.c
+--- a/kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak
++++ a/kernel/relay.c
+@@ -611,7 +611,6 @@ free_bufs:
+ 
+ 	kref_put(&chan->kref, relay_destroy_channel);
+ 	mutex_unlock(&relay_channels_mutex);
+-	kfree(chan);
+ 	return NULL;
  }
- 
- /*
-- * fault_around_pages() and fault_around_mask() expects fault_around_bytes
-- * rounded down to nearest page order. It's what do_fault_around() expects to
-- * see.
-+ * fault_around_bytes must be rounded down to the nearest page order as it's
-+ * what do_fault_around() expects to see.
-  */
- static int fault_around_bytes_set(void *data, u64 val)
- {
-@@ -3556,13 +3555,14 @@ late_initcall(fault_around_debugfs);
-  * This function doesn't cross the VMA boundaries, in order to call map_pages()
-  * only once.
-  *
-- * fault_around_pages() defines how many pages we'll try to map.
-- * do_fault_around() expects it to return a power of two less than or equal to
-- * PTRS_PER_PTE.
-+ * fault_around_bytes defines how many bytes we'll try to map.
-+ * do_fault_around() expects it to be set to a power of two less than or equal
-+ * to PTRS_PER_PTE.
-  *
-- * The virtual address of the area that we map is naturally aligned to the
-- * fault_around_pages() value (and therefore to page order).  This way it's
-- * easier to guarantee that we don't cross page table boundaries.
-+ * The virtual address of the area that we map is naturally aligned to
-+ * fault_around_bytes rounded down to the machine page size
-+ * (and therefore to page order).  This way it's easier to guarantee
-+ * that we don't cross page table boundaries.
-  */
- static int do_fault_around(struct vm_fault *vmf)
- {
-@@ -3579,8 +3579,8 @@ static int do_fault_around(struct vm_fau
- 	start_pgoff -= off;
- 
- 	/*
--	 *  end_pgoff is either end of page table or end of vma
--	 *  or fault_around_pages() from start_pgoff, depending what is nearest.
-+	 *  end_pgoff is either the end of the page table, the end of
-+	 *  the vma or nr_pages from start_pgoff, depending what is nearest.
- 	 */
- 	end_pgoff = start_pgoff -
- 		((vmf->address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
+ EXPORT_SYMBOL_GPL(relay_open);
 _
 
-Patches currently in -mm which might be from william.kucharski@oracle.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-mm-correct-comments-regarding-do_fault_around.patch
+userfaultfd-convert-to-use-anon_inode_getfd.patch
+revert-kernel-relayc-fix-potential-memory-leak.patch
+pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter.patch
+pipe-sysctl-remove-pipe_proc_fn.patch
+pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
+pipe-fix-off-by-one-error-when-checking-buffer-limits.patch
+pipe-reject-f_setpipe_sz-with-size-over-uint_max.patch
+pipe-simplify-round_pipe_size.patch
+pipe-read-buffer-limits-atomically.patch
 
