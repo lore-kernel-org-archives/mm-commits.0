@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch added to -mm tree
-Date: Mon, 29 Jan 2018 15:15:32 -0800
-Message-ID: <5a6fab14.A8+Vi6TYMipXLuy+%akpm@linux-foundation.org>
+Subject: + maintainers-update-cortina-gemini-patterns.patch added to -mm
+ tree
+Date: Mon, 29 Jan 2018 15:40:33 -0800
+Message-ID: <5a6fb0f1.hgOVnU+nLSOH2t8X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50916 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751836AbeA2XPd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:15:33 -0500
+        with ESMTP id S1751547AbeA2Xke (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:40:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: joe@perches.com, akpm@linux-foundation.org, davem@davemloft.net, linus.walleij@linaro.org, ulli.kroll@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+     Subject: MAINTAINERS: update Cortina/Gemini patterns
 has been added to the -mm tree.  Its filename is
-     ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+     maintainers-update-cortina-gemini-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-cortina-gemini-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-cortina-gemini-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update Cortina/Gemini patterns
 
-We should not reuse the dirty bh in jbd2 directly due to the following
-situation:
+4d5ae32f5e1e ("net: ethernet: Add a driver for Gemini gigabit ethernet")
+added invalid patterns.  Fix it.
 
-1. When removing extent rec, we will dirty the bhs of extent rec and
-   truncate log at the same time, and hand them over to jbd2.
-2. The bhs are submitted to jbd2 area successfully.
-3. The write-back thread of device help flush the bhs to disk but
-   encounter write error due to abnormal storage link.
-4. After a while the storage link become normal. Truncate log flush
-   worker triggered by the next space reclaiming found the dirty bh of
-   truncate log and clear its 'BH_Write_EIO' and then set it uptodate in
-   __ocfs2_journal_access():
-
-ocfs2_truncate_log_worker
-  ocfs2_flush_truncate_log
-    __ocfs2_flush_truncate_log
-      ocfs2_replay_truncate_records
-        ocfs2_journal_access_di
-          __ocfs2_journal_access // here we clear io_error and set 'tl_bh' uptodata.
-
-5. Then jbd2 will flush the bh of truncate log to disk, but the bh of
-   extent rec is still in error state, and unfortunately nobody will
-   take care of it.
-6. At last the space of extent rec was not reduced, but truncate log
-   flush worker have given it back to globalalloc. That will cause
-   duplicate cluster problem which could be identified by fsck.ocfs2.
-
-Sadlly we can hardly revert this but set fs read-only in case of
-ruining atomicity and consistency of space reclaim.
-
-Link: http://lkml.kernel.org/r/5A6E8092.8090701@huawei.com
-Fixes: acf8fdbe6afb ("ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access")
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/65b104609e0071d0fbe0dcce3a8e6138a4cf8c25.1517147485.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hans Ulli Kroll <ulli.kroll@googlemail.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2 fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2
-+++ a/fs/ocfs2/journal.c
-@@ -666,23 +666,24 @@ static int __ocfs2_journal_access(handle
- 	/* we can safely remove this assertion after testing. */
- 	if (!buffer_uptodate(bh)) {
- 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
--		mlog(ML_ERROR, "b_blocknr=%llu\n",
--		     (unsigned long long)bh->b_blocknr);
-+		mlog(ML_ERROR, "b_blocknr=%llu, b_state=0x%lx\n",
-+		     (unsigned long long)bh->b_blocknr, bh->b_state);
+diff -puN MAINTAINERS~maintainers-update-cortina-gemini-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-cortina-gemini-patterns
++++ a/MAINTAINERS
+@@ -1358,7 +1358,7 @@ F:	Documentation/devicetree/bindings/pin
+ F:	Documentation/devicetree/bindings/net/cortina,gemini-ethernet.txt
+ F:	Documentation/devicetree/bindings/rtc/faraday,ftrtc010.txt
+ F:	arch/arm/mach-gemini/
+-F:	drivers/net/ethernet/cortina/gemini/*
++F:	drivers/net/ethernet/cortina/
+ F:	drivers/pinctrl/pinctrl-gemini.c
+ F:	drivers/rtc/rtc-ftrtc010.c
  
- 		lock_buffer(bh);
- 		/*
--		 * A previous attempt to write this buffer head failed.
--		 * Nothing we can do but to retry the write and hope for
--		 * the best.
-+		 * A previous transaction with a couple of buffer heads fail
-+		 * to checkpoint, so all the bhs are marked as BH_Write_EIO.
-+		 * For current transaction, the bh is just among those error
-+		 * bhs which previous transaction handle. We can't just clear
-+		 * its BH_Write_EIO and reuse directly, since other bhs are
-+		 * not written to disk yet and that will cause metadata
-+		 * inconsistency. So we should set fs read-only to avoid
-+		 * further damage.
- 		 */
- 		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
--			clear_buffer_write_io_error(bh);
--			set_buffer_uptodate(bh);
--		}
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-ignore-some-octal-permissions-of-0.patch
+checkpatch-improve-quoted-string-and-line-continuation-test.patch
+checkpatch-add-a-few-device_attr-style-tests.patch
+checkpatch-improve-the-tabstop-test-to-include-declarations.patch
+checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test.patch
+checkpatch-avoid-some-false-positives-for-tabstop-declaration-test.patch
+maintainers-remove-android-ion-pattern.patch
+maintainers-remove-arm-clkdev-support-file-pattern.patch
+maintainers-update-cortina-gemini-patterns.patch
+maintainers-update-arm-oxnas-platform-support-patterns.patch
+maintainers-update-various-palm-patterns.patch
+maintainers-update-arm-qualcomm-support-patterns.patch
+
