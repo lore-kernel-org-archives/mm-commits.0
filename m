@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch tentatively added to -mm tree
-Date: Mon, 29 Jan 2018 15:13:16 -0800
-Message-ID: <5a6faa8c.EOalgUvFtVScBH2F%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch added to -mm tree
+Date: Mon, 29 Jan 2018 15:15:32 -0800
+Message-ID: <5a6fab14.A8+Vi6TYMipXLuy+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751803AbeA2XNR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:13:17 -0500
+        with ESMTP id S1751836AbeA2XPd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:15:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: disable memory error handling on 1GB hugepage
+     Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
+     ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,81 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: disable memory error handling on 1GB hugepage
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
 
-Recently the following BUG was reported:
+We should not reuse the dirty bh in jbd2 directly due to the following
+situation:
 
-    Injecting memory failure for pfn 0x3c0000 at process virtual address 0x7fe300000000
-    Memory failure: 0x3c0000: recovery action for huge page: Recovered
-    BUG: unable to handle kernel paging request at ffff8dfcc0003000
-    IP: gup_pgd_range+0x1f0/0xc20
-    PGD 17ae72067 P4D 17ae72067 PUD 0
-    Oops: 0000 [#1] SMP PTI
-    ...
-    CPU: 3 PID: 5467 Comm: hugetlb_1gb Not tainted 4.15.0-rc8-mm1-abc+ #3
-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.3-1.fc25 04/01/2014
+1. When removing extent rec, we will dirty the bhs of extent rec and
+   truncate log at the same time, and hand them over to jbd2.
+2. The bhs are submitted to jbd2 area successfully.
+3. The write-back thread of device help flush the bhs to disk but
+   encounter write error due to abnormal storage link.
+4. After a while the storage link become normal. Truncate log flush
+   worker triggered by the next space reclaiming found the dirty bh of
+   truncate log and clear its 'BH_Write_EIO' and then set it uptodate in
+   __ocfs2_journal_access():
 
-You can easily reproduce this by calling madvise(MADV_HWPOISON) twice on a
-1GB hugepage.  This happens because get_user_pages_fast() is not aware of
-a migration entry on pud that was created in the 1st madvise() event.
+ocfs2_truncate_log_worker
+  ocfs2_flush_truncate_log
+    __ocfs2_flush_truncate_log
+      ocfs2_replay_truncate_records
+        ocfs2_journal_access_di
+          __ocfs2_journal_access // here we clear io_error and set 'tl_bh' uptodata.
 
-I think that conversion to pud-aligned migration entry is working, but
-other MM code walking over page table isn't prepared for it.  We need some
-time and effort to make all this work properly, so this patch avoids the
-reported bug by just disabling error handling for 1GB hugepage.
+5. Then jbd2 will flush the bh of truncate log to disk, but the bh of
+   extent rec is still in error state, and unfortunately nobody will
+   take care of it.
+6. At last the space of extent rec was not reduced, but truncate log
+   flush worker have given it back to globalalloc. That will cause
+   duplicate cluster problem which could be identified by fsck.ocfs2.
 
-Link: http://lkml.kernel.org/r/1517207283-15769-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Sadlly we can hardly revert this but set fs read-only in case of
+ruining atomicity and consistency of space reclaim.
+
+Link: http://lkml.kernel.org/r/5A6E8092.8090701@huawei.com
+Fixes: acf8fdbe6afb ("ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access")
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    1 +
- mm/memory-failure.c |    7 +++++++
- 2 files changed, 8 insertions(+)
+ fs/ocfs2/journal.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm.h~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage include/linux/mm.h
---- a/include/linux/mm.h~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage
-+++ a/include/linux/mm.h
-@@ -2607,6 +2607,7 @@ enum mf_action_page_type {
- 	MF_MSG_POISONED_HUGE,
- 	MF_MSG_HUGE,
- 	MF_MSG_FREE_HUGE,
-+	MF_MSG_GIGANTIC,
- 	MF_MSG_UNMAP_FAILED,
- 	MF_MSG_DIRTY_SWAPCACHE,
- 	MF_MSG_CLEAN_SWAPCACHE,
-diff -puN mm/memory-failure.c~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage
-+++ a/mm/memory-failure.c
-@@ -508,6 +508,7 @@ static const char * const action_page_ty
- 	[MF_MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
- 	[MF_MSG_HUGE]			= "huge page",
- 	[MF_MSG_FREE_HUGE]		= "free huge page",
-+	[MF_MSG_GIGANTIC]		= "gigantic page",
- 	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
- 	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
- 	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
-@@ -1090,6 +1091,12 @@ static int memory_failure_hugetlb(unsign
- 		return 0;
- 	}
+diff -puN fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2 fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2
++++ a/fs/ocfs2/journal.c
+@@ -666,23 +666,24 @@ static int __ocfs2_journal_access(handle
+ 	/* we can safely remove this assertion after testing. */
+ 	if (!buffer_uptodate(bh)) {
+ 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
+-		mlog(ML_ERROR, "b_blocknr=%llu\n",
+-		     (unsigned long long)bh->b_blocknr);
++		mlog(ML_ERROR, "b_blocknr=%llu, b_state=0x%lx\n",
++		     (unsigned long long)bh->b_blocknr, bh->b_state);
  
-+	if (hstate_is_gigantic(page_hstate(head))) {
-+		action_result(pfn, MF_MSG_GIGANTIC, MF_IGNORED);
-+		res = -EBUSY;
-+		goto out;
-+	}
-+
- 	if (!hwpoison_user_mappings(p, pfn, trapno, flags, &head)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
-
+ 		lock_buffer(bh);
+ 		/*
+-		 * A previous attempt to write this buffer head failed.
+-		 * Nothing we can do but to retry the write and hope for
+-		 * the best.
++		 * A previous transaction with a couple of buffer heads fail
++		 * to checkpoint, so all the bhs are marked as BH_Write_EIO.
++		 * For current transaction, the bh is just among those error
++		 * bhs which previous transaction handle. We can't just clear
++		 * its BH_Write_EIO and reuse directly, since other bhs are
++		 * not written to disk yet and that will cause metadata
++		 * inconsistency. So we should set fs read-only to avoid
++		 * further damage.
+ 		 */
+ 		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
+-			clear_buffer_write_io_error(bh);
+-			set_buffer_uptodate(bh);
+-		}
