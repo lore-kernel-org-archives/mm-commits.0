@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-fix-memmap-initialization.patch added to -mm
- tree
-Date: Tue, 30 Jan 2018 11:44:13 -0800
-Message-ID: <5a70cb0d.g3tDNQyDHzJXgZ0x%akpm@linux-foundation.org>
+Subject: + mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
+ added to -mm tree
+Date: Tue, 30 Jan 2018 12:20:46 -0800
+Message-ID: <5a70d39e.sEOwTuS5n0sAUJ6E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54368 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59900 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751805AbeA3ToP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 14:44:15 -0500
+        with ESMTP id S1751556AbeA3UUr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 15:20:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, bharata@linux.vnet.ibm.com, bob.picco@oracle.com, daniel.m.jordan@oracle.com, pasha.tatashin@oracle.com, stable@vger.kernel.org, steven.sistare@oracle.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: fix memmap initialization
+     Subject: oom, memcg: clarify root memcg oom accounting
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-fix-memmap-initialization.patch
+     mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-fix-memmap-initialization.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-fix-memmap-initialization.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,112 +40,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: fix memmap initialization
+Subject: oom, memcg: clarify root memcg oom accounting
 
-Bharata has noticed that onlining a newly added memory doesn't increase
-the total memory, pointing to f7f99100d8d9 ("mm: stop zeroing memory
-during allocation in vmemmap") as a culprit.  This commit has changed the
-way how the memory for memmaps is initialized and moves it from the
-allocation time to the initialization time.  This works properly for the
-early memmap init path.
+David Rientjes has pointed out that the current way how the root memcg is
+accounted for the cgroup aware OOM killer is undocumented.  Unlike regular
+cgroups there is no accounting going on in the root memcg (mostly for
+performance reasons).  Therefore we are suming up oom_badness of its
+tasks.  This might result in an over accounting because of the
+oom_score_adj setting.  Document this for now.
 
-It doesn't work for the memory hotplug though because we need to mark page
-as reserved when the sparsemem section is created and later initialize it
-completely during onlining.  memmap_init_zone is called in the early stage
-of onlining.  With the current code it calls __init_single_page and as
-such it clears up the whole stage and therefore online_pages_range skips
-those pages.
-
-Fix this by skipping mm_zero_struct_page in __init_single_page for memory
-hotplug path.  This is quite uggly but unifying both early init and memory
-hotplug init paths is a large project.  Make sure we plug the regression
-at least.
-
-Link: http://lkml.kernel.org/r/20180130101141.GW21609@dhcp22.suse.cz
-Fixes: f7f99100d8d9 ("mm: stop zeroing memory during allocation in vmemmap")
+Link: http://lkml.kernel.org/r/20180130122011.GB21609@dhcp22.suse.cz
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Tested-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ Documentation/cgroup-v2.txt |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-fix-memmap-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-fix-memmap-initialization
-+++ a/mm/page_alloc.c
-@@ -1178,9 +1178,10 @@ static void free_one_page(struct zone *z
- }
+diff -puN Documentation/cgroup-v2.txt~mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2 Documentation/cgroup-v2.txt
+--- a/Documentation/cgroup-v2.txt~mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2
++++ a/Documentation/cgroup-v2.txt
+@@ -1290,8 +1290,15 @@ This affects both system- and cgroup-wid
+ the memory controller considers only cgroups belonging to the sub-tree
+ of the OOM'ing cgroup.
  
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
--				unsigned long zone, int nid)
-+				unsigned long zone, int nid, bool zero)
- {
--	mm_zero_struct_page(page);
-+	if (zero)
-+		mm_zero_struct_page(page);
- 	set_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
-@@ -1195,9 +1196,9 @@ static void __meminit __init_single_page
- }
+-The root cgroup is treated as a leaf memory cgroup, so it's compared
+-with other leaf memory cgroups and cgroups with oom_group option set.
++Leaf cgroups and cgroups with oom_group option set are compared based
++on their cumulative memory usage. The root cgroup is treated as a
++leaf memory cgroup as well, so it's compared with other leaf memory
++cgroups. Due to internal implementation restrictions the size of
++the root cgroup is a cumulative sum of oom_badness of all its tasks
++(in other words oom_score_adj of each task is obeyed). Relying on
++oom_score_adj (appart from OOM_SCORE_ADJ_MIN) can lead to over or
++underestimating of the root cgroup consumption and it is therefore
++discouraged. This might change in the future, though.
  
- static void __meminit __init_single_pfn(unsigned long pfn, unsigned long zone,
--					int nid)
-+					int nid, bool zero)
- {
--	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
-+	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid, zero);
- }
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-@@ -1218,7 +1219,7 @@ static void __meminit init_reserved_page
- 		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
- 			break;
- 	}
--	__init_single_pfn(pfn, zid, nid);
-+	__init_single_pfn(pfn, zid, nid, true);
- }
- #else
- static inline void init_reserved_page(unsigned long pfn)
-@@ -1535,7 +1536,7 @@ static unsigned long  __init deferred_in
- 		} else {
- 			page++;
- 		}
--		__init_single_page(page, pfn, zid, nid);
-+		__init_single_page(page, pfn, zid, nid, true);
- 		nr_pages++;
- 	}
- 	return (nr_pages);
-@@ -5400,15 +5401,20 @@ not_early:
- 		 * can be created for invalid pages (for alignment)
- 		 * check here not to call set_pageblock_migratetype() against
- 		 * pfn out of zone.
-+		 *
-+		 * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
-+		 * because this is done early in sparse_add_one_section
- 		 */
- 		if (!(pfn & (pageblock_nr_pages - 1))) {
- 			struct page *page = pfn_to_page(pfn);
- 
--			__init_single_page(page, pfn, zone, nid);
-+			__init_single_page(page, pfn, zone, nid,
-+					context != MEMMAP_HOTPLUG);
- 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 			cond_resched();
- 		} else {
--			__init_single_pfn(pfn, zone, nid);
-+			__init_single_pfn(pfn, zone, nid,
-+					context != MEMMAP_HOTPLUG);
- 		}
- 	}
- }
+ If there are no cgroups with the enabled memory controller,
+ the OOM killer is using the "traditional" process-based approach.
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
