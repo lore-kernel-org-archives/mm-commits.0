@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + revert-kernel-relayc-fix-potential-memory-leak.patch added to
- -mm tree
-Date: Mon, 29 Jan 2018 15:58:35 -0800
-Message-ID: <5a6fb52b.uKW4M53ZrcvmtGNi%akpm__39671.8332930051$1517270221$gmane$org@linux-foundation.org>
+Subject: +
+ net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 30 Jan 2018 11:29:12 -0800
+Message-ID: <5a70c788.SjaZAvy2kuIPgO1I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751394AbeA2X6g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jan 2018 18:58:36 -0500
+        with ESMTP id S1753067AbeA3T3N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 14:29:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, akpm@linux-foundation.org, axboe@kernel.dk, stable@vger.kernel.org, syzkaller@googlegroups.com, yizhouzhou@ict.ac.cn, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, fw@strlen.de, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
+     Subject: net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     revert-kernel-relayc-fix-potential-memory-leak.patch
+     net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-kernel-relayc-fix-potential-memory-leak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-kernel-relayc-fix-potential-memory-leak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes
 
-This reverts ba62bafe942b159a6 ("kernel/relay.c: fix potential memory leak").
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#6: 
+as well.  eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in
 
-This commit introduced a double free bug, because 'chan' is already
-freed by the line:
+WARNING: networking block comments don't use an empty /* line, use /* Comment...
+#35: FILE: net/netfilter/x_tables.c:1012:
++	/*
++	 * __GFP_NORETRY is not fully supported by kvmalloc but it should
 
-    kref_put(&chan->kref, relay_destroy_channel);
+total: 1 errors, 1 warnings, 0 checks, 14 lines checked
 
-This bug was found by syzkaller, using the BLKTRACESETUP ioctl.
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
 
-Link: http://lkml.kernel.org/r/20180127004759.101823-1-ebiggers3@gmail.com
-Fixes: ba62bafe942b ("kernel/relay.c: fix potential memory leak")
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>	[4.7+]
+./patches/net-netfilter-x_tablesc-make-allocation-less-aggressive.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    1 -
- 1 file changed, 1 deletion(-)
+ net/netfilter/x_tables.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak kernel/relay.c
---- a/kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak
-+++ a/kernel/relay.c
-@@ -611,7 +611,6 @@ free_bufs:
+diff -puN net/netfilter/x_tables.c~net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes net/netfilter/x_tables.c
+--- a/net/netfilter/x_tables.c~net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes
++++ a/net/netfilter/x_tables.c
+@@ -1008,8 +1008,7 @@ struct xt_table_info *xt_alloc_table_inf
+ 	if ((size >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
  
- 	kref_put(&chan->kref, relay_destroy_channel);
- 	mutex_unlock(&relay_channels_mutex);
--	kfree(chan);
- 	return NULL;
- }
- EXPORT_SYMBOL_GPL(relay_open);
+-	/*
+-	 * __GFP_NORETRY is not fully supported by kvmalloc but it should
++	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
+ 	 * work reasonably well if sz is too large and bail out rather
+ 	 * than shoot all processes down before realizing there is nothing
+ 	 * more to reclaim.
 _
 
-Patches currently in -mm which might be from ebiggers@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-convert-to-use-anon_inode_getfd.patch
-revert-kernel-relayc-fix-potential-memory-leak.patch
-pipe-sysctl-drop-min-parameter-from-pipe-max-size-converter.patch
-pipe-sysctl-remove-pipe_proc_fn.patch
-pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
-pipe-fix-off-by-one-error-when-checking-buffer-limits.patch
-pipe-reject-f_setpipe_sz-with-size-over-uint_max.patch
-pipe-simplify-round_pipe_size.patch
-pipe-read-buffer-limits-atomically.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-page_owner-clean-up-init_pages_in_zone-v3-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+fs-crypto-hooksc-fix-build-with-gcc-444.patch
+net-netfilter-x_tablesc-make-allocation-less-aggressive-checkpatch-fixes.patch
+maintainers-update-arm-oxnas-platform-support-patterns-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
