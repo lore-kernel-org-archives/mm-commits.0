@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch added to -mm tree
-Date: Tue, 30 Jan 2018 12:53:38 -0800
-Message-ID: <5a70db52.zORb7or9xd0Q4ES2%akpm@linux-foundation.org>
+Subject: + mm-swapc-make-functions-and-their-kernel-doc-agree.patch added
+ to -mm tree
+Date: Tue, 30 Jan 2018 12:57:08 -0800
+Message-ID: <5a70dc24.gSpfqgH7g/66SQWR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40184 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753325AbeA3Uxj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 15:53:39 -0500
+        with ESMTP id S1753562AbeA3U5J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 15:57:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, hughd@google.com, jack@suse.cz, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
+     Subject: mm/swap.c: make functions and their kernel-doc agree
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch
+     mm-swapc-make-functions-and-their-kernel-doc-agree.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapc-make-functions-and-their-kernel-doc-agree.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapc-make-functions-and-their-kernel-doc-agree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/swap.c: make functions and their kernel-doc agree
 
-- add comment about what we need to support hwpoision for pud-sized hugetlb
-- use "page size > PMD_SIZE" condition instead of hstate_is_gigantic()
+Fix some basic kernel-doc notation in mm/swap.c:
+- for function lru_cache_add_anon(), make its kernel-doc function name
+  match its function name and change colon to hyphen following the
+  function name
+- for function pagevec_lookup_entries(), change the function parameter
+  name from nr_pages to nr_entries since that is more descriptive of
+  what the parameter actually is and then it matches the kernel-doc
+  comments also
 
-Link: http://lkml.kernel.org/r/1517284444-18149-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Fix function kernel-doc to match the change in commit 67fd707f4681:
+- drop the kernel-doc notation for @nr_pages from pagevec_lookup_range()
+  and correct the function description for that change
+
+Link: http://lkml.kernel.org/r/3b42ee3e-04a9-a6ca-6be4-f00752a114fe@infradead.org
+Fixes: 67fd707f4681 ("mm: remove nr_pages argument from pagevec_lookup_{,range}_tag()")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    2 +-
- mm/memory-failure.c |   15 ++++++++++++---
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ mm/swap.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mm.h~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2 include/linux/mm.h
---- a/include/linux/mm.h~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
-+++ a/include/linux/mm.h
-@@ -2607,7 +2607,7 @@ enum mf_action_page_type {
- 	MF_MSG_POISONED_HUGE,
- 	MF_MSG_HUGE,
- 	MF_MSG_FREE_HUGE,
--	MF_MSG_GIGANTIC,
-+	MF_MSG_NON_PMD_HUGE,
- 	MF_MSG_UNMAP_FAILED,
- 	MF_MSG_DIRTY_SWAPCACHE,
- 	MF_MSG_CLEAN_SWAPCACHE,
-diff -puN mm/memory-failure.c~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2 mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
-+++ a/mm/memory-failure.c
-@@ -508,7 +508,7 @@ static const char * const action_page_ty
- 	[MF_MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
- 	[MF_MSG_HUGE]			= "huge page",
- 	[MF_MSG_FREE_HUGE]		= "free huge page",
--	[MF_MSG_GIGANTIC]		= "gigantic page",
-+	[MF_MSG_NON_PMD_HUGE]		= "non-pmd-sized huge page",
- 	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
- 	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
- 	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
-@@ -1091,8 +1091,17 @@ static int memory_failure_hugetlb(unsign
- 		return 0;
- 	}
+diff -puN mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree mm/swap.c
+--- a/mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree
++++ a/mm/swap.c
+@@ -411,7 +411,7 @@ static void __lru_cache_add(struct page
+ }
  
--	if (hstate_is_gigantic(page_hstate(head))) {
--		action_result(pfn, MF_MSG_GIGANTIC, MF_IGNORED);
-+	/*
-+	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
-+	 * simply disable it. In order to make it work properly, we need
-+	 * make sure that:
-+	 *  - conversion of a pud that maps an error hugetlb into hwpoison
-+	 *    entry properly works, and
-+	 *  - other mm code walking over page table is aware of pud-aligned
-+	 *    hwpoison entries.
-+	 */
-+	if (huge_page_size(page_hstate(head)) > PMD_SIZE) {
-+		action_result(pfn, MF_MSG_NON_PMD_HUGE, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
- 	}
+ /**
+- * lru_cache_add: add a page to the page lists
++ * lru_cache_add_anon - add a page to the page lists
+  * @page: the page to add
+  */
+ void lru_cache_add_anon(struct page *page)
+@@ -942,10 +942,10 @@ EXPORT_SYMBOL(__pagevec_lru_add);
+  */
+ unsigned pagevec_lookup_entries(struct pagevec *pvec,
+ 				struct address_space *mapping,
+-				pgoff_t start, unsigned nr_pages,
++				pgoff_t start, unsigned nr_entries,
+ 				pgoff_t *indices)
+ {
+-	pvec->nr = find_get_entries(mapping, start, nr_pages,
++	pvec->nr = find_get_entries(mapping, start, nr_entries,
+ 				    pvec->pages, indices);
+ 	return pagevec_count(pvec);
+ }
+@@ -977,9 +977,8 @@ void pagevec_remove_exceptionals(struct
+  * @mapping:	The address_space to search
+  * @start:	The starting page index
+  * @end:	The final page index
+- * @nr_pages:	The maximum number of pages
+  *
+- * pagevec_lookup_range() will search for and return a group of up to @nr_pages
++ * pagevec_lookup_range() will search for & return a group of up to PAGEVEC_SIZE
+  * pages in the mapping starting from index @start and upto index @end
+  * (inclusive).  The pages are placed in @pvec.  pagevec_lookup() takes a
+  * reference against the pages in @pvec.
+@@ -989,7 +988,7 @@ void pagevec_remove_exceptionals(struct
+  * also update @start to index the next page for the traversal.
+  *
+  * pagevec_lookup_range() returns the number of pages which were found. If this
+- * number is smaller than @nr_pages, the end of specified range has been
++ * number is smaller than PAGEVEC_SIZE, the end of specified range has been
+  * reached.
+  */
+ unsigned pagevec_lookup_range(struct pagevec *pvec,
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
-mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch
+mm-swapc-make-functions-and-their-kernel-doc-agree.patch
 
