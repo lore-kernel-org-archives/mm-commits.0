@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-new-option-to-specify-kpageflags-file.patch added to
- -mm tree
-Date: Tue, 30 Jan 2018 16:00:52 -0800
-Message-ID: <5a710734.O6MIbT7+llADVrxi%akpm@linux-foundation.org>
+Subject: + tools-vm-new-option-to-specify-kpageflags-file-fix.patch added
+ to -mm tree
+Date: Tue, 30 Jan 2018 16:00:55 -0800
+Message-ID: <5a710737.6Ry3gK2WEM5+sRoo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44446 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754246AbeAaAAx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 19:00:53 -0500
+        with ESMTP id S1754250AbeAaAA4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 19:00:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, akpm@linux-foundation.org, koct9i@gmail.com, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools, vm: new option to specify kpageflags file
+     Subject: tools-vm-new-option-to-specify-kpageflags-file-fix
 has been added to the -mm tree.  Its filename is
-     tools-vm-new-option-to-specify-kpageflags-file.patch
+     tools-vm-new-option-to-specify-kpageflags-file-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-new-option-to-specify-kpageflags-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-new-option-to-specify-kpageflags-file-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-new-option-to-specify-kpageflags-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-new-option-to-specify-kpageflags-file-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,148 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: tools, vm: new option to specify kpageflags file
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tools-vm-new-option-to-specify-kpageflags-file-fix
 
-page-types currently hardcodes /proc/kpageflags as the file to parse. 
-This works when using the tool to examine the state of pageflags on the
-same system, but does not allow storing a snapshot of pageflags at a given
-time to debug issues nor on a different system.
+add "filename" to fix usage() string
 
-This allows the user to specify a saved version of kpageflags with a new
-page-types -F option.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801301458180.153857@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ tools/vm/page-types.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file
+diff -puN tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file-fix tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file-fix
 +++ a/tools/vm/page-types.c
-@@ -172,6 +172,7 @@ static pid_t		opt_pid;	/* process to wal
- const char *		opt_file;	/* file or directory path */
- static uint64_t		opt_cgroup;	/* cgroup inode */
- static int		opt_list_cgroup;/* list page cgroup */
-+static const char *	opt_kpageflags;	/* kpageflags file to parse */
- 
- #define MAX_ADDR_RANGES	1024
- static int		nr_addr_ranges;
-@@ -258,7 +259,7 @@ static int checked_open(const char *path
-  * pagemap/kpageflags routines
-  */
- 
--static unsigned long do_u64_read(int fd, char *name,
-+static unsigned long do_u64_read(int fd, const char *name,
- 				 uint64_t *buf,
- 				 unsigned long index,
- 				 unsigned long count)
-@@ -283,7 +284,7 @@ static unsigned long kpageflags_read(uin
- 				     unsigned long index,
- 				     unsigned long pages)
- {
--	return do_u64_read(kpageflags_fd, PROC_KPAGEFLAGS, buf, index, pages);
-+	return do_u64_read(kpageflags_fd, opt_kpageflags, buf, index, pages);
- }
- 
- static unsigned long kpagecgroup_read(uint64_t *buf,
-@@ -293,7 +294,7 @@ static unsigned long kpagecgroup_read(ui
- 	if (kpagecgroup_fd < 0)
- 		return pages;
- 
--	return do_u64_read(kpagecgroup_fd, PROC_KPAGEFLAGS, buf, index, pages);
-+	return do_u64_read(kpagecgroup_fd, opt_kpageflags, buf, index, pages);
- }
- 
- static unsigned long pagemap_read(uint64_t *buf,
-@@ -743,7 +744,7 @@ static void walk_addr_ranges(void)
- {
- 	int i;
- 
--	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
-+	kpageflags_fd = checked_open(opt_kpageflags, O_RDONLY);
- 
- 	if (!nr_addr_ranges)
- 		add_addr_range(0, ULONG_MAX);
-@@ -790,6 +791,7 @@ static void usage(void)
+@@ -791,7 +791,7 @@ static void usage(void)
  "            -N|--no-summary            Don't show summary info\n"
  "            -X|--hwpoison              hwpoison pages\n"
  "            -x|--unpoison              unpoison pages\n"
-+"            -F|--kpageflags            kpageflags file to parse\n"
+-"            -F|--kpageflags            kpageflags file to parse\n"
++"            -F|--kpageflags filename   kpageflags file to parse\n"
  "            -h|--help                  Show this usage message\n"
  "flags:\n"
  "            0x10                       bitfield format, e.g.\n"
-@@ -1013,7 +1015,7 @@ static void walk_page_cache(void)
- {
- 	struct stat st;
- 
--	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
-+	kpageflags_fd = checked_open(opt_kpageflags, O_RDONLY);
- 	pagemap_fd = checked_open("/proc/self/pagemap", O_RDONLY);
- 	sigaction(SIGBUS, &sigbus_action, NULL);
- 
-@@ -1164,6 +1166,11 @@ static void parse_bits_mask(const char *
- 	add_bits_filter(mask, bits);
- }
- 
-+static void parse_kpageflags(const char *name)
-+{
-+	opt_kpageflags = name;
-+}
-+
- static void describe_flags(const char *optarg)
- {
- 	uint64_t flags = parse_flag_names(optarg, 0);
-@@ -1188,6 +1195,7 @@ static const struct option opts[] = {
- 	{ "no-summary", 0, NULL, 'N' },
- 	{ "hwpoison"  , 0, NULL, 'X' },
- 	{ "unpoison"  , 0, NULL, 'x' },
-+	{ "kpageflags", 0, NULL, 'F' },
- 	{ "help"      , 0, NULL, 'h' },
- 	{ NULL        , 0, NULL, 0 }
- };
-@@ -1199,7 +1207,7 @@ int main(int argc, char *argv[])
- 	page_size = getpagesize();
- 
- 	while ((c = getopt_long(argc, argv,
--				"rp:f:a:b:d:c:ClLNXxh", opts, NULL)) != -1) {
-+				"rp:f:a:b:d:c:ClLNXxF:h", opts, NULL)) != -1) {
- 		switch (c) {
- 		case 'r':
- 			opt_raw = 1;
-@@ -1242,6 +1250,9 @@ int main(int argc, char *argv[])
- 			opt_unpoison = 1;
- 			prepare_hwpoison_fd();
- 			break;
-+		case 'F':
-+			parse_kpageflags(optarg);
-+			break;
- 		case 'h':
- 			usage();
- 			exit(0);
-@@ -1251,6 +1262,9 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
-+	if (!opt_kpageflags)
-+		opt_kpageflags = PROC_KPAGEFLAGS;
-+
- 	if (opt_cgroup || opt_list_cgroup)
- 		kpagecgroup_fd = checked_open(PROC_KPAGECGROUP, O_RDONLY);
- 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
-mm-oom-avoid-reaping-only-for-mms-with-blockable-invalidate-callbacks.patch
-tools-vm-new-option-to-specify-kpageflags-file.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-page_owner-clean-up-init_pages_in_zone-v3-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+fs-crypto-hooksc-fix-build-with-gcc-444.patch
+maintainers-update-arm-oxnas-platform-support-patterns-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
