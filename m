@@ -1,71 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch removed from -mm tree
-Date: Wed, 31 Jan 2018 15:58:07 -0800
-Message-ID: <5a72580f.aavjIMhuq789HHOn%akpm@linux-foundation.org>
+ mm-store-compound_dtor-compound_order-as-bytes-fix.patch removed from -mm
+ tree
+Date: Wed, 31 Jan 2018 15:58:31 -0800
+Message-ID: <5a725827.elkP8f18ehFCPS+A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57450 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752209AbeAaX6J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 18:58:09 -0500
+        with ESMTP id S1752209AbeAaX6d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 18:58:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akaraliou.dev@gmail.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: mawilcox@microsoft.com, cl@linux.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zsmalloc-simplify-shrinker-init-destroy-fix
+     Subject: mm-store-compound_dtor-compound_order-as-bytes-fix
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+     mm-store-compound_dtor-compound_order-as-bytes-fix.patch
 
-This patch was dropped because it was folded into mm-zsmalloc-simplify-shrinker-init-destroy.patch
+This patch was dropped because it was folded into mm-store-compound_dtor-compound_order-as-bytes.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-simplify-shrinker-init-destroy-fix
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: mm-store-compound_dtor-compound_order-as-bytes-fix
 
-update comment (Aliaksei), remove unneeded cast
+add comment
 
-Cc: Aliaksei Karaliou <akaraliou.dev@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20171221000144.GB2980@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/mm_types.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-shrinker-init-destroy-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-simplify-shrinker-init-destroy-fix
-+++ a/mm/zsmalloc.c
-@@ -2420,10 +2420,12 @@ struct zs_pool *zs_create_pool(const cha
- 		goto err;
+diff -puN include/linux/mm_types.h~mm-store-compound_dtor-compound_order-as-bytes-fix include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-store-compound_dtor-compound_order-as-bytes-fix
++++ a/include/linux/mm_types.h
+@@ -138,6 +138,7 @@ struct page {
+ 			/* First tail page only */
+ 			unsigned char compound_dtor;
+ 			unsigned char compound_order;
++			/* two/six bytes available here */
+ 		};
  
- 	/*
--	 * Not critical, we still can use the pool
--	 * and user can trigger compaction manually.
-+	 * Not critical since shrinker is only used to trigger internal
-+	 * defragmentation of the pool which is pretty optional thing.  If
-+	 * registration fails we still can use the pool normally and user can
-+	 * trigger compaction manually. Thus, ignore return code.
- 	 */
--	(void) zs_register_shrinker(pool);
-+	zs_register_shrinker(pool);
- 
- 	return pool;
- 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mawilcox@microsoft.com are
 
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-zsmalloc-simplify-shrinker-init-destroy.patch
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
-mm-page_owner-clean-up-init_pages_in_zone-v3-fix.patch
-tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+mm-align-struct-page-more-aesthetically.patch
+mm-de-indent-struct-page.patch
+mm-remove-misleading-alignment-claims.patch
+mm-improve-comment-on-page-mapping.patch
+mm-introduce-_slub_counter_t.patch
+mm-store-compound_dtor-compound_order-as-bytes.patch
+mm-document-how-to-use-struct-page.patch
+mm-remove-reference-to-pg_buddy.patch
 
