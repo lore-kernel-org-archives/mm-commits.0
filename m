@@ -1,87 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 31 Jan 2018 15:53:57 -0800
-Message-ID: <5a725715.tK0x8ci+MGooy7UT%akpm@linux-foundation.org>
+ mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch removed from -mm tree
+Date: Wed, 31 Jan 2018 15:55:12 -0800
+Message-ID: <5a725760.yeZhnFNecZ+rrrvi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57180 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752775AbeAaXx6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 18:53:58 -0500
+        with ESMTP id S1752244AbeAaXzN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 18:55:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, yang.s@alibaba-inc.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, christian.koenig@amd.com, mhocko@suse.com, pbonzini@redhat.com, sivanich@hpe.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes
+     Subject: mm, mmu_notifier: annotate mmu notifiers with blockable invalidate callbacks fix fix
 has been removed from the -mm tree.  Its filename was
-     mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+     mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
 
-This patch was dropped because it was folded into mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
+This patch was dropped because it was folded into mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mmu_notifier: annotate mmu notifiers with blockable invalidate callbacks fix fix
 
-ERROR: code indent should use tabs where possible
-#26: FILE: mm/khugepaged.c:1677:
-+ ^I * Don't wait for semaphore (to avoid long wait times).  Just move to$
+Fix mmu_notifier.h comments in "mm, mmu_notifier: annotate mmu notifiers
+with blockable invalidate callbacks".
 
-WARNING: please, no space before tabs
-#26: FILE: mm/khugepaged.c:1677:
-+ ^I * Don't wait for semaphore (to avoid long wait times).  Just move to$
+mmu_notifier_invalidate_range_end() can also call the invalidate_range()
+callback, so it must not block for MMU_INVALIDATE_DOES_NOT_BLOCK to be
+set.
 
-total: 1 errors, 1 warnings, 10 lines checked
+Also remove a bogus comment about invalidate_range() always being called
+under the ptl spinlock.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Yang Shi <yang.s@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801091339570.240101@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Paolo Bonzini <pbonzini@redhat.com>
+Acked-by: Christian König <christian.koenig@amd.com>
+Acked-by: Dimitri Sivanich <sivanich@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmu_notifier.h |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes
-+++ a/mm/khugepaged.c
-@@ -1674,9 +1674,9 @@ static unsigned int khugepaged_scan_mm_s
+diff -puN include/linux/mmu_notifier.h~mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix include/linux/mmu_notifier.h
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix
++++ a/include/linux/mmu_notifier.h
+@@ -34,8 +34,8 @@ struct mmu_notifier_ops {
+ 	 * Flags to specify behavior of callbacks for this MMU notifier.
+ 	 * Used to determine which context an operation may be called.
+ 	 *
+-	 * MMU_INVALIDATE_DOES_NOT_BLOCK: invalidate_{start,end} does not
+-	 *				  block
++	 * MMU_INVALIDATE_DOES_NOT_BLOCK: invalidate_range_* callbacks do not
++	 *	block
+ 	 */
+ 	int flags;
  
- 	mm = mm_slot->mm;
- 	/*
-- 	 * Don't wait for semaphore (to avoid long wait times).  Just move to
-+	 * Don't wait for semaphore (to avoid long wait times).  Just move to
- 	 * the next mm on the list.
-- 	 */
-+	 */
- 	vma = NULL;
- 	if (unlikely(!down_read_trylock(&mm->mmap_sem)))
- 		goto breakouterloop_mmap_sem;
+@@ -151,8 +151,9 @@ struct mmu_notifier_ops {
+ 	 * address space but may still be referenced by sptes until
+ 	 * the last refcount is dropped.
+ 	 *
+-	 * If both of these callbacks cannot block, mmu_notifier_ops.flags
+-	 * should have MMU_INVALIDATE_DOES_NOT_BLOCK set.
++	 * If both of these callbacks cannot block, and invalidate_range
++	 * cannot block, mmu_notifier_ops.flags should have
++	 * MMU_INVALIDATE_DOES_NOT_BLOCK set.
+ 	 */
+ 	void (*invalidate_range_start)(struct mmu_notifier *mn,
+ 				       struct mm_struct *mm,
+@@ -175,12 +176,13 @@ struct mmu_notifier_ops {
+ 	 * external TLB range needs to be flushed. For more in depth
+ 	 * discussion on this see Documentation/vm/mmu_notifier.txt
+ 	 *
+-	 * The invalidate_range() function is called under the ptl
+-	 * spin-lock and not allowed to sleep.
+-	 *
+ 	 * Note that this function might be called with just a sub-range
+ 	 * of what was passed to invalidate_range_start()/end(), if
+ 	 * called between those functions.
++	 *
++	 * If this callback cannot block, and invalidate_range_{start,end}
++	 * cannot block, mmu_notifier_ops.flags should have
++	 * MMU_INVALIDATE_DOES_NOT_BLOCK set.
+ 	 */
+ 	void (*invalidate_range)(struct mmu_notifier *mn, struct mm_struct *mm,
+ 				 unsigned long start, unsigned long end);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
-mm-page_owner-clean-up-init_pages_in_zone-v3-fix.patch
-tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
+mm-oom-avoid-reaping-only-for-mms-with-blockable-invalidate-callbacks.patch
+tools-vm-new-option-to-specify-kpageflags-file.patch
+tools-vm-new-option-to-specify-kpageflags-file-fix-fix.patch
 
