@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-new-option-to-specify-kpageflags-file-fix.patch added
- to -mm tree
-Date: Tue, 30 Jan 2018 16:00:55 -0800
-Message-ID: <5a710737.6Ry3gK2WEM5+sRoo%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix.patch added to -mm tree
+Date: Wed, 31 Jan 2018 12:01:20 -0800
+Message-ID: <5a722090.2nYS2yD02ylrEZUq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36508 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754250AbeAaAA4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 19:00:56 -0500
+        with ESMTP id S1751326AbeAaUBW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 15:01:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, john@nixnuts.net, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools-vm-new-option-to-specify-kpageflags-file-fix
+     Subject: ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix
 has been added to the -mm tree.  Its filename is
-     tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+     ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +40,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tools-vm-new-option-to-specify-kpageflags-file-fix
+Subject: ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix
 
-add "filename" to fix usage() string
+brelse(NULL) is legal
 
-Cc: David Rientjes <rientjes@google.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: John Lightsey <john@nixnuts.net>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file-fix tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file-fix
-+++ a/tools/vm/page-types.c
-@@ -791,7 +791,7 @@ static void usage(void)
- "            -N|--no-summary            Don't show summary info\n"
- "            -X|--hwpoison              hwpoison pages\n"
- "            -x|--unpoison              unpoison pages\n"
--"            -F|--kpageflags            kpageflags file to parse\n"
-+"            -F|--kpageflags filename   kpageflags file to parse\n"
- "            -h|--help                  Show this usage message\n"
- "flags:\n"
- "            0x10                       bitfield format, e.g.\n"
+diff -puN fs/ocfs2/alloc.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix
++++ a/fs/ocfs2/alloc.c
+@@ -6757,10 +6757,8 @@ static int ocfs2_reuse_blk_from_dealloc(
+ 
+ bail:
+ 	if (unlikely(status < 0)) {
+-		for (i = 0; i < blk_wanted; i++) {
+-			if (new_eb_bh[i])
+-				brelse(new_eb_bh[i]);
+-		}
++		for (i = 0; i < blk_wanted; i++)
++			brelse(new_eb_bh[i]);
+ 	}
+ 
+ 	return status;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix.patch
 mm.patch
 mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
 include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
