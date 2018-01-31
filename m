@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix.patch
- added to -mm tree
-Date: Wed, 31 Jan 2018 12:01:17 -0800
-Message-ID: <5a72208d.CLhouj/e6ZoeU4t5%akpm@linux-foundation.org>
+Subject: + mm-remove-pg_highmem-description.patch added to -mm tree
+Date: Wed, 31 Jan 2018 12:02:19 -0800
+Message-ID: <5a7220cb.k0VTYSVMLdpMgA5V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751360AbeAaUBT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 15:01:19 -0500
+        with ESMTP id S1751664AbeAaUCU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 15:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, dan.carpenter@oracle.com, jiangqi903@gmail.com, jlbec@evilplan.org, john@nixnuts.net, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: miles.chen@mediatek.com, akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix
+     Subject: mm: remove PG_highmem description
 has been added to the -mm tree.  Its filename is
-     ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix.patch
+     mm-remove-pg_highmem-description.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-pg_highmem-description.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-pg_highmem-description.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +38,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: mm: remove PG_highmem description
 
-fix static checker warnning
+cbe37d093707 ("[PATCH] mm: remove PG_highmem") removed PG_highmem to save
+a page flag.  So the description of PG_highmem is no longer needed.
 
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F29196AE@H3CMLB12-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: John Lightsey <john@nixnuts.net>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
+Link: http://lkml.kernel.org/r/1517391212-2950-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix
-+++ a/fs/ocfs2/alloc.c
-@@ -6756,8 +6756,8 @@ static int ocfs2_reuse_blk_from_dealloc(
- 	*blk_given = i;
- 
- bail:
--	if (unlikely(status)) {
--		for (; i >= 0; i--) {
-+	if (unlikely(status < 0)) {
-+		for (i = 0; i < blk_wanted; i++) {
- 			if (new_eb_bh[i])
- 				brelse(new_eb_bh[i]);
- 		}
+diff -puN include/linux/page-flags.h~mm-remove-pg_highmem-description include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-remove-pg_highmem-description
++++ a/include/linux/page-flags.h
+@@ -46,11 +46,6 @@
+  * guarantees that this bit is cleared for a page when it first is entered into
+  * the page cache.
+  *
+- * PG_highmem pages are not permanently mapped into the kernel virtual address
+- * space, they need to be kmapped separately for doing IO on the pages.  The
+- * struct page (these bits with information) are always mapped into kernel
+- * address space...
+- *
+  * PG_hwpoison indicates that a page got corrupted in hardware and contains
+  * data with incorrect ECC bits that triggered a machine check. Accessing is
+  * not safe since it may cause another machine check. Don't touch!
 _
 
-Patches currently in -mm which might be from ge.changwei@h3c.com are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-ocfs2-dlm-clean-dead-code-up.patch
-ocfs2-cluster-neaten-a-member-of-o2net_msg_handler.patch
-ocfs2-clean-dead-code-in-suballocc.patch
-ocfs2-clean-dead-code-up-in-allocc.patch
-ocfs2-make-metadata-estimation-accurate-and-clear.patch
-ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc.patch
-ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix.patch
-ocfs2-unlock-bh_state-if-bg-check-fails.patch
+slub-remove-obsolete-comments-of-put_cpu_partial.patch
+mm-remove-pg_highmem-description.patch
 
