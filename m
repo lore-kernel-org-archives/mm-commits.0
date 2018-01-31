@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swapc-make-functions-and-their-kernel-doc-agree.patch added
- to -mm tree
-Date: Tue, 30 Jan 2018 12:57:08 -0800
-Message-ID: <5a70dc24.gSpfqgH7g/66SQWR%akpm@linux-foundation.org>
+Subject: + tools-vm-new-option-to-specify-kpageflags-file.patch added to
+ -mm tree
+Date: Tue, 30 Jan 2018 16:00:52 -0800
+Message-ID: <5a710734.O6MIbT7+llADVrxi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44424 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753562AbeA3U5J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 15:57:09 -0500
+        with ESMTP id S1754246AbeAaAAx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jan 2018 19:00:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, hughd@google.com, jack@suse.cz, willy@infradead.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, akpm@linux-foundation.org, koct9i@gmail.com, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap.c: make functions and their kernel-doc agree
+     Subject: tools, vm: new option to specify kpageflags file
 has been added to the -mm tree.  Its filename is
-     mm-swapc-make-functions-and-their-kernel-doc-agree.patch
+     tools-vm-new-option-to-specify-kpageflags-file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapc-make-functions-and-their-kernel-doc-agree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-new-option-to-specify-kpageflags-file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapc-make-functions-and-their-kernel-doc-agree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-new-option-to-specify-kpageflags-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,82 +39,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/swap.c: make functions and their kernel-doc agree
+From: David Rientjes <rientjes@google.com>
+Subject: tools, vm: new option to specify kpageflags file
 
-Fix some basic kernel-doc notation in mm/swap.c:
-- for function lru_cache_add_anon(), make its kernel-doc function name
-  match its function name and change colon to hyphen following the
-  function name
-- for function pagevec_lookup_entries(), change the function parameter
-  name from nr_pages to nr_entries since that is more descriptive of
-  what the parameter actually is and then it matches the kernel-doc
-  comments also
+page-types currently hardcodes /proc/kpageflags as the file to parse. 
+This works when using the tool to examine the state of pageflags on the
+same system, but does not allow storing a snapshot of pageflags at a given
+time to debug issues nor on a different system.
 
-Fix function kernel-doc to match the change in commit 67fd707f4681:
-- drop the kernel-doc notation for @nr_pages from pagevec_lookup_range()
-  and correct the function description for that change
+This allows the user to specify a saved version of kpageflags with a new
+page-types -F option.
 
-Link: http://lkml.kernel.org/r/3b42ee3e-04a9-a6ca-6be4-f00752a114fe@infradead.org
-Fixes: 67fd707f4681 ("mm: remove nr_pages argument from pagevec_lookup_{,range}_tag()")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801301458180.153857@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ tools/vm/page-types.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree mm/swap.c
---- a/mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree
-+++ a/mm/swap.c
-@@ -411,7 +411,7 @@ static void __lru_cache_add(struct page
+diff -puN tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file
++++ a/tools/vm/page-types.c
+@@ -172,6 +172,7 @@ static pid_t		opt_pid;	/* process to wal
+ const char *		opt_file;	/* file or directory path */
+ static uint64_t		opt_cgroup;	/* cgroup inode */
+ static int		opt_list_cgroup;/* list page cgroup */
++static const char *	opt_kpageflags;	/* kpageflags file to parse */
+ 
+ #define MAX_ADDR_RANGES	1024
+ static int		nr_addr_ranges;
+@@ -258,7 +259,7 @@ static int checked_open(const char *path
+  * pagemap/kpageflags routines
+  */
+ 
+-static unsigned long do_u64_read(int fd, char *name,
++static unsigned long do_u64_read(int fd, const char *name,
+ 				 uint64_t *buf,
+ 				 unsigned long index,
+ 				 unsigned long count)
+@@ -283,7 +284,7 @@ static unsigned long kpageflags_read(uin
+ 				     unsigned long index,
+ 				     unsigned long pages)
+ {
+-	return do_u64_read(kpageflags_fd, PROC_KPAGEFLAGS, buf, index, pages);
++	return do_u64_read(kpageflags_fd, opt_kpageflags, buf, index, pages);
  }
  
- /**
-- * lru_cache_add: add a page to the page lists
-+ * lru_cache_add_anon - add a page to the page lists
-  * @page: the page to add
-  */
- void lru_cache_add_anon(struct page *page)
-@@ -942,10 +942,10 @@ EXPORT_SYMBOL(__pagevec_lru_add);
-  */
- unsigned pagevec_lookup_entries(struct pagevec *pvec,
- 				struct address_space *mapping,
--				pgoff_t start, unsigned nr_pages,
-+				pgoff_t start, unsigned nr_entries,
- 				pgoff_t *indices)
- {
--	pvec->nr = find_get_entries(mapping, start, nr_pages,
-+	pvec->nr = find_get_entries(mapping, start, nr_entries,
- 				    pvec->pages, indices);
- 	return pagevec_count(pvec);
+ static unsigned long kpagecgroup_read(uint64_t *buf,
+@@ -293,7 +294,7 @@ static unsigned long kpagecgroup_read(ui
+ 	if (kpagecgroup_fd < 0)
+ 		return pages;
+ 
+-	return do_u64_read(kpagecgroup_fd, PROC_KPAGEFLAGS, buf, index, pages);
++	return do_u64_read(kpagecgroup_fd, opt_kpageflags, buf, index, pages);
  }
-@@ -977,9 +977,8 @@ void pagevec_remove_exceptionals(struct
-  * @mapping:	The address_space to search
-  * @start:	The starting page index
-  * @end:	The final page index
-- * @nr_pages:	The maximum number of pages
-  *
-- * pagevec_lookup_range() will search for and return a group of up to @nr_pages
-+ * pagevec_lookup_range() will search for & return a group of up to PAGEVEC_SIZE
-  * pages in the mapping starting from index @start and upto index @end
-  * (inclusive).  The pages are placed in @pvec.  pagevec_lookup() takes a
-  * reference against the pages in @pvec.
-@@ -989,7 +988,7 @@ void pagevec_remove_exceptionals(struct
-  * also update @start to index the next page for the traversal.
-  *
-  * pagevec_lookup_range() returns the number of pages which were found. If this
-- * number is smaller than @nr_pages, the end of specified range has been
-+ * number is smaller than PAGEVEC_SIZE, the end of specified range has been
-  * reached.
-  */
- unsigned pagevec_lookup_range(struct pagevec *pvec,
+ 
+ static unsigned long pagemap_read(uint64_t *buf,
+@@ -743,7 +744,7 @@ static void walk_addr_ranges(void)
+ {
+ 	int i;
+ 
+-	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
++	kpageflags_fd = checked_open(opt_kpageflags, O_RDONLY);
+ 
+ 	if (!nr_addr_ranges)
+ 		add_addr_range(0, ULONG_MAX);
+@@ -790,6 +791,7 @@ static void usage(void)
+ "            -N|--no-summary            Don't show summary info\n"
+ "            -X|--hwpoison              hwpoison pages\n"
+ "            -x|--unpoison              unpoison pages\n"
++"            -F|--kpageflags            kpageflags file to parse\n"
+ "            -h|--help                  Show this usage message\n"
+ "flags:\n"
+ "            0x10                       bitfield format, e.g.\n"
+@@ -1013,7 +1015,7 @@ static void walk_page_cache(void)
+ {
+ 	struct stat st;
+ 
+-	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
++	kpageflags_fd = checked_open(opt_kpageflags, O_RDONLY);
+ 	pagemap_fd = checked_open("/proc/self/pagemap", O_RDONLY);
+ 	sigaction(SIGBUS, &sigbus_action, NULL);
+ 
+@@ -1164,6 +1166,11 @@ static void parse_bits_mask(const char *
+ 	add_bits_filter(mask, bits);
+ }
+ 
++static void parse_kpageflags(const char *name)
++{
++	opt_kpageflags = name;
++}
++
+ static void describe_flags(const char *optarg)
+ {
+ 	uint64_t flags = parse_flag_names(optarg, 0);
+@@ -1188,6 +1195,7 @@ static const struct option opts[] = {
+ 	{ "no-summary", 0, NULL, 'N' },
+ 	{ "hwpoison"  , 0, NULL, 'X' },
+ 	{ "unpoison"  , 0, NULL, 'x' },
++	{ "kpageflags", 0, NULL, 'F' },
+ 	{ "help"      , 0, NULL, 'h' },
+ 	{ NULL        , 0, NULL, 0 }
+ };
+@@ -1199,7 +1207,7 @@ int main(int argc, char *argv[])
+ 	page_size = getpagesize();
+ 
+ 	while ((c = getopt_long(argc, argv,
+-				"rp:f:a:b:d:c:ClLNXxh", opts, NULL)) != -1) {
++				"rp:f:a:b:d:c:ClLNXxF:h", opts, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'r':
+ 			opt_raw = 1;
+@@ -1242,6 +1250,9 @@ int main(int argc, char *argv[])
+ 			opt_unpoison = 1;
+ 			prepare_hwpoison_fd();
+ 			break;
++		case 'F':
++			parse_kpageflags(optarg);
++			break;
+ 		case 'h':
+ 			usage();
+ 			exit(0);
+@@ -1251,6 +1262,9 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	if (!opt_kpageflags)
++		opt_kpageflags = PROC_KPAGEFLAGS;
++
+ 	if (opt_cgroup || opt_list_cgroup)
+ 		kpagecgroup_fd = checked_open(PROC_KPAGECGROUP, O_RDONLY);
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-swapc-make-functions-and-their-kernel-doc-agree.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
+mm-oom-avoid-reaping-only-for-mms-with-blockable-invalidate-callbacks.patch
+tools-vm-new-option-to-specify-kpageflags-file.patch
 
