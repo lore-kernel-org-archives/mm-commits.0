@@ -1,80 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-new-option-to-specify-kpageflags-file-fix-fix.patch
- added to -mm tree
-Date: Wed, 31 Jan 2018 12:20:22 -0800
-Message-ID: <5a722506.EeeeRezzjHN5Dk/b%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch removed from
+ -mm tree
+Date: Wed, 31 Jan 2018 14:51:36 -0800
+Message-ID: <5a724878.y5gRTxi/O+9qInsu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44782 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751829AbeAaUUX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 15:20:23 -0500
+        with ESMTP id S1751650AbeAaWvh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 17:51:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@kernel.org, sergey.senozhatsky.work@gmail.com, surenb@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools-vm-new-option-to-specify-kpageflags-file-fix-fix
-has been added to the -mm tree.  Its filename is
-     tools-vm-new-option-to-specify-kpageflags-file-fix-fix.patch
+     Subject: mm-terminate-shrink_slab-loop-if-signal-is-pending-fix
+has been removed from the -mm tree.  Its filename was
+     mm-terminate-shrink_slab-loop-if-signal-is-pending-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-new-option-to-specify-kpageflags-file-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-new-option-to-specify-kpageflags-file-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: tools-vm-new-option-to-specify-kpageflags-file-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-terminate-shrink_slab-loop-if-signal-is-pending-fix
 
-Please find a "fix fix" below per Naoya.  Thanks both!
+fix build, per Sergey
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801301840050.140969@chino.kir.corp.google.com
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file-fix-fix tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file-fix-fix
-+++ a/tools/vm/page-types.c
-@@ -169,10 +169,10 @@ static int		opt_raw;	/* for kernel devel
- static int		opt_list;	/* list pages (in ranges) */
- static int		opt_no_summary;	/* don't show summary */
- static pid_t		opt_pid;	/* process to walk */
--const char *		opt_file;	/* file or directory path */
-+const char		*opt_file;	/* file or directory path */
- static uint64_t		opt_cgroup;	/* cgroup inode */
- static int		opt_list_cgroup;/* list page cgroup */
--static const char *	opt_kpageflags;	/* kpageflags file to parse */
-+static const char	*opt_kpageflags;/* kpageflags file to parse */
+diff -puN mm/vmscan.c~mm-terminate-shrink_slab-loop-if-signal-is-pending-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-terminate-shrink_slab-loop-if-signal-is-pending-fix
++++ a/mm/vmscan.c
+@@ -493,7 +493,7 @@ static unsigned long shrink_slab(gfp_t g
+ 		 * We are about to die and free our memory.
+ 		 * Stop shrinking which might delay signal handling.
+ 		 */
+-		if (unlikely(fatal_signal_pending(current))
++		if (unlikely(fatal_signal_pending(current)))
+ 			break;
  
- #define MAX_ADDR_RANGES	1024
- static int		nr_addr_ranges;
+ 		/*
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix-fix.patch
-mm-oom-avoid-reaping-only-for-mms-with-blockable-invalidate-callbacks.patch
-tools-vm-new-option-to-specify-kpageflags-file.patch
-tools-vm-new-option-to-specify-kpageflags-file-fix-fix.patch
+ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc-fix-fix.patch
+mm-terminate-shrink_slab-loop-if-signal-is-pending.patch
+include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
+mm-split-deferred_init_range-into-initializing-and-freeing-parts-fix.patch
+mm-do-not-stall-register_shrinker-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+sparc64-update-pmdp_invalidate-to-return-old-pmd-value-fix.patch
+x86-mm-provide-pmdp_establish-helper-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
+mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
+mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
+mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
+mm-page_owner-clean-up-init_pages_in_zone-v3-fix.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
 
