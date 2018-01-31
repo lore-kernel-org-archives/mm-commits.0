@@ -1,72 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] x86-mm-provide-pmdp_establish-helper-fix.patch
+Subject: [folded-merged]
+ mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
  removed from -mm tree
-Date: Wed, 31 Jan 2018 15:51:34 -0800
-Message-ID: <5a725686.C1sBAd/K0JZLPvPZ%akpm@linux-foundation.org>
+Date: Wed, 31 Jan 2018 15:53:54 -0800
+Message-ID: <5a725712.zXFWZREz35ZcfaKc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56924 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754395AbeAaXvg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 18:51:36 -0500
+        with ESMTP id S1755682AbeAaXx6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 18:53:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mingo@kernel.org, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mhocko@suse.com, yang.s@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-mm-provide-pmdp_establish-helper-fix
+     Subject: mm: thp: avoid uninitialized variable use
 has been removed from the -mm tree.  Its filename was
-     x86-mm-provide-pmdp_establish-helper-fix.patch
+     mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2.patch
 
-This patch was dropped because it was folded into x86-mm-provide-pmdp_establish-helper.patch
+This patch was dropped because it was folded into mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-mm-provide-pmdp_establish-helper-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: thp: avoid uninitialized variable use
 
-add missing `do' to do-while loop
+When the down_read_trylock() fails, 'vma' has not been initialized yet,
+which gcc now warns about:
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+mm/khugepaged.c: In function 'khugepaged':
+mm/khugepaged.c:1659:25: error: 'vma' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+
+Presumably we are not supposed to call find_vma() without the mmap_sem
+either, so setting it to NULL for this case seems appropriate.
+
+Link: http://lkml.kernel.org/r/20171215125129.2948634-1-arnd@arndb.de
+Fixes: 0951b59acf3a ("mm: thp: use down_read_trylock() in khugepaged to avoid long block")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: "Yang Shi" <yang.s@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable-3level.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable-3level.h~x86-mm-provide-pmdp_establish-helper-fix arch/x86/include/asm/pgtable-3level.h
---- a/arch/x86/include/asm/pgtable-3level.h~x86-mm-provide-pmdp_establish-helper-fix
-+++ a/arch/x86/include/asm/pgtable-3level.h
-@@ -208,7 +208,7 @@ static inline pmd_t pmdp_establish(struc
- 		return old.pmd;
- 	}
+diff -puN mm/khugepaged.c~mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2 mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-2
++++ a/mm/khugepaged.c
+@@ -1677,11 +1677,10 @@ static unsigned int khugepaged_scan_mm_s
+  	 * Don't wait for semaphore (to avoid long wait times).  Just move to
+ 	 * the next mm on the list.
+  	 */
++	vma = NULL;
+ 	if (unlikely(!down_read_trylock(&mm->mmap_sem)))
+ 		goto breakouterloop_mmap_sem;
+-	if (unlikely(khugepaged_test_exit(mm)))
+-		vma = NULL;
+-	else
++	if (likely(!khugepaged_test_exit(mm)))
+ 		vma = find_vma(mm, khugepaged_scan.address);
  
--	{
-+	do {
- 		old = *pmdp;
- 	} while (cmpxchg64(&pmdp->pmd, old.pmd, pmd.pmd) != old.pmd);
- 
+ 	progress++;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-include-linux-sched-mmh-uninline-mmdrop_async-etc.patch
-x86-mm-provide-pmdp_establish-helper.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix.patch
-mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block-fix-checkpatch-fixes.patch
-mm-mmu_notifier-annotate-mmu-notifiers-with-blockable-invalidate-callbacks-fix.patch
-mm-zsmalloc-simplify-shrinker-init-destroy-fix.patch
-mm-fadvise-discard-partial-page-if-endbyte-is-also-eof-fix.patch
-mm-page_owner-clean-up-init_pages_in_zone-v3-fix.patch
-tools-vm-new-option-to-specify-kpageflags-file-fix.patch
+mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
 
