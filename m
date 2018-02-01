@@ -1,77 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [patch 076/119] mm: align struct page more aesthetically
-Date: Wed, 31 Jan 2018 16:18:44 -0800
-Message-ID: <20180201001844.ijJYAXej3%akpm@linux-foundation.org>
+Subject: [patch 069/119] mm: do not lose dirty and accessed bits in
+ pmdp_invalidate()
+Date: Wed, 31 Jan 2018 16:18:16 -0800
+Message-ID: <20180201001816.EjMcYvMCL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35256 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755806AbeBAASp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:18:45 -0500
+        with ESMTP id S1755797AbeBAASS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:18:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, davem@davemloft.net, david.daney@cavium.com, hpa@zytor.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, nitin.m.gupta@oracle.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz, vgupta@synopsys.com
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm: align struct page more aesthetically
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: do not lose dirty and accessed bits in pmdp_invalidate()
 
-Patch series "Restructure struct page", v2.
+Vlastimil noted that pmdp_invalidate() is not atomic and we can lose dirty
+and access bits if CPU sets them after pmdp dereference, but before
+set_pmd_at().
 
-This series does not attempt any grand restructuring.  Instead, it cures
-the worst of the indentitis, fixes the documentation and reduces the
-ifdeffery.  The only layout change is compound_dtor and compound_order are
-each reduced to one byte.
+The patch change pmdp_invalidate() to make the entry non-present
+atomically and return previous value of the entry.  This value can be used
+to check if CPU set dirty/accessed bits under us.
 
+The race window is very small and I haven't seen any reports that can be
+attributed to the bug.  For this reason, I don't think backporting to
+stable trees needed.
 
-This patch (of 8):
-
-Instead of an ifdef block at the end of the struct, which needed its own
-comment, define _struct_page_alignment up at the top where it fits nicely
-with the existing comment.
-
-Link: http://lkml.kernel.org/r/20171220155552.15884-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/20171213105756.69879-11-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Daney <david.daney@cavium.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ include/asm-generic/pgtable.h |    2 +-
+ mm/pgtable-generic.c          |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-align-struct-page-more-aesthetically include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-align-struct-page-more-aesthetically
-+++ a/include/linux/mm_types.h
-@@ -39,6 +39,12 @@ struct hmm;
-  * allows the use of atomic double word operations on the flags/mapping
-  * and lru list pointers also.
-  */
-+#ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
-+#define _struct_page_alignment	__aligned(2 * sizeof(unsigned long))
-+#else
-+#define _struct_page_alignment
-+#endif
-+
- struct page {
- 	/* First double word block */
- 	unsigned long flags;		/* Atomic flags, some possibly
-@@ -212,15 +218,7 @@ struct page {
- #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
- 	int _last_cpupid;
+diff -puN include/asm-generic/pgtable.h~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate
++++ a/include/asm-generic/pgtable.h
+@@ -325,7 +325,7 @@ static inline pmd_t generic_pmdp_establi
  #endif
--}
--/*
-- * The struct page can be forced to be double word aligned so that atomic ops
-- * on double words work. The SLUB allocator can make use of such a feature.
-- */
--#ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
--	__aligned(2 * sizeof(unsigned long))
--#endif
--;
-+} _struct_page_alignment;
  
- #define PAGE_FRAG_CACHE_MAX_SIZE	__ALIGN_MASK(32768, ~PAGE_MASK)
- #define PAGE_FRAG_CACHE_MAX_ORDER	get_order(PAGE_FRAG_CACHE_MAX_SIZE)
+ #ifndef __HAVE_ARCH_PMDP_INVALIDATE
+-extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 			    pmd_t *pmdp);
+ #endif
+ 
+diff -puN mm/pgtable-generic.c~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-do-not-lose-dirty-and-access-bits-in-pmdp_invalidate
++++ a/mm/pgtable-generic.c
+@@ -181,12 +181,12 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_INVALIDATE
+-void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
+-	pmd_t entry = *pmdp;
+-	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(entry));
++	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotpresent(*pmdp));
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++	return old;
+ }
+ #endif
+ 
 _
