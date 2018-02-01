@@ -1,224 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 095/119] mm/fadvise: discard partial page if
- endbyte is also EOF
-Date: Wed, 31 Jan 2018 16:19:55 -0800
-Message-ID: <20180201001955.RxNxJEzmY%akpm@linux-foundation.org>
+Subject: [patch 099/119] mm/page_owner.c: clean up
+ init_pages_in_zone()
+Date: Wed, 31 Jan 2018 16:20:11 -0800
+Message-ID: <20180201002011.X-yysJJXL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36254 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAT5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:57 -0500
+        with ESMTP id S1754559AbeBAAUN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jinli.zjl@alibaba-inc.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, shidao.ytt@alibaba-inc.com, torvalds@linux-foundation.org, zhiche.yy@alibaba-inc.com
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: shidao.ytt <shidao.ytt@alibaba-inc.com>
-Subject: mm/fadvise: discard partial page if endbyte is also EOF
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm/page_owner.c: clean up init_pages_in_zone()
 
-During our recent testing with fadvise(FADV_DONTNEED), we find that if
-given offset/length is not page-aligned, the last page will not be
-discarded.  The tool we use is vmtouch (https://hoytech.com/vmtouch/), we
-map a 10KB-sized file into memory and then try to run this tool to evict
-the whole file mapping, but the last single page always remains staying in
-the memory:
+Remove two redundant assignments in init_pages_in_zone().
 
-$./vmtouch -e test_10K
-           Files: 1
-     Directories: 0
-   Evicted Pages: 3 (12K)
-         Elapsed: 2.1e-05 seconds
-
-$./vmtouch test_10K
-           Files: 1
-     Directories: 0
-  Resident Pages: 1/3  4K/12K  33.3%
-         Elapsed: 5.5e-05 seconds
-
-However when we test with an older kernel, say 3.10, this problem is
-gone. So we wonder if this is a regression:
-
-$./vmtouch -e test_10K
-           Files: 1
-     Directories: 0
-   Evicted Pages: 3 (12K)
-         Elapsed: 8.2e-05 seconds
-
-$./vmtouch test_10K
-           Files: 1
-     Directories: 0
-  Resident Pages: 0/3  0/12K  0%  <-- partial page also discarded
-         Elapsed: 5e-05 seconds
-
-After digging a little bit into this problem, we find it seems not a
-regression.  Not discarding partial page is likely to be on purpose
-according to commit 441c228f817f7 ("mm: fadvise: document the
-fadvise(FADV_DONTNEED) behaviour for partial pages") written by Mel
-Gorman.  He explained why partial pages should be preserved instead of
-being discarded when using fadvise(FADV_DONTNEED).  However, the
-interesting part is that the actual code did NOT work as the same as it
-was described, the partial page was still discarded anyway, due to a
-calculation mistake of `end_index' passed to invalidate_mapping_pages(). 
-This mistake has not been fixed until recently, that's why we fail to
-reproduce our problem in old kernels.  The fix is done in commit
-18aba41cbf ("mm/fadvise.c: do not discard partial pages with
-POSIX_FADV_DONTNEED") by Oleg Drokin.
-
-Back to the original testing, our problem becomes that there is a speical
-case that, if the page-unaligned `endbyte' is also the end of file, it is
-not necessary at all to preserve the last partial page, as we all know no
-one else will use the rest of it.  It should be safe enough if we just
-discard the whole page.  So we add an EOF check in this patch.
-
-We also find a poosbile real world issue in mainline kernel.  Assume such
-scenario: A userspace backup application want to backup a huge amount of
-small files (<4k) at once, the developer might (I guess) want to use
-fadvise(FADV_DONTNEED) to save memory.  However, FADV_DONTNEED won't
-really happen since the only page mapped is a partial page, and kernel
-will preserve it.  Our patch also fixes this problem, since we know the
-endbyte is EOF, so we discard it.
-
-Here is a simple reproducer to reproduce and verify each scenario we
-described above:
-
-  test_fadvise.c
-  ==============================
-  #include <sys/mman.h>
-  #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <stdio.h>
-  #include <unistd.h>
-
-  int main(int argc, char **argv)
-  {
-  	int i, fd, ret, len;
-  	struct stat buf;
-  	void *addr;
-  	unsigned char *vec;
-  	char *strbuf;
-  	ssize_t pagesize = getpagesize();
-  	ssize_t filesize;
-
-  	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-  	if (fd < 0)
-  		return -1;
-  	filesize = strtoul(argv[2], NULL, 10);
-
-  	strbuf = malloc(filesize);
-  	memset(strbuf, 42, filesize);
-  	write(fd, strbuf, filesize);
-  	free(strbuf);
-  	fsync(fd);
-
-  	len = (filesize + pagesize - 1) / pagesize;
-  	printf("length of pages: %d\n", len);
-
-  	addr = mmap(NULL, filesize, PROT_READ, MAP_SHARED, fd, 0);
-  	if (addr == MAP_FAILED)
-  		return -1;
-
-  	ret = posix_fadvise(fd, 0, filesize, POSIX_FADV_DONTNEED);
-  	if (ret < 0)
-  		return -1;
-
-  	vec = malloc(len);
-  	ret = mincore(addr, filesize, (void *)vec);
-  	if (ret < 0)
-  		return -1;
-
-  	for (i = 0; i < len; i++)
-  		printf("pages[%d]: %x\n", i, vec[i] & 0x1);
-
-  	free(vec);
-  	close(fd);
-
-  	return 0;
-  }
-  ==============================
-
-Test 1: running on kernel with commit 18aba41cbf reverted:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6.revert+
-[root@caspar ~]# ./test_fadvise file1 1024
-length of pages: 1
-pages[0]: 0    # <-- partial page discarded
-[root@caspar ~]# ./test_fadvise file2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise file3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 0    # <-- partial page discarded
-
-Test 2: running on mainline kernel:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6+
-[root@caspar ~]# ./test_fadvise test1 1024
-length of pages: 1
-pages[0]: 1    # <-- partial and the only page not discarded
-[root@caspar ~]# ./test_fadvise test2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise test3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 1    # <-- partial page not discarded
-
-Test 3: running on kernel with this patch:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6.patched+
-[root@caspar ~]# ./test_fadvise test1 1024
-length of pages: 1
-pages[0]: 0    # <-- partial page and EOF, discarded
-[root@caspar ~]# ./test_fadvise test2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise test3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 0    # <-- partial page and EOF, discarded
-
-[akpm@linux-foundation.org: tweak code comment]
-Link: http://lkml.kernel.org/r/5222da9ee20e1695eaabb69f631f200d6e6b8876.1515132470.git.jinli.zjl@alibaba-inc.com
-Signed-off-by: shidao.ytt <shidao.ytt@alibaba-inc.com>
-Signed-off-by: Caspar Zhang <jinli.zjl@alibaba-inc.com>
-Reviewed-by: Oliver Yang <zhiche.yy@alibaba-inc.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+[osalvador@techadventures.net: v3]
+  Link: http://lkml.kernel.org/r/20180117124513.GA876@techadventures.net
+[akpm@linux-foundation.org: coding style tweaks]
+Link: http://lkml.kernel.org/r/20180110084355.GA22822@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof
-+++ a/mm/fadvise.c
-@@ -127,7 +127,15 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		 */
- 		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
- 		end_index = (endbyte >> PAGE_SHIFT);
--		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK) {
-+		/*
-+		 * The page at end_index will be inclusively discarded according
-+		 * by invalidate_mapping_pages(), so subtracting 1 from
-+		 * end_index means we will skip the last page.  But if endbyte
-+		 * is page aligned or is at the end of file, we should not skip
-+		 * that page - discarding the last page is safe enough.
-+		 */
-+		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
-+				endbyte != inode->i_size - 1) {
- 			/* First page is tricky as 0 - 1 = -1, but pgoff_t
- 			 * is unsigned, so the end_index >= start_index
- 			 * check below would be true and we'll discard the whole
-_
+diff -puN mm/page_owner.c~mm-page_owner-clean-up-init_pages_in_zone mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-clean-up-init_pages_in_zone
++++ a/mm/page_owner.c
+@@ -528,21 +528,18 @@ read_page_owner(struct file *file, char
+ 
+ static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
+ {
+-	struct page *page;
+-	struct page_ext *page_ext;
+-	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
+-	unsigned long end_pfn = pfn + zone->spanned_pages;
++	unsigned long pfn = zone->zone_start_pfn;
++	unsigned long end_pfn = zone_end_pfn(zone);
+ 	unsigned long count = 0;
+ 
+-	/* Scan block by block. First and last block may be incomplete */
+-	pfn = zone->zone_start_pfn;
+-
+ 	/*
+ 	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
+ 	 * a zone boundary, it will be double counted between zones. This does
+ 	 * not matter as the mixed block count will still be correct
+ 	 */
+ 	for (; pfn < end_pfn; ) {
++		unsigned long block_end_pfn;
++
+ 		if (!pfn_valid(pfn)) {
+ 			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
+ 			continue;
+@@ -551,9 +548,10 @@ static void init_pages_in_zone(pg_data_t
+ 		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+ 		block_end_pfn = min(block_end_pfn, end_pfn);
+ 
+-		page = pfn_to_page(pfn);
