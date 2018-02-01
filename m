@@ -1,68 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] get-7%-more-pages-in-a-pagevec.patch removed from
- -mm tree
-Date: Thu, 01 Feb 2018 11:31:58 -0800
-Message-ID: <20180201193158.Pk9Zzoyue%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?mm-memory=5Fhotplug-remove-second-=5F=5Fnr=5Fto=5Fsection?=
+ =?US-ASCII?Q?-in-register=5Fpage=5Fbootmem=5Finfo=5Fsection.patch?=
+ removed from -mm tree
+Date: Thu, 01 Feb 2018 11:31:45 -0800
+Message-ID: <20180201193145.ihJpP2c3Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58130 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753126AbeBATb7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:59 -0500
+        with ESMTP id S1753060AbeBATbr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, willy@infradead.org
+To: mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: get 7% more pages in a pagevec
+     Subject: mm: memory_hotplug: remove second __nr_to_section in register_page_bootmem_info_section()
 has been removed from the -mm tree.  Its filename was
-     get-7%-more-pages-in-a-pagevec.patch
+     mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm: get 7% more pages in a pagevec
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm: memory_hotplug: remove second __nr_to_section in register_page_bootmem_info_section()
 
-We don't have to use an entire 'long' for the number of elements in the
-pagevec; we know it's a number between 0 and 14 (now 15).  So we can store
-it in a char, and then the bool packs next to it and we still have two or
-six bytes of padding for more elements in the header.  That gives us space
-to cram in an extra page.
+In register_page_bootmem_info_section() we call __nr_to_section() in order
+to get the mem_section struct at the beginning of the function.  Since we
+already got it, there is no need for a second call to __nr_to_section().
 
-Link: http://lkml.kernel.org/r/20171206022521.GM26021@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/20171207102914.GA12396@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pagevec.h~get-7%-more-pages-in-a-pagevec include/linux/pagevec.h
---- a/include/linux/pagevec.h~get-7%-more-pages-in-a-pagevec
-+++ a/include/linux/pagevec.h
-@@ -9,14 +9,14 @@
- #ifndef _LINUX_PAGEVEC_H
- #define _LINUX_PAGEVEC_H
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section
++++ a/mm/memory_hotplug.c
+@@ -184,7 +184,7 @@ static void register_page_bootmem_info_s
+ 	for (i = 0; i < mapsize; i++, page++)
+ 		get_page_bootmem(section_nr, page, SECTION_INFO);
  
--/* 14 pointers + two long's align the pagevec structure to a power of two */
--#define PAGEVEC_SIZE	14
-+/* 15 pointers + header align the pagevec structure to a power of two */
-+#define PAGEVEC_SIZE	15
+-	usemap = __nr_to_section(section_nr)->pageblock_flags;
++	usemap = ms->pageblock_flags;
+ 	page = virt_to_page(usemap);
  
- struct page;
- struct address_space;
+ 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
+@@ -207,7 +207,7 @@ static void register_page_bootmem_info_s
  
- struct pagevec {
--	unsigned long nr;
-+	unsigned char nr;
- 	bool percpu_pvec_drained;
- 	struct page *pages[PAGEVEC_SIZE];
- };
+ 	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
+ 
+-	usemap = __nr_to_section(section_nr)->pageblock_flags;
++	usemap = ms->pageblock_flags;
+ 	page = virt_to_page(usemap);
+ 
+ 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from osalvador@techadventures.net are
 
 
