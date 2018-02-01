@@ -1,77 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_owner-clean-up-init_pages_in_zone.patch
- removed from -mm tree
-Date: Thu, 01 Feb 2018 11:34:10 -0800
-Message-ID: <20180201193410.5DW7MJtno%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-fix-the-comment-for-try_to_compact_pages.patch removed from
+ -mm tree
+Date: Thu, 01 Feb 2018 11:34:19 -0800
+Message-ID: <20180201193419.2V-mpj5uU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60720 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754648AbeBATeW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:22 -0500
+        with ESMTP id S1754648AbeBATeZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, vbabka@suse.cz
+To: iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/page_owner.c: clean up init_pages_in_zone()
+     Subject: mm/compaction.c: fix comment for try_to_compact_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-clean-up-init_pages_in_zone.patch
+     mm-compaction-fix-the-comment-for-try_to_compact_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@techadventures.net>
-Subject: mm/page_owner.c: clean up init_pages_in_zone()
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm/compaction.c: fix comment for try_to_compact_pages()
 
-Remove two redundant assignments in init_pages_in_zone().
+"mode" argument is not used by try_to_compact_pages() and sub functions
+anymore, it has been replaced by "prio".  Fix the comment to explain the
+use of "prio" argument.
 
-[osalvador@techadventures.net: v3]
-  Link: http://lkml.kernel.org/r/20180117124513.GA876@techadventures.net
-[akpm@linux-foundation.org: coding style tweaks]
-Link: http://lkml.kernel.org/r/20180110084355.GA22822@techadventures.net
-Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1515801336-20611-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-clean-up-init_pages_in_zone mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-clean-up-init_pages_in_zone
-+++ a/mm/page_owner.c
-@@ -528,21 +528,18 @@ read_page_owner(struct file *file, char
- 
- static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
- {
--	struct page *page;
--	struct page_ext *page_ext;
--	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
--	unsigned long end_pfn = pfn + zone->spanned_pages;
-+	unsigned long pfn = zone->zone_start_pfn;
-+	unsigned long end_pfn = zone_end_pfn(zone);
- 	unsigned long count = 0;
- 
--	/* Scan block by block. First and last block may be incomplete */
--	pfn = zone->zone_start_pfn;
--
- 	/*
- 	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
- 	 * a zone boundary, it will be double counted between zones. This does
- 	 * not matter as the mixed block count will still be correct
- 	 */
- 	for (; pfn < end_pfn; ) {
-+		unsigned long block_end_pfn;
-+
- 		if (!pfn_valid(pfn)) {
- 			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
- 			continue;
-@@ -551,9 +548,10 @@ static void init_pages_in_zone(pg_data_t
- 		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
- 		block_end_pfn = min(block_end_pfn, end_pfn);
- 
--		page = pfn_to_page(pfn);
+diff -puN mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages
++++ a/mm/compaction.c
+@@ -1738,7 +1738,7 @@ int sysctl_extfrag_threshold = 500;
+  * @order: The order of the current allocation
+  * @alloc_flags: The allocation flags of the current allocation
+  * @ac: The context of current allocation
+- * @mode: The migration mode for async, sync light, or sync migration
++ * @prio: Determines how hard direct compaction should try to succeed
+  *
+  * This is the main entry point for direct page compaction.
+  */
+_
+
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+
+
