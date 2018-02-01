@@ -1,117 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [patch 022/119] ocfs2: add ocfs2_overwrite_io()
-Date: Wed, 31 Jan 2018 16:15:21 -0800
-Message-ID: <20180201001521.pvDO2VzWe%akpm@linux-foundation.org>
+Subject: [patch 026/119] mm/slab_common.c: make
+ calculate_alignment() static
+Date: Wed, 31 Jan 2018 16:15:36 -0800
+Message-ID: <20180201001536.wvDVhYVL_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33992 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAPX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:23 -0500
+        with ESMTP id S1754449AbeBAAPi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bhlee.kernel@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: add ocfs2_overwrite_io()
+From: Byongho Lee <bhlee.kernel@gmail.com>
+Subject: mm/slab_common.c: make calculate_alignment() static
 
-Add ocfs2_overwrite_io function, which is used to judge if overwrite
-allocated blocks, otherwise, the write will bring extra block allocation
-overhead.
+calculate_alignment() function is only used inside slab_common.c.  So make
+it static and let the compiler do more optimizations.
 
-[ghe@suse.com: v3]
-  Link: http://lkml.kernel.org/r/1514455665-16325-3-git-send-email-ghe@suse.com
-[ghe@suse.com: v2]
-  Link: http://lkml.kernel.org/r/1511944612-9629-3-git-send-email-ghe@suse.com
-Link: http://lkml.kernel.org/r/1511775987-841-3-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: alex chen <alex.chen@huawei.com>
+After this patch there's a small improvement in text and data size.
+
+$ gcc --version
+  gcc (GCC) 7.2.1 20171128
+
+Before:
+  text	   data	    bss	    dec	     hex	filename
+  9890457  3828702  1212364 14931523 e3d643	vmlinux
+
+After:
+  text	   data	    bss	    dec	     hex	filename
+  9890437  3828670  1212364 14931471 e3d60f	vmlinux
+
+Also I fixed a style problem reported by checkpatch.
+
+  WARNING: Missing a blank line after declarations
+  #53: FILE: mm/slab_common.c:286:
+  +		unsigned long ralign = cache_line_size();
+  +		while (size <= ralign / 2)
+
+Link: http://lkml.kernel.org/r/20171210080132.406-1-bhlee.kernel@gmail.com
+Signed-off-by: Byongho Lee <bhlee.kernel@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.c |   45 ++++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/extent_map.h |    3 ++
- 2 files changed, 48 insertions(+)
+ mm/slab.h        |    3 --
+ mm/slab_common.c |   56 +++++++++++++++++++++++----------------------
+ 2 files changed, 29 insertions(+), 30 deletions(-)
 
-diff -puN fs/ocfs2/extent_map.c~ocfs2-add-ocfs2_overwrite_io-function fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-add-ocfs2_overwrite_io-function
-+++ a/fs/ocfs2/extent_map.c
-@@ -38,6 +38,7 @@
- #include "inode.h"
- #include "super.h"
- #include "symlink.h"
-+#include "aops.h"
- #include "ocfs2_trace.h"
+diff -puN mm/slab_common.c~mm-slab-make-calculate_alignment-function-static mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-make-calculate_alignment-function-static
++++ a/mm/slab_common.c
+@@ -268,6 +268,35 @@ static inline void memcg_unlink_cache(st
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
  
- #include "buffer_head_io.h"
-@@ -832,6 +833,50 @@ out:
- 	return ret;
- }
- 
-+/* Is IO overwriting allocated blocks? */
-+int ocfs2_overwrite_io(struct inode *inode, struct buffer_head *di_bh,
-+		       u64 map_start, u64 map_len)
+ /*
++ * Figure out what the alignment of the objects will be given a set of
++ * flags, a user specified alignment and the size of the objects.
++ */
++static unsigned long calculate_alignment(unsigned long flags,
++		unsigned long align, unsigned long size)
 +{
-+	int ret = 0, is_last;
-+	u32 mapping_end, cpos;
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct ocfs2_extent_rec rec;
++	/*
++	 * If the user wants hardware cache aligned objects then follow that
++	 * suggestion if the object is sufficiently large.
++	 *
++	 * The hardware cache alignment cannot override the specified
++	 * alignment though. If that is greater then use it.
++	 */
++	if (flags & SLAB_HWCACHE_ALIGN) {
++		unsigned long ralign;
 +
-+	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
-+		if (ocfs2_size_fits_inline_data(di_bh, map_start + map_len))
-+			return ret;
-+		else
-+			return -EAGAIN;
++		ralign = cache_line_size();
++		while (size <= ralign / 2)
++			ralign /= 2;
++		align = max(align, ralign);
 +	}
 +
-+	cpos = map_start >> osb->s_clustersize_bits;
-+	mapping_end = ocfs2_clusters_for_bytes(inode->i_sb,
-+					       map_start + map_len);
-+	is_last = 0;
-+	while (cpos < mapping_end && !is_last) {
-+		ret = ocfs2_get_clusters_nocache(inode, di_bh, cpos,
-+						 NULL, &rec, &is_last);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
++	if (align < ARCH_SLAB_MINALIGN)
++		align = ARCH_SLAB_MINALIGN;
 +
-+		if (rec.e_blkno == 0ULL)
-+			break;
-+
-+		if (rec.e_flags & OCFS2_EXT_REFCOUNTED)
-+			break;
-+
-+		cpos = le32_to_cpu(rec.e_cpos) +
-+			le16_to_cpu(rec.e_leaf_clusters);
-+	}
-+
-+	if (cpos < mapping_end)
-+		ret = -EAGAIN;
-+out:
-+	return ret;
++	return ALIGN(align, sizeof(void *));
 +}
 +
- int ocfs2_seek_data_hole_offset(struct file *file, loff_t *offset, int whence)
- {
- 	struct inode *inode = file->f_mapping->host;
-diff -puN fs/ocfs2/extent_map.h~ocfs2-add-ocfs2_overwrite_io-function fs/ocfs2/extent_map.h
---- a/fs/ocfs2/extent_map.h~ocfs2-add-ocfs2_overwrite_io-function
-+++ a/fs/ocfs2/extent_map.h
-@@ -53,6 +53,9 @@ int ocfs2_extent_map_get_blocks(struct i
- int ocfs2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
- 		 u64 map_start, u64 map_len);
++/*
+  * Find a mergeable slab cache
+  */
+ int slab_unmergeable(struct kmem_cache *s)
+@@ -337,33 +366,6 @@ struct kmem_cache *find_mergeable(size_t
+ 	return NULL;
+ }
  
-+int ocfs2_overwrite_io(struct inode *inode, struct buffer_head *di_bh,
-+		       u64 map_start, u64 map_len);
-+
- int ocfs2_seek_data_hole_offset(struct file *file, loff_t *offset, int origin);
+-/*
+- * Figure out what the alignment of the objects will be given a set of
+- * flags, a user specified alignment and the size of the objects.
+- */
+-unsigned long calculate_alignment(slab_flags_t flags,
+-		unsigned long align, unsigned long size)
+-{
+-	/*
+-	 * If the user wants hardware cache aligned objects then follow that
+-	 * suggestion if the object is sufficiently large.
+-	 *
+-	 * The hardware cache alignment cannot override the specified
+-	 * alignment though. If that is greater then use it.
+-	 */
+-	if (flags & SLAB_HWCACHE_ALIGN) {
+-		unsigned long ralign = cache_line_size();
+-		while (size <= ralign / 2)
+-			ralign /= 2;
+-		align = max(align, ralign);
+-	}
+-
+-	if (align < ARCH_SLAB_MINALIGN)
+-		align = ARCH_SLAB_MINALIGN;
+-
+-	return ALIGN(align, sizeof(void *));
+-}
+-
+ static struct kmem_cache *create_cache(const char *name,
+ 		size_t object_size, size_t size, size_t align,
+ 		slab_flags_t flags, void (*ctor)(void *),
+diff -puN mm/slab.h~mm-slab-make-calculate_alignment-function-static mm/slab.h
+--- a/mm/slab.h~mm-slab-make-calculate_alignment-function-static
++++ a/mm/slab.h
+@@ -78,9 +78,6 @@ extern const struct kmalloc_info_struct
+ 	unsigned long size;
+ } kmalloc_info[];
  
- int ocfs2_xattr_get_clusters(struct inode *inode, u32 v_cluster,
-_
+-unsigned long calculate_alignment(slab_flags_t flags,
+-		unsigned long align, unsigned long size);
