@@ -1,88 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 115/119] mm: correct comments regarding
- do_fault_around()
-Date: Wed, 31 Jan 2018 16:21:11 -0800
-Message-ID: <20180201002111.J2nuQpCQa%akpm@linux-foundation.org>
+Subject: [patch 117/119] mm/swap.c: make functions and their
+ kernel-doc agree
+Date: Wed, 31 Jan 2018 16:21:19 -0800
+Message-ID: <20180201002119.gHAgwwnNg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36596 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAVM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:12 -0500
+        with ESMTP id S1754559AbeBAAVV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, larry.bassel@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, william.kucharski@oracle.com
+To: akpm@linux-foundation.org, hughd@google.com, jack@suse.cz, mhocko@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org, willy@infradead.org
 
-From: William Kucharski <william.kucharski@oracle.com>
-Subject: mm: correct comments regarding do_fault_around()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/swap.c: make functions and their kernel-doc agree
 
-There are multiple comments surrounding do_fault_around that memtion
-fault_around_pages() and fault_around_mask(), two routines that do not
-exist.  These comments should be reworded to reference fault_around_bytes,
-the value which is used to determine how much do_fault_around() will
-attempt to read when processing a fault.
+Fix some basic kernel-doc notation in mm/swap.c:
+- for function lru_cache_add_anon(), make its kernel-doc function name
+  match its function name and change colon to hyphen following the
+  function name
+- for function pagevec_lookup_entries(), change the function parameter
+  name from nr_pages to nr_entries since that is more descriptive of
+  what the parameter actually is and then it matches the kernel-doc
+  comments also
 
-These comments should have been updated when fault_around_pages() and
-fault_around_mask() were removed in aecd6f44266c1 ("mm: close race between
-do_fault_around() and fault_around_bytes_set()").
+Fix function kernel-doc to match the change in commit 67fd707f4681:
+- drop the kernel-doc notation for @nr_pages from pagevec_lookup_range()
+  and correct the function description for that change
 
-Fixes: aecd6f44266c1 ("mm: close race between do_fault_around() and fault_around_bytes_set()")
-Link: http://lkml.kernel.org/r/302D0B14-C7E9-44C6-8BED-033F9ACBD030@oracle.com
-Signed-off-by: William Kucharski <william.kucharski@oracle.com>
-Reviewed-by: Larry Bassel <larry.bassel@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/3b42ee3e-04a9-a6ca-6be4-f00752a114fe@infradead.org
+Fixes: 67fd707f4681 ("mm: remove nr_pages argument from pagevec_lookup_{,range}_tag()")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/swap.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory.c~mm-correct-comments-regarding-do_fault_around mm/memory.c
---- a/mm/memory.c~mm-correct-comments-regarding-do_fault_around
-+++ a/mm/memory.c
-@@ -3511,9 +3511,8 @@ static int fault_around_bytes_get(void *
+diff -puN mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree mm/swap.c
+--- a/mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree
++++ a/mm/swap.c
+@@ -411,7 +411,7 @@ static void __lru_cache_add(struct page
  }
  
- /*
-- * fault_around_pages() and fault_around_mask() expects fault_around_bytes
-- * rounded down to nearest page order. It's what do_fault_around() expects to
-- * see.
-+ * fault_around_bytes must be rounded down to the nearest page order as it's
-+ * what do_fault_around() expects to see.
+ /**
+- * lru_cache_add: add a page to the page lists
++ * lru_cache_add_anon - add a page to the page lists
+  * @page: the page to add
   */
- static int fault_around_bytes_set(void *data, u64 val)
- {
-@@ -3556,13 +3555,14 @@ late_initcall(fault_around_debugfs);
-  * This function doesn't cross the VMA boundaries, in order to call map_pages()
-  * only once.
-  *
-- * fault_around_pages() defines how many pages we'll try to map.
-- * do_fault_around() expects it to return a power of two less than or equal to
-- * PTRS_PER_PTE.
-+ * fault_around_bytes defines how many bytes we'll try to map.
-+ * do_fault_around() expects it to be set to a power of two less than or equal
-+ * to PTRS_PER_PTE.
-  *
-- * The virtual address of the area that we map is naturally aligned to the
-- * fault_around_pages() value (and therefore to page order).  This way it's
-- * easier to guarantee that we don't cross page table boundaries.
-+ * The virtual address of the area that we map is naturally aligned to
-+ * fault_around_bytes rounded down to the machine page size
-+ * (and therefore to page order).  This way it's easier to guarantee
-+ * that we don't cross page table boundaries.
+ void lru_cache_add_anon(struct page *page)
+@@ -930,10 +930,10 @@ EXPORT_SYMBOL(__pagevec_lru_add);
   */
- static int do_fault_around(struct vm_fault *vmf)
+ unsigned pagevec_lookup_entries(struct pagevec *pvec,
+ 				struct address_space *mapping,
+-				pgoff_t start, unsigned nr_pages,
++				pgoff_t start, unsigned nr_entries,
+ 				pgoff_t *indices)
  {
-@@ -3579,8 +3579,8 @@ static int do_fault_around(struct vm_fau
- 	start_pgoff -= off;
- 
- 	/*
--	 *  end_pgoff is either end of page table or end of vma
--	 *  or fault_around_pages() from start_pgoff, depending what is nearest.
-+	 *  end_pgoff is either the end of the page table, the end of
-+	 *  the vma or nr_pages from start_pgoff, depending what is nearest.
- 	 */
- 	end_pgoff = start_pgoff -
- 		((vmf->address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
+-	pvec->nr = find_get_entries(mapping, start, nr_pages,
++	pvec->nr = find_get_entries(mapping, start, nr_entries,
+ 				    pvec->pages, indices);
+ 	return pagevec_count(pvec);
+ }
+@@ -965,9 +965,8 @@ void pagevec_remove_exceptionals(struct
+  * @mapping:	The address_space to search
+  * @start:	The starting page index
+  * @end:	The final page index
+- * @nr_pages:	The maximum number of pages
+  *
+- * pagevec_lookup_range() will search for and return a group of up to @nr_pages
++ * pagevec_lookup_range() will search for & return a group of up to PAGEVEC_SIZE
+  * pages in the mapping starting from index @start and upto index @end
+  * (inclusive).  The pages are placed in @pvec.  pagevec_lookup() takes a
+  * reference against the pages in @pvec.
+@@ -977,7 +976,7 @@ void pagevec_remove_exceptionals(struct
+  * also update @start to index the next page for the traversal.
+  *
+  * pagevec_lookup_range() returns the number of pages which were found. If this
+- * number is smaller than @nr_pages, the end of specified range has been
++ * number is smaller than PAGEVEC_SIZE, the end of specified range has been
+  * reached.
+  */
+ unsigned pagevec_lookup_range(struct pagevec *pvec,
 _
