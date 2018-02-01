@@ -1,71 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-clean-dead-code-in-suballocc.patch removed
+Subject: [merged]
+ scripts-tags-change-find_other_sources-for-include-folders.patch removed
  from -mm tree
-Date: Thu, 01 Feb 2018 11:29:19 -0800
-Message-ID: <20180201192919.89aRiObI6%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:28:56 -0800
+Message-ID: <20180201192856.FMHtXYWk7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56472 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754695AbeBAT3V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:21 -0500
+        with ESMTP id S1754682AbeBAT26 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:28:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: arend.vanspriel@broadcom.com, mm-commits@vger.kernel.org, robert.jarzmik@free.fr
 
 
 The patch titled
-     Subject: ocfs2: clean dead code in suballoc.c
+     Subject: scripts/tags.sh: change find_other_sources() for include directories
 has been removed from the -mm tree.  Its filename was
-     ocfs2-clean-dead-code-in-suballocc.patch
+     scripts-tags-change-find_other_sources-for-include-folders.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: ocfs2: clean dead code in suballoc.c
+From: Arend van Spriel <arend.vanspriel@broadcom.com>
+Subject: scripts/tags.sh: change find_other_sources() for include directories
 
-Stack variable fe is no longer used, so trim it to save some CPU cycles
-and stack space.
+The current find done in find_other_sources() excludes directories in the
+kernel tree that are named 'include', eg.:
 
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F5A8DD@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <ge.changwei@h3c.com>
+	./security/apparmor/include
+	./security/selinux/include
+	./drivers/net/wireless/broadcom/brcm80211/include
+	./drivers/gpu/drm/amd/acp/include
+	./drivers/gpu/drm/amd/display/include
+	./drivers/gpu/drm/amd/include
+	./drivers/gpu/drm/nouveau/include
+
+This changes the find command in find_other_sources() to include those
+using the -path option.
+
+Link: http://lkml.kernel.org/r/1513335768-7852-1-git-send-email-arend.vanspriel@broadcom.com
+Signed-off-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/tags.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-dead-code-in-suballocc fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-clean-dead-code-in-suballocc
-+++ a/fs/ocfs2/suballoc.c
-@@ -2563,16 +2563,16 @@ static int _ocfs2_free_clusters(handle_t
- 	int status;
- 	u16 bg_start_bit;
- 	u64 bg_blkno;
--	struct ocfs2_dinode *fe;
+diff -puN scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders
++++ a/scripts/tags.sh
+@@ -77,7 +77,7 @@ find_include_sources()
+ find_other_sources()
+ {
+ 	find ${tree}* $ignore \
+-	     \( -name include -o -name arch -o -name '.tmp_*' \) -prune -o \
++	     \( -path ${tree}include -o -path ${tree}arch -o -name '.tmp_*' \) -prune -o \
+ 	       -name "$1" -not -type l -print;
+ }
  
- 	/* You can't ever have a contiguous set of clusters
- 	 * bigger than a block group bitmap so we never have to worry
- 	 * about looping on them.
- 	 * This is expensive. We can safely remove once this stuff has
- 	 * gotten tested really well. */
--	BUG_ON(start_blk != ocfs2_clusters_to_blocks(bitmap_inode->i_sb, ocfs2_blocks_to_clusters(bitmap_inode->i_sb, start_blk)));
-+	BUG_ON(start_blk != ocfs2_clusters_to_blocks(bitmap_inode->i_sb,
-+				ocfs2_blocks_to_clusters(bitmap_inode->i_sb,
-+							 start_blk)));
- 
--	fe = (struct ocfs2_dinode *) bitmap_bh->b_data;
- 
- 	ocfs2_block_to_cluster_group(bitmap_inode, start_blk, &bg_blkno,
- 				     &bg_start_bit);
 _
 
-Patches currently in -mm which might be from ge.changwei@h3c.com are
+Patches currently in -mm which might be from arend.vanspriel@broadcom.com are
 
 
