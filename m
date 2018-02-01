@@ -1,24 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/119] ocfs2: add trimfs dlm lock resource
-Date: Wed, 31 Jan 2018 16:15:10 -0800
-Message-ID: <20180201001510.Sp6ZYj5ou%akpm@linux-foundation.org>
+Subject: [patch 020/119] ocfs2: add trimfs lock to avoid duplicated
+ trims in cluster
+Date: Wed, 31 Jan 2018 16:15:13 -0800
+Message-ID: <20180201001513.HnUaHSf3l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33812 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAPL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:11 -0500
+        with ESMTP id S1754449AbeBAAPP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Gang He <ghe@suse.com>
-Subject: ocfs2: add trimfs dlm lock resource
+Subject: ocfs2: add trimfs lock to avoid duplicated trims in cluster
 
-Introduce a new dlm lock resource, which will be used to communicate
-during fstrimming of an ocfs2 device from cluster nodes.
+ocfs2 supports trimming the underlying disk via the fstrim command.  But
+there is a problem, ocfs2 is a shared disk cluster file system, if the
+user configures a scheduled fstrim job on each file system node, this will
+trigger multiple nodes trimming a shared disk simultaneously, which is
+very wasteful for CPU and IO consumption.  This also might negatively
+affect the lifetime of poor-quality SSD devices.
 
-Link: http://lkml.kernel.org/r/1513228484-2084-1-git-send-email-ghe@suse.com
+So we introduce a trimfs dlm lock to communicate with each other in this
+case, which will make only one fstrim command to do the trimming on a
+shared disk among the cluster.  The fstrim commands from the other nodes
+should wait for the first fstrim to finish and return success directly, to
+avoid running the same trim on the shared disk again.
+
+Link: http://lkml.kernel.org/r/1513228484-2084-2-git-send-email-ghe@suse.com
 Signed-off-by: Gang He <ghe@suse.com>
 Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
@@ -28,206 +39,75 @@ Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c      |   86 ++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/dlmglue.h      |   29 ++++++++++++
- fs/ocfs2/ocfs2.h        |    1 
- fs/ocfs2/ocfs2_lockid.h |    5 ++
- 4 files changed, 121 insertions(+)
+ fs/ocfs2/alloc.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/dlmglue.c
-@@ -259,6 +259,10 @@ static struct ocfs2_lock_res_ops ocfs2_n
- 	.flags		= 0,
- };
+diff -puN fs/ocfs2/alloc.c~ocfs2-add-trimfs-lock-to-avoid-duplicated-trims-in-cluster fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-add-trimfs-lock-to-avoid-duplicated-trims-in-cluster
++++ a/fs/ocfs2/alloc.c
+@@ -7561,6 +7561,7 @@ int ocfs2_trim_fs(struct super_block *sb
+ 	struct buffer_head *gd_bh = NULL;
+ 	struct ocfs2_dinode *main_bm;
+ 	struct ocfs2_group_desc *gd = NULL;
++	struct ocfs2_trim_fs_info info, *pinfo = NULL;
  
-+static struct ocfs2_lock_res_ops ocfs2_trim_fs_lops = {
-+	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
-+};
-+
- static struct ocfs2_lock_res_ops ocfs2_orphan_scan_lops = {
- 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
- };
-@@ -676,6 +680,24 @@ static void ocfs2_nfs_sync_lock_res_init
- 				   &ocfs2_nfs_sync_lops, osb);
- }
+ 	start = range->start >> osb->s_clustersize_bits;
+ 	len = range->len >> osb->s_clustersize_bits;
+@@ -7598,6 +7599,42 @@ int ocfs2_trim_fs(struct super_block *sb
  
-+void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb)
-+{
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	ocfs2_lock_res_init_once(lockres);
-+	ocfs2_build_lock_name(OCFS2_LOCK_TYPE_TRIM_FS, 0, 0, lockres->l_name);
-+	ocfs2_lock_res_init_common(osb, lockres, OCFS2_LOCK_TYPE_TRIM_FS,
-+				   &ocfs2_trim_fs_lops, osb);
-+}
-+
-+void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb)
-+{
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	ocfs2_simple_drop_lockres(osb, lockres);
-+	ocfs2_lock_res_free(lockres);
-+}
-+
- static void ocfs2_orphan_scan_lock_res_init(struct ocfs2_lock_res *res,
- 					    struct ocfs2_super *osb)
- {
-@@ -2754,6 +2776,70 @@ void ocfs2_nfs_sync_unlock(struct ocfs2_
- 				     ex ? LKM_EXMODE : LKM_PRMODE);
- }
+ 	trace_ocfs2_trim_fs(start, len, minlen);
  
-+int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
-+		       struct ocfs2_trim_fs_info *info, int trylock)
-+{
-+	int status;
-+	struct ocfs2_trim_fs_lvb *lvb;
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++	ocfs2_trim_fs_lock_res_init(osb);
++	ret = ocfs2_trim_fs_lock(osb, NULL, 1);
++	if (ret < 0) {
++		if (ret != -EAGAIN) {
++			mlog_errno(ret);
++			ocfs2_trim_fs_lock_res_uninit(osb);
++			goto out_unlock;
++		}
 +
-+	if (info)
-+		info->tf_valid = 0;
++		mlog(ML_NOTICE, "Wait for trim on device (%s) to "
++		     "finish, which is running from another node.\n",
++		     osb->dev_str);
++		ret = ocfs2_trim_fs_lock(osb, &info, 0);
++		if (ret < 0) {
++			mlog_errno(ret);
++			ocfs2_trim_fs_lock_res_uninit(osb);
++			goto out_unlock;
++		}
 +
-+	if (ocfs2_is_hard_readonly(osb))
-+		return -EROFS;
-+
-+	if (ocfs2_mount_local(osb))
-+		return 0;
-+
-+	status = ocfs2_cluster_lock(osb, lockres, DLM_LOCK_EX,
-+				    trylock ? DLM_LKF_NOQUEUE : 0, 0);
-+	if (status < 0) {
-+		if (status != -EAGAIN)
-+			mlog_errno(status);
-+		return status;
-+	}
-+
-+	if (info) {
-+		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
-+		if (ocfs2_dlm_lvb_valid(&lockres->l_lksb) &&
-+		    lvb->lvb_version == OCFS2_TRIMFS_LVB_VERSION) {
-+			info->tf_valid = 1;
-+			info->tf_success = lvb->lvb_success;
-+			info->tf_nodenum = be32_to_cpu(lvb->lvb_nodenum);
-+			info->tf_start = be64_to_cpu(lvb->lvb_start);
-+			info->tf_len = be64_to_cpu(lvb->lvb_len);
-+			info->tf_minlen = be64_to_cpu(lvb->lvb_minlen);
-+			info->tf_trimlen = be64_to_cpu(lvb->lvb_trimlen);
++		if (info.tf_valid && info.tf_success &&
++		    info.tf_start == start && info.tf_len == len &&
++		    info.tf_minlen == minlen) {
++			/* Avoid sending duplicated trim to a shared device */
++			mlog(ML_NOTICE, "The same trim on device (%s) was "
++			     "just done from node (%u), return.\n",
++			     osb->dev_str, info.tf_nodenum);
++			range->len = info.tf_trimlen;
++			goto out_trimunlock;
 +		}
 +	}
 +
-+	return status;
-+}
++	info.tf_nodenum = osb->node_num;
++	info.tf_start = start;
++	info.tf_len = len;
++	info.tf_minlen = minlen;
 +
-+void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
-+			  struct ocfs2_trim_fs_info *info)
-+{
-+	struct ocfs2_trim_fs_lvb *lvb;
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	if (ocfs2_mount_local(osb))
-+		return;
-+
-+	if (info) {
-+		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
-+		lvb->lvb_version = OCFS2_TRIMFS_LVB_VERSION;
-+		lvb->lvb_success = info->tf_success;
-+		lvb->lvb_nodenum = cpu_to_be32(info->tf_nodenum);
-+		lvb->lvb_start = cpu_to_be64(info->tf_start);
-+		lvb->lvb_len = cpu_to_be64(info->tf_len);
-+		lvb->lvb_minlen = cpu_to_be64(info->tf_minlen);
-+		lvb->lvb_trimlen = cpu_to_be64(info->tf_trimlen);
-+	}
-+
-+	ocfs2_cluster_unlock(osb, lockres, DLM_LOCK_EX);
-+}
-+
- int ocfs2_dentry_lock(struct dentry *dentry, int ex)
- {
- 	int ret;
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,29 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+#define OCFS2_TRIMFS_LVB_VERSION 1
-+
-+struct ocfs2_trim_fs_lvb {
-+	__u8	lvb_version;
-+	__u8	lvb_success;
-+	__u8	lvb_reserved[2];
-+	__be32	lvb_nodenum;
-+	__be64	lvb_start;
-+	__be64	lvb_len;
-+	__be64	lvb_minlen;
-+	__be64	lvb_trimlen;
-+};
-+
-+struct ocfs2_trim_fs_info {
-+	u8	tf_valid;	/* lvb is valid, or not */
-+	u8	tf_success;	/* trim is successful, or not */
-+	u32	tf_nodenum;	/* osb node number */
-+	u64	tf_start;	/* trim start offset in clusters */
-+	u64	tf_len;		/* trim end offset in clusters */
-+	u64	tf_minlen;	/* trim minimum contiguous free clusters */
-+	u64	tf_trimlen;	/* trimmed length in bytes */
-+};
-+
- struct ocfs2_lock_holder {
- 	struct list_head oh_list;
- 	struct pid *oh_owner_pid;
-@@ -153,6 +176,12 @@ int ocfs2_rename_lock(struct ocfs2_super
- void ocfs2_rename_unlock(struct ocfs2_super *osb);
- int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex);
- void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex);
-+void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb);
-+void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb);
-+int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
-+		       struct ocfs2_trim_fs_info *info, int trylock);
-+void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
-+			  struct ocfs2_trim_fs_info *info);
- int ocfs2_dentry_lock(struct dentry *dentry, int ex);
- void ocfs2_dentry_unlock(struct dentry *dentry, int ex);
- int ocfs2_file_lock(struct file *file, int ex, int trylock);
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/ocfs2.h
-@@ -404,6 +404,7 @@ struct ocfs2_super
- 	struct ocfs2_lock_res osb_super_lockres;
- 	struct ocfs2_lock_res osb_rename_lockres;
- 	struct ocfs2_lock_res osb_nfs_sync_lockres;
-+	struct ocfs2_lock_res osb_trim_fs_lockres;
- 	struct ocfs2_dlm_debug *osb_dlm_debug;
- 
- 	struct dentry *osb_debug_root;
-diff -puN fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2_lockid.h
---- a/fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/ocfs2_lockid.h
-@@ -50,6 +50,7 @@ enum ocfs2_lock_type {
- 	OCFS2_LOCK_TYPE_NFS_SYNC,
- 	OCFS2_LOCK_TYPE_ORPHAN_SCAN,
- 	OCFS2_LOCK_TYPE_REFCOUNT,
-+	OCFS2_LOCK_TYPE_TRIM_FS,
- 	OCFS2_NUM_LOCK_TYPES
- };
- 
-@@ -93,6 +94,9 @@ static inline char ocfs2_lock_type_char(
- 		case OCFS2_LOCK_TYPE_REFCOUNT:
- 			c = 'T';
- 			break;
-+		case OCFS2_LOCK_TYPE_TRIM_FS:
-+			c = 'I';
-+			break;
- 		default:
- 			c = '\0';
+ 	/* Determine first and last group to examine based on start and len */
+ 	first_group = ocfs2_which_cluster_group(main_bm_inode, start);
+ 	if (first_group == osb->first_cluster_group_blkno)
+@@ -7642,6 +7679,13 @@ int ocfs2_trim_fs(struct super_block *sb
+ 			group += ocfs2_clusters_to_blocks(sb, osb->bitmap_cpg);
  	}
-@@ -115,6 +119,7 @@ static char *ocfs2_lock_type_strings[] =
- 	[OCFS2_LOCK_TYPE_NFS_SYNC] = "NFSSync",
- 	[OCFS2_LOCK_TYPE_ORPHAN_SCAN] = "OrphanScan",
- 	[OCFS2_LOCK_TYPE_REFCOUNT] = "Refcount",
-+	[OCFS2_LOCK_TYPE_TRIM_FS] = "TrimFs",
- };
- 
- static inline const char *ocfs2_lock_type_string(enum ocfs2_lock_type type)
+ 	range->len = trimmed * sb->s_blocksize;
++
++	info.tf_trimlen = range->len;
++	info.tf_success = (ret ? 0 : 1);
++	pinfo = &info;
++out_trimunlock:
++	ocfs2_trim_fs_unlock(osb, pinfo);
++	ocfs2_trim_fs_lock_res_uninit(osb);
+ out_unlock:
+ 	ocfs2_inode_unlock(main_bm_inode, 0);
+ 	brelse(main_bm_bh);
 _
