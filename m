@@ -1,54 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-remove-abort.patch removed from -mm tree
-Date: Thu, 01 Feb 2018 11:29:00 -0800
-Message-ID: <20180201192900.YG9YpKiYe%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-cluster-neaten-a-member-of-o2net_msg_handler.patch removed from -mm
+ tree
+Date: Thu, 01 Feb 2018 11:29:07 -0800
+Message-ID: <20180201192907.dAkwl6lQe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754695AbeBAT3C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:02 -0500
+        with ESMTP id S1754695AbeBAT3I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, sudipm.mukherjee@gmail.com
+To: alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: remove abort()
+     Subject: ocfs2/cluster: neaten a member of o2net_msg_handler
 has been removed from the -mm tree.  Its filename was
-     m32r-remove-abort.patch
+     ocfs2-cluster-neaten-a-member-of-o2net_msg_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: remove abort()
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2/cluster: neaten a member of o2net_msg_handler
 
-7c2c11b208be ("arch: define weak abort()") has introduced a weak abort()
-which is common for all arch.  And, so we will not need arch specific
-abort which has the same code as the weak abort().  Remove the abort() for
-m32r.
+It's odd that o2net_msg_handler::nh_func_data is declared as type
+o2net_msg_handler_func*.  So neaten it.
 
-Link: http://lkml.kernel.org/r/1516912339-5665-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F554DA@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/traps.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/ocfs2/cluster/tcp_internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/traps.c~m32r-remove-abort arch/m32r/kernel/traps.c
---- a/arch/m32r/kernel/traps.c~m32r-remove-abort
-+++ a/arch/m32r/kernel/traps.c
-@@ -115,14 +115,6 @@ static void set_eit_vector_entries(void)
- 	_flush_cache_copyback_all();
- }
- 
--void abort(void)
--{
--	BUG();
--
--	/* if that doesn't kill us, halt */
--	panic("Oops failed to kill thread");
--}
+diff -puN fs/ocfs2/cluster/tcp_internal.h~ocfs2-cluster-neaten-a-member-of-o2net_msg_handler fs/ocfs2/cluster/tcp_internal.h
+--- a/fs/ocfs2/cluster/tcp_internal.h~ocfs2-cluster-neaten-a-member-of-o2net_msg_handler
++++ a/fs/ocfs2/cluster/tcp_internal.h
+@@ -196,7 +196,7 @@ struct o2net_msg_handler {
+ 	u32			nh_msg_type;
+ 	u32			nh_key;
+ 	o2net_msg_handler_func	*nh_func;
+-	o2net_msg_handler_func	*nh_func_data;
++	void			*nh_func_data;
+ 	o2net_post_msg_handler_func
+ 				*nh_post_func;
+ 	struct kref		nh_kref;
+_
+
+Patches currently in -mm which might be from ge.changwei@h3c.com are
+
+
