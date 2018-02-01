@@ -1,75 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 012/119] ocfs2: return -EROFS to mount.ocfs2 if
- inode block is invalid
-Date: Wed, 31 Jan 2018 16:14:44 -0800
-Message-ID: <20180201001444.6bRweo0_q%akpm@linux-foundation.org>
+Subject: [patch 009/119] ocfs2/cluster: close a race that fence
+ can't be triggered
+Date: Wed, 31 Jan 2018 16:14:33 -0800
+Message-ID: <20180201001433.ac1m4mZRO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAOp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:45 -0500
+        with ESMTP id S1754449AbeBAAOe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, zhang.yangB@h3c.com
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
+From: Yang Zhang <zhang.yangB@h3c.com>
+Subject: ocfs2/cluster: close a race that fence can't be triggered
 
-If metadata is corrupted such as 'invalid inode block', we will get failed
-by calling 'mount()' and then set filesystem readonly as below:
+When some nodes of cluster face with TCP connection fault, ocfs2 will pick
+up a quorum to continue to work and other nodes will be fenced by
+resetting host.
 
-ocfs2_mount
-  ocfs2_initialize_super
-    ocfs2_init_global_system_inodes
-      ocfs2_iget
-        ocfs2_read_locked_inode
-          ocfs2_validate_inode_block
-	    ocfs2_error
-	      ocfs2_handle_error
-	        ocfs2_set_ro_flag(osb, 0);  // set readonly
+In order to decide which node should be fenced, ocfs2 leverages
+o2quo_state::qs_holds.  If that variable is reduced to zero, then a try to
+decide if fence local node is performed.  However, under a specific
+scenario that local node is not disconnected from others at the same time,
+above method has a problem to reduce ::qs_holds to zero.
 
-In this situation we need return -EROFS to 'mount.ocfs2', so that user can
-fix it by fsck.  And then mount again.  In addition, 'mount.ocfs2' should
-be updated correspondingly as it only return 1 for all errno.  And I will
-post a patch for 'mount.ocfs2' too.
+Because, o2net 90s idle timer corresponding to different nodes is
+triggered one after another.
 
-Link: http://lkml.kernel.org/r/5A4302FA.2010606@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
-Reviewed-by: Gang He <ghe@suse.com>
+node 2				node 3
+90s idle timer elapses
+clear ::qs_conn_bm
+set hold
+				40s is passed
+				90 idle timer elapses
+				clear ::qs_conn_bm
+				set hold
+still up timer elapses
+clear hold (NOT to zero )
+90s idle timer elapses AGAIN
+				still up timer elapses.
+				clear hold
+				still up timer elapses
+
+To solve this issue, a node which has already be evicted from ::qs_conn_bm
+can't set hold again and again invoked from idle timer.
+
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F3F93B@H3CMLB12-EX.srv.huawei-3com.com
+Signed-off-by: Yang Zhang <zhang.yangB@h3c.com>
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/cluster/quorum.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid
-+++ a/fs/ocfs2/super.c
-@@ -474,9 +474,8 @@ static int ocfs2_init_global_system_inod
- 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
- 		if (!new) {
- 			ocfs2_release_system_inodes(osb);
--			status = -EINVAL;
-+			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
- 			mlog_errno(status);
--			/* FIXME: Should ERROR_RO_FS */
- 			mlog(ML_ERROR, "Unable to load system inode %d, "
- 			     "possibly corrupt fs?", i);
- 			goto bail;
-@@ -505,7 +504,7 @@ static int ocfs2_init_local_system_inode
- 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
- 		if (!new) {
- 			ocfs2_release_system_inodes(osb);
--			status = -EINVAL;
-+			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
- 			mlog(ML_ERROR, "status=%d, sysfile=%d, slot=%d\n",
- 			     status, i, osb->slot_num);
- 			goto bail;
+diff -puN fs/ocfs2/cluster/quorum.c~ocfs2-cluster-close-a-race-that-fence-cant-be-triggered fs/ocfs2/cluster/quorum.c
+--- a/fs/ocfs2/cluster/quorum.c~ocfs2-cluster-close-a-race-that-fence-cant-be-triggered
++++ a/fs/ocfs2/cluster/quorum.c
+@@ -314,12 +314,13 @@ void o2quo_conn_err(u8 node)
+ 				node, qs->qs_connected);
+ 
+ 		clear_bit(node, qs->qs_conn_bm);
++
++		if (test_bit(node, qs->qs_hb_bm))
++			o2quo_set_hold(qs, node);
+ 	}
+ 
+ 	mlog(0, "node %u, %d total\n", node, qs->qs_connected);
+ 
+-	if (test_bit(node, qs->qs_hb_bm))
+-		o2quo_set_hold(qs, node);
+ 
+ 	spin_unlock(&qs->qs_lock);
+ }
 _
