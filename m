@@ -1,189 +1,172 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch removed from
- -mm tree
-Date: Thu, 01 Feb 2018 11:34:57 -0800
-Message-ID: <20180201193457.0mm2548Ma%akpm@linux-foundation.org>
+ tools-vm-new-option-to-specify-kpageflags-file.patch removed from -mm tree
+Date: Thu, 01 Feb 2018 11:35:10 -0800
+Message-ID: <20180201193510.YKcd8ZNvp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33278 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33380 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754686AbeBATe7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:59 -0500
+        with ESMTP id S1754606AbeBATfM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:35:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gregkh@linuxfoundation.org, haakon.bugge@oracle.com, henry.willard@oracle.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, mgorman@suse.de, mm-commits@vger.kernel.org, pombredanne@nexb.com, steven.sistare@oracle.com, zi.yan@cs.rutgers.edu
+To: akpm@linux-foundation.org, koct9i@gmail.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm: numa: do not trap faults on shared data section pages.
+     Subject: tools, vm: new option to specify kpageflags file
 has been removed from the -mm tree.  Its filename was
-     mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
+     tools-vm-new-option-to-specify-kpageflags-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Henry Willard <henry.willard@oracle.com>
-Subject: mm: numa: do not trap faults on shared data section pages.
+From: David Rientjes <rientjes@google.com>
+Subject: tools, vm: new option to specify kpageflags file
 
-Workloads consisting of a large number of processes running the same
-program with a very large shared data segment may experience performance
-problems when numa balancing attempts to migrate the shared cow pages. 
-This manifests itself with many processes or tasks in TASK_UNINTERRUPTIBLE
-state waiting for the shared pages to be migrated.
+page-types currently hardcodes /proc/kpageflags as the file to parse. 
+This works when using the tool to examine the state of pageflags on the
+same system, but does not allow storing a snapshot of pageflags at a given
+time to debug issues nor on a different system.
 
-The program listed below simulates the conditions with these results when
-run with 288 processes on a 144 core/8 socket machine.
+This allows the user to specify a saved version of kpageflags with a new
+page-types -F option.
 
-Average throughput 	Average throughput     Average throughput
-with numa_balancing=0	with numa_balancing=1  with numa_balancing=1
-     			without the patch      with the patch
----------------------	---------------------  ---------------------
-2118782			2021534		       2107979
-
-Complex production environments show less variability and fewer poorly
-performing outliers accompanied with a smaller number of processes waiting
-on NUMA page migration with this patch applied. In some cases, %iowait drops
-from 16%-26% to 0.
-
-// SPDX-License-Identifier: GPL-2.0
-/*
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
- */
-#include <sys/time.h>
-#include <stdio.h>
-#include <wait.h>
-#include <sys/mman.h>
-
-int a[1000000] = {13};
-
-int  main(int argc, const char **argv)
-{
-	int n = 0;
-	int i;
-	pid_t pid;
-	int stat;
-	int *count_array;
-	int cpu_count = 288;
-	long total = 0;
-
-	struct timeval t1, t2 = {(argc > 1 ? atoi(argv[1]) : 10), 0};
-
-	if (argc > 2)
-		cpu_count = atoi(argv[2]);
-
-	count_array = mmap(NULL, cpu_count * sizeof(int),
-			   (PROT_READ|PROT_WRITE),
-			   (MAP_SHARED|MAP_ANONYMOUS), 0, 0);
-
-	if (count_array == MAP_FAILED) {
-		perror("mmap:");
-		return 0;
-	}
-
-	for (i = 0; i < cpu_count; ++i) {
-		pid = fork();
-		if (pid <= 0)
-			break;
-		if ((i & 0xf) == 0)
-			usleep(2);
-	}
-
-	if (pid != 0) {
-		if (i == 0) {
-			perror("fork:");
-			return 0;
-		}
-
-		for (;;) {
-			pid = wait(&stat);
-			if (pid < 0)
-				break;
-		}
-
-		for (i = 0; i < cpu_count; ++i)
-			total += count_array[i];
-
-		printf("Total %ld\n", total);
-		munmap(count_array, cpu_count * sizeof(int));
-		return 0;
-	}
-
-	gettimeofday(&t1, 0);
-	timeradd(&t1, &t2, &t1);
-	while (timercmp(&t2, &t1, <)) {
-		int b = 0;
-		int j;
-
-		for (j = 0; j < 1000000; j++)
-			b += a[j];
-		gettimeofday(&t2, 0);
-		n++;
-	}
-	count_array[i] = n;
-	return 0;
-}
-
-This patch changes change_pte_range() to skip shared copy-on-write pages
-when called from change_prot_numa().
-
-NOTE: change_prot_numa() is nominally called from task_numa_work() and
-queue_pages_test_walk().  task_numa_work() is the auto NUMA balancing
-path, and queue_pages_test_walk() is part of explicit NUMA policy
-management.  However, queue_pages_test_walk() only calls
-change_prot_numa() when MPOL_MF_LAZY is specified and currently that is
-not allowed, so change_prot_numa() is only called from auto NUMA
-balancing.
-
-In the case of explicit NUMA policy management, shared pages are not
-migrated unless MPOL_MF_MOVE_ALL is specified, and MPOL_MF_MOVE_ALL
-depends on CAP_SYS_NICE.  Currently, there is no way to pass information
-about MPOL_MF_MOVE_ALL to change_pte_range.  This will have to be fixed if
-MPOL_MF_LAZY is enabled and MPOL_MF_MOVE_ALL is to be honored in lazy
-migration mode.
-
-task_numa_work() skips the read-only VMAs of programs and shared
-libraries.
-
-Link: http://lkml.kernel.org/r/1516751617-7369-1-git-send-email-henry.willard@oracle.com
-Signed-off-by: Henry Willard <henry.willard@oracle.com>
-Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
+[akpm@linux-foundation.org: add "filename" to fix usage() string]
+[rientjes@google.com: fix layout]
+  Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801301840050.140969@chino.kir.corp.google.com
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1801301458180.153857@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ tools/vm/page-types.c |   28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages
-+++ a/mm/mprotect.c
-@@ -84,6 +84,11 @@ static unsigned long change_pte_range(st
- 				if (!page || PageKsm(page))
- 					continue;
+diff -puN tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-new-option-to-specify-kpageflags-file
++++ a/tools/vm/page-types.c
+@@ -169,9 +169,10 @@ static int		opt_raw;	/* for kernel devel
+ static int		opt_list;	/* list pages (in ranges) */
+ static int		opt_no_summary;	/* don't show summary */
+ static pid_t		opt_pid;	/* process to walk */
+-const char *		opt_file;	/* file or directory path */
++const char		*opt_file;	/* file or directory path */
+ static uint64_t		opt_cgroup;	/* cgroup inode */
+ static int		opt_list_cgroup;/* list page cgroup */
++static const char	*opt_kpageflags;/* kpageflags file to parse */
  
-+				/* Also skip shared copy-on-write pages */
-+				if (is_cow_mapping(vma->vm_flags) &&
-+				    page_mapcount(page) != 1)
-+					continue;
+ #define MAX_ADDR_RANGES	1024
+ static int		nr_addr_ranges;
+@@ -258,7 +259,7 @@ static int checked_open(const char *path
+  * pagemap/kpageflags routines
+  */
+ 
+-static unsigned long do_u64_read(int fd, char *name,
++static unsigned long do_u64_read(int fd, const char *name,
+ 				 uint64_t *buf,
+ 				 unsigned long index,
+ 				 unsigned long count)
+@@ -283,7 +284,7 @@ static unsigned long kpageflags_read(uin
+ 				     unsigned long index,
+ 				     unsigned long pages)
+ {
+-	return do_u64_read(kpageflags_fd, PROC_KPAGEFLAGS, buf, index, pages);
++	return do_u64_read(kpageflags_fd, opt_kpageflags, buf, index, pages);
+ }
+ 
+ static unsigned long kpagecgroup_read(uint64_t *buf,
+@@ -293,7 +294,7 @@ static unsigned long kpagecgroup_read(ui
+ 	if (kpagecgroup_fd < 0)
+ 		return pages;
+ 
+-	return do_u64_read(kpagecgroup_fd, PROC_KPAGEFLAGS, buf, index, pages);
++	return do_u64_read(kpagecgroup_fd, opt_kpageflags, buf, index, pages);
+ }
+ 
+ static unsigned long pagemap_read(uint64_t *buf,
+@@ -743,7 +744,7 @@ static void walk_addr_ranges(void)
+ {
+ 	int i;
+ 
+-	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
++	kpageflags_fd = checked_open(opt_kpageflags, O_RDONLY);
+ 
+ 	if (!nr_addr_ranges)
+ 		add_addr_range(0, ULONG_MAX);
+@@ -790,6 +791,7 @@ static void usage(void)
+ "            -N|--no-summary            Don't show summary info\n"
+ "            -X|--hwpoison              hwpoison pages\n"
+ "            -x|--unpoison              unpoison pages\n"
++"            -F|--kpageflags filename   kpageflags file to parse\n"
+ "            -h|--help                  Show this usage message\n"
+ "flags:\n"
+ "            0x10                       bitfield format, e.g.\n"
+@@ -1013,7 +1015,7 @@ static void walk_page_cache(void)
+ {
+ 	struct stat st;
+ 
+-	kpageflags_fd = checked_open(PROC_KPAGEFLAGS, O_RDONLY);
++	kpageflags_fd = checked_open(opt_kpageflags, O_RDONLY);
+ 	pagemap_fd = checked_open("/proc/self/pagemap", O_RDONLY);
+ 	sigaction(SIGBUS, &sigbus_action, NULL);
+ 
+@@ -1164,6 +1166,11 @@ static void parse_bits_mask(const char *
+ 	add_bits_filter(mask, bits);
+ }
+ 
++static void parse_kpageflags(const char *name)
++{
++	opt_kpageflags = name;
++}
 +
- 				/* Avoid TLB flush if possible */
- 				if (pte_protnone(oldpte))
- 					continue;
+ static void describe_flags(const char *optarg)
+ {
+ 	uint64_t flags = parse_flag_names(optarg, 0);
+@@ -1188,6 +1195,7 @@ static const struct option opts[] = {
+ 	{ "no-summary", 0, NULL, 'N' },
+ 	{ "hwpoison"  , 0, NULL, 'X' },
+ 	{ "unpoison"  , 0, NULL, 'x' },
++	{ "kpageflags", 0, NULL, 'F' },
+ 	{ "help"      , 0, NULL, 'h' },
+ 	{ NULL        , 0, NULL, 0 }
+ };
+@@ -1199,7 +1207,7 @@ int main(int argc, char *argv[])
+ 	page_size = getpagesize();
+ 
+ 	while ((c = getopt_long(argc, argv,
+-				"rp:f:a:b:d:c:ClLNXxh", opts, NULL)) != -1) {
++				"rp:f:a:b:d:c:ClLNXxF:h", opts, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'r':
+ 			opt_raw = 1;
+@@ -1242,6 +1250,9 @@ int main(int argc, char *argv[])
+ 			opt_unpoison = 1;
+ 			prepare_hwpoison_fd();
+ 			break;
++		case 'F':
++			parse_kpageflags(optarg);
++			break;
+ 		case 'h':
+ 			usage();
+ 			exit(0);
+@@ -1251,6 +1262,9 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	if (!opt_kpageflags)
++		opt_kpageflags = PROC_KPAGEFLAGS;
++
+ 	if (opt_cgroup || opt_list_cgroup)
+ 		kpagecgroup_fd = checked_open(PROC_KPAGECGROUP, O_RDONLY);
+ 
 _
 
-Patches currently in -mm which might be from henry.willard@oracle.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 
