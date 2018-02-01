@@ -1,134 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory_hotplug-fix-memmap-initialization.patch
- removed from -mm tree
-Date: Thu, 01 Feb 2018 11:35:03 -0800
-Message-ID: <20180201193503.mY1gwv1DW%akpm@linux-foundation.org>
+Subject: [merged]
+ hugetlb-mempolicy-fix-the-mbind-hugetlb-migration.patch removed from -mm
+ tree
+Date: Thu, 01 Feb 2018 11:34:50 -0800
+Message-ID: <20180201193450.6ulJNtqXX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33278 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754606AbeBATfF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:35:05 -0500
+        with ESMTP id S1754673AbeBATe5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharata@linux.vnet.ibm.com, bob.picco@oracle.com, daniel.m.jordan@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, stable@vger.kernel.org, steven.sistare@oracle.com
+To: ar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: mm, memory_hotplug: fix memmap initialization
+     Subject: hugetlb, mempolicy: fix the mbind hugetlb migration
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-fix-memmap-initialization.patch
+     hugetlb-mempolicy-fix-the-mbind-hugetlb-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: fix memmap initialization
+Subject: hugetlb, mempolicy: fix the mbind hugetlb migration
 
-Bharata has noticed that onlining a newly added memory doesn't increase
-the total memory, pointing to f7f99100d8d9 ("mm: stop zeroing memory
-during allocation in vmemmap") as a culprit.  This commit has changed the
-way how the memory for memmaps is initialized and moves it from the
-allocation time to the initialization time.  This works properly for the
-early memmap init path.
+do_mbind migration code relies on alloc_huge_page_noerr for hugetlb pages.
+alloc_huge_page_noerr uses alloc_huge_page which is a highlevel
+allocation function which has to take care of reserves, overcommit or
+hugetlb cgroup accounting.  None of that is really required for the page
+migration because the new page is only temporal and either will replace
+the original page or it will be dropped.  This is essentially as for other
+migration call paths and there shouldn't be any reason to handle mbind in
+a special way.
 
-It doesn't work for the memory hotplug though because we need to mark page
-as reserved when the sparsemem section is created and later initialize it
-completely during onlining.  memmap_init_zone is called in the early stage
-of onlining.  With the current code it calls __init_single_page and as
-such it clears up the whole stage and therefore online_pages_range skips
-those pages.
+The current implementation is even suboptimal because the migration might
+fail just because the hugetlb cgroup limit is reached, or the overcommit
+is saturated.
 
-Fix this by skipping mm_zero_struct_page in __init_single_page for memory
-hotplug path.  This is quite uggly but unifying both early init and memory
-hotplug init paths is a large project.  Make sure we plug the regression
-at least.
+Fix this by making mbind like other hugetlb migration paths.  Add a new
+migration helper alloc_huge_page_vma as a wrapper around
+alloc_huge_page_nodemask with additional mempolicy handling.
 
-Link: http://lkml.kernel.org/r/20180130101141.GW21609@dhcp22.suse.cz
-Fixes: f7f99100d8d9 ("mm: stop zeroing memory during allocation in vmemmap")
+alloc_huge_page_noerr has no more users and it can go.
+
+Link: http://lkml.kernel.org/r/20180103093213.26329-7-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Tested-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ include/linux/hugetlb.h |    5 ++---
+ mm/hugetlb.c            |   33 +++++++++++++++++++--------------
+ mm/mempolicy.c          |    3 +--
+ 3 files changed, 22 insertions(+), 19 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-fix-memmap-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-fix-memmap-initialization
-+++ a/mm/page_alloc.c
-@@ -1177,9 +1177,10 @@ static void free_one_page(struct zone *z
+diff -puN include/linux/hugetlb.h~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
++++ a/include/linux/hugetlb.h
+@@ -356,10 +356,9 @@ struct huge_bootmem_page {
+ struct page *alloc_huge_page(struct vm_area_struct *vma,
+ 				unsigned long addr, int avoid_reserve);
+ struct page *alloc_huge_page_node(struct hstate *h, int nid);
+-struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
+-				unsigned long addr, int avoid_reserve);
+ struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
+ 				nodemask_t *nmask);
++struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address);
+ int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
+ 			pgoff_t idx);
+ 
+@@ -537,7 +536,7 @@ struct hstate {};
+ #define alloc_huge_page(v, a, r) NULL
+ #define alloc_huge_page_node(h, nid) NULL
+ #define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
+-#define alloc_huge_page_noerr(v, a, r) NULL
++#define alloc_huge_page_vma(vma, address) NULL
+ #define alloc_bootmem_huge_page(h) NULL
+ #define hstate_file(f) NULL
+ #define hstate_sizelog(s) NULL
+diff -puN mm/hugetlb.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
++++ a/mm/hugetlb.c
+@@ -1674,6 +1674,25 @@ struct page *alloc_huge_page_nodemask(st
+ 	return alloc_migrate_huge_page(h, gfp_mask, preferred_nid, nmask);
  }
  
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
--				unsigned long zone, int nid)
-+				unsigned long zone, int nid, bool zero)
- {
--	mm_zero_struct_page(page);
-+	if (zero)
-+		mm_zero_struct_page(page);
- 	set_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
-@@ -1194,9 +1195,9 @@ static void __meminit __init_single_page
++/* mempolicy aware migration callback */
++struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address)
++{
++	struct mempolicy *mpol;
++	nodemask_t *nodemask;
++	struct page *page;
++	struct hstate *h;
++	gfp_t gfp_mask;
++	int node;
++
++	h = hstate_vma(vma);
++	gfp_mask = htlb_alloc_mask(h);
++	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
++	page = alloc_huge_page_nodemask(h, node, nodemask);
++	mpol_cond_put(mpol);
++
++	return page;
++}
++
+ /*
+  * Increase the hugetlb pool such that it can accommodate a reservation
+  * of size 'delta'.
+@@ -2079,20 +2098,6 @@ out_subpool_put:
+ 	return ERR_PTR(-ENOSPC);
  }
  
- static void __meminit __init_single_pfn(unsigned long pfn, unsigned long zone,
--					int nid)
-+					int nid, bool zero)
- {
--	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
-+	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid, zero);
- }
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-@@ -1217,7 +1218,7 @@ static void __meminit init_reserved_page
- 		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
- 			break;
+-/*
+- * alloc_huge_page()'s wrapper which simply returns the page if allocation
+- * succeeds, otherwise NULL. This function is called from new_vma_page(),
+- * where no ERR_VALUE is expected to be returned.
+- */
+-struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
+-				unsigned long addr, int avoid_reserve)
+-{
+-	struct page *page = alloc_huge_page(vma, addr, avoid_reserve);
+-	if (IS_ERR(page))
+-		page = NULL;
+-	return page;
+-}
+-
+ int alloc_bootmem_huge_page(struct hstate *h)
+ 	__attribute__ ((weak, alias("__alloc_bootmem_huge_page")));
+ int __alloc_bootmem_huge_page(struct hstate *h)
+diff -puN mm/mempolicy.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration mm/mempolicy.c
+--- a/mm/mempolicy.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
++++ a/mm/mempolicy.c
+@@ -1121,8 +1121,7 @@ static struct page *new_page(struct page
  	}
--	__init_single_pfn(pfn, zid, nid);
-+	__init_single_pfn(pfn, zid, nid, true);
- }
- #else
- static inline void init_reserved_page(unsigned long pfn)
-@@ -1534,7 +1535,7 @@ static unsigned long  __init deferred_in
- 		} else {
- 			page++;
- 		}
--		__init_single_page(page, pfn, zid, nid);
-+		__init_single_page(page, pfn, zid, nid, true);
- 		nr_pages++;
- 	}
- 	return (nr_pages);
-@@ -5399,15 +5400,20 @@ not_early:
- 		 * can be created for invalid pages (for alignment)
- 		 * check here not to call set_pageblock_migratetype() against
- 		 * pfn out of zone.
-+		 *
-+		 * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
-+		 * because this is done early in sparse_add_one_section
- 		 */
- 		if (!(pfn & (pageblock_nr_pages - 1))) {
- 			struct page *page = pfn_to_page(pfn);
  
--			__init_single_page(page, pfn, zone, nid);
-+			__init_single_page(page, pfn, zone, nid,
-+					context != MEMMAP_HOTPLUG);
- 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 			cond_resched();
- 		} else {
--			__init_single_pfn(pfn, zone, nid);
-+			__init_single_pfn(pfn, zone, nid,
-+					context != MEMMAP_HOTPLUG);
- 		}
- 	}
- }
+ 	if (PageHuge(page)) {
+-		BUG_ON(!vma);
+-		return alloc_huge_page_noerr(vma, address, 1);
++		return alloc_huge_page_vma(vma, address);
+ 	} else if (thp_migration_supported() && PageTransHuge(page)) {
+ 		struct page *thp;
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
