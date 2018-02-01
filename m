@@ -1,155 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-convert-to-use-anon_inode_getfd.patch
+Subject: [merged] memcg-refactor-mem_cgroup_resize_limit.patch
  removed from -mm tree
-Date: Thu, 01 Feb 2018 11:33:50 -0800
-Message-ID: <20180201193350.DJV_SLp_l%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:34:04 -0800
+Message-ID: <20180201193404.NGEDjG19T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:60404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753433AbeBATeI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:08 -0500
+        with ESMTP id S1754647AbeBATeK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ebiggers@google.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
+To: hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, yuzhao@google.com
 
 
 The patch titled
-     Subject: userfaultfd: convert to use anon_inode_getfd()
+     Subject: memcg: refactor mem_cgroup_resize_limit()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-convert-to-use-anon_inode_getfd.patch
+     memcg-refactor-mem_cgroup_resize_limit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: userfaultfd: convert to use anon_inode_getfd()
+From: Yu Zhao <yuzhao@google.com>
+Subject: memcg: refactor mem_cgroup_resize_limit()
 
-Nothing actually calls userfaultfd_file_create() besides the userfaultfd()
-system call itself.  So simplify things by folding it into the system call
-and using anon_inode_getfd() instead of anon_inode_getfile().  Do the same
-in resolve_userfault_fork() as well.  This removes over 50 lines with no
-change in functionality.
+mem_cgroup_resize_limit() and mem_cgroup_resize_memsw_limit() have
+identical logics.  Refactor code so we don't need to keep two pieces of
+code that does same thing.
 
-Link: http://lkml.kernel.org/r/20171229212403.22800-1-ebiggers3@gmail.com
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/20180108224238.14583-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   70 +++++----------------------------------------
- 1 file changed, 9 insertions(+), 61 deletions(-)
+ mm/memcontrol.c |   77 ++++++++++------------------------------------
+ 1 file changed, 17 insertions(+), 60 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-convert-to-use-anon_inode_getfd fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-convert-to-use-anon_inode_getfd
-+++ a/fs/userfaultfd.c
-@@ -988,24 +988,14 @@ static int resolve_userfault_fork(struct
- 				  struct uffd_msg *msg)
+diff -puN mm/memcontrol.c~memcg-refactor-mem_cgroup_resize_limit mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-refactor-mem_cgroup_resize_limit
++++ a/mm/memcontrol.c
+@@ -2461,13 +2461,15 @@ static inline int mem_cgroup_move_swap_a
+ static DEFINE_MUTEX(memcg_limit_mutex);
+ 
+ static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
+-				   unsigned long limit)
++				   unsigned long limit, bool memsw)
  {
- 	int fd;
--	struct file *file;
--	unsigned int flags = new->flags & UFFD_SHARED_FCNTL_FLAGS;
+ 	unsigned long curusage;
+ 	unsigned long oldusage;
+ 	bool enlarge = false;
+ 	int retry_count;
+ 	int ret;
++	bool limits_invariant;
++	struct page_counter *counter = memsw ? &memcg->memsw : &memcg->memory;
  
--	fd = get_unused_fd_flags(flags);
-+	fd = anon_inode_getfd("[userfaultfd]", &userfaultfd_fops, new,
-+			      O_RDWR | (new->flags & UFFD_SHARED_FCNTL_FLAGS));
- 	if (fd < 0)
- 		return fd;
+ 	/*
+ 	 * For keeping hierarchical_reclaim simple, how long we should retry
+@@ -2477,7 +2479,7 @@ static int mem_cgroup_resize_limit(struc
+ 	retry_count = MEM_CGROUP_RECLAIM_RETRIES *
+ 		      mem_cgroup_count_children(memcg);
  
--	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, new,
--				  O_RDWR | flags);
--	if (IS_ERR(file)) {
--		put_unused_fd(fd);
--		return PTR_ERR(file);
--	}
+-	oldusage = page_counter_read(&memcg->memory);
++	oldusage = page_counter_read(counter);
+ 
+ 	do {
+ 		if (signal_pending(current)) {
+@@ -2486,73 +2488,28 @@ static int mem_cgroup_resize_limit(struc
+ 		}
+ 
+ 		mutex_lock(&memcg_limit_mutex);
+-		if (limit > memcg->memsw.limit) {
+-			mutex_unlock(&memcg_limit_mutex);
+-			ret = -EINVAL;
+-			break;
+-		}
+-		if (limit > memcg->memory.limit)
+-			enlarge = true;
+-		ret = page_counter_limit(&memcg->memory, limit);
+-		mutex_unlock(&memcg_limit_mutex);
 -
--	fd_install(fd, file);
- 	msg->arg.reserved.reserved1 = 0;
- 	msg->arg.fork.ufd = fd;
+-		if (!ret)
+-			break;
 -
- 	return 0;
- }
- 
-@@ -1887,24 +1877,10 @@ static void init_once_userfaultfd_ctx(vo
- 	seqcount_init(&ctx->refile_seq);
- }
- 
--/**
-- * userfaultfd_file_create - Creates a userfaultfd file pointer.
-- * @flags: Flags for the userfaultfd file.
-- *
-- * This function creates a userfaultfd file pointer, w/out installing
-- * it into the fd table. This is useful when the userfaultfd file is
-- * used during the initialization of data structures that require
-- * extra setup after the userfaultfd creation. So the userfaultfd
-- * creation is split into the file pointer creation phase, and the
-- * file descriptor installation phase.  In this way races with
-- * userspace closing the newly installed file descriptor can be
-- * avoided.  Returns a userfaultfd file pointer, or a proper error
-- * pointer.
-- */
--static struct file *userfaultfd_file_create(int flags)
-+SYSCALL_DEFINE1(userfaultfd, int, flags)
- {
--	struct file *file;
- 	struct userfaultfd_ctx *ctx;
-+	int fd;
- 
- 	BUG_ON(!current->mm);
- 
-@@ -1912,14 +1888,12 @@ static struct file *userfaultfd_file_cre
- 	BUILD_BUG_ON(UFFD_CLOEXEC != O_CLOEXEC);
- 	BUILD_BUG_ON(UFFD_NONBLOCK != O_NONBLOCK);
- 
--	file = ERR_PTR(-EINVAL);
- 	if (flags & ~UFFD_SHARED_FCNTL_FLAGS)
--		goto out;
-+		return -EINVAL;
- 
--	file = ERR_PTR(-ENOMEM);
- 	ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
- 	if (!ctx)
--		goto out;
-+		return -ENOMEM;
- 
- 	atomic_set(&ctx->refcount, 1);
- 	ctx->flags = flags;
-@@ -1930,39 +1904,13 @@ static struct file *userfaultfd_file_cre
- 	/* prevent the mm struct to be freed */
- 	mmgrab(ctx->mm);
- 
--	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
--				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
--	if (IS_ERR(file)) {
-+	fd = anon_inode_getfd("[userfaultfd]", &userfaultfd_fops, ctx,
-+			      O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
-+	if (fd < 0) {
- 		mmdrop(ctx->mm);
- 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- 	}
--out:
--	return file;
+-		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, true);
+-
+-		curusage = page_counter_read(&memcg->memory);
+-		/* Usage is reduced ? */
+-		if (curusage >= oldusage)
+-			retry_count--;
+-		else
+-			oldusage = curusage;
+-	} while (retry_count);
+-
+-	if (!ret && enlarge)
+-		memcg_oom_recover(memcg);
+-
+-	return ret;
 -}
 -
--SYSCALL_DEFINE1(userfaultfd, int, flags)
+-static int mem_cgroup_resize_memsw_limit(struct mem_cgroup *memcg,
+-					 unsigned long limit)
 -{
--	int fd, error;
--	struct file *file;
+-	unsigned long curusage;
+-	unsigned long oldusage;
+-	bool enlarge = false;
+-	int retry_count;
+-	int ret;
 -
--	error = get_unused_fd_flags(flags & UFFD_SHARED_FCNTL_FLAGS);
--	if (error < 0)
--		return error;
--	fd = error;
+-	/* see mem_cgroup_resize_res_limit */
+-	retry_count = MEM_CGROUP_RECLAIM_RETRIES *
+-		      mem_cgroup_count_children(memcg);
 -
--	file = userfaultfd_file_create(flags);
--	if (IS_ERR(file)) {
--		error = PTR_ERR(file);
--		goto err_put_unused_fd;
--	}
--	fd_install(fd, file);
+-	oldusage = page_counter_read(&memcg->memsw);
 -
- 	return fd;
+-	do {
+-		if (signal_pending(current)) {
+-			ret = -EINTR;
+-			break;
+-		}
 -
--err_put_unused_fd:
--	put_unused_fd(fd);
+-		mutex_lock(&memcg_limit_mutex);
+-		if (limit < memcg->memory.limit) {
++		/*
++		 * Make sure that the new limit (memsw or memory limit) doesn't
++		 * break our basic invariant rule memory.limit <= memsw.limit.
++		 */
++		limits_invariant = memsw ? limit >= memcg->memory.limit :
++					   limit <= memcg->memsw.limit;
++		if (!limits_invariant) {
+ 			mutex_unlock(&memcg_limit_mutex);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+-		if (limit > memcg->memsw.limit)
++		if (limit > counter->limit)
+ 			enlarge = true;
+-		ret = page_counter_limit(&memcg->memsw, limit);
++		ret = page_counter_limit(counter, limit);
+ 		mutex_unlock(&memcg_limit_mutex);
+ 
+ 		if (!ret)
+ 			break;
+ 
+-		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, false);
++		try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, !memsw);
+ 
+-		curusage = page_counter_read(&memcg->memsw);
++		curusage = page_counter_read(counter);
+ 		/* Usage is reduced ? */
+ 		if (curusage >= oldusage)
+ 			retry_count--;
+@@ -3014,10 +2971,10 @@ static ssize_t mem_cgroup_write(struct k
+ 		}
+ 		switch (MEMFILE_TYPE(of_cft(of)->private)) {
+ 		case _MEM:
+-			ret = mem_cgroup_resize_limit(memcg, nr_pages);
++			ret = mem_cgroup_resize_limit(memcg, nr_pages, false);
+ 			break;
+ 		case _MEMSWAP:
+-			ret = mem_cgroup_resize_memsw_limit(memcg, nr_pages);
++			ret = mem_cgroup_resize_limit(memcg, nr_pages, true);
+ 			break;
+ 		case _KMEM:
+ 			ret = memcg_update_kmem_limit(memcg, nr_pages);
+_
+
+Patches currently in -mm which might be from yuzhao@google.com are
+
+mm-dont-expose-page-to-fast-gup-before-its-ready.patch
+
