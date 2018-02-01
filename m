@@ -1,86 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch removed from
- -mm tree
-Date: Thu, 01 Feb 2018 11:30:46 -0800
-Message-ID: <20180201193046.OPCpzqymW%akpm@linux-foundation.org>
+Subject: [merged] mm-drop-hotplug-lock-from-lru_add_drain_all.patch
+ removed from -mm tree
+Date: Thu, 01 Feb 2018 11:30:49 -0800
+Message-ID: <20180201193049.r-RHGUcwz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753007AbeBATar (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:47 -0500
+        with ESMTP id S1753007AbeBATau (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, cl@linux.com, mingo@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, salls@cs.ucsb.edu, tanxiaojun@huawei.com, vbabka@suse.cz, xieyisheng1@huawei.com
+To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, peterz@infradead.org, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: add nodes_empty check in SYSC_migrate_pages
+     Subject: mm: drop hotplug lock from lru_add_drain_all()
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
+     mm-drop-hotplug-lock-from-lru_add_drain_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/mempolicy: add nodes_empty check in SYSC_migrate_pages
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: drop hotplug lock from lru_add_drain_all()
 
-As in manpage of migrate_pages, the errno should be set to EINVAL when
-none of the node IDs specified by new_nodes are on-line and allowed by the
-process's current cpuset context, or none of the specified nodes contain
-memory.  However, when test by following case:
+Pulling cpu hotplug locks inside the mm core function like
+lru_add_drain_all just asks for problems and the recent lockdep splat [1]
+just proves this.  While the usage in that particular case might be wrong
+we should avoid the locking as lru_add_drain_all() is used in many places.
+It seems that this is not all that hard to achieve actually.
 
-	new_nodes = 0;
-	old_nodes = 0xf;
-	ret = migrate_pages(pid, old_nodes, new_nodes, MAX);
+We have done the same thing for drain_all_pages which is analogous by
+a459eeb7b852 ("mm, page_alloc: do not depend on cpu hotplug locks inside
+the allocator").  All we have to care about is to handle
 
-The ret will be 0 and no errno is set.  As the new_nodes is empty, we
-should expect EINVAL as documented.
+      - the work item might be executed on a different cpu in worker from
+        unbound pool so it doesn't run on pinned on the cpu
 
-To fix the case like above, this patch check whether target nodes AND
-current task_nodes is empty, and then check whether AND
-node_states[N_MEMORY] is empty.
+      - we have to make sure that we do not race with page_alloc_cpu_dead
+        calling lru_add_drain_cpu
 
-Link: http://lkml.kernel.org/r/1510882624-44342-4-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Chris Salls <salls@cs.ucsb.edu>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Tan Xiaojun <tanxiaojun@huawei.com>
+the first part is already handled because the worker calls lru_add_drain
+which disables preemption when calling lru_add_drain_cpu on the local cpu
+it is draining.  The later is true because page_alloc_cpu_dead is called
+on the controlling CPU after the hotplugged CPU vanished completely.
+
+[1] http://lkml.kernel.org/r/089e0825eec8955c1f055c83d476@google.com
+
+[add a cpu hotplug locking interaction as per tglx]
+Link: http://lkml.kernel.org/r/20171116120535.23765-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/memory_hotplug.c  |    2 +-
+ mm/swap.c            |   16 ++++++++--------
+ 3 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages
-+++ a/mm/mempolicy.c
-@@ -1433,10 +1433,14 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
- 		goto out_put;
- 	}
+diff -puN include/linux/swap.h~mm-drop-hotplug-lock-from-lru_add_drain_all include/linux/swap.h
+--- a/include/linux/swap.h~mm-drop-hotplug-lock-from-lru_add_drain_all
++++ a/include/linux/swap.h
+@@ -332,7 +332,6 @@ extern void mark_page_accessed(struct pa
+ extern void lru_add_drain(void);
+ extern void lru_add_drain_cpu(int cpu);
+ extern void lru_add_drain_all(void);
+-extern void lru_add_drain_all_cpuslocked(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void deactivate_file_page(struct page *page);
+ extern void mark_page_lazyfree(struct page *page);
+diff -puN mm/memory_hotplug.c~mm-drop-hotplug-lock-from-lru_add_drain_all mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-drop-hotplug-lock-from-lru_add_drain_all
++++ a/mm/memory_hotplug.c
+@@ -1637,7 +1637,7 @@ repeat:
+ 		goto failed_removal;
  
--	if (!nodes_subset(*new, node_states[N_MEMORY])) {
--		err = -EINVAL;
-+	task_nodes = cpuset_mems_allowed(current);
-+	nodes_and(*new, *new, task_nodes);
-+	if (nodes_empty(*new))
-+		goto out_put;
-+
-+	nodes_and(*new, *new, node_states[N_MEMORY]);
-+	if (nodes_empty(*new))
- 		goto out_put;
--	}
+ 	cond_resched();
+-	lru_add_drain_all_cpuslocked();
++	lru_add_drain_all();
+ 	drain_all_pages(zone);
  
- 	err = security_task_movememory(task);
- 	if (err)
-_
-
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
-
-
+ 	pfn = scan_movable_pages(start_pfn, end_pfn);
+diff -puN mm/swap.c~mm-drop-hotplug-lock-from-lru_add_drain_all mm/swap.c
+--- a/mm/swap.c~mm-drop-hotplug-lock-from-lru_add_drain_all
++++ a/mm/swap.c
+@@ -688,7 +688,14 @@ static void lru_add_drain_per_cpu(struct
+ 
+ static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
+ 
+-void lru_add_drain_all_cpuslocked(void)
++/*
++ * Doesn't need any cpu hotplug locking because we do rely on per-cpu
++ * kworkers being shut down before our page_alloc_cpu_dead callback is
++ * executed on the offlined cpu.
++ * Calling this function with cpu hotplug locks held can actually lead
++ * to obscure indirect dependencies via WQ context.
++ */
++void lru_add_drain_all(void)
+ {
+ 	static DEFINE_MUTEX(lock);
+ 	static struct cpumask has_work;
+@@ -724,13 +731,6 @@ void lru_add_drain_all_cpuslocked(void)
+ 	mutex_unlock(&lock);
+ }
+ 
+-void lru_add_drain_all(void)
+-{
+-	get_online_cpus();
+-	lru_add_drain_all_cpuslocked();
+-	put_online_cpus();
+-}
