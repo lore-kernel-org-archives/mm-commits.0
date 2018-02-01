@@ -1,103 +1,147 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
- removed from -mm tree
-Date: Thu, 01 Feb 2018 11:30:09 -0800
-Message-ID: <20180201193009.8Yg8nRKmI%akpm@linux-foundation.org>
+ mm-slab-make-calculate_alignment-function-static.patch removed from -mm
+ tree
+Date: Thu, 01 Feb 2018 11:30:12 -0800
+Message-ID: <20180201193012.jNpDpxzwq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57142 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752901AbeBATaL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:11 -0500
+        with ESMTP id S1753107AbeBATaN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: bhlee.kernel@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+     Subject: mm/slab_common.c: make calculate_alignment() static
 has been removed from the -mm tree.  Its filename was
-     ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2.patch
+     mm-slab-make-calculate_alignment-function-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+From: Byongho Lee <bhlee.kernel@gmail.com>
+Subject: mm/slab_common.c: make calculate_alignment() static
 
-We should not reuse the dirty bh in jbd2 directly due to the following
-situation:
+calculate_alignment() function is only used inside slab_common.c.  So make
+it static and let the compiler do more optimizations.
 
-1. When removing extent rec, we will dirty the bhs of extent rec and
-   truncate log at the same time, and hand them over to jbd2.
-2. The bhs are submitted to jbd2 area successfully.
-3. The write-back thread of device help flush the bhs to disk but
-   encounter write error due to abnormal storage link.
-4. After a while the storage link become normal. Truncate log flush
-   worker triggered by the next space reclaiming found the dirty bh of
-   truncate log and clear its 'BH_Write_EIO' and then set it uptodate in
-   __ocfs2_journal_access():
+After this patch there's a small improvement in text and data size.
 
-ocfs2_truncate_log_worker
-  ocfs2_flush_truncate_log
-    __ocfs2_flush_truncate_log
-      ocfs2_replay_truncate_records
-        ocfs2_journal_access_di
-          __ocfs2_journal_access // here we clear io_error and set 'tl_bh' uptodata.
+$ gcc --version
+  gcc (GCC) 7.2.1 20171128
 
-5. Then jbd2 will flush the bh of truncate log to disk, but the bh of
-   extent rec is still in error state, and unfortunately nobody will
-   take care of it.
-6. At last the space of extent rec was not reduced, but truncate log
-   flush worker have given it back to globalalloc. That will cause
-   duplicate cluster problem which could be identified by fsck.ocfs2.
+Before:
+  text	   data	    bss	    dec	     hex	filename
+  9890457  3828702  1212364 14931523 e3d643	vmlinux
 
-Sadlly we can hardly revert this but set fs read-only in case of
-ruining atomicity and consistency of space reclaim.
+After:
+  text	   data	    bss	    dec	     hex	filename
+  9890437  3828670  1212364 14931471 e3d60f	vmlinux
 
-Link: http://lkml.kernel.org/r/5A6E8092.8090701@huawei.com
-Fixes: acf8fdbe6afb ("ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access")
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Also I fixed a style problem reported by checkpatch.
+
+  WARNING: Missing a blank line after declarations
+  #53: FILE: mm/slab_common.c:286:
+  +		unsigned long ralign = cache_line_size();
+  +		while (size <= ralign / 2)
+
+Link: http://lkml.kernel.org/r/20171210080132.406-1-bhlee.kernel@gmail.com
+Signed-off-by: Byongho Lee <bhlee.kernel@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ mm/slab.h        |    3 --
+ mm/slab_common.c |   56 +++++++++++++++++++++++----------------------
+ 2 files changed, 29 insertions(+), 30 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2 fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2
-+++ a/fs/ocfs2/journal.c
-@@ -666,23 +666,24 @@ static int __ocfs2_journal_access(handle
- 	/* we can safely remove this assertion after testing. */
- 	if (!buffer_uptodate(bh)) {
- 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
--		mlog(ML_ERROR, "b_blocknr=%llu\n",
--		     (unsigned long long)bh->b_blocknr);
-+		mlog(ML_ERROR, "b_blocknr=%llu, b_state=0x%lx\n",
-+		     (unsigned long long)bh->b_blocknr, bh->b_state);
+diff -puN mm/slab_common.c~mm-slab-make-calculate_alignment-function-static mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-make-calculate_alignment-function-static
++++ a/mm/slab_common.c
+@@ -268,6 +268,35 @@ static inline void memcg_unlink_cache(st
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
  
- 		lock_buffer(bh);
- 		/*
--		 * A previous attempt to write this buffer head failed.
--		 * Nothing we can do but to retry the write and hope for
--		 * the best.
-+		 * A previous transaction with a couple of buffer heads fail
-+		 * to checkpoint, so all the bhs are marked as BH_Write_EIO.
-+		 * For current transaction, the bh is just among those error
-+		 * bhs which previous transaction handle. We can't just clear
-+		 * its BH_Write_EIO and reuse directly, since other bhs are
-+		 * not written to disk yet and that will cause metadata
-+		 * inconsistency. So we should set fs read-only to avoid
-+		 * further damage.
- 		 */
- 		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
--			clear_buffer_write_io_error(bh);
--			set_buffer_uptodate(bh);
--		}
+ /*
++ * Figure out what the alignment of the objects will be given a set of
++ * flags, a user specified alignment and the size of the objects.
++ */
++static unsigned long calculate_alignment(unsigned long flags,
++		unsigned long align, unsigned long size)
++{
++	/*
++	 * If the user wants hardware cache aligned objects then follow that
++	 * suggestion if the object is sufficiently large.
++	 *
++	 * The hardware cache alignment cannot override the specified
++	 * alignment though. If that is greater then use it.
++	 */
++	if (flags & SLAB_HWCACHE_ALIGN) {
++		unsigned long ralign;
++
++		ralign = cache_line_size();
++		while (size <= ralign / 2)
++			ralign /= 2;
++		align = max(align, ralign);
++	}
++
++	if (align < ARCH_SLAB_MINALIGN)
++		align = ARCH_SLAB_MINALIGN;
++
++	return ALIGN(align, sizeof(void *));
++}
++
++/*
+  * Find a mergeable slab cache
+  */
+ int slab_unmergeable(struct kmem_cache *s)
+@@ -337,33 +366,6 @@ struct kmem_cache *find_mergeable(size_t
+ 	return NULL;
+ }
+ 
+-/*
+- * Figure out what the alignment of the objects will be given a set of
+- * flags, a user specified alignment and the size of the objects.
+- */
+-unsigned long calculate_alignment(slab_flags_t flags,
+-		unsigned long align, unsigned long size)
+-{
+-	/*
+-	 * If the user wants hardware cache aligned objects then follow that
+-	 * suggestion if the object is sufficiently large.
+-	 *
+-	 * The hardware cache alignment cannot override the specified
+-	 * alignment though. If that is greater then use it.
+-	 */
+-	if (flags & SLAB_HWCACHE_ALIGN) {
+-		unsigned long ralign = cache_line_size();
+-		while (size <= ralign / 2)
+-			ralign /= 2;
+-		align = max(align, ralign);
+-	}
+-
+-	if (align < ARCH_SLAB_MINALIGN)
+-		align = ARCH_SLAB_MINALIGN;
+-
+-	return ALIGN(align, sizeof(void *));
+-}
+-
+ static struct kmem_cache *create_cache(const char *name,
+ 		size_t object_size, size_t size, size_t align,
+ 		slab_flags_t flags, void (*ctor)(void *),
+diff -puN mm/slab.h~mm-slab-make-calculate_alignment-function-static mm/slab.h
+--- a/mm/slab.h~mm-slab-make-calculate_alignment-function-static
++++ a/mm/slab.h
+@@ -78,9 +78,6 @@ extern const struct kmalloc_info_struct
+ 	unsigned long size;
+ } kmalloc_info[];
+ 
+-unsigned long calculate_alignment(slab_flags_t flags,
+-		unsigned long align, unsigned long size);
