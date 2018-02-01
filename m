@@ -1,100 +1,371 @@
 From: akpm@linux-foundation.org
-Subject: [patch 016/119] ocfs2/acl: use 'ip_xattr_sem' to protect
- getting extended attribute
-Date: Wed, 31 Jan 2018 16:14:59 -0800
-Message-ID: <20180201001459.-f9Mugjjb%akpm@linux-foundation.org>
+Subject: [patch 018/119] ocfs2: try to reuse extent block in
+ dealloc without meta_alloc
+Date: Wed, 31 Jan 2018 16:15:06 -0800
+Message-ID: <20180201001506.4h-FW2C0O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33784 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAPA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:00 -0500
+        with ESMTP id S1754449AbeBAAPI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, john@nixnuts.net, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2: try to reuse extent block in dealloc without meta_alloc
 
-The race between *set_acl and *get_acl will cause getting incomplete xattr
-data as below:
+A crash issue was reported by John.
+The call trace follows:
+ocfs2_split_extent+0x1ad3/0x1b40 [ocfs2]
+ocfs2_change_extent_flag+0x33a/0x470 [ocfs2]
+ocfs2_mark_extent_written+0x172/0x220 [ocfs2]
+ocfs2_dio_end_io+0x62d/0x910 [ocfs2]
+dio_complete+0x19a/0x1a0
+do_blockdev_direct_IO+0x19dd/0x1eb0
+__blockdev_direct_IO+0x43/0x50
+ocfs2_direct_IO+0x8f/0xa0 [ocfs2]
+generic_file_direct_write+0xb2/0x170
+__generic_file_write_iter+0xc3/0x1b0
+ocfs2_file_write_iter+0x4bb/0xca0 [ocfs2]
+__vfs_write+0xae/0xf0
+vfs_write+0xb8/0x1b0
+SyS_write+0x4f/0xb0
+system_call_fastpath+0x16/0x75
 
-processA                                    processB
+The BUG code told that extent tree wants to grow but no metadata was
+reserved ahead of time.  From my investigation into this issue, the root
+cause it that although enough metadata is not reserved, there should be
+enough for following use.  Rightmost extent is merged into its left one
+due to a certain times of marking extent written.  Because during marking
+extent written, we got many physically continuous extents.  At last, an
+empty extent showed up and the rightmost path is removed from extent tree.
 
-ocfs2_set_acl
-  ocfs2_xattr_set
-    __ocfs2_xattr_set_handle
+Add a new mechanism to reuse extent block cached in dealloc which were
+just unlinked from extent tree to solve this crash issue.
 
-                                            ocfs2_get_acl_nolock
-                                              ocfs2_xattr_get_nolock:
+Criteria is that during marking extents *written*, if extent rotation and
+merging results in unlinking extent with growing extent tree later without
+any metadata reserved ahead of time, try to reuse those extents in dealloc
+in which deleted extents are cached.
 
-processB may get incomplete xattr data if processA hasn't set_acl done. 
-So we should use 'ip_xattr_sem' to protect getting extended attribute in
-ocfs2_get_acl_nolock(), as other processes could be changing it
-concurrently.
+Also, this patch addresses the issue John reported that ::dw_zero_count is
+not calculated properly.
 
-Link: http://lkml.kernel.org/r/5A5DDCFF.7030001@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
+After applying this patch, the issue John reported was gone.  Thanks for
+the reproducer provided by John.  And this patch has passed ocfs2-test(29
+cases) suite running by New H3C Group.
+
+[ge.changwei@h3c.com: fix static checker warnning]
+  Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F29196AE@H3CMLB12-EX.srv.huawei-3com.com
+[akpm@linux-foundation.org: brelse(NULL) is legal]
+Link: http://lkml.kernel.org/r/1515479070-32653-2-git-send-email-ge.changwei@h3c.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reported-by: John Lightsey <john@nixnuts.net>
+Tested-by: John Lightsey <john@nixnuts.net>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <ge.changwei@h3c.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c   |    6 ++++++
- fs/ocfs2/xattr.c |    2 ++
- 2 files changed, 8 insertions(+)
+ fs/ocfs2/alloc.c |  206 ++++++++++++++++++++++++++++++++++++++++++---
+ fs/ocfs2/alloc.h |    1 
+ fs/ocfs2/aops.c  |    6 +
+ 3 files changed, 203 insertions(+), 10 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
-+++ a/fs/ocfs2/acl.c
-@@ -311,7 +311,9 @@ struct posix_acl *ocfs2_iop_get_acl(stru
- 	if (had_lock < 0)
- 		return ERR_PTR(had_lock);
+diff -puN fs/ocfs2/alloc.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc
++++ a/fs/ocfs2/alloc.c
+@@ -165,6 +165,13 @@ static int ocfs2_dinode_insert_check(str
+ 				     struct ocfs2_extent_rec *rec);
+ static int ocfs2_dinode_sanity_check(struct ocfs2_extent_tree *et);
+ static void ocfs2_dinode_fill_root_el(struct ocfs2_extent_tree *et);
++
++static int ocfs2_reuse_blk_from_dealloc(handle_t *handle,
++					struct ocfs2_extent_tree *et,
++					struct buffer_head **new_eb_bh,
++					int blk_wanted, int *blk_given);
++static int ocfs2_is_dealloc_empty(struct ocfs2_extent_tree *et);
++
+ static const struct ocfs2_extent_tree_operations ocfs2_dinode_et_ops = {
+ 	.eo_set_last_eb_blk	= ocfs2_dinode_set_last_eb_blk,
+ 	.eo_get_last_eb_blk	= ocfs2_dinode_get_last_eb_blk,
+@@ -448,6 +455,7 @@ static void __ocfs2_init_extent_tree(str
+ 	if (!obj)
+ 		obj = (void *)bh->b_data;
+ 	et->et_object = obj;
++	et->et_dealloc = NULL;
  
-+	down_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
-+	up_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	et->et_ops->eo_fill_root_el(et);
+ 	if (!et->et_ops->eo_fill_max_leaf_clusters)
+@@ -1158,7 +1166,7 @@ static int ocfs2_add_branch(handle_t *ha
+ 			    struct buffer_head **last_eb_bh,
+ 			    struct ocfs2_alloc_context *meta_ac)
+ {
+-	int status, new_blocks, i;
++	int status, new_blocks, i, block_given = 0;
+ 	u64 next_blkno, new_last_eb_blk;
+ 	struct buffer_head *bh;
+ 	struct buffer_head **new_eb_bhs = NULL;
+@@ -1213,11 +1221,31 @@ static int ocfs2_add_branch(handle_t *ha
+ 		goto bail;
+ 	}
  
- 	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
- 	brelse(di_bh);
-@@ -330,7 +332,9 @@ int ocfs2_acl_chmod(struct inode *inode,
- 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
- 		return 0;
+-	status = ocfs2_create_new_meta_bhs(handle, et, new_blocks,
+-					   meta_ac, new_eb_bhs);
+-	if (status < 0) {
+-		mlog_errno(status);
+-		goto bail;
++	/* Firstyly, try to reuse dealloc since we have already estimated how
++	 * many extent blocks we may use.
++	 */
++	if (!ocfs2_is_dealloc_empty(et)) {
++		status = ocfs2_reuse_blk_from_dealloc(handle, et,
++						      new_eb_bhs, new_blocks,
++						      &block_given);
++		if (status < 0) {
++			mlog_errno(status);
++			goto bail;
++		}
++	}
++
++	BUG_ON(block_given > new_blocks);
++
++	if (block_given < new_blocks) {
++		BUG_ON(!meta_ac);
++		status = ocfs2_create_new_meta_bhs(handle, et,
++						   new_blocks - block_given,
++						   meta_ac,
++						   &new_eb_bhs[block_given]);
++		if (status < 0) {
++			mlog_errno(status);
++			goto bail;
++		}
+ 	}
  
-+	down_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	acl = ocfs2_get_acl_nolock(inode, ACL_TYPE_ACCESS, bh);
-+	up_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	if (IS_ERR(acl) || !acl)
- 		return PTR_ERR(acl);
- 	ret = __posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
-@@ -361,8 +365,10 @@ int ocfs2_init_acl(handle_t *handle,
+ 	/* Note: new_eb_bhs[new_blocks - 1] is the guy which will be
+@@ -1340,15 +1368,25 @@ static int ocfs2_shift_tree_depth(handle
+ 				  struct ocfs2_alloc_context *meta_ac,
+ 				  struct buffer_head **ret_new_eb_bh)
+ {
+-	int status, i;
++	int status, i, block_given = 0;
+ 	u32 new_clusters;
+ 	struct buffer_head *new_eb_bh = NULL;
+ 	struct ocfs2_extent_block *eb;
+ 	struct ocfs2_extent_list  *root_el;
+ 	struct ocfs2_extent_list  *eb_el;
  
- 	if (!S_ISLNK(inode->i_mode)) {
- 		if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
-+			down_read(&OCFS2_I(dir)->ip_xattr_sem);
- 			acl = ocfs2_get_acl_nolock(dir, ACL_TYPE_DEFAULT,
- 						   dir_bh);
-+			up_read(&OCFS2_I(dir)->ip_xattr_sem);
- 			if (IS_ERR(acl))
- 				return PTR_ERR(acl);
- 		}
-diff -puN fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
-+++ a/fs/ocfs2/xattr.c
-@@ -638,9 +638,11 @@ int ocfs2_calc_xattr_init(struct inode *
- 						     si->value_len);
+-	status = ocfs2_create_new_meta_bhs(handle, et, 1, meta_ac,
+-					   &new_eb_bh);
++	if (!ocfs2_is_dealloc_empty(et)) {
++		status = ocfs2_reuse_blk_from_dealloc(handle, et,
++						      &new_eb_bh, 1,
++						      &block_given);
++	} else if (meta_ac) {
++		status = ocfs2_create_new_meta_bhs(handle, et, 1, meta_ac,
++						   &new_eb_bh);
++
++	} else {
++		BUG();
++	}
++
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto bail;
+@@ -1511,7 +1549,7 @@ static int ocfs2_grow_tree(handle_t *han
+ 	int depth = le16_to_cpu(el->l_tree_depth);
+ 	struct buffer_head *bh = NULL;
  
- 	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
-+		down_read(&OCFS2_I(dir)->ip_xattr_sem);
- 		acl_len = ocfs2_xattr_get_nolock(dir, dir_bh,
- 					OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT,
- 					"", NULL, 0);
-+		up_read(&OCFS2_I(dir)->ip_xattr_sem);
- 		if (acl_len > 0) {
- 			a_size = ocfs2_xattr_entry_real_size(0, acl_len);
- 			if (S_ISDIR(mode))
+-	BUG_ON(meta_ac == NULL);
++	BUG_ON(meta_ac == NULL && ocfs2_is_dealloc_empty(et));
+ 
+ 	shift = ocfs2_find_branch_target(et, &bh);
+ 	if (shift < 0) {
+@@ -6578,6 +6616,154 @@ ocfs2_find_per_slot_free_list(int type,
+ 	return fl;
+ }
+ 
++static struct ocfs2_per_slot_free_list *
++ocfs2_find_preferred_free_list(int type,
++			       int preferred_slot,
++			       int *real_slot,
++			       struct ocfs2_cached_dealloc_ctxt *ctxt)
++{
++	struct ocfs2_per_slot_free_list *fl = ctxt->c_first_suballocator;
++
++	while (fl) {
++		if (fl->f_inode_type == type && fl->f_slot == preferred_slot) {
++			*real_slot = fl->f_slot;
++			return fl;
++		}
++
++		fl = fl->f_next_suballocator;
++	}
++
++	/* If we can't find any free list matching preferred slot, just use
++	 * the first one.
++	 */
++	fl = ctxt->c_first_suballocator;
++	*real_slot = fl->f_slot;
++
++	return fl;
++}
++
++/* Return Value 1 indicates empty */
++static int ocfs2_is_dealloc_empty(struct ocfs2_extent_tree *et)
++{
++	struct ocfs2_per_slot_free_list *fl = NULL;
++
++	if (!et->et_dealloc)
++		return 1;
++
++	fl = et->et_dealloc->c_first_suballocator;
++	if (!fl)
++		return 1;
++
++	if (!fl->f_first)
++		return 1;
++
++	return 0;
++}
++
++/* If extent was deleted from tree due to extent rotation and merging, and
++ * no metadata is reserved ahead of time. Try to reuse some extents
++ * just deleted. This is only used to reuse extent blocks.
++ * It is supposed to find enough extent blocks in dealloc if our estimation
++ * on metadata is accurate.
++ */
++static int ocfs2_reuse_blk_from_dealloc(handle_t *handle,
++					struct ocfs2_extent_tree *et,
++					struct buffer_head **new_eb_bh,
++					int blk_wanted, int *blk_given)
++{
++	int i, status = 0, real_slot;
++	struct ocfs2_cached_dealloc_ctxt *dealloc;
++	struct ocfs2_per_slot_free_list *fl;
++	struct ocfs2_cached_block_free *bf;
++	struct ocfs2_extent_block *eb;
++	struct ocfs2_super *osb =
++		OCFS2_SB(ocfs2_metadata_cache_get_super(et->et_ci));
++
++	*blk_given = 0;
++
++	/* If extent tree doesn't have a dealloc, this is not faulty. Just
++	 * tell upper caller dealloc can't provide any block and it should
++	 * ask for alloc to claim more space.
++	 */
++	dealloc = et->et_dealloc;
++	if (!dealloc)
++		goto bail;
++
++	for (i = 0; i < blk_wanted; i++) {
++		/* Prefer to use local slot */
++		fl = ocfs2_find_preferred_free_list(EXTENT_ALLOC_SYSTEM_INODE,
++						    osb->slot_num, &real_slot,
++						    dealloc);
++		/* If no more block can be reused, we should claim more
++		 * from alloc. Just return here normally.
++		 */
++		if (!fl) {
++			status = 0;
++			break;
++		}
++
++		bf = fl->f_first;
++		fl->f_first = bf->free_next;
++
++		new_eb_bh[i] = sb_getblk(osb->sb, bf->free_blk);
++		if (new_eb_bh[i] == NULL) {
++			status = -ENOMEM;
++			mlog_errno(status);
++			goto bail;
++		}
++
++		mlog(0, "Reusing block(%llu) from "
++		     "dealloc(local slot:%d, real slot:%d)\n",
++		     bf->free_blk, osb->slot_num, real_slot);
++
++		ocfs2_set_new_buffer_uptodate(et->et_ci, new_eb_bh[i]);
++
++		status = ocfs2_journal_access_eb(handle, et->et_ci,
++						 new_eb_bh[i],
++						 OCFS2_JOURNAL_ACCESS_CREATE);
++		if (status < 0) {
++			mlog_errno(status);
++			goto bail;
++		}
++
++		memset(new_eb_bh[i]->b_data, 0, osb->sb->s_blocksize);
++		eb = (struct ocfs2_extent_block *) new_eb_bh[i]->b_data;
++
++		/* We can't guarantee that buffer head is still cached, so
++		 * polutlate the extent block again.
++		 */
++		strcpy(eb->h_signature, OCFS2_EXTENT_BLOCK_SIGNATURE);
++		eb->h_blkno = cpu_to_le64(bf->free_blk);
++		eb->h_fs_generation = cpu_to_le32(osb->fs_generation);
++		eb->h_suballoc_slot = cpu_to_le16(real_slot);
++		eb->h_suballoc_loc = cpu_to_le64(bf->free_bg);
++		eb->h_suballoc_bit = cpu_to_le16(bf->free_bit);
++		eb->h_list.l_count =
++			cpu_to_le16(ocfs2_extent_recs_per_eb(osb->sb));
++
++		/* We'll also be dirtied by the caller, so
++		 * this isn't absolutely necessary.
++		 */
++		ocfs2_journal_dirty(handle, new_eb_bh[i]);
++
++		if (!fl->f_first) {
++			dealloc->c_first_suballocator = fl->f_next_suballocator;
++			kfree(fl);
++		}
++		kfree(bf);
++	}
++
++	*blk_given = i;
++
++bail:
++	if (unlikely(status < 0)) {
++		for (i = 0; i < blk_wanted; i++)
++			brelse(new_eb_bh[i]);
++	}
++
++	return status;
++}
++
+ int ocfs2_cache_block_dealloc(struct ocfs2_cached_dealloc_ctxt *ctxt,
+ 			      int type, int slot, u64 suballoc,
+ 			      u64 blkno, unsigned int bit)
+diff -puN fs/ocfs2/alloc.h~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc fs/ocfs2/alloc.h
+--- a/fs/ocfs2/alloc.h~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc
++++ a/fs/ocfs2/alloc.h
+@@ -61,6 +61,7 @@ struct ocfs2_extent_tree {
+ 	ocfs2_journal_access_func		et_root_journal_access;
+ 	void					*et_object;
+ 	unsigned int				et_max_leaf_clusters;
++	struct ocfs2_cached_dealloc_ctxt	*et_dealloc;
+ };
+ 
+ /*
+diff -puN fs/ocfs2/aops.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-try-to-reuse-extent-block-in-dealloc-without-meta_alloc
++++ a/fs/ocfs2/aops.c
+@@ -2332,6 +2332,12 @@ static int ocfs2_dio_end_io_write(struct
+ 
+ 	ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode), di_bh);
+ 
++	/* Attach dealloc with extent tree in case that we may reuse extents
++	 * which are already unlinked from current extent tree due to extent
++	 * rotation and merging.
++	 */
++	et.et_dealloc = &dealloc;
++
+ 	ret = ocfs2_lock_allocators(inode, &et, 0, dwc->dw_zero_count*2,
+ 				    &data_ac, &meta_ac);
+ 	if (ret) {
 _
