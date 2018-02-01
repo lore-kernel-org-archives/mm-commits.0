@@ -1,33 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [patch 108/119] mm, hugetlb: integrate giga hugetlb more
- naturally to the allocation path
-Date: Wed, 31 Jan 2018 16:20:44 -0800
-Message-ID: <20180201002044.wJlOMhZbk%akpm@linux-foundation.org>
+Subject: [patch 112/119] hugetlb, mempolicy: fix the mbind hugetlb
+ migration
+Date: Wed, 31 Jan 2018 16:21:00 -0800
+Message-ID: <20180201002100.mtcjgpgpX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36492 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAUq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:46 -0500
+        with ESMTP id S1754559AbeBAAVB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: integrate giga hugetlb more naturally to the allocation path
+Subject: hugetlb, mempolicy: fix the mbind hugetlb migration
 
-Gigantic hugetlb pages were ingrown to the hugetlb code as an alien specie
-with a lot of special casing.  The allocation path is not an exception. 
-Unnecessarily so to be honest.  It is true that the underlying allocator
-is different but that is an implementation detail.
+do_mbind migration code relies on alloc_huge_page_noerr for hugetlb pages.
+alloc_huge_page_noerr uses alloc_huge_page which is a highlevel
+allocation function which has to take care of reserves, overcommit or
+hugetlb cgroup accounting.  None of that is really required for the page
+migration because the new page is only temporal and either will replace
+the original page or it will be dropped.  This is essentially as for other
+migration call paths and there shouldn't be any reason to handle mbind in
+a special way.
 
-This patch unifies the hugetlb allocation path that a prepares fresh pool
-pages.  alloc_fresh_gigantic_page basically copies alloc_fresh_huge_page
-logic so we can move everything there.  This will simplify
-set_max_huge_pages which doesn't have to care about what kind of huge page
-we allocate.
+The current implementation is even suboptimal because the migration might
+fail just because the hugetlb cgroup limit is reached, or the overcommit
+is saturated.
 
-Link: http://lkml.kernel.org/r/20180103093213.26329-3-mhocko@kernel.org
+Fix this by making mbind like other hugetlb migration paths.  Add a new
+migration helper alloc_huge_page_vma as a wrapper around
+alloc_huge_page_nodemask with additional mempolicy handling.
+
+alloc_huge_page_noerr has no more users and it can go.
+
+Link: http://lkml.kernel.org/r/20180103093213.26329-7-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -39,114 +47,78 @@ Cc: Zi Yan <zi.yan@cs.rutgers.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   55 ++++++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 41 deletions(-)
+ include/linux/hugetlb.h |    5 ++---
+ mm/hugetlb.c            |   33 +++++++++++++++++++--------------
+ mm/mempolicy.c          |    3 +--
+ 3 files changed, 22 insertions(+), 19 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-integrate-giga-hugetlb-more-naturally-to-the-allocation-path mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-integrate-giga-hugetlb-more-naturally-to-the-allocation-path
+diff -puN include/linux/hugetlb.h~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
++++ a/include/linux/hugetlb.h
+@@ -356,10 +356,9 @@ struct huge_bootmem_page {
+ struct page *alloc_huge_page(struct vm_area_struct *vma,
+ 				unsigned long addr, int avoid_reserve);
+ struct page *alloc_huge_page_node(struct hstate *h, int nid);
+-struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
+-				unsigned long addr, int avoid_reserve);
+ struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
+ 				nodemask_t *nmask);
++struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address);
+ int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
+ 			pgoff_t idx);
+ 
+@@ -537,7 +536,7 @@ struct hstate {};
+ #define alloc_huge_page(v, a, r) NULL
+ #define alloc_huge_page_node(h, nid) NULL
+ #define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
+-#define alloc_huge_page_noerr(v, a, r) NULL
++#define alloc_huge_page_vma(vma, address) NULL
+ #define alloc_bootmem_huge_page(h) NULL
+ #define hstate_file(f) NULL
+ #define hstate_sizelog(s) NULL
+diff -puN mm/hugetlb.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
 +++ a/mm/hugetlb.c
-@@ -1106,7 +1106,8 @@ static bool zone_spans_last_pfn(const st
- 	return zone_spans_pfn(zone, last_pfn);
+@@ -1674,6 +1674,25 @@ struct page *alloc_huge_page_nodemask(st
+ 	return alloc_migrate_huge_page(h, gfp_mask, preferred_nid, nmask);
  }
  
--static struct page *alloc_gigantic_page(int nid, struct hstate *h)
-+static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+		int nid, nodemask_t *nodemask)
- {
- 	unsigned int order = huge_page_order(h);
- 	unsigned long nr_pages = 1 << order;
-@@ -1114,11 +1115,9 @@ static struct page *alloc_gigantic_page(
- 	struct zonelist *zonelist;
- 	struct zone *zone;
- 	struct zoneref *z;
--	gfp_t gfp_mask;
++/* mempolicy aware migration callback */
++struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address)
++{
++	struct mempolicy *mpol;
++	nodemask_t *nodemask;
++	struct page *page;
++	struct hstate *h;
++	gfp_t gfp_mask;
++	int node;
++
++	h = hstate_vma(vma);
++	gfp_mask = htlb_alloc_mask(h);
++	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
++	page = alloc_huge_page_nodemask(h, node, nodemask);
++	mpol_cond_put(mpol);
++
++	return page;
++}
++
+ /*
+  * Increase the hugetlb pool such that it can accommodate a reservation
+  * of size 'delta'.
+@@ -2079,20 +2098,6 @@ out_subpool_put:
+ 	return ERR_PTR(-ENOSPC);
+ }
  
--	gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 	zonelist = node_zonelist(nid, gfp_mask);
--	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), NULL) {
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), nodemask) {
- 		spin_lock_irqsave(&zone->lock, flags);
- 
- 		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
-@@ -1149,42 +1148,13 @@ static struct page *alloc_gigantic_page(
- static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
- static void prep_compound_gigantic_page(struct page *page, unsigned int order);
- 
--static struct page *alloc_fresh_gigantic_page_node(struct hstate *h, int nid)
+-/*
+- * alloc_huge_page()'s wrapper which simply returns the page if allocation
+- * succeeds, otherwise NULL. This function is called from new_vma_page(),
+- * where no ERR_VALUE is expected to be returned.
+- */
+-struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
+-				unsigned long addr, int avoid_reserve)
 -{
--	struct page *page;
--
--	page = alloc_gigantic_page(nid, h);
--	if (page) {
--		prep_compound_gigantic_page(page, huge_page_order(h));
--		prep_new_huge_page(h, page, nid);
--		put_page(page); /* free it into the hugepage allocator */
--	}
--
+-	struct page *page = alloc_huge_page(vma, addr, avoid_reserve);
+-	if (IS_ERR(page))
+-		page = NULL;
 -	return page;
 -}
--
--static int alloc_fresh_gigantic_page(struct hstate *h,
--				nodemask_t *nodes_allowed)
--{
--	struct page *page = NULL;
--	int nr_nodes, node;
--
--	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		page = alloc_fresh_gigantic_page_node(h, node);
--		if (page)
--			return 1;
--	}
--
--	return 0;
--}
--
- #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
- static inline bool gigantic_page_supported(void) { return false; }
-+static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+		int nid, nodemask_t *nodemask) { return NULL; }
- static inline void free_gigantic_page(struct page *page, unsigned int order) { }
- static inline void destroy_compound_gigantic_page(struct page *page,
- 						unsigned int order) { }
--static inline int alloc_fresh_gigantic_page(struct hstate *h,
--					nodemask_t *nodes_allowed) { return 0; }
- #endif
- 
- static void update_and_free_page(struct hstate *h, struct page *page)
-@@ -1410,8 +1380,12 @@ static int alloc_fresh_huge_page(struct
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask,
--				node, nodes_allowed);
-+		if (hstate_is_gigantic(h))
-+			page = alloc_gigantic_page(h, gfp_mask,
-+					node, nodes_allowed);
-+		else
-+			page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask,
-+					node, nodes_allowed);
- 		if (page)
- 			break;
- 
-@@ -1420,6 +1394,8 @@ static int alloc_fresh_huge_page(struct
- 	if (!page)
- 		return 0;
- 
-+	if (hstate_is_gigantic(h))
-+		prep_compound_gigantic_page(page, huge_page_order(h));
- 	prep_new_huge_page(h, page, page_to_nid(page));
- 	put_page(page); /* free it into the hugepage allocator */
- 
-@@ -2307,10 +2283,7 @@ static unsigned long set_max_huge_pages(
- 		/* yield cpu to avoid soft lockup */
- 		cond_resched();
- 
--		if (hstate_is_gigantic(h))
--			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
--		else
--			ret = alloc_fresh_huge_page(h, nodes_allowed);
-+		ret = alloc_fresh_huge_page(h, nodes_allowed);
- 		spin_lock(&hugetlb_lock);
- 		if (!ret)
- 			goto out;
-_
