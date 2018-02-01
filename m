@@ -1,42 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [patch 110/119] mm, hugetlb: get rid of surplus page
- accounting tricks
-Date: Wed, 31 Jan 2018 16:20:52 -0800
-Message-ID: <20180201002052.RqhfVBZ5f%akpm@linux-foundation.org>
+Subject: [patch 108/119] mm, hugetlb: integrate giga hugetlb more
+ naturally to the allocation path
+Date: Wed, 31 Jan 2018 16:20:44 -0800
+Message-ID: <20180201002044.wJlOMhZbk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAUy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:54 -0500
+        with ESMTP id S1754559AbeBAAUq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: get rid of surplus page accounting tricks
+Subject: mm, hugetlb: integrate giga hugetlb more naturally to the allocation path
 
-alloc_surplus_huge_page increases the pool size and the number of surplus
-pages opportunistically to prevent from races with the pool size change. 
-See d1c3fb1f8f29 ("hugetlb: introduce nr_overcommit_hugepages sysctl") for
-more details.
+Gigantic hugetlb pages were ingrown to the hugetlb code as an alien specie
+with a lot of special casing.  The allocation path is not an exception. 
+Unnecessarily so to be honest.  It is true that the underlying allocator
+is different but that is an implementation detail.
 
-The resulting code is unnecessarily hairy, cause code duplication and
-doesn't allow to share the allocation paths.  Moreover pool size changes
-tend to be very seldom so optimizing for them is not really reasonable. 
-Simplify the code and allow to allocate a fresh surplus page as long as we
-are under the overcommit limit and then recheck the condition after the
-allocation and drop the new page if the situation has changed.  This
-should provide a reasonable guarantee that an abrupt allocation requests
-will not go way off the limit.
+This patch unifies the hugetlb allocation path that a prepares fresh pool
+pages.  alloc_fresh_gigantic_page basically copies alloc_fresh_huge_page
+logic so we can move everything there.  This will simplify
+set_max_huge_pages which doesn't have to care about what kind of huge page
+we allocate.
 
-If we consider races with the pool shrinking and enlarging then we should
-be reasonably safe as well.  In the first case we are off by one in the
-worst case and the second case should work OK because the page is not yet
-visible.  We can waste CPU cycles for the allocation but that should be
-acceptable for a relatively rare condition.
-
-Link: http://lkml.kernel.org/r/20180103093213.26329-5-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20180103093213.26329-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -48,96 +39,114 @@ Cc: Zi Yan <zi.yan@cs.rutgers.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   62 ++++++++++++++++++-------------------------------
- 1 file changed, 23 insertions(+), 39 deletions(-)
+ mm/hugetlb.c |   55 ++++++++++++-------------------------------------
+ 1 file changed, 14 insertions(+), 41 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-get-rid-of-surplus-page-accounting-tricks mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-get-rid-of-surplus-page-accounting-tricks
+diff -puN mm/hugetlb.c~mm-hugetlb-integrate-giga-hugetlb-more-naturally-to-the-allocation-path mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-integrate-giga-hugetlb-more-naturally-to-the-allocation-path
 +++ a/mm/hugetlb.c
-@@ -1540,62 +1540,46 @@ int dissolve_free_huge_pages(unsigned lo
- static struct page *__alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nmask)
+@@ -1106,7 +1106,8 @@ static bool zone_spans_last_pfn(const st
+ 	return zone_spans_pfn(zone, last_pfn);
+ }
+ 
+-static struct page *alloc_gigantic_page(int nid, struct hstate *h)
++static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
++		int nid, nodemask_t *nodemask)
  {
+ 	unsigned int order = huge_page_order(h);
+ 	unsigned long nr_pages = 1 << order;
+@@ -1114,11 +1115,9 @@ static struct page *alloc_gigantic_page(
+ 	struct zonelist *zonelist;
+ 	struct zone *zone;
+ 	struct zoneref *z;
+-	gfp_t gfp_mask;
+ 
+-	gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 	zonelist = node_zonelist(nid, gfp_mask);
+-	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), NULL) {
++	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), nodemask) {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 
+ 		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
+@@ -1149,42 +1148,13 @@ static struct page *alloc_gigantic_page(
+ static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
+ static void prep_compound_gigantic_page(struct page *page, unsigned int order);
+ 
+-static struct page *alloc_fresh_gigantic_page_node(struct hstate *h, int nid)
+-{
 -	struct page *page;
--	unsigned int r_nid;
-+	struct page *page = NULL;
- 
- 	if (hstate_is_gigantic(h))
- 		return NULL;
- 
--	/*
--	 * Assume we will successfully allocate the surplus page to
--	 * prevent racing processes from causing the surplus to exceed
--	 * overcommit
--	 *
--	 * This however introduces a different race, where a process B
--	 * tries to grow the static hugepage pool while alloc_pages() is
--	 * called by process A. B will only examine the per-node
--	 * counters in determining if surplus huge pages can be
--	 * converted to normal huge pages in adjust_pool_surplus(). A
--	 * won't be able to increment the per-node counter, until the
--	 * lock is dropped by B, but B doesn't drop hugetlb_lock until
--	 * no more huge pages can be converted from surplus to normal
--	 * state (and doesn't try to convert again). Thus, we have a
--	 * case where a surplus huge page exists, the pool is grown, and
--	 * the surplus huge page still exists after, even though it
--	 * should just have been converted to a normal huge page. This
--	 * does not leak memory, though, as the hugepage will be freed
--	 * once it is out of use. It also does not allow the counters to
--	 * go out of whack in adjust_pool_surplus() as we don't modify
--	 * the node values until we've gotten the hugepage and only the
--	 * per-node value is checked there.
--	 */
- 	spin_lock(&hugetlb_lock);
--	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
--		spin_unlock(&hugetlb_lock);
--		return NULL;
--	} else {
--		h->nr_huge_pages++;
--		h->surplus_huge_pages++;
--	}
-+	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages)
-+		goto out_unlock;
- 	spin_unlock(&hugetlb_lock);
- 
- 	page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask, nid, nmask);
-+	if (!page)
-+		goto out_unlock;
- 
- 	spin_lock(&hugetlb_lock);
+-
+-	page = alloc_gigantic_page(nid, h);
 -	if (page) {
-+	/*
-+	 * We could have raced with the pool size change.
-+	 * Double check that and simply deallocate the new page
-+	 * if we would end up overcommiting the surpluses. Abuse
-+	 * temporary page to workaround the nasty free_huge_page
-+	 * codeflow
-+	 */
-+	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
-+		SetPageHugeTemporary(page);
-+		put_page(page);
-+		page = NULL;
-+	} else {
-+		int r_nid;
-+
-+		h->surplus_huge_pages++;
-+		h->nr_huge_pages++;
- 		INIT_LIST_HEAD(&page->lru);
- 		r_nid = page_to_nid(page);
- 		set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
- 		set_hugetlb_cgroup(page, NULL);
--		/*
--		 * We incremented the global counters already
--		 */
- 		h->nr_huge_pages_node[r_nid]++;
- 		h->surplus_huge_pages_node[r_nid]++;
--	} else {
--		h->nr_huge_pages--;
--		h->surplus_huge_pages--;
- 	}
-+
-+out_unlock:
- 	spin_unlock(&hugetlb_lock);
+-		prep_compound_gigantic_page(page, huge_page_order(h));
+-		prep_new_huge_page(h, page, nid);
+-		put_page(page); /* free it into the hugepage allocator */
+-	}
+-
+-	return page;
+-}
+-
+-static int alloc_fresh_gigantic_page(struct hstate *h,
+-				nodemask_t *nodes_allowed)
+-{
+-	struct page *page = NULL;
+-	int nr_nodes, node;
+-
+-	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
+-		page = alloc_fresh_gigantic_page_node(h, node);
+-		if (page)
+-			return 1;
+-	}
+-
+-	return 0;
+-}
+-
+ #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
+ static inline bool gigantic_page_supported(void) { return false; }
++static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
++		int nid, nodemask_t *nodemask) { return NULL; }
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+ static inline void destroy_compound_gigantic_page(struct page *page,
+ 						unsigned int order) { }
+-static inline int alloc_fresh_gigantic_page(struct hstate *h,
+-					nodemask_t *nodes_allowed) { return 0; }
+ #endif
  
- 	return page;
+ static void update_and_free_page(struct hstate *h, struct page *page)
+@@ -1410,8 +1380,12 @@ static int alloc_fresh_huge_page(struct
+ 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 
+ 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
+-		page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask,
+-				node, nodes_allowed);
++		if (hstate_is_gigantic(h))
++			page = alloc_gigantic_page(h, gfp_mask,
++					node, nodes_allowed);
++		else
++			page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask,
++					node, nodes_allowed);
+ 		if (page)
+ 			break;
+ 
+@@ -1420,6 +1394,8 @@ static int alloc_fresh_huge_page(struct
+ 	if (!page)
+ 		return 0;
+ 
++	if (hstate_is_gigantic(h))
++		prep_compound_gigantic_page(page, huge_page_order(h));
+ 	prep_new_huge_page(h, page, page_to_nid(page));
+ 	put_page(page); /* free it into the hugepage allocator */
+ 
+@@ -2307,10 +2283,7 @@ static unsigned long set_max_huge_pages(
+ 		/* yield cpu to avoid soft lockup */
+ 		cond_resched();
+ 
+-		if (hstate_is_gigantic(h))
+-			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
+-		else
+-			ret = alloc_fresh_huge_page(h, nodes_allowed);
++		ret = alloc_fresh_huge_page(h, nodes_allowed);
+ 		spin_lock(&hugetlb_lock);
+ 		if (!ret)
+ 			goto out;
 _
