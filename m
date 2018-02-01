@@ -1,54 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 004/119] scripts/tags.sh: change
- find_other_sources() for include directories
-Date: Wed, 31 Jan 2018 16:14:14 -0800
-Message-ID: <20180201001414.8bXbX66iX%akpm@linux-foundation.org>
+Subject: [patch 007/119] ocfs2/cluster: neaten a member of
+ o2net_msg_handler
+Date: Wed, 31 Jan 2018 16:14:25 -0800
+Message-ID: <20180201001425.e5XNYpjIy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754248AbeBAAOP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:15 -0500
+        with ESMTP id S1754313AbeBAAO1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arend.vanspriel@broadcom.com, mm-commits@vger.kernel.org, robert.jarzmik@free.fr, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Arend van Spriel <arend.vanspriel@broadcom.com>
-Subject: scripts/tags.sh: change find_other_sources() for include directories
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2/cluster: neaten a member of o2net_msg_handler
 
-The current find done in find_other_sources() excludes directories in the
-kernel tree that are named 'include', eg.:
+It's odd that o2net_msg_handler::nh_func_data is declared as type
+o2net_msg_handler_func*.  So neaten it.
 
-	./security/apparmor/include
-	./security/selinux/include
-	./drivers/net/wireless/broadcom/brcm80211/include
-	./drivers/gpu/drm/amd/acp/include
-	./drivers/gpu/drm/amd/display/include
-	./drivers/gpu/drm/amd/include
-	./drivers/gpu/drm/nouveau/include
-
-This changes the find command in find_other_sources() to include those
-using the -path option.
-
-Link: http://lkml.kernel.org/r/1513335768-7852-1-git-send-email-arend.vanspriel@broadcom.com
-Signed-off-by: Arend van Spriel <arend.vanspriel@broadcom.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F554DA@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |    2 +-
+ fs/ocfs2/cluster/tcp_internal.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders scripts/tags.sh
---- a/scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders
-+++ a/scripts/tags.sh
-@@ -77,7 +77,7 @@ find_include_sources()
- find_other_sources()
- {
- 	find ${tree}* $ignore \
--	     \( -name include -o -name arch -o -name '.tmp_*' \) -prune -o \
-+	     \( -path ${tree}include -o -path ${tree}arch -o -name '.tmp_*' \) -prune -o \
- 	       -name "$1" -not -type l -print;
- }
- 
+diff -puN fs/ocfs2/cluster/tcp_internal.h~ocfs2-cluster-neaten-a-member-of-o2net_msg_handler fs/ocfs2/cluster/tcp_internal.h
+--- a/fs/ocfs2/cluster/tcp_internal.h~ocfs2-cluster-neaten-a-member-of-o2net_msg_handler
++++ a/fs/ocfs2/cluster/tcp_internal.h
+@@ -196,7 +196,7 @@ struct o2net_msg_handler {
+ 	u32			nh_msg_type;
+ 	u32			nh_key;
+ 	o2net_msg_handler_func	*nh_func;
+-	o2net_msg_handler_func	*nh_func_data;
++	void			*nh_func_data;
+ 	o2net_post_msg_handler_func
+ 				*nh_post_func;
+ 	struct kref		nh_kref;
 _
