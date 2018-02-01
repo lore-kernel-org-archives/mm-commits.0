@@ -1,245 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-add-trimfs-dlm-lock-resource.patch removed
+Subject: [merged]
+ ocfs2-try-a-blocking-lock-before-return-aop_truncated_page.patch removed
  from -mm tree
-Date: Thu, 01 Feb 2018 11:29:47 -0800
-Message-ID: <20180201192947.3rANwBt2M%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:29:27 -0800
+Message-ID: <20180201192927.swqIQWfho%akpm__854.618885978375$1517513280$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754570AbeBAT3s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:48 -0500
+        with ESMTP id S1754560AbeBAT33 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org, zren@suse.com
 
 
 The patch titled
-     Subject: ocfs2: add trimfs dlm lock resource
+     Subject: ocfs2: try a blocking lock before return AOP_TRUNCATED_PAGE
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-trimfs-dlm-lock-resource.patch
+     ocfs2-try-a-blocking-lock-before-return-aop_truncated_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Gang He <ghe@suse.com>
-Subject: ocfs2: add trimfs dlm lock resource
+Subject: ocfs2: try a blocking lock before return AOP_TRUNCATED_PAGE
 
-Introduce a new dlm lock resource, which will be used to communicate
-during fstrimming of an ocfs2 device from cluster nodes.
+If we can't get inode lock immediately in the function
+ocfs2_inode_lock_with_page() when reading a page, we should not return
+directly here, since this will lead to a softlockup problem when the
+kernel is configured with CONFIG_PREEMPT is not set.  The method is to get
+a blocking lock and immediately unlock before returning, this can avoid
+CPU resource waste due to lots of retries, and benefits fairness in
+getting lock among multiple nodes, increase efficiency in case modifying
+the same file frequently from multiple nodes.
 
-Link: http://lkml.kernel.org/r/1513228484-2084-1-git-send-email-ghe@suse.com
+The softlockup crash (when set /proc/sys/kernel/softlockup_panic to 1)
+looks like:
+
+Kernel panic - not syncing: softlockup: hung tasks
+CPU: 0 PID: 885 Comm: multi_mmap Tainted: G L 4.12.14-6.1-default #1
+Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+Call Trace:
+  <IRQ>
+  dump_stack+0x5c/0x82
+  panic+0xd5/0x21e
+  watchdog_timer_fn+0x208/0x210
+  ? watchdog_park_threads+0x70/0x70
+  __hrtimer_run_queues+0xcc/0x200
+  hrtimer_interrupt+0xa6/0x1f0
+  smp_apic_timer_interrupt+0x34/0x50
+  apic_timer_interrupt+0x96/0xa0
+  </IRQ>
+ RIP: 0010:unlock_page+0x17/0x30
+ RSP: 0000:ffffaf154080bc88 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff10
+ RAX: dead000000000100 RBX: fffff21e009f5300 RCX: 0000000000000004
+ RDX: dead0000000000ff RSI: 0000000000000202 RDI: fffff21e009f5300
+ RBP: 0000000000000000 R08: 0000000000000000 R09: ffffaf154080bb00
+ R10: ffffaf154080bc30 R11: 0000000000000040 R12: ffff993749a39518
+ R13: 0000000000000000 R14: fffff21e009f5300 R15: fffff21e009f5300
+  ocfs2_inode_lock_with_page+0x25/0x30 [ocfs2]
+  ocfs2_readpage+0x41/0x2d0 [ocfs2]
+  ? pagecache_get_page+0x30/0x200
+  filemap_fault+0x12b/0x5c0
+  ? recalc_sigpending+0x17/0x50
+  ? __set_task_blocked+0x28/0x70
+  ? __set_current_blocked+0x3d/0x60
+  ocfs2_fault+0x29/0xb0 [ocfs2]
+  __do_fault+0x1a/0xa0
+  __handle_mm_fault+0xbe8/0x1090
+  handle_mm_fault+0xaa/0x1f0
+  __do_page_fault+0x235/0x4b0
+  trace_do_page_fault+0x3c/0x110
+  async_page_fault+0x28/0x30
+ RIP: 0033:0x7fa75ded638e
+ RSP: 002b:00007ffd6657db18 EFLAGS: 00010287
+ RAX: 000055c7662fb700 RBX: 0000000000000001 RCX: 000055c7662fb700
+ RDX: 0000000000001770 RSI: 00007fa75e909000 RDI: 000055c7662fb700
+ RBP: 0000000000000003 R08: 000000000000000e R09: 0000000000000000
+ R10: 0000000000000483 R11: 00007fa75ded61b0 R12: 00007fa75e90a770
+ R13: 000000000000000e R14: 0000000000001770 R15: 0000000000000000
+
+About performance improvement, we can see the testing time is reduced, and
+CPU utilization decreases, the detailed data is as follows.  I ran
+multi_mmap test case in ocfs2-test package in a three nodes cluster.
+
+Before applying this patch:
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 2754 ocfs2te+  20   0  170248   6980   4856 D 80.73 0.341   0:18.71 multi_mmap
+ 1505 root      rt   0  222236 123060  97224 S 2.658 6.015   0:01.44 corosync
+    5 root      20   0       0      0      0 S 1.329 0.000   0:00.19 kworker/u8:0
+   95 root      20   0       0      0      0 S 1.329 0.000   0:00.25 kworker/u8:1
+ 2728 root      20   0       0      0      0 S 0.997 0.000   0:00.24 jbd2/sda1-33
+ 2721 root      20   0       0      0      0 S 0.664 0.000   0:00.07 ocfs2dc-3C8CFD4
+ 2750 ocfs2te+  20   0  142976   4652   3532 S 0.664 0.227   0:00.28 mpirun
+
+ocfs2test@tb-node2:~>multiple_run.sh -i ens3 -k ~/linux-4.4.21-69.tar.gz -o
+~/ocfs2mullog -C hacluster -s pcmk -n tb-node2,tb-node1,tb-node3 -d
+/dev/sda1 -b 4096 -c 32768 -t multi_mmap /mnt/shared
+Tests with "-b 4096 -C 32768"
+Thu Dec 28 14:44:52 CST 2017
+multi_mmap..................................................Passed.
+Runtime 783 seconds.
+
+After apply this patch:
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 2508 ocfs2te+  20   0  170248   6804   4680 R 54.00 0.333   0:55.37 multi_mmap
+  155 root      20   0       0      0      0 S 2.667 0.000   0:01.20 kworker/u8:3
+   95 root      20   0       0      0      0 S 2.000 0.000   0:01.58 kworker/u8:1
+ 2504 ocfs2te+  20   0  142976   4604   3480 R 1.667 0.225   0:01.65 mpirun
+    5 root      20   0       0      0      0 S 1.000 0.000   0:01.36 kworker/u8:0
+ 2482 root      20   0       0      0      0 S 1.000 0.000   0:00.86 jbd2/sda1-33
+  299 root       0 -20       0      0      0 S 0.333 0.000   0:00.13 kworker/2:1H
+  335 root       0 -20       0      0      0 S 0.333 0.000   0:00.17 kworker/1:1H
+  535 root      20   0   12140   7268   1456 S 0.333 0.355   0:00.34 haveged
+ 1282 root      rt   0  222284 123108  97224 S 0.333 6.017   0:01.33 corosync
+
+ocfs2test@tb-node2:~>multiple_run.sh -i ens3 -k ~/linux-4.4.21-69.tar.gz -o
+~/ocfs2mullog -C hacluster -s pcmk -n tb-node2,tb-node1,tb-node3 -d
+/dev/sda1 -b 4096 -c 32768 -t multi_mmap /mnt/shared
+Tests with "-b 4096 -C 32768"
+Thu Dec 28 15:04:12 CST 2017
+multi_mmap..................................................Passed.
+Runtime 487 seconds.
+
+Link: http://lkml.kernel.org/r/1514447305-30814-1-git-send-email-ghe@suse.com
+Fixes: 1cce4df04f37 ("ocfs2: do not lock/unlock() inode DLM lock")
 Signed-off-by: Gang He <ghe@suse.com>
-Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Eric Ren <zren@suse.com>
+Acked-by: alex chen <alex.chen@huawei.com>
+Acked-by: piaojun <piaojun@huawei.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c      |   86 ++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/dlmglue.h      |   29 ++++++++++++
- fs/ocfs2/ocfs2.h        |    1 
- fs/ocfs2/ocfs2_lockid.h |    5 ++
- 4 files changed, 121 insertions(+)
+ fs/ocfs2/dlmglue.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-try-a-blocking-lock-before-return-aop_truncated_page fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-try-a-blocking-lock-before-return-aop_truncated_page
 +++ a/fs/ocfs2/dlmglue.c
-@@ -259,6 +259,10 @@ static struct ocfs2_lock_res_ops ocfs2_n
- 	.flags		= 0,
- };
- 
-+static struct ocfs2_lock_res_ops ocfs2_trim_fs_lops = {
-+	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
-+};
-+
- static struct ocfs2_lock_res_ops ocfs2_orphan_scan_lops = {
- 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
- };
-@@ -676,6 +680,24 @@ static void ocfs2_nfs_sync_lock_res_init
- 				   &ocfs2_nfs_sync_lops, osb);
- }
- 
-+void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb)
-+{
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	ocfs2_lock_res_init_once(lockres);
-+	ocfs2_build_lock_name(OCFS2_LOCK_TYPE_TRIM_FS, 0, 0, lockres->l_name);
-+	ocfs2_lock_res_init_common(osb, lockres, OCFS2_LOCK_TYPE_TRIM_FS,
-+				   &ocfs2_trim_fs_lops, osb);
-+}
-+
-+void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb)
-+{
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	ocfs2_simple_drop_lockres(osb, lockres);
-+	ocfs2_lock_res_free(lockres);
-+}
-+
- static void ocfs2_orphan_scan_lock_res_init(struct ocfs2_lock_res *res,
- 					    struct ocfs2_super *osb)
- {
-@@ -2754,6 +2776,70 @@ void ocfs2_nfs_sync_unlock(struct ocfs2_
- 				     ex ? LKM_EXMODE : LKM_PRMODE);
- }
- 
-+int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
-+		       struct ocfs2_trim_fs_info *info, int trylock)
-+{
-+	int status;
-+	struct ocfs2_trim_fs_lvb *lvb;
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	if (info)
-+		info->tf_valid = 0;
-+
-+	if (ocfs2_is_hard_readonly(osb))
-+		return -EROFS;
-+
-+	if (ocfs2_mount_local(osb))
-+		return 0;
-+
-+	status = ocfs2_cluster_lock(osb, lockres, DLM_LOCK_EX,
-+				    trylock ? DLM_LKF_NOQUEUE : 0, 0);
-+	if (status < 0) {
-+		if (status != -EAGAIN)
-+			mlog_errno(status);
-+		return status;
-+	}
-+
-+	if (info) {
-+		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
-+		if (ocfs2_dlm_lvb_valid(&lockres->l_lksb) &&
-+		    lvb->lvb_version == OCFS2_TRIMFS_LVB_VERSION) {
-+			info->tf_valid = 1;
-+			info->tf_success = lvb->lvb_success;
-+			info->tf_nodenum = be32_to_cpu(lvb->lvb_nodenum);
-+			info->tf_start = be64_to_cpu(lvb->lvb_start);
-+			info->tf_len = be64_to_cpu(lvb->lvb_len);
-+			info->tf_minlen = be64_to_cpu(lvb->lvb_minlen);
-+			info->tf_trimlen = be64_to_cpu(lvb->lvb_trimlen);
-+		}
-+	}
-+
-+	return status;
-+}
-+
-+void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
-+			  struct ocfs2_trim_fs_info *info)
-+{
-+	struct ocfs2_trim_fs_lvb *lvb;
-+	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
-+
-+	if (ocfs2_mount_local(osb))
-+		return;
-+
-+	if (info) {
-+		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
-+		lvb->lvb_version = OCFS2_TRIMFS_LVB_VERSION;
-+		lvb->lvb_success = info->tf_success;
-+		lvb->lvb_nodenum = cpu_to_be32(info->tf_nodenum);
-+		lvb->lvb_start = cpu_to_be64(info->tf_start);
-+		lvb->lvb_len = cpu_to_be64(info->tf_len);
-+		lvb->lvb_minlen = cpu_to_be64(info->tf_minlen);
-+		lvb->lvb_trimlen = cpu_to_be64(info->tf_trimlen);
-+	}
-+
-+	ocfs2_cluster_unlock(osb, lockres, DLM_LOCK_EX);
-+}
-+
- int ocfs2_dentry_lock(struct dentry *dentry, int ex)
- {
- 	int ret;
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,29 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+#define OCFS2_TRIMFS_LVB_VERSION 1
-+
-+struct ocfs2_trim_fs_lvb {
-+	__u8	lvb_version;
-+	__u8	lvb_success;
-+	__u8	lvb_reserved[2];
-+	__be32	lvb_nodenum;
-+	__be64	lvb_start;
-+	__be64	lvb_len;
-+	__be64	lvb_minlen;
-+	__be64	lvb_trimlen;
-+};
-+
-+struct ocfs2_trim_fs_info {
-+	u8	tf_valid;	/* lvb is valid, or not */
-+	u8	tf_success;	/* trim is successful, or not */
-+	u32	tf_nodenum;	/* osb node number */
-+	u64	tf_start;	/* trim start offset in clusters */
-+	u64	tf_len;		/* trim end offset in clusters */
-+	u64	tf_minlen;	/* trim minimum contiguous free clusters */
-+	u64	tf_trimlen;	/* trimmed length in bytes */
-+};
-+
- struct ocfs2_lock_holder {
- 	struct list_head oh_list;
- 	struct pid *oh_owner_pid;
-@@ -153,6 +176,12 @@ int ocfs2_rename_lock(struct ocfs2_super
- void ocfs2_rename_unlock(struct ocfs2_super *osb);
- int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex);
- void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex);
-+void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb);
-+void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb);
-+int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
-+		       struct ocfs2_trim_fs_info *info, int trylock);
-+void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
-+			  struct ocfs2_trim_fs_info *info);
- int ocfs2_dentry_lock(struct dentry *dentry, int ex);
- void ocfs2_dentry_unlock(struct dentry *dentry, int ex);
- int ocfs2_file_lock(struct file *file, int ex, int trylock);
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/ocfs2.h
-@@ -404,6 +404,7 @@ struct ocfs2_super
- 	struct ocfs2_lock_res osb_super_lockres;
- 	struct ocfs2_lock_res osb_rename_lockres;
- 	struct ocfs2_lock_res osb_nfs_sync_lockres;
-+	struct ocfs2_lock_res osb_trim_fs_lockres;
- 	struct ocfs2_dlm_debug *osb_dlm_debug;
- 
- 	struct dentry *osb_debug_root;
-diff -puN fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2_lockid.h
---- a/fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource
-+++ a/fs/ocfs2/ocfs2_lockid.h
-@@ -50,6 +50,7 @@ enum ocfs2_lock_type {
- 	OCFS2_LOCK_TYPE_NFS_SYNC,
- 	OCFS2_LOCK_TYPE_ORPHAN_SCAN,
- 	OCFS2_LOCK_TYPE_REFCOUNT,
-+	OCFS2_LOCK_TYPE_TRIM_FS,
- 	OCFS2_NUM_LOCK_TYPES
- };
- 
-@@ -93,6 +94,9 @@ static inline char ocfs2_lock_type_char(
- 		case OCFS2_LOCK_TYPE_REFCOUNT:
- 			c = 'T';
- 			break;
-+		case OCFS2_LOCK_TYPE_TRIM_FS:
-+			c = 'I';
-+			break;
- 		default:
- 			c = '\0';
+@@ -2486,6 +2486,15 @@ int ocfs2_inode_lock_with_page(struct in
+ 	ret = ocfs2_inode_lock_full(inode, ret_bh, ex, OCFS2_LOCK_NONBLOCK);
+ 	if (ret == -EAGAIN) {
+ 		unlock_page(page);
++		/*
++		 * If we can't get inode lock immediately, we should not return
++		 * directly here, since this will lead to a softlockup problem.
++		 * The method is to get a blocking lock and immediately unlock
++		 * before returning, this can avoid CPU resource waste due to
++		 * lots of retries, and benefits fairness in getting lock.
++		 */
++		if (ocfs2_inode_lock(inode, ret_bh, ex) == 0)
++			ocfs2_inode_unlock(inode, ex);
+ 		ret = AOP_TRUNCATED_PAGE;
  	}
-@@ -115,6 +119,7 @@ static char *ocfs2_lock_type_strings[] =
- 	[OCFS2_LOCK_TYPE_NFS_SYNC] = "NFSSync",
- 	[OCFS2_LOCK_TYPE_ORPHAN_SCAN] = "OrphanScan",
- 	[OCFS2_LOCK_TYPE_REFCOUNT] = "Refcount",
-+	[OCFS2_LOCK_TYPE_TRIM_FS] = "TrimFs",
- };
  
- static inline const char *ocfs2_lock_type_string(enum ocfs2_lock_type type)
 _
 
 Patches currently in -mm which might be from ghe@suse.com are
