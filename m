@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: [patch 092/119] memfd-test: run fuse test on hugetlb
- backend memory
-Date: Wed, 31 Jan 2018 16:19:44 -0800
-Message-ID: <20180201001944.nYOO-lhj0%akpm@linux-foundation.org>
+Subject: [patch 090/119] memfd-test: add 'memfd-hugetlb:' prefix
+ when testing hugetlbfs
+Date: Wed, 31 Jan 2018 16:19:36 -0800
+Message-ID: <20180201001936.SYOFAq5T6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36080 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755813AbeBAATq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:46 -0500
+        with ESMTP id S1755813AbeBAATi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: memfd-test: run fuse test on hugetlb backend memory
+Subject: memfd-test: add 'memfd-hugetlb:' prefix when testing hugetlbfs
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-10-marcandre.lureau@redhat.com
-Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
+Link: http://lkml.kernel.org/r/20171107122800.25517-8-marcandre.lureau@redhat.com
 Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -30,144 +30,128 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/fuse_test.c      |   38 +++++++++++----
- tools/testing/selftests/memfd/run_fuse_test.sh |    2 
- tools/testing/selftests/memfd/run_tests.sh     |    1 
- 3 files changed, 32 insertions(+), 9 deletions(-)
+ tools/testing/selftests/memfd/memfd_test.c |   26 +++++++++++--------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN tools/testing/selftests/memfd/fuse_test.c~memfd-test-run-fuse-test-on-hugetlb-backend-memory tools/testing/selftests/memfd/fuse_test.c
---- a/tools/testing/selftests/memfd/fuse_test.c~memfd-test-run-fuse-test-on-hugetlb-backend-memory
-+++ a/tools/testing/selftests/memfd/fuse_test.c
-@@ -38,6 +38,8 @@
+diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs tools/testing/selftests/memfd/memfd_test.c
+--- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -20,6 +20,7 @@
+ #include <unistd.h>
+ 
+ #define MEMFD_STR	"memfd:"
++#define MEMFD_HUGE_STR	"memfd-hugetlb:"
+ #define SHARED_FT_STR	"(shared file-table)"
+ 
  #define MFD_DEF_SIZE 8192
- #define STACK_SIZE 65536
+@@ -30,6 +31,7 @@
+  */
+ static int hugetlbfs_test;
+ static size_t mfd_def_size = MFD_DEF_SIZE;
++static const char *memfd_str = MEMFD_STR;
  
-+static size_t mfd_def_size = MFD_DEF_SIZE;
-+
- static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
+ /*
+  * Copied from mlock2-tests.c
+@@ -606,7 +608,7 @@ static void test_create(void)
+ 	char buf[2048];
+ 	int fd;
+ 
+-	printf("%s CREATE\n", MEMFD_STR);
++	printf("%s CREATE\n", memfd_str);
+ 
+ 	/* test NULL name */
+ 	mfd_fail_new(NULL, 0);
+@@ -652,7 +654,7 @@ static void test_basic(void)
  {
- 	int r, fd;
-@@ -123,7 +125,7 @@ static void *mfd_assert_mmap_shared(int
- 	void *p;
+ 	int fd;
  
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ | PROT_WRITE,
- 		 MAP_SHARED,
- 		 fd,
-@@ -141,7 +143,7 @@ static void *mfd_assert_mmap_private(int
- 	void *p;
+-	printf("%s BASIC\n", MEMFD_STR);
++	printf("%s BASIC\n", memfd_str);
  
- 	p = mmap(NULL,
--		 MFD_DEF_SIZE,
-+		 mfd_def_size,
- 		 PROT_READ | PROT_WRITE,
- 		 MAP_PRIVATE,
- 		 fd,
-@@ -174,7 +176,7 @@ static int sealing_thread_fn(void *arg)
- 	usleep(200000);
- 
- 	/* unmount mapping before sealing to avoid i_mmap_writable failures */
--	munmap(global_p, MFD_DEF_SIZE);
-+	munmap(global_p, mfd_def_size);
- 
- 	/* Try sealing the global file; expect EBUSY or success. Current
- 	 * kernels will never succeed, but in the future, kernels might
-@@ -224,7 +226,7 @@ static void join_sealing_thread(pid_t pi
- 
- int main(int argc, char **argv)
+ 	fd = mfd_assert_new("kern_memfd_basic",
+ 			    mfd_def_size,
+@@ -704,7 +706,7 @@ static void test_seal_write(void)
  {
--	static const char zero[MFD_DEF_SIZE];
-+	char *zero;
- 	int fd, mfd, r;
- 	void *p;
- 	int was_sealed;
-@@ -235,6 +237,25 @@ int main(int argc, char **argv)
- 		abort();
- 	}
+ 	int fd;
  
-+	if (argc >= 3) {
-+		if (!strcmp(argv[2], "hugetlbfs")) {
-+			unsigned long hpage_size = default_huge_page_size();
-+
-+			if (!hpage_size) {
-+				printf("Unable to determine huge page size\n");
-+				abort();
-+			}
-+
-+			hugetlbfs_test = 1;
-+			mfd_def_size = hpage_size * 2;
+-	printf("%s SEAL-WRITE\n", MEMFD_STR);
++	printf("%s SEAL-WRITE\n", memfd_str);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_write",
+ 			    mfd_def_size,
+@@ -730,7 +732,7 @@ static void test_seal_shrink(void)
+ {
+ 	int fd;
+ 
+-	printf("%s SEAL-SHRINK\n", MEMFD_STR);
++	printf("%s SEAL-SHRINK\n", memfd_str);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_shrink",
+ 			    mfd_def_size,
+@@ -756,7 +758,7 @@ static void test_seal_grow(void)
+ {
+ 	int fd;
+ 
+-	printf("%s SEAL-GROW\n", MEMFD_STR);
++	printf("%s SEAL-GROW\n", memfd_str);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_grow",
+ 			    mfd_def_size,
+@@ -782,7 +784,7 @@ static void test_seal_resize(void)
+ {
+ 	int fd;
+ 
+-	printf("%s SEAL-RESIZE\n", MEMFD_STR);
++	printf("%s SEAL-RESIZE\n", memfd_str);
+ 
+ 	fd = mfd_assert_new("kern_memfd_seal_resize",
+ 			    mfd_def_size,
+@@ -808,7 +810,7 @@ static void test_share_dup(char *banner,
+ {
+ 	int fd, fd2;
+ 
+-	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
++	printf("%s %s %s\n", memfd_str, banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_dup",
+ 			    mfd_def_size,
+@@ -850,7 +852,7 @@ static void test_share_mmap(char *banner
+ 	int fd;
+ 	void *p;
+ 
+-	printf("%s %s %s\n", MEMFD_STR,  banner, b_suffix);
++	printf("%s %s %s\n", memfd_str,  banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_mmap",
+ 			    mfd_def_size,
+@@ -884,7 +886,7 @@ static void test_share_open(char *banner
+ {
+ 	int fd, fd2;
+ 
+-	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
++	printf("%s %s %s\n", memfd_str, banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_open",
+ 			    mfd_def_size,
+@@ -927,7 +929,7 @@ static void test_share_fork(char *banner
+ 	int fd;
+ 	pid_t pid;
+ 
+-	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
++	printf("%s %s %s\n", memfd_str, banner, b_suffix);
+ 
+ 	fd = mfd_assert_new("kern_memfd_share_fork",
+ 			    mfd_def_size,
+@@ -963,7 +965,11 @@ int main(int argc, char **argv)
+ 			}
+ 
+ 			hugetlbfs_test = 1;
++			memfd_str = MEMFD_HUGE_STR;
+ 			mfd_def_size = hpage_size * 2;
 +		} else {
-+			printf("Unknown option: %s\n", argv[2]);
++			printf("Unknown option: %s\n", argv[1]);
 +			abort();
-+		}
-+	}
-+
-+	zero = calloc(sizeof(*zero), mfd_def_size);
-+
- 	/* open FUSE memfd file for GUP testing */
- 	printf("opening: %s\n", argv[1]);
- 	fd = open(argv[1], O_RDONLY | O_CLOEXEC);
-@@ -245,7 +266,7 @@ int main(int argc, char **argv)
- 
- 	/* create new memfd-object */
- 	mfd = mfd_assert_new("kern_memfd_fuse",
--			     MFD_DEF_SIZE,
-+			     mfd_def_size,
- 			     MFD_CLOEXEC | MFD_ALLOW_SEALING);
- 
- 	/* mmap memfd-object for writing */
-@@ -264,7 +285,7 @@ int main(int argc, char **argv)
- 	 * This guarantees that the receive-buffer is pinned for 1s until the
- 	 * data is written into it. The racing ADD_SEALS should thus fail as
- 	 * the pages are still pinned. */
--	r = read(fd, p, MFD_DEF_SIZE);
-+	r = read(fd, p, mfd_def_size);
- 	if (r < 0) {
- 		printf("read() failed: %m\n");
- 		abort();
-@@ -291,10 +312,10 @@ int main(int argc, char **argv)
- 	 * enough to avoid any in-flight writes. */
- 
- 	p = mfd_assert_mmap_private(mfd);
--	if (was_sealed && memcmp(p, zero, MFD_DEF_SIZE)) {
-+	if (was_sealed && memcmp(p, zero, mfd_def_size)) {
- 		printf("memfd sealed during read() but data not discarded\n");
- 		abort();
--	} else if (!was_sealed && !memcmp(p, zero, MFD_DEF_SIZE)) {
-+	} else if (!was_sealed && !memcmp(p, zero, mfd_def_size)) {
- 		printf("memfd sealed after read() but data discarded\n");
- 		abort();
+ 		}
  	}
-@@ -303,6 +324,7 @@ int main(int argc, char **argv)
- 	close(fd);
  
- 	printf("fuse: DONE\n");
-+	free(zero);
- 
- 	return 0;
- }
-diff -puN tools/testing/selftests/memfd/run_fuse_test.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory tools/testing/selftests/memfd/run_fuse_test.sh
---- a/tools/testing/selftests/memfd/run_fuse_test.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory
-+++ a/tools/testing/selftests/memfd/run_fuse_test.sh
-@@ -10,6 +10,6 @@ set -e
- 
- mkdir mnt
- ./fuse_mnt ./mnt
--./fuse_test ./mnt/memfd
-+./fuse_test ./mnt/memfd $@
- fusermount -u ./mnt
- rmdir ./mnt
-diff -puN tools/testing/selftests/memfd/run_tests.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory tools/testing/selftests/memfd/run_tests.sh
---- a/tools/testing/selftests/memfd/run_tests.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory
-+++ a/tools/testing/selftests/memfd/run_tests.sh
-@@ -60,6 +60,7 @@ fi
- # Run the hugetlbfs test
- #
- ./memfd_test hugetlbfs
-+./run_fuse_test.sh hugetlbfs
- 
- #
- # Give back any huge pages allocated for the test
 _
