@@ -1,48 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 102/119] mm/compaction.c: fix comment for
- try_to_compact_pages()
-Date: Wed, 31 Jan 2018 16:20:23 -0800
-Message-ID: <20180201002023.8WZL8AD-a%akpm@linux-foundation.org>
+Subject: [patch 101/119] mm/page_ext.c: make page_ext_init a noop
+ when CONFIG_PAGE_EXTENSION but nothing uses it
+Date: Wed, 31 Jan 2018 16:20:19 -0800
+Message-ID: <20180201002019.iH2GRTK5d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAUY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:24 -0500
+        with ESMTP id S1754559AbeBAAUV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz, yang.shi@linux.alibaba.com
+To: akpm@linux-foundation.org, jaewon31.kim@samsung.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm/compaction.c: fix comment for try_to_compact_pages()
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm/page_ext.c: make page_ext_init a noop when CONFIG_PAGE_EXTENSION but nothing uses it
 
-"mode" argument is not used by try_to_compact_pages() and sub functions
-anymore, it has been replaced by "prio".  Fix the comment to explain the
-use of "prio" argument.
+static struct page_ext_operations *page_ext_ops[] always contains debug_guardpage_ops,
 
-Link: http://lkml.kernel.org/r/1515801336-20611-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+static struct page_ext_operations *page_ext_ops[] = {
+        &debug_guardpage_ops,
+ #ifdef CONFIG_PAGE_OWNER
+        &page_owner_ops,
+ #endif
+...
+}
+
+but for it to work, CONFIG_DEBUG_PAGEALLOC must be enabled first.  If
+someone has CONFIG_PAGE_EXTENSION, but has none of its users, eg:
+(CONFIG_PAGE_OWNER, CONFIG_DEBUG_PAGEALLOC, CONFIG_IDLE_PAGE_TRACKING), we
+can shrink page_ext_init() to a simple retq.
+
+$ size vmlinux  (before patch)
+   text	   data	    bss	    dec	    hex	filename
+14356698	5681582	1687748	21726028	14b834c	vmlinux
+
+$ size vmlinux  (after patch)
+   text	   data	    bss	    dec	    hex	filename
+14356008	5681538	1687748	21725294	14b806e	vmlinux
+
+On the other hand, it might does not even make sense, since if someone
+enables CONFIG_PAGE_EXTENSION, I would expect him to enable also at least
+one of its users.
+
+Link: http://lkml.kernel.org/r/20180105130235.GA21241@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jaewon Kim <jaewon31.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_ext.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages
-+++ a/mm/compaction.c
-@@ -1738,7 +1738,7 @@ int sysctl_extfrag_threshold = 500;
-  * @order: The order of the current allocation
-  * @alloc_flags: The allocation flags of the current allocation
-  * @ac: The context of current allocation
-- * @mode: The migration mode for async, sync light, or sync migration
-+ * @prio: Determines how hard direct compaction should try to succeed
-  *
-  * This is the main entry point for direct page compaction.
+diff -puN mm/page_ext.c~mm-page_extc-make-page_ext_init-a-noop-when-config_page_extension-but-nothing-uses-it mm/page_ext.c
+--- a/mm/page_ext.c~mm-page_extc-make-page_ext_init-a-noop-when-config_page_extension-but-nothing-uses-it
++++ a/mm/page_ext.c
+@@ -59,7 +59,9 @@
   */
+ 
+ static struct page_ext_operations *page_ext_ops[] = {
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ 	&debug_guardpage_ops,
++#endif
+ #ifdef CONFIG_PAGE_OWNER
+ 	&page_owner_ops,
+ #endif
 _
