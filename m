@@ -1,39 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- shmem-add-sealing-support-to-hugetlb-backed-memfd.patch removed from -mm
- tree
-Date: Thu, 01 Feb 2018 11:33:35 -0800
-Message-ID: <20180201193335.UEdPOFe_V%akpm@linux-foundation.org>
+ hugetlb-expose-hugetlbfs_inode_info-in-header.patch removed from -mm tree
+Date: Thu, 01 Feb 2018 11:33:26 -0800
+Message-ID: <20180201193326.Itf2AgBIm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59656 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754623AbeBATdn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:43 -0500
+        with ESMTP id S1754623AbeBATdg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: add sealing support to hugetlb-backed memfd
+     Subject: hugetlb: expose hugetlbfs_inode_info in header
 has been removed from the -mm tree.  Its filename was
-     shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
+     hugetlb-expose-hugetlbfs_inode_info-in-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: shmem: add sealing support to hugetlb-backed memfd
+Subject: hugetlb: expose hugetlbfs_inode_info in header
 
-Adapt add_seals()/get_seals() to work with hugetbfs-backed memory.
+hugetlbfs inode information will need to be accessed by code in mm/shmem.c
+for file sealing operations.  Move inode information definition from .c
+file to header for needed access.
 
-Teach memfd_create() to allow sealing operations on MFD_HUGETLB.
-
-Link: http://lkml.kernel.org/r/20171107122800.25517-6-marcandre.lureau@redhat.com
+Link: http://lkml.kernel.org/r/20171107122800.25517-4-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -43,127 +42,50 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   47 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ fs/hugetlbfs/inode.c    |   10 ----------
+ include/linux/hugetlb.h |   10 ++++++++++
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd mm/shmem.c
---- a/mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd
-+++ a/mm/shmem.c
-@@ -2717,6 +2717,19 @@ continue_resched:
- 	return error;
+diff -puN fs/hugetlbfs/inode.c~hugetlb-expose-hugetlbfs_inode_info-in-header fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-expose-hugetlbfs_inode_info-in-header
++++ a/fs/hugetlbfs/inode.c
+@@ -55,16 +55,6 @@ struct hugetlbfs_config {
+ 	umode_t			mode;
+ };
+ 
+-struct hugetlbfs_inode_info {
+-	struct shared_policy policy;
+-	struct inode vfs_inode;
+-};
+-
+-static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
+-{
+-	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
+-}
+-
+ int sysctl_hugetlb_shm_group;
+ 
+ enum {
+diff -puN include/linux/hugetlb.h~hugetlb-expose-hugetlbfs_inode_info-in-header include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-expose-hugetlbfs_inode_info-in-header
++++ a/include/linux/hugetlb.h
+@@ -270,6 +270,16 @@ static inline struct hugetlbfs_sb_info *
+ 	return sb->s_fs_info;
  }
  
-+static unsigned int *memfd_file_seals_ptr(struct file *file)
++struct hugetlbfs_inode_info {
++	struct shared_policy policy;
++	struct inode vfs_inode;
++};
++
++static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
 +{
-+	if (file->f_op == &shmem_file_operations)
-+		return &SHMEM_I(file_inode(file))->seals;
-+
-+#ifdef CONFIG_HUGETLBFS
-+	if (file->f_op == &hugetlbfs_file_operations)
-+		return &HUGETLBFS_I(file_inode(file))->seals;
-+#endif
-+
-+	return NULL;
++	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
 +}
 +
- #define F_ALL_SEALS (F_SEAL_SEAL | \
- 		     F_SEAL_SHRINK | \
- 		     F_SEAL_GROW | \
-@@ -2725,7 +2738,7 @@ continue_resched:
- static int memfd_add_seals(struct file *file, unsigned int seals)
- {
- 	struct inode *inode = file_inode(file);
--	struct shmem_inode_info *info = SHMEM_I(inode);
-+	unsigned int *file_seals;
- 	int error;
- 
- 	/*
-@@ -2758,8 +2771,6 @@ static int memfd_add_seals(struct file *
- 	 * other file types.
- 	 */
- 
--	if (file->f_op != &shmem_file_operations)
--		return -EINVAL;
- 	if (!(file->f_mode & FMODE_WRITE))
- 		return -EPERM;
- 	if (seals & ~(unsigned int)F_ALL_SEALS)
-@@ -2767,12 +2778,18 @@ static int memfd_add_seals(struct file *
- 
- 	inode_lock(inode);
- 
--	if (info->seals & F_SEAL_SEAL) {
-+	file_seals = memfd_file_seals_ptr(file);
-+	if (!file_seals) {
-+		error = -EINVAL;
-+		goto unlock;
-+	}
-+
-+	if (*file_seals & F_SEAL_SEAL) {
- 		error = -EPERM;
- 		goto unlock;
- 	}
- 
--	if ((seals & F_SEAL_WRITE) && !(info->seals & F_SEAL_WRITE)) {
-+	if ((seals & F_SEAL_WRITE) && !(*file_seals & F_SEAL_WRITE)) {
- 		error = mapping_deny_writable(file->f_mapping);
- 		if (error)
- 			goto unlock;
-@@ -2784,7 +2801,7 @@ static int memfd_add_seals(struct file *
- 		}
- 	}
- 
--	info->seals |= seals;
-+	*file_seals |= seals;
- 	error = 0;
- 
- unlock:
-@@ -2794,10 +2811,9 @@ unlock:
- 
- static int memfd_get_seals(struct file *file)
- {
--	if (file->f_op != &shmem_file_operations)
--		return -EINVAL;
-+	unsigned int *seals = memfd_file_seals_ptr(file);
- 
--	return SHMEM_I(file_inode(file))->seals;
-+	return seals ? *seals : -EINVAL;
- }
- 
- long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
-@@ -3655,7 +3671,7 @@ SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
- 		unsigned int, flags)
- {
--	struct shmem_inode_info *info;
-+	unsigned int *file_seals;
- 	struct file *file;
- 	int fd, error;
- 	char *name;
-@@ -3665,9 +3681,6 @@ SYSCALL_DEFINE2(memfd_create,
- 		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
- 			return -EINVAL;
- 	} else {
--		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
--		if (flags & MFD_ALLOW_SEALING)
--			return -EINVAL;
- 		/* Allow huge page size encoding in flags. */
- 		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
- 				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
-@@ -3720,12 +3733,8 @@ SYSCALL_DEFINE2(memfd_create,
- 	file->f_flags |= O_RDWR | O_LARGEFILE;
- 
- 	if (flags & MFD_ALLOW_SEALING) {
--		/*
--		 * flags check at beginning of function ensures
--		 * this is not a hugetlbfs (MFD_HUGETLB) file.
--		 */
--		info = SHMEM_I(file_inode(file));
--		info->seals &= ~F_SEAL_SEAL;
-+		file_seals = memfd_file_seals_ptr(file);
-+		*file_seals &= ~F_SEAL_SEAL;
- 	}
- 
- 	fd_install(fd, file);
+ extern const struct file_operations hugetlbfs_file_operations;
+ extern const struct vm_operations_struct hugetlb_vm_ops;
+ struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
 _
 
 Patches currently in -mm which might be from marcandre.lureau@redhat.com are
