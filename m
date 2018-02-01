@@ -1,137 +1,563 @@
 From: akpm@linux-foundation.org
-Subject: [patch 051/119] mm, hugetlb: remove
- hugepages_treat_as_movable sysctl
-Date: Wed, 31 Jan 2018 16:17:10 -0800
-Message-ID: <20180201001710.8Wbz5Xde0%akpm@linux-foundation.org>
+Subject: [patch 048/119] selftests/vm: move 128TB mmap boundary
+ test to generic directory
+Date: Wed, 31 Jan 2018 16:16:59 -0800
+Message-ID: <20180201001659.8fi_xV2cF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34532 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751563AbeBAARM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:17:12 -0500
+        with ESMTP id S1751001AbeBAARC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:17:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 00moses.alexander00@gmail.com, akpm@linux-foundation.org, mgorman@suse.de, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, mm-commits@vger.kernel.org, shuah@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: remove hugepages_treat_as_movable sysctl
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: selftests/vm: move 128TB mmap boundary test to generic directory
 
-hugepages_treat_as_movable has been introduced by 396faf0303d2 ("Allow
-huge page allocations to use GFP_HIGH_MOVABLE") to allow hugetlb
-allocations from ZONE_MOVABLE even when hugetlb pages were not
-migrateable.  The purpose of the movable zone was different at the time. 
-It aimed at reducing memory fragmentation and hugetlb pages being long
-lived and large werre not contributing to the fragmentation so it was
-acceptable to use the zone back then.
+Architectures like PPC64 support mmap hint address based large address
+space selection.  This test can be run on those architectures too.  Move
+the test from the x86 selftests to selftest/vm so that other architectures
+can use it too.
 
-Things have changed though and the primary purpose of the zone became
-migratability guarantee.  If we allow non migrateable hugetlb pages to be
-in ZONE_MOVABLE memory hotplug might fail to offline the memory.
+We also add a few new test scenarios in this patch.  We do test a few
+boundary conditions before we do a high address mmap.  PPC64 uses the
+address limit to validate the address in the fault path.  We had bugs in
+this area w.r.t SLB fault handling before we updated the addess limit.
 
-Remove the knob and only rely on hugepage_migration_supported to allow
-movable zones.
+We also touch the allocated space to make sure we don't have any bugs in
+the fault handling path.
 
-Mel said:
-
-: Primarily it was aimed at allowing the hugetlb pool to safely shrink with
-: the ability to grow it again.  The use case was for batched jobs, some of
-: which needed huge pages and others that did not but didn't want the memory
-: useless pinned in the huge pages pool.
-: 
-: I suspect that more users rely on THP than hugetlbfs for flexible use of
-: huge pages with fallback options so I think that removing the option
-: should be ok.
-
-Link: http://lkml.kernel.org/r/20171003072619.8654-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Alexandru Moise <00moses.alexander00@gmail.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Alexandru Moise <00moses.alexander00@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+[akpm@linux-foundation.org: restore tools/testing/selftests/vm/Makefile alpha ordering]
+Link: http://lkml.kernel.org/r/20171123165226.32582-1-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   25 -------------------------
- include/linux/hugetlb.h     |    1 -
- kernel/sysctl.c             |    7 -------
- mm/hugetlb.c                |    4 +---
- 4 files changed, 1 insertion(+), 36 deletions(-)
+ tools/testing/selftests/vm/Makefile         |    5 
+ tools/testing/selftests/vm/run_vmtests      |   11 
+ tools/testing/selftests/vm/va_128TBswitch.c |  297 ++++++++++++++++++
+ tools/testing/selftests/x86/5lvl.c          |  177 ----------
+ 4 files changed, 311 insertions(+), 179 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/Documentation/sysctl/vm.txt
-@@ -30,7 +30,6 @@ Currently, these files are in /proc/sys/
- - dirty_writeback_centisecs
- - drop_caches
- - extfrag_threshold
--- hugepages_treat_as_movable
- - hugetlb_shm_group
- - laptop_mode
- - legacy_va_layout
-@@ -261,30 +260,6 @@ any throttling.
+diff -puN tools/testing/selftests/vm/Makefile~selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory
++++ a/tools/testing/selftests/vm/Makefile
+@@ -8,17 +8,18 @@ endif
+ CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
+ LDLIBS = -lrt
+ TEST_GEN_FILES = compaction_test
++TEST_GEN_FILES += gup_benchmark
+ TEST_GEN_FILES += hugepage-mmap
+ TEST_GEN_FILES += hugepage-shm
+ TEST_GEN_FILES += map_hugetlb
++TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
+ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+-TEST_GEN_FILES += mlock-random-test
++TEST_GEN_FILES += va_128TBswitch
+ TEST_GEN_FILES += virtual_address_range
+-TEST_GEN_FILES += gup_benchmark
  
- ==============================================================
+ TEST_PROGS := run_vmtests
  
--hugepages_treat_as_movable
+diff -puN tools/testing/selftests/vm/run_vmtests~selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory tools/testing/selftests/vm/run_vmtests
+--- a/tools/testing/selftests/vm/run_vmtests~selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -177,4 +177,15 @@ else
+ 	echo "[PASS]"
+ fi
+ 
++echo "-----------------------------"
++echo "running virtual address 128TB switch test"
++echo "-----------------------------"
++./va_128TBswitch
++if [ $? -ne 0 ]; then
++    echo "[FAIL]"
++    exitcode=1
++else
++    echo "[PASS]"
++fi
++
+ exit $exitcode
+diff -puN /dev/null tools/testing/selftests/vm/va_128TBswitch.c
+--- /dev/null
++++ a/tools/testing/selftests/vm/va_128TBswitch.c
+@@ -0,0 +1,297 @@
++/*
++ *
++ * Authors: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
++ * Authors: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License, version 2, as
++ * published by the Free Software Foundation.
++
++ * This program is distributed in the hope that it would be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++ *
++ */
++
++#include <stdio.h>
++#include <sys/mman.h>
++#include <string.h>
++
++#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
++
++#ifdef __powerpc64__
++#define PAGE_SIZE	(64 << 10)
++/*
++ * This will work with 16M and 2M hugepage size
++ */
++#define HUGETLB_SIZE	(16 << 20)
++#else
++#define PAGE_SIZE	(4 << 10)
++#define HUGETLB_SIZE	(2 << 20)
++#endif
++
++/*
++ * >= 128TB is the hint addr value we used to select
++ * large address space.
++ */
++#define ADDR_SWITCH_HINT (1UL << 47)
++#define LOW_ADDR	((void *) (1UL << 30))
++#define HIGH_ADDR	((void *) (1UL << 48))
++
++struct testcase {
++	void *addr;
++	unsigned long size;
++	unsigned long flags;
++	const char *msg;
++	unsigned int low_addr_required:1;
++	unsigned int keep_mapped:1;
++};
++
++static struct testcase testcases[] = {
++	{
++		/*
++		 * If stack is moved, we could possibly allocate
++		 * this at the requested address.
++		 */
++		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, PAGE_SIZE)",
++		.low_addr_required = 1,
++	},
++	{
++		/*
++		 * We should never allocate at the requested address or above it
++		 * The len cross the 128TB boundary. Without MAP_FIXED
++		 * we will always search in the lower address space.
++		 */
++		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, (2 * PAGE_SIZE))",
++		.low_addr_required = 1,
++	},
++	{
++		/*
++		 * Exact mapping at 128TB, the area is free we should get that
++		 * even without MAP_FIXED.
++		 */
++		.addr = ((void *)(ADDR_SWITCH_HINT)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT, PAGE_SIZE)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED)",
++	},
++	{
++		.addr = NULL,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(NULL)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = LOW_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(LOW_ADDR)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR) again",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(HIGH_ADDR, MAP_FIXED)",
++	},
++	{
++		.addr = (void *) -1,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *) -1,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1) again",
++	},
++	{
++		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, PAGE_SIZE)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2 * PAGE_SIZE)",
++		.low_addr_required = 1,
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE / 2),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE/2 , 2 * PAGE_SIZE)",
++		.low_addr_required = 1,
++		.keep_mapped = 1,
++	},
++	{
++		.addr = ((void *)(ADDR_SWITCH_HINT)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT, PAGE_SIZE)",
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED)",
++	},
++};
++
++static struct testcase hugetlb_testcases[] = {
++	{
++		.addr = NULL,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(NULL, MAP_HUGETLB)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = LOW_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(LOW_ADDR, MAP_HUGETLB)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB) again",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(HIGH_ADDR, MAP_FIXED | MAP_HUGETLB)",
++	},
++	{
++		.addr = (void *) -1,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1, MAP_HUGETLB)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *) -1,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1, MAP_HUGETLB) again",
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE),
++		.size = 2 * HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2*HUGETLB_SIZE, MAP_HUGETLB)",
++		.low_addr_required = 1,
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT),
++		.size = 2 * HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(ADDR_SWITCH_HINT , 2*HUGETLB_SIZE, MAP_FIXED | MAP_HUGETLB)",
++	},
++};
++
++static int run_test(struct testcase *test, int count)
++{
++	void *p;
++	int i, ret = 0;
++
++	for (i = 0; i < count; i++) {
++		struct testcase *t = test + i;
++
++		p = mmap(t->addr, t->size, PROT_READ | PROT_WRITE, t->flags, -1, 0);
++
++		printf("%s: %p - ", t->msg, p);
++
++		if (p == MAP_FAILED) {
++			printf("FAILED\n");
++			ret = 1;
++			continue;
++		}
++
++		if (t->low_addr_required && p >= (void *)(ADDR_SWITCH_HINT)) {
++			printf("FAILED\n");
++			ret = 1;
++		} else {
++			/*
++			 * Do a dereference of the address returned so that we catch
++			 * bugs in page fault handling
++			 */
++			memset(p, 0, t->size);
++			printf("OK\n");
++		}
++		if (!t->keep_mapped)
++			munmap(p, t->size);
++	}
++
++	return ret;
++}
++
++static int supported_arch(void)
++{
++#if defined(__powerpc64__)
++	return 1;
++#elif defined(__x86_64__)
++	return 1;
++#else
++	return 0;
++#endif
++}
++
++int main(int argc, char **argv)
++{
++	int ret;
++
++	if (!supported_arch())
++		return 0;
++
++	ret = run_test(testcases, ARRAY_SIZE(testcases));
++	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
++		ret = run_test(hugetlb_testcases, ARRAY_SIZE(hugetlb_testcases));
++	return ret;
++}
+diff -puN tools/testing/selftests/x86/5lvl.c~selftest-vm-move-128tb-mmap-boundary-test-to-generic-directory /dev/null
+--- a/tools/testing/selftests/x86/5lvl.c
++++ /dev/null
+@@ -1,177 +0,0 @@
+-#include <stdio.h>
+-#include <sys/mman.h>
 -
--This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
--or not. If set to non-zero, hugepages can be allocated from ZONE_MOVABLE.
--ZONE_MOVABLE is created when kernel boot parameter kernelcore= is specified,
--so this parameter has no effect if used without kernelcore=.
+-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 -
--Hugepage migration is now available in some situations which depend on the
--architecture and/or the hugepage size. If a hugepage supports migration,
--allocation from ZONE_MOVABLE is always enabled for the hugepage regardless
--of the value of this parameter.
--IOW, this parameter affects only non-migratable hugepages.
+-#define PAGE_SIZE	4096
+-#define LOW_ADDR	((void *) (1UL << 30))
+-#define HIGH_ADDR	((void *) (1UL << 50))
 -
--Assuming that hugepages are not migratable in your system, one usecase of
--this parameter is that users can make hugepage pool more extensible by
--enabling the allocation from ZONE_MOVABLE. This is because on ZONE_MOVABLE
--page reclaim/migration/compaction work more and you can get contiguous
--memory more likely. Note that using ZONE_MOVABLE for non-migratable
--hugepages can do harm to other features like memory hotremove (because
--memory hotremove expects that memory blocks on ZONE_MOVABLE are always
--removable,) so it's a trade-off responsible for the users.
+-struct testcase {
+-	void *addr;
+-	unsigned long size;
+-	unsigned long flags;
+-	const char *msg;
+-	unsigned int low_addr_required:1;
+-	unsigned int keep_mapped:1;
+-};
 -
--==============================================================
--
- hugetlb_shm_group
- 
- hugetlb_shm_group contains group id that is allowed to create SysV
-diff -puN include/linux/hugetlb.h~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/include/linux/hugetlb.h
-@@ -129,7 +129,6 @@ u32 hugetlb_fault_mutex_hash(struct hsta
- 
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
- 
--extern int hugepages_treat_as_movable;
- extern int sysctl_hugetlb_shm_group;
- extern struct list_head huge_boot_pages;
- 
-diff -puN kernel/sysctl.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/kernel/sysctl.c
-@@ -1374,13 +1374,6 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 	 },
--	 {
--		.procname	= "hugepages_treat_as_movable",
--		.data		= &hugepages_treat_as_movable,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
+-static struct testcase testcases[] = {
+-	{
+-		.addr = NULL,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(NULL)",
+-		.low_addr_required = 1,
 -	},
- 	{
- 		.procname	= "nr_overcommit_hugepages",
- 		.data		= NULL,
-diff -puN mm/hugetlb.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-drop-hugepages_treat_as_movable-sysctl
-+++ a/mm/hugetlb.c
-@@ -36,8 +36,6 @@
- #include <linux/userfaultfd_k.h>
- #include "internal.h"
- 
--int hugepages_treat_as_movable;
+-	{
+-		.addr = LOW_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(LOW_ADDR)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR) again",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(HIGH_ADDR, MAP_FIXED)",
+-	},
+-	{
+-		.addr = (void*) -1,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void*) -1,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1) again",
+-	},
+-	{
+-		.addr = (void *)((1UL << 47) - PAGE_SIZE),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap((1UL << 47), 2 * PAGE_SIZE)",
+-		.low_addr_required = 1,
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *)((1UL << 47) - PAGE_SIZE / 2),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap((1UL << 47), 2 * PAGE_SIZE / 2)",
+-		.low_addr_required = 1,
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *)((1UL << 47) - PAGE_SIZE),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap((1UL << 47) - PAGE_SIZE, 2 * PAGE_SIZE, MAP_FIXED)",
+-	},
+-	{
+-		.addr = NULL,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(NULL, MAP_HUGETLB)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = LOW_ADDR,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(LOW_ADDR, MAP_HUGETLB)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB) again",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(HIGH_ADDR, MAP_FIXED | MAP_HUGETLB)",
+-	},
+-	{
+-		.addr = (void*) -1,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1, MAP_HUGETLB)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void*) -1,
+-		.size = 2UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1, MAP_HUGETLB) again",
+-	},
+-	{
+-		.addr = (void *)((1UL << 47) - PAGE_SIZE),
+-		.size = 4UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap((1UL << 47), 4UL << 20, MAP_HUGETLB)",
+-		.low_addr_required = 1,
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *)((1UL << 47) - (2UL << 20)),
+-		.size = 4UL << 20,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap((1UL << 47) - (2UL << 20), 4UL << 20, MAP_FIXED | MAP_HUGETLB)",
+-	},
+-};
+-
+-int main(int argc, char **argv)
+-{
+-	int i;
+-	void *p;
+-
+-	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
+-		struct testcase *t = testcases + i;
+-
+-		p = mmap(t->addr, t->size, PROT_NONE, t->flags, -1, 0);
+-
+-		printf("%s: %p - ", t->msg, p);
+-
+-		if (p == MAP_FAILED) {
+-			printf("FAILED\n");
+-			continue;
+-		}
