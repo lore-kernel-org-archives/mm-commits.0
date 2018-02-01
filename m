@@ -1,89 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch removed
+Subject: [merged] ocfs2-add-trimfs-dlm-lock-resource.patch removed
  from -mm tree
-Date: Thu, 01 Feb 2018 11:29:23 -0800
-Message-ID: <20180201192923.fwNLSRIjp%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:29:47 -0800
+Message-ID: <20180201192947.3rANwBt2M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57028 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754695AbeBAT3Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:25 -0500
+        with ESMTP id S1754570AbeBAT3s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
+     Subject: ocfs2: add trimfs dlm lock resource
 has been removed from the -mm tree.  Its filename was
-     ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
+     ocfs2-add-trimfs-dlm-lock-resource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: add trimfs dlm lock resource
 
-If metadata is corrupted such as 'invalid inode block', we will get failed
-by calling 'mount()' and then set filesystem readonly as below:
+Introduce a new dlm lock resource, which will be used to communicate
+during fstrimming of an ocfs2 device from cluster nodes.
 
-ocfs2_mount
-  ocfs2_initialize_super
-    ocfs2_init_global_system_inodes
-      ocfs2_iget
-        ocfs2_read_locked_inode
-          ocfs2_validate_inode_block
-	    ocfs2_error
-	      ocfs2_handle_error
-	        ocfs2_set_ro_flag(osb, 0);  // set readonly
-
-In this situation we need return -EROFS to 'mount.ocfs2', so that user can
-fix it by fsck.  And then mount again.  In addition, 'mount.ocfs2' should
-be updated correspondingly as it only return 1 for all errno.  And I will
-post a patch for 'mount.ocfs2' too.
-
-Link: http://lkml.kernel.org/r/5A4302FA.2010606@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/1513228484-2084-1-git-send-email-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
 Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
-Reviewed-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/dlmglue.c      |   86 ++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/dlmglue.h      |   29 ++++++++++++
+ fs/ocfs2/ocfs2.h        |    1 
+ fs/ocfs2/ocfs2_lockid.h |    5 ++
+ 4 files changed, 121 insertions(+)
 
-diff -puN fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid
-+++ a/fs/ocfs2/super.c
-@@ -474,9 +474,8 @@ static int ocfs2_init_global_system_inod
- 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
- 		if (!new) {
- 			ocfs2_release_system_inodes(osb);
--			status = -EINVAL;
-+			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
- 			mlog_errno(status);
--			/* FIXME: Should ERROR_RO_FS */
- 			mlog(ML_ERROR, "Unable to load system inode %d, "
- 			     "possibly corrupt fs?", i);
- 			goto bail;
-@@ -505,7 +504,7 @@ static int ocfs2_init_local_system_inode
- 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
- 		if (!new) {
- 			ocfs2_release_system_inodes(osb);
--			status = -EINVAL;
-+			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
- 			mlog(ML_ERROR, "status=%d, sysfile=%d, slot=%d\n",
- 			     status, i, osb->slot_num);
- 			goto bail;
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/dlmglue.c
+@@ -259,6 +259,10 @@ static struct ocfs2_lock_res_ops ocfs2_n
+ 	.flags		= 0,
+ };
+ 
++static struct ocfs2_lock_res_ops ocfs2_trim_fs_lops = {
++	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
++};
++
+ static struct ocfs2_lock_res_ops ocfs2_orphan_scan_lops = {
+ 	.flags		= LOCK_TYPE_REQUIRES_REFRESH|LOCK_TYPE_USES_LVB,
+ };
+@@ -676,6 +680,24 @@ static void ocfs2_nfs_sync_lock_res_init
+ 				   &ocfs2_nfs_sync_lops, osb);
+ }
+ 
++void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb)
++{
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	ocfs2_lock_res_init_once(lockres);
++	ocfs2_build_lock_name(OCFS2_LOCK_TYPE_TRIM_FS, 0, 0, lockres->l_name);
++	ocfs2_lock_res_init_common(osb, lockres, OCFS2_LOCK_TYPE_TRIM_FS,
++				   &ocfs2_trim_fs_lops, osb);
++}
++
++void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb)
++{
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	ocfs2_simple_drop_lockres(osb, lockres);
++	ocfs2_lock_res_free(lockres);
++}
++
+ static void ocfs2_orphan_scan_lock_res_init(struct ocfs2_lock_res *res,
+ 					    struct ocfs2_super *osb)
+ {
+@@ -2754,6 +2776,70 @@ void ocfs2_nfs_sync_unlock(struct ocfs2_
+ 				     ex ? LKM_EXMODE : LKM_PRMODE);
+ }
+ 
++int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
++		       struct ocfs2_trim_fs_info *info, int trylock)
++{
++	int status;
++	struct ocfs2_trim_fs_lvb *lvb;
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	if (info)
++		info->tf_valid = 0;
++
++	if (ocfs2_is_hard_readonly(osb))
++		return -EROFS;
++
++	if (ocfs2_mount_local(osb))
++		return 0;
++
++	status = ocfs2_cluster_lock(osb, lockres, DLM_LOCK_EX,
++				    trylock ? DLM_LKF_NOQUEUE : 0, 0);
++	if (status < 0) {
++		if (status != -EAGAIN)
++			mlog_errno(status);
++		return status;
++	}
++
++	if (info) {
++		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
++		if (ocfs2_dlm_lvb_valid(&lockres->l_lksb) &&
++		    lvb->lvb_version == OCFS2_TRIMFS_LVB_VERSION) {
++			info->tf_valid = 1;
++			info->tf_success = lvb->lvb_success;
++			info->tf_nodenum = be32_to_cpu(lvb->lvb_nodenum);
++			info->tf_start = be64_to_cpu(lvb->lvb_start);
++			info->tf_len = be64_to_cpu(lvb->lvb_len);
++			info->tf_minlen = be64_to_cpu(lvb->lvb_minlen);
++			info->tf_trimlen = be64_to_cpu(lvb->lvb_trimlen);
++		}
++	}
++
++	return status;
++}
++
++void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
++			  struct ocfs2_trim_fs_info *info)
++{
++	struct ocfs2_trim_fs_lvb *lvb;
++	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
++
++	if (ocfs2_mount_local(osb))
++		return;
++
++	if (info) {
++		lvb = ocfs2_dlm_lvb(&lockres->l_lksb);
++		lvb->lvb_version = OCFS2_TRIMFS_LVB_VERSION;
++		lvb->lvb_success = info->tf_success;
++		lvb->lvb_nodenum = cpu_to_be32(info->tf_nodenum);
++		lvb->lvb_start = cpu_to_be64(info->tf_start);
++		lvb->lvb_len = cpu_to_be64(info->tf_len);
++		lvb->lvb_minlen = cpu_to_be64(info->tf_minlen);
++		lvb->lvb_trimlen = cpu_to_be64(info->tf_trimlen);
++	}
++
++	ocfs2_cluster_unlock(osb, lockres, DLM_LOCK_EX);
++}
++
+ int ocfs2_dentry_lock(struct dentry *dentry, int ex)
+ {
+ 	int ret;
+diff -puN fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/dlmglue.h
+--- a/fs/ocfs2/dlmglue.h~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/dlmglue.h
+@@ -70,6 +70,29 @@ struct ocfs2_orphan_scan_lvb {
+ 	__be32	lvb_os_seqno;
+ };
+ 
++#define OCFS2_TRIMFS_LVB_VERSION 1
++
++struct ocfs2_trim_fs_lvb {
++	__u8	lvb_version;
++	__u8	lvb_success;
++	__u8	lvb_reserved[2];
++	__be32	lvb_nodenum;
++	__be64	lvb_start;
++	__be64	lvb_len;
++	__be64	lvb_minlen;
++	__be64	lvb_trimlen;
++};
++
++struct ocfs2_trim_fs_info {
++	u8	tf_valid;	/* lvb is valid, or not */
++	u8	tf_success;	/* trim is successful, or not */
++	u32	tf_nodenum;	/* osb node number */
++	u64	tf_start;	/* trim start offset in clusters */
++	u64	tf_len;		/* trim end offset in clusters */
++	u64	tf_minlen;	/* trim minimum contiguous free clusters */
++	u64	tf_trimlen;	/* trimmed length in bytes */
++};
++
+ struct ocfs2_lock_holder {
+ 	struct list_head oh_list;
+ 	struct pid *oh_owner_pid;
+@@ -153,6 +176,12 @@ int ocfs2_rename_lock(struct ocfs2_super
+ void ocfs2_rename_unlock(struct ocfs2_super *osb);
+ int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex);
+ void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex);
++void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb);
++void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb);
++int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
++		       struct ocfs2_trim_fs_info *info, int trylock);
++void ocfs2_trim_fs_unlock(struct ocfs2_super *osb,
++			  struct ocfs2_trim_fs_info *info);
+ int ocfs2_dentry_lock(struct dentry *dentry, int ex);
+ void ocfs2_dentry_unlock(struct dentry *dentry, int ex);
+ int ocfs2_file_lock(struct file *file, int ex, int trylock);
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/ocfs2.h
+@@ -404,6 +404,7 @@ struct ocfs2_super
+ 	struct ocfs2_lock_res osb_super_lockres;
+ 	struct ocfs2_lock_res osb_rename_lockres;
+ 	struct ocfs2_lock_res osb_nfs_sync_lockres;
++	struct ocfs2_lock_res osb_trim_fs_lockres;
+ 	struct ocfs2_dlm_debug *osb_dlm_debug;
+ 
+ 	struct dentry *osb_debug_root;
+diff -puN fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource fs/ocfs2/ocfs2_lockid.h
+--- a/fs/ocfs2/ocfs2_lockid.h~ocfs2-add-trimfs-dlm-lock-resource
++++ a/fs/ocfs2/ocfs2_lockid.h
+@@ -50,6 +50,7 @@ enum ocfs2_lock_type {
+ 	OCFS2_LOCK_TYPE_NFS_SYNC,
+ 	OCFS2_LOCK_TYPE_ORPHAN_SCAN,
+ 	OCFS2_LOCK_TYPE_REFCOUNT,
++	OCFS2_LOCK_TYPE_TRIM_FS,
+ 	OCFS2_NUM_LOCK_TYPES
+ };
+ 
+@@ -93,6 +94,9 @@ static inline char ocfs2_lock_type_char(
+ 		case OCFS2_LOCK_TYPE_REFCOUNT:
+ 			c = 'T';
+ 			break;
++		case OCFS2_LOCK_TYPE_TRIM_FS:
++			c = 'I';
++			break;
+ 		default:
+ 			c = '\0';
+ 	}
+@@ -115,6 +119,7 @@ static char *ocfs2_lock_type_strings[] =
+ 	[OCFS2_LOCK_TYPE_NFS_SYNC] = "NFSSync",
+ 	[OCFS2_LOCK_TYPE_ORPHAN_SCAN] = "OrphanScan",
+ 	[OCFS2_LOCK_TYPE_REFCOUNT] = "Refcount",
++	[OCFS2_LOCK_TYPE_TRIM_FS] = "TrimFs",
+ };
+ 
+ static inline const char *ocfs2_lock_type_string(enum ocfs2_lock_type type)
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
+ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+ocfs2-move-some-definitions-to-header-file.patch
+ocfs2-fix-some-small-problems.patch
+ocfs2-add-kobject-for-online-file-check.patch
+ocfs2-add-duplicative-ino-number-check.patch
 
