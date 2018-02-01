@@ -1,45 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [patch 005/119] m32r: remove abort()
-Date: Wed, 31 Jan 2018 16:14:17 -0800
-Message-ID: <20180201001417.SinnQIHk0%akpm@linux-foundation.org>
+Subject: [patch 006/119] fs/ocfs2/dlm/dlmmaster.c: clean up dead
+ code
+Date: Wed, 31 Jan 2018 16:14:21 -0800
+Message-ID: <20180201001421.c57ViY-wm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33522 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754256AbeBAAOT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:19 -0500
+        with ESMTP id S1754277AbeBAAOX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, sudipm.mukherjee@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: remove abort()
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: fs/ocfs2/dlm/dlmmaster.c: clean up dead code
 
-7c2c11b208be ("arch: define weak abort()") has introduced a weak abort()
-which is common for all arch.  And, so we will not need arch specific
-abort which has the same code as the weak abort().  Remove the abort() for
-m32r.
+This code has been commented out for 12 years.  Remove it.
 
-Link: http://lkml.kernel.org/r/1516912339-5665-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED7EF9E@H3CMLB14-EX.srv.huawei-3com.com
+Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
+Cc: alex chen <alex.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/traps.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN arch/m32r/kernel/traps.c~m32r-remove-abort arch/m32r/kernel/traps.c
---- a/arch/m32r/kernel/traps.c~m32r-remove-abort
-+++ a/arch/m32r/kernel/traps.c
-@@ -115,14 +115,6 @@ static void set_eit_vector_entries(void)
- 	_flush_cache_copyback_all();
- }
- 
--void abort(void)
--{
--	BUG();
--
--	/* if that doesn't kill us, halt */
--	panic("Oops failed to kill thread");
--}
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-dead-code-up fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-dead-code-up
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -1122,13 +1122,6 @@ recheck:
+ 	/* sleep if we haven't finished voting yet */
+ 	if (sleep) {
+ 		unsigned long timeo = msecs_to_jiffies(DLM_MASTERY_TIMEOUT_MS);
