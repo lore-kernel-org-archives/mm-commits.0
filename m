@@ -1,117 +1,188 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-pin-address=5Fspace-before-dereferencing-it-while-isolati?=
- =?US-ASCII?Q?ng-an-lru-page.patch?= removed from -mm tree
-Date: Thu, 01 Feb 2018 11:33:53 -0800
-Message-ID: <20180201193353._EwFvniKE%akpm@linux-foundation.org>
+ memfd-test-run-fuse-test-on-hugetlb-backend-memory.patch removed from -mm
+ tree
+Date: Thu, 01 Feb 2018 11:33:47 -0800
+Message-ID: <20180201193347.39e6gz0Jb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60388 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754644AbeBATeI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:08 -0500
+        with ESMTP id S1753433AbeBATeH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org, ying.huang@intel.com
+To: aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pin address_space before dereferencing it while isolating an LRU page
+     Subject: memfd-test: run fuse test on hugetlb backend memory
 has been removed from the -mm tree.  Its filename was
-     mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page.patch
+     memfd-test-run-fuse-test-on-hugetlb-backend-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: pin address_space before dereferencing it while isolating an LRU page
+From: Marc-André Lureau <marcandre.lureau@redhat.com>
+Subject: memfd-test: run fuse test on hugetlb backend memory
 
-Minchan Kim asked the following question -- what locks protects
-address_space destroying when race happens between inode trauncation and
-__isolate_lru_page?  Jan Kara clarified by describing the race as follows
-
-CPU1                                            CPU2
-
-truncate(inode)                                 __isolate_lru_page()
-  ...
-  truncate_inode_page(mapping, page);
-    delete_from_page_cache(page)
-      spin_lock_irqsave(&mapping->tree_lock, flags);
-        __delete_from_page_cache(page, NULL)
-          page_cache_tree_delete(..)
-            ...                                   mapping = page_mapping(page);
-            page->mapping = NULL;
-            ...
-      spin_unlock_irqrestore(&mapping->tree_lock, flags);
-      page_cache_free_page(mapping, page)
-        put_page(page)
-          if (put_page_testzero(page)) -> false
-- inode now has no pages and can be freed including embedded address_space
-
-                                                  if (mapping && !mapping->a_ops->migratepage)
-- we've dereferenced mapping which is potentially already free.
-
-The race is theoretically possible but unlikely.  Before the
-delete_from_page_cache, truncate_cleanup_page is called so the page is
-likely to be !PageDirty or PageWriteback which gets skipped by the only
-caller that checks the mappping in __isolate_lru_page.  Even if the race
-occurs, a substantial amount of work has to happen during a tiny window
-with no preemption but it could potentially be done using a virtual
-machine to artifically slow one CPU or halt it during the critical window.
-
-This patch should eliminate the race with truncation by try-locking the
-page before derefencing mapping and aborting if the lock was not acquired.
-There was a suggestion from Huang Ying to use RCU as a side-effect to
-prevent mapping being freed.  However, I do not like the solution as it's
-an unconventional means of preserving a mapping and it's not a context
-where rcu_read_lock is obviously protecting rcu data.
-
-Link: http://lkml.kernel.org/r/20180104102512.2qos3h5vqzeisrek@techsingularity.net
-Fixes: c82449352854 ("mm: compaction: make isolate_lru_page() filter-aware again")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20171107122800.25517-10-marcandre.lureau@redhat.com
+Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
+Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ tools/testing/selftests/memfd/fuse_test.c      |   38 +++++++++++----
+ tools/testing/selftests/memfd/run_fuse_test.sh |    2 
+ tools/testing/selftests/memfd/run_tests.sh     |    1 
+ 3 files changed, 32 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmscan.c~mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page mm/vmscan.c
---- a/mm/vmscan.c~mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page
-+++ a/mm/vmscan.c
-@@ -1415,14 +1415,24 @@ int __isolate_lru_page(struct page *page
+diff -puN tools/testing/selftests/memfd/fuse_test.c~memfd-test-run-fuse-test-on-hugetlb-backend-memory tools/testing/selftests/memfd/fuse_test.c
+--- a/tools/testing/selftests/memfd/fuse_test.c~memfd-test-run-fuse-test-on-hugetlb-backend-memory
++++ a/tools/testing/selftests/memfd/fuse_test.c
+@@ -38,6 +38,8 @@
+ #define MFD_DEF_SIZE 8192
+ #define STACK_SIZE 65536
  
- 		if (PageDirty(page)) {
- 			struct address_space *mapping;
-+			bool migrate_dirty;
- 
- 			/*
- 			 * Only pages without mappings or that have a
- 			 * ->migratepage callback are possible to migrate
--			 * without blocking
-+			 * without blocking. However, we can be racing with
-+			 * truncation so it's necessary to lock the page
-+			 * to stabilise the mapping as truncation holds
-+			 * the page lock until after the page is removed
-+			 * from the page cache.
- 			 */
-+			if (!trylock_page(page))
-+				return ret;
++static size_t mfd_def_size = MFD_DEF_SIZE;
 +
- 			mapping = page_mapping(page);
--			if (mapping && !mapping->a_ops->migratepage)
-+			migrate_dirty = mapping && mapping->a_ops->migratepage;
-+			unlock_page(page);
-+			if (!migrate_dirty)
- 				return ret;
- 		}
+ static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
+ {
+ 	int r, fd;
+@@ -123,7 +125,7 @@ static void *mfd_assert_mmap_shared(int
+ 	void *p;
+ 
+ 	p = mmap(NULL,
+-		 MFD_DEF_SIZE,
++		 mfd_def_size,
+ 		 PROT_READ | PROT_WRITE,
+ 		 MAP_SHARED,
+ 		 fd,
+@@ -141,7 +143,7 @@ static void *mfd_assert_mmap_private(int
+ 	void *p;
+ 
+ 	p = mmap(NULL,
+-		 MFD_DEF_SIZE,
++		 mfd_def_size,
+ 		 PROT_READ | PROT_WRITE,
+ 		 MAP_PRIVATE,
+ 		 fd,
+@@ -174,7 +176,7 @@ static int sealing_thread_fn(void *arg)
+ 	usleep(200000);
+ 
+ 	/* unmount mapping before sealing to avoid i_mmap_writable failures */
+-	munmap(global_p, MFD_DEF_SIZE);
++	munmap(global_p, mfd_def_size);
+ 
+ 	/* Try sealing the global file; expect EBUSY or success. Current
+ 	 * kernels will never succeed, but in the future, kernels might
+@@ -224,7 +226,7 @@ static void join_sealing_thread(pid_t pi
+ 
+ int main(int argc, char **argv)
+ {
+-	static const char zero[MFD_DEF_SIZE];
++	char *zero;
+ 	int fd, mfd, r;
+ 	void *p;
+ 	int was_sealed;
+@@ -235,6 +237,25 @@ int main(int argc, char **argv)
+ 		abort();
  	}
+ 
++	if (argc >= 3) {
++		if (!strcmp(argv[2], "hugetlbfs")) {
++			unsigned long hpage_size = default_huge_page_size();
++
++			if (!hpage_size) {
++				printf("Unable to determine huge page size\n");
++				abort();
++			}
++
++			hugetlbfs_test = 1;
++			mfd_def_size = hpage_size * 2;
++		} else {
++			printf("Unknown option: %s\n", argv[2]);
++			abort();
++		}
++	}
++
++	zero = calloc(sizeof(*zero), mfd_def_size);
++
+ 	/* open FUSE memfd file for GUP testing */
+ 	printf("opening: %s\n", argv[1]);
+ 	fd = open(argv[1], O_RDONLY | O_CLOEXEC);
+@@ -245,7 +266,7 @@ int main(int argc, char **argv)
+ 
+ 	/* create new memfd-object */
+ 	mfd = mfd_assert_new("kern_memfd_fuse",
+-			     MFD_DEF_SIZE,
++			     mfd_def_size,
+ 			     MFD_CLOEXEC | MFD_ALLOW_SEALING);
+ 
+ 	/* mmap memfd-object for writing */
+@@ -264,7 +285,7 @@ int main(int argc, char **argv)
+ 	 * This guarantees that the receive-buffer is pinned for 1s until the
+ 	 * data is written into it. The racing ADD_SEALS should thus fail as
+ 	 * the pages are still pinned. */
+-	r = read(fd, p, MFD_DEF_SIZE);
++	r = read(fd, p, mfd_def_size);
+ 	if (r < 0) {
+ 		printf("read() failed: %m\n");
+ 		abort();
+@@ -291,10 +312,10 @@ int main(int argc, char **argv)
+ 	 * enough to avoid any in-flight writes. */
+ 
+ 	p = mfd_assert_mmap_private(mfd);
+-	if (was_sealed && memcmp(p, zero, MFD_DEF_SIZE)) {
++	if (was_sealed && memcmp(p, zero, mfd_def_size)) {
+ 		printf("memfd sealed during read() but data not discarded\n");
+ 		abort();
+-	} else if (!was_sealed && !memcmp(p, zero, MFD_DEF_SIZE)) {
++	} else if (!was_sealed && !memcmp(p, zero, mfd_def_size)) {
+ 		printf("memfd sealed after read() but data discarded\n");
+ 		abort();
+ 	}
+@@ -303,6 +324,7 @@ int main(int argc, char **argv)
+ 	close(fd);
+ 
+ 	printf("fuse: DONE\n");
++	free(zero);
+ 
+ 	return 0;
+ }
+diff -puN tools/testing/selftests/memfd/run_fuse_test.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory tools/testing/selftests/memfd/run_fuse_test.sh
+--- a/tools/testing/selftests/memfd/run_fuse_test.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory
++++ a/tools/testing/selftests/memfd/run_fuse_test.sh
+@@ -10,6 +10,6 @@ set -e
+ 
+ mkdir mnt
+ ./fuse_mnt ./mnt
+-./fuse_test ./mnt/memfd
++./fuse_test ./mnt/memfd $@
+ fusermount -u ./mnt
+ rmdir ./mnt
+diff -puN tools/testing/selftests/memfd/run_tests.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory tools/testing/selftests/memfd/run_tests.sh
+--- a/tools/testing/selftests/memfd/run_tests.sh~memfd-test-run-fuse-test-on-hugetlb-backend-memory
++++ a/tools/testing/selftests/memfd/run_tests.sh
+@@ -60,6 +60,7 @@ fi
+ # Run the hugetlbfs test
+ #
+ ./memfd_test hugetlbfs
++./run_fuse_test.sh hugetlbfs
+ 
+ #
+ # Give back any huge pages allocated for the test
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from marcandre.lureau@redhat.com are
 
+mm-page_owner-align-with-pageblock_nr_pages.patch
 
