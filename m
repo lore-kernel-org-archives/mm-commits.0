@@ -1,108 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch removed from -mm
- tree
-Date: Thu, 01 Feb 2018 11:29:10 -0800
-Message-ID: <20180201192910.dgho-Ghnk%akpm@linux-foundation.org>
+ ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
+ removed from -mm tree
+Date: Thu, 01 Feb 2018 11:29:38 -0800
+Message-ID: <20180201192938.lhspVInAA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754710AbeBAT3L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:11 -0500
+        with ESMTP id S1754570AbeBAT3n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: ocfs2: give an obvious tip for mismatched cluster names
+     Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
 has been removed from the -mm tree.  Its filename was
-     ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+     ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: give an obvious tip for mismatched cluster names
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2/acl: use 'ip_xattr_sem' to protect getting extended attribute
 
-Add an obvious error message, due to mismatched cluster names between
-on-disk and in the current cluster.  We can meet this case during OCFS2
-cluster migration.
+The race between *set_acl and *get_acl will cause getting incomplete xattr
+data as below:
 
-If we can give the user an obvious tip for why they can not mount the file
-system after migration, they can quickly fix this mismatch problem. 
+processA                                    processB
 
-Second, also move printing ocfs2_fill_super() errno to the front of
-ocfs2_dismount_volume(), since ocfs2_dismount_volume() will also print
-its own message.
+ocfs2_set_acl
+  ocfs2_xattr_set
+    __ocfs2_xattr_set_handle
 
-I looked through all the code of OCFS2 (include o2cb); there is not any
-place which returns this error.  In fact, the function calling path
-ocfs2_fill_super -> ocfs2_mount_volume -> ocfs2_dlm_init ->
-dlm_new_lockspace is a very specific one.  We can use this errno to give
-the user a more clear tip, since this case is a little common during
-cluster migration, but the customer can quickly get the failure cause if
-there is a error printed.  Also, I think it is not possible to add this
-errno in the o2cb path during ocfs2_dlm_init(), since the o2cb code has
-been stable for a long time.  
+                                            ocfs2_get_acl_nolock
+                                              ocfs2_xattr_get_nolock:
 
-We only print this error tip when the user uses pcmk stack, since using
-the o2cb stack the user will not meet this error.
+processB may get incomplete xattr data if processA hasn't set_acl done. 
+So we should use 'ip_xattr_sem' to protect getting extended attribute in
+ocfs2_get_acl_nolock(), as other processes could be changing it
+concurrently.
 
-[ghe@suse.com: v2]
-  Link: http://lkml.kernel.org/r/1495419305-3780-1-git-send-email-ghe@suse.com
-Link: http://lkml.kernel.org/r/1495089336-19312-1-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Reviewed-by: Mark Fasheh <mfasheh@versity.com>
-Acked-by: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/5A5DDCFF.7030001@huawei.com
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/ocfs2/acl.c   |    6 ++++++
+ fs/ocfs2/xattr.c |    2 ++
+ 2 files changed, 8 insertions(+)
 
-diff -puN fs/ocfs2/super.c~ocfs2-give-an-obvious-tip-for-dismatch-cluster-names fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-give-an-obvious-tip-for-dismatch-cluster-names
-+++ a/fs/ocfs2/super.c
-@@ -1208,14 +1208,15 @@ static int ocfs2_fill_super(struct super
- read_super_error:
- 	brelse(bh);
+diff -puN fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
++++ a/fs/ocfs2/acl.c
+@@ -311,7 +311,9 @@ struct posix_acl *ocfs2_iop_get_acl(stru
+ 	if (had_lock < 0)
+ 		return ERR_PTR(had_lock);
  
-+	if (status)
-+		mlog_errno(status);
-+
- 	if (osb) {
- 		atomic_set(&osb->vol_state, VOLUME_DISABLED);
- 		wake_up(&osb->osb_mount_event);
- 		ocfs2_dismount_volume(sb, 1);
- 	}
++	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
++	up_read(&OCFS2_I(inode)->ip_xattr_sem);
  
--	if (status)
--		mlog_errno(status);
- 	return status;
- }
+ 	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 	brelse(di_bh);
+@@ -330,7 +332,9 @@ int ocfs2_acl_chmod(struct inode *inode,
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return 0;
  
-@@ -1843,6 +1844,9 @@ static int ocfs2_mount_volume(struct sup
- 	status = ocfs2_dlm_init(osb);
- 	if (status < 0) {
- 		mlog_errno(status);
-+		if (status == -EBADR && ocfs2_userspace_stack(osb))
-+			mlog(ML_ERROR, "couldn't mount because cluster name on"
-+			" disk does not match the running cluster name.\n");
- 		goto leave;
- 	}
++	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	acl = ocfs2_get_acl_nolock(inode, ACL_TYPE_ACCESS, bh);
++	up_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	if (IS_ERR(acl) || !acl)
+ 		return PTR_ERR(acl);
+ 	ret = __posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
+@@ -361,8 +365,10 @@ int ocfs2_init_acl(handle_t *handle,
  
+ 	if (!S_ISLNK(inode->i_mode)) {
+ 		if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
++			down_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 			acl = ocfs2_get_acl_nolock(dir, ACL_TYPE_DEFAULT,
+ 						   dir_bh);
++			up_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 			if (IS_ERR(acl))
+ 				return PTR_ERR(acl);
+ 		}
+diff -puN fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-acl-use-ip_xattr_sem-to-protect-getting-extended-attribute
++++ a/fs/ocfs2/xattr.c
+@@ -638,9 +638,11 @@ int ocfs2_calc_xattr_init(struct inode *
+ 						     si->value_len);
+ 
+ 	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
++		down_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 		acl_len = ocfs2_xattr_get_nolock(dir, dir_bh,
+ 					OCFS2_XATTR_INDEX_POSIX_ACL_DEFAULT,
+ 					"", NULL, 0);
++		up_read(&OCFS2_I(dir)->ip_xattr_sem);
+ 		if (acl_len > 0) {
+ 			a_size = ocfs2_xattr_entry_real_size(0, acl_len);
+ 			if (S_ISDIR(mode))
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
-ocfs2-move-some-definitions-to-header-file.patch
-ocfs2-fix-some-small-problems.patch
-ocfs2-add-kobject-for-online-file-check.patch
-ocfs2-add-duplicative-ino-number-check.patch
 
