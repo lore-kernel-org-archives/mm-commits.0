@@ -1,56 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?mm-memory=5Fhotplug-remove-unnecesary-check-from-register?=
- =?US-ASCII?Q?=5Fpage=5Fbootmem=5Finfo=5Fsection.patch?= removed from -mm
- tree
-Date: Thu, 01 Feb 2018 11:31:36 -0800
-Message-ID: <20180201193136.uUhIeEcnr%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-unused-pgdat_reclaimable_pages.patch
+ removed from -mm tree
+Date: Thu, 01 Feb 2018 11:31:29 -0800
+Message-ID: <20180201193129.DEp_ZR513%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753331AbeBATbh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:37 -0500
+        with ESMTP id S1753060AbeBATba (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, vbabka@suse.cz
+To: jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: remove unnecesary check from register_page_bootmem_info_section()
+     Subject: mm: remove unused pgdat_reclaimable_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-remove-unnecesary-check-from-register_page_bootmem_info_section.patch
+     mm-remove-unused-pgdat_reclaimable_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@techadventures.net>
-Subject: mm/memory_hotplug.c: remove unnecesary check from register_page_bootmem_info_section()
+From: Jan Kara <jack@suse.cz>
+Subject: mm: remove unused pgdat_reclaimable_pages()
 
-When we call register_page_bootmem_info_section() having
-CONFIG_SPARSEMEM_VMEMMAP enabled, we check if the pfn is valid.  This
-check is redundant as we already checked this in
-register_page_bootmem_info_node() before calling
-register_page_bootmem_info_section(), so let's get rid of it.
+Remove unused function pgdat_reclaimable_pages() and
+node_page_state_snapshot() which becomes unused as well.
 
-Link: http://lkml.kernel.org/r/20171205143422.GA31458@techadventures.net
-Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Link: http://lkml.kernel.org/r/20171122094416.26019-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/swap.h   |    1 -
+ include/linux/vmstat.h |   17 -----------------
+ mm/vmscan.c            |   16 ----------------
+ 3 files changed, 34 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-unnecesary-check-from-register_page_bootmem_info_section mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-unnecesary-check-from-register_page_bootmem_info_section
-+++ a/mm/memory_hotplug.c
-@@ -200,9 +200,6 @@ static void register_page_bootmem_info_s
- 	struct mem_section *ms;
- 	struct page *page, *memmap;
+diff -puN include/linux/swap.h~mm-remove-unused-pgdat_reclaimable_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-unused-pgdat_reclaimable_pages
++++ a/include/linux/swap.h
+@@ -344,7 +344,6 @@ extern void lru_cache_add_active_or_unev
  
--	if (!pfn_valid(start_pfn))
--		return;
+ /* linux/mm/vmscan.c */
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+-extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+ extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
+diff -puN include/linux/vmstat.h~mm-remove-unused-pgdat_reclaimable_pages include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-remove-unused-pgdat_reclaimable_pages
++++ a/include/linux/vmstat.h
+@@ -216,23 +216,6 @@ static inline unsigned long zone_page_st
+ 	return x;
+ }
+ 
+-static inline unsigned long node_page_state_snapshot(pg_data_t *pgdat,
+-					enum node_stat_item item)
+-{
+-	long x = atomic_long_read(&pgdat->vm_stat[item]);
+-
+-#ifdef CONFIG_SMP
+-	int cpu;
+-	for_each_online_cpu(cpu)
+-		x += per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->vm_node_stat_diff[item];
+-
+-	if (x < 0)
+-		x = 0;
+-#endif
+-	return x;
+-}
+-
+-
+ #ifdef CONFIG_NUMA
+ extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+diff -puN mm/vmscan.c~mm-remove-unused-pgdat_reclaimable_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-unused-pgdat_reclaimable_pages
++++ a/mm/vmscan.c
+@@ -220,22 +220,6 @@ unsigned long zone_reclaimable_pages(str
+ 	return nr;
+ }
+ 
+-unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+-{
+-	unsigned long nr;
+-
+-	nr = node_page_state_snapshot(pgdat, NR_ACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_INACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
+-
+-	if (get_nr_swap_pages() > 0)
+-		nr += node_page_state_snapshot(pgdat, NR_ACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_INACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
+-
+-	return nr;
+-}
