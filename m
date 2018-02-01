@@ -1,69 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/119] mm/slub.c: fix wrong address during slab
- padding restoration
-Date: Wed, 31 Jan 2018 16:15:43 -0800
-Message-ID: <20180201001543.0ojF2_sBS%akpm@linux-foundation.org>
+Subject: [patch 031/119] mm: kmemleak: remove unused hardirq.h
+Date: Wed, 31 Jan 2018 16:15:55 -0800
+Message-ID: <20180201001555.bYPpEfVWn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAPp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:45 -0500
+        with ESMTP id S1754449AbeBAAP4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balasubramani_vivekanandan@mentor.com, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yang.s@alibaba-inc.com
 
-From: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
-Subject: mm/slub.c: fix wrong address during slab padding restoration
+From: "Yang Shi" <yang.s@alibaba-inc.com>
+Subject: mm: kmemleak: remove unused hardirq.h
 
-Start address calculated for slab padding restoration was wrong.  Wrong
-address would point to some section before padding and could cause
-corruption
+Preempt counter APIs have been split out, currently, hardirq.h just
+includes irq_enter/exit APIs which are not used by kmemleak at all.
 
-Link: http://lkml.kernel.org/r/1516604578-4577-1-git-send-email-balasubramani_vivekanandan@mentor.com
-Signed-off-by: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+So, remove the unused hardirq.h.
+
+Link: http://lkml.kernel.org/r/1510959741-31109-1-git-send-email-yang.s@alibaba-inc.com
+Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/kmemleak.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slubc-fix-wrong-address-during-slab-padding-restoration mm/slub.c
---- a/mm/slub.c~mm-slubc-fix-wrong-address-during-slab-padding-restoration
-+++ a/mm/slub.c
-@@ -838,6 +838,7 @@ static int slab_pad_check(struct kmem_ca
- 	u8 *start;
- 	u8 *fault;
- 	u8 *end;
-+	u8 *pad;
- 	int length;
- 	int remainder;
- 
-@@ -851,8 +852,9 @@ static int slab_pad_check(struct kmem_ca
- 	if (!remainder)
- 		return 1;
- 
-+	pad = end - remainder;
- 	metadata_access_enable();
--	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
-+	fault = memchr_inv(pad, POISON_INUSE, remainder);
- 	metadata_access_disable();
- 	if (!fault)
- 		return 1;
-@@ -860,9 +862,9 @@ static int slab_pad_check(struct kmem_ca
- 		end--;
- 
- 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
--	print_section(KERN_ERR, "Padding ", end - remainder, remainder);
-+	print_section(KERN_ERR, "Padding ", pad, remainder);
- 
--	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
-+	restore_bytes(s, "slab padding", POISON_INUSE, fault, end);
- 	return 0;
- }
- 
+diff -puN mm/kmemleak.c~mm-kmemleak-remove-unused-hardirqh mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-remove-unused-hardirqh
++++ a/mm/kmemleak.c
+@@ -91,7 +91,6 @@
+ #include <linux/stacktrace.h>
+ #include <linux/cache.h>
+ #include <linux/percpu.h>
+-#include <linux/hardirq.h>
+ #include <linux/bootmem.h>
+ #include <linux/pfn.h>
+ #include <linux/mmzone.h>
 _
