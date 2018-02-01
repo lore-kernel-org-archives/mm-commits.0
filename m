@@ -1,37 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- shmem-rename-functions-that-are-memfd-related.patch removed from -mm tree
-Date: Thu, 01 Feb 2018 11:33:23 -0800
-Message-ID: <20180201193323.GQwUcd8oE%akpm@linux-foundation.org>
+ shmem-add-sealing-support-to-hugetlb-backed-memfd.patch removed from -mm
+ tree
+Date: Thu, 01 Feb 2018 11:33:35 -0800
+Message-ID: <20180201193335.UEdPOFe_V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59834 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754623AbeBATd1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:27 -0500
+        with ESMTP id S1754623AbeBATdn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: rename functions that are memfd-related
+     Subject: shmem: add sealing support to hugetlb-backed memfd
 has been removed from the -mm tree.  Its filename was
-     shmem-rename-functions-that-are-memfd-related.patch
+     shmem-add-sealing-support-to-hugetlb-backed-memfd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: shmem: rename functions that are memfd-related
+Subject: shmem: add sealing support to hugetlb-backed memfd
 
-Those functions are called for memfd files, backed by shmem or
-hugetlb (the next patches will handle hugetlb).
+Adapt add_seals()/get_seals() to work with hugetbfs-backed memory.
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-3-marcandre.lureau@redhat.com
+Teach memfd_create() to allow sealing operations on MFD_HUGETLB.
+
+Link: http://lkml.kernel.org/r/20171107122800.25517-6-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -41,83 +43,127 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fcntl.c               |    2 +-
- include/linux/shmem_fs.h |    4 ++--
- mm/shmem.c               |   10 +++++-----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ mm/shmem.c |   47 ++++++++++++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-diff -puN fs/fcntl.c~shmem-rename-functions-that-are-memfd-related fs/fcntl.c
---- a/fs/fcntl.c~shmem-rename-functions-that-are-memfd-related
-+++ a/fs/fcntl.c
-@@ -418,7 +418,7 @@ static long do_fcntl(int fd, unsigned in
- 		break;
- 	case F_ADD_SEALS:
- 	case F_GET_SEALS:
--		err = shmem_fcntl(filp, cmd, arg);
-+		err = memfd_fcntl(filp, cmd, arg);
- 		break;
- 	case F_GET_RW_HINT:
- 	case F_SET_RW_HINT:
-diff -puN include/linux/shmem_fs.h~shmem-rename-functions-that-are-memfd-related include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~shmem-rename-functions-that-are-memfd-related
-+++ a/include/linux/shmem_fs.h
-@@ -112,11 +112,11 @@ extern void shmem_uncharge(struct inode
- 
- #ifdef CONFIG_TMPFS
- 
--extern long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
-+extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
- 
- #else
- 
--static inline long shmem_fcntl(struct file *f, unsigned int c, unsigned long a)
-+static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned long a)
- {
- 	return -EINVAL;
- }
-diff -puN mm/shmem.c~shmem-rename-functions-that-are-memfd-related mm/shmem.c
---- a/mm/shmem.c~shmem-rename-functions-that-are-memfd-related
+diff -puN mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd mm/shmem.c
+--- a/mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd
 +++ a/mm/shmem.c
-@@ -2722,7 +2722,7 @@ continue_resched:
- 		     F_SEAL_GROW | \
- 		     F_SEAL_WRITE)
- 
--static int shmem_add_seals(struct file *file, unsigned int seals)
-+static int memfd_add_seals(struct file *file, unsigned int seals)
- {
- 	struct inode *inode = file_inode(file);
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -2792,7 +2792,7 @@ unlock:
+@@ -2717,6 +2717,19 @@ continue_resched:
  	return error;
  }
  
--static int shmem_get_seals(struct file *file)
-+static int memfd_get_seals(struct file *file)
++static unsigned int *memfd_file_seals_ptr(struct file *file)
++{
++	if (file->f_op == &shmem_file_operations)
++		return &SHMEM_I(file_inode(file))->seals;
++
++#ifdef CONFIG_HUGETLBFS
++	if (file->f_op == &hugetlbfs_file_operations)
++		return &HUGETLBFS_I(file_inode(file))->seals;
++#endif
++
++	return NULL;
++}
++
+ #define F_ALL_SEALS (F_SEAL_SEAL | \
+ 		     F_SEAL_SHRINK | \
+ 		     F_SEAL_GROW | \
+@@ -2725,7 +2738,7 @@ continue_resched:
+ static int memfd_add_seals(struct file *file, unsigned int seals)
  {
- 	if (file->f_op != &shmem_file_operations)
- 		return -EINVAL;
-@@ -2800,7 +2800,7 @@ static int shmem_get_seals(struct file *
- 	return SHMEM_I(file_inode(file))->seals;
+ 	struct inode *inode = file_inode(file);
+-	struct shmem_inode_info *info = SHMEM_I(inode);
++	unsigned int *file_seals;
+ 	int error;
+ 
+ 	/*
+@@ -2758,8 +2771,6 @@ static int memfd_add_seals(struct file *
+ 	 * other file types.
+ 	 */
+ 
+-	if (file->f_op != &shmem_file_operations)
+-		return -EINVAL;
+ 	if (!(file->f_mode & FMODE_WRITE))
+ 		return -EPERM;
+ 	if (seals & ~(unsigned int)F_ALL_SEALS)
+@@ -2767,12 +2778,18 @@ static int memfd_add_seals(struct file *
+ 
+ 	inode_lock(inode);
+ 
+-	if (info->seals & F_SEAL_SEAL) {
++	file_seals = memfd_file_seals_ptr(file);
++	if (!file_seals) {
++		error = -EINVAL;
++		goto unlock;
++	}
++
++	if (*file_seals & F_SEAL_SEAL) {
+ 		error = -EPERM;
+ 		goto unlock;
+ 	}
+ 
+-	if ((seals & F_SEAL_WRITE) && !(info->seals & F_SEAL_WRITE)) {
++	if ((seals & F_SEAL_WRITE) && !(*file_seals & F_SEAL_WRITE)) {
+ 		error = mapping_deny_writable(file->f_mapping);
+ 		if (error)
+ 			goto unlock;
+@@ -2784,7 +2801,7 @@ static int memfd_add_seals(struct file *
+ 		}
+ 	}
+ 
+-	info->seals |= seals;
++	*file_seals |= seals;
+ 	error = 0;
+ 
+ unlock:
+@@ -2794,10 +2811,9 @@ unlock:
+ 
+ static int memfd_get_seals(struct file *file)
+ {
+-	if (file->f_op != &shmem_file_operations)
+-		return -EINVAL;
++	unsigned int *seals = memfd_file_seals_ptr(file);
+ 
+-	return SHMEM_I(file_inode(file))->seals;
++	return seals ? *seals : -EINVAL;
  }
  
--long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
-+long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+ long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -3655,7 +3671,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 		const char __user *, uname,
+ 		unsigned int, flags)
  {
- 	long error;
- 
-@@ -2810,10 +2810,10 @@ long shmem_fcntl(struct file *file, unsi
- 		if (arg > UINT_MAX)
+-	struct shmem_inode_info *info;
++	unsigned int *file_seals;
+ 	struct file *file;
+ 	int fd, error;
+ 	char *name;
+@@ -3665,9 +3681,6 @@ SYSCALL_DEFINE2(memfd_create,
+ 		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
  			return -EINVAL;
+ 	} else {
+-		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
+-		if (flags & MFD_ALLOW_SEALING)
+-			return -EINVAL;
+ 		/* Allow huge page size encoding in flags. */
+ 		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
+ 				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
+@@ -3720,12 +3733,8 @@ SYSCALL_DEFINE2(memfd_create,
+ 	file->f_flags |= O_RDWR | O_LARGEFILE;
  
--		error = shmem_add_seals(file, arg);
-+		error = memfd_add_seals(file, arg);
- 		break;
- 	case F_GET_SEALS:
--		error = shmem_get_seals(file);
-+		error = memfd_get_seals(file);
- 		break;
- 	default:
- 		error = -EINVAL;
+ 	if (flags & MFD_ALLOW_SEALING) {
+-		/*
+-		 * flags check at beginning of function ensures
+-		 * this is not a hugetlbfs (MFD_HUGETLB) file.
+-		 */
+-		info = SHMEM_I(file_inode(file));
+-		info->seals &= ~F_SEAL_SEAL;
++		file_seals = memfd_file_seals_ptr(file);
++		*file_seals &= ~F_SEAL_SEAL;
+ 	}
+ 
+ 	fd_install(fd, file);
 _
 
 Patches currently in -mm which might be from marcandre.lureau@redhat.com are
