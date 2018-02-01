@@ -1,147 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-slab-make-calculate_alignment-function-static.patch removed from -mm
+ mm-slab-remove-redundant-assignments-for-slab_state.patch removed from -mm
  tree
-Date: Thu, 01 Feb 2018 11:30:12 -0800
-Message-ID: <20180201193012.jNpDpxzwq%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:30:15 -0800
+Message-ID: <20180201193015.SinWFhDhw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57170 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753107AbeBATaN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:13 -0500
+        with ESMTP id S1752189AbeBATaR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhlee.kernel@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/slab_common.c: make calculate_alignment() static
+     Subject: mm/slab.c: remove redundant assignments for slab_state
 has been removed from the -mm tree.  Its filename was
-     mm-slab-make-calculate_alignment-function-static.patch
+     mm-slab-remove-redundant-assignments-for-slab_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Byongho Lee <bhlee.kernel@gmail.com>
-Subject: mm/slab_common.c: make calculate_alignment() static
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm/slab.c: remove redundant assignments for slab_state
 
-calculate_alignment() function is only used inside slab_common.c.  So make
-it static and let the compiler do more optimizations.
+slab_state is being set to "UP" in create_kmalloc_caches(), and later on
+we set it again in kmem_cache_init_late(), but slab_state does not change
+in the meantime.
 
-After this patch there's a small improvement in text and data size.
+Remove the redundant assignment from kmem_cache_init_late().
 
-$ gcc --version
-  gcc (GCC) 7.2.1 20171128
+And unless I overlooked anything, the same goes for "slab_state = FULL". 
+slab_state is set to "FULL" in kmem_cache_init_late(), but it is later
+being set again in cpucache_init(), which gets called from
+do_initcall_level().  So remove the assignment from cpucache_init() as
+well.
 
-Before:
-  text	   data	    bss	    dec	     hex	filename
-  9890457  3828702  1212364 14931523 e3d643	vmlinux
-
-After:
-  text	   data	    bss	    dec	     hex	filename
-  9890437  3828670  1212364 14931471 e3d60f	vmlinux
-
-Also I fixed a style problem reported by checkpatch.
-
-  WARNING: Missing a blank line after declarations
-  #53: FILE: mm/slab_common.c:286:
-  +		unsigned long ralign = cache_line_size();
-  +		while (size <= ralign / 2)
-
-Link: http://lkml.kernel.org/r/20171210080132.406-1-bhlee.kernel@gmail.com
-Signed-off-by: Byongho Lee <bhlee.kernel@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/20171215134452.GA1920@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h        |    3 --
- mm/slab_common.c |   56 +++++++++++++++++++++++----------------------
- 2 files changed, 29 insertions(+), 30 deletions(-)
+ mm/slab.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-make-calculate_alignment-function-static mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-make-calculate_alignment-function-static
-+++ a/mm/slab_common.c
-@@ -268,6 +268,35 @@ static inline void memcg_unlink_cache(st
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+diff -puN mm/slab.c~mm-slab-remove-redundant-assignments-for-slab_state mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-redundant-assignments-for-slab_state
++++ a/mm/slab.c
+@@ -1316,8 +1316,6 @@ void __init kmem_cache_init_late(void)
+ {
+ 	struct kmem_cache *cachep;
  
- /*
-+ * Figure out what the alignment of the objects will be given a set of
-+ * flags, a user specified alignment and the size of the objects.
-+ */
-+static unsigned long calculate_alignment(unsigned long flags,
-+		unsigned long align, unsigned long size)
-+{
-+	/*
-+	 * If the user wants hardware cache aligned objects then follow that
-+	 * suggestion if the object is sufficiently large.
-+	 *
-+	 * The hardware cache alignment cannot override the specified
-+	 * alignment though. If that is greater then use it.
-+	 */
-+	if (flags & SLAB_HWCACHE_ALIGN) {
-+		unsigned long ralign;
-+
-+		ralign = cache_line_size();
-+		while (size <= ralign / 2)
-+			ralign /= 2;
-+		align = max(align, ralign);
-+	}
-+
-+	if (align < ARCH_SLAB_MINALIGN)
-+		align = ARCH_SLAB_MINALIGN;
-+
-+	return ALIGN(align, sizeof(void *));
-+}
-+
-+/*
-  * Find a mergeable slab cache
-  */
- int slab_unmergeable(struct kmem_cache *s)
-@@ -337,33 +366,6 @@ struct kmem_cache *find_mergeable(size_t
- 	return NULL;
- }
- 
--/*
-- * Figure out what the alignment of the objects will be given a set of
-- * flags, a user specified alignment and the size of the objects.
-- */
--unsigned long calculate_alignment(slab_flags_t flags,
--		unsigned long align, unsigned long size)
--{
--	/*
--	 * If the user wants hardware cache aligned objects then follow that
--	 * suggestion if the object is sufficiently large.
--	 *
--	 * The hardware cache alignment cannot override the specified
--	 * alignment though. If that is greater then use it.
--	 */
--	if (flags & SLAB_HWCACHE_ALIGN) {
--		unsigned long ralign = cache_line_size();
--		while (size <= ralign / 2)
--			ralign /= 2;
--		align = max(align, ralign);
--	}
--
--	if (align < ARCH_SLAB_MINALIGN)
--		align = ARCH_SLAB_MINALIGN;
--
--	return ALIGN(align, sizeof(void *));
--}
--
- static struct kmem_cache *create_cache(const char *name,
- 		size_t object_size, size_t size, size_t align,
- 		slab_flags_t flags, void (*ctor)(void *),
-diff -puN mm/slab.h~mm-slab-make-calculate_alignment-function-static mm/slab.h
---- a/mm/slab.h~mm-slab-make-calculate_alignment-function-static
-+++ a/mm/slab.h
-@@ -78,9 +78,6 @@ extern const struct kmalloc_info_struct
- 	unsigned long size;
- } kmalloc_info[];
- 
--unsigned long calculate_alignment(slab_flags_t flags,
--		unsigned long align, unsigned long size);
+-	slab_state = UP;
