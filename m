@@ -1,92 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-misleading-alignment-claims.patch
- removed from -mm tree
-Date: Thu, 01 Feb 2018 11:33:02 -0800
-Message-ID: <20180201193302.fdELYrwQI%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-store-compound_dtor-compound_order-as-bytes.patch removed from -mm tree
+Date: Thu, 01 Feb 2018 11:33:11 -0800
+Message-ID: <20180201193311.gYM79EzfC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59034 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59184 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754563AbeBATdD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:03 -0500
+        with ESMTP id S1754563AbeBATdM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cl@linux.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: mm: remove misleading alignment claims
+     Subject: mm: store compound_dtor / compound_order as bytes
 has been removed from the -mm tree.  Its filename was
-     mm-remove-misleading-alignment-claims.patch
+     mm-store-compound_dtor-compound_order-as-bytes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm: remove misleading alignment claims
+Subject: mm: store compound_dtor / compound_order as bytes
 
-The "third double word block" isn't on 32-bit systems.  The layout looks
-like this:
+Neither of these values get even close to 256; compound_dtor is currently
+at a maximum of 3, and compound_order can't be over 64.  No machine has
+inefficient access to bytes since EV5, and while those are still
+supported, we don't optimise for them any more.  This does not shrink
+struct page, but it removes an ifdef and frees up 2-6 bytes for future
+use.
 
-	unsigned long flags;
-	struct address_space *mapping
-	pgoff_t index;
-	atomic_t _mapcount;
-	atomic_t _refcount;
+diff of pahole output:
 
-which is 32 bytes on 64-bit, but 20 bytes on 32-bit.  Nobody is trying to
-use the fact that it's double-word aligned today, so just remove the
-misleading claims.
+ 		struct callback_head callback_head;      /*    32    16 */
+ 		struct {
+ 			long unsigned int compound_head; /*    32     8 */
+-			unsigned int compound_dtor;      /*    40     4 */
+-			unsigned int compound_order;     /*    44     4 */
++			unsigned char compound_dtor;     /*    40     1 */
++			unsigned char compound_order;    /*    41     1 */
+ 		};                                       /*    32    16 */
+ 	};                                               /*    32    16 */
+ 	union {
 
-Link: http://lkml.kernel.org/r/20171220155552.15884-4-willy@infradead.org
+[mawilcox@microsoft.com: add comment]
+  Link: http://lkml.kernel.org/r/20171221000144.GB2980@bombadil.infradead.org
+Link: http://lkml.kernel.org/r/20171220155552.15884-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/linux/mm_types.h |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-remove-misleading-alignment-claims include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-remove-misleading-alignment-claims
+diff -puN include/linux/mm_types.h~mm-store-compound_dtor-compound_order-as-bytes include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-store-compound_dtor-compound_order-as-bytes
 +++ a/include/linux/mm_types.h
-@@ -33,11 +33,11 @@ struct hmm;
-  * a page, though if it is a pagecache page, rmap structures can tell us
-  * who is mapping it.
-  *
-- * The objects in struct page are organized in double word blocks in
-- * order to allows us to use atomic double word operations on portions
-- * of struct page. That is currently only used by slub but the arrangement
-- * allows the use of atomic double word operations on the flags/mapping
-- * and lru list pointers also.
-+ * SLUB uses cmpxchg_double() to atomically update its freelist and
-+ * counters.  That requires that freelist & counters be adjacent and
-+ * double-word aligned.  We align all struct pages to double-word
-+ * boundaries, and ensure that 'freelist' is aligned within the
-+ * struct.
-  */
- #ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
- #define _struct_page_alignment	__aligned(2 * sizeof(unsigned long))
-@@ -113,8 +113,6 @@ struct page {
- 	};
+@@ -136,19 +136,9 @@ struct page {
+ 			unsigned long compound_head; /* If bit zero is set */
  
- 	/*
--	 * Third double word block
--	 *
- 	 * WARNING: bit 0 of the first word encode PageTail(). That means
- 	 * the rest users of the storage space MUST NOT use the bit to
- 	 * avoid collision and false-positive PageTail().
-@@ -175,7 +173,6 @@ struct page {
- #endif
- 	};
+ 			/* First tail page only */
+-#ifdef CONFIG_64BIT
+-			/*
+-			 * On 64 bit system we have enough space in struct page
+-			 * to encode compound_dtor and compound_order with
+-			 * unsigned int. It can help compiler generate better or
+-			 * smaller code on some archtectures.
+-			 */
+-			unsigned int compound_dtor;
+-			unsigned int compound_order;
+-#else
+-			unsigned short int compound_dtor;
+-			unsigned short int compound_order;
+-#endif
++			unsigned char compound_dtor;
++			unsigned char compound_order;
++			/* two/six bytes available here */
+ 		};
  
--	/* Remainder is not double word aligned */
- 	union {
- 		unsigned long private;		/* Mapping-private opaque data:
- 					 	 * usually used for buffer_heads
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
 _
 
 Patches currently in -mm which might be from mawilcox@microsoft.com are
