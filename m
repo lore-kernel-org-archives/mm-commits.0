@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [patch 091/119] memfd-test: move common code to a shared
- unit
-Date: Wed, 31 Jan 2018 16:19:40 -0800
-Message-ID: <20180201001940.lXbMRxaum%akpm@linux-foundation.org>
+Subject: [patch 088/119] shmem: add sealing support to
+ hugetlb-backed memfd
+Date: Wed, 31 Jan 2018 16:19:29 -0800
+Message-ID: <20180201001929.5CLknSRVm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755813AbeBAATm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:42 -0500
+        with ESMTP id S1755813AbeBAATa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: memfd-test: move common code to a shared unit
+Subject: shmem: add sealing support to hugetlb-backed memfd
 
-The memfd & fuse tests will share more common code in the following
-commits to test hugetlb support.
+Adapt add_seals()/get_seals() to work with hugetbfs-backed memory.
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-9-marcandre.lureau@redhat.com
+Teach memfd_create() to allow sealing operations on MFD_HUGETLB.
+
+Link: http://lkml.kernel.org/r/20171107122800.25517-6-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -32,158 +33,125 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/Makefile     |    5 ++
- tools/testing/selftests/memfd/common.c     |   46 +++++++++++++++++++
- tools/testing/selftests/memfd/common.h     |    9 +++
- tools/testing/selftests/memfd/fuse_test.c  |    8 ---
- tools/testing/selftests/memfd/memfd_test.c |   36 --------------
- 5 files changed, 64 insertions(+), 40 deletions(-)
+ mm/shmem.c |   47 ++++++++++++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-diff -puN /dev/null tools/testing/selftests/memfd/common.c
---- /dev/null
-+++ a/tools/testing/selftests/memfd/common.c
-@@ -0,0 +1,46 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+#define __EXPORTED_HEADERS__
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <linux/fcntl.h>
-+#include <linux/memfd.h>
-+#include <unistd.h>
-+#include <sys/syscall.h>
-+
-+#include "common.h"
-+
-+int hugetlbfs_test = 0;
-+
-+/*
-+ * Copied from mlock2-tests.c
-+ */
-+unsigned long default_huge_page_size(void)
+diff -puN mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd mm/shmem.c
+--- a/mm/shmem.c~shmem-add-sealing-support-to-hugetlb-backed-memfd
++++ a/mm/shmem.c
+@@ -2717,6 +2717,19 @@ continue_resched:
+ 	return error;
+ }
+ 
++static unsigned int *memfd_file_seals_ptr(struct file *file)
 +{
-+	unsigned long hps = 0;
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	FILE *f = fopen("/proc/meminfo", "r");
++	if (file->f_op == &shmem_file_operations)
++		return &SHMEM_I(file_inode(file))->seals;
 +
-+	if (!f)
-+		return 0;
-+	while (getline(&line, &linelen, f) > 0) {
-+		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
-+			hps <<= 10;
-+			break;
-+		}
++#ifdef CONFIG_HUGETLBFS
++	if (file->f_op == &hugetlbfs_file_operations)
++		return &HUGETLBFS_I(file_inode(file))->seals;
++#endif
++
++	return NULL;
++}
++
+ #define F_ALL_SEALS (F_SEAL_SEAL | \
+ 		     F_SEAL_SHRINK | \
+ 		     F_SEAL_GROW | \
+@@ -2725,7 +2738,7 @@ continue_resched:
+ static int memfd_add_seals(struct file *file, unsigned int seals)
+ {
+ 	struct inode *inode = file_inode(file);
+-	struct shmem_inode_info *info = SHMEM_I(inode);
++	unsigned int *file_seals;
+ 	int error;
+ 
+ 	/*
+@@ -2758,8 +2771,6 @@ static int memfd_add_seals(struct file *
+ 	 * other file types.
+ 	 */
+ 
+-	if (file->f_op != &shmem_file_operations)
+-		return -EINVAL;
+ 	if (!(file->f_mode & FMODE_WRITE))
+ 		return -EPERM;
+ 	if (seals & ~(unsigned int)F_ALL_SEALS)
+@@ -2767,12 +2778,18 @@ static int memfd_add_seals(struct file *
+ 
+ 	inode_lock(inode);
+ 
+-	if (info->seals & F_SEAL_SEAL) {
++	file_seals = memfd_file_seals_ptr(file);
++	if (!file_seals) {
++		error = -EINVAL;
++		goto unlock;
 +	}
 +
-+	free(line);
-+	fclose(f);
-+	return hps;
-+}
-+
-+int sys_memfd_create(const char *name, unsigned int flags)
-+{
-+	if (hugetlbfs_test)
-+		flags |= MFD_HUGETLB;
-+
-+	return syscall(__NR_memfd_create, name, flags);
-+}
-diff -puN /dev/null tools/testing/selftests/memfd/common.h
---- /dev/null
-+++ a/tools/testing/selftests/memfd/common.h
-@@ -0,0 +1,9 @@
-+#ifndef COMMON_H_
-+#define COMMON_H_
-+
-+extern int hugetlbfs_test;
-+
-+unsigned long default_huge_page_size(void);
-+int sys_memfd_create(const char *name, unsigned int flags);
-+
-+#endif
-diff -puN tools/testing/selftests/memfd/fuse_test.c~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/fuse_test.c
---- a/tools/testing/selftests/memfd/fuse_test.c~memfd-test-move-common-code-to-a-shared-unit
-+++ a/tools/testing/selftests/memfd/fuse_test.c
-@@ -33,15 +33,11 @@
- #include <sys/wait.h>
- #include <unistd.h>
++	if (*file_seals & F_SEAL_SEAL) {
+ 		error = -EPERM;
+ 		goto unlock;
+ 	}
  
-+#include "common.h"
-+
- #define MFD_DEF_SIZE 8192
- #define STACK_SIZE 65536
+-	if ((seals & F_SEAL_WRITE) && !(info->seals & F_SEAL_WRITE)) {
++	if ((seals & F_SEAL_WRITE) && !(*file_seals & F_SEAL_WRITE)) {
+ 		error = mapping_deny_writable(file->f_mapping);
+ 		if (error)
+ 			goto unlock;
+@@ -2784,7 +2801,7 @@ static int memfd_add_seals(struct file *
+ 		}
+ 	}
  
--static int sys_memfd_create(const char *name,
--			    unsigned int flags)
--{
--	return syscall(__NR_memfd_create, name, flags);
--}
--
- static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
+-	info->seals |= seals;
++	*file_seals |= seals;
+ 	error = 0;
+ 
+ unlock:
+@@ -2794,10 +2811,9 @@ unlock:
+ 
+ static int memfd_get_seals(struct file *file)
  {
- 	int r, fd;
-diff -puN tools/testing/selftests/memfd/Makefile~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/Makefile
---- a/tools/testing/selftests/memfd/Makefile~memfd-test-move-common-code-to-a-shared-unit
-+++ a/tools/testing/selftests/memfd/Makefile
-@@ -12,3 +12,8 @@ fuse_mnt.o: CFLAGS += $(shell pkg-config
- include ../lib.mk
+-	if (file->f_op != &shmem_file_operations)
+-		return -EINVAL;
++	unsigned int *seals = memfd_file_seals_ptr(file);
  
- $(OUTPUT)/fuse_mnt: LDLIBS += $(shell pkg-config fuse --libs)
-+
-+$(OUTPUT)/memfd_test: memfd_test.c common.o
-+$(OUTPUT)/fuse_test: fuse_test.c common.o
-+
-+EXTRA_CLEAN = common.o
-diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/memfd_test.c
---- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-move-common-code-to-a-shared-unit
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -19,6 +19,8 @@
- #include <sys/wait.h>
- #include <unistd.h>
+-	return SHMEM_I(file_inode(file))->seals;
++	return seals ? *seals : -EINVAL;
+ }
  
-+#include "common.h"
-+
- #define MEMFD_STR	"memfd:"
- #define MEMFD_HUGE_STR	"memfd-hugetlb:"
- #define SHARED_FT_STR	"(shared file-table)"
-@@ -29,43 +31,9 @@
- /*
-  * Default is not to test hugetlbfs
-  */
--static int hugetlbfs_test;
- static size_t mfd_def_size = MFD_DEF_SIZE;
- static const char *memfd_str = MEMFD_STR;
+ long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -3655,7 +3671,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 		const char __user *, uname,
+ 		unsigned int, flags)
+ {
+-	struct shmem_inode_info *info;
++	unsigned int *file_seals;
+ 	struct file *file;
+ 	int fd, error;
+ 	char *name;
+@@ -3665,9 +3681,6 @@ SYSCALL_DEFINE2(memfd_create,
+ 		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
+ 			return -EINVAL;
+ 	} else {
+-		/* Sealing not supported in hugetlbfs (MFD_HUGETLB) */
+-		if (flags & MFD_ALLOW_SEALING)
+-			return -EINVAL;
+ 		/* Allow huge page size encoding in flags. */
+ 		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
+ 				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
+@@ -3720,12 +3733,8 @@ SYSCALL_DEFINE2(memfd_create,
+ 	file->f_flags |= O_RDWR | O_LARGEFILE;
  
--/*
-- * Copied from mlock2-tests.c
-- */
--static unsigned long default_huge_page_size(void)
--{
--	unsigned long hps = 0;
--	char *line = NULL;
--	size_t linelen = 0;
--	FILE *f = fopen("/proc/meminfo", "r");
--
--	if (!f)
--		return 0;
--	while (getline(&line, &linelen, f) > 0) {
--		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
--			hps <<= 10;
--			break;
--		}
--	}
--
--	free(line);
--	fclose(f);
--	return hps;
--}
--
--static int sys_memfd_create(const char *name,
--			    unsigned int flags)
--{
--	if (hugetlbfs_test)
--		flags |= MFD_HUGETLB;
--
--	return syscall(__NR_memfd_create, name, flags);
--}
+ 	if (flags & MFD_ALLOW_SEALING) {
+-		/*
+-		 * flags check at beginning of function ensures
+-		 * this is not a hugetlbfs (MFD_HUGETLB) file.
+-		 */
+-		info = SHMEM_I(file_inode(file));
+-		info->seals &= ~F_SEAL_SEAL;
++		file_seals = memfd_file_seals_ptr(file);
++		*file_seals &= ~F_SEAL_SEAL;
+ 	}
+ 
+ 	fd_install(fd, file);
+_
