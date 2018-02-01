@@ -1,46 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 100/119] zsmalloc: use U suffix for negative
- literals being shifted
-Date: Wed, 31 Jan 2018 16:20:15 -0800
-Message-ID: <20180201002015.G3yQyqLLL%akpm@linux-foundation.org>
+Subject: [patch 102/119] mm/compaction.c: fix comment for
+ try_to_compact_pages()
+Date: Wed, 31 Jan 2018 16:20:23 -0800
+Message-ID: <20180201002023.8WZL8AD-a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36294 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAUR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:17 -0500
+        with ESMTP id S1754559AbeBAAUY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andy.shevchenko@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, nick.desaulniers@gmail.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, willy@infradead.org
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz, yang.shi@linux.alibaba.com
 
-From: Nick Desaulniers <nick.desaulniers@gmail.com>
-Subject: zsmalloc: use U suffix for negative literals being shifted
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm/compaction.c: fix comment for try_to_compact_pages()
 
-Fix warning about shifting unsigned literals being undefined behavior.
+"mode" argument is not used by try_to_compact_pages() and sub functions
+anymore, it has been replaced by "prio".  Fix the comment to explain the
+use of "prio" argument.
 
-Link: http://lkml.kernel.org/r/1515642078-4259-1-git-send-email-nick.desaulniers@gmail.com
-Signed-off-by: Nick Desaulniers <nick.desaulniers@gmail.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nick Desaulniers <nick.desaulniers@gmail.com>
+Link: http://lkml.kernel.org/r/1515801336-20611-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
+ mm/compaction.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-u-suffix-for-negative-literals-being-shifted mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-u-suffix-for-negative-literals-being-shifted
-+++ a/mm/zsmalloc.c
-@@ -1047,7 +1047,7 @@ static void init_zspage(struct size_clas
- 			 * Reset OBJ_TAG_BITS bit to last link to tell
- 			 * whether it's allocated object or not.
- 			 */
--			link->next = -1 << OBJ_TAG_BITS;
-+			link->next = -1UL << OBJ_TAG_BITS;
- 		}
- 		kunmap_atomic(vaddr);
- 		page = next_page;
+diff -puN mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-fix-the-comment-for-try_to_compact_pages
++++ a/mm/compaction.c
+@@ -1738,7 +1738,7 @@ int sysctl_extfrag_threshold = 500;
+  * @order: The order of the current allocation
+  * @alloc_flags: The allocation flags of the current allocation
+  * @ac: The context of current allocation
+- * @mode: The migration mode for async, sync light, or sync migration
++ * @prio: Determines how hard direct compaction should try to succeed
+  *
+  * This is the main entry point for direct page compaction.
+  */
 _
