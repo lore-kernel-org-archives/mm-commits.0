@@ -1,67 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-mempolicy-remove-redundant-check-in-get_nodes.patch removed from -mm
- tree
-Date: Thu, 01 Feb 2018 11:30:39 -0800
-Message-ID: <20180201193039.OmTXu61Hm%akpm@linux-foundation.org>
+Subject: [merged] mm-kmemleak-remove-unused-hardirqh.patch removed
+ from -mm tree
+Date: Thu, 01 Feb 2018 11:30:30 -0800
+Message-ID: <20180201193030.zyzprfrYO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57228 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754208AbeBATak (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:40 -0500
+        with ESMTP id S1753007AbeBATab (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, cl@linux.com, mingo@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, salls@cs.ucsb.edu, tanxiaojun@huawei.com, vbabka@suse.cz, xieyisheng1@huawei.com
+To: mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, yang.s@alibaba-inc.com
 
 
 The patch titled
-     Subject: mm/mempolicy: remove redundant check in get_nodes
+     Subject: mm: kmemleak: remove unused hardirq.h
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-remove-redundant-check-in-get_nodes.patch
+     mm-kmemleak-remove-unused-hardirqh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/mempolicy: remove redundant check in get_nodes
+From: "Yang Shi" <yang.s@alibaba-inc.com>
+Subject: mm: kmemleak: remove unused hardirq.h
 
-We have already checked whether maxnode is a page worth of bits, by:
-    maxnode > PAGE_SIZE*BITS_PER_BYTE
+Preempt counter APIs have been split out, currently, hardirq.h just
+includes irq_enter/exit APIs which are not used by kmemleak at all.
 
-So no need to check it once more.
+So, remove the unused hardirq.h.
 
-Link: http://lkml.kernel.org/r/1510882624-44342-2-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Chris Salls <salls@cs.ucsb.edu>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Tan Xiaojun <tanxiaojun@huawei.com>
+Link: http://lkml.kernel.org/r/1510959741-31109-1-git-send-email-yang.s@alibaba-inc.com
+Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/kmemleak.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-remove-redundant-check-in-get_nodes mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-remove-redundant-check-in-get_nodes
-+++ a/mm/mempolicy.c
-@@ -1282,8 +1282,6 @@ static int get_nodes(nodemask_t *nodes,
- 	/* When the user specified more nodes than supported just check
- 	   if the non supported part is all zero. */
- 	if (nlongs > BITS_TO_LONGS(MAX_NUMNODES)) {
--		if (nlongs > PAGE_SIZE/sizeof(long))
--			return -EINVAL;
- 		for (k = BITS_TO_LONGS(MAX_NUMNODES); k < nlongs; k++) {
- 			unsigned long t;
- 			if (get_user(t, nmask + k))
+diff -puN mm/kmemleak.c~mm-kmemleak-remove-unused-hardirqh mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-remove-unused-hardirqh
++++ a/mm/kmemleak.c
+@@ -91,7 +91,6 @@
+ #include <linux/stacktrace.h>
+ #include <linux/cache.h>
+ #include <linux/percpu.h>
+-#include <linux/hardirq.h>
+ #include <linux/bootmem.h>
+ #include <linux/pfn.h>
+ #include <linux/mmzone.h>
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from yang.s@alibaba-inc.com are
 
 
