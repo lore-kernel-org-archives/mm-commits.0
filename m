@@ -1,28 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/119] shmem: rename functions that are
- memfd-related
-Date: Wed, 31 Jan 2018 16:19:18 -0800
-Message-ID: <20180201001918.0LQLKFwb9%akpm@linux-foundation.org>
+Subject: [patch 084/119] shmem: unexport
+ shmem_add_seals()/shmem_get_seals()
+Date: Wed, 31 Jan 2018 16:19:14 -0800
+Message-ID: <20180201001914.6tZ88tnSL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755813AbeBAATU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:20 -0500
+        with ESMTP id S1755813AbeBAATQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: shmem: rename functions that are memfd-related
+Subject: shmem: unexport shmem_add_seals()/shmem_get_seals()
 
-Those functions are called for memfd files, backed by shmem or
-hugetlb (the next patches will handle hugetlb).
+Patch series "memfd: add sealing to hugetlb-backed memory", v3.
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-3-marcandre.lureau@redhat.com
+Recently, Mike Kravetz added hugetlbfs support to memfd.  However, he
+didn't add sealing support.  One of the reasons to use memfd is to have
+shared memory sealing when doing IPC or sharing memory with another
+process with some extra safety.  qemu uses shared memory & hugetables with
+vhost-user (used by dpdk), so it is reasonable to use memfd now instead
+for convenience and security reasons.
+
+
+This patch (of 9):
+
+The functions are called through shmem_fcntl() only.  And no danger in
+removing the EXPORTs as the routines only work with shmem file structs.
+
+Link: http://lkml.kernel.org/r/20171107122800.25517-2-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -32,81 +44,50 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fcntl.c               |    2 +-
- include/linux/shmem_fs.h |    4 ++--
- mm/shmem.c               |   10 +++++-----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/shmem_fs.h |    2 --
+ mm/shmem.c               |    6 ++----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/fcntl.c~shmem-rename-functions-that-are-memfd-related fs/fcntl.c
---- a/fs/fcntl.c~shmem-rename-functions-that-are-memfd-related
-+++ a/fs/fcntl.c
-@@ -418,7 +418,7 @@ static long do_fcntl(int fd, unsigned in
- 		break;
- 	case F_ADD_SEALS:
- 	case F_GET_SEALS:
--		err = shmem_fcntl(filp, cmd, arg);
-+		err = memfd_fcntl(filp, cmd, arg);
- 		break;
- 	case F_GET_RW_HINT:
- 	case F_SET_RW_HINT:
-diff -puN include/linux/shmem_fs.h~shmem-rename-functions-that-are-memfd-related include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~shmem-rename-functions-that-are-memfd-related
+diff -puN include/linux/shmem_fs.h~shmem-unexport-shmem_add_seals-shmem_get_seals include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~shmem-unexport-shmem_add_seals-shmem_get_seals
 +++ a/include/linux/shmem_fs.h
-@@ -112,11 +112,11 @@ extern void shmem_uncharge(struct inode
+@@ -112,8 +112,6 @@ extern void shmem_uncharge(struct inode
  
  #ifdef CONFIG_TMPFS
  
--extern long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
-+extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
+-extern int shmem_add_seals(struct file *file, unsigned int seals);
+-extern int shmem_get_seals(struct file *file);
+ extern long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
  
  #else
- 
--static inline long shmem_fcntl(struct file *f, unsigned int c, unsigned long a)
-+static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned long a)
- {
- 	return -EINVAL;
- }
-diff -puN mm/shmem.c~shmem-rename-functions-that-are-memfd-related mm/shmem.c
---- a/mm/shmem.c~shmem-rename-functions-that-are-memfd-related
+diff -puN mm/shmem.c~shmem-unexport-shmem_add_seals-shmem_get_seals mm/shmem.c
+--- a/mm/shmem.c~shmem-unexport-shmem_add_seals-shmem_get_seals
 +++ a/mm/shmem.c
 @@ -2722,7 +2722,7 @@ continue_resched:
  		     F_SEAL_GROW | \
  		     F_SEAL_WRITE)
  
--static int shmem_add_seals(struct file *file, unsigned int seals)
-+static int memfd_add_seals(struct file *file, unsigned int seals)
+-int shmem_add_seals(struct file *file, unsigned int seals)
++static int shmem_add_seals(struct file *file, unsigned int seals)
  {
  	struct inode *inode = file_inode(file);
  	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -2792,7 +2792,7 @@ unlock:
+@@ -2791,16 +2791,14 @@ unlock:
+ 	inode_unlock(inode);
  	return error;
  }
+-EXPORT_SYMBOL_GPL(shmem_add_seals);
  
--static int shmem_get_seals(struct file *file)
-+static int memfd_get_seals(struct file *file)
+-int shmem_get_seals(struct file *file)
++static int shmem_get_seals(struct file *file)
  {
  	if (file->f_op != &shmem_file_operations)
  		return -EINVAL;
-@@ -2800,7 +2800,7 @@ static int shmem_get_seals(struct file *
+ 
  	return SHMEM_I(file_inode(file))->seals;
  }
+-EXPORT_SYMBOL_GPL(shmem_get_seals);
  
--long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
-+long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+ long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	long error;
- 
-@@ -2810,10 +2810,10 @@ long shmem_fcntl(struct file *file, unsi
- 		if (arg > UINT_MAX)
- 			return -EINVAL;
- 
--		error = shmem_add_seals(file, arg);
-+		error = memfd_add_seals(file, arg);
- 		break;
- 	case F_GET_SEALS:
--		error = shmem_get_seals(file);
-+		error = memfd_get_seals(file);
- 		break;
- 	default:
- 		error = -EINVAL;
 _
