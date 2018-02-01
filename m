@@ -1,67 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [patch 047/119] mm: do not stall register_shrinker()
-Date: Wed, 31 Jan 2018 16:16:55 -0800
-Message-ID: <20180201001655.s3Xp8o8rL%akpm@linux-foundation.org>
+Subject: [patch 050/119] mm: remove unused
+ pgdat_reclaimable_pages()
+Date: Wed, 31 Jan 2018 16:17:06 -0800
+Message-ID: <20180201001706.CcTsiZIH7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751001AbeBAAQ5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:16:57 -0500
+        with ESMTP id S1751563AbeBAARI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:17:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: do not stall register_shrinker()
+From: Jan Kara <jack@suse.cz>
+Subject: mm: remove unused pgdat_reclaimable_pages()
 
-Shakeel Butt reported he has observed in production systems that the job
-loader gets stuck for 10s of seconds while doing a mount operation.  It
-turns out that it was stuck in register_shrinker() because some unrelated
-job was under memory pressure and was spending time in shrink_slab(). 
-Machines have a lot of shrinkers registered and jobs under memory pressure
-have to traverse all of those memcg-aware shrinkers and affect unrelated
-jobs which want to register their own shrinkers.
+Remove unused function pgdat_reclaimable_pages() and
+node_page_state_snapshot() which becomes unused as well.
 
-To solve the issue, this patch simply bails out slab shrinking if it is
-found that someone wants to register a shrinker in parallel.  A downside
-is it could cause unfair shrinking between shrinkers.  However, it should
-be rare and we can add compilcated logic if we find it's not enough.
-
-[akpm@linux-foundation.org: tweak code comment]
-Link: http://lkml.kernel.org/r/20171115005602.GB23810@bbox
-Link: http://lkml.kernel.org/r/1511481899-20335-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Shakeel Butt <shakeelb@google.com>
-Tested-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20171122094416.26019-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/swap.h   |    1 -
+ include/linux/vmstat.h |   17 -----------------
+ mm/vmscan.c            |   16 ----------------
+ 3 files changed, 34 deletions(-)
 
-diff -puN mm/vmscan.c~mm-do-not-stall-register_shrinker mm/vmscan.c
---- a/mm/vmscan.c~mm-do-not-stall-register_shrinker
+diff -puN include/linux/swap.h~mm-remove-unused-pgdat_reclaimable_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-unused-pgdat_reclaimable_pages
++++ a/include/linux/swap.h
+@@ -344,7 +344,6 @@ extern void lru_cache_add_active_or_unev
+ 
+ /* linux/mm/vmscan.c */
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+-extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+ extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
+diff -puN include/linux/vmstat.h~mm-remove-unused-pgdat_reclaimable_pages include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-remove-unused-pgdat_reclaimable_pages
++++ a/include/linux/vmstat.h
+@@ -216,23 +216,6 @@ static inline unsigned long zone_page_st
+ 	return x;
+ }
+ 
+-static inline unsigned long node_page_state_snapshot(pg_data_t *pgdat,
+-					enum node_stat_item item)
+-{
+-	long x = atomic_long_read(&pgdat->vm_stat[item]);
+-
+-#ifdef CONFIG_SMP
+-	int cpu;
+-	for_each_online_cpu(cpu)
+-		x += per_cpu_ptr(pgdat->per_cpu_nodestats, cpu)->vm_node_stat_diff[item];
+-
+-	if (x < 0)
+-		x = 0;
+-#endif
+-	return x;
+-}
+-
+-
+ #ifdef CONFIG_NUMA
+ extern void __inc_numa_state(struct zone *zone, enum numa_stat_item item);
+ extern unsigned long sum_zone_node_page_state(int node,
+diff -puN mm/vmscan.c~mm-remove-unused-pgdat_reclaimable_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-unused-pgdat_reclaimable_pages
 +++ a/mm/vmscan.c
-@@ -489,6 +489,15 @@ static unsigned long shrink_slab(gfp_t g
- 			sc.nid = 0;
+@@ -220,22 +220,6 @@ unsigned long zone_reclaimable_pages(str
+ 	return nr;
+ }
  
- 		freed += do_shrink_slab(&sc, shrinker, priority);
-+		/*
-+		 * Bail out if someone want to register a new shrinker to
-+		 * prevent the regsitration from being stalled for long periods
-+		 * by parallel ongoing shrinking.
-+		 */
-+		if (rwsem_is_contended(&shrinker_rwsem)) {
-+			freed = freed ? : 1;
-+			break;
-+		}
- 	}
- 
- 	up_read(&shrinker_rwsem);
-_
+-unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+-{
+-	unsigned long nr;
+-
+-	nr = node_page_state_snapshot(pgdat, NR_ACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_INACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
+-
+-	if (get_nr_swap_pages() > 0)
+-		nr += node_page_state_snapshot(pgdat, NR_ACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_INACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
+-
+-	return nr;
+-}
