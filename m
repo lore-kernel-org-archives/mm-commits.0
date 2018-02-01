@@ -1,165 +1,189 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-mempolicy-fix-the-mbind-hugetlb-migration.patch removed from -mm
- tree
-Date: Thu, 01 Feb 2018 11:34:50 -0800
-Message-ID: <20180201193450.6ulJNtqXX%akpm@linux-foundation.org>
+ mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch removed from
+ -mm tree
+Date: Thu, 01 Feb 2018 11:34:57 -0800
+Message-ID: <20180201193457.0mm2548Ma%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:33278 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754673AbeBATe5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:57 -0500
+        with ESMTP id S1754686AbeBATe7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, zi.yan@cs.rutgers.edu
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gregkh@linuxfoundation.org, haakon.bugge@oracle.com, henry.willard@oracle.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, mgorman@suse.de, mm-commits@vger.kernel.org, pombredanne@nexb.com, steven.sistare@oracle.com, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: hugetlb, mempolicy: fix the mbind hugetlb migration
+     Subject: mm: numa: do not trap faults on shared data section pages.
 has been removed from the -mm tree.  Its filename was
-     hugetlb-mempolicy-fix-the-mbind-hugetlb-migration.patch
+     mm-numa-do-not-trap-faults-on-shared-data-section-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: hugetlb, mempolicy: fix the mbind hugetlb migration
+From: Henry Willard <henry.willard@oracle.com>
+Subject: mm: numa: do not trap faults on shared data section pages.
 
-do_mbind migration code relies on alloc_huge_page_noerr for hugetlb pages.
-alloc_huge_page_noerr uses alloc_huge_page which is a highlevel
-allocation function which has to take care of reserves, overcommit or
-hugetlb cgroup accounting.  None of that is really required for the page
-migration because the new page is only temporal and either will replace
-the original page or it will be dropped.  This is essentially as for other
-migration call paths and there shouldn't be any reason to handle mbind in
-a special way.
+Workloads consisting of a large number of processes running the same
+program with a very large shared data segment may experience performance
+problems when numa balancing attempts to migrate the shared cow pages. 
+This manifests itself with many processes or tasks in TASK_UNINTERRUPTIBLE
+state waiting for the shared pages to be migrated.
 
-The current implementation is even suboptimal because the migration might
-fail just because the hugetlb cgroup limit is reached, or the overcommit
-is saturated.
+The program listed below simulates the conditions with these results when
+run with 288 processes on a 144 core/8 socket machine.
 
-Fix this by making mbind like other hugetlb migration paths.  Add a new
-migration helper alloc_huge_page_vma as a wrapper around
-alloc_huge_page_nodemask with additional mempolicy handling.
+Average throughput 	Average throughput     Average throughput
+with numa_balancing=0	with numa_balancing=1  with numa_balancing=1
+     			without the patch      with the patch
+---------------------	---------------------  ---------------------
+2118782			2021534		       2107979
 
-alloc_huge_page_noerr has no more users and it can go.
+Complex production environments show less variability and fewer poorly
+performing outliers accompanied with a smaller number of processes waiting
+on NUMA page migration with this patch applied. In some cases, %iowait drops
+from 16%-26% to 0.
 
-Link: http://lkml.kernel.org/r/20180103093213.26329-7-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Reale <ar@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+ */
+#include <sys/time.h>
+#include <stdio.h>
+#include <wait.h>
+#include <sys/mman.h>
+
+int a[1000000] = {13};
+
+int  main(int argc, const char **argv)
+{
+	int n = 0;
+	int i;
+	pid_t pid;
+	int stat;
+	int *count_array;
+	int cpu_count = 288;
+	long total = 0;
+
+	struct timeval t1, t2 = {(argc > 1 ? atoi(argv[1]) : 10), 0};
+
+	if (argc > 2)
+		cpu_count = atoi(argv[2]);
+
+	count_array = mmap(NULL, cpu_count * sizeof(int),
+			   (PROT_READ|PROT_WRITE),
+			   (MAP_SHARED|MAP_ANONYMOUS), 0, 0);
+
+	if (count_array == MAP_FAILED) {
+		perror("mmap:");
+		return 0;
+	}
+
+	for (i = 0; i < cpu_count; ++i) {
+		pid = fork();
+		if (pid <= 0)
+			break;
+		if ((i & 0xf) == 0)
+			usleep(2);
+	}
+
+	if (pid != 0) {
+		if (i == 0) {
+			perror("fork:");
+			return 0;
+		}
+
+		for (;;) {
+			pid = wait(&stat);
+			if (pid < 0)
+				break;
+		}
+
+		for (i = 0; i < cpu_count; ++i)
+			total += count_array[i];
+
+		printf("Total %ld\n", total);
+		munmap(count_array, cpu_count * sizeof(int));
+		return 0;
+	}
+
+	gettimeofday(&t1, 0);
+	timeradd(&t1, &t2, &t1);
+	while (timercmp(&t2, &t1, <)) {
+		int b = 0;
+		int j;
+
+		for (j = 0; j < 1000000; j++)
+			b += a[j];
+		gettimeofday(&t2, 0);
+		n++;
+	}
+	count_array[i] = n;
+	return 0;
+}
+
+This patch changes change_pte_range() to skip shared copy-on-write pages
+when called from change_prot_numa().
+
+NOTE: change_prot_numa() is nominally called from task_numa_work() and
+queue_pages_test_walk().  task_numa_work() is the auto NUMA balancing
+path, and queue_pages_test_walk() is part of explicit NUMA policy
+management.  However, queue_pages_test_walk() only calls
+change_prot_numa() when MPOL_MF_LAZY is specified and currently that is
+not allowed, so change_prot_numa() is only called from auto NUMA
+balancing.
+
+In the case of explicit NUMA policy management, shared pages are not
+migrated unless MPOL_MF_MOVE_ALL is specified, and MPOL_MF_MOVE_ALL
+depends on CAP_SYS_NICE.  Currently, there is no way to pass information
+about MPOL_MF_MOVE_ALL to change_pte_range.  This will have to be fixed if
+MPOL_MF_LAZY is enabled and MPOL_MF_MOVE_ALL is to be honored in lazy
+migration mode.
+
+task_numa_work() skips the read-only VMAs of programs and shared
+libraries.
+
+Link: http://lkml.kernel.org/r/1516751617-7369-1-git-send-email-henry.willard@oracle.com
+Signed-off-by: Henry Willard <henry.willard@oracle.com>
+Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
 Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 ++---
- mm/hugetlb.c            |   33 +++++++++++++++++++--------------
- mm/mempolicy.c          |    3 +--
- 3 files changed, 22 insertions(+), 19 deletions(-)
+ mm/mprotect.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/hugetlb.h~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
-+++ a/include/linux/hugetlb.h
-@@ -356,10 +356,9 @@ struct huge_bootmem_page {
- struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
- struct page *alloc_huge_page_node(struct hstate *h, int nid);
--struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
--				unsigned long addr, int avoid_reserve);
- struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
- 				nodemask_t *nmask);
-+struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
+diff -puN mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages
++++ a/mm/mprotect.c
+@@ -84,6 +84,11 @@ static unsigned long change_pte_range(st
+ 				if (!page || PageKsm(page))
+ 					continue;
  
-@@ -537,7 +536,7 @@ struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
- #define alloc_huge_page_node(h, nid) NULL
- #define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
--#define alloc_huge_page_noerr(v, a, r) NULL
-+#define alloc_huge_page_vma(vma, address) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
- #define hstate_sizelog(s) NULL
-diff -puN mm/hugetlb.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
-+++ a/mm/hugetlb.c
-@@ -1674,6 +1674,25 @@ struct page *alloc_huge_page_nodemask(st
- 	return alloc_migrate_huge_page(h, gfp_mask, preferred_nid, nmask);
- }
- 
-+/* mempolicy aware migration callback */
-+struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address)
-+{
-+	struct mempolicy *mpol;
-+	nodemask_t *nodemask;
-+	struct page *page;
-+	struct hstate *h;
-+	gfp_t gfp_mask;
-+	int node;
++				/* Also skip shared copy-on-write pages */
++				if (is_cow_mapping(vma->vm_flags) &&
++				    page_mapcount(page) != 1)
++					continue;
 +
-+	h = hstate_vma(vma);
-+	gfp_mask = htlb_alloc_mask(h);
-+	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
-+	page = alloc_huge_page_nodemask(h, node, nodemask);
-+	mpol_cond_put(mpol);
-+
-+	return page;
-+}
-+
- /*
-  * Increase the hugetlb pool such that it can accommodate a reservation
-  * of size 'delta'.
-@@ -2079,20 +2098,6 @@ out_subpool_put:
- 	return ERR_PTR(-ENOSPC);
- }
- 
--/*
-- * alloc_huge_page()'s wrapper which simply returns the page if allocation
-- * succeeds, otherwise NULL. This function is called from new_vma_page(),
-- * where no ERR_VALUE is expected to be returned.
-- */
--struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
--				unsigned long addr, int avoid_reserve)
--{
--	struct page *page = alloc_huge_page(vma, addr, avoid_reserve);
--	if (IS_ERR(page))
--		page = NULL;
--	return page;
--}
--
- int alloc_bootmem_huge_page(struct hstate *h)
- 	__attribute__ ((weak, alias("__alloc_bootmem_huge_page")));
- int __alloc_bootmem_huge_page(struct hstate *h)
-diff -puN mm/mempolicy.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration mm/mempolicy.c
---- a/mm/mempolicy.c~hugetlb-mempolicy-fix-the-mbind-hugetlb-migration
-+++ a/mm/mempolicy.c
-@@ -1121,8 +1121,7 @@ static struct page *new_page(struct page
- 	}
- 
- 	if (PageHuge(page)) {
--		BUG_ON(!vma);
--		return alloc_huge_page_noerr(vma, address, 1);
-+		return alloc_huge_page_vma(vma, address);
- 	} else if (thp_migration_supported() && PageTransHuge(page)) {
- 		struct page *thp;
- 
+ 				/* Avoid TLB flush if possible */
+ 				if (pte_protnone(oldpte))
+ 					continue;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from henry.willard@oracle.com are
 
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
-mm-introduce-map_fixed_safe.patch
-fs-elf-drop-map_fixed-usage-from-elf_map.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-fix-fix.patch
-mm-numa-rework-do_pages_move.patch
-mm-migrate-remove-reason-argument-from-new_page_t.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
-mm-unclutter-thp-migration.patch
-net-netfilter-x_tablesc-remove-size-check.patch
 
