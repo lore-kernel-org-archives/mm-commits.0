@@ -1,93 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/119] ocfs2: return error when we attempt to
- access a dirty bh in jbd2
-Date: Wed, 31 Jan 2018 16:15:32 -0800
-Message-ID: <20180201001532.RNa9w5NIy%akpm@linux-foundation.org>
+Subject: [patch 027/119] mm/slab.c: remove redundant assignments
+ for slab_state
+Date: Wed, 31 Jan 2018 16:15:39 -0800
+Message-ID: <20180201001539.A475gfqiu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAPe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:34 -0500
+        with ESMTP id S1754449AbeBAAPm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:15:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ge.changwei@h3c.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: return error when we attempt to access a dirty bh in jbd2
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: mm/slab.c: remove redundant assignments for slab_state
 
-We should not reuse the dirty bh in jbd2 directly due to the following
-situation:
+slab_state is being set to "UP" in create_kmalloc_caches(), and later on
+we set it again in kmem_cache_init_late(), but slab_state does not change
+in the meantime.
 
-1. When removing extent rec, we will dirty the bhs of extent rec and
-   truncate log at the same time, and hand them over to jbd2.
-2. The bhs are submitted to jbd2 area successfully.
-3. The write-back thread of device help flush the bhs to disk but
-   encounter write error due to abnormal storage link.
-4. After a while the storage link become normal. Truncate log flush
-   worker triggered by the next space reclaiming found the dirty bh of
-   truncate log and clear its 'BH_Write_EIO' and then set it uptodate in
-   __ocfs2_journal_access():
+Remove the redundant assignment from kmem_cache_init_late().
 
-ocfs2_truncate_log_worker
-  ocfs2_flush_truncate_log
-    __ocfs2_flush_truncate_log
-      ocfs2_replay_truncate_records
-        ocfs2_journal_access_di
-          __ocfs2_journal_access // here we clear io_error and set 'tl_bh' uptodata.
+And unless I overlooked anything, the same goes for "slab_state = FULL". 
+slab_state is set to "FULL" in kmem_cache_init_late(), but it is later
+being set again in cpucache_init(), which gets called from
+do_initcall_level().  So remove the assignment from cpucache_init() as
+well.
 
-5. Then jbd2 will flush the bh of truncate log to disk, but the bh of
-   extent rec is still in error state, and unfortunately nobody will
-   take care of it.
-6. At last the space of extent rec was not reduced, but truncate log
-   flush worker have given it back to globalalloc. That will cause
-   duplicate cluster problem which could be identified by fsck.ocfs2.
-
-Sadlly we can hardly revert this but set fs read-only in case of
-ruining atomicity and consistency of space reclaim.
-
-Link: http://lkml.kernel.org/r/5A6E8092.8090701@huawei.com
-Fixes: acf8fdbe6afb ("ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access")
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/20171215134452.GA1920@techadventures.net
+Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ mm/slab.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2 fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-return-error-when-we-attempt-to-access-a-dirty-bh-in-jbd2
-+++ a/fs/ocfs2/journal.c
-@@ -666,23 +666,24 @@ static int __ocfs2_journal_access(handle
- 	/* we can safely remove this assertion after testing. */
- 	if (!buffer_uptodate(bh)) {
- 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
--		mlog(ML_ERROR, "b_blocknr=%llu\n",
--		     (unsigned long long)bh->b_blocknr);
-+		mlog(ML_ERROR, "b_blocknr=%llu, b_state=0x%lx\n",
-+		     (unsigned long long)bh->b_blocknr, bh->b_state);
+diff -puN mm/slab.c~mm-slab-remove-redundant-assignments-for-slab_state mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-redundant-assignments-for-slab_state
++++ a/mm/slab.c
+@@ -1316,8 +1316,6 @@ void __init kmem_cache_init_late(void)
+ {
+ 	struct kmem_cache *cachep;
  
- 		lock_buffer(bh);
- 		/*
--		 * A previous attempt to write this buffer head failed.
--		 * Nothing we can do but to retry the write and hope for
--		 * the best.
-+		 * A previous transaction with a couple of buffer heads fail
-+		 * to checkpoint, so all the bhs are marked as BH_Write_EIO.
-+		 * For current transaction, the bh is just among those error
-+		 * bhs which previous transaction handle. We can't just clear
-+		 * its BH_Write_EIO and reuse directly, since other bhs are
-+		 * not written to disk yet and that will cause metadata
-+		 * inconsistency. So we should set fs read-only to avoid
-+		 * further damage.
- 		 */
- 		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
--			clear_buffer_write_io_error(bh);
--			set_buffer_uptodate(bh);
--		}
+-	slab_state = UP;
