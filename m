@@ -1,92 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: [patch 103/119] include/linux/mmzone.h: fix explanation of
- lower bits in the SPARSEMEM mem_map pointer
-Date: Wed, 31 Jan 2018 16:20:26 -0800
-Message-ID: <20180201002026.SeUh-T9-l%akpm@linux-foundation.org>
+Subject: [patch 107/119] mm, hugetlb: unify core page allocation
+ accounting and initialization
+Date: Wed, 31 Jan 2018 16:20:41 -0800
+Message-ID: <20180201002041.2RFrZl62_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAU2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:28 -0500
+        with ESMTP id S1754559AbeBAAUn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, ptesarik@suse.com, torvalds@linux-foundation.org, vbabka@suse.cz, yasu.isimatu@gmail.com
+To: akpm@linux-foundation.org, ar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
-From: Petr Tesarik <ptesarik@suse.com>
-Subject: include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, hugetlb: unify core page allocation accounting and initialization
 
-The comment is confusing.  On the one hand, it refers to 32-bit alignment
-(struct page alignment on 32-bit platforms), but this would only guarantee
-that the 2 lowest bits must be zero.  On the other hand, it claims that at
-least 3 bits are available, and 3 bits are actually used.
+Patch series "mm, hugetlb: allocation API and migration improvements"
 
-This is not broken, because there is a stronger alignment guarantee, just
-less obvious.  Let's fix the comment to make it clear how many bits are
-available and why.
+Motivation:
 
-Although memmap arrays are allocated in various places, the resulting
-pointer is encoded eventually, so I am adding a BUG_ON() here to enforce
-at runtime that all expected bits are indeed available.
+this is a follow up for [3] for the allocation API and [4] for the hugetlb
+migration.  It wasn't really easy to split those into two separate patch
+series as they share some code.
 
-I have also added a BUILD_BUG_ON to check that PFN_SECTION_SHIFT is
-sufficient, because this part of the calculation can be easily checked at
-build time.
+My primary motivation to touch this code is to make the gigantic pages
+migration working. The giga pages allocation code is just too fragile
+and hacked into the hugetlb code now. This series tries to move giga
+pages closer to the first class citizen. We are not there yet but having
+5 patches is quite a lot already and it will already make the code much
+easier to follow. I will come with other changes on top after this sees
+some review.
 
-[ptesarik@suse.com: v2]
-  Link: http://lkml.kernel.org/r/20180125100516.589ea6af@ezekiel.suse.cz
-Link: http://lkml.kernel.org/r/20180119080908.3a662e6f@ezekiel.suse.cz
-Signed-off-by: Petr Tesarik <ptesarik@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+The first two patches should be trivial to review.  The third patch
+changes the way how we migrate huge pages.  Newly allocated pages are a
+subject of the overcommit check and they participate surplus accounting
+which is quite unfortunate as the changelog explains.  This patch doesn't
+change anything wrt.  giga pages.
+
+Patch #4 removes the surplus accounting hack from
+__alloc_surplus_huge_page.  I hope I didn't miss anything there and a
+deeper review is really due there.
+
+Patch #5 finally unifies allocation paths and giga pages shouldn't be any
+special anymore.  There is also some renaming going on as well.
+
+
+This patch (of 6):
+
+hugetlb allocator has two entry points to the page allocator
+- alloc_fresh_huge_page_node
+- __hugetlb_alloc_buddy_huge_page
+
+The two differ very subtly in two aspects.  The first one doesn't care
+about HTLB_BUDDY_* stats and it doesn't initialize the huge page. 
+prep_new_huge_page is not used because it not only initializes hugetlb
+specific stuff but because it also put_page and releases the page to the
+hugetlb pool which is not what is required in some contexts.  This makes
+things more complicated than necessary.
+
+Simplify things by a) removing the page allocator entry point duplicity
+and only keep __hugetlb_alloc_buddy_huge_page and b) make
+prep_new_huge_page more reusable by removing the put_page which moves the
+page to the allocator pool.  All current callers are updated to call
+put_page explicitly.  Later patches will add new callers which won't need
+it.
+
+This patch shouldn't introduce any functional change.
+
+Link: http://lkml.kernel.org/r/20180103093213.26329-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemi Wang <kemi.wang@intel.com>
-Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   12 ++++++++++--
- mm/sparse.c            |    6 +++++-
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   61 +++++++++++++++++++++++--------------------------
+ 1 file changed, 29 insertions(+), 32 deletions(-)
 
-diff -puN include/linux/mmzone.h~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer include/linux/mmzone.h
---- a/include/linux/mmzone.h~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer
-+++ a/include/linux/mmzone.h
-@@ -1166,8 +1166,16 @@ extern unsigned long usemap_size(void);
+diff -puN mm/hugetlb.c~mm-hugetlb-unify-core-page-allocation-accounting-and-initialization mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-unify-core-page-allocation-accounting-and-initialization
++++ a/mm/hugetlb.c
+@@ -1157,6 +1157,7 @@ static struct page *alloc_fresh_gigantic
+ 	if (page) {
+ 		prep_compound_gigantic_page(page, huge_page_order(h));
+ 		prep_new_huge_page(h, page, nid);
++		put_page(page); /* free it into the hugepage allocator */
+ 	}
  
- /*
-  * We use the lower bits of the mem_map pointer to store
-- * a little bit of information.  There should be at least
-- * 3 bits here due to 32-bit alignment.
-+ * a little bit of information.  The pointer is calculated
-+ * as mem_map - section_nr_to_pfn(pnum).  The result is
-+ * aligned to the minimum alignment of the two values:
-+ *   1. All mem_map arrays are page-aligned.
-+ *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
-+ *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
-+ *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
-+ *      worst combination is powerpc with 256k pages,
-+ *      which results in PFN_SECTION_SHIFT equal 6.
-+ * To sum it up, at least 6 bits are available.
-  */
- #define	SECTION_MARKED_PRESENT	(1UL<<0)
- #define SECTION_HAS_MEM_MAP	(1UL<<1)
-diff -puN mm/sparse.c~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer mm/sparse.c
---- a/mm/sparse.c~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer
-+++ a/mm/sparse.c
-@@ -264,7 +264,11 @@ unsigned long __init node_memmap_size_by
-  */
- static unsigned long sparse_encode_mem_map(struct page *mem_map, unsigned long pnum)
+ 	return page;
+@@ -1304,7 +1305,6 @@ static void prep_new_huge_page(struct hs
+ 	h->nr_huge_pages++;
+ 	h->nr_huge_pages_node[nid]++;
+ 	spin_unlock(&hugetlb_lock);
+-	put_page(page); /* free it into the hugepage allocator */
+ }
+ 
+ static void prep_compound_gigantic_page(struct page *page, unsigned int order)
+@@ -1381,41 +1381,49 @@ pgoff_t __basepage_index(struct page *pa
+ 	return (index << compound_order(page_head)) + compound_idx;
+ }
+ 
+-static struct page *alloc_fresh_huge_page_node(struct hstate *h, int nid)
++static struct page *__hugetlb_alloc_buddy_huge_page(struct hstate *h,
++		gfp_t gfp_mask, int nid, nodemask_t *nmask)
  {
--	return (unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
-+	unsigned long coded_mem_map =
-+		(unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
-+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > (1UL<<PFN_SECTION_SHIFT));
-+	BUG_ON(coded_mem_map & ~SECTION_MAP_MASK);
-+	return coded_mem_map;
++	int order = huge_page_order(h);
+ 	struct page *page;
+ 
+-	page = __alloc_pages_node(nid,
+-		htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
+-						__GFP_RETRY_MAYFAIL|__GFP_NOWARN,
+-		huge_page_order(h));
+-	if (page) {
+-		prep_new_huge_page(h, page, nid);
+-	}
++	gfp_mask |= __GFP_COMP|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
++	if (nid == NUMA_NO_NODE)
++		nid = numa_mem_id();
++	page = __alloc_pages_nodemask(gfp_mask, order, nid, nmask);
++	if (page)
++		__count_vm_event(HTLB_BUDDY_PGALLOC);
++	else
++		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
+ 
+ 	return page;
+ }
+ 
++/*
++ * Allocates a fresh page to the hugetlb allocator pool in the node interleaved
++ * manner.
++ */
+ static int alloc_fresh_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
+ {
+ 	struct page *page;
+ 	int nr_nodes, node;
+-	int ret = 0;
++	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 
+ 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
+-		page = alloc_fresh_huge_page_node(h, node);
+-		if (page) {
+-			ret = 1;
++		page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask,
++				node, nodes_allowed);
++		if (page)
+ 			break;
+-		}
++
+ 	}
+ 
+-	if (ret)
+-		count_vm_event(HTLB_BUDDY_PGALLOC);
+-	else
+-		count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
++	if (!page)
++		return 0;
+ 
+-	return ret;
++	prep_new_huge_page(h, page, page_to_nid(page));
++	put_page(page); /* free it into the hugepage allocator */
++
++	return 1;
  }
  
  /*
+@@ -1523,17 +1531,6 @@ int dissolve_free_huge_pages(unsigned lo
+ 	return rc;
+ }
+ 
+-static struct page *__hugetlb_alloc_buddy_huge_page(struct hstate *h,
+-		gfp_t gfp_mask, int nid, nodemask_t *nmask)
+-{
+-	int order = huge_page_order(h);
+-
+-	gfp_mask |= __GFP_COMP|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
+-	if (nid == NUMA_NO_NODE)
+-		nid = numa_mem_id();
+-	return __alloc_pages_nodemask(gfp_mask, order, nid, nmask);
+-}
+-
+ static struct page *__alloc_buddy_huge_page(struct hstate *h, gfp_t gfp_mask,
+ 		int nid, nodemask_t *nmask)
+ {
+@@ -1589,11 +1586,9 @@ static struct page *__alloc_buddy_huge_p
+ 		 */
+ 		h->nr_huge_pages_node[r_nid]++;
+ 		h->surplus_huge_pages_node[r_nid]++;
+-		__count_vm_event(HTLB_BUDDY_PGALLOC);
+ 	} else {
+ 		h->nr_huge_pages--;
+ 		h->surplus_huge_pages--;
+-		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
+ 	}
+ 	spin_unlock(&hugetlb_lock);
+ 
+@@ -2148,6 +2143,8 @@ static void __init gather_bootmem_preall
+ 		prep_compound_huge_page(page, h->order);
+ 		WARN_ON(PageReserved(page));
+ 		prep_new_huge_page(h, page, page_to_nid(page));
++		put_page(page); /* free it into the hugepage allocator */
++
+ 		/*
+ 		 * If we had gigantic hugepages allocated at boot time, we need
+ 		 * to restore the 'stolen' pages to totalram_pages in order to
 _
