@@ -1,162 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 038/119] mm: show total hugetlb memory consumption
- in /proc/meminfo
-Date: Wed, 31 Jan 2018 16:16:22 -0800
-Message-ID: <20180201001622.08ganzLk-%akpm@linux-foundation.org>
+Subject: [patch 034/119] mm/mempolicy: remove redundant check in
+ get_nodes
+Date: Wed, 31 Jan 2018 16:16:07 -0800
+Message-ID: <20180201001607.w-qJdPD0D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34176 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751402AbeBAAQY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:16:24 -0500
+        with ESMTP id S1754449AbeBAAQJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:16:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: ak@linux.intel.com, akpm@linux-foundation.org, cl@linux.com, mingo@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, salls@cs.ucsb.edu, tanxiaojun@huawei.com, torvalds@linux-foundation.org, vbabka@suse.cz, xieyisheng1@huawei.com
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: show total hugetlb memory consumption in /proc/meminfo
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/mempolicy: remove redundant check in get_nodes
 
-Currently we display some hugepage statistics (total, free, etc) in
-/proc/meminfo, but only for default hugepage size (e.g.  2Mb).
+We have already checked whether maxnode is a page worth of bits, by:
+    maxnode > PAGE_SIZE*BITS_PER_BYTE
 
-If hugepages of different sizes are used (like 2Mb and 1Gb on x86-64),
-/proc/meminfo output can be confusing, as non-default sized hugepages are
-not reflected at all, and there are no signs that they are existing and
-consuming system memory.
+So no need to check it once more.
 
-To solve this problem, let's display the total amount of memory, consumed
-by hugetlb pages of all sized (both free and used).  Let's call it
-"Hugetlb", and display size in kB to match generic /proc/meminfo style.
-
-For example, (1024 2Mb pages and 2 1Gb pages are pre-allocated):
-  $ cat /proc/meminfo
-  MemTotal:        8168984 kB
-  MemFree:         3789276 kB
-  <...>
-  CmaFree:               0 kB
-  HugePages_Total:    1024
-  HugePages_Free:     1024
-  HugePages_Rsvd:        0
-  HugePages_Surp:        0
-  Hugepagesize:       2048 kB
-  Hugetlb:         4194304 kB
-  DirectMap4k:       32632 kB
-  DirectMap2M:     4161536 kB
-  DirectMap1G:     6291456 kB
-
-Also, this patch updates corresponding docs to reflect Hugetlb entry
-meaning and difference between Hugetlb and HugePages_Total * Hugepagesize.
-
-Link: http://lkml.kernel.org/r/20171115231409.12131-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1510882624-44342-2-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Chris Salls <salls@cs.ucsb.edu>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Tan Xiaojun <tanxiaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hugetlbpage.txt |   27 ++++++++++++++-------
- mm/hugetlb.c                     |   36 +++++++++++++++++++----------
- 2 files changed, 42 insertions(+), 21 deletions(-)
+ mm/mempolicy.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN Documentation/vm/hugetlbpage.txt~mm-show-total-hugetlb-memory-consumption-in-proc-meminfo Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~mm-show-total-hugetlb-memory-consumption-in-proc-meminfo
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -20,19 +20,20 @@ options.
- 
- The /proc/meminfo file provides information about the total number of
- persistent hugetlb pages in the kernel's huge page pool.  It also displays
--information about the number of free, reserved and surplus huge pages and the
--default huge page size.  The huge page size is needed for generating the
--proper alignment and size of the arguments to system calls that map huge page
--regions.
-+default huge page size and information about the number of free, reserved
-+and surplus huge pages in the pool of huge pages of default size.
-+The huge page size is needed for generating the proper alignment and
-+size of the arguments to system calls that map huge page regions.
- 
- The output of "cat /proc/meminfo" will include lines like:
- 
- .....
--HugePages_Total: vvv
--HugePages_Free:  www
--HugePages_Rsvd:  xxx
--HugePages_Surp:  yyy
--Hugepagesize:    zzz kB
-+HugePages_Total: uuu
-+HugePages_Free:  vvv
-+HugePages_Rsvd:  www
-+HugePages_Surp:  xxx
-+Hugepagesize:    yyy kB
-+Hugetlb:         zzz kB
- 
- where:
- HugePages_Total is the size of the pool of huge pages.
-@@ -47,6 +48,14 @@ HugePages_Surp  is short for "surplus,"
-                 the pool above the value in /proc/sys/vm/nr_hugepages. The
-                 maximum number of surplus huge pages is controlled by
-                 /proc/sys/vm/nr_overcommit_hugepages.
-+Hugepagesize    is the default hugepage size (in Kb).
-+Hugetlb         is the total amount of memory (in kB), consumed by huge
-+                pages of all sizes.
-+                If huge pages of different sizes are in use, this number
-+                will exceed HugePages_Total * Hugepagesize. To get more
-+                detailed information, please, refer to
-+                /sys/kernel/mm/hugepages (described below).
-+
- 
- /proc/filesystems should also show a filesystem of type "hugetlbfs" configured
- in the kernel.
-diff -puN mm/hugetlb.c~mm-show-total-hugetlb-memory-consumption-in-proc-meminfo mm/hugetlb.c
---- a/mm/hugetlb.c~mm-show-total-hugetlb-memory-consumption-in-proc-meminfo
-+++ a/mm/hugetlb.c
-@@ -2975,20 +2975,32 @@ out:
- 
- void hugetlb_report_meminfo(struct seq_file *m)
- {
--	struct hstate *h = &default_hstate;
-+	struct hstate *h;
-+	unsigned long total = 0;
-+
- 	if (!hugepages_supported())
- 		return;
--	seq_printf(m,
--			"HugePages_Total:   %5lu\n"
--			"HugePages_Free:    %5lu\n"
--			"HugePages_Rsvd:    %5lu\n"
--			"HugePages_Surp:    %5lu\n"
--			"Hugepagesize:   %8lu kB\n",
--			h->nr_huge_pages,
--			h->free_huge_pages,
--			h->resv_huge_pages,
--			h->surplus_huge_pages,
--			1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
-+
-+	for_each_hstate(h) {
-+		unsigned long count = h->nr_huge_pages;
-+
-+		total += (PAGE_SIZE << huge_page_order(h)) * count;
-+
-+		if (h == &default_hstate)
-+			seq_printf(m,
-+				   "HugePages_Total:   %5lu\n"
-+				   "HugePages_Free:    %5lu\n"
-+				   "HugePages_Rsvd:    %5lu\n"
-+				   "HugePages_Surp:    %5lu\n"
-+				   "Hugepagesize:   %8lu kB\n",
-+				   count,
-+				   h->free_huge_pages,
-+				   h->resv_huge_pages,
-+				   h->surplus_huge_pages,
-+				   (PAGE_SIZE << huge_page_order(h)) / 1024);
-+	}
-+
-+	seq_printf(m, "Hugetlb:        %8lu kB\n", total / 1024);
- }
- 
- int hugetlb_report_node_meminfo(int nid, char *buf)
+diff -puN mm/mempolicy.c~mm-mempolicy-remove-redundant-check-in-get_nodes mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-remove-redundant-check-in-get_nodes
++++ a/mm/mempolicy.c
+@@ -1282,8 +1282,6 @@ static int get_nodes(nodemask_t *nodes,
+ 	/* When the user specified more nodes than supported just check
+ 	   if the non supported part is all zero. */
+ 	if (nlongs > BITS_TO_LONGS(MAX_NUMNODES)) {
+-		if (nlongs > PAGE_SIZE/sizeof(long))
+-			return -EINVAL;
+ 		for (k = BITS_TO_LONGS(MAX_NUMNODES); k < nlongs; k++) {
+ 			unsigned long t;
+ 			if (get_user(t, nmask + k))
 _
