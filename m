@@ -1,56 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 098/119] mm/page_alloc.c: fix typos in comments
-Date: Wed, 31 Jan 2018 16:20:07 -0800
-Message-ID: <20180201002007.BKxQrRp3K%akpm@linux-foundation.org>
+Subject: [patch 100/119] zsmalloc: use U suffix for negative
+ literals being shifted
+Date: Wed, 31 Jan 2018 16:20:15 -0800
+Message-ID: <20180201002015.G3yQyqLLL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAUJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:09 -0500
+        with ESMTP id S1754559AbeBAAUR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, zhangshile@gmail.com
+To: akpm@linux-foundation.org, andy.shevchenko@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org, nick.desaulniers@gmail.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, willy@infradead.org
 
-From: Shile Zhang <zhangshile@gmail.com>
-Subject: mm/page_alloc.c: fix typos in comments
+From: Nick Desaulniers <nick.desaulniers@gmail.com>
+Subject: zsmalloc: use U suffix for negative literals being shifted
 
-Link: http://lkml.kernel.org/r/1515485774-4768-1-git-send-email-zhangshile@gmail.com
-Signed-off-by: Shile Zhang <zhangshile@gmail.com>
+Fix warning about shifting unsigned literals being undefined behavior.
+
+Link: http://lkml.kernel.org/r/1515642078-4259-1-git-send-email-nick.desaulniers@gmail.com
+Signed-off-by: Nick Desaulniers <nick.desaulniers@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nick Desaulniers <nick.desaulniers@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-fix-typos-in-comments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-fix-typos-in-comments
-+++ a/mm/page_alloc.c
-@@ -293,7 +293,7 @@ int page_group_by_mobility_disabled __re
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- 
- /*
-- * Determine how many pages need to be initialized durig early boot
-+ * Determine how many pages need to be initialized during early boot
-  * (non-deferred initialization).
-  * The value of first_deferred_pfn will be set later, once non-deferred pages
-  * are initialized, but for now set it ULONG_MAX.
-@@ -344,7 +344,7 @@ static inline bool update_defer_init(pg_
- 				unsigned long pfn, unsigned long zone_end,
- 				unsigned long *nr_initialised)
- {
--	/* Always populate low zones for address-contrained allocations */
-+	/* Always populate low zones for address-constrained allocations */
- 	if (zone_end < pgdat_end_pfn(pgdat))
- 		return true;
- 	(*nr_initialised)++;
-@@ -3397,7 +3397,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	if (gfp_mask & __GFP_THISNODE)
- 		goto out;
- 
--	/* Exhausted what can be done so it's blamo time */
-+	/* Exhausted what can be done so it's blame time */
- 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
- 		*did_some_progress = 1;
- 
+diff -puN mm/zsmalloc.c~zsmalloc-use-u-suffix-for-negative-literals-being-shifted mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-u-suffix-for-negative-literals-being-shifted
++++ a/mm/zsmalloc.c
+@@ -1047,7 +1047,7 @@ static void init_zspage(struct size_clas
+ 			 * Reset OBJ_TAG_BITS bit to last link to tell
+ 			 * whether it's allocated object or not.
+ 			 */
+-			link->next = -1 << OBJ_TAG_BITS;
++			link->next = -1UL << OBJ_TAG_BITS;
+ 		}
+ 		kunmap_atomic(vaddr);
+ 		page = next_page;
 _
