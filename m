@@ -1,101 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: [patch 094/119] mm: pin address_space before dereferencing
- it while isolating an LRU page
-Date: Wed, 31 Jan 2018 16:19:52 -0800
-Message-ID: <20180201001952.qsQjI2HUP%akpm@linux-foundation.org>
+Subject: [patch 095/119] mm/fadvise: discard partial page if
+ endbyte is also EOF
+Date: Wed, 31 Jan 2018 16:19:55 -0800
+Message-ID: <20180201001955.RxNxJEzmY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAATx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:53 -0500
+        with ESMTP id S1754559AbeBAAT5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, jinli.zjl@alibaba-inc.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, shidao.ytt@alibaba-inc.com, torvalds@linux-foundation.org, zhiche.yy@alibaba-inc.com
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: pin address_space before dereferencing it while isolating an LRU page
+From: shidao.ytt <shidao.ytt@alibaba-inc.com>
+Subject: mm/fadvise: discard partial page if endbyte is also EOF
 
-Minchan Kim asked the following question -- what locks protects
-address_space destroying when race happens between inode trauncation and
-__isolate_lru_page?  Jan Kara clarified by describing the race as follows
+During our recent testing with fadvise(FADV_DONTNEED), we find that if
+given offset/length is not page-aligned, the last page will not be
+discarded.  The tool we use is vmtouch (https://hoytech.com/vmtouch/), we
+map a 10KB-sized file into memory and then try to run this tool to evict
+the whole file mapping, but the last single page always remains staying in
+the memory:
 
-CPU1                                            CPU2
+$./vmtouch -e test_10K
+           Files: 1
+     Directories: 0
+   Evicted Pages: 3 (12K)
+         Elapsed: 2.1e-05 seconds
 
-truncate(inode)                                 __isolate_lru_page()
-  ...
-  truncate_inode_page(mapping, page);
-    delete_from_page_cache(page)
-      spin_lock_irqsave(&mapping->tree_lock, flags);
-        __delete_from_page_cache(page, NULL)
-          page_cache_tree_delete(..)
-            ...                                   mapping = page_mapping(page);
-            page->mapping = NULL;
-            ...
-      spin_unlock_irqrestore(&mapping->tree_lock, flags);
-      page_cache_free_page(mapping, page)
-        put_page(page)
-          if (put_page_testzero(page)) -> false
-- inode now has no pages and can be freed including embedded address_space
+$./vmtouch test_10K
+           Files: 1
+     Directories: 0
+  Resident Pages: 1/3  4K/12K  33.3%
+         Elapsed: 5.5e-05 seconds
 
-                                                  if (mapping && !mapping->a_ops->migratepage)
-- we've dereferenced mapping which is potentially already free.
+However when we test with an older kernel, say 3.10, this problem is
+gone. So we wonder if this is a regression:
 
-The race is theoretically possible but unlikely.  Before the
-delete_from_page_cache, truncate_cleanup_page is called so the page is
-likely to be !PageDirty or PageWriteback which gets skipped by the only
-caller that checks the mappping in __isolate_lru_page.  Even if the race
-occurs, a substantial amount of work has to happen during a tiny window
-with no preemption but it could potentially be done using a virtual
-machine to artifically slow one CPU or halt it during the critical window.
+$./vmtouch -e test_10K
+           Files: 1
+     Directories: 0
+   Evicted Pages: 3 (12K)
+         Elapsed: 8.2e-05 seconds
 
-This patch should eliminate the race with truncation by try-locking the
-page before derefencing mapping and aborting if the lock was not acquired.
-There was a suggestion from Huang Ying to use RCU as a side-effect to
-prevent mapping being freed.  However, I do not like the solution as it's
-an unconventional means of preserving a mapping and it's not a context
-where rcu_read_lock is obviously protecting rcu data.
+$./vmtouch test_10K
+           Files: 1
+     Directories: 0
+  Resident Pages: 0/3  0/12K  0%  <-- partial page also discarded
+         Elapsed: 5e-05 seconds
 
-Link: http://lkml.kernel.org/r/20180104102512.2qos3h5vqzeisrek@techsingularity.net
-Fixes: c82449352854 ("mm: compaction: make isolate_lru_page() filter-aware again")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Jan Kara <jack@suse.cz>
+After digging a little bit into this problem, we find it seems not a
+regression.  Not discarding partial page is likely to be on purpose
+according to commit 441c228f817f7 ("mm: fadvise: document the
+fadvise(FADV_DONTNEED) behaviour for partial pages") written by Mel
+Gorman.  He explained why partial pages should be preserved instead of
+being discarded when using fadvise(FADV_DONTNEED).  However, the
+interesting part is that the actual code did NOT work as the same as it
+was described, the partial page was still discarded anyway, due to a
+calculation mistake of `end_index' passed to invalidate_mapping_pages(). 
+This mistake has not been fixed until recently, that's why we fail to
+reproduce our problem in old kernels.  The fix is done in commit
+18aba41cbf ("mm/fadvise.c: do not discard partial pages with
+POSIX_FADV_DONTNEED") by Oleg Drokin.
+
+Back to the original testing, our problem becomes that there is a speical
+case that, if the page-unaligned `endbyte' is also the end of file, it is
+not necessary at all to preserve the last partial page, as we all know no
+one else will use the rest of it.  It should be safe enough if we just
+discard the whole page.  So we add an EOF check in this patch.
+
+We also find a poosbile real world issue in mainline kernel.  Assume such
+scenario: A userspace backup application want to backup a huge amount of
+small files (<4k) at once, the developer might (I guess) want to use
+fadvise(FADV_DONTNEED) to save memory.  However, FADV_DONTNEED won't
+really happen since the only page mapped is a partial page, and kernel
+will preserve it.  Our patch also fixes this problem, since we know the
+endbyte is EOF, so we discard it.
+
+Here is a simple reproducer to reproduce and verify each scenario we
+described above:
+
+  test_fadvise.c
+  ==============================
+  #include <sys/mman.h>
+  #include <sys/stat.h>
+  #include <fcntl.h>
+  #include <stdlib.h>
+  #include <string.h>
+  #include <stdio.h>
+  #include <unistd.h>
+
+  int main(int argc, char **argv)
+  {
+  	int i, fd, ret, len;
+  	struct stat buf;
+  	void *addr;
+  	unsigned char *vec;
+  	char *strbuf;
+  	ssize_t pagesize = getpagesize();
+  	ssize_t filesize;
+
+  	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
+  	if (fd < 0)
+  		return -1;
+  	filesize = strtoul(argv[2], NULL, 10);
+
+  	strbuf = malloc(filesize);
+  	memset(strbuf, 42, filesize);
+  	write(fd, strbuf, filesize);
+  	free(strbuf);
+  	fsync(fd);
+
+  	len = (filesize + pagesize - 1) / pagesize;
+  	printf("length of pages: %d\n", len);
+
+  	addr = mmap(NULL, filesize, PROT_READ, MAP_SHARED, fd, 0);
+  	if (addr == MAP_FAILED)
+  		return -1;
+
+  	ret = posix_fadvise(fd, 0, filesize, POSIX_FADV_DONTNEED);
+  	if (ret < 0)
+  		return -1;
+
+  	vec = malloc(len);
+  	ret = mincore(addr, filesize, (void *)vec);
+  	if (ret < 0)
+  		return -1;
+
+  	for (i = 0; i < len; i++)
+  		printf("pages[%d]: %x\n", i, vec[i] & 0x1);
+
+  	free(vec);
+  	close(fd);
+
+  	return 0;
+  }
+  ==============================
+
+Test 1: running on kernel with commit 18aba41cbf reverted:
+
+[root@caspar ~]# uname -r
+4.15.0-rc6.revert+
+[root@caspar ~]# ./test_fadvise file1 1024
+length of pages: 1
+pages[0]: 0    # <-- partial page discarded
+[root@caspar ~]# ./test_fadvise file2 8192
+length of pages: 2
+pages[0]: 0
+pages[1]: 0
+[root@caspar ~]# ./test_fadvise file3 10240
+length of pages: 3
+pages[0]: 0
+pages[1]: 0
+pages[2]: 0    # <-- partial page discarded
+
+Test 2: running on mainline kernel:
+
+[root@caspar ~]# uname -r
+4.15.0-rc6+
+[root@caspar ~]# ./test_fadvise test1 1024
+length of pages: 1
+pages[0]: 1    # <-- partial and the only page not discarded
+[root@caspar ~]# ./test_fadvise test2 8192
+length of pages: 2
+pages[0]: 0
+pages[1]: 0
+[root@caspar ~]# ./test_fadvise test3 10240
+length of pages: 3
+pages[0]: 0
+pages[1]: 0
+pages[2]: 1    # <-- partial page not discarded
+
+Test 3: running on kernel with this patch:
+
+[root@caspar ~]# uname -r
+4.15.0-rc6.patched+
+[root@caspar ~]# ./test_fadvise test1 1024
+length of pages: 1
+pages[0]: 0    # <-- partial page and EOF, discarded
+[root@caspar ~]# ./test_fadvise test2 8192
+length of pages: 2
+pages[0]: 0
+pages[1]: 0
+[root@caspar ~]# ./test_fadvise test3 10240
+length of pages: 3
+pages[0]: 0
+pages[1]: 0
+pages[2]: 0    # <-- partial page and EOF, discarded
+
+[akpm@linux-foundation.org: tweak code comment]
+Link: http://lkml.kernel.org/r/5222da9ee20e1695eaabb69f631f200d6e6b8876.1515132470.git.jinli.zjl@alibaba-inc.com
+Signed-off-by: shidao.ytt <shidao.ytt@alibaba-inc.com>
+Signed-off-by: Caspar Zhang <jinli.zjl@alibaba-inc.com>
+Reviewed-by: Oliver Yang <zhiche.yy@alibaba-inc.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/fadvise.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page mm/vmscan.c
---- a/mm/vmscan.c~mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page
-+++ a/mm/vmscan.c
-@@ -1415,14 +1415,24 @@ int __isolate_lru_page(struct page *page
- 
- 		if (PageDirty(page)) {
- 			struct address_space *mapping;
-+			bool migrate_dirty;
- 
- 			/*
- 			 * Only pages without mappings or that have a
- 			 * ->migratepage callback are possible to migrate
--			 * without blocking
-+			 * without blocking. However, we can be racing with
-+			 * truncation so it's necessary to lock the page
-+			 * to stabilise the mapping as truncation holds
-+			 * the page lock until after the page is removed
-+			 * from the page cache.
- 			 */
-+			if (!trylock_page(page))
-+				return ret;
-+
- 			mapping = page_mapping(page);
--			if (mapping && !mapping->a_ops->migratepage)
-+			migrate_dirty = mapping && mapping->a_ops->migratepage;
-+			unlock_page(page);
-+			if (!migrate_dirty)
- 				return ret;
- 		}
- 	}
+diff -puN mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof
++++ a/mm/fadvise.c
+@@ -127,7 +127,15 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 		 */
+ 		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
+ 		end_index = (endbyte >> PAGE_SHIFT);
+-		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK) {
++		/*
++		 * The page at end_index will be inclusively discarded according
++		 * by invalidate_mapping_pages(), so subtracting 1 from
++		 * end_index means we will skip the last page.  But if endbyte
++		 * is page aligned or is at the end of file, we should not skip
++		 * that page - discarding the last page is safe enough.
++		 */
++		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
++				endbyte != inode->i_size - 1) {
+ 			/* First page is tricky as 0 - 1 = -1, but pgoff_t
+ 			 * is unsigned, so the end_index >= start_index
+ 			 * check below would be true and we'll discard the whole
 _
