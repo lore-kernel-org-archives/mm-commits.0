@@ -1,60 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-pg_highmem-description.patch removed
- from -mm tree
-Date: Thu, 01 Feb 2018 11:35:14 -0800
-Message-ID: <20180201193514.oX4cA1ByY%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-correct-comments-regarding-do_fault_around.patch removed from -mm tree
+Date: Thu, 01 Feb 2018 11:35:00 -0800
+Message-ID: <20180201193500.G9y61sF2K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33326 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754690AbeBATfQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:35:16 -0500
+        with ESMTP id S1754606AbeBATfB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:35:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, larry.bassel@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, william.kucharski@oracle.com
 
 
 The patch titled
-     Subject: mm: remove PG_highmem description
+     Subject: mm: correct comments regarding do_fault_around()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pg_highmem-description.patch
+     mm-correct-comments-regarding-do_fault_around.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm: remove PG_highmem description
+From: William Kucharski <william.kucharski@oracle.com>
+Subject: mm: correct comments regarding do_fault_around()
 
-cbe37d093707 ("[PATCH] mm: remove PG_highmem") removed PG_highmem to save
-a page flag.  So the description of PG_highmem is no longer needed.
+There are multiple comments surrounding do_fault_around that memtion
+fault_around_pages() and fault_around_mask(), two routines that do not
+exist.  These comments should be reworded to reference fault_around_bytes,
+the value which is used to determine how much do_fault_around() will
+attempt to read when processing a fault.
 
-Link: http://lkml.kernel.org/r/1517391212-2950-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+These comments should have been updated when fault_around_pages() and
+fault_around_mask() were removed in aecd6f44266c1 ("mm: close race between
+do_fault_around() and fault_around_bytes_set()").
+
+Fixes: aecd6f44266c1 ("mm: close race between do_fault_around() and fault_around_bytes_set()")
+Link: http://lkml.kernel.org/r/302D0B14-C7E9-44C6-8BED-033F9ACBD030@oracle.com
+Signed-off-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Larry Bassel <larry.bassel@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/memory.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-remove-pg_highmem-description include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-remove-pg_highmem-description
-+++ a/include/linux/page-flags.h
-@@ -46,11 +46,6 @@
-  * guarantees that this bit is cleared for a page when it first is entered into
-  * the page cache.
+diff -puN mm/memory.c~mm-correct-comments-regarding-do_fault_around mm/memory.c
+--- a/mm/memory.c~mm-correct-comments-regarding-do_fault_around
++++ a/mm/memory.c
+@@ -3511,9 +3511,8 @@ static int fault_around_bytes_get(void *
+ }
+ 
+ /*
+- * fault_around_pages() and fault_around_mask() expects fault_around_bytes
+- * rounded down to nearest page order. It's what do_fault_around() expects to
+- * see.
++ * fault_around_bytes must be rounded down to the nearest page order as it's
++ * what do_fault_around() expects to see.
+  */
+ static int fault_around_bytes_set(void *data, u64 val)
+ {
+@@ -3556,13 +3555,14 @@ late_initcall(fault_around_debugfs);
+  * This function doesn't cross the VMA boundaries, in order to call map_pages()
+  * only once.
   *
-- * PG_highmem pages are not permanently mapped into the kernel virtual address
-- * space, they need to be kmapped separately for doing IO on the pages.  The
-- * struct page (these bits with information) are always mapped into kernel
-- * address space...
-- *
-  * PG_hwpoison indicates that a page got corrupted in hardware and contains
-  * data with incorrect ECC bits that triggered a machine check. Accessing is
-  * not safe since it may cause another machine check. Don't touch!
+- * fault_around_pages() defines how many pages we'll try to map.
+- * do_fault_around() expects it to return a power of two less than or equal to
+- * PTRS_PER_PTE.
++ * fault_around_bytes defines how many bytes we'll try to map.
++ * do_fault_around() expects it to be set to a power of two less than or equal
++ * to PTRS_PER_PTE.
+  *
+- * The virtual address of the area that we map is naturally aligned to the
+- * fault_around_pages() value (and therefore to page order).  This way it's
+- * easier to guarantee that we don't cross page table boundaries.
++ * The virtual address of the area that we map is naturally aligned to
++ * fault_around_bytes rounded down to the machine page size
++ * (and therefore to page order).  This way it's easier to guarantee
++ * that we don't cross page table boundaries.
+  */
+ static int do_fault_around(struct vm_fault *vmf)
+ {
+@@ -3579,8 +3579,8 @@ static int do_fault_around(struct vm_fau
+ 	start_pgoff -= off;
+ 
+ 	/*
+-	 *  end_pgoff is either end of page table or end of vma
+-	 *  or fault_around_pages() from start_pgoff, depending what is nearest.
++	 *  end_pgoff is either the end of the page table, the end of
++	 *  the vma or nr_pages from start_pgoff, depending what is nearest.
+ 	 */
+ 	end_pgoff = start_pgoff -
+ 		((vmf->address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from william.kucharski@oracle.com are
 
 
