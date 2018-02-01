@@ -1,62 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-memcontrol-make-local-symbol-static.patch
+Subject: [merged]
+ fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
  removed from -mm tree
-Date: Thu, 01 Feb 2018 11:34:28 -0800
-Message-ID: <20180201193428.XynYKHt78%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:34:22 -0800
+Message-ID: <20180201193422.SIQRQS6mx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754605AbeBATee (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:34 -0500
+        with ESMTP id S1754605AbeBATeb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chrisadr@gentoo.org, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, hannes@cmpxchg.org, kemi.wang@intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, ptesarik@suse.com, vbabka@suse.cz, yasu.isimatu@gmail.com
 
 
 The patch titled
-     Subject: mm/memcontrol.c: make local symbol static
+     Subject: include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer
 has been removed from the -mm tree.  Its filename was
-     memcg-memcontrol-make-local-symbol-static.patch
+     fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christopher Díaz Riveros <chrisadr@gentoo.org>
-Subject: mm/memcontrol.c: make local symbol static
+From: Petr Tesarik <ptesarik@suse.com>
+Subject: include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer
 
-Fixes the following sparse warning:
+The comment is confusing.  On the one hand, it refers to 32-bit alignment
+(struct page alignment on 32-bit platforms), but this would only guarantee
+that the 2 lowest bits must be zero.  On the other hand, it claims that at
+least 3 bits are available, and 3 bits are actually used.
 
-mm/memcontrol.c:1097:14: warning:
-  symbol 'memcg1_stats' was not declared. Should it be static?
+This is not broken, because there is a stronger alignment guarantee, just
+less obvious.  Let's fix the comment to make it clear how many bits are
+available and why.
 
-Link: http://lkml.kernel.org/r/20180118193327.14200-1-chrisadr@gentoo.org
-Signed-off-by: Christopher Díaz Riveros <chrisadr@gentoo.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Although memmap arrays are allocated in various places, the resulting
+pointer is encoded eventually, so I am adding a BUG_ON() here to enforce
+at runtime that all expected bits are indeed available.
+
+I have also added a BUILD_BUG_ON to check that PFN_SECTION_SHIFT is
+sufficient, because this part of the calculation can be easily checked at
+build time.
+
+[ptesarik@suse.com: v2]
+  Link: http://lkml.kernel.org/r/20180125100516.589ea6af@ezekiel.suse.cz
+Link: http://lkml.kernel.org/r/20180119080908.3a662e6f@ezekiel.suse.cz
+Signed-off-by: Petr Tesarik <ptesarik@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemi Wang <kemi.wang@intel.com>
+Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmzone.h |   12 ++++++++++--
+ mm/sparse.c            |    6 +++++-
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-memcontrol-make-local-symbol-static mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-memcontrol-make-local-symbol-static
-+++ a/mm/memcontrol.c
-@@ -1095,7 +1095,7 @@ static bool mem_cgroup_wait_acct_move(st
- 	return false;
+diff -puN include/linux/mmzone.h~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer include/linux/mmzone.h
+--- a/include/linux/mmzone.h~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer
++++ a/include/linux/mmzone.h
+@@ -1166,8 +1166,16 @@ extern unsigned long usemap_size(void);
+ 
+ /*
+  * We use the lower bits of the mem_map pointer to store
+- * a little bit of information.  There should be at least
+- * 3 bits here due to 32-bit alignment.
++ * a little bit of information.  The pointer is calculated
++ * as mem_map - section_nr_to_pfn(pnum).  The result is
++ * aligned to the minimum alignment of the two values:
++ *   1. All mem_map arrays are page-aligned.
++ *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
++ *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
++ *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
++ *      worst combination is powerpc with 256k pages,
++ *      which results in PFN_SECTION_SHIFT equal 6.
++ * To sum it up, at least 6 bits are available.
+  */
+ #define	SECTION_MARKED_PRESENT	(1UL<<0)
+ #define SECTION_HAS_MEM_MAP	(1UL<<1)
+diff -puN mm/sparse.c~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer mm/sparse.c
+--- a/mm/sparse.c~fix-explanation-of-lower-bits-in-the-sparsemem-mem_map-pointer
++++ a/mm/sparse.c
+@@ -264,7 +264,11 @@ unsigned long __init node_memmap_size_by
+  */
+ static unsigned long sparse_encode_mem_map(struct page *mem_map, unsigned long pnum)
+ {
+-	return (unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
++	unsigned long coded_mem_map =
++		(unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
++	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > (1UL<<PFN_SECTION_SHIFT));
++	BUG_ON(coded_mem_map & ~SECTION_MAP_MASK);
++	return coded_mem_map;
  }
  
--unsigned int memcg1_stats[] = {
-+static const unsigned int memcg1_stats[] = {
- 	MEMCG_CACHE,
- 	MEMCG_RSS,
- 	MEMCG_RSS_HUGE,
+ /*
 _
 
-Patches currently in -mm which might be from chrisadr@gentoo.org are
+Patches currently in -mm which might be from ptesarik@suse.com are
 
 
