@@ -1,58 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kmemleak-remove-unused-hardirqh.patch removed
- from -mm tree
-Date: Thu, 01 Feb 2018 11:30:30 -0800
-Message-ID: <20180201193030.zyzprfrYO%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch removed from
+ -mm tree
+Date: Thu, 01 Feb 2018 11:30:46 -0800
+Message-ID: <20180201193046.OPCpzqymW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57324 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753007AbeBATab (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:31 -0500
+        with ESMTP id S1753007AbeBATar (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, yang.s@alibaba-inc.com
+To: ak@linux.intel.com, cl@linux.com, mingo@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, salls@cs.ucsb.edu, tanxiaojun@huawei.com, vbabka@suse.cz, xieyisheng1@huawei.com
 
 
 The patch titled
-     Subject: mm: kmemleak: remove unused hardirq.h
+     Subject: mm/mempolicy: add nodes_empty check in SYSC_migrate_pages
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-remove-unused-hardirqh.patch
+     mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: mm: kmemleak: remove unused hardirq.h
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/mempolicy: add nodes_empty check in SYSC_migrate_pages
 
-Preempt counter APIs have been split out, currently, hardirq.h just
-includes irq_enter/exit APIs which are not used by kmemleak at all.
+As in manpage of migrate_pages, the errno should be set to EINVAL when
+none of the node IDs specified by new_nodes are on-line and allowed by the
+process's current cpuset context, or none of the specified nodes contain
+memory.  However, when test by following case:
 
-So, remove the unused hardirq.h.
+	new_nodes = 0;
+	old_nodes = 0xf;
+	ret = migrate_pages(pid, old_nodes, new_nodes, MAX);
 
-Link: http://lkml.kernel.org/r/1510959741-31109-1-git-send-email-yang.s@alibaba-inc.com
-Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+The ret will be 0 and no errno is set.  As the new_nodes is empty, we
+should expect EINVAL as documented.
+
+To fix the case like above, this patch check whether target nodes AND
+current task_nodes is empty, and then check whether AND
+node_states[N_MEMORY] is empty.
+
+Link: http://lkml.kernel.org/r/1510882624-44342-4-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Chris Salls <salls@cs.ucsb.edu>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Tan Xiaojun <tanxiaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mempolicy.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleak-remove-unused-hardirqh mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-remove-unused-hardirqh
-+++ a/mm/kmemleak.c
-@@ -91,7 +91,6 @@
- #include <linux/stacktrace.h>
- #include <linux/cache.h>
- #include <linux/percpu.h>
--#include <linux/hardirq.h>
- #include <linux/bootmem.h>
- #include <linux/pfn.h>
- #include <linux/mmzone.h>
+diff -puN mm/mempolicy.c~mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-add-nodes_empty-check-in-sysc_migrate_pages
++++ a/mm/mempolicy.c
+@@ -1433,10 +1433,14 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 		goto out_put;
+ 	}
+ 
+-	if (!nodes_subset(*new, node_states[N_MEMORY])) {
+-		err = -EINVAL;
++	task_nodes = cpuset_mems_allowed(current);
++	nodes_and(*new, *new, task_nodes);
++	if (nodes_empty(*new))
++		goto out_put;
++
++	nodes_and(*new, *new, node_states[N_MEMORY]);
++	if (nodes_empty(*new))
+ 		goto out_put;
+-	}
+ 
+ 	err = security_task_movememory(task);
+ 	if (err)
 _
 
-Patches currently in -mm which might be from yang.s@alibaba-inc.com are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
 
