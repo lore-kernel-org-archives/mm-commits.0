@@ -1,68 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-tags-change-find_other_sources-for-include-folders.patch removed
- from -mm tree
-Date: Thu, 01 Feb 2018 11:28:56 -0800
-Message-ID: <20180201192856.FMHtXYWk7%akpm@linux-foundation.org>
+ scripts-decodecode-make-it-take-multiline-code-line.patch removed from -mm
+ tree
+Date: Thu, 01 Feb 2018 11:28:52 -0800
+Message-ID: <20180201192852.7CmBj5KSH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56384 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754682AbeBAT26 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:28:58 -0500
+        with ESMTP id S1753197AbeBAT2y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:28:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arend.vanspriel@broadcom.com, mm-commits@vger.kernel.org, robert.jarzmik@free.fr
+To: andriy.shevchenko@linux.intel.com, Dave.Martin@arm.com, mm-commits@vger.kernel.org, pombredanne@nexb.com, will.deacon@arm.com
 
 
 The patch titled
-     Subject: scripts/tags.sh: change find_other_sources() for include directories
+     Subject: scripts/decodecode: make it take multiline Code line
 has been removed from the -mm tree.  Its filename was
-     scripts-tags-change-find_other_sources-for-include-folders.patch
+     scripts-decodecode-make-it-take-multiline-code-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arend van Spriel <arend.vanspriel@broadcom.com>
-Subject: scripts/tags.sh: change find_other_sources() for include directories
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: scripts/decodecode: make it take multiline Code line
 
-The current find done in find_other_sources() excludes directories in the
-kernel tree that are named 'include', eg.:
+In case of running scripts/decodecode without any parameters in order to
+give a copy'n'pasted Code line from, for example, email it would parse
+only first line of it, while in emails it's split to few.
 
-	./security/apparmor/include
-	./security/selinux/include
-	./drivers/net/wireless/broadcom/brcm80211/include
-	./drivers/gpu/drm/amd/acp/include
-	./drivers/gpu/drm/amd/display/include
-	./drivers/gpu/drm/amd/include
-	./drivers/gpu/drm/nouveau/include
 
-This changes the find command in find_other_sources() to include those
-using the -path option.
+ie, when you have a file out of oops the Code line looks like
 
-Link: http://lkml.kernel.org/r/1513335768-7852-1-git-send-email-arend.vanspriel@broadcom.com
-Signed-off-by: Arend van Spriel <arend.vanspriel@broadcom.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Code: hh hh ... <hh> ... hh\n
+
+When copy'n'paste from, for example, email where sender or some middle
+MTA split it, the line looks like:
+
+Code: hh hh ... hh\n
+hh ... <hh> ... hh\n
+hh hh ... hh\n
+
+The Code line followed by another oops line usually contains characters
+out of hex digit + space + < + > set.
+
+So add logic to join this split back if and only if the following lines
+have hex digits, or spaces, or '<', or '>' characters.  It will be quite
+unlikely to have a broken input in well formed Oops or dmesg, thus a
+simple regex is being used.
+
+Link: http://lkml.kernel.org/r/20171212100323.33201-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Dave Martin <Dave.Martin@arm.com>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/decodecode |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders scripts/tags.sh
---- a/scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders
-+++ a/scripts/tags.sh
-@@ -77,7 +77,7 @@ find_include_sources()
- find_other_sources()
- {
- 	find ${tree}* $ignore \
--	     \( -name include -o -name arch -o -name '.tmp_*' \) -prune -o \
-+	     \( -path ${tree}include -o -path ${tree}arch -o -name '.tmp_*' \) -prune -o \
- 	       -name "$1" -not -type l -print;
- }
+diff -puN scripts/decodecode~scripts-decodecode-make-it-take-multiline-code-line scripts/decodecode
+--- a/scripts/decodecode~scripts-decodecode-make-it-take-multiline-code-line
++++ a/scripts/decodecode
+@@ -21,12 +21,24 @@ trap cleanup EXIT
+ 
+ T=`mktemp` || die "cannot create temp file"
+ code=
++cont=
+ 
+ while read i ; do
+ 
+ case "$i" in
+ *Code:*)
+ 	code=$i
++	cont=yes
++	;;
++*)
++	[ -n "$cont" ] && {
++		xdump="$(echo $i | grep '^[[:xdigit:]<>[:space:]]\+$')"
++		if [ -n "$xdump" ]; then
++			code="$code $xdump"
++		else
++			cont=
++		fi
++	}
+ 	;;
+ esac
  
 _
 
-Patches currently in -mm which might be from arend.vanspriel@broadcom.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
+bitmap-add-bitmap_fill-bitmap_set-test-cases.patch
+bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
 
