@@ -1,82 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 009/119] ocfs2/cluster: close a race that fence
- can't be triggered
-Date: Wed, 31 Jan 2018 16:14:33 -0800
-Message-ID: <20180201001433.ac1m4mZRO%akpm@linux-foundation.org>
+Subject: [patch 011/119] ocfs2: clean dead code in suballoc.c
+Date: Wed, 31 Jan 2018 16:14:40 -0800
+Message-ID: <20180201001440.Z_AA47qrg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAOe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:34 -0500
+        with ESMTP id S1754449AbeBAAOm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, zhang.yangB@h3c.com
+To: akpm@linux-foundation.org, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Yang Zhang <zhang.yangB@h3c.com>
-Subject: ocfs2/cluster: close a race that fence can't be triggered
+From: Changwei Ge <ge.changwei@h3c.com>
+Subject: ocfs2: clean dead code in suballoc.c
 
-When some nodes of cluster face with TCP connection fault, ocfs2 will pick
-up a quorum to continue to work and other nodes will be fenced by
-resetting host.
+Stack variable fe is no longer used, so trim it to save some CPU cycles
+and stack space.
 
-In order to decide which node should be fenced, ocfs2 leverages
-o2quo_state::qs_holds.  If that variable is reduced to zero, then a try to
-decide if fence local node is performed.  However, under a specific
-scenario that local node is not disconnected from others at the same time,
-above method has a problem to reduce ::qs_holds to zero.
-
-Because, o2net 90s idle timer corresponding to different nodes is
-triggered one after another.
-
-node 2				node 3
-90s idle timer elapses
-clear ::qs_conn_bm
-set hold
-				40s is passed
-				90 idle timer elapses
-				clear ::qs_conn_bm
-				set hold
-still up timer elapses
-clear hold (NOT to zero )
-90s idle timer elapses AGAIN
-				still up timer elapses.
-				clear hold
-				still up timer elapses
-
-To solve this issue, a node which has already be evicted from ::qs_conn_bm
-can't set hold again and again invoked from idle timer.
-
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F3F93B@H3CMLB12-EX.srv.huawei-3com.com
-Signed-off-by: Yang Zhang <zhang.yangB@h3c.com>
+Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373F1F5A8DD@H3CMLB14-EX.srv.huawei-3com.com
 Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/quorum.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/suballoc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/cluster/quorum.c~ocfs2-cluster-close-a-race-that-fence-cant-be-triggered fs/ocfs2/cluster/quorum.c
---- a/fs/ocfs2/cluster/quorum.c~ocfs2-cluster-close-a-race-that-fence-cant-be-triggered
-+++ a/fs/ocfs2/cluster/quorum.c
-@@ -314,12 +314,13 @@ void o2quo_conn_err(u8 node)
- 				node, qs->qs_connected);
+diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-dead-code-in-suballocc fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-clean-dead-code-in-suballocc
++++ a/fs/ocfs2/suballoc.c
+@@ -2563,16 +2563,16 @@ static int _ocfs2_free_clusters(handle_t
+ 	int status;
+ 	u16 bg_start_bit;
+ 	u64 bg_blkno;
+-	struct ocfs2_dinode *fe;
  
- 		clear_bit(node, qs->qs_conn_bm);
-+
-+		if (test_bit(node, qs->qs_hb_bm))
-+			o2quo_set_hold(qs, node);
- 	}
+ 	/* You can't ever have a contiguous set of clusters
+ 	 * bigger than a block group bitmap so we never have to worry
+ 	 * about looping on them.
+ 	 * This is expensive. We can safely remove once this stuff has
+ 	 * gotten tested really well. */
+-	BUG_ON(start_blk != ocfs2_clusters_to_blocks(bitmap_inode->i_sb, ocfs2_blocks_to_clusters(bitmap_inode->i_sb, start_blk)));
++	BUG_ON(start_blk != ocfs2_clusters_to_blocks(bitmap_inode->i_sb,
++				ocfs2_blocks_to_clusters(bitmap_inode->i_sb,
++							 start_blk)));
  
- 	mlog(0, "node %u, %d total\n", node, qs->qs_connected);
+-	fe = (struct ocfs2_dinode *) bitmap_bh->b_data;
  
--	if (test_bit(node, qs->qs_hb_bm))
--		o2quo_set_hold(qs, node);
- 
- 	spin_unlock(&qs->qs_lock);
- }
+ 	ocfs2_block_to_cluster_group(bitmap_inode, start_blk, &bg_blkno,
+ 				     &bg_start_bit);
 _
