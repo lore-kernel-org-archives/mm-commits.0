@@ -1,175 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 114/119] mm: numa: do not trap faults on shared
- data section pages.
-Date: Wed, 31 Jan 2018 16:21:07 -0800
-Message-ID: <20180201002107.m1em18v7f%akpm@linux-foundation.org>
+Subject: [patch 113/119] hugetlb, mbind: fall back to default
+ policy if vma is NULL
+Date: Wed, 31 Jan 2018 16:21:03 -0800
+Message-ID: <20180201002103.s4I9dSauz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36504 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAVJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:09 -0500
+        with ESMTP id S1754559AbeBAAVF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, gregkh@linuxfoundation.org, haakon.bugge@oracle.com, henry.willard@oracle.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, mgorman@suse.de, mm-commits@vger.kernel.org, pombredanne@nexb.com, steven.sistare@oracle.com, torvalds@linux-foundation.org, zi.yan@cs.rutgers.edu
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
 
-From: Henry Willard <henry.willard@oracle.com>
-Subject: mm: numa: do not trap faults on shared data section pages.
+From: Michal Hocko <mhocko@suse.com>
+Subject: hugetlb, mbind: fall back to default policy if vma is NULL
 
-Workloads consisting of a large number of processes running the same
-program with a very large shared data segment may experience performance
-problems when numa balancing attempts to migrate the shared cow pages. 
-This manifests itself with many processes or tasks in TASK_UNINTERRUPTIBLE
-state waiting for the shared pages to be migrated.
+Dan Carpenter has noticed that mbind migration callback (new_page) can get
+a NULL vma pointer and choke on it inside alloc_huge_page_vma which relies
+on the VMA to get the hstate.  We used to BUG_ON this case but the BUG_+ON
+has been removed recently by "hugetlb, mempolicy: fix the mbind hugetlb
+migration".
 
-The program listed below simulates the conditions with these results when
-run with 288 processes on a 144 core/8 socket machine.
+The proper way to handle this is to get the hstate from the migrated page
+and rely on huge_node (resp.  get_vma_policy) do the right thing with null
+VMA.  We are currently falling back to the default mempolicy in that case
+which is in line what THP path is doing here.
 
-Average throughput 	Average throughput     Average throughput
-with numa_balancing=0	with numa_balancing=1  with numa_balancing=1
-     			without the patch      with the patch
----------------------	---------------------  ---------------------
-2118782			2021534		       2107979
-
-Complex production environments show less variability and fewer poorly
-performing outliers accompanied with a smaller number of processes waiting
-on NUMA page migration with this patch applied. In some cases, %iowait drops
-from 16%-26% to 0.
-
-// SPDX-License-Identifier: GPL-2.0
-/*
- * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
- */
-#include <sys/time.h>
-#include <stdio.h>
-#include <wait.h>
-#include <sys/mman.h>
-
-int a[1000000] = {13};
-
-int  main(int argc, const char **argv)
-{
-	int n = 0;
-	int i;
-	pid_t pid;
-	int stat;
-	int *count_array;
-	int cpu_count = 288;
-	long total = 0;
-
-	struct timeval t1, t2 = {(argc > 1 ? atoi(argv[1]) : 10), 0};
-
-	if (argc > 2)
-		cpu_count = atoi(argv[2]);
-
-	count_array = mmap(NULL, cpu_count * sizeof(int),
-			   (PROT_READ|PROT_WRITE),
-			   (MAP_SHARED|MAP_ANONYMOUS), 0, 0);
-
-	if (count_array == MAP_FAILED) {
-		perror("mmap:");
-		return 0;
-	}
-
-	for (i = 0; i < cpu_count; ++i) {
-		pid = fork();
-		if (pid <= 0)
-			break;
-		if ((i & 0xf) == 0)
-			usleep(2);
-	}
-
-	if (pid != 0) {
-		if (i == 0) {
-			perror("fork:");
-			return 0;
-		}
-
-		for (;;) {
-			pid = wait(&stat);
-			if (pid < 0)
-				break;
-		}
-
-		for (i = 0; i < cpu_count; ++i)
-			total += count_array[i];
-
-		printf("Total %ld\n", total);
-		munmap(count_array, cpu_count * sizeof(int));
-		return 0;
-	}
-
-	gettimeofday(&t1, 0);
-	timeradd(&t1, &t2, &t1);
-	while (timercmp(&t2, &t1, <)) {
-		int b = 0;
-		int j;
-
-		for (j = 0; j < 1000000; j++)
-			b += a[j];
-		gettimeofday(&t2, 0);
-		n++;
-	}
-	count_array[i] = n;
-	return 0;
-}
-
-This patch changes change_pte_range() to skip shared copy-on-write pages
-when called from change_prot_numa().
-
-NOTE: change_prot_numa() is nominally called from task_numa_work() and
-queue_pages_test_walk().  task_numa_work() is the auto NUMA balancing
-path, and queue_pages_test_walk() is part of explicit NUMA policy
-management.  However, queue_pages_test_walk() only calls
-change_prot_numa() when MPOL_MF_LAZY is specified and currently that is
-not allowed, so change_prot_numa() is only called from auto NUMA
-balancing.
-
-In the case of explicit NUMA policy management, shared pages are not
-migrated unless MPOL_MF_MOVE_ALL is specified, and MPOL_MF_MOVE_ALL
-depends on CAP_SYS_NICE.  Currently, there is no way to pass information
-about MPOL_MF_MOVE_ALL to change_pte_range.  This will have to be fixed if
-MPOL_MF_LAZY is enabled and MPOL_MF_MOVE_ALL is to be honored in lazy
-migration mode.
-
-task_numa_work() skips the read-only VMAs of programs and shared
-libraries.
-
-Link: http://lkml.kernel.org/r/1516751617-7369-1-git-send-email-henry.willard@oracle.com
-Signed-off-by: Henry Willard <henry.willard@oracle.com>
-Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Link: http://lkml.kernel.org/r/20180110104712.GR1732@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/hugetlb.h |    5 +++--
+ mm/hugetlb.c            |    5 ++---
+ mm/mempolicy.c          |    3 ++-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages
-+++ a/mm/mprotect.c
-@@ -84,6 +84,11 @@ static unsigned long change_pte_range(st
- 				if (!page || PageKsm(page))
- 					continue;
+diff -puN include/linux/hugetlb.h~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null
++++ a/include/linux/hugetlb.h
+@@ -358,7 +358,8 @@ struct page *alloc_huge_page(struct vm_a
+ struct page *alloc_huge_page_node(struct hstate *h, int nid);
+ struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
+ 				nodemask_t *nmask);
+-struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address);
++struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
++				unsigned long address);
+ int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
+ 			pgoff_t idx);
  
-+				/* Also skip shared copy-on-write pages */
-+				if (is_cow_mapping(vma->vm_flags) &&
-+				    page_mapcount(page) != 1)
-+					continue;
-+
- 				/* Avoid TLB flush if possible */
- 				if (pte_protnone(oldpte))
- 					continue;
+@@ -536,7 +537,7 @@ struct hstate {};
+ #define alloc_huge_page(v, a, r) NULL
+ #define alloc_huge_page_node(h, nid) NULL
+ #define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
+-#define alloc_huge_page_vma(vma, address) NULL
++#define alloc_huge_page_vma(h, vma, address) NULL
+ #define alloc_bootmem_huge_page(h) NULL
+ #define hstate_file(f) NULL
+ #define hstate_sizelog(s) NULL
+diff -puN mm/hugetlb.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null
++++ a/mm/hugetlb.c
+@@ -1675,16 +1675,15 @@ struct page *alloc_huge_page_nodemask(st
+ }
+ 
+ /* mempolicy aware migration callback */
+-struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address)
++struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
++		unsigned long address)
+ {
+ 	struct mempolicy *mpol;
+ 	nodemask_t *nodemask;
+ 	struct page *page;
+-	struct hstate *h;
+ 	gfp_t gfp_mask;
+ 	int node;
+ 
+-	h = hstate_vma(vma);
+ 	gfp_mask = htlb_alloc_mask(h);
+ 	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+ 	page = alloc_huge_page_nodemask(h, node, nodemask);
+diff -puN mm/mempolicy.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null mm/mempolicy.c
+--- a/mm/mempolicy.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null
++++ a/mm/mempolicy.c
+@@ -1121,7 +1121,8 @@ static struct page *new_page(struct page
+ 	}
+ 
+ 	if (PageHuge(page)) {
+-		return alloc_huge_page_vma(vma, address);
++		return alloc_huge_page_vma(page_hstate(compound_head(page)),
++				vma, address);
+ 	} else if (thp_migration_supported() && PageTransHuge(page)) {
+ 		struct page *thp;
+ 
 _
