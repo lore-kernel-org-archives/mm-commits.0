@@ -1,105 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-swapc-make-functions-and-their-kernel-doc-agree.patch removed from -mm
+Subject: + bitmap-replace-bitmap_fromto_u32array-fix.patch added to -mm
  tree
-Date: Thu, 01 Feb 2018 11:35:07 -0800
-Message-ID: <20180201193507.rnh2M28SS%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 14:28:00 -0800
+Message-ID: <5a739470.9q+fc8wR9R01BQ0k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33366 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53078 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754606AbeBATfI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:35:08 -0500
+        with ESMTP id S1751296AbeBAW2C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 17:28:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, jack@suse.cz, mhocko@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, willy@infradead.org
+To: arnd@arndb.de, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap.c: make functions and their kernel-doc agree
-has been removed from the -mm tree.  Its filename was
-     mm-swapc-make-functions-and-their-kernel-doc-agree.patch
+     Subject: perf: arm_dsu_pmu: convert to bitmap_from_arr32
+has been added to the -mm tree.  Its filename is
+     bitmap-replace-bitmap_fromto_u32array-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-replace-bitmap_fromto_u32array-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-replace-bitmap_fromto_u32array-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/swap.c: make functions and their kernel-doc agree
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: perf: arm_dsu_pmu: convert to bitmap_from_arr32
 
-Fix some basic kernel-doc notation in mm/swap.c:
-- for function lru_cache_add_anon(), make its kernel-doc function name
-  match its function name and change colon to hyphen following the
-  function name
-- for function pagevec_lookup_entries(), change the function parameter
-  name from nr_pages to nr_entries since that is more descriptive of
-  what the parameter actually is and then it matches the kernel-doc
-  comments also
+The bitmap_from_u32array() interface got replaced in a global change, but
+the arm_dsu_pmu driver adds another instance, resulting in a build
+failure:
 
-Fix function kernel-doc to match the change in commit 67fd707f4681:
-- drop the kernel-doc notation for @nr_pages from pagevec_lookup_range()
-  and correct the function description for that change
+drivers/perf/arm_dsu_pmu.c: In function 'dsu_pmu_probe_pmu':
+drivers/perf/arm_dsu_pmu.c:661:2: error: implicit declaration of function 'bitmap_from_u32array'; did you mean 'bitmap_from_arr32'? [-Werror=implicit-function-declaration]
 
-Link: http://lkml.kernel.org/r/3b42ee3e-04a9-a6ca-6be4-f00752a114fe@infradead.org
-Fixes: 67fd707f4681 ("mm: remove nr_pages argument from pagevec_lookup_{,range}_tag()")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+This changes the new instance accordingly.
+
+Link: http://lkml.kernel.org/r/20180201172508.5739-2-ynorov@caviumnetworks.com
+Fixes: mmotm ("bitmap: replace bitmap_{from,to}_u32array")
+Fixes: 7520fa99246d ("perf: ARM DynamIQ Shared Unit PMU support")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/perf/arm_dsu_pmu.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree mm/swap.c
---- a/mm/swap.c~mm-swapc-make-functions-and-their-kernel-doc-agree
-+++ a/mm/swap.c
-@@ -411,7 +411,7 @@ static void __lru_cache_add(struct page
+diff -puN drivers/perf/arm_dsu_pmu.c~bitmap-replace-bitmap_fromto_u32array-fix drivers/perf/arm_dsu_pmu.c
+--- a/drivers/perf/arm_dsu_pmu.c~bitmap-replace-bitmap_fromto_u32array-fix
++++ a/drivers/perf/arm_dsu_pmu.c
+@@ -658,10 +658,8 @@ static void dsu_pmu_probe_pmu(struct dsu
+ 		return;
+ 	cpmceid[0] = __dsu_pmu_read_pmceid(0);
+ 	cpmceid[1] = __dsu_pmu_read_pmceid(1);
+-	bitmap_from_u32array(dsu_pmu->cpmceid_bitmap,
+-				DSU_PMU_MAX_COMMON_EVENTS,
+-				cpmceid,
+-				ARRAY_SIZE(cpmceid));
++	bitmap_from_arr32(dsu_pmu->cpmceid_bitmap, cpmceid,
++			  DSU_PMU_MAX_COMMON_EVENTS);
  }
  
- /**
-- * lru_cache_add: add a page to the page lists
-+ * lru_cache_add_anon - add a page to the page lists
-  * @page: the page to add
-  */
- void lru_cache_add_anon(struct page *page)
-@@ -930,10 +930,10 @@ EXPORT_SYMBOL(__pagevec_lru_add);
-  */
- unsigned pagevec_lookup_entries(struct pagevec *pvec,
- 				struct address_space *mapping,
--				pgoff_t start, unsigned nr_pages,
-+				pgoff_t start, unsigned nr_entries,
- 				pgoff_t *indices)
- {
--	pvec->nr = find_get_entries(mapping, start, nr_pages,
-+	pvec->nr = find_get_entries(mapping, start, nr_entries,
- 				    pvec->pages, indices);
- 	return pagevec_count(pvec);
- }
-@@ -965,9 +965,8 @@ void pagevec_remove_exceptionals(struct
-  * @mapping:	The address_space to search
-  * @start:	The starting page index
-  * @end:	The final page index
-- * @nr_pages:	The maximum number of pages
-  *
-- * pagevec_lookup_range() will search for and return a group of up to @nr_pages
-+ * pagevec_lookup_range() will search for & return a group of up to PAGEVEC_SIZE
-  * pages in the mapping starting from index @start and upto index @end
-  * (inclusive).  The pages are placed in @pvec.  pagevec_lookup() takes a
-  * reference against the pages in @pvec.
-@@ -977,7 +976,7 @@ void pagevec_remove_exceptionals(struct
-  * also update @start to index the next page for the traversal.
-  *
-  * pagevec_lookup_range() returns the number of pages which were found. If this
-- * number is smaller than @nr_pages, the end of specified range has been
-+ * number is smaller than PAGEVEC_SIZE, the end of specified range has been
-  * reached.
-  */
- unsigned pagevec_lookup_range(struct pagevec *pvec,
+ static void dsu_pmu_set_active_cpu(int cpu, struct dsu_pmu *dsu_pmu)
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kasan-added-functions-for-unpoisoning-stack-variables-fix-fix.patch
+bugh-work-around-gcc-pr82365-in-bug.patch
+bitmap-replace-bitmap_fromto_u32array-fix.patch
+nilfs2-use-time64_t-internally.patch
+pps-parport-use-timespec64-instead-of-timespec.patch
+kasan-rework-kconfig-settings.patch
 
