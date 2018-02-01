@@ -1,61 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch removed from
- -mm tree
-Date: Thu, 01 Feb 2018 11:29:30 -0800
-Message-ID: <20180201192930.6C_nxwui8%akpm@linux-foundation.org>
+ ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch removed
+ from -mm tree
+Date: Thu, 01 Feb 2018 11:29:23 -0800
+Message-ID: <20180201192923.fwNLSRIjp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56766 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753114AbeBAT3c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:32 -0500
+        with ESMTP id S1754695AbeBAT3Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: ocfs2/xattr: assign errno to 'ret' in ocfs2_calc_xattr_init()
+     Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
 has been removed from the -mm tree.  Its filename was
-     ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init.patch
+     ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/xattr: assign errno to 'ret' in ocfs2_calc_xattr_init()
+Subject: ocfs2: return -EROFS to mount.ocfs2 if inode block is invalid
 
-We need catch the errno returned by ocfs2_xattr_get_nolock() and assign
-it to 'ret' for printing and noticing upper callers.
+If metadata is corrupted such as 'invalid inode block', we will get failed
+by calling 'mount()' and then set filesystem readonly as below:
 
-Link: http://lkml.kernel.org/r/5A571CAF.8050709@huawei.com
+ocfs2_mount
+  ocfs2_initialize_super
+    ocfs2_init_global_system_inodes
+      ocfs2_iget
+        ocfs2_read_locked_inode
+          ocfs2_validate_inode_block
+	    ocfs2_error
+	      ocfs2_handle_error
+	        ocfs2_set_ro_flag(osb, 0);  // set readonly
+
+In this situation we need return -EROFS to 'mount.ocfs2', so that user can
+fix it by fsck.  And then mount again.  In addition, 'mount.ocfs2' should
+be updated correspondingly as it only return 1 for all errno.  And I will
+post a patch for 'mount.ocfs2' too.
+
+Link: http://lkml.kernel.org/r/5A4302FA.2010606@huawei.com
 Signed-off-by: Jun Piao <piaojun@huawei.com>
 Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Acked-by: Gang He <ghe@suse.com>
-Acked-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Changwei Ge <ge.changwei@h3c.com>
+Reviewed-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/super.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-xattr-assign-errno-to-ret-in-ocfs2_calc_xattr_init
-+++ a/fs/ocfs2/xattr.c
-@@ -646,6 +646,7 @@ int ocfs2_calc_xattr_init(struct inode *
- 			if (S_ISDIR(mode))
- 				a_size <<= 1;
- 		} else if (acl_len != 0 && acl_len != -ENODATA) {
-+			ret = acl_len;
- 			mlog_errno(ret);
- 			return ret;
- 		}
+diff -puN fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-return-erofs-to-mountocfs2-if-inode-block-is-invalid
++++ a/fs/ocfs2/super.c
+@@ -474,9 +474,8 @@ static int ocfs2_init_global_system_inod
+ 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
+ 		if (!new) {
+ 			ocfs2_release_system_inodes(osb);
+-			status = -EINVAL;
++			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
+ 			mlog_errno(status);
+-			/* FIXME: Should ERROR_RO_FS */
+ 			mlog(ML_ERROR, "Unable to load system inode %d, "
+ 			     "possibly corrupt fs?", i);
+ 			goto bail;
+@@ -505,7 +504,7 @@ static int ocfs2_init_local_system_inode
+ 		new = ocfs2_get_system_file_inode(osb, i, osb->slot_num);
+ 		if (!new) {
+ 			ocfs2_release_system_inodes(osb);
+-			status = -EINVAL;
++			status = ocfs2_is_soft_readonly(osb) ? -EROFS : -EINVAL;
+ 			mlog(ML_ERROR, "status=%d, sysfile=%d, slot=%d\n",
+ 			     status, i, osb->slot_num);
+ 			goto bail;
 _
 
 Patches currently in -mm which might be from piaojun@huawei.com are
