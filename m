@@ -1,238 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch removed from
- -mm tree
-Date: Thu, 01 Feb 2018 11:33:56 -0800
-Message-ID: <20180201193356.zqwXTMB8q%akpm@linux-foundation.org>
+Subject: [merged] userfaultfd-convert-to-use-anon_inode_getfd.patch
+ removed from -mm tree
+Date: Thu, 01 Feb 2018 11:33:50 -0800
+Message-ID: <20180201193350.DJV_SLp_l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754645AbeBATeJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:09 -0500
+        with ESMTP id S1753433AbeBATeI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jinli.zjl@alibaba-inc.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, shidao.ytt@alibaba-inc.com, zhiche.yy@alibaba-inc.com
+To: aarcange@redhat.com, ebiggers@google.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm/fadvise: discard partial page if endbyte is also EOF
+     Subject: userfaultfd: convert to use anon_inode_getfd()
 has been removed from the -mm tree.  Its filename was
-     mm-fadvise-discard-partial-page-if-endbyte-is-also-eof.patch
+     userfaultfd-convert-to-use-anon_inode_getfd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: shidao.ytt <shidao.ytt@alibaba-inc.com>
-Subject: mm/fadvise: discard partial page if endbyte is also EOF
+From: Eric Biggers <ebiggers@google.com>
+Subject: userfaultfd: convert to use anon_inode_getfd()
 
-During our recent testing with fadvise(FADV_DONTNEED), we find that if
-given offset/length is not page-aligned, the last page will not be
-discarded.  The tool we use is vmtouch (https://hoytech.com/vmtouch/), we
-map a 10KB-sized file into memory and then try to run this tool to evict
-the whole file mapping, but the last single page always remains staying in
-the memory:
+Nothing actually calls userfaultfd_file_create() besides the userfaultfd()
+system call itself.  So simplify things by folding it into the system call
+and using anon_inode_getfd() instead of anon_inode_getfile().  Do the same
+in resolve_userfault_fork() as well.  This removes over 50 lines with no
+change in functionality.
 
-$./vmtouch -e test_10K
-           Files: 1
-     Directories: 0
-   Evicted Pages: 3 (12K)
-         Elapsed: 2.1e-05 seconds
-
-$./vmtouch test_10K
-           Files: 1
-     Directories: 0
-  Resident Pages: 1/3  4K/12K  33.3%
-         Elapsed: 5.5e-05 seconds
-
-However when we test with an older kernel, say 3.10, this problem is
-gone. So we wonder if this is a regression:
-
-$./vmtouch -e test_10K
-           Files: 1
-     Directories: 0
-   Evicted Pages: 3 (12K)
-         Elapsed: 8.2e-05 seconds
-
-$./vmtouch test_10K
-           Files: 1
-     Directories: 0
-  Resident Pages: 0/3  0/12K  0%  <-- partial page also discarded
-         Elapsed: 5e-05 seconds
-
-After digging a little bit into this problem, we find it seems not a
-regression.  Not discarding partial page is likely to be on purpose
-according to commit 441c228f817f7 ("mm: fadvise: document the
-fadvise(FADV_DONTNEED) behaviour for partial pages") written by Mel
-Gorman.  He explained why partial pages should be preserved instead of
-being discarded when using fadvise(FADV_DONTNEED).  However, the
-interesting part is that the actual code did NOT work as the same as it
-was described, the partial page was still discarded anyway, due to a
-calculation mistake of `end_index' passed to invalidate_mapping_pages(). 
-This mistake has not been fixed until recently, that's why we fail to
-reproduce our problem in old kernels.  The fix is done in commit
-18aba41cbf ("mm/fadvise.c: do not discard partial pages with
-POSIX_FADV_DONTNEED") by Oleg Drokin.
-
-Back to the original testing, our problem becomes that there is a speical
-case that, if the page-unaligned `endbyte' is also the end of file, it is
-not necessary at all to preserve the last partial page, as we all know no
-one else will use the rest of it.  It should be safe enough if we just
-discard the whole page.  So we add an EOF check in this patch.
-
-We also find a poosbile real world issue in mainline kernel.  Assume such
-scenario: A userspace backup application want to backup a huge amount of
-small files (<4k) at once, the developer might (I guess) want to use
-fadvise(FADV_DONTNEED) to save memory.  However, FADV_DONTNEED won't
-really happen since the only page mapped is a partial page, and kernel
-will preserve it.  Our patch also fixes this problem, since we know the
-endbyte is EOF, so we discard it.
-
-Here is a simple reproducer to reproduce and verify each scenario we
-described above:
-
-  test_fadvise.c
-  ==============================
-  #include <sys/mman.h>
-  #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <stdio.h>
-  #include <unistd.h>
-
-  int main(int argc, char **argv)
-  {
-  	int i, fd, ret, len;
-  	struct stat buf;
-  	void *addr;
-  	unsigned char *vec;
-  	char *strbuf;
-  	ssize_t pagesize = getpagesize();
-  	ssize_t filesize;
-
-  	fd = open(argv[1], O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
-  	if (fd < 0)
-  		return -1;
-  	filesize = strtoul(argv[2], NULL, 10);
-
-  	strbuf = malloc(filesize);
-  	memset(strbuf, 42, filesize);
-  	write(fd, strbuf, filesize);
-  	free(strbuf);
-  	fsync(fd);
-
-  	len = (filesize + pagesize - 1) / pagesize;
-  	printf("length of pages: %d\n", len);
-
-  	addr = mmap(NULL, filesize, PROT_READ, MAP_SHARED, fd, 0);
-  	if (addr == MAP_FAILED)
-  		return -1;
-
-  	ret = posix_fadvise(fd, 0, filesize, POSIX_FADV_DONTNEED);
-  	if (ret < 0)
-  		return -1;
-
-  	vec = malloc(len);
-  	ret = mincore(addr, filesize, (void *)vec);
-  	if (ret < 0)
-  		return -1;
-
-  	for (i = 0; i < len; i++)
-  		printf("pages[%d]: %x\n", i, vec[i] & 0x1);
-
-  	free(vec);
-  	close(fd);
-
-  	return 0;
-  }
-  ==============================
-
-Test 1: running on kernel with commit 18aba41cbf reverted:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6.revert+
-[root@caspar ~]# ./test_fadvise file1 1024
-length of pages: 1
-pages[0]: 0    # <-- partial page discarded
-[root@caspar ~]# ./test_fadvise file2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise file3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 0    # <-- partial page discarded
-
-Test 2: running on mainline kernel:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6+
-[root@caspar ~]# ./test_fadvise test1 1024
-length of pages: 1
-pages[0]: 1    # <-- partial and the only page not discarded
-[root@caspar ~]# ./test_fadvise test2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise test3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 1    # <-- partial page not discarded
-
-Test 3: running on kernel with this patch:
-
-[root@caspar ~]# uname -r
-4.15.0-rc6.patched+
-[root@caspar ~]# ./test_fadvise test1 1024
-length of pages: 1
-pages[0]: 0    # <-- partial page and EOF, discarded
-[root@caspar ~]# ./test_fadvise test2 8192
-length of pages: 2
-pages[0]: 0
-pages[1]: 0
-[root@caspar ~]# ./test_fadvise test3 10240
-length of pages: 3
-pages[0]: 0
-pages[1]: 0
-pages[2]: 0    # <-- partial page and EOF, discarded
-
-[akpm@linux-foundation.org: tweak code comment]
-Link: http://lkml.kernel.org/r/5222da9ee20e1695eaabb69f631f200d6e6b8876.1515132470.git.jinli.zjl@alibaba-inc.com
-Signed-off-by: shidao.ytt <shidao.ytt@alibaba-inc.com>
-Signed-off-by: Caspar Zhang <jinli.zjl@alibaba-inc.com>
-Reviewed-by: Oliver Yang <zhiche.yy@alibaba-inc.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/20171229212403.22800-1-ebiggers3@gmail.com
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c |   70 +++++----------------------------------------
+ 1 file changed, 9 insertions(+), 61 deletions(-)
 
-diff -puN mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-discard-partial-page-if-endbyte-is-also-eof
-+++ a/mm/fadvise.c
-@@ -127,7 +127,15 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		 */
- 		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
- 		end_index = (endbyte >> PAGE_SHIFT);
--		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK) {
-+		/*
-+		 * The page at end_index will be inclusively discarded according
-+		 * by invalidate_mapping_pages(), so subtracting 1 from
-+		 * end_index means we will skip the last page.  But if endbyte
-+		 * is page aligned or is at the end of file, we should not skip
-+		 * that page - discarding the last page is safe enough.
-+		 */
-+		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
-+				endbyte != inode->i_size - 1) {
- 			/* First page is tricky as 0 - 1 = -1, but pgoff_t
- 			 * is unsigned, so the end_index >= start_index
- 			 * check below would be true and we'll discard the whole
-_
-
-Patches currently in -mm which might be from shidao.ytt@alibaba-inc.com are
-
-
+diff -puN fs/userfaultfd.c~userfaultfd-convert-to-use-anon_inode_getfd fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-convert-to-use-anon_inode_getfd
++++ a/fs/userfaultfd.c
+@@ -988,24 +988,14 @@ static int resolve_userfault_fork(struct
+ 				  struct uffd_msg *msg)
+ {
+ 	int fd;
+-	struct file *file;
+-	unsigned int flags = new->flags & UFFD_SHARED_FCNTL_FLAGS;
+ 
+-	fd = get_unused_fd_flags(flags);
++	fd = anon_inode_getfd("[userfaultfd]", &userfaultfd_fops, new,
++			      O_RDWR | (new->flags & UFFD_SHARED_FCNTL_FLAGS));
+ 	if (fd < 0)
+ 		return fd;
+ 
+-	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, new,
+-				  O_RDWR | flags);
+-	if (IS_ERR(file)) {
+-		put_unused_fd(fd);
+-		return PTR_ERR(file);
+-	}
+-
+-	fd_install(fd, file);
+ 	msg->arg.reserved.reserved1 = 0;
+ 	msg->arg.fork.ufd = fd;
+-
+ 	return 0;
+ }
+ 
+@@ -1887,24 +1877,10 @@ static void init_once_userfaultfd_ctx(vo
+ 	seqcount_init(&ctx->refile_seq);
+ }
+ 
+-/**
+- * userfaultfd_file_create - Creates a userfaultfd file pointer.
+- * @flags: Flags for the userfaultfd file.
+- *
+- * This function creates a userfaultfd file pointer, w/out installing
+- * it into the fd table. This is useful when the userfaultfd file is
+- * used during the initialization of data structures that require
+- * extra setup after the userfaultfd creation. So the userfaultfd
+- * creation is split into the file pointer creation phase, and the
+- * file descriptor installation phase.  In this way races with
+- * userspace closing the newly installed file descriptor can be
+- * avoided.  Returns a userfaultfd file pointer, or a proper error
+- * pointer.
+- */
+-static struct file *userfaultfd_file_create(int flags)
++SYSCALL_DEFINE1(userfaultfd, int, flags)
+ {
+-	struct file *file;
+ 	struct userfaultfd_ctx *ctx;
++	int fd;
+ 
+ 	BUG_ON(!current->mm);
+ 
+@@ -1912,14 +1888,12 @@ static struct file *userfaultfd_file_cre
+ 	BUILD_BUG_ON(UFFD_CLOEXEC != O_CLOEXEC);
+ 	BUILD_BUG_ON(UFFD_NONBLOCK != O_NONBLOCK);
+ 
+-	file = ERR_PTR(-EINVAL);
+ 	if (flags & ~UFFD_SHARED_FCNTL_FLAGS)
+-		goto out;
++		return -EINVAL;
+ 
+-	file = ERR_PTR(-ENOMEM);
+ 	ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
+ 	if (!ctx)
+-		goto out;
++		return -ENOMEM;
+ 
+ 	atomic_set(&ctx->refcount, 1);
+ 	ctx->flags = flags;
+@@ -1930,39 +1904,13 @@ static struct file *userfaultfd_file_cre
+ 	/* prevent the mm struct to be freed */
+ 	mmgrab(ctx->mm);
+ 
+-	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
+-				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
+-	if (IS_ERR(file)) {
++	fd = anon_inode_getfd("[userfaultfd]", &userfaultfd_fops, ctx,
++			      O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
++	if (fd < 0) {
+ 		mmdrop(ctx->mm);
+ 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
+ 	}
+-out:
+-	return file;
+-}
+-
+-SYSCALL_DEFINE1(userfaultfd, int, flags)
+-{
+-	int fd, error;
+-	struct file *file;
+-
+-	error = get_unused_fd_flags(flags & UFFD_SHARED_FCNTL_FLAGS);
+-	if (error < 0)
+-		return error;
+-	fd = error;
+-
+-	file = userfaultfd_file_create(flags);
+-	if (IS_ERR(file)) {
+-		error = PTR_ERR(file);
+-		goto err_put_unused_fd;
+-	}
+-	fd_install(fd, file);
+-
+ 	return fd;
+-
+-err_put_unused_fd:
+-	put_unused_fd(fd);
