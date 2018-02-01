@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/119] memfd-test: test hugetlbfs sealing
-Date: Wed, 31 Jan 2018 16:19:32 -0800
-Message-ID: <20180201001932.zgutDizYA%akpm@linux-foundation.org>
+Subject: [patch 091/119] memfd-test: move common code to a shared
+ unit
+Date: Wed, 31 Jan 2018 16:19:40 -0800
+Message-ID: <20180201001940.lXbMRxaum%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36100 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755813AbeBAATe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:34 -0500
+        with ESMTP id S1755813AbeBAATm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: memfd-test: test hugetlbfs sealing
+Subject: memfd-test: move common code to a shared unit
 
-Remove most of the special-casing of hugetlbfs now that sealing
-is supported.
+The memfd & fuse tests will share more common code in the following
+commits to test hugetlb support.
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-7-marcandre.lureau@redhat.com
+Link: http://lkml.kernel.org/r/20171107122800.25517-9-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -31,260 +32,158 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/memfd_test.c |  150 +------------------
- 1 file changed, 15 insertions(+), 135 deletions(-)
+ tools/testing/selftests/memfd/Makefile     |    5 ++
+ tools/testing/selftests/memfd/common.c     |   46 +++++++++++++++++++
+ tools/testing/selftests/memfd/common.h     |    9 +++
+ tools/testing/selftests/memfd/fuse_test.c  |    8 ---
+ tools/testing/selftests/memfd/memfd_test.c |   36 --------------
+ 5 files changed, 64 insertions(+), 40 deletions(-)
 
-diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-test-hugetlbfs-sealing tools/testing/selftests/memfd/memfd_test.c
---- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-test-hugetlbfs-sealing
+diff -puN /dev/null tools/testing/selftests/memfd/common.c
+--- /dev/null
++++ a/tools/testing/selftests/memfd/common.c
+@@ -0,0 +1,46 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#define __EXPORTED_HEADERS__
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <linux/fcntl.h>
++#include <linux/memfd.h>
++#include <unistd.h>
++#include <sys/syscall.h>
++
++#include "common.h"
++
++int hugetlbfs_test = 0;
++
++/*
++ * Copied from mlock2-tests.c
++ */
++unsigned long default_huge_page_size(void)
++{
++	unsigned long hps = 0;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++
++	if (!f)
++		return 0;
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
++			hps <<= 10;
++			break;
++		}
++	}
++
++	free(line);
++	fclose(f);
++	return hps;
++}
++
++int sys_memfd_create(const char *name, unsigned int flags)
++{
++	if (hugetlbfs_test)
++		flags |= MFD_HUGETLB;
++
++	return syscall(__NR_memfd_create, name, flags);
++}
+diff -puN /dev/null tools/testing/selftests/memfd/common.h
+--- /dev/null
++++ a/tools/testing/selftests/memfd/common.h
+@@ -0,0 +1,9 @@
++#ifndef COMMON_H_
++#define COMMON_H_
++
++extern int hugetlbfs_test;
++
++unsigned long default_huge_page_size(void);
++int sys_memfd_create(const char *name, unsigned int flags);
++
++#endif
+diff -puN tools/testing/selftests/memfd/fuse_test.c~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/fuse_test.c
+--- a/tools/testing/selftests/memfd/fuse_test.c~memfd-test-move-common-code-to-a-shared-unit
++++ a/tools/testing/selftests/memfd/fuse_test.c
+@@ -33,15 +33,11 @@
+ #include <sys/wait.h>
+ #include <unistd.h>
+ 
++#include "common.h"
++
+ #define MFD_DEF_SIZE 8192
+ #define STACK_SIZE 65536
+ 
+-static int sys_memfd_create(const char *name,
+-			    unsigned int flags)
+-{
+-	return syscall(__NR_memfd_create, name, flags);
+-}
+-
+ static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
+ {
+ 	int r, fd;
+diff -puN tools/testing/selftests/memfd/Makefile~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/Makefile
+--- a/tools/testing/selftests/memfd/Makefile~memfd-test-move-common-code-to-a-shared-unit
++++ a/tools/testing/selftests/memfd/Makefile
+@@ -12,3 +12,8 @@ fuse_mnt.o: CFLAGS += $(shell pkg-config
+ include ../lib.mk
+ 
+ $(OUTPUT)/fuse_mnt: LDLIBS += $(shell pkg-config fuse --libs)
++
++$(OUTPUT)/memfd_test: memfd_test.c common.o
++$(OUTPUT)/fuse_test: fuse_test.c common.o
++
++EXTRA_CLEAN = common.o
+diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/memfd_test.c
+--- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-move-common-code-to-a-shared-unit
 +++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -513,6 +513,10 @@ static void mfd_assert_grow_write(int fd
- 	static char *buf;
- 	ssize_t l;
+@@ -19,6 +19,8 @@
+ #include <sys/wait.h>
+ #include <unistd.h>
  
-+	/* hugetlbfs does not support write */
-+	if (hugetlbfs_test)
-+		return;
++#include "common.h"
 +
- 	buf = malloc(mfd_def_size * 8);
- 	if (!buf) {
- 		printf("malloc(%zu) failed: %m\n", mfd_def_size * 8);
-@@ -533,6 +537,10 @@ static void mfd_fail_grow_write(int fd)
- 	static char *buf;
- 	ssize_t l;
- 
-+	/* hugetlbfs does not support write */
-+	if (hugetlbfs_test)
-+		return;
-+
- 	buf = malloc(mfd_def_size * 8);
- 	if (!buf) {
- 		printf("malloc(%zu) failed: %m\n", mfd_def_size * 8);
-@@ -627,18 +635,13 @@ static void test_create(void)
- 	fd = mfd_assert_new("", 0, MFD_CLOEXEC);
- 	close(fd);
- 
--	if (!hugetlbfs_test) {
--		/* verify MFD_ALLOW_SEALING is allowed */
--		fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
--		close(fd);
--
--		/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
--		fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
--		close(fd);
--	} else {
--		/* sealing is not supported on hugetlbfs */
--		mfd_fail_new("", MFD_ALLOW_SEALING);
--	}
-+	/* verify MFD_ALLOW_SEALING is allowed */
-+	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING);
-+	close(fd);
-+
-+	/* verify MFD_ALLOW_SEALING | MFD_CLOEXEC is allowed */
-+	fd = mfd_assert_new("", 0, MFD_ALLOW_SEALING | MFD_CLOEXEC);
-+	close(fd);
- }
- 
+ #define MEMFD_STR	"memfd:"
+ #define MEMFD_HUGE_STR	"memfd-hugetlb:"
+ #define SHARED_FT_STR	"(shared file-table)"
+@@ -29,43 +31,9 @@
  /*
-@@ -649,10 +652,6 @@ static void test_basic(void)
- {
- 	int fd;
- 
--	/* hugetlbfs does not contain sealing support */
--	if (hugetlbfs_test)
--		return;
--
- 	printf("%s BASIC\n", MEMFD_STR);
- 
- 	fd = mfd_assert_new("kern_memfd_basic",
-@@ -698,28 +697,6 @@ static void test_basic(void)
- }
- 
- /*
-- * hugetlbfs doesn't support seals or write, so just verify grow and shrink
-- * on a hugetlbfs file created via memfd_create.
-- */
--static void test_hugetlbfs_grow_shrink(void)
--{
--	int fd;
--
--	printf("%s HUGETLBFS-GROW-SHRINK\n", MEMFD_STR);
--
--	fd = mfd_assert_new("kern_memfd_seal_write",
--			    mfd_def_size,
--			    MFD_CLOEXEC);
--
--	mfd_assert_read(fd);
--	mfd_assert_write(fd);
--	mfd_assert_shrink(fd);
--	mfd_assert_grow(fd);
--
--	close(fd);
--}
--
--/*
-  * Test SEAL_WRITE
-  * Test whether SEAL_WRITE actually prevents modifications.
+  * Default is not to test hugetlbfs
   */
-@@ -727,13 +704,6 @@ static void test_seal_write(void)
- {
- 	int fd;
+-static int hugetlbfs_test;
+ static size_t mfd_def_size = MFD_DEF_SIZE;
+ static const char *memfd_str = MEMFD_STR;
  
--	/*
--	 * hugetlbfs does not contain sealing or write support.  Just test
--	 * basic grow and shrink via test_hugetlbfs_grow_shrink.
--	 */
--	if (hugetlbfs_test)
--		return test_hugetlbfs_grow_shrink();
--
- 	printf("%s SEAL-WRITE\n", MEMFD_STR);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_write",
-@@ -760,10 +730,6 @@ static void test_seal_shrink(void)
- {
- 	int fd;
- 
--	/* hugetlbfs does not contain sealing support */
--	if (hugetlbfs_test)
--		return;
--
- 	printf("%s SEAL-SHRINK\n", MEMFD_STR);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_shrink",
-@@ -790,10 +756,6 @@ static void test_seal_grow(void)
- {
- 	int fd;
- 
--	/* hugetlbfs does not contain sealing support */
--	if (hugetlbfs_test)
--		return;
--
- 	printf("%s SEAL-GROW\n", MEMFD_STR);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_grow",
-@@ -820,10 +782,6 @@ static void test_seal_resize(void)
- {
- 	int fd;
- 
--	/* hugetlbfs does not contain sealing support */
--	if (hugetlbfs_test)
--		return;
--
- 	printf("%s SEAL-RESIZE\n", MEMFD_STR);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_resize",
-@@ -843,32 +801,6 @@ static void test_seal_resize(void)
- }
- 
- /*
-- * hugetlbfs does not support seals.  Basic test to dup the memfd created
-- * fd and perform some basic operations on it.
-- */
--static void hugetlbfs_dup(char *b_suffix)
--{
--	int fd, fd2;
--
--	printf("%s HUGETLBFS-DUP %s\n", MEMFD_STR, b_suffix);
--
--	fd = mfd_assert_new("kern_memfd_share_dup",
--			    mfd_def_size,
--			    MFD_CLOEXEC);
--
--	fd2 = mfd_assert_dup(fd);
--
--	mfd_assert_read(fd);
--	mfd_assert_write(fd);
--
--	mfd_assert_shrink(fd2);
--	mfd_assert_grow(fd2);
--
--	close(fd2);
--	close(fd);
--}
--
 -/*
-  * Test sharing via dup()
-  * Test that seals are shared between dupped FDs and they're all equal.
-  */
-@@ -876,15 +808,6 @@ static void test_share_dup(char *banner,
- {
- 	int fd, fd2;
- 
--	/*
--	 * hugetlbfs does not contain sealing support.  Perform some
--	 * basic testing on dup'ed fd instead via hugetlbfs_dup.
--	 */
--	if (hugetlbfs_test) {
--		hugetlbfs_dup(b_suffix);
--		return;
+- * Copied from mlock2-tests.c
+- */
+-static unsigned long default_huge_page_size(void)
+-{
+-	unsigned long hps = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
+-
+-	if (!f)
+-		return 0;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
+-			hps <<= 10;
+-			break;
+-		}
 -	}
 -
- 	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_dup",
-@@ -927,10 +850,6 @@ static void test_share_mmap(char *banner
- 	int fd;
- 	void *p;
- 
--	/* hugetlbfs does not contain sealing support */
--	if (hugetlbfs_test)
--		return;
--
- 	printf("%s %s %s\n", MEMFD_STR,  banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_mmap",
-@@ -956,32 +875,6 @@ static void test_share_mmap(char *banner
- }
- 
- /*
-- * Basic test to make sure we can open the hugetlbfs fd via /proc and
-- * perform some simple operations on it.
-- */
--static void hugetlbfs_proc_open(char *b_suffix)
--{
--	int fd, fd2;
--
--	printf("%s HUGETLBFS-PROC-OPEN %s\n", MEMFD_STR, b_suffix);
--
--	fd = mfd_assert_new("kern_memfd_share_open",
--			    mfd_def_size,
--			    MFD_CLOEXEC);
--
--	fd2 = mfd_assert_open(fd, O_RDWR, 0);
--
--	mfd_assert_read(fd);
--	mfd_assert_write(fd);
--
--	mfd_assert_shrink(fd2);
--	mfd_assert_grow(fd2);
--
--	close(fd2);
--	close(fd);
+-	free(line);
+-	fclose(f);
+-	return hps;
 -}
 -
--/*
-  * Test sealing with open(/proc/self/fd/%d)
-  * Via /proc we can get access to a separate file-context for the same memfd.
-  * This is *not* like dup(), but like a real separate open(). Make sure the
-@@ -991,15 +884,6 @@ static void test_share_open(char *banner
- {
- 	int fd, fd2;
- 
--	/*
--	 * hugetlbfs does not contain sealing support.  So test basic
--	 * functionality of using /proc fd via hugetlbfs_proc_open
--	 */
--	if (hugetlbfs_test) {
--		hugetlbfs_proc_open(b_suffix);
--		return;
--	}
--
- 	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_open",
-@@ -1043,10 +927,6 @@ static void test_share_fork(char *banner
- 	int fd;
- 	pid_t pid;
- 
--	/* hugetlbfs does not contain sealing support */
+-static int sys_memfd_create(const char *name,
+-			    unsigned int flags)
+-{
 -	if (hugetlbfs_test)
--		return;
+-		flags |= MFD_HUGETLB;
+-
+-	return syscall(__NR_memfd_create, name, flags);
+-}
