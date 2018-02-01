@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-slab-remove-redundant-assignments-for-slab_state.patch removed from -mm
+ slub-remove-obsolete-comments-of-put_cpu_partial.patch removed from -mm
  tree
-Date: Thu, 01 Feb 2018 11:30:15 -0800
-Message-ID: <20180201193015.SinWFhDhw%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:30:23 -0800
+Message-ID: <20180201193023.OZzW9NPfo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752189AbeBATaR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:17 -0500
+        with ESMTP id S1752839AbeBATaZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:30:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, penberg@kernel.org, rientjes@google.com
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/slab.c: remove redundant assignments for slab_state
+     Subject: slub: remove obsolete comments of put_cpu_partial()
 has been removed from the -mm tree.  Its filename was
-     mm-slab-remove-redundant-assignments-for-slab_state.patch
+     slub-remove-obsolete-comments-of-put_cpu_partial.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@techadventures.net>
-Subject: mm/slab.c: remove redundant assignments for slab_state
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: slub: remove obsolete comments of put_cpu_partial()
 
-slab_state is being set to "UP" in create_kmalloc_caches(), and later on
-we set it again in kmem_cache_init_late(), but slab_state does not change
-in the meantime.
+d6e0b7fa1186 ("slub: make dead caches discard free slabs immediately")
+makes put_cpu_partial() run with preemption disabled and interrupts
+disabled when calling unfreeze_partials().
 
-Remove the redundant assignment from kmem_cache_init_late().
+The comment: "put_cpu_partial() is done without interrupts disabled and
+without preemption disabled" looks obsolete, so remove it.
 
-And unless I overlooked anything, the same goes for "slab_state = FULL". 
-slab_state is set to "FULL" in kmem_cache_init_late(), but it is later
-being set again in cpucache_init(), which gets called from
-do_initcall_level().  So remove the assignment from cpucache_init() as
-well.
-
-Link: http://lkml.kernel.org/r/20171215134452.GA1920@techadventures.net
-Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
-Acked-by: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/1516968550-1520-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/slub.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-remove-redundant-assignments-for-slab_state mm/slab.c
---- a/mm/slab.c~mm-slab-remove-redundant-assignments-for-slab_state
-+++ a/mm/slab.c
-@@ -1316,8 +1316,6 @@ void __init kmem_cache_init_late(void)
- {
- 	struct kmem_cache *cachep;
+diff -puN mm/slub.c~slub-remove-obsolete-comments-of-put_cpu_partial mm/slub.c
+--- a/mm/slub.c~slub-remove-obsolete-comments-of-put_cpu_partial
++++ a/mm/slub.c
+@@ -2222,9 +2222,7 @@ static void unfreeze_partials(struct kme
  
--	slab_state = UP;
+ /*
+  * Put a page that was just frozen (in __slab_free) into a partial page
+- * slot if available. This is done without interrupts disabled and without
+- * preemption disabled. The cmpxchg is racy and may put the partial page
+- * onto a random cpus partial slot.
++ * slot if available.
+  *
+  * If we did not find a slot then simply move all the partials to the
+  * per node partial list.
+_
+
+Patches currently in -mm which might be from miles.chen@mediatek.com are
+
+
