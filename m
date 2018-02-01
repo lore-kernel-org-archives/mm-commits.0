@@ -1,76 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-siginfoh-fix-language-in-comments.patch added to
- -mm tree
-Date: Thu, 01 Feb 2018 14:41:09 -0800
-Message-ID: <5a739785.SaOStiwBzmYCIr1H%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Thu, 01 Feb 2018 15:54:47 -0800
+Message-ID: <5a73a8c7.HIrVCb/bpRD3mTua%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56258 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46742 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751567AbeBAWlK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 17:41:10 -0500
+        with ESMTP id S1751709AbeBAXys (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 18:54:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: <asm-generic/siginfo.h>: fix language in comments
-has been added to the -mm tree.  Its filename is
-     asm-generic-siginfoh-fix-language-in-comments.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-siginfoh-fix-language-in-comments.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-siginfoh-fix-language-in-comments.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: <asm-generic/siginfo.h>: fix language in comments
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-Fix grammar and add an omitted word.
-
-Link: http://lkml.kernel.org/r/1a5a021c-0207-f793-7f07-addca26772d5@infradead.org
-Fixes: f9886bc50a8e ("signal: Document the strange si_codes used by ptrace event stops")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/asm-generic/siginfo.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/uapi/asm-generic/siginfo.h~asm-generic-siginfoh-fix-language-in-comments include/uapi/asm-generic/siginfo.h
---- a/include/uapi/asm-generic/siginfo.h~asm-generic-siginfoh-fix-language-in-comments
-+++ a/include/uapi/asm-generic/siginfo.h
-@@ -280,8 +280,8 @@ typedef struct siginfo {
- #define NSIGTRAP	4
+diff -puN kernel/fork.c~linux-next-rejects kernel/fork.c
+--- a/kernel/fork.c~linux-next-rejects
++++ a/kernel/fork.c
+@@ -606,6 +606,11 @@ static void __mmdrop(struct mm_struct *m
  
- /*
-- * There are an additional set of SIGTRAP si_codes used by ptrace
-- * that of the form: ((PTRACE_EVENT_XXX << 8) | SIGTRAP)
-+ * There is an additional set of SIGTRAP si_codes used by ptrace
-+ * that are of the form: ((PTRACE_EVENT_XXX << 8) | SIGTRAP)
-  */
- 
- /*
+ void mmdrop(struct mm_struct *mm)
+ {
++	/*
++	 * The implicit full barrier implied by atomic_dec_and_test is
++	 * required by the membarrier system call before returning to
++	 * user-space, after storing to rq->curr.
++	 */
+ 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+ 		__mmdrop(mm);
+ }
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-asm-generic-siginfoh-fix-language-in-comments.patch
+i-need-old-gcc.patch
+include-linux-sched-mmh-re-inline-mmdrop.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-git-rejects.patch
+fs-crypto-hooksc-fix-build-with-gcc-444.patch
+maintainers-update-arm-oxnas-platform-support-patterns-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
