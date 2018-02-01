@@ -1,71 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?mm-memory=5Fhotplug-remove-second-=5F=5Fnr=5Fto=5Fsection?=
- =?US-ASCII?Q?-in-register=5Fpage=5Fbootmem=5Finfo=5Fsection.patch?=
+Subject: [merged] arm-mm-provide-pmdp_establish-helper.patch
  removed from -mm tree
-Date: Thu, 01 Feb 2018 11:31:45 -0800
-Message-ID: <20180201193145.ihJpP2c3Q%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:32:09 -0800
+Message-ID: <20180201193209.TGZbtjzK5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58474 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753060AbeBATbr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:47 -0500
+        with ESMTP id S1753126AbeBATcK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:32:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@techadventures.net, vbabka@suse.cz
+To: aarcange@redhat.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: memory_hotplug: remove second __nr_to_section in register_page_bootmem_info_section()
+     Subject: arm/mm: provide pmdp_establish() helper
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section.patch
+     arm-mm-provide-pmdp_establish-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@techadventures.net>
-Subject: mm: memory_hotplug: remove second __nr_to_section in register_page_bootmem_info_section()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: arm/mm: provide pmdp_establish() helper
 
-In register_page_bootmem_info_section() we call __nr_to_section() in order
-to get the mem_section struct at the beginning of the function.  Since we
-already got it, there is no need for a second call to __nr_to_section().
+ARM LPAE doesn't have hardware dirty/accessed bits.
 
-Link: http://lkml.kernel.org/r/20171207102914.GA12396@techadventures.net
-Signed-off-by: Oscar Salvador <osalvador@techadventures.net>
-Acked-by: Michal Hocko <mhocko@suse.com>
+generic_pmdp_establish() is the right implementation of pmdp_establish for
+this case.
+
+Link: http://lkml.kernel.org/r/20171213105756.69879-4-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/include/asm/pgtable-3level.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-second-__nr_to_section-in-register_page_bootmem_info_section
-+++ a/mm/memory_hotplug.c
-@@ -184,7 +184,7 @@ static void register_page_bootmem_info_s
- 	for (i = 0; i < mapsize; i++, page++)
- 		get_page_bootmem(section_nr, page, SECTION_INFO);
+diff -puN arch/arm/include/asm/pgtable-3level.h~arm-mm-provide-pmdp_establish-helper arch/arm/include/asm/pgtable-3level.h
+--- a/arch/arm/include/asm/pgtable-3level.h~arm-mm-provide-pmdp_establish-helper
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -249,6 +249,9 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
+ #define pfn_pmd(pfn,prot)	(__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot)))
+ #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
  
--	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	usemap = ms->pageblock_flags;
- 	page = virt_to_page(usemap);
- 
- 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-@@ -207,7 +207,7 @@ static void register_page_bootmem_info_s
- 
- 	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
- 
--	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	usemap = ms->pageblock_flags;
- 	page = virt_to_page(usemap);
- 
- 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
++/* No hardware dirty/accessed bits -- generic_pmdp_establish() fits */
++#define pmdp_establish generic_pmdp_establish
++
+ /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
+ static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+ {
 _
 
-Patches currently in -mm which might be from osalvador@techadventures.net are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 
