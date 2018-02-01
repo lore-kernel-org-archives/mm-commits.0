@@ -1,37 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memfd-test-move-common-code-to-a-shared-unit.patch removed from -mm tree
-Date: Thu, 01 Feb 2018 11:33:44 -0800
-Message-ID: <20180201193344.oRN2jKwIb%akpm@linux-foundation.org>
+Subject: [merged] hugetlb-implement-memfd-sealing.patch removed
+ from -mm tree
+Date: Thu, 01 Feb 2018 11:33:31 -0800
+Message-ID: <20180201193331.8W0j25rM7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754639AbeBATdw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:52 -0500
+        with ESMTP id S1754623AbeBATdj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memfd-test: move common code to a shared unit
+     Subject: hugetlb: implement memfd sealing
 has been removed from the -mm tree.  Its filename was
-     memfd-test-move-common-code-to-a-shared-unit.patch
+     hugetlb-implement-memfd-sealing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: memfd-test: move common code to a shared unit
+Subject: hugetlb: implement memfd sealing
 
-The memfd & fuse tests will share more common code in the following
-commits to test hugetlb support.
+Implements memfd sealing, similar to shmem:
+- WRITE: deny fallocate(PUNCH_HOLE). mmap() write is denied in
+  memfd_add_seals(). write() doesn't exist for hugetlbfs.
+- SHRINK: added similar check as shmem_setattr()
+- GROW: added similar check as shmem_setattr() & shmem_fallocate()
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-9-marcandre.lureau@redhat.com
+Except write() operation that doesn't exist with hugetlbfs, that
+should make sealing as close as it can be to shmem support.
+
+Link: http://lkml.kernel.org/r/20171107122800.25517-5-marcandre.lureau@redhat.com
 Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -41,158 +47,108 @@ Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/Makefile     |    5 ++
- tools/testing/selftests/memfd/common.c     |   46 +++++++++++++++++++
- tools/testing/selftests/memfd/common.h     |    9 +++
- tools/testing/selftests/memfd/fuse_test.c  |    8 ---
- tools/testing/selftests/memfd/memfd_test.c |   36 --------------
- 5 files changed, 64 insertions(+), 40 deletions(-)
+ fs/hugetlbfs/inode.c    |   29 +++++++++++++++++++++++++++--
+ include/linux/hugetlb.h |    1 +
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null tools/testing/selftests/memfd/common.c
---- /dev/null
-+++ a/tools/testing/selftests/memfd/common.c
-@@ -0,0 +1,46 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+#define __EXPORTED_HEADERS__
+diff -puN fs/hugetlbfs/inode.c~hugetlb-implement-memfd-sealing fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-implement-memfd-sealing
++++ a/fs/hugetlbfs/inode.c
+@@ -510,8 +510,16 @@ static long hugetlbfs_punch_hole(struct
+ 
+ 	if (hole_end > hole_start) {
+ 		struct address_space *mapping = inode->i_mapping;
++		struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 
+ 		inode_lock(inode);
 +
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <linux/fcntl.h>
-+#include <linux/memfd.h>
-+#include <unistd.h>
-+#include <sys/syscall.h>
-+
-+#include "common.h"
-+
-+int hugetlbfs_test = 0;
-+
-+/*
-+ * Copied from mlock2-tests.c
-+ */
-+unsigned long default_huge_page_size(void)
-+{
-+	unsigned long hps = 0;
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	FILE *f = fopen("/proc/meminfo", "r");
-+
-+	if (!f)
-+		return 0;
-+	while (getline(&line, &linelen, f) > 0) {
-+		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
-+			hps <<= 10;
-+			break;
++		/* protected by i_mutex */
++		if (info->seals & F_SEAL_WRITE) {
++			inode_unlock(inode);
++			return -EPERM;
 +		}
++
+ 		i_mmap_lock_write(mapping);
+ 		if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
+ 			hugetlb_vmdelete_list(&mapping->i_mmap,
+@@ -529,6 +537,7 @@ static long hugetlbfs_fallocate(struct f
+ 				loff_t len)
+ {
+ 	struct inode *inode = file_inode(file);
++	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct hstate *h = hstate_inode(inode);
+ 	struct vm_area_struct pseudo_vma;
+@@ -560,6 +569,11 @@ static long hugetlbfs_fallocate(struct f
+ 	if (error)
+ 		goto out;
+ 
++	if ((info->seals & F_SEAL_GROW) && offset + len > inode->i_size) {
++		error = -EPERM;
++		goto out;
 +	}
 +
-+	free(line);
-+	fclose(f);
-+	return hps;
-+}
-+
-+int sys_memfd_create(const char *name, unsigned int flags)
-+{
-+	if (hugetlbfs_test)
-+		flags |= MFD_HUGETLB;
-+
-+	return syscall(__NR_memfd_create, name, flags);
-+}
-diff -puN /dev/null tools/testing/selftests/memfd/common.h
---- /dev/null
-+++ a/tools/testing/selftests/memfd/common.h
-@@ -0,0 +1,9 @@
-+#ifndef COMMON_H_
-+#define COMMON_H_
-+
-+extern int hugetlbfs_test;
-+
-+unsigned long default_huge_page_size(void);
-+int sys_memfd_create(const char *name, unsigned int flags);
-+
-+#endif
-diff -puN tools/testing/selftests/memfd/fuse_test.c~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/fuse_test.c
---- a/tools/testing/selftests/memfd/fuse_test.c~memfd-test-move-common-code-to-a-shared-unit
-+++ a/tools/testing/selftests/memfd/fuse_test.c
-@@ -33,15 +33,11 @@
- #include <sys/wait.h>
- #include <unistd.h>
+ 	/*
+ 	 * Initialize a pseudo vma as this is required by the huge page
+ 	 * allocation routines.  If NUMA is configured, use page index
+@@ -650,6 +664,7 @@ static int hugetlbfs_setattr(struct dent
+ 	struct hstate *h = hstate_inode(inode);
+ 	int error;
+ 	unsigned int ia_valid = attr->ia_valid;
++	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
  
-+#include "common.h"
-+
- #define MFD_DEF_SIZE 8192
- #define STACK_SIZE 65536
+ 	BUG_ON(!inode);
  
--static int sys_memfd_create(const char *name,
--			    unsigned int flags)
--{
--	return syscall(__NR_memfd_create, name, flags);
--}
--
- static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
- {
- 	int r, fd;
-diff -puN tools/testing/selftests/memfd/Makefile~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/Makefile
---- a/tools/testing/selftests/memfd/Makefile~memfd-test-move-common-code-to-a-shared-unit
-+++ a/tools/testing/selftests/memfd/Makefile
-@@ -12,3 +12,8 @@ fuse_mnt.o: CFLAGS += $(shell pkg-config
- include ../lib.mk
+@@ -658,9 +673,16 @@ static int hugetlbfs_setattr(struct dent
+ 		return error;
  
- $(OUTPUT)/fuse_mnt: LDLIBS += $(shell pkg-config fuse --libs)
+ 	if (ia_valid & ATTR_SIZE) {
+-		if (attr->ia_size & ~huge_page_mask(h))
++		loff_t oldsize = inode->i_size;
++		loff_t newsize = attr->ia_size;
 +
-+$(OUTPUT)/memfd_test: memfd_test.c common.o
-+$(OUTPUT)/fuse_test: fuse_test.c common.o
-+
-+EXTRA_CLEAN = common.o
-diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-move-common-code-to-a-shared-unit tools/testing/selftests/memfd/memfd_test.c
---- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-move-common-code-to-a-shared-unit
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -19,6 +19,8 @@
- #include <sys/wait.h>
- #include <unistd.h>
++		if (newsize & ~huge_page_mask(h))
+ 			return -EINVAL;
+-		error = hugetlb_vmtruncate(inode, attr->ia_size);
++		/* protected by i_mutex */
++		if ((newsize < oldsize && (info->seals & F_SEAL_SHRINK)) ||
++		    (newsize > oldsize && (info->seals & F_SEAL_GROW)))
++			return -EPERM;
++		error = hugetlb_vmtruncate(inode, newsize);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -712,6 +734,8 @@ static struct inode *hugetlbfs_get_inode
  
-+#include "common.h"
+ 	inode = new_inode(sb);
+ 	if (inode) {
++		struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
 +
- #define MEMFD_STR	"memfd:"
- #define MEMFD_HUGE_STR	"memfd-hugetlb:"
- #define SHARED_FT_STR	"(shared file-table)"
-@@ -29,43 +31,9 @@
- /*
-  * Default is not to test hugetlbfs
-  */
--static int hugetlbfs_test;
- static size_t mfd_def_size = MFD_DEF_SIZE;
- static const char *memfd_str = MEMFD_STR;
+ 		inode->i_ino = get_next_ino();
+ 		inode_init_owner(inode, dir, mode);
+ 		lockdep_set_class(&inode->i_mapping->i_mmap_rwsem,
+@@ -719,6 +743,7 @@ static struct inode *hugetlbfs_get_inode
+ 		inode->i_mapping->a_ops = &hugetlbfs_aops;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+ 		inode->i_mapping->private_data = resv_map;
++		info->seals = F_SEAL_SEAL;
+ 		switch (mode & S_IFMT) {
+ 		default:
+ 			init_special_inode(inode, mode, dev);
+diff -puN include/linux/hugetlb.h~hugetlb-implement-memfd-sealing include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-implement-memfd-sealing
++++ a/include/linux/hugetlb.h
+@@ -273,6 +273,7 @@ static inline struct hugetlbfs_sb_info *
+ struct hugetlbfs_inode_info {
+ 	struct shared_policy policy;
+ 	struct inode vfs_inode;
++	unsigned int seals;
+ };
  
--/*
-- * Copied from mlock2-tests.c
-- */
--static unsigned long default_huge_page_size(void)
--{
--	unsigned long hps = 0;
--	char *line = NULL;
--	size_t linelen = 0;
--	FILE *f = fopen("/proc/meminfo", "r");
--
--	if (!f)
--		return 0;
--	while (getline(&line, &linelen, f) > 0) {
--		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
--			hps <<= 10;
--			break;
--		}
--	}
--
--	free(line);
--	fclose(f);
--	return hps;
--}
--
--static int sys_memfd_create(const char *name,
--			    unsigned int flags)
--{
--	if (hugetlbfs_test)
--		flags |= MFD_HUGETLB;
--
--	return syscall(__NR_memfd_create, name, flags);
--}
+ static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
+_
+
+Patches currently in -mm which might be from marcandre.lureau@redhat.com are
+
+mm-page_owner-align-with-pageblock_nr_pages.patch
+
