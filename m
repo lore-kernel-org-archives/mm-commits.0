@@ -1,172 +1,117 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs.patch removed
- from -mm tree
-Date: Thu, 01 Feb 2018 11:33:41 -0800
-Message-ID: <20180201193341.GNdUAvlpo%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-pin-address=5Fspace-before-dereferencing-it-while-isolati?=
+ =?US-ASCII?Q?ng-an-lru-page.patch?= removed from -mm tree
+Date: Thu, 01 Feb 2018 11:33:53 -0800
+Message-ID: <20180201193353._EwFvniKE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60414 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754623AbeBATdw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:52 -0500
+        with ESMTP id S1754644AbeBATeI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:34:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: memfd-test: add 'memfd-hugetlb:' prefix when testing hugetlbfs
+     Subject: mm: pin address_space before dereferencing it while isolating an LRU page
 has been removed from the -mm tree.  Its filename was
-     memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs.patch
+     mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: memfd-test: add 'memfd-hugetlb:' prefix when testing hugetlbfs
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: pin address_space before dereferencing it while isolating an LRU page
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-8-marcandre.lureau@redhat.com
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Herrmann <dh.herrmann@gmail.com>
+Minchan Kim asked the following question -- what locks protects
+address_space destroying when race happens between inode trauncation and
+__isolate_lru_page?  Jan Kara clarified by describing the race as follows
+
+CPU1                                            CPU2
+
+truncate(inode)                                 __isolate_lru_page()
+  ...
+  truncate_inode_page(mapping, page);
+    delete_from_page_cache(page)
+      spin_lock_irqsave(&mapping->tree_lock, flags);
+        __delete_from_page_cache(page, NULL)
+          page_cache_tree_delete(..)
+            ...                                   mapping = page_mapping(page);
+            page->mapping = NULL;
+            ...
+      spin_unlock_irqrestore(&mapping->tree_lock, flags);
+      page_cache_free_page(mapping, page)
+        put_page(page)
+          if (put_page_testzero(page)) -> false
+- inode now has no pages and can be freed including embedded address_space
+
+                                                  if (mapping && !mapping->a_ops->migratepage)
+- we've dereferenced mapping which is potentially already free.
+
+The race is theoretically possible but unlikely.  Before the
+delete_from_page_cache, truncate_cleanup_page is called so the page is
+likely to be !PageDirty or PageWriteback which gets skipped by the only
+caller that checks the mappping in __isolate_lru_page.  Even if the race
+occurs, a substantial amount of work has to happen during a tiny window
+with no preemption but it could potentially be done using a virtual
+machine to artifically slow one CPU or halt it during the critical window.
+
+This patch should eliminate the race with truncation by try-locking the
+page before derefencing mapping and aborting if the lock was not acquired.
+There was a suggestion from Huang Ying to use RCU as a side-effect to
+prevent mapping being freed.  However, I do not like the solution as it's
+an unconventional means of preserving a mapping and it's not a context
+where rcu_read_lock is obviously protecting rcu data.
+
+Link: http://lkml.kernel.org/r/20180104102512.2qos3h5vqzeisrek@techsingularity.net
+Fixes: c82449352854 ("mm: compaction: make isolate_lru_page() filter-aware again")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/memfd_test.c |   26 +++++++++++--------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ mm/vmscan.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs tools/testing/selftests/memfd/memfd_test.c
---- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -20,6 +20,7 @@
- #include <unistd.h>
+diff -puN mm/vmscan.c~mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page mm/vmscan.c
+--- a/mm/vmscan.c~mm-pin-address_space-before-dereferencing-it-while-isolating-an-lru-page
++++ a/mm/vmscan.c
+@@ -1415,14 +1415,24 @@ int __isolate_lru_page(struct page *page
  
- #define MEMFD_STR	"memfd:"
-+#define MEMFD_HUGE_STR	"memfd-hugetlb:"
- #define SHARED_FT_STR	"(shared file-table)"
+ 		if (PageDirty(page)) {
+ 			struct address_space *mapping;
++			bool migrate_dirty;
  
- #define MFD_DEF_SIZE 8192
-@@ -30,6 +31,7 @@
-  */
- static int hugetlbfs_test;
- static size_t mfd_def_size = MFD_DEF_SIZE;
-+static const char *memfd_str = MEMFD_STR;
- 
- /*
-  * Copied from mlock2-tests.c
-@@ -606,7 +608,7 @@ static void test_create(void)
- 	char buf[2048];
- 	int fd;
- 
--	printf("%s CREATE\n", MEMFD_STR);
-+	printf("%s CREATE\n", memfd_str);
- 
- 	/* test NULL name */
- 	mfd_fail_new(NULL, 0);
-@@ -652,7 +654,7 @@ static void test_basic(void)
- {
- 	int fd;
- 
--	printf("%s BASIC\n", MEMFD_STR);
-+	printf("%s BASIC\n", memfd_str);
- 
- 	fd = mfd_assert_new("kern_memfd_basic",
- 			    mfd_def_size,
-@@ -704,7 +706,7 @@ static void test_seal_write(void)
- {
- 	int fd;
- 
--	printf("%s SEAL-WRITE\n", MEMFD_STR);
-+	printf("%s SEAL-WRITE\n", memfd_str);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_write",
- 			    mfd_def_size,
-@@ -730,7 +732,7 @@ static void test_seal_shrink(void)
- {
- 	int fd;
- 
--	printf("%s SEAL-SHRINK\n", MEMFD_STR);
-+	printf("%s SEAL-SHRINK\n", memfd_str);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_shrink",
- 			    mfd_def_size,
-@@ -756,7 +758,7 @@ static void test_seal_grow(void)
- {
- 	int fd;
- 
--	printf("%s SEAL-GROW\n", MEMFD_STR);
-+	printf("%s SEAL-GROW\n", memfd_str);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_grow",
- 			    mfd_def_size,
-@@ -782,7 +784,7 @@ static void test_seal_resize(void)
- {
- 	int fd;
- 
--	printf("%s SEAL-RESIZE\n", MEMFD_STR);
-+	printf("%s SEAL-RESIZE\n", memfd_str);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_resize",
- 			    mfd_def_size,
-@@ -808,7 +810,7 @@ static void test_share_dup(char *banner,
- {
- 	int fd, fd2;
- 
--	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_dup",
- 			    mfd_def_size,
-@@ -850,7 +852,7 @@ static void test_share_mmap(char *banner
- 	int fd;
- 	void *p;
- 
--	printf("%s %s %s\n", MEMFD_STR,  banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str,  banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_mmap",
- 			    mfd_def_size,
-@@ -884,7 +886,7 @@ static void test_share_open(char *banner
- {
- 	int fd, fd2;
- 
--	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_open",
- 			    mfd_def_size,
-@@ -927,7 +929,7 @@ static void test_share_fork(char *banner
- 	int fd;
- 	pid_t pid;
- 
--	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_fork",
- 			    mfd_def_size,
-@@ -963,7 +965,11 @@ int main(int argc, char **argv)
- 			}
- 
- 			hugetlbfs_test = 1;
-+			memfd_str = MEMFD_HUGE_STR;
- 			mfd_def_size = hpage_size * 2;
-+		} else {
-+			printf("Unknown option: %s\n", argv[1]);
-+			abort();
+ 			/*
+ 			 * Only pages without mappings or that have a
+ 			 * ->migratepage callback are possible to migrate
+-			 * without blocking
++			 * without blocking. However, we can be racing with
++			 * truncation so it's necessary to lock the page
++			 * to stabilise the mapping as truncation holds
++			 * the page lock until after the page is removed
++			 * from the page cache.
+ 			 */
++			if (!trylock_page(page))
++				return ret;
++
+ 			mapping = page_mapping(page);
+-			if (mapping && !mapping->a_ops->migratepage)
++			migrate_dirty = mapping && mapping->a_ops->migratepage;
++			unlock_page(page);
++			if (!migrate_dirty)
+ 				return ret;
  		}
  	}
- 
 _
 
-Patches currently in -mm which might be from marcandre.lureau@redhat.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-page_owner-align-with-pageblock_nr_pages.patch
 
