@@ -1,81 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-document-how-to-use-struct-page.patch removed
- from -mm tree
-Date: Thu, 01 Feb 2018 11:33:14 -0800
-Message-ID: <20180201193314.yqPv-sxKH%akpm@linux-foundation.org>
+Subject: [merged]
+ shmem-rename-functions-that-are-memfd-related.patch removed from -mm tree
+Date: Thu, 01 Feb 2018 11:33:23 -0800
+Message-ID: <20180201193323.GQwUcd8oE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59446 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754603AbeBATdQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:16 -0500
+        with ESMTP id S1754623AbeBATd1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: aarcange@redhat.com, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document how to use struct page
+     Subject: shmem: rename functions that are memfd-related
 has been removed from the -mm tree.  Its filename was
-     mm-document-how-to-use-struct-page.patch
+     shmem-rename-functions-that-are-memfd-related.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm: document how to use struct page
+From: Marc-André Lureau <marcandre.lureau@redhat.com>
+Subject: shmem: rename functions that are memfd-related
 
-Be really explicit about what bits / bytes are reserved for users that
-want to store extra information about the pages they allocate.
+Those functions are called for memfd files, backed by shmem or
+hugetlb (the next patches will handle hugetlb).
 
-Link: http://lkml.kernel.org/r/20171220155552.15884-8-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/20171107122800.25517-3-marcandre.lureau@redhat.com
+Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ fs/fcntl.c               |    2 +-
+ include/linux/shmem_fs.h |    4 ++--
+ mm/shmem.c               |   10 +++++-----
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-document-how-to-use-struct-page include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-document-how-to-use-struct-page
-+++ a/include/linux/mm_types.h
-@@ -31,7 +31,29 @@ struct hmm;
-  * it to keep track of whatever it is we are using the page for at the
-  * moment. Note that we have no way to track which tasks are using
-  * a page, though if it is a pagecache page, rmap structures can tell us
-- * who is mapping it.
-+ * who is mapping it. If you allocate the page using alloc_pages(), you
-+ * can use some of the space in struct page for your own purposes.
-+ *
-+ * Pages that were once in the page cache may be found under the RCU lock
-+ * even after they have been recycled to a different purpose.  The page
-+ * cache reads and writes some of the fields in struct page to pin the
-+ * page before checking that it's still in the page cache.  It is vital
-+ * that all users of struct page:
-+ * 1. Use the first word as PageFlags.
-+ * 2. Clear or preserve bit 0 of page->compound_head.  It is used as
-+ *    PageTail for compound pages, and the page cache must not see false
-+ *    positives.  Some users put a pointer here (guaranteed to be at least
-+ *    4-byte aligned), other users avoid using the field altogether.
-+ * 3. page->_refcount must either not be used, or must be used in such a
-+ *    way that other CPUs temporarily incrementing and then decrementing the
-+ *    refcount does not cause problems.  On receiving the page from
-+ *    alloc_pages(), the refcount will be positive.
-+ * 4. Either preserve page->_mapcount or restore it to -1 before freeing it.
-+ *
-+ * If you allocate pages of order > 0, you can use the fields in the struct
-+ * page associated with each page, but bear in mind that the pages may have
-+ * been inserted individually into the page cache, so you must use the above
-+ * four fields in a compatible way for each struct page.
-  *
-  * SLUB uses cmpxchg_double() to atomically update its freelist and
-  * counters.  That requires that freelist & counters be adjacent and
+diff -puN fs/fcntl.c~shmem-rename-functions-that-are-memfd-related fs/fcntl.c
+--- a/fs/fcntl.c~shmem-rename-functions-that-are-memfd-related
++++ a/fs/fcntl.c
+@@ -418,7 +418,7 @@ static long do_fcntl(int fd, unsigned in
+ 		break;
+ 	case F_ADD_SEALS:
+ 	case F_GET_SEALS:
+-		err = shmem_fcntl(filp, cmd, arg);
++		err = memfd_fcntl(filp, cmd, arg);
+ 		break;
+ 	case F_GET_RW_HINT:
+ 	case F_SET_RW_HINT:
+diff -puN include/linux/shmem_fs.h~shmem-rename-functions-that-are-memfd-related include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~shmem-rename-functions-that-are-memfd-related
++++ a/include/linux/shmem_fs.h
+@@ -112,11 +112,11 @@ extern void shmem_uncharge(struct inode
+ 
+ #ifdef CONFIG_TMPFS
+ 
+-extern long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
++extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
+ 
+ #else
+ 
+-static inline long shmem_fcntl(struct file *f, unsigned int c, unsigned long a)
++static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned long a)
+ {
+ 	return -EINVAL;
+ }
+diff -puN mm/shmem.c~shmem-rename-functions-that-are-memfd-related mm/shmem.c
+--- a/mm/shmem.c~shmem-rename-functions-that-are-memfd-related
++++ a/mm/shmem.c
+@@ -2722,7 +2722,7 @@ continue_resched:
+ 		     F_SEAL_GROW | \
+ 		     F_SEAL_WRITE)
+ 
+-static int shmem_add_seals(struct file *file, unsigned int seals)
++static int memfd_add_seals(struct file *file, unsigned int seals)
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+@@ -2792,7 +2792,7 @@ unlock:
+ 	return error;
+ }
+ 
+-static int shmem_get_seals(struct file *file)
++static int memfd_get_seals(struct file *file)
+ {
+ 	if (file->f_op != &shmem_file_operations)
+ 		return -EINVAL;
+@@ -2800,7 +2800,7 @@ static int shmem_get_seals(struct file *
+ 	return SHMEM_I(file_inode(file))->seals;
+ }
+ 
+-long shmem_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
++long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	long error;
+ 
+@@ -2810,10 +2810,10 @@ long shmem_fcntl(struct file *file, unsi
+ 		if (arg > UINT_MAX)
+ 			return -EINVAL;
+ 
+-		error = shmem_add_seals(file, arg);
++		error = memfd_add_seals(file, arg);
+ 		break;
+ 	case F_GET_SEALS:
+-		error = shmem_get_seals(file);
++		error = memfd_get_seals(file);
+ 		break;
+ 	default:
+ 		error = -EINVAL;
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from marcandre.lureau@redhat.com are
 
+mm-page_owner-align-with-pageblock_nr_pages.patch
 
