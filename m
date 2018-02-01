@@ -1,157 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/119] memfd-test: add 'memfd-hugetlb:' prefix
- when testing hugetlbfs
-Date: Wed, 31 Jan 2018 16:19:36 -0800
-Message-ID: <20180201001936.SYOFAq5T6%akpm@linux-foundation.org>
+Subject: [patch 093/119] userfaultfd: convert to use
+ anon_inode_getfd()
+Date: Wed, 31 Jan 2018 16:19:48 -0800
+Message-ID: <20180201001948.fY3OQHEU5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36080 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755813AbeBAATi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:38 -0500
+        with ESMTP id S1755813AbeBAATu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:19:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, dh.herrmann@gmail.com, hughd@google.com, marcandre.lureau@redhat.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, ebiggers@google.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
 
-From: Marc-André Lureau <marcandre.lureau@redhat.com>
-Subject: memfd-test: add 'memfd-hugetlb:' prefix when testing hugetlbfs
+From: Eric Biggers <ebiggers@google.com>
+Subject: userfaultfd: convert to use anon_inode_getfd()
 
-Link: http://lkml.kernel.org/r/20171107122800.25517-8-marcandre.lureau@redhat.com
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Marc-André Lureau <marcandre.lureau@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Nothing actually calls userfaultfd_file_create() besides the userfaultfd()
+system call itself.  So simplify things by folding it into the system call
+and using anon_inode_getfd() instead of anon_inode_getfile().  Do the same
+in resolve_userfault_fork() as well.  This removes over 50 lines with no
+change in functionality.
+
+Link: http://lkml.kernel.org/r/20171229212403.22800-1-ebiggers3@gmail.com
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Herrmann <dh.herrmann@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/memfd_test.c |   26 +++++++++++--------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ fs/userfaultfd.c |   70 +++++----------------------------------------
+ 1 file changed, 9 insertions(+), 61 deletions(-)
 
-diff -puN tools/testing/selftests/memfd/memfd_test.c~memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs tools/testing/selftests/memfd/memfd_test.c
---- a/tools/testing/selftests/memfd/memfd_test.c~memfd-test-add-memfd-hugetlb-prefix-when-testing-hugetlbfs
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -20,6 +20,7 @@
- #include <unistd.h>
- 
- #define MEMFD_STR	"memfd:"
-+#define MEMFD_HUGE_STR	"memfd-hugetlb:"
- #define SHARED_FT_STR	"(shared file-table)"
- 
- #define MFD_DEF_SIZE 8192
-@@ -30,6 +31,7 @@
-  */
- static int hugetlbfs_test;
- static size_t mfd_def_size = MFD_DEF_SIZE;
-+static const char *memfd_str = MEMFD_STR;
- 
- /*
-  * Copied from mlock2-tests.c
-@@ -606,7 +608,7 @@ static void test_create(void)
- 	char buf[2048];
- 	int fd;
- 
--	printf("%s CREATE\n", MEMFD_STR);
-+	printf("%s CREATE\n", memfd_str);
- 
- 	/* test NULL name */
- 	mfd_fail_new(NULL, 0);
-@@ -652,7 +654,7 @@ static void test_basic(void)
+diff -puN fs/userfaultfd.c~userfaultfd-convert-to-use-anon_inode_getfd fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-convert-to-use-anon_inode_getfd
++++ a/fs/userfaultfd.c
+@@ -988,24 +988,14 @@ static int resolve_userfault_fork(struct
+ 				  struct uffd_msg *msg)
  {
  	int fd;
+-	struct file *file;
+-	unsigned int flags = new->flags & UFFD_SHARED_FCNTL_FLAGS;
  
--	printf("%s BASIC\n", MEMFD_STR);
-+	printf("%s BASIC\n", memfd_str);
+-	fd = get_unused_fd_flags(flags);
++	fd = anon_inode_getfd("[userfaultfd]", &userfaultfd_fops, new,
++			      O_RDWR | (new->flags & UFFD_SHARED_FCNTL_FLAGS));
+ 	if (fd < 0)
+ 		return fd;
  
- 	fd = mfd_assert_new("kern_memfd_basic",
- 			    mfd_def_size,
-@@ -704,7 +706,7 @@ static void test_seal_write(void)
+-	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, new,
+-				  O_RDWR | flags);
+-	if (IS_ERR(file)) {
+-		put_unused_fd(fd);
+-		return PTR_ERR(file);
+-	}
+-
+-	fd_install(fd, file);
+ 	msg->arg.reserved.reserved1 = 0;
+ 	msg->arg.fork.ufd = fd;
+-
+ 	return 0;
+ }
+ 
+@@ -1887,24 +1877,10 @@ static void init_once_userfaultfd_ctx(vo
+ 	seqcount_init(&ctx->refile_seq);
+ }
+ 
+-/**
+- * userfaultfd_file_create - Creates a userfaultfd file pointer.
+- * @flags: Flags for the userfaultfd file.
+- *
+- * This function creates a userfaultfd file pointer, w/out installing
+- * it into the fd table. This is useful when the userfaultfd file is
+- * used during the initialization of data structures that require
+- * extra setup after the userfaultfd creation. So the userfaultfd
+- * creation is split into the file pointer creation phase, and the
+- * file descriptor installation phase.  In this way races with
+- * userspace closing the newly installed file descriptor can be
+- * avoided.  Returns a userfaultfd file pointer, or a proper error
+- * pointer.
+- */
+-static struct file *userfaultfd_file_create(int flags)
++SYSCALL_DEFINE1(userfaultfd, int, flags)
  {
- 	int fd;
+-	struct file *file;
+ 	struct userfaultfd_ctx *ctx;
++	int fd;
  
--	printf("%s SEAL-WRITE\n", MEMFD_STR);
-+	printf("%s SEAL-WRITE\n", memfd_str);
+ 	BUG_ON(!current->mm);
  
- 	fd = mfd_assert_new("kern_memfd_seal_write",
- 			    mfd_def_size,
-@@ -730,7 +732,7 @@ static void test_seal_shrink(void)
- {
- 	int fd;
+@@ -1912,14 +1888,12 @@ static struct file *userfaultfd_file_cre
+ 	BUILD_BUG_ON(UFFD_CLOEXEC != O_CLOEXEC);
+ 	BUILD_BUG_ON(UFFD_NONBLOCK != O_NONBLOCK);
  
--	printf("%s SEAL-SHRINK\n", MEMFD_STR);
-+	printf("%s SEAL-SHRINK\n", memfd_str);
+-	file = ERR_PTR(-EINVAL);
+ 	if (flags & ~UFFD_SHARED_FCNTL_FLAGS)
+-		goto out;
++		return -EINVAL;
  
- 	fd = mfd_assert_new("kern_memfd_seal_shrink",
- 			    mfd_def_size,
-@@ -756,7 +758,7 @@ static void test_seal_grow(void)
- {
- 	int fd;
+-	file = ERR_PTR(-ENOMEM);
+ 	ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
+ 	if (!ctx)
+-		goto out;
++		return -ENOMEM;
  
--	printf("%s SEAL-GROW\n", MEMFD_STR);
-+	printf("%s SEAL-GROW\n", memfd_str);
+ 	atomic_set(&ctx->refcount, 1);
+ 	ctx->flags = flags;
+@@ -1930,39 +1904,13 @@ static struct file *userfaultfd_file_cre
+ 	/* prevent the mm struct to be freed */
+ 	mmgrab(ctx->mm);
  
- 	fd = mfd_assert_new("kern_memfd_seal_grow",
- 			    mfd_def_size,
-@@ -782,7 +784,7 @@ static void test_seal_resize(void)
- {
- 	int fd;
- 
--	printf("%s SEAL-RESIZE\n", MEMFD_STR);
-+	printf("%s SEAL-RESIZE\n", memfd_str);
- 
- 	fd = mfd_assert_new("kern_memfd_seal_resize",
- 			    mfd_def_size,
-@@ -808,7 +810,7 @@ static void test_share_dup(char *banner,
- {
- 	int fd, fd2;
- 
--	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_dup",
- 			    mfd_def_size,
-@@ -850,7 +852,7 @@ static void test_share_mmap(char *banner
- 	int fd;
- 	void *p;
- 
--	printf("%s %s %s\n", MEMFD_STR,  banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str,  banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_mmap",
- 			    mfd_def_size,
-@@ -884,7 +886,7 @@ static void test_share_open(char *banner
- {
- 	int fd, fd2;
- 
--	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_open",
- 			    mfd_def_size,
-@@ -927,7 +929,7 @@ static void test_share_fork(char *banner
- 	int fd;
- 	pid_t pid;
- 
--	printf("%s %s %s\n", MEMFD_STR, banner, b_suffix);
-+	printf("%s %s %s\n", memfd_str, banner, b_suffix);
- 
- 	fd = mfd_assert_new("kern_memfd_share_fork",
- 			    mfd_def_size,
-@@ -963,7 +965,11 @@ int main(int argc, char **argv)
- 			}
- 
- 			hugetlbfs_test = 1;
-+			memfd_str = MEMFD_HUGE_STR;
- 			mfd_def_size = hpage_size * 2;
-+		} else {
-+			printf("Unknown option: %s\n", argv[1]);
-+			abort();
- 		}
+-	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
+-				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
+-	if (IS_ERR(file)) {
++	fd = anon_inode_getfd("[userfaultfd]", &userfaultfd_fops, ctx,
++			      O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
++	if (fd < 0) {
+ 		mmdrop(ctx->mm);
+ 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
  	}
- 
-_
+-out:
+-	return file;
+-}
+-
+-SYSCALL_DEFINE1(userfaultfd, int, flags)
+-{
+-	int fd, error;
+-	struct file *file;
+-
+-	error = get_unused_fd_flags(flags & UFFD_SHARED_FCNTL_FLAGS);
+-	if (error < 0)
+-		return error;
+-	fd = error;
+-
+-	file = userfaultfd_file_create(flags);
+-	if (IS_ERR(file)) {
+-		error = PTR_ERR(file);
+-		goto err_put_unused_fd;
+-	}
+-	fd_install(fd, file);
+-
+ 	return fd;
+-
+-err_put_unused_fd:
+-	put_unused_fd(fd);
