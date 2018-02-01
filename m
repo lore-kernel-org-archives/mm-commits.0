@@ -1,52 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [patch 077/119] mm: de-indent struct page
-Date: Wed, 31 Jan 2018 16:18:47 -0800
-Message-ID: <20180201001847.YnUDe4pX9%akpm@linux-foundation.org>
+Subject: [patch 076/119] mm: align struct page more aesthetically
+Date: Wed, 31 Jan 2018 16:18:44 -0800
+Message-ID: <20180201001844.ijJYAXej3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35502 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755806AbeBAASu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:18:50 -0500
+        with ESMTP id S1755806AbeBAASp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:18:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, cl@linux.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org
 
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm: de-indent struct page
+Subject: mm: align struct page more aesthetically
 
-I found the struct { union { struct { union { struct { } } } } }
-layout rather confusing.  Fortunately, there is an easier way to write
-this.  The innermost union is of four things which are the size of an
-int, so the ones which are used by slab/slob/slub can be pulled up
-two levels to be in the outermost union with 'counters'.  That leaves
-us with struct { union { struct { atomic_t; atomic_t; } } } which
-has the same layout, but is easier to read.
+Patch series "Restructure struct page", v2.
 
-Output from the current git version of pahole, diffed with -uw to ignore
-the whitespace changes from the indentation:
+This series does not attempt any grand restructuring.  Instead, it cures
+the worst of the indentitis, fixes the documentation and reduces the
+ifdeffery.  The only layout change is compound_dtor and compound_order are
+each reduced to one byte.
 
- 	};						/*    16     8 */
- 	union {
- 		long unsigned int  counters;		/*    24     8 */
--		struct {
--			union {
--				atomic_t _mapcount;	/*    24     4 */
- 				unsigned int active;	/*    24     4 */
- 				struct {
- 					unsigned int inuse:16; /*    24:16  4 */
-@@ -21,7 +18,8 @@
- 					unsigned int frozen:1; /*    24: 0  4 */
- 				};			/*    24     4 */
- 				int units;		/*    24     4 */
--			};				/*    24     4 */
-+		struct {
-+			atomic_t   _mapcount;		/*    24     4 */
- 			atomic_t   _refcount;		/*    28     4 */
- 		};					/*    24     8 */
- 	};						/*    24     8 */
 
-Link: http://lkml.kernel.org/r/20171220155552.15884-3-willy@infradead.org
+This patch (of 8):
+
+Instead of an ifdef block at the end of the struct, which needed its own
+comment, define _struct_page_alignment up at the top where it fits nicely
+with the existing comment.
+
+Link: http://lkml.kernel.org/r/20171220155552.15884-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -55,57 +38,40 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   38 +++++++++++++++++--------------------
- 1 file changed, 18 insertions(+), 20 deletions(-)
+ include/linux/mm_types.h |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-de-indent-struct-page include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-de-indent-struct-page
+diff -puN include/linux/mm_types.h~mm-align-struct-page-more-aesthetically include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-align-struct-page-more-aesthetically
 +++ a/include/linux/mm_types.h
-@@ -84,28 +84,26 @@ struct page {
- 		 */
- 		unsigned counters;
+@@ -39,6 +39,12 @@ struct hmm;
+  * allows the use of atomic double word operations on the flags/mapping
+  * and lru list pointers also.
+  */
++#ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
++#define _struct_page_alignment	__aligned(2 * sizeof(unsigned long))
++#else
++#define _struct_page_alignment
++#endif
++
+ struct page {
+ 	/* First double word block */
+ 	unsigned long flags;		/* Atomic flags, some possibly
+@@ -212,15 +218,7 @@ struct page {
+ #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
+ 	int _last_cpupid;
  #endif
--		struct {
-+		unsigned int active;		/* SLAB */
-+		struct {			/* SLUB */
-+			unsigned inuse:16;
-+			unsigned objects:15;
-+			unsigned frozen:1;
-+		};
-+		int units;			/* SLOB */
+-}
+-/*
+- * The struct page can be forced to be double word aligned so that atomic ops
+- * on double words work. The SLUB allocator can make use of such a feature.
+- */
+-#ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
+-	__aligned(2 * sizeof(unsigned long))
+-#endif
+-;
++} _struct_page_alignment;
  
--			union {
--				/*
--				 * Count of ptes mapped in mms, to show when
--				 * page is mapped & limit reverse map searches.
--				 *
--				 * Extra information about page type may be
--				 * stored here for pages that are never mapped,
--				 * in which case the value MUST BE <= -2.
--				 * See page-flags.h for more details.
--				 */
--				atomic_t _mapcount;
-+		struct {			/* Page cache */
-+			/*
-+			 * Count of ptes mapped in mms, to show when
-+			 * page is mapped & limit reverse map searches.
-+			 *
-+			 * Extra information about page type may be
-+			 * stored here for pages that are never mapped,
-+			 * in which case the value MUST BE <= -2.
-+			 * See page-flags.h for more details.
-+			 */
-+			atomic_t _mapcount;
- 
--				unsigned int active;		/* SLAB */
--				struct {			/* SLUB */
--					unsigned inuse:16;
--					unsigned objects:15;
--					unsigned frozen:1;
--				};
--				int units;			/* SLOB */
--			};
- 			/*
- 			 * Usage count, *USE WRAPPER FUNCTION* when manual
- 			 * accounting. See page_ref.h
+ #define PAGE_FRAG_CACHE_MAX_SIZE	__ALIGN_MASK(32768, ~PAGE_MASK)
+ #define PAGE_FRAG_CACHE_MAX_ORDER	get_order(PAGE_FRAG_CACHE_MAX_SIZE)
 _
