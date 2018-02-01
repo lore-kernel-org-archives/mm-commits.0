@@ -1,74 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-update-comment-describing-tlb_gather_mmu.patch
- removed from -mm tree
-Date: Thu, 01 Feb 2018 11:31:39 -0800
-Message-ID: <20180201193139.QKQelQtZh%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch removed
+ from -mm tree
+Date: Thu, 01 Feb 2018 11:31:52 -0800
+Message-ID: <20180201193152.siStuxAzd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57946 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58308 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753060AbeBATbk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:40 -0500
+        with ESMTP id S1753060AbeBATby (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
+To: aarcange@redhat.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rppt@linux.vnet.ibm.com, viro@zeniv.linux.org.UK, ying.huang@intel.com, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: mm: update comment describing tlb_gather_mmu
+     Subject: mm, userfaultfd, THP: avoid waiting when PMD under THP migration
 has been removed from the -mm tree.  Its filename was
-     mm-update-comment-describing-tlb_gather_mmu.patch
+     mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: mm: update comment describing tlb_gather_mmu
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, userfaultfd, THP: avoid waiting when PMD under THP migration
 
-The comment describes @fullmm argument, but the function has no such
-parameter.
+If THP migration is enabled, for a VMA handled by userfaultfd, consider
+the following situation,
 
-Update the comment to match the code and convert it to kernel-doc markup.
+do_page_fault()
+  __do_huge_pmd_anonymous_page()
+   handle_userfault()
+     userfault_msg()
+       /* a huge page is allocated and mapped at fault address */
+       /* the huge page is under migration, leaves migration entry
+          in page table */
+     userfaultfd_must_wait()
+       /* return true because !pmd_present() */
+     /* may wait in loop until fatal signal */
 
-Link: http://lkml.kernel.org/r/1512394531-2264-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+That is, it may be possible for userfaultfd_must_wait() encounters a PMD
+entry which is !pmd_none() && !pmd_present().  In the current
+implementation, we will wait for such PMD entries, which may cause
+unnecessary waiting, and potential soft lockup.
+
+This is fixed via avoiding to wait when !pmd_none() && !pmd_present(),
+only wait when pmd_none().
+
+This may be not a problem in practice, because userfaultfd_must_wait() is
+always called with mm->mmap_sem read-locked.  mremap() will write-lock
+mm->mmap_sem.  And UFFDIO_COPY doesn't support to copy THP mapping.  But
+the change introduced still makes the code more correct, and makes the PMD
+and PTE code more consistent.
+
+Link: http://lkml.kernel.org/r/20171207011752.3292-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.UK>
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-update-comment-describing-tlb_gather_mmu mm/memory.c
---- a/mm/memory.c~mm-update-comment-describing-tlb_gather_mmu
-+++ a/mm/memory.c
-@@ -400,10 +400,17 @@ void tlb_remove_table(struct mmu_gather
+diff -puN fs/userfaultfd.c~mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration fs/userfaultfd.c
+--- a/fs/userfaultfd.c~mm-userfaultfd-thp-avoid-waiting-when-pmd-under-thp-migration
++++ a/fs/userfaultfd.c
+@@ -294,10 +294,13 @@ static inline bool userfaultfd_must_wait
+ 	 * pmd_trans_unstable) of the pmd.
+ 	 */
+ 	_pmd = READ_ONCE(*pmd);
+-	if (!pmd_present(_pmd))
++	if (pmd_none(_pmd))
+ 		goto out;
  
- #endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+ 	ret = false;
++	if (!pmd_present(_pmd))
++		goto out;
++
+ 	if (pmd_trans_huge(_pmd))
+ 		goto out;
  
--/* tlb_gather_mmu
-- *	Called to initialize an (on-stack) mmu_gather structure for page-table
-- *	tear-down from @mm. The @fullmm argument is used when @mm is without
-- *	users and we're going to destroy the full address space (exit/execve).
-+/**
-+ * tlb_gather_mmu - initialize an mmu_gather structure for page-table tear-down
-+ * @tlb: the mmu_gather structure to initialize
-+ * @mm: the mm_struct of the target address space
-+ * @start: start of the region that will be removed from the page-table
-+ * @end: end of the region that will be removed from the page-table
-+ *
-+ * Called to initialize an (on-stack) mmu_gather structure for page-table
-+ * tear-down from @mm. The @start and @end are set to 0 and -1
-+ * respectively when @mm is without users and we're going to destroy
-+ * the full address space (exit/execve).
-  */
- void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
- 			unsigned long start, unsigned long end)
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-pids-introduce-find_get_task_by_vpid-helper.patch
-mm-docs-fixup-punctuation.patch
-mm-docs-fix-parameter-names-mismatch.patch
-mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors.patch
 
