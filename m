@@ -1,65 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- s390-mm-modify-pmdp_invalidate-to-return-old-value.patch removed from -mm
+ mips-use-generic_pmdp_establish-as-pmdp_establish.patch removed from -mm
  tree
-Date: Thu, 01 Feb 2018 11:32:21 -0800
-Message-ID: <20180201193221.1PzryISb8%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:32:15 -0800
+Message-ID: <20180201193215.HTGrN0IUj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58600 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753556AbeBATcW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:32:22 -0500
+        with ESMTP id S1753126AbeBATcS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:32:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, vbabka@suse.cz
+To: aarcange@redhat.com, david.daney@cavium.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org, ralf@linux-mips.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: s390/mm: modify pmdp_invalidate to return old value.
+     Subject: mips: use generic_pmdp_establish as pmdp_establish
 has been removed from the -mm tree.  Its filename was
-     s390-mm-modify-pmdp_invalidate-to-return-old-value.patch
+     mips-use-generic_pmdp_establish-as-pmdp_establish.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Subject: s390/mm: modify pmdp_invalidate to return old value.
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mips: use generic_pmdp_establish as pmdp_establish
 
-It's required to avoid losing dirty and accessed bits.
+MIPS doesn't support hardware dirty/accessed bits. 
+generic_pmdp_establish() is suitable in this case.
 
-Link: http://lkml.kernel.org/r/20171213105756.69879-8-kirill.shutemov@linux.intel.com
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Link: http://lkml.kernel.org/r/20171213105756.69879-6-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Daney <david.daney@cavium.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/pgtable.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/s390/include/asm/pgtable.h~s390-mm-modify-pmdp_invalidate-to-return-old-value arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~s390-mm-modify-pmdp_invalidate-to-return-old-value
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1505,12 +1505,12 @@ static inline pmd_t pmdp_huge_clear_flus
- }
+diff -puN arch/mips/include/asm/pgtable.h~mips-use-generic_pmdp_establish-as-pmdp_establish arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~mips-use-generic_pmdp_establish-as-pmdp_establish
++++ a/arch/mips/include/asm/pgtable.h
+@@ -534,6 +534,9 @@ static inline int io_remap_pfn_range(str
  
- #define __HAVE_ARCH_PMDP_INVALIDATE
--static inline void pmdp_invalidate(struct vm_area_struct *vma,
-+static inline pmd_t pmdp_invalidate(struct vm_area_struct *vma,
- 				   unsigned long addr, pmd_t *pmdp)
- {
- 	pmd_t pmd = __pmd(pmd_val(*pmdp) | _SEGMENT_ENTRY_INVALID);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
  
--	pmdp_xchg_direct(vma->vm_mm, addr, pmdp, pmd);
-+	return pmdp_xchg_direct(vma->vm_mm, addr, pmdp, pmd);
- }
++/* We don't have hardware dirty/accessed bits, generic_pmdp_establish is fine.*/
++#define pmdp_establish generic_pmdp_establish
++
+ #define has_transparent_hugepage has_transparent_hugepage
+ extern int has_transparent_hugepage(void);
  
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 
