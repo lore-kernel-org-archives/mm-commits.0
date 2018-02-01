@@ -1,290 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [patch 111/119] mm, hugetlb: further simplify hugetlb
- allocation API
-Date: Wed, 31 Jan 2018 16:20:56 -0800
-Message-ID: <20180201002056.XL8OI9agW%akpm@linux-foundation.org>
+Subject: [patch 114/119] mm: numa: do not trap faults on shared
+ data section pages.
+Date: Wed, 31 Jan 2018 16:21:07 -0800
+Message-ID: <20180201002107.m1em18v7f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36522 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAU6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:20:58 -0500
+        with ESMTP id S1754559AbeBAAVJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ar@linux.vnet.ibm.com, dan.carpenter@oracle.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz, zi.yan@cs.rutgers.edu
+To: aarcange@redhat.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, gregkh@linuxfoundation.org, haakon.bugge@oracle.com, henry.willard@oracle.com, jglisse@redhat.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, mgorman@suse.de, mm-commits@vger.kernel.org, pombredanne@nexb.com, steven.sistare@oracle.com, torvalds@linux-foundation.org, zi.yan@cs.rutgers.edu
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: further simplify hugetlb allocation API
+From: Henry Willard <henry.willard@oracle.com>
+Subject: mm: numa: do not trap faults on shared data section pages.
 
-Hugetlb allocator has several layer of allocation functions depending and
-the purpose of the allocation.  There are two allocators depending on
-whether the page can be allocated from the page allocator or we need a
-contiguous allocator.  This is currently opencoded in
-alloc_fresh_huge_page which is the only path that might allocate giga
-pages which require the later allocator.  Create alloc_fresh_huge_page
-which hides this implementation detail and use it in all callers which
-hardcoded the buddy allocator path (__hugetlb_alloc_buddy_huge_page). 
-This shouldn't introduce any funtional change because both migration and
-surplus allocators exlude giga pages explicitly.
+Workloads consisting of a large number of processes running the same
+program with a very large shared data segment may experience performance
+problems when numa balancing attempts to migrate the shared cow pages. 
+This manifests itself with many processes or tasks in TASK_UNINTERRUPTIBLE
+state waiting for the shared pages to be migrated.
 
-While we are at it let's do some renaming.  The current scheme is not
-consistent and overly painfull to read and understand.  Get rid of prefix
-underscores from most functions.  There is no real reason to make names
-longer.
+The program listed below simulates the conditions with these results when
+run with 288 processes on a 144 core/8 socket machine.
 
-* alloc_fresh_huge_page is the new layer to abstract underlying
-  allocator
-* __hugetlb_alloc_buddy_huge_page becomes shorter and neater
-  alloc_buddy_huge_page.
-* Former alloc_fresh_huge_page becomes alloc_pool_huge_page because we put
-  the new page directly to the pool
-* alloc_surplus_huge_page can drop the opencoded prep_new_huge_page code
-  as it uses alloc_fresh_huge_page now
-* others lose their excessive prefix underscores to make names shorter
+Average throughput 	Average throughput     Average throughput
+with numa_balancing=0	with numa_balancing=1  with numa_balancing=1
+     			without the patch      with the patch
+---------------------	---------------------  ---------------------
+2118782			2021534		       2107979
 
-[dan.carpenter@oracle.com: fix double unlock bug in alloc_surplus_huge_page()]
-  Link: http://lkml.kernel.org/r/20180109200559.g3iz5kvbdrz7yydp@mwanda
-Link: http://lkml.kernel.org/r/20180103093213.26329-6-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Reale <ar@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Complex production environments show less variability and fewer poorly
+performing outliers accompanied with a smaller number of processes waiting
+on NUMA page migration with this patch applied. In some cases, %iowait drops
+from 16%-26% to 0.
+
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+ */
+#include <sys/time.h>
+#include <stdio.h>
+#include <wait.h>
+#include <sys/mman.h>
+
+int a[1000000] = {13};
+
+int  main(int argc, const char **argv)
+{
+	int n = 0;
+	int i;
+	pid_t pid;
+	int stat;
+	int *count_array;
+	int cpu_count = 288;
+	long total = 0;
+
+	struct timeval t1, t2 = {(argc > 1 ? atoi(argv[1]) : 10), 0};
+
+	if (argc > 2)
+		cpu_count = atoi(argv[2]);
+
+	count_array = mmap(NULL, cpu_count * sizeof(int),
+			   (PROT_READ|PROT_WRITE),
+			   (MAP_SHARED|MAP_ANONYMOUS), 0, 0);
+
+	if (count_array == MAP_FAILED) {
+		perror("mmap:");
+		return 0;
+	}
+
+	for (i = 0; i < cpu_count; ++i) {
+		pid = fork();
+		if (pid <= 0)
+			break;
+		if ((i & 0xf) == 0)
+			usleep(2);
+	}
+
+	if (pid != 0) {
+		if (i == 0) {
+			perror("fork:");
+			return 0;
+		}
+
+		for (;;) {
+			pid = wait(&stat);
+			if (pid < 0)
+				break;
+		}
+
+		for (i = 0; i < cpu_count; ++i)
+			total += count_array[i];
+
+		printf("Total %ld\n", total);
+		munmap(count_array, cpu_count * sizeof(int));
+		return 0;
+	}
+
+	gettimeofday(&t1, 0);
+	timeradd(&t1, &t2, &t1);
+	while (timercmp(&t2, &t1, <)) {
+		int b = 0;
+		int j;
+
+		for (j = 0; j < 1000000; j++)
+			b += a[j];
+		gettimeofday(&t2, 0);
+		n++;
+	}
+	count_array[i] = n;
+	return 0;
+}
+
+This patch changes change_pte_range() to skip shared copy-on-write pages
+when called from change_prot_numa().
+
+NOTE: change_prot_numa() is nominally called from task_numa_work() and
+queue_pages_test_walk().  task_numa_work() is the auto NUMA balancing
+path, and queue_pages_test_walk() is part of explicit NUMA policy
+management.  However, queue_pages_test_walk() only calls
+change_prot_numa() when MPOL_MF_LAZY is specified and currently that is
+not allowed, so change_prot_numa() is only called from auto NUMA
+balancing.
+
+In the case of explicit NUMA policy management, shared pages are not
+migrated unless MPOL_MF_MOVE_ALL is specified, and MPOL_MF_MOVE_ALL
+depends on CAP_SYS_NICE.  Currently, there is no way to pass information
+about MPOL_MF_MOVE_ALL to change_pte_range.  This will have to be fixed if
+MPOL_MF_LAZY is enabled and MPOL_MF_MOVE_ALL is to be honored in lazy
+migration mode.
+
+task_numa_work() skips the read-only VMAs of programs and shared
+libraries.
+
+Link: http://lkml.kernel.org/r/1516751617-7369-1-git-send-email-henry.willard@oracle.com
+Signed-off-by: Henry Willard <henry.willard@oracle.com>
+Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
 Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   80 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 43 insertions(+), 37 deletions(-)
+ mm/mprotect.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-further-simplify-hugetlb-allocation-api mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-further-simplify-hugetlb-allocation-api
-+++ a/mm/hugetlb.c
-@@ -1378,7 +1378,7 @@ pgoff_t __basepage_index(struct page *pa
- 	return (index << compound_order(page_head)) + compound_idx;
- }
+diff -puN mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-do-not-trap-faults-on-shared-data-section-pages
++++ a/mm/mprotect.c
+@@ -84,6 +84,11 @@ static unsigned long change_pte_range(st
+ 				if (!page || PageKsm(page))
+ 					continue;
  
--static struct page *__hugetlb_alloc_buddy_huge_page(struct hstate *h,
-+static struct page *alloc_buddy_huge_page(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask)
- {
- 	int order = huge_page_order(h);
-@@ -1397,33 +1397,48 @@ static struct page *__hugetlb_alloc_budd
- }
- 
- /*
-+ * Common helper to allocate a fresh hugetlb page. All specific allocators
-+ * should use this function to get new hugetlb pages
-+ */
-+static struct page *alloc_fresh_huge_page(struct hstate *h,
-+		gfp_t gfp_mask, int nid, nodemask_t *nmask)
-+{
-+	struct page *page;
++				/* Also skip shared copy-on-write pages */
++				if (is_cow_mapping(vma->vm_flags) &&
++				    page_mapcount(page) != 1)
++					continue;
 +
-+	if (hstate_is_gigantic(h))
-+		page = alloc_gigantic_page(h, gfp_mask, nid, nmask);
-+	else
-+		page = alloc_buddy_huge_page(h, gfp_mask,
-+				nid, nmask);
-+	if (!page)
-+		return NULL;
-+
-+	if (hstate_is_gigantic(h))
-+		prep_compound_gigantic_page(page, huge_page_order(h));
-+	prep_new_huge_page(h, page, page_to_nid(page));
-+
-+	return page;
-+}
-+
-+/*
-  * Allocates a fresh page to the hugetlb allocator pool in the node interleaved
-  * manner.
-  */
--static int alloc_fresh_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
-+static int alloc_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
- {
- 	struct page *page;
- 	int nr_nodes, node;
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		if (hstate_is_gigantic(h))
--			page = alloc_gigantic_page(h, gfp_mask,
--					node, nodes_allowed);
--		else
--			page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask,
--					node, nodes_allowed);
-+		page = alloc_fresh_huge_page(h, gfp_mask, node, nodes_allowed);
- 		if (page)
- 			break;
--
- 	}
- 
- 	if (!page)
- 		return 0;
- 
--	if (hstate_is_gigantic(h))
--		prep_compound_gigantic_page(page, huge_page_order(h));
--	prep_new_huge_page(h, page, page_to_nid(page));
- 	put_page(page); /* free it into the hugepage allocator */
- 
- 	return 1;
-@@ -1537,7 +1552,7 @@ int dissolve_free_huge_pages(unsigned lo
- /*
-  * Allocates a fresh surplus page from the page allocator.
-  */
--static struct page *__alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
-+static struct page *alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nmask)
- {
- 	struct page *page = NULL;
-@@ -1550,9 +1565,9 @@ static struct page *__alloc_surplus_huge
- 		goto out_unlock;
- 	spin_unlock(&hugetlb_lock);
- 
--	page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask, nid, nmask);
-+	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask);
- 	if (!page)
--		goto out_unlock;
-+		return NULL;
- 
- 	spin_lock(&hugetlb_lock);
- 	/*
-@@ -1567,16 +1582,8 @@ static struct page *__alloc_surplus_huge
- 		put_page(page);
- 		page = NULL;
- 	} else {
--		int r_nid;
--
- 		h->surplus_huge_pages++;
--		h->nr_huge_pages++;
--		INIT_LIST_HEAD(&page->lru);
--		r_nid = page_to_nid(page);
--		set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
--		set_hugetlb_cgroup(page, NULL);
--		h->nr_huge_pages_node[r_nid]++;
--		h->surplus_huge_pages_node[r_nid]++;
-+		h->nr_huge_pages_node[page_to_nid(page)]++;
- 	}
- 
- out_unlock:
-@@ -1585,7 +1592,7 @@ out_unlock:
- 	return page;
- }
- 
--static struct page *__alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
-+static struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nmask)
- {
- 	struct page *page;
-@@ -1593,7 +1600,7 @@ static struct page *__alloc_migrate_huge
- 	if (hstate_is_gigantic(h))
- 		return NULL;
- 
--	page = __hugetlb_alloc_buddy_huge_page(h, gfp_mask, nid, nmask);
-+	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask);
- 	if (!page)
- 		return NULL;
- 
-@@ -1601,7 +1608,6 @@ static struct page *__alloc_migrate_huge
- 	 * We do not account these pages as surplus because they are only
- 	 * temporary and will be released properly on the last reference
- 	 */
--	prep_new_huge_page(h, page, page_to_nid(page));
- 	SetPageHugeTemporary(page);
- 
- 	return page;
-@@ -1611,7 +1617,7 @@ static struct page *__alloc_migrate_huge
-  * Use the VMA's mpolicy to allocate a huge page from the buddy.
-  */
- static
--struct page *__alloc_buddy_huge_page_with_mpol(struct hstate *h,
-+struct page *alloc_buddy_huge_page_with_mpol(struct hstate *h,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
- 	struct page *page;
-@@ -1621,7 +1627,7 @@ struct page *__alloc_buddy_huge_page_wit
- 	nodemask_t *nodemask;
- 
- 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
--	page = __alloc_surplus_huge_page(h, gfp_mask, nid, nodemask);
-+	page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask);
- 	mpol_cond_put(mpol);
- 
- 	return page;
-@@ -1642,7 +1648,7 @@ struct page *alloc_huge_page_node(struct
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
--		page = __alloc_migrate_huge_page(h, gfp_mask, nid, NULL);
-+		page = alloc_migrate_huge_page(h, gfp_mask, nid, NULL);
- 
- 	return page;
- }
-@@ -1665,7 +1671,7 @@ struct page *alloc_huge_page_nodemask(st
- 	}
- 	spin_unlock(&hugetlb_lock);
- 
--	return __alloc_migrate_huge_page(h, gfp_mask, preferred_nid, nmask);
-+	return alloc_migrate_huge_page(h, gfp_mask, preferred_nid, nmask);
- }
- 
- /*
-@@ -1693,7 +1699,7 @@ static int gather_surplus_pages(struct h
- retry:
- 	spin_unlock(&hugetlb_lock);
- 	for (i = 0; i < needed; i++) {
--		page = __alloc_surplus_huge_page(h, htlb_alloc_mask(h),
-+		page = alloc_surplus_huge_page(h, htlb_alloc_mask(h),
- 				NUMA_NO_NODE, NULL);
- 		if (!page) {
- 			alloc_ok = false;
-@@ -2030,7 +2036,7 @@ struct page *alloc_huge_page(struct vm_a
- 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
- 	if (!page) {
- 		spin_unlock(&hugetlb_lock);
--		page = __alloc_buddy_huge_page_with_mpol(h, vma, addr);
-+		page = alloc_buddy_huge_page_with_mpol(h, vma, addr);
- 		if (!page)
- 			goto out_uncharge_cgroup;
- 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
-@@ -2170,7 +2176,7 @@ static void __init hugetlb_hstate_alloc_
- 		if (hstate_is_gigantic(h)) {
- 			if (!alloc_bootmem_huge_page(h))
- 				break;
--		} else if (!alloc_fresh_huge_page(h,
-+		} else if (!alloc_pool_huge_page(h,
- 					 &node_states[N_MEMORY]))
- 			break;
- 		cond_resched();
-@@ -2290,7 +2296,7 @@ static unsigned long set_max_huge_pages(
- 	 * First take pages out of surplus state.  Then make up the
- 	 * remaining difference by allocating fresh huge pages.
- 	 *
--	 * We might race with __alloc_surplus_huge_page() here and be unable
-+	 * We might race with alloc_surplus_huge_page() here and be unable
- 	 * to convert a surplus huge page to a normal huge page. That is
- 	 * not critical, though, it just means the overall size of the
- 	 * pool might be one hugepage larger than it needs to be, but
-@@ -2313,7 +2319,7 @@ static unsigned long set_max_huge_pages(
- 		/* yield cpu to avoid soft lockup */
- 		cond_resched();
- 
--		ret = alloc_fresh_huge_page(h, nodes_allowed);
-+		ret = alloc_pool_huge_page(h, nodes_allowed);
- 		spin_lock(&hugetlb_lock);
- 		if (!ret)
- 			goto out;
-@@ -2333,7 +2339,7 @@ static unsigned long set_max_huge_pages(
- 	 * By placing pages into the surplus state independent of the
- 	 * overcommit value, we are allowing the surplus pool size to
- 	 * exceed overcommit. There are few sane options here. Since
--	 * __alloc_surplus_huge_page() is checking the global counter,
-+	 * alloc_surplus_huge_page() is checking the global counter,
- 	 * though, we'll note that we're not allowed to exceed surplus
- 	 * and won't grow the pool anywhere else. Not until one of the
- 	 * sysctls are changed, or the surplus pages go out of use.
+ 				/* Avoid TLB flush if possible */
+ 				if (pte_protnone(oldpte))
+ 					continue;
 _
