@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/119] fs/dax.c: release PMD lock even when there
- is no PMD support in DAX
-Date: Wed, 31 Jan 2018 16:14:04 -0800
-Message-ID: <20180201001404.s7Kg3zjrh%akpm@linux-foundation.org>
+Subject: [patch 004/119] scripts/tags.sh: change
+ find_other_sources() for include directories
+Date: Wed, 31 Jan 2018 16:14:14 -0800
+Message-ID: <20180201001414.8bXbX66iX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33500 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754079AbeBAAOM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:12 -0500
+        with ESMTP id S1754248AbeBAAOP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jschoenh@amazon.de, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arend.vanspriel@broadcom.com, mm-commits@vger.kernel.org, robert.jarzmik@free.fr, torvalds@linux-foundation.org
 
-From: Jan H. Schönherr <jschoenh@amazon.de>
-Subject: fs/dax.c: release PMD lock even when there is no PMD support in DAX
+From: Arend van Spriel <arend.vanspriel@broadcom.com>
+Subject: scripts/tags.sh: change find_other_sources() for include directories
 
-follow_pte_pmd() can theoretically return after having acquired a PMD
-lock, even when DAX was not compiled with CONFIG_FS_DAX_PMD.
+The current find done in find_other_sources() excludes directories in the
+kernel tree that are named 'include', eg.:
 
-Release the PMD lock unconditionally.
+	./security/apparmor/include
+	./security/selinux/include
+	./drivers/net/wireless/broadcom/brcm80211/include
+	./drivers/gpu/drm/amd/acp/include
+	./drivers/gpu/drm/amd/display/include
+	./drivers/gpu/drm/amd/include
+	./drivers/gpu/drm/nouveau/include
 
-Link: http://lkml.kernel.org/r/20180118133839.20587-1-jschoenh@amazon.de
-Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
-Signed-off-by: Jan H. Schönherr <jschoenh@amazon.de>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+This changes the find command in find_other_sources() to include those
+using the -path option.
+
+Link: http://lkml.kernel.org/r/1513335768-7852-1-git-send-email-arend.vanspriel@broadcom.com
+Signed-off-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    2 +-
+ scripts/tags.sh |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dax.c~dax-release-pmd-lock-even-when-there-is-no-pmd-support-in-dax fs/dax.c
---- a/fs/dax.c~dax-release-pmd-lock-even-when-there-is-no-pmd-support-in-dax
-+++ a/fs/dax.c
-@@ -636,8 +636,8 @@ static void dax_mapping_entry_mkclean(st
- 			pmd = pmd_mkclean(pmd);
- 			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
- unlock_pmd:
--			spin_unlock(ptl);
- #endif
-+			spin_unlock(ptl);
- 		} else {
- 			if (pfn != pte_pfn(*ptep))
- 				goto unlock_pte;
+diff -puN scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tags-change-find_other_sources-for-include-folders
++++ a/scripts/tags.sh
+@@ -77,7 +77,7 @@ find_include_sources()
+ find_other_sources()
+ {
+ 	find ${tree}* $ignore \
+-	     \( -name include -o -name arch -o -name '.tmp_*' \) -prune -o \
++	     \( -path ${tree}include -o -path ${tree}arch -o -name '.tmp_*' \) -prune -o \
+ 	       -name "$1" -not -type l -print;
+ }
+ 
 _
