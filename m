@@ -1,41 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/119] fs/ocfs2/dlm/dlmmaster.c: clean up dead
- code
-Date: Wed, 31 Jan 2018 16:14:21 -0800
-Message-ID: <20180201001421.c57ViY-wm%akpm@linux-foundation.org>
+Subject: [patch 001/119] fs/dax.c: release PMD lock even when there
+ is no PMD support in DAX
+Date: Wed, 31 Jan 2018 16:14:04 -0800
+Message-ID: <20180201001404.s7Kg3zjrh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754277AbeBAAOX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:23 -0500
+        with ESMTP id S1754079AbeBAAOM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:14:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, jschoenh@amazon.de, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org
 
-From: Changwei Ge <ge.changwei@h3c.com>
-Subject: fs/ocfs2/dlm/dlmmaster.c: clean up dead code
+From: Jan H. Schönherr <jschoenh@amazon.de>
+Subject: fs/dax.c: release PMD lock even when there is no PMD support in DAX
 
-This code has been commented out for 12 years.  Remove it.
+follow_pte_pmd() can theoretically return after having acquired a PMD
+lock, even when DAX was not compiled with CONFIG_FS_DAX_PMD.
 
-Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373CED7EF9E@H3CMLB14-EX.srv.huawei-3com.com
-Signed-off-by: Changwei Ge <ge.changwei@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <ge.changwei@h3c.com>
-Cc: alex chen <alex.chen@huawei.com>
+Release the PMD lock unconditionally.
+
+Link: http://lkml.kernel.org/r/20180118133839.20587-1-jschoenh@amazon.de
+Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
+Signed-off-by: Jan H. Schönherr <jschoenh@amazon.de>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-dead-code-up fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-dead-code-up
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1122,13 +1122,6 @@ recheck:
- 	/* sleep if we haven't finished voting yet */
- 	if (sleep) {
- 		unsigned long timeo = msecs_to_jiffies(DLM_MASTERY_TIMEOUT_MS);
+diff -puN fs/dax.c~dax-release-pmd-lock-even-when-there-is-no-pmd-support-in-dax fs/dax.c
+--- a/fs/dax.c~dax-release-pmd-lock-even-when-there-is-no-pmd-support-in-dax
++++ a/fs/dax.c
+@@ -636,8 +636,8 @@ static void dax_mapping_entry_mkclean(st
+ 			pmd = pmd_mkclean(pmd);
+ 			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+ unlock_pmd:
+-			spin_unlock(ptl);
+ #endif
++			spin_unlock(ptl);
+ 		} else {
+ 			if (pfn != pte_pfn(*ptep))
+ 				goto unlock_pte;
+_
