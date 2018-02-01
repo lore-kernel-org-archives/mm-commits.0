@@ -1,125 +1,150 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
+ mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
  removed from -mm tree
-Date: Thu, 01 Feb 2018 11:32:42 -0800
-Message-ID: <20180201193242.l7k47iPPB%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:32:34 -0800
+Message-ID: <20180201193234.eXw0pLebO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58726 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754563AbeBATcn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:32:43 -0500
+        with ESMTP id S1754563AbeBATcg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:32:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, arnd@arndb.de, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, yang.s@alibaba-inc.com
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, davem@davemloft.net, david.daney@cavium.com, hpa@zytor.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, nitin.m.gupta@oracle.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, vbabka@suse.cz, vgupta@synopsys.com
 
 
 The patch titled
-     Subject: mm: thp: use down_read_trylock() in khugepaged to avoid long block
+     Subject: mm: use updated pmdp_invalidate() interface to track dirty/accessed bits
 has been removed from the -mm tree.  Its filename was
-     mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block.patch
+     mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Yang Shi" <yang.s@alibaba-inc.com>
-Subject: mm: thp: use down_read_trylock() in khugepaged to avoid long block
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: use updated pmdp_invalidate() interface to track dirty/accessed bits
 
-In the current design, khugepaged needs to acquire mmap_sem before
-scanning an mm.  But in some corner cases, khugepaged may scan a process
-which is modifying its memory mapping, so khugepaged blocks in
-uninterruptible state.  But the process might hold the mmap_sem for a long
-time when modifying a huge memory space and it may trigger the below
-khugepaged hung issue:
+Use the modifed pmdp_invalidate() that returns the previous value of pmd
+to transfer dirty and accessed bits.
 
-INFO: task khugepaged:270 blocked for more than 120 seconds.
-Tainted: G E 4.9.65-006.ali3000.alios7.x86_64 #1
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-khugepaged D 0 270 2 0x00000000 
-ffff883f3deae4c0 0000000000000000 ffff883f610596c0 ffff883f7d359440
-ffff883f63818000 ffffc90019adfc78 ffffffff817079a5 d67e5aa8c1860a64
-0000000000000246 ffff883f7d359440 ffffc90019adfc88 ffff883f610596c0
-Call Trace:
-[<ffffffff817079a5>] ? __schedule+0x235/0x6e0
-[<ffffffff81707e86>] schedule+0x36/0x80
-[<ffffffff8170a970>] rwsem_down_read_failed+0xf0/0x150
-[<ffffffff81384998>] call_rwsem_down_read_failed+0x18/0x30
-[<ffffffff8170a1c0>] down_read+0x20/0x40
-[<ffffffff81226836>] khugepaged+0x476/0x11d0
-[<ffffffff810c9d0e>] ? idle_balance+0x1ce/0x300
-[<ffffffff810d0850>] ? prepare_to_wait_event+0x100/0x100
-[<ffffffff812263c0>] ? collapse_shmem+0xbf0/0xbf0
-[<ffffffff810a8d46>] kthread+0xe6/0x100
-[<ffffffff810a8c60>] ? kthread_park+0x60/0x60
-[<ffffffff8170cd15>] ret_from_fork+0x25/0x30
-
-So it sounds pointless to just block khugepaged waiting for the semaphore
-so replace down_read() with down_read_trylock() to move to scan the next
-mm quickly instead of just blocking on the semaphore so that other
-processes can get more chances to install THP.  Then khugepaged can come
-back to scan the skipped mm when it has finished the current round
-full_scan.
-
-And it appears that the change can improve khugepaged efficiency a little
-bit.
-
-Below is the test result when running LTP on a 24 cores 4GB memory 2 nodes
-NUMA VM:
-
-				pristine	 w/ trylock
-full_scan                         197               187
-pages_collapsed                   21                26
-thp_fault_alloc                   40818             44466
-thp_fault_fallback                18413             16679
-thp_collapse_alloc                21                150
-thp_collapse_alloc_failed         14                16
-thp_file_alloc                    369               369
-
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: tweak comment]
-[arnd@arndb.de: avoid uninitialized variable use]
-  Link: http://lkml.kernel.org/r/20171215125129.2948634-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/1513281203-54878-1-git-send-email-yang.s@alibaba-inc.com
-Signed-off-by: Yang Shi <yang.s@alibaba-inc.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20171213105756.69879-12-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Daney <david.daney@cavium.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |    8 ++++----
+ mm/huge_memory.c   |   29 ++++++++++++-----------------
+ 2 files changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-use-down_read_trylock-in-khugepaged-to-avoid-long-block
-+++ a/mm/khugepaged.c
-@@ -1673,10 +1673,14 @@ static unsigned int khugepaged_scan_mm_s
- 	spin_unlock(&khugepaged_mm_lock);
+diff -puN fs/proc/task_mmu.c~mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits
++++ a/fs/proc/task_mmu.c
+@@ -982,14 +982,14 @@ static inline void clear_soft_dirty(stru
+ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmdp)
+ {
+-	pmd_t pmd = *pmdp;
++	pmd_t old, pmd = *pmdp;
  
- 	mm = mm_slot->mm;
--	down_read(&mm->mmap_sem);
--	if (unlikely(khugepaged_test_exit(mm)))
--		vma = NULL;
--	else
+ 	if (pmd_present(pmd)) {
+ 		/* See comment in change_huge_pmd() */
+-		pmdp_invalidate(vma, addr, pmdp);
+-		if (pmd_dirty(*pmdp))
++		old = pmdp_invalidate(vma, addr, pmdp);
++		if (pmd_dirty(old))
+ 			pmd = pmd_mkdirty(pmd);
+-		if (pmd_young(*pmdp))
++		if (pmd_young(old))
+ 			pmd = pmd_mkyoung(pmd);
+ 
+ 		pmd = pmd_wrprotect(pmd);
+diff -puN mm/huge_memory.c~mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-use-updated-pmdp_invalidate-interface-to-track-dirty-accessed-bits
++++ a/mm/huge_memory.c
+@@ -1910,17 +1910,7 @@ int change_huge_pmd(struct vm_area_struc
+ 	 * pmdp_invalidate() is required to make sure we don't miss
+ 	 * dirty/young flags set by hardware.
+ 	 */
+-	entry = *pmd;
+-	pmdp_invalidate(vma, addr, pmd);
+-
+-	/*
+-	 * Recover dirty/young flags.  It relies on pmdp_invalidate to not
+-	 * corrupt them.
+-	 */
+-	if (pmd_dirty(*pmd))
+-		entry = pmd_mkdirty(entry);
+-	if (pmd_young(*pmd))
+-		entry = pmd_mkyoung(entry);
++	entry = pmdp_invalidate(vma, addr, pmd);
+ 
+ 	entry = pmd_modify(entry, newprot);
+ 	if (preserve_write)
+@@ -2073,8 +2063,8 @@ static void __split_huge_pmd_locked(stru
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct page *page;
+ 	pgtable_t pgtable;
+-	pmd_t _pmd;
+-	bool young, write, dirty, soft_dirty, pmd_migration = false;
++	pmd_t old, _pmd;
++	bool young, write, soft_dirty, pmd_migration = false;
+ 	unsigned long addr;
+ 	int i;
+ 
+@@ -2130,7 +2120,6 @@ static void __split_huge_pmd_locked(stru
+ 	page_ref_add(page, HPAGE_PMD_NR - 1);
+ 	write = pmd_write(*pmd);
+ 	young = pmd_young(*pmd);
+-	dirty = pmd_dirty(*pmd);
+ 	soft_dirty = pmd_soft_dirty(*pmd);
+ 
+ 	pmdp_huge_split_prepare(vma, haddr, pmd);
+@@ -2160,8 +2149,6 @@ static void __split_huge_pmd_locked(stru
+ 			if (soft_dirty)
+ 				entry = pte_mksoft_dirty(entry);
+ 		}
+-		if (dirty)
+-			SetPageDirty(page + i);
+ 		pte = pte_offset_map(&_pmd, addr);
+ 		BUG_ON(!pte_none(*pte));
+ 		set_pte_at(mm, addr, pte, entry);
+@@ -2209,7 +2196,15 @@ static void __split_huge_pmd_locked(stru
+ 	 * for this pmd), then we flush the SMP TLB and finally we write the
+ 	 * non-huge version of the pmd entry with pmd_populate.
+ 	 */
+-	pmdp_invalidate(vma, haddr, pmd);
++	old = pmdp_invalidate(vma, haddr, pmd);
++
 +	/*
-+	 * Don't wait for semaphore (to avoid long wait times).  Just move to
-+	 * the next mm on the list.
++	 * Transfer dirty bit using value returned by pmd_invalidate() to be
++	 * sure we don't race with CPU that can set the bit under us.
 +	 */
-+	vma = NULL;
-+	if (unlikely(!down_read_trylock(&mm->mmap_sem)))
-+		goto breakouterloop_mmap_sem;
-+	if (likely(!khugepaged_test_exit(mm)))
- 		vma = find_vma(mm, khugepaged_scan.address);
++	if (pmd_dirty(old))
++		SetPageDirty(page);
++
+ 	pmd_populate(mm, pmd, pgtable);
  
- 	progress++;
+ 	if (freeze) {
 _
 
-Patches currently in -mm which might be from yang.s@alibaba-inc.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 
