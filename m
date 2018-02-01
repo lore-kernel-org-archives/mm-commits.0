@@ -1,271 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 032/119] zswap: same-filled pages handling
-Date: Wed, 31 Jan 2018 16:15:59 -0800
-Message-ID: <20180201001559.PDcCrsLyf%akpm@linux-foundation.org>
+Subject: [patch 033/119] mm: relax deferred struct page
+ requirements
+Date: Wed, 31 Jan 2018 16:16:02 -0800
+Message-ID: <20180201001602.XbYZ2t8Lt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754449AbeBAAQA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:16:00 -0500
+        with ESMTP id S1754449AbeBAAQF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:16:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, akpm@linux-foundation.org, ddstreet@ieee.org, dinakar.p@samsung.com, juhunkim@samsung.com, mm-commits@vger.kernel.org, nefelim4ag@gmail.com, penberg@kernel.org, rajib.basu@samsung.com, sharan.allur@samsung.com, sjenning@redhat.com, srividya.dr@samsung.com, torvalds@linux-foundation.org, willy@infradead.org
+To: akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, benh@kernel.crashing.org, daniel.m.jordan@oracle.com, heiko.carstens@de.ibm.com, khalid.aziz@oracle.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, pasha.tatashin@oracle.com, paulus@samba.org, schwidefsky@de.ibm.com, steven.sistare@oracle.com, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Srividya Desireddy <srividya.dr@samsung.com>
-Subject: zswap: same-filled pages handling
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm: relax deferred struct page requirements
 
-Zswap is a cache which compresses the pages that are being swapped out and
-stores them into a dynamically allocated RAM-based memory pool. 
-Experiments have shown that around 10-20% of pages stored in zswap are
-same-filled pages (i.e.  contents of the page are all same), but these
-pages are handled as normal pages by compressing and allocating memory in
-the pool.
+There is no need to have ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT, as all
+the page initialization code is in common code.
 
-This patch adds a check in zswap_frontswap_store() to identify same-filled
-page before compression of the page.  If the page is a same-filled page,
-set zswap_entry.length to zero, save the same-filled value and skip the
-compression of the page and alloction of memory in zpool.  In
-zswap_frontswap_load(), check if value of zswap_entry.length is zero
-corresponding to the page to be loaded.  If zswap_entry.length is zero,
-fill the page with same-filled value.  This saves the decompression time
-during load.
+Also, there is no need to depend on MEMORY_HOTPLUG, as initialization code
+does not really use hotplug memory functionality.  So, we can remove this
+requirement as well.
 
-On a ARM Quad Core 32-bit device with 1.5GB RAM by launching and
-relaunching different applications, out of ~64000 pages stored in
-zswap, ~11000 pages were same-value filled pages (including zero-filled
-pages) and ~9000 pages were zero-filled pages.
+This patch allows to use deferred struct page initialization on all
+platforms with memblock allocator.
 
-An average of 17% of pages(including zero-filled pages) in zswap are
-same-value filled pages and 14% pages are zero-filled pages.
-An average of 3% of pages are same-filled non-zero pages.
+Tested on x86, arm64, and sparc.  Also, verified that code compiles on PPC
+with CONFIG_MEMORY_HOTPLUG disabled.
 
-The below table shows the execution time profiling with the patch.
-
-                          Baseline    With patch  % Improvement
------------------------------------------------------------------
-*Zswap Store Time           26.5ms       18ms          32%
- (of same value pages)
-*Zswap Load Time
- (of same value pages)      25.5ms       13ms          49%
------------------------------------------------------------------
-
-On Ubuntu PC with 2GB RAM, while executing kernel build and other test
-scripts and running multimedia applications, out of 360000 pages
-stored in zswap 78000(~22%) of pages were found to be same-value filled
-pages (including zero-filled pages) and 64000(~17%) are zero-filled
-pages. So an average of %5 of pages are same-filled non-zero pages.
-
-The below table shows the execution time profiling with the patch.
-
-                          Baseline    With patch  % Improvement
------------------------------------------------------------------
-*Zswap Store Time           91ms        74ms           19%
- (of same value pages)
-*Zswap Load Time            50ms        7.5ms          85%
- (of same value pages)
------------------------------------------------------------------
-
-*The execution times may vary with test device used.
-
-Dan said:
-
-: I did test this patch out this week, and I added some instrumentation to
-: check the performance impact, and tested with a small program to try to
-: check the best and worst cases.
-: 
-: When doing a lot of swap where all (or almost all) pages are same-value, I
-: found this patch does save both time and space, significantly.  The exact
-: improvement in time and space depends on which compressor is being used,
-: but roughly agrees with the numbers you listed.
-: 
-: In the worst case situation, where all (or almost all) pages have the
-: same-value *except* the final long (meaning, zswap will check each long on
-: the entire page but then still have to pass the page to the compressor),
-: the same-value check is around 10-15% of the total time spent in
-: zswap_frontswap_store().  That's a not-insignificant amount of time, but
-: it's not huge.  Considering that most systems will probably be swapping
-: pages that aren't similar to the worst case (although I don't have any
-: data to know that), I'd say the improvement is worth the possible
-: worst-case performance impact.
-
-[srividya.dr@samsung.com: add memset_l instead of for loop]
-Link: http://lkml.kernel.org/r/20171018104832epcms5p1b2232e2236258de3d03d1344dde9fce0@epcms5p1
-Signed-off-by: Srividya Desireddy <srividya.dr@samsung.com>
-Acked-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Dinakar Reddy Pathireddy <dinakar.p@samsung.com>
-Cc: SHARAN ALLUR <sharan.allur@samsung.com>
-Cc: RAJIB BASU <rajib.basu@samsung.com>
-Cc: JUHUN KIM <juhunkim@samsung.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Timofey Titovets <nefelim4ag@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Link: http://lkml.kernel.org/r/20171117014601.31606-1-pasha.tatashin@oracle.com
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>	[s390]
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   71 +++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 66 insertions(+), 5 deletions(-)
+ arch/powerpc/Kconfig |    1 -
+ arch/s390/Kconfig    |    1 -
+ arch/x86/Kconfig     |    1 -
+ mm/Kconfig           |    7 +------
+ 4 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/zswap.c~zswap-same-filled-pages-handling mm/zswap.c
---- a/mm/zswap.c~zswap-same-filled-pages-handling
-+++ a/mm/zswap.c
-@@ -49,6 +49,8 @@
- static u64 zswap_pool_total_size;
- /* The number of compressed pages currently stored in zswap */
- static atomic_t zswap_stored_pages = ATOMIC_INIT(0);
-+/* The number of same-value filled pages currently stored in zswap */
-+static atomic_t zswap_same_filled_pages = ATOMIC_INIT(0);
+diff -puN arch/powerpc/Kconfig~mm-relax-deferred-struct-page-requirements arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~mm-relax-deferred-struct-page-requirements
++++ a/arch/powerpc/Kconfig
+@@ -151,7 +151,6 @@ config PPC
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+-	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+diff -puN arch/s390/Kconfig~mm-relax-deferred-struct-page-requirements arch/s390/Kconfig
+--- a/arch/s390/Kconfig~mm-relax-deferred-struct-page-requirements
++++ a/arch/s390/Kconfig
+@@ -108,7 +108,6 @@ config S390
+ 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
+ 	select ARCH_SAVE_PAGE_KEYS if HIBERNATION
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+-	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+diff -puN arch/x86/Kconfig~mm-relax-deferred-struct-page-requirements arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-relax-deferred-struct-page-requirements
++++ a/arch/x86/Kconfig
+@@ -69,7 +69,6 @@ config X86
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+-	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_QUEUED_RWLOCKS
+diff -puN mm/Kconfig~mm-relax-deferred-struct-page-requirements mm/Kconfig
+--- a/mm/Kconfig~mm-relax-deferred-struct-page-requirements
++++ a/mm/Kconfig
+@@ -639,15 +639,10 @@ config MAX_STACK_SIZE_MB
  
- /*
-  * The statistics below are not protected from concurrent access for
-@@ -116,6 +118,11 @@ module_param_cb(zpool, &zswap_zpool_para
- static unsigned int zswap_max_pool_percent = 20;
- module_param_named(max_pool_percent, zswap_max_pool_percent, uint, 0644);
+ 	  A sane initial value is 80 MB.
  
-+/* Enable/disable handling same-value filled pages (enabled by default) */
-+static bool zswap_same_filled_pages_enabled = true;
-+module_param_named(same_filled_pages_enabled, zswap_same_filled_pages_enabled,
-+		   bool, 0644);
-+
- /*********************************
- * data structures
- **********************************/
-@@ -145,9 +152,10 @@ struct zswap_pool {
-  *            be held while changing the refcount.  Since the lock must
-  *            be held, there is no reason to also make refcount atomic.
-  * length - the length in bytes of the compressed page data.  Needed during
-- *          decompression
-+ *          decompression. For a same value filled page length is 0.
-  * pool - the zswap_pool the entry's data is in
-  * handle - zpool allocation handle that stores the compressed page data
-+ * value - value of the same-value filled pages which have same content
-  */
- struct zswap_entry {
- 	struct rb_node rbnode;
-@@ -155,7 +163,10 @@ struct zswap_entry {
- 	int refcount;
- 	unsigned int length;
- 	struct zswap_pool *pool;
--	unsigned long handle;
-+	union {
-+		unsigned long handle;
-+		unsigned long value;
-+	};
- };
- 
- struct zswap_header {
-@@ -320,8 +331,12 @@ static void zswap_rb_erase(struct rb_roo
-  */
- static void zswap_free_entry(struct zswap_entry *entry)
- {
--	zpool_free(entry->pool->zpool, entry->handle);
--	zswap_pool_put(entry->pool);
-+	if (!entry->length)
-+		atomic_dec(&zswap_same_filled_pages);
-+	else {
-+		zpool_free(entry->pool->zpool, entry->handle);
-+		zswap_pool_put(entry->pool);
-+	}
- 	zswap_entry_cache_free(entry);
- 	atomic_dec(&zswap_stored_pages);
- 	zswap_update_total_size();
-@@ -953,6 +968,28 @@ static int zswap_shrink(void)
- 	return ret;
- }
- 
-+static int zswap_is_page_same_filled(void *ptr, unsigned long *value)
-+{
-+	unsigned int pos;
-+	unsigned long *page;
-+
-+	page = (unsigned long *)ptr;
-+	for (pos = 1; pos < PAGE_SIZE / sizeof(*page); pos++) {
-+		if (page[pos] != page[0])
-+			return 0;
-+	}
-+	*value = page[0];
-+	return 1;
-+}
-+
-+static void zswap_fill_page(void *ptr, unsigned long value)
-+{
-+	unsigned long *page;
-+
-+	page = (unsigned long *)ptr;
-+	memset_l(page, value, PAGE_SIZE / sizeof(unsigned long));
-+}
-+
- /*********************************
- * frontswap hooks
- **********************************/
-@@ -965,7 +1002,7 @@ static int zswap_frontswap_store(unsigne
- 	struct crypto_comp *tfm;
- 	int ret;
- 	unsigned int dlen = PAGE_SIZE, len;
--	unsigned long handle;
-+	unsigned long handle, value;
- 	char *buf;
- 	u8 *src, *dst;
- 	struct zswap_header *zhdr;
-@@ -993,6 +1030,19 @@ static int zswap_frontswap_store(unsigne
- 		goto reject;
- 	}
- 
-+	if (zswap_same_filled_pages_enabled) {
-+		src = kmap_atomic(page);
-+		if (zswap_is_page_same_filled(src, &value)) {
-+			kunmap_atomic(src);
-+			entry->offset = offset;
-+			entry->length = 0;
-+			entry->value = value;
-+			atomic_inc(&zswap_same_filled_pages);
-+			goto insert_entry;
-+		}
-+		kunmap_atomic(src);
-+	}
-+
- 	/* if entry is successfully added, it keeps the reference */
- 	entry->pool = zswap_pool_current_get();
- 	if (!entry->pool) {
-@@ -1037,6 +1087,7 @@ static int zswap_frontswap_store(unsigne
- 	entry->handle = handle;
- 	entry->length = dlen;
- 
-+insert_entry:
- 	/* map */
- 	spin_lock(&tree->lock);
- 	do {
-@@ -1089,6 +1140,13 @@ static int zswap_frontswap_load(unsigned
- 	}
- 	spin_unlock(&tree->lock);
- 
-+	if (!entry->length) {
-+		dst = kmap_atomic(page);
-+		zswap_fill_page(dst, entry->value);
-+		kunmap_atomic(dst);
-+		goto freeentry;
-+	}
-+
- 	/* decompress */
- 	dlen = PAGE_SIZE;
- 	src = (u8 *)zpool_map_handle(entry->pool->zpool, entry->handle,
-@@ -1101,6 +1159,7 @@ static int zswap_frontswap_load(unsigned
- 	zpool_unmap_handle(entry->pool->zpool, entry->handle);
- 	BUG_ON(ret);
- 
-+freeentry:
- 	spin_lock(&tree->lock);
- 	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
-@@ -1209,6 +1268,8 @@ static int __init zswap_debugfs_init(voi
- 			zswap_debugfs_root, &zswap_pool_total_size);
- 	debugfs_create_atomic_t("stored_pages", S_IRUGO,
- 			zswap_debugfs_root, &zswap_stored_pages);
-+	debugfs_create_atomic_t("same_filled_pages", 0444,
-+			zswap_debugfs_root, &zswap_same_filled_pages);
- 
- 	return 0;
- }
-_
+-# For architectures that support deferred memory initialisation
+-config ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+-	bool
