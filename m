@@ -1,100 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [patch 113/119] hugetlb, mbind: fall back to default
- policy if vma is NULL
-Date: Wed, 31 Jan 2018 16:21:03 -0800
-Message-ID: <20180201002103.s4I9dSauz%akpm@linux-foundation.org>
+Subject: [patch 115/119] mm: correct comments regarding
+ do_fault_around()
+Date: Wed, 31 Jan 2018 16:21:11 -0800
+Message-ID: <20180201002111.J2nuQpCQa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754559AbeBAAVF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:05 -0500
+        with ESMTP id S1754559AbeBAAVM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jan 2018 19:21:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, larry.bassel@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, william.kucharski@oracle.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: hugetlb, mbind: fall back to default policy if vma is NULL
+From: William Kucharski <william.kucharski@oracle.com>
+Subject: mm: correct comments regarding do_fault_around()
 
-Dan Carpenter has noticed that mbind migration callback (new_page) can get
-a NULL vma pointer and choke on it inside alloc_huge_page_vma which relies
-on the VMA to get the hstate.  We used to BUG_ON this case but the BUG_+ON
-has been removed recently by "hugetlb, mempolicy: fix the mbind hugetlb
-migration".
+There are multiple comments surrounding do_fault_around that memtion
+fault_around_pages() and fault_around_mask(), two routines that do not
+exist.  These comments should be reworded to reference fault_around_bytes,
+the value which is used to determine how much do_fault_around() will
+attempt to read when processing a fault.
 
-The proper way to handle this is to get the hstate from the migrated page
-and rely on huge_node (resp.  get_vma_policy) do the right thing with null
-VMA.  We are currently falling back to the default mempolicy in that case
-which is in line what THP path is doing here.
+These comments should have been updated when fault_around_pages() and
+fault_around_mask() were removed in aecd6f44266c1 ("mm: close race between
+do_fault_around() and fault_around_bytes_set()").
 
-Link: http://lkml.kernel.org/r/20180110104712.GR1732@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Fixes: aecd6f44266c1 ("mm: close race between do_fault_around() and fault_around_bytes_set()")
+Link: http://lkml.kernel.org/r/302D0B14-C7E9-44C6-8BED-033F9ACBD030@oracle.com
+Signed-off-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Larry Bassel <larry.bassel@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++--
- mm/hugetlb.c            |    5 ++---
- mm/mempolicy.c          |    3 ++-
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ mm/memory.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null
-+++ a/include/linux/hugetlb.h
-@@ -358,7 +358,8 @@ struct page *alloc_huge_page(struct vm_a
- struct page *alloc_huge_page_node(struct hstate *h, int nid);
- struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
- 				nodemask_t *nmask);
--struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address);
-+struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
-+				unsigned long address);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
- 
-@@ -536,7 +537,7 @@ struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
- #define alloc_huge_page_node(h, nid) NULL
- #define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
--#define alloc_huge_page_vma(vma, address) NULL
-+#define alloc_huge_page_vma(h, vma, address) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
- #define hstate_sizelog(s) NULL
-diff -puN mm/hugetlb.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null
-+++ a/mm/hugetlb.c
-@@ -1675,16 +1675,15 @@ struct page *alloc_huge_page_nodemask(st
+diff -puN mm/memory.c~mm-correct-comments-regarding-do_fault_around mm/memory.c
+--- a/mm/memory.c~mm-correct-comments-regarding-do_fault_around
++++ a/mm/memory.c
+@@ -3511,9 +3511,8 @@ static int fault_around_bytes_get(void *
  }
  
- /* mempolicy aware migration callback */
--struct page *alloc_huge_page_vma(struct vm_area_struct *vma, unsigned long address)
-+struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
-+		unsigned long address)
+ /*
+- * fault_around_pages() and fault_around_mask() expects fault_around_bytes
+- * rounded down to nearest page order. It's what do_fault_around() expects to
+- * see.
++ * fault_around_bytes must be rounded down to the nearest page order as it's
++ * what do_fault_around() expects to see.
+  */
+ static int fault_around_bytes_set(void *data, u64 val)
  {
- 	struct mempolicy *mpol;
- 	nodemask_t *nodemask;
- 	struct page *page;
--	struct hstate *h;
- 	gfp_t gfp_mask;
- 	int node;
+@@ -3556,13 +3555,14 @@ late_initcall(fault_around_debugfs);
+  * This function doesn't cross the VMA boundaries, in order to call map_pages()
+  * only once.
+  *
+- * fault_around_pages() defines how many pages we'll try to map.
+- * do_fault_around() expects it to return a power of two less than or equal to
+- * PTRS_PER_PTE.
++ * fault_around_bytes defines how many bytes we'll try to map.
++ * do_fault_around() expects it to be set to a power of two less than or equal
++ * to PTRS_PER_PTE.
+  *
+- * The virtual address of the area that we map is naturally aligned to the
+- * fault_around_pages() value (and therefore to page order).  This way it's
+- * easier to guarantee that we don't cross page table boundaries.
++ * The virtual address of the area that we map is naturally aligned to
++ * fault_around_bytes rounded down to the machine page size
++ * (and therefore to page order).  This way it's easier to guarantee
++ * that we don't cross page table boundaries.
+  */
+ static int do_fault_around(struct vm_fault *vmf)
+ {
+@@ -3579,8 +3579,8 @@ static int do_fault_around(struct vm_fau
+ 	start_pgoff -= off;
  
--	h = hstate_vma(vma);
- 	gfp_mask = htlb_alloc_mask(h);
- 	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
- 	page = alloc_huge_page_nodemask(h, node, nodemask);
-diff -puN mm/mempolicy.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null mm/mempolicy.c
---- a/mm/mempolicy.c~hugetlb-mbind-fall-back-to-default-policy-if-vma-is-null
-+++ a/mm/mempolicy.c
-@@ -1121,7 +1121,8 @@ static struct page *new_page(struct page
- 	}
- 
- 	if (PageHuge(page)) {
--		return alloc_huge_page_vma(vma, address);
-+		return alloc_huge_page_vma(page_hstate(compound_head(page)),
-+				vma, address);
- 	} else if (thp_migration_supported() && PageTransHuge(page)) {
- 		struct page *thp;
- 
+ 	/*
+-	 *  end_pgoff is either end of page table or end of vma
+-	 *  or fault_around_pages() from start_pgoff, depending what is nearest.
++	 *  end_pgoff is either the end of the page table, the end of
++	 *  the vma or nr_pages from start_pgoff, depending what is nearest.
+ 	 */
+ 	end_pgoff = start_pgoff -
+ 		((vmf->address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
 _
