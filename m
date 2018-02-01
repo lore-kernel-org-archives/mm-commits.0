@@ -1,100 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-decodecode-make-it-take-multiline-code-line.patch removed from -mm
- tree
-Date: Thu, 01 Feb 2018 11:28:52 -0800
-Message-ID: <20180201192852.7CmBj5KSH%akpm@linux-foundation.org>
+ =?US-ASCII?Q?ocfs2-using-the-ocfs2=5Fxattr=5Froot=5Fsize-macro-in-ocfs?=
+ =?US-ASCII?Q?2=5Freflink=5Fxattr=5Fheader.patch?= removed from -mm tree
+Date: Thu, 01 Feb 2018 11:29:16 -0800
+Message-ID: <20180201192916.DMKm8fV5X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56570 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753197AbeBAT2y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:28:54 -0500
+        with ESMTP id S1754695AbeBAT3R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:29:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, Dave.Martin@arm.com, mm-commits@vger.kernel.org, pombredanne@nexb.com, will.deacon@arm.com
+To: alex.chen@huawei.com, ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: scripts/decodecode: make it take multiline Code line
+     Subject: ocfs2: use the OCFS2_XATTR_ROOT_SIZE macro in ocfs2_reflink_xattr_header()
 has been removed from the -mm tree.  Its filename was
-     scripts-decodecode-make-it-take-multiline-code-line.patch
+     ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: scripts/decodecode: make it take multiline Code line
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: use the OCFS2_XATTR_ROOT_SIZE macro in ocfs2_reflink_xattr_header()
 
-In case of running scripts/decodecode without any parameters in order to
-give a copy'n'pasted Code line from, for example, email it would parse
-only first line of it, while in emails it's split to few.
+Use the OCFS2_XATTR_ROOT_SIZE macro improves the readability of the code.
 
-
-ie, when you have a file out of oops the Code line looks like
-
-Code: hh hh ... <hh> ... hh\n
-
-When copy'n'paste from, for example, email where sender or some middle
-MTA split it, the line looks like:
-
-Code: hh hh ... hh\n
-hh ... <hh> ... hh\n
-hh hh ... hh\n
-
-The Code line followed by another oops line usually contains characters
-out of hex digit + space + < + > set.
-
-So add logic to join this split back if and only if the following lines
-have hex digits, or spaces, or '<', or '>' characters.  It will be quite
-unlikely to have a broken input in well formed Oops or dmesg, thus a
-simple regex is being used.
-
-Link: http://lkml.kernel.org/r/20171212100323.33201-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Dave Martin <Dave.Martin@arm.com>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Link: http://lkml.kernel.org/r/5A2E2488.70301@huawei.com
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/ocfs2/xattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/decodecode~scripts-decodecode-make-it-take-multiline-code-line scripts/decodecode
---- a/scripts/decodecode~scripts-decodecode-make-it-take-multiline-code-line
-+++ a/scripts/decodecode
-@@ -21,12 +21,24 @@ trap cleanup EXIT
- 
- T=`mktemp` || die "cannot create temp file"
- code=
-+cont=
- 
- while read i ; do
- 
- case "$i" in
- *Code:*)
- 	code=$i
-+	cont=yes
-+	;;
-+*)
-+	[ -n "$cont" ] && {
-+		xdump="$(echo $i | grep '^[[:xdigit:]<>[:space:]]\+$')"
-+		if [ -n "$xdump" ]; then
-+			code="$code $xdump"
-+		else
-+			cont=
-+		fi
-+	}
- 	;;
- esac
- 
+diff -puN fs/ocfs2/xattr.c~ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-using-the-ocfs2_xattr_root_size-macro-in-ocfs2_reflink_xattr_header
++++ a/fs/ocfs2/xattr.c
+@@ -6415,7 +6415,7 @@ static int ocfs2_reflink_xattr_header(ha
+ 		 * and then insert the extents one by one.
+ 		 */
+ 		if (xv->xr_list.l_tree_depth) {
+-			memcpy(new_xv, &def_xv, sizeof(def_xv));
++			memcpy(new_xv, &def_xv, OCFS2_XATTR_ROOT_SIZE);
+ 			vb->vb_xv = new_xv;
+ 			vb->vb_bh = value_bh;
+ 			ocfs2_init_xattr_value_extent_tree(&data_et,
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
-bitmap-add-bitmap_fill-bitmap_set-test-cases.patch
-bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
-bitmap-make-bitmap_fill-and-bitmap_zero-consistent.patch
 
