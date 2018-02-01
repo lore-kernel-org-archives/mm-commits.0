@@ -1,90 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-do-not-show-vmexe-bigger-than-total-executable-virtual-memory.patch
+Subject: [merged] asm-generic-provide-generic_pmdp_establish.patch
  removed from -mm tree
-Date: Thu, 01 Feb 2018 11:31:42 -0800
-Message-ID: <20180201193142.ByZ5fkc3U%akpm@linux-foundation.org>
+Date: Thu, 01 Feb 2018 11:32:01 -0800
+Message-ID: <20180201193201.rh7kwJguh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58426 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753060AbeBATbn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:31:43 -0500
+        with ESMTP id S1752463AbeBATcE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Feb 2018 14:32:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, davem@davemloft.net, david.daney@cavium.com, hpa@zytor.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, nitin.m.gupta@oracle.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, vbabka@suse.cz, vgupta@synopsys.com
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: do not show VmExe bigger than total executable virtual memory
+     Subject: asm-generic: provide generic_pmdp_establish()
 has been removed from the -mm tree.  Its filename was
-     proc-do-not-show-vmexe-bigger-than-total-executable-virtual-memory.patch
+     asm-generic-provide-generic_pmdp_establish.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: fs/proc/task_mmu.c: do not show VmExe bigger than total executable virtual memory
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: asm-generic: provide generic_pmdp_establish()
 
-If start_code / end_code pointers are screwed then "VmExe" could be bigger
-than total executable virtual memory and "VmLib" becomes negative:
+Patch series "Do not lose dirty bit on THP pages", v4.
 
-VmExe:	  294320 kB
-VmLib:	18446744073709327564 kB
+Vlastimil noted that pmdp_invalidate() is not atomic and we can lose
+dirty and access bits if CPU sets them after pmdp dereference, but
+before set_pmd_at().
 
-VmExe and VmLib documented as text segment and shared library code size.
+The bug can lead to data loss, but the race window is tiny and I haven't
+seen any reports that suggested that it happens in reality. So I don't
+think it worth sending it to stable.
 
-Now their sum will be always equal to mm->exec_vm which sums size of
-executable and not writable and not stack areas.
+Unfortunately, there's no way to address the issue in a generic way. We need to
+fix all architectures that support THP one-by-one.
+
+All architectures that have THP supported have to provide atomic
+pmdp_invalidate() that returns previous value.
+
+If generic implementation of pmdp_invalidate() is used, architecture needs to
+provide atomic pmdp_estabish().
+
+pmdp_estabish() is not used out-side generic implementation of
+pmdp_invalidate() so far, but I think this can change in the future.
 
 
-I've seen this for huge (>2Gb) statically linked binary which has whole
-world inside.  For it start_code ..  end_code range also covers one of
-rodata sections.  Probably this is bug in customized linker, elf loader
-or both.
 
-Anyway CONFIG_CHECKPOINT_RESTORE allows to change these pointers,
-thus we cannot trust them without validation.
+This patch (of 12):
 
-Link: http://lkml.kernel.org/r/150728955451.743749.11276392315459539583.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+This is an implementation of pmdp_establish() that is only suitable for an
+architecture that doesn't have hardware dirty/accessed bits.  In this case
+we can't race with CPU which sets these bits and non-atomic approach is
+fine.
+
+Link: http://lkml.kernel.org/r/20171213105756.69879-2-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Daney <david.daney@cavium.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/asm-generic/pgtable.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~proc-do-not-show-vmexe-bigger-than-total-executable-virtual-memory fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-do-not-show-vmexe-bigger-than-total-executable-virtual-memory
-+++ a/fs/proc/task_mmu.c
-@@ -47,8 +47,11 @@ void task_mem(struct seq_file *m, struct
- 	if (hiwater_rss < mm->hiwater_rss)
- 		hiwater_rss = mm->hiwater_rss;
+diff -puN include/asm-generic/pgtable.h~asm-generic-provide-generic_pmdp_establish include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~asm-generic-provide-generic_pmdp_establish
++++ a/include/asm-generic/pgtable.h
+@@ -309,6 +309,21 @@ extern void pgtable_trans_huge_deposit(s
+ extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ #endif
  
--	text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK)) >> 10;
--	lib = (mm->exec_vm << (PAGE_SHIFT-10)) - text;
-+	/* split executable areas between text and lib */
-+	text = PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK);
-+	text = min(text, mm->exec_vm << PAGE_SHIFT);
-+	lib = (mm->exec_vm << PAGE_SHIFT) - text;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++/*
++ * This is an implementation of pmdp_establish() that is only suitable for an
++ * architecture that doesn't have hardware dirty/accessed bits. In this case we
++ * can't race with CPU which sets these bits and non-atomic aproach is fine.
++ */
++static inline pmd_t generic_pmdp_establish(struct vm_area_struct *vma,
++		unsigned long address, pmd_t *pmdp, pmd_t pmd)
++{
++	pmd_t old_pmd = *pmdp;
++	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
++	return old_pmd;
++}
++#endif
 +
- 	swap = get_mm_counter(mm, MM_SWAPENTS);
- 	seq_printf(m,
- 		"VmPeak:\t%8lu kB\n"
-@@ -76,7 +79,9 @@ void task_mem(struct seq_file *m, struct
- 		file << (PAGE_SHIFT-10),
- 		shmem << (PAGE_SHIFT-10),
- 		mm->data_vm << (PAGE_SHIFT-10),
--		mm->stack_vm << (PAGE_SHIFT-10), text, lib,
-+		mm->stack_vm << (PAGE_SHIFT-10),
-+		text >> 10,
-+		lib >> 10,
- 		mm_pgtables_bytes(mm) >> 10,
- 		swap << (PAGE_SHIFT-10));
- 	hugetlb_report_usage(m, mm);
+ #ifndef __HAVE_ARCH_PMDP_INVALIDATE
+ extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 			    pmd_t *pmdp);
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 
