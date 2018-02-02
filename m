@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-always-define-endianess-in-kconfigh.patch added to -mm
- tree
-Date: Fri, 02 Feb 2018 11:48:59 -0800
-Message-ID: <5a74c0ab.r5BCIG6RPqEd0zCa%akpm@linux-foundation.org>
+Subject: + locking-qrwlock-include-asm-byteorderh-as-needed.patch added to -mm tree
+Date: Fri, 02 Feb 2018 11:48:56 -0800
+Message-ID: <5a74c0a8.iSvPeUgt4chyTHhR%akpm__30798.5015715987$1517600854$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52456 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753316AbeBBTtB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Feb 2018 14:49:01 -0500
+        with ESMTP id S1753065AbeBBTs7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Feb 2018 14:48:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, ak@linux.intel.com, babu.moger@oracle.com, gregkh@linuxfoundation.org, nico@linaro.org, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kbuild: always define endianess in kconfig.h
+     Subject: locking/qrwlock: include asm/byteorder.h as needed
 has been added to the -mm tree.  Its filename is
-     kbuild-always-define-endianess-in-kconfigh.patch
+     locking-qrwlock-include-asm-byteorderh-as-needed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-always-define-endianess-in-kconfigh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/locking-qrwlock-include-asm-byteorderh-as-needed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-always-define-endianess-in-kconfigh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/locking-qrwlock-include-asm-byteorderh-as-needed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,91 +39,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Kbuild: always define endianess in kconfig.h
+Subject: locking/qrwlock: include asm/byteorder.h as needed
 
-Build testing with LTO found a couple of files that get compiled
-differently depending on whether asm/byteorder.h gets included early
-enough or not.  In particular, include/asm-generic/qrwlock_types.h is
-affected by this, but there are probably others as well.
+Moving the qrwlock struct definition into a header file introduced a
+subtle bug on all little-endian machines, where some files in some
+configurations would see the fields in an incorrect order.  This was found
+by building with an LTO enabled compiler that warns every time we try to
+link together files with incompatible data structures.
 
-The symptom is a series of LTO link time warnings, including these:
+A second patch changes linux/kconfig.h to always define the symbols, but
+this seems to be the root cause of most of the issues, so I'd suggest we
+do both.
 
-net/netlabel/netlabel_unlabeled.h:223: error: type of 'netlbl_unlhsh_add' does not match original declaration [-Werror=lto-type-mismatch]
- int netlbl_unlhsh_add(struct net *net,
-net/netlabel/netlabel_unlabeled.c:377: note: 'netlbl_unlhsh_add' was previously declared here
+On a current linux-next kernel, I verified that this header is responsible
+for all type mismatches as a result from the endianess confusion.
 
-include/net/ipv6.h:360: error: type of 'ipv6_renew_options_kern' does not match original declaration [-Werror=lto-type-mismatch]
- ipv6_renew_options_kern(struct sock *sk,
-net/ipv6/exthdrs.c:1162: note: 'ipv6_renew_options_kern' was previously declared here
-
-net/core/dev.c:761: note: 'dev_get_by_name_rcu' was previously declared here
- struct net_device *dev_get_by_name_rcu(struct net *net, const char *name)
-net/core/dev.c:761: note: code may be misoptimized unless -fno-strict-aliasing is used
-
-drivers/gpu/drm/i915/i915_drv.h:3377: error: type of 'i915_gem_object_set_to_wc_domain' does not match original declaration [-Werror=lto-type-mismatch]
- i915_gem_object_set_to_wc_domain(struct drm_i915_gem_object *obj, bool write);
-drivers/gpu/drm/i915/i915_gem.c:3639: note: 'i915_gem_object_set_to_wc_domain' was previously declared here
-
-include/linux/debugfs.h:92:9: error: type of 'debugfs_attr_read' does not match original declaration [-Werror=lto-type-mismatch]
- ssize_t debugfs_attr_read(struct file *file, char __user *buf,
-fs/debugfs/file.c:318: note: 'debugfs_attr_read' was previously declared here
-
-include/linux/rwlock_api_smp.h:30: error: type of '_raw_read_unlock' does not match original declaration [-Werror=lto-type-mismatch]
- void __lockfunc _raw_read_unlock(rwlock_t *lock) __releases(lock);
-kernel/locking/spinlock.c:246:26: note: '_raw_read_unlock' was previously declared here
-
-include/linux/fs.h:3308:5: error: type of 'simple_attr_open' does not match original declaration [-Werror=lto-type-mismatch]
- int simple_attr_open(struct inode *inode, struct file *file,
-fs/libfs.c:795: note: 'simple_attr_open' was previously declared here
-
-All of the above are caused by include/asm-generic/qrwlock_types.h failing
-to include asm/byteorder.h after commit e0d02285f16e ("locking/qrwlock:
-Use 'struct qrwlock' instead of 'struct __qrwlock'") in linux-4.15.
-
-Similar bugs may or may not exist in older kernels as well, but there is
-no easy way to test those with link-time optimizations, and kernels before
-4.14 are harder to fix because they don't have Babu's patch series
-
-We had similar issues with CONFIG_ symbols in the past and ended up always
-including the configuration headers though linux/kconfig.h.  This works
-around the issue through that same file, defining either __BIG_ENDIAN or
-__LITTLE_ENDIAN depending on CONFIG_CPU_BIG_ENDIAN, which is now always
-set on all architectures since commit 4c97a0c8fee3 ("arch: define
-CPU_BIG_ENDIAN for all fixed big endian archs").
-
-Link: http://lkml.kernel.org/r/20180202154104.1522809-2-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20180202154104.1522809-1-arnd@arndb.de
+Fixes: e0d02285f16e ("locking/qrwlock: Use 'struct qrwlock' instead of 'struct __qrwlock'")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Nicolas Pitre <nico@linaro.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will.deacon@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Nicolas Pitre <nico@linaro.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Babu Moger <babu.moger@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: <stable@vger.kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kconfig.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/asm-generic/qrwlock_types.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/kconfig.h~kbuild-always-define-endianess-in-kconfigh include/linux/kconfig.h
---- a/include/linux/kconfig.h~kbuild-always-define-endianess-in-kconfigh
-+++ a/include/linux/kconfig.h
-@@ -4,6 +4,12 @@
+diff -puN include/asm-generic/qrwlock_types.h~locking-qrwlock-include-asm-byteorderh-as-needed include/asm-generic/qrwlock_types.h
+--- a/include/asm-generic/qrwlock_types.h~locking-qrwlock-include-asm-byteorderh-as-needed
++++ a/include/asm-generic/qrwlock_types.h
+@@ -3,6 +3,7 @@
+ #define __ASM_GENERIC_QRWLOCK_TYPES_H
  
- #include <generated/autoconf.h>
+ #include <linux/types.h>
++#include <asm/byteorder.h>
+ #include <asm/spinlock_types.h>
  
-+#ifdef CONFIG_CPU_BIG_ENDIAN
-+#define __BIG_ENDIAN 4321
-+#else
-+#define __LITTLE_ENDIAN 1234
-+#endif
-+
- #define __ARG_PLACEHOLDER_1 0,
- #define __take_second_arg(__ignored, val, ...) val
- 
+ /*
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
