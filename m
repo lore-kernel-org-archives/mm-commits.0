@@ -1,98 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 05 Feb 2018 14:47:38 -0800
-Message-ID: <20180205224738.9NVIWrsJo%akpm@linux-foundation.org>
+Subject: [obsolete]
+ ubsan-dont-mark-__ubsan_handle_builtin_unreachable-as-noreturn.patch
+ removed from -mm tree
+Date: Mon, 05 Feb 2018 15:28:16 -0800
+Message-ID: <5a78e890.Iz/sJcp7H0dA2mh+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50992 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751671AbeBEWrk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 17:47:40 -0500
+        with ESMTP id S1750724AbeBEX2S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 18:28:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, ak@linux.intel.com, aryabinin@virtuozzo.com, nico@linaro.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: ubsan: don't mark __ubsan_handle_builtin_unreachable as noreturn
+has been removed from the -mm tree.  Its filename was
+     ubsan-dont-mark-__ubsan_handle_builtin_unreachable-as-noreturn.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ubsan: don't mark __ubsan_handle_builtin_unreachable as noreturn
 
+gcc-8 complains about the prototype for this function:
+
+lib/ubsan.c:432:1: error: ignoring attribute 'noreturn' in declaration of a built-in function '__ubsan_handle_builtin_unreachable' because it conflicts with attribute 'const' [-Werror=attributes]
+
+This removes the noreturn attribute.
+
+Link: http://lkml.kernel.org/r/20180202154813.1625742-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Nicolas Pitre <nico@linaro.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/overlayfs/export.c |    6 ------
- fs/overlayfs/namei.c  |    5 -----
- 2 files changed, 11 deletions(-)
+ lib/ubsan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/overlayfs/export.c~linux-next-git-rejects fs/overlayfs/export.c
---- a/fs/overlayfs/export.c~linux-next-git-rejects
-+++ a/fs/overlayfs/export.c
-@@ -108,12 +108,6 @@ static int ovl_d_to_fh(struct dentry *de
+diff -puN lib/ubsan.c~ubsan-dont-mark-__ubsan_handle_builtin_unreachable-as-noreturn lib/ubsan.c
+--- a/lib/ubsan.c~ubsan-dont-mark-__ubsan_handle_builtin_unreachable-as-noreturn
++++ a/lib/ubsan.c
+@@ -423,7 +423,7 @@ void __ubsan_handle_shift_out_of_bounds(
+ EXPORT_SYMBOL(__ubsan_handle_shift_out_of_bounds);
  
- 	/* Encode an upper or origin file handle */
- 	fh = ovl_encode_fh(origin ?: ovl_dentry_upper(dentry), !origin);
--<<<<<<< HEAD
--	err = PTR_ERR(fh);
--	if (IS_ERR(fh))
--		goto fail;
--=======
-->>>>>>> linux-next/akpm-base
  
- 	err = -EOVERFLOW;
- 	if (fh->len > buflen)
-diff -puN fs/overlayfs/namei.c~linux-next-git-rejects fs/overlayfs/namei.c
---- a/fs/overlayfs/namei.c~linux-next-git-rejects
-+++ a/fs/overlayfs/namei.c
-@@ -976,11 +976,6 @@ struct dentry *ovl_lookup(struct inode *
- 		upperdentry = dget(index);
- 
- 	if (upperdentry || ctr) {
--<<<<<<< HEAD
--		if (ctr)
--			origin = stack[0].dentry;
--=======
-->>>>>>> linux-next/akpm-base
- 		inode = ovl_get_inode(dentry->d_sb, upperdentry, origin, index,
- 				      ctr);
- 		err = PTR_ERR(inode);
+-void __noreturn
++void
+ __ubsan_handle_builtin_unreachable(struct unreachable_data *data)
+ {
+ 	unsigned long flags;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-i-need-old-gcc.patch
-include-linux-sched-mmh-re-inline-mmdrop.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-git-rejects.patch
-maintainers-update-arm-oxnas-platform-support-patterns-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+locking-qrwlock-include-asm-byteorderh-as-needed.patch
+kbuild-always-define-endianess-in-kconfigh.patch
+kasan-added-functions-for-unpoisoning-stack-variables-fix-fix.patch
+bugh-work-around-gcc-pr82365-in-bug.patch
+bitmap-replace-bitmap_fromto_u32array-fix.patch
+nilfs2-use-time64_t-internally.patch
+pps-parport-use-timespec64-instead-of-timespec.patch
+kasan-rework-kconfig-settings.patch
 
