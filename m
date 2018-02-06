@@ -1,225 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 106/114] mm: docs: fix parameter names mismatch
-Date: Tue, 06 Feb 2018 15:42:16 -0800
-Message-ID: <20180206234216.yn2eP6_oD%akpm@linux-foundation.org>
+Subject: [patch 103/114] pipe: simplify round_pipe_size()
+Date: Tue, 06 Feb 2018 15:42:05 -0800
+Message-ID: <20180206234205.wKEOxyT_E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56788 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56718 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753302AbeBFXmS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:18 -0500
+        with ESMTP id S1753537AbeBFXmH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: mm: docs: fix parameter names mismatch
+From: Eric Biggers <ebiggers@google.com>
+Subject: pipe: simplify round_pipe_size()
 
-There are several places where parameter descriptions do no match the
-actual code.  Fix it.
+round_pipe_size() calculates the number of pages the requested size
+corresponds to, then rounds the page count up to the next power of 2.
 
-Link: http://lkml.kernel.org/r/1516700871-22279-3-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+However, it also rounds everything < PAGE_SIZE up to PAGE_SIZE. 
+Therefore, there's no need to actually translate the size into a page
+count; we just need to round the size up to the next power of 2.
+
+We do need to verify the size isn't greater than (1 << 31), since on
+32-bit systems roundup_pow_of_two() would be undefined in that case.  But
+that can just be combined with the UINT_MAX check which we need anyway
+now.
+
+Finally, update pipe_set_size() to not redundantly check the return value
+of round_pipe_size() for the "invalid size" case twice.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-7-ebiggers3@gmail.com
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Willy Tarreau <w@1wt.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c           |    2 +-
- mm/maccess.c           |    2 +-
- mm/memcontrol.c        |    2 +-
- mm/process_vm_access.c |    2 +-
- mm/swap.c              |    4 ++--
- mm/z3fold.c            |    4 ++--
- mm/zbud.c              |    4 ++--
- mm/zpool.c             |   20 ++++++++++----------
- 8 files changed, 20 insertions(+), 20 deletions(-)
+ fs/pipe.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN mm/bootmem.c~mm-docs-fix-parameter-names-mismatch mm/bootmem.c
---- a/mm/bootmem.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/bootmem.c
-@@ -410,7 +410,7 @@ void __init free_bootmem_node(pg_data_t
- 
- /**
-  * free_bootmem - mark a page range as usable
-- * @addr: starting physical address of the range
-+ * @physaddr: starting physical address of the range
-  * @size: size of the range in bytes
-  *
-  * Partial pages will be considered reserved and left as they are.
-diff -puN mm/maccess.c~mm-docs-fix-parameter-names-mismatch mm/maccess.c
---- a/mm/maccess.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/maccess.c
-@@ -70,7 +70,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_write);
-  * strncpy_from_unsafe: - Copy a NUL terminated string from unsafe address.
-  * @dst:   Destination address, in kernel space.  This buffer must be at
-  *         least @count bytes long.
-- * @src:   Unsafe address.
-+ * @unsafe_addr: Unsafe address.
-  * @count: Maximum number of bytes to copy, including the trailing NUL.
-  *
-  * Copies a NUL-terminated string from unsafe address to kernel buffer.
-diff -puN mm/memcontrol.c~mm-docs-fix-parameter-names-mismatch mm/memcontrol.c
---- a/mm/memcontrol.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/memcontrol.c
-@@ -917,7 +917,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
- /**
-  * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
-  * @page: the page
-- * @zone: zone of the page
-+ * @pgdat: pgdat of the page
-  *
-  * This function is only safe when following the LRU page isolation
-  * and putback protocol: the LRU lock must be held, and the page must
-diff -puN mm/process_vm_access.c~mm-docs-fix-parameter-names-mismatch mm/process_vm_access.c
---- a/mm/process_vm_access.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/process_vm_access.c
-@@ -25,7 +25,7 @@
- /**
-  * process_vm_rw_pages - read/write pages from task specified
-  * @pages: array of pointers to pages we want to copy
-- * @start_offset: offset in page to start copying from/to
-+ * @offset: offset in page to start copying from/to
-  * @len: number of bytes to copy
-  * @iter: where to copy to/from locally
-  * @vm_write: 0 means copy from, 1 means copy to
-diff -puN mm/swap.c~mm-docs-fix-parameter-names-mismatch mm/swap.c
---- a/mm/swap.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/swap.c
-@@ -913,11 +913,11 @@ EXPORT_SYMBOL(__pagevec_lru_add);
-  * @pvec:	Where the resulting entries are placed
-  * @mapping:	The address_space to search
-  * @start:	The starting entry index
-- * @nr_entries:	The maximum number of entries
-+ * @nr_pages:	The maximum number of pages
-  * @indices:	The cache indices corresponding to the entries in @pvec
-  *
-  * pagevec_lookup_entries() will search for and return a group of up
-- * to @nr_entries pages and shadow entries in the mapping.  All
-+ * to @nr_pages pages and shadow entries in the mapping.  All
-  * entries are placed in @pvec.  pagevec_lookup_entries() takes a
-  * reference against actual pages in @pvec.
-  *
-diff -puN mm/z3fold.c~mm-docs-fix-parameter-names-mismatch mm/z3fold.c
---- a/mm/z3fold.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/z3fold.c
-@@ -769,7 +769,7 @@ static void z3fold_free(struct z3fold_po
- /**
-  * z3fold_reclaim_page() - evicts allocations from a pool page and frees it
-  * @pool:	pool from which a page will attempt to be evicted
-- * @retires:	number of pages on the LRU list for which eviction will
-+ * @retries:	number of pages on the LRU list for which eviction will
-  *		be attempted before failing
-  *
-  * z3fold reclaim is different from normal system reclaim in that it is done
-@@ -779,7 +779,7 @@ static void z3fold_free(struct z3fold_po
-  * z3fold and the user, however.
-  *
-  * To avoid these, this is how z3fold_reclaim_page() should be called:
+diff -puN fs/pipe.c~pipe-simplify-round_pipe_size fs/pipe.c
+--- a/fs/pipe.c~pipe-simplify-round_pipe_size
++++ a/fs/pipe.c
+@@ -1022,20 +1022,14 @@ const struct file_operations pipefifo_fo
+  */
+ unsigned int round_pipe_size(unsigned long size)
+ {
+-	unsigned long nr_pages;
 -
-+ *
-  * The user detects a page should be reclaimed and calls z3fold_reclaim_page().
-  * z3fold_reclaim_page() will remove a z3fold page from the pool LRU list and
-  * call the user-defined eviction handler with the pool and handle as
-diff -puN mm/zbud.c~mm-docs-fix-parameter-names-mismatch mm/zbud.c
---- a/mm/zbud.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/zbud.c
-@@ -466,7 +466,7 @@ void zbud_free(struct zbud_pool *pool, u
- /**
-  * zbud_reclaim_page() - evicts allocations from a pool page and frees it
-  * @pool:	pool from which a page will attempt to be evicted
-- * @retires:	number of pages on the LRU list for which eviction will
-+ * @retries:	number of pages on the LRU list for which eviction will
-  *		be attempted before failing
-  *
-  * zbud reclaim is different from normal system reclaim in that the reclaim is
-@@ -476,7 +476,7 @@ void zbud_free(struct zbud_pool *pool, u
-  * the user, however.
-  *
-  * To avoid these, this is how zbud_reclaim_page() should be called:
--
-+ *
-  * The user detects a page should be reclaimed and calls zbud_reclaim_page().
-  * zbud_reclaim_page() will remove a zbud page from the pool LRU list and call
-  * the user-defined eviction handler with the pool and handle as arguments.
-diff -puN mm/zpool.c~mm-docs-fix-parameter-names-mismatch mm/zpool.c
---- a/mm/zpool.c~mm-docs-fix-parameter-names-mismatch
-+++ a/mm/zpool.c
-@@ -201,7 +201,7 @@ struct zpool *zpool_create_pool(const ch
+-	if (size > UINT_MAX)
++	if (size > (1U << 31))
+ 		return 0;
  
- /**
-  * zpool_destroy_pool() - Destroy a zpool
-- * @pool:	The zpool to destroy.
-+ * @zpool:	The zpool to destroy.
-  *
-  * Implementations must guarantee this to be thread-safe,
-  * however only when destroying different pools.  The same
-@@ -224,7 +224,7 @@ void zpool_destroy_pool(struct zpool *zp
- 
- /**
-  * zpool_get_type() - Get the type of the zpool
-- * @pool:	The zpool to check
-+ * @zpool:	The zpool to check
-  *
-  * This returns the type of the pool.
-  *
-@@ -239,7 +239,7 @@ const char *zpool_get_type(struct zpool
- 
- /**
-  * zpool_malloc() - Allocate memory
-- * @pool:	The zpool to allocate from.
-+ * @zpool:	The zpool to allocate from.
-  * @size:	The amount of memory to allocate.
-  * @gfp:	The GFP flags to use when allocating memory.
-  * @handle:	Pointer to the handle to set
-@@ -261,7 +261,7 @@ int zpool_malloc(struct zpool *zpool, si
- 
- /**
-  * zpool_free() - Free previously allocated memory
-- * @pool:	The zpool that allocated the memory.
-+ * @zpool:	The zpool that allocated the memory.
-  * @handle:	The handle to the memory to free.
-  *
-  * This frees previously allocated memory.  This does not guarantee
-@@ -280,7 +280,7 @@ void zpool_free(struct zpool *zpool, uns
- 
- /**
-  * zpool_shrink() - Shrink the pool size
-- * @pool:	The zpool to shrink.
-+ * @zpool:	The zpool to shrink.
-  * @pages:	The number of pages to shrink the pool.
-  * @reclaimed:	The number of pages successfully evicted.
-  *
-@@ -304,11 +304,11 @@ int zpool_shrink(struct zpool *zpool, un
- 
- /**
-  * zpool_map_handle() - Map a previously allocated handle into memory
-- * @pool:	The zpool that the handle was allocated from
-+ * @zpool:	The zpool that the handle was allocated from
-  * @handle:	The handle to map
-- * @mm:		How the memory should be mapped
-+ * @mapmode:	How the memory should be mapped
-  *
-- * This maps a previously allocated handle into memory.  The @mm
-+ * This maps a previously allocated handle into memory.  The @mapmode
-  * param indicates to the implementation how the memory will be
-  * used, i.e. read-only, write-only, read-write.  If the
-  * implementation does not support it, the memory will be treated
-@@ -332,7 +332,7 @@ void *zpool_map_handle(struct zpool *zpo
- 
- /**
-  * zpool_unmap_handle() - Unmap a previously mapped handle
-- * @pool:	The zpool that the handle was allocated from
-+ * @zpool:	The zpool that the handle was allocated from
-  * @handle:	The handle to unmap
-  *
-  * This unmaps a previously mapped handle.  Any locks or other
-@@ -347,7 +347,7 @@ void zpool_unmap_handle(struct zpool *zp
- 
- /**
-  * zpool_get_total_size() - The total size of the pool
-- * @pool:	The zpool to check
-+ * @zpool:	The zpool to check
-  *
-  * This returns the total size in bytes of the pool.
-  *
-_
+ 	/* Minimum pipe size, as required by POSIX */
+ 	if (size < PAGE_SIZE)
+-		size = PAGE_SIZE;
