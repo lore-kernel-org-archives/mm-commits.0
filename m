@@ -1,79 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/114] proc: spread likely/unlikely a bit
-Date: Tue, 06 Feb 2018 15:37:28 -0800
-Message-ID: <20180206233728.Vvo9Z5Y9C%akpm@linux-foundation.org>
+Subject: [patch 033/114] kernel/async.c: revert "async: simplify
+ lowest_in_progress()"
+Date: Tue, 06 Feb 2018 15:37:55 -0800
+Message-ID: <20180206233755.niFOxfyrQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754019AbeBFXh3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:37:29 -0500
+        with ESMTP id S1754019AbeBFXh5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, awallis@codeaurora.org, laijs@cn.fujitsu.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org, torvalds@linux-foundation.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: spread likely/unlikely a bit
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: kernel/async.c: revert "async: simplify lowest_in_progress()"
 
-use_pde() is used at every open/read/write/...  of every random /proc
-file.  Negative refcount happens only if PDE is being deleted by module
-(read: never).  So it gets "likely".
+This reverts 92266d6ef60c2381 ("async: simplify lowest_in_progress()"),
+which was simply wrong: In the case where domain is NULL, we now use the
+wrong offsetof() in the list_first_entry macro, so we don't actually fetch
+the ->cookie value, but rather the eight bytes located sizeof(struct
+list_head) further into the struct async_entry.
 
-unuse_pde() gets "unlikely" for the same reason.
+On 64 bit, that's the data member, while on 32 bit, that's a u64 built
+from func and data in some order.
 
-close_pdeo() gets unlikely as the completion is filled only if there is a
-race between PDE removal and close() (read: never ever).
+I think the bug happens to be harmless in practice: It obviously only
+affects callers which pass a NULL domain, and AFAICT the only such caller
+is
 
-It even saves code on x86_64 defconfig:
+  async_synchronize_full() ->
+  async_synchronize_full_domain(NULL) ->
+  async_synchronize_cookie_domain(ASYNC_COOKIE_MAX, NULL)
 
-	add/remove: 0/0 grow/shrink: 1/2 up/down: 2/-20 (-18)
-	Function                                     old     new   delta
-	close_pdeo                                   183     185      +2
-	proc_reg_get_unmapped_area                   119     111      -8
-	proc_reg_poll                                 85      73     -12
+and the ASYNC_COOKIE_MAX means that in practice we end up waiting for the
+async_global_pending list to be empty - but it would break if somebody
+happened to pass (void*)-1 as the data element to async_schedule, and of
+course also if somebody ever does a async_synchronize_cookie_domain(,
+NULL) with a "finite" cookie value.
 
-Link: http://lkml.kernel.org/r/20180104175657.GA5204@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Maybe the "harmless in practice" means this isn't -stable material.  But
+I'm not completely confident my quick git grep'ing is enough, and there
+might be affected code in one of the earlier kernels that has since been
+removed, so I'll leave the decision to the stable guys.
+
+Link: http://lkml.kernel.org/r/20171128104938.3921-1-linux@rasmusvillemoes.dk
+Fixes: 92266d6ef60c "async: simplify lowest_in_progress()"
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Adam Wallis <awallis@codeaurora.org>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/async.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-spread-likely-unlikely-a-bit fs/proc/inode.c
---- a/fs/proc/inode.c~proc-spread-likely-unlikely-a-bit
-+++ a/fs/proc/inode.c
-@@ -129,12 +129,12 @@ enum {BIAS = -1U<<31};
+diff -puN kernel/async.c~revert-async-simplify-lowest_in_progress kernel/async.c
+--- a/kernel/async.c~revert-async-simplify-lowest_in_progress
++++ a/kernel/async.c
+@@ -84,20 +84,24 @@ static atomic_t entry_count;
  
- static inline int use_pde(struct proc_dir_entry *pde)
+ static async_cookie_t lowest_in_progress(struct async_domain *domain)
  {
--	return atomic_inc_unless_negative(&pde->in_use);
-+	return likely(atomic_inc_unless_negative(&pde->in_use));
- }
+-	struct list_head *pending;
++	struct async_entry *first = NULL;
+ 	async_cookie_t ret = ASYNC_COOKIE_MAX;
+ 	unsigned long flags;
  
- static void unuse_pde(struct proc_dir_entry *pde)
- {
--	if (atomic_dec_return(&pde->in_use) == BIAS)
-+	if (unlikely(atomic_dec_return(&pde->in_use) == BIAS))
- 		complete(pde->pde_unload_completion);
- }
+ 	spin_lock_irqsave(&async_lock, flags);
  
-@@ -167,7 +167,7 @@ static void close_pdeo(struct proc_dir_e
- 		spin_lock(&pde->pde_unload_lock);
- 		/* After ->release. */
- 		list_del(&pdeo->lh);
--		if (pdeo->c)
-+		if (unlikely(pdeo->c))
- 			complete(pdeo->c);
- 		kfree(pdeo);
- 	}
-@@ -421,7 +421,7 @@ static const char *proc_get_link(struct
- 				 struct delayed_call *done)
- {
- 	struct proc_dir_entry *pde = PDE(inode);
--	if (unlikely(!use_pde(pde)))
-+	if (!use_pde(pde))
- 		return ERR_PTR(-EINVAL);
- 	set_delayed_call(done, proc_put_link, pde);
- 	return pde->data;
+-	if (domain)
+-		pending = &domain->pending;
+-	else
+-		pending = &async_global_pending;
++	if (domain) {
++		if (!list_empty(&domain->pending))
++			first = list_first_entry(&domain->pending,
++					struct async_entry, domain_list);
++	} else {
++		if (!list_empty(&async_global_pending))
++			first = list_first_entry(&async_global_pending,
++					struct async_entry, global_list);
++	}
+ 
+-	if (!list_empty(pending))
+-		ret = list_first_entry(pending, struct async_entry,
+-				       domain_list)->cookie;
++	if (first)
++		ret = first->cookie;
+ 
+ 	spin_unlock_irqrestore(&async_lock, flags);
+ 	return ret;
 _
