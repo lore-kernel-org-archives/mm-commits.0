@@ -1,235 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 073/114] pids: introduce find_get_task_by_vpid()
- helper
-Date: Tue, 06 Feb 2018 15:40:17 -0800
-Message-ID: <20180206234017.c2nlAhQPY%akpm@linux-foundation.org>
+Subject: [patch 078/114] build_bug.h: remove BUILD_BUG_ON_NULL()
+Date: Tue, 06 Feb 2018 15:40:35 -0800
+Message-ID: <20180206234035.4OhdT-kMJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932090AbeBFXkT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:19 -0500
+        with ESMTP id S932106AbeBFXkh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, oleg@redhat.com, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: abbotti@mev.co.uk, akpm@linux-foundation.org, davem@davemloft.net, kuznet@ms2.inr.ac.ru, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com, yoshfuji@linux-ipv6.org
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: pids: introduce find_get_task_by_vpid() helper
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: build_bug.h: remove BUILD_BUG_ON_NULL()
 
-There are several functions that do find_task_by_vpid() followed by
-get_task_struct().  We can use a helper function instead.
+This macro is only used by net/ipv6/mcast.c, but there is no reason
+why it must be BUILD_BUG_ON_NULL().
 
-Link: http://lkml.kernel.org/r/1509602027-11337-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+Replace it with BUILD_BUG_ON_ZERO(), and remove BUILD_BUG_ON_NULL()
+definition from <linux/build_bug.h>.
+
+Link: http://lkml.kernel.org/r/1515121833-3174-3-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |   13 +++----------
- include/linux/sched.h      |    5 +++++
- kernel/futex.c             |   20 +-------------------
- kernel/pid.c               |   13 +++++++++++++
- kernel/ptrace.c            |   27 ++++++---------------------
- kernel/taskstats.c         |    6 +-----
- mm/process_vm_access.c     |    6 +-----
- security/yama/yama_lsm.c   |   11 +++--------
- 8 files changed, 33 insertions(+), 68 deletions(-)
+ include/linux/build_bug.h |    2 --
+ net/ipv6/mcast.c          |    8 ++++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~pids-introduce-find_get_task_by_vpid-helper arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -2610,17 +2610,10 @@ pfm_get_task(pfm_context_t *ctx, pid_t p
- 	if (pid < 2) return -EPERM;
- 
- 	if (pid != task_pid_vnr(current)) {
--
--		read_lock(&tasklist_lock);
--
--		p = find_task_by_vpid(pid);
--
- 		/* make sure task cannot go away while we operate on it */
--		if (p) get_task_struct(p);
--
--		read_unlock(&tasklist_lock);
--
--		if (p == NULL) return -ESRCH;
-+		p = find_get_task_by_vpid(pid);
-+		if (!p)
-+			return -ESRCH;
- 	}
- 
- 	ret = pfm_task_incompatible(ctx, p);
-diff -puN include/linux/sched.h~pids-introduce-find_get_task_by_vpid-helper include/linux/sched.h
---- a/include/linux/sched.h~pids-introduce-find_get_task_by_vpid-helper
-+++ a/include/linux/sched.h
-@@ -1489,6 +1489,11 @@ static inline struct thread_info *task_t
- extern struct task_struct *find_task_by_vpid(pid_t nr);
- extern struct task_struct *find_task_by_pid_ns(pid_t nr, struct pid_namespace *ns);
- 
-+/*
-+ * find a task by its virtual pid and get the task struct
-+ */
-+extern struct task_struct *find_get_task_by_vpid(pid_t nr);
-+
- extern int wake_up_state(struct task_struct *tsk, unsigned int state);
- extern int wake_up_process(struct task_struct *tsk);
- extern void wake_up_new_task(struct task_struct *tsk);
-diff -puN kernel/futex.c~pids-introduce-find_get_task_by_vpid-helper kernel/futex.c
---- a/kernel/futex.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/futex.c
-@@ -862,24 +862,6 @@ static void put_pi_state(struct futex_pi
- 	}
- }
- 
--/*
-- * Look up the task based on what TID userspace gave us.
-- * We dont trust it.
-- */
--static struct task_struct *futex_find_get_task(pid_t pid)
--{
--	struct task_struct *p;
--
--	rcu_read_lock();
--	p = find_task_by_vpid(pid);
--	if (p)
--		get_task_struct(p);
--
--	rcu_read_unlock();
--
--	return p;
--}
--
- #ifdef CONFIG_FUTEX_PI
+diff -puN include/linux/build_bug.h~build_bugh-remove-build_bug_on_null include/linux/build_bug.h
+--- a/include/linux/build_bug.h~build_bugh-remove-build_bug_on_null
++++ a/include/linux/build_bug.h
+@@ -8,7 +8,6 @@
+ #define __BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
+ #define BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
+ #define BUILD_BUG_ON_ZERO(e) (0)
+-#define BUILD_BUG_ON_NULL(e) ((void *)0)
+ #define BUILD_BUG_ON_INVALID(e) (0)
+ #define BUILD_BUG_ON_MSG(cond, msg) (0)
+ #define BUILD_BUG_ON(condition) (0)
+@@ -28,7 +27,6 @@
+  * aren't permitted).
+  */
+ #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
+-#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:(-!!(e)); }))
  
  /*
-@@ -1183,7 +1165,7 @@ static int attach_to_pi_owner(u32 uval,
- 	 */
- 	if (!pid)
- 		return -ESRCH;
--	p = futex_find_get_task(pid);
-+	p = find_get_task_by_vpid(pid);
- 	if (!p)
- 		return -ESRCH;
+  * BUILD_BUG_ON_INVALID() permits the compiler to check the validity of the
+diff -puN net/ipv6/mcast.c~build_bugh-remove-build_bug_on_null net/ipv6/mcast.c
+--- a/net/ipv6/mcast.c~build_bugh-remove-build_bug_on_null
++++ a/net/ipv6/mcast.c
+@@ -65,10 +65,10 @@
+ #include <net/ip6_checksum.h>
  
-diff -puN kernel/pid.c~pids-introduce-find_get_task_by_vpid-helper kernel/pid.c
---- a/kernel/pid.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/pid.c
-@@ -343,6 +343,19 @@ struct task_struct *find_task_by_vpid(pi
- 	return find_task_by_pid_ns(vnr, task_active_pid_ns(current));
- }
+ /* Ensure that we have struct in6_addr aligned on 32bit word. */
+-static void *__mld2_query_bugs[] __attribute__((__unused__)) = {
+-	BUILD_BUG_ON_NULL(offsetof(struct mld2_query, mld2q_srcs) % 4),
+-	BUILD_BUG_ON_NULL(offsetof(struct mld2_report, mld2r_grec) % 4),
+-	BUILD_BUG_ON_NULL(offsetof(struct mld2_grec, grec_mca) % 4)
++static int __mld2_query_bugs[] __attribute__((__unused__)) = {
++	BUILD_BUG_ON_ZERO(offsetof(struct mld2_query, mld2q_srcs) % 4),
++	BUILD_BUG_ON_ZERO(offsetof(struct mld2_report, mld2r_grec) % 4),
++	BUILD_BUG_ON_ZERO(offsetof(struct mld2_grec, grec_mca) % 4)
+ };
  
-+struct task_struct *find_get_task_by_vpid(pid_t nr)
-+{
-+	struct task_struct *task;
-+
-+	rcu_read_lock();
-+	task = find_task_by_vpid(nr);
-+	if (task)
-+		get_task_struct(task);
-+	rcu_read_unlock();
-+
-+	return task;
-+}
-+
- struct pid *get_task_pid(struct task_struct *task, enum pid_type type)
- {
- 	struct pid *pid;
-diff -puN kernel/ptrace.c~pids-introduce-find_get_task_by_vpid-helper kernel/ptrace.c
---- a/kernel/ptrace.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/ptrace.c
-@@ -1103,21 +1103,6 @@ int ptrace_request(struct task_struct *c
- 	return ret;
- }
- 
--static struct task_struct *ptrace_get_task_struct(pid_t pid)
--{
--	struct task_struct *child;
--
--	rcu_read_lock();
--	child = find_task_by_vpid(pid);
--	if (child)
--		get_task_struct(child);
--	rcu_read_unlock();
--
--	if (!child)
--		return ERR_PTR(-ESRCH);
--	return child;
--}
--
- #ifndef arch_ptrace_attach
- #define arch_ptrace_attach(child)	do { } while (0)
- #endif
-@@ -1135,9 +1120,9 @@ SYSCALL_DEFINE4(ptrace, long, request, l
- 		goto out;
- 	}
- 
--	child = ptrace_get_task_struct(pid);
--	if (IS_ERR(child)) {
--		ret = PTR_ERR(child);
-+	child = find_get_task_by_vpid(pid);
-+	if (!child) {
-+		ret = -ESRCH;
- 		goto out;
- 	}
- 
-@@ -1281,9 +1266,9 @@ COMPAT_SYSCALL_DEFINE4(ptrace, compat_lo
- 		goto out;
- 	}
- 
--	child = ptrace_get_task_struct(pid);
--	if (IS_ERR(child)) {
--		ret = PTR_ERR(child);
-+	child = find_get_task_by_vpid(pid);
-+	if (!child) {
-+		ret = -ESRCH;
- 		goto out;
- 	}
- 
-diff -puN kernel/taskstats.c~pids-introduce-find_get_task_by_vpid-helper kernel/taskstats.c
---- a/kernel/taskstats.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/taskstats.c
-@@ -194,11 +194,7 @@ static int fill_stats_for_pid(pid_t pid,
- {
- 	struct task_struct *tsk;
- 
--	rcu_read_lock();
--	tsk = find_task_by_vpid(pid);
--	if (tsk)
--		get_task_struct(tsk);
--	rcu_read_unlock();
-+	tsk = find_get_task_by_vpid(pid);
- 	if (!tsk)
- 		return -ESRCH;
- 	fill_stats(current_user_ns(), task_active_pid_ns(current), tsk, stats);
-diff -puN mm/process_vm_access.c~pids-introduce-find_get_task_by_vpid-helper mm/process_vm_access.c
---- a/mm/process_vm_access.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/mm/process_vm_access.c
-@@ -197,11 +197,7 @@ static ssize_t process_vm_rw_core(pid_t
- 	}
- 
- 	/* Get process information */
--	rcu_read_lock();
--	task = find_task_by_vpid(pid);
--	if (task)
--		get_task_struct(task);
--	rcu_read_unlock();
-+	task = find_get_task_by_vpid(pid);
- 	if (!task) {
- 		rc = -ESRCH;
- 		goto free_proc_pages;
-diff -puN security/yama/yama_lsm.c~pids-introduce-find_get_task_by_vpid-helper security/yama/yama_lsm.c
---- a/security/yama/yama_lsm.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/security/yama/yama_lsm.c
-@@ -250,15 +250,10 @@ int yama_task_prctl(int option, unsigned
- 		} else {
- 			struct task_struct *tracer;
- 
--			rcu_read_lock();
--			tracer = find_task_by_vpid(arg2);
--			if (tracer)
--				get_task_struct(tracer);
--			else
-+			tracer = find_get_task_by_vpid(arg2);
-+			if (!tracer) {
- 				rc = -EINVAL;
--			rcu_read_unlock();
+ static struct in6_addr mld2_all_mcr = MLD2_ALL_MCR_INIT;
+_
