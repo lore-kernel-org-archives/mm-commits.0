@@ -1,38 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [patch 018/114] fs/proc/vmcore.c: simpler /proc/vmcore
- cleanup
-Date: Tue, 06 Feb 2018 15:37:02 -0800
-Message-ID: <20180206233702.6oAiuYNwP%akpm@linux-foundation.org>
+Subject: [patch 011/114] kasan: detect invalid frees
+Date: Tue, 06 Feb 2018 15:36:37 -0800
+Message-ID: <20180206233637.f1v7qVJTb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54110 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754123AbeBFXhE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:37:04 -0500
+        with ESMTP id S1754138AbeBFXgj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc/vmcore.c: simpler /proc/vmcore cleanup
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: detect invalid frees
 
-Iterators aren't necessary as you can just grab the first entry and delete
-it until no entries left.
+Detect frees of pointers into middle of heap objects.
 
-Link: http://lkml.kernel.org/r/20171121191121.GA20757@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/cb569193190356beb018a03bb8d6fbae67e7adbc.1514378558.git.dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/test_kasan.c |   50 +++++++++++++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.c |    6 +++++
+ 2 files changed, 56 insertions(+)
 
-diff -puN fs/proc/vmcore.c~proc-simpler-proc-vmcore-cleanup fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~proc-simpler-proc-vmcore-cleanup
-+++ a/fs/proc/vmcore.c
-@@ -1178,18 +1178,16 @@ fs_initcall(vmcore_init);
- /* Cleanup function for vmcore module. */
- void vmcore_cleanup(void)
+diff -puN lib/test_kasan.c~kasan-detect-invalid-frees lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-detect-invalid-frees
++++ a/lib/test_kasan.c
+@@ -523,6 +523,54 @@ static noinline void __init kasan_alloca
+ 	*(volatile char *)p;
+ }
+ 
++static noinline void __init kmem_cache_double_free(void)
++{
++	char *p;
++	size_t size = 200;
++	struct kmem_cache *cache;
++
++	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
++	if (!cache) {
++		pr_err("Cache allocation failed\n");
++		return;
++	}
++	pr_info("double-free on heap object\n");
++	p = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p) {
++		pr_err("Allocation failed\n");
++		kmem_cache_destroy(cache);
++		return;
++	}
++
++	kmem_cache_free(cache, p);
++	kmem_cache_free(cache, p);
++	kmem_cache_destroy(cache);
++}
++
++static noinline void __init kmem_cache_invalid_free(void)
++{
++	char *p;
++	size_t size = 200;
++	struct kmem_cache *cache;
++
++	cache = kmem_cache_create("test_cache", size, 0, SLAB_TYPESAFE_BY_RCU,
++				  NULL);
++	if (!cache) {
++		pr_err("Cache allocation failed\n");
++		return;
++	}
++	pr_info("invalid-free of heap object\n");
++	p = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p) {
++		pr_err("Allocation failed\n");
++		kmem_cache_destroy(cache);
++		return;
++	}
++
++	kmem_cache_free(cache, p + 1);
++	kmem_cache_destroy(cache);
++}
++
+ static int __init kmalloc_tests_init(void)
  {
--	struct list_head *pos, *next;
+ 	/*
+@@ -560,6 +608,8 @@ static int __init kmalloc_tests_init(voi
+ 	ksize_unpoisons_memory();
+ 	copy_user_test();
+ 	use_after_scope_test();
++	kmem_cache_double_free();
++	kmem_cache_invalid_free();
+ 
+ 	kasan_restore_multi_shot(multishot);
+ 
+diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-detect-invalid-frees
++++ a/mm/kasan/kasan.c
+@@ -495,6 +495,12 @@ static bool __kasan_slab_free(struct kme
+ 	s8 shadow_byte;
+ 	unsigned long rounded_up_size;
+ 
++	if (unlikely(nearest_obj(cache, virt_to_head_page(object), object) !=
++	    object)) {
++		kasan_report_invalid_free(object, ip);
++		return true;
++	}
++
+ 	/* RCU slabs could be legally used after free within the RCU period */
+ 	if (unlikely(cache->flags & SLAB_TYPESAFE_BY_RCU))
+ 		return false;
+_
