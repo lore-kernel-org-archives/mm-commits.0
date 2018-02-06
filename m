@@ -1,75 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [patch 078/114] build_bug.h: remove BUILD_BUG_ON_NULL()
-Date: Tue, 06 Feb 2018 15:40:35 -0800
-Message-ID: <20180206234035.4OhdT-kMJ%akpm@linux-foundation.org>
+Subject: [patch 076/114] kcov: detect double association with a
+ single task
+Date: Tue, 06 Feb 2018 15:40:28 -0800
+Message-ID: <20180206234028.d4VX7RWd7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55460 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXkh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:37 -0500
+        with ESMTP id S932106AbeBFXk3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, akpm@linux-foundation.org, davem@davemloft.net, kuznet@ms2.inr.ac.ru, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com, yoshfuji@linux-ipv6.org
+To: akpm@linux-foundation.org, dvyukov@google.com, mm-commits@vger.kernel.org, sp3485@columbia.edu, syzkaller@googlegroups.com, torvalds@linux-foundation.org
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: build_bug.h: remove BUILD_BUG_ON_NULL()
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kcov: detect double association with a single task
 
-This macro is only used by net/ipv6/mcast.c, but there is no reason
-why it must be BUILD_BUG_ON_NULL().
+Currently KCOV_ENABLE does not check if the current task is already
+associated with another kcov descriptor. As the result it is possible
+to associate a single task with more than one kcov descriptor, which
+later leads to a memory leak of the old descriptor. This relation is
+really meant to be one-to-one (task has only one back link).
 
-Replace it with BUILD_BUG_ON_ZERO(), and remove BUILD_BUG_ON_NULL()
-definition from <linux/build_bug.h>.
+Extend validation to detect such misuse.
 
-Link: http://lkml.kernel.org/r/1515121833-3174-3-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Ian Abbott <abbotti@mev.co.uk>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+Link: http://lkml.kernel.org/r/20180122082520.15716-1-dvyukov@google.com
+Fixes: 5c9a8750a640 ("kernel: add kcov code coverage")
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: Shankara Pailoor <sp3485@columbia.edu>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: syzbot <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/build_bug.h |    2 --
- net/ipv6/mcast.c          |    8 ++++----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ kernel/kcov.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/build_bug.h~build_bugh-remove-build_bug_on_null include/linux/build_bug.h
---- a/include/linux/build_bug.h~build_bugh-remove-build_bug_on_null
-+++ a/include/linux/build_bug.h
-@@ -8,7 +8,6 @@
- #define __BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
- #define BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
- #define BUILD_BUG_ON_ZERO(e) (0)
--#define BUILD_BUG_ON_NULL(e) ((void *)0)
- #define BUILD_BUG_ON_INVALID(e) (0)
- #define BUILD_BUG_ON_MSG(cond, msg) (0)
- #define BUILD_BUG_ON(condition) (0)
-@@ -28,7 +27,6 @@
-  * aren't permitted).
-  */
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
--#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:(-!!(e)); }))
- 
- /*
-  * BUILD_BUG_ON_INVALID() permits the compiler to check the validity of the
-diff -puN net/ipv6/mcast.c~build_bugh-remove-build_bug_on_null net/ipv6/mcast.c
---- a/net/ipv6/mcast.c~build_bugh-remove-build_bug_on_null
-+++ a/net/ipv6/mcast.c
-@@ -65,10 +65,10 @@
- #include <net/ip6_checksum.h>
- 
- /* Ensure that we have struct in6_addr aligned on 32bit word. */
--static void *__mld2_query_bugs[] __attribute__((__unused__)) = {
--	BUILD_BUG_ON_NULL(offsetof(struct mld2_query, mld2q_srcs) % 4),
--	BUILD_BUG_ON_NULL(offsetof(struct mld2_report, mld2r_grec) % 4),
--	BUILD_BUG_ON_NULL(offsetof(struct mld2_grec, grec_mca) % 4)
-+static int __mld2_query_bugs[] __attribute__((__unused__)) = {
-+	BUILD_BUG_ON_ZERO(offsetof(struct mld2_query, mld2q_srcs) % 4),
-+	BUILD_BUG_ON_ZERO(offsetof(struct mld2_report, mld2r_grec) % 4),
-+	BUILD_BUG_ON_ZERO(offsetof(struct mld2_grec, grec_mca) % 4)
- };
- 
- static struct in6_addr mld2_all_mcr = MLD2_ALL_MCR_INIT;
+diff -puN kernel/kcov.c~kcov-detect-double-association-with-a-single-task kernel/kcov.c
+--- a/kernel/kcov.c~kcov-detect-double-association-with-a-single-task
++++ a/kernel/kcov.c
+@@ -358,7 +358,8 @@ static int kcov_ioctl_locked(struct kcov
+ 		 */
+ 		if (kcov->mode != KCOV_MODE_INIT || !kcov->area)
+ 			return -EINVAL;
+-		if (kcov->t != NULL)
++		t = current;
++		if (kcov->t != NULL || t->kcov != NULL)
+ 			return -EBUSY;
+ 		if (arg == KCOV_TRACE_PC)
+ 			kcov->mode = KCOV_MODE_TRACE_PC;
+@@ -370,7 +371,6 @@ static int kcov_ioctl_locked(struct kcov
+ #endif
+ 		else
+ 			return -EINVAL;
+-		t = current;
+ 		/* Cache in task struct for performance. */
+ 		t->kcov_size = kcov->size;
+ 		t->kcov_area = kcov->area;
 _
