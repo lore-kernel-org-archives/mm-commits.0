@@ -1,69 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [patch 021/114] fs/proc/kcore.c: use probe_kernel_read()
- instead of memcpy()
-Date: Tue, 06 Feb 2018 15:37:13 -0800
-Message-ID: <20180206233713.O7PKX5ODz%akpm__29610.6833885007$1517960119$gmane$org@linux-foundation.org>
+Subject: [patch 024/114] fs/proc: use __ro_after_init
+Date: Tue, 06 Feb 2018 15:37:24 -0800
+Message-ID: <20180206233724.KcmFW6E0V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54432 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754019AbeBFXhQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:37:16 -0500
+        with ESMTP id S1754019AbeBFXh0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:37:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, jolsa@kernel.org, keescook@chromium.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@ZenIV.linux.org.uk
+To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs/proc: use __ro_after_init
 
-df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data") added a
-bounce buffer to avoid hardened usercopy checks.  Copying to the bounce
-buffer was implemented with a simple memcpy() assuming that it is always
-valid to read from kernel memory iff the kern_addr_valid() check passed.
+/proc/self inode numbers, value of proc_inode_cache and st_nlink of
+/proc/$TGID are fixed constants.
 
-A simple, but pointless, test case like "dd if=/proc/kcore of=/dev/null"
-now can easily crash the kernel, since the former execption handling on
-invalid kernel addresses now doesn't work anymore.
-
-Also adding a kern_addr_valid() implementation wouldn't help here.  Most
-architectures simply return 1 here, while a couple implemented a page
-table walk to figure out if something is mapped at the address in
-question.
-
-With DEBUG_PAGEALLOC active mappings are established and removed all the
-time, so that relying on the result of kern_addr_valid() before executing
-the memcpy() also doesn't work.
-
-Therefore simply use probe_kernel_read() to copy to the bounce buffer. 
-This also allows to simplify read_kcore().
-
-At least on s390 this fixes the observed crashes and doesn't introduce
-warnings that were removed with df04abfd181a ("fs/proc/kcore.c: Add bounce
-buffer for ktext data"), even though the generic probe_kernel_read()
-implementation uses uaccess functions.
-
-While looking into this I'm also wondering if kern_addr_valid() could be
-completely removed...(?)
-
-Link: http://lkml.kernel.org/r/20171202132739.99971-1-heiko.carstens@de.ibm.com
-Fixes: df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data")
-Fixes: f5509cc18daa ("mm: Hardened usercopy")
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20180103184707.GA31849@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ fs/proc/base.c        |    5 +++--
+ fs/proc/inode.c       |    3 ++-
+ fs/proc/self.c        |    3 ++-
+ fs/proc/thread_self.c |    3 ++-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy fs/proc/kcore.c
---- a/fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy
-+++ a/fs/proc/kcore.c
-@@ -512,23 +512,15 @@ read_kcore(struct file *file, char __use
- 				return -EFAULT;
- 		} else {
- 			if (kern_addr_valid(start)) {
--				unsigned long n;
+diff -puN fs/proc/base.c~proc-spread-__ro_after_init fs/proc/base.c
+--- a/fs/proc/base.c~proc-spread-__ro_after_init
++++ a/fs/proc/base.c
+@@ -75,6 +75,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/tracehook.h>
+ #include <linux/printk.h>
++#include <linux/cache.h>
+ #include <linux/cgroup.h>
+ #include <linux/cpuset.h>
+ #include <linux/audit.h>
+@@ -112,8 +113,8 @@
+  *	in /proc for a task before it execs a suid executable.
+  */
+ 
+-static u8 nlink_tid;
+-static u8 nlink_tgid;
++static u8 nlink_tid __ro_after_init;
++static u8 nlink_tgid __ro_after_init;
+ 
+ struct pid_entry {
+ 	const char *name;
+diff -puN fs/proc/inode.c~proc-spread-__ro_after_init fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-spread-__ro_after_init
++++ a/fs/proc/inode.c
+@@ -5,6 +5,7 @@
+  *  Copyright (C) 1991, 1992  Linus Torvalds
+  */
+ 
++#include <linux/cache.h>
+ #include <linux/time.h>
+ #include <linux/proc_fs.h>
+ #include <linux/kernel.h>
+@@ -52,7 +53,7 @@ static void proc_evict_inode(struct inod
+ 	}
+ }
+ 
+-static struct kmem_cache * proc_inode_cachep;
++static struct kmem_cache *proc_inode_cachep __ro_after_init;
+ 
+ static struct inode *proc_alloc_inode(struct super_block *sb)
+ {
+diff -puN fs/proc/self.c~proc-spread-__ro_after_init fs/proc/self.c
+--- a/fs/proc/self.c~proc-spread-__ro_after_init
++++ a/fs/proc/self.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++#include <linux/cache.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/pid_namespace.h>
+@@ -30,7 +31,7 @@ static const struct inode_operations pro
+ 	.get_link	= proc_self_get_link,
+ };
+ 
+-static unsigned self_inum;
++static unsigned self_inum __ro_after_init;
+ 
+ int proc_setup_self(struct super_block *s)
+ {
+diff -puN fs/proc/thread_self.c~proc-spread-__ro_after_init fs/proc/thread_self.c
+--- a/fs/proc/thread_self.c~proc-spread-__ro_after_init
++++ a/fs/proc/thread_self.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++#include <linux/cache.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/pid_namespace.h>
+@@ -30,7 +31,7 @@ static const struct inode_operations pro
+ 	.get_link	= proc_thread_self_get_link,
+ };
+ 
+-static unsigned thread_self_inum;
++static unsigned thread_self_inum __ro_after_init;
+ 
+ int proc_setup_thread_self(struct super_block *s)
+ {
+_
