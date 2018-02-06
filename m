@@ -1,46 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 055/114] elf: fix NT_FILE integer overflow
-Date: Tue, 06 Feb 2018 15:39:13 -0800
-Message-ID: <20180206233913.NBjj1FTu9%akpm@linux-foundation.org>
+Subject: [patch 056/114] kallsyms: let print_ip_sym() print raw
+ addresses
+Date: Tue, 06 Feb 2018 15:39:18 -0800
+Message-ID: <20180206233918.p9X19aJbw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932067AbeBFXjQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:16 -0500
+        with ESMTP id S932067AbeBFXjT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, chenhc@lemote.com, keescook@chromium.org, me@tobin.cc, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, zhangfx@lemote.com
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: elf: fix NT_FILE integer overflow
+From: Huacai Chen <chenhc@lemote.com>
+Subject: kallsyms: let print_ip_sym() print raw addresses
 
-If vm.max_map_count bumped above 2^26 (67+ mil) and system has enough RAM
-to allocate all the VMAs (~12.8 GB on Fedora 27 with 200-byte VMAs), then
-it should be possible to overflow 32-bit "size", pass paranoia check,
-allocate very little vmalloc space and oops while writing into vmalloc
-guard page...
+print_ip_sym() is mostly used for debugging, so I think it should print
+the raw addresses.
 
-But I didn't test this, only coredump of regular process.
-
-Link: http://lkml.kernel.org/r/20180112203427.GA9109@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/1514519382-405-1-git-send-email-chenhc@lemote.com
+Signed-off-by: Huacai Chen <chenhc@lemote.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Fuxin Zhang <zhangfx@lemote.com>
+Cc: "Tobin C. Harding" <me@tobin.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/kallsyms.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow
-+++ a/fs/binfmt_elf.c
-@@ -1599,6 +1599,8 @@ static int fill_files_note(struct memelf
+diff -puN include/linux/kallsyms.h~kallsyms-let-print_ip_sym-print-raw-addresses include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~kallsyms-let-print_ip_sym-print-raw-addresses
++++ a/include/linux/kallsyms.h
+@@ -167,7 +167,7 @@ static inline int kallsyms_show_value(vo
  
- 	/* *Estimated* file count and total data size needed */
- 	count = current->mm->map_count;
-+	if (count > UINT_MAX / 64)
-+		return -EINVAL;
- 	size = count * 64;
+ static inline void print_ip_sym(unsigned long ip)
+ {
+-	printk("[<%p>] %pS\n", (void *) ip, (void *) ip);
++	printk("[<%px>] %pS\n", (void *) ip, (void *) ip);
+ }
  
- 	names_ofs = (2 + 3 * count) * sizeof(data[0]);
+ #endif /*_LINUX_KALLSYMS_H*/
 _
