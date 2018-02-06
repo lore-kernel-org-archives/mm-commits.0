@@ -1,46 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 061/114] kernel/fork.c: add comment about usage of
- CLONE_FS flags and namespaces
-Date: Tue, 06 Feb 2018 15:39:34 -0800
-Message-ID: <20180206233934.9tEr8bin6%akpm@linux-foundation.org>
+Subject: [patch 063/114] rapidio: delete an error message for a
+ failed memory allocation in rio_init_mports()
+Date: Tue, 06 Feb 2018 15:39:41 -0800
+Message-ID: <20180206233941.Ce-YfmIv_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55202 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932067AbeBFXjf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:35 -0500
+        with ESMTP id S932067AbeBFXjm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, marcos.souza.org@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alexandre.bounine@idt.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org, mporter@kernel.crashing.org, torvalds@linux-foundation.org
 
-From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-Subject: kernel/fork.c: add comment about usage of CLONE_FS flags and namespaces
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: rapidio: delete an error message for a failed memory allocation in rio_init_mports()
 
-All other places that deals with namespaces have an explanation of why the
-restriction is there.  The description added in this commit was based on
-e66eded8309eb ("userns: Don't allow CLONE_NEWUSER | CLONE_FS").
+Patch series "RapidIO: Adjustments for some function implementations".
 
-Link: http://lkml.kernel.org/r/20171112151637.13258-1-marcos.souza.org@gmail.com
-Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+This patch (of 7):
+
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Link: http://lkml.kernel.org/r/dfd6887b-2521-cbf2-af5b-e70b5fa4c33c@users.sourceforge.net
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/rapidio/rio.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/fork.c~forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces kernel/fork.c
---- a/kernel/fork.c~forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces
-+++ a/kernel/fork.c
-@@ -1587,6 +1587,10 @@ static __latent_entropy struct task_stru
- 	int retval;
- 	struct task_struct *p;
+diff -puN drivers/rapidio/rio.c~rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-delete-an-error-message-for-a-failed-memory-allocation-in-rio_init_mports
++++ a/drivers/rapidio/rio.c
+@@ -2189,7 +2189,6 @@ int rio_init_mports(void)
  
-+	/*
-+	 * Don't allow sharing the root directory with processes in a different
-+	 * namespace
-+	 */
- 	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
- 		return ERR_PTR(-EINVAL);
- 
+ 	work = kcalloc(n, sizeof *work, GFP_KERNEL);
+ 	if (!work) {
+-		pr_err("RIO: no memory for work struct\n");
+ 		destroy_workqueue(rio_wq);
+ 		goto no_disc;
+ 	}
 _
