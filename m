@@ -1,58 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/114] checkpatch: improve OPEN_BRACE test
-Date: Tue, 06 Feb 2018 15:39:09 -0800
-Message-ID: <20180206233909.naE_sjB7a%akpm@linux-foundation.org>
+Subject: [patch 045/114] lib/: make RUNTIME_TESTS a menuconfig to
+ ease disabling it all
+Date: Tue, 06 Feb 2018 15:38:38 -0800
+Message-ID: <20180206233838.f7Q8UmBO1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54900 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932067AbeBFXjL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:11 -0500
+        with ESMTP id S1754126AbeBFXik (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, songliubraving@fb.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, byungchul.park@lge.com, geert@linux-m68k.org, jpoimboe@redhat.com, mcgrof@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, npiggin@gmail.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rdunlap@infradead.org, tglx@linutronix.de, torvalds@linux-foundation.org, vincent.legoll@gmail.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve OPEN_BRACE test
+From: Vincent Legoll <vincent.legoll@gmail.com>
+Subject: lib/: make RUNTIME_TESTS a menuconfig to ease disabling it all
 
-Some structure definitions that use macros trip the OPEN_BRACE test.
+No need to get into the submenu to disable all related
+config entries.
 
-e.g. +struct bpf_map_def SEC("maps") control_map = {
+This makes it easier to disable all RUNTIME_TESTS config options
+without entering the submenu. It will also enable one to see that
+en/dis-abled state from the outside menu.
 
-Improve the test by using $balanced_parens instead of a .*
+This is only intended to change menuconfig UI, not change
+the config dependencies.
 
-Miscellanea:
-
-o Use $sline so any comments are ignored
-o Correct the message output from declaration to definition
-o Remove unnecessary parentheses
-
-Link: http://lkml.kernel.org/r/db9b772999d1d2fbda3b9ee24bbca81a87837e13.1517543491.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Song Liu <songliubraving@fb.com>
+Link: http://lkml.kernel.org/r/20171209162742.7363-1-vincent.legoll@gmail.com
+Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Byungchul Park <byungchul.park@lge.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ lib/Kconfig.debug |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-open_brace-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-open_brace-test
-+++ a/scripts/checkpatch.pl
-@@ -3919,10 +3919,12 @@ sub process {
+diff -puN lib/Kconfig.debug~make-runtime_tests-a-menuconfig-to-ease-disabling-it-all lib/Kconfig.debug
+--- a/lib/Kconfig.debug~make-runtime_tests-a-menuconfig-to-ease-disabling-it-all
++++ a/lib/Kconfig.debug
+@@ -1641,7 +1641,10 @@ config DMA_API_DEBUG
  
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
--		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
--		    !($line=~/\#\s*define.*do\s\{/) and !($line=~/}/)) {
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $sline =~ /$Type\s*$Ident\s*$balanced_parens\s*\{/ &&
-+		    $sline !~ /\#\s*define\b.*do\s*\{/ &&
-+		    $sline !~ /}/) {
- 			if (ERROR("OPEN_BRACE",
--				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
-+				  "open brace '{' following function definitions go on the next line\n" . $herecurr) &&
- 			    $fix) {
- 				fix_delete_line($fixlinenr, $rawline);
- 				my $fixed_line = $rawline;
+ 	  If unsure, say N.
+ 
+-menu "Runtime Testing"
++menuconfig RUNTIME_TESTING_MENU
++	bool "Runtime Testing"
++
++if RUNTIME_TESTING_MENU
+ 
+ config LKDTM
+ 	tristate "Linux Kernel Dump Test Tool Module"
+@@ -1929,7 +1932,7 @@ config TEST_DEBUG_VIRTUAL
+ 
+ 	  If unsure, say N.
+ 
+-endmenu # runtime tests
++endif # RUNTIME_TESTING_MENU
+ 
+ config MEMTEST
+ 	bool "Memtest"
 _
