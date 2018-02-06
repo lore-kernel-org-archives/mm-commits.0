@@ -1,148 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [patch 015/114] proc: use %u for pid printing and slightly
- less stack
-Date: Tue, 06 Feb 2018 15:36:51 -0800
-Message-ID: <20180206233651._wB1nt5nQ%akpm@linux-foundation.org>
+Subject: [patch 022/114] fs/proc/internal.h: rearrange struct
+ proc_dir_entry
+Date: Tue, 06 Feb 2018 15:37:18 -0800
+Message-ID: <20180206233718.GGlEyGqun%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54412 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754124AbeBFXgx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:53 -0500
+        with ESMTP id S1754019AbeBFXhT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:37:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@ftp.linux.org.uk
+To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: use %u for pid printing and slightly less stack
+Subject: fs/proc/internal.h: rearrange struct proc_dir_entry
 
-PROC_NUMBUF is 13 which is enough for "negative int + \n + \0".
+struct proc_dir_entry became bit messy over years:
 
-However PIDs and TGIDs are never negative and newline is not a concern,
-so use just 10 per integer.
+* move 16-bit ->mode_t before namelen to get rid of padding
+* make ->in_use first field: it seems to be most used resulting in
+  smaller code on x86_64 (defconfig):
 
-Link: http://lkml.kernel.org/r/20171120203005.GA27743@avx2
+	add/remove: 0/0 grow/shrink: 7/13 up/down: 24/-67 (-43)
+	Function                                     old     new   delta
+	proc_readdir_de                              451     455      +4
+	proc_get_inode                               282     286      +4
+	pde_put                                       65      69      +4
+	remove_proc_subtree                          294     297      +3
+	remove_proc_entry                            297     300      +3
+	proc_register                                295     298      +3
+	proc_notify_change                            94      97      +3
+	unuse_pde                                     27      26      -1
+	proc_reg_write                                89      85      -4
+	proc_reg_unlocked_ioctl                       85      81      -4
+	proc_reg_read                                 89      85      -4
+	proc_reg_llseek                               87      83      -4
+	proc_reg_get_unmapped_area                   123     119      -4
+	proc_entry_rundown                           139     135      -4
+	proc_reg_poll                                 91      85      -6
+	proc_reg_mmap                                 79      73      -6
+	proc_get_link                                 55      49      -6
+	proc_reg_release                             108     101      -7
+	proc_reg_open                                298     291      -7
+	close_pdeo                                   228     218     -10
+
+* move writeable fields together to a first cacheline (on x86_64),
+  those include
+	* ->in_use: reference count, taken every open/read/write/close etc
+	* ->count: reference count, taken at readdir on every entry
+	* ->pde_openers: tracks (nearly) every open, dirtied
+	* ->pde_unload_lock: spinlock protecting ->pde_openers
+	* ->proc_iops, ->proc_fops, ->data: writeonce fields,
+	  used right together with previous group.
+
+* other rarely written fields go into 1st/2nd and 2nd/3rd cacheline on
+  32-bit and 64-bit respectively.
+
+Additionally on 32-bit, ->subdir, ->subdir_node, ->namelen, ->name go
+fully into 2nd cacheline, separated from writeable fields.  They are all
+used during lookup.
+
+Link: http://lkml.kernel.org/r/20171220215914.GA7877@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alexander Viro <viro@ftp.linux.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c        |   16 ++++++++--------
- fs/proc/fd.c          |    2 +-
- fs/proc/self.c        |    6 +++---
- fs/proc/thread_self.c |    5 ++---
- 4 files changed, 14 insertions(+), 15 deletions(-)
+ fs/proc/internal.h |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/base.c
---- a/fs/proc/base.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
-+++ a/fs/proc/base.c
-@@ -3018,11 +3018,11 @@ static const struct inode_operations pro
- static void proc_flush_task_mnt(struct vfsmount *mnt, pid_t pid, pid_t tgid)
- {
- 	struct dentry *dentry, *leader, *dir;
--	char buf[PROC_NUMBUF];
-+	char buf[10 + 1];
- 	struct qstr name;
- 
- 	name.name = buf;
--	name.len = snprintf(buf, sizeof(buf), "%d", pid);
-+	name.len = snprintf(buf, sizeof(buf), "%u", pid);
- 	/* no ->d_hash() rejects on procfs */
- 	dentry = d_hash_and_lookup(mnt->mnt_root, &name);
- 	if (dentry) {
-@@ -3034,7 +3034,7 @@ static void proc_flush_task_mnt(struct v
- 		return;
- 
- 	name.name = buf;
--	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
-+	name.len = snprintf(buf, sizeof(buf), "%u", tgid);
- 	leader = d_hash_and_lookup(mnt->mnt_root, &name);
- 	if (!leader)
- 		goto out;
-@@ -3046,7 +3046,7 @@ static void proc_flush_task_mnt(struct v
- 		goto out_put_leader;
- 
- 	name.name = buf;
--	name.len = snprintf(buf, sizeof(buf), "%d", pid);
-+	name.len = snprintf(buf, sizeof(buf), "%u", pid);
- 	dentry = d_hash_and_lookup(dir, &name);
- 	if (dentry) {
- 		d_invalidate(dentry);
-@@ -3225,14 +3225,14 @@ int proc_pid_readdir(struct file *file,
- 	for (iter = next_tgid(ns, iter);
- 	     iter.task;
- 	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
--		char name[PROC_NUMBUF];
-+		char name[10 + 1];
- 		int len;
- 
- 		cond_resched();
- 		if (!has_pid_permissions(ns, iter.task, HIDEPID_INVISIBLE))
- 			continue;
- 
--		len = snprintf(name, sizeof(name), "%d", iter.tgid);
-+		len = snprintf(name, sizeof(name), "%u", iter.tgid);
- 		ctx->pos = iter.tgid + TGID_OFFSET;
- 		if (!proc_fill_cache(file, ctx, name, len,
- 				     proc_pid_instantiate, iter.task, NULL)) {
-@@ -3560,10 +3560,10 @@ static int proc_task_readdir(struct file
- 	for (task = first_tid(proc_pid(inode), tid, ctx->pos - 2, ns);
- 	     task;
- 	     task = next_tid(task), ctx->pos++) {
--		char name[PROC_NUMBUF];
-+		char name[10 + 1];
- 		int len;
- 		tid = task_pid_nr_ns(task, ns);
--		len = snprintf(name, sizeof(name), "%d", tid);
-+		len = snprintf(name, sizeof(name), "%u", tid);
- 		if (!proc_fill_cache(file, ctx, name, len,
- 				proc_task_instantiate, task, NULL)) {
- 			/* returning this tgid failed, save it as the first
-diff -puN fs/proc/fd.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/fd.c
---- a/fs/proc/fd.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
-+++ a/fs/proc/fd.c
-@@ -236,7 +236,7 @@ static int proc_readfd_common(struct fil
- 	for (fd = ctx->pos - 2;
- 	     fd < files_fdtable(files)->max_fds;
- 	     fd++, ctx->pos++) {
--		char name[PROC_NUMBUF];
-+		char name[10 + 1];
- 		int len;
- 
- 		if (!fcheck_files(files, fd))
-diff -puN fs/proc/self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/self.c
---- a/fs/proc/self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
-+++ a/fs/proc/self.c
-@@ -17,11 +17,11 @@ static const char *proc_self_get_link(st
- 
- 	if (!tgid)
- 		return ERR_PTR(-ENOENT);
--	/* 11 for max length of signed int in decimal + NULL term */
--	name = kmalloc(12, dentry ? GFP_KERNEL : GFP_ATOMIC);
-+	/* max length of unsigned int in decimal + NULL term */
-+	name = kmalloc(10 + 1, dentry ? GFP_KERNEL : GFP_ATOMIC);
- 	if (unlikely(!name))
- 		return dentry ? ERR_PTR(-ENOMEM) : ERR_PTR(-ECHILD);
--	sprintf(name, "%d", tgid);
-+	sprintf(name, "%u", tgid);
- 	set_delayed_call(done, kfree_link, name);
- 	return name;
- }
-diff -puN fs/proc/thread_self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/thread_self.c
---- a/fs/proc/thread_self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
-+++ a/fs/proc/thread_self.c
-@@ -18,11 +18,10 @@ static const char *proc_thread_self_get_
- 
- 	if (!pid)
- 		return ERR_PTR(-ENOENT);
--	name = kmalloc(PROC_NUMBUF + 6 + PROC_NUMBUF,
--				dentry ? GFP_KERNEL : GFP_ATOMIC);
-+	name = kmalloc(10 + 6 + 10 + 1, dentry ? GFP_KERNEL : GFP_ATOMIC);
- 	if (unlikely(!name))
- 		return dentry ? ERR_PTR(-ENOMEM) : ERR_PTR(-ECHILD);
--	sprintf(name, "%d/task/%d", tgid, pid);
-+	sprintf(name, "%u/task/%u", tgid, pid);
- 	set_delayed_call(done, kfree_link, name);
- 	return name;
- }
+diff -puN fs/proc/internal.h~proc-rearrange-struct-proc_dir_entry fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-rearrange-struct-proc_dir_entry
++++ a/fs/proc/internal.h
+@@ -31,24 +31,27 @@ struct mempolicy;
+  * subdir_node is used to build the rb tree "subdir" of the parent.
+  */
+ struct proc_dir_entry {
++	/*
++	 * number of callers into module in progress;
++	 * negative -> it's going away RSN
++	 */
++	atomic_t in_use;
++	atomic_t count;		/* use count */
++	struct list_head pde_openers;	/* who did ->open, but not ->release */
++	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
++	struct completion *pde_unload_completion;
++	const struct inode_operations *proc_iops;
++	const struct file_operations *proc_fops;
++	void *data;
+ 	unsigned int low_ino;
+-	umode_t mode;
+ 	nlink_t nlink;
+ 	kuid_t uid;
+ 	kgid_t gid;
+ 	loff_t size;
+-	const struct inode_operations *proc_iops;
+-	const struct file_operations *proc_fops;
+ 	struct proc_dir_entry *parent;
+ 	struct rb_root_cached subdir;
+ 	struct rb_node subdir_node;
+-	void *data;
+-	atomic_t count;		/* use count */
+-	atomic_t in_use;	/* number of callers into module in progress; */
+-			/* negative -> it's going away RSN */
+-	struct completion *pde_unload_completion;
+-	struct list_head pde_openers;	/* who did ->open, but not ->release */
+-	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
++	umode_t mode;
+ 	u8 namelen;
+ 	char name[];
+ } __randomize_layout;
 _
