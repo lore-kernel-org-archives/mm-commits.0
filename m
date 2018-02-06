@@ -1,71 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [patch 041/114] lib/stackdepot.c: use a non-instrumented
- version of memcmp()
-Date: Tue, 06 Feb 2018 15:38:24 -0800
-Message-ID: <20180206233824.rl3omlXNc%akpm@linux-foundation.org>
+Subject: [patch 037/114] lib/test_bitmap.c: add
+ bitmap_zero()/bitmap_clear() test cases
+Date: Tue, 06 Feb 2018 15:38:10 -0800
+Message-ID: <20180206233810.0tU5KbrpA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54702 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754191AbeBFXiZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:25 -0500
+        with ESMTP id S1754019AbeBFXiL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org, ynorov@caviumnetworks.com
 
-From: Alexander Potapenko <glider@google.com>
-Subject: lib/stackdepot.c: use a non-instrumented version of memcmp()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/test_bitmap.c: add bitmap_zero()/bitmap_clear() test cases
 
-stackdepot used to call memcmp(), which compiler tools normally
-instrument, therefore every lookup used to unnecessarily call instrumented
-code.  This is somewhat ok in the case of KASAN, but under KMSAN a lot of
-time was spent in the instrumentation.
+Explicitly test bitmap_zero() and bitmap_clear() functions.
 
-Link: http://lkml.kernel.org/r/20171117172149.69562-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20180109172430.87452-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ lib/test_bitmap.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN lib/stackdepot.c~lib-stackdepot-use-a-non-instrumented-version-of-memcmp lib/stackdepot.c
---- a/lib/stackdepot.c~lib-stackdepot-use-a-non-instrumented-version-of-memcmp
-+++ a/lib/stackdepot.c
-@@ -163,6 +163,21 @@ static inline u32 hash_stack(unsigned lo
- 			       STACK_HASH_SEED);
- }
+diff -puN lib/test_bitmap.c~bitmap-add-bitmap_zero-bitmap_clear-test-cases lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-add-bitmap_zero-bitmap_clear-test-cases
++++ a/lib/test_bitmap.c
+@@ -105,6 +105,35 @@ __check_eq_u32_array(const char *srcfile
+ #define expect_eq_pbl(...)		__expect_eq(pbl, ##__VA_ARGS__)
+ #define expect_eq_u32_array(...)	__expect_eq(u32_array, ##__VA_ARGS__)
  
-+/* Use our own, non-instrumented version of memcmp().
-+ *
-+ * We actually don't care about the order, just the equality.
-+ */
-+static inline
-+int stackdepot_memcmp(const unsigned long *u1, const unsigned long *u2,
-+			unsigned int n)
++static void __init test_zero_clear(void)
 +{
-+	for ( ; n-- ; u1++, u2++) {
-+		if (*u1 != *u2)
-+			return 1;
-+	}
-+	return 0;
++	DECLARE_BITMAP(bmap, 1024);
++
++	/* Known way to set all bits */
++	memset(bmap, 0xff, 128);
++
++	expect_eq_pbl("0-22", bmap, 23);
++	expect_eq_pbl("0-1023", bmap, 1024);
++
++	/* single-word bitmaps */
++	bitmap_clear(bmap, 0, 9);
++	expect_eq_pbl("9-1023", bmap, 1024);
++
++	bitmap_zero(bmap, 35);
++	expect_eq_pbl("64-1023", bmap, 1024);
++
++	/* cross boundaries operations */
++	bitmap_clear(bmap, 79, 19);
++	expect_eq_pbl("64-78,98-1023", bmap, 1024);
++
++	bitmap_zero(bmap, 115);
++	expect_eq_pbl("128-1023", bmap, 1024);
++
++	/* Zeroing entire area */
++	bitmap_zero(bmap, 1024);
++	expect_eq_pbl("", bmap, 1024);
 +}
 +
- /* Find a stack that is equal to the one stored in entries in the hash */
- static inline struct stack_record *find_stack(struct stack_record *bucket,
- 					     unsigned long *entries, int size,
-@@ -173,10 +188,8 @@ static inline struct stack_record *find_
- 	for (found = bucket; found; found = found->next) {
- 		if (found->hash == hash &&
- 		    found->size == size &&
--		    !memcmp(entries, found->entries,
--			    size * sizeof(unsigned long))) {
-+		    !stackdepot_memcmp(entries, found->entries, size))
- 			return found;
--		}
- 	}
- 	return NULL;
- }
+ static void __init test_zero_fill_copy(void)
+ {
+ 	DECLARE_BITMAP(bmap1, 1024);
+@@ -309,6 +338,7 @@ static void noinline __init test_mem_opt
+ 
+ static int __init test_bitmap_init(void)
+ {
++	test_zero_clear();
+ 	test_zero_fill_copy();
+ 	test_bitmap_arr32();
+ 	test_bitmap_parselist();
 _
