@@ -1,92 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 039/114] lib/test_bitmap.c: clean up
- test_zero_fill_copy() test case and rename
-Date: Tue, 06 Feb 2018 15:38:17 -0800
-Message-ID: <20180206233817.fBzafq2wb%akpm@linux-foundation.org>
+Subject: [patch 041/114] lib/stackdepot.c: use a non-instrumented
+ version of memcmp()
+Date: Tue, 06 Feb 2018 15:38:24 -0800
+Message-ID: <20180206233824.rl3omlXNc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54784 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754019AbeBFXiT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:19 -0500
+        with ESMTP id S1754191AbeBFXiZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org, ynorov@caviumnetworks.com
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
+From: Alexander Potapenko <glider@google.com>
+Subject: lib/stackdepot.c: use a non-instrumented version of memcmp()
 
-Since we have separate explicit test cases for bitmap_zero() /
-bitmap_clear() and bitmap_fill() / bitmap_set(), clean up
-test_zero_fill_copy() to only test bitmap_copy() functionality and thus
-rename a function to reflect the changes.
+stackdepot used to call memcmp(), which compiler tools normally
+instrument, therefore every lookup used to unnecessarily call instrumented
+code.  This is somewhat ok in the case of KASAN, but under KMSAN a lot of
+time was spent in the instrumentation.
 
-While here, replace bitmap_fill() by bitmap_set() with proper values.
-
-Link: http://lkml.kernel.org/r/20180109172430.87452-3-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: http://lkml.kernel.org/r/20171117172149.69562-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   29 +++++------------------------
- 1 file changed, 5 insertions(+), 24 deletions(-)
+ lib/stackdepot.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename
-+++ a/lib/test_bitmap.c
-@@ -163,7 +163,7 @@ static void __init test_fill_set(void)
- 	expect_eq_pbl("0-1023", bmap, 1024);
+diff -puN lib/stackdepot.c~lib-stackdepot-use-a-non-instrumented-version-of-memcmp lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-stackdepot-use-a-non-instrumented-version-of-memcmp
++++ a/lib/stackdepot.c
+@@ -163,6 +163,21 @@ static inline u32 hash_stack(unsigned lo
+ 			       STACK_HASH_SEED);
  }
  
--static void __init test_zero_fill_copy(void)
-+static void __init test_copy(void)
- {
- 	DECLARE_BITMAP(bmap1, 1024);
- 	DECLARE_BITMAP(bmap2, 1024);
-@@ -172,36 +172,20 @@ static void __init test_zero_fill_copy(v
- 	bitmap_zero(bmap2, 1024);
- 
- 	/* single-word bitmaps */
--	expect_eq_pbl("", bmap1, 23);
--
--	bitmap_fill(bmap1, 19);
--	expect_eq_pbl("0-18", bmap1, 1024);
--
-+	bitmap_set(bmap1, 0, 19);
- 	bitmap_copy(bmap2, bmap1, 23);
- 	expect_eq_pbl("0-18", bmap2, 1024);
- 
--	bitmap_fill(bmap2, 23);
--	expect_eq_pbl("0-22", bmap2, 1024);
--
-+	bitmap_set(bmap2, 0, 23);
- 	bitmap_copy(bmap2, bmap1, 23);
- 	expect_eq_pbl("0-18", bmap2, 1024);
- 
--	bitmap_zero(bmap1, 23);
--	expect_eq_pbl("", bmap1, 1024);
--
- 	/* multi-word bitmaps */
--	bitmap_zero(bmap1, 1024);
--	expect_eq_pbl("", bmap1, 1024);
--
--	bitmap_fill(bmap1, 109);
--	expect_eq_pbl("0-108", bmap1, 1024);
--
-+	bitmap_set(bmap1, 0, 109);
- 	bitmap_copy(bmap2, bmap1, 1024);
- 	expect_eq_pbl("0-108", bmap2, 1024);
- 
- 	bitmap_fill(bmap2, 1024);
--	expect_eq_pbl("0-1023", bmap2, 1024);
--
- 	bitmap_copy(bmap2, bmap1, 1024);
- 	expect_eq_pbl("0-108", bmap2, 1024);
- 
-@@ -216,9 +200,6 @@ static void __init test_zero_fill_copy(v
- 	bitmap_fill(bmap2, 1024);
- 	bitmap_copy(bmap2, bmap1, 97);  /* ... but aligned on word length */
- 	expect_eq_pbl("0-108,128-1023", bmap2, 1024);
++/* Use our own, non-instrumented version of memcmp().
++ *
++ * We actually don't care about the order, just the equality.
++ */
++static inline
++int stackdepot_memcmp(const unsigned long *u1, const unsigned long *u2,
++			unsigned int n)
++{
++	for ( ; n-- ; u1++, u2++) {
++		if (*u1 != *u2)
++			return 1;
++	}
++	return 0;
++}
++
+ /* Find a stack that is equal to the one stored in entries in the hash */
+ static inline struct stack_record *find_stack(struct stack_record *bucket,
+ 					     unsigned long *entries, int size,
+@@ -173,10 +188,8 @@ static inline struct stack_record *find_
+ 	for (found = bucket; found; found = found->next) {
+ 		if (found->hash == hash &&
+ 		    found->size == size &&
+-		    !memcmp(entries, found->entries,
+-			    size * sizeof(unsigned long))) {
++		    !stackdepot_memcmp(entries, found->entries, size))
+ 			return found;
+-		}
+ 	}
+ 	return NULL;
+ }
+_
