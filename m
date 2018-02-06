@@ -1,85 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Tue, 06 Feb 2018 11:46:17 -0800
-Message-ID: <20180206194617.8Ck-krV12%akpm@linux-foundation.org>
+Subject: [merged]
+ net-netfilter-x_tablesc-make-allocation-less-aggressive.patch removed from
+ -mm tree
+Date: Tue, 06 Feb 2018 11:46:58 -0800
+Message-ID: <20180206194658.WeCUysU49%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54138 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752873AbeBFTqT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 14:46:19 -0500
+        with ESMTP id S1752873AbeBFTrA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 14:47:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, fw@strlen.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: net/netfilter/x_tables.c: make allocation less aggressive
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     net-netfilter-x_tablesc-make-allocation-less-aggressive.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Michal Hocko <mhocko@kernel.org>
+Subject: net/netfilter/x_tables.c: make allocation less aggressive
 
+syzbot has noticed that xt_alloc_table_info can allocate a lot of memory. 
+This is an admin only interface but an admin in a namespace is sufficient
+as well.  eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in
+xt_alloc_table_info()") has changed the opencoded kmalloc->vmalloc
+fallback into kvmalloc.  It has dropped __GFP_NORETRY on the way because
+vmalloc has simply never fully supported __GFP_NORETRY semantic.  This is
+still the case because e.g.  page tables backing the vmalloc area are
+hardcoded GFP_KERNEL.
+
+Revert back to __GFP_NORETRY as a poors man defence against excessively
+large allocation request here.  We will not rule out the OOM killer
+completely but __GFP_NORETRY should at least stop the large request in
+most cases.
+
+This patch merely gets us back to pre eacd86ca3b03 times where
+__GFP_NORETRY was been used for both kmalloc and vmalloc paths.  So it
+is more a quick bandaid than a longterm solution.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Fixes: eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_tableLink: http://lkml.kernel.org/r/20180130140104.GE21609@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/overlayfs/export.c |    6 ------
- fs/overlayfs/namei.c  |    5 -----
- 2 files changed, 11 deletions(-)
+ net/netfilter/x_tables.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/overlayfs/export.c~linux-next-git-rejects fs/overlayfs/export.c
---- a/fs/overlayfs/export.c~linux-next-git-rejects
-+++ a/fs/overlayfs/export.c
-@@ -108,12 +108,6 @@ static int ovl_d_to_fh(struct dentry *de
+diff -puN net/netfilter/x_tables.c~net-netfilter-x_tablesc-make-allocation-less-aggressive net/netfilter/x_tables.c
+--- a/net/netfilter/x_tables.c~net-netfilter-x_tablesc-make-allocation-less-aggressive
++++ a/net/netfilter/x_tables.c
+@@ -1008,7 +1008,12 @@ struct xt_table_info *xt_alloc_table_inf
+ 	if ((size >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
  
- 	/* Encode an upper or origin file handle */
- 	fh = ovl_encode_fh(origin ?: ovl_dentry_upper(dentry), !origin);
--<<<<<<< HEAD
--	err = PTR_ERR(fh);
--	if (IS_ERR(fh))
--		goto fail;
--=======
-->>>>>>> linux-next/akpm-base
+-	info = kvmalloc(sz, GFP_KERNEL);
++	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
++	 * work reasonably well if sz is too large and bail out rather
++	 * than shoot all processes down before realizing there is nothing
++	 * more to reclaim.
++	 */
++	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
+ 	if (!info)
+ 		return NULL;
  
- 	err = -EOVERFLOW;
- 	if (fh->len > buflen)
-diff -puN fs/overlayfs/namei.c~linux-next-git-rejects fs/overlayfs/namei.c
---- a/fs/overlayfs/namei.c~linux-next-git-rejects
-+++ a/fs/overlayfs/namei.c
-@@ -976,11 +976,6 @@ struct dentry *ovl_lookup(struct inode *
- 		upperdentry = dget(index);
- 
- 	if (upperdentry || ctr) {
--<<<<<<< HEAD
--		if (ctr)
--			origin = stack[0].dentry;
--=======
-->>>>>>> linux-next/akpm-base
- 		inode = ovl_get_inode(dentry->d_sb, upperdentry, origin, index,
- 				      ctr);
- 		err = PTR_ERR(inode);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@kernel.org are
 
-i-need-old-gcc.patch
-include-linux-sched-mmh-re-inline-mmdrop.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
-lib-ubsanc-s-missaligned-misaligned.patch
-linux-next-rejects.patch
-maintainers-update-arm-oxnas-platform-support-patterns-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix.patch
 
