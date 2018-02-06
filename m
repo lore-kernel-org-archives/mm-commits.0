@@ -1,35 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [patch 100/114] pipe: actually allow root to exceed the
- pipe buffer limits
-Date: Tue, 06 Feb 2018 15:41:53 -0800
-Message-ID: <20180206234153.xdv1K6K62%akpm@linux-foundation.org>
+Subject: [patch 102/114] pipe: reject F_SETPIPE_SZ with size over
+ UINT_MAX
+Date: Tue, 06 Feb 2018 15:42:00 -0800
+Message-ID: <20180206234200.xXwC8ypiG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56680 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753537AbeBFXly (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:54 -0500
+        with ESMTP id S1753537AbeBFXmD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
+To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
 
 From: Eric Biggers <ebiggers@google.com>
-Subject: pipe: actually allow root to exceed the pipe buffer limits
+Subject: pipe: reject F_SETPIPE_SZ with size over UINT_MAX
 
-pipe-user-pages-hard and pipe-user-pages-soft are only supposed to apply
-to unprivileged users, as documented in both Documentation/sysctl/fs.txt
-and the pipe(7) man page.
+A pipe's size is represented as an 'unsigned int'.  As expected, writing a
+value greater than UINT_MAX to /proc/sys/fs/pipe-max-size fails with
+EINVAL.  However, the F_SETPIPE_SZ fcntl silently truncates such values to
+32 bits, rather than failing with EINVAL as expected.  (It *does* fail
+with EINVAL for values above (1 << 31) but <= UINT_MAX.)
 
-However, the capabilities are actually only checked when increasing a
-pipe's size using F_SETPIPE_SZ, not when creating a new pipe.  Therefore,
-if pipe-user-pages-hard has been set, the root user can run into it and be
-unable to create pipes.  Similarly, if pipe-user-pages-soft has been set,
-the root user can run into it and have their pipes limited to 1 page each.
+Fix this by moving the check against UINT_MAX into round_pipe_size() which
+is called in both cases.
 
-Fix this by allowing the privileged override in both cases.
-
-Link: http://lkml.kernel.org/r/20180111052902.14409-4-ebiggers3@gmail.com
-Fixes: 759c01142a5d ("pipe: limit the per-user amount of pages allocated in pipes")
+Link: http://lkml.kernel.org/r/20180111052902.14409-6-ebiggers3@gmail.com
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
@@ -38,50 +34,49 @@ Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Willy Tarreau <w@1wt.eu>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/pipe.c                 |    5 ++++-
+ include/linux/pipe_fs_i.h |    2 +-
+ kernel/sysctl.c           |    3 ---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits fs/pipe.c
---- a/fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits
+diff -puN fs/pipe.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max fs/pipe.c
+--- a/fs/pipe.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max
 +++ a/fs/pipe.c
-@@ -613,6 +613,11 @@ static bool too_many_pipe_buffers_hard(u
- 	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
- }
- 
-+static bool is_unprivileged_user(void)
-+{
-+	return !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN);
-+}
-+
- struct pipe_inode_info *alloc_pipe_info(void)
+@@ -1020,10 +1020,13 @@ const struct file_operations pipefifo_fo
+  * Currently we rely on the pipe array holding a power-of-2 number
+  * of pages. Returns 0 on error.
+  */
+-unsigned int round_pipe_size(unsigned int size)
++unsigned int round_pipe_size(unsigned long size)
  {
- 	struct pipe_inode_info *pipe;
-@@ -629,12 +634,12 @@ struct pipe_inode_info *alloc_pipe_info(
+ 	unsigned long nr_pages;
  
- 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
++	if (size > UINT_MAX)
++		return 0;
++
+ 	/* Minimum pipe size, as required by POSIX */
+ 	if (size < PAGE_SIZE)
+ 		size = PAGE_SIZE;
+diff -puN include/linux/pipe_fs_i.h~pipe-reject-f_setpipe_sz-with-size-over-uint_max include/linux/pipe_fs_i.h
+--- a/include/linux/pipe_fs_i.h~pipe-reject-f_setpipe_sz-with-size-over-uint_max
++++ a/include/linux/pipe_fs_i.h
+@@ -190,6 +190,6 @@ long pipe_fcntl(struct file *, unsigned
+ struct pipe_inode_info *get_pipe_info(struct file *file);
  
--	if (too_many_pipe_buffers_soft(user_bufs)) {
-+	if (too_many_pipe_buffers_soft(user_bufs) && is_unprivileged_user()) {
- 		user_bufs = account_pipe_buffers(user, pipe_bufs, 1);
- 		pipe_bufs = 1;
- 	}
+ int create_pipe_files(struct file **, int);
+-unsigned int round_pipe_size(unsigned int size);
++unsigned int round_pipe_size(unsigned long size);
  
--	if (too_many_pipe_buffers_hard(user_bufs))
-+	if (too_many_pipe_buffers_hard(user_bufs) && is_unprivileged_user())
- 		goto out_revert_acct;
+ #endif
+diff -puN kernel/sysctl.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max kernel/sysctl.c
+--- a/kernel/sysctl.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max
++++ a/kernel/sysctl.c
+@@ -2623,9 +2623,6 @@ static int do_proc_dopipe_max_size_conv(
+ 	if (write) {
+ 		unsigned int val;
  
- 	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
-@@ -1065,7 +1070,7 @@ static long pipe_set_size(struct pipe_in
- 	if (nr_pages > pipe->buffers &&
- 			(too_many_pipe_buffers_hard(user_bufs) ||
- 			 too_many_pipe_buffers_soft(user_bufs)) &&
--			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
-+			is_unprivileged_user()) {
- 		ret = -EPERM;
- 		goto out_revert_acct;
- 	}
-_
+-		if (*lvalp > UINT_MAX)
+-			return -EINVAL;
