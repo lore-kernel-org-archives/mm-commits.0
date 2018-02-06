@@ -1,201 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 105/114] mm: docs: fixup punctuation
-Date: Tue, 06 Feb 2018 15:42:13 -0800
-Message-ID: <20180206234213.kGmtmR6X6%akpm@linux-foundation.org>
+Subject: [patch 104/114] pipe: read buffer limits atomically
+Date: Tue, 06 Feb 2018 15:42:08 -0800
+Message-ID: <20180206234208.0yf88d2Z8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56754 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753537AbeBFXmO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:14 -0500
+        with ESMTP id S1753537AbeBFXmL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: mm: docs: fixup punctuation
+From: Eric Biggers <ebiggers@google.com>
+Subject: pipe: read buffer limits atomically
 
-so that kernel-doc will properly recognize the parameter and function
-descriptions.
+The pipe buffer limits are accessed without any locking, and may be
+changed at any time by the sysctl handlers.  In theory this could cause
+problems for expressions like the following:
 
-Link: http://lkml.kernel.org/r/1516700871-22279-2-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+    pipe_user_pages_hard && user_bufs > pipe_user_pages_hard
+
+...  since the assembly code might reference the 'pipe_user_pages_hard'
+memory location multiple times, and if the admin removes the limit by
+setting it to 0, there is a very brief window where processes could
+incorrectly observe the limit to be exceeded.
+
+Fix this by loading the limits with READ_ONCE() prior to use.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-8-ebiggers3@gmail.com
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c        |    2 +-
- mm/memcontrol.c |    4 ++--
- mm/mlock.c      |    2 +-
- mm/nommu.c      |    2 +-
- mm/zpool.c      |   44 ++++++++++++++++++++++----------------------
- 5 files changed, 27 insertions(+), 27 deletions(-)
+ fs/pipe.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/ksm.c~mm-docs-fixup-punctuation mm/ksm.c
---- a/mm/ksm.c~mm-docs-fixup-punctuation
-+++ a/mm/ksm.c
-@@ -2302,7 +2302,7 @@ next_mm:
+diff -puN fs/pipe.c~pipe-read-buffer-limits-atomically fs/pipe.c
+--- a/fs/pipe.c~pipe-read-buffer-limits-atomically
++++ a/fs/pipe.c
+@@ -605,12 +605,16 @@ static unsigned long account_pipe_buffer
  
- /**
-  * ksm_do_scan  - the ksm scanner main worker function.
-- * @scan_npages - number of pages we want to scan before we return.
-+ * @scan_npages:  number of pages we want to scan before we return.
-  */
- static void ksm_do_scan(unsigned int scan_npages)
+ static bool too_many_pipe_buffers_soft(unsigned long user_bufs)
  {
-diff -puN mm/memcontrol.c~mm-docs-fixup-punctuation mm/memcontrol.c
---- a/mm/memcontrol.c~mm-docs-fixup-punctuation
-+++ a/mm/memcontrol.c
-@@ -5818,8 +5818,8 @@ bool mem_cgroup_charge_skmem(struct mem_
- 
- /**
-  * mem_cgroup_uncharge_skmem - uncharge socket memory
-- * @memcg - memcg to uncharge
-- * @nr_pages - number of pages to uncharge
-+ * @memcg: memcg to uncharge
-+ * @nr_pages: number of pages to uncharge
-  */
- void mem_cgroup_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
-diff -puN mm/mlock.c~mm-docs-fixup-punctuation mm/mlock.c
---- a/mm/mlock.c~mm-docs-fixup-punctuation
-+++ a/mm/mlock.c
-@@ -157,7 +157,7 @@ static void __munlock_isolation_failed(s
- 
- /**
-  * munlock_vma_page - munlock a vma page
-- * @page - page to be unlocked, either a normal page or THP page head
-+ * @page: page to be unlocked, either a normal page or THP page head
-  *
-  * returns the size of the page as a page mask (0 for normal page,
-  *         HPAGE_PMD_NR - 1 for THP head page)
-diff -puN mm/nommu.c~mm-docs-fixup-punctuation mm/nommu.c
---- a/mm/nommu.c~mm-docs-fixup-punctuation
-+++ a/mm/nommu.c
-@@ -1836,7 +1836,7 @@ int __access_remote_vm(struct task_struc
+-	return pipe_user_pages_soft && user_bufs > pipe_user_pages_soft;
++	unsigned long soft_limit = READ_ONCE(pipe_user_pages_soft);
++
++	return soft_limit && user_bufs > soft_limit;
  }
  
- /**
-- * @access_remote_vm - access another process' address space
-+ * access_remote_vm - access another process' address space
-  * @mm:		the mm_struct of the target address space
-  * @addr:	start address to access
-  * @buf:	source or destination buffer
-diff -puN mm/zpool.c~mm-docs-fixup-punctuation mm/zpool.c
---- a/mm/zpool.c~mm-docs-fixup-punctuation
-+++ a/mm/zpool.c
-@@ -101,7 +101,7 @@ static void zpool_put_driver(struct zpoo
+ static bool too_many_pipe_buffers_hard(unsigned long user_bufs)
+ {
+-	return pipe_user_pages_hard && user_bufs > pipe_user_pages_hard;
++	unsigned long hard_limit = READ_ONCE(pipe_user_pages_hard);
++
++	return hard_limit && user_bufs > hard_limit;
+ }
  
- /**
-  * zpool_has_pool() - Check if the pool driver is available
-- * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
-+ * @type:	The type of the zpool to check (e.g. zbud, zsmalloc)
-  *
-  * This checks if the @type pool driver is available.  This will try to load
-  * the requested module, if needed, but there is no guarantee the module will
-@@ -136,10 +136,10 @@ EXPORT_SYMBOL(zpool_has_pool);
+ static bool is_unprivileged_user(void)
+@@ -624,13 +628,14 @@ struct pipe_inode_info *alloc_pipe_info(
+ 	unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
+ 	struct user_struct *user = get_current_user();
+ 	unsigned long user_bufs;
++	unsigned int max_size = READ_ONCE(pipe_max_size);
  
- /**
-  * zpool_create_pool() - Create a new zpool
-- * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
-- * @name	The name of the zpool (e.g. zram0, zswap)
-- * @gfp		The GFP flags to use when allocating the pool.
-- * @ops		The optional ops callback.
-+ * @type:	The type of the zpool to create (e.g. zbud, zsmalloc)
-+ * @name:	The name of the zpool (e.g. zram0, zswap)
-+ * @gfp:	The GFP flags to use when allocating the pool.
-+ * @ops:	The optional ops callback.
-  *
-  * This creates a new zpool of the specified type.  The gfp flags will be
-  * used when allocating memory, if the implementation supports it.  If the
-@@ -201,7 +201,7 @@ struct zpool *zpool_create_pool(const ch
+ 	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
+ 	if (pipe == NULL)
+ 		goto out_free_uid;
  
- /**
-  * zpool_destroy_pool() - Destroy a zpool
-- * @pool	The zpool to destroy.
-+ * @pool:	The zpool to destroy.
-  *
-  * Implementations must guarantee this to be thread-safe,
-  * however only when destroying different pools.  The same
-@@ -224,7 +224,7 @@ void zpool_destroy_pool(struct zpool *zp
+-	if (pipe_bufs * PAGE_SIZE > pipe_max_size && !capable(CAP_SYS_RESOURCE))
+-		pipe_bufs = pipe_max_size >> PAGE_SHIFT;
++	if (pipe_bufs * PAGE_SIZE > max_size && !capable(CAP_SYS_RESOURCE))
++		pipe_bufs = max_size >> PAGE_SHIFT;
  
- /**
-  * zpool_get_type() - Get the type of the zpool
-- * @pool	The zpool to check
-+ * @pool:	The zpool to check
-  *
-  * This returns the type of the pool.
-  *
-@@ -239,10 +239,10 @@ const char *zpool_get_type(struct zpool
+ 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
  
- /**
-  * zpool_malloc() - Allocate memory
-- * @pool	The zpool to allocate from.
-- * @size	The amount of memory to allocate.
-- * @gfp		The GFP flags to use when allocating memory.
-- * @handle	Pointer to the handle to set
-+ * @pool:	The zpool to allocate from.
-+ * @size:	The amount of memory to allocate.
-+ * @gfp:	The GFP flags to use when allocating memory.
-+ * @handle:	Pointer to the handle to set
-  *
-  * This allocates the requested amount of memory from the pool.
-  * The gfp flags will be used when allocating memory, if the
-@@ -261,8 +261,8 @@ int zpool_malloc(struct zpool *zpool, si
- 
- /**
-  * zpool_free() - Free previously allocated memory
-- * @pool	The zpool that allocated the memory.
-- * @handle	The handle to the memory to free.
-+ * @pool:	The zpool that allocated the memory.
-+ * @handle:	The handle to the memory to free.
-  *
-  * This frees previously allocated memory.  This does not guarantee
-  * that the pool will actually free memory, only that the memory
-@@ -280,9 +280,9 @@ void zpool_free(struct zpool *zpool, uns
- 
- /**
-  * zpool_shrink() - Shrink the pool size
-- * @pool	The zpool to shrink.
-- * @pages	The number of pages to shrink the pool.
-- * @reclaimed	The number of pages successfully evicted.
-+ * @pool:	The zpool to shrink.
-+ * @pages:	The number of pages to shrink the pool.
-+ * @reclaimed:	The number of pages successfully evicted.
-  *
-  * This attempts to shrink the actual memory size of the pool
-  * by evicting currently used handle(s).  If the pool was
-@@ -304,9 +304,9 @@ int zpool_shrink(struct zpool *zpool, un
- 
- /**
-  * zpool_map_handle() - Map a previously allocated handle into memory
-- * @pool	The zpool that the handle was allocated from
-- * @handle	The handle to map
-- * @mm		How the memory should be mapped
-+ * @pool:	The zpool that the handle was allocated from
-+ * @handle:	The handle to map
-+ * @mm:		How the memory should be mapped
-  *
-  * This maps a previously allocated handle into memory.  The @mm
-  * param indicates to the implementation how the memory will be
-@@ -332,8 +332,8 @@ void *zpool_map_handle(struct zpool *zpo
- 
- /**
-  * zpool_unmap_handle() - Unmap a previously mapped handle
-- * @pool	The zpool that the handle was allocated from
-- * @handle	The handle to unmap
-+ * @pool:	The zpool that the handle was allocated from
-+ * @handle:	The handle to unmap
-  *
-  * This unmaps a previously mapped handle.  Any locks or other
-  * actions that the implementation took in zpool_map_handle()
-@@ -347,7 +347,7 @@ void zpool_unmap_handle(struct zpool *zp
- 
- /**
-  * zpool_get_total_size() - The total size of the pool
-- * @pool	The zpool to check
-+ * @pool:	The zpool to check
-  *
-  * This returns the total size in bytes of the pool.
-  *
 _
