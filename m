@@ -1,47 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 070/114] drivers/rapidio/devices/tsi721_dma.c:
- delete an error message for a failed memory allocation in
- tsi721_alloc_chan_resources()
-Date: Tue, 06 Feb 2018 15:40:06 -0800
-Message-ID: <20180206234006.hWUufjBpV%akpm@linux-foundation.org>
+Subject: [patch 067/114] rapidio: delete an unnecessary variable
+ initialisation in three functions
+Date: Tue, 06 Feb 2018 15:39:55 -0800
+Message-ID: <20180206233955.zB3MtjtZ-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55276 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932090AbeBFXkI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:08 -0500
+        with ESMTP id S932090AbeBFXj4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alexandre.bounine@idt.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org, mporter@kernel.crashing.org, torvalds@linux-foundation.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: drivers/rapidio/devices/tsi721_dma.c: delete an error message for a failed memory allocation in tsi721_alloc_chan_resources()
+Subject: rapidio: delete an unnecessary variable initialisation in three functions
 
-Omit an extra message for a memory allocation failure in this function.
+The local variable "rc" will be set to an appropriate value a bit later. 
+Thus omit the explicit initialisation at the beginning.
 
-This issue was detected by using the Coccinelle software.
-
-Link: http://lkml.kernel.org/r/a96fcaf8-ea24-bcac-0214-273620349d42@users.sourceforge.net
+Link: http://lkml.kernel.org/r/ed729e8c-815c-8b56-a48f-1be579d0cc2b@users.sourceforge.net
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721_dma.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/rapidio/rio.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-delete-an-error-message-for-a-failed-memory-allocation-in-tsi721_alloc_chan_resources drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-delete-an-error-message-for-a-failed-memory-allocation-in-tsi721_alloc_chan_resources
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -754,9 +754,6 @@ static int tsi721_alloc_chan_resources(s
- 	desc = kcalloc(dma_txqueue_sz, sizeof(struct tsi721_tx_desc),
- 			GFP_ATOMIC);
- 	if (!desc) {
--		tsi_err(&dchan->dev->device,
--			"DMAC%d Failed to allocate logical descriptors",
--			bdma_chan->id);
- 		tsi721_bdma_ch_free(bdma_chan);
- 		return -ENOMEM;
- 	}
+diff -puN drivers/rapidio/rio.c~rapidio-delete-an-unnecessary-variable-initialisation-in-three-functions drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-delete-an-unnecessary-variable-initialisation-in-three-functions
++++ a/drivers/rapidio/rio.c
+@@ -441,7 +441,7 @@ int rio_request_inb_dbell(struct rio_mpo
+ 			  void (*dinb) (struct rio_mport * mport, void *dev_id, u16 src,
+ 					u16 dst, u16 info))
+ {
+-	int rc = 0;
++	int rc;
+ 	struct resource *res = kzalloc(sizeof(*res), GFP_KERNEL);
+ 
+ 	if (res) {
+@@ -693,7 +693,7 @@ EXPORT_SYMBOL_GPL(rio_pw_enable);
+ int rio_map_inb_region(struct rio_mport *mport, dma_addr_t local,
+ 			u64 rbase, u32 size, u32 rflags)
+ {
+-	int rc = 0;
++	int rc;
+ 	unsigned long flags;
+ 
+ 	if (!mport->ops->map_inb)
+@@ -737,7 +737,7 @@ EXPORT_SYMBOL_GPL(rio_unmap_inb_region);
+ int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
+ 			u32 size, u32 rflags, dma_addr_t *local)
+ {
+-	int rc = 0;
++	int rc;
+ 	unsigned long flags;
+ 
+ 	if (!mport->ops->map_outb)
 _
