@@ -1,42 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 114/114] Documentation/sysctl/user.txt: fix typo
-Date: Tue, 06 Feb 2018 15:42:44 -0800
-Message-ID: <20180206234244.8IbGQnmsd%akpm@linux-foundation.org>
+Subject: [patch 113/114] MAINTAINERS: update ARM/QUALCOMM SUPPORT
+ patterns
+Date: Tue, 06 Feb 2018 15:42:41 -0800
+Message-ID: <20180206234241.bFc_BQU7D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56938 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754145AbeBFXmq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:46 -0500
+        with ESMTP id S1754145AbeBFXmm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, l4stpr0gr4m@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, trivial@kernel.org
+To: akpm@linux-foundation.org, andy.gross@linaro.org, david.brown@linaro.org, joe@perches.com, mm-commits@vger.kernel.org, sboyd@codeaurora.org, torvalds@linux-foundation.org
 
-From: Kangmin Park <l4stpr0gr4m@gmail.com>
-Subject: Documentation/sysctl/user.txt: fix typo
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update ARM/QUALCOMM SUPPORT patterns
 
-Fix 'documetation' to 'documentation'
+321737416c72d ("tty: serial: msm: Move header file into driver") removed
+the .h file, update the patterns.
 
-Link: http://lkml.kernel.org/r/CAKW4uUxRPZz59aWAX8ytaCB5=Qh6d_CvAnO7rYq-6NRAnQJbDA@mail.gmail.com
-Signed-off-by: Kangmin Park <l4stpr0gr4m@gmail.com>
+Link: http://lkml.kernel.org/r/2b7478bc4c35ab3ac6b06b4edd3b645a8c34a4a2.1517147485.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jiri Kosina <trivial@kernel.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andy Gross <andy.gross@linaro.org>
+Cc: David Brown <david.brown@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/user.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/sysctl/user.txt~fix-a-typo-in-documentation-sysctl-usertxt Documentation/sysctl/user.txt
---- a/Documentation/sysctl/user.txt~fix-a-typo-in-documentation-sysctl-usertxt
-+++ a/Documentation/sysctl/user.txt
-@@ -3,7 +3,7 @@ Documentation for /proc/sys/user/*	kerne
- 
- ==============================================================
- 
--This file contains the documetation for the sysctl files in
-+This file contains the documentation for the sysctl files in
- /proc/sys/user.
- 
- The files in this directory can be used to override the default
+diff -puN MAINTAINERS~maintainers-update-arm-qualcomm-support-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-arm-qualcomm-support-patterns
++++ a/MAINTAINERS
+@@ -1793,7 +1793,6 @@ F:	drivers/clk/qcom/
+ F:	drivers/dma/qcom/
+ F:	drivers/soc/qcom/
+ F:	drivers/spi/spi-qup.c
+-F:	drivers/tty/serial/msm_serial.h
+ F:	drivers/tty/serial/msm_serial.c
+ F:	drivers/*/pm8???-*
+ F:	drivers/mfd/ssbi.c
 _
