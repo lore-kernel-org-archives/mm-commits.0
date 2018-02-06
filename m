@@ -1,62 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/114] ipc/mqueue.c: have RT tasks queue in by
- priority in wq_add()
-Date: Tue, 06 Feb 2018 15:40:52 -0800
-Message-ID: <20180206234052.-ULCKUp1C%akpm@linux-foundation.org>
+Subject: [patch 081/114] lib/ubsan: remove
+ returns-nonnull-attribute checks
+Date: Tue, 06 Feb 2018 15:40:45 -0800
+Message-ID: <20180206234045.tzR3ymGXT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXky (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:54 -0500
+        with ESMTP id S932106AbeBFXkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, bigeasy@linutronix.de, dbueso@suse.de, deepa.kernel@gmail.com, jhaws@sdl.usu.edu, manfred@colorfullife.com, mingo@kernel.org, mm-commits@vger.kernel.org, rostedt@goodmis.org, tglx@linutronix.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org, psodagud@codeaurora.org, torvalds@linux-foundation.org
 
-From: Jonathan Haws <jhaws@sdl.usu.edu>
-Subject: ipc/mqueue.c: have RT tasks queue in by priority in wq_add()
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: lib/ubsan: remove returns-nonnull-attribute checks
 
-Previous behavior added tasks to the work queue using the static_prio
-value instead of the dynamic priority value in prio.  This caused RT tasks
-to be added to the work queue in a FIFO manner rather than by priority. 
-Normal tasks were handled by priority.
+Similarly to type mismatch checks, new GCC 8.x and Clang also changed for
+ABI for returns_nonnull checks.  While we can update our code to conform
+the new ABI it's more reasonable to just remove it.  Because it's just
+dead code, we don't have any single user of returns_nonnull attribute in
+the whole kernel.
 
-This fix utilizes the dynamic priority of the task to ensure that both RT
-and normal tasks are added to the work queue in priority order.  Utilizing
-the dynamic priority (prio) rather than the base priority (normal_prio)
-was chosen to ensure that if a task had a boosted priority when it was
-added to the work queue, it would be woken sooner to to ensure that it
-releases any other locks it may be holding in a more timely manner.  It is
-understood that the task could have a lower priority when it wakes than
-when it was added to the queue in this (unlikely) case.
+And AFAIU the advantage that this attribute could bring would be mitigated
+by -fno-delete-null-pointer-checks cflag that we use to build the kernel. 
+So it's unlikely we will have a lot of returns_nonnull attribute in
+future.
 
-Link: http://lkml.kernel.org/r/1513006652-7014-1-git-send-email-jhaws@sdl.usu.edu
-Signed-off-by: Jonathan Haws <jhaws@sdl.usu.edu>
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+So let's just remove the code, it has no use.
+
+[aryabinin@virtuozzo.com: fix warning]
+  Link: http://lkml.kernel.org/r/20180122165711.11510-1-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/20180119152853.16806-2-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Sodagudi Prasad <psodagud@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/ubsan.c            |   24 ------------------------
+ lib/ubsan.h            |    5 -----
+ scripts/Makefile.ubsan |    1 -
+ 3 files changed, 30 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-wq_add-priority-changed-to-dynamic-priority ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-wq_add-priority-changed-to-dynamic-priority
-+++ a/ipc/mqueue.c
-@@ -596,7 +596,7 @@ static void wq_add(struct mqueue_inode_i
- 	ewp->task = current;
+diff -puN lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks lib/ubsan.c
+--- a/lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks
++++ a/lib/ubsan.c
+@@ -141,11 +141,6 @@ static void val_to_string(char *str, siz
+ 	}
+ }
  
- 	list_for_each_entry(walk, &info->e_wait_q[sr].list, list) {
--		if (walk->task->static_prio <= current->static_prio) {
-+		if (walk->task->prio <= current->prio) {
- 			list_add_tail(&ewp->list, &walk->list);
- 			return;
- 		}
-_
+-static bool location_is_valid(struct source_location *loc)
+-{
+-	return loc->file_name != NULL;
+-}
+-
+ static DEFINE_SPINLOCK(report_lock);
+ 
+ static void ubsan_prologue(struct source_location *location,
+@@ -356,25 +351,6 @@ void __ubsan_handle_type_mismatch_v1(str
+ }
+ EXPORT_SYMBOL(__ubsan_handle_type_mismatch_v1);
+ 
+-void __ubsan_handle_nonnull_return(struct nonnull_return_data *data)
+-{
+-	unsigned long flags;
+-
+-	if (suppress_report(&data->location))
+-		return;
+-
+-	ubsan_prologue(&data->location, &flags);
+-
+-	pr_err("null pointer returned from function declared to never return null\n");
+-
+-	if (location_is_valid(&data->attr_location))
+-		print_source_location("returns_nonnull attribute specified in",
+-				&data->attr_location);
+-
+-	ubsan_epilogue(&flags);
+-}
+-EXPORT_SYMBOL(__ubsan_handle_nonnull_return);
+-
+ void __ubsan_handle_vla_bound_not_positive(struct vla_bound_data *data,
+ 					unsigned long bound)
+ {
+diff -puN lib/ubsan.h~lib-ubsan-remove-returns-nonnull-attribute-checks lib/ubsan.h
+--- a/lib/ubsan.h~lib-ubsan-remove-returns-nonnull-attribute-checks
++++ a/lib/ubsan.h
+@@ -57,11 +57,6 @@ struct nonnull_arg_data {
+ 	int arg_index;
+ };
+ 
+-struct nonnull_return_data {
+-	struct source_location location;
+-	struct source_location attr_location;
+-};
