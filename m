@@ -1,138 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [patch 004/114] kasan: support alloca() poisoning
-Date: Tue, 06 Feb 2018 15:36:11 -0800
-Message-ID: <20180206233611.HdRYT-oR_%akpm@linux-foundation.org>
+Subject: [patch 009/114] kasan: detect invalid frees for large
+ mempool objects
+Date: Tue, 06 Feb 2018 15:36:30 -0800
+Message-ID: <20180206233630.rE7TMqEBQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53882 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753862AbeBFXgX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:23 -0500
+        with ESMTP id S1754138AbeBFXgc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Paul Lawrence <paullawrence@google.com>
-Subject: kasan: support alloca() poisoning
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: detect invalid frees for large mempool objects
 
-clang's AddressSanitizer implementation adds redzones on either side of
-alloca()ed buffers.  These redzones are 32-byte aligned and at least 32
-bytes long.
+Detect frees of pointers into middle of mempool objects.
 
-__asan_alloca_poison() is passed the size and address of the allocated
-buffer, *excluding* the redzones on either side.  The left redzone will
-always be to the immediate left of this buffer; but AddressSanitizer may
-need to add padding between the end of the buffer and the right redzone. 
-If there are any 8-byte chunks inside this padding, we should poison those
-too.
+I did a one-off test, but it turned out to be very tricky, so I reverted
+it.  First, mempool does not call kasan_poison_kfree() unless allocation
+function fails.  I stubbed an allocation function to fail on second and
+subsequent allocations.  But then mempool stopped to call
+kasan_poison_kfree() at all, because it does it only when allocation
+function is mempool_kmalloc().  We could support this special failing test
+allocation function in mempool, but it also can't live with kasan tests,
+because these are in a module.
 
-__asan_allocas_unpoison() is just passed the top and bottom of the dynamic
-stack area, so unpoisoning is simpler.
-
-Link: http://lkml.kernel.org/r/20171204191735.132544-4-paullawrence@google.com
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
-Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Kaehlcke <mka@chromium.org>
+Link: http://lkml.kernel.org/r/bf7a7d035d7a5ed62d2dd0e3d2e8a4fcdf456aa7.1514378558.git.dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c       |   34 ++++++++++++++++++++++++++++++++++
- mm/kasan/kasan.h       |    8 ++++++++
- mm/kasan/report.c      |    4 ++++
- scripts/Makefile.kasan |    3 ++-
- 4 files changed, 48 insertions(+), 1 deletion(-)
+ include/linux/kasan.h |    4 ++--
+ mm/kasan/kasan.c      |   11 ++++++++---
+ mm/mempool.c          |    6 +++---
+ 3 files changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-support-alloca-poisoning mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-support-alloca-poisoning
+diff -puN include/linux/kasan.h~kasan-detect-invalid-frees-for-large-mempool-objects include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-detect-invalid-frees-for-large-mempool-objects
++++ a/include/linux/kasan.h
+@@ -57,7 +57,7 @@ void kasan_init_slab_obj(struct kmem_cac
+ 
+ void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
+ void kasan_kfree_large(void *ptr, unsigned long ip);
+-void kasan_poison_kfree(void *ptr);
++void kasan_poison_kfree(void *ptr, unsigned long ip);
+ void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
+ 		  gfp_t flags);
+ void kasan_krealloc(const void *object, size_t new_size, gfp_t flags);
+@@ -109,7 +109,7 @@ static inline void kasan_init_slab_obj(s
+ 
+ static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
+ static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
+-static inline void kasan_poison_kfree(void *ptr) {}
++static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
+ static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
+ 				size_t size, gfp_t flags) {}
+ static inline void kasan_krealloc(const void *object, size_t new_size,
+diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-mempool-objects mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-mempool-objects
 +++ a/mm/kasan/kasan.c
-@@ -736,6 +736,40 @@ void __asan_unpoison_stack_memory(const
+@@ -588,17 +588,22 @@ void kasan_krealloc(const void *object,
+ 		kasan_kmalloc(page->slab_cache, object, size, flags);
  }
- EXPORT_SYMBOL(__asan_unpoison_stack_memory);
  
-+/* Emitted by compiler to poison alloca()ed objects. */
-+void __asan_alloca_poison(unsigned long addr, size_t size)
-+{
-+	size_t rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
-+	size_t padding_size = round_up(size, KASAN_ALLOCA_REDZONE_SIZE) -
-+			rounded_up_size;
-+	size_t rounded_down_size = round_down(size, KASAN_SHADOW_SCALE_SIZE);
-+
-+	const void *left_redzone = (const void *)(addr -
-+			KASAN_ALLOCA_REDZONE_SIZE);
-+	const void *right_redzone = (const void *)(addr + rounded_up_size);
-+
-+	WARN_ON(!IS_ALIGNED(addr, KASAN_ALLOCA_REDZONE_SIZE));
-+
-+	kasan_unpoison_shadow((const void *)(addr + rounded_down_size),
-+			      size - rounded_down_size);
-+	kasan_poison_shadow(left_redzone, KASAN_ALLOCA_REDZONE_SIZE,
-+			KASAN_ALLOCA_LEFT);
-+	kasan_poison_shadow(right_redzone,
-+			padding_size + KASAN_ALLOCA_REDZONE_SIZE,
-+			KASAN_ALLOCA_RIGHT);
-+}
-+EXPORT_SYMBOL(__asan_alloca_poison);
-+
-+/* Emitted by compiler to unpoison alloca()ed areas when the stack unwinds. */
-+void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom)
-+{
-+	if (unlikely(!stack_top || stack_top > stack_bottom))
-+		return;
-+
-+	kasan_unpoison_shadow(stack_top, stack_bottom - stack_top);
-+}
-+EXPORT_SYMBOL(__asan_allocas_unpoison);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int __meminit kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
-diff -puN mm/kasan/kasan.h~kasan-support-alloca-poisoning mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-support-alloca-poisoning
-+++ a/mm/kasan/kasan.h
-@@ -24,6 +24,14 @@
- #define KASAN_STACK_PARTIAL     0xF4
- #define KASAN_USE_AFTER_SCOPE   0xF8
+-void kasan_poison_kfree(void *ptr)
++void kasan_poison_kfree(void *ptr, unsigned long ip)
+ {
+ 	struct page *page;
  
-+/*
-+ * alloca redzone shadow values
-+ */
-+#define KASAN_ALLOCA_LEFT	0xCA
-+#define KASAN_ALLOCA_RIGHT	0xCB
-+
-+#define KASAN_ALLOCA_REDZONE_SIZE	32
-+
- /* Don't break randconfig/all*config builds */
- #ifndef KASAN_ABI_VERSION
- #define KASAN_ABI_VERSION 1
-diff -puN mm/kasan/report.c~kasan-support-alloca-poisoning mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-support-alloca-poisoning
-+++ a/mm/kasan/report.c
-@@ -102,6 +102,10 @@ static const char *get_shadow_bug_type(s
- 	case KASAN_USE_AFTER_SCOPE:
- 		bug_type = "use-after-scope";
- 		break;
-+	case KASAN_ALLOCA_LEFT:
-+	case KASAN_ALLOCA_RIGHT:
-+		bug_type = "alloca-out-of-bounds";
-+		break;
- 	}
+ 	page = virt_to_head_page(ptr);
  
- 	return bug_type;
-diff -puN scripts/Makefile.kasan~kasan-support-alloca-poisoning scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-support-alloca-poisoning
-+++ a/scripts/Makefile.kasan
-@@ -32,7 +32,8 @@ else
- 	$(call cc-param,asan-globals=1) \
- 	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
- 	$(call cc-param,asan-stack=1) \
--	$(call cc-param,asan-use-after-scope=1)
-+	$(call cc-param,asan-use-after-scope=1) \
-+	$(call cc-param,asan-instrument-allocas=1)
-    endif
+-	if (unlikely(!PageSlab(page)))
++	if (unlikely(!PageSlab(page))) {
++		if (ptr != page_address(page)) {
++			kasan_report_invalid_free(ptr, ip);
++			return;
++		}
+ 		kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
+ 				KASAN_FREE_PAGE);
+-	else
++	} else {
+ 		kasan_poison_slab_free(page->slab_cache, ptr);
++	}
+ }
  
- endif
+ void kasan_kfree_large(void *ptr, unsigned long ip)
+diff -puN mm/mempool.c~kasan-detect-invalid-frees-for-large-mempool-objects mm/mempool.c
+--- a/mm/mempool.c~kasan-detect-invalid-frees-for-large-mempool-objects
++++ a/mm/mempool.c
+@@ -103,10 +103,10 @@ static inline void poison_element(mempoo
+ }
+ #endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
+ 
+-static void kasan_poison_element(mempool_t *pool, void *element)
++static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
+ {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_poison_kfree(element);
++		kasan_poison_kfree(element, _RET_IP_);
+ 	if (pool->alloc == mempool_alloc_pages)
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
+@@ -119,7 +119,7 @@ static void kasan_unpoison_element(mempo
+ 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
+ }
+ 
+-static void add_element(mempool_t *pool, void *element)
++static __always_inline void add_element(mempool_t *pool, void *element)
+ {
+ 	BUG_ON(pool->curr_nr >= pool->min_nr);
+ 	poison_element(pool, element);
 _
