@@ -1,201 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [patch 007/114] kasan: detect invalid frees for large
- objects
-Date: Tue, 06 Feb 2018 15:36:23 -0800
-Message-ID: <20180206233623.mXRJ2vXE7%akpm@linux-foundation.org>
+Subject: [patch 004/114] kasan: support alloca() poisoning
+Date: Tue, 06 Feb 2018 15:36:11 -0800
+Message-ID: <20180206233611.HdRYT-oR_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53558 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754138AbeBFXgZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:25 -0500
+        with ESMTP id S1753862AbeBFXgX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
 
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: detect invalid frees for large objects
+From: Paul Lawrence <paullawrence@google.com>
+Subject: kasan: support alloca() poisoning
 
-Patch series "kasan: detect invalid frees".
+clang's AddressSanitizer implementation adds redzones on either side of
+alloca()ed buffers.  These redzones are 32-byte aligned and at least 32
+bytes long.
 
-KASAN detects double-frees, but does not detect invalid-frees (when a
-pointer into a middle of heap object is passed to free).  We recently had
-a very unpleasant case in crypto code which freed an inner object inside
-of a heap allocation.  This left unnoticed during free, but totally
-corrupted heap and later lead to a bunch of random crashes all over kernel
-code.
+__asan_alloca_poison() is passed the size and address of the allocated
+buffer, *excluding* the redzones on either side.  The left redzone will
+always be to the immediate left of this buffer; but AddressSanitizer may
+need to add padding between the end of the buffer and the right redzone. 
+If there are any 8-byte chunks inside this padding, we should poison those
+too.
 
-Detect invalid frees.
+__asan_allocas_unpoison() is just passed the top and bottom of the dynamic
+stack area, so unpoisoning is simpler.
 
-
-This patch (of 5):
-
-Detect frees of pointers into middle of large heap objects.
-
-I dropped const from kasan_kfree_large() because it starts propagating
-through a bunch of functions in kasan_report.c, slab/slub nearest_obj(),
-all of their local variables, fixup_red_left(), etc.
-
-Link: http://lkml.kernel.org/r/1b45b4fe1d20fc0de1329aab674c1dd973fee723.1514378558.git.dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
+Link: http://lkml.kernel.org/r/20171204191735.132544-4-paullawrence@google.com
+Signed-off-by: Greg Hackmann <ghackmann@google.com>
+Signed-off-by: Paul Lawrence <paullawrence@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    4 ++--
- lib/test_kasan.c      |   33 +++++++++++++++++++++++++++++++++
- mm/kasan/kasan.c      |   12 +++++-------
- mm/kasan/kasan.h      |    3 +--
- mm/kasan/report.c     |    3 +--
- mm/slub.c             |    4 ++--
- 6 files changed, 44 insertions(+), 15 deletions(-)
+ mm/kasan/kasan.c       |   34 ++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.h       |    8 ++++++++
+ mm/kasan/report.c      |    4 ++++
+ scripts/Makefile.kasan |    3 ++-
+ 4 files changed, 48 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kasan.h~kasan-detect-invalid-frees-for-large-objects include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-detect-invalid-frees-for-large-objects
-+++ a/include/linux/kasan.h
-@@ -56,7 +56,7 @@ void kasan_poison_object_data(struct kme
- void kasan_init_slab_obj(struct kmem_cache *cache, const void *object);
- 
- void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
--void kasan_kfree_large(const void *ptr);
-+void kasan_kfree_large(void *ptr);
- void kasan_poison_kfree(void *ptr);
- void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
- 		  gfp_t flags);
-@@ -108,7 +108,7 @@ static inline void kasan_init_slab_obj(s
- 				const void *object) {}
- 
- static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
--static inline void kasan_kfree_large(const void *ptr) {}
-+static inline void kasan_kfree_large(void *ptr) {}
- static inline void kasan_poison_kfree(void *ptr) {}
- static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
- 				size_t size, gfp_t flags) {}
-diff -puN lib/test_kasan.c~kasan-detect-invalid-frees-for-large-objects lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-detect-invalid-frees-for-large-objects
-+++ a/lib/test_kasan.c
-@@ -94,6 +94,37 @@ static noinline void __init kmalloc_page
- 	ptr[size] = 0;
- 	kfree(ptr);
- }
-+
-+static noinline void __init kmalloc_pagealloc_uaf(void)
-+{
-+	char *ptr;
-+	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
-+
-+	pr_info("kmalloc pagealloc allocation: use-after-free\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	kfree(ptr);
-+	ptr[0] = 0;
-+}
-+
-+static noinline void __init kmalloc_pagealloc_invalid_free(void)
-+{
-+	char *ptr;
-+	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
-+
-+	pr_info("kmalloc pagealloc allocation: invalid-free\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	kfree(ptr + 1);
-+}
- #endif
- 
- static noinline void __init kmalloc_large_oob_right(void)
-@@ -505,6 +536,8 @@ static int __init kmalloc_tests_init(voi
- 	kmalloc_node_oob_right();
- #ifdef CONFIG_SLUB
- 	kmalloc_pagealloc_oob_right();
-+	kmalloc_pagealloc_uaf();
-+	kmalloc_pagealloc_invalid_free();
- #endif
- 	kmalloc_large_oob_right();
- 	kmalloc_oob_krealloc_more();
-diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-objects mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-objects
+diff -puN mm/kasan/kasan.c~kasan-support-alloca-poisoning mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-support-alloca-poisoning
 +++ a/mm/kasan/kasan.c
-@@ -511,8 +511,7 @@ bool kasan_slab_free(struct kmem_cache *
- 
- 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
- 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
--		kasan_report_double_free(cache, object,
--				__builtin_return_address(1));
-+		kasan_report_invalid_free(object, __builtin_return_address(1));
- 		return true;
- 	}
- 
-@@ -602,12 +601,11 @@ void kasan_poison_kfree(void *ptr)
- 		kasan_poison_slab_free(page->slab_cache, ptr);
+@@ -736,6 +736,40 @@ void __asan_unpoison_stack_memory(const
  }
+ EXPORT_SYMBOL(__asan_unpoison_stack_memory);
  
--void kasan_kfree_large(const void *ptr)
-+void kasan_kfree_large(void *ptr)
- {
--	struct page *page = virt_to_page(ptr);
--
--	kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
--			KASAN_FREE_PAGE);
-+	if (ptr != page_address(virt_to_head_page(ptr)))
-+		kasan_report_invalid_free(ptr, __builtin_return_address(1));
-+	/* The object will be poisoned by page_alloc. */
- }
- 
- int kasan_module_alloc(void *addr, size_t size)
-diff -puN mm/kasan/kasan.h~kasan-detect-invalid-frees-for-large-objects mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-detect-invalid-frees-for-large-objects
++/* Emitted by compiler to poison alloca()ed objects. */
++void __asan_alloca_poison(unsigned long addr, size_t size)
++{
++	size_t rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
++	size_t padding_size = round_up(size, KASAN_ALLOCA_REDZONE_SIZE) -
++			rounded_up_size;
++	size_t rounded_down_size = round_down(size, KASAN_SHADOW_SCALE_SIZE);
++
++	const void *left_redzone = (const void *)(addr -
++			KASAN_ALLOCA_REDZONE_SIZE);
++	const void *right_redzone = (const void *)(addr + rounded_up_size);
++
++	WARN_ON(!IS_ALIGNED(addr, KASAN_ALLOCA_REDZONE_SIZE));
++
++	kasan_unpoison_shadow((const void *)(addr + rounded_down_size),
++			      size - rounded_down_size);
++	kasan_poison_shadow(left_redzone, KASAN_ALLOCA_REDZONE_SIZE,
++			KASAN_ALLOCA_LEFT);
++	kasan_poison_shadow(right_redzone,
++			padding_size + KASAN_ALLOCA_REDZONE_SIZE,
++			KASAN_ALLOCA_RIGHT);
++}
++EXPORT_SYMBOL(__asan_alloca_poison);
++
++/* Emitted by compiler to unpoison alloca()ed areas when the stack unwinds. */
++void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom)
++{
++	if (unlikely(!stack_top || stack_top > stack_bottom))
++		return;
++
++	kasan_unpoison_shadow(stack_top, stack_bottom - stack_top);
++}
++EXPORT_SYMBOL(__asan_allocas_unpoison);
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ static int __meminit kasan_mem_notifier(struct notifier_block *nb,
+ 			unsigned long action, void *data)
+diff -puN mm/kasan/kasan.h~kasan-support-alloca-poisoning mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-support-alloca-poisoning
 +++ a/mm/kasan/kasan.h
-@@ -107,8 +107,7 @@ static inline const void *kasan_shadow_t
+@@ -24,6 +24,14 @@
+ #define KASAN_STACK_PARTIAL     0xF4
+ #define KASAN_USE_AFTER_SCOPE   0xF8
  
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
--void kasan_report_double_free(struct kmem_cache *cache, void *object,
--					void *ip);
-+void kasan_report_invalid_free(void *object, void *ip);
- 
- #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
- void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
-diff -puN mm/kasan/report.c~kasan-detect-invalid-frees-for-large-objects mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-detect-invalid-frees-for-large-objects
++/*
++ * alloca redzone shadow values
++ */
++#define KASAN_ALLOCA_LEFT	0xCA
++#define KASAN_ALLOCA_RIGHT	0xCB
++
++#define KASAN_ALLOCA_REDZONE_SIZE	32
++
+ /* Don't break randconfig/all*config builds */
+ #ifndef KASAN_ABI_VERSION
+ #define KASAN_ABI_VERSION 1
+diff -puN mm/kasan/report.c~kasan-support-alloca-poisoning mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-support-alloca-poisoning
 +++ a/mm/kasan/report.c
-@@ -326,8 +326,7 @@ static void print_shadow_for_address(con
+@@ -102,6 +102,10 @@ static const char *get_shadow_bug_type(s
+ 	case KASAN_USE_AFTER_SCOPE:
+ 		bug_type = "use-after-scope";
+ 		break;
++	case KASAN_ALLOCA_LEFT:
++	case KASAN_ALLOCA_RIGHT:
++		bug_type = "alloca-out-of-bounds";
++		break;
  	}
- }
  
--void kasan_report_double_free(struct kmem_cache *cache, void *object,
--				void *ip)
-+void kasan_report_invalid_free(void *object, void *ip)
- {
- 	unsigned long flags;
+ 	return bug_type;
+diff -puN scripts/Makefile.kasan~kasan-support-alloca-poisoning scripts/Makefile.kasan
+--- a/scripts/Makefile.kasan~kasan-support-alloca-poisoning
++++ a/scripts/Makefile.kasan
+@@ -32,7 +32,8 @@ else
+ 	$(call cc-param,asan-globals=1) \
+ 	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
+ 	$(call cc-param,asan-stack=1) \
+-	$(call cc-param,asan-use-after-scope=1)
++	$(call cc-param,asan-use-after-scope=1) \
++	$(call cc-param,asan-instrument-allocas=1)
+    endif
  
-diff -puN mm/slub.c~kasan-detect-invalid-frees-for-large-objects mm/slub.c
---- a/mm/slub.c~kasan-detect-invalid-frees-for-large-objects
-+++ a/mm/slub.c
-@@ -1356,7 +1356,7 @@ static inline void kmalloc_large_node_ho
- 	kasan_kmalloc_large(ptr, size, flags);
- }
- 
--static inline void kfree_hook(const void *x)
-+static inline void kfree_hook(void *x)
- {
- 	kmemleak_free(x);
- 	kasan_kfree_large(x);
-@@ -3910,7 +3910,7 @@ void kfree(const void *x)
- 	page = virt_to_head_page(x);
- 	if (unlikely(!PageSlab(page))) {
- 		BUG_ON(!PageCompound(page));
--		kfree_hook(x);
-+		kfree_hook(object);
- 		__free_pages(page, compound_order(page));
- 		return;
- 	}
+ endif
 _
