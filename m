@@ -1,59 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [patch 101/114] pipe: fix off-by-one error when checking
- buffer limits
-Date: Tue, 06 Feb 2018 15:41:56 -0800
-Message-ID: <20180206234156.pDtY69HHP%akpm@linux-foundation.org>
+Subject: [patch 109/114] MAINTAINERS: remove ARM/CLKDEV SUPPORT
+ file pattern
+Date: Tue, 06 Feb 2018 15:42:26 -0800
+Message-ID: <20180206234226.k8S3K3qMg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56648 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56820 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753537AbeBFXl6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:58 -0500
+        with ESMTP id S1754145AbeBFXm2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:42:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
+To: akpm@linux-foundation.org, joe@perches.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Eric Biggers <ebiggers@google.com>
-Subject: pipe: fix off-by-one error when checking buffer limits
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: remove ARM/CLKDEV SUPPORT file pattern
 
-With pipe-user-pages-hard set to 'N', users were actually only allowed up
-to 'N - 1' buffers; and likewise for pipe-user-pages-soft.
+34d2f4d3a4d6 ("ARM: Use generic clkdev.h header") removed the file, remove
+the pattern.
 
-Fix this to allow up to 'N' buffers, as would be expected.
-
-Link: http://lkml.kernel.org/r/20180111052902.14409-5-ebiggers3@gmail.com
-Fixes: b0b91d18e2e9 ("pipe: fix limit checking in pipe_set_size()")
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Acked-by: Willy Tarreau <w@1wt.eu>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/41bfff9449a5894b94f583983b6c6cb46f4cd821.1517147485.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/pipe.c~pipe-fix-off-by-one-error-when-checking-buffer-limits fs/pipe.c
---- a/fs/pipe.c~pipe-fix-off-by-one-error-when-checking-buffer-limits
-+++ a/fs/pipe.c
-@@ -605,12 +605,12 @@ static unsigned long account_pipe_buffer
+diff -puN MAINTAINERS~maintainers-remove-arm-clkdev-support-file-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-arm-clkdev-support-file-pattern
++++ a/MAINTAINERS
+@@ -1307,7 +1307,6 @@ M:	Russell King <linux@armlinux.org.uk>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ T:	git git://git.armlinux.org.uk/~rmk/linux-arm.git clkdev
+-F:	arch/arm/include/asm/clkdev.h
+ F:	drivers/clk/clkdev.c
  
- static bool too_many_pipe_buffers_soft(unsigned long user_bufs)
- {
--	return pipe_user_pages_soft && user_bufs >= pipe_user_pages_soft;
-+	return pipe_user_pages_soft && user_bufs > pipe_user_pages_soft;
- }
- 
- static bool too_many_pipe_buffers_hard(unsigned long user_bufs)
- {
--	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
-+	return pipe_user_pages_hard && user_bufs > pipe_user_pages_hard;
- }
- 
- static bool is_unprivileged_user(void)
+ ARM/COMPULAB CM-X270/EM-X270 and CM-X300 MACHINE SUPPORT
 _
