@@ -1,42 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 084/114] arch/score/kernel/setup.c: combine two
- seq_printf() calls into one call in show_cpuinfo()
-Date: Tue, 06 Feb 2018 15:40:56 -0800
-Message-ID: <20180206234056.6_bJ5LZ6J%akpm@linux-foundation.org>
+Subject: [patch 092/114] kernel/cpuset:
+ current_cpuset_is_being_rebound can be  boolean
+Date: Tue, 06 Feb 2018 15:41:24 -0800
+Message-ID: <20180206234124.Bjk5aiQYx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56172 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXk5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:57 -0500
+        with ESMTP id S1753346AbeBFXl0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, elfring@users.sourceforge.net, lennox.wu@gmail.com, liqin.linux@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: arch/score/kernel/setup.c: combine two seq_printf() calls into one call in show_cpuinfo()
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: kernel/cpuset: current_cpuset_is_being_rebound can be  boolean
 
-Some data were printed into a sequence by two separate function calls.
-Print the same data by a single function call instead.
+Make current_cpuset_is_being_rebound return bool due to this particular
+function only using either one or zero as its return value.
 
-This issue was detected by using the Coccinelle software.
+No functional change.
 
-Link: http://lkml.kernel.org/r/ddcfff3a-9502-6ce0-b08a-365eb55ce958@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Cc: Chen Liqin <liqin.linux@gmail.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
+Link: http://lkml.kernel.org/r/1513266622-15860-4-git-send-email-baiyaowei@cmss.chinamobile.com
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/kernel/setup.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/cpuset.h |    6 +++---
+ kernel/cgroup/cpuset.c |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/score/kernel/setup.c~score-setup-combine-two-seq_printf-calls-into-one-call-in-show_cpuinfo arch/score/kernel/setup.c
---- a/arch/score/kernel/setup.c~score-setup-combine-two-seq_printf-calls-into-one-call-in-show_cpuinfo
-+++ a/arch/score/kernel/setup.c
-@@ -124,9 +124,7 @@ static int show_cpuinfo(struct seq_file
- {
- 	unsigned long n = (unsigned long) v - 1;
+diff -puN include/linux/cpuset.h~kernel-cpuset-current_cpuset_is_being_rebound-can-be-boolean include/linux/cpuset.h
+--- a/include/linux/cpuset.h~kernel-cpuset-current_cpuset_is_being_rebound-can-be-boolean
++++ a/include/linux/cpuset.h
+@@ -112,7 +112,7 @@ static inline int cpuset_do_slab_mem_spr
+ 	return task_spread_slab(current);
+ }
  
--	seq_printf(m, "processor\t\t: %ld\n", n);
--	seq_printf(m, "\n");
+-extern int current_cpuset_is_being_rebound(void);
++extern bool current_cpuset_is_being_rebound(void);
+ 
+ extern void rebuild_sched_domains(void);
+ 
+@@ -247,9 +247,9 @@ static inline int cpuset_do_slab_mem_spr
+ 	return 0;
+ }
+ 
+-static inline int current_cpuset_is_being_rebound(void)
++static inline bool current_cpuset_is_being_rebound(void)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ static inline void rebuild_sched_domains(void)
+diff -puN kernel/cgroup/cpuset.c~kernel-cpuset-current_cpuset_is_being_rebound-can-be-boolean kernel/cgroup/cpuset.c
+--- a/kernel/cgroup/cpuset.c~kernel-cpuset-current_cpuset_is_being_rebound-can-be-boolean
++++ a/kernel/cgroup/cpuset.c
+@@ -1254,9 +1254,9 @@ done:
+ 	return retval;
+ }
+ 
+-int current_cpuset_is_being_rebound(void)
++bool current_cpuset_is_being_rebound(void)
+ {
+-	int ret;
++	bool ret;
+ 
+ 	rcu_read_lock();
+ 	ret = task_cs(current) == cpuset_being_rebound;
+_
