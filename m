@@ -1,174 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 080/114] lib/ubsan: add type mismatch handler for
- new GCC/Clang
-Date: Tue, 06 Feb 2018 15:40:42 -0800
-Message-ID: <20180206234042.9nAHNbUh8%akpm__10888.2089065903$1517960340$gmane$org@linux-foundation.org>
+Subject: [patch 085/114] vfs: remove might_sleep() from
+ clear_inode()
+Date: Tue, 06 Feb 2018 15:40:59 -0800
+Message-ID: <20180206234059.32tLhj8_2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55656 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXkn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:43 -0500
+        with ESMTP id S932106AbeBFXlB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org, psodagud@codeaurora.org, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: lib/ubsan: add type mismatch handler for new GCC/Clang
+From: Shakeel Butt <shakeelb@google.com>
+Subject: vfs: remove might_sleep() from clear_inode()
 
-UBSAN=y fails to build with new GCC/clang:
+7994e6f72543 ("vfs: Move waiting for inode writeback from end_writeback()
+to evict_inode()") removed inode_sync_wait() from end_writeback() and
+commit dbd5768f87ff ("vfs: Rename end_writeback() to clear_inode()")
+renamed end_writeback() to clear_inode().  After these patches there is no
+sleeping operation in clear_inode().  So, remove might_sleep() from it.
 
-    arch/x86/kernel/head64.o: In function `sanitize_boot_params':
-    arch/x86/include/asm/bootparam_utils.h:37: undefined reference to `__ubsan_handle_type_mismatch_v1'
-
-because Clang and GCC 8 slightly changed ABI for 'type mismatch' errors. 
-Compiler now uses new __ubsan_handle_type_mismatch_v1() function with
-slightly modified 'struct type_mismatch_data'.
-
-Let's add new 'struct type_mismatch_data_common' which is independent from
-compiler's layout of 'struct type_mismatch_data'.  And make
-__ubsan_handle_type_mismatch[_v1]() functions transform compiler-dependent
-type mismatch data to our internal representation.  This way, we can
-support both old and new compilers with minimal amount of change.
-
-Link: http://lkml.kernel.org/r/20180119152853.16806-1-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Sodagudi Prasad <psodagud@codeaurora.org>
-Cc: <stable@vger.kernel.org>	[4.5+]
+Link: http://lkml.kernel.org/r/20171108004354.40308-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |   48 ++++++++++++++++++++++++++++++++++++++----------
- lib/ubsan.h |   14 ++++++++++++++
- 2 files changed, 52 insertions(+), 10 deletions(-)
+ fs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/ubsan.c~lib-ubsan-add-type-mismatch-handler-for-new-gcc-clang lib/ubsan.c
---- a/lib/ubsan.c~lib-ubsan-add-type-mismatch-handler-for-new-gcc-clang
-+++ a/lib/ubsan.c
-@@ -265,14 +265,14 @@ void __ubsan_handle_divrem_overflow(stru
- }
- EXPORT_SYMBOL(__ubsan_handle_divrem_overflow);
+diff -puN fs/inode.c~vfs-remove-might_sleep-from-clear_inode fs/inode.c
+--- a/fs/inode.c~vfs-remove-might_sleep-from-clear_inode
++++ a/fs/inode.c
+@@ -498,7 +498,6 @@ EXPORT_SYMBOL(__remove_inode_hash);
  
--static void handle_null_ptr_deref(struct type_mismatch_data *data)
-+static void handle_null_ptr_deref(struct type_mismatch_data_common *data)
+ void clear_inode(struct inode *inode)
  {
- 	unsigned long flags;
- 
--	if (suppress_report(&data->location))
-+	if (suppress_report(data->location))
- 		return;
- 
--	ubsan_prologue(&data->location, &flags);
-+	ubsan_prologue(data->location, &flags);
- 
- 	pr_err("%s null pointer of type %s\n",
- 		type_check_kinds[data->type_check_kind],
-@@ -281,15 +281,15 @@ static void handle_null_ptr_deref(struct
- 	ubsan_epilogue(&flags);
- }
- 
--static void handle_misaligned_access(struct type_mismatch_data *data,
-+static void handle_misaligned_access(struct type_mismatch_data_common *data,
- 				unsigned long ptr)
- {
- 	unsigned long flags;
- 
--	if (suppress_report(&data->location))
-+	if (suppress_report(data->location))
- 		return;
- 
--	ubsan_prologue(&data->location, &flags);
-+	ubsan_prologue(data->location, &flags);
- 
- 	pr_err("%s misaligned address %p for type %s\n",
- 		type_check_kinds[data->type_check_kind],
-@@ -299,15 +299,15 @@ static void handle_misaligned_access(str
- 	ubsan_epilogue(&flags);
- }
- 
--static void handle_object_size_mismatch(struct type_mismatch_data *data,
-+static void handle_object_size_mismatch(struct type_mismatch_data_common *data,
- 					unsigned long ptr)
- {
- 	unsigned long flags;
- 
--	if (suppress_report(&data->location))
-+	if (suppress_report(data->location))
- 		return;
- 
--	ubsan_prologue(&data->location, &flags);
-+	ubsan_prologue(data->location, &flags);
- 	pr_err("%s address %p with insufficient space\n",
- 		type_check_kinds[data->type_check_kind],
- 		(void *) ptr);
-@@ -315,7 +315,7 @@ static void handle_object_size_mismatch(
- 	ubsan_epilogue(&flags);
- }
- 
--void __ubsan_handle_type_mismatch(struct type_mismatch_data *data,
-+static void ubsan_type_mismatch_common(struct type_mismatch_data_common *data,
- 				unsigned long ptr)
- {
- 
-@@ -326,8 +326,36 @@ void __ubsan_handle_type_mismatch(struct
- 	else
- 		handle_object_size_mismatch(data, ptr);
- }
-+
-+void __ubsan_handle_type_mismatch(struct type_mismatch_data *data,
-+				unsigned long ptr)
-+{
-+	struct type_mismatch_data_common common_data = {
-+		.location = &data->location,
-+		.type = data->type,
-+		.alignment = data->alignment,
-+		.type_check_kind = data->type_check_kind
-+	};
-+
-+	ubsan_type_mismatch_common(&common_data, ptr);
-+}
- EXPORT_SYMBOL(__ubsan_handle_type_mismatch);
- 
-+void __ubsan_handle_type_mismatch_v1(struct type_mismatch_data_v1 *data,
-+				unsigned long ptr)
-+{
-+
-+	struct type_mismatch_data_common common_data = {
-+		.location = &data->location,
-+		.type = data->type,
-+		.alignment = 1UL << data->log_alignment,
-+		.type_check_kind = data->type_check_kind
-+	};
-+
-+	ubsan_type_mismatch_common(&common_data, ptr);
-+}
-+EXPORT_SYMBOL(__ubsan_handle_type_mismatch_v1);
-+
- void __ubsan_handle_nonnull_return(struct nonnull_return_data *data)
- {
- 	unsigned long flags;
-diff -puN lib/ubsan.h~lib-ubsan-add-type-mismatch-handler-for-new-gcc-clang lib/ubsan.h
---- a/lib/ubsan.h~lib-ubsan-add-type-mismatch-handler-for-new-gcc-clang
-+++ a/lib/ubsan.h
-@@ -37,6 +37,20 @@ struct type_mismatch_data {
- 	unsigned char type_check_kind;
- };
- 
-+struct type_mismatch_data_v1 {
-+	struct source_location location;
-+	struct type_descriptor *type;
-+	unsigned char log_alignment;
-+	unsigned char type_check_kind;
-+};
-+
-+struct type_mismatch_data_common {
-+	struct source_location *location;
-+	struct type_descriptor *type;
-+	unsigned long alignment;
-+	unsigned char type_check_kind;
-+};
-+
- struct nonnull_arg_data {
- 	struct source_location location;
- 	struct source_location attr_location;
+-	might_sleep();
+ 	/*
+ 	 * We have to cycle tree_lock here because reclaim can be still in the
+ 	 * process of removing the last page (in __delete_from_page_cache())
 _
