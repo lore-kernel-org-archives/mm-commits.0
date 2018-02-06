@@ -1,58 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 077/114] include/linux/genl_magic_func.h: remove
- own BUILD_BUG_ON*() defines
-Date: Tue, 06 Feb 2018 15:40:31 -0800
-Message-ID: <20180206234031._agFA7Gp4%akpm@linux-foundation.org>
+Subject: [patch 075/114] kernel/relay.c: revert "kernel/relay.c:
+ fix potential memory leak"
+Date: Tue, 06 Feb 2018 15:40:24 -0800
+Message-ID: <20180206234024.PCSkFHsYg%akpm__13862.2295730331$1517960323$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55442 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXkd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:33 -0500
+        with ESMTP id S932106AbeBFXk0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, akpm@linux-foundation.org, davem@davemloft.net, kuznet@ms2.inr.ac.ru, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com, yoshfuji@linux-ipv6.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, ebiggers@google.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, syzkaller@googlegroups.com, torvalds@linux-foundation.org, yizhouzhou@ict.ac.cn
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: include/linux/genl_magic_func.h: remove own BUILD_BUG_ON*() defines
+From: Eric Biggers <ebiggers@google.com>
+Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
 
-Do not duplicate BUILD_BUG_ON*.  Use ones from <linux/build_bug.h>.
+This reverts ba62bafe942b159a6 ("kernel/relay.c: fix potential memory leak").
 
-Link: http://lkml.kernel.org/r/1515121833-3174-2-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Ian Abbott <abbotti@mev.co.uk>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+This commit introduced a double free bug, because 'chan' is already
+freed by the line:
+
+    kref_put(&chan->kref, relay_destroy_channel);
+
+This bug was found by syzkaller, using the BLKTRACESETUP ioctl.
+
+Link: http://lkml.kernel.org/r/20180127004759.101823-1-ebiggers3@gmail.com
+Fixes: ba62bafe942b ("kernel/relay.c: fix potential memory leak")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>	[4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genl_magic_func.h |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ kernel/relay.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/genl_magic_func.h~genl_magic-remove-own-build_bug_on-defines include/linux/genl_magic_func.h
---- a/include/linux/genl_magic_func.h~genl_magic-remove-own-build_bug_on-defines
-+++ a/include/linux/genl_magic_func.h
-@@ -2,6 +2,7 @@
- #ifndef GENL_MAGIC_FUNC_H
- #define GENL_MAGIC_FUNC_H
+diff -puN kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak kernel/relay.c
+--- a/kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak
++++ a/kernel/relay.c
+@@ -611,7 +611,6 @@ free_bufs:
  
-+#include <linux/build_bug.h>
- #include <linux/genl_magic_struct.h>
- 
- /*
-@@ -132,17 +133,6 @@ static void dprint_array(const char *dir
-  * use one static buffer for parsing of nested attributes */
- static struct nlattr *nested_attr_tb[128];
- 
--#ifndef BUILD_BUG_ON
--/* Force a compilation error if condition is true */
--#define BUILD_BUG_ON(condition) ((void)BUILD_BUG_ON_ZERO(condition))
--/* Force a compilation error if condition is true, but also produce a
--   result (of value 0 and type size_t), so the expression can be used
--   e.g. in a structure initializer (or where-ever else comma expressions
--   aren't permitted). */
--#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
--#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
--#endif
+ 	kref_put(&chan->kref, relay_destroy_channel);
+ 	mutex_unlock(&relay_channels_mutex);
+-	kfree(chan);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(relay_open);
+_
