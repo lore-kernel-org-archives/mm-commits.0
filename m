@@ -1,49 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 079/114] lib/ubsan.c: s/missaligned/misaligned/
-Date: Tue, 06 Feb 2018 15:40:38 -0800
-Message-ID: <20180206234038.o4WlHoDCB%akpm@linux-foundation.org>
+Subject: [patch 077/114] include/linux/genl_magic_func.h: remove
+ own BUILD_BUG_ON*() defines
+Date: Tue, 06 Feb 2018 15:40:31 -0800
+Message-ID: <20180206234031._agFA7Gp4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXkk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:40 -0500
+        with ESMTP id S932106AbeBFXkd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, David.Laight@ACULAB.COM, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: abbotti@mev.co.uk, akpm@linux-foundation.org, davem@davemloft.net, kuznet@ms2.inr.ac.ru, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com, yoshfuji@linux-ipv6.org
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/ubsan.c: s/missaligned/misaligned/
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: include/linux/genl_magic_func.h: remove own BUILD_BUG_ON*() defines
 
-A vist from the spelling fairy.
+Do not duplicate BUILD_BUG_ON*.  Use ones from <linux/build_bug.h>.
 
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Link: http://lkml.kernel.org/r/1515121833-3174-2-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/genl_magic_func.h |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN lib/ubsan.c~lib-ubsanc-s-missaligned-misaligned lib/ubsan.c
---- a/lib/ubsan.c~lib-ubsanc-s-missaligned-misaligned
-+++ a/lib/ubsan.c
-@@ -281,7 +281,7 @@ static void handle_null_ptr_deref(struct
- 	ubsan_epilogue(&flags);
- }
+diff -puN include/linux/genl_magic_func.h~genl_magic-remove-own-build_bug_on-defines include/linux/genl_magic_func.h
+--- a/include/linux/genl_magic_func.h~genl_magic-remove-own-build_bug_on-defines
++++ a/include/linux/genl_magic_func.h
+@@ -2,6 +2,7 @@
+ #ifndef GENL_MAGIC_FUNC_H
+ #define GENL_MAGIC_FUNC_H
  
--static void handle_missaligned_access(struct type_mismatch_data *data,
-+static void handle_misaligned_access(struct type_mismatch_data *data,
- 				unsigned long ptr)
- {
- 	unsigned long flags;
-@@ -322,7 +322,7 @@ void __ubsan_handle_type_mismatch(struct
- 	if (!ptr)
- 		handle_null_ptr_deref(data);
- 	else if (data->alignment && !IS_ALIGNED(ptr, data->alignment))
--		handle_missaligned_access(data, ptr);
-+		handle_misaligned_access(data, ptr);
- 	else
- 		handle_object_size_mismatch(data, ptr);
- }
-_
++#include <linux/build_bug.h>
+ #include <linux/genl_magic_struct.h>
+ 
+ /*
+@@ -132,17 +133,6 @@ static void dprint_array(const char *dir
+  * use one static buffer for parsing of nested attributes */
+ static struct nlattr *nested_attr_tb[128];
+ 
+-#ifndef BUILD_BUG_ON
+-/* Force a compilation error if condition is true */
+-#define BUILD_BUG_ON(condition) ((void)BUILD_BUG_ON_ZERO(condition))
+-/* Force a compilation error if condition is true, but also produce a
+-   result (of value 0 and type size_t), so the expression can be used
+-   e.g. in a structure initializer (or where-ever else comma expressions
+-   aren't permitted). */
+-#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+-#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
+-#endif
