@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-replace-bitmap_fromto_u32array-fix-2.patch added to -mm
+Subject: + fix-a-typo-in-documentation-sysctl-usertxt.patch added to -mm
  tree
-Date: Mon, 05 Feb 2018 15:31:45 -0800
-Message-ID: <5a78e961.fmmRVTV2HmUpDlL1%akpm@linux-foundation.org>
+Date: Mon, 05 Feb 2018 16:13:27 -0800
+Message-ID: <5a78f327.rHrNSi/U7yNh4qVi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37736 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750724AbeBEXbq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 18:31:46 -0500
+        with ESMTP id S1752150AbeBFAN3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 19:13:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ynorov@caviumnetworks.com, hkallweit1@gmail.com, mm-commits@vger.kernel.org
+To: l4stpr0gr4m@gmail.com, akpm@linux-foundation.org, trivial@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Fix 39461af74125 "bitmap: replace bitmap_{from,to}_u32array"
+     Subject: Documentation/sysctl/user.txt: fix typo
 has been added to the -mm tree.  Its filename is
-     bitmap-replace-bitmap_fromto_u32array-fix-2.patch
+     fix-a-typo-in-documentation-sysctl-usertxt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-replace-bitmap_fromto_u32array-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-a-typo-in-documentation-sysctl-usertxt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-replace-bitmap_fromto_u32array-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-a-typo-in-documentation-sysctl-usertxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: Fix 39461af74125 "bitmap: replace bitmap_{from,to}_u32array"
+From: Kangmin Park <l4stpr0gr4m@gmail.com>
+Subject: Documentation/sysctl/user.txt: fix typo
 
-During rework, bitmap_to_arr32() was erroneously passed with
-__ETHTOOL_LINK_MODE_MASK_NU32 instead of __ETHTOOL_LINK_MODE_MASK_NBITS.
+Fix 'documetation' to 'documentation'
 
-Link: http://lkml.kernel.org/r/20180205071747.4ekxtsbgxkj5b2fz@yury-thinkpad
-Fixes: 39461af74125fd268 (bitmap: replace bitmap_{from,to}_u32array)
-Reported-by: Heiner Kallweit <hkallweit1@gmail.com>
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Link: http://lkml.kernel.org/r/CAKW4uUxRPZz59aWAX8ytaCB5=Qh6d_CvAnO7rYq-6NRAnQJbDA@mail.gmail.com
+Signed-off-by: Kangmin Park <l4stpr0gr4m@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jiri Kosina <trivial@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/ethtool.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/sysctl/user.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/core/ethtool.c~bitmap-replace-bitmap_fromto_u32array-fix-2 net/core/ethtool.c
---- a/net/core/ethtool.c~bitmap-replace-bitmap_fromto_u32array-fix-2
-+++ a/net/core/ethtool.c
-@@ -642,13 +642,13 @@ store_link_ksettings_for_user(void __use
- 	memcpy(&link_usettings.base, &from->base, sizeof(link_usettings));
- 	bitmap_to_arr32(link_usettings.link_modes.supported,
- 			from->link_modes.supported,
--			__ETHTOOL_LINK_MODE_MASK_NU32);
-+			__ETHTOOL_LINK_MODE_MASK_NBITS);
- 	bitmap_to_arr32(link_usettings.link_modes.advertising,
- 			from->link_modes.advertising,
--			__ETHTOOL_LINK_MODE_MASK_NU32);
-+			__ETHTOOL_LINK_MODE_MASK_NBITS);
- 	bitmap_to_arr32(link_usettings.link_modes.lp_advertising,
- 			from->link_modes.lp_advertising,
--			__ETHTOOL_LINK_MODE_MASK_NU32);
-+			__ETHTOOL_LINK_MODE_MASK_NBITS);
+diff -puN Documentation/sysctl/user.txt~fix-a-typo-in-documentation-sysctl-usertxt Documentation/sysctl/user.txt
+--- a/Documentation/sysctl/user.txt~fix-a-typo-in-documentation-sysctl-usertxt
++++ a/Documentation/sysctl/user.txt
+@@ -3,7 +3,7 @@ Documentation for /proc/sys/user/*	kerne
  
- 	if (copy_to_user(to, &link_usettings, sizeof(link_usettings)))
- 		return -EFAULT;
+ ==============================================================
+ 
+-This file contains the documetation for the sysctl files in
++This file contains the documentation for the sysctl files in
+ /proc/sys/user.
+ 
+ The files in this directory can be used to override the default
 _
 
-Patches currently in -mm which might be from ynorov@caviumnetworks.com are
+Patches currently in -mm which might be from l4stpr0gr4m@gmail.com are
 
-bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32.patch
-bitmap-new-bitmap_copy_safe-and-bitmap_fromto_arr32-fix.patch
-bitmap-replace-bitmap_fromto_u32array.patch
-bitmap-replace-bitmap_fromto_u32array-fix-2.patch
-lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
-lib-find_bit_benchmarkc-improvements.patch
+fix-a-typo-in-documentation-sysctl-usertxt.patch
 
