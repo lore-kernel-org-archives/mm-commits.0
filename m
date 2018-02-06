@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 048/114] checkpatch: ignore some octal permissions
- of 0
-Date: Tue, 06 Feb 2018 15:38:49 -0800
-Message-ID: <20180206233849.N-agFRA-w%akpm@linux-foundation.org>
+Subject: [patch 046/114] lib/test_sort.c: add module unload support
+Date: Tue, 06 Feb 2018 15:38:42 -0800
+Message-ID: <20180206233842.i20wYLku-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54950 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754126AbeBFXiu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:50 -0500
+        with ESMTP id S1754126AbeBFXin (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, brgl@bgdev.pl, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, fkostenzer@live.at, geert@linux-m68k.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, pravin.shedge4linux@gmail.com, torvalds@linux-foundation.org
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: ignore some octal permissions of 0
+From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Subject: lib/test_sort.c: add module unload support
 
-module_param and create_proc uses with a permissions use of a single 0 are
-"special" and should not emit any warning.
+test_sort.c performs array-based and linked list sort test.  Code allows
+to compile either as a loadable modules or builtin into the kernel.
 
-module_param uses with permission 0 are not visible in sysfs
+Current code is not allow to unload the test_sort.ko module after
+successful completion.
 
-create_proc uses with permission 0 use a default permission
+This patch adds support to unload the "test_sort.ko" module by adding
+module_exit support.
 
-Link: http://lkml.kernel.org/r/b6583611bb529ea6f6d43786827fddbabbab0a71.1513190059.git.joe@perches.com
-Signed-off-by: Bartosz Golaszewski <brgl@bgdev.pl>
-Signed-off-by: Joe Perches <joe@perches.com>
+Previous patch was implemented auto unload support by returning -EAGAIN
+from module_init() function on successful case, but this approach is not
+ideal.
+
+The auto-unload might seem like a nice optimization, but it encourages
+inconsistent behaviour.  And behaviour that is different from all other
+normal modules.
+
+Link: http://lkml.kernel.org/r/1513967133-6843-1-git-send-email-pravin.shedge4linux@gmail.com
+Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Cc: Kostenzer Felix <fkostenzer@live.at>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ lib/test_sort.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-ignore-some-octal-permissions-of-0 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-ignore-some-octal-permissions-of-0
-+++ a/scripts/checkpatch.pl
-@@ -6276,6 +6276,10 @@ sub process {
+diff -puN lib/test_sort.c~lib-add-module-unload-support-to-sort-tests lib/test_sort.c
+--- a/lib/test_sort.c~lib-add-module-unload-support-to-sort-tests
++++ a/lib/test_sort.c
+@@ -39,5 +39,11 @@ exit:
+ 	return err;
+ }
  
- # Mode permission misuses where it seems decimal should be octal
- # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
-+# o Ignore module_param*(...) uses with a decimal 0 permission as that has a
-+#   specific definition of not visible in sysfs.
-+# o Ignore proc_create*(...) uses with a decimal 0 permission as that means
-+#   use the default permissions
- 		if ($^V && $^V ge 5.10.0 &&
- 		    defined $stat &&
- 		    $line =~ /$mode_perms_search/) {
-@@ -6299,8 +6303,9 @@ sub process {
- 				if ($stat =~ /$test/) {
- 					my $val = $1;
- 					$val = $6 if ($skip_args ne "");
--					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
--					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
-+					if (!($func =~ /^(?:module_param|proc_create)/ && $val eq "0") &&
-+					    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+					     ($val =~ /^$Octal$/ && length($val) ne 4))) {
- 						ERROR("NON_OCTAL_PERMISSIONS",
- 						      "Use 4 digit octal (0777) not decimal permissions\n" . "$here\n" . $stat_real);
- 					}
++static void __exit test_sort_exit(void)
++{
++}
++
+ module_init(test_sort_init);
++module_exit(test_sort_exit);
++
+ MODULE_LICENSE("GPL");
 _
