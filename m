@@ -1,46 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [patch 052/114] checkpatch: exclude drivers/staging from
- if with unnecessary parentheses test
-Date: Tue, 06 Feb 2018 15:39:03 -0800
-Message-ID: <20180206233903.HSwsGMW0L%akpm@linux-foundation.org>
+Subject: [patch 043/114] lib/find_bit_benchmark.c: improvements
+Date: Tue, 06 Feb 2018 15:38:31 -0800
+Message-ID: <20180206233831.tZNjucVsF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932067AbeBFXjE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:04 -0500
+        with ESMTP id S1754153AbeBFXid (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:38:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@linuxfoundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: adobriyan@gmail.com, akpm@linux-foundation.org, courbet@google.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, ynorov@caviumnetworks.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: exclude drivers/staging from if with unnecessary parentheses test
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: lib/find_bit_benchmark.c: improvements
 
-Greg KH doesn't like this test so exclude the staging directory from the
-implied --strict only test unless --strict is actually used on the
-command-line.
+As suggested in review comments:
+* printk: align numbers using whitespaces instead of tabs;
+* return error value from init() to avoid calling rmmod if testing again;
+* use ktime_get instead of get_cycles as some arches don't support it;
 
-Link: http://lkml.kernel.org/r/1515704034.9619.165.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
+The output in dmesg (on QEMU arm64):
+[   38.823430] Start testing find_bit() with random-filled bitmap
+[   38.845358] find_next_bit:                20138448 ns, 163968 iterations
+[   38.856217] find_next_zero_bit:           10615328 ns, 163713 iterations
+[   38.863564] find_last_bit:                 7111888 ns, 163967 iterations
+[   40.944796] find_first_bit:             2081007216 ns, 163968 iterations
+[   40.944975]
+[   40.944975] Start testing find_bit() with sparse bitmap
+[   40.945268] find_next_bit:                   73216 ns,    656 iterations
+[   40.967858] find_next_zero_bit:           22461008 ns, 327025 iterations
+[   40.968047] find_last_bit:                   62320 ns,    656 iterations
+[   40.978060] find_first_bit:                9889360 ns,    656 iterations
+
+Link: http://lkml.kernel.org/r/20171124143040.a44jvhmnaiyedg2i@yury-thinkpad
+Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Clement Courbet <courbet@google.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/find_bit_benchmark.c |   47 ++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 26 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test
-+++ a/scripts/checkpatch.pl
-@@ -4526,7 +4526,9 @@ sub process {
- 		}
+diff -puN lib/find_bit_benchmark.c~lib-find_bit_benchmarkc-improvements lib/find_bit_benchmark.c
+--- a/lib/find_bit_benchmark.c~lib-find_bit_benchmarkc-improvements
++++ a/lib/find_bit_benchmark.c
+@@ -43,16 +43,15 @@ static DECLARE_BITMAP(bitmap, BITMAP_LEN
+ static int __init test_find_first_bit(void *bitmap, unsigned long len)
+ {
+ 	unsigned long i, cnt;
+-	cycles_t cycles;
++	ktime_t time;
  
- # check for unnecessary parentheses around comparisons in if uses
--		if ($^V && $^V ge 5.10.0 && defined($stat) &&
-+# when !drivers/staging or command-line uses --strict
-+		if (($realfile !~ m@^(?:drivers/staging/)@ || $check_orig) &&
-+		    $^V && $^V ge 5.10.0 && defined($stat) &&
- 		    $stat =~ /(^.\s*if\s*($balanced_parens))/) {
- 			my $if_stat = $1;
- 			my $test = substr($2, 1, -1);
-_
+-	cycles = get_cycles();
++	time = ktime_get();
+ 	for (cnt = i = 0; i < len; cnt++) {
+ 		i = find_first_bit(bitmap, len);
+ 		__clear_bit(i, bitmap);
+ 	}
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_first_bit:\t\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
++	time = ktime_get() - time;
++	pr_err("find_first_bit:     %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -60,14 +59,13 @@ static int __init test_find_first_bit(vo
+ static int __init test_find_next_bit(const void *bitmap, unsigned long len)
+ {
+ 	unsigned long i, cnt;
+-	cycles_t cycles;
++	ktime_t time;
+ 
+-	cycles = get_cycles();
++	time = ktime_get();
+ 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+ 		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_next_bit:\t\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
++	time = ktime_get() - time;
++	pr_err("find_next_bit:      %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -75,14 +73,13 @@ static int __init test_find_next_bit(con
+ static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
+ {
+ 	unsigned long i, cnt;
+-	cycles_t cycles;
++	ktime_t time;
+ 
+-	cycles = get_cycles();
++	time = ktime_get();
+ 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+ 		i = find_next_zero_bit(bitmap, len, i) + 1;
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_next_zero_bit:\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
++	time = ktime_get() - time;
++	pr_err("find_next_zero_bit: %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -90,9 +87,9 @@ static int __init test_find_next_zero_bi
+ static int __init test_find_last_bit(const void *bitmap, unsigned long len)
+ {
+ 	unsigned long l, cnt = 0;
+-	cycles_t cycles;
++	ktime_t time;
+ 
+-	cycles = get_cycles();
++	time = ktime_get();
+ 	do {
+ 		cnt++;
+ 		l = find_last_bit(bitmap, len);
+@@ -100,9 +97,8 @@ static int __init test_find_last_bit(con
+ 			break;
+ 		len = l;
+ 	} while (len);
+-	cycles = get_cycles() - cycles;
+-	pr_err("find_last_bit:\t\t%llu cycles,\t%ld iterations\n",
+-	       (u64)cycles, cnt);
++	time = ktime_get() - time;
++	pr_err("find_last_bit:      %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -132,13 +128,12 @@ static int __init find_bit_test(void)
+ 	test_find_last_bit(bitmap, BITMAP_LEN);
+ 	test_find_first_bit(bitmap, BITMAP_LEN);
+ 
+-	return 0;
++	/*
++	 * Everything is OK. Return error just to let user run benchmark
++	 * again without annoying rmmod.
++	 */
++	return -EINVAL;
+ }
+ module_init(find_bit_test);
+ 
+-static void __exit test_find_bit_cleanup(void)
+-{
+-}
+-module_exit(test_find_bit_cleanup);
