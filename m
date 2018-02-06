@@ -1,124 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/114] kasan: add functions for unpoisoning stack
- variables
-Date: Tue, 06 Feb 2018 15:36:20 -0800
-Message-ID: <20180206233620.e6xDER6EF%akpm@linux-foundation.org>
+Subject: [patch 012/114] kasan: fix prototype author email address
+Date: Tue, 06 Feb 2018 15:36:41 -0800
+Message-ID: <20180206233641.46qxYeuya%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754137AbeBFXgZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:25 -0500
+        with ESMTP id S1754138AbeBFXgm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, aryabinin@virtuozzo.com, dvyukov@google.com, fengguang.wu@intel.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Alexander Potapenko <glider@google.com>
-Subject: kasan: add functions for unpoisoning stack variables
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix prototype author email address
 
-As a code-size optimization, LLVM builds since r279383 may bulk-manipulate
-the shadow region when (un)poisoning large memory blocks.  This requires
-new callbacks that simply do an uninstrumented memset().
+Use the new one.
 
-This fixes linking the Clang-built kernel when using KASAN.
-
-[arnd@arndb.de: add declarations for internal functions]
-  Link: http://lkml.kernel.org/r/20180105094112.2690475-1-arnd@arndb.de
-[fengguang.wu@intel.com: __asan_set_shadow_00 can be static]
-  Link: http://lkml.kernel.org/r/20171223125943.GA74341@lkp-ib03
-[ghackmann@google.com: fix memset() parameters, and tweak commit message to describe new callbacks]
-Link: http://lkml.kernel.org/r/20171204191735.132544-6-paullawrence@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
-Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Link: http://lkml.kernel.org/r/de3b7ffc30a55178913a7d3865216aa7accf6c40.1515775666.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   15 +++++++++++++++
- mm/kasan/kasan.h |   44 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ mm/kasan/kasan.c  |    2 +-
+ mm/kasan/report.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-added-functions-for-unpoisoning-stack-variables mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-added-functions-for-unpoisoning-stack-variables
+diff -puN mm/kasan/kasan.c~kasan-fix-prototype-author-email-address mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-fix-prototype-author-email-address
 +++ a/mm/kasan/kasan.c
-@@ -770,6 +770,21 @@ void __asan_allocas_unpoison(const void
- }
- EXPORT_SYMBOL(__asan_allocas_unpoison);
- 
-+/* Emitted by the compiler to [un]poison local variables. */
-+#define DEFINE_ASAN_SET_SHADOW(byte) \
-+	void __asan_set_shadow_##byte(const void *addr, size_t size)	\
-+	{								\
-+		__memset((void *)addr, 0x##byte, size);			\
-+	}								\
-+	EXPORT_SYMBOL(__asan_set_shadow_##byte)
-+
-+DEFINE_ASAN_SET_SHADOW(00);
-+DEFINE_ASAN_SET_SHADOW(f1);
-+DEFINE_ASAN_SET_SHADOW(f2);
-+DEFINE_ASAN_SET_SHADOW(f3);
-+DEFINE_ASAN_SET_SHADOW(f5);
-+DEFINE_ASAN_SET_SHADOW(f8);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int __meminit kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
-diff -puN mm/kasan/kasan.h~kasan-added-functions-for-unpoisoning-stack-variables mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-added-functions-for-unpoisoning-stack-variables
-+++ a/mm/kasan/kasan.h
-@@ -121,4 +121,48 @@ static inline void quarantine_reduce(voi
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
- 
-+/*
-+ * Exported functions for interfaces called from assembly or from generated
-+ * code. Declarations here to avoid warning about missing declarations.
-+ */
-+asmlinkage void kasan_unpoison_task_stack_below(const void *watermark);
-+void __asan_register_globals(struct kasan_global *globals, size_t size);
-+void __asan_unregister_globals(struct kasan_global *globals, size_t size);
-+void __asan_loadN(unsigned long addr, size_t size);
-+void __asan_storeN(unsigned long addr, size_t size);
-+void __asan_handle_no_return(void);
-+void __asan_poison_stack_memory(const void *addr, size_t size);
-+void __asan_unpoison_stack_memory(const void *addr, size_t size);
-+void __asan_alloca_poison(unsigned long addr, size_t size);
-+void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom);
-+
-+void __asan_load1(unsigned long addr);
-+void __asan_store1(unsigned long addr);
-+void __asan_load2(unsigned long addr);
-+void __asan_store2(unsigned long addr);
-+void __asan_load4(unsigned long addr);
-+void __asan_store4(unsigned long addr);
-+void __asan_load8(unsigned long addr);
-+void __asan_store8(unsigned long addr);
-+void __asan_load16(unsigned long addr);
-+void __asan_store16(unsigned long addr);
-+
-+void __asan_load1_noabort(unsigned long addr);
-+void __asan_store1_noabort(unsigned long addr);
-+void __asan_load2_noabort(unsigned long addr);
-+void __asan_store2_noabort(unsigned long addr);
-+void __asan_load4_noabort(unsigned long addr);
-+void __asan_store4_noabort(unsigned long addr);
-+void __asan_load8_noabort(unsigned long addr);
-+void __asan_store8_noabort(unsigned long addr);
-+void __asan_load16_noabort(unsigned long addr);
-+void __asan_store16_noabort(unsigned long addr);
-+
-+void __asan_set_shadow_00(const void *addr, size_t size);
-+void __asan_set_shadow_f1(const void *addr, size_t size);
-+void __asan_set_shadow_f2(const void *addr, size_t size);
-+void __asan_set_shadow_f3(const void *addr, size_t size);
-+void __asan_set_shadow_f5(const void *addr, size_t size);
-+void __asan_set_shadow_f8(const void *addr, size_t size);
-+
- #endif
+@@ -5,7 +5,7 @@
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+- *        Andrey Konovalov <adech.fo@gmail.com>
++ *        Andrey Konovalov <andreyknvl@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+diff -puN mm/kasan/report.c~kasan-fix-prototype-author-email-address mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-fix-prototype-author-email-address
++++ a/mm/kasan/report.c
+@@ -5,7 +5,7 @@
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+  *
+  * Some code borrowed from https://github.com/xairy/kasan-prototype by
+- *        Andrey Konovalov <adech.fo@gmail.com>
++ *        Andrey Konovalov <andreyknvl@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
 _
