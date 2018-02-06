@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats.patch added
- to -mm tree
-Date: Mon, 05 Feb 2018 16:18:59 -0800
-Message-ID: <5a78f473.ixDDbmtWBk3vr8Xf%akpm@linux-foundation.org>
+Subject: + fontswap-thp-fix.patch added to -mm tree
+Date: Mon, 05 Feb 2018 16:24:45 -0800
+Message-ID: <5a78f5cd.ECDEASpRYnvw7dGH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41262 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752179AbeBFATB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 19:19:01 -0500
+        with ESMTP id S1752364AbeBFAYq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 19:24:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, akpm@linux-foundation.org, mhocko@suse.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: huang.ying.caritas@gmail.com, ddstreet@ieee.org, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, stable@vger.kerenl.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix NR_WRITEBACK leak in memcg and system stats
+     Subject: mm: fontswap: thp fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats.patch
+     fontswap-thp-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fontswap-thp-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fontswap-thp-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,104 +38,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fix NR_WRITEBACK leak in memcg and system stats
+From: Huang Ying <huang.ying.caritas@gmail.com>
+Subject: mm: fontswap: thp fix
 
-After a983b5ebee57 ("mm: memcontrol: fix excessive complexity in
-memory.stat reporting"), we observed slowly upward creeping NR_WRITEBACK
-counts over the course of several days, both the per-memcg stats as well
-as the system counter in e.g.  /proc/meminfo.
 
-The conversion from full per-cpu stat counts to per-cpu cached atomic stat
-counts introduced an irq-unsafe RMW operation into the updates.
-
-Most stat updates come from process context, but one notable exception is
-the NR_WRITEBACK counter.  While writebacks are issued from process
-context, they are retired from (soft)irq context.
-
-When writeback completions interrupt the RMW counter updates of new
-writebacks being issued, the decs from the completions are lost.
-
-Since the global updates are routed through the joint lruvec API, both the
-memcg counters as well as the system counters are affected.
-
-This patch makes the joint stat and event API irq safe.
-
-Link: http://lkml.kernel.org/r/20180203082353.17284-1-hannes@cmpxchg.org
-Fixes: a983b5ebee57 ("mm: memcontrol: fix excessive complexity in memory.stat reporting")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Debugged-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/87d11j4pdy.fsf@yhuang-dev.intel.com
+Fixes: bd4c82c22c367e068 ("mm, THP, swap: delay splitting THP after swapped out")
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kerenl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ mm/page_io.c |    2 +-
+ mm/vmscan.c  |   16 +++++++++++++---
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats
-+++ a/include/linux/memcontrol.h
-@@ -523,9 +523,11 @@ static inline void __mod_memcg_state(str
- static inline void mod_memcg_state(struct mem_cgroup *memcg,
- 				   int idx, int val)
- {
--	preempt_disable();
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
- 	__mod_memcg_state(memcg, idx, val);
--	preempt_enable();
-+	local_irq_restore(flags);
- }
+diff -puN mm/page_io.c~fontswap-thp-fix mm/page_io.c
+--- a/mm/page_io.c~fontswap-thp-fix
++++ a/mm/page_io.c
+@@ -250,7 +250,7 @@ int swap_writepage(struct page *page, st
+ 		unlock_page(page);
+ 		goto out;
+ 	}
+-	if (frontswap_store(page) == 0) {
++	if (!PageTransHuge(page) && frontswap_store(page) == 0) {
+ 		set_page_writeback(page);
+ 		unlock_page(page);
+ 		end_page_writeback(page);
+diff -puN mm/vmscan.c~fontswap-thp-fix mm/vmscan.c
+--- a/mm/vmscan.c~fontswap-thp-fix
++++ a/mm/vmscan.c
+@@ -55,6 +55,7 @@
  
- /**
-@@ -606,9 +608,11 @@ static inline void __mod_lruvec_state(st
- static inline void mod_lruvec_state(struct lruvec *lruvec,
- 				    enum node_stat_item idx, int val)
- {
--	preempt_disable();
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
- 	__mod_lruvec_state(lruvec, idx, val);
--	preempt_enable();
-+	local_irq_restore(flags);
- }
+ #include <linux/swapops.h>
+ #include <linux/balloon_compaction.h>
++#include <linux/frontswap.h>
  
- static inline void __mod_lruvec_page_state(struct page *page,
-@@ -630,9 +634,11 @@ static inline void __mod_lruvec_page_sta
- static inline void mod_lruvec_page_state(struct page *page,
- 					 enum node_stat_item idx, int val)
- {
--	preempt_disable();
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
- 	__mod_lruvec_page_state(page, idx, val);
--	preempt_enable();
-+	local_irq_restore(flags);
- }
+ #include "internal.h"
  
- unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
-@@ -659,9 +665,11 @@ static inline void __count_memcg_events(
- static inline void count_memcg_events(struct mem_cgroup *memcg,
- 				      int idx, unsigned long count)
- {
--	preempt_disable();
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
- 	__count_memcg_events(memcg, idx, count);
--	preempt_enable();
-+	local_irq_restore(flags);
- }
- 
- /* idx can be of type enum memcg_event_item or vm_event_item */
+@@ -1121,13 +1122,22 @@ static unsigned long shrink_page_list(st
+ 					if (!can_split_huge_page(page, NULL))
+ 						goto activate_locked;
+ 					/*
++					 * Split THP if frontswap enabled,
++					 * because it cannot process THP
++					 */
++					if (frontswap_enabled()) {
++						if (split_huge_page_to_list(
++							page, page_list))
++							goto activate_locked;
++					}
++					/*
+ 					 * Split pages without a PMD map right
+ 					 * away. Chances are some or all of the
+ 					 * tail pages can be freed without IO.
+ 					 */
+-					if (!compound_mapcount(page) &&
+-					    split_huge_page_to_list(page,
+-								    page_list))
++					else if (!compound_mapcount(page) &&
++						 split_huge_page_to_list(page,
++							page_list))
+ 						goto activate_locked;
+ 				}
+ 				if (!add_to_swap(page)) {
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
 
-mm-memcontrol-fix-nr_writeback-leak-in-memcg-and-system-stats.patch
+fontswap-thp-fix.patch
 
