@@ -1,52 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [patch 087/114] mm: remove unneeded kallsyms include
-Date: Tue, 06 Feb 2018 15:41:06 -0800
-Message-ID: <20180206234106.pdy_ytUEW%akpm@linux-foundation.org>
+Subject: [patch 094/114] kernel/module: module_is_live can be
+ boolean
+Date: Tue, 06 Feb 2018 15:41:31 -0800
+Message-ID: <20180206234131.dhnCCXLl3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56372 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932106AbeBFXlI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:08 -0500
+        with ESMTP id S1753537AbeBFXld (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: mm: remove unneeded kallsyms include
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: kernel/module: module_is_live can be boolean
 
-The file was converted from print_symbol() to %pSR a while ago in
-071361d3473ebb814 ("mm: Convert print_symbol to %pSR").  kallsyms does not
-seem to be needed anymore.
+Make module_is_live return bool due to this particular function only using
+either one or zero as its return value.
 
-Link: http://lkml.kernel.org/r/20171208025616.16267-3-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
+No functional change.
+
+Link: http://lkml.kernel.org/r/1513266622-15860-6-git-send-email-baiyaowei@cmss.chinamobile.com
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/module.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-remove-unneeded-kallsyms-include mm/memory.c
---- a/mm/memory.c~mm-remove-unneeded-kallsyms-include
-+++ a/mm/memory.c
-@@ -59,7 +59,6 @@
- #include <linux/writeback.h>
- #include <linux/memcontrol.h>
- #include <linux/mmu_notifier.h>
--#include <linux/kallsyms.h>
- #include <linux/swapops.h>
- #include <linux/elf.h>
- #include <linux/gfp.h>
-@@ -767,9 +766,6 @@ static void print_bad_pte(struct vm_area
- 		dump_page(page, "bad pte");
- 	pr_alert("addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
- 		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
--	/*
--	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
--	 */
- 	pr_alert("file:%pD fault:%pf mmap:%pf readpage:%pf\n",
- 		 vma->vm_file,
- 		 vma->vm_ops ? vma->vm_ops->fault : NULL,
+diff -puN include/linux/module.h~kernel-module-module_is_live-can-be-boolean include/linux/module.h
+--- a/include/linux/module.h~kernel-module-module_is_live-can-be-boolean
++++ a/include/linux/module.h
+@@ -491,7 +491,7 @@ extern struct mutex module_mutex;
+ /* FIXME: It'd be nice to isolate modules during init, too, so they
+    aren't used before they (may) fail.  But presently too much code
+    (IDE & SCSI) require entry into the module during init.*/
+-static inline int module_is_live(struct module *mod)
++static inline bool module_is_live(struct module *mod)
+ {
+ 	return mod->state != MODULE_STATE_GOING;
+ }
 _
