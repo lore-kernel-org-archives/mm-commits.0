@@ -1,86 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [patch 003/114] kasan/Makefile: support LLVM style asan
- parameters
-Date: Tue, 06 Feb 2018 15:36:08 -0800
-Message-ID: <20180206233608.yYR9EicXn%akpm@linux-foundation.org>
+Subject: [patch 007/114] kasan: detect invalid frees for large
+ objects
+Date: Tue, 06 Feb 2018 15:36:23 -0800
+Message-ID: <20180206233623.mXRJ2vXE7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753862AbeBFXgJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:09 -0500
+        with ESMTP id S1754138AbeBFXgZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:36:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan/Makefile: support LLVM style asan parameters
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: detect invalid frees for large objects
 
-LLVM doesn't understand GCC-style paramters ("--param asan-foo=bar"), thus
-we currently we don't use inline/globals/stack instrumentation when
-building the kernel with clang.
+Patch series "kasan: detect invalid frees".
 
-Add support for LLVM-style parameters ("-mllvm -asan-foo=bar") to enable
-all KASAN features.
+KASAN detects double-frees, but does not detect invalid-frees (when a
+pointer into a middle of heap object is passed to free).  We recently had
+a very unpleasant case in crypto code which freed an inner object inside
+of a heap allocation.  This left unnoticed during free, but totally
+corrupted heap and later lead to a bunch of random crashes all over kernel
+code.
 
-Link: http://lkml.kernel.org/r/20171204191735.132544-3-paullawrence@google.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Greg Hackmann <ghackmann@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Kaehlcke <mka@chromium.org>
+Detect invalid frees.
+
+
+This patch (of 5):
+
+Detect frees of pointers into middle of large heap objects.
+
+I dropped const from kasan_kfree_large() because it starts propagating
+through a bunch of functions in kasan_report.c, slab/slub nearest_obj(),
+all of their local variables, fixup_red_left(), etc.
+
+Link: http://lkml.kernel.org/r/1b45b4fe1d20fc0de1329aab674c1dd973fee723.1514378558.git.dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ include/linux/kasan.h |    4 ++--
+ lib/test_kasan.c      |   33 +++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.c      |   12 +++++-------
+ mm/kasan/kasan.h      |    3 +--
+ mm/kasan/report.c     |    3 +--
+ mm/slub.c             |    4 ++--
+ 6 files changed, 44 insertions(+), 15 deletions(-)
 
-diff -puN scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters
-+++ a/scripts/Makefile.kasan
-@@ -10,10 +10,7 @@ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SH
+diff -puN include/linux/kasan.h~kasan-detect-invalid-frees-for-large-objects include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-detect-invalid-frees-for-large-objects
++++ a/include/linux/kasan.h
+@@ -56,7 +56,7 @@ void kasan_poison_object_data(struct kme
+ void kasan_init_slab_obj(struct kmem_cache *cache, const void *object);
  
- CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
+ void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
+-void kasan_kfree_large(const void *ptr);
++void kasan_kfree_large(void *ptr);
+ void kasan_poison_kfree(void *ptr);
+ void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
+ 		  gfp_t flags);
+@@ -108,7 +108,7 @@ static inline void kasan_init_slab_obj(s
+ 				const void *object) {}
  
--CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
--		-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET) \
--		--param asan-stack=1 --param asan-globals=1 \
--		--param asan-instrumentation-with-call-threshold=$(call_threshold))
-+cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
- 
- ifeq ($(call cc-option, $(CFLAGS_KASAN_MINIMAL) -Werror),)
-    ifneq ($(CONFIG_COMPILE_TEST),y)
-@@ -21,13 +18,23 @@ ifeq ($(call cc-option, $(CFLAGS_KASAN_M
-             -fsanitize=kernel-address is not supported by compiler)
-    endif
- else
--    ifeq ($(CFLAGS_KASAN),)
--        ifneq ($(CONFIG_COMPILE_TEST),y)
--            $(warning CONFIG_KASAN: compiler does not support all options.\
--                Trying minimal configuration)
--        endif
--        CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
--    endif
-+   # -fasan-shadow-offset fails without -fsanitize
-+   CFLAGS_KASAN_SHADOW := $(call cc-option, -fsanitize=kernel-address \
-+			-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET), \
-+			$(call cc-option, -fsanitize=kernel-address \
-+			-mllvm -asan-mapping-offset=$(KASAN_SHADOW_OFFSET)))
+ static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
+-static inline void kasan_kfree_large(const void *ptr) {}
++static inline void kasan_kfree_large(void *ptr) {}
+ static inline void kasan_poison_kfree(void *ptr) {}
+ static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
+ 				size_t size, gfp_t flags) {}
+diff -puN lib/test_kasan.c~kasan-detect-invalid-frees-for-large-objects lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-detect-invalid-frees-for-large-objects
++++ a/lib/test_kasan.c
+@@ -94,6 +94,37 @@ static noinline void __init kmalloc_page
+ 	ptr[size] = 0;
+ 	kfree(ptr);
+ }
 +
-+   ifeq ($(strip $(CFLAGS_KASAN_SHADOW)),)
-+      CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
-+   else
-+      # Now add all the compiler specific options that are valid standalone
-+      CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
-+	$(call cc-param,asan-globals=1) \
-+	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
-+	$(call cc-param,asan-stack=1) \
-+	$(call cc-param,asan-use-after-scope=1)
-+   endif
++static noinline void __init kmalloc_pagealloc_uaf(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
 +
- endif
++	pr_info("kmalloc pagealloc allocation: use-after-free\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr);
++	ptr[0] = 0;
++}
++
++static noinline void __init kmalloc_pagealloc_invalid_free(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
++
++	pr_info("kmalloc pagealloc allocation: invalid-free\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr + 1);
++}
+ #endif
  
- CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
+ static noinline void __init kmalloc_large_oob_right(void)
+@@ -505,6 +536,8 @@ static int __init kmalloc_tests_init(voi
+ 	kmalloc_node_oob_right();
+ #ifdef CONFIG_SLUB
+ 	kmalloc_pagealloc_oob_right();
++	kmalloc_pagealloc_uaf();
++	kmalloc_pagealloc_invalid_free();
+ #endif
+ 	kmalloc_large_oob_right();
+ 	kmalloc_oob_krealloc_more();
+diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-objects mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/kasan/kasan.c
+@@ -511,8 +511,7 @@ bool kasan_slab_free(struct kmem_cache *
+ 
+ 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
+ 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
+-		kasan_report_double_free(cache, object,
+-				__builtin_return_address(1));
++		kasan_report_invalid_free(object, __builtin_return_address(1));
+ 		return true;
+ 	}
+ 
+@@ -602,12 +601,11 @@ void kasan_poison_kfree(void *ptr)
+ 		kasan_poison_slab_free(page->slab_cache, ptr);
+ }
+ 
+-void kasan_kfree_large(const void *ptr)
++void kasan_kfree_large(void *ptr)
+ {
+-	struct page *page = virt_to_page(ptr);
+-
+-	kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
+-			KASAN_FREE_PAGE);
++	if (ptr != page_address(virt_to_head_page(ptr)))
++		kasan_report_invalid_free(ptr, __builtin_return_address(1));
++	/* The object will be poisoned by page_alloc. */
+ }
+ 
+ int kasan_module_alloc(void *addr, size_t size)
+diff -puN mm/kasan/kasan.h~kasan-detect-invalid-frees-for-large-objects mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/kasan/kasan.h
+@@ -107,8 +107,7 @@ static inline const void *kasan_shadow_t
+ 
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+-void kasan_report_double_free(struct kmem_cache *cache, void *object,
+-					void *ip);
++void kasan_report_invalid_free(void *object, void *ip);
+ 
+ #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
+ void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
+diff -puN mm/kasan/report.c~kasan-detect-invalid-frees-for-large-objects mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/kasan/report.c
+@@ -326,8 +326,7 @@ static void print_shadow_for_address(con
+ 	}
+ }
+ 
+-void kasan_report_double_free(struct kmem_cache *cache, void *object,
+-				void *ip)
++void kasan_report_invalid_free(void *object, void *ip)
+ {
+ 	unsigned long flags;
+ 
+diff -puN mm/slub.c~kasan-detect-invalid-frees-for-large-objects mm/slub.c
+--- a/mm/slub.c~kasan-detect-invalid-frees-for-large-objects
++++ a/mm/slub.c
+@@ -1356,7 +1356,7 @@ static inline void kmalloc_large_node_ho
+ 	kasan_kmalloc_large(ptr, size, flags);
+ }
+ 
+-static inline void kfree_hook(const void *x)
++static inline void kfree_hook(void *x)
+ {
+ 	kmemleak_free(x);
+ 	kasan_kfree_large(x);
+@@ -3910,7 +3910,7 @@ void kfree(const void *x)
+ 	page = virt_to_head_page(x);
+ 	if (unlikely(!PageSlab(page))) {
+ 		BUG_ON(!PageCompound(page));
+-		kfree_hook(x);
++		kfree_hook(object);
+ 		__free_pages(page, compound_order(page));
+ 		return;
+ 	}
 _
