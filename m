@@ -1,48 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/114] checkpatch: avoid some false positives for
- TABSTOP declaration test
-Date: Tue, 06 Feb 2018 15:39:06 -0800
-Message-ID: <20180206233906.S5pAHbVa2%akpm@linux-foundation.org>
+Subject: [patch 055/114] elf: fix NT_FILE integer overflow
+Date: Tue, 06 Feb 2018 15:39:13 -0800
+Message-ID: <20180206233913.NBjj1FTu9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932067AbeBFXjI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:08 -0500
+        with ESMTP id S932067AbeBFXjQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:39:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, sven@narfation.org, torvalds@linux-foundation.org
+To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid some false positives for TABSTOP declaration test
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: elf: fix NT_FILE integer overflow
 
-Using an open bracket after what seems to be a declaration can also be a
-function definition and declaration argument line continuation so remove
-the open bracket from the possible declaration/definition matching.
+If vm.max_map_count bumped above 2^26 (67+ mil) and system has enough RAM
+to allocate all the VMAs (~12.8 GB on Fedora 27 with 200-byte VMAs), then
+it should be possible to overflow 32-bit "size", pass paranoia check,
+allocate very little vmalloc space and oops while writing into vmalloc
+guard page...
 
-e.g.:
-	int foobar(int a;
-		   int *b[]);
+But I didn't test this, only coredump of regular process.
 
-Link: http://lkml.kernel.org/r/1515704479.9619.171.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Sven Eckelmann <sven@narfation.org>
+Link: http://lkml.kernel.org/r/20180112203427.GA9109@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-avoid-some-false-positives-for-tabstop-declaration-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-avoid-some-false-positives-for-tabstop-declaration-test
-+++ a/scripts/checkpatch.pl
-@@ -3020,7 +3020,7 @@ sub process {
+diff -puN fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow
++++ a/fs/binfmt_elf.c
+@@ -1599,6 +1599,8 @@ static int fill_files_note(struct memelf
  
- # check indentation starts on a tab stop
- 		if ($^V && $^V ge 5.10.0 &&
--		    $sline =~ /^\+\t+( +)(?:$c90_Keywords\b|\{\s*$|\}\s*(?:else\b|while\b|\s*$)|$Declare\s*$Ident\s*[;=\[])/) {
-+		    $sline =~ /^\+\t+( +)(?:$c90_Keywords\b|\{\s*$|\}\s*(?:else\b|while\b|\s*$)|$Declare\s*$Ident\s*[;=])/) {
- 			my $indent = length($1);
- 			if ($indent % 8) {
- 				if (WARN("TABSTOP",
+ 	/* *Estimated* file count and total data size needed */
+ 	count = current->mm->map_count;
++	if (count > UINT_MAX / 64)
++		return -EINVAL;
+ 	size = count * 64;
+ 
+ 	names_ofs = (2 + 3 * count) * sizeof(data[0]);
 _
