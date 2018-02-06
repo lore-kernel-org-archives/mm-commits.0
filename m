@@ -1,30 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fontswap-thp-fix.patch added to -mm tree
-Date: Mon, 05 Feb 2018 16:24:45 -0800
-Message-ID: <5a78f5cd.ECDEASpRYnvw7dGH%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Tue, 06 Feb 2018 11:43:26 -0800
+Message-ID: <20180206194326.-w11AYmSU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52552 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752364AbeBFAYq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Feb 2018 19:24:46 -0500
+        with ESMTP id S1753066AbeBFTn2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 14:43:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huang.ying.caritas@gmail.com, ddstreet@ieee.org, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, stable@vger.kerenl.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fontswap: thp fix
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     fontswap-thp-fix.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fontswap-thp-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fontswap-thp-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,79 +35,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <huang.ying.caritas@gmail.com>
-Subject: mm: fontswap: thp fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-
-Link: http://lkml.kernel.org/r/87d11j4pdy.fsf@yhuang-dev.intel.com
-Fixes: bd4c82c22c367e068 ("mm, THP, swap: delay splitting THP after swapped out")
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kerenl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 +-
- mm/vmscan.c  |   16 +++++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ include/linux/sched/mm.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/page_io.c~fontswap-thp-fix mm/page_io.c
---- a/mm/page_io.c~fontswap-thp-fix
-+++ a/mm/page_io.c
-@@ -250,7 +250,7 @@ int swap_writepage(struct page *page, st
- 		unlock_page(page);
- 		goto out;
- 	}
--	if (frontswap_store(page) == 0) {
-+	if (!PageTransHuge(page) && frontswap_store(page) == 0) {
- 		set_page_writeback(page);
- 		unlock_page(page);
- 		end_page_writeback(page);
-diff -puN mm/vmscan.c~fontswap-thp-fix mm/vmscan.c
---- a/mm/vmscan.c~fontswap-thp-fix
-+++ a/mm/vmscan.c
-@@ -55,6 +55,7 @@
+diff -puN include/linux/sched/mm.h~linux-next-rejects include/linux/sched/mm.h
+--- a/include/linux/sched/mm.h~linux-next-rejects
++++ a/include/linux/sched/mm.h
+@@ -40,6 +40,11 @@ extern void __mmdrop(struct mm_struct *m
  
- #include <linux/swapops.h>
- #include <linux/balloon_compaction.h>
-+#include <linux/frontswap.h>
- 
- #include "internal.h"
- 
-@@ -1121,13 +1122,22 @@ static unsigned long shrink_page_list(st
- 					if (!can_split_huge_page(page, NULL))
- 						goto activate_locked;
- 					/*
-+					 * Split THP if frontswap enabled,
-+					 * because it cannot process THP
-+					 */
-+					if (frontswap_enabled()) {
-+						if (split_huge_page_to_list(
-+							page, page_list))
-+							goto activate_locked;
-+					}
-+					/*
- 					 * Split pages without a PMD map right
- 					 * away. Chances are some or all of the
- 					 * tail pages can be freed without IO.
- 					 */
--					if (!compound_mapcount(page) &&
--					    split_huge_page_to_list(page,
--								    page_list))
-+					else if (!compound_mapcount(page) &&
-+						 split_huge_page_to_list(page,
-+							page_list))
- 						goto activate_locked;
- 				}
- 				if (!add_to_swap(page)) {
+ static inline void mmdrop(struct mm_struct *mm)
+ {
++	/*
++	 * The implicit full barrier implied by atomic_dec_and_test() is
++	 * required by the membarrier system call before returning to
++	 * user-space, after storing to rq->curr.
++	 */
+ 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+ 		__mmdrop(mm);
+ }
 _
 
-Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fontswap-thp-fix.patch
+i-need-old-gcc.patch
+include-linux-sched-mmh-re-inline-mmdrop.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+kasan-clean-up-kasan_shadow_scale_shift-usage-checkpatch-fixes.patch
+lib-ubsanc-s-missaligned-misaligned.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+maintainers-update-arm-oxnas-platform-support-patterns-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
