@@ -1,31 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [patch 099/114] pipe, sysctl: remove pipe_proc_fn()
-Date: Tue, 06 Feb 2018 15:41:49 -0800
-Message-ID: <20180206234149.goqKUVxlC%akpm@linux-foundation.org>
+Subject: [patch 100/114] pipe: actually allow root to exceed the
+ pipe buffer limits
+Date: Tue, 06 Feb 2018 15:41:53 -0800
+Message-ID: <20180206234153.xdv1K6K62%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56620 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753537AbeBFXlv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:51 -0500
+        with ESMTP id S1753537AbeBFXly (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Feb 2018 18:41:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
+To: akpm@linux-foundation.org, ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, w@1wt.eu
 
 From: Eric Biggers <ebiggers@google.com>
-Subject: pipe, sysctl: remove pipe_proc_fn()
+Subject: pipe: actually allow root to exceed the pipe buffer limits
 
-pipe_proc_fn() is no longer needed, as it only calls through to
-proc_dopipe_max_size().  Just put proc_dopipe_max_size() in the ctl_table
-entry directly, and remove the unneeded EXPORT_SYMBOL() and the ENOSYS
-stub for it.
+pipe-user-pages-hard and pipe-user-pages-soft are only supposed to apply
+to unprivileged users, as documented in both Documentation/sysctl/fs.txt
+and the pipe(7) man page.
 
-(The reason the ENOSYS stub isn't needed is that the pipe-max-size
-ctl_table entry is located directly in 'kern_table' rather than being
-registered separately.  Therefore, the entry is already only defined when
-the kernel is built with sysctl support.)
+However, the capabilities are actually only checked when increasing a
+pipe's size using F_SETPIPE_SZ, not when creating a new pipe.  Therefore,
+if pipe-user-pages-hard has been set, the root user can run into it and be
+unable to create pipes.  Similarly, if pipe-user-pages-soft has been set,
+the root user can run into it and have their pipes limited to 1 page each.
 
-Link: http://lkml.kernel.org/r/20180111052902.14409-3-ebiggers3@gmail.com
+Fix this by allowing the privileged override in both cases.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-4-ebiggers3@gmail.com
+Fixes: 759c01142a5d ("pipe: limit the per-user amount of pages allocated in pipes")
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
@@ -34,97 +38,50 @@ Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Willy Tarreau <w@1wt.eu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |   10 ----------
- include/linux/pipe_fs_i.h |    1 -
- include/linux/sysctl.h    |    3 ---
- kernel/sysctl.c           |   15 +++++----------
- 4 files changed, 5 insertions(+), 24 deletions(-)
+ fs/pipe.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/pipe.c~pipe-sysctl-remove-pipe_proc_fn fs/pipe.c
---- a/fs/pipe.c~pipe-sysctl-remove-pipe_proc_fn
+diff -puN fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits fs/pipe.c
+--- a/fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits
 +++ a/fs/pipe.c
-@@ -1121,16 +1121,6 @@ out_revert_acct:
+@@ -613,6 +613,11 @@ static bool too_many_pipe_buffers_hard(u
+ 	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
  }
  
- /*
-- * This should work even if CONFIG_PROC_FS isn't set, as proc_dopipe_max_size
-- * will return an error.
-- */
--int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
--		 size_t *lenp, loff_t *ppos)
--{
--	return proc_dopipe_max_size(table, write, buf, lenp, ppos);
--}
--
--/*
-  * After the inode slimming patch, i_pipe/i_bdev/i_cdev share the same
-  * location, so checking ->i_pipe is not enough to verify that this is a
-  * pipe.
-diff -puN include/linux/pipe_fs_i.h~pipe-sysctl-remove-pipe_proc_fn include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~pipe-sysctl-remove-pipe_proc_fn
-+++ a/include/linux/pipe_fs_i.h
-@@ -170,7 +170,6 @@ void pipe_double_lock(struct pipe_inode_
- extern unsigned int pipe_max_size;
- extern unsigned long pipe_user_pages_hard;
- extern unsigned long pipe_user_pages_soft;
--int pipe_proc_fn(struct ctl_table *, int, void __user *, size_t *, loff_t *);
- 
- /* Drop the inode semaphore and wait for a pipe event, atomically */
- void pipe_wait(struct pipe_inode_info *pipe);
-diff -puN include/linux/sysctl.h~pipe-sysctl-remove-pipe_proc_fn include/linux/sysctl.h
---- a/include/linux/sysctl.h~pipe-sysctl-remove-pipe_proc_fn
-+++ a/include/linux/sysctl.h
-@@ -51,9 +51,6 @@ extern int proc_dointvec_minmax(struct c
- extern int proc_douintvec_minmax(struct ctl_table *table, int write,
- 				 void __user *buffer, size_t *lenp,
- 				 loff_t *ppos);
--extern int proc_dopipe_max_size(struct ctl_table *table, int write,
--				void __user *buffer, size_t *lenp,
--				loff_t *ppos);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~pipe-sysctl-remove-pipe_proc_fn kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-sysctl-remove-pipe_proc_fn
-+++ a/kernel/sysctl.c
-@@ -218,6 +218,8 @@ static int proc_dointvec_minmax_coredump
- static int proc_dostring_coredump(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
-+static int proc_dopipe_max_size(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos);
- 
- #ifdef CONFIG_MAGIC_SYSRQ
- /* Note: sysrq code uses it's own private copy */
-@@ -1812,7 +1814,7 @@ static struct ctl_table fs_table[] = {
- 		.data		= &pipe_max_size,
- 		.maxlen		= sizeof(pipe_max_size),
- 		.mode		= 0644,
--		.proc_handler	= &pipe_proc_fn,
-+		.proc_handler	= proc_dopipe_max_size,
- 	},
- 	{
- 		.procname	= "pipe-user-pages-hard",
-@@ -2637,8 +2639,8 @@ static int do_proc_dopipe_max_size_conv(
- 	return 0;
- }
- 
--int proc_dopipe_max_size(struct ctl_table *table, int write,
--			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_dopipe_max_size(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp, loff_t *ppos)
++static bool is_unprivileged_user(void)
++{
++	return !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN);
++}
++
+ struct pipe_inode_info *alloc_pipe_info(void)
  {
- 	return do_proc_douintvec(table, write, buffer, lenp, ppos,
- 				 do_proc_dopipe_max_size_conv, NULL);
-@@ -3147,12 +3149,6 @@ int proc_douintvec_minmax(struct ctl_tab
- 	return -ENOSYS;
- }
+ 	struct pipe_inode_info *pipe;
+@@ -629,12 +634,12 @@ struct pipe_inode_info *alloc_pipe_info(
  
--int proc_dopipe_max_size(struct ctl_table *table, int write,
--			 void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	return -ENOSYS;
--}
+ 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+ 
+-	if (too_many_pipe_buffers_soft(user_bufs)) {
++	if (too_many_pipe_buffers_soft(user_bufs) && is_unprivileged_user()) {
+ 		user_bufs = account_pipe_buffers(user, pipe_bufs, 1);
+ 		pipe_bufs = 1;
+ 	}
+ 
+-	if (too_many_pipe_buffers_hard(user_bufs))
++	if (too_many_pipe_buffers_hard(user_bufs) && is_unprivileged_user())
+ 		goto out_revert_acct;
+ 
+ 	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
+@@ -1065,7 +1070,7 @@ static long pipe_set_size(struct pipe_in
+ 	if (nr_pages > pipe->buffers &&
+ 			(too_many_pipe_buffers_hard(user_bufs) ||
+ 			 too_many_pipe_buffers_soft(user_bufs)) &&
+-			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
++			is_unprivileged_user()) {
+ 		ret = -EPERM;
+ 		goto out_revert_acct;
+ 	}
+_
