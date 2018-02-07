@@ -1,92 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- pipe-reject-f_setpipe_sz-with-size-over-uint_max.patch removed from -mm
- tree
-Date: Wed, 07 Feb 2018 12:00:22 -0800
-Message-ID: <20180207200022.ZnV8m5lfy%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-docs-add-blank-lines-to-silence-sphinx-unexpected-inde?=
+ =?US-ASCII?Q?ntation-errors.patch?= removed from -mm tree
+Date: Wed, 07 Feb 2018 12:00:37 -0800
+Message-ID: <20180207200037.270Rsk1CW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60692 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:23 -0500
+        with ESMTP id S1753721AbeBGUAi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, w@1wt.eu
+To: corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: pipe: reject F_SETPIPE_SZ with size over UINT_MAX
+     Subject: mm: docs: add blank lines to silence sphinx "Unexpected indentation" errors
 has been removed from the -mm tree.  Its filename was
-     pipe-reject-f_setpipe_sz-with-size-over-uint_max.patch
+     mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: pipe: reject F_SETPIPE_SZ with size over UINT_MAX
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: mm: docs: add blank lines to silence sphinx "Unexpected indentation" errors
 
-A pipe's size is represented as an 'unsigned int'.  As expected, writing a
-value greater than UINT_MAX to /proc/sys/fs/pipe-max-size fails with
-EINVAL.  However, the F_SETPIPE_SZ fcntl silently truncates such values to
-32 bits, rather than failing with EINVAL as expected.  (It *does* fail
-with EINVAL for values above (1 << 31) but <= UINT_MAX.)
-
-Fix this by moving the check against UINT_MAX into round_pipe_size() which
-is called in both cases.
-
-Link: http://lkml.kernel.org/r/20180111052902.14409-6-ebiggers3@gmail.com
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Willy Tarreau <w@1wt.eu>
+Link: http://lkml.kernel.org/r/1516700871-22279-4-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |    5 ++++-
- include/linux/pipe_fs_i.h |    2 +-
- kernel/sysctl.c           |    3 ---
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/pagewalk.c          |    1 +
+ mm/process_vm_access.c |    2 ++
+ mm/vmscan.c            |    1 +
+ 3 files changed, 4 insertions(+)
 
-diff -puN fs/pipe.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max fs/pipe.c
---- a/fs/pipe.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max
-+++ a/fs/pipe.c
-@@ -1020,10 +1020,13 @@ const struct file_operations pipefifo_fo
-  * Currently we rely on the pipe array holding a power-of-2 number
-  * of pages. Returns 0 on error.
-  */
--unsigned int round_pipe_size(unsigned int size)
-+unsigned int round_pipe_size(unsigned long size)
- {
- 	unsigned long nr_pages;
- 
-+	if (size > UINT_MAX)
-+		return 0;
-+
- 	/* Minimum pipe size, as required by POSIX */
- 	if (size < PAGE_SIZE)
- 		size = PAGE_SIZE;
-diff -puN include/linux/pipe_fs_i.h~pipe-reject-f_setpipe_sz-with-size-over-uint_max include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~pipe-reject-f_setpipe_sz-with-size-over-uint_max
-+++ a/include/linux/pipe_fs_i.h
-@@ -190,6 +190,6 @@ long pipe_fcntl(struct file *, unsigned
- struct pipe_inode_info *get_pipe_info(struct file *file);
- 
- int create_pipe_files(struct file **, int);
--unsigned int round_pipe_size(unsigned int size);
-+unsigned int round_pipe_size(unsigned long size);
- 
- #endif
-diff -puN kernel/sysctl.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max
-+++ a/kernel/sysctl.c
-@@ -2623,9 +2623,6 @@ static int do_proc_dopipe_max_size_conv(
- 	if (write) {
- 		unsigned int val;
- 
--		if (*lvalp > UINT_MAX)
--			return -EINVAL;
+diff -puN mm/pagewalk.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors
++++ a/mm/pagewalk.c
+@@ -265,6 +265,7 @@ static int __walk_page_range(unsigned lo
+  * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
+  * callbacks, the associated entries/pages are just ignored.
+  * The return values of these callbacks are commonly defined like below:
++ *
+  *  - 0  : succeeded to handle the current entry, and if you don't reach the
+  *         end address yet, continue to walk.
+  *  - >0 : succeeded to handle the current entry, and return to the caller
+diff -puN mm/process_vm_access.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors mm/process_vm_access.c
+--- a/mm/process_vm_access.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors
++++ a/mm/process_vm_access.c
+@@ -147,6 +147,7 @@ static int process_vm_rw_single_vec(unsi
+  * @riovcnt: size of rvec array
+  * @flags: currently unused
+  * @vm_write: 0 if reading from other process, 1 if writing to other process
++ *
+  * Returns the number of bytes read/written or error code. May
+  *  return less bytes than expected if an error occurs during the copying
+  *  process.
+@@ -249,6 +250,7 @@ free_proc_pages:
+  * @riovcnt: size of rvec array
+  * @flags: currently unused
+  * @vm_write: 0 if reading from other process, 1 if writing to other process
++ *
+  * Returns the number of bytes read/written or error code. May
+  *  return less bytes than expected if an error occurs during the copying
+  *  process.
+diff -puN mm/vmscan.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors mm/vmscan.c
+--- a/mm/vmscan.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors
++++ a/mm/vmscan.c
+@@ -1595,6 +1595,7 @@ static unsigned long isolate_lru_pages(u
+  * found will be decremented.
+  *
+  * Restrictions:
++ *
+  * (1) Must be called with an elevated refcount on the page. This is a
+  *     fundamentnal difference from isolate_lru_pages (which is called
+  *     without a stable reference).
+_
+
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+
+
