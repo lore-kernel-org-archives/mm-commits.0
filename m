@@ -1,47 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-simpler-proc-vmcore-cleanup.patch removed
+Subject: [merged]
+ kasan-remove-redundant-initialization-of-variable-real_size.patch removed
  from -mm tree
-Date: Wed, 07 Feb 2018 11:55:57 -0800
-Message-ID: <20180207195557.Zxg4OqJAu%akpm@linux-foundation.org>
+Date: Wed, 07 Feb 2018 11:55:44 -0800
+Message-ID: <20180207195544.76Zf3hQZu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58096 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754320AbeBGTz6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:58 -0500
+        with ESMTP id S1754421AbeBGTzp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, colin.king@canonical.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/vmcore.c: simpler /proc/vmcore cleanup
+     Subject: kasan: remove redundant initialization of variable 'real_size'
 has been removed from the -mm tree.  Its filename was
-     proc-simpler-proc-vmcore-cleanup.patch
+     kasan-remove-redundant-initialization-of-variable-real_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc/vmcore.c: simpler /proc/vmcore cleanup
+From: Colin Ian King <colin.king@canonical.com>
+Subject: kasan: remove redundant initialization of variable 'real_size'
 
-Iterators aren't necessary as you can just grab the first entry and delete
-it until no entries left.
+Variable real_size is initialized with a value that is never read, it is
+re-assigned a new value later on, hence the initialization is redundant
+and can be removed.
 
-Link: http://lkml.kernel.org/r/20171121191121.GA20757@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Cleans up clang warning:
+lib/test_kasan.c:422:21: warning: Value stored to 'real_size' during
+its initialization is never read
+
+Link: http://lkml.kernel.org/r/20180206144950.32457-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/test_kasan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~proc-simpler-proc-vmcore-cleanup fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~proc-simpler-proc-vmcore-cleanup
-+++ a/fs/proc/vmcore.c
-@@ -1178,18 +1178,16 @@ fs_initcall(vmcore_init);
- /* Cleanup function for vmcore module. */
- void vmcore_cleanup(void)
+diff -puN lib/test_kasan.c~kasan-remove-redundant-initialization-of-variable-real_size lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-remove-redundant-initialization-of-variable-real_size
++++ a/lib/test_kasan.c
+@@ -419,7 +419,7 @@ static noinline void __init kasan_stack_
+ static noinline void __init ksize_unpoisons_memory(void)
  {
--	struct list_head *pos, *next;
+ 	char *ptr;
+-	size_t size = 123, real_size = size;
++	size_t size = 123, real_size;
+ 
+ 	pr_info("ksize() unpoisons the whole allocated chunk\n");
+ 	ptr = kmalloc(size, GFP_KERNEL);
+_
+
+Patches currently in -mm which might be from colin.king@canonical.com are
+
+mm-ksm-make-function-stable_node_dup-static.patch
+mm-swap-make-pointer-swap_avail_heads-static.patch
+
