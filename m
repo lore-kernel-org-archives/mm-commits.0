@@ -1,152 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-support-alloca-poisoning.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 11:55:13 -0800
-Message-ID: <20180207195513.Gdj089Y-z%akpm@linux-foundation.org>
+Subject: [merged]
+ kasan-makefile-support-llvm-style-asan-parameters.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 11:55:09 -0800
+Message-ID: <20180207195509.ERoR2szDr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGTzO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:14 -0500
+        with ESMTP id S1753721AbeBGTzL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: kasan: support alloca() poisoning
+     Subject: kasan/Makefile: support LLVM style asan parameters
 has been removed from the -mm tree.  Its filename was
-     kasan-support-alloca-poisoning.patch
+     kasan-makefile-support-llvm-style-asan-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul Lawrence <paullawrence@google.com>
-Subject: kasan: support alloca() poisoning
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kasan/Makefile: support LLVM style asan parameters
 
-clang's AddressSanitizer implementation adds redzones on either side of
-alloca()ed buffers.  These redzones are 32-byte aligned and at least 32
-bytes long.
+LLVM doesn't understand GCC-style paramters ("--param asan-foo=bar"), thus
+we currently we don't use inline/globals/stack instrumentation when
+building the kernel with clang.
 
-__asan_alloca_poison() is passed the size and address of the allocated
-buffer, *excluding* the redzones on either side.  The left redzone will
-always be to the immediate left of this buffer; but AddressSanitizer may
-need to add padding between the end of the buffer and the right redzone. 
-If there are any 8-byte chunks inside this padding, we should poison those
-too.
+Add support for LLVM-style parameters ("-mllvm -asan-foo=bar") to enable
+all KASAN features.
 
-__asan_allocas_unpoison() is just passed the top and bottom of the dynamic
-stack area, so unpoisoning is simpler.
-
-Link: http://lkml.kernel.org/r/20171204191735.132544-4-paullawrence@google.com
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
+Link: http://lkml.kernel.org/r/20171204191735.132544-3-paullawrence@google.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Greg Hackmann <ghackmann@google.com>
 Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c       |   34 ++++++++++++++++++++++++++++++++++
- mm/kasan/kasan.h       |    8 ++++++++
- mm/kasan/report.c      |    4 ++++
- scripts/Makefile.kasan |    3 ++-
- 4 files changed, 48 insertions(+), 1 deletion(-)
+ scripts/Makefile.kasan |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-support-alloca-poisoning mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-support-alloca-poisoning
-+++ a/mm/kasan/kasan.c
-@@ -736,6 +736,40 @@ void __asan_unpoison_stack_memory(const
- }
- EXPORT_SYMBOL(__asan_unpoison_stack_memory);
- 
-+/* Emitted by compiler to poison alloca()ed objects. */
-+void __asan_alloca_poison(unsigned long addr, size_t size)
-+{
-+	size_t rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
-+	size_t padding_size = round_up(size, KASAN_ALLOCA_REDZONE_SIZE) -
-+			rounded_up_size;
-+	size_t rounded_down_size = round_down(size, KASAN_SHADOW_SCALE_SIZE);
-+
-+	const void *left_redzone = (const void *)(addr -
-+			KASAN_ALLOCA_REDZONE_SIZE);
-+	const void *right_redzone = (const void *)(addr + rounded_up_size);
-+
-+	WARN_ON(!IS_ALIGNED(addr, KASAN_ALLOCA_REDZONE_SIZE));
-+
-+	kasan_unpoison_shadow((const void *)(addr + rounded_down_size),
-+			      size - rounded_down_size);
-+	kasan_poison_shadow(left_redzone, KASAN_ALLOCA_REDZONE_SIZE,
-+			KASAN_ALLOCA_LEFT);
-+	kasan_poison_shadow(right_redzone,
-+			padding_size + KASAN_ALLOCA_REDZONE_SIZE,
-+			KASAN_ALLOCA_RIGHT);
-+}
-+EXPORT_SYMBOL(__asan_alloca_poison);
-+
-+/* Emitted by compiler to unpoison alloca()ed areas when the stack unwinds. */
-+void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom)
-+{
-+	if (unlikely(!stack_top || stack_top > stack_bottom))
-+		return;
-+
-+	kasan_unpoison_shadow(stack_top, stack_bottom - stack_top);
-+}
-+EXPORT_SYMBOL(__asan_allocas_unpoison);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int __meminit kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
-diff -puN mm/kasan/kasan.h~kasan-support-alloca-poisoning mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-support-alloca-poisoning
-+++ a/mm/kasan/kasan.h
-@@ -24,6 +24,14 @@
- #define KASAN_STACK_PARTIAL     0xF4
- #define KASAN_USE_AFTER_SCOPE   0xF8
- 
-+/*
-+ * alloca redzone shadow values
-+ */
-+#define KASAN_ALLOCA_LEFT	0xCA
-+#define KASAN_ALLOCA_RIGHT	0xCB
-+
-+#define KASAN_ALLOCA_REDZONE_SIZE	32
-+
- /* Don't break randconfig/all*config builds */
- #ifndef KASAN_ABI_VERSION
- #define KASAN_ABI_VERSION 1
-diff -puN mm/kasan/report.c~kasan-support-alloca-poisoning mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-support-alloca-poisoning
-+++ a/mm/kasan/report.c
-@@ -102,6 +102,10 @@ static const char *get_shadow_bug_type(s
- 	case KASAN_USE_AFTER_SCOPE:
- 		bug_type = "use-after-scope";
- 		break;
-+	case KASAN_ALLOCA_LEFT:
-+	case KASAN_ALLOCA_RIGHT:
-+		bug_type = "alloca-out-of-bounds";
-+		break;
- 	}
- 
- 	return bug_type;
-diff -puN scripts/Makefile.kasan~kasan-support-alloca-poisoning scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-support-alloca-poisoning
+diff -puN scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters scripts/Makefile.kasan
+--- a/scripts/Makefile.kasan~kasan-makefile-support-llvm-style-asan-parameters
 +++ a/scripts/Makefile.kasan
-@@ -32,7 +32,8 @@ else
- 	$(call cc-param,asan-globals=1) \
- 	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
- 	$(call cc-param,asan-stack=1) \
--	$(call cc-param,asan-use-after-scope=1)
-+	$(call cc-param,asan-use-after-scope=1) \
-+	$(call cc-param,asan-instrument-allocas=1)
-    endif
+@@ -10,10 +10,7 @@ KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SH
  
+ CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
+ 
+-CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
+-		-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET) \
+-		--param asan-stack=1 --param asan-globals=1 \
+-		--param asan-instrumentation-with-call-threshold=$(call_threshold))
++cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
+ 
+ ifeq ($(call cc-option, $(CFLAGS_KASAN_MINIMAL) -Werror),)
+    ifneq ($(CONFIG_COMPILE_TEST),y)
+@@ -21,13 +18,23 @@ ifeq ($(call cc-option, $(CFLAGS_KASAN_M
+             -fsanitize=kernel-address is not supported by compiler)
+    endif
+ else
+-    ifeq ($(CFLAGS_KASAN),)
+-        ifneq ($(CONFIG_COMPILE_TEST),y)
+-            $(warning CONFIG_KASAN: compiler does not support all options.\
+-                Trying minimal configuration)
+-        endif
+-        CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
+-    endif
++   # -fasan-shadow-offset fails without -fsanitize
++   CFLAGS_KASAN_SHADOW := $(call cc-option, -fsanitize=kernel-address \
++			-fasan-shadow-offset=$(KASAN_SHADOW_OFFSET), \
++			$(call cc-option, -fsanitize=kernel-address \
++			-mllvm -asan-mapping-offset=$(KASAN_SHADOW_OFFSET)))
++
++   ifeq ($(strip $(CFLAGS_KASAN_SHADOW)),)
++      CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
++   else
++      # Now add all the compiler specific options that are valid standalone
++      CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
++	$(call cc-param,asan-globals=1) \
++	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
++	$(call cc-param,asan-stack=1) \
++	$(call cc-param,asan-use-after-scope=1)
++   endif
++
  endif
+ 
+ CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
 _
 
-Patches currently in -mm which might be from paullawrence@google.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
+mm-kasan-dont-vfree-nonexistent-vm_area.patch
 
