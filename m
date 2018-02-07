@@ -1,101 +1,239 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 12:00:13 -0800
-Message-ID: <20180207200013.nVUM8-E0U%akpm@linux-foundation.org>
+Subject: [merged] mm-docs-fix-parameter-names-mismatch.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 12:00:34 -0800
+Message-ID: <20180207200034.ftjIt5QHM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:16 -0500
+        with ESMTP id S1753721AbeBGUAf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, w@1wt.eu
+To: corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: pipe: actually allow root to exceed the pipe buffer limits
+     Subject: mm: docs: fix parameter names mismatch
 has been removed from the -mm tree.  Its filename was
-     pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
+     mm-docs-fix-parameter-names-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: pipe: actually allow root to exceed the pipe buffer limits
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: mm: docs: fix parameter names mismatch
 
-pipe-user-pages-hard and pipe-user-pages-soft are only supposed to apply
-to unprivileged users, as documented in both Documentation/sysctl/fs.txt
-and the pipe(7) man page.
+There are several places where parameter descriptions do no match the
+actual code.  Fix it.
 
-However, the capabilities are actually only checked when increasing a
-pipe's size using F_SETPIPE_SZ, not when creating a new pipe.  Therefore,
-if pipe-user-pages-hard has been set, the root user can run into it and be
-unable to create pipes.  Similarly, if pipe-user-pages-soft has been set,
-the root user can run into it and have their pipes limited to 1 page each.
-
-Fix this by allowing the privileged override in both cases.
-
-Link: http://lkml.kernel.org/r/20180111052902.14409-4-ebiggers3@gmail.com
-Fixes: 759c01142a5d ("pipe: limit the per-user amount of pages allocated in pipes")
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1516700871-22279-3-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/bootmem.c           |    2 +-
+ mm/maccess.c           |    2 +-
+ mm/memcontrol.c        |    2 +-
+ mm/process_vm_access.c |    2 +-
+ mm/swap.c              |    4 ++--
+ mm/z3fold.c            |    4 ++--
+ mm/zbud.c              |    4 ++--
+ mm/zpool.c             |   20 ++++++++++----------
+ 8 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits fs/pipe.c
---- a/fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits
-+++ a/fs/pipe.c
-@@ -613,6 +613,11 @@ static bool too_many_pipe_buffers_hard(u
- 	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
- }
+diff -puN mm/bootmem.c~mm-docs-fix-parameter-names-mismatch mm/bootmem.c
+--- a/mm/bootmem.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/bootmem.c
+@@ -410,7 +410,7 @@ void __init free_bootmem_node(pg_data_t
  
-+static bool is_unprivileged_user(void)
-+{
-+	return !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN);
-+}
-+
- struct pipe_inode_info *alloc_pipe_info(void)
- {
- 	struct pipe_inode_info *pipe;
-@@ -629,12 +634,12 @@ struct pipe_inode_info *alloc_pipe_info(
+ /**
+  * free_bootmem - mark a page range as usable
+- * @addr: starting physical address of the range
++ * @physaddr: starting physical address of the range
+  * @size: size of the range in bytes
+  *
+  * Partial pages will be considered reserved and left as they are.
+diff -puN mm/maccess.c~mm-docs-fix-parameter-names-mismatch mm/maccess.c
+--- a/mm/maccess.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/maccess.c
+@@ -70,7 +70,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_write);
+  * strncpy_from_unsafe: - Copy a NUL terminated string from unsafe address.
+  * @dst:   Destination address, in kernel space.  This buffer must be at
+  *         least @count bytes long.
+- * @src:   Unsafe address.
++ * @unsafe_addr: Unsafe address.
+  * @count: Maximum number of bytes to copy, including the trailing NUL.
+  *
+  * Copies a NUL-terminated string from unsafe address to kernel buffer.
+diff -puN mm/memcontrol.c~mm-docs-fix-parameter-names-mismatch mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/memcontrol.c
+@@ -917,7 +917,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+ /**
+  * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
+  * @page: the page
+- * @zone: zone of the page
++ * @pgdat: pgdat of the page
+  *
+  * This function is only safe when following the LRU page isolation
+  * and putback protocol: the LRU lock must be held, and the page must
+diff -puN mm/process_vm_access.c~mm-docs-fix-parameter-names-mismatch mm/process_vm_access.c
+--- a/mm/process_vm_access.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/process_vm_access.c
+@@ -25,7 +25,7 @@
+ /**
+  * process_vm_rw_pages - read/write pages from task specified
+  * @pages: array of pointers to pages we want to copy
+- * @start_offset: offset in page to start copying from/to
++ * @offset: offset in page to start copying from/to
+  * @len: number of bytes to copy
+  * @iter: where to copy to/from locally
+  * @vm_write: 0 means copy from, 1 means copy to
+diff -puN mm/swap.c~mm-docs-fix-parameter-names-mismatch mm/swap.c
+--- a/mm/swap.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/swap.c
+@@ -913,11 +913,11 @@ EXPORT_SYMBOL(__pagevec_lru_add);
+  * @pvec:	Where the resulting entries are placed
+  * @mapping:	The address_space to search
+  * @start:	The starting entry index
+- * @nr_entries:	The maximum number of entries
++ * @nr_pages:	The maximum number of pages
+  * @indices:	The cache indices corresponding to the entries in @pvec
+  *
+  * pagevec_lookup_entries() will search for and return a group of up
+- * to @nr_entries pages and shadow entries in the mapping.  All
++ * to @nr_pages pages and shadow entries in the mapping.  All
+  * entries are placed in @pvec.  pagevec_lookup_entries() takes a
+  * reference against actual pages in @pvec.
+  *
+diff -puN mm/z3fold.c~mm-docs-fix-parameter-names-mismatch mm/z3fold.c
+--- a/mm/z3fold.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/z3fold.c
+@@ -769,7 +769,7 @@ static void z3fold_free(struct z3fold_po
+ /**
+  * z3fold_reclaim_page() - evicts allocations from a pool page and frees it
+  * @pool:	pool from which a page will attempt to be evicted
+- * @retires:	number of pages on the LRU list for which eviction will
++ * @retries:	number of pages on the LRU list for which eviction will
+  *		be attempted before failing
+  *
+  * z3fold reclaim is different from normal system reclaim in that it is done
+@@ -779,7 +779,7 @@ static void z3fold_free(struct z3fold_po
+  * z3fold and the user, however.
+  *
+  * To avoid these, this is how z3fold_reclaim_page() should be called:
+-
++ *
+  * The user detects a page should be reclaimed and calls z3fold_reclaim_page().
+  * z3fold_reclaim_page() will remove a z3fold page from the pool LRU list and
+  * call the user-defined eviction handler with the pool and handle as
+diff -puN mm/zbud.c~mm-docs-fix-parameter-names-mismatch mm/zbud.c
+--- a/mm/zbud.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/zbud.c
+@@ -466,7 +466,7 @@ void zbud_free(struct zbud_pool *pool, u
+ /**
+  * zbud_reclaim_page() - evicts allocations from a pool page and frees it
+  * @pool:	pool from which a page will attempt to be evicted
+- * @retires:	number of pages on the LRU list for which eviction will
++ * @retries:	number of pages on the LRU list for which eviction will
+  *		be attempted before failing
+  *
+  * zbud reclaim is different from normal system reclaim in that the reclaim is
+@@ -476,7 +476,7 @@ void zbud_free(struct zbud_pool *pool, u
+  * the user, however.
+  *
+  * To avoid these, this is how zbud_reclaim_page() should be called:
+-
++ *
+  * The user detects a page should be reclaimed and calls zbud_reclaim_page().
+  * zbud_reclaim_page() will remove a zbud page from the pool LRU list and call
+  * the user-defined eviction handler with the pool and handle as arguments.
+diff -puN mm/zpool.c~mm-docs-fix-parameter-names-mismatch mm/zpool.c
+--- a/mm/zpool.c~mm-docs-fix-parameter-names-mismatch
++++ a/mm/zpool.c
+@@ -201,7 +201,7 @@ struct zpool *zpool_create_pool(const ch
  
- 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+ /**
+  * zpool_destroy_pool() - Destroy a zpool
+- * @pool:	The zpool to destroy.
++ * @zpool:	The zpool to destroy.
+  *
+  * Implementations must guarantee this to be thread-safe,
+  * however only when destroying different pools.  The same
+@@ -224,7 +224,7 @@ void zpool_destroy_pool(struct zpool *zp
  
--	if (too_many_pipe_buffers_soft(user_bufs)) {
-+	if (too_many_pipe_buffers_soft(user_bufs) && is_unprivileged_user()) {
- 		user_bufs = account_pipe_buffers(user, pipe_bufs, 1);
- 		pipe_bufs = 1;
- 	}
+ /**
+  * zpool_get_type() - Get the type of the zpool
+- * @pool:	The zpool to check
++ * @zpool:	The zpool to check
+  *
+  * This returns the type of the pool.
+  *
+@@ -239,7 +239,7 @@ const char *zpool_get_type(struct zpool
  
--	if (too_many_pipe_buffers_hard(user_bufs))
-+	if (too_many_pipe_buffers_hard(user_bufs) && is_unprivileged_user())
- 		goto out_revert_acct;
+ /**
+  * zpool_malloc() - Allocate memory
+- * @pool:	The zpool to allocate from.
++ * @zpool:	The zpool to allocate from.
+  * @size:	The amount of memory to allocate.
+  * @gfp:	The GFP flags to use when allocating memory.
+  * @handle:	Pointer to the handle to set
+@@ -261,7 +261,7 @@ int zpool_malloc(struct zpool *zpool, si
  
- 	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
-@@ -1065,7 +1070,7 @@ static long pipe_set_size(struct pipe_in
- 	if (nr_pages > pipe->buffers &&
- 			(too_many_pipe_buffers_hard(user_bufs) ||
- 			 too_many_pipe_buffers_soft(user_bufs)) &&
--			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
-+			is_unprivileged_user()) {
- 		ret = -EPERM;
- 		goto out_revert_acct;
- 	}
+ /**
+  * zpool_free() - Free previously allocated memory
+- * @pool:	The zpool that allocated the memory.
++ * @zpool:	The zpool that allocated the memory.
+  * @handle:	The handle to the memory to free.
+  *
+  * This frees previously allocated memory.  This does not guarantee
+@@ -280,7 +280,7 @@ void zpool_free(struct zpool *zpool, uns
+ 
+ /**
+  * zpool_shrink() - Shrink the pool size
+- * @pool:	The zpool to shrink.
++ * @zpool:	The zpool to shrink.
+  * @pages:	The number of pages to shrink the pool.
+  * @reclaimed:	The number of pages successfully evicted.
+  *
+@@ -304,11 +304,11 @@ int zpool_shrink(struct zpool *zpool, un
+ 
+ /**
+  * zpool_map_handle() - Map a previously allocated handle into memory
+- * @pool:	The zpool that the handle was allocated from
++ * @zpool:	The zpool that the handle was allocated from
+  * @handle:	The handle to map
+- * @mm:		How the memory should be mapped
++ * @mapmode:	How the memory should be mapped
+  *
+- * This maps a previously allocated handle into memory.  The @mm
++ * This maps a previously allocated handle into memory.  The @mapmode
+  * param indicates to the implementation how the memory will be
+  * used, i.e. read-only, write-only, read-write.  If the
+  * implementation does not support it, the memory will be treated
+@@ -332,7 +332,7 @@ void *zpool_map_handle(struct zpool *zpo
+ 
+ /**
+  * zpool_unmap_handle() - Unmap a previously mapped handle
+- * @pool:	The zpool that the handle was allocated from
++ * @zpool:	The zpool that the handle was allocated from
+  * @handle:	The handle to unmap
+  *
+  * This unmaps a previously mapped handle.  Any locks or other
+@@ -347,7 +347,7 @@ void zpool_unmap_handle(struct zpool *zp
+ 
+ /**
+  * zpool_get_total_size() - The total size of the pool
+- * @pool:	The zpool to check
++ * @zpool:	The zpool to check
+  *
+  * This returns the total size in bytes of the pool.
+  *
 _
 
-Patches currently in -mm which might be from ebiggers@google.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
 
