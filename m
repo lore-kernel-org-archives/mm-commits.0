@@ -1,215 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-docs-fixup-punctuation.patch removed from -mm
- tree
-Date: Wed, 07 Feb 2018 12:00:31 -0800
-Message-ID: <20180207200031.r1mG41K2L%akpm@linux-foundation.org>
+Subject: [merged] maintainers-remove-android-ion-pattern.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 12:00:40 -0800
+Message-ID: <20180207200040.RCTFn6Drx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:33 -0500
+        with ESMTP id S1753721AbeBGUAl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
+To: akpm@linux-foundation.org, joe@perches.com, labbott@redhat.com, mm-commits@vger.kernel.org, sumit.semwal@linaro.org
 
 
 The patch titled
-     Subject: mm: docs: fixup punctuation
+     Subject: MAINTAINERS: remove ANDROID ION pattern
 has been removed from the -mm tree.  Its filename was
-     mm-docs-fixup-punctuation.patch
+     maintainers-remove-android-ion-pattern.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: mm: docs: fixup punctuation
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: remove ANDROID ION pattern
 
-so that kernel-doc will properly recognize the parameter and function
-descriptions.
+File drivers/staging/android/uapi/ion_test.h was removed by 9828282e33a0
+("staging: android: ion: Remove old platform support")
 
-Link: http://lkml.kernel.org/r/1516700871-22279-2-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Remove the pattern.
+
+Link: http://lkml.kernel.org/r/182debec22002c9a1de44e79a7441288942b205c.1517147485.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Laura Abbott <labbott@redhat.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c        |    2 +-
- mm/memcontrol.c |    4 ++--
- mm/mlock.c      |    2 +-
- mm/nommu.c      |    2 +-
- mm/zpool.c      |   44 ++++++++++++++++++++++----------------------
- 5 files changed, 27 insertions(+), 27 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/ksm.c~mm-docs-fixup-punctuation mm/ksm.c
---- a/mm/ksm.c~mm-docs-fixup-punctuation
-+++ a/mm/ksm.c
-@@ -2302,7 +2302,7 @@ next_mm:
+diff -puN MAINTAINERS~maintainers-remove-android-ion-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-android-ion-pattern
++++ a/MAINTAINERS
+@@ -903,7 +903,6 @@ L:	devel@driverdev.osuosl.org
+ S:	Supported
+ F:	drivers/staging/android/ion
+ F:	drivers/staging/android/uapi/ion.h
+-F:	drivers/staging/android/uapi/ion_test.h
  
- /**
-  * ksm_do_scan  - the ksm scanner main worker function.
-- * @scan_npages - number of pages we want to scan before we return.
-+ * @scan_npages:  number of pages we want to scan before we return.
-  */
- static void ksm_do_scan(unsigned int scan_npages)
- {
-diff -puN mm/memcontrol.c~mm-docs-fixup-punctuation mm/memcontrol.c
---- a/mm/memcontrol.c~mm-docs-fixup-punctuation
-+++ a/mm/memcontrol.c
-@@ -5818,8 +5818,8 @@ bool mem_cgroup_charge_skmem(struct mem_
- 
- /**
-  * mem_cgroup_uncharge_skmem - uncharge socket memory
-- * @memcg - memcg to uncharge
-- * @nr_pages - number of pages to uncharge
-+ * @memcg: memcg to uncharge
-+ * @nr_pages: number of pages to uncharge
-  */
- void mem_cgroup_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
-diff -puN mm/mlock.c~mm-docs-fixup-punctuation mm/mlock.c
---- a/mm/mlock.c~mm-docs-fixup-punctuation
-+++ a/mm/mlock.c
-@@ -157,7 +157,7 @@ static void __munlock_isolation_failed(s
- 
- /**
-  * munlock_vma_page - munlock a vma page
-- * @page - page to be unlocked, either a normal page or THP page head
-+ * @page: page to be unlocked, either a normal page or THP page head
-  *
-  * returns the size of the page as a page mask (0 for normal page,
-  *         HPAGE_PMD_NR - 1 for THP head page)
-diff -puN mm/nommu.c~mm-docs-fixup-punctuation mm/nommu.c
---- a/mm/nommu.c~mm-docs-fixup-punctuation
-+++ a/mm/nommu.c
-@@ -1836,7 +1836,7 @@ int __access_remote_vm(struct task_struc
- }
- 
- /**
-- * @access_remote_vm - access another process' address space
-+ * access_remote_vm - access another process' address space
-  * @mm:		the mm_struct of the target address space
-  * @addr:	start address to access
-  * @buf:	source or destination buffer
-diff -puN mm/zpool.c~mm-docs-fixup-punctuation mm/zpool.c
---- a/mm/zpool.c~mm-docs-fixup-punctuation
-+++ a/mm/zpool.c
-@@ -101,7 +101,7 @@ static void zpool_put_driver(struct zpoo
- 
- /**
-  * zpool_has_pool() - Check if the pool driver is available
-- * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
-+ * @type:	The type of the zpool to check (e.g. zbud, zsmalloc)
-  *
-  * This checks if the @type pool driver is available.  This will try to load
-  * the requested module, if needed, but there is no guarantee the module will
-@@ -136,10 +136,10 @@ EXPORT_SYMBOL(zpool_has_pool);
- 
- /**
-  * zpool_create_pool() - Create a new zpool
-- * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
-- * @name	The name of the zpool (e.g. zram0, zswap)
-- * @gfp		The GFP flags to use when allocating the pool.
-- * @ops		The optional ops callback.
-+ * @type:	The type of the zpool to create (e.g. zbud, zsmalloc)
-+ * @name:	The name of the zpool (e.g. zram0, zswap)
-+ * @gfp:	The GFP flags to use when allocating the pool.
-+ * @ops:	The optional ops callback.
-  *
-  * This creates a new zpool of the specified type.  The gfp flags will be
-  * used when allocating memory, if the implementation supports it.  If the
-@@ -201,7 +201,7 @@ struct zpool *zpool_create_pool(const ch
- 
- /**
-  * zpool_destroy_pool() - Destroy a zpool
-- * @pool	The zpool to destroy.
-+ * @pool:	The zpool to destroy.
-  *
-  * Implementations must guarantee this to be thread-safe,
-  * however only when destroying different pools.  The same
-@@ -224,7 +224,7 @@ void zpool_destroy_pool(struct zpool *zp
- 
- /**
-  * zpool_get_type() - Get the type of the zpool
-- * @pool	The zpool to check
-+ * @pool:	The zpool to check
-  *
-  * This returns the type of the pool.
-  *
-@@ -239,10 +239,10 @@ const char *zpool_get_type(struct zpool
- 
- /**
-  * zpool_malloc() - Allocate memory
-- * @pool	The zpool to allocate from.
-- * @size	The amount of memory to allocate.
-- * @gfp		The GFP flags to use when allocating memory.
-- * @handle	Pointer to the handle to set
-+ * @pool:	The zpool to allocate from.
-+ * @size:	The amount of memory to allocate.
-+ * @gfp:	The GFP flags to use when allocating memory.
-+ * @handle:	Pointer to the handle to set
-  *
-  * This allocates the requested amount of memory from the pool.
-  * The gfp flags will be used when allocating memory, if the
-@@ -261,8 +261,8 @@ int zpool_malloc(struct zpool *zpool, si
- 
- /**
-  * zpool_free() - Free previously allocated memory
-- * @pool	The zpool that allocated the memory.
-- * @handle	The handle to the memory to free.
-+ * @pool:	The zpool that allocated the memory.
-+ * @handle:	The handle to the memory to free.
-  *
-  * This frees previously allocated memory.  This does not guarantee
-  * that the pool will actually free memory, only that the memory
-@@ -280,9 +280,9 @@ void zpool_free(struct zpool *zpool, uns
- 
- /**
-  * zpool_shrink() - Shrink the pool size
-- * @pool	The zpool to shrink.
-- * @pages	The number of pages to shrink the pool.
-- * @reclaimed	The number of pages successfully evicted.
-+ * @pool:	The zpool to shrink.
-+ * @pages:	The number of pages to shrink the pool.
-+ * @reclaimed:	The number of pages successfully evicted.
-  *
-  * This attempts to shrink the actual memory size of the pool
-  * by evicting currently used handle(s).  If the pool was
-@@ -304,9 +304,9 @@ int zpool_shrink(struct zpool *zpool, un
- 
- /**
-  * zpool_map_handle() - Map a previously allocated handle into memory
-- * @pool	The zpool that the handle was allocated from
-- * @handle	The handle to map
-- * @mm		How the memory should be mapped
-+ * @pool:	The zpool that the handle was allocated from
-+ * @handle:	The handle to map
-+ * @mm:		How the memory should be mapped
-  *
-  * This maps a previously allocated handle into memory.  The @mm
-  * param indicates to the implementation how the memory will be
-@@ -332,8 +332,8 @@ void *zpool_map_handle(struct zpool *zpo
- 
- /**
-  * zpool_unmap_handle() - Unmap a previously mapped handle
-- * @pool	The zpool that the handle was allocated from
-- * @handle	The handle to unmap
-+ * @pool:	The zpool that the handle was allocated from
-+ * @handle:	The handle to unmap
-  *
-  * This unmaps a previously mapped handle.  Any locks or other
-  * actions that the implementation took in zpool_map_handle()
-@@ -347,7 +347,7 @@ void zpool_unmap_handle(struct zpool *zp
- 
- /**
-  * zpool_get_total_size() - The total size of the pool
-- * @pool	The zpool to check
-+ * @pool:	The zpool to check
-  *
-  * This returns the total size in bytes of the pool.
-  *
+ AOA (Apple Onboard Audio) ALSA DRIVER
+ M:	Johannes Berg <johannes@sipsolutions.net>
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 
