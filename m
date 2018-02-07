@@ -1,94 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-spread-likely-unlikely-a-bit.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 11:56:18 -0800
-Message-ID: <20180207195618.cdi9rwO2C%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:56:06 -0800
+Message-ID: <20180207195606.0YARsNul8%akpm__2534.45031489736$1518033268$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58338 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58204 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754355AbeBGT4T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:19 -0500
+        with ESMTP id S1754157AbeBGT4H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, jolsa@kernel.org, keescook@chromium.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     Subject: proc: spread likely/unlikely a bit
+     Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
 has been removed from the -mm tree.  Its filename was
-     proc-spread-likely-unlikely-a-bit.patch
+     fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: spread likely/unlikely a bit
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: fs/proc/kcore.c: use probe_kernel_read() instead of memcpy()
 
-use_pde() is used at every open/read/write/...  of every random /proc
-file.  Negative refcount happens only if PDE is being deleted by module
-(read: never).  So it gets "likely".
+df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data") added a
+bounce buffer to avoid hardened usercopy checks.  Copying to the bounce
+buffer was implemented with a simple memcpy() assuming that it is always
+valid to read from kernel memory iff the kern_addr_valid() check passed.
 
-unuse_pde() gets "unlikely" for the same reason.
+A simple, but pointless, test case like "dd if=/proc/kcore of=/dev/null"
+now can easily crash the kernel, since the former execption handling on
+invalid kernel addresses now doesn't work anymore.
 
-close_pdeo() gets unlikely as the completion is filled only if there is a
-race between PDE removal and close() (read: never ever).
+Also adding a kern_addr_valid() implementation wouldn't help here.  Most
+architectures simply return 1 here, while a couple implemented a page
+table walk to figure out if something is mapped at the address in
+question.
 
-It even saves code on x86_64 defconfig:
+With DEBUG_PAGEALLOC active mappings are established and removed all the
+time, so that relying on the result of kern_addr_valid() before executing
+the memcpy() also doesn't work.
 
-	add/remove: 0/0 grow/shrink: 1/2 up/down: 2/-20 (-18)
-	Function                                     old     new   delta
-	close_pdeo                                   183     185      +2
-	proc_reg_get_unmapped_area                   119     111      -8
-	proc_reg_poll                                 85      73     -12
+Therefore simply use probe_kernel_read() to copy to the bounce buffer. 
+This also allows to simplify read_kcore().
 
-Link: http://lkml.kernel.org/r/20180104175657.GA5204@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+At least on s390 this fixes the observed crashes and doesn't introduce
+warnings that were removed with df04abfd181a ("fs/proc/kcore.c: Add bounce
+buffer for ktext data"), even though the generic probe_kernel_read()
+implementation uses uaccess functions.
+
+While looking into this I'm also wondering if kern_addr_valid() could be
+completely removed...(?)
+
+Link: http://lkml.kernel.org/r/20171202132739.99971-1-heiko.carstens@de.ibm.com
+Fixes: df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data")
+Fixes: f5509cc18daa ("mm: Hardened usercopy")
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/kcore.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-spread-likely-unlikely-a-bit fs/proc/inode.c
---- a/fs/proc/inode.c~proc-spread-likely-unlikely-a-bit
-+++ a/fs/proc/inode.c
-@@ -129,12 +129,12 @@ enum {BIAS = -1U<<31};
- 
- static inline int use_pde(struct proc_dir_entry *pde)
- {
--	return atomic_inc_unless_negative(&pde->in_use);
-+	return likely(atomic_inc_unless_negative(&pde->in_use));
- }
- 
- static void unuse_pde(struct proc_dir_entry *pde)
- {
--	if (atomic_dec_return(&pde->in_use) == BIAS)
-+	if (unlikely(atomic_dec_return(&pde->in_use) == BIAS))
- 		complete(pde->pde_unload_completion);
- }
- 
-@@ -167,7 +167,7 @@ static void close_pdeo(struct proc_dir_e
- 		spin_lock(&pde->pde_unload_lock);
- 		/* After ->release. */
- 		list_del(&pdeo->lh);
--		if (pdeo->c)
-+		if (unlikely(pdeo->c))
- 			complete(pdeo->c);
- 		kfree(pdeo);
- 	}
-@@ -421,7 +421,7 @@ static const char *proc_get_link(struct
- 				 struct delayed_call *done)
- {
- 	struct proc_dir_entry *pde = PDE(inode);
--	if (unlikely(!use_pde(pde)))
-+	if (!use_pde(pde))
- 		return ERR_PTR(-EINVAL);
- 	set_delayed_call(done, proc_put_link, pde);
- 	return pde->data;
+diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-kcorec-use-probe_kernel_read-instead-of-memcpy
++++ a/fs/proc/kcore.c
+@@ -512,23 +512,15 @@ read_kcore(struct file *file, char __use
+ 				return -EFAULT;
+ 		} else {
+ 			if (kern_addr_valid(start)) {
+-				unsigned long n;
+-
+ 				/*
+ 				 * Using bounce buffer to bypass the
+ 				 * hardened user copy kernel text checks.
+ 				 */
+-				memcpy(buf, (char *) start, tsz);
+-				n = copy_to_user(buffer, buf, tsz);
+-				/*
+-				 * We cannot distinguish between fault on source
+-				 * and fault on destination. When this happens
+-				 * we clear too and hope it will trigger the
+-				 * EFAULT again.
+-				 */
+-				if (n) { 
+-					if (clear_user(buffer + tsz - n,
+-								n))
++				if (probe_kernel_read(buf, (void *) start, tsz)) {
++					if (clear_user(buffer, tsz))
++						return -EFAULT;
++				} else {
++					if (copy_to_user(buffer, buf, tsz))
+ 						return -EFAULT;
+ 				}
+ 			} else {
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-seq_file-delete-small-value-optimization.patch
 
