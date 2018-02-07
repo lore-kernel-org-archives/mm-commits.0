@@ -1,67 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] genl_magic-remove-own-build_bug_on-defines.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 11:59:00 -0800
-Message-ID: <20180207195900.Y5adSSyV_%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-ubsan-remove-returns-nonnull-attribute-checks.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 11:59:14 -0800
+Message-ID: <20180207195914.Ky4a9P-Hj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60252 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754505AbeBGT7C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:02 -0500
+        with ESMTP id S1754411AbeBGT7P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, davem@davemloft.net, kuznet@ms2.inr.ac.ru, mm-commits@vger.kernel.org, yamada.masahiro@socionext.com, yoshfuji@linux-ipv6.org
+To: aryabinin@virtuozzo.com, mm-commits@vger.kernel.org, psodagud@codeaurora.org
 
 
 The patch titled
-     Subject: include/linux/genl_magic_func.h: remove own BUILD_BUG_ON*() defines
+     Subject: lib/ubsan: remove returns-nonnull-attribute checks
 has been removed from the -mm tree.  Its filename was
-     genl_magic-remove-own-build_bug_on-defines.patch
+     lib-ubsan-remove-returns-nonnull-attribute-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: include/linux/genl_magic_func.h: remove own BUILD_BUG_ON*() defines
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: lib/ubsan: remove returns-nonnull-attribute checks
 
-Do not duplicate BUILD_BUG_ON*.  Use ones from <linux/build_bug.h>.
+Similarly to type mismatch checks, new GCC 8.x and Clang also changed for
+ABI for returns_nonnull checks.  While we can update our code to conform
+the new ABI it's more reasonable to just remove it.  Because it's just
+dead code, we don't have any single user of returns_nonnull attribute in
+the whole kernel.
 
-Link: http://lkml.kernel.org/r/1515121833-3174-2-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Ian Abbott <abbotti@mev.co.uk>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+And AFAIU the advantage that this attribute could bring would be mitigated
+by -fno-delete-null-pointer-checks cflag that we use to build the kernel. 
+So it's unlikely we will have a lot of returns_nonnull attribute in
+future.
+
+So let's just remove the code, it has no use.
+
+[aryabinin@virtuozzo.com: fix warning]
+  Link: http://lkml.kernel.org/r/20180122165711.11510-1-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/20180119152853.16806-2-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Sodagudi Prasad <psodagud@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genl_magic_func.h |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ lib/ubsan.c            |   24 ------------------------
+ lib/ubsan.h            |    5 -----
+ scripts/Makefile.ubsan |    1 -
+ 3 files changed, 30 deletions(-)
 
-diff -puN include/linux/genl_magic_func.h~genl_magic-remove-own-build_bug_on-defines include/linux/genl_magic_func.h
---- a/include/linux/genl_magic_func.h~genl_magic-remove-own-build_bug_on-defines
-+++ a/include/linux/genl_magic_func.h
-@@ -2,6 +2,7 @@
- #ifndef GENL_MAGIC_FUNC_H
- #define GENL_MAGIC_FUNC_H
+diff -puN lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks lib/ubsan.c
+--- a/lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks
++++ a/lib/ubsan.c
+@@ -141,11 +141,6 @@ static void val_to_string(char *str, siz
+ 	}
+ }
  
-+#include <linux/build_bug.h>
- #include <linux/genl_magic_struct.h>
+-static bool location_is_valid(struct source_location *loc)
+-{
+-	return loc->file_name != NULL;
+-}
+-
+ static DEFINE_SPINLOCK(report_lock);
  
- /*
-@@ -132,17 +133,6 @@ static void dprint_array(const char *dir
-  * use one static buffer for parsing of nested attributes */
- static struct nlattr *nested_attr_tb[128];
+ static void ubsan_prologue(struct source_location *location,
+@@ -356,25 +351,6 @@ void __ubsan_handle_type_mismatch_v1(str
+ }
+ EXPORT_SYMBOL(__ubsan_handle_type_mismatch_v1);
  
--#ifndef BUILD_BUG_ON
--/* Force a compilation error if condition is true */
--#define BUILD_BUG_ON(condition) ((void)BUILD_BUG_ON_ZERO(condition))
--/* Force a compilation error if condition is true, but also produce a
--   result (of value 0 and type size_t), so the expression can be used
--   e.g. in a structure initializer (or where-ever else comma expressions
--   aren't permitted). */
--#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
--#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
--#endif
+-void __ubsan_handle_nonnull_return(struct nonnull_return_data *data)
+-{
+-	unsigned long flags;
+-
+-	if (suppress_report(&data->location))
+-		return;
+-
+-	ubsan_prologue(&data->location, &flags);
+-
+-	pr_err("null pointer returned from function declared to never return null\n");
+-
+-	if (location_is_valid(&data->attr_location))
+-		print_source_location("returns_nonnull attribute specified in",
+-				&data->attr_location);
+-
+-	ubsan_epilogue(&flags);
+-}
+-EXPORT_SYMBOL(__ubsan_handle_nonnull_return);
+-
+ void __ubsan_handle_vla_bound_not_positive(struct vla_bound_data *data,
+ 					unsigned long bound)
+ {
+diff -puN lib/ubsan.h~lib-ubsan-remove-returns-nonnull-attribute-checks lib/ubsan.h
+--- a/lib/ubsan.h~lib-ubsan-remove-returns-nonnull-attribute-checks
++++ a/lib/ubsan.h
+@@ -57,11 +57,6 @@ struct nonnull_arg_data {
+ 	int arg_index;
+ };
+ 
+-struct nonnull_return_data {
+-	struct source_location location;
+-	struct source_location attr_location;
+-};
