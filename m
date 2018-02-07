@@ -1,41 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pipe-sysctl-remove-pipe_proc_fn.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 12:00:09 -0800
-Message-ID: <20180207200009.4P01wf-PY%akpm@linux-foundation.org>
+Subject: [merged]
+ pipe-reject-f_setpipe_sz-with-size-over-uint_max.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 12:00:22 -0800
+Message-ID: <20180207200022.ZnV8m5lfy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:12 -0500
+        with ESMTP id S1753721AbeBGUAX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, w@1wt.eu
 
 
 The patch titled
-     Subject: pipe, sysctl: remove pipe_proc_fn()
+     Subject: pipe: reject F_SETPIPE_SZ with size over UINT_MAX
 has been removed from the -mm tree.  Its filename was
-     pipe-sysctl-remove-pipe_proc_fn.patch
+     pipe-reject-f_setpipe_sz-with-size-over-uint_max.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Eric Biggers <ebiggers@google.com>
-Subject: pipe, sysctl: remove pipe_proc_fn()
+Subject: pipe: reject F_SETPIPE_SZ with size over UINT_MAX
 
-pipe_proc_fn() is no longer needed, as it only calls through to
-proc_dopipe_max_size().  Just put proc_dopipe_max_size() in the ctl_table
-entry directly, and remove the unneeded EXPORT_SYMBOL() and the ENOSYS
-stub for it.
+A pipe's size is represented as an 'unsigned int'.  As expected, writing a
+value greater than UINT_MAX to /proc/sys/fs/pipe-max-size fails with
+EINVAL.  However, the F_SETPIPE_SZ fcntl silently truncates such values to
+32 bits, rather than failing with EINVAL as expected.  (It *does* fail
+with EINVAL for values above (1 << 31) but <= UINT_MAX.)
 
-(The reason the ENOSYS stub isn't needed is that the pipe-max-size
-ctl_table entry is located directly in 'kern_table' rather than being
-registered separately.  Therefore, the entry is already only defined when
-the kernel is built with sysctl support.)
+Fix this by moving the check against UINT_MAX into round_pipe_size() which
+is called in both cases.
 
-Link: http://lkml.kernel.org/r/20180111052902.14409-3-ebiggers3@gmail.com
+Link: http://lkml.kernel.org/r/20180111052902.14409-6-ebiggers3@gmail.com
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
@@ -47,94 +47,46 @@ Cc: Willy Tarreau <w@1wt.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |   10 ----------
- include/linux/pipe_fs_i.h |    1 -
- include/linux/sysctl.h    |    3 ---
- kernel/sysctl.c           |   15 +++++----------
- 4 files changed, 5 insertions(+), 24 deletions(-)
+ fs/pipe.c                 |    5 ++++-
+ include/linux/pipe_fs_i.h |    2 +-
+ kernel/sysctl.c           |    3 ---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/pipe.c~pipe-sysctl-remove-pipe_proc_fn fs/pipe.c
---- a/fs/pipe.c~pipe-sysctl-remove-pipe_proc_fn
+diff -puN fs/pipe.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max fs/pipe.c
+--- a/fs/pipe.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max
 +++ a/fs/pipe.c
-@@ -1121,16 +1121,6 @@ out_revert_acct:
- }
- 
- /*
-- * This should work even if CONFIG_PROC_FS isn't set, as proc_dopipe_max_size
-- * will return an error.
-- */
--int pipe_proc_fn(struct ctl_table *table, int write, void __user *buf,
--		 size_t *lenp, loff_t *ppos)
--{
--	return proc_dopipe_max_size(table, write, buf, lenp, ppos);
--}
--
--/*
-  * After the inode slimming patch, i_pipe/i_bdev/i_cdev share the same
-  * location, so checking ->i_pipe is not enough to verify that this is a
-  * pipe.
-diff -puN include/linux/pipe_fs_i.h~pipe-sysctl-remove-pipe_proc_fn include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~pipe-sysctl-remove-pipe_proc_fn
-+++ a/include/linux/pipe_fs_i.h
-@@ -170,7 +170,6 @@ void pipe_double_lock(struct pipe_inode_
- extern unsigned int pipe_max_size;
- extern unsigned long pipe_user_pages_hard;
- extern unsigned long pipe_user_pages_soft;
--int pipe_proc_fn(struct ctl_table *, int, void __user *, size_t *, loff_t *);
- 
- /* Drop the inode semaphore and wait for a pipe event, atomically */
- void pipe_wait(struct pipe_inode_info *pipe);
-diff -puN include/linux/sysctl.h~pipe-sysctl-remove-pipe_proc_fn include/linux/sysctl.h
---- a/include/linux/sysctl.h~pipe-sysctl-remove-pipe_proc_fn
-+++ a/include/linux/sysctl.h
-@@ -51,9 +51,6 @@ extern int proc_dointvec_minmax(struct c
- extern int proc_douintvec_minmax(struct ctl_table *table, int write,
- 				 void __user *buffer, size_t *lenp,
- 				 loff_t *ppos);
--extern int proc_dopipe_max_size(struct ctl_table *table, int write,
--				void __user *buffer, size_t *lenp,
--				loff_t *ppos);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~pipe-sysctl-remove-pipe_proc_fn kernel/sysctl.c
---- a/kernel/sysctl.c~pipe-sysctl-remove-pipe_proc_fn
-+++ a/kernel/sysctl.c
-@@ -218,6 +218,8 @@ static int proc_dointvec_minmax_coredump
- static int proc_dostring_coredump(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
-+static int proc_dopipe_max_size(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos);
- 
- #ifdef CONFIG_MAGIC_SYSRQ
- /* Note: sysrq code uses it's own private copy */
-@@ -1812,7 +1814,7 @@ static struct ctl_table fs_table[] = {
- 		.data		= &pipe_max_size,
- 		.maxlen		= sizeof(pipe_max_size),
- 		.mode		= 0644,
--		.proc_handler	= &pipe_proc_fn,
-+		.proc_handler	= proc_dopipe_max_size,
- 	},
- 	{
- 		.procname	= "pipe-user-pages-hard",
-@@ -2637,8 +2639,8 @@ static int do_proc_dopipe_max_size_conv(
- 	return 0;
- }
- 
--int proc_dopipe_max_size(struct ctl_table *table, int write,
--			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_dopipe_max_size(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp, loff_t *ppos)
+@@ -1020,10 +1020,13 @@ const struct file_operations pipefifo_fo
+  * Currently we rely on the pipe array holding a power-of-2 number
+  * of pages. Returns 0 on error.
+  */
+-unsigned int round_pipe_size(unsigned int size)
++unsigned int round_pipe_size(unsigned long size)
  {
- 	return do_proc_douintvec(table, write, buffer, lenp, ppos,
- 				 do_proc_dopipe_max_size_conv, NULL);
-@@ -3147,12 +3149,6 @@ int proc_douintvec_minmax(struct ctl_tab
- 	return -ENOSYS;
- }
+ 	unsigned long nr_pages;
  
--int proc_dopipe_max_size(struct ctl_table *table, int write,
--			 void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	return -ENOSYS;
--}
++	if (size > UINT_MAX)
++		return 0;
++
+ 	/* Minimum pipe size, as required by POSIX */
+ 	if (size < PAGE_SIZE)
+ 		size = PAGE_SIZE;
+diff -puN include/linux/pipe_fs_i.h~pipe-reject-f_setpipe_sz-with-size-over-uint_max include/linux/pipe_fs_i.h
+--- a/include/linux/pipe_fs_i.h~pipe-reject-f_setpipe_sz-with-size-over-uint_max
++++ a/include/linux/pipe_fs_i.h
+@@ -190,6 +190,6 @@ long pipe_fcntl(struct file *, unsigned
+ struct pipe_inode_info *get_pipe_info(struct file *file);
+ 
+ int create_pipe_files(struct file **, int);
+-unsigned int round_pipe_size(unsigned int size);
++unsigned int round_pipe_size(unsigned long size);
+ 
+ #endif
+diff -puN kernel/sysctl.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max kernel/sysctl.c
+--- a/kernel/sysctl.c~pipe-reject-f_setpipe_sz-with-size-over-uint_max
++++ a/kernel/sysctl.c
+@@ -2623,9 +2623,6 @@ static int do_proc_dopipe_max_size_conv(
+ 	if (write) {
+ 		unsigned int val;
+ 
+-		if (*lvalp > UINT_MAX)
+-			return -EINVAL;
