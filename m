@@ -1,166 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-rearrange-args.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 11:56:21 -0800
-Message-ID: <20180207195621.XRvYX7AGy%akpm@linux-foundation.org>
+Subject: [merged]
+ makefile-introduce-config_cc_stackprotector_auto.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 11:56:33 -0800
+Message-ID: <20180207195633.gIW3vGekR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754154AbeBGT4W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:22 -0500
+        with ESMTP id S1754180AbeBGT4j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, josh@joshtriplett.org, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: proc: rearrange args
+     Subject: Makefile: introduce CONFIG_CC_STACKPROTECTOR_AUTO
 has been removed from the -mm tree.  Its filename was
-     proc-rearrange-args.patch
+     makefile-introduce-config_cc_stackprotector_auto.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: rearrange args
+From: Kees Cook <keescook@chromium.org>
+Subject: Makefile: introduce CONFIG_CC_STACKPROTECTOR_AUTO
 
-Rearrange args for smaller code.
+Nearly all modern compilers support a stack-protector option, and nearly
+all modern distributions enable the kernel stack-protector, so enabling
+this by default in kernel builds would make sense.  However, Kconfig does
+not have knowledge of available compiler features, so it isn't safe to
+force on, as this would unconditionally break builds for the compilers or
+architectures that don't have support.  Instead, this introduces a new
+option, CONFIG_CC_STACKPROTECTOR_AUTO, which attempts to discover the best
+possible stack-protector available, and will allow builds to proceed even
+if the compiler doesn't support any stack-protector.
 
-lookup revolves around memcmp() which gets len 3rd arg, so propagate
-length as 3rd arg.
+This option is made the default so that kernels built with modern
+compilers will be protected-by-default against stack buffer overflows,
+avoiding things like the recent BlueBorne attack.  Selection of a specific
+stack-protector option remains available, including disabling it.
 
-readdir and lookup add additional arg to VFS ->readdir and ->lookup, so
-better add it to the end.
+Additionally, tiny.config is adjusted to use CC_STACKPROTECTOR_NONE, since
+that's the option with the least code size (and it used to be the default,
+so we have to explicitly choose it there now).
 
-Space savings on x86_64:
-
-	add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-18 (-18)
-	Function                                     old     new   delta
-	proc_readdir                                  22      13      -9
-	proc_lookup                                   18       9      -9
-
-proc_match() is smaller if not inlined, I promise!
-
-Link: http://lkml.kernel.org/r/20180104175958.GB5204@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/1510076320-69931-4-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Tested-by: Laura Abbott <labbott@redhat.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   18 +++++++++---------
- fs/proc/internal.h |    5 ++---
- fs/proc/proc_net.c |    4 ++--
- 3 files changed, 13 insertions(+), 14 deletions(-)
+ Makefile                   |   37 ++++++++++++++++++++++++++++++++---
+ arch/Kconfig               |    8 ++++++-
+ kernel/configs/tiny.config |    4 +++
+ 3 files changed, 45 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-rearrange-args fs/proc/generic.c
---- a/fs/proc/generic.c~proc-rearrange-args
-+++ a/fs/proc/generic.c
-@@ -28,7 +28,7 @@
+diff -puN arch/Kconfig~makefile-introduce-config_cc_stackprotector_auto arch/Kconfig
+--- a/arch/Kconfig~makefile-introduce-config_cc_stackprotector_auto
++++ a/arch/Kconfig
+@@ -541,7 +541,7 @@ config HAVE_CC_STACKPROTECTOR
+ choice
+ 	prompt "Stack Protector buffer overflow detection"
+ 	depends on HAVE_CC_STACKPROTECTOR
+-	default CC_STACKPROTECTOR_NONE
++	default CC_STACKPROTECTOR_AUTO
+ 	help
+ 	  This option turns on the "stack-protector" GCC feature. This
+ 	  feature puts, at the beginning of functions, a canary value on
+@@ -588,6 +588,12 @@ config CC_STACKPROTECTOR_STRONG
+ 	  about 20% of all kernel functions, which increases the kernel code
+ 	  size by about 2%.
  
- static DEFINE_RWLOCK(proc_subdir_lock);
++config CC_STACKPROTECTOR_AUTO
++	bool "Automatic"
++	help
++	  If the compiler supports it, the best available stack-protector
++	  option will be chosen.
++
+ endchoice
  
--static int proc_match(unsigned int len, const char *name, struct proc_dir_entry *de)
-+static int proc_match(const char *name, struct proc_dir_entry *de, unsigned int len)
- {
- 	if (len < de->namelen)
- 		return -1;
-@@ -60,7 +60,7 @@ static struct proc_dir_entry *pde_subdir
- 		struct proc_dir_entry *de = rb_entry(node,
- 						     struct proc_dir_entry,
- 						     subdir_node);
--		int result = proc_match(len, name, de);
-+		int result = proc_match(name, de, len);
+ config THIN_ARCHIVES
+diff -puN kernel/configs/tiny.config~makefile-introduce-config_cc_stackprotector_auto kernel/configs/tiny.config
+--- a/kernel/configs/tiny.config~makefile-introduce-config_cc_stackprotector_auto
++++ a/kernel/configs/tiny.config
+@@ -10,3 +10,7 @@ CONFIG_OPTIMIZE_INLINING=y
+ # CONFIG_SLAB is not set
+ # CONFIG_SLUB is not set
+ CONFIG_SLOB=y
++CONFIG_CC_STACKPROTECTOR_NONE=y
++# CONFIG_CC_STACKPROTECTOR_REGULAR is not set
++# CONFIG_CC_STACKPROTECTOR_STRONG is not set
++# CONFIG_CC_STACKPROTECTOR_AUTO is not set
+diff -puN Makefile~makefile-introduce-config_cc_stackprotector_auto Makefile
+--- a/Makefile~makefile-introduce-config_cc_stackprotector_auto
++++ a/Makefile
+@@ -680,6 +680,10 @@ endif
+ # This selects the stack protector compiler flag. Testing it is delayed
+ # until after .config has been reprocessed, in the prepare-compiler-check
+ # target.
++ifdef CONFIG_CC_STACKPROTECTOR_AUTO
++  stackp-flag := $(call cc-option,-fstack-protector-strong,$(call cc-option,-fstack-protector))
++  stackp-name := AUTO
++else
+ ifdef CONFIG_CC_STACKPROTECTOR_REGULAR
+   stackp-flag := -fstack-protector
+   stackp-name := REGULAR
+@@ -688,12 +692,18 @@ ifdef CONFIG_CC_STACKPROTECTOR_STRONG
+   stackp-flag := -fstack-protector-strong
+   stackp-name := STRONG
+ else
++  # If either there is no stack protector for this architecture or
++  # CONFIG_CC_STACKPROTECTOR_NONE is selected, we're done, and $(stackp-name)
++  # is empty, skipping all remaining stack protector tests.
++  #
+   # Force off for distro compilers that enable stack protector by default.
+-  stackp-flag := $(call cc-option, -fno-stack-protector)
++  KBUILD_CFLAGS += $(call cc-option, -fno-stack-protector)
++endif
+ endif
+ endif
+ # Find arch-specific stack protector compiler sanity-checking script.
+ ifdef stackp-name
++ifneq ($(stackp-flag),)
+   stackp-path := $(srctree)/scripts/gcc-$(SRCARCH)_$(BITS)-has-stack-protector.sh
+   stackp-check := $(wildcard $(stackp-path))
+   # If the wildcard test matches a test script, run it to check functionality.
+@@ -705,9 +715,17 @@ ifdef stackp-name
+   ifndef stackp-broken
+     # If the stack protector is functional, enable code that depends on it.
+     KBUILD_CPPFLAGS += -DCONFIG_CC_STACKPROTECTOR
++    # Either we've already detected the flag (for AUTO) or we'll fail the
++    # build in the prepare-compiler-check rule (for specific flag).
++    KBUILD_CFLAGS += $(stackp-flag)
++  else
++    # We have to make sure stack protector is unconditionally disabled if
++    # the compiler is broken (in case we're going to continue the build in
++    # AUTO mode).
++    KBUILD_CFLAGS += $(call cc-option, -fno-stack-protector)
+   endif
+ endif
+-KBUILD_CFLAGS += $(stackp-flag)
++endif
  
- 		if (result < 0)
- 			node = node->rb_left;
-@@ -84,7 +84,7 @@ static bool pde_subdir_insert(struct pro
- 		struct proc_dir_entry *this = rb_entry(*new,
- 						       struct proc_dir_entry,
- 						       subdir_node);
--		int result = proc_match(de->namelen, de->name, this);
-+		int result = proc_match(de->name, this, de->namelen);
+ ifeq ($(cc-name),clang)
+ KBUILD_CPPFLAGS += $(call cc-option,-Qunused-arguments,)
+@@ -1102,15 +1120,28 @@ PHONY += prepare-compiler-check
+ prepare-compiler-check: FORCE
+ # Make sure compiler supports requested stack protector flag.
+ ifdef stackp-name
++  # Warn about CONFIG_CC_STACKPROTECTOR_AUTO having found no option.
++  ifeq ($(stackp-flag),)
++	@echo CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
++		  Compiler does not support any known stack-protector >&2
++  else
++  # Fail if specifically requested stack protector is missing.
+   ifeq ($(call cc-option, $(stackp-flag)),)
+ 	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
+ 		  $(stackp-flag) not supported by compiler >&2 && exit 1
+   endif
++  endif
+ endif
+-# Make sure compiler does not have buggy stack-protector support.
++# Make sure compiler does not have buggy stack-protector support. If a
++# specific stack-protector was requested, fail the build, otherwise warn.
+ ifdef stackp-broken
++  ifeq ($(stackp-name),AUTO)
++	@echo CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
++                  $(stackp-flag) available but compiler is broken: disabling >&2
++  else
+ 	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
+                   $(stackp-flag) available but compiler is broken >&2 && exit 1
++  endif
+ endif
+ 	@:
  
- 		parent = *new;
- 		if (result < 0)
-@@ -211,8 +211,8 @@ void proc_free_inum(unsigned int inum)
-  * Don't create negative dentries here, return -ENOENT by hand
-  * instead.
-  */
--struct dentry *proc_lookup_de(struct proc_dir_entry *de, struct inode *dir,
--		struct dentry *dentry)
-+struct dentry *proc_lookup_de(struct inode *dir, struct dentry *dentry,
-+			      struct proc_dir_entry *de)
- {
- 	struct inode *inode;
- 
-@@ -235,7 +235,7 @@ struct dentry *proc_lookup_de(struct pro
- struct dentry *proc_lookup(struct inode *dir, struct dentry *dentry,
- 		unsigned int flags)
- {
--	return proc_lookup_de(PDE(dir), dir, dentry);
-+	return proc_lookup_de(dir, dentry, PDE(dir));
- }
- 
- /*
-@@ -247,8 +247,8 @@ struct dentry *proc_lookup(struct inode
-  * value of the readdir() call, as long as it's non-negative
-  * for success..
-  */
--int proc_readdir_de(struct proc_dir_entry *de, struct file *file,
--		    struct dir_context *ctx)
-+int proc_readdir_de(struct file *file, struct dir_context *ctx,
-+		    struct proc_dir_entry *de)
- {
- 	int i;
- 
-@@ -292,7 +292,7 @@ int proc_readdir(struct file *file, stru
- {
- 	struct inode *inode = file_inode(file);
- 
--	return proc_readdir_de(PDE(inode), file, ctx);
-+	return proc_readdir_de(file, ctx, PDE(inode));
- }
- 
- /*
-diff -puN fs/proc/internal.h~proc-rearrange-args fs/proc/internal.h
---- a/fs/proc/internal.h~proc-rearrange-args
-+++ a/fs/proc/internal.h
-@@ -153,10 +153,9 @@ extern bool proc_fill_cache(struct file
-  * generic.c
-  */
- extern struct dentry *proc_lookup(struct inode *, struct dentry *, unsigned int);
--extern struct dentry *proc_lookup_de(struct proc_dir_entry *, struct inode *,
--				     struct dentry *);
-+struct dentry *proc_lookup_de(struct inode *, struct dentry *, struct proc_dir_entry *);
- extern int proc_readdir(struct file *, struct dir_context *);
--extern int proc_readdir_de(struct proc_dir_entry *, struct file *, struct dir_context *);
-+int proc_readdir_de(struct file *, struct dir_context *, struct proc_dir_entry *);
- 
- static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
- {
-diff -puN fs/proc/proc_net.c~proc-rearrange-args fs/proc/proc_net.c
---- a/fs/proc/proc_net.c~proc-rearrange-args
-+++ a/fs/proc/proc_net.c
-@@ -135,7 +135,7 @@ static struct dentry *proc_tgid_net_look
- 	de = ERR_PTR(-ENOENT);
- 	net = get_proc_task_net(dir);
- 	if (net != NULL) {
--		de = proc_lookup_de(net->proc_net, dir, dentry);
-+		de = proc_lookup_de(dir, dentry, net->proc_net);
- 		put_net(net);
- 	}
- 	return de;
-@@ -172,7 +172,7 @@ static int proc_tgid_net_readdir(struct
- 	ret = -EINVAL;
- 	net = get_proc_task_net(file_inode(file));
- 	if (net != NULL) {
--		ret = proc_readdir_de(net->proc_net, file, ctx);
-+		ret = proc_readdir_de(file, ctx, net->proc_net);
- 		put_net(net);
- 	}
- 	return ret;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-seq_file-delete-small-value-optimization.patch
 
