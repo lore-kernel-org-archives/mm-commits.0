@@ -1,149 +1,163 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kasan-clean-up-kasan_shadow_scale_shift-usage.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 11:55:40 -0800
-Message-ID: <20180207195540.aNnIpHoFk%akpm@linux-foundation.org>
+ proc-use-%u-for-pid-printing-and-slightly-less-stack.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 11:55:47 -0800
+Message-ID: <20180207195547.UOqsOc3-O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58078 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58110 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754421AbeBGTzm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:42 -0500
+        with ESMTP id S1754422AbeBGTzs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org, viro@ftp.linux.org.uk
 
 
 The patch titled
-     Subject: kasan: clean up KASAN_SHADOW_SCALE_SHIFT usage
+     Subject: proc: use %u for pid printing and slightly less stack
 has been removed from the -mm tree.  Its filename was
-     kasan-clean-up-kasan_shadow_scale_shift-usage.patch
+     proc-use-%u-for-pid-printing-and-slightly-less-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clean up KASAN_SHADOW_SCALE_SHIFT usage
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: use %u for pid printing and slightly less stack
 
-Right now the fact that KASAN uses a single shadow byte for 8 bytes of
-memory is scattered all over the code.
+PROC_NUMBUF is 13 which is enough for "negative int + \n + \0".
 
-This change defines KASAN_SHADOW_SCALE_SHIFT early in asm include files
-and makes use of this constant where necessary.
+However PIDs and TGIDs are never negative and newline is not a concern,
+so use just 10 per integer.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/34937ca3b90736eaad91b568edf5684091f662e3.1515775666.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20171120203005.GA27743@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alexander Viro <viro@ftp.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/kasan.h  |   17 ++++++++++-------
- arch/arm64/include/asm/memory.h |    3 ++-
- arch/arm64/mm/kasan_init.c      |    3 ++-
- arch/x86/include/asm/kasan.h    |   12 ++++++++----
- include/linux/kasan.h           |    2 --
- 5 files changed, 22 insertions(+), 15 deletions(-)
+ fs/proc/base.c        |   16 ++++++++--------
+ fs/proc/fd.c          |    2 +-
+ fs/proc/self.c        |    6 +++---
+ fs/proc/thread_self.c |    5 ++---
+ 4 files changed, 14 insertions(+), 15 deletions(-)
 
-diff -puN arch/arm64/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage arch/arm64/include/asm/kasan.h
---- a/arch/arm64/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage
-+++ a/arch/arm64/include/asm/kasan.h
-@@ -12,7 +12,8 @@
- 
- /*
-  * KASAN_SHADOW_START: beginning of the kernel virtual addresses.
-- * KASAN_SHADOW_END: KASAN_SHADOW_START + 1/8 of kernel virtual addresses.
-+ * KASAN_SHADOW_END: KASAN_SHADOW_START + 1/N of kernel virtual addresses,
-+ * where N = (1 << KASAN_SHADOW_SCALE_SHIFT).
-  */
- #define KASAN_SHADOW_START      (VA_START)
- #define KASAN_SHADOW_END        (KASAN_SHADOW_START + KASAN_SHADOW_SIZE)
-@@ -20,14 +21,16 @@
- /*
-  * This value is used to map an address to the corresponding shadow
-  * address by the following formula:
-- *     shadow_addr = (address >> 3) + KASAN_SHADOW_OFFSET;
-+ *     shadow_addr = (address >> KASAN_SHADOW_SCALE_SHIFT) + KASAN_SHADOW_OFFSET
-  *
-- * (1 << 61) shadow addresses - [KASAN_SHADOW_OFFSET,KASAN_SHADOW_END]
-- * cover all 64-bits of virtual addresses. So KASAN_SHADOW_OFFSET
-- * should satisfy the following equation:
-- *      KASAN_SHADOW_OFFSET = KASAN_SHADOW_END - (1ULL << 61)
-+ * (1 << (64 - KASAN_SHADOW_SCALE_SHIFT)) shadow addresses that lie in range
-+ * [KASAN_SHADOW_OFFSET, KASAN_SHADOW_END) cover all 64-bits of virtual
-+ * addresses. So KASAN_SHADOW_OFFSET should satisfy the following equation:
-+ *      KASAN_SHADOW_OFFSET = KASAN_SHADOW_END -
-+ *				(1ULL << (64 - KASAN_SHADOW_SCALE_SHIFT))
-  */
--#define KASAN_SHADOW_OFFSET     (KASAN_SHADOW_END - (1ULL << (64 - 3)))
-+#define KASAN_SHADOW_OFFSET     (KASAN_SHADOW_END - (1ULL << \
-+					(64 - KASAN_SHADOW_SCALE_SHIFT)))
- 
- void kasan_init(void);
- void kasan_copy_shadow(pgd_t *pgdir);
-diff -puN arch/arm64/include/asm/memory.h~kasan-clean-up-kasan_shadow_scale_shift-usage arch/arm64/include/asm/memory.h
---- a/arch/arm64/include/asm/memory.h~kasan-clean-up-kasan_shadow_scale_shift-usage
-+++ a/arch/arm64/include/asm/memory.h
-@@ -85,7 +85,8 @@
-  * stack size when KASAN is in use.
-  */
- #ifdef CONFIG_KASAN
--#define KASAN_SHADOW_SIZE	(UL(1) << (VA_BITS - 3))
-+#define KASAN_SHADOW_SCALE_SHIFT 3
-+#define KASAN_SHADOW_SIZE	(UL(1) << (VA_BITS - KASAN_SHADOW_SCALE_SHIFT))
- #define KASAN_THREAD_SHIFT	1
- #else
- #define KASAN_SHADOW_SIZE	(0)
-diff -puN arch/arm64/mm/kasan_init.c~kasan-clean-up-kasan_shadow_scale_shift-usage arch/arm64/mm/kasan_init.c
---- a/arch/arm64/mm/kasan_init.c~kasan-clean-up-kasan_shadow_scale_shift-usage
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -135,7 +135,8 @@ static void __init kasan_pgd_populate(un
- /* The early shadow maps everything to a single page of zeroes */
- asmlinkage void __init kasan_early_init(void)
+diff -puN fs/proc/base.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/base.c
+--- a/fs/proc/base.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
++++ a/fs/proc/base.c
+@@ -3018,11 +3018,11 @@ static const struct inode_operations pro
+ static void proc_flush_task_mnt(struct vfsmount *mnt, pid_t pid, pid_t tgid)
  {
--	BUILD_BUG_ON(KASAN_SHADOW_OFFSET != KASAN_SHADOW_END - (1UL << 61));
-+	BUILD_BUG_ON(KASAN_SHADOW_OFFSET !=
-+		KASAN_SHADOW_END - (1UL << (64 - KASAN_SHADOW_SCALE_SHIFT)));
- 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_START, PGDIR_SIZE));
- 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_END, PGDIR_SIZE));
- 	kasan_pgd_populate(KASAN_SHADOW_START, KASAN_SHADOW_END, NUMA_NO_NODE,
-diff -puN arch/x86/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage arch/x86/include/asm/kasan.h
---- a/arch/x86/include/asm/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage
-+++ a/arch/x86/include/asm/kasan.h
-@@ -4,6 +4,7 @@
+ 	struct dentry *dentry, *leader, *dir;
+-	char buf[PROC_NUMBUF];
++	char buf[10 + 1];
+ 	struct qstr name;
  
- #include <linux/const.h>
- #define KASAN_SHADOW_OFFSET _AC(CONFIG_KASAN_SHADOW_OFFSET, UL)
-+#define KASAN_SHADOW_SCALE_SHIFT 3
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", pid);
++	name.len = snprintf(buf, sizeof(buf), "%u", pid);
+ 	/* no ->d_hash() rejects on procfs */
+ 	dentry = d_hash_and_lookup(mnt->mnt_root, &name);
+ 	if (dentry) {
+@@ -3034,7 +3034,7 @@ static void proc_flush_task_mnt(struct v
+ 		return;
  
- /*
-  * Compiler uses shadow offset assuming that addresses start
-@@ -12,12 +13,15 @@
-  * 'kernel address space start' >> KASAN_SHADOW_SCALE_SHIFT
-  */
- #define KASAN_SHADOW_START      (KASAN_SHADOW_OFFSET + \
--					((-1UL << __VIRTUAL_MASK_SHIFT) >> 3))
-+					((-1UL << __VIRTUAL_MASK_SHIFT) >> \
-+						KASAN_SHADOW_SCALE_SHIFT))
- /*
-- * 47 bits for kernel address -> (47 - 3) bits for shadow
-- * 56 bits for kernel address -> (56 - 3) bits for shadow
-+ * 47 bits for kernel address -> (47 - KASAN_SHADOW_SCALE_SHIFT) bits for shadow
-+ * 56 bits for kernel address -> (56 - KASAN_SHADOW_SCALE_SHIFT) bits for shadow
-  */
--#define KASAN_SHADOW_END        (KASAN_SHADOW_START + (1ULL << (__VIRTUAL_MASK_SHIFT - 3)))
-+#define KASAN_SHADOW_END        (KASAN_SHADOW_START + \
-+					(1ULL << (__VIRTUAL_MASK_SHIFT - \
-+						  KASAN_SHADOW_SCALE_SHIFT)))
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
++	name.len = snprintf(buf, sizeof(buf), "%u", tgid);
+ 	leader = d_hash_and_lookup(mnt->mnt_root, &name);
+ 	if (!leader)
+ 		goto out;
+@@ -3046,7 +3046,7 @@ static void proc_flush_task_mnt(struct v
+ 		goto out_put_leader;
  
- #ifndef __ASSEMBLY__
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", pid);
++	name.len = snprintf(buf, sizeof(buf), "%u", pid);
+ 	dentry = d_hash_and_lookup(dir, &name);
+ 	if (dentry) {
+ 		d_invalidate(dentry);
+@@ -3225,14 +3225,14 @@ int proc_pid_readdir(struct file *file,
+ 	for (iter = next_tgid(ns, iter);
+ 	     iter.task;
+ 	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
+-		char name[PROC_NUMBUF];
++		char name[10 + 1];
+ 		int len;
  
-diff -puN include/linux/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-clean-up-kasan_shadow_scale_shift-usage
-+++ a/include/linux/kasan.h
-@@ -11,8 +11,6 @@ struct task_struct;
+ 		cond_resched();
+ 		if (!has_pid_permissions(ns, iter.task, HIDEPID_INVISIBLE))
+ 			continue;
  
- #ifdef CONFIG_KASAN
+-		len = snprintf(name, sizeof(name), "%d", iter.tgid);
++		len = snprintf(name, sizeof(name), "%u", iter.tgid);
+ 		ctx->pos = iter.tgid + TGID_OFFSET;
+ 		if (!proc_fill_cache(file, ctx, name, len,
+ 				     proc_pid_instantiate, iter.task, NULL)) {
+@@ -3560,10 +3560,10 @@ static int proc_task_readdir(struct file
+ 	for (task = first_tid(proc_pid(inode), tid, ctx->pos - 2, ns);
+ 	     task;
+ 	     task = next_tid(task), ctx->pos++) {
+-		char name[PROC_NUMBUF];
++		char name[10 + 1];
+ 		int len;
+ 		tid = task_pid_nr_ns(task, ns);
+-		len = snprintf(name, sizeof(name), "%d", tid);
++		len = snprintf(name, sizeof(name), "%u", tid);
+ 		if (!proc_fill_cache(file, ctx, name, len,
+ 				proc_task_instantiate, task, NULL)) {
+ 			/* returning this tgid failed, save it as the first
+diff -puN fs/proc/fd.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/fd.c
+--- a/fs/proc/fd.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
++++ a/fs/proc/fd.c
+@@ -236,7 +236,7 @@ static int proc_readfd_common(struct fil
+ 	for (fd = ctx->pos - 2;
+ 	     fd < files_fdtable(files)->max_fds;
+ 	     fd++, ctx->pos++) {
+-		char name[PROC_NUMBUF];
++		char name[10 + 1];
+ 		int len;
  
--#define KASAN_SHADOW_SCALE_SHIFT 3
+ 		if (!fcheck_files(files, fd))
+diff -puN fs/proc/self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/self.c
+--- a/fs/proc/self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
++++ a/fs/proc/self.c
+@@ -17,11 +17,11 @@ static const char *proc_self_get_link(st
+ 
+ 	if (!tgid)
+ 		return ERR_PTR(-ENOENT);
+-	/* 11 for max length of signed int in decimal + NULL term */
+-	name = kmalloc(12, dentry ? GFP_KERNEL : GFP_ATOMIC);
++	/* max length of unsigned int in decimal + NULL term */
++	name = kmalloc(10 + 1, dentry ? GFP_KERNEL : GFP_ATOMIC);
+ 	if (unlikely(!name))
+ 		return dentry ? ERR_PTR(-ENOMEM) : ERR_PTR(-ECHILD);
+-	sprintf(name, "%d", tgid);
++	sprintf(name, "%u", tgid);
+ 	set_delayed_call(done, kfree_link, name);
+ 	return name;
+ }
+diff -puN fs/proc/thread_self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack fs/proc/thread_self.c
+--- a/fs/proc/thread_self.c~proc-use-%u-for-pid-printing-and-slightly-less-stack
++++ a/fs/proc/thread_self.c
+@@ -18,11 +18,10 @@ static const char *proc_thread_self_get_
+ 
+ 	if (!pid)
+ 		return ERR_PTR(-ENOENT);
+-	name = kmalloc(PROC_NUMBUF + 6 + PROC_NUMBUF,
+-				dentry ? GFP_KERNEL : GFP_ATOMIC);
++	name = kmalloc(10 + 6 + 10 + 1, dentry ? GFP_KERNEL : GFP_ATOMIC);
+ 	if (unlikely(!name))
+ 		return dentry ? ERR_PTR(-ENOMEM) : ERR_PTR(-ECHILD);
+-	sprintf(name, "%d/task/%d", tgid, pid);
++	sprintf(name, "%u/task/%u", tgid, pid);
+ 	set_delayed_call(done, kfree_link, name);
+ 	return name;
+ }
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+seq_file-delete-small-value-optimization.patch
+
