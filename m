@@ -1,87 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?mm-docs-add-blank-lines-to-silence-sphinx-unexpected-inde?=
- =?US-ASCII?Q?ntation-errors.patch?= removed from -mm tree
-Date: Wed, 07 Feb 2018 12:00:37 -0800
-Message-ID: <20180207200037.270Rsk1CW%akpm@linux-foundation.org>
+Subject: [merged] pipe-read-buffer-limits-atomically.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 12:00:28 -0800
+Message-ID: <20180207200028._giRKEik5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60646 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:38 -0500
+        with ESMTP id S1753721AbeBGUA3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com
+To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, w@1wt.eu
 
 
 The patch titled
-     Subject: mm: docs: add blank lines to silence sphinx "Unexpected indentation" errors
+     Subject: pipe: read buffer limits atomically
 has been removed from the -mm tree.  Its filename was
-     mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors.patch
+     pipe-read-buffer-limits-atomically.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: mm: docs: add blank lines to silence sphinx "Unexpected indentation" errors
+From: Eric Biggers <ebiggers@google.com>
+Subject: pipe: read buffer limits atomically
 
-Link: http://lkml.kernel.org/r/1516700871-22279-4-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+The pipe buffer limits are accessed without any locking, and may be
+changed at any time by the sysctl handlers.  In theory this could cause
+problems for expressions like the following:
+
+    pipe_user_pages_hard && user_bufs > pipe_user_pages_hard
+
+...  since the assembly code might reference the 'pipe_user_pages_hard'
+memory location multiple times, and if the admin removes the limit by
+setting it to 0, there is a very brief window where processes could
+incorrectly observe the limit to be exceeded.
+
+Fix this by loading the limits with READ_ONCE() prior to use.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-8-ebiggers3@gmail.com
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c          |    1 +
- mm/process_vm_access.c |    2 ++
- mm/vmscan.c            |    1 +
- 3 files changed, 4 insertions(+)
+ fs/pipe.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/pagewalk.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors mm/pagewalk.c
---- a/mm/pagewalk.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors
-+++ a/mm/pagewalk.c
-@@ -265,6 +265,7 @@ static int __walk_page_range(unsigned lo
-  * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
-  * callbacks, the associated entries/pages are just ignored.
-  * The return values of these callbacks are commonly defined like below:
-+ *
-  *  - 0  : succeeded to handle the current entry, and if you don't reach the
-  *         end address yet, continue to walk.
-  *  - >0 : succeeded to handle the current entry, and return to the caller
-diff -puN mm/process_vm_access.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors mm/process_vm_access.c
---- a/mm/process_vm_access.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors
-+++ a/mm/process_vm_access.c
-@@ -147,6 +147,7 @@ static int process_vm_rw_single_vec(unsi
-  * @riovcnt: size of rvec array
-  * @flags: currently unused
-  * @vm_write: 0 if reading from other process, 1 if writing to other process
-+ *
-  * Returns the number of bytes read/written or error code. May
-  *  return less bytes than expected if an error occurs during the copying
-  *  process.
-@@ -249,6 +250,7 @@ free_proc_pages:
-  * @riovcnt: size of rvec array
-  * @flags: currently unused
-  * @vm_write: 0 if reading from other process, 1 if writing to other process
-+ *
-  * Returns the number of bytes read/written or error code. May
-  *  return less bytes than expected if an error occurs during the copying
-  *  process.
-diff -puN mm/vmscan.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors mm/vmscan.c
---- a/mm/vmscan.c~mm-docs-add-blank-lines-to-silence-sphinx-unexpected-indentation-errors
-+++ a/mm/vmscan.c
-@@ -1595,6 +1595,7 @@ static unsigned long isolate_lru_pages(u
-  * found will be decremented.
-  *
-  * Restrictions:
-+ *
-  * (1) Must be called with an elevated refcount on the page. This is a
-  *     fundamentnal difference from isolate_lru_pages (which is called
-  *     without a stable reference).
+diff -puN fs/pipe.c~pipe-read-buffer-limits-atomically fs/pipe.c
+--- a/fs/pipe.c~pipe-read-buffer-limits-atomically
++++ a/fs/pipe.c
+@@ -605,12 +605,16 @@ static unsigned long account_pipe_buffer
+ 
+ static bool too_many_pipe_buffers_soft(unsigned long user_bufs)
+ {
+-	return pipe_user_pages_soft && user_bufs > pipe_user_pages_soft;
++	unsigned long soft_limit = READ_ONCE(pipe_user_pages_soft);
++
++	return soft_limit && user_bufs > soft_limit;
+ }
+ 
+ static bool too_many_pipe_buffers_hard(unsigned long user_bufs)
+ {
+-	return pipe_user_pages_hard && user_bufs > pipe_user_pages_hard;
++	unsigned long hard_limit = READ_ONCE(pipe_user_pages_hard);
++
++	return hard_limit && user_bufs > hard_limit;
+ }
+ 
+ static bool is_unprivileged_user(void)
+@@ -624,13 +628,14 @@ struct pipe_inode_info *alloc_pipe_info(
+ 	unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
+ 	struct user_struct *user = get_current_user();
+ 	unsigned long user_bufs;
++	unsigned int max_size = READ_ONCE(pipe_max_size);
+ 
+ 	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
+ 	if (pipe == NULL)
+ 		goto out_free_uid;
+ 
+-	if (pipe_bufs * PAGE_SIZE > pipe_max_size && !capable(CAP_SYS_RESOURCE))
+-		pipe_bufs = pipe_max_size >> PAGE_SHIFT;
++	if (pipe_bufs * PAGE_SIZE > max_size && !capable(CAP_SYS_RESOURCE))
++		pipe_bufs = max_size >> PAGE_SHIFT;
+ 
+ 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+ 
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
 
