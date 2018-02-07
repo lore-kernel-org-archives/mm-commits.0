@@ -1,106 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-ubsan-remove-returns-nonnull-attribute-checks.patch removed from -mm
- tree
-Date: Wed, 07 Feb 2018 11:59:14 -0800
-Message-ID: <20180207195914.Ky4a9P-Hj%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-unneeded-kallsyms-include.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 11:59:32 -0800
+Message-ID: <20180207195932.YQBvE4CLp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754411AbeBGT7P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:15 -0500
+        with ESMTP id S1754531AbeBGT7d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, mm-commits@vger.kernel.org, psodagud@codeaurora.org
+To: mhocko@suse.com, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: lib/ubsan: remove returns-nonnull-attribute checks
+     Subject: mm: remove unneeded kallsyms include
 has been removed from the -mm tree.  Its filename was
-     lib-ubsan-remove-returns-nonnull-attribute-checks.patch
+     mm-remove-unneeded-kallsyms-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: lib/ubsan: remove returns-nonnull-attribute checks
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: mm: remove unneeded kallsyms include
 
-Similarly to type mismatch checks, new GCC 8.x and Clang also changed for
-ABI for returns_nonnull checks.  While we can update our code to conform
-the new ABI it's more reasonable to just remove it.  Because it's just
-dead code, we don't have any single user of returns_nonnull attribute in
-the whole kernel.
+The file was converted from print_symbol() to %pSR a while ago in
+071361d3473ebb814 ("mm: Convert print_symbol to %pSR").  kallsyms does not
+seem to be needed anymore.
 
-And AFAIU the advantage that this attribute could bring would be mitigated
-by -fno-delete-null-pointer-checks cflag that we use to build the kernel. 
-So it's unlikely we will have a lot of returns_nonnull attribute in
-future.
-
-So let's just remove the code, it has no use.
-
-[aryabinin@virtuozzo.com: fix warning]
-  Link: http://lkml.kernel.org/r/20180122165711.11510-1-aryabinin@virtuozzo.com
-Link: http://lkml.kernel.org/r/20180119152853.16806-2-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Sodagudi Prasad <psodagud@codeaurora.org>
+Link: http://lkml.kernel.org/r/20171208025616.16267-3-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c            |   24 ------------------------
- lib/ubsan.h            |    5 -----
- scripts/Makefile.ubsan |    1 -
- 3 files changed, 30 deletions(-)
+ mm/memory.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks lib/ubsan.c
---- a/lib/ubsan.c~lib-ubsan-remove-returns-nonnull-attribute-checks
-+++ a/lib/ubsan.c
-@@ -141,11 +141,6 @@ static void val_to_string(char *str, siz
- 	}
- }
- 
--static bool location_is_valid(struct source_location *loc)
--{
--	return loc->file_name != NULL;
--}
--
- static DEFINE_SPINLOCK(report_lock);
- 
- static void ubsan_prologue(struct source_location *location,
-@@ -356,25 +351,6 @@ void __ubsan_handle_type_mismatch_v1(str
- }
- EXPORT_SYMBOL(__ubsan_handle_type_mismatch_v1);
- 
--void __ubsan_handle_nonnull_return(struct nonnull_return_data *data)
--{
--	unsigned long flags;
--
--	if (suppress_report(&data->location))
--		return;
--
--	ubsan_prologue(&data->location, &flags);
--
--	pr_err("null pointer returned from function declared to never return null\n");
--
--	if (location_is_valid(&data->attr_location))
--		print_source_location("returns_nonnull attribute specified in",
--				&data->attr_location);
--
--	ubsan_epilogue(&flags);
--}
--EXPORT_SYMBOL(__ubsan_handle_nonnull_return);
--
- void __ubsan_handle_vla_bound_not_positive(struct vla_bound_data *data,
- 					unsigned long bound)
- {
-diff -puN lib/ubsan.h~lib-ubsan-remove-returns-nonnull-attribute-checks lib/ubsan.h
---- a/lib/ubsan.h~lib-ubsan-remove-returns-nonnull-attribute-checks
-+++ a/lib/ubsan.h
-@@ -57,11 +57,6 @@ struct nonnull_arg_data {
- 	int arg_index;
- };
- 
--struct nonnull_return_data {
--	struct source_location location;
--	struct source_location attr_location;
--};
+diff -puN mm/memory.c~mm-remove-unneeded-kallsyms-include mm/memory.c
+--- a/mm/memory.c~mm-remove-unneeded-kallsyms-include
++++ a/mm/memory.c
+@@ -59,7 +59,6 @@
+ #include <linux/writeback.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mmu_notifier.h>
+-#include <linux/kallsyms.h>
+ #include <linux/swapops.h>
+ #include <linux/elf.h>
+ #include <linux/gfp.h>
+@@ -767,9 +766,6 @@ static void print_bad_pte(struct vm_area
+ 		dump_page(page, "bad pte");
+ 	pr_alert("addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
+ 		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
+-	/*
+-	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
+-	 */
+ 	pr_alert("file:%pD fault:%pf mmap:%pf readpage:%pf\n",
+ 		 vma->vm_file,
+ 		 vma->vm_ops ? vma->vm_ops->fault : NULL,
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
+
+
