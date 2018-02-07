@@ -1,64 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- fs-elf-drop-map_fixed-usage-from-elf_map-fix.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 14:45:01 -0800
-Message-ID: <5a7b816d.c3CkNa3tyRdMVzWY%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-introduce-map_fixed_safe-fix.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 14:44:55 -0800
+Message-ID: <5a7b8167.sPzEs1pXgwlFkDW0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38496 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752197AbeBGWpD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:45:03 -0500
+        with ESMTP id S1752199AbeBGWo5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:44:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, mhocko@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't use the same value for MAP_FIXED_NOREPLACE and MAP_SYNC
+     Subject: mm-introduce-map_fixed_safe-fix
 has been removed from the -mm tree.  Its filename was
-     fs-elf-drop-map_fixed-usage-from-elf_map-fix.patch
+     mm-introduce-map_fixed_safe-fix.patch
 
 This patch was dropped because it was folded into mm-introduce-map_fixed_safe.patch
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@openvz.org>
-Subject: mm: don't use the same value for MAP_FIXED_NOREPLACE and MAP_SYNC
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: mm-introduce-map_fixed_safe-fix
 
-Link: http://lkml.kernel.org/r/20171218184916.24445-1-avagin@openvz.org
-Fixes: ("fs, elf: drop MAP_FIXED usage from elf_map")
-Signed-off-by: Andrei Vagin <avagin@openvz.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+There's also a couple of stray whitespace changes in the version in
+linux-next, and some inconsistent whitespace between the various mman.h
+changes. Patch below to fix them up.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/asm-generic/mman-common.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/mips/include/uapi/asm/mman.h   |    3 +--
+ arch/parisc/include/uapi/asm/mman.h |    3 +--
+ arch/sparc/include/uapi/asm/mman.h  |    1 +
+ arch/xtensa/include/uapi/asm/mman.h |    3 +--
+ 4 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/uapi/asm-generic/mman-common.h~fs-elf-drop-map_fixed-usage-from-elf_map-fix include/uapi/asm-generic/mman-common.h
---- a/include/uapi/asm-generic/mman-common.h~fs-elf-drop-map_fixed-usage-from-elf_map-fix
-+++ a/include/uapi/asm-generic/mman-common.h
-@@ -26,7 +26,9 @@
- #else
- # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
- #endif
--#define MAP_FIXED_NOREPLACE	0x80000	/* MAP_FIXED which doesn't unmap underlying mapping */
-+
-+/* 0x0100 - 0x80000 flags are defined in asm-generic/mman.h */
-+#define MAP_FIXED_NOREPLACE	0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
+diff -puN arch/mips/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -50,8 +50,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
  
  /*
-  * Flags for mlock
-_
-
-Patches currently in -mm which might be from avagin@openvz.org are
-
-mm-introduce-map_fixed_safe.patch
-procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
-procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2.patch
-procfs-optimize-seq_pad-to-speed-up-proc-pid-maps.patch
-
+  * Flags for msync
+diff -puN arch/parisc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -26,8 +26,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
+ 
+ #define MS_SYNC		1		/* synchronous memory sync */
+ #define MS_ASYNC	2		/* sync memory asynchronously */
+diff -puN arch/sparc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/sparc/include/uapi/asm/mman.h
+--- a/arch/sparc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/sparc/include/uapi/asm/mman.h
+@@ -25,4 +25,5 @@
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
+ 
++
+ #endif /* _UAPI__SPARC_MMAN_H__ */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -57,7 +57,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
+ #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
+ # define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
+ 					 * uninitialized */
+@@ -65,7 +65,6 @@
+ # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+ #endif
+ 
