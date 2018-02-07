@@ -1,66 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-kernel-relayc-fix-potential-memory-leak.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 11:58:54 -0800
-Message-ID: <20180207195854.7vmwat5J6%akpm@linux-foundation.org>
+ kcov-detect-double-association-with-a-single-task.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 11:58:57 -0800
+Message-ID: <20180207195857.MUSdEuyyS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754127AbeBGT6z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:55 -0500
+        with ESMTP id S1754710AbeBGT66 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, ebiggers@google.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, syzkaller@googlegroups.com, yizhouzhou@ict.ac.cn
+To: dvyukov@google.com, mm-commits@vger.kernel.org, sp3485@columbia.edu, syzkaller@googlegroups.com
 
 
 The patch titled
-     Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
+     Subject: kcov: detect double association with a single task
 has been removed from the -mm tree.  Its filename was
-     revert-kernel-relayc-fix-potential-memory-leak.patch
+     kcov-detect-double-association-with-a-single-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kcov: detect double association with a single task
 
-This reverts ba62bafe942b159a6 ("kernel/relay.c: fix potential memory leak").
+Currently KCOV_ENABLE does not check if the current task is already
+associated with another kcov descriptor. As the result it is possible
+to associate a single task with more than one kcov descriptor, which
+later leads to a memory leak of the old descriptor. This relation is
+really meant to be one-to-one (task has only one back link).
 
-This commit introduced a double free bug, because 'chan' is already
-freed by the line:
+Extend validation to detect such misuse.
 
-    kref_put(&chan->kref, relay_destroy_channel);
-
-This bug was found by syzkaller, using the BLKTRACESETUP ioctl.
-
-Link: http://lkml.kernel.org/r/20180127004759.101823-1-ebiggers3@gmail.com
-Fixes: ba62bafe942b ("kernel/relay.c: fix potential memory leak")
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>	[4.7+]
+Link: http://lkml.kernel.org/r/20180122082520.15716-1-dvyukov@google.com
+Fixes: 5c9a8750a640 ("kernel: add kcov code coverage")
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: Shankara Pailoor <sp3485@columbia.edu>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: syzbot <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/kcov.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak kernel/relay.c
---- a/kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak
-+++ a/kernel/relay.c
-@@ -611,7 +611,6 @@ free_bufs:
- 
- 	kref_put(&chan->kref, relay_destroy_channel);
- 	mutex_unlock(&relay_channels_mutex);
--	kfree(chan);
- 	return NULL;
- }
- EXPORT_SYMBOL_GPL(relay_open);
+diff -puN kernel/kcov.c~kcov-detect-double-association-with-a-single-task kernel/kcov.c
+--- a/kernel/kcov.c~kcov-detect-double-association-with-a-single-task
++++ a/kernel/kcov.c
+@@ -358,7 +358,8 @@ static int kcov_ioctl_locked(struct kcov
+ 		 */
+ 		if (kcov->mode != KCOV_MODE_INIT || !kcov->area)
+ 			return -EINVAL;
+-		if (kcov->t != NULL)
++		t = current;
++		if (kcov->t != NULL || t->kcov != NULL)
+ 			return -EBUSY;
+ 		if (arg == KCOV_TRACE_PC)
+ 			kcov->mode = KCOV_MODE_TRACE_PC;
+@@ -370,7 +371,6 @@ static int kcov_ioctl_locked(struct kcov
+ #endif
+ 		else
+ 			return -EINVAL;
+-		t = current;
+ 		/* Cache in task struct for performance. */
+ 		t->kcov_size = kcov->size;
+ 		t->kcov_area = kcov->area;
 _
 
-Patches currently in -mm which might be from ebiggers@google.com are
+Patches currently in -mm which might be from dvyukov@google.com are
 
 
