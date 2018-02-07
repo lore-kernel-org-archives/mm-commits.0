@@ -1,73 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pipe-simplify-round_pipe_size.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 12:00:25 -0800
-Message-ID: <20180207200025.uM_cI3HWC%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-various-palm-patterns.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 12:00:52 -0800
+Message-ID: <20180207200052.JFlZsm_j9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60810 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUA0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:26 -0500
+        with ESMTP id S1753721AbeBGUAy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, w@1wt.eu
+To: akpm@linux-foundation.org, arnd@arndb.de, joe@perches.com, marek.vasut@gmail.com, mm-commits@vger.kernel.org, sleep_walker@suse.com
 
 
 The patch titled
-     Subject: pipe: simplify round_pipe_size()
+     Subject: MAINTAINERS: update various PALM patterns
 has been removed from the -mm tree.  Its filename was
-     pipe-simplify-round_pipe_size.patch
+     maintainers-update-various-palm-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: pipe: simplify round_pipe_size()
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update various PALM patterns
 
-round_pipe_size() calculates the number of pages the requested size
-corresponds to, then rounds the page count up to the next power of 2.
+4c25c5d2985c ("ARM: pxa: make more mach/*.h files local") moved the files
+around, update the patterns.
 
-However, it also rounds everything < PAGE_SIZE up to PAGE_SIZE. 
-Therefore, there's no need to actually translate the size into a page
-count; we just need to round the size up to the next power of 2.
-
-We do need to verify the size isn't greater than (1 << 31), since on
-32-bit systems roundup_pow_of_two() would be undefined in that case.  But
-that can just be combined with the UINT_MAX check which we need anyway
-now.
-
-Finally, update pipe_set_size() to not redundantly check the return value
-of round_pipe_size() for the "invalid size" case twice.
-
-Link: http://lkml.kernel.org/r/20180111052902.14409-7-ebiggers3@gmail.com
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Willy Tarreau <w@1wt.eu>
+Link: http://lkml.kernel.org/r/a291f6f61e378a1f35e266fe4c5f646b9feeaa6a.1517147485.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Vasut <marek.vasut@gmail.com>
+Cc: Tomas Cech <sleep_walker@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ MAINTAINERS |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/pipe.c~pipe-simplify-round_pipe_size fs/pipe.c
---- a/fs/pipe.c~pipe-simplify-round_pipe_size
-+++ a/fs/pipe.c
-@@ -1022,20 +1022,14 @@ const struct file_operations pipefifo_fo
-  */
- unsigned int round_pipe_size(unsigned long size)
- {
--	unsigned long nr_pages;
--
--	if (size > UINT_MAX)
-+	if (size > (1U << 31))
- 		return 0;
+diff -puN MAINTAINERS~maintainers-update-various-palm-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-various-palm-patterns
++++ a/MAINTAINERS
+@@ -1743,8 +1743,7 @@ M:	Tomas Cech <sleep_walker@suse.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ W:	http://hackndev.com
+ S:	Maintained
+-F:	arch/arm/mach-pxa/include/mach/palmtreo.h
+-F:	arch/arm/mach-pxa/palmtreo.c
++F:	arch/arm/mach-pxa/palmtreo.*
  
- 	/* Minimum pipe size, as required by POSIX */
- 	if (size < PAGE_SIZE)
--		size = PAGE_SIZE;
+ ARM/PALMTX,PALMT5,PALMLD,PALMTE2,PALMTC SUPPORT
+ M:	Marek Vasut <marek.vasut@gmail.com>
+@@ -1753,12 +1752,10 @@ W:	http://hackndev.com
+ S:	Maintained
+ F:	arch/arm/mach-pxa/include/mach/palmtx.h
+ F:	arch/arm/mach-pxa/palmtx.c
+-F:	arch/arm/mach-pxa/include/mach/palmt5.h
+-F:	arch/arm/mach-pxa/palmt5.c
++F:	arch/arm/mach-pxa/palmt5.*
+ F:	arch/arm/mach-pxa/include/mach/palmld.h
+ F:	arch/arm/mach-pxa/palmld.c
+-F:	arch/arm/mach-pxa/include/mach/palmte2.h
+-F:	arch/arm/mach-pxa/palmte2.c
++F:	arch/arm/mach-pxa/palmte2.*
+ F:	arch/arm/mach-pxa/include/mach/palmtc.h
+ F:	arch/arm/mach-pxa/palmtc.c
+ 
+@@ -1767,8 +1764,7 @@ M:	Sergey Lapin <slapin@ossfans.org>
+ L:	linux-arm-kernel@lists.infradead.org
+ W:	http://hackndev.com
+ S:	Maintained
+-F:	arch/arm/mach-pxa/include/mach/palmz72.h
+-F:	arch/arm/mach-pxa/palmz72.c
++F:	arch/arm/mach-pxa/palmz72.*
+ 
+ ARM/PLEB SUPPORT
+ M:	Peter Chubb <pleb@gelato.unsw.edu.au>
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+
