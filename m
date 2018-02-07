@@ -1,111 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-async-simplify-lowest_in_progress.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 11:56:42 -0800
-Message-ID: <20180207195642.Y4KsGPGfj%akpm@linux-foundation.org>
+Subject: [merged]
+ bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:57:00 -0800
+Message-ID: <20180207195700.6Ng4cIo3R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59402 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754493AbeBGT4n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:43 -0500
+        with ESMTP id S1754238AbeBGT5C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, awallis@codeaurora.org, laijs@cn.fujitsu.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, rdunlap@infradead.org, ynorov@caviumnetworks.com
 
 
 The patch titled
-     Subject: kernel/async.c: revert "async: simplify lowest_in_progress()"
+     Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
 has been removed from the -mm tree.  Its filename was
-     revert-async-simplify-lowest_in_progress.patch
+     bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel/async.c: revert "async: simplify lowest_in_progress()"
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
 
-This reverts 92266d6ef60c2381 ("async: simplify lowest_in_progress()"),
-which was simply wrong: In the case where domain is NULL, we now use the
-wrong offsetof() in the list_first_entry macro, so we don't actually fetch
-the ->cookie value, but rather the eight bytes located sizeof(struct
-list_head) further into the struct async_entry.
+Since we have separate explicit test cases for bitmap_zero() /
+bitmap_clear() and bitmap_fill() / bitmap_set(), clean up
+test_zero_fill_copy() to only test bitmap_copy() functionality and thus
+rename a function to reflect the changes.
 
-On 64 bit, that's the data member, while on 32 bit, that's a u64 built
-from func and data in some order.
+While here, replace bitmap_fill() by bitmap_set() with proper values.
 
-I think the bug happens to be harmless in practice: It obviously only
-affects callers which pass a NULL domain, and AFAICT the only such caller
-is
-
-  async_synchronize_full() ->
-  async_synchronize_full_domain(NULL) ->
-  async_synchronize_cookie_domain(ASYNC_COOKIE_MAX, NULL)
-
-and the ASYNC_COOKIE_MAX means that in practice we end up waiting for the
-async_global_pending list to be empty - but it would break if somebody
-happened to pass (void*)-1 as the data element to async_schedule, and of
-course also if somebody ever does a async_synchronize_cookie_domain(,
-NULL) with a "finite" cookie value.
-
-Maybe the "harmless in practice" means this isn't -stable material.  But
-I'm not completely confident my quick git grep'ing is enough, and there
-might be affected code in one of the earlier kernels that has since been
-removed, so I'll leave the decision to the stable guys.
-
-Link: http://lkml.kernel.org/r/20171128104938.3921-1-linux@rasmusvillemoes.dk
-Fixes: 92266d6ef60c "async: simplify lowest_in_progress()"
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Adam Wallis <awallis@codeaurora.org>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[3.10+]
+Link: http://lkml.kernel.org/r/20180109172430.87452-3-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/async.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ lib/test_bitmap.c |   29 +++++------------------------
+ 1 file changed, 5 insertions(+), 24 deletions(-)
 
-diff -puN kernel/async.c~revert-async-simplify-lowest_in_progress kernel/async.c
---- a/kernel/async.c~revert-async-simplify-lowest_in_progress
-+++ a/kernel/async.c
-@@ -84,20 +84,24 @@ static atomic_t entry_count;
+diff -puN lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename
++++ a/lib/test_bitmap.c
+@@ -163,7 +163,7 @@ static void __init test_fill_set(void)
+ 	expect_eq_pbl("0-1023", bmap, 1024);
+ }
  
- static async_cookie_t lowest_in_progress(struct async_domain *domain)
+-static void __init test_zero_fill_copy(void)
++static void __init test_copy(void)
  {
--	struct list_head *pending;
-+	struct async_entry *first = NULL;
- 	async_cookie_t ret = ASYNC_COOKIE_MAX;
- 	unsigned long flags;
+ 	DECLARE_BITMAP(bmap1, 1024);
+ 	DECLARE_BITMAP(bmap2, 1024);
+@@ -172,36 +172,20 @@ static void __init test_zero_fill_copy(v
+ 	bitmap_zero(bmap2, 1024);
  
- 	spin_lock_irqsave(&async_lock, flags);
+ 	/* single-word bitmaps */
+-	expect_eq_pbl("", bmap1, 23);
+-
+-	bitmap_fill(bmap1, 19);
+-	expect_eq_pbl("0-18", bmap1, 1024);
+-
++	bitmap_set(bmap1, 0, 19);
+ 	bitmap_copy(bmap2, bmap1, 23);
+ 	expect_eq_pbl("0-18", bmap2, 1024);
  
--	if (domain)
--		pending = &domain->pending;
--	else
--		pending = &async_global_pending;
-+	if (domain) {
-+		if (!list_empty(&domain->pending))
-+			first = list_first_entry(&domain->pending,
-+					struct async_entry, domain_list);
-+	} else {
-+		if (!list_empty(&async_global_pending))
-+			first = list_first_entry(&async_global_pending,
-+					struct async_entry, global_list);
-+	}
+-	bitmap_fill(bmap2, 23);
+-	expect_eq_pbl("0-22", bmap2, 1024);
+-
++	bitmap_set(bmap2, 0, 23);
+ 	bitmap_copy(bmap2, bmap1, 23);
+ 	expect_eq_pbl("0-18", bmap2, 1024);
  
--	if (!list_empty(pending))
--		ret = list_first_entry(pending, struct async_entry,
--				       domain_list)->cookie;
-+	if (first)
-+		ret = first->cookie;
+-	bitmap_zero(bmap1, 23);
+-	expect_eq_pbl("", bmap1, 1024);
+-
+ 	/* multi-word bitmaps */
+-	bitmap_zero(bmap1, 1024);
+-	expect_eq_pbl("", bmap1, 1024);
+-
+-	bitmap_fill(bmap1, 109);
+-	expect_eq_pbl("0-108", bmap1, 1024);
+-
++	bitmap_set(bmap1, 0, 109);
+ 	bitmap_copy(bmap2, bmap1, 1024);
+ 	expect_eq_pbl("0-108", bmap2, 1024);
  
- 	spin_unlock_irqrestore(&async_lock, flags);
- 	return ret;
-_
-
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
-
-ida-do-zeroing-in-ida_pre_get.patch
-
+ 	bitmap_fill(bmap2, 1024);
+-	expect_eq_pbl("0-1023", bmap2, 1024);
+-
+ 	bitmap_copy(bmap2, bmap1, 1024);
+ 	expect_eq_pbl("0-108", bmap2, 1024);
+ 
+@@ -216,9 +200,6 @@ static void __init test_zero_fill_copy(v
+ 	bitmap_fill(bmap2, 1024);
+ 	bitmap_copy(bmap2, bmap1, 97);  /* ... but aligned on word length */
+ 	expect_eq_pbl("0-108,128-1023", bmap2, 1024);
