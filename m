@@ -1,48 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-use-seq_putc-in-show_console_dev.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 11:56:24 -0800
-Message-ID: <20180207195624.UTosxSg6u%akpm@linux-foundation.org>
+Subject: [merged]
+ makefile-move-stack-protector-compiler-breakage-test-earlier.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 11:56:27 -0800
+Message-ID: <20180207195627.RCHIX0NDn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58618 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754355AbeBGT4Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:25 -0500
+        with ESMTP id S1754087AbeBGT42 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, mm-commits@vger.kernel.org
+To: arnd@arndb.de, josh@joshtriplett.org, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: fs/proc/consoles.c: use seq_putc() in show_console_dev()
+     Subject: Makefile: move stack-protector compiler breakage test earlier
 has been removed from the -mm tree.  Its filename was
-     fs-proc-use-seq_putc-in-show_console_dev.patch
+     makefile-move-stack-protector-compiler-breakage-test-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: fs/proc/consoles.c: use seq_putc() in show_console_dev()
+From: Kees Cook <keescook@chromium.org>
+Subject: Makefile: move stack-protector compiler breakage test earlier
 
-A single character (line break) should be put into a sequence.  Thus use
-the corresponding function "seq_putc".
+In order to make stack-protector failures warn instead of unconditionally
+breaking the build, this moves the compiler output sanity-check earlier,
+and sets a flag for later testing.  Future patches can choose to warn or
+fail, depending on the flag value.
 
-This issue was detected by using the Coccinelle software.
-
-Link: http://lkml.kernel.org/r/04fb69fe-d820-9141-820f-07e9a48f4635@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Link: http://lkml.kernel.org/r/1510076320-69931-2-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Tested-by: Laura Abbott <labbott@redhat.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/consoles.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Makefile |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/consoles.c~fs-proc-use-seq_putc-in-show_console_dev fs/proc/consoles.c
---- a/fs/proc/consoles.c~fs-proc-use-seq_putc-in-show_console_dev
-+++ a/fs/proc/consoles.c
-@@ -55,8 +55,7 @@ static int show_console_dev(struct seq_f
- 	if (dev)
- 		seq_printf(m, " %4d:%d", MAJOR(dev), MINOR(dev));
+diff -puN Makefile~makefile-move-stack-protector-compiler-breakage-test-earlier Makefile
+--- a/Makefile~makefile-move-stack-protector-compiler-breakage-test-earlier
++++ a/Makefile
+@@ -696,6 +696,12 @@ endif
+ ifdef CONFIG_CC_STACKPROTECTOR
+   stackp-path := $(srctree)/scripts/gcc-$(SRCARCH)_$(BITS)-has-stack-protector.sh
+   stackp-check := $(wildcard $(stackp-path))
++  # If the wildcard test matches a test script, run it to check functionality.
++  ifdef stackp-check
++    ifneq ($(shell $(CONFIG_SHELL) $(stackp-check) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
++      stackp-broken := y
++    endif
++  endif
+ endif
+ KBUILD_CFLAGS += $(stackp-flag)
  
--	seq_printf(m, "\n");
+@@ -1098,11 +1104,9 @@ ifdef stackp-name
+   endif
+ endif
+ # Make sure compiler does not have buggy stack-protector support.
+-ifdef stackp-check
+-  ifneq ($(shell $(CONFIG_SHELL) $(stackp-check) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
++ifdef stackp-broken
+ 	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
+                   $(stackp-flag) available but compiler is broken >&2 && exit 1
+-  endif
+ endif
+ 	@:
+ 
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+
