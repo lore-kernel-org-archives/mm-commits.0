@@ -1,97 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-make-count-list_lru_one-nr_items-lockless-v2.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 14:51:50 -0800
-Message-ID: <5a7b8306.OcRTlwO2ToqnwlQf%akpm@linux-foundation.org>
+ mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 14:52:35 -0800
+Message-ID: <5a7b8333.c3DncHci2nvBjLAn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41666 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750729AbeBGWvw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:51:52 -0500
+        with ESMTP id S1750729AbeBGWwh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:52:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ktkhai@virtuozzo.com, aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-make-count-list_lru_one-nr_items-lockless-v2
+     Subject: mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
 has been removed from the -mm tree.  Its filename was
-     mm-make-count-list_lru_one-nr_items-lockless-v2.patch
+     mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2.patch
 
-This patch was dropped because it was folded into mm-make-count-list_lru_one-nr_items-lockless.patch
+This patch was dropped because it was folded into mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
 
 ------------------------------------------------------
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: mm-make-count-list_lru_one-nr_items-lockless-v2
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
 
-v2: Rebase on kvmalloc() and kvfree().  Name of kvfree_rcu() was chosen to
-help not to skip this place, when someone will implement such the global
-interface.
+- add comment about what we need to support hwpoision for pud-sized hugetlb
+- use "page size > PMD_SIZE" condition instead of hstate_is_gigantic()
 
-Link: http://lkml.kernel.org/r/151203869520.3915.2587549826865799173.stgit@localhost.localdomain
-Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/1517284444-18149-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/linux/mm.h  |    2 +-
+ mm/memory-failure.c |   15 ++++++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless-v2 mm/list_lru.c
---- a/mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless-v2
-+++ a/mm/list_lru.c
-@@ -336,7 +336,7 @@ static int memcg_init_list_lru_node(stru
- 	int size = memcg_nr_cache_ids;
+diff -puN include/linux/mm.h~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2 include/linux/mm.h
+--- a/include/linux/mm.h~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
++++ a/include/linux/mm.h
+@@ -2607,7 +2607,7 @@ enum mf_action_page_type {
+ 	MF_MSG_POISONED_HUGE,
+ 	MF_MSG_HUGE,
+ 	MF_MSG_FREE_HUGE,
+-	MF_MSG_GIGANTIC,
++	MF_MSG_NON_PMD_HUGE,
+ 	MF_MSG_UNMAP_FAILED,
+ 	MF_MSG_DIRTY_SWAPCACHE,
+ 	MF_MSG_CLEAN_SWAPCACHE,
+diff -puN mm/memory-failure.c~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2 mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage-v2
++++ a/mm/memory-failure.c
+@@ -502,7 +502,7 @@ static const char * const action_page_ty
+ 	[MF_MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
+ 	[MF_MSG_HUGE]			= "huge page",
+ 	[MF_MSG_FREE_HUGE]		= "free huge page",
+-	[MF_MSG_GIGANTIC]		= "gigantic page",
++	[MF_MSG_NON_PMD_HUGE]		= "non-pmd-sized huge page",
+ 	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
+ 	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
+ 	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
+@@ -1085,8 +1085,17 @@ static int memory_failure_hugetlb(unsign
+ 		return 0;
+ 	}
  
- 	memcg_lrus = kvmalloc(sizeof(*memcg_lrus) +
--			     size * sizeof(void *), GFP_KERNEL);
-+			      size * sizeof(void *), GFP_KERNEL);
- 	if (!memcg_lrus)
- 		return -ENOMEM;
- 
-@@ -354,13 +354,21 @@ static void memcg_destroy_list_lru_node(
- 	struct list_lru_memcg *memcg_lrus;
- 	/*
- 	 * This is called when shrinker has already been unregistered,
--	 * and nobody can use it. So, there is no need to use kfree_rcu().
-+	 * and nobody can use it. So, there is no need to use kvfree_rcu().
- 	 */
- 	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus, true);
- 	__memcg_destroy_list_lru_node(memcg_lrus, 0, memcg_nr_cache_ids);
- 	kvfree(memcg_lrus);
- }
- 
-+static void kvfree_rcu(struct rcu_head *head)
-+{
-+	struct list_lru_memcg *mlru;
-+
-+	mlru = container_of(head, struct list_lru_memcg, rcu);
-+	kvfree(mlru);
-+}
-+
- static int memcg_update_list_lru_node(struct list_lru_node *nlru,
- 				      int old_size, int new_size)
- {
-@@ -392,7 +400,7 @@ static int memcg_update_list_lru_node(st
- 	rcu_assign_pointer(nlru->memcg_lrus, new);
- 	spin_unlock_irq(&nlru->lock);
- 
--	kfree_rcu(old, rcu);
-+	call_rcu(&old->rcu, kvfree_rcu);
- 	return 0;
- }
- 
+-	if (hstate_is_gigantic(page_hstate(head))) {
+-		action_result(pfn, MF_MSG_GIGANTIC, MF_IGNORED);
++	/*
++	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
++	 * simply disable it. In order to make it work properly, we need
++	 * make sure that:
++	 *  - conversion of a pud that maps an error hugetlb into hwpoison
++	 *    entry properly works, and
++	 *  - other mm code walking over page table is aware of pud-aligned
++	 *    hwpoison entries.
++	 */
++	if (huge_page_size(page_hstate(head)) > PMD_SIZE) {
++		action_result(pfn, MF_MSG_NON_PMD_HUGE, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from ktkhai@virtuozzo.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-make-count-list_lru_one-nr_items-lockless.patch
+mm-hwpoison-disable-memory-error-handling-on-1gb-hugepage.patch
 
