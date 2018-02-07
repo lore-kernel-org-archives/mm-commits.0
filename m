@@ -1,107 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch added to -mm tree
-Date: Wed, 07 Feb 2018 12:57:37 -0800
-Message-ID: <5a7b6841.Yb1IlVcAjmFnWyhT%akpm__45217.2322468416$1518036957$gmane$org@linux-foundation.org>
+Subject: [to-be-updated] fontswap-thp-fix.patch removed from -mm tree
+Date: Wed, 07 Feb 2018 13:06:22 -0800
+Message-ID: <5a7b6a4e.PPj+OTu1GwDGFyUp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754281AbeBGU5j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:57:39 -0500
+        with ESMTP id S1754670AbeBGVGY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 16:06:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huang.ying.caritas@gmail.com, ddstreet@ieee.org, hannes@cmpxchg.org, konrad.wilk@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, sergey.senozhatsky@gmail.com, shakeelb@google.com, shli@kernel.org, sjenning@redhat.com, stable@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: huang.ying.caritas@gmail.com, ddstreet@ieee.org, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap, frontswap: Fix THP swap if frontswap enabled
-has been added to the -mm tree.  Its filename is
-     mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
+     Subject: mm: fontswap: thp fix
+has been removed from the -mm tree.  Its filename was
+     fontswap-thp-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Huang Ying <huang.ying.caritas@gmail.com>
-Subject: mm, swap, frontswap: Fix THP swap if frontswap enabled
+Subject: mm: fontswap: thp fix
 
-It was reported by Sergey Senozhatsky that if THP (Transparent Huge Page)
-and frontswap (via zswap) are both enabled, when memory goes low so that
-swap is triggered, segfault and memory corruption will occur in random
-user space applications as follow,
 
-kernel: urxvt[338]: segfault at 20 ip 00007fc08889ae0d sp 00007ffc73a7fc40 error 6 in libc-2.26.so[7fc08881a000+1ae000]
- #0  0x00007fc08889ae0d _int_malloc (libc.so.6)
- #1  0x00007fc08889c2f3 malloc (libc.so.6)
- #2  0x0000560e6004bff7 _Z14rxvt_wcstoutf8PKwi (urxvt)
- #3  0x0000560e6005e75c n/a (urxvt)
- #4  0x0000560e6007d9f1 _ZN16rxvt_perl_interp6invokeEP9rxvt_term9hook_typez (urxvt)
- #5  0x0000560e6003d988 _ZN9rxvt_term9cmd_parseEv (urxvt)
- #6  0x0000560e60042804 _ZN9rxvt_term6pty_cbERN2ev2ioEi (urxvt)
- #7  0x0000560e6005c10f _Z17ev_invoke_pendingv (urxvt)
- #8  0x0000560e6005cb55 ev_run (urxvt)
- #9  0x0000560e6003b9b9 main (urxvt)
- #10 0x00007fc08883af4a __libc_start_main (libc.so.6)
- #11 0x0000560e6003f9da _start (urxvt)
-
-After bisection, it was found the first bad commit is bd4c82c22c367e068
-("mm, THP, swap: delay splitting THP after swapped out").
-
-The root cause is as follows:
-
-When the pages are written to swap device during swapping out in
-swap_writepage(), zswap (fontswap) is tried to compress the pages instead
-to improve the performance.  But zswap (frontswap) will treat THP as
-normal page, so only the head page is saved.  After swapping in, tail
-pages will not be restored to its original contents, so cause the memory
-corruption in the applications.
-
-This is fixed via splitting THP before writing the page to swap device if
-frontswap is enabled.  To deal with the situation where frontswap is
-enabled at runtime, whether the page is THP is checked before using
-frontswap during swapping out too.
-
-Link: http://lkml.kernel.org/r/20180207070035.30302-1-ying.huang@intel.com
+Link: http://lkml.kernel.org/r/87d11j4pdy.fsf@yhuang-dev.intel.com
 Fixes: bd4c82c22c367e068 ("mm, THP, swap: delay splitting THP after swapped out")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Tested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: <stable@vger.kernel.org>	[4.14+]
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c  |    2 +-
- mm/swapfile.c |    3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ mm/page_io.c |    2 +-
+ mm/vmscan.c  |   16 +++++++++++++---
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/page_io.c
---- a/mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled
+diff -puN mm/page_io.c~fontswap-thp-fix mm/page_io.c
+--- a/mm/page_io.c~fontswap-thp-fix
 +++ a/mm/page_io.c
 @@ -250,7 +250,7 @@ int swap_writepage(struct page *page, st
  		unlock_page(page);
@@ -112,23 +58,46 @@ diff -puN mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/pa
  		set_page_writeback(page);
  		unlock_page(page);
  		end_page_writeback(page);
-diff -puN mm/swapfile.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled
-+++ a/mm/swapfile.c
-@@ -934,6 +934,9 @@ int get_swap_pages(int n_goal, bool clus
+diff -puN mm/vmscan.c~fontswap-thp-fix mm/vmscan.c
+--- a/mm/vmscan.c~fontswap-thp-fix
++++ a/mm/vmscan.c
+@@ -55,6 +55,7 @@
  
- 	/* Only single cluster request supported */
- 	WARN_ON_ONCE(n_goal > 1 && cluster);
-+	/* Frontswap doesn't support THP */
-+	if (frontswap_enabled() && cluster)
-+		goto noswap;
+ #include <linux/swapops.h>
+ #include <linux/balloon_compaction.h>
++#include <linux/frontswap.h>
  
- 	avail_pgs = atomic_long_read(&nr_swap_pages) / nr_pages;
- 	if (avail_pgs <= 0)
+ #include "internal.h"
+ 
+@@ -1121,13 +1122,22 @@ static unsigned long shrink_page_list(st
+ 					if (!can_split_huge_page(page, NULL))
+ 						goto activate_locked;
+ 					/*
++					 * Split THP if frontswap enabled,
++					 * because it cannot process THP
++					 */
++					if (frontswap_enabled()) {
++						if (split_huge_page_to_list(
++							page, page_list))
++							goto activate_locked;
++					}
++					/*
+ 					 * Split pages without a PMD map right
+ 					 * away. Chances are some or all of the
+ 					 * tail pages can be freed without IO.
+ 					 */
+-					if (!compound_mapcount(page) &&
+-					    split_huge_page_to_list(page,
+-								    page_list))
++					else if (!compound_mapcount(page) &&
++						 split_huge_page_to_list(page,
++							page_list))
+ 						goto activate_locked;
+ 				}
+ 				if (!add_to_swap(page)) {
 _
 
 Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
 
 mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
-fontswap-thp-fix.patch
 
