@@ -1,138 +1,130 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kasan-added-functions-for-unpoisoning-stack-variables.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 11:55:19 -0800
-Message-ID: <20180207195519.pZoOO5s_N%akpm@linux-foundation.org>
+ kasan-detect-invalid-frees-for-large-mempool-objects.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 11:55:28 -0800
+Message-ID: <20180207195528.KOgQxd1cr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754303AbeBGTzU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:20 -0500
+        with ESMTP id S1754087AbeBGTz3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, aryabinin@virtuozzo.com, dvyukov@google.com, fengguang.wu@intel.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, yamada.masahiro@socionext.com
+To: aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add functions for unpoisoning stack variables
+     Subject: kasan: detect invalid frees for large mempool objects
 has been removed from the -mm tree.  Its filename was
-     kasan-added-functions-for-unpoisoning-stack-variables.patch
+     kasan-detect-invalid-frees-for-large-mempool-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kasan: add functions for unpoisoning stack variables
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: detect invalid frees for large mempool objects
 
-As a code-size optimization, LLVM builds since r279383 may bulk-manipulate
-the shadow region when (un)poisoning large memory blocks.  This requires
-new callbacks that simply do an uninstrumented memset().
+Detect frees of pointers into middle of mempool objects.
 
-This fixes linking the Clang-built kernel when using KASAN.
+I did a one-off test, but it turned out to be very tricky, so I reverted
+it.  First, mempool does not call kasan_poison_kfree() unless allocation
+function fails.  I stubbed an allocation function to fail on second and
+subsequent allocations.  But then mempool stopped to call
+kasan_poison_kfree() at all, because it does it only when allocation
+function is mempool_kmalloc().  We could support this special failing test
+allocation function in mempool, but it also can't live with kasan tests,
+because these are in a module.
 
-[arnd@arndb.de: add declarations for internal functions]
-  Link: http://lkml.kernel.org/r/20180105094112.2690475-1-arnd@arndb.de
-[fengguang.wu@intel.com: __asan_set_shadow_00 can be static]
-  Link: http://lkml.kernel.org/r/20171223125943.GA74341@lkp-ib03
-[ghackmann@google.com: fix memset() parameters, and tweak commit message to describe new callbacks]
-Link: http://lkml.kernel.org/r/20171204191735.132544-6-paullawrence@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
-Signed-off-by: Paul Lawrence <paullawrence@google.com>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Matthias Kaehlcke <mka@chromium.org>
+Link: http://lkml.kernel.org/r/bf7a7d035d7a5ed62d2dd0e3d2e8a4fcdf456aa7.1514378558.git.dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   15 +++++++++++++++
- mm/kasan/kasan.h |   44 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ include/linux/kasan.h |    4 ++--
+ mm/kasan/kasan.c      |   11 ++++++++---
+ mm/mempool.c          |    6 +++---
+ 3 files changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-added-functions-for-unpoisoning-stack-variables mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-added-functions-for-unpoisoning-stack-variables
+diff -puN include/linux/kasan.h~kasan-detect-invalid-frees-for-large-mempool-objects include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-detect-invalid-frees-for-large-mempool-objects
++++ a/include/linux/kasan.h
+@@ -57,7 +57,7 @@ void kasan_init_slab_obj(struct kmem_cac
+ 
+ void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
+ void kasan_kfree_large(void *ptr, unsigned long ip);
+-void kasan_poison_kfree(void *ptr);
++void kasan_poison_kfree(void *ptr, unsigned long ip);
+ void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
+ 		  gfp_t flags);
+ void kasan_krealloc(const void *object, size_t new_size, gfp_t flags);
+@@ -109,7 +109,7 @@ static inline void kasan_init_slab_obj(s
+ 
+ static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
+ static inline void kasan_kfree_large(void *ptr, unsigned long ip) {}
+-static inline void kasan_poison_kfree(void *ptr) {}
++static inline void kasan_poison_kfree(void *ptr, unsigned long ip) {}
+ static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
+ 				size_t size, gfp_t flags) {}
+ static inline void kasan_krealloc(const void *object, size_t new_size,
+diff -puN mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-mempool-objects mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-detect-invalid-frees-for-large-mempool-objects
 +++ a/mm/kasan/kasan.c
-@@ -770,6 +770,21 @@ void __asan_allocas_unpoison(const void
+@@ -588,17 +588,22 @@ void kasan_krealloc(const void *object,
+ 		kasan_kmalloc(page->slab_cache, object, size, flags);
  }
- EXPORT_SYMBOL(__asan_allocas_unpoison);
  
-+/* Emitted by the compiler to [un]poison local variables. */
-+#define DEFINE_ASAN_SET_SHADOW(byte) \
-+	void __asan_set_shadow_##byte(const void *addr, size_t size)	\
-+	{								\
-+		__memset((void *)addr, 0x##byte, size);			\
-+	}								\
-+	EXPORT_SYMBOL(__asan_set_shadow_##byte)
-+
-+DEFINE_ASAN_SET_SHADOW(00);
-+DEFINE_ASAN_SET_SHADOW(f1);
-+DEFINE_ASAN_SET_SHADOW(f2);
-+DEFINE_ASAN_SET_SHADOW(f3);
-+DEFINE_ASAN_SET_SHADOW(f5);
-+DEFINE_ASAN_SET_SHADOW(f8);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int __meminit kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
-diff -puN mm/kasan/kasan.h~kasan-added-functions-for-unpoisoning-stack-variables mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-added-functions-for-unpoisoning-stack-variables
-+++ a/mm/kasan/kasan.h
-@@ -121,4 +121,48 @@ static inline void quarantine_reduce(voi
- static inline void quarantine_remove_cache(struct kmem_cache *cache) { }
- #endif
+-void kasan_poison_kfree(void *ptr)
++void kasan_poison_kfree(void *ptr, unsigned long ip)
+ {
+ 	struct page *page;
  
-+/*
-+ * Exported functions for interfaces called from assembly or from generated
-+ * code. Declarations here to avoid warning about missing declarations.
-+ */
-+asmlinkage void kasan_unpoison_task_stack_below(const void *watermark);
-+void __asan_register_globals(struct kasan_global *globals, size_t size);
-+void __asan_unregister_globals(struct kasan_global *globals, size_t size);
-+void __asan_loadN(unsigned long addr, size_t size);
-+void __asan_storeN(unsigned long addr, size_t size);
-+void __asan_handle_no_return(void);
-+void __asan_poison_stack_memory(const void *addr, size_t size);
-+void __asan_unpoison_stack_memory(const void *addr, size_t size);
-+void __asan_alloca_poison(unsigned long addr, size_t size);
-+void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom);
-+
-+void __asan_load1(unsigned long addr);
-+void __asan_store1(unsigned long addr);
-+void __asan_load2(unsigned long addr);
-+void __asan_store2(unsigned long addr);
-+void __asan_load4(unsigned long addr);
-+void __asan_store4(unsigned long addr);
-+void __asan_load8(unsigned long addr);
-+void __asan_store8(unsigned long addr);
-+void __asan_load16(unsigned long addr);
-+void __asan_store16(unsigned long addr);
-+
-+void __asan_load1_noabort(unsigned long addr);
-+void __asan_store1_noabort(unsigned long addr);
-+void __asan_load2_noabort(unsigned long addr);
-+void __asan_store2_noabort(unsigned long addr);
-+void __asan_load4_noabort(unsigned long addr);
-+void __asan_store4_noabort(unsigned long addr);
-+void __asan_load8_noabort(unsigned long addr);
-+void __asan_store8_noabort(unsigned long addr);
-+void __asan_load16_noabort(unsigned long addr);
-+void __asan_store16_noabort(unsigned long addr);
-+
-+void __asan_set_shadow_00(const void *addr, size_t size);
-+void __asan_set_shadow_f1(const void *addr, size_t size);
-+void __asan_set_shadow_f2(const void *addr, size_t size);
-+void __asan_set_shadow_f3(const void *addr, size_t size);
-+void __asan_set_shadow_f5(const void *addr, size_t size);
-+void __asan_set_shadow_f8(const void *addr, size_t size);
-+
- #endif
+ 	page = virt_to_head_page(ptr);
+ 
+-	if (unlikely(!PageSlab(page)))
++	if (unlikely(!PageSlab(page))) {
++		if (ptr != page_address(page)) {
++			kasan_report_invalid_free(ptr, ip);
++			return;
++		}
+ 		kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
+ 				KASAN_FREE_PAGE);
+-	else
++	} else {
+ 		kasan_poison_slab_free(page->slab_cache, ptr);
++	}
+ }
+ 
+ void kasan_kfree_large(void *ptr, unsigned long ip)
+diff -puN mm/mempool.c~kasan-detect-invalid-frees-for-large-mempool-objects mm/mempool.c
+--- a/mm/mempool.c~kasan-detect-invalid-frees-for-large-mempool-objects
++++ a/mm/mempool.c
+@@ -103,10 +103,10 @@ static inline void poison_element(mempoo
+ }
+ #endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
+ 
+-static void kasan_poison_element(mempool_t *pool, void *element)
++static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
+ {
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_poison_kfree(element);
++		kasan_poison_kfree(element, _RET_IP_);
+ 	if (pool->alloc == mempool_alloc_pages)
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
+@@ -119,7 +119,7 @@ static void kasan_unpoison_element(mempo
+ 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
+ }
+ 
+-static void add_element(mempool_t *pool, void *element)
++static __always_inline void add_element(mempool_t *pool, void *element)
+ {
+ 	BUG_ON(pool->curr_nr >= pool->min_nr);
+ 	poison_element(pool, element);
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from dvyukov@google.com are
 
 
