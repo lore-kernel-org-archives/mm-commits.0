@@ -1,129 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 14:45:04 -0800
-Message-ID: <5a7b8170.4cMmoGDdnCII2Dlo%akpm@linux-foundation.org>
+Subject: + mm-introduce-map_fixed_safe-fix.patch added to -mm tree
+Date: Wed, 07 Feb 2018 14:47:39 -0800
+Message-ID: <5a7b820b.8w8CNESQLmG9j2dw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39944 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750729AbeBGWpG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:45:06 -0500
+        with ESMTP id S1750767AbeBGWrk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:47:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+     Subject: mm-introduce-map_fixed_safe-fix
+has been added to the -mm tree.  Its filename is
+     mm-introduce-map_fixed_safe-fix.patch
 
-This patch was dropped because it was folded into mm-introduce-map_fixed_safe.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-map_fixed_safe-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-map_fixed_safe-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: mm-introduce-map_fixed_safe-fix
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#8: 
-(before eab09532d400 ("binfmt_elf: use ELF_ET_DYN_BASE only for PIE"))
+There's also a couple of stray whitespace changes in the version in
+linux-next, and some inconsistent whitespace between the various mman.h
+changes. Patch below to fix them up.
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#15: 
-further from the stack (eab09532d400 and later by c715b72c1ba4 ("mm:
-
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#17: 
-stack consumption early during execve fully stopped by da029c11e6b1
-
-WARNING: 'segement' may be misspelled - perhaps 'segment'?
-#64: FILE: arch/metag/kernel/process.c:421:
-+		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
-
-ERROR: "(foo*)" should be "(foo *)"
-#65: FILE: arch/metag/kernel/process.c:422:
-+				task_pid_nr(current), tsk->comm, (void*)addr);
-
-WARNING: 'segement' may be misspelled - perhaps 'segment'?
-#78: FILE: fs/binfmt_elf.c:381:
-+		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
-
-WARNING: line over 80 characters
-#79: FILE: fs/binfmt_elf.c:382:
-+				task_pid_nr(current), current->comm, (void*)addr);
-
-ERROR: "(foo*)" should be "(foo *)"
-#79: FILE: fs/binfmt_elf.c:382:
-+				task_pid_nr(current), current->comm, (void*)addr);
-
-total: 5 errors, 3 warnings, 60 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/fs-elf-drop-map_fixed-usage-from-elf_map.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/kernel/process.c |    4 ++--
- fs/binfmt_elf.c             |    5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ arch/mips/include/uapi/asm/mman.h   |    3 +--
+ arch/parisc/include/uapi/asm/mman.h |    3 +--
+ arch/sparc/include/uapi/asm/mman.h  |    1 +
+ arch/xtensa/include/uapi/asm/mman.h |    3 +--
+ 4 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes arch/metag/kernel/process.c
---- a/arch/metag/kernel/process.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
-+++ a/arch/metag/kernel/process.c
-@@ -418,8 +418,8 @@ unsigned long __metag_elf_map(struct fil
- 		map_addr = vm_mmap(filep, addr, size, prot, type, off);
+diff -puN arch/mips/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -50,8 +50,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
  
- 	if ((type & MAP_FIXED_NOREPLACE) && BAD_ADDR(map_addr))
--		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
--				task_pid_nr(current), tsk->comm, (void*)addr);
-+		pr_info("%d (%s): Uhuuh, elf segment at %p requested but the memory is mapped already\n",
-+				task_pid_nr(current), tsk->comm, (void *)addr);
+ /*
+  * Flags for msync
+diff -puN arch/parisc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -26,8 +26,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
  
- 	if (!BAD_ADDR(map_addr) && tcm_tag != TCM_INVALID_TAG) {
- 		struct tcm_allocation *tcm;
-diff -puN fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes
-+++ a/fs/binfmt_elf.c
-@@ -378,8 +378,9 @@ static unsigned long elf_map(struct file
- 		map_addr = vm_mmap(filep, addr, size, prot, type, off);
+ #define MS_SYNC		1		/* synchronous memory sync */
+ #define MS_ASYNC	2		/* sync memory asynchronously */
+diff -puN arch/sparc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/sparc/include/uapi/asm/mman.h
+--- a/arch/sparc/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/sparc/include/uapi/asm/mman.h
+@@ -25,4 +25,5 @@
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
  
- 	if ((type & MAP_FIXED_NOREPLACE) && BAD_ADDR(map_addr))
--		pr_info("%d (%s): Uhuuh, elf segement at %p requested but the memory is mapped already\n",
--				task_pid_nr(current), current->comm, (void*)addr);
-+		pr_info("%d (%s): Uhuuh, elf segment at %p requested but the memory is mapped already\n",
-+				task_pid_nr(current), current->comm,
-+				(void *)addr);
++
+ #endif /* _UAPI__SPARC_MMAN_H__ */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-introduce-map_fixed_safe-fix
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -57,7 +57,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+-#define MAP_FIXED_NOREPLACE	0x100000/* MAP_FIXED which doesn't unmap underlying mapping */
++#define MAP_FIXED_NOREPLACE 0x100000	/* MAP_FIXED which doesn't unmap underlying mapping */
+ #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
+ # define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
+ 					 * uninitialized */
+@@ -65,7 +65,6 @@
+ # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+ #endif
  
- 	return(map_addr);
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-include-linux-sched-mmh-re-inline-mmdrop.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
-mm-introduce-map_fixed_safe.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
