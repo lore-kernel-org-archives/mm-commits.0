@@ -1,62 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-avoid-some-false-positives-for-tabstop-declaration-test.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 11:57:47 -0800
-Message-ID: <20180207195747.lyx1mHYAE%akpm@linux-foundation.org>
+ make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:57:19 -0800
+Message-ID: <20180207195719.Y1TWBmXHG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59596 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754446AbeBGT5s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:48 -0500
+        with ESMTP id S1754422AbeBGT5V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org, sven@narfation.org
+To: byungchul.park@lge.com, geert@linux-m68k.org, jpoimboe@redhat.com, mcgrof@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, npiggin@gmail.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rdunlap@infradead.org, tglx@linutronix.de, vincent.legoll@gmail.com
 
 
 The patch titled
-     Subject: checkpatch: avoid some false positives for TABSTOP declaration test
+     Subject: lib/: make RUNTIME_TESTS a menuconfig to ease disabling it all
 has been removed from the -mm tree.  Its filename was
-     checkpatch-avoid-some-false-positives-for-tabstop-declaration-test.patch
+     make-runtime_tests-a-menuconfig-to-ease-disabling-it-all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid some false positives for TABSTOP declaration test
+From: Vincent Legoll <vincent.legoll@gmail.com>
+Subject: lib/: make RUNTIME_TESTS a menuconfig to ease disabling it all
 
-Using an open bracket after what seems to be a declaration can also be a
-function definition and declaration argument line continuation so remove
-the open bracket from the possible declaration/definition matching.
+No need to get into the submenu to disable all related
+config entries.
 
-e.g.:
-	int foobar(int a;
-		   int *b[]);
+This makes it easier to disable all RUNTIME_TESTS config options
+without entering the submenu. It will also enable one to see that
+en/dis-abled state from the outside menu.
 
-Link: http://lkml.kernel.org/r/1515704479.9619.171.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Sven Eckelmann <sven@narfation.org>
+This is only intended to change menuconfig UI, not change
+the config dependencies.
+
+Link: http://lkml.kernel.org/r/20171209162742.7363-1-vincent.legoll@gmail.com
+Signed-off-by: Vincent Legoll <vincent.legoll@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Byungchul Park <byungchul.park@lge.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-avoid-some-false-positives-for-tabstop-declaration-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-avoid-some-false-positives-for-tabstop-declaration-test
-+++ a/scripts/checkpatch.pl
-@@ -3020,7 +3020,7 @@ sub process {
+diff -puN lib/Kconfig.debug~make-runtime_tests-a-menuconfig-to-ease-disabling-it-all lib/Kconfig.debug
+--- a/lib/Kconfig.debug~make-runtime_tests-a-menuconfig-to-ease-disabling-it-all
++++ a/lib/Kconfig.debug
+@@ -1641,7 +1641,10 @@ config DMA_API_DEBUG
  
- # check indentation starts on a tab stop
- 		if ($^V && $^V ge 5.10.0 &&
--		    $sline =~ /^\+\t+( +)(?:$c90_Keywords\b|\{\s*$|\}\s*(?:else\b|while\b|\s*$)|$Declare\s*$Ident\s*[;=\[])/) {
-+		    $sline =~ /^\+\t+( +)(?:$c90_Keywords\b|\{\s*$|\}\s*(?:else\b|while\b|\s*$)|$Declare\s*$Ident\s*[;=])/) {
- 			my $indent = length($1);
- 			if ($indent % 8) {
- 				if (WARN("TABSTOP",
+ 	  If unsure, say N.
+ 
+-menu "Runtime Testing"
++menuconfig RUNTIME_TESTING_MENU
++	bool "Runtime Testing"
++
++if RUNTIME_TESTING_MENU
+ 
+ config LKDTM
+ 	tristate "Linux Kernel Dump Test Tool Module"
+@@ -1929,7 +1932,7 @@ config TEST_DEBUG_VIRTUAL
+ 
+ 	  If unsure, say N.
+ 
+-endmenu # runtime tests
++endif # RUNTIME_TESTING_MENU
+ 
+ config MEMTEST
+ 	bool "Memtest"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from vincent.legoll@gmail.com are
 
 
