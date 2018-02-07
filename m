@@ -1,60 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 11:58:11 -0800
-Message-ID: <20180207195811.b1T9EXk3L%akpm@linux-foundation.org>
+Subject: [merged] rapidio-adjust-12-checks-for-null-pointers.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 11:58:20 -0800
+Message-ID: <20180207195820.j9ObZCOQi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59950 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754337AbeBGT6N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:13 -0500
+        with ESMTP id S1754397AbeBGT6W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, marcos.souza.org@gmail.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: kernel/fork.c: add comment about usage of CLONE_FS flags and namespaces
+     Subject: rapidio: adjust 12 checks for null pointers
 has been removed from the -mm tree.  Its filename was
-     forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces.patch
+     rapidio-adjust-12-checks-for-null-pointers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-Subject: kernel/fork.c: add comment about usage of CLONE_FS flags and namespaces
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: rapidio: adjust 12 checks for null pointers
 
-All other places that deals with namespaces have an explanation of why the
-restriction is there.  The description added in this commit was based on
-e66eded8309eb ("userns: Don't allow CLONE_NEWUSER | CLONE_FS").
+checkpatch pointed information out like the following.
 
-Link: http://lkml.kernel.org/r/20171112151637.13258-1-marcos.souza.org@gmail.com
-Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Comparison to NULL could be written ...
+
+Thus fix the affected source code places.
+
+Link: http://lkml.kernel.org/r/739f9f1c-3ebe-c21b-c5e2-31976cfbc0ee@users.sourceforge.net
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/rapidio/rio.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN kernel/fork.c~forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces kernel/fork.c
---- a/kernel/fork.c~forkc-add-doc-about-usage-of-clone_fs-flags-and-namespaces
-+++ a/kernel/fork.c
-@@ -1587,6 +1587,10 @@ static __latent_entropy struct task_stru
- 	int retval;
- 	struct task_struct *p;
+diff -puN drivers/rapidio/rio.c~rapidio-adjust-12-checks-for-null-pointers drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-adjust-12-checks-for-null-pointers
++++ a/drivers/rapidio/rio.c
+@@ -243,7 +243,7 @@ int rio_request_inb_mbox(struct rio_mpor
+ 	int rc = -ENOSYS;
+ 	struct resource *res;
  
-+	/*
-+	 * Don't allow sharing the root directory with processes in a different
-+	 * namespace
-+	 */
- 	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
- 		return ERR_PTR(-EINVAL);
+-	if (mport->ops->open_inb_mbox == NULL)
++	if (!mport->ops->open_inb_mbox)
+ 		goto out;
  
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+@@ -326,7 +326,7 @@ int rio_request_outb_mbox(struct rio_mpo
+ 	int rc = -ENOSYS;
+ 	struct resource *res;
+ 
+-	if (mport->ops->open_outb_mbox == NULL)
++	if (!mport->ops->open_outb_mbox)
+ 		goto out;
+ 
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+@@ -632,7 +632,7 @@ int rio_request_inb_pwrite(struct rio_de
+ 	int rc = 0;
+ 
+ 	spin_lock(&rio_global_list_lock);
+-	if (rdev->pwcback != NULL)
++	if (rdev->pwcback)
+ 		rc = -ENOMEM;
+ 	else
+ 		rdev->pwcback = pwcback;
+@@ -975,7 +975,7 @@ rio_chk_dev_route(struct rio_dev *rdev,
+ 		rdev = rdev->prev;
+ 	}
+ 
+-	if (prev == NULL)
++	if (!prev)
+ 		goto err_out;
+ 
+ 	p_port = prev->rswitch->route_table[rdev->destid];
+@@ -1054,7 +1054,7 @@ rio_get_input_status(struct rio_dev *rde
+ 		RIO_MNT_REQ_CMD_IS);
+ 
+ 	/* Exit if the response is not expected */
+-	if (lnkresp == NULL)
++	if (!lnkresp)
+ 		return 0;
+ 
+ 	checkcount = 3;
+@@ -1696,7 +1696,7 @@ int rio_route_add_entry(struct rio_dev *
+ 
+ 	spin_lock(&rdev->rswitch->lock);
+ 
+-	if (ops == NULL || ops->add_entry == NULL) {
++	if (!ops || !ops->add_entry) {
+ 		rc = rio_std_route_add_entry(rdev->net->hport, rdev->destid,
+ 					     rdev->hopcount, table,
+ 					     route_destid, route_port);
+@@ -1749,7 +1749,7 @@ int rio_route_get_entry(struct rio_dev *
+ 
+ 	spin_lock(&rdev->rswitch->lock);
+ 
+-	if (ops == NULL || ops->get_entry == NULL) {
++	if (!ops || !ops->get_entry) {
+ 		rc = rio_std_route_get_entry(rdev->net->hport, rdev->destid,
+ 					     rdev->hopcount, table,
+ 					     route_destid, route_port);
+@@ -1797,7 +1797,7 @@ int rio_route_clr_table(struct rio_dev *
+ 
+ 	spin_lock(&rdev->rswitch->lock);
+ 
+-	if (ops == NULL || ops->clr_table == NULL) {
++	if (!ops || !ops->clr_table) {
+ 		rc = rio_std_route_clr_table(rdev->net->hport, rdev->destid,
+ 					     rdev->hopcount, table);
+ 	} else if (try_module_get(ops->owner)) {
+@@ -1889,7 +1889,7 @@ struct dma_async_tx_descriptor *rio_dma_
+ {
+ 	struct rio_dma_ext rio_ext;
+ 
+-	if (dchan->device->device_prep_slave_sg == NULL) {
++	if (!dchan->device->device_prep_slave_sg) {
+ 		pr_err("%s: prep_rio_sg == NULL\n", __func__);
+ 		return NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from marcos.souza.org@gmail.com are
+Patches currently in -mm which might be from elfring@users.sourceforge.net are
 
 
