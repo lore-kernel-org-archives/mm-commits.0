@@ -1,84 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 14:50:16 -0800
-Message-ID: <5a7b82a8.sRYLgB0UW81T/twq%akpm@linux-foundation.org>
+ mm-make-count-list_lru_one-nr_items-lockless-v2.patch removed from -mm tree
+Date: Wed, 07 Feb 2018 14:51:50 -0800
+Message-ID: <5a7b8306.OcRTlwO2ToqnwlQf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41512 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750729AbeBGWuR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:50:17 -0500
+        with ESMTP id S1750729AbeBGWvw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: ktkhai@virtuozzo.com, aryabinin@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory-failure: fix migration callback
+     Subject: mm-make-count-list_lru_one-nr_items-lockless-v2
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-remove-reason-argument-from-new_page_t-fix-3.patch
+     mm-make-count-list_lru_one-nr_items-lockless-v2.patch
 
-This patch was dropped because it was folded into mm-migrate-remove-reason-argument-from-new_page_t.patch
+This patch was dropped because it was folded into mm-make-count-list_lru_one-nr_items-lockless.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory-failure: fix migration callback
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: mm-make-count-list_lru_one-nr_items-lockless-v2
 
-kbuild robot has noticed
->> mm/memory-failure.c:1587:33: error: passing argument 2 of 'migrate_pages' from incompatible pointer type [-Werror=incompatible-pointer-types]
-     ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
-                                    ^~~~~~~~
-   In file included from mm/memory-failure.c:51:0:
-   include/linux/migrate.h:68:12: note: expected 'struct page * (*)(struct page *, long unsigned int)' but argument is of type 'struct page * (*)(struct page *, long unsigned int,  int **)'
-    extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
-               ^~~~~~~~~~~~~
-   mm/memory-failure.c: In function '__soft_offline_page':
-   mm/memory-failure.c:1665:34: error: passing argument 2 of 'migrate_pages' from incompatible pointer type [-Werror=incompatible-pointer-types]
-      ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
-                                     ^~~~~~~~
-   In file included from mm/memory-failure.c:51:0:
-   include/linux/migrate.h:68:12: note: expected 'struct page * (*)(struct page *, long unsigned int)' but argument is of type 'struct page * (*)(struct page *, long unsigned int,  int **)'
-    extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
-               ^~~~~~~~~~~~~
+v2: Rebase on kvmalloc() and kvfree().  Name of kvfree_rcu() was chosen to
+help not to skip this place, when someone will implement such the global
+interface.
 
-Fix this by removing the excessive argument.
-
-Link: http://lkml.kernel.org/r/20180105085259.GH2801@dhcp22.suse.cz
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/151203869520.3915.2587549826865799173.stgit@localhost.localdomain
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/list_lru.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-migrate-remove-reason-argument-from-new_page_t-fix-3 mm/memory-failure.c
---- a/mm/memory-failure.c~mm-migrate-remove-reason-argument-from-new_page_t-fix-3
-+++ a/mm/memory-failure.c
-@@ -1473,7 +1473,7 @@ int unpoison_memory(unsigned long pfn)
- }
- EXPORT_SYMBOL(unpoison_memory);
+diff -puN mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless-v2 mm/list_lru.c
+--- a/mm/list_lru.c~mm-make-count-list_lru_one-nr_items-lockless-v2
++++ a/mm/list_lru.c
+@@ -336,7 +336,7 @@ static int memcg_init_list_lru_node(stru
+ 	int size = memcg_nr_cache_ids;
  
--static struct page *new_page(struct page *p, unsigned long private, int **x)
-+static struct page *new_page(struct page *p, unsigned long private)
+ 	memcg_lrus = kvmalloc(sizeof(*memcg_lrus) +
+-			     size * sizeof(void *), GFP_KERNEL);
++			      size * sizeof(void *), GFP_KERNEL);
+ 	if (!memcg_lrus)
+ 		return -ENOMEM;
+ 
+@@ -354,13 +354,21 @@ static void memcg_destroy_list_lru_node(
+ 	struct list_lru_memcg *memcg_lrus;
+ 	/*
+ 	 * This is called when shrinker has already been unregistered,
+-	 * and nobody can use it. So, there is no need to use kfree_rcu().
++	 * and nobody can use it. So, there is no need to use kvfree_rcu().
+ 	 */
+ 	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus, true);
+ 	__memcg_destroy_list_lru_node(memcg_lrus, 0, memcg_nr_cache_ids);
+ 	kvfree(memcg_lrus);
+ }
+ 
++static void kvfree_rcu(struct rcu_head *head)
++{
++	struct list_lru_memcg *mlru;
++
++	mlru = container_of(head, struct list_lru_memcg, rcu);
++	kvfree(mlru);
++}
++
+ static int memcg_update_list_lru_node(struct list_lru_node *nlru,
+ 				      int old_size, int new_size)
  {
- 	int nid = page_to_nid(p);
+@@ -392,7 +400,7 @@ static int memcg_update_list_lru_node(st
+ 	rcu_assign_pointer(nlru->memcg_lrus, new);
+ 	spin_unlock_irq(&nlru->lock);
+ 
+-	kfree_rcu(old, rcu);
++	call_rcu(&old->rcu, kvfree_rcu);
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from ktkhai@virtuozzo.com are
 
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
-mm-introduce-map_fixed_safe.patch
-fs-elf-drop-map_fixed-usage-from-elf_map.patch
-mm-numa-rework-do_pages_move.patch
-mm-migrate-remove-reason-argument-from-new_page_t.patch
-mm-unclutter-thp-migration.patch
-net-netfilter-x_tablesc-remove-size-check.patch
+mm-make-count-list_lru_one-nr_items-lockless.patch
 
