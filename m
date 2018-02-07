@@ -1,100 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-dont-emit-builtin-calls-when-sanitization-is-off.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 11:55:03 -0800
-Message-ID: <20180207195503.PmtQj2sq4%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 07 Feb 2018 11:54:46 -0800
+Message-ID: <20180207195446.hQGbdYKSw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57770 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGTzE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:04 -0500
+        with ESMTP id S1753721AbeBGTys (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:54:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, michal.lkml@markovi.net, mm-commits@vger.kernel.org, ndesaulniers@google.com, stable@vger.kernel.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: don't emit builtin calls when sanitization is off
-has been removed from the -mm tree.  Its filename was
-     kasan-dont-emit-builtin-calls-when-sanitization-is-off.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't emit builtin calls when sanitization is off
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-With KASAN enabled the kernel has two different memset() functions, one
-with KASAN checks (memset) and one without (__memset).  KASAN uses some
-macro tricks to use the proper version where required.  For example
-memset() calls in mm/slub.c are without KASAN checks, since they operate
-on poisoned slab object metadata.
-
-The issue is that clang emits memset() calls even when there is no
-memset() in the source code.  They get linked with improper memset()
-implementation and the kernel fails to boot due to a huge amount of KASAN
-reports during early boot stages.
-
-The solution is to add -fno-builtin flag for files with KASAN_SANITIZE :=
-n marker.
-
-Link: http://lkml.kernel.org/r/8ffecfffe04088c52c42b92739c2bd8a0bcb3f5e.1516384594.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile               |    3 ++-
- scripts/Makefile.kasan |    3 +++
- scripts/Makefile.lib   |    2 +-
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ Documentation/process/maintainer-pgp-guide.rst |   58 ---------------
+ drivers/platform/x86/dell-laptop.c             |    3 
+ 2 files changed, 61 deletions(-)
 
-diff -puN Makefile~kasan-dont-emit-builtin-calls-when-sanitization-is-off Makefile
---- a/Makefile~kasan-dont-emit-builtin-calls-when-sanitization-is-off
-+++ a/Makefile
-@@ -434,7 +434,8 @@ export MAKE LEX YACC AWK GENKSYMS INSTAL
- export HOSTCXX HOSTCXXFLAGS LDFLAGS_MODULE CHECK CHECKFLAGS
+diff -puN Documentation/process/maintainer-pgp-guide.rst~linux-next-git-rejects Documentation/process/maintainer-pgp-guide.rst
+--- a/Documentation/process/maintainer-pgp-guide.rst~linux-next-git-rejects
++++ a/Documentation/process/maintainer-pgp-guide.rst
+@@ -18,17 +18,10 @@ The role of PGP in Linux Kernel developm
+ ===========================================
  
- export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE OBJCOPYFLAGS LDFLAGS
--export KBUILD_CFLAGS CFLAGS_KERNEL CFLAGS_MODULE CFLAGS_KASAN CFLAGS_UBSAN
-+export KBUILD_CFLAGS CFLAGS_KERNEL CFLAGS_MODULE
-+export CFLAGS_KASAN CFLAGS_KASAN_NOSANITIZE CFLAGS_UBSAN
- export KBUILD_AFLAGS AFLAGS_KERNEL AFLAGS_MODULE
- export KBUILD_AFLAGS_MODULE KBUILD_CFLAGS_MODULE KBUILD_LDFLAGS_MODULE
- export KBUILD_AFLAGS_KERNEL KBUILD_CFLAGS_KERNEL
-diff -puN scripts/Makefile.kasan~kasan-dont-emit-builtin-calls-when-sanitization-is-off scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-dont-emit-builtin-calls-when-sanitization-is-off
-+++ a/scripts/Makefile.kasan
-@@ -31,4 +31,7 @@ else
- endif
+ PGP helps ensure the integrity of the code that is produced by the Linux
+-<<<<<<< HEAD
+-kernel development community and, to a lesser degree, establish trusted
+-communication channels between developers via PGP-signed email exchange.
+-
+-The Linux kernel source code is available in two main formats:
+-=======
+ Kernel development community and, to a lesser degree, establish trusted
+ communication channels between developers via PGP-signed email exchange.
  
- CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
-+
-+CFLAGS_KASAN_NOSANITIZE := -fno-builtin
-+
- endif
-diff -puN scripts/Makefile.lib~kasan-dont-emit-builtin-calls-when-sanitization-is-off scripts/Makefile.lib
---- a/scripts/Makefile.lib~kasan-dont-emit-builtin-calls-when-sanitization-is-off
-+++ a/scripts/Makefile.lib
-@@ -121,7 +121,7 @@ endif
- ifeq ($(CONFIG_KASAN),y)
- _c_flags += $(if $(patsubst n%,, \
- 		$(KASAN_SANITIZE_$(basetarget).o)$(KASAN_SANITIZE)y), \
--		$(CFLAGS_KASAN))
-+		$(CFLAGS_KASAN), $(CFLAGS_KASAN_NOSANITIZE))
- endif
+ The Linux Kernel source code is available in two main formats:
+->>>>>>> linux-next/akpm-base
  
- ifeq ($(CONFIG_UBSAN),y)
+ - Distributed source repositories (git)
+ - Periodic release snapshots (tarballs)
+@@ -60,11 +53,7 @@ want to make sure that by placing trust
+ shift the blame for potential future security incidents to someone else.
+ The goal is to provide a set of guidelines developers can use to create
+ a secure working environment and safeguard the PGP keys used to
+-<<<<<<< HEAD
+-establish the integrity of the Linux kernel itself.
+-=======
+ establish the integrity of the Linux Kernel itself.
+->>>>>>> linux-next/akpm-base
+ 
+ .. _pgp_tools:
+ 
+@@ -150,11 +139,7 @@ Protect your master PGP key
+ ===========================
+ 
+ This guide assumes that you already have a PGP key that you use for Linux
+-<<<<<<< HEAD
+-kernel development purposes. If you do not yet have one, please see the
+-=======
+ Kernel development purposes. If you do not yet have one, please see the
+->>>>>>> linux-next/akpm-base
+ "`Protecting Code Integrity`_" document mentioned earlier for guidance
+ on how to create a new one.
+ 
+@@ -164,13 +149,7 @@ You should also make a new key if your c
+ Master key vs. Subkeys
+ ----------------------
+ 
+-<<<<<<< HEAD
+-Subkeys are fully independent PGP keypairs that are tied to the "master"
+-key using certifying key signatures (certificates). It is important to
+-understand the following:
+-=======
+ It is important to understand the following:
+->>>>>>> linux-next/akpm-base
+ 
+ 1. There are no technical differences between the "master key" and "subkeys."
+ 2. At creation time, we assign functional limitations to each key by
+@@ -763,31 +742,6 @@ How to work with signed commits
+ -------------------------------
+ 
+ It is easy to create signed commits, but it is much more difficult to
+-<<<<<<< HEAD
+-use them in Linux kernel development, since it relies on patches sent to
+-the mailing list, and this workflow does not preserve PGP commit
+-signatures. Furthermore, when rebasing your repository to match
+-upstream, even your own PGP commit signatures will end up discarded. For
+-this reason, most kernel developers don't bother signing their commits
+-and will ignore signed commits in any external repositories that they
+-rely upon in their work.
+-
+-However, if you have your working git tree publicly available at some
+-git hosting service (kernel.org, infradead.org, ozlabs.org, or others),
+-then the recommendation is that you sign all your git commits even if
+-upstream developers do not directly benefit from this practice.
+-
+-We recommend this for the following reasons:
+-
+-1. Should there ever be a need to perform code forensics or track code
+-   provenance, even externally maintained trees carrying PGP commit
+-   signatures will be valuable for such purposes.
+-2. If you ever need to re-clone your local repository (for example,
+-   after a disk failure), this lets you easily verify the repository
+-   integrity before resuming your work.
+-3. If someone needs to cherry-pick your commits, this allows them to
+-   quickly verify their integrity before applying them.
+-=======
+ use them in Linux Kernel development, since it relies on patches sent to
+ the mailing list, and this workflow does not preserve PGP commit
+ signatures.
+@@ -799,7 +753,6 @@ developers do not directly benefit from
+ be a need to perform code forensics or track code provenance, even
+ externally maintained trees carrying PGP commit signatures will be
+ extremely valuable for such purposes.
+->>>>>>> linux-next/akpm-base
+ 
+ Creating signed commits
+ ~~~~~~~~~~~~~~~~~~~~~~~
+@@ -817,13 +770,6 @@ You can tell git to always sign commits:
+ 
+     git config --global commit.gpgSign true
+ 
+-<<<<<<< HEAD
+-.. note::
+-
+-    Make sure you configure ``gpg-agent`` before you turn this on.
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ .. _verify_identities:
+ 
+ How to verify kernel developer identities
+@@ -936,11 +882,7 @@ Locate the ID of the master key in the o
+ ``C94035C21B4F2AEB``. Now display the key of Linus Torvalds that you
+ have on your keyring::
+ 
+-<<<<<<< HEAD
+-    $ gpg --list-key torvalds@kernel.org
+-=======
+     $ git --list-key torvalds@kernel.org
+->>>>>>> linux-next/akpm-base
+     pub   rsa2048 2011-09-20 [SC]
+           ABAF11C65A2970B130ABE3C479BE3E4300411886
+     uid           [ unknown] Linus Torvalds <torvalds@kernel.org>
+diff -puN drivers/platform/x86/dell-laptop.c~linux-next-git-rejects drivers/platform/x86/dell-laptop.c
+--- a/drivers/platform/x86/dell-laptop.c~linux-next-git-rejects
++++ a/drivers/platform/x86/dell-laptop.c
+@@ -1217,12 +1217,9 @@ static int kbd_get_info(struct kbd_info
+ 	info->triggers = buffer.output[2] & 0xFF;
+ 	units = (buffer.output[2] >> 8) & 0xFF;
+ 	info->levels = (buffer.output[2] >> 16) & 0xFF;
+-<<<<<<< HEAD
+-=======
+ 
+ 	if (quirks && quirks->kbd_led_levels_off_1 && info->levels)
+ 		info->levels--;
+->>>>>>> linux-next/akpm-base
+ 
+ 	if (quirks && quirks->kbd_led_levels_off_1 && info->levels)
+ 		info->levels--;
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+include-linux-sched-mmh-re-inline-mmdrop.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
+mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
