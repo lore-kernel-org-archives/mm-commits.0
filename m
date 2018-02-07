@@ -1,66 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-unneeded-kallsyms-include.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 11:59:32 -0800
-Message-ID: <20180207195932.YQBvE4CLp%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-duplicate-includes.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:59:29 -0800
+Message-ID: <20180207195929.FTCF_jI5V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60346 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754531AbeBGT7d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:33 -0500
+        with ESMTP id S1754531AbeBGT7a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com
+To: mhocko@kernel.org, mm-commits@vger.kernel.org, pravin.shedge4linux@gmail.com
 
 
 The patch titled
-     Subject: mm: remove unneeded kallsyms include
+     Subject: mm/userfaultfd.c: remove duplicate include
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unneeded-kallsyms-include.patch
+     mm-remove-duplicate-includes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: mm: remove unneeded kallsyms include
+From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Subject: mm/userfaultfd.c: remove duplicate include
 
-The file was converted from print_symbol() to %pSR a while ago in
-071361d3473ebb814 ("mm: Convert print_symbol to %pSR").  kallsyms does not
-seem to be needed anymore.
+These duplicate includes have been found with scripts/checkincludes.pl but
+they have been removed manually to avoid removing false positives.
 
-Link: http://lkml.kernel.org/r/20171208025616.16267-3-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1512580957-6071-1-git-send-email-pravin.shedge4linux@gmail.com
+Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/userfaultfd.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory.c~mm-remove-unneeded-kallsyms-include mm/memory.c
---- a/mm/memory.c~mm-remove-unneeded-kallsyms-include
-+++ a/mm/memory.c
-@@ -59,7 +59,6 @@
- #include <linux/writeback.h>
- #include <linux/memcontrol.h>
+diff -puN mm/userfaultfd.c~mm-remove-duplicate-includes mm/userfaultfd.c
+--- a/mm/userfaultfd.c~mm-remove-duplicate-includes
++++ a/mm/userfaultfd.c
+@@ -16,7 +16,6 @@
+ #include <linux/userfaultfd_k.h>
  #include <linux/mmu_notifier.h>
--#include <linux/kallsyms.h>
- #include <linux/swapops.h>
- #include <linux/elf.h>
- #include <linux/gfp.h>
-@@ -767,9 +766,6 @@ static void print_bad_pte(struct vm_area
- 		dump_page(page, "bad pte");
- 	pr_alert("addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
- 		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
--	/*
--	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
--	 */
- 	pr_alert("file:%pD fault:%pf mmap:%pf readpage:%pf\n",
- 		 vma->vm_file,
- 		 vma->vm_ops ? vma->vm_ops->fault : NULL,
+ #include <linux/hugetlb.h>
+-#include <linux/pagemap.h>
+ #include <linux/shmem_fs.h>
+ #include <asm/tlbflush.h>
+ #include "internal.h"
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
+Patches currently in -mm which might be from pravin.shedge4linux@gmail.com are
 
 
