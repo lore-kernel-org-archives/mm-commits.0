@@ -1,161 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-find_bit_benchmarkc-improvements.patch
+Subject: [merged] checkpatch-allow-long-lines-containing-url.patch
  removed from -mm tree
-Date: Wed, 07 Feb 2018 11:57:14 -0800
-Message-ID: <20180207195714.3_oMt5odO%akpm@linux-foundation.org>
+Date: Wed, 07 Feb 2018 11:57:26 -0800
+Message-ID: <20180207195726.Tg7qHki_x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59642 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754422AbeBGT5P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:15 -0500
+        with ESMTP id S1754422AbeBGT51 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, courbet@google.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ynorov@caviumnetworks.com
+To: a.brauchli@elementarea.net, andreas.brauchli@sensirion.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/find_bit_benchmark.c: improvements
+     Subject: checkpatch: allow long lines containing URL
 has been removed from the -mm tree.  Its filename was
-     lib-find_bit_benchmarkc-improvements.patch
+     checkpatch-allow-long-lines-containing-url.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: lib/find_bit_benchmark.c: improvements
+From: Andreas Brauchli <a.brauchli@elementarea.net>
+Subject: checkpatch: allow long lines containing URL
 
-As suggested in review comments:
-* printk: align numbers using whitespaces instead of tabs;
-* return error value from init() to avoid calling rmmod if testing again;
-* use ktime_get instead of get_cycles as some arches don't support it;
+Allow lines with URL to exceed the 80 char limit for improved interaction
+in adaption to ongoing but undocumented practice.
 
-The output in dmesg (on QEMU arm64):
-[   38.823430] Start testing find_bit() with random-filled bitmap
-[   38.845358] find_next_bit:                20138448 ns, 163968 iterations
-[   38.856217] find_next_zero_bit:           10615328 ns, 163713 iterations
-[   38.863564] find_last_bit:                 7111888 ns, 163967 iterations
-[   40.944796] find_first_bit:             2081007216 ns, 163968 iterations
-[   40.944975]
-[   40.944975] Start testing find_bit() with sparse bitmap
-[   40.945268] find_next_bit:                   73216 ns,    656 iterations
-[   40.967858] find_next_zero_bit:           22461008 ns, 327025 iterations
-[   40.968047] find_last_bit:                   62320 ns,    656 iterations
-[   40.978060] find_first_bit:                9889360 ns,    656 iterations
+$ git grep -E '://\S{77}.*' -- '*.[ch]'
 
-Link: http://lkml.kernel.org/r/20171124143040.a44jvhmnaiyedg2i@yury-thinkpad
-Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Clement Courbet <courbet@google.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+As per RFC3986 [1], the URL format allows for alphanum, +, - and . 
+characters in the scheme before the separator :// as long as it starts
+with a letter (e.g.  https, git, f.-+).
+
+Recognition of URIs without more context information is prone to false
+positives and thus currently left out of the heuristics.
+
+$rawline is used in the check as comments are removed from $line.
+
+[1] https://tools.ietf.org/html/rfc3986#section-3.1
+
+Link: http://lkml.kernel.org/r/1511355432.12667.15.camel@elementarea.net
+Signed-off-by: Andreas Brauchli <andreas.brauchli@sensirion.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/find_bit_benchmark.c |   47 ++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 26 deletions(-)
+ scripts/checkpatch.pl |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN lib/find_bit_benchmark.c~lib-find_bit_benchmarkc-improvements lib/find_bit_benchmark.c
---- a/lib/find_bit_benchmark.c~lib-find_bit_benchmarkc-improvements
-+++ a/lib/find_bit_benchmark.c
-@@ -43,16 +43,15 @@ static DECLARE_BITMAP(bitmap, BITMAP_LEN
- static int __init test_find_first_bit(void *bitmap, unsigned long len)
- {
- 	unsigned long i, cnt;
--	cycles_t cycles;
-+	ktime_t time;
+diff -puN scripts/checkpatch.pl~checkpatch-allow-long-lines-containing-url scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-long-lines-containing-url
++++ a/scripts/checkpatch.pl
+@@ -2875,6 +2875,7 @@ sub process {
+ #	logging functions like pr_info that end in a string
+ #	lines with a single string
+ #	#defines that are a single string
++#	lines with an RFC3986 like URL
+ #
+ # There are 3 different line length message types:
+ # LONG_LINE_COMMENT	a comment starts before but extends beyond $max_line_length
+@@ -2906,6 +2907,10 @@ sub process {
+ 				 $line =~ /^\+\s*(?:\w+)?\s*DEFINE_PER_CPU/) {
+ 				$msg_type = "";
  
--	cycles = get_cycles();
-+	time = ktime_get();
- 	for (cnt = i = 0; i < len; cnt++) {
- 		i = find_first_bit(bitmap, len);
- 		__clear_bit(i, bitmap);
- 	}
--	cycles = get_cycles() - cycles;
--	pr_err("find_first_bit:\t\t%llu cycles,\t%ld iterations\n",
--	       (u64)cycles, cnt);
-+	time = ktime_get() - time;
-+	pr_err("find_first_bit:     %18llu ns, %6ld iterations\n", time, cnt);
++			# URL ($rawline is used in case the URL is in a comment)
++			} elsif ($rawline =~ /^\+.*\b[a-z][\w\.\+\-]*:\/\/\S+/i) {
++				$msg_type = "";
++
+ 			# Otherwise set the alternate message types
  
- 	return 0;
- }
-@@ -60,14 +59,13 @@ static int __init test_find_first_bit(vo
- static int __init test_find_next_bit(const void *bitmap, unsigned long len)
- {
- 	unsigned long i, cnt;
--	cycles_t cycles;
-+	ktime_t time;
- 
--	cycles = get_cycles();
-+	time = ktime_get();
- 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
- 		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
--	cycles = get_cycles() - cycles;
--	pr_err("find_next_bit:\t\t%llu cycles,\t%ld iterations\n",
--	       (u64)cycles, cnt);
-+	time = ktime_get() - time;
-+	pr_err("find_next_bit:      %18llu ns, %6ld iterations\n", time, cnt);
- 
- 	return 0;
- }
-@@ -75,14 +73,13 @@ static int __init test_find_next_bit(con
- static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
- {
- 	unsigned long i, cnt;
--	cycles_t cycles;
-+	ktime_t time;
- 
--	cycles = get_cycles();
-+	time = ktime_get();
- 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
- 		i = find_next_zero_bit(bitmap, len, i) + 1;
--	cycles = get_cycles() - cycles;
--	pr_err("find_next_zero_bit:\t%llu cycles,\t%ld iterations\n",
--	       (u64)cycles, cnt);
-+	time = ktime_get() - time;
-+	pr_err("find_next_zero_bit: %18llu ns, %6ld iterations\n", time, cnt);
- 
- 	return 0;
- }
-@@ -90,9 +87,9 @@ static int __init test_find_next_zero_bi
- static int __init test_find_last_bit(const void *bitmap, unsigned long len)
- {
- 	unsigned long l, cnt = 0;
--	cycles_t cycles;
-+	ktime_t time;
- 
--	cycles = get_cycles();
-+	time = ktime_get();
- 	do {
- 		cnt++;
- 		l = find_last_bit(bitmap, len);
-@@ -100,9 +97,8 @@ static int __init test_find_last_bit(con
- 			break;
- 		len = l;
- 	} while (len);
--	cycles = get_cycles() - cycles;
--	pr_err("find_last_bit:\t\t%llu cycles,\t%ld iterations\n",
--	       (u64)cycles, cnt);
-+	time = ktime_get() - time;
-+	pr_err("find_last_bit:      %18llu ns, %6ld iterations\n", time, cnt);
- 
- 	return 0;
- }
-@@ -132,13 +128,12 @@ static int __init find_bit_test(void)
- 	test_find_last_bit(bitmap, BITMAP_LEN);
- 	test_find_first_bit(bitmap, BITMAP_LEN);
- 
--	return 0;
-+	/*
-+	 * Everything is OK. Return error just to let user run benchmark
-+	 * again without annoying rmmod.
-+	 */
-+	return -EINVAL;
- }
- module_init(find_bit_test);
- 
--static void __exit test_find_bit_cleanup(void)
--{
--}
--module_exit(test_find_bit_cleanup);
+ 			# a comment starts before $max_line_length
+_
+
+Patches currently in -mm which might be from a.brauchli@elementarea.net are
+
+
