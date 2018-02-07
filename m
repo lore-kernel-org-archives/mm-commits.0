@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-cortina-gemini-patterns.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 12:00:46 -0800
-Message-ID: <20180207200046.fIXR9AULI%akpm@linux-foundation.org>
+Subject: [merged]
+ maintainers-remove-arm-clkdev-support-file-pattern.patch removed from -mm
+ tree
+Date: Wed, 07 Feb 2018 12:00:43 -0800
+Message-ID: <20180207200043.s-8fPMOXo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60758 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:47 -0500
+        with ESMTP id S1753721AbeBGUAo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, joe@perches.com, linus.walleij@linaro.org, mm-commits@vger.kernel.org, ulli.kroll@googlemail.com
+To: akpm@linux-foundation.org, joe@perches.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update Cortina/Gemini patterns
+     Subject: MAINTAINERS: remove ARM/CLKDEV SUPPORT file pattern
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-cortina-gemini-patterns.patch
+     maintainers-remove-arm-clkdev-support-file-pattern.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update Cortina/Gemini patterns
+Subject: MAINTAINERS: remove ARM/CLKDEV SUPPORT file pattern
 
-4d5ae32f5e1e ("net: ethernet: Add a driver for Gemini gigabit ethernet")
-added invalid patterns.  Fix it.
+34d2f4d3a4d6 ("ARM: Use generic clkdev.h header") removed the file, remove
+the pattern.
 
-Link: http://lkml.kernel.org/r/65b104609e0071d0fbe0dcce3a8e6138a4cf8c25.1517147485.git.joe@perches.com
+Link: http://lkml.kernel.org/r/41bfff9449a5894b94f583983b6c6cb46f4cd821.1517147485.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hans Ulli Kroll <ulli.kroll@googlemail.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-cortina-gemini-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-cortina-gemini-patterns
+diff -puN MAINTAINERS~maintainers-remove-arm-clkdev-support-file-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-arm-clkdev-support-file-pattern
 +++ a/MAINTAINERS
-@@ -1358,7 +1358,7 @@ F:	Documentation/devicetree/bindings/pin
- F:	Documentation/devicetree/bindings/net/cortina,gemini-ethernet.txt
- F:	Documentation/devicetree/bindings/rtc/faraday,ftrtc010.txt
- F:	arch/arm/mach-gemini/
--F:	drivers/net/ethernet/cortina/gemini/*
-+F:	drivers/net/ethernet/cortina/
- F:	drivers/pinctrl/pinctrl-gemini.c
- F:	drivers/rtc/rtc-ftrtc010.c
+@@ -1307,7 +1307,6 @@ M:	Russell King <linux@armlinux.org.uk>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ T:	git git://git.armlinux.org.uk/~rmk/linux-arm.git clkdev
+-F:	arch/arm/include/asm/clkdev.h
+ F:	drivers/clk/clkdev.c
  
+ ARM/COMPULAB CM-X270/EM-X270 and CM-X300 MACHINE SUPPORT
 _
 
 Patches currently in -mm which might be from joe@perches.com are
