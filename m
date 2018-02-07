@@ -1,72 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-improve-open_brace-test.patch removed
+Subject: [merged] forkc-check-error-and-return-early.patch removed
  from -mm tree
-Date: Wed, 07 Feb 2018 11:57:50 -0800
-Message-ID: <20180207195750.HGk5hdPuA%akpm@linux-foundation.org>
+Date: Wed, 07 Feb 2018 11:58:08 -0800
+Message-ID: <20180207195808.Jty2kXfDK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59862 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754281AbeBGT5v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:51 -0500
+        with ESMTP id S1754129AbeBGT6J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org, songliubraving@fb.com
+To: marcos.souza.org@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve OPEN_BRACE test
+     Subject: kernel/fork.c: check error and return early
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-open_brace-test.patch
+     forkc-check-error-and-return-early.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve OPEN_BRACE test
+From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+Subject: kernel/fork.c: check error and return early
 
-Some structure definitions that use macros trip the OPEN_BRACE test.
+Thus reducing one indentation level while maintaining the same rationale.
 
-e.g. +struct bpf_map_def SEC("maps") control_map = {
-
-Improve the test by using $balanced_parens instead of a .*
-
-Miscellanea:
-
-o Use $sline so any comments are ignored
-o Correct the message output from declaration to definition
-o Remove unnecessary parentheses
-
-Link: http://lkml.kernel.org/r/db9b772999d1d2fbda3b9ee24bbca81a87837e13.1517543491.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Song Liu <songliubraving@fb.com>
+Link: http://lkml.kernel.org/r/20171117002929.5155-1-marcos.souza.org@gmail.com
+Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ kernel/fork.c |   63 +++++++++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 32 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-open_brace-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-open_brace-test
-+++ a/scripts/checkpatch.pl
-@@ -3919,10 +3919,12 @@ sub process {
+diff -puN kernel/fork.c~forkc-check-error-and-return-early kernel/fork.c
+--- a/kernel/fork.c~forkc-check-error-and-return-early
++++ a/kernel/fork.c
+@@ -2062,6 +2062,8 @@ long _do_fork(unsigned long clone_flags,
+ 	      int __user *child_tidptr,
+ 	      unsigned long tls)
+ {
++	struct completion vfork;
++	struct pid *pid;
+ 	struct task_struct *p;
+ 	int trace = 0;
+ 	long nr;
+@@ -2087,43 +2089,40 @@ long _do_fork(unsigned long clone_flags,
+ 	p = copy_process(clone_flags, stack_start, stack_size,
+ 			 child_tidptr, NULL, trace, tls, NUMA_NO_NODE);
+ 	add_latent_entropy();
++
++	if (IS_ERR(p))
++		return PTR_ERR(p);
++
+ 	/*
+ 	 * Do this prior waking up the new thread - the thread pointer
+ 	 * might get invalid after that point, if the thread exits quickly.
+ 	 */
+-	if (!IS_ERR(p)) {
+-		struct completion vfork;
+-		struct pid *pid;
+-
+-		trace_sched_process_fork(current, p);
+-
+-		pid = get_task_pid(p, PIDTYPE_PID);
+-		nr = pid_vnr(pid);
+-
+-		if (clone_flags & CLONE_PARENT_SETTID)
+-			put_user(nr, parent_tidptr);
+-
+-		if (clone_flags & CLONE_VFORK) {
+-			p->vfork_done = &vfork;
+-			init_completion(&vfork);
+-			get_task_struct(p);
+-		}
+-
+-		wake_up_new_task(p);
+-
+-		/* forking complete and child started to run, tell ptracer */
+-		if (unlikely(trace))
+-			ptrace_event_pid(trace, pid);
+-
+-		if (clone_flags & CLONE_VFORK) {
+-			if (!wait_for_vfork_done(p, &vfork))
+-				ptrace_event_pid(PTRACE_EVENT_VFORK_DONE, pid);
+-		}
+-
+-		put_pid(pid);
+-	} else {
+-		nr = PTR_ERR(p);
++	trace_sched_process_fork(current, p);
++
++	pid = get_task_pid(p, PIDTYPE_PID);
++	nr = pid_vnr(pid);
++
++	if (clone_flags & CLONE_PARENT_SETTID)
++		put_user(nr, parent_tidptr);
++
++	if (clone_flags & CLONE_VFORK) {
++		p->vfork_done = &vfork;
++		init_completion(&vfork);
++		get_task_struct(p);
+ 	}
++
++	wake_up_new_task(p);
++
++	/* forking complete and child started to run, tell ptracer */
++	if (unlikely(trace))
++		ptrace_event_pid(trace, pid);
++
++	if (clone_flags & CLONE_VFORK) {
++		if (!wait_for_vfork_done(p, &vfork))
++			ptrace_event_pid(PTRACE_EVENT_VFORK_DONE, pid);
++	}
++
++	put_pid(pid);
+ 	return nr;
+ }
  
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
--		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
--		    !($line=~/\#\s*define.*do\s\{/) and !($line=~/}/)) {
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $sline =~ /$Type\s*$Ident\s*$balanced_parens\s*\{/ &&
-+		    $sline !~ /\#\s*define\b.*do\s*\{/ &&
-+		    $sline !~ /}/) {
- 			if (ERROR("OPEN_BRACE",
--				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
-+				  "open brace '{' following function definitions go on the next line\n" . $herecurr) &&
- 			    $fix) {
- 				fix_delete_line($fixlinenr, $rawline);
- 				my $fixed_line = $rawline;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from marcos.souza.org@gmail.com are
 
 
