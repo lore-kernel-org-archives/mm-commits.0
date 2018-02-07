@@ -1,59 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-android-ion-pattern.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 12:00:40 -0800
-Message-ID: <20180207200040.RCTFn6Drx%akpm@linux-foundation.org>
+Subject: [merged]
+ pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 12:00:13 -0800
+Message-ID: <20180207200013.nVUM8-E0U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60572 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:41 -0500
+        with ESMTP id S1753721AbeBGUAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, labbott@redhat.com, mm-commits@vger.kernel.org, sumit.semwal@linaro.org
+To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, w@1wt.eu
 
 
 The patch titled
-     Subject: MAINTAINERS: remove ANDROID ION pattern
+     Subject: pipe: actually allow root to exceed the pipe buffer limits
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-android-ion-pattern.patch
+     pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove ANDROID ION pattern
+From: Eric Biggers <ebiggers@google.com>
+Subject: pipe: actually allow root to exceed the pipe buffer limits
 
-File drivers/staging/android/uapi/ion_test.h was removed by 9828282e33a0
-("staging: android: ion: Remove old platform support")
+pipe-user-pages-hard and pipe-user-pages-soft are only supposed to apply
+to unprivileged users, as documented in both Documentation/sysctl/fs.txt
+and the pipe(7) man page.
 
-Remove the pattern.
+However, the capabilities are actually only checked when increasing a
+pipe's size using F_SETPIPE_SZ, not when creating a new pipe.  Therefore,
+if pipe-user-pages-hard has been set, the root user can run into it and be
+unable to create pipes.  Similarly, if pipe-user-pages-soft has been set,
+the root user can run into it and have their pipes limited to 1 page each.
 
-Link: http://lkml.kernel.org/r/182debec22002c9a1de44e79a7441288942b205c.1517147485.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Laura Abbott <labbott@redhat.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Fix this by allowing the privileged override in both cases.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-4-ebiggers3@gmail.com
+Fixes: 759c01142a5d ("pipe: limit the per-user amount of pages allocated in pipes")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ fs/pipe.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-android-ion-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-android-ion-pattern
-+++ a/MAINTAINERS
-@@ -903,7 +903,6 @@ L:	devel@driverdev.osuosl.org
- S:	Supported
- F:	drivers/staging/android/ion
- F:	drivers/staging/android/uapi/ion.h
--F:	drivers/staging/android/uapi/ion_test.h
+diff -puN fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits fs/pipe.c
+--- a/fs/pipe.c~pipe-actually-allow-root-to-exceed-the-pipe-buffer-limits
++++ a/fs/pipe.c
+@@ -613,6 +613,11 @@ static bool too_many_pipe_buffers_hard(u
+ 	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
+ }
  
- AOA (Apple Onboard Audio) ALSA DRIVER
- M:	Johannes Berg <johannes@sipsolutions.net>
++static bool is_unprivileged_user(void)
++{
++	return !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN);
++}
++
+ struct pipe_inode_info *alloc_pipe_info(void)
+ {
+ 	struct pipe_inode_info *pipe;
+@@ -629,12 +634,12 @@ struct pipe_inode_info *alloc_pipe_info(
+ 
+ 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+ 
+-	if (too_many_pipe_buffers_soft(user_bufs)) {
++	if (too_many_pipe_buffers_soft(user_bufs) && is_unprivileged_user()) {
+ 		user_bufs = account_pipe_buffers(user, pipe_bufs, 1);
+ 		pipe_bufs = 1;
+ 	}
+ 
+-	if (too_many_pipe_buffers_hard(user_bufs))
++	if (too_many_pipe_buffers_hard(user_bufs) && is_unprivileged_user())
+ 		goto out_revert_acct;
+ 
+ 	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
+@@ -1065,7 +1070,7 @@ static long pipe_set_size(struct pipe_in
+ 	if (nr_pages > pipe->buffers &&
+ 			(too_many_pipe_buffers_hard(user_bufs) ||
+ 			 too_many_pipe_buffers_soft(user_bufs)) &&
+-			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
++			is_unprivileged_user()) {
+ 		ret = -EPERM;
+ 		goto out_revert_acct;
+ 	}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
 
