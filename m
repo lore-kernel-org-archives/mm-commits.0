@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-map_fixed_safe-fix.patch added to -mm tree
-Date: Wed, 07 Feb 2018 14:47:39 -0800
-Message-ID: <5a7b820b.8w8CNESQLmG9j2dw%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-introduce-map_fixed_safe-fix.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 14:47:59 -0800
+Message-ID: <5a7b821f.Nl180Dn3ygYjpMu+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40052 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750767AbeBGWrk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:47:40 -0500
+        with ESMTP id S1751094AbeBGWsB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 17:48:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mpe@ellerman.id.au, mm-commits@vger.kernel.org
@@ -18,24 +19,10 @@ To: mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm-introduce-map_fixed_safe-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-introduce-map_fixed_safe-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-map_fixed_safe-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-map_fixed_safe-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-introduce-map_fixed_safe.patch
 
 ------------------------------------------------------
 From: Michael Ellerman <mpe@ellerman.id.au>
