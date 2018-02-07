@@ -1,125 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-proc-map_files-lookup.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 11:55:53 -0800
-Message-ID: <20180207195553.TmLu6hvPy%akpm@linux-foundation.org>
+Subject: [merged] proc-rearrange-struct-proc_dir_entry.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 11:56:09 -0800
+Message-ID: <20180207195609.U6nbz1UzM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58216 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754422AbeBGTzz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:55 -0500
+        with ESMTP id S1754157AbeBGT4K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, avagin@virtuozzo.com, mm-commits@vger.kernel.org, xemul@openvz.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: proc: fix /proc/*/map_files lookup
+     Subject: fs/proc/internal.h: rearrange struct proc_dir_entry
 has been removed from the -mm tree.  Its filename was
-     proc-fix-proc-map_files-lookup.patch
+     proc-rearrange-struct-proc_dir_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: fix /proc/*/map_files lookup
+Subject: fs/proc/internal.h: rearrange struct proc_dir_entry
 
-Current code does:
+struct proc_dir_entry became bit messy over years:
 
-	if (sscanf(dentry->d_name.name, "%lx-%lx", start, end) != 2)
+* move 16-bit ->mode_t before namelen to get rid of padding
+* make ->in_use first field: it seems to be most used resulting in
+  smaller code on x86_64 (defconfig):
 
-However sscanf() is broken garbage.
+	add/remove: 0/0 grow/shrink: 7/13 up/down: 24/-67 (-43)
+	Function                                     old     new   delta
+	proc_readdir_de                              451     455      +4
+	proc_get_inode                               282     286      +4
+	pde_put                                       65      69      +4
+	remove_proc_subtree                          294     297      +3
+	remove_proc_entry                            297     300      +3
+	proc_register                                295     298      +3
+	proc_notify_change                            94      97      +3
+	unuse_pde                                     27      26      -1
+	proc_reg_write                                89      85      -4
+	proc_reg_unlocked_ioctl                       85      81      -4
+	proc_reg_read                                 89      85      -4
+	proc_reg_llseek                               87      83      -4
+	proc_reg_get_unmapped_area                   123     119      -4
+	proc_entry_rundown                           139     135      -4
+	proc_reg_poll                                 91      85      -6
+	proc_reg_mmap                                 79      73      -6
+	proc_get_link                                 55      49      -6
+	proc_reg_release                             108     101      -7
+	proc_reg_open                                298     291      -7
+	close_pdeo                                   228     218     -10
 
-It silently accepts whitespace between format specifiers
-(did you know that?).
+* move writeable fields together to a first cacheline (on x86_64),
+  those include
+	* ->in_use: reference count, taken every open/read/write/close etc
+	* ->count: reference count, taken at readdir on every entry
+	* ->pde_openers: tracks (nearly) every open, dirtied
+	* ->pde_unload_lock: spinlock protecting ->pde_openers
+	* ->proc_iops, ->proc_fops, ->data: writeonce fields,
+	  used right together with previous group.
 
-It silently accepts valid strings which result in integer overflow.
+* other rarely written fields go into 1st/2nd and 2nd/3rd cacheline on
+  32-bit and 64-bit respectively.
 
-Do not use sscanf() for any even remotely reliable parsing code.
+Additionally on 32-bit, ->subdir, ->subdir_node, ->namelen, ->name go
+fully into 2nd cacheline, separated from writeable fields.  They are all
+used during lookup.
 
-	OK
-	# readlink '/proc/1/map_files/55a23af39000-55a23b05b000'
-	/lib/systemd/systemd
-
-	broken
-	# readlink '/proc/1/map_files/               55a23af39000-55a23b05b000'
-	/lib/systemd/systemd
-
-	broken
-	# readlink '/proc/1/map_files/55a23af39000-55a23b05b000    '
-	/lib/systemd/systemd
-
-	very broken
-	# readlink '/proc/1/map_files/1000000000000000055a23af39000-55a23b05b000'
-	/lib/systemd/systemd
-
-Andrei said:
-
-: This patch breaks criu.  It was a bug in criu.  And this bug is on a minor
-: path, which works when memfd_create() isn't available.  It is a reason why
-: I ask to not backport this patch to stable kernels.
-: 
-: In CRIU this bug can be triggered, only if this patch will be backported
-: to a kernel which version is lower than v3.16.
-
-Link: http://lkml.kernel.org/r/20171120212706.GA14325@avx2
+Link: http://lkml.kernel.org/r/20171220215914.GA7877@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Andrei Vagin <avagin@virtuozzo.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ fs/proc/internal.h |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fix-proc-map_files-lookup fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-proc-map_files-lookup
-+++ a/fs/proc/base.c
-@@ -100,6 +100,8 @@
- #include "internal.h"
- #include "fd.h"
- 
-+#include "../../lib/kstrtox.h"
-+
- /* NOTE:
-  *	Implementing inode permission operations in /proc is almost
-  *	certainly an error.  Permission checks need to happen during
-@@ -1906,8 +1908,33 @@ end_instantiate:
- static int dname_to_vma_addr(struct dentry *dentry,
- 			     unsigned long *start, unsigned long *end)
- {
--	if (sscanf(dentry->d_name.name, "%lx-%lx", start, end) != 2)
-+	const char *str = dentry->d_name.name;
-+	unsigned long long sval, eval;
-+	unsigned int len;
-+
-+	len = _parse_integer(str, 16, &sval);
-+	if (len & KSTRTOX_OVERFLOW)
-+		return -EINVAL;
-+	if (sval != (unsigned long)sval)
-+		return -EINVAL;
-+	str += len;
-+
-+	if (*str != '-')
- 		return -EINVAL;
-+	str++;
-+
-+	len = _parse_integer(str, 16, &eval);
-+	if (len & KSTRTOX_OVERFLOW)
-+		return -EINVAL;
-+	if (eval != (unsigned long)eval)
-+		return -EINVAL;
-+	str += len;
-+
-+	if (*str != '\0')
-+		return -EINVAL;
-+
-+	*start = sval;
-+	*end = eval;
- 
- 	return 0;
- }
+diff -puN fs/proc/internal.h~proc-rearrange-struct-proc_dir_entry fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-rearrange-struct-proc_dir_entry
++++ a/fs/proc/internal.h
+@@ -31,24 +31,27 @@ struct mempolicy;
+  * subdir_node is used to build the rb tree "subdir" of the parent.
+  */
+ struct proc_dir_entry {
++	/*
++	 * number of callers into module in progress;
++	 * negative -> it's going away RSN
++	 */
++	atomic_t in_use;
++	atomic_t count;		/* use count */
++	struct list_head pde_openers;	/* who did ->open, but not ->release */
++	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
++	struct completion *pde_unload_completion;
++	const struct inode_operations *proc_iops;
++	const struct file_operations *proc_fops;
++	void *data;
+ 	unsigned int low_ino;
+-	umode_t mode;
+ 	nlink_t nlink;
+ 	kuid_t uid;
+ 	kgid_t gid;
+ 	loff_t size;
+-	const struct inode_operations *proc_iops;
+-	const struct file_operations *proc_fops;
+ 	struct proc_dir_entry *parent;
+ 	struct rb_root_cached subdir;
+ 	struct rb_node subdir_node;
+-	void *data;
+-	atomic_t count;		/* use count */
+-	atomic_t in_use;	/* number of callers into module in progress; */
+-			/* negative -> it's going away RSN */
+-	struct completion *pde_unload_completion;
+-	struct list_head pde_openers;	/* who did ->open, but not ->release */
+-	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
++	umode_t mode;
+ 	u8 namelen;
+ 	char name[];
+ } __randomize_layout;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
