@@ -1,102 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 11:57:00 -0800
-Message-ID: <20180207195700.6Ng4cIo3R%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-sboyds-email-address.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 11:56:45 -0800
+Message-ID: <20180207195645.-5815p9zd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59234 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754238AbeBGT5C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:02 -0500
+        with ESMTP id S1754493AbeBGT4r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, rdunlap@infradead.org, ynorov@caviumnetworks.com
+To: mm-commits@vger.kernel.org, sboyd@codeaurora.org
 
 
 The patch titled
-     Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
+     Subject: MAINTAINERS: update sboyd's email address
 has been removed from the -mm tree.  Its filename was
-     bitmap-clean-up-test_zero_fill_copy-test-case-and-rename.patch
+     maintainers-update-sboyds-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/test_bitmap.c: clean up test_zero_fill_copy() test case and rename
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: MAINTAINERS: update sboyd's email address
 
-Since we have separate explicit test cases for bitmap_zero() /
-bitmap_clear() and bitmap_fill() / bitmap_set(), clean up
-test_zero_fill_copy() to only test bitmap_copy() functionality and thus
-rename a function to reflect the changes.
+Replace my codeaurora.org address with my kernel.org address so that
+emails don't bounce.
 
-While here, replace bitmap_fill() by bitmap_set() with proper values.
-
-Link: http://lkml.kernel.org/r/20180109172430.87452-3-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: http://lkml.kernel.org/r/20180129173258.10643-1-sboyd@codeaurora.org
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   29 +++++------------------------
- 1 file changed, 5 insertions(+), 24 deletions(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-clean-up-test_zero_fill_copy-test-case-and-rename
-+++ a/lib/test_bitmap.c
-@@ -163,7 +163,7 @@ static void __init test_fill_set(void)
- 	expect_eq_pbl("0-1023", bmap, 1024);
- }
+diff -puN MAINTAINERS~maintainers-update-sboyds-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-sboyds-email-address
++++ a/MAINTAINERS
+@@ -3575,7 +3575,7 @@ F:	drivers/media/platform/coda/
  
--static void __init test_zero_fill_copy(void)
-+static void __init test_copy(void)
- {
- 	DECLARE_BITMAP(bmap1, 1024);
- 	DECLARE_BITMAP(bmap2, 1024);
-@@ -172,36 +172,20 @@ static void __init test_zero_fill_copy(v
- 	bitmap_zero(bmap2, 1024);
+ COMMON CLK FRAMEWORK
+ M:	Michael Turquette <mturquette@baylibre.com>
+-M:	Stephen Boyd <sboyd@codeaurora.org>
++M:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-clk@vger.kernel.org
+ Q:	http://patchwork.kernel.org/project/linux-clk/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux.git
+@@ -10259,7 +10259,7 @@ F:	include/uapi/linux/openvswitch.h
+ OPERATING PERFORMANCE POINTS (OPP)
+ M:	Viresh Kumar <vireshk@kernel.org>
+ M:	Nishanth Menon <nm@ti.com>
+-M:	Stephen Boyd <sboyd@codeaurora.org>
++M:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/vireshk/pm.git
+@@ -12976,7 +12976,7 @@ F:	Documentation/networking/spider_net.t
+ F:	drivers/net/ethernet/toshiba/spider_net*
  
- 	/* single-word bitmaps */
--	expect_eq_pbl("", bmap1, 23);
--
--	bitmap_fill(bmap1, 19);
--	expect_eq_pbl("0-18", bmap1, 1024);
--
-+	bitmap_set(bmap1, 0, 19);
- 	bitmap_copy(bmap2, bmap1, 23);
- 	expect_eq_pbl("0-18", bmap2, 1024);
- 
--	bitmap_fill(bmap2, 23);
--	expect_eq_pbl("0-22", bmap2, 1024);
--
-+	bitmap_set(bmap2, 0, 23);
- 	bitmap_copy(bmap2, bmap1, 23);
- 	expect_eq_pbl("0-18", bmap2, 1024);
- 
--	bitmap_zero(bmap1, 23);
--	expect_eq_pbl("", bmap1, 1024);
--
- 	/* multi-word bitmaps */
--	bitmap_zero(bmap1, 1024);
--	expect_eq_pbl("", bmap1, 1024);
--
--	bitmap_fill(bmap1, 109);
--	expect_eq_pbl("0-108", bmap1, 1024);
--
-+	bitmap_set(bmap1, 0, 109);
- 	bitmap_copy(bmap2, bmap1, 1024);
- 	expect_eq_pbl("0-108", bmap2, 1024);
- 
- 	bitmap_fill(bmap2, 1024);
--	expect_eq_pbl("0-1023", bmap2, 1024);
--
- 	bitmap_copy(bmap2, bmap1, 1024);
- 	expect_eq_pbl("0-108", bmap2, 1024);
- 
-@@ -216,9 +200,6 @@ static void __init test_zero_fill_copy(v
- 	bitmap_fill(bmap2, 1024);
- 	bitmap_copy(bmap2, bmap1, 97);  /* ... but aligned on word length */
- 	expect_eq_pbl("0-108,128-1023", bmap2, 1024);
+ SPMI SUBSYSTEM
+-R:	Stephen Boyd <sboyd@codeaurora.org>
++R:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-arm-msm@vger.kernel.org
+ F:	Documentation/devicetree/bindings/spmi/
+ F:	drivers/spmi/
+@@ -13859,7 +13859,7 @@ F:	include/linux/usb/tilegx.h
+ TIMEKEEPING, CLOCKSOURCE CORE, NTP, ALARMTIMER
+ M:	John Stultz <john.stultz@linaro.org>
+ M:	Thomas Gleixner <tglx@linutronix.de>
+-R:	Stephen Boyd <sboyd@codeaurora.org>
++R:	Stephen Boyd <sboyd@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git timers/core
+ S:	Supported
+_
+
+Patches currently in -mm which might be from sboyd@codeaurora.org are
+
+
