@@ -1,205 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 07 Feb 2018 11:54:46 -0800
-Message-ID: <20180207195446.hQGbdYKSw%akpm@linux-foundation.org>
+Subject: [merged] kasan-support-alloca-poisoning.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:55:13 -0800
+Message-ID: <20180207195513.Gdj089Y-z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57872 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGTys (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:54:48 -0500
+        with ESMTP id S1753721AbeBGTzO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, ghackmann@google.com, glider@google.com, mka@chromium.org, mm-commits@vger.kernel.org, paullawrence@google.com, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: kasan: support alloca() poisoning
+has been removed from the -mm tree.  Its filename was
+     kasan-support-alloca-poisoning.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Paul Lawrence <paullawrence@google.com>
+Subject: kasan: support alloca() poisoning
 
+clang's AddressSanitizer implementation adds redzones on either side of
+alloca()ed buffers.  These redzones are 32-byte aligned and at least 32
+bytes long.
+
+__asan_alloca_poison() is passed the size and address of the allocated
+buffer, *excluding* the redzones on either side.  The left redzone will
+always be to the immediate left of this buffer; but AddressSanitizer may
+need to add padding between the end of the buffer and the right redzone. 
+If there are any 8-byte chunks inside this padding, we should poison those
+too.
+
+__asan_allocas_unpoison() is just passed the top and bottom of the dynamic
+stack area, so unpoisoning is simpler.
+
+Link: http://lkml.kernel.org/r/20171204191735.132544-4-paullawrence@google.com
+Signed-off-by: Greg Hackmann <ghackmann@google.com>
+Signed-off-by: Paul Lawrence <paullawrence@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Matthias Kaehlcke <mka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/process/maintainer-pgp-guide.rst |   58 ---------------
- drivers/platform/x86/dell-laptop.c             |    3 
- 2 files changed, 61 deletions(-)
+ mm/kasan/kasan.c       |   34 ++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.h       |    8 ++++++++
+ mm/kasan/report.c      |    4 ++++
+ scripts/Makefile.kasan |    3 ++-
+ 4 files changed, 48 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/process/maintainer-pgp-guide.rst~linux-next-git-rejects Documentation/process/maintainer-pgp-guide.rst
---- a/Documentation/process/maintainer-pgp-guide.rst~linux-next-git-rejects
-+++ a/Documentation/process/maintainer-pgp-guide.rst
-@@ -18,17 +18,10 @@ The role of PGP in Linux Kernel developm
- ===========================================
+diff -puN mm/kasan/kasan.c~kasan-support-alloca-poisoning mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-support-alloca-poisoning
++++ a/mm/kasan/kasan.c
+@@ -736,6 +736,40 @@ void __asan_unpoison_stack_memory(const
+ }
+ EXPORT_SYMBOL(__asan_unpoison_stack_memory);
  
- PGP helps ensure the integrity of the code that is produced by the Linux
--<<<<<<< HEAD
--kernel development community and, to a lesser degree, establish trusted
--communication channels between developers via PGP-signed email exchange.
--
--The Linux kernel source code is available in two main formats:
--=======
- Kernel development community and, to a lesser degree, establish trusted
- communication channels between developers via PGP-signed email exchange.
++/* Emitted by compiler to poison alloca()ed objects. */
++void __asan_alloca_poison(unsigned long addr, size_t size)
++{
++	size_t rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
++	size_t padding_size = round_up(size, KASAN_ALLOCA_REDZONE_SIZE) -
++			rounded_up_size;
++	size_t rounded_down_size = round_down(size, KASAN_SHADOW_SCALE_SIZE);
++
++	const void *left_redzone = (const void *)(addr -
++			KASAN_ALLOCA_REDZONE_SIZE);
++	const void *right_redzone = (const void *)(addr + rounded_up_size);
++
++	WARN_ON(!IS_ALIGNED(addr, KASAN_ALLOCA_REDZONE_SIZE));
++
++	kasan_unpoison_shadow((const void *)(addr + rounded_down_size),
++			      size - rounded_down_size);
++	kasan_poison_shadow(left_redzone, KASAN_ALLOCA_REDZONE_SIZE,
++			KASAN_ALLOCA_LEFT);
++	kasan_poison_shadow(right_redzone,
++			padding_size + KASAN_ALLOCA_REDZONE_SIZE,
++			KASAN_ALLOCA_RIGHT);
++}
++EXPORT_SYMBOL(__asan_alloca_poison);
++
++/* Emitted by compiler to unpoison alloca()ed areas when the stack unwinds. */
++void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom)
++{
++	if (unlikely(!stack_top || stack_top > stack_bottom))
++		return;
++
++	kasan_unpoison_shadow(stack_top, stack_bottom - stack_top);
++}
++EXPORT_SYMBOL(__asan_allocas_unpoison);
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ static int __meminit kasan_mem_notifier(struct notifier_block *nb,
+ 			unsigned long action, void *data)
+diff -puN mm/kasan/kasan.h~kasan-support-alloca-poisoning mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-support-alloca-poisoning
++++ a/mm/kasan/kasan.h
+@@ -24,6 +24,14 @@
+ #define KASAN_STACK_PARTIAL     0xF4
+ #define KASAN_USE_AFTER_SCOPE   0xF8
  
- The Linux Kernel source code is available in two main formats:
-->>>>>>> linux-next/akpm-base
++/*
++ * alloca redzone shadow values
++ */
++#define KASAN_ALLOCA_LEFT	0xCA
++#define KASAN_ALLOCA_RIGHT	0xCB
++
++#define KASAN_ALLOCA_REDZONE_SIZE	32
++
+ /* Don't break randconfig/all*config builds */
+ #ifndef KASAN_ABI_VERSION
+ #define KASAN_ABI_VERSION 1
+diff -puN mm/kasan/report.c~kasan-support-alloca-poisoning mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-support-alloca-poisoning
++++ a/mm/kasan/report.c
+@@ -102,6 +102,10 @@ static const char *get_shadow_bug_type(s
+ 	case KASAN_USE_AFTER_SCOPE:
+ 		bug_type = "use-after-scope";
+ 		break;
++	case KASAN_ALLOCA_LEFT:
++	case KASAN_ALLOCA_RIGHT:
++		bug_type = "alloca-out-of-bounds";
++		break;
+ 	}
  
- - Distributed source repositories (git)
- - Periodic release snapshots (tarballs)
-@@ -60,11 +53,7 @@ want to make sure that by placing trust
- shift the blame for potential future security incidents to someone else.
- The goal is to provide a set of guidelines developers can use to create
- a secure working environment and safeguard the PGP keys used to
--<<<<<<< HEAD
--establish the integrity of the Linux kernel itself.
--=======
- establish the integrity of the Linux Kernel itself.
-->>>>>>> linux-next/akpm-base
+ 	return bug_type;
+diff -puN scripts/Makefile.kasan~kasan-support-alloca-poisoning scripts/Makefile.kasan
+--- a/scripts/Makefile.kasan~kasan-support-alloca-poisoning
++++ a/scripts/Makefile.kasan
+@@ -32,7 +32,8 @@ else
+ 	$(call cc-param,asan-globals=1) \
+ 	$(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
+ 	$(call cc-param,asan-stack=1) \
+-	$(call cc-param,asan-use-after-scope=1)
++	$(call cc-param,asan-use-after-scope=1) \
++	$(call cc-param,asan-instrument-allocas=1)
+    endif
  
- .. _pgp_tools:
- 
-@@ -150,11 +139,7 @@ Protect your master PGP key
- ===========================
- 
- This guide assumes that you already have a PGP key that you use for Linux
--<<<<<<< HEAD
--kernel development purposes. If you do not yet have one, please see the
--=======
- Kernel development purposes. If you do not yet have one, please see the
-->>>>>>> linux-next/akpm-base
- "`Protecting Code Integrity`_" document mentioned earlier for guidance
- on how to create a new one.
- 
-@@ -164,13 +149,7 @@ You should also make a new key if your c
- Master key vs. Subkeys
- ----------------------
- 
--<<<<<<< HEAD
--Subkeys are fully independent PGP keypairs that are tied to the "master"
--key using certifying key signatures (certificates). It is important to
--understand the following:
--=======
- It is important to understand the following:
-->>>>>>> linux-next/akpm-base
- 
- 1. There are no technical differences between the "master key" and "subkeys."
- 2. At creation time, we assign functional limitations to each key by
-@@ -763,31 +742,6 @@ How to work with signed commits
- -------------------------------
- 
- It is easy to create signed commits, but it is much more difficult to
--<<<<<<< HEAD
--use them in Linux kernel development, since it relies on patches sent to
--the mailing list, and this workflow does not preserve PGP commit
--signatures. Furthermore, when rebasing your repository to match
--upstream, even your own PGP commit signatures will end up discarded. For
--this reason, most kernel developers don't bother signing their commits
--and will ignore signed commits in any external repositories that they
--rely upon in their work.
--
--However, if you have your working git tree publicly available at some
--git hosting service (kernel.org, infradead.org, ozlabs.org, or others),
--then the recommendation is that you sign all your git commits even if
--upstream developers do not directly benefit from this practice.
--
--We recommend this for the following reasons:
--
--1. Should there ever be a need to perform code forensics or track code
--   provenance, even externally maintained trees carrying PGP commit
--   signatures will be valuable for such purposes.
--2. If you ever need to re-clone your local repository (for example,
--   after a disk failure), this lets you easily verify the repository
--   integrity before resuming your work.
--3. If someone needs to cherry-pick your commits, this allows them to
--   quickly verify their integrity before applying them.
--=======
- use them in Linux Kernel development, since it relies on patches sent to
- the mailing list, and this workflow does not preserve PGP commit
- signatures.
-@@ -799,7 +753,6 @@ developers do not directly benefit from
- be a need to perform code forensics or track code provenance, even
- externally maintained trees carrying PGP commit signatures will be
- extremely valuable for such purposes.
-->>>>>>> linux-next/akpm-base
- 
- Creating signed commits
- ~~~~~~~~~~~~~~~~~~~~~~~
-@@ -817,13 +770,6 @@ You can tell git to always sign commits:
- 
-     git config --global commit.gpgSign true
- 
--<<<<<<< HEAD
--.. note::
--
--    Make sure you configure ``gpg-agent`` before you turn this on.
--
--=======
-->>>>>>> linux-next/akpm-base
- .. _verify_identities:
- 
- How to verify kernel developer identities
-@@ -936,11 +882,7 @@ Locate the ID of the master key in the o
- ``C94035C21B4F2AEB``. Now display the key of Linus Torvalds that you
- have on your keyring::
- 
--<<<<<<< HEAD
--    $ gpg --list-key torvalds@kernel.org
--=======
-     $ git --list-key torvalds@kernel.org
-->>>>>>> linux-next/akpm-base
-     pub   rsa2048 2011-09-20 [SC]
-           ABAF11C65A2970B130ABE3C479BE3E4300411886
-     uid           [ unknown] Linus Torvalds <torvalds@kernel.org>
-diff -puN drivers/platform/x86/dell-laptop.c~linux-next-git-rejects drivers/platform/x86/dell-laptop.c
---- a/drivers/platform/x86/dell-laptop.c~linux-next-git-rejects
-+++ a/drivers/platform/x86/dell-laptop.c
-@@ -1217,12 +1217,9 @@ static int kbd_get_info(struct kbd_info
- 	info->triggers = buffer.output[2] & 0xFF;
- 	units = (buffer.output[2] >> 8) & 0xFF;
- 	info->levels = (buffer.output[2] >> 16) & 0xFF;
--<<<<<<< HEAD
--=======
- 
- 	if (quirks && quirks->kbd_led_levels_off_1 && info->levels)
- 		info->levels--;
-->>>>>>> linux-next/akpm-base
- 
- 	if (quirks && quirks->kbd_led_levels_off_1 && info->levels)
- 		info->levels--;
+ endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paullawrence@google.com are
 
-i-need-old-gcc.patch
-include-linux-sched-mmh-re-inline-mmdrop.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
-fs-elf-drop-map_fixed-usage-from-elf_map-checkpatch-fixes.patch
-mm-migrate-remove-reason-argument-from-new_page_t-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
 
