@@ -1,57 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- maintainers-remove-arm-clkdev-support-file-pattern.patch removed from -mm
- tree
-Date: Wed, 07 Feb 2018 12:00:43 -0800
-Message-ID: <20180207200043.s-8fPMOXo%akpm@linux-foundation.org>
+ pipe-fix-off-by-one-error-when-checking-buffer-limits.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 12:00:18 -0800
+Message-ID: <20180207200018.FWxzd6bIG%akpm__30740.5282896527$1518033537$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60586 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753721AbeBGUAo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:44 -0500
+        with ESMTP id S1753721AbeBGUAU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:00:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org
+To: ebiggers@google.com, joe.lawrence@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, mpatocka@redhat.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, w@1wt.eu
 
 
 The patch titled
-     Subject: MAINTAINERS: remove ARM/CLKDEV SUPPORT file pattern
+     Subject: pipe: fix off-by-one error when checking buffer limits
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-arm-clkdev-support-file-pattern.patch
+     pipe-fix-off-by-one-error-when-checking-buffer-limits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove ARM/CLKDEV SUPPORT file pattern
+From: Eric Biggers <ebiggers@google.com>
+Subject: pipe: fix off-by-one error when checking buffer limits
 
-34d2f4d3a4d6 ("ARM: Use generic clkdev.h header") removed the file, remove
-the pattern.
+With pipe-user-pages-hard set to 'N', users were actually only allowed up
+to 'N - 1' buffers; and likewise for pipe-user-pages-soft.
 
-Link: http://lkml.kernel.org/r/41bfff9449a5894b94f583983b6c6cb46f4cd821.1517147485.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Russell King <linux@armlinux.org.uk>
+Fix this to allow up to 'N' buffers, as would be expected.
+
+Link: http://lkml.kernel.org/r/20180111052902.14409-5-ebiggers3@gmail.com
+Fixes: b0b91d18e2e9 ("pipe: fix limit checking in pipe_set_size()")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Acked-by: Willy Tarreau <w@1wt.eu>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Joe Lawrence <joe.lawrence@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Luis R . Rodriguez" <mcgrof@kernel.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ fs/pipe.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-arm-clkdev-support-file-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-arm-clkdev-support-file-pattern
-+++ a/MAINTAINERS
-@@ -1307,7 +1307,6 @@ M:	Russell King <linux@armlinux.org.uk>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- T:	git git://git.armlinux.org.uk/~rmk/linux-arm.git clkdev
--F:	arch/arm/include/asm/clkdev.h
- F:	drivers/clk/clkdev.c
+diff -puN fs/pipe.c~pipe-fix-off-by-one-error-when-checking-buffer-limits fs/pipe.c
+--- a/fs/pipe.c~pipe-fix-off-by-one-error-when-checking-buffer-limits
++++ a/fs/pipe.c
+@@ -605,12 +605,12 @@ static unsigned long account_pipe_buffer
  
- ARM/COMPULAB CM-X270/EM-X270 and CM-X300 MACHINE SUPPORT
+ static bool too_many_pipe_buffers_soft(unsigned long user_bufs)
+ {
+-	return pipe_user_pages_soft && user_bufs >= pipe_user_pages_soft;
++	return pipe_user_pages_soft && user_bufs > pipe_user_pages_soft;
+ }
+ 
+ static bool too_many_pipe_buffers_hard(unsigned long user_bufs)
+ {
+-	return pipe_user_pages_hard && user_bufs >= pipe_user_pages_hard;
++	return pipe_user_pages_hard && user_bufs > pipe_user_pages_hard;
+ }
+ 
+ static bool is_unprivileged_user(void)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
 
