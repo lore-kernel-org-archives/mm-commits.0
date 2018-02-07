@@ -1,76 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch removed from
- -mm tree
-Date: Wed, 07 Feb 2018 11:59:20 -0800
-Message-ID: <20180207195920.SN5h5OHXV%akpm@linux-foundation.org>
+Subject: [merged] genirq-remove-unneeded-kallsyms-include.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 11:59:38 -0800
+Message-ID: <20180207195938.82XXN8Mql%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754411AbeBGT7W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:22 -0500
+        with ESMTP id S1754493AbeBGT7j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bigeasy@linutronix.de, dbueso@suse.de, deepa.kernel@gmail.com, jhaws@sdl.usu.edu, manfred@colorfullife.com, mingo@kernel.org, mm-commits@vger.kernel.org, rostedt@goodmis.org, tglx@linutronix.de, viro@zeniv.linux.org.uk
+To: mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: ipc/mqueue.c: have RT tasks queue in by priority in wq_add()
+     Subject: genirq: remove unneeded kallsyms include
 has been removed from the -mm tree.  Its filename was
-     ipc-mqueue-wq_add-priority-changed-to-dynamic-priority.patch
+     genirq-remove-unneeded-kallsyms-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jonathan Haws <jhaws@sdl.usu.edu>
-Subject: ipc/mqueue.c: have RT tasks queue in by priority in wq_add()
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: genirq: remove unneeded kallsyms include
 
-Previous behavior added tasks to the work queue using the static_prio
-value instead of the dynamic priority value in prio.  This caused RT tasks
-to be added to the work queue in a FIFO manner rather than by priority. 
-Normal tasks were handled by priority.
+The file was converted from print_symbol() to %pf some time ago in
+ef26f20cd117eb3c18 ("genirq: Print threaded handler in spurious debug
+output").  kallsyms does not seem to be needed anymore.
 
-This fix utilizes the dynamic priority of the task to ensure that both RT
-and normal tasks are added to the work queue in priority order.  Utilizing
-the dynamic priority (prio) rather than the base priority (normal_prio)
-was chosen to ensure that if a task had a boosted priority when it was
-added to the work queue, it would be woken sooner to to ensure that it
-releases any other locks it may be holding in a more timely manner.  It is
-understood that the task could have a lower priority when it wakes than
-when it was added to the queue in this (unlikely) case.
-
-Link: http://lkml.kernel.org/r/1513006652-7014-1-git-send-email-jhaws@sdl.usu.edu
-Signed-off-by: Jonathan Haws <jhaws@sdl.usu.edu>
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
+Link: http://lkml.kernel.org/r/20171208025616.16267-10-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/irq/spurious.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-wq_add-priority-changed-to-dynamic-priority ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-wq_add-priority-changed-to-dynamic-priority
-+++ a/ipc/mqueue.c
-@@ -596,7 +596,7 @@ static void wq_add(struct mqueue_inode_i
- 	ewp->task = current;
- 
- 	list_for_each_entry(walk, &info->e_wait_q[sr].list, list) {
--		if (walk->task->static_prio <= current->static_prio) {
-+		if (walk->task->prio <= current->prio) {
- 			list_add_tail(&ewp->list, &walk->list);
- 			return;
- 		}
+diff -puN kernel/irq/spurious.c~genirq-remove-unneeded-kallsyms-include kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~genirq-remove-unneeded-kallsyms-include
++++ a/kernel/irq/spurious.c
+@@ -10,7 +10,6 @@
+ #include <linux/jiffies.h>
+ #include <linux/irq.h>
+ #include <linux/module.h>
+-#include <linux/kallsyms.h>
+ #include <linux/interrupt.h>
+ #include <linux/moduleparam.h>
+ #include <linux/timer.h>
 _
 
-Patches currently in -mm which might be from jhaws@sdl.usu.edu are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
 
