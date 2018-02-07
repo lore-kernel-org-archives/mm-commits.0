@@ -1,90 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bitmap-add-bitmap_fill-bitmap_set-test-cases.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 11:56:57 -0800
-Message-ID: <20180207195657.MG82DFlvC%akpm@linux-foundation.org>
+ bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch removed from -mm tree
+Date: Wed, 07 Feb 2018 11:56:54 -0800
+Message-ID: <20180207195654.svPQ525Ia%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59348 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754238AbeBGT46 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:58 -0500
+        with ESMTP id S1753721AbeBGT4z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:56:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, rdunlap@infradead.org, ynorov@caviumnetworks.com
 
 
 The patch titled
-     Subject: lib/test_bitmap.c: add bitmap_fill()/bitmap_set() test cases
+     Subject: lib/test_bitmap.c: add bitmap_zero()/bitmap_clear() test cases
 has been removed from the -mm tree.  Its filename was
-     bitmap-add-bitmap_fill-bitmap_set-test-cases.patch
+     bitmap-add-bitmap_zero-bitmap_clear-test-cases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/test_bitmap.c: add bitmap_fill()/bitmap_set() test cases
+Subject: lib/test_bitmap.c: add bitmap_zero()/bitmap_clear() test cases
 
-Explicitly test bitmap_fill() and bitmap_set() functions.
+Explicitly test bitmap_zero() and bitmap_clear() functions.
 
-For bitmap_fill() we expect a consistent behaviour as in bitmap_zero(),
-i.e.  the trailing bits will be set up to unsigned long boundary.
-
-Link: http://lkml.kernel.org/r/20180109172430.87452-2-andriy.shevchenko@linux.intel.com
+Link: http://lkml.kernel.org/r/20180109172430.87452-1-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Yury Norov <ynorov@caviumnetworks.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  lib/test_bitmap.c |   30 ++++++++++++++++++++++++++++++
  1 file changed, 30 insertions(+)
 
-diff -puN lib/test_bitmap.c~bitmap-add-bitmap_fill-bitmap_set-test-cases lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-add-bitmap_fill-bitmap_set-test-cases
+diff -puN lib/test_bitmap.c~bitmap-add-bitmap_zero-bitmap_clear-test-cases lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-add-bitmap_zero-bitmap_clear-test-cases
 +++ a/lib/test_bitmap.c
-@@ -134,6 +134,35 @@ static void __init test_zero_clear(void)
- 	expect_eq_pbl("", bmap, 1024);
- }
+@@ -105,6 +105,35 @@ __check_eq_u32_array(const char *srcfile
+ #define expect_eq_pbl(...)		__expect_eq(pbl, ##__VA_ARGS__)
+ #define expect_eq_u32_array(...)	__expect_eq(u32_array, ##__VA_ARGS__)
  
-+static void __init test_fill_set(void)
++static void __init test_zero_clear(void)
 +{
 +	DECLARE_BITMAP(bmap, 1024);
 +
-+	/* Known way to clear all bits */
-+	memset(bmap, 0x00, 128);
++	/* Known way to set all bits */
++	memset(bmap, 0xff, 128);
 +
-+	expect_eq_pbl("", bmap, 23);
-+	expect_eq_pbl("", bmap, 1024);
++	expect_eq_pbl("0-22", bmap, 23);
++	expect_eq_pbl("0-1023", bmap, 1024);
 +
 +	/* single-word bitmaps */
-+	bitmap_set(bmap, 0, 9);
-+	expect_eq_pbl("0-8", bmap, 1024);
++	bitmap_clear(bmap, 0, 9);
++	expect_eq_pbl("9-1023", bmap, 1024);
 +
-+	bitmap_fill(bmap, 35);
-+	expect_eq_pbl("0-63", bmap, 1024);
++	bitmap_zero(bmap, 35);
++	expect_eq_pbl("64-1023", bmap, 1024);
 +
 +	/* cross boundaries operations */
-+	bitmap_set(bmap, 79, 19);
-+	expect_eq_pbl("0-63,79-97", bmap, 1024);
++	bitmap_clear(bmap, 79, 19);
++	expect_eq_pbl("64-78,98-1023", bmap, 1024);
 +
-+	bitmap_fill(bmap, 115);
-+	expect_eq_pbl("0-127", bmap, 1024);
++	bitmap_zero(bmap, 115);
++	expect_eq_pbl("128-1023", bmap, 1024);
 +
 +	/* Zeroing entire area */
-+	bitmap_fill(bmap, 1024);
-+	expect_eq_pbl("0-1023", bmap, 1024);
++	bitmap_zero(bmap, 1024);
++	expect_eq_pbl("", bmap, 1024);
 +}
 +
  static void __init test_zero_fill_copy(void)
  {
  	DECLARE_BITMAP(bmap1, 1024);
-@@ -339,6 +368,7 @@ static void noinline __init test_mem_opt
+@@ -309,6 +338,7 @@ static void noinline __init test_mem_opt
+ 
  static int __init test_bitmap_init(void)
  {
- 	test_zero_clear();
-+	test_fill_set();
++	test_zero_clear();
  	test_zero_fill_copy();
  	test_bitmap_arr32();
  	test_bitmap_parselist();
