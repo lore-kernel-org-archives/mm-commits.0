@@ -1,199 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-add-a-few-device_attr-style-tests.patch removed from -mm tree
-Date: Wed, 07 Feb 2018 11:57:36 -0800
-Message-ID: <20180207195736.FPrty-o3J%akpm@linux-foundation.org>
+Subject: [merged] nilfs2-use-time64_t-internally.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:57:59 -0800
+Message-ID: <20180207195759.kaQNAQcA9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59812 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754446AbeBGT5h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:37 -0500
+        with ESMTP id S1754281AbeBGT6A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, axboe@kernel.dk, jack@suse.cz, konishi.ryusuke@lab.ntt.co.jp, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add a few DEVICE_ATTR style tests
+     Subject: nilfs2: use time64_t internally
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-a-few-device_attr-style-tests.patch
+     nilfs2-use-time64_t-internally.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a few DEVICE_ATTR style tests
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: nilfs2: use time64_t internally
 
-DEVICE_ATTR is a declaration macro that has a few alternate and preferred
-forms like DEVICE_ATTR_RW, DEVICE_ATTR_RO, and DEVICE_ATTR.
+The superblock and segment timestamps are used only internally in nilfs2
+and can be read out using sysfs.  Since we are using the old
+'get_seconds()' interface and store the data as timestamps, the behavior
+differs slightly between 64-bit and 32-bit kernels, the latter will show
+incorrect timestamps after 2038 in sysfs, and presumably fail completely
+in 2106 as comparisons go wrong.
 
-As well, many uses of DEVICE_ATTR could use the preferred forms when the
-show or store functions are also named in a regular form.
+This changes nilfs2 to use time64_t with ktime_get_real_seconds() to
+handle timestamps, making the behavior consistent and correct on both
+32-bit and 64-bit machines.
 
-Suggest the preferred forms when appropriate.
+The on-disk format already uses 64-bit timestamps, so nothing changes
+there.
 
-Also emit a permissions warning if the the permissions are not the typical
-0644, 0444, or 0200.
-
-Link: http://lkml.kernel.org/r/725864f363d91d1e1e6894a39fb57662eabd6d65.1513803306.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20180122211050.1286441-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  114 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 93 insertions(+), 21 deletions(-)
+ fs/nilfs2/segbuf.c    |    2 +-
+ fs/nilfs2/segbuf.h    |    4 ++--
+ fs/nilfs2/segment.c   |    2 +-
+ fs/nilfs2/segment.h   |    2 +-
+ fs/nilfs2/sufile.c    |    2 +-
+ fs/nilfs2/sufile.h    |    2 +-
+ fs/nilfs2/super.c     |    4 ++--
+ fs/nilfs2/sysfs.c     |   21 ++++++++++-----------
+ fs/nilfs2/the_nilfs.h |    8 ++++----
+ 9 files changed, 23 insertions(+), 24 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-a-few-device_attr-style-tests scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-a-few-device_attr-style-tests
-+++ a/scripts/checkpatch.pl
-@@ -566,6 +566,7 @@ foreach my $entry (@mode_permission_func
- 	$mode_perms_search .= '|' if ($mode_perms_search ne "");
- 	$mode_perms_search .= $entry->[0];
+diff -puN fs/nilfs2/segbuf.c~nilfs2-use-time64_t-internally fs/nilfs2/segbuf.c
+--- a/fs/nilfs2/segbuf.c~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/segbuf.c
+@@ -130,7 +130,7 @@ int nilfs_segbuf_extend_payload(struct n
  }
-+$mode_perms_search = "(?:${mode_perms_search})";
  
- our $mode_perms_world_writable = qr{
- 	S_IWUGO		|
-@@ -600,6 +601,37 @@ foreach my $entry (keys %mode_permission
- 	$mode_perms_string_search .= '|' if ($mode_perms_string_search ne "");
- 	$mode_perms_string_search .= $entry;
+ int nilfs_segbuf_reset(struct nilfs_segment_buffer *segbuf, unsigned int flags,
+-		       time_t ctime, __u64 cno)
++		       time64_t ctime, __u64 cno)
+ {
+ 	int err;
+ 
+diff -puN fs/nilfs2/segbuf.h~nilfs2-use-time64_t-internally fs/nilfs2/segbuf.h
+--- a/fs/nilfs2/segbuf.h~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/segbuf.h
+@@ -46,7 +46,7 @@ struct nilfs_segsum_info {
+ 	unsigned long		nfileblk;
+ 	u64			seg_seq;
+ 	__u64			cno;
+-	time_t			ctime;
++	time64_t		ctime;
+ 	sector_t		next;
+ };
+ 
+@@ -120,7 +120,7 @@ void nilfs_segbuf_map_cont(struct nilfs_
+ 			   struct nilfs_segment_buffer *prev);
+ void nilfs_segbuf_set_next_segnum(struct nilfs_segment_buffer *, __u64,
+ 				  struct the_nilfs *);
+-int nilfs_segbuf_reset(struct nilfs_segment_buffer *, unsigned int, time_t,
++int nilfs_segbuf_reset(struct nilfs_segment_buffer *, unsigned int, time64_t,
+ 		       __u64);
+ int nilfs_segbuf_extend_segsum(struct nilfs_segment_buffer *);
+ int nilfs_segbuf_extend_payload(struct nilfs_segment_buffer *,
+diff -puN fs/nilfs2/segment.c~nilfs2-use-time64_t-internally fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/segment.c
+@@ -2040,7 +2040,7 @@ static int nilfs_segctor_do_construct(st
+ 			goto out;
+ 
+ 		/* Update time stamp */
+-		sci->sc_seg_ctime = get_seconds();
++		sci->sc_seg_ctime = ktime_get_real_seconds();
+ 
+ 		err = nilfs_segctor_collect(sci, nilfs, mode);
+ 		if (unlikely(err))
+diff -puN fs/nilfs2/segment.h~nilfs2-use-time64_t-internally fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/segment.h
+@@ -157,7 +157,7 @@ struct nilfs_sc_info {
+ 	unsigned long		sc_blk_cnt;
+ 	unsigned long		sc_datablk_cnt;
+ 	unsigned long		sc_nblk_this_inc;
+-	time_t			sc_seg_ctime;
++	time64_t		sc_seg_ctime;
+ 	__u64			sc_cno;
+ 	unsigned long		sc_flags;
+ 
+diff -puN fs/nilfs2/sufile.c~nilfs2-use-time64_t-internally fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/sufile.c
+@@ -526,7 +526,7 @@ int nilfs_sufile_mark_dirty(struct inode
+  * @modtime: modification time (option)
+  */
+ int nilfs_sufile_set_segment_usage(struct inode *sufile, __u64 segnum,
+-				   unsigned long nblocks, time_t modtime)
++				   unsigned long nblocks, time64_t modtime)
+ {
+ 	struct buffer_head *bh;
+ 	struct nilfs_segment_usage *su;
+diff -puN fs/nilfs2/sufile.h~nilfs2-use-time64_t-internally fs/nilfs2/sufile.h
+--- a/fs/nilfs2/sufile.h~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/sufile.h
+@@ -35,7 +35,7 @@ int nilfs_sufile_set_alloc_range(struct
+ int nilfs_sufile_alloc(struct inode *, __u64 *);
+ int nilfs_sufile_mark_dirty(struct inode *sufile, __u64 segnum);
+ int nilfs_sufile_set_segment_usage(struct inode *sufile, __u64 segnum,
+-				   unsigned long nblocks, time_t modtime);
++				   unsigned long nblocks, time64_t modtime);
+ int nilfs_sufile_get_stat(struct inode *, struct nilfs_sustat *);
+ ssize_t nilfs_sufile_get_suinfo(struct inode *, __u64, void *, unsigned int,
+ 				size_t);
+diff -puN fs/nilfs2/super.c~nilfs2-use-time64_t-internally fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/super.c
+@@ -283,10 +283,10 @@ int nilfs_commit_super(struct super_bloc
+ {
+ 	struct the_nilfs *nilfs = sb->s_fs_info;
+ 	struct nilfs_super_block **sbp = nilfs->ns_sbp;
+-	time_t t;
++	time64_t t;
+ 
+ 	/* nilfs->ns_sem must be locked by the caller. */
+-	t = get_seconds();
++	t = ktime_get_real_seconds();
+ 	nilfs->ns_sbwtime = t;
+ 	sbp[0]->s_wtime = cpu_to_le64(t);
+ 	sbp[0]->s_sum = 0;
+diff -puN fs/nilfs2/sysfs.c~nilfs2-use-time64_t-internally fs/nilfs2/sysfs.c
+--- a/fs/nilfs2/sysfs.c~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/sysfs.c
+@@ -31,7 +31,7 @@ static struct kset *nilfs_kset;
+ #define NILFS_SHOW_TIME(time_t_val, buf) ({ \
+ 		struct tm res; \
+ 		int count = 0; \
+-		time_to_tm(time_t_val, 0, &res); \
++		time64_to_tm(time_t_val, 0, &res); \
+ 		res.tm_year += 1900; \
+ 		res.tm_mon += 1; \
+ 		count = scnprintf(buf, PAGE_SIZE, \
+@@ -579,7 +579,7 @@ nilfs_segctor_last_seg_write_time_show(s
+ 					struct the_nilfs *nilfs,
+ 					char *buf)
+ {
+-	time_t ctime;
++	time64_t ctime;
+ 
+ 	down_read(&nilfs->ns_segctor_sem);
+ 	ctime = nilfs->ns_ctime;
+@@ -593,13 +593,13 @@ nilfs_segctor_last_seg_write_time_secs_s
+ 					    struct the_nilfs *nilfs,
+ 					    char *buf)
+ {
+-	time_t ctime;
++	time64_t ctime;
+ 
+ 	down_read(&nilfs->ns_segctor_sem);
+ 	ctime = nilfs->ns_ctime;
+ 	up_read(&nilfs->ns_segctor_sem);
+ 
+-	return snprintf(buf, PAGE_SIZE, "%llu\n", (unsigned long long)ctime);
++	return snprintf(buf, PAGE_SIZE, "%llu\n", ctime);
  }
-+our $single_mode_perms_string_search = "(?:${mode_perms_string_search})";
-+our $multi_mode_perms_string_search = qr{
-+	${single_mode_perms_string_search}
-+	(?:\s*\|\s*${single_mode_perms_string_search})*
-+}x;
-+
-+sub perms_to_octal {
-+	my ($string) = @_;
-+
-+	return trim($string) if ($string =~ /^\s*0[0-7]{3,3}\s*$/);
-+
-+	my $val = "";
-+	my $oval = "";
-+	my $to = 0;
-+	my $curpos = 0;
-+	my $lastpos = 0;
-+	while ($string =~ /\b(($single_mode_perms_string_search)\b(?:\s*\|\s*)?\s*)/g) {
-+		$curpos = pos($string);
-+		my $match = $2;
-+		my $omatch = $1;
-+		last if ($lastpos > 0 && ($curpos - length($omatch) != $lastpos));
-+		$lastpos = $curpos;
-+		$to |= $mode_permission_string_types{$match};
-+		$val .= '\s*\|\s*' if ($val ne "");
-+		$val .= $match;
-+		$oval .= $omatch;
-+	}
-+	$oval =~ s/^\s*\|\s*//;
-+	$oval =~ s/\s*\|\s*$//;
-+	return sprintf("%04o", $to);
-+}
  
- our $allowed_asm_includes = qr{(?x:
- 	irq|
-@@ -6274,6 +6306,63 @@ sub process {
- 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
- 		}
+ static ssize_t
+@@ -607,7 +607,7 @@ nilfs_segctor_last_nongc_write_time_show
+ 					 struct the_nilfs *nilfs,
+ 					 char *buf)
+ {
+-	time_t nongc_ctime;
++	time64_t nongc_ctime;
  
-+# check for DEVICE_ATTR uses that could be DEVICE_ATTR_<FOO>
-+# and whether or not function naming is typical and if
-+# DEVICE_ATTR permissions uses are unusual too
-+		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
-+		    $stat =~ /\bDEVICE_ATTR\s*\(\s*(\w+)\s*,\s*\(?\s*(\s*(?:${multi_mode_perms_string_search}|0[0-7]{3,3})\s*)\s*\)?\s*,\s*(\w+)\s*,\s*(\w+)\s*\)/) {
-+			my $var = $1;
-+			my $perms = $2;
-+			my $show = $3;
-+			my $store = $4;
-+			my $octal_perms = perms_to_octal($perms);
-+			if ($show =~ /^${var}_show$/ &&
-+			    $store =~ /^${var}_store$/ &&
-+			    $octal_perms eq "0644") {
-+				if (WARN("DEVICE_ATTR_RW",
-+					 "Use DEVICE_ATTR_RW\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bDEVICE_ATTR\s*\(\s*$var\s*,\s*\Q$perms\E\s*,\s*$show\s*,\s*$store\s*\)/DEVICE_ATTR_RW(${var})/;
-+				}
-+			} elsif ($show =~ /^${var}_show$/ &&
-+				 $store =~ /^NULL$/ &&
-+				 $octal_perms eq "0444") {
-+				if (WARN("DEVICE_ATTR_RO",
-+					 "Use DEVICE_ATTR_RO\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bDEVICE_ATTR\s*\(\s*$var\s*,\s*\Q$perms\E\s*,\s*$show\s*,\s*NULL\s*\)/DEVICE_ATTR_RO(${var})/;
-+				}
-+			} elsif ($show =~ /^NULL$/ &&
-+				 $store =~ /^${var}_store$/ &&
-+				 $octal_perms eq "0200") {
-+				if (WARN("DEVICE_ATTR_WO",
-+					 "Use DEVICE_ATTR_WO\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bDEVICE_ATTR\s*\(\s*$var\s*,\s*\Q$perms\E\s*,\s*NULL\s*,\s*$store\s*\)/DEVICE_ATTR_WO(${var})/;
-+				}
-+			} elsif ($octal_perms eq "0644" ||
-+				 $octal_perms eq "0444" ||
-+				 $octal_perms eq "0200") {
-+				my $newshow = "$show";
-+				$newshow = "${var}_show" if ($show ne "NULL" && $show ne "${var}_show");
-+				my $newstore = $store;
-+				$newstore = "${var}_store" if ($store ne "NULL" && $store ne "${var}_store");
-+				my $rename = "";
-+				if ($show ne $newshow) {
-+					$rename .= " '$show' to '$newshow'";
-+				}
-+				if ($store ne $newstore) {
-+					$rename .= " '$store' to '$newstore'";
-+				}
-+				WARN("DEVICE_ATTR_FUNCTIONS",
-+				     "Consider renaming function(s)$rename\n" . $herecurr);
-+			} else {
-+				WARN("DEVICE_ATTR_PERMS",
-+				     "DEVICE_ATTR unusual permissions '$perms' used\n" . $herecurr);
-+			}
-+		}
-+
- # Mode permission misuses where it seems decimal should be octal
- # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
- # o Ignore module_param*(...) uses with a decimal 0 permission as that has a
-@@ -6318,30 +6407,13 @@ sub process {
- 		}
+ 	down_read(&nilfs->ns_segctor_sem);
+ 	nongc_ctime = nilfs->ns_nongc_ctime;
+@@ -621,14 +621,13 @@ nilfs_segctor_last_nongc_write_time_secs
+ 						struct the_nilfs *nilfs,
+ 						char *buf)
+ {
+-	time_t nongc_ctime;
++	time64_t nongc_ctime;
  
- # check for uses of S_<PERMS> that could be octal for readability
--		if ($line =~ /\b$mode_perms_string_search\b/) {
--			my $val = "";
--			my $oval = "";
--			my $to = 0;
--			my $curpos = 0;
--			my $lastpos = 0;
--			while ($line =~ /\b(($mode_perms_string_search)\b(?:\s*\|\s*)?\s*)/g) {
--				$curpos = pos($line);
--				my $match = $2;
--				my $omatch = $1;
--				last if ($lastpos > 0 && ($curpos - length($omatch) != $lastpos));
--				$lastpos = $curpos;
--				$to |= $mode_permission_string_types{$match};
--				$val .= '\s*\|\s*' if ($val ne "");
--				$val .= $match;
--				$oval .= $omatch;
--			}
--			$oval =~ s/^\s*\|\s*//;
--			$oval =~ s/\s*\|\s*$//;
--			my $octal = sprintf("%04o", $to);
-+		if ($line =~ /\b($multi_mode_perms_string_search)\b/) {
-+			my $oval = $1;
-+			my $octal = perms_to_octal($oval);
- 			if (WARN("SYMBOLIC_PERMS",
- 				 "Symbolic permissions '$oval' are not preferred. Consider using octal permissions '$octal'.\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$fixlinenr] =~ s/$val/$octal/;
-+				$fixed[$fixlinenr] =~ s/\Q$oval\E/$octal/;
- 			}
- 		}
+ 	down_read(&nilfs->ns_segctor_sem);
+ 	nongc_ctime = nilfs->ns_nongc_ctime;
+ 	up_read(&nilfs->ns_segctor_sem);
  
+-	return snprintf(buf, PAGE_SIZE, "%llu\n",
+-			(unsigned long long)nongc_ctime);
++	return snprintf(buf, PAGE_SIZE, "%llu\n", nongc_ctime);
+ }
+ 
+ static ssize_t
+@@ -728,7 +727,7 @@ nilfs_superblock_sb_write_time_show(stru
+ 				     struct the_nilfs *nilfs,
+ 				     char *buf)
+ {
+-	time_t sbwtime;
++	time64_t sbwtime;
+ 
+ 	down_read(&nilfs->ns_sem);
+ 	sbwtime = nilfs->ns_sbwtime;
+@@ -742,13 +741,13 @@ nilfs_superblock_sb_write_time_secs_show
+ 					 struct the_nilfs *nilfs,
+ 					 char *buf)
+ {
+-	time_t sbwtime;
++	time64_t sbwtime;
+ 
+ 	down_read(&nilfs->ns_sem);
+ 	sbwtime = nilfs->ns_sbwtime;
+ 	up_read(&nilfs->ns_sem);
+ 
+-	return snprintf(buf, PAGE_SIZE, "%llu\n", (unsigned long long)sbwtime);
++	return snprintf(buf, PAGE_SIZE, "%llu\n", sbwtime);
+ }
+ 
+ static ssize_t
+diff -puN fs/nilfs2/the_nilfs.h~nilfs2-use-time64_t-internally fs/nilfs2/the_nilfs.h
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-use-time64_t-internally
++++ a/fs/nilfs2/the_nilfs.h
+@@ -116,7 +116,7 @@ struct the_nilfs {
+ 	 */
+ 	struct buffer_head     *ns_sbh[2];
+ 	struct nilfs_super_block *ns_sbp[2];
+-	time_t			ns_sbwtime;
++	time64_t		ns_sbwtime;
+ 	unsigned int		ns_sbwcount;
+ 	unsigned int		ns_sbsize;
+ 	unsigned int		ns_mount_state;
+@@ -131,8 +131,8 @@ struct the_nilfs {
+ 	__u64			ns_nextnum;
+ 	unsigned long		ns_pseg_offset;
+ 	__u64			ns_cno;
+-	time_t			ns_ctime;
+-	time_t			ns_nongc_ctime;
++	time64_t		ns_ctime;
++	time64_t		ns_nongc_ctime;
+ 	atomic_t		ns_ndirtyblks;
+ 
+ 	/*
+@@ -267,7 +267,7 @@ struct nilfs_root {
+ 
+ static inline int nilfs_sb_need_update(struct the_nilfs *nilfs)
+ {
+-	u64 t = get_seconds();
++	u64 t = ktime_get_real_seconds();
+ 
+ 	return t < nilfs->ns_sbwtime ||
+ 		t > nilfs->ns_sbwtime + nilfs->ns_sb_update_freq;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kbuild-always-define-endianess-in-kconfigh.patch
+bugh-work-around-gcc-pr82365-in-bug.patch
 
