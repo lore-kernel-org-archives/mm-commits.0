@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-remove-might_sleep-from-clear_inode.patch
+Subject: [merged] kernel-mutex-mutex_is_locked-can-be-boolean.patch
  removed from -mm tree
-Date: Wed, 07 Feb 2018 11:59:26 -0800
-Message-ID: <20180207195926.8Yw0RwA1V%akpm@linux-foundation.org>
+Date: Wed, 07 Feb 2018 11:59:56 -0800
+Message-ID: <20180207195956.0Q1sP_qk7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60466 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754411AbeBGT71 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:27 -0500
+        with ESMTP id S1753721AbeBGT75 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:59:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, hannes@cmpxchg.org, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, viro@zeniv.linux.org.uk
+To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs: remove might_sleep() from clear_inode()
+     Subject: kernel/mutex: mutex_is_locked can be boolean
 has been removed from the -mm tree.  Its filename was
-     vfs-remove-might_sleep-from-clear_inode.patch
+     kernel-mutex-mutex_is_locked-can-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: vfs: remove might_sleep() from clear_inode()
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: kernel/mutex: mutex_is_locked can be boolean
 
-7994e6f72543 ("vfs: Move waiting for inode writeback from end_writeback()
-to evict_inode()") removed inode_sync_wait() from end_writeback() and
-commit dbd5768f87ff ("vfs: Rename end_writeback() to clear_inode()")
-renamed end_writeback() to clear_inode().  After these patches there is no
-sleeping operation in clear_inode().  So, remove might_sleep() from it.
+Make mutex_is_locked return bool due to this particular function only
+using either one or zero as its return value.
 
-Link: http://lkml.kernel.org/r/20171108004354.40308-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+No functional change.
+
+Link: http://lkml.kernel.org/r/1513266622-15860-7-git-send-email-baiyaowei@cmss.chinamobile.com
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mutex.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/inode.c~vfs-remove-might_sleep-from-clear_inode fs/inode.c
---- a/fs/inode.c~vfs-remove-might_sleep-from-clear_inode
-+++ a/fs/inode.c
-@@ -498,7 +498,6 @@ EXPORT_SYMBOL(__remove_inode_hash);
- 
- void clear_inode(struct inode *inode)
+diff -puN include/linux/mutex.h~kernel-mutex-mutex_is_locked-can-be-boolean include/linux/mutex.h
+--- a/include/linux/mutex.h~kernel-mutex-mutex_is_locked-can-be-boolean
++++ a/include/linux/mutex.h
+@@ -138,9 +138,9 @@ extern void __mutex_init(struct mutex *l
+  * mutex_is_locked - is the mutex locked
+  * @lock: the mutex to be queried
+  *
+- * Returns 1 if the mutex is locked, 0 if unlocked.
++ * Returns true if the mutex is locked, false if unlocked.
+  */
+-static inline int mutex_is_locked(struct mutex *lock)
++static inline bool mutex_is_locked(struct mutex *lock)
  {
--	might_sleep();
  	/*
- 	 * We have to cycle tree_lock here because reclaim can be still in the
- 	 * process of removing the last page (in __delete_from_page_cache())
+ 	 * XXX think about spin_is_locked
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
-mm-mlock-vmscan-no-more-skipping-pagevecs.patch
 
