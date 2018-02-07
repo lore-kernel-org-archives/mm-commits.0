@@ -1,69 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-fix-prototype-author-email-address.patch
- removed from -mm tree
-Date: Wed, 07 Feb 2018 11:55:37 -0800
-Message-ID: <20180207195537.FxaMqK3M2%akpm@linux-foundation.org>
+Subject: [merged] proc-fix-proc-map_files-lookup.patch removed from
+ -mm tree
+Date: Wed, 07 Feb 2018 11:55:53 -0800
+Message-ID: <20180207195553.TmLu6hvPy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58120 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754127AbeBGTzi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:38 -0500
+        with ESMTP id S1754422AbeBGTzz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:55:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, avagin@virtuozzo.com, mm-commits@vger.kernel.org, xemul@openvz.org
 
 
 The patch titled
-     Subject: kasan: fix prototype author email address
+     Subject: proc: fix /proc/*/map_files lookup
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-prototype-author-email-address.patch
+     proc-fix-proc-map_files-lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix prototype author email address
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: fix /proc/*/map_files lookup
 
-Use the new one.
+Current code does:
 
-Link: http://lkml.kernel.org/r/de3b7ffc30a55178913a7d3865216aa7accf6c40.1515775666.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+	if (sscanf(dentry->d_name.name, "%lx-%lx", start, end) != 2)
+
+However sscanf() is broken garbage.
+
+It silently accepts whitespace between format specifiers
+(did you know that?).
+
+It silently accepts valid strings which result in integer overflow.
+
+Do not use sscanf() for any even remotely reliable parsing code.
+
+	OK
+	# readlink '/proc/1/map_files/55a23af39000-55a23b05b000'
+	/lib/systemd/systemd
+
+	broken
+	# readlink '/proc/1/map_files/               55a23af39000-55a23b05b000'
+	/lib/systemd/systemd
+
+	broken
+	# readlink '/proc/1/map_files/55a23af39000-55a23b05b000    '
+	/lib/systemd/systemd
+
+	very broken
+	# readlink '/proc/1/map_files/1000000000000000055a23af39000-55a23b05b000'
+	/lib/systemd/systemd
+
+Andrei said:
+
+: This patch breaks criu.  It was a bug in criu.  And this bug is on a minor
+: path, which works when memfd_create() isn't available.  It is a reason why
+: I ask to not backport this patch to stable kernels.
+: 
+: In CRIU this bug can be triggered, only if this patch will be backported
+: to a kernel which version is lower than v3.16.
+
+Link: http://lkml.kernel.org/r/20171120212706.GA14325@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Andrei Vagin <avagin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c  |    2 +-
- mm/kasan/report.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/base.c |   29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN mm/kasan/kasan.c~kasan-fix-prototype-author-email-address mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-fix-prototype-author-email-address
-+++ a/mm/kasan/kasan.c
-@@ -5,7 +5,7 @@
-  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-  *
-  * Some code borrowed from https://github.com/xairy/kasan-prototype by
-- *        Andrey Konovalov <adech.fo@gmail.com>
-+ *        Andrey Konovalov <andreyknvl@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff -puN mm/kasan/report.c~kasan-fix-prototype-author-email-address mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-fix-prototype-author-email-address
-+++ a/mm/kasan/report.c
-@@ -5,7 +5,7 @@
-  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-  *
-  * Some code borrowed from https://github.com/xairy/kasan-prototype by
-- *        Andrey Konovalov <adech.fo@gmail.com>
-+ *        Andrey Konovalov <andreyknvl@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
+diff -puN fs/proc/base.c~proc-fix-proc-map_files-lookup fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-proc-map_files-lookup
++++ a/fs/proc/base.c
+@@ -100,6 +100,8 @@
+ #include "internal.h"
+ #include "fd.h"
+ 
++#include "../../lib/kstrtox.h"
++
+ /* NOTE:
+  *	Implementing inode permission operations in /proc is almost
+  *	certainly an error.  Permission checks need to happen during
+@@ -1906,8 +1908,33 @@ end_instantiate:
+ static int dname_to_vma_addr(struct dentry *dentry,
+ 			     unsigned long *start, unsigned long *end)
+ {
+-	if (sscanf(dentry->d_name.name, "%lx-%lx", start, end) != 2)
++	const char *str = dentry->d_name.name;
++	unsigned long long sval, eval;
++	unsigned int len;
++
++	len = _parse_integer(str, 16, &sval);
++	if (len & KSTRTOX_OVERFLOW)
++		return -EINVAL;
++	if (sval != (unsigned long)sval)
++		return -EINVAL;
++	str += len;
++
++	if (*str != '-')
+ 		return -EINVAL;
++	str++;
++
++	len = _parse_integer(str, 16, &eval);
++	if (len & KSTRTOX_OVERFLOW)
++		return -EINVAL;
++	if (eval != (unsigned long)eval)
++		return -EINVAL;
++	str += len;
++
++	if (*str != '\0')
++		return -EINVAL;
++
++	*start = sval;
++	*end = eval;
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+seq_file-delete-small-value-optimization.patch
 
