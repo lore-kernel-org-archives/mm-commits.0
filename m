@@ -1,33 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch removed from -mm
- tree
-Date: Wed, 07 Feb 2018 11:57:10 -0800
-Message-ID: <20180207195710.w-pqam0eS%akpm@linux-foundation.org>
+Subject: [merged] lib-find_bit_benchmarkc-improvements.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 11:57:14 -0800
+Message-ID: <20180207195714.3_oMt5odO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59552 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754266AbeBGT5M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:12 -0500
+        with ESMTP id S1754422AbeBGT5P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, courbet@google.com, geert@linux-m68k.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org, ynorov@caviumnetworks.com
 
 
 The patch titled
-     Subject: lib/test_find_bit.c: rename to find_bit_benchmark.c
+     Subject: lib/find_bit_benchmark.c: improvements
 has been removed from the -mm tree.  Its filename was
-     lib-test_find_bitc-rename-to-find_bit_benchmarkc.patch
+     lib-find_bit_benchmarkc-improvements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: lib/test_find_bit.c: rename to find_bit_benchmark.c
+Subject: lib/find_bit_benchmark.c: improvements
 
-As suggested in review comments, rename test_find_bit.c to
-find_bit_benchmark.c.
+As suggested in review comments:
+* printk: align numbers using whitespaces instead of tabs;
+* return error value from init() to avoid calling rmmod if testing again;
+* use ktime_get instead of get_cycles as some arches don't support it;
+
+The output in dmesg (on QEMU arm64):
+[   38.823430] Start testing find_bit() with random-filled bitmap
+[   38.845358] find_next_bit:                20138448 ns, 163968 iterations
+[   38.856217] find_next_zero_bit:           10615328 ns, 163713 iterations
+[   38.863564] find_last_bit:                 7111888 ns, 163967 iterations
+[   40.944796] find_first_bit:             2081007216 ns, 163968 iterations
+[   40.944975]
+[   40.944975] Start testing find_bit() with sparse bitmap
+[   40.945268] find_next_bit:                   73216 ns,    656 iterations
+[   40.967858] find_next_zero_bit:           22461008 ns, 327025 iterations
+[   40.968047] find_last_bit:                   62320 ns,    656 iterations
+[   40.978060] find_first_bit:                9889360 ns,    656 iterations
 
 Link: http://lkml.kernel.org/r/20171124143040.a44jvhmnaiyedg2i@yury-thinkpad
 Signed-off-by: Yury Norov <ynorov@caviumnetworks.com>
@@ -39,327 +53,108 @@ Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |    2 
- lib/Makefile             |    2 
- lib/find_bit_benchmark.c |  144 +++++++++++++++++++++++++++++++++++++
- lib/test_find_bit.c      |  144 -------------------------------------
- 4 files changed, 146 insertions(+), 146 deletions(-)
+ lib/find_bit_benchmark.c |   47 ++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 26 deletions(-)
 
-diff -puN /dev/null lib/find_bit_benchmark.c
---- /dev/null
+diff -puN lib/find_bit_benchmark.c~lib-find_bit_benchmarkc-improvements lib/find_bit_benchmark.c
+--- a/lib/find_bit_benchmark.c~lib-find_bit_benchmarkc-improvements
 +++ a/lib/find_bit_benchmark.c
-@@ -0,0 +1,144 @@
-+/*
-+ * Test for find_*_bit functions.
-+ *
-+ * Copyright (c) 2017 Cavium.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of version 2 of the GNU General Public
-+ * License as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-+ * General Public License for more details.
-+ */
-+
-+/*
-+ * find_bit functions are widely used in kernel, so the successful boot
-+ * is good enough test for correctness.
-+ *
-+ * This test is focused on performance of traversing bitmaps. Two typical
-+ * scenarios are reproduced:
-+ * - randomly filled bitmap with approximately equal number of set and
-+ *   cleared bits;
-+ * - sparse bitmap with few set bits at random positions.
-+ */
-+
-+#include <linux/bitops.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/random.h>
-+
-+#define BITMAP_LEN	(4096UL * 8 * 10)
-+#define SPARSE		500
-+
-+static DECLARE_BITMAP(bitmap, BITMAP_LEN) __initdata;
-+
-+/*
-+ * This is Schlemiel the Painter's algorithm. It should be called after
-+ * all other tests for the same bitmap because it sets all bits of bitmap to 1.
-+ */
-+static int __init test_find_first_bit(void *bitmap, unsigned long len)
-+{
-+	unsigned long i, cnt;
-+	cycles_t cycles;
-+
-+	cycles = get_cycles();
-+	for (cnt = i = 0; i < len; cnt++) {
-+		i = find_first_bit(bitmap, len);
-+		__clear_bit(i, bitmap);
-+	}
-+	cycles = get_cycles() - cycles;
-+	pr_err("find_first_bit:\t\t%llu cycles,\t%ld iterations\n",
-+	       (u64)cycles, cnt);
-+
-+	return 0;
-+}
-+
-+static int __init test_find_next_bit(const void *bitmap, unsigned long len)
-+{
-+	unsigned long i, cnt;
-+	cycles_t cycles;
-+
-+	cycles = get_cycles();
-+	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
-+		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
-+	cycles = get_cycles() - cycles;
-+	pr_err("find_next_bit:\t\t%llu cycles,\t%ld iterations\n",
-+	       (u64)cycles, cnt);
-+
-+	return 0;
-+}
-+
-+static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
-+{
-+	unsigned long i, cnt;
-+	cycles_t cycles;
-+
-+	cycles = get_cycles();
-+	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
-+		i = find_next_zero_bit(bitmap, len, i) + 1;
-+	cycles = get_cycles() - cycles;
-+	pr_err("find_next_zero_bit:\t%llu cycles,\t%ld iterations\n",
-+	       (u64)cycles, cnt);
-+
-+	return 0;
-+}
-+
-+static int __init test_find_last_bit(const void *bitmap, unsigned long len)
-+{
-+	unsigned long l, cnt = 0;
-+	cycles_t cycles;
-+
-+	cycles = get_cycles();
-+	do {
-+		cnt++;
-+		l = find_last_bit(bitmap, len);
-+		if (l >= len)
-+			break;
-+		len = l;
-+	} while (len);
-+	cycles = get_cycles() - cycles;
-+	pr_err("find_last_bit:\t\t%llu cycles,\t%ld iterations\n",
-+	       (u64)cycles, cnt);
-+
-+	return 0;
-+}
-+
-+static int __init find_bit_test(void)
-+{
-+	unsigned long nbits = BITMAP_LEN / SPARSE;
-+
-+	pr_err("\nStart testing find_bit() with random-filled bitmap\n");
-+
-+	get_random_bytes(bitmap, sizeof(bitmap));
-+
-+	test_find_next_bit(bitmap, BITMAP_LEN);
-+	test_find_next_zero_bit(bitmap, BITMAP_LEN);
-+	test_find_last_bit(bitmap, BITMAP_LEN);
-+	test_find_first_bit(bitmap, BITMAP_LEN);
-+
-+	pr_err("\nStart testing find_bit() with sparse bitmap\n");
-+
-+	bitmap_zero(bitmap, BITMAP_LEN);
-+
-+	while (nbits--)
-+		__set_bit(prandom_u32() % BITMAP_LEN, bitmap);
-+
-+	test_find_next_bit(bitmap, BITMAP_LEN);
-+	test_find_next_zero_bit(bitmap, BITMAP_LEN);
-+	test_find_last_bit(bitmap, BITMAP_LEN);
-+	test_find_first_bit(bitmap, BITMAP_LEN);
-+
-+	return 0;
-+}
-+module_init(find_bit_test);
-+
-+static void __exit test_find_bit_cleanup(void)
-+{
-+}
-+module_exit(test_find_bit_cleanup);
-+
-+MODULE_LICENSE("GPL");
-diff -puN lib/Kconfig.debug~lib-test_find_bitc-rename-to-find_bit_benchmarkc lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-test_find_bitc-rename-to-find_bit_benchmarkc
-+++ a/lib/Kconfig.debug
-@@ -1841,7 +1841,7 @@ config TEST_BPF
- 
- 	  If unsure, say N.
- 
--config TEST_FIND_BIT
-+config FIND_BIT_BENCHMARK
- 	tristate "Test find_bit functions"
- 	default n
- 	help
-diff -puN lib/Makefile~lib-test_find_bitc-rename-to-find_bit_benchmarkc lib/Makefile
---- a/lib/Makefile~lib-test_find_bitc-rename-to-find_bit_benchmarkc
-+++ a/lib/Makefile
-@@ -46,8 +46,8 @@ obj-$(CONFIG_TEST_STRING_HELPERS) += tes
- obj-y += hexdump.o
- obj-$(CONFIG_TEST_HEXDUMP) += test_hexdump.o
- obj-y += kstrtox.o
-+obj-$(CONFIG_FIND_BIT_BENCHMARK) += find_bit_benchmark.o
- obj-$(CONFIG_TEST_BPF) += test_bpf.o
--obj-$(CONFIG_TEST_FIND_BIT) += test_find_bit.o
- obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
- obj-$(CONFIG_TEST_SYSCTL) += test_sysctl.o
- obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
-diff -puN lib/test_find_bit.c~lib-test_find_bitc-rename-to-find_bit_benchmarkc /dev/null
---- a/lib/test_find_bit.c
-+++ /dev/null
-@@ -1,144 +0,0 @@
--/*
-- * Test for find_*_bit functions.
-- *
-- * Copyright (c) 2017 Cavium.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of version 2 of the GNU General Public
-- * License as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-- * General Public License for more details.
-- */
--
--/*
-- * find_bit functions are widely used in kernel, so the successful boot
-- * is good enough test for correctness.
-- *
-- * This test is focused on performance of traversing bitmaps. Two typical
-- * scenarios are reproduced:
-- * - randomly filled bitmap with approximately equal number of set and
-- *   cleared bits;
-- * - sparse bitmap with few set bits at random positions.
-- */
--
--#include <linux/bitops.h>
--#include <linux/kernel.h>
--#include <linux/list.h>
--#include <linux/module.h>
--#include <linux/printk.h>
--#include <linux/random.h>
--
--#define BITMAP_LEN	(4096UL * 8 * 10)
--#define SPARSE		500
--
--static DECLARE_BITMAP(bitmap, BITMAP_LEN) __initdata;
--
--/*
-- * This is Schlemiel the Painter's algorithm. It should be called after
-- * all other tests for the same bitmap because it sets all bits of bitmap to 1.
-- */
--static int __init test_find_first_bit(void *bitmap, unsigned long len)
--{
--	unsigned long i, cnt;
+@@ -43,16 +43,15 @@ static DECLARE_BITMAP(bitmap, BITMAP_LEN
+ static int __init test_find_first_bit(void *bitmap, unsigned long len)
+ {
+ 	unsigned long i, cnt;
 -	cycles_t cycles;
--
++	ktime_t time;
+ 
 -	cycles = get_cycles();
--	for (cnt = i = 0; i < len; cnt++) {
--		i = find_first_bit(bitmap, len);
--		__clear_bit(i, bitmap);
--	}
++	time = ktime_get();
+ 	for (cnt = i = 0; i < len; cnt++) {
+ 		i = find_first_bit(bitmap, len);
+ 		__clear_bit(i, bitmap);
+ 	}
 -	cycles = get_cycles() - cycles;
 -	pr_err("find_first_bit:\t\t%llu cycles,\t%ld iterations\n",
 -	       (u64)cycles, cnt);
--
--	return 0;
--}
--
--static int __init test_find_next_bit(const void *bitmap, unsigned long len)
--{
--	unsigned long i, cnt;
++	time = ktime_get() - time;
++	pr_err("find_first_bit:     %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -60,14 +59,13 @@ static int __init test_find_first_bit(vo
+ static int __init test_find_next_bit(const void *bitmap, unsigned long len)
+ {
+ 	unsigned long i, cnt;
 -	cycles_t cycles;
--
++	ktime_t time;
+ 
 -	cycles = get_cycles();
--	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
--		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
++	time = ktime_get();
+ 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+ 		i = find_next_bit(bitmap, BITMAP_LEN, i) + 1;
 -	cycles = get_cycles() - cycles;
 -	pr_err("find_next_bit:\t\t%llu cycles,\t%ld iterations\n",
 -	       (u64)cycles, cnt);
--
--	return 0;
--}
--
--static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
--{
--	unsigned long i, cnt;
++	time = ktime_get() - time;
++	pr_err("find_next_bit:      %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -75,14 +73,13 @@ static int __init test_find_next_bit(con
+ static int __init test_find_next_zero_bit(const void *bitmap, unsigned long len)
+ {
+ 	unsigned long i, cnt;
 -	cycles_t cycles;
--
++	ktime_t time;
+ 
 -	cycles = get_cycles();
--	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
--		i = find_next_zero_bit(bitmap, len, i) + 1;
++	time = ktime_get();
+ 	for (cnt = i = 0; i < BITMAP_LEN; cnt++)
+ 		i = find_next_zero_bit(bitmap, len, i) + 1;
 -	cycles = get_cycles() - cycles;
 -	pr_err("find_next_zero_bit:\t%llu cycles,\t%ld iterations\n",
 -	       (u64)cycles, cnt);
--
--	return 0;
--}
--
--static int __init test_find_last_bit(const void *bitmap, unsigned long len)
--{
--	unsigned long l, cnt = 0;
++	time = ktime_get() - time;
++	pr_err("find_next_zero_bit: %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -90,9 +87,9 @@ static int __init test_find_next_zero_bi
+ static int __init test_find_last_bit(const void *bitmap, unsigned long len)
+ {
+ 	unsigned long l, cnt = 0;
 -	cycles_t cycles;
--
++	ktime_t time;
+ 
 -	cycles = get_cycles();
--	do {
--		cnt++;
--		l = find_last_bit(bitmap, len);
--		if (l >= len)
--			break;
--		len = l;
--	} while (len);
++	time = ktime_get();
+ 	do {
+ 		cnt++;
+ 		l = find_last_bit(bitmap, len);
+@@ -100,9 +97,8 @@ static int __init test_find_last_bit(con
+ 			break;
+ 		len = l;
+ 	} while (len);
 -	cycles = get_cycles() - cycles;
 -	pr_err("find_last_bit:\t\t%llu cycles,\t%ld iterations\n",
 -	       (u64)cycles, cnt);
--
++	time = ktime_get() - time;
++	pr_err("find_last_bit:      %18llu ns, %6ld iterations\n", time, cnt);
+ 
+ 	return 0;
+ }
+@@ -132,13 +128,12 @@ static int __init find_bit_test(void)
+ 	test_find_last_bit(bitmap, BITMAP_LEN);
+ 	test_find_first_bit(bitmap, BITMAP_LEN);
+ 
 -	return 0;
--}
--
--static int __init find_bit_test(void)
--{
--	unsigned long nbits = BITMAP_LEN / SPARSE;
--
--	pr_err("\nStart testing find_bit() with random-filled bitmap\n");
--
--	get_random_bytes(bitmap, sizeof(bitmap));
--
--	test_find_next_bit(bitmap, BITMAP_LEN);
--	test_find_next_zero_bit(bitmap, BITMAP_LEN);
--	test_find_last_bit(bitmap, BITMAP_LEN);
--	test_find_first_bit(bitmap, BITMAP_LEN);
--
--	pr_err("\nStart testing find_bit() with sparse bitmap\n");
--
--	bitmap_zero(bitmap, BITMAP_LEN);
--
--	while (nbits--)
--		__set_bit(prandom_u32() % BITMAP_LEN, bitmap);
--
--	test_find_next_bit(bitmap, BITMAP_LEN);
--	test_find_next_zero_bit(bitmap, BITMAP_LEN);
--	test_find_last_bit(bitmap, BITMAP_LEN);
--	test_find_first_bit(bitmap, BITMAP_LEN);
--
--	return 0;
--}
--module_init(find_bit_test);
--
++	/*
++	 * Everything is OK. Return error just to let user run benchmark
++	 * again without annoying rmmod.
++	 */
++	return -EINVAL;
+ }
+ module_init(find_bit_test);
+ 
 -static void __exit test_find_bit_cleanup(void)
 -{
 -}
