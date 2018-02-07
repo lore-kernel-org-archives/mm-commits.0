@@ -1,78 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- locking-qrwlock-include-asm-byteorderh-as-needed.patch removed from -mm
- tree
-Date: Wed, 07 Feb 2018 12:01:02 -0800
-Message-ID: <20180207200102.XhBj8ziEI%akpm__25557.7094889761$1518033573$gmane$org@linux-foundation.org>
+Subject: + mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch added to -mm tree
+Date: Wed, 07 Feb 2018 12:57:37 -0800
+Message-ID: <5a7b6841.Yb1IlVcAjmFnWyhT%akpm__45217.2322468416$1518036957$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54918 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754556AbeBGUBD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:01:03 -0500
+        with ESMTP id S1754281AbeBGU5j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 15:57:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, arnd@arndb.de, babu.moger@amd.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org, nico@linaro.org, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de, will.deacon@arm.com, yamada.masahiro@socionext.com
+To: huang.ying.caritas@gmail.com, ddstreet@ieee.org, hannes@cmpxchg.org, konrad.wilk@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, sergey.senozhatsky@gmail.com, shakeelb@google.com, shli@kernel.org, sjenning@redhat.com, stable@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: locking/qrwlock: include asm/byteorder.h as needed
-has been removed from the -mm tree.  Its filename was
-     locking-qrwlock-include-asm-byteorderh-as-needed.patch
+     Subject: mm, swap, frontswap: Fix THP swap if frontswap enabled
+has been added to the -mm tree.  Its filename is
+     mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: locking/qrwlock: include asm/byteorder.h as needed
+From: Huang Ying <huang.ying.caritas@gmail.com>
+Subject: mm, swap, frontswap: Fix THP swap if frontswap enabled
 
-Moving the qrwlock struct definition into a header file introduced a
-subtle bug on all little-endian machines, where some files in some
-configurations would see the fields in an incorrect order.  This was found
-by building with an LTO enabled compiler that warns every time we try to
-link together files with incompatible data structures.
+It was reported by Sergey Senozhatsky that if THP (Transparent Huge Page)
+and frontswap (via zswap) are both enabled, when memory goes low so that
+swap is triggered, segfault and memory corruption will occur in random
+user space applications as follow,
 
-A second patch changes linux/kconfig.h to always define the symbols, but
-this seems to be the root cause of most of the issues, so I'd suggest we
-do both.
+kernel: urxvt[338]: segfault at 20 ip 00007fc08889ae0d sp 00007ffc73a7fc40 error 6 in libc-2.26.so[7fc08881a000+1ae000]
+ #0  0x00007fc08889ae0d _int_malloc (libc.so.6)
+ #1  0x00007fc08889c2f3 malloc (libc.so.6)
+ #2  0x0000560e6004bff7 _Z14rxvt_wcstoutf8PKwi (urxvt)
+ #3  0x0000560e6005e75c n/a (urxvt)
+ #4  0x0000560e6007d9f1 _ZN16rxvt_perl_interp6invokeEP9rxvt_term9hook_typez (urxvt)
+ #5  0x0000560e6003d988 _ZN9rxvt_term9cmd_parseEv (urxvt)
+ #6  0x0000560e60042804 _ZN9rxvt_term6pty_cbERN2ev2ioEi (urxvt)
+ #7  0x0000560e6005c10f _Z17ev_invoke_pendingv (urxvt)
+ #8  0x0000560e6005cb55 ev_run (urxvt)
+ #9  0x0000560e6003b9b9 main (urxvt)
+ #10 0x00007fc08883af4a __libc_start_main (libc.so.6)
+ #11 0x0000560e6003f9da _start (urxvt)
 
-On a current linux-next kernel, I verified that this header is responsible
-for all type mismatches as a result from the endianess confusion.
+After bisection, it was found the first bad commit is bd4c82c22c367e068
+("mm, THP, swap: delay splitting THP after swapped out").
 
-Link: http://lkml.kernel.org/r/20180202154104.1522809-1-arnd@arndb.de
-Fixes: e0d02285f16e ("locking/qrwlock: Use 'struct qrwlock' instead of 'struct __qrwlock'")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Nicolas Pitre <nico@linaro.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Babu Moger <babu.moger@amd.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: <stable@vger.kernel.org>
+The root cause is as follows:
 
+When the pages are written to swap device during swapping out in
+swap_writepage(), zswap (fontswap) is tried to compress the pages instead
+to improve the performance.  But zswap (frontswap) will treat THP as
+normal page, so only the head page is saved.  After swapping in, tail
+pages will not be restored to its original contents, so cause the memory
+corruption in the applications.
+
+This is fixed via splitting THP before writing the page to swap device if
+frontswap is enabled.  To deal with the situation where frontswap is
+enabled at runtime, whether the page is THP is checked before using
+frontswap during swapping out too.
+
+Link: http://lkml.kernel.org/r/20180207070035.30302-1-ying.huang@intel.com
+Fixes: bd4c82c22c367e068 ("mm, THP, swap: delay splitting THP after swapped out")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Tested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: <stable@vger.kernel.org>	[4.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/qrwlock_types.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_io.c  |    2 +-
+ mm/swapfile.c |    3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/qrwlock_types.h~locking-qrwlock-include-asm-byteorderh-as-needed include/asm-generic/qrwlock_types.h
---- a/include/asm-generic/qrwlock_types.h~locking-qrwlock-include-asm-byteorderh-as-needed
-+++ a/include/asm-generic/qrwlock_types.h
-@@ -3,6 +3,7 @@
- #define __ASM_GENERIC_QRWLOCK_TYPES_H
+diff -puN mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/page_io.c
+--- a/mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled
++++ a/mm/page_io.c
+@@ -250,7 +250,7 @@ int swap_writepage(struct page *page, st
+ 		unlock_page(page);
+ 		goto out;
+ 	}
+-	if (frontswap_store(page) == 0) {
++	if (!PageTransHuge(page) && frontswap_store(page) == 0) {
+ 		set_page_writeback(page);
+ 		unlock_page(page);
+ 		end_page_writeback(page);
+diff -puN mm/swapfile.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled
++++ a/mm/swapfile.c
+@@ -934,6 +934,9 @@ int get_swap_pages(int n_goal, bool clus
  
- #include <linux/types.h>
-+#include <asm/byteorder.h>
- #include <asm/spinlock_types.h>
+ 	/* Only single cluster request supported */
+ 	WARN_ON_ONCE(n_goal > 1 && cluster);
++	/* Frontswap doesn't support THP */
++	if (frontswap_enabled() && cluster)
++		goto noswap;
  
- /*
+ 	avail_pgs = atomic_long_read(&nr_swap_pages) / nr_pages;
+ 	if (avail_pgs <= 0)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
 
-kbuild-always-define-endianess-in-kconfigh.patch
-bugh-work-around-gcc-pr82365-in-bug.patch
+mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
+fontswap-thp-fix.patch
 
