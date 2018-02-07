@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?rapidio-tsi721=5Fdma-delete-an-error-message-for-a-failed-me?=
- =?US-ASCII?Q?mory-allocation-in-tsi721=5Falloc=5Fchan=5Fresources.patch?=
- removed from -mm tree
-Date: Wed, 07 Feb 2018 11:58:39 -0800
-Message-ID: <20180207195839.T1jF9o3Yn%akpm@linux-foundation.org>
+ revert-kernel-relayc-fix-potential-memory-leak.patch removed from -mm tree
+Date: Wed, 07 Feb 2018 11:58:54 -0800
+Message-ID: <20180207195854.7vmwat5J6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60122 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754494AbeBGT6k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:40 -0500
+        with ESMTP id S1754127AbeBGT6z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org, mporter@kernel.crashing.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, ebiggers@google.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, syzkaller@googlegroups.com, yizhouzhou@ict.ac.cn
 
 
 The patch titled
-     Subject: drivers/rapidio/devices/tsi721_dma.c: delete an error message for a failed memory allocation in tsi721_alloc_chan_resources()
+     Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721_dma-delete-an-error-message-for-a-failed-memory-allocation-in-tsi721_alloc_chan_resources.patch
+     revert-kernel-relayc-fix-potential-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: drivers/rapidio/devices/tsi721_dma.c: delete an error message for a failed memory allocation in tsi721_alloc_chan_resources()
+From: Eric Biggers <ebiggers@google.com>
+Subject: kernel/relay.c: revert "kernel/relay.c: fix potential memory leak"
 
-Omit an extra message for a memory allocation failure in this function.
+This reverts ba62bafe942b159a6 ("kernel/relay.c: fix potential memory leak").
 
-This issue was detected by using the Coccinelle software.
+This commit introduced a double free bug, because 'chan' is already
+freed by the line:
 
-Link: http://lkml.kernel.org/r/a96fcaf8-ea24-bcac-0214-273620349d42@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+    kref_put(&chan->kref, relay_destroy_channel);
+
+This bug was found by syzkaller, using the BLKTRACESETUP ioctl.
+
+Link: http://lkml.kernel.org/r/20180127004759.101823-1-ebiggers3@gmail.com
+Fixes: ba62bafe942b ("kernel/relay.c: fix potential memory leak")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>	[4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721_dma.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/relay.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-delete-an-error-message-for-a-failed-memory-allocation-in-tsi721_alloc_chan_resources drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-delete-an-error-message-for-a-failed-memory-allocation-in-tsi721_alloc_chan_resources
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -754,9 +754,6 @@ static int tsi721_alloc_chan_resources(s
- 	desc = kcalloc(dma_txqueue_sz, sizeof(struct tsi721_tx_desc),
- 			GFP_ATOMIC);
- 	if (!desc) {
--		tsi_err(&dchan->dev->device,
--			"DMAC%d Failed to allocate logical descriptors",
--			bdma_chan->id);
- 		tsi721_bdma_ch_free(bdma_chan);
- 		return -ENOMEM;
- 	}
+diff -puN kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak kernel/relay.c
+--- a/kernel/relay.c~revert-kernel-relayc-fix-potential-memory-leak
++++ a/kernel/relay.c
+@@ -611,7 +611,6 @@ free_bufs:
+ 
+ 	kref_put(&chan->kref, relay_destroy_channel);
+ 	mutex_unlock(&relay_channels_mutex);
+-	kfree(chan);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(relay_open);
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from ebiggers@google.com are
 
 
