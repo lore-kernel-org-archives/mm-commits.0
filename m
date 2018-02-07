@@ -1,116 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?rapidio-adjust-five-function-calls-together-with-a-variable-?=
- =?US-ASCII?Q?assignment.patch?= removed from -mm tree
-Date: Wed, 07 Feb 2018 11:58:24 -0800
-Message-ID: <20180207195824._GI3Zl8nT%akpm@linux-foundation.org>
+ cpumask-make-cpumask_size-return-unsigned-int.patch removed from -mm tree
+Date: Wed, 07 Feb 2018 11:58:14 -0800
+Message-ID: <20180207195814.z_ouMMDE5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59910 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754154AbeBGT6Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:25 -0500
+        with ESMTP id S1754397AbeBGT6P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org, mporter@kernel.crashing.org
+To: a.p.zijlstra@chello.nl, adobriyan@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: adjust five function calls together with a variable assignment
+     Subject: cpumask: make cpumask_size() return "unsigned int"
 has been removed from the -mm tree.  Its filename was
-     rapidio-adjust-five-function-calls-together-with-a-variable-assignment.patch
+     cpumask-make-cpumask_size-return-unsigned-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: rapidio: adjust five function calls together with a variable assignment
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cpumask: make cpumask_size() return "unsigned int"
 
-checkpatch pointed information out like the following.
+CPUmasks are never big enough to warrant 64-bit code.
 
-ERROR: do not use assignment in if condition
+Space savings:
 
-Thus fix the affected source code places.
+	add/remove: 0/0 grow/shrink: 1/4 up/down: 3/-17 (-14)
+	Function                                     old     new   delta
+	sched_init_numa                             1530    1533      +3
+	compat_sys_sched_setaffinity                 160     159      -1
+	sys_sched_getaffinity                        197     195      -2
+	sys_sched_setaffinity                        183     176      -7
+	compat_sys_sched_getaffinity                 179     172      -7
 
-Link: http://lkml.kernel.org/r/6f5631ed-ec3e-503d-850a-ab09b5736dbe@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+Link: http://lkml.kernel.org/r/20171204165531.GA8221@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ include/linux/cpumask.h |    2 +-
+ kernel/compat.c         |    2 +-
+ kernel/sched/core.c     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-adjust-five-function-calls-together-with-a-variable-assignment drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-adjust-five-function-calls-together-with-a-variable-assignment
-+++ a/drivers/rapidio/rio.c
-@@ -252,9 +252,9 @@ int rio_request_inb_mbox(struct rio_mpor
- 		rio_init_mbox_res(res, mbox, mbox);
- 
- 		/* Make sure this mailbox isn't in use */
--		if ((rc =
--		     request_resource(&mport->riores[RIO_INB_MBOX_RESOURCE],
--				      res)) < 0) {
-+		rc = request_resource(&mport->riores[RIO_INB_MBOX_RESOURCE],
-+				      res);
-+		if (rc < 0) {
- 			kfree(res);
- 			goto out;
- 		}
-@@ -335,9 +335,9 @@ int rio_request_outb_mbox(struct rio_mpo
- 		rio_init_mbox_res(res, mbox, mbox);
- 
- 		/* Make sure this outbound mailbox isn't in use */
--		if ((rc =
--		     request_resource(&mport->riores[RIO_OUTB_MBOX_RESOURCE],
--				      res)) < 0) {
-+		rc = request_resource(&mport->riores[RIO_OUTB_MBOX_RESOURCE],
-+				      res);
-+		if (rc < 0) {
- 			kfree(res);
- 			goto out;
- 		}
-@@ -406,9 +406,9 @@ rio_setup_inb_dbell(struct rio_mport *mp
- 				  u16 info))
+diff -puN include/linux/cpumask.h~cpumask-make-cpumask_size-return-unsigned-int include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-make-cpumask_size-return-unsigned-int
++++ a/include/linux/cpumask.h
+@@ -640,7 +640,7 @@ static inline int cpulist_parse(const ch
+ /**
+  * cpumask_size - size to allocate for a 'struct cpumask' in bytes
+  */
+-static inline size_t cpumask_size(void)
++static inline unsigned int cpumask_size(void)
  {
- 	int rc = 0;
--	struct rio_dbell *dbell;
-+	struct rio_dbell *dbell = kmalloc(sizeof(*dbell), GFP_KERNEL);
+ 	return BITS_TO_LONGS(nr_cpumask_bits) * sizeof(long);
+ }
+diff -puN kernel/compat.c~cpumask-make-cpumask_size-return-unsigned-int kernel/compat.c
+--- a/kernel/compat.c~cpumask-make-cpumask_size-return-unsigned-int
++++ a/kernel/compat.c
+@@ -355,7 +355,7 @@ COMPAT_SYSCALL_DEFINE3(sched_getaffinity
  
--	if (!(dbell = kmalloc(sizeof(struct rio_dbell), GFP_KERNEL))) {
-+	if (!dbell) {
- 		rc = -ENOMEM;
- 		goto out;
- 	}
-@@ -452,9 +452,9 @@ int rio_request_inb_dbell(struct rio_mpo
- 		rio_init_dbell_res(res, start, end);
+ 	ret = sched_getaffinity(pid, mask);
+ 	if (ret == 0) {
+-		size_t retlen = min_t(size_t, len, cpumask_size());
++		unsigned int retlen = min(len, cpumask_size());
  
- 		/* Make sure these doorbells aren't in use */
--		if ((rc =
--		     request_resource(&mport->riores[RIO_DOORBELL_RESOURCE],
--				      res)) < 0) {
-+		rc = request_resource(&mport->riores[RIO_DOORBELL_RESOURCE],
-+				      res);
-+		if (rc < 0) {
- 			kfree(res);
- 			goto out;
- 		}
-@@ -1411,7 +1411,9 @@ rio_mport_get_feature(struct rio_mport *
- 						 ext_ftr_ptr, &ftr_header);
- 		if (RIO_GET_BLOCK_ID(ftr_header) == ftr)
- 			return ext_ftr_ptr;
--		if (!(ext_ftr_ptr = RIO_GET_BLOCK_PTR(ftr_header)))
-+
-+		ext_ftr_ptr = RIO_GET_BLOCK_PTR(ftr_header);
-+		if (!ext_ftr_ptr)
- 			break;
- 	}
+ 		if (compat_put_bitmap(user_mask_ptr, cpumask_bits(mask), retlen * 8))
+ 			ret = -EFAULT;
+diff -puN kernel/sched/core.c~cpumask-make-cpumask_size-return-unsigned-int kernel/sched/core.c
+--- a/kernel/sched/core.c~cpumask-make-cpumask_size-return-unsigned-int
++++ a/kernel/sched/core.c
+@@ -4853,7 +4853,7 @@ SYSCALL_DEFINE3(sched_getaffinity, pid_t
  
+ 	ret = sched_getaffinity(pid, mask);
+ 	if (ret == 0) {
+-		size_t retlen = min_t(size_t, len, cpumask_size());
++		unsigned int retlen = min(len, cpumask_size());
+ 
+ 		if (copy_to_user(user_mask_ptr, mask, retlen))
+ 			ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+seq_file-delete-small-value-optimization.patch
 
