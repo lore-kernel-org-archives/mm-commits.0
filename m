@@ -1,61 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] elf-fix-nt_file-integer-overflow.patch removed
- from -mm tree
-Date: Wed, 07 Feb 2018 11:57:53 -0800
-Message-ID: <20180207195753.7AOK2C8o0%akpm@linux-foundation.org>
+Subject: [merged] lib-add-module-unload-support-to-sort-tests.patch
+ removed from -mm tree
+Date: Wed, 07 Feb 2018 11:57:22 -0800
+Message-ID: <20180207195722.dZZazMWFO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59624 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754453AbeBGT5y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:54 -0500
+        with ESMTP id S1754422AbeBGT5Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, fkostenzer@live.at, geert@linux-m68k.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, pravin.shedge4linux@gmail.com
 
 
 The patch titled
-     Subject: elf: fix NT_FILE integer overflow
+     Subject: lib/test_sort.c: add module unload support
 has been removed from the -mm tree.  Its filename was
-     elf-fix-nt_file-integer-overflow.patch
+     lib-add-module-unload-support-to-sort-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: elf: fix NT_FILE integer overflow
+From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Subject: lib/test_sort.c: add module unload support
 
-If vm.max_map_count bumped above 2^26 (67+ mil) and system has enough RAM
-to allocate all the VMAs (~12.8 GB on Fedora 27 with 200-byte VMAs), then
-it should be possible to overflow 32-bit "size", pass paranoia check,
-allocate very little vmalloc space and oops while writing into vmalloc
-guard page...
+test_sort.c performs array-based and linked list sort test.  Code allows
+to compile either as a loadable modules or builtin into the kernel.
 
-But I didn't test this, only coredump of regular process.
+Current code is not allow to unload the test_sort.ko module after
+successful completion.
 
-Link: http://lkml.kernel.org/r/20180112203427.GA9109@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+This patch adds support to unload the "test_sort.ko" module by adding
+module_exit support.
+
+Previous patch was implemented auto unload support by returning -EAGAIN
+from module_init() function on successful case, but this approach is not
+ideal.
+
+The auto-unload might seem like a nice optimization, but it encourages
+inconsistent behaviour.  And behaviour that is different from all other
+normal modules.
+
+Link: http://lkml.kernel.org/r/1513967133-6843-1-git-send-email-pravin.shedge4linux@gmail.com
+Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Cc: Kostenzer Felix <fkostenzer@live.at>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/test_sort.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow
-+++ a/fs/binfmt_elf.c
-@@ -1599,6 +1599,8 @@ static int fill_files_note(struct memelf
+diff -puN lib/test_sort.c~lib-add-module-unload-support-to-sort-tests lib/test_sort.c
+--- a/lib/test_sort.c~lib-add-module-unload-support-to-sort-tests
++++ a/lib/test_sort.c
+@@ -39,5 +39,11 @@ exit:
+ 	return err;
+ }
  
- 	/* *Estimated* file count and total data size needed */
- 	count = current->mm->map_count;
-+	if (count > UINT_MAX / 64)
-+		return -EINVAL;
- 	size = count * 64;
- 
- 	names_ofs = (2 + 3 * count) * sizeof(data[0]);
++static void __exit test_sort_exit(void)
++{
++}
++
+ module_init(test_sort_init);
++module_exit(test_sort_exit);
++
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from pravin.shedge4linux@gmail.com are
 
-seq_file-delete-small-value-optimization.patch
 
