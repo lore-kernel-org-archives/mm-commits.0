@@ -1,62 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?checkpatch-exclude-drivers-staging-from-if-with-unnecessar?=
- =?US-ASCII?Q?y-parentheses-test.patch?= removed from -mm tree
-Date: Wed, 07 Feb 2018 11:57:43 -0800
-Message-ID: <20180207195743.myKxQ_wr8%akpm@linux-foundation.org>
+Subject: [merged] elf-fix-nt_file-integer-overflow.patch removed
+ from -mm tree
+Date: Wed, 07 Feb 2018 11:57:53 -0800
+Message-ID: <20180207195753.7AOK2C8o0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59796 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754446AbeBGT5p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:45 -0500
+        with ESMTP id S1754453AbeBGT5y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:57:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregkh@linuxfoundation.org, joe@perches.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: exclude drivers/staging from if with unnecessary parentheses test
+     Subject: elf: fix NT_FILE integer overflow
 has been removed from the -mm tree.  Its filename was
-     checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test.patch
+     elf-fix-nt_file-integer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: exclude drivers/staging from if with unnecessary parentheses test
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: elf: fix NT_FILE integer overflow
 
-Greg KH doesn't like this test so exclude the staging directory from the
-implied --strict only test unless --strict is actually used on the
-command-line.
+If vm.max_map_count bumped above 2^26 (67+ mil) and system has enough RAM
+to allocate all the VMAs (~12.8 GB on Fedora 27 with 200-byte VMAs), then
+it should be possible to overflow 32-bit "size", pass paranoia check,
+allocate very little vmalloc space and oops while writing into vmalloc
+guard page...
 
-Link: http://lkml.kernel.org/r/1515704034.9619.165.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
+But I didn't test this, only coredump of regular process.
+
+Link: http://lkml.kernel.org/r/20180112203427.GA9109@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/binfmt_elf.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-exclude-drivers-staging-from-if-with-unnecessary-parentheses-test
-+++ a/scripts/checkpatch.pl
-@@ -4526,7 +4526,9 @@ sub process {
- 		}
+diff -puN fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-fix-nt_file-integer-overflow
++++ a/fs/binfmt_elf.c
+@@ -1599,6 +1599,8 @@ static int fill_files_note(struct memelf
  
- # check for unnecessary parentheses around comparisons in if uses
--		if ($^V && $^V ge 5.10.0 && defined($stat) &&
-+# when !drivers/staging or command-line uses --strict
-+		if (($realfile !~ m@^(?:drivers/staging/)@ || $check_orig) &&
-+		    $^V && $^V ge 5.10.0 && defined($stat) &&
- 		    $stat =~ /(^.\s*if\s*($balanced_parens))/) {
- 			my $if_stat = $1;
- 			my $test = substr($2, 1, -1);
+ 	/* *Estimated* file count and total data size needed */
+ 	count = current->mm->map_count;
++	if (count > UINT_MAX / 64)
++		return -EINVAL;
+ 	size = count * 64;
+ 
+ 	names_ofs = (2 + 3 * count) * sizeof(data[0]);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+seq_file-delete-small-value-optimization.patch
 
