@@ -1,244 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pids-introduce-find_get_task_by_vpid-helper.patch
+Subject: [merged]
+ rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
  removed from -mm tree
-Date: Wed, 07 Feb 2018 11:58:48 -0800
-Message-ID: <20180207195848.R9Jg06byZ%akpm@linux-foundation.org>
+Date: Wed, 07 Feb 2018 11:58:33 -0800
+Message-ID: <20180207195833.2yXzpN_n8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754221AbeBGT6t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:49 -0500
+        with ESMTP id S1754494AbeBGT6e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Feb 2018 14:58:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com, rppt@linux.vnet.ibm.com
+To: alexandre.bounine@idt.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: pids: introduce find_get_task_by_vpid() helper
+     Subject: rapidio: return an error code only as a constant in two functions
 has been removed from the -mm tree.  Its filename was
-     pids-introduce-find_get_task_by_vpid-helper.patch
+     rapidio-return-an-error-code-only-as-a-constant-in-two-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: pids: introduce find_get_task_by_vpid() helper
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: rapidio: return an error code only as a constant in two functions
 
-There are several functions that do find_task_by_vpid() followed by
-get_task_struct().  We can use a helper function instead.
+* Return an error code without storing it in an intermediate variable.
 
-Link: http://lkml.kernel.org/r/1509602027-11337-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+* Delete the label "out" and local variable "rc" which became unnecessary
+  with this refactoring.
+
+Link: http://lkml.kernel.org/r/8db441e1-c227-64e7-4747-095da63d7a2e@users.sourceforge.net
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |   13 +++----------
- include/linux/sched.h      |    5 +++++
- kernel/futex.c             |   20 +-------------------
- kernel/pid.c               |   13 +++++++++++++
- kernel/ptrace.c            |   27 ++++++---------------------
- kernel/taskstats.c         |    6 +-----
- mm/process_vm_access.c     |    6 +-----
- security/yama/yama_lsm.c   |   11 +++--------
- 8 files changed, 33 insertions(+), 68 deletions(-)
+ drivers/rapidio/rio.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~pids-introduce-find_get_task_by_vpid-helper arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -2610,17 +2610,10 @@ pfm_get_task(pfm_context_t *ctx, pid_t p
- 	if (pid < 2) return -EPERM;
- 
- 	if (pid != task_pid_vnr(current)) {
--
--		read_lock(&tasklist_lock);
--
--		p = find_task_by_vpid(pid);
--
- 		/* make sure task cannot go away while we operate on it */
--		if (p) get_task_struct(p);
--
--		read_unlock(&tasklist_lock);
--
--		if (p == NULL) return -ESRCH;
-+		p = find_get_task_by_vpid(pid);
-+		if (!p)
-+			return -ESRCH;
- 	}
- 
- 	ret = pfm_task_incompatible(ctx, p);
-diff -puN include/linux/sched.h~pids-introduce-find_get_task_by_vpid-helper include/linux/sched.h
---- a/include/linux/sched.h~pids-introduce-find_get_task_by_vpid-helper
-+++ a/include/linux/sched.h
-@@ -1489,6 +1489,11 @@ static inline struct thread_info *task_t
- extern struct task_struct *find_task_by_vpid(pid_t nr);
- extern struct task_struct *find_task_by_pid_ns(pid_t nr, struct pid_namespace *ns);
- 
-+/*
-+ * find a task by its virtual pid and get the task struct
-+ */
-+extern struct task_struct *find_get_task_by_vpid(pid_t nr);
-+
- extern int wake_up_state(struct task_struct *tsk, unsigned int state);
- extern int wake_up_process(struct task_struct *tsk);
- extern void wake_up_new_task(struct task_struct *tsk);
-diff -puN kernel/futex.c~pids-introduce-find_get_task_by_vpid-helper kernel/futex.c
---- a/kernel/futex.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/futex.c
-@@ -862,24 +862,6 @@ static void put_pi_state(struct futex_pi
- 	}
- }
- 
--/*
-- * Look up the task based on what TID userspace gave us.
-- * We dont trust it.
-- */
--static struct task_struct *futex_find_get_task(pid_t pid)
--{
--	struct task_struct *p;
--
--	rcu_read_lock();
--	p = find_task_by_vpid(pid);
--	if (p)
--		get_task_struct(p);
--
--	rcu_read_unlock();
--
--	return p;
--}
--
- #ifdef CONFIG_FUTEX_PI
- 
- /*
-@@ -1183,7 +1165,7 @@ static int attach_to_pi_owner(u32 uval,
- 	 */
- 	if (!pid)
- 		return -ESRCH;
--	p = futex_find_get_task(pid);
-+	p = find_get_task_by_vpid(pid);
- 	if (!p)
- 		return -ESRCH;
- 
-diff -puN kernel/pid.c~pids-introduce-find_get_task_by_vpid-helper kernel/pid.c
---- a/kernel/pid.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/pid.c
-@@ -343,6 +343,19 @@ struct task_struct *find_task_by_vpid(pi
- 	return find_task_by_pid_ns(vnr, task_active_pid_ns(current));
- }
- 
-+struct task_struct *find_get_task_by_vpid(pid_t nr)
-+{
-+	struct task_struct *task;
-+
-+	rcu_read_lock();
-+	task = find_task_by_vpid(nr);
-+	if (task)
-+		get_task_struct(task);
-+	rcu_read_unlock();
-+
-+	return task;
-+}
-+
- struct pid *get_task_pid(struct task_struct *task, enum pid_type type)
+diff -puN drivers/rapidio/rio.c~rapidio-return-an-error-code-only-as-a-constant-in-two-functions drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-return-an-error-code-only-as-a-constant-in-two-functions
++++ a/drivers/rapidio/rio.c
+@@ -402,13 +402,10 @@ rio_setup_inb_dbell(struct rio_mport *mp
+ 		    void (*dinb) (struct rio_mport * mport, void *dev_id, u16 src, u16 dst,
+ 				  u16 info))
  {
- 	struct pid *pid;
-diff -puN kernel/ptrace.c~pids-introduce-find_get_task_by_vpid-helper kernel/ptrace.c
---- a/kernel/ptrace.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/ptrace.c
-@@ -1103,21 +1103,6 @@ int ptrace_request(struct task_struct *c
- 	return ret;
+-	int rc = 0;
+ 	struct rio_dbell *dbell = kmalloc(sizeof(*dbell), GFP_KERNEL);
+ 
+-	if (!dbell) {
+-		rc = -ENOMEM;
+-		goto out;
+-	}
++	if (!dbell)
++		return -ENOMEM;
+ 
+ 	dbell->res = res;
+ 	dbell->dinb = dinb;
+@@ -417,9 +414,7 @@ rio_setup_inb_dbell(struct rio_mport *mp
+ 	mutex_lock(&mport->lock);
+ 	list_add_tail(&dbell->node, &mport->dbells);
+ 	mutex_unlock(&mport->lock);
+-
+-      out:
+-	return rc;
++	return 0;
  }
  
--static struct task_struct *ptrace_get_task_struct(pid_t pid)
--{
--	struct task_struct *child;
--
--	rcu_read_lock();
--	child = find_task_by_vpid(pid);
--	if (child)
--		get_task_struct(child);
--	rcu_read_unlock();
--
--	if (!child)
--		return ERR_PTR(-ESRCH);
--	return child;
--}
--
- #ifndef arch_ptrace_attach
- #define arch_ptrace_attach(child)	do { } while (0)
- #endif
-@@ -1135,9 +1120,9 @@ SYSCALL_DEFINE4(ptrace, long, request, l
- 		goto out;
- 	}
- 
--	child = ptrace_get_task_struct(pid);
--	if (IS_ERR(child)) {
--		ret = PTR_ERR(child);
-+	child = find_get_task_by_vpid(pid);
-+	if (!child) {
-+		ret = -ESRCH;
- 		goto out;
- 	}
- 
-@@ -1281,9 +1266,9 @@ COMPAT_SYSCALL_DEFINE4(ptrace, compat_lo
- 		goto out;
- 	}
- 
--	child = ptrace_get_task_struct(pid);
--	if (IS_ERR(child)) {
--		ret = PTR_ERR(child);
-+	child = find_get_task_by_vpid(pid);
-+	if (!child) {
-+		ret = -ESRCH;
- 		goto out;
- 	}
- 
-diff -puN kernel/taskstats.c~pids-introduce-find_get_task_by_vpid-helper kernel/taskstats.c
---- a/kernel/taskstats.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/kernel/taskstats.c
-@@ -194,11 +194,7 @@ static int fill_stats_for_pid(pid_t pid,
+ /**
+@@ -563,21 +558,17 @@ int rio_add_mport_pw_handler(struct rio_
+ 			     int (*pwcback)(struct rio_mport *mport,
+ 			     void *context, union rio_pw_msg *msg, int step))
  {
- 	struct task_struct *tsk;
+-	int rc = 0;
+ 	struct rio_pwrite *pwrite = kzalloc(sizeof(*pwrite), GFP_KERNEL);
  
--	rcu_read_lock();
--	tsk = find_task_by_vpid(pid);
--	if (tsk)
--		get_task_struct(tsk);
--	rcu_read_unlock();
-+	tsk = find_get_task_by_vpid(pid);
- 	if (!tsk)
- 		return -ESRCH;
- 	fill_stats(current_user_ns(), task_active_pid_ns(current), tsk, stats);
-diff -puN mm/process_vm_access.c~pids-introduce-find_get_task_by_vpid-helper mm/process_vm_access.c
---- a/mm/process_vm_access.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/mm/process_vm_access.c
-@@ -197,11 +197,7 @@ static ssize_t process_vm_rw_core(pid_t
- 	}
+-	if (!pwrite) {
+-		rc = -ENOMEM;
+-		goto out;
+-	}
++	if (!pwrite)
++		return -ENOMEM;
  
- 	/* Get process information */
--	rcu_read_lock();
--	task = find_task_by_vpid(pid);
--	if (task)
--		get_task_struct(task);
--	rcu_read_unlock();
-+	task = find_get_task_by_vpid(pid);
- 	if (!task) {
- 		rc = -ESRCH;
- 		goto free_proc_pages;
-diff -puN security/yama/yama_lsm.c~pids-introduce-find_get_task_by_vpid-helper security/yama/yama_lsm.c
---- a/security/yama/yama_lsm.c~pids-introduce-find_get_task_by_vpid-helper
-+++ a/security/yama/yama_lsm.c
-@@ -250,15 +250,10 @@ int yama_task_prctl(int option, unsigned
- 		} else {
- 			struct task_struct *tracer;
+ 	pwrite->pwcback = pwcback;
+ 	pwrite->context = context;
+ 	mutex_lock(&mport->lock);
+ 	list_add_tail(&pwrite->node, &mport->pwrites);
+ 	mutex_unlock(&mport->lock);
+-out:
+-	return rc;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(rio_add_mport_pw_handler);
  
--			rcu_read_lock();
--			tracer = find_task_by_vpid(arg2);
--			if (tracer)
--				get_task_struct(tracer);
--			else
-+			tracer = find_get_task_by_vpid(arg2);
-+			if (!tracer) {
- 				rc = -EINVAL;
--			rcu_read_unlock();
+_
+
+Patches currently in -mm which might be from elfring@users.sourceforge.net are
+
+
