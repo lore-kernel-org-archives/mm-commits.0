@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch added to -mm tree
-Date: Thu, 08 Feb 2018 14:39:56 -0800
-Message-ID: <5a7cd1bc.yFSKRcMrDmYkxijb%akpm@linux-foundation.org>
+ mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range.patch added to -mm tree
+Date: Thu, 08 Feb 2018 15:23:29 -0800
+Message-ID: <5a7cdbf1.KtjBOZS3DcgTK8LK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751079AbeBHWj5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Feb 2018 17:39:57 -0500
+        with ESMTP id S1752059AbeBHXXa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Feb 2018 18:23:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linux.alibaba.com, akpm@linux-foundation.org, gavin.dg@linux.alibaba.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: khandual@linux.vnet.ibm.com, akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix potential clearing to referenced flag in page_idle_clear_pte_refs_one()
+     Subject: mm/migrate: rename migration reason MR_CMA to MR_CONTIG_RANGE
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+     mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: thp: fix potential clearing to referenced flag in page_idle_clear_pte_refs_one()
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: mm/migrate: rename migration reason MR_CMA to MR_CONTIG_RANGE
 
-For PTE-mapped THP, the compound THP has not been split to normal 4K pages
-yet, the whole THP is considered referenced if any one of sub page is
-referenced.
+alloc_contig_range() initiates compaction and eventual migration for the
+purpose of either CMA or HugeTLB allocations.  At present, the reason code
+remains the same MR_CMA for either of these cases.  Let's make it
+MR_CONTIG_RANGE which will appropriately reflect the reason code in both
+these cases.
 
-When walking PTE-mapped THP by pvmw, all relevant PTEs will be checked to
-retrieve referenced bit.  But, the current code just returns the result of
-the last PTE.  If the last PTE has not referenced, the referenced flag
-will be cleared.
-
-So, here just break pvmw walk once referenced PTE is found if the page is
-a part of THP.
-
-Link: http://lkml.kernel.org/r/1517875596-76350-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reported-by: Gang Deng <gavin.dg@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20180202091518.18798-1-khandual@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/powerpc/mm/mmu_context_iommu.c |    2 +-
+ include/linux/migrate.h             |    2 +-
+ include/trace/events/migrate.h      |    2 +-
+ mm/page_alloc.c                     |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_idle.c~mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one mm/page_idle.c
---- a/mm/page_idle.c~mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one
-+++ a/mm/page_idle.c
-@@ -67,6 +67,14 @@ static bool page_idle_clear_pte_refs_one
- 		if (pvmw.pte) {
- 			referenced = ptep_clear_young_notify(vma, addr,
- 					pvmw.pte);
-+			/*
-+			 * For PTE-mapped THP, one sub page is referenced,
-+			 * the whole THP is referenced.
-+			 */
-+			if (referenced && PageTransCompound(pvmw.page)) {
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
- 		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
- 			referenced = pmdp_clear_young_notify(vma, addr,
- 					pvmw.pmd);
+diff -puN arch/powerpc/mm/mmu_context_iommu.c~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range arch/powerpc/mm/mmu_context_iommu.c
+--- a/arch/powerpc/mm/mmu_context_iommu.c~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range
++++ a/arch/powerpc/mm/mmu_context_iommu.c
+@@ -112,7 +112,7 @@ static int mm_iommu_move_page_from_cma(s
+ 	put_page(page); /* Drop the gup reference */
+ 
+ 	ret = migrate_pages(&cma_migrate_pages, new_iommu_non_cma_page,
+-				NULL, 0, MIGRATE_SYNC, MR_CMA);
++				NULL, 0, MIGRATE_SYNC, MR_CONTIG_RANGE);
+ 	if (ret) {
+ 		if (!list_empty(&cma_migrate_pages))
+ 			putback_movable_pages(&cma_migrate_pages);
+diff -puN include/linux/migrate.h~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range
++++ a/include/linux/migrate.h
+@@ -25,7 +25,7 @@ enum migrate_reason {
+ 	MR_SYSCALL,		/* also applies to cpusets */
+ 	MR_MEMPOLICY_MBIND,
+ 	MR_NUMA_MISPLACED,
+-	MR_CMA,
++	MR_CONTIG_RANGE,
+ 	MR_TYPES
+ };
+ 
+diff -puN include/trace/events/migrate.h~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range include/trace/events/migrate.h
+--- a/include/trace/events/migrate.h~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range
++++ a/include/trace/events/migrate.h
+@@ -20,7 +20,7 @@
+ 	EM( MR_SYSCALL,		"syscall_or_cpuset")		\
+ 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
+ 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
+-	EMe(MR_CMA,		"cma")
++	EMe(MR_CONTIG_RANGE,	"contig_range")
+ 
+ /*
+  * First define the enums in the above macros to be exported to userspace
+diff -puN mm/page_alloc.c~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range
++++ a/mm/page_alloc.c
+@@ -7597,7 +7597,7 @@ static int __alloc_contig_migrate_range(
+ 		cc->nr_migratepages -= nr_reclaimed;
+ 
+ 		ret = migrate_pages(&cc->migratepages, alloc_migrate_target,
+-				    NULL, 0, cc->mode, MR_CMA);
++				    NULL, 0, cc->mode, MR_CONTIG_RANGE);
+ 	}
+ 	if (ret < 0) {
+ 		putback_movable_pages(&cc->migratepages);
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
 
-mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+mm-migrate-change-migration-reason-mr_cma-as-mr_contig_range.patch
 
