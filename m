@@ -1,152 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2.patch removed from
- -mm tree
-Date: Thu, 08 Feb 2018 12:31:30 -0800
-Message-ID: <5a7cb3a2.25ZguCbtj2Xj4PHR%akpm@linux-foundation.org>
+Subject: + selftests-memfd-add-run_fuse_testsh-to-test_files.patch added
+ to -mm tree
+Date: Thu, 08 Feb 2018 12:36:03 -0800
+Message-ID: <5a7cb4b3.64oFY5sjV0M46kP9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752308AbeBHUbb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Feb 2018 15:31:31 -0500
+        with ESMTP id S1751848AbeBHUgE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Feb 2018 15:36:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, adobriyan@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: anders.roxell@linaro.org, daniel.diaz@linaro.org, shuah@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2
-has been removed from the -mm tree.  Its filename was
-     procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2.patch
+     Subject: selftests/memfd: add run_fuse_test.sh to TEST_FILES
+has been added to the -mm tree.  Its filename is
+     selftests-memfd-add-run_fuse_testsh-to-test_files.patch
 
-This patch was dropped because it was folded into procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-memfd-add-run_fuse_testsh-to-test_files.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-memfd-add-run_fuse_testsh-to-test_files.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@openvz.org>
-Subject: procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2
+From: Anders Roxell <anders.roxell@linaro.org>
+Subject: selftests/memfd: add run_fuse_test.sh to TEST_FILES
 
-v2: don't create a separate function to print delimiter and a few fixes
-to make code more readable.
+While testing memfd tests, there is a missing script, as reported by
+kselftest:
 
-Link: http://lkml.kernel.org/r/20180117082050.25406-1-avagin@openvz.org
-Signed-off-by: Andrei Vagin <avagin@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+./run_tests.sh: line 7: ./run_fuse_test.sh: No such file or directory
 
+Link: http://lkml.kernel.org/r/1517955779-11386-1-git-send-email-daniel.diaz@linaro.org
+Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+Signed-off-by: Daniel Díaz <daniel.diaz@linaro.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   57 +++++++++++++++++++++---------------------------
- 1 file changed, 26 insertions(+), 31 deletions(-)
+ tools/testing/selftests/memfd/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/seq_file.c~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2 fs/seq_file.c
---- a/fs/seq_file.c~procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps-v2
-+++ a/fs/seq_file.c
-@@ -670,26 +670,6 @@ void seq_puts(struct seq_file *m, const
- }
- EXPORT_SYMBOL(seq_puts);
+diff -puN tools/testing/selftests/memfd/Makefile~selftests-memfd-add-run_fuse_testsh-to-test_files tools/testing/selftests/memfd/Makefile
+--- a/tools/testing/selftests/memfd/Makefile~selftests-memfd-add-run_fuse_testsh-to-test_files
++++ a/tools/testing/selftests/memfd/Makefile
+@@ -5,6 +5,7 @@ CFLAGS += -I../../../../include/
+ CFLAGS += -I../../../../usr/include/
  
--static inline void seq_put_delimeter(struct seq_file *m, const char *delimiter)
--{
--	int len;
--
--	if (!delimiter || !delimiter[0])
--		return;
--
--	if (delimiter[1] == 0)
--		return seq_putc(m, delimiter[0]);
--
--	len = strlen(delimiter);
--	if (m->count + len >= m->size) {
--		seq_set_overflow(m);
--		return;
--	}
--
--	memcpy(m->buf + m->count, delimiter, len);
--	m->count += len;
--}
--
- /*
-  * A helper routine for putting decimal numbers without rich format of printf().
-  * only 'unsigned long long' is supported.
-@@ -705,7 +685,12 @@ void seq_put_decimal_ull(struct seq_file
- 	if (m->count + 2 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
+ TEST_PROGS := run_tests.sh
++TEST_FILES := run_fuse_test.sh
+ TEST_GEN_FILES := memfd_test fuse_mnt fuse_test
  
--	seq_put_delimeter(m, delimiter);
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size)
-+		goto overflow;
-+
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
- 
- 	if (m->count + 1 >= m->size)
- 		goto overflow;
-@@ -744,27 +729,32 @@ void seq_put_hex_ll(struct seq_file *m,
- {
- 	int i, len;
- 
--	seq_put_delimeter(m, delimiter);
--
--	len = (sizeof(v) * 8 - __builtin_clzll(v) + 3) / 4;
-+	if (delimiter && delimiter[0]) {
-+		if (delimiter[1] == 0)
-+			seq_putc(m, delimiter[0]);
-+		else
-+			seq_puts(m, delimiter);
-+	}
- 
--	if (unlikely(len == 0))
-+	/* If x is 0, the result of __builtin_clzll is undefined */
-+	if (v == 0)
- 		len = 1;
-+	else
-+		len = (sizeof(v) * 8 - __builtin_clzll(v) + 3) / 4;
- 
- 	if (len < width)
- 		len = width;
- 
--	if (m->count + len > m->size)
--		goto overflow;
-+	if (m->count + len > m->size) {
-+		seq_set_overflow(m);
-+		return;
-+	}
- 
- 	for (i = len - 1; i >= 0; i--) {
- 		m->buf[m->count + i] = hex_asc[0xf & v];
- 		v = v >> 4;
- 	}
- 	m->count += len;
--	return;
--overflow:
--	seq_set_overflow(m);
- }
- 
- void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num)
-@@ -774,7 +764,12 @@ void seq_put_decimal_ll(struct seq_file
- 	if (m->count + 3 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
- 
--	seq_put_delimeter(m, delimiter);
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size)
-+		goto overflow;
-+
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
- 
- 	if (m->count + 2 >= m->size)
- 		goto overflow;
+ fuse_mnt.o: CFLAGS += $(shell pkg-config fuse --cflags)
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from anders.roxell@linaro.org are
 
-procfs-add-seq_put_hex_ll-to-speed-up-proc-pid-maps.patch
-procfs-optimize-seq_pad-to-speed-up-proc-pid-maps.patch
+selftests-memfd-add-run_fuse_testsh-to-test_files.patch
 
