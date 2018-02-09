@@ -1,103 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: +
- inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch added to -mm tree
-Date: Fri, 09 Feb 2018 12:57:06 -0800
-Message-ID: <5a7e0b22.MmFuegqWxX4mEK9O%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch removed from -mm
+ tree
+Date: Fri, 09 Feb 2018 12:59:36 -0800
+Message-ID: <5a7e0bb8.9NI2O8a63PEMzFt2%akpm__37889.2670422376$1518209878$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750853AbeBIU5J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Feb 2018 15:57:09 -0500
+        with ESMTP id S1752521AbeBIU7i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Feb 2018 15:59:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amir73il@gmail.com, gorcunov@openvz.org, jack@suse.cz, ktkhai@virtuozzo.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org
+To: huang.ying.caritas@gmail.com, akpm@linux-foundation.org, ddstreet@ieee.org, hannes@cmpxchg.org, konrad.wilk@oracle.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, sergey.senozhatsky@gmail.com, shakeelb@google.com, shli@kernel.org, sjenning@redhat.com, stable@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix
-has been added to the -mm tree.  Its filename is
-     inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch
+     Subject: mm, swap, frontswap: Fix THP swap if frontswap enabled
+has been removed from the -mm tree.  Its filename was
+     mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix
+From: Huang Ying <huang.ying.caritas@gmail.com>
+Subject: mm, swap, frontswap: Fix THP swap if frontswap enabled
 
-cleanup
+It was reported by Sergey Senozhatsky that if THP (Transparent Huge Page)
+and frontswap (via zswap) are both enabled, when memory goes low so that
+swap is triggered, segfault and memory corruption will occur in random
+user space applications as follow,
 
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+kernel: urxvt[338]: segfault at 20 ip 00007fc08889ae0d sp 00007ffc73a7fc40 error 6 in libc-2.26.so[7fc08881a000+1ae000]
+ #0  0x00007fc08889ae0d _int_malloc (libc.so.6)
+ #1  0x00007fc08889c2f3 malloc (libc.so.6)
+ #2  0x0000560e6004bff7 _Z14rxvt_wcstoutf8PKwi (urxvt)
+ #3  0x0000560e6005e75c n/a (urxvt)
+ #4  0x0000560e6007d9f1 _ZN16rxvt_perl_interp6invokeEP9rxvt_term9hook_typez (urxvt)
+ #5  0x0000560e6003d988 _ZN9rxvt_term9cmd_parseEv (urxvt)
+ #6  0x0000560e60042804 _ZN9rxvt_term6pty_cbERN2ev2ioEi (urxvt)
+ #7  0x0000560e6005c10f _Z17ev_invoke_pendingv (urxvt)
+ #8  0x0000560e6005cb55 ev_run (urxvt)
+ #9  0x0000560e6003b9b9 main (urxvt)
+ #10 0x00007fc08883af4a __libc_start_main (libc.so.6)
+ #11 0x0000560e6003f9da _start (urxvt)
+
+After bisection, it was found the first bad commit is bd4c82c22c367e068
+("mm, THP, swap: delay splitting THP after swapped out").
+
+The root cause is as follows:
+
+When the pages are written to swap device during swapping out in
+swap_writepage(), zswap (fontswap) is tried to compress the pages instead
+to improve the performance.  But zswap (frontswap) will treat THP as
+normal page, so only the head page is saved.  After swapping in, tail
+pages will not be restored to its original contents, so cause the memory
+corruption in the applications.
+
+This is fixed via splitting THP before writing the page to swap device if
+frontswap is enabled.  To deal with the situation where frontswap is
+enabled at runtime, whether the page is THP is checked before using
+frontswap during swapping out too.
+
+Link: http://lkml.kernel.org/r/20180207070035.30302-1-ying.huang@intel.com
+Fixes: bd4c82c22c367e068 ("mm, THP, swap: delay splitting THP after swapped out")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Tested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: <stable@vger.kernel.org>	[4.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_io.c  |    2 +-
+ mm/swapfile.c |    3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -285,7 +285,6 @@ static int inotify_release(struct inode
- static long inotify_ioctl(struct file *file, unsigned int cmd,
- 			  unsigned long arg)
- {
--	struct inotify_group_private_data *data __maybe_unused;
- 	struct fsnotify_group *group;
- 	struct fsnotify_event *fsn_event;
- 	void __user *p;
-@@ -294,7 +293,6 @@ static long inotify_ioctl(struct file *f
+diff -puN mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/page_io.c
+--- a/mm/page_io.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled
++++ a/mm/page_io.c
+@@ -250,7 +250,7 @@ int swap_writepage(struct page *page, st
+ 		unlock_page(page);
+ 		goto out;
+ 	}
+-	if (frontswap_store(page) == 0) {
++	if (!PageTransHuge(page) && frontswap_store(page) == 0) {
+ 		set_page_writeback(page);
+ 		unlock_page(page);
+ 		end_page_writeback(page);
+diff -puN mm/swapfile.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled
++++ a/mm/swapfile.c
+@@ -934,6 +934,9 @@ int get_swap_pages(int n_goal, bool clus
  
- 	group = file->private_data;
- 	p = (void __user *) arg;
--	data = &group->inotify_data;
+ 	/* Only single cluster request supported */
+ 	WARN_ON_ONCE(n_goal > 1 && cluster);
++	/* Frontswap doesn't support THP */
++	if (frontswap_enabled() && cluster)
++		goto noswap;
  
- 	pr_debug("%s: group=%p cmd=%u\n", __func__, group, cmd);
- 
-@@ -313,6 +311,9 @@ static long inotify_ioctl(struct file *f
- 	case INOTIFY_IOC_SETNEXTWD:
- 		ret = -EINVAL;
- 		if (arg >= 1 && arg <= INT_MAX) {
-+			struct inotify_group_private_data *data;
-+
-+			data = &group->inotify_data;
- 			spin_lock(&data->idr_lock);
- 			idr_set_cursor(&data->idr, (unsigned int)arg);
- 			spin_unlock(&data->idr_lock);
+ 	avail_pgs = atomic_long_read(&nr_swap_pages) / nr_pages;
+ 	if (avail_pgs <= 0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
 
-i-need-old-gcc.patch
-include-linux-sched-mmh-re-inline-mmdrop.patch
-mm-zpool-zpool_evictable-fix-mismatch-in-parameter-name-and-kernel-doc-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch
-mm.patch
-mm-initialize-pages-on-demand-during-boot-fix.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-swap-frontswap-fix-thp-swap-if-frontswap-enabled-v3.patch
 
