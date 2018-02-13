@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-do-less-stuff-under-pde_unload_lock.patch added to -mm
- tree
-Date: Tue, 13 Feb 2018 15:21:49 -0800
-Message-ID: <5a83730d.JhB5c/OVLNBi/mL3%akpm@linux-foundation.org>
+Subject: + elf-enforce-map_fixed-on-overlaying-elf-segments.patch added to -mm tree
+Date: Tue, 13 Feb 2018 15:25:19 -0800
+Message-ID: <5a8373df.haWx4G1mNoOQxH9P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59106 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965783AbeBMXVu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Feb 2018 18:21:50 -0500
+        with ESMTP id S965783AbeBMXZV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Feb 2018 18:25:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, abdhalee@linux.vnet.ibm.com, avagin@openvz.org, broonie@kernel.org, joel@jms.id.au, keescook@chromium.org, khalid.aziz@oracle.com, khandual@linux.vnet.ibm.com, mpe@ellerman.id.au, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: do less stuff under ->pde_unload_lock
+     Subject: elf: enforce MAP_FIXED on overlaying elf segments
 has been added to the -mm tree.  Its filename is
-     proc-do-less-stuff-under-pde_unload_lock.patch
+     elf-enforce-map_fixed-on-overlaying-elf-segments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-do-less-stuff-under-pde_unload_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/elf-enforce-map_fixed-on-overlaying-elf-segments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-do-less-stuff-under-pde_unload_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/elf-enforce-map_fixed-on-overlaying-elf-segments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,119 +38,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: do less stuff under ->pde_unload_lock
+From: Michal Hocko <mhocko@suse.com>
+Subject: elf: enforce MAP_FIXED on overlaying elf segments
 
-ca469f35a8e9ef ("deal with races between remove_proc_entry() and
-proc_reg_release()") moved too much stuff under ->pde_unload_lock making a
-problem described at series "[PATCH v5] procfs: Improve Scaling in proc"
-worse.
+Anshuman has reported that with "fs, elf: drop MAP_FIXED usage from
+elf_map" applied, some ELF binaries in his environment fail to start with
 
-While RCU is being figured out, move kfree() out of ->pde_unload_lock.
+ [   23.423642] 9148 (sed): Uhuuh, elf segment at 0000000010030000 requested but the memory is mapped already
+ [   23.423706] requested [10030000, 10040000] mapped [10030000, 10040000] 100073 anon
 
-On my potato, difference is only 0.5% speedup with concurrent
-open+read+close of /proc/cmdline, but the effect should be more
-noticeable on more capable machines.
+The reason is that the above binary has overlapping elf segments:
+  LOAD           0x0000000000000000 0x0000000010000000 0x0000000010000000
+                 0x0000000000013a8c 0x0000000000013a8c  R E    10000
+  LOAD           0x000000000001fd40 0x000000001002fd40 0x000000001002fd40
+                 0x00000000000002c0 0x00000000000005e8  RW     10000
+  LOAD           0x0000000000020328 0x0000000010030328 0x0000000010030328
+                 0x0000000000000384 0x00000000000094a0  RW     10000
 
-$ perf stat -r 16 -- ./proc-j 16
+That binary has two RW LOAD segments, the first crosses a page border into
+the second
 
- Performance counter stats for './proc-j 16' (16 runs):
+0x1002fd40 (LOAD2-vaddr) + 0x5e8 (LOAD2-memlen) == 0x10030328 (LOAD3-vaddr)
 
-     130569.502377      task-clock (msec)         #   15.872 CPUs utilized            ( +-  0.05% )
-            19,169      context-switches          #    0.147 K/sec                    ( +-  0.18% )
-                15      cpu-migrations            #    0.000 K/sec                    ( +-  3.27% )
-               437      page-faults               #    0.003 K/sec                    ( +-  1.25% )
-   300,172,097,675      cycles                    #    2.299 GHz                      ( +-  0.05% )
-    96,793,267,308      instructions              #    0.32  insn per cycle           ( +-  0.04% )
-    22,798,342,298      branches                  #  174.607 M/sec                    ( +-  0.04% )
-       111,764,687      branch-misses             #    0.49% of all branches          ( +-  0.47% )
+Handle this situation by enforcing MAP_FIXED when we establish a temporary
+brk VMA to handle overlapping segments.  All other mappings will still use
+MAP_FIXED_NOREPLACE.
 
-       8.226574400 seconds time elapsed                                          ( +-  0.05% )
-       ^^^^^^^^^^^
-
-$ perf stat -r 16 -- ./proc-j 16
-
- Performance counter stats for './proc-j 16' (16 runs):
-
-     129866.777392      task-clock (msec)         #   15.869 CPUs utilized            ( +-  0.04% )
-            19,154      context-switches          #    0.147 K/sec                    ( +-  0.66% )
-                14      cpu-migrations            #    0.000 K/sec                    ( +-  1.73% )
-               431      page-faults               #    0.003 K/sec                    ( +-  1.09% )
-   298,556,520,546      cycles                    #    2.299 GHz                      ( +-  0.04% )
-    96,525,366,833      instructions              #    0.32  insn per cycle           ( +-  0.04% )
-    22,730,194,043      branches                  #  175.027 M/sec                    ( +-  0.04% )
-       111,506,074      branch-misses             #    0.49% of all branches          ( +-  0.18% )
-
-       8.183629778 seconds time elapsed                                          ( +-  0.04% )
-       ^^^^^^^^^^^
-
-Link: http://lkml.kernel.org/r/20180213132911.GA24298@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20180213100440.GM3443@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Andrei Vagin <avagin@openvz.org>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
+Cc: Joel Stanley <joel@jms.id.au>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ fs/binfmt_elf.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-do-less-stuff-under-pde_unload_lock fs/proc/inode.c
---- a/fs/proc/inode.c~proc-do-less-stuff-under-pde_unload_lock
-+++ a/fs/proc/inode.c
-@@ -138,7 +138,7 @@ static void unuse_pde(struct proc_dir_en
- 		complete(pde->pde_unload_completion);
- }
+diff -puN fs/binfmt_elf.c~elf-enforce-map_fixed-on-overlaying-elf-segments fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-enforce-map_fixed-on-overlaying-elf-segments
++++ a/fs/binfmt_elf.c
+@@ -895,7 +895,7 @@ static int load_elf_binary(struct linux_
+ 	   the correct location in memory. */
+ 	for(i = 0, elf_ppnt = elf_phdata;
+ 	    i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
+-		int elf_prot = 0, elf_flags;
++		int elf_prot = 0, elf_flags, elf_fixed = MAP_FIXED_NOREPLACE;
+ 		unsigned long k, vaddr;
+ 		unsigned long total_size = 0;
  
--/* pde is locked */
-+/* pde is locked on entry, unlocked on exit */
- static void close_pdeo(struct proc_dir_entry *pde, struct pde_opener *pdeo)
- {
- 	/*
-@@ -157,9 +157,10 @@ static void close_pdeo(struct proc_dir_e
- 		pdeo->c = &c;
- 		spin_unlock(&pde->pde_unload_lock);
- 		wait_for_completion(&c);
--		spin_lock(&pde->pde_unload_lock);
- 	} else {
- 		struct file *file;
-+		struct completion *c;
+@@ -927,6 +927,13 @@ static int load_elf_binary(struct linux_
+ 					 */
+ 				}
+ 			}
 +
- 		pdeo->closing = true;
- 		spin_unlock(&pde->pde_unload_lock);
- 		file = pdeo->file;
-@@ -167,8 +168,10 @@ static void close_pdeo(struct proc_dir_e
- 		spin_lock(&pde->pde_unload_lock);
- 		/* After ->release. */
- 		list_del(&pdeo->lh);
--		if (unlikely(pdeo->c))
--			complete(pdeo->c);
-+		c = pdeo->c;
-+		spin_unlock(&pde->pde_unload_lock);
-+		if (unlikely(c))
-+			complete(c);
- 		kfree(pdeo);
- 	}
- }
-@@ -188,6 +191,7 @@ void proc_entry_rundown(struct proc_dir_
- 		struct pde_opener *pdeo;
- 		pdeo = list_first_entry(&de->pde_openers, struct pde_opener, lh);
- 		close_pdeo(de, pdeo);
-+		spin_lock(&de->pde_unload_lock);
- 	}
- 	spin_unlock(&de->pde_unload_lock);
- }
-@@ -375,7 +379,7 @@ static int proc_reg_release(struct inode
- 	list_for_each_entry(pdeo, &pde->pde_openers, lh) {
- 		if (pdeo->file == file) {
- 			close_pdeo(pde, pdeo);
--			break;
-+			return 0;
++			/*
++			 * Some binaries have overlapping elf segments and then
++			 * we have to forcefully map over an existing mapping
++			 * e.g. over this newly established brk mapping.
++			 */
++			elf_fixed = MAP_FIXED;
  		}
- 	}
- 	spin_unlock(&pde->pde_unload_lock);
+ 
+ 		if (elf_ppnt->p_flags & PF_R)
+@@ -944,7 +951,7 @@ static int load_elf_binary(struct linux_
+ 		 * the ET_DYN load_addr calculations, proceed normally.
+ 		 */
+ 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
+-			elf_flags |= MAP_FIXED_NOREPLACE;
++			elf_flags |= elf_fixed;
+ 		} else if (loc->elf_ex.e_type == ET_DYN) {
+ 			/*
+ 			 * This logic is run once for the first LOAD Program
+@@ -980,7 +987,7 @@ static int load_elf_binary(struct linux_
+ 				load_bias = ELF_ET_DYN_BASE;
+ 				if (current->flags & PF_RANDOMIZE)
+ 					load_bias += arch_mmap_rnd();
+-				elf_flags |= MAP_FIXED_NOREPLACE;
++				elf_flags |= elf_fixed;
+ 			} else
+ 				load_bias = 0;
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-proc-do-less-stuff-under-pde_unload_lock.patch
-seq_file-delete-small-value-optimization.patch
+vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
+mm-introduce-map_fixed_safe.patch
+fs-elf-drop-map_fixed-usage-from-elf_map.patch
+elf-enforce-map_fixed-on-overlaying-elf-segments.patch
+mm-numa-rework-do_pages_move.patch
+mm-migrate-remove-reason-argument-from-new_page_t.patch
+mm-unclutter-thp-migration.patch
 
