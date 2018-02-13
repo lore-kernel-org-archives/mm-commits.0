@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
- added to -mm tree
-Date: Tue, 13 Feb 2018 13:50:00 -0800
-Message-ID: <5a835d88./IKZQHNTEeNFiIDv%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-optimize-memory-hotplug.patch added to -mm
+ tree
+Date: Tue, 13 Feb 2018 13:50:12 -0800
+Message-ID: <5a835d94.bG0SRMvT0TFZCciW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59148 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59326 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965907AbeBMVuD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Feb 2018 16:50:03 -0500
+        with ESMTP id S965907AbeBMVuP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Feb 2018 16:50:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pasha.tatashin@oracle.com, bharata@linux.vnet.ibm.com, bhe@redhat.com, daniel.m.jordan@oracle.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, hpa@zytor.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@elte.hu, steven.sistare@oracle.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: enforce block size aligned range check
+     Subject: mm/memory_hotplug: optimize memory hotplug
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
+     mm-memory_hotplug-optimize-memory-hotplug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-optimize-memory-hotplug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-optimize-memory-hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,156 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm/memory_hotplug: enforce block size aligned range check
+Subject: mm/memory_hotplug: optimize memory hotplug
 
-Patch series "optimize memory hotplug", v3.
+This patch was inspired by the discussion of this problem:
+http://lkml.kernel.org/r/20180130083006.GB1245@in.ibm.com
 
-This patchset:
-- Improves hotplug performance by eliminating a number of
-struct page traverses during memory hotplug.
+Currently, during memory hotplugging we traverse struct pages several
+times:
 
-- Fixes some issues with hotplugging, where boundaries
-were not properly checked. And on x86 block size was not properly aligned
-with end of memory
+1. memset(0) in sparse_add_one_section()
+2. loop in __add_section() to set do: set_page_node(page, nid); and
+   SetPageReserved(page);
+3. loop in pages_correctly_reserved() to check that SetPageReserved is set.
+4. loop in memmap_init_zone() to call __init_single_pfn()
 
-- Also, potentially improves boot performance by eliminating condition from
-  __init_single_page().
+This patch removes loops 1, 2, and 3 and only leaves the loop 4, where all
+struct page fields are initialized in one go, the same as it is now done
+during boot.
 
-- Adds robustness by verifying that that struct pages are correctly
-  poisoned when flags are accessed.
+The benefits:
+- We improve the memory hotplug performance because we are not evicting
+  cache several times and also reduce loop branching overheads.
 
-The following experiments were performed on Xeon(R) CPU E7-8895 v3 @ 2.60GHz
-with 1T RAM:
+- Remove condition from hotpath in __init_single_pfn(), that was added in
+  order to fix the problem that was reported by Bharata in the above email
+  thread, thus also improve the performance during normal boot.
 
-booting in qemu with 960G of memory, time to initialize struct pages:
+- Make memory hotplug more similar to boot memory initialization path
+  because we zero and initialize struct pages only in one function.
 
-no-kvm:
-	TRY1		TRY2
-BEFORE:	39.433668	39.39705
-AFTER:	36.903781	36.989329
+- Simplifies memory hotplug strut page initialization code, and thus
+  enables future improvements, such as multi-threading the initialization
+  of struct pages in order to improve the hotplug performance even further
+  on larger machines.
 
-with-kvm:
-BEFORE:	10.977447	11.103164
-AFTER:	10.929072	10.751885
-
-Hotplug 896G memory:
-no-kvm:
-	TRY1		TRY2
-BEFORE: 848.740000	846.910000
-AFTER:  783.070000	786.560000
-
-with-kvm:
-	TRY1		TRY2
-BEFORE: 34.410000	33.57
-AFTER:	29.810000	29.580000
-
-
-This patch (of 4):
-
-Start qemu with the following arguments:
--m 64G,slots=2,maxmem=66G -object memory-backend-ram,id=mem1,size=2G
-
-Which: boots machine with 64G, and adds a device mem1 with 2G which can be
-hotplugged later.
-
-Also make sure that config has the following turned on:
-CONFIG_MEMORY_HOTPLUG
-CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
-CONFIG_ACPI_HOTPLUG_MEMORY
-
-Using the qemu monitor hotplug the memory (make sure config has (qemu)
-device_add pc-dimm,id=dimm1,memdev=mem1
-
-The operation will fail with the following trace:
-
-WARNING: CPU: 0 PID: 91 at drivers/base/memory.c:205
-pages_correctly_reserved+0xe6/0x110
-Modules linked in:
-CPU: 0 PID: 91 Comm: systemd-udevd Not tainted 4.16.0-rc1_pt_master #29
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
-BIOS rel-1.11.0-0-g63451fca13-prebuilt.qemu-project.org 04/01/2014
-RIP: 0010:pages_correctly_reserved+0xe6/0x110
-RSP: 0018:ffffbe5086b53d98 EFLAGS: 00010246
-RAX: ffff9acb3fff3180 RBX: ffff9acaf7646038 RCX: 0000000000000800
-RDX: ffff9acb3fff3000 RSI: 0000000000000218 RDI: 00000000010c0000
-RBP: 0000000001080000 R08: ffffe81f83000040 R09: 0000000001100000
-R10: ffff9acb3fff6000 R11: 0000000000000246 R12: 0000000000080000
-R13: 0000000000000000 R14: ffffbe5086b53f08 R15: ffff9acaf7506f20
-FS:  00007fd7f20da8c0(0000) GS:ffff9acb3fc00000(0000) knlGS:000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fd7f20f2000 CR3: 0000000ff7ac2001 CR4: 00000000001606f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- memory_subsys_online+0x44/0xa0
- device_online+0x51/0x80
- store_mem_state+0x5e/0xe0
- kernfs_fop_write+0xfa/0x170
- __vfs_write+0x2e/0x150
- ? __inode_security_revalidate+0x47/0x60
- ? selinux_file_permission+0xd5/0x130
- ? _cond_resched+0x10/0x20
- vfs_write+0xa8/0x1a0
- ? find_vma+0x54/0x60
- SyS_write+0x4d/0xb0
- do_syscall_64+0x5d/0x110
- entry_SYSCALL_64_after_hwframe+0x21/0x86
-RIP: 0033:0x7fd7f0d3a840
-RSP: 002b:00007fff5db77c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 00007fd7f0d3a840
-RDX: 0000000000000006 RSI: 00007fd7f20f2000 RDI: 0000000000000007
-RBP: 00007fd7f20f2000 R08: 000055db265c4ab0 R09: 00007fd7f20da8c0
-R10: 0000000000000006 R11: 0000000000000246 R12: 000055db265c49d0
-R13: 0000000000000006 R14: 000055db265c5510 R15: 000000000000000b
-Code: fe ff ff 07 00 77 24 48 89 f8 48 c1 e8 17 49 8b 14 c2 48 85 d2 74 14
-40 0f b6 c6 49 81 c0 00 00 20 00 48 c1 e0 04 48 01 d0 75 93 <0f> ff 31 c0
-c3 b8 01 00 00 00 c3 31 d2 48 c7 c7 b0 32 67 a6 31
----[ end trace 6203bc4f1a5d30e8 ]---
-
-The problem is detected in: drivers/base/memory.c
-static bool pages_correctly_reserved(unsigned long start_pfn)
-205                 if (WARN_ON_ONCE(!pfn_valid(pfn)))
-
-This function loops through every section in the newly added memory block
-and verifies that the first pfn is valid, meaning section exists, has
-mapping (struct page array), and is online.
-
-The block size on x86 is usually 128M, but when machine is booted with
-more than 64G of memory, the block size is changed to 2G: $ cat
-/sys/devices/system/memory/block_size_bytes 80000000
-
-or
-$ dmesg | grep "block size"
-[    0.086469] x86/mm: Memory block size: 2048MB
-
-During memory hotplug, and hotremove we verify that the range is section
-size aligned, but we actually must verify that it is block size aligned,
-because that is the proper unit for hotplug operations.  See:
-Documentation/memory-hotplug.txt
-
-So, when the start_pfn of newly added memory is not block size aligned, we
-can get a memory block that has only part of it with properly populated
-sections.
-
-In our case the start_pfn starts from the last_pfn (end of physical
-memory).
-$ dmesg | grep last_pfn
-[    0.000000] e820: last_pfn = 0x1040000 max_arch_pfn = 0x400000000
-
-0x1040000 == 65G, and so is not 2G aligned!
-
-The fix is to enforce that memory that is hotplugged and hotremoved is
-block size aligned.
-
-With this fix, running the above sequence yield to the following result:
-(qemu) device_add pc-dimm,id=dimm1,memdev=mem1
-Block size [0x80000000] unaligned hotplug range: start 0x1040000000,
-							size 0x80000000
-acpi PNP0C80:00: add_memory failed
-acpi PNP0C80:00: acpi_memory_enable_device() error
-acpi PNP0C80:00: Enumeration failure
-
-Link: http://lkml.kernel.org/r/20180213193159.14606-2-pasha.tatashin@oracle.com
+Link: http://lkml.kernel.org/r/20180213193159.14606-5-pasha.tatashin@oracle.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Bharata B Rao <bharata@linux.vnet.ibm.com>
@@ -207,36 +92,367 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/base/memory.c          |   38 +++++++++++++++++--------------
+ drivers/base/node.c            |   17 ++++++++-----
+ include/linux/memory_hotplug.h |    2 +
+ include/linux/node.h           |    4 +--
+ mm/memory_hotplug.c            |   21 +----------------
+ mm/page_alloc.c                |   28 ++++++++--------------
+ mm/sparse.c                    |   29 +++++++++++++++++++++--
+ 7 files changed, 73 insertions(+), 66 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-enforce-block-size-aligned-range-check mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-enforce-block-size-aligned-range-check
-+++ a/mm/memory_hotplug.c
-@@ -1087,15 +1087,16 @@ out:
+diff -puN drivers/base/memory.c~mm-memory_hotplug-optimize-memory-hotplug drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-memory_hotplug-optimize-memory-hotplug
++++ a/drivers/base/memory.c
+@@ -187,13 +187,14 @@ int memory_isolate_notify(unsigned long
+ }
  
- static int check_hotplug_memory_range(u64 start, u64 size)
+ /*
+- * The probe routines leave the pages reserved, just as the bootmem code does.
+- * Make sure they're still that way.
++ * The probe routines leave the pages uninitialized, just as the bootmem code
++ * does. Make sure we do not access them, but instead use only information from
++ * within sections.
+  */
+-static bool pages_correctly_reserved(unsigned long start_pfn)
++static bool pages_correctly_probed(unsigned long start_pfn)
  {
--	u64 start_pfn = PFN_DOWN(start);
-+	unsigned long block_sz = memory_block_size_bytes();
-+	u64 block_nr_pages = block_sz >> PAGE_SHIFT;
- 	u64 nr_pages = size >> PAGE_SHIFT;
-+	u64 start_pfn = PFN_DOWN(start);
+-	int i, j;
+-	struct page *page;
++	unsigned long section_nr = pfn_to_section_nr(start_pfn);
++	unsigned long section_nr_end = section_nr + sections_per_block;
+ 	unsigned long pfn = start_pfn;
  
--	/* Memory range must be aligned with section */
--	if ((start_pfn & ~PAGE_SECTION_MASK) ||
--	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
--		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
--				(unsigned long long)start,
--				(unsigned long long)size);
-+	/* memory range must be block size aligned */
-+	if (!nr_pages || !IS_ALIGNED(start_pfn, block_nr_pages) ||
-+	    !IS_ALIGNED(nr_pages, block_nr_pages)) {
-+		pr_err("Block size [%#lx] unaligned hotplug range: start %#llx, size %#llx",
-+		       block_sz, start, size);
- 		return -EINVAL;
+ 	/*
+@@ -201,21 +202,24 @@ static bool pages_correctly_reserved(uns
+ 	 * SPARSEMEM_VMEMMAP. We lookup the page once per section
+ 	 * and assume memmap is contiguous within each section
+ 	 */
+-	for (i = 0; i < sections_per_block; i++, pfn += PAGES_PER_SECTION) {
++	for (; section_nr < section_nr_end; section_nr++) {
+ 		if (WARN_ON_ONCE(!pfn_valid(pfn)))
+ 			return false;
+-		page = pfn_to_page(pfn);
+-
+-		for (j = 0; j < PAGES_PER_SECTION; j++) {
+-			if (PageReserved(page + j))
+-				continue;
+-
+-			printk(KERN_WARNING "section number %ld page number %d "
+-				"not reserved, was it already online?\n",
+-				pfn_to_section_nr(pfn), j);
+ 
++		if (!present_section_nr(section_nr)) {
++			pr_warn("section %ld pfn[%lx, %lx) not present",
++				section_nr, pfn, pfn + PAGES_PER_SECTION);
++			return false;
++		} else if (!valid_section_nr(section_nr)) {
++			pr_warn("section %ld pfn[%lx, %lx) no valid memmap",
++				section_nr, pfn, pfn + PAGES_PER_SECTION);
++			return false;
++		} else if (online_section_nr(section_nr)) {
++			pr_warn("section %ld pfn[%lx, %lx) is already online",
++				section_nr, pfn, pfn + PAGES_PER_SECTION);
+ 			return false;
+ 		}
++		pfn += PAGES_PER_SECTION;
  	}
  
+ 	return true;
+@@ -237,7 +241,7 @@ memory_block_action(unsigned long phys_i
+ 
+ 	switch (action) {
+ 	case MEM_ONLINE:
+-		if (!pages_correctly_reserved(start_pfn))
++		if (!pages_correctly_probed(start_pfn))
+ 			return -EBUSY;
+ 
+ 		ret = online_pages(start_pfn, nr_pages, online_type);
+@@ -727,7 +731,7 @@ int register_new_memory(int nid, struct
+ 	}
+ 
+ 	if (mem->section_count == sections_per_block)
+-		ret = register_mem_sect_under_node(mem, nid);
++		ret = register_mem_sect_under_node(mem, nid, false);
+ out:
+ 	mutex_unlock(&mem_sysfs_mutex);
+ 	return ret;
+diff -puN drivers/base/node.c~mm-memory_hotplug-optimize-memory-hotplug drivers/base/node.c
+--- a/drivers/base/node.c~mm-memory_hotplug-optimize-memory-hotplug
++++ a/drivers/base/node.c
+@@ -397,7 +397,8 @@ static int __ref get_nid_for_pfn(unsigne
+ }
+ 
+ /* register memory section under specified node if it spans that node */
+-int register_mem_sect_under_node(struct memory_block *mem_blk, int nid)
++int register_mem_sect_under_node(struct memory_block *mem_blk, int nid,
++				 bool check_nid)
+ {
+ 	int ret;
+ 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
+@@ -423,11 +424,13 @@ int register_mem_sect_under_node(struct
+ 			continue;
+ 		}
+ 
+-		page_nid = get_nid_for_pfn(pfn);
+-		if (page_nid < 0)
+-			continue;
+-		if (page_nid != nid)
+-			continue;
++		if (check_nid) {
++			page_nid = get_nid_for_pfn(pfn);
++			if (page_nid < 0)
++				continue;
++			if (page_nid != nid)
++				continue;
++		}
+ 		ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
+ 					&mem_blk->dev.kobj,
+ 					kobject_name(&mem_blk->dev.kobj));
+@@ -502,7 +505,7 @@ int link_mem_sections(int nid, unsigned
+ 
+ 		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
+ 
+-		ret = register_mem_sect_under_node(mem_blk, nid);
++		ret = register_mem_sect_under_node(mem_blk, nid, true);
+ 		if (!err)
+ 			err = ret;
+ 
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-optimize-memory-hotplug include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-optimize-memory-hotplug
++++ a/include/linux/memory_hotplug.h
+@@ -234,6 +234,8 @@ void put_online_mems(void);
+ void mem_hotplug_begin(void);
+ void mem_hotplug_done(void);
+ 
++int get_section_nid(unsigned long section_nr);
++
+ extern void set_zone_contiguous(struct zone *zone);
+ extern void clear_zone_contiguous(struct zone *zone);
+ 
+diff -puN include/linux/node.h~mm-memory_hotplug-optimize-memory-hotplug include/linux/node.h
+--- a/include/linux/node.h~mm-memory_hotplug-optimize-memory-hotplug
++++ a/include/linux/node.h
+@@ -67,7 +67,7 @@ extern void unregister_one_node(int nid)
+ extern int register_cpu_under_node(unsigned int cpu, unsigned int nid);
+ extern int unregister_cpu_under_node(unsigned int cpu, unsigned int nid);
+ extern int register_mem_sect_under_node(struct memory_block *mem_blk,
+-						int nid);
++						int nid, bool check_nid);
+ extern int unregister_mem_sect_under_nodes(struct memory_block *mem_blk,
+ 					   unsigned long phys_index);
+ 
+@@ -97,7 +97,7 @@ static inline int unregister_cpu_under_n
+ 	return 0;
+ }
+ static inline int register_mem_sect_under_node(struct memory_block *mem_blk,
+-							int nid)
++							int nid, bool check_nid)
+ {
+ 	return 0;
+ }
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-optimize-memory-hotplug mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-optimize-memory-hotplug
++++ a/mm/memory_hotplug.c
+@@ -250,7 +250,6 @@ static int __meminit __add_section(int n
+ 		struct vmem_altmap *altmap, bool want_memblock)
+ {
+ 	int ret;
+-	int i;
+ 
+ 	if (pfn_valid(phys_start_pfn))
+ 		return -EEXIST;
+@@ -259,23 +258,6 @@ static int __meminit __add_section(int n
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/*
+-	 * Make all the pages reserved so that nobody will stumble over half
+-	 * initialized state.
+-	 * FIXME: We also have to associate it with a node because page_to_nid
+-	 * relies on having page with the proper node.
+-	 */
+-	for (i = 0; i < PAGES_PER_SECTION; i++) {
+-		unsigned long pfn = phys_start_pfn + i;
+-		struct page *page;
+-		if (!pfn_valid(pfn))
+-			continue;
+-
+-		page = pfn_to_page(pfn);
+-		set_page_node(page, nid);
+-		SetPageReserved(page);
+-	}
+-
+ 	if (!want_memblock)
+ 		return 0;
+ 
+@@ -913,7 +895,8 @@ int __ref online_pages(unsigned long pfn
+ 	int ret;
+ 	struct memory_notify arg;
+ 
+-	nid = pfn_to_nid(pfn);
++	nid = get_section_nid(pfn_to_section_nr(pfn));
++
+ 	/* associate pfn range with the zone */
+ 	zone = move_pfn_range(online_type, nid, pfn, nr_pages);
+ 
+diff -puN mm/page_alloc.c~mm-memory_hotplug-optimize-memory-hotplug mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-optimize-memory-hotplug
++++ a/mm/page_alloc.c
+@@ -1139,10 +1139,9 @@ static void free_one_page(struct zone *z
+ }
+ 
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+-				unsigned long zone, int nid, bool zero)
++				unsigned long zone, int nid)
+ {
+-	if (zero)
+-		mm_zero_struct_page(page);
++	mm_zero_struct_page(page);
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+@@ -1156,12 +1155,6 @@ static void __meminit __init_single_page
+ #endif
+ }
+ 
+-static void __meminit __init_single_pfn(unsigned long pfn, unsigned long zone,
+-					int nid, bool zero)
+-{
+-	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid, zero);
+-}
+-
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static void __meminit init_reserved_page(unsigned long pfn)
+ {
+@@ -1180,7 +1173,7 @@ static void __meminit init_reserved_page
+ 		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
+ 			break;
+ 	}
+-	__init_single_pfn(pfn, zid, nid, true);
++	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
+ }
+ #else
+ static inline void init_reserved_page(unsigned long pfn)
+@@ -1497,7 +1490,7 @@ static unsigned long  __init deferred_in
+ 		} else {
+ 			page++;
+ 		}
+-		__init_single_page(page, pfn, zid, nid, true);
++		__init_single_page(page, pfn, zid, nid);
+ 		nr_pages++;
+ 	}
+ 	return (nr_pages);
+@@ -5417,6 +5410,7 @@ void __meminit memmap_init_zone(unsigned
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long pfn;
+ 	unsigned long nr_initialised = 0;
++	struct page *page;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	struct memblock_region *r = NULL, *tmp;
+ #endif
+@@ -5478,6 +5472,11 @@ void __meminit memmap_init_zone(unsigned
+ #endif
+ 
+ not_early:
++		page = pfn_to_page(pfn);
++		__init_single_page(page, pfn, zone, nid);
++		if (context == MEMMAP_HOTPLUG)
++			SetPageReserved(page);
++
+ 		/*
+ 		 * Mark the block movable so that blocks are reserved for
+ 		 * movable at startup. This will force kernel allocations
+@@ -5494,15 +5493,8 @@ not_early:
+ 		 * because this is done early in sparse_add_one_section
+ 		 */
+ 		if (!(pfn & (pageblock_nr_pages - 1))) {
+-			struct page *page = pfn_to_page(pfn);
+-
+-			__init_single_page(page, pfn, zone, nid,
+-					context != MEMMAP_HOTPLUG);
+ 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 			cond_resched();
+-		} else {
+-			__init_single_pfn(pfn, zone, nid,
+-					context != MEMMAP_HOTPLUG);
+ 		}
+ 	}
+ }
+diff -puN mm/sparse.c~mm-memory_hotplug-optimize-memory-hotplug mm/sparse.c
+--- a/mm/sparse.c~mm-memory_hotplug-optimize-memory-hotplug
++++ a/mm/sparse.c
+@@ -30,11 +30,14 @@ struct mem_section mem_section[NR_SECTIO
+ #endif
+ EXPORT_SYMBOL(mem_section);
+ 
+-#ifdef NODE_NOT_IN_PAGE_FLAGS
++#if defined(NODE_NOT_IN_PAGE_FLAGS) || defined(CONFIG_MEMORY_HOTPLUG)
+ /*
+  * If we did not store the node number in the page then we have to
+  * do a lookup in the section_to_node_table in order to find which
+  * node the page belongs to.
++ *
++ * We also use this data in case memory hotplugging is enabled to be
++ * able to determine nid while struct pages are not yet initialized.
+  */
+ #if MAX_NUMNODES <= 256
+ static u8 section_to_node_table[NR_MEM_SECTIONS] __cacheline_aligned;
+@@ -42,17 +45,28 @@ static u8 section_to_node_table[NR_MEM_S
+ static u16 section_to_node_table[NR_MEM_SECTIONS] __cacheline_aligned;
+ #endif
+ 
++#ifdef NODE_NOT_IN_PAGE_FLAGS
+ int page_to_nid(const struct page *page)
+ {
+ 	return section_to_node_table[page_to_section(page)];
+ }
+ EXPORT_SYMBOL(page_to_nid);
++#endif /* NODE_NOT_IN_PAGE_FLAGS */
+ 
+ static void set_section_nid(unsigned long section_nr, int nid)
+ {
+ 	section_to_node_table[section_nr] = nid;
+ }
+-#else /* !NODE_NOT_IN_PAGE_FLAGS */
++
++/* Return NID for given section number */
++int get_section_nid(unsigned long section_nr)
++{
++	if (WARN_ON(section_nr >= NR_MEM_SECTIONS))
++		return 0;
++	return section_to_node_table[section_nr];
++}
++EXPORT_SYMBOL(get_section_nid);
++#else /* ! (NODE_NOT_IN_PAGE_FLAGS || CONFIG_MEMORY_HOTPLUG) */
+ static inline void set_section_nid(unsigned long section_nr, int nid)
+ {
+ }
+@@ -816,7 +830,14 @@ int __meminit sparse_add_one_section(str
+ 		goto out;
+ 	}
+ 
+-	memset(memmap, 0, sizeof(struct page) * PAGES_PER_SECTION);
++#ifdef CONFIG_DEBUG_VM
++	/*
++	 * poison uninitialized struct pages in order to catch invalid flags
++	 * combinations.
++	 */
++	memset(memmap, PAGE_POISON_PATTERN,
++	       sizeof(struct page) * PAGES_PER_SECTION);
++#endif
+ 
+ 	section_mark_present(ms);
+ 
+@@ -827,6 +848,8 @@ out:
+ 	if (ret <= 0) {
+ 		kfree(usemap);
+ 		__kfree_section_memmap(memmap, altmap);
++	} else {
++		set_section_nid(section_nr, pgdat->node_id);
+ 	}
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from pasha.tatashin@oracle.com are
