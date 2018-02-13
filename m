@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-uninitialized-struct-page-poisoning-sanity-checking.patch
+Subject: + mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
  added to -mm tree
-Date: Tue, 13 Feb 2018 13:50:08 -0800
-Message-ID: <5a835d90.rSjJrpJQBd9vRl8p%akpm@linux-foundation.org>
+Date: Tue, 13 Feb 2018 13:50:00 -0800
+Message-ID: <5a835d88./IKZQHNTEeNFiIDv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965907AbeBMVuK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Feb 2018 16:50:10 -0500
+        with ESMTP id S965907AbeBMVuD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Feb 2018 16:50:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pasha.tatashin@oracle.com, bharata@linux.vnet.ibm.com, bhe@redhat.com, daniel.m.jordan@oracle.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, hpa@zytor.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@elte.hu, steven.sistare@oracle.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: uninitialized struct page poisoning sanity checking
+     Subject: mm/memory_hotplug: enforce block size aligned range check
 has been added to the -mm tree.  Its filename is
-     mm-uninitialized-struct-page-poisoning-sanity-checking.patch
+     mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-uninitialized-struct-page-poisoning-sanity-checking.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uninitialized-struct-page-poisoning-sanity-checking.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,156 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: uninitialized struct page poisoning sanity checking
+Subject: mm/memory_hotplug: enforce block size aligned range check
 
-During boot we poison struct page memory in order to ensure that no one is
-accessing this memory until the struct pages are initialized in
-__init_single_page().
+Patch series "optimize memory hotplug", v3.
 
-This patch adds more scrutiny to this checking, by making sure that flags
-do not equal the poison pattern when the are accessed.  The pattern is all
-ones.
+This patchset:
+- Improves hotplug performance by eliminating a number of
+struct page traverses during memory hotplug.
 
-Since node id is also stored in struct page, and may be accessed quiet
-early we add the enforcement into page_to_nid() function as well.
+- Fixes some issues with hotplugging, where boundaries
+were not properly checked. And on x86 block size was not properly aligned
+with end of memory
 
-Link: http://lkml.kernel.org/r/20180213193159.14606-4-pasha.tatashin@oracle.com
+- Also, potentially improves boot performance by eliminating condition from
+  __init_single_page().
+
+- Adds robustness by verifying that that struct pages are correctly
+  poisoned when flags are accessed.
+
+The following experiments were performed on Xeon(R) CPU E7-8895 v3 @ 2.60GHz
+with 1T RAM:
+
+booting in qemu with 960G of memory, time to initialize struct pages:
+
+no-kvm:
+	TRY1		TRY2
+BEFORE:	39.433668	39.39705
+AFTER:	36.903781	36.989329
+
+with-kvm:
+BEFORE:	10.977447	11.103164
+AFTER:	10.929072	10.751885
+
+Hotplug 896G memory:
+no-kvm:
+	TRY1		TRY2
+BEFORE: 848.740000	846.910000
+AFTER:  783.070000	786.560000
+
+with-kvm:
+	TRY1		TRY2
+BEFORE: 34.410000	33.57
+AFTER:	29.810000	29.580000
+
+
+This patch (of 4):
+
+Start qemu with the following arguments:
+-m 64G,slots=2,maxmem=66G -object memory-backend-ram,id=mem1,size=2G
+
+Which: boots machine with 64G, and adds a device mem1 with 2G which can be
+hotplugged later.
+
+Also make sure that config has the following turned on:
+CONFIG_MEMORY_HOTPLUG
+CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+CONFIG_ACPI_HOTPLUG_MEMORY
+
+Using the qemu monitor hotplug the memory (make sure config has (qemu)
+device_add pc-dimm,id=dimm1,memdev=mem1
+
+The operation will fail with the following trace:
+
+WARNING: CPU: 0 PID: 91 at drivers/base/memory.c:205
+pages_correctly_reserved+0xe6/0x110
+Modules linked in:
+CPU: 0 PID: 91 Comm: systemd-udevd Not tainted 4.16.0-rc1_pt_master #29
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+BIOS rel-1.11.0-0-g63451fca13-prebuilt.qemu-project.org 04/01/2014
+RIP: 0010:pages_correctly_reserved+0xe6/0x110
+RSP: 0018:ffffbe5086b53d98 EFLAGS: 00010246
+RAX: ffff9acb3fff3180 RBX: ffff9acaf7646038 RCX: 0000000000000800
+RDX: ffff9acb3fff3000 RSI: 0000000000000218 RDI: 00000000010c0000
+RBP: 0000000001080000 R08: ffffe81f83000040 R09: 0000000001100000
+R10: ffff9acb3fff6000 R11: 0000000000000246 R12: 0000000000080000
+R13: 0000000000000000 R14: ffffbe5086b53f08 R15: ffff9acaf7506f20
+FS:  00007fd7f20da8c0(0000) GS:ffff9acb3fc00000(0000) knlGS:000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fd7f20f2000 CR3: 0000000ff7ac2001 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ memory_subsys_online+0x44/0xa0
+ device_online+0x51/0x80
+ store_mem_state+0x5e/0xe0
+ kernfs_fop_write+0xfa/0x170
+ __vfs_write+0x2e/0x150
+ ? __inode_security_revalidate+0x47/0x60
+ ? selinux_file_permission+0xd5/0x130
+ ? _cond_resched+0x10/0x20
+ vfs_write+0xa8/0x1a0
+ ? find_vma+0x54/0x60
+ SyS_write+0x4d/0xb0
+ do_syscall_64+0x5d/0x110
+ entry_SYSCALL_64_after_hwframe+0x21/0x86
+RIP: 0033:0x7fd7f0d3a840
+RSP: 002b:00007fff5db77c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 00007fd7f0d3a840
+RDX: 0000000000000006 RSI: 00007fd7f20f2000 RDI: 0000000000000007
+RBP: 00007fd7f20f2000 R08: 000055db265c4ab0 R09: 00007fd7f20da8c0
+R10: 0000000000000006 R11: 0000000000000246 R12: 000055db265c49d0
+R13: 0000000000000006 R14: 000055db265c5510 R15: 000000000000000b
+Code: fe ff ff 07 00 77 24 48 89 f8 48 c1 e8 17 49 8b 14 c2 48 85 d2 74 14
+40 0f b6 c6 49 81 c0 00 00 20 00 48 c1 e0 04 48 01 d0 75 93 <0f> ff 31 c0
+c3 b8 01 00 00 00 c3 31 d2 48 c7 c7 b0 32 67 a6 31
+---[ end trace 6203bc4f1a5d30e8 ]---
+
+The problem is detected in: drivers/base/memory.c
+static bool pages_correctly_reserved(unsigned long start_pfn)
+205                 if (WARN_ON_ONCE(!pfn_valid(pfn)))
+
+This function loops through every section in the newly added memory block
+and verifies that the first pfn is valid, meaning section exists, has
+mapping (struct page array), and is online.
+
+The block size on x86 is usually 128M, but when machine is booted with
+more than 64G of memory, the block size is changed to 2G: $ cat
+/sys/devices/system/memory/block_size_bytes 80000000
+
+or
+$ dmesg | grep "block size"
+[    0.086469] x86/mm: Memory block size: 2048MB
+
+During memory hotplug, and hotremove we verify that the range is section
+size aligned, but we actually must verify that it is block size aligned,
+because that is the proper unit for hotplug operations.  See:
+Documentation/memory-hotplug.txt
+
+So, when the start_pfn of newly added memory is not block size aligned, we
+can get a memory block that has only part of it with properly populated
+sections.
+
+In our case the start_pfn starts from the last_pfn (end of physical
+memory).
+$ dmesg | grep last_pfn
+[    0.000000] e820: last_pfn = 0x1040000 max_arch_pfn = 0x400000000
+
+0x1040000 == 65G, and so is not 2G aligned!
+
+The fix is to enforce that memory that is hotplugged and hotremoved is
+block size aligned.
+
+With this fix, running the above sequence yield to the following result:
+(qemu) device_add pc-dimm,id=dimm1,memdev=mem1
+Block size [0x80000000] unaligned hotplug range: start 0x1040000000,
+							size 0x80000000
+acpi PNP0C80:00: add_memory failed
+acpi PNP0C80:00: acpi_memory_enable_device() error
+acpi PNP0C80:00: Enumeration failure
+
+Link: http://lkml.kernel.org/r/20180213193159.14606-2-pasha.tatashin@oracle.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Bharata B Rao <bharata@linux.vnet.ibm.com>
@@ -71,85 +207,36 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |    4 +++-
- include/linux/page-flags.h |   22 +++++++++++++++++-----
- mm/memblock.c              |    2 +-
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mm.h~mm-uninitialized-struct-page-poisoning-sanity-checking include/linux/mm.h
---- a/include/linux/mm.h~mm-uninitialized-struct-page-poisoning-sanity-checking
-+++ a/include/linux/mm.h
-@@ -896,7 +896,9 @@ extern int page_to_nid(const struct page
- #else
- static inline int page_to_nid(const struct page *page)
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-enforce-block-size-aligned-range-check mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-enforce-block-size-aligned-range-check
++++ a/mm/memory_hotplug.c
+@@ -1087,15 +1087,16 @@ out:
+ 
+ static int check_hotplug_memory_range(u64 start, u64 size)
  {
--	return (page->flags >> NODES_PGSHIFT) & NODES_MASK;
-+	struct page *p = (struct page *)page;
-+
-+	return (PF_POISONED_CHECK(p)->flags >> NODES_PGSHIFT) & NODES_MASK;
- }
- #endif
+-	u64 start_pfn = PFN_DOWN(start);
++	unsigned long block_sz = memory_block_size_bytes();
++	u64 block_nr_pages = block_sz >> PAGE_SHIFT;
+ 	u64 nr_pages = size >> PAGE_SHIFT;
++	u64 start_pfn = PFN_DOWN(start);
  
-diff -puN include/linux/page-flags.h~mm-uninitialized-struct-page-poisoning-sanity-checking include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-uninitialized-struct-page-poisoning-sanity-checking
-+++ a/include/linux/page-flags.h
-@@ -156,9 +156,18 @@ static __always_inline int PageCompound(
- 	return test_bit(PG_head, &page->flags) || PageTail(page);
- }
+-	/* Memory range must be aligned with section */
+-	if ((start_pfn & ~PAGE_SECTION_MASK) ||
+-	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
+-		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
+-				(unsigned long long)start,
+-				(unsigned long long)size);
++	/* memory range must be block size aligned */
++	if (!nr_pages || !IS_ALIGNED(start_pfn, block_nr_pages) ||
++	    !IS_ALIGNED(nr_pages, block_nr_pages)) {
++		pr_err("Block size [%#lx] unaligned hotplug range: start %#llx, size %#llx",
++		       block_sz, start, size);
+ 		return -EINVAL;
+ 	}
  
-+#define	PAGE_POISON_PATTERN	~0ul
-+static inline int PagePoisoned(const struct page *page)
-+{
-+	return page->flags == PAGE_POISON_PATTERN;
-+}
-+
- /*
-  * Page flags policies wrt compound pages
-  *
-+ * PF_POISONED_CHECK
-+ *     check if this struct page poisoned/uninitialized
-+ *
-  * PF_ANY:
-  *     the page flag is relevant for small, head and tail pages.
-  *
-@@ -176,17 +185,20 @@ static __always_inline int PageCompound(
-  * PF_NO_COMPOUND:
-  *     the page flag is not relevant for compound pages.
-  */
--#define PF_ANY(page, enforce)	page
--#define PF_HEAD(page, enforce)	compound_head(page)
-+#define PF_POISONED_CHECK(page) ({					\
-+		VM_BUG_ON_PGFLAGS(PagePoisoned(page), page);		\
-+		page;})
-+#define PF_ANY(page, enforce)	PF_POISONED_CHECK(page)
-+#define PF_HEAD(page, enforce)	PF_POISONED_CHECK(compound_head(page))
- #define PF_ONLY_HEAD(page, enforce) ({					\
- 		VM_BUG_ON_PGFLAGS(PageTail(page), page);		\
--		page;})
-+		PF_POISONED_CHECK(page);})
- #define PF_NO_TAIL(page, enforce) ({					\
- 		VM_BUG_ON_PGFLAGS(enforce && PageTail(page), page);	\
--		compound_head(page);})
-+		PF_POISONED_CHECK(compound_head(page));})
- #define PF_NO_COMPOUND(page, enforce) ({				\
- 		VM_BUG_ON_PGFLAGS(enforce && PageCompound(page), page);	\
--		page;})
-+		PF_POISONED_CHECK(page);})
- 
- /*
-  * Macros to create function definitions for page flags
-diff -puN mm/memblock.c~mm-uninitialized-struct-page-poisoning-sanity-checking mm/memblock.c
---- a/mm/memblock.c~mm-uninitialized-struct-page-poisoning-sanity-checking
-+++ a/mm/memblock.c
-@@ -1373,7 +1373,7 @@ void * __init memblock_virt_alloc_try_ni
- 					   min_addr, max_addr, nid);
- #ifdef CONFIG_DEBUG_VM
- 	if (ptr && size > 0)
--		memset(ptr, 0xff, size);
-+		memset(ptr, PAGE_POISON_PATTERN, size);
- #endif
- 	return ptr;
- }
 _
 
 Patches currently in -mm which might be from pasha.tatashin@oracle.com are
