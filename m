@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch added to -mm tree
-Date: Fri, 09 Feb 2018 14:03:29 -0800
-Message-ID: <5a7e1ab1.QmI23tp8RO2pUF7X%akpm@linux-foundation.org>
+Subject: + mm-initialize-pages-on-demand-during-boot-fix2.patch added to
+ -mm tree
+Date: Mon, 12 Feb 2018 16:22:11 -0800
+Message-ID: <5a822fb3.ntF/kXEoitQS551Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52234 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752942AbeBIWDa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Feb 2018 17:03:30 -0500
+        with ESMTP id S932792AbeBMAWM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Feb 2018 19:22:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linux.alibaba.com, akpm@linux-foundation.org, gavin.dg@linux.alibaba.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: pasha.tatashin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix potential clearing to referenced flag in page_idle_clear_pte_refs_one()
+     Subject: mm-initialize-pages-on-demand-during-boot-fix2
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+     mm-initialize-pages-on-demand-during-boot-fix2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-initialize-pages-on-demand-during-boot-fix2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-initialize-pages-on-demand-during-boot-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: thp: fix potential clearing to referenced flag in page_idle_clear_pte_refs_one()
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm-initialize-pages-on-demand-during-boot-fix2
 
-For PTE-mapped THP, the compound THP has not been split to normal 4K pages
-yet, the whole THP is considered referenced if any one of sub page is
-referenced.
+fix min() type mismatch warning
 
-When walking PTE-mapped THP by pvmw, all relevant PTEs will be checked to
-retrieve referenced bit.  But, the current code just returns the result of
-the last PTE.  If the last PTE has not referenced, the referenced flag
-will be cleared.
-
-Just set referenced when ptep{pmdp}_clear_young_notify() returns true.
-
-Link: http://lkml.kernel.org/r/1518212451-87134-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reported-by: Gang Deng <gavin.dg@linux.alibaba.com>
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20180212164543.26592-1-pasha.tatashin@oracle.com
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_idle.c~mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one mm/page_idle.c
---- a/mm/page_idle.c~mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one
-+++ a/mm/page_idle.c
-@@ -65,11 +65,15 @@ static bool page_idle_clear_pte_refs_one
- 	while (page_vma_mapped_walk(&pvmw)) {
- 		addr = pvmw.address;
- 		if (pvmw.pte) {
--			referenced = ptep_clear_young_notify(vma, addr,
--					pvmw.pte);
-+			/*
-+			 * For PTE-mapped THP, one sub page is referenced,
-+			 * the whole THP is referenced.
-+			 */
-+			if (ptep_clear_young_notify(vma, addr, pvmw.pte))
-+				referenced = true;
- 		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
--			referenced = pmdp_clear_young_notify(vma, addr,
--					pvmw.pmd);
-+			if (pmdp_clear_young_notify(vma, addr, pvmw.pmd))
-+				referenced = true;
- 		} else {
- 			/* unexpected pmd-mapped page? */
- 			WARN_ON_ONCE(1);
+diff -puN mm/page_alloc.c~mm-initialize-pages-on-demand-during-boot-fix2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-initialize-pages-on-demand-during-boot-fix2
++++ a/mm/page_alloc.c
+@@ -6341,8 +6341,8 @@ void __paginginit free_area_init_node(in
+ 	 * We start only with one section of pages, more pages are added as
+ 	 * needed until the rest of deferred pages are initialized.
+ 	 */
+-	pgdat->static_init_pgcnt = min(PAGES_PER_SECTION,
+-				       pgdat->node_spanned_pages);
++	pgdat->static_init_pgcnt = min_t(unsigned long, PAGES_PER_SECTION,
++					 pgdat->node_spanned_pages);
+ 	pgdat->first_deferred_pfn = ULONG_MAX;
+ #endif
+ 	free_area_init_core(pgdat);
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from pasha.tatashin@oracle.com are
 
-mm-thp-fix-potential-clearing-to-referenced-flag-in-page_idle_clear_pte_refs_one.patch
+mm-initialize-pages-on-demand-during-boot.patch
+mm-initialize-pages-on-demand-during-boot-fix2.patch
+sparc64-ng4-memset-32-bits-overflow.patch
 
