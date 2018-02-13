@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch added
- to -mm tree
-Date: Mon, 12 Feb 2018 16:27:53 -0800
-Message-ID: <5a823109.5o/gVc3ZlOB759yX%akpm__25249.9026865282$1518481587$gmane$org@linux-foundation.org>
+ vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 12 Feb 2018 16:29:21 -0800
+Message-ID: <5a823161.vWgLXb0ixRX8gW2+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56456 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932769AbeBMA1z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Feb 2018 19:27:55 -0500
+        with ESMTP id S932769AbeBMA3X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Feb 2018 19:29:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, kai.heng.feng@canonical.com, labbott@redhat.com, stable@vger.kernel.org, willy@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmalloc: fix __GFP_HIGHMEM usage for vmalloc_32 on 32b systems
+     Subject: vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch
+     vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: vmalloc: fix __GFP_HIGHMEM usage for vmalloc_32 on 32b systems
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes
 
-Kai Heng Feng has noticed that BUG_ON(PageHighMem(pg)) triggers in
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#5: 
 drivers/media/common/saa7146/saa7146_core.c since 19809c2da28a ("mm,
-vmalloc: use __GFP_HIGHMEM implicitly").  saa7146_vmalloc_build_pgtable
-uses vmalloc_32 and it is reasonable to expect that the resulting page is
-not in highmem.  The above commit aimed to add __GFP_HIGHMEM only for
-those requests which do not specify any zone modifier gfp flag. 
-vmalloc_32 relies on GFP_VMALLOC32 which should do the right thing. 
-Except it has been missed that GFP_VMALLOC32 is an alias for GFP_KERNEL on
-32b architectures.  Thanks to Matthew to notice this.
 
-Fix the problem by unconditionally setting GFP_DMA32 in GFP_VMALLOC32 for
-!64b arches (as a bailout).  This should do the right thing and use
-ZONE_NORMAL which should be always below 4G on 32b systems.
+ERROR: Macros with complex values should be enclosed in parentheses
+#45: FILE: mm/vmalloc.c:1954:
++#define GFP_VMALLOC32 GFP_DMA32 | GFP_KERNEL
 
-Debugged by Matthew Wilcox.
+total: 2 errors, 0 warnings, 12 lines checked
 
-Link: http://lkml.kernel.org/r/20180212095019.GX21609@dhcp22.suse.cz
-Fixes: 19809c2da28a ("mm, vmalloc: use __GFP_HIGHMEM implicitly”)
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Kai Heng Feng <kai.heng.feng@canonical.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: <stable@vger.kernel.org>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems
+diff -puN mm/vmalloc.c~vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes
 +++ a/mm/vmalloc.c
-@@ -1947,7 +1947,11 @@ void *vmalloc_exec(unsigned long size)
- #elif defined(CONFIG_64BIT) && defined(CONFIG_ZONE_DMA)
- #define GFP_VMALLOC32 GFP_DMA | GFP_KERNEL
- #else
--#define GFP_VMALLOC32 GFP_KERNEL
-+/*
-+ * 64b systems should always have either DMA or DMA32 zones. For others
-+ * GFP_DMA32 should do the right thing and use the normal zone.
-+ */
-+#define GFP_VMALLOC32 GFP_DMA32 | GFP_KERNEL
- #endif
+@@ -1943,9 +1943,9 @@ void *vmalloc_exec(unsigned long size)
+ }
  
- /**
+ #if defined(CONFIG_64BIT) && defined(CONFIG_ZONE_DMA32)
+-#define GFP_VMALLOC32 GFP_DMA32 | GFP_KERNEL
++#define GFP_VMALLOC32 (GFP_DMA32 | GFP_KERNEL)
+ #elif defined(CONFIG_64BIT) && defined(CONFIG_ZONE_DMA)
+-#define GFP_VMALLOC32 GFP_DMA | GFP_KERNEL
++#define GFP_VMALLOC32 (GFP_DMA | GFP_KERNEL)
+ #else
+ /*
+  * 64b systems should always have either DMA or DMA32 zones. For others
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2.patch
-mm-introduce-map_fixed_safe.patch
-fs-elf-drop-map_fixed-usage-from-elf_map.patch
-mm-numa-rework-do_pages_move.patch
-mm-migrate-remove-reason-argument-from-new_page_t.patch
-mm-unclutter-thp-migration.patch
+i-need-old-gcc.patch
+include-linux-sched-mmh-re-inline-mmdrop.patch
+mm-zpool-zpool_evictable-fix-mismatch-in-parameter-name-and-kernel-doc-fix.patch
+vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch
+mm.patch
+mm-initialize-pages-on-demand-during-boot-fix.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
