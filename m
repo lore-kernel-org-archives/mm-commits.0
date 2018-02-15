@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4.patch added to -mm tree
-Date: Thu, 15 Feb 2018 14:46:16 -0800
-Message-ID: <5a860db8.GgP91vxRKYgfERNd%akpm@linux-foundation.org>
+Subject: + mm-uninitialized-struct-page-poisoning-sanity-checking-v4.patch added to -mm tree
+Date: Thu, 15 Feb 2018 14:46:30 -0800
+Message-ID: <5a860dc6.EVIoZCGW22iSmg67%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41880 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756359AbeBOWq7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Feb 2018 17:46:59 -0500
+        with ESMTP id S1756363AbeBOWrC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Feb 2018 17:47:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pasha.tatashin@oracle.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4
+     Subject: mm-uninitialized-struct-page-poisoning-sanity-checking-v4
 has been added to the -mm tree.  Its filename is
-     x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4.patch
+     mm-uninitialized-struct-page-poisoning-sanity-checking-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-uninitialized-struct-page-poisoning-sanity-checking-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uninitialized-struct-page-poisoning-sanity-checking-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,37 +39,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4
+Subject: mm-uninitialized-struct-page-poisoning-sanity-checking-v4
 
 Addressed comments from Ingo Molnar and from Michal Hocko
 Splitted 4th patch into three patches
 Instead of using section table to save node ids, saving node id in
 the first page of every section.
 				
-Link: http://lkml.kernel.org/r/20180215165920.8570-3-pasha.tatashin@oracle.com
+Link: http://lkml.kernel.org/r/20180215165920.8570-4-pasha.tatashin@oracle.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Ingo Molnar <mingo@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4 arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4
-+++ a/arch/x86/mm/init_64.c
-@@ -1327,8 +1327,8 @@ int kern_addr_valid(unsigned long addr)
+diff -puN include/linux/page-flags.h~mm-uninitialized-struct-page-poisoning-sanity-checking-v4 include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-uninitialized-struct-page-poisoning-sanity-checking-v4
++++ a/include/linux/page-flags.h
+@@ -156,7 +156,7 @@ static __always_inline int PageCompound(
+ 	return test_bit(PG_head, &page->flags) || PageTail(page);
  }
  
- /*
-- * Block size is the minimum quantum of memory which can be hot-plugged or
-- * hot-removed. It must be power of two, and must be equal or larger than
-+ * Block size is the minimum amount of memory which can be hotplugged or
-+ * hotremoved. It must be power of two and must be equal or larger than
-  * MIN_MEMORY_BLOCK_SIZE.
+-#define	PAGE_POISON_PATTERN	~0ul
++#define	PAGE_POISON_PATTERN	-1l
+ static inline int PagePoisoned(const struct page *page)
+ {
+ 	return page->flags == PAGE_POISON_PATTERN;
+@@ -187,18 +187,18 @@ static inline int PagePoisoned(const str
   */
- #define MAX_BLOCK_SIZE (2UL << 30)
+ #define PF_POISONED_CHECK(page) ({					\
+ 		VM_BUG_ON_PGFLAGS(PagePoisoned(page), page);		\
+-		page;})
++		page; })
+ #define PF_ANY(page, enforce)	PF_POISONED_CHECK(page)
+ #define PF_HEAD(page, enforce)	PF_POISONED_CHECK(compound_head(page))
+ #define PF_ONLY_HEAD(page, enforce) ({					\
+ 		VM_BUG_ON_PGFLAGS(PageTail(page), page);		\
+-		PF_POISONED_CHECK(page);})
++		PF_POISONED_CHECK(page); })
+ #define PF_NO_TAIL(page, enforce) ({					\
+ 		VM_BUG_ON_PGFLAGS(enforce && PageTail(page), page);	\
+-		PF_POISONED_CHECK(compound_head(page));})
++		PF_POISONED_CHECK(compound_head(page)); })
+ #define PF_NO_COMPOUND(page, enforce) ({				\
+ 		VM_BUG_ON_PGFLAGS(enforce && PageCompound(page), page);	\
+-		PF_POISONED_CHECK(page);})
++		PF_POISONED_CHECK(page); })
+ 
+ /*
+  * Macros to create function definitions for page flags
 _
 
 Patches currently in -mm which might be from pasha.tatashin@oracle.com are
