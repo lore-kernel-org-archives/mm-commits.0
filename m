@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-optimize-memory-hotplug.patch added to -mm
- tree
-Date: Thu, 15 Feb 2018 14:46:40 -0800
-Message-ID: <5a860dd0.SivQZylVWK1RHoeV%akpm@linux-foundation.org>
+Subject: + ipc-shm-introduce-shmctlshm_stat_any.patch added to -mm tree
+Date: Thu, 15 Feb 2018 14:50:44 -0800
+Message-ID: <5a860ec4.X22+fpgP6U4G24a+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43376 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756384AbeBOWrG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Feb 2018 17:47:06 -0500
+        with ESMTP id S1756461AbeBOWuq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Feb 2018 17:50:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasha.tatashin@oracle.com, bharata@linux.vnet.ibm.com, bhe@redhat.com, daniel.m.jordan@oracle.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, hpa@zytor.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@kernel.org, steven.sistare@oracle.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, ebiederm@xmission.com, keescook@chromium.org, manfred@colorfullife.com, mhocko@kernel.org, mtk.manpages@gmail.com, robert.kettler@outlook.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: optimize memory hotplug
+     Subject: ipc/shm: introduce shmctl(SHM_STAT_ANY)
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-optimize-memory-hotplug.patch
+     ipc-shm-introduce-shmctlshm_stat_any.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-optimize-memory-hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-introduce-shmctlshm_stat_any.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-optimize-memory-hotplug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-introduce-shmctlshm_stat_any.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,212 +38,217 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm/memory_hotplug: optimize memory hotplug
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/shm: introduce shmctl(SHM_STAT_ANY)
 
-During memory hotplugging we traverse struct pages three times:
+Patch series "sysvipc: introduce STAT_ANY commands", v2.
 
-1. memset(0) in sparse_add_one_section()
-2. loop in __add_section() to set do: set_page_node(page, nid); and
-   SetPageReserved(page);
-3. loop in memmap_init_zone() to call __init_single_pfn()
+The following patches adds the discussed
+(https://lkml.org/lkml/2017/12/19/220) new command for shm as well as for
+sems and msq as they are subject to the same discrepancies for ipc object
+permission checks between the syscall and via procfs.  These new commands
+are justified in that (1) we are stuck with this semantics as changing
+syscall and procfs can break userland; and (2) some users can benefit from
+performance (for large amounts of shm segments, for example) from not
+having to parse the procfs interface.
 
-This patch remove the first two loops, and leaves only loop 3. All struct
-pages are initialized in one place, the same as it is done during boot.
+Once merged, I will submit the necesary manpage updates.  But I'm thinking
+something like:
 
-The benefits:
-- We improve the memory hotplug performance because we are not evicting
-  cache several times and also reduce loop branching overheads.
+diff --git a/man2/shmctl.2 b/man2/shmctl.2
+index 7bb503999941..bb00bbe21a57 100644
+--- a/man2/shmctl.2
++++ b/man2/shmctl.2
+@@ -41,6 +41,7 @@
+ .\" 2005-04-25, mtk -- noted aberrant Linux behavior w.r.t. new
+ .\"	attaches to a segment that has already been marked for deletion.
+ .\" 2005-08-02, mtk: Added IPC_INFO, SHM_INFO, SHM_STAT descriptions.
++.\" 2018-02-13, dbueso: Added SHM_STAT_ANY description.
+ .\"
+ .TH SHMCTL 2 2017-09-15 "Linux" "Linux Programmer's Manual"
+ .SH NAME
+@@ -242,6 +243,18 @@ However, the
+ argument is not a segment identifier, but instead an index into
+ the kernel's internal array that maintains information about
+ all shared memory segments on the system.
++.TP
++.BR SHM_STAT_ANY " (Linux-specific)"
++Return a
++.I shmid_ds
++structure as for
++.BR SHM_STAT .
++However, the
++.I shm_perm.mode
++is not checked for read access for
++.IR shmid ,
++resembing the behaviour of
++/proc/sysvipc/shm.
+ .PP
+ The caller can prevent or allow swapping of a shared
+ memory segment with the following \fIcmd\fP values:
+@@ -287,7 +300,7 @@ operation returns the index of the highest used entry in the
+ kernel's internal array recording information about all
+ shared memory segments.
+ (This information can be used with repeated
+-.B SHM_STAT
++.B SHM_STAT/SHM_STAT_ANY
+ operations to obtain information about all shared memory segments
+ on the system.)
+ A successful
+@@ -328,7 +341,7 @@ isn't accessible.
+ \fIshmid\fP is not a valid identifier, or \fIcmd\fP
+ is not a valid command.
+ Or: for a
+-.B SHM_STAT
++.B SHM_STAT/SHM_STAT_ANY
+ operation, the index value specified in
+ .I shmid
+ referred to an array slot that is currently unused.
 
-- Remove condition from hotpath in __init_single_pfn(), that was added in
-  order to fix the problem that was reported by Bharata in the above email
-  thread, thus also improve the performance during normal boot.
 
-- Make memory hotplug more similar to boot memory initialization path
-  because we zero and initialize struct pages only in one function.
 
-- Simplifies memory hotplug strut page initialization code, and thus
-  enables future improvements, such as multi-threading the initialization
-  of struct pages in order to improve the hotplug performance even further
-  on larger machines.
+This patch (of 3):
 
-Link: http://lkml.kernel.org/r/20180215165920.8570-7-pasha.tatashin@oracle.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+There is a permission discrepancy when consulting shm ipc object metadata
+between /proc/sysvipc/shm (0444) and the SHM_STAT shmctl command.  The
+later does permission checks for the object vs S_IRUGO.  As such there can
+be cases where EACCESS is returned via syscall but the info is displayed
+anyways in the procfs files.
+
+While this might have security implications via info leaking (albeit no
+writing to the shm metadata), this behavior goes way back and showing all
+the objects regardless of the permissions was most likely an overlook - so
+we are stuck with it.  Furthermore, modifying either the syscall or the
+procfs file can cause userspace programs to break (ie ipcs).  Some
+applications require getting the procfs info (without root privileges) and
+can be rather slow in comparison with a syscall -- up to 500x in some
+reported cases.
+
+This patch introduces a new SHM_STAT_ANY command such that the shm ipc
+object permissions are ignored, and only audited instead.  In addition,
+I've left the lsm security hook checks in place, as if some policy can
+block the call, then the user has no other choice than just parsing the
+procfs file.
+
+Link: http://lkml.kernel.org/r/20180215162458.10059-2-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Robert Kettler <robert.kettler@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   21 ++++++---------------
- mm/page_alloc.c     |   28 ++++++++++------------------
- mm/sparse.c         |    9 ++++++++-
- 3 files changed, 24 insertions(+), 34 deletions(-)
+ include/uapi/linux/shm.h   |    5 +++--
+ ipc/shm.c                  |   23 ++++++++++++++++++-----
+ security/selinux/hooks.c   |    1 +
+ security/smack/smack_lsm.c |    1 +
+ 4 files changed, 23 insertions(+), 7 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-optimize-memory-hotplug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-optimize-memory-hotplug
-+++ a/mm/memory_hotplug.c
-@@ -250,7 +250,7 @@ static int __meminit __add_section(int n
- 		struct vmem_altmap *altmap, bool want_memblock)
- {
- 	int ret;
--	int i;
-+	struct page *page;
+diff -puN include/uapi/linux/shm.h~ipc-shm-introduce-shmctlshm_stat_any include/uapi/linux/shm.h
+--- a/include/uapi/linux/shm.h~ipc-shm-introduce-shmctlshm_stat_any
++++ a/include/uapi/linux/shm.h
+@@ -83,8 +83,9 @@ struct shmid_ds {
+ #define SHM_UNLOCK 	12
  
- 	if (pfn_valid(phys_start_pfn))
- 		return -EEXIST;
-@@ -260,21 +260,12 @@ static int __meminit __add_section(int n
- 		return ret;
+ /* ipcs ctl commands */
+-#define SHM_STAT 	13
+-#define SHM_INFO 	14
++#define SHM_STAT	13
++#define SHM_INFO	14
++#define SHM_STAT_ANY    15
  
- 	/*
--	 * Make all the pages reserved so that nobody will stumble over half
--	 * initialized state.
--	 * FIXME: We also have to associate it with a node because page_to_nid
--	 * relies on having page with the proper node.
-+	 * The first page in every section holds node id, this is because we
-+	 * will need it in online_pages().
- 	 */
--	for (i = 0; i < PAGES_PER_SECTION; i++) {
--		unsigned long pfn = phys_start_pfn + i;
--		struct page *page;
--		if (!pfn_valid(pfn))
--			continue;
--
--		page = pfn_to_page(pfn);
--		set_page_node(page, nid);
--		SetPageReserved(page);
--	}
-+	page = pfn_to_page(phys_start_pfn);
-+	mm_zero_struct_page(page);
-+	set_page_node(page, nid);
+ /* Obsolete, used only for backwards compatibility */
+ struct	shminfo {
+diff -puN ipc/shm.c~ipc-shm-introduce-shmctlshm_stat_any ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-introduce-shmctlshm_stat_any
++++ a/ipc/shm.c
+@@ -915,14 +915,14 @@ static int shmctl_stat(struct ipc_namesp
+ 	memset(tbuf, 0, sizeof(*tbuf));
  
- 	if (!want_memblock)
- 		return 0;
-diff -puN mm/page_alloc.c~mm-memory_hotplug-optimize-memory-hotplug mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-optimize-memory-hotplug
-+++ a/mm/page_alloc.c
-@@ -1139,10 +1139,9 @@ static void free_one_page(struct zone *z
- }
- 
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
--				unsigned long zone, int nid, bool zero)
-+				unsigned long zone, int nid)
- {
--	if (zero)
--		mm_zero_struct_page(page);
-+	mm_zero_struct_page(page);
- 	set_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
-@@ -1156,12 +1155,6 @@ static void __meminit __init_single_page
- #endif
- }
- 
--static void __meminit __init_single_pfn(unsigned long pfn, unsigned long zone,
--					int nid, bool zero)
--{
--	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid, zero);
--}
--
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static void __meminit init_reserved_page(unsigned long pfn)
- {
-@@ -1180,7 +1173,7 @@ static void __meminit init_reserved_page
- 		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
- 			break;
- 	}
--	__init_single_pfn(pfn, zid, nid, true);
-+	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
- }
- #else
- static inline void init_reserved_page(unsigned long pfn)
-@@ -1497,7 +1490,7 @@ static unsigned long  __init deferred_in
- 		} else {
- 			page++;
+ 	rcu_read_lock();
+-	if (cmd == SHM_STAT) {
++	if (cmd == SHM_STAT || cmd == SHM_STAT_ANY) {
+ 		shp = shm_obtain_object(ns, shmid);
+ 		if (IS_ERR(shp)) {
+ 			err = PTR_ERR(shp);
+ 			goto out_unlock;
  		}
--		__init_single_page(page, pfn, zid, nid, true);
-+		__init_single_page(page, pfn, zid, nid);
- 		nr_pages++;
- 	}
- 	return (nr_pages);
-@@ -5417,6 +5410,7 @@ void __meminit memmap_init_zone(unsigned
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long pfn;
- 	unsigned long nr_initialised = 0;
-+	struct page *page;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	struct memblock_region *r = NULL, *tmp;
- #endif
-@@ -5478,6 +5472,11 @@ void __meminit memmap_init_zone(unsigned
- #endif
- 
- not_early:
-+		page = pfn_to_page(pfn);
-+		__init_single_page(page, pfn, zone, nid);
-+		if (context == MEMMAP_HOTPLUG)
-+			SetPageReserved(page);
-+
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
- 		 * movable at startup. This will force kernel allocations
-@@ -5494,15 +5493,8 @@ not_early:
- 		 * because this is done early in sparse_add_one_section
- 		 */
- 		if (!(pfn & (pageblock_nr_pages - 1))) {
--			struct page *page = pfn_to_page(pfn);
--
--			__init_single_page(page, pfn, zone, nid,
--					context != MEMMAP_HOTPLUG);
- 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 			cond_resched();
--		} else {
--			__init_single_pfn(pfn, zone, nid,
--					context != MEMMAP_HOTPLUG);
+ 		id = shp->shm_perm.id;
+-	} else {
++	} else { /* IPC_STAT */
+ 		shp = shm_obtain_object_check(ns, shmid);
+ 		if (IS_ERR(shp)) {
+ 			err = PTR_ERR(shp);
+@@ -930,9 +930,20 @@ static int shmctl_stat(struct ipc_namesp
  		}
  	}
- }
-diff -puN mm/sparse.c~mm-memory_hotplug-optimize-memory-hotplug mm/sparse.c
---- a/mm/sparse.c~mm-memory_hotplug-optimize-memory-hotplug
-+++ a/mm/sparse.c
-@@ -816,7 +816,14 @@ int __meminit sparse_add_one_section(str
- 		goto out;
- 	}
  
--	memset(memmap, 0, sizeof(struct page) * PAGES_PER_SECTION);
-+#ifdef CONFIG_DEBUG_VM
+-	err = -EACCES;
+-	if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
+-		goto out_unlock;
 +	/*
-+	 * poison uninitialized struct pages in order to catch invalid flags
-+	 * combinations.
++	 * Semantically SHM_STAT_ANY ought to be identical to
++	 * that functionality provided by the /proc/sysvipc/
++	 * interface. As such, only audit these calls and
++	 * do not do traditional S_IRUGO permission checks on
++	 * the ipc object.
 +	 */
-+	memset(memmap, PAGE_POISON_PATTERN,
-+	       sizeof(struct page) * PAGES_PER_SECTION);
-+#endif
++	if (cmd == SHM_STAT_ANY)
++		audit_ipc_obj(&shp->shm_perm);
++	else {
++		err = -EACCES;
++		if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
++			goto out_unlock;
++	}
  
- 	section_mark_present(ms);
- 
+ 	err = security_shm_shmctl(shp, cmd);
+ 	if (err)
+@@ -1072,6 +1083,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 		return err;
+ 	}
+ 	case SHM_STAT:
++	case SHM_STAT_ANY:
+ 	case IPC_STAT: {
+ 		err = shmctl_stat(ns, shmid, cmd, &sem64);
+ 		if (err < 0)
+@@ -1245,6 +1257,7 @@ COMPAT_SYSCALL_DEFINE3(shmctl, int, shmi
+ 		return err;
+ 	}
+ 	case IPC_STAT:
++	case SHM_STAT_ANY:
+ 	case SHM_STAT:
+ 		err = shmctl_stat(ns, shmid, cmd, &sem64);
+ 		if (err < 0)
+diff -puN security/selinux/hooks.c~ipc-shm-introduce-shmctlshm_stat_any security/selinux/hooks.c
+--- a/security/selinux/hooks.c~ipc-shm-introduce-shmctlshm_stat_any
++++ a/security/selinux/hooks.c
+@@ -5734,6 +5734,7 @@ static int selinux_shm_shmctl(struct shm
+ 				    SECCLASS_SYSTEM, SYSTEM__IPC_INFO, NULL);
+ 	case IPC_STAT:
+ 	case SHM_STAT:
++	case SHM_STAT_ANY:
+ 		perms = SHM__GETATTR | SHM__ASSOCIATE;
+ 		break;
+ 	case IPC_SET:
+diff -puN security/smack/smack_lsm.c~ipc-shm-introduce-shmctlshm_stat_any security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~ipc-shm-introduce-shmctlshm_stat_any
++++ a/security/smack/smack_lsm.c
+@@ -3034,6 +3034,7 @@ static int smack_shm_shmctl(struct shmid
+ 	switch (cmd) {
+ 	case IPC_STAT:
+ 	case SHM_STAT:
++	case SHM_STAT_ANY:
+ 		may = MAY_READ;
+ 		break;
+ 	case IPC_SET:
 _
 
-Patches currently in -mm which might be from pasha.tatashin@oracle.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-initialize-pages-on-demand-during-boot.patch
-mm-initialize-pages-on-demand-during-boot-fix-3.patch
-mm-memory_hotplug-enforce-block-size-aligned-range-check.patch
-x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory.patch
-x86-mm-memory_hotplug-determine-block-size-based-on-the-end-of-boot-memory-v4.patch
-mm-uninitialized-struct-page-poisoning-sanity-checking.patch
-mm-uninitialized-struct-page-poisoning-sanity-checking-v4.patch
-mm-memory_hotplug-optimize-probe-routine.patch
-mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug.patch
-mm-memory_hotplug-optimize-memory-hotplug.patch
-sparc64-ng4-memset-32-bits-overflow.patch
+ipc-shm-introduce-shmctlshm_stat_any.patch
+ipc-sem-introduce-semctlsem_stat_any.patch
+ipc-msg-introduce-msgctlmsg_stat_any.patch
 
