@@ -1,78 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-parse_email-signature-checking.patch added
- to -mm tree
-Date: Wed, 14 Feb 2018 16:03:29 -0800
-Message-ID: <5a84ce51.0wuyhi9/ij+AiR2f%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-initialize-pages-on-demand-during-boot-fix.patch removed from -mm tree
+Date: Wed, 14 Feb 2018 16:16:20 -0800
+Message-ID: <5a84d154.4DlvfBnteF8YQXTQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43854 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031901AbeBOADb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Feb 2018 19:03:31 -0500
+        with ESMTP id S1032127AbeBOAQj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Feb 2018 19:16:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dvyukov@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pasha.tatashin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve parse_email signature checking
-has been added to the -mm tree.  Its filename is
-     checkpatch-improve-parse_email-signature-checking.patch
+     Subject: mm-initialize-pages-on-demand-during-boot-fix
+has been removed from the -mm tree.  Its filename was
+     mm-initialize-pages-on-demand-during-boot-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-parse_email-signature-checking.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-parse_email-signature-checking.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-initialize-pages-on-demand-during-boot.patch
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve parse_email signature checking
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-initialize-pages-on-demand-during-boot-fix
 
-Bare email addresses with non alphanumeric characters require escape
-quoting before being substituted in the parse_email routine.
+fix typo in comment, make deferred_pages static
 
-e.g. Reported-by: syzbot+bbd8e9a06452cc48059b@syzkaller.appspotmail.com
-
-Do so.
-
-Link: http://lkml.kernel.org/r/1518631805.3678.12.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-parse_email-signature-checking scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-parse_email-signature-checking
-+++ a/scripts/checkpatch.pl
-@@ -1075,7 +1075,7 @@ sub parse_email {
- 	} elsif ($formatted_email =~ /(\S+\@\S+)(.*)$/) {
- 		$address = $1;
- 		$comment = $2 if defined $2;
--		$formatted_email =~ s/$address.*$//;
-+		$formatted_email =~ s/\Q$address\E.*$//;
- 		$name = $formatted_email;
- 		$name = trim($name);
- 		$name =~ s/^\"|\"$//g;
+diff -puN mm/page_alloc.c~mm-initialize-pages-on-demand-during-boot-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-initialize-pages-on-demand-during-boot-fix
++++ a/mm/page_alloc.c
+@@ -1568,14 +1568,14 @@ static int __init deferred_init_memmap(v
+ }
+ 
+ /*
+- * This lock grantees that only one thread at a time is allowed to grow zones
++ * This lock guarantees that only one thread at a time is allowed to grow zones
+  * (decrease number of deferred pages).
+  * Protects first_deferred_pfn field in all zones during early boot before
+  * deferred pages are initialized.  Deferred pages are initialized in
+  * page_alloc_init_late() soon after smp_init() is complete.
+  */
+ static __initdata DEFINE_SPINLOCK(deferred_zone_grow_lock);
+-DEFINE_STATIC_KEY_TRUE(deferred_pages);
++static DEFINE_STATIC_KEY_TRUE(deferred_pages);
+ 
+ /*
+  * If this zone has deferred pages, try to grow it by initializing enough
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-checkpatch-improve-parse_email-signature-checking.patch
+i-need-old-gcc.patch
+include-linux-sched-mmh-re-inline-mmdrop.patch
+mm-zpool-zpool_evictable-fix-mismatch-in-parameter-name-and-kernel-doc-fix.patch
+vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+inotify-extend-ioctl-to-allow-to-request-id-of-new-watch-descriptor-fix.patch
+mm.patch
+mm-initialize-pages-on-demand-during-boot.patch
+list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
+mm-oom-cgroup-aware-oom-killer-fix.patch
+mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
