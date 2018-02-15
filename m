@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug.patch added to -mm tree
-Date: Thu, 15 Feb 2018 14:46:36 -0800
-Message-ID: <5a860dcc.kXlpsBImYOkRvnsU%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-optimize-probe-routine.patch added to -mm
+ tree
+Date: Thu, 15 Feb 2018 14:46:33 -0800
+Message-ID: <5a860dc9.npptnC+UTJl5lSZU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41986 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756384AbeBOWrG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Feb 2018 17:47:06 -0500
+        with ESMTP id S1756369AbeBOWrE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Feb 2018 17:47:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pasha.tatashin@oracle.com, bharata@linux.vnet.ibm.com, bhe@redhat.com, daniel.m.jordan@oracle.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, hpa@zytor.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@kernel.org, steven.sistare@oracle.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: don't read nid from struct page during hotplug
+     Subject: mm/memory_hotplug: optimize probe routine
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug.patch
+     mm-memory_hotplug-optimize-probe-routine.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-optimize-probe-routine.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-optimize-probe-routine.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +40,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm/memory_hotplug: don't read nid from struct page during hotplug
+Subject: mm/memory_hotplug: optimize probe routine
 
-During memory hotplugging the probe routine will leave struct pages
-uninitialized, the same as it is currently done during boot.  Therefore,
-we do not want to access the inside of struct pages before
-__init_single_page() is called during onlining.
+When memory is hotplugged pages_correctly_reserved() is called to verify
+that the added memory is present, this routine traverses through every
+struct page and verifies that PageReserved() is set.  This is a slow
+operation especially if a large amount of memory is added.
 
-Because during hotplug we know that pages in one memory block belong to
-the same numa node, we can skip the checking.  We should keep checking for
-the boot case.
+Instead of checking every page, it is enough to simply check that the
+section is present, has mapping (struct page array is allocated), and the
+mapping is online.
 
-Link: http://lkml.kernel.org/r/20180215165920.8570-6-pasha.tatashin@oracle.com
+In addition, we should not excpect that probe routine sets flags in struct
+page, as the struct pages have not yet been initialized.  The
+initialization should be done in __init_single_page(), the same as during
+boot.
+
+Link: http://lkml.kernel.org/r/20180215165920.8570-5-pasha.tatashin@oracle.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -69,90 +74,76 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- drivers/base/node.c   |   22 +++++++++++++++-------
- include/linux/node.h  |    4 ++--
- 3 files changed, 18 insertions(+), 10 deletions(-)
+ drivers/base/memory.c |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug
+diff -puN drivers/base/memory.c~mm-memory_hotplug-optimize-probe-routine drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-memory_hotplug-optimize-probe-routine
 +++ a/drivers/base/memory.c
-@@ -731,7 +731,7 @@ int register_new_memory(int nid, struct
+@@ -187,13 +187,14 @@ int memory_isolate_notify(unsigned long
+ }
+ 
+ /*
+- * The probe routines leave the pages reserved, just as the bootmem code does.
+- * Make sure they're still that way.
++ * The probe routines leave the pages uninitialized, just as the bootmem code
++ * does. Make sure we do not access them, but instead use only information from
++ * within sections.
+  */
+-static bool pages_correctly_reserved(unsigned long start_pfn)
++static bool pages_correctly_probed(unsigned long start_pfn)
+ {
+-	int i, j;
+-	struct page *page;
++	unsigned long section_nr = pfn_to_section_nr(start_pfn);
++	unsigned long section_nr_end = section_nr + sections_per_block;
+ 	unsigned long pfn = start_pfn;
+ 
+ 	/*
+@@ -201,21 +202,24 @@ static bool pages_correctly_reserved(uns
+ 	 * SPARSEMEM_VMEMMAP. We lookup the page once per section
+ 	 * and assume memmap is contiguous within each section
+ 	 */
+-	for (i = 0; i < sections_per_block; i++, pfn += PAGES_PER_SECTION) {
++	for (; section_nr < section_nr_end; section_nr++) {
+ 		if (WARN_ON_ONCE(!pfn_valid(pfn)))
+ 			return false;
+-		page = pfn_to_page(pfn);
+-
+-		for (j = 0; j < PAGES_PER_SECTION; j++) {
+-			if (PageReserved(page + j))
+-				continue;
+-
+-			printk(KERN_WARNING "section number %ld page number %d "
+-				"not reserved, was it already online?\n",
+-				pfn_to_section_nr(pfn), j);
+ 
++		if (!present_section_nr(section_nr)) {
++			pr_warn("section %ld pfn[%lx, %lx) not present",
++				section_nr, pfn, pfn + PAGES_PER_SECTION);
++			return false;
++		} else if (!valid_section_nr(section_nr)) {
++			pr_warn("section %ld pfn[%lx, %lx) no valid memmap",
++				section_nr, pfn, pfn + PAGES_PER_SECTION);
++			return false;
++		} else if (online_section_nr(section_nr)) {
++			pr_warn("section %ld pfn[%lx, %lx) is already online",
++				section_nr, pfn, pfn + PAGES_PER_SECTION);
+ 			return false;
+ 		}
++		pfn += PAGES_PER_SECTION;
  	}
  
- 	if (mem->section_count == sections_per_block)
--		ret = register_mem_sect_under_node(mem, nid);
-+		ret = register_mem_sect_under_node(mem, nid, false);
- out:
- 	mutex_unlock(&mem_sysfs_mutex);
- 	return ret;
-diff -puN drivers/base/node.c~mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug drivers/base/node.c
---- a/drivers/base/node.c~mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug
-+++ a/drivers/base/node.c
-@@ -397,7 +397,8 @@ static int __ref get_nid_for_pfn(unsigne
- }
+ 	return true;
+@@ -237,7 +241,7 @@ memory_block_action(unsigned long phys_i
  
- /* register memory section under specified node if it spans that node */
--int register_mem_sect_under_node(struct memory_block *mem_blk, int nid)
-+int register_mem_sect_under_node(struct memory_block *mem_blk, int nid,
-+				 bool check_nid)
- {
- 	int ret;
- 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
-@@ -423,11 +424,18 @@ int register_mem_sect_under_node(struct
- 			continue;
- 		}
+ 	switch (action) {
+ 	case MEM_ONLINE:
+-		if (!pages_correctly_reserved(start_pfn))
++		if (!pages_correctly_probed(start_pfn))
+ 			return -EBUSY;
  
--		page_nid = get_nid_for_pfn(pfn);
--		if (page_nid < 0)
--			continue;
--		if (page_nid != nid)
--			continue;
-+		/*
-+		 * We need to check if page belongs to nid only for the boot
-+		 * case, during hotplug we know that all pages in the memory
-+		 * block belong to the same node.
-+		 */
-+		if (check_nid) {
-+			page_nid = get_nid_for_pfn(pfn);
-+			if (page_nid < 0)
-+				continue;
-+			if (page_nid != nid)
-+				continue;
-+		}
- 		ret = sysfs_create_link_nowarn(&node_devices[nid]->dev.kobj,
- 					&mem_blk->dev.kobj,
- 					kobject_name(&mem_blk->dev.kobj));
-@@ -502,7 +510,7 @@ int link_mem_sections(int nid, unsigned
- 
- 		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
- 
--		ret = register_mem_sect_under_node(mem_blk, nid);
-+		ret = register_mem_sect_under_node(mem_blk, nid, true);
- 		if (!err)
- 			err = ret;
- 
-diff -puN include/linux/node.h~mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug include/linux/node.h
---- a/include/linux/node.h~mm-memory_hotplug-dont-read-nid-from-struct-page-during-hotplug
-+++ a/include/linux/node.h
-@@ -67,7 +67,7 @@ extern void unregister_one_node(int nid)
- extern int register_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern int unregister_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern int register_mem_sect_under_node(struct memory_block *mem_blk,
--						int nid);
-+						int nid, bool check_nid);
- extern int unregister_mem_sect_under_nodes(struct memory_block *mem_blk,
- 					   unsigned long phys_index);
- 
-@@ -97,7 +97,7 @@ static inline int unregister_cpu_under_n
- 	return 0;
- }
- static inline int register_mem_sect_under_node(struct memory_block *mem_blk,
--							int nid)
-+							int nid, bool check_nid)
- {
- 	return 0;
- }
+ 		ret = online_pages(start_pfn, nr_pages, online_type);
 _
 
 Patches currently in -mm which might be from pasha.tatashin@oracle.com are
