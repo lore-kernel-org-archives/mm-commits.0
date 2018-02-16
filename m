@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-move-struct-pde_opener-to-kmem-cache.patch added to -mm
- tree
-Date: Fri, 16 Feb 2018 15:07:33 -0800
-Message-ID: <5a876435.SR5AXcn1sC4zgoZI%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-keep-the-trace-point-consistent-with-the-function-name.patch added to -mm tree
+Date: Fri, 16 Feb 2018 15:32:43 -0800
+Message-ID: <5a876a1b.j57DP5TGGz+y2x5u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57842 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751053AbeBPXHe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Feb 2018 18:07:34 -0500
+        with ESMTP id S1750787AbeBPXcp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Feb 2018 18:32:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, keescook@chromium.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: guojia12@huawei.com, alex.chen@huawei.com, ge.changwei@h3c.com, ghe@suse.com, jiangqi903@gmail.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, piaojun@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: move "struct pde_opener" to kmem cache
+     Subject: ocfs2: keep the trace point consistent with the function name
 has been added to the -mm tree.  Its filename is
-     proc-move-struct-pde_opener-to-kmem-cache.patch
+     ocfs2-keep-the-trace-point-consistent-with-the-function-name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-move-struct-pde_opener-to-kmem-cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-keep-the-trace-point-consistent-with-the-function-name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-move-struct-pde_opener-to-kmem-cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-keep-the-trace-point-consistent-with-the-function-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,120 +39,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: move "struct pde_opener" to kmem cache
+From: Jia Guo <guojia12@huawei.com>
+Subject: ocfs2: keep the trace point consistent with the function name
 
-"struct pde_opener" is fixed size and we can have more granular approach
-to debugging.
+Keep the trace point consistent with the function name.
 
-For those who don't know, per cache SLUB poisoning and red zoning
-don't work if there is at least one object allocated which is hopeless
-in case of kmalloc-64 but not in case of standalone cache.
-Although systemd opens 2 files from the get go, so it is hopeless after
-all.
-
-Link: http://lkml.kernel.org/r/20180214082306.GB17157@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/02609aba-84b2-a22d-3f3b-bc1944b94260@huawei.com
+Fixes: 3ef045c3d8ae ("ocfs2: switch to ->write_iter()")
+Signed-off-by: Jia Guo <guojia12@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Acked-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <ge.changwei@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c    |   12 ++++++++----
- fs/proc/internal.h |    2 +-
- fs/proc/root.c     |    2 +-
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ fs/ocfs2/aops.h        |    2 +-
+ fs/ocfs2/file.c        |    8 ++++----
+ fs/ocfs2/ocfs2_trace.h |    6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-move-struct-pde_opener-to-kmem-cache fs/proc/inode.c
---- a/fs/proc/inode.c~proc-move-struct-pde_opener-to-kmem-cache
-+++ a/fs/proc/inode.c
-@@ -54,6 +54,7 @@ static void proc_evict_inode(struct inod
- }
+diff -puN fs/ocfs2/aops.h~ocfs2-keep-the-trace-point-consistent-with-the-function-name fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-keep-the-trace-point-consistent-with-the-function-name
++++ a/fs/ocfs2/aops.h
+@@ -78,7 +78,7 @@ static inline void ocfs2_iocb_set_rw_loc
+ /*
+  * Using a named enum representing lock types in terms of #N bit stored in
+  * iocb->private, which is going to be used for communication between
+- * ocfs2_dio_end_io() and ocfs2_file_aio_write/read().
++ * ocfs2_dio_end_io() and ocfs2_file_write/read_iter().
+  */
+ enum ocfs2_iocb_lock_bits {
+ 	OCFS2_IOCB_RW_LOCK = 0,
+diff -puN fs/ocfs2/file.c~ocfs2-keep-the-trace-point-consistent-with-the-function-name fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-keep-the-trace-point-consistent-with-the-function-name
++++ a/fs/ocfs2/file.c
+@@ -2257,7 +2257,7 @@ static ssize_t ocfs2_file_write_iter(str
+ 	int direct_io = iocb->ki_flags & IOCB_DIRECT ? 1 : 0;
+ 	int nowait = iocb->ki_flags & IOCB_NOWAIT ? 1 : 0;
  
- static struct kmem_cache *proc_inode_cachep __ro_after_init;
-+static struct kmem_cache *pde_opener_cache __ro_after_init;
+-	trace_ocfs2_file_aio_write(inode, file, file->f_path.dentry,
++	trace_ocfs2_file_write_iter(inode, file, file->f_path.dentry,
+ 		(unsigned long long)OCFS2_I(inode)->ip_blkno,
+ 		file->f_path.dentry->d_name.len,
+ 		file->f_path.dentry->d_name.name,
+@@ -2405,7 +2405,7 @@ static ssize_t ocfs2_file_read_iter(stru
+ 	int direct_io = iocb->ki_flags & IOCB_DIRECT ? 1 : 0;
+ 	int nowait = iocb->ki_flags & IOCB_NOWAIT ? 1 : 0;
  
- static struct inode *proc_alloc_inode(struct super_block *sb)
- {
-@@ -92,7 +93,7 @@ static void init_once(void *foo)
- 	inode_init_once(&ei->vfs_inode);
- }
+-	trace_ocfs2_file_aio_read(inode, filp, filp->f_path.dentry,
++	trace_ocfs2_file_read_iter(inode, filp, filp->f_path.dentry,
+ 			(unsigned long long)OCFS2_I(inode)->ip_blkno,
+ 			filp->f_path.dentry->d_name.len,
+ 			filp->f_path.dentry->d_name.name,
+@@ -2448,7 +2448,7 @@ static ssize_t ocfs2_file_read_iter(stru
+ 	 *
+ 	 * Take and drop the meta data lock to update inode fields
+ 	 * like i_size. This allows the checks down below
+-	 * generic_file_aio_read() a chance of actually working.
++	 * generic_file_read_iter() a chance of actually working.
+ 	 */
+ 	ret = ocfs2_inode_lock_atime(inode, filp->f_path.mnt, &lock_level,
+ 				     !nowait);
+@@ -2460,7 +2460,7 @@ static ssize_t ocfs2_file_read_iter(stru
+ 	ocfs2_inode_unlock(inode, lock_level);
  
--void __init proc_init_inodecache(void)
-+void __init proc_init_kmemcache(void)
- {
- 	proc_inode_cachep = kmem_cache_create("proc_inode_cache",
- 					     sizeof(struct proc_inode),
-@@ -100,6 +101,9 @@ void __init proc_init_inodecache(void)
- 						SLAB_MEM_SPREAD|SLAB_ACCOUNT|
- 						SLAB_PANIC),
- 					     init_once);
-+	pde_opener_cache =
-+		kmem_cache_create("pde_opener", sizeof(struct pde_opener), 0,
-+				  SLAB_PANIC, NULL);
- }
+ 	ret = generic_file_read_iter(iocb, to);
+-	trace_generic_file_aio_read_ret(ret);
++	trace_generic_file_read_iter_ret(ret);
  
- static int proc_show_options(struct seq_file *seq, struct dentry *root)
-@@ -172,7 +176,7 @@ static void close_pdeo(struct proc_dir_e
- 		spin_unlock(&pde->pde_unload_lock);
- 		if (unlikely(c))
- 			complete(c);
--		kfree(pdeo);
-+		kmem_cache_free(pde_opener_cache, pdeo);
- 	}
- }
+ 	/* buffered aio wouldn't have proper lock coverage today */
+ 	BUG_ON(ret == -EIOCBQUEUED && !(iocb->ki_flags & IOCB_DIRECT));
+diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-keep-the-trace-point-consistent-with-the-function-name fs/ocfs2/ocfs2_trace.h
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-keep-the-trace-point-consistent-with-the-function-name
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -1311,11 +1311,11 @@ DEFINE_OCFS2_FILE_OPS(ocfs2_file_release
  
-@@ -347,7 +351,7 @@ static int proc_reg_open(struct inode *i
+ DEFINE_OCFS2_FILE_OPS(ocfs2_sync_file);
  
- 	release = pde->proc_fops->release;
- 	if (release) {
--		pdeo = kmalloc(sizeof(struct pde_opener), GFP_KERNEL);
-+		pdeo = kmem_cache_alloc(pde_opener_cache, GFP_KERNEL);
- 		if (!pdeo) {
- 			rv = -ENOMEM;
- 			goto out_unuse;
-@@ -368,7 +372,7 @@ static int proc_reg_open(struct inode *i
- 			list_add(&pdeo->lh, &pde->pde_openers);
- 			spin_unlock(&pde->pde_unload_lock);
- 		} else
--			kfree(pdeo);
-+			kmem_cache_free(pde_opener_cache, pdeo);
- 	}
+-DEFINE_OCFS2_FILE_OPS(ocfs2_file_aio_write);
++DEFINE_OCFS2_FILE_OPS(ocfs2_file_write_iter);
  
- out_unuse:
-diff -puN fs/proc/internal.h~proc-move-struct-pde_opener-to-kmem-cache fs/proc/internal.h
---- a/fs/proc/internal.h~proc-move-struct-pde_opener-to-kmem-cache
-+++ a/fs/proc/internal.h
-@@ -182,7 +182,7 @@ extern const struct inode_operations pro
+ DEFINE_OCFS2_FILE_OPS(ocfs2_file_splice_write);
  
- extern const struct inode_operations proc_pid_link_inode_operations;
+-DEFINE_OCFS2_FILE_OPS(ocfs2_file_aio_read);
++DEFINE_OCFS2_FILE_OPS(ocfs2_file_read_iter);
  
--extern void proc_init_inodecache(void);
-+void proc_init_kmemcache(void);
- void set_proc_pid_nlink(void);
- extern struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
- extern int proc_fill_super(struct super_block *, void *data, int flags);
-diff -puN fs/proc/root.c~proc-move-struct-pde_opener-to-kmem-cache fs/proc/root.c
---- a/fs/proc/root.c~proc-move-struct-pde_opener-to-kmem-cache
-+++ a/fs/proc/root.c
-@@ -125,7 +125,7 @@ void __init proc_root_init(void)
- {
- 	int err;
+ DEFINE_OCFS2_ULL_ULL_ULL_EVENT(ocfs2_truncate_file);
  
--	proc_init_inodecache();
-+	proc_init_kmemcache();
- 	set_proc_pid_nlink();
- 	err = register_filesystem(&proc_fs_type);
- 	if (err)
+@@ -1467,7 +1467,7 @@ TRACE_EVENT(ocfs2_prepare_inode_for_writ
+ 		  __entry->saved_pos, __entry->count, __entry->wait)
+ );
+ 
+-DEFINE_OCFS2_INT_EVENT(generic_file_aio_read_ret);
++DEFINE_OCFS2_INT_EVENT(generic_file_read_iter_ret);
+ 
+ /* End of trace events for fs/ocfs2/file.c. */
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from guojia12@huawei.com are
 
-proc-do-less-stuff-under-pde_unload_lock.patch
-proc-move-proc-sysvipc-creation-to-where-it-belongs.patch
-proc-faster-open-close-of-files-without-release-hook.patch
-proc-randomize-struct-pde_opener.patch
-proc-move-struct-pde_opener-to-kmem-cache.patch
-proc-account-struct-pde_opener.patch
-seq_file-delete-small-value-optimization.patch
+ocfs2-keep-the-trace-point-consistent-with-the-function-name.patch
 
