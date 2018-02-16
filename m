@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-sysctl-kerneltxt-show-taint-codes-in-hex.patch
+Subject: + lib-test_firmware-add-header-to-prevent-build-errors.patch
  added to -mm tree
-Date: Fri, 16 Feb 2018 13:03:41 -0800
-Message-ID: <5a87472d.bGuOnD4buy7PKavH%akpm@linux-foundation.org>
+Date: Fri, 16 Feb 2018 13:04:50 -0800
+Message-ID: <5a874772.2J008ONNDXBE2C7u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57310 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750730AbeBPVDm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Feb 2018 16:03:42 -0500
+        with ESMTP id S1750730AbeBPVEv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Feb 2018 16:04:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, corbet@lwn.net, keescook@chromium.org, rdunlap@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, akpm@linux-foundation.org, gregkh@linuxfoundation.org, mcgrof@kernel.org, mpe@ellerman.id.au, weiyongjun1@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/sysctl/kernel.txt: show taint codes in hex
+     Subject: lib/test_firmware: add header to prevent build errors
 has been added to the -mm tree.  Its filename is
-     documentation-sysctl-kerneltxt-show-taint-codes-in-hex.patch
+     lib-test_firmware-add-header-to-prevent-build-errors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-sysctl-kerneltxt-show-taint-codes-in-hex.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_firmware-add-header-to-prevent-build-errors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-sysctl-kerneltxt-show-taint-codes-in-hex.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_firmware-add-header-to-prevent-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Documentation/sysctl/kernel.txt: show taint codes in hex
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib/test_firmware: add header to prevent build errors
 
-The decimal representation is getting a bit hard to follow.
+lib/test_firmware.c has build errors on some $ARCHes due to a
+missing header file, so add it.
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+  lib/test_firmware.c:134:2: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
+  lib/test_firmware.c:620:25: error: implicit declaration of function 'vzalloc' [-Werror=implicit-function-declaration]
+
+Link: http://lkml.kernel.org/r/d33eacf8-3440-3ebb-12bd-53c50ba07935@infradead.org
+Link: http://kisskb.ellerman.id.au/kisskb/head/13396/
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Cc: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   50 +++++++++++++++---------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+ lib/test_firmware.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-show-taint-codes-in-hex Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-show-taint-codes-in-hex
-+++ a/Documentation/sysctl/kernel.txt
-@@ -967,31 +967,31 @@ tainted:
- Non-zero if the kernel has been tainted. Numeric values, which can be
- ORed together. The letters are seen in "Tainted" line of Oops reports.
+diff -puN lib/test_firmware.c~lib-test_firmware-add-header-to-prevent-build-errors lib/test_firmware.c
+--- a/lib/test_firmware.c~lib-test_firmware-add-header-to-prevent-build-errors
++++ a/lib/test_firmware.c
+@@ -21,6 +21,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
++#include <linux/vmalloc.h>
  
--     1 (P):  A module with a non-GPL license has been loaded, this
--             includes modules with no license.
--             Set by modutils >= 2.4.9 and module-init-tools.
--     2 (F): A module was force loaded by insmod -f.
--            Set by modutils >= 2.4.9 and module-init-tools.
--     4 (S): Unsafe SMP processors: SMP with CPUs not designed for SMP.
--     8 (R): A module was forcibly unloaded from the system by rmmod -f.
--    16 (M): A hardware machine check error occurred on the system.
--    32 (B): A bad page was discovered on the system.
--    64 (U): The user has asked that the system be marked "tainted". This
--            could be because they are running software that directly modifies
--            the hardware, or for other reasons.
--   128 (D): The system has died.
--   256 (A): The ACPI DSDT has been overridden with one supplied by the user
--            instead of using the one provided by the hardware.
--   512 (W): A kernel warning has occurred.
--  1024 (C): A module from drivers/staging was loaded.
--  2048 (I): The system is working around a severe firmware bug.
--  4096 (O): An out-of-tree module has been loaded.
--  8192 (E): An unsigned module has been loaded in a kernel supporting module
--            signature.
-- 16384 (L): A soft lockup has previously occurred on the system.
-- 32768 (K): The kernel has been live patched.
-- 65536 (X): Auxiliary taint, defined and used by for distros.
--131072 (T): The kernel was built with the struct randomization plugin.
-+0x00000001 (P):  A module with a non-GPL license has been loaded, this
-+                 includes modules with no license.
-+                 Set by modutils >= 2.4.9 and module-init-tools.
-+0x00000002 (F): A module was force loaded by insmod -f.
-+                Set by modutils >= 2.4.9 and module-init-tools.
-+0x00000004 (S): Unsafe SMP processors: SMP with CPUs not designed for SMP.
-+0x00000008 (R): A module was forcibly unloaded from the system by rmmod -f.
-+0x00000010 (M): A hardware machine check error occurred on the system.
-+0x00000020 (B): A bad page was discovered on the system.
-+0x00000040 (U): The user has asked that the system be marked "tainted". This
-+                could be because they are running software that directly
-+                modifies the hardware, or for other reasons.
-+0x00000080 (D): The system has died.
-+0x00000100 (A): The ACPI DSDT has been overridden with one supplied by the user
-+                instead of using the one provided by the hardware.
-+0x00000200 (W): A kernel warning has occurred.
-+0x00000400 (C): A module from drivers/staging was loaded.
-+0x00000400 (I): The system is working around a severe firmware bug.
-+0x00000800 (O): An out-of-tree module has been loaded.
-+0x00020000 (E): An unsigned module has been loaded in a kernel supporting module
-+                signature.
-+0x00040000 (L): A soft lockup has previously occurred on the system.
-+0x00080000 (K): The kernel has been live patched.
-+0x00100000 (X): Auxiliary taint, defined and used by for distros.
-+0x00200000 (T): The kernel was built with the struct randomization plugin.
- 
- ==============================================================
- 
+ #define TEST_FIRMWARE_NAME	"test-firmware.bin"
+ #define TEST_FIRMWARE_NUM_REQS	4
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-i-need-old-gcc.patch
-include-linux-sched-mmh-re-inline-mmdrop.patch
-mm-zpool-zpool_evictable-fix-mismatch-in-parameter-name-and-kernel-doc-fix.patch
-vmalloc-fix-__gfp_highmem-usage-for-vmalloc_32-on-32b-systems-checkpatch-fixes.patch
-mm-dont-defer-struct-page-initialization-for-xen-pv-guests-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-list_lru-prefetch-neighboring-list-entries-before-acquiring-lock-fix.patch
-mm-oom-cgroup-aware-oom-killer-fix.patch
-mm-oom-docs-describe-the-cgroup-aware-oom-killer-fix-2-fix.patch
-documentation-sysctl-kerneltxt-show-taint-codes-in-hex.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+lib-test_firmware-add-header-to-prevent-build-errors.patch
+mm-swap_slots-use-conditional-compilation-for-swap_slotsc.patch
 
