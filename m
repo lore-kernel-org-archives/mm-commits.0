@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + z3fold-limit-use-of-stale-list-for-allocation.patch added to
- -mm tree
-Date: Fri, 16 Feb 2018 16:28:41 -0800
-Message-ID: <5a877739.DK8nO073sj0LBKq6%akpm@linux-foundation.org>
+Subject: + checkpatchpl-add-spdx-license-tag-check.patch added to -mm tree
+Date: Fri, 16 Feb 2018 16:33:40 -0800
+Message-ID: <5a877864.BpK0VgI23JrKxlop%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48290 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750928AbeBQA2m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Feb 2018 19:28:42 -0500
+        with ESMTP id S1750933AbeBQAdm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Feb 2018 19:33:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, akpm@linux-foundation.org, Oleksiy.Avramchenko@sony.com, vitaly.vul@sony.com, mm-commits@vger.kernel.org
+To: robh@kernel.org, apw@canonical.com, corbet@lwn.net, gregkh@linuxfoundation.org, igor.stoppa@huawei.com, joe@perches.com, pombredanne@nexb.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: limit use of stale list for allocation
+     Subject: checkpatch.pl: add SPDX license tag check
 has been added to the -mm tree.  Its filename is
-     z3fold-limit-use-of-stale-list-for-allocation.patch
+     checkpatchpl-add-spdx-license-tag-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-limit-use-of-stale-list-for-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatchpl-add-spdx-license-tag-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-limit-use-of-stale-list-for-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatchpl-add-spdx-license-tag-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +38,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: limit use of stale list for allocation
+From: Rob Herring <robh@kernel.org>
+Subject: checkpatch.pl: add SPDX license tag check
 
-Currently if z3fold couldn't find an unbuddied page it would first try to
-pull a page off the stale list.  The problem with this approach is that we
-can't 100% guarantee that the page is not processed by the workqueue
-thread at the same time unless we run cancel_work_sync() on it, which we
-can't do if we're in an atomic context.  So let's just limit stale list
-usage to non-atomic contexts only.
+Add SPDX license tag check based on the rules defined in
+Documentation/process/license-rules.rst.  To summarize, SPDX license tags
+should be on the 1st line (or 2nd line in scripts) using the appropriate
+comment style for the file type.
 
-Link: http://lkml.kernel.org/r/47ab51e7-e9c1-d30e-ab17-f734dbc3abce@gmail.com
-Signed-off-by: Vitaly Vul <vitaly.vul@sony.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: <Oleksiy.Avramchenko@sony.com>
+Link: http://lkml.kernel.org/r/20180202154026.15298-1-robh@kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Acked-by: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Igor Stoppa <igor.stoppa@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ scripts/checkpatch.pl |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN mm/z3fold.c~z3fold-limit-use-of-stale-list-for-allocation mm/z3fold.c
---- a/mm/z3fold.c~z3fold-limit-use-of-stale-list-for-allocation
-+++ a/mm/z3fold.c
-@@ -620,24 +620,27 @@ lookup:
- 		bud = FIRST;
- 	}
+diff -puN scripts/checkpatch.pl~checkpatchpl-add-spdx-license-tag-check scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-add-spdx-license-tag-check
++++ a/scripts/checkpatch.pl
+@@ -2257,6 +2257,8 @@ sub process {
  
--	spin_lock(&pool->stale_lock);
--	zhdr = list_first_entry_or_null(&pool->stale,
--					struct z3fold_header, buddy);
--	/*
--	 * Before allocating a page, let's see if we can take one from the
--	 * stale pages list. cancel_work_sync() can sleep so we must make
--	 * sure it won't be called in case we're in atomic context.
--	 */
--	if (zhdr && (can_sleep || !work_pending(&zhdr->work))) {
--		list_del(&zhdr->buddy);
--		spin_unlock(&pool->stale_lock);
--		if (can_sleep)
-+	page = NULL;
-+	if (can_sleep) {
-+		spin_lock(&pool->stale_lock);
-+		zhdr = list_first_entry_or_null(&pool->stale,
-+						struct z3fold_header, buddy);
-+		/*
-+		 * Before allocating a page, let's see if we can take one from
-+		 * the stale pages list. cancel_work_sync() can sleep so we
-+		 * limit this case to the contexts where we can sleep
-+		 */
-+		if (zhdr) {
-+			list_del(&zhdr->buddy);
-+			spin_unlock(&pool->stale_lock);
- 			cancel_work_sync(&zhdr->work);
--		page = virt_to_page(zhdr);
--	} else {
--		spin_unlock(&pool->stale_lock);
--		page = alloc_page(gfp);
-+			page = virt_to_page(zhdr);
-+		} else {
-+			spin_unlock(&pool->stale_lock);
+ 	my $camelcase_file_seeded = 0;
+ 
++	my $checklicenseline = 1;
++
+ 	sanitise_line_reset();
+ 	my $line;
+ 	foreach my $rawline (@rawlines) {
+@@ -2448,6 +2450,7 @@ sub process {
+ 			} else {
+ 				$check = $check_orig;
+ 			}
++			$checklicenseline = 1;
+ 			next;
+ 		}
+ 
+@@ -2897,6 +2900,30 @@ sub process {
+ 				}
+ 			}
+ 		}
++
++# check for using SPDX license tag at beginning of files
++		if ($realline == $checklicenseline) {
++			if ($rawline =~ /^[ \+]\s*\#\!\s*\//) {
++				$checklicenseline = 2;
++			} elsif ($rawline =~ /^\+/) {
++				my $comment = "";
++				if ($realfile =~ /\.(h|s|S)$/) {
++					$comment = '/*';
++				} elsif ($realfile =~ /\.(c|dts|dtsi)$/) {
++					$comment = '//';
++				} elsif (($checklicenseline == 2) || $realfile =~ /\.(sh|pl|py|awk|tc)$/) {
++					$comment = '#';
++				} elsif ($realfile =~ /\.rst$/) {
++					$comment = '..';
++				}
++
++				if ($comment !~ /^$/ &&
++				    $rawline !~ /^\+\Q$comment\E SPDX-License-Identifier: /) {
++					WARN("SPDX_LICENSE_TAG",
++					     "Missing or malformed SPDX-License-Identifier tag in line $checklicenseline\n" . $herecurr);
++				}
++			}
 +		}
- 	}
-+	if (!page)
-+		page = alloc_page(gfp);
  
- 	if (!page)
- 		return -ENOMEM;
+ # check we are in a valid source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c|s|S|sh|dtsi|dts)$/);
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from robh@kernel.org are
 
-z3fold-limit-use-of-stale-list-for-allocation.patch
+checkpatchpl-add-spdx-license-tag-check.patch
 
