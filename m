@@ -1,62 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Thu, 09 Jan 2020 11:21:07 -0800
-Message-ID: <20200109192107.507bFpEpi%akpm@linux-foundation.org>
+Subject: +
+ arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch added to
+ -mm tree
+Date: Thu, 09 Jan 2020 11:46:45 -0800
+Message-ID: <20200109194645.50bCXmbXm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52236 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726048AbgAITVI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 14:21:08 -0500
+        id S1728567AbgAITqr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 14:46:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: hch@lst.de, linux@armlinux.org.uk, mm-commits@vger.kernel.org, robin.murphy@arm.com, stable@vger.kernel.org, wens@csie.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: ARM: dma-api: fix max_pfn off-by-one error in __dma_supported()
+has been added to the -mm tree.  Its filename is
+     arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Chen-Yu Tsai <wens@csie.org>
+Subject: ARM: dma-api: fix max_pfn off-by-one error in __dma_supported()
 
+max_pfn, as set in arch/arm/mm/init.c:
+
+    static void __init find_limits(unsigned long *min,
+				   unsigned long *max_low,
+				   unsigned long *max_high)
+    {
+	    *max_low = PFN_DOWN(memblock_get_current_limit());
+	    *min = PFN_UP(memblock_start_of_DRAM());
+	    *max_high = PFN_DOWN(memblock_end_of_DRAM());
+    }
+
+with memblock_end_of_DRAM() pointing to the next byte after DRAM.  As
+such, max_pfn points to the PFN after the end of DRAM.
+
+Thus when using max_pfn to check DMA masks, we should subtract one when
+checking DMA ranges against it.
+
+Commit 8bf1268f48ad ("ARM: dma-api: fix off-by-one error in
+__dma_supported()") fixed the same issue, but missed this spot.
+
+This issue was found while working on the sun4i-csi v4l2 driver on the
+Allwinner R40 SoC.  On Allwinner SoCs, DRAM is offset at 0x40000000, and
+we are starting to use of_dma_configure() with the "dma-ranges" property
+in the device tree to have the DMA API handle the offset.
+
+In this particular instance, dma-ranges was set to the same range as the
+actual available (2 GiB) DRAM.  The following error appeared when the
+driver attempted to allocate a buffer:
+
+    sun4i-csi 1c09000.csi: Coherent DMA mask 0x7fffffff (pfn 0x40000-0xc0000)
+    covers a smaller range of system memory than the DMA zone pfn 0x0-0xc0001
+    sun4i-csi 1c09000.csi: dma_alloc_coherent of size 307200 failed
+
+Fixing the off-by-one error makes things work.
+
+Link: http://lkml.kernel.org/r/20191224030239.5656-1-wens@kernel.org
+Fixes: 11a5aa32562e ("ARM: dma-mapping: check DMA mask against available memory")
+Fixes: 9f28cde0bc64 ("ARM: another fix for the DMA mapping checks")
+Fixes: ab746573c405 ("ARM: dma-mapping: allow larger DMA mask than supported")
+Signed-off-by: Chen-Yu Tsai <wens@csie.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi-dw.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/arm/mm/dma-mapping.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/spi/spi-dw.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-dw.c
-@@ -296,12 +296,9 @@ static int dw_spi_transfer_one(struct sp
- 	dws->rx_end = dws->rx + transfer->len;
- 	dws->len = transfer->len;
- 	spin_unlock_irqrestore(&dws->buf_lock, flags);
--<<<<<<< HEAD
--=======
+--- a/arch/arm/mm/dma-mapping.c~arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported
++++ a/arch/arm/mm/dma-mapping.c
+@@ -221,7 +221,7 @@ EXPORT_SYMBOL(arm_coherent_dma_ops);
  
- 	/* Ensure dw->rx and dw->rx_end are visible */
- 	smp_mb();
-->>>>>>> linux-next/akpm-base
+ static int __dma_supported(struct device *dev, u64 mask, bool warn)
+ {
+-	unsigned long max_dma_pfn = min(max_pfn, arm_dma_pfn_limit);
++	unsigned long max_dma_pfn = min(max_pfn - 1, arm_dma_pfn_limit);
  
- 	spi_enable_chip(dws, 0);
- 
+ 	/*
+ 	 * Translate the device's DMA mask to a PFN limit.  This
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wens@csie.org are
 
-mm.patch
-mm-oom-avoid-printk-iteration-under-rcu-fix.patch
-linux-next-fix.patch
-drivers-block-null_blk_mainc-fix-layout.patch
-drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
-proc-convert-everything-to-struct-proc_ops-fix.patch
-bitops-more-bits_to_-macros-fix.patch
-bitops-more-bits_to_-macros-fix-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
