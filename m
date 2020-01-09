@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
 Subject: +
- arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch added to
- -mm tree
-Date: Thu, 09 Jan 2020 11:46:45 -0800
-Message-ID: <20200109194645.50bCXmbXm%akpm@linux-foundation.org>
+ mm-thp-grab-the-lock-before-manipulation-defer-list.patch added to -mm tree
+Date: Thu, 09 Jan 2020 11:49:12 -0800
+Message-ID: <20200109194912.DlvZQGDBD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54682 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728567AbgAITqr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 14:46:47 -0500
+        id S1730077AbgAITtO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 14:49:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, linux@armlinux.org.uk, mm-commits@vger.kernel.org, robin.murphy@arm.com, stable@vger.kernel.org, wens@csie.org
+To: hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, rientjes@google.com, stable@vger.kernel.org, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: ARM: dma-api: fix max_pfn off-by-one error in __dma_supported()
+     Subject: mm: thp: grab the lock before manipulation defer list
 has been added to the -mm tree.  Its filename is
-     arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+     mm-thp-grab-the-lock-before-manipulation-defer-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-grab-the-lock-before-manipulation-defer-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-grab-the-lock-before-manipulation-defer-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,72 +36,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen-Yu Tsai <wens@csie.org>
-Subject: ARM: dma-api: fix max_pfn off-by-one error in __dma_supported()
+From: Wei Yang <richardw.yang@linux.intel.com>
+Subject: mm: thp: grab the lock before manipulation defer list
 
-max_pfn, as set in arch/arm/mm/init.c:
+As in all the other places, we grab the lock before manipulating the defer
+list.  Current implementation may face a race condition.
 
-    static void __init find_limits(unsigned long *min,
-				   unsigned long *max_low,
-				   unsigned long *max_high)
-    {
-	    *max_low = PFN_DOWN(memblock_get_current_limit());
-	    *min = PFN_UP(memblock_start_of_DRAM());
-	    *max_high = PFN_DOWN(memblock_end_of_DRAM());
-    }
+For example, the potential race would be:
 
-with memblock_end_of_DRAM() pointing to the next byte after DRAM.  As
-such, max_pfn points to the PFN after the end of DRAM.
+    CPU1                      CPU2
+    mem_cgroup_move_account   split_huge_page_to_list
+      !list_empty
+                                lock
+                                !list_empty
+                                list_del
+                                unlock
+      lock
+      # !list_empty might not hold anymore
+      list_del_init
+      unlock
 
-Thus when using max_pfn to check DMA masks, we should subtract one when
-checking DMA ranges against it.
+When this sequence happens, the list_del_init() in
+mem_cgroup_move_account() would crash if CONFIG_DEBUG_LIST since the page
+is already been removed by list_del in split_huge_page_to_list().
 
-Commit 8bf1268f48ad ("ARM: dma-api: fix off-by-one error in
-__dma_supported()") fixed the same issue, but missed this spot.
-
-This issue was found while working on the sun4i-csi v4l2 driver on the
-Allwinner R40 SoC.  On Allwinner SoCs, DRAM is offset at 0x40000000, and
-we are starting to use of_dma_configure() with the "dma-ranges" property
-in the device tree to have the DMA API handle the offset.
-
-In this particular instance, dma-ranges was set to the same range as the
-actual available (2 GiB) DRAM.  The following error appeared when the
-driver attempted to allocate a buffer:
-
-    sun4i-csi 1c09000.csi: Coherent DMA mask 0x7fffffff (pfn 0x40000-0xc0000)
-    covers a smaller range of system memory than the DMA zone pfn 0x0-0xc0001
-    sun4i-csi 1c09000.csi: dma_alloc_coherent of size 307200 failed
-
-Fixing the off-by-one error makes things work.
-
-Link: http://lkml.kernel.org/r/20191224030239.5656-1-wens@kernel.org
-Fixes: 11a5aa32562e ("ARM: dma-mapping: check DMA mask against available memory")
-Fixes: 9f28cde0bc64 ("ARM: another fix for the DMA mapping checks")
-Fixes: ab746573c405 ("ARM: dma-mapping: allow larger DMA mask than supported")
-Signed-off-by: Chen-Yu Tsai <wens@csie.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200109143054.13203-1-richardw.yang@linux.intel.com
+Fixes: 87eaceb3faa5 ("mm: thp: make deferred split shrinker memcg aware")
+Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/dma-mapping.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/arch/arm/mm/dma-mapping.c~arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -221,7 +221,7 @@ EXPORT_SYMBOL(arm_coherent_dma_ops);
+--- a/mm/memcontrol.c~mm-thp-grab-the-lock-before-manipulation-defer-list
++++ a/mm/memcontrol.c
+@@ -5341,10 +5341,12 @@ static int mem_cgroup_move_account(struc
+ 	}
  
- static int __dma_supported(struct device *dev, u64 mask, bool warn)
- {
--	unsigned long max_dma_pfn = min(max_pfn, arm_dma_pfn_limit);
-+	unsigned long max_dma_pfn = min(max_pfn - 1, arm_dma_pfn_limit);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (compound && !list_empty(page_deferred_list(page))) {
++	if (compound) {
+ 		spin_lock(&from->deferred_split_queue.split_queue_lock);
+-		list_del_init(page_deferred_list(page));
+-		from->deferred_split_queue.split_queue_len--;
++		if (!list_empty(page_deferred_list(page))) {
++			list_del_init(page_deferred_list(page));
++			from->deferred_split_queue.split_queue_len--;
++		}
+ 		spin_unlock(&from->deferred_split_queue.split_queue_lock);
+ 	}
+ #endif
+@@ -5358,11 +5360,13 @@ static int mem_cgroup_move_account(struc
+ 	page->mem_cgroup = to;
  
- 	/*
- 	 * Translate the device's DMA mask to a PFN limit.  This
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (compound && list_empty(page_deferred_list(page))) {
++	if (compound) {
+ 		spin_lock(&to->deferred_split_queue.split_queue_lock);
+-		list_add_tail(page_deferred_list(page),
+-			      &to->deferred_split_queue.split_queue);
+-		to->deferred_split_queue.split_queue_len++;
++		if (list_empty(page_deferred_list(page))) {
++			list_add_tail(page_deferred_list(page),
++				      &to->deferred_split_queue.split_queue);
++			to->deferred_split_queue.split_queue_len++;
++		}
+ 		spin_unlock(&to->deferred_split_queue.split_queue_lock);
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from wens@csie.org are
+Patches currently in -mm which might be from richardw.yang@linux.intel.com are
 
-arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+mm-thp-grab-the-lock-before-manipulation-defer-list.patch
+mm-remove-dead-code-totalram_pages_set.patch
