@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- zswap-add-allocation-hysteresis-if-pool-limit-is-hit.patch added to -mm
+ x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch added to -mm
  tree
-Date: Thu, 09 Jan 2020 12:14:43 -0800
-Message-ID: <20200109201443.eEVpS2iec%akpm@linux-foundation.org>
+Date: Thu, 09 Jan 2020 12:42:15 -0800
+Message-ID: <20200109204215.vrQrXsqeE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56374 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727945AbgAIUOp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 15:14:45 -0500
+        id S1727876AbgAIUmS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 15:42:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, mm-commits@vger.kernel.org, vitaly.wool@konsulko.com
+To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, sfr@canb.auug.org.au, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm/zswap.c: add allocation hysteresis if pool limit is hit
+     Subject: x86: mm: avoid allocating struct mm_struct on the stack
 has been added to the -mm tree.  Its filename is
-     zswap-add-allocation-hysteresis-if-pool-limit-is-hit.patch
+     x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-add-allocation-hysteresis-if-pool-limit-is-hit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-add-allocation-hysteresis-if-pool-limit-is-hit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,239 +37,262 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitaly.wool@konsulko.com>
-Subject: mm/zswap.c: add allocation hysteresis if pool limit is hit
+From: Steven Price <steven.price@arm.com>
+Subject: x86: mm: avoid allocating struct mm_struct on the stack
 
-zswap will always try to shrink pool when zswap is full.  If there is a
-high pressure on zswap it will result in flipping pages in and out zswap
-pool without any real benefit, and the overall system performance will
-drop.  The previous discussion on this subject [1] ended up with a
-suggestion to implement a sort of hysteresis to refuse taking pages into
-zswap pool until it has sufficient space if the limit has been hit.  This
-is my take on this.
+struct mm_struct is quite large (~1664 bytes) and so allocating on the
+stack may cause problems as the kernel stack size is small.
 
-Hysteresis is controlled with a sysfs-configurable parameter (namely,
-/sys/kernel/debug/zswap/accept_threhsold_percent).  It specifies the
-threshold at which zswap would start accepting pages again after it became
-full.  Setting this parameter to 100 disables the hysteresis and sets the
-zswap behavior to pre-hysteresis state.
+Since ptdump_walk_pgd_level_core() was only allocating the structure so
+that it could modify the pgd argument we can instead introduce a pgd
+override in struct mm_walk and pass this down the call stack to where it
+is needed.
 
-[1] https://lkml.org/lkml/2019/11/8/949
+Since the correct mm_struct is now being passed down, it is now also
+unnecessary to take the mmap_sem semaphore because ptdump_walk_pgd() will
+now take the semaphore on the real mm.
 
-Link: http://lkml.kernel.org/r/20200108200118.15563-1-vitaly.wool@konsulko.com
-Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
+Signed-off-by: Steven Price <steven.price@arm.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/zswap.rst |   13 +++++
- mm/zswap.c                 |   85 ++++++++++++++++++++++-------------
- 2 files changed, 67 insertions(+), 31 deletions(-)
+ arch/x86/mm/debug_pagetables.c |   10 ++--------
+ arch/x86/mm/dump_pagetables.c  |   18 +++++++-----------
+ include/linux/pagewalk.h       |    3 +++
+ include/linux/ptdump.h         |    2 +-
+ mm/pagewalk.c                  |    7 ++++++-
+ mm/ptdump.c                    |    4 ++--
+ 6 files changed, 21 insertions(+), 23 deletions(-)
 
---- a/Documentation/vm/zswap.rst~zswap-add-allocation-hysteresis-if-pool-limit-is-hit
-+++ a/Documentation/vm/zswap.rst
-@@ -130,6 +130,19 @@ checking for the same-value filled pages
- existing pages which are marked as same-value filled pages remain stored
- unchanged in zswap until they are either loaded or invalidated.
+--- a/arch/x86/mm/debug_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/arch/x86/mm/debug_pagetables.c
+@@ -15,11 +15,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump);
  
-+To prevent zswap from shrinking pool when zswap is full and there's a high
-+pressure on swap (this will result in flipping pages in and out zswap pool
-+without any real benefit but with a performance drop for the system), a
-+special parameter has been introduced to implement a sort of hysteresis to
-+refuse taking pages into zswap pool until it has sufficient space if the limit
-+has been hit. To set the threshold at which zswap would start accepting pages
-+again after it became full, use the sysfs ``accept_threhsold_percent``
-+attribute, e. g.::
-+
-+	echo 80 > /sys/module/zswap/parameters/accept_threhsold_percent
-+
-+Setting this parameter to 100 will disable the hysteresis.
-+
- A debugfs interface is provided for various statistic about pool size, number
- of pages stored, same-value filled pages and various counters for the reasons
- pages are rejected.
---- a/mm/zswap.c~zswap-add-allocation-hysteresis-if-pool-limit-is-hit
-+++ a/mm/zswap.c
-@@ -32,6 +32,7 @@
- #include <linux/swapops.h>
- #include <linux/writeback.h>
- #include <linux/pagemap.h>
-+#include <linux/workqueue.h>
- 
- /*********************************
- * statistics
-@@ -65,6 +66,11 @@ static u64 zswap_reject_kmemcache_fail;
- /* Duplicate store was encountered (rare) */
- static u64 zswap_duplicate_entry;
- 
-+/* Shrinker work queue */
-+static struct workqueue_struct *shrink_wq;
-+/* Pool limit was hit, we need to calm down */
-+static bool zswap_pool_reached_full;
-+
- /*********************************
- * tunables
- **********************************/
-@@ -109,6 +115,11 @@ module_param_cb(zpool, &zswap_zpool_para
- static unsigned int zswap_max_pool_percent = 20;
- module_param_named(max_pool_percent, zswap_max_pool_percent, uint, 0644);
- 
-+/* The threshold for accepting new pages after the max_pool_percent was hit */
-+static unsigned int zswap_accept_thr_percent = 90; /* of max pool size */
-+module_param_named(accept_threshold_percent, zswap_accept_thr_percent,
-+		   uint, 0644);
-+
- /* Enable/disable handling same-value filled pages (enabled by default) */
- static bool zswap_same_filled_pages_enabled = true;
- module_param_named(same_filled_pages_enabled, zswap_same_filled_pages_enabled,
-@@ -123,7 +134,8 @@ struct zswap_pool {
- 	struct crypto_comp * __percpu *tfm;
- 	struct kref kref;
- 	struct list_head list;
--	struct work_struct work;
-+	struct work_struct release_work;
-+	struct work_struct shrink_work;
- 	struct hlist_node node;
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
- };
-@@ -214,6 +226,13 @@ static bool zswap_is_full(void)
- 			DIV_ROUND_UP(zswap_pool_total_size, PAGE_SIZE);
- }
- 
-+static bool zswap_can_accept(void)
-+{
-+	return totalram_pages() * zswap_accept_thr_percent / 100 *
-+				zswap_max_pool_percent / 100 >
-+			DIV_ROUND_UP(zswap_pool_total_size, PAGE_SIZE);
-+}
-+
- static void zswap_update_total_size(void)
+ static int ptdump_curknl_show(struct seq_file *m, void *v)
  {
- 	struct zswap_pool *pool;
-@@ -501,6 +520,16 @@ static struct zswap_pool *zswap_pool_fin
- 	return NULL;
- }
- 
-+static void shrink_worker(struct work_struct *w)
-+{
-+	struct zswap_pool *pool = container_of(w, typeof(*pool),
-+						shrink_work);
-+
-+	if (zpool_shrink(pool->zpool, 1, NULL))
-+		zswap_reject_reclaim_fail++;
-+	zswap_pool_put(pool);
-+}
-+
- static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
- {
- 	struct zswap_pool *pool;
-@@ -551,6 +580,7 @@ static struct zswap_pool *zswap_pool_cre
- 	 */
- 	kref_init(&pool->kref);
- 	INIT_LIST_HEAD(&pool->list);
-+	INIT_WORK(&pool->shrink_work, shrink_worker);
- 
- 	zswap_pool_debug("created", pool);
- 
-@@ -624,7 +654,8 @@ static int __must_check zswap_pool_get(s
- 
- static void __zswap_pool_release(struct work_struct *work)
- {
--	struct zswap_pool *pool = container_of(work, typeof(*pool), work);
-+	struct zswap_pool *pool = container_of(work, typeof(*pool),
-+						release_work);
- 
- 	synchronize_rcu();
- 
-@@ -647,8 +678,8 @@ static void __zswap_pool_empty(struct kr
- 
- 	list_del_rcu(&pool->list);
- 
--	INIT_WORK(&pool->work, __zswap_pool_release);
--	schedule_work(&pool->work);
-+	INIT_WORK(&pool->release_work, __zswap_pool_release);
-+	schedule_work(&pool->release_work);
- 
- 	spin_unlock(&zswap_pools_lock);
- }
-@@ -942,22 +973,6 @@ end:
- 	return ret;
- }
- 
--static int zswap_shrink(void)
--{
--	struct zswap_pool *pool;
--	int ret;
--
--	pool = zswap_pool_last_get();
--	if (!pool)
--		return -ENOENT;
--
--	ret = zpool_shrink(pool->zpool, 1, NULL);
--
--	zswap_pool_put(pool);
--
--	return ret;
--}
--
- static int zswap_is_page_same_filled(void *ptr, unsigned long *value)
- {
- 	unsigned int pos;
-@@ -1011,21 +1026,23 @@ static int zswap_frontswap_store(unsigne
- 
- 	/* reclaim space if needed */
- 	if (zswap_is_full()) {
-+		struct zswap_pool *pool;
-+
- 		zswap_pool_limit_hit++;
--		if (zswap_shrink()) {
--			zswap_reject_reclaim_fail++;
--			ret = -ENOMEM;
--			goto reject;
--		}
-+		zswap_pool_reached_full = true;
-+		pool = zswap_pool_last_get();
-+		if (pool)
-+			queue_work(shrink_wq, &pool->shrink_work);
-+		ret = -ENOMEM;
-+		goto reject;
-+	}
- 
--		/* A second zswap_is_full() check after
--		 * zswap_shrink() to make sure it's now
--		 * under the max_pool_percent
--		 */
--		if (zswap_is_full()) {
-+	if (zswap_pool_reached_full) {
-+	       if (!zswap_can_accept()) {
- 			ret = -ENOMEM;
- 			goto reject;
--		}
-+		} else
-+			zswap_pool_reached_full = false;
- 	}
- 
- 	/* allocate entry */
-@@ -1332,11 +1349,17 @@ static int __init init_zswap(void)
- 		zswap_enabled = false;
- 	}
- 
-+	shrink_wq = create_workqueue("zswap-shrink");
-+	if (!shrink_wq)
-+		goto fallback_fail;
-+
- 	frontswap_register_ops(&zswap_frontswap_ops);
- 	if (zswap_debugfs_init())
- 		pr_warn("debugfs initialization failed\n");
+-	if (current->mm->pgd) {
+-		down_read(&current->mm->mmap_sem);
++	if (current->mm->pgd)
+ 		ptdump_walk_pgd_level_debugfs(m, current->mm, false);
+-		up_read(&current->mm->mmap_sem);
+-	}
  	return 0;
+ }
  
-+fallback_fail:
-+	zswap_pool_destroy(pool);
- hp_fail:
- 	cpuhp_remove_state(CPUHP_MM_ZSWP_MEM_PREPARE);
- dstmem_fail:
+@@ -28,11 +25,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump_curknl);
+ #ifdef CONFIG_PAGE_TABLE_ISOLATION
+ static int ptdump_curusr_show(struct seq_file *m, void *v)
+ {
+-	if (current->mm->pgd) {
+-		down_read(&current->mm->mmap_sem);
++	if (current->mm->pgd)
+ 		ptdump_walk_pgd_level_debugfs(m, current->mm, true);
+-		up_read(&current->mm->mmap_sem);
+-	}
+ 	return 0;
+ }
+ 
+--- a/arch/x86/mm/dump_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -357,7 +357,8 @@ static void note_page(struct ptdump_stat
+ 	}
+ }
+ 
+-static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
++static void ptdump_walk_pgd_level_core(struct seq_file *m,
++				       struct mm_struct *mm, pgd_t *pgd,
+ 				       bool checkwx, bool dmesg)
+ {
+ 	const struct ptdump_range ptdump_ranges[] = {
+@@ -386,12 +387,7 @@ static void ptdump_walk_pgd_level_core(s
+ 		.seq		= m
+ 	};
+ 
+-	struct mm_struct fake_mm = {
+-		.pgd = pgd
+-	};
+-	init_rwsem(&fake_mm.mmap_sem);
+-
+-	ptdump_walk_pgd(&st.ptdump, &fake_mm);
++	ptdump_walk_pgd(&st.ptdump, mm, pgd);
+ 
+ 	if (!checkwx)
+ 		return;
+@@ -404,7 +400,7 @@ static void ptdump_walk_pgd_level_core(s
+ 
+ void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm)
+ {
+-	ptdump_walk_pgd_level_core(m, mm->pgd, false, true);
++	ptdump_walk_pgd_level_core(m, mm, mm->pgd, false, true);
+ }
+ 
+ void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
+@@ -415,7 +411,7 @@ void ptdump_walk_pgd_level_debugfs(struc
+ 	if (user && boot_cpu_has(X86_FEATURE_PTI))
+ 		pgd = kernel_to_user_pgdp(pgd);
+ #endif
+-	ptdump_walk_pgd_level_core(m, pgd, false, false);
++	ptdump_walk_pgd_level_core(m, mm, pgd, false, false);
+ }
+ EXPORT_SYMBOL_GPL(ptdump_walk_pgd_level_debugfs);
+ 
+@@ -430,13 +426,13 @@ void ptdump_walk_user_pgd_level_checkwx(
+ 
+ 	pr_info("x86/mm: Checking user space page tables\n");
+ 	pgd = kernel_to_user_pgdp(pgd);
+-	ptdump_walk_pgd_level_core(NULL, pgd, true, false);
++	ptdump_walk_pgd_level_core(NULL, &init_mm, pgd, true, false);
+ #endif
+ }
+ 
+ void ptdump_walk_pgd_level_checkwx(void)
+ {
+-	ptdump_walk_pgd_level_core(NULL, INIT_PGD, true, false);
++	ptdump_walk_pgd_level_core(NULL, &init_mm, INIT_PGD, true, false);
+ }
+ 
+ static int __init pt_dump_init(void)
+--- a/include/linux/pagewalk.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/include/linux/pagewalk.h
+@@ -74,6 +74,7 @@ enum page_walk_action {
+  * mm_walk - walk_page_range data
+  * @ops:	operation to call during the walk
+  * @mm:		mm_struct representing the target process of page table walk
++ * @pgd:	pointer to PGD; only valid with no_vma (otherwise set to NULL)
+  * @vma:	vma currently walked (NULL if walking outside vmas)
+  * @action:	next action to perform (see enum page_walk_action)
+  * @no_vma:	walk ignoring vmas (vma will always be NULL)
+@@ -84,6 +85,7 @@ enum page_walk_action {
+ struct mm_walk {
+ 	const struct mm_walk_ops *ops;
+ 	struct mm_struct *mm;
++	pgd_t *pgd;
+ 	struct vm_area_struct *vma;
+ 	enum page_walk_action action;
+ 	bool no_vma;
+@@ -95,6 +97,7 @@ int walk_page_range(struct mm_struct *mm
+ 		void *private);
+ int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
++			  pgd_t *pgd,
+ 			  void *private);
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private);
+--- a/include/linux/ptdump.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/include/linux/ptdump.h
+@@ -17,6 +17,6 @@ struct ptdump_state {
+ 	const struct ptdump_range *range;
+ };
+ 
+-void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm);
++void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
+ 
+ #endif /* _LINUX_PTDUMP_H */
+--- a/mm/pagewalk.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/mm/pagewalk.c
+@@ -206,7 +206,10 @@ static int walk_pgd_range(unsigned long
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int err = 0;
+ 
+-	pgd = pgd_offset(walk->mm, addr);
++	if (walk->pgd)
++		pgd = walk->pgd + pgd_index(addr);
++	else
++		pgd = pgd_offset(walk->mm, addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd)) {
+@@ -436,11 +439,13 @@ int walk_page_range(struct mm_struct *mm
+  */
+ int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
++			  pgd_t *pgd,
+ 			  void *private)
+ {
+ 	struct mm_walk walk = {
+ 		.ops		= ops,
+ 		.mm		= mm,
++		.pgd		= pgd,
+ 		.private	= private,
+ 		.no_vma		= true
+ 	};
+--- a/mm/ptdump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/mm/ptdump.c
+@@ -122,14 +122,14 @@ static const struct mm_walk_ops ptdump_o
+ 	.pte_hole	= ptdump_hole,
+ };
+ 
+-void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
++void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd)
+ {
+ 	const struct ptdump_range *range = st->range;
+ 
+ 	down_read(&mm->mmap_sem);
+ 	while (range->start != range->end) {
+ 		walk_page_range_novma(mm, range->start, range->end,
+-				      &ptdump_ops, st);
++				      &ptdump_ops, pgd, st);
+ 		range++;
+ 	}
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from vitaly.wool@konsulko.com are
+Patches currently in -mm which might be from steven.price@arm.com are
 
-zswap-add-allocation-hysteresis-if-pool-limit-is-hit.patch
+mm-add-generic-pd_leaf-macros.patch
+arc-mm-add-pd_leaf-definitions.patch
+arm-mm-add-pd_leaf-definitions.patch
+arm64-mm-add-pd_leaf-definitions.patch
+mips-mm-add-pd_leaf-definitions.patch
+powerpc-mm-add-pd_leaf-definitions.patch
+riscv-mm-add-pd_leaf-definitions.patch
+s390-mm-add-pd_leaf-definitions.patch
+sparc-mm-add-pd_leaf-definitions.patch
+x86-mm-add-pd_leaf-definitions.patch
+mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
+mm-pagewalk-allow-walking-without-vma.patch
+mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch
+mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch
+mm-pagewalk-add-depth-parameter-to-pte_hole.patch
+x86-mm-point-to-struct-seq_file-from-struct-pg_state.patch
+x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch
+x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
+mm-add-generic-ptdump.patch
+x86-mm-convert-dump_pagetables-to-use-walk_page_range.patch
+arm64-mm-convert-mm-dumpc-to-use-walk_page_range.patch
+arm64-mm-display-non-present-entries-in-ptdump.patch
+mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch
+x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
