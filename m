@@ -1,50 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- init-fixed-an-error-caused-by-using-__initdata-instead-of-__initconst.patch
- removed from -mm tree
-Date: Thu, 09 Jan 2020 11:17:58 -0800
-Message-ID: <20200109191758.abJOy3H7t%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Thu, 09 Jan 2020 11:21:07 -0800
+Message-ID: <20200109192107.507bFpEpi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47892 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52236 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbgAITR6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 14:17:58 -0500
+        id S1726048AbgAITVI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 14:21:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: carlosteniswarrior@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/main.c: use __initdata instead of __initconst
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     init-fixed-an-error-caused-by-using-__initdata-instead-of-__initconst.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Carlos Guerrero Alvarez <carlosteniswarrior@gmail.com>
-Subject: init/main.c: use __initdata instead of __initconst
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Link: http://lkml.kernel.org/r/20200106020217.13234-1-carlosteniswarrior@gmail.com
-Signed-off-by: Carlos Guerrero Alvarez <carlosteniswarrior@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi-dw.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/init/main.c~init-fixed-an-error-caused-by-using-__initdata-instead-of-__initconst
-+++ a/init/main.c
-@@ -979,7 +979,7 @@ static initcall_entry_t *initcall_levels
- };
+--- a/drivers/spi/spi-dw.c~linux-next-git-rejects
++++ a/drivers/spi/spi-dw.c
+@@ -296,12 +296,9 @@ static int dw_spi_transfer_one(struct sp
+ 	dws->rx_end = dws->rx + transfer->len;
+ 	dws->len = transfer->len;
+ 	spin_unlock_irqrestore(&dws->buf_lock, flags);
+-<<<<<<< HEAD
+-=======
  
- /* Keep these in sync with initcalls in include/linux/init.h */
--static const char *initcall_level_names[] __initdata = {
-+static const char *initcall_level_names[] __initconst = {
- 	"pure",
- 	"core",
- 	"postcore",
+ 	/* Ensure dw->rx and dw->rx_end are visible */
+ 	smp_mb();
+->>>>>>> linux-next/akpm-base
+ 
+ 	spi_enable_chip(dws, 0);
+ 
 _
 
-Patches currently in -mm which might be from carlosteniswarrior@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-oom-avoid-printk-iteration-under-rcu-fix.patch
+linux-next-fix.patch
+drivers-block-null_blk_mainc-fix-layout.patch
+drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
+proc-convert-everything-to-struct-proc_ops-fix.patch
+bitops-more-bits_to_-macros-fix.patch
+bitops-more-bits_to_-macros-fix-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
