@@ -1,152 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- =?US-ASCII?Q?mm-rmap-fix-and-simplify-reusing-mergeable-anon=5Fvma-as-pa?=
- =?US-ASCII?Q?rent-when-fork.patch?= removed from -mm tree
-Date: Thu, 09 Jan 2020 13:36:51 -0800
-Message-ID: <20200109213651.vDb8eU6O4%akpm@linux-foundation.org>
+Subject: +
+ memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears.patch added to -mm
+ tree
+Date: Thu, 09 Jan 2020 13:40:12 -0800
+Message-ID: <20200109214012.owD78fqhs%akpm__38520.1301121683$1578606069$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44982 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51296 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725775AbgAIVgw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 16:36:52 -0500
+        id S1725763AbgAIVkN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 16:40:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, riel@redhat.com
+To: axboe@kernel.dk, clm@fb.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org, tytso@mit.edu
 
 
 The patch titled
-     Subject: mm/rmap: fix and simplify reusing mergeable anon_vma as parent when fork
-has been removed from the -mm tree.  Its filename was
-     mm-rmap-fix-and-simplify-reusing-mergeable-anon_vma-as-parent-when-fork.patch
+     Subject: memcg: fix a crash in wb_workfn when a device disappears
+has been added to the -mm tree.  Its filename is
+     memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/rmap: fix and simplify reusing mergeable anon_vma as parent when fork
+From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: memcg: fix a crash in wb_workfn when a device disappears
 
-This fixes some misconceptions in commit 4e4a9eb92133 ("mm/rmap.c: reuse
-mergeable anon_vma as parent when fork").  It merges anon-vma in
-unexpected way but fortunately still produces valid anon-vma tree, so
-nothing crashes.
+Without memcg, there is a one-to-one mapping between the bdi and
+bdi_writeback structures.  In this world, things are fairly
+straightforward; the first thing bdi_unregister() does is to shutdown the
+bdi_writeback structure (or wb), and part of that writeback ensures that
+no other work queued against the wb, and that the wb is fully drained.
 
-If in parent VMAs: SRC1 SRC2 ..  SRCn share anon-vma ANON0, then after
-fork before all patches in child process related VMAs: DST1 DST2 ..  DSTn
-will fork indepndent anon-vmas: ANON1 ANON2 ..  ANONn (each is child of
-ANON0).  Before this patch only DST1 will fork new ANON1 and following
-DST2 ..  DSTn will share parent's ANON0 (i.e.  anon-vma tree is valid but
-isn't optimal).  With this patch DST1 will create new ANON1 and DST2 .. 
-DSTn will share it.
+With memcg, however, there is a one-to-many relationship between the bdi
+and bdi_writeback structures; that is, there are multiple wb objects which
+can all point to a single bdi.  There is a refcount which prevents the bdi
+object from being released (and hence, unregistered).  So in theory, the
+bdi_unregister() *should* only get called once its refcount goes to zero
+(bdi_put will drop the refcount, and when it is zero, release_bdi gets
+called, which calls bdi_unregister).
 
-Root problem caused by initialization order in dup_mmap(): vma->vm_prev is
-set after calling anon_vma_fork().  Thus in anon_vma_fork() it points to
-previous VMA in parent mm.
+Unfortunately, del_gendisk() in block/gen_hd.c never got the memo about
+the Brave New memcg World, and calls bdi_unregister directly.  It does
+this without informing the file system, or the memcg code, or anything
+else.  This causes the root wb associated with the bdi to be unregistered,
+but none of the memcg-specific wb's are shutdown.  So when one of these
+wb's are woken up to do delayed work, they try to dereference their
+wb->bdi->dev to fetch the device name, but unfortunately bdi->dev is now
+NULL, thanks to the bdi_unregister() called by del_gendisk().  As a
+result, *boom*.
 
-Second problem is hidden behind first one: assumption "Parent has vm_prev,
-which implies we have vm_prev" is wrong if first VMA in parent mm has set
-flag VM_DONTCOPY.  Luckily prev->anon_vma doesn't dereference NULL pointer
-because in current code 'prev' actually is same as 'pprev'.
+Fortunately, it looks like the rest of the writeback path is perfectly
+happy with bdi->dev and bdi->owner being NULL, so the simplest fix is to
+create a bdi_dev_name() function which can handle bdi->dev being NULL. 
+This also allows us to bulletproof the writeback tracepoints to prevent
+them from dereferencing a NULL pointer and crashing the kernel if one is
+tracing with memcg's enabled, and an iSCSI device dies or a USB storage
+stick is pulled.
 
-Third hidden problem is linking between VMA and anon-vmas whose pages it
-could contain.  Loop in anon_vma_clone() attaches only parent's anon-vmas,
-shared anon-vma isn't attached.  But every mapped page stays reachable in
-rmap because we erroneously share anon-vma from parent's previous VMA.
+The most common way of triggering this will be hotremoval of a device
+while writeback with memcg enabled is going on.  It was triggering several
+times a day in a heavily loaded production environment.
 
-This patch moves sharing logic out of anon_vma_clone() into more specific
-anon_vma_fork() because this supposed to work only at fork() and simply
-reuses anon_vma from previous VMA if it is forked from the same anon-vma.
+Google Bug Id: 145475544
 
-Link: http://lkml.kernel.org/r/157839239609.694.10268055713935919822.stgit@buzz
-Link: https://lore.kernel.org/linux-mm/CALYGNiNzz+dxHX0g5-gNypUQc3B=8_Scp53-NTOh=zWsdUuHAw@mail.gmail.com/T/#t
-Fixes: 4e4a9eb92133 ("mm/rmap.c: reuse mergeable anon_vma as parent when fork")
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Reported-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Reviewed-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Link: https://lore.kernel.org/r/20191227194829.150110-1-tytso@mit.edu
+Link: http://lkml.kernel.org/r/20191228005211.163952-1-tytso@mit.edu
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <clm@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 ++-
- kernel/fork.c        |    2 +-
- mm/rmap.c            |   23 +++++++++--------------
- 3 files changed, 12 insertions(+), 16 deletions(-)
+ fs/fs-writeback.c                |    2 -
+ include/linux/backing-dev.h      |   10 +++++++
+ include/trace/events/writeback.h |   37 +++++++++++++----------------
+ mm/backing-dev.c                 |    1 
+ 4 files changed, 29 insertions(+), 21 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-fix-and-simplify-reusing-mergeable-anon_vma-as-parent-when-fork
-+++ a/include/linux/rmap.h
-@@ -143,7 +143,8 @@ void anon_vma_init(void);	/* create anon
- int  __anon_vma_prepare(struct vm_area_struct *);
- void unlink_anon_vmas(struct vm_area_struct *);
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
--int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
-+int anon_vma_fork(struct vm_area_struct *vma, struct vm_area_struct *pvma,
-+		  struct vm_area_struct *prev);
+--- a/fs/fs-writeback.c~memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears
++++ a/fs/fs-writeback.c
+@@ -2063,7 +2063,7 @@ void wb_workfn(struct work_struct *work)
+ 						struct bdi_writeback, dwork);
+ 	long pages_written;
  
- static inline int anon_vma_prepare(struct vm_area_struct *vma)
- {
---- a/kernel/fork.c~mm-rmap-fix-and-simplify-reusing-mergeable-anon_vma-as-parent-when-fork
-+++ a/kernel/fork.c
-@@ -556,7 +556,7 @@ static __latent_entropy int dup_mmap(str
- 			tmp->anon_vma = NULL;
- 			if (anon_vma_prepare(tmp))
- 				goto fail_nomem_anon_vma_fork;
--		} else if (anon_vma_fork(tmp, mpnt))
-+		} else if (anon_vma_fork(tmp, mpnt, prev))
- 			goto fail_nomem_anon_vma_fork;
- 		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
- 		tmp->vm_next = tmp->vm_prev = NULL;
---- a/mm/rmap.c~mm-rmap-fix-and-simplify-reusing-mergeable-anon_vma-as-parent-when-fork
-+++ a/mm/rmap.c
-@@ -269,19 +269,6 @@ int anon_vma_clone(struct vm_area_struct
- {
- 	struct anon_vma_chain *avc, *pavc;
- 	struct anon_vma *root = NULL;
--	struct vm_area_struct *prev = dst->vm_prev, *pprev = src->vm_prev;
--
--	/*
--	 * If parent share anon_vma with its vm_prev, keep this sharing in in
--	 * child.
--	 *
--	 * 1. Parent has vm_prev, which implies we have vm_prev.
--	 * 2. Parent and its vm_prev have the same anon_vma.
--	 */
--	if (!dst->anon_vma && src->anon_vma &&
--	    pprev && pprev->anon_vma == src->anon_vma)
--		dst->anon_vma = prev->anon_vma;
--
+-	set_worker_desc("flush-%s", dev_name(wb->bdi->dev));
++	set_worker_desc("flush-%s", bdi_dev_name(wb->bdi));
+ 	current->flags |= PF_SWAPWRITE;
  
- 	list_for_each_entry_reverse(pavc, &src->anon_vma_chain, same_vma) {
- 		struct anon_vma *anon_vma;
-@@ -332,7 +319,8 @@ int anon_vma_clone(struct vm_area_struct
-  * the corresponding VMA in the parent process is attached to.
-  * Returns 0 on success, non-zero on failure.
-  */
--int anon_vma_fork(struct vm_area_struct *vma, struct vm_area_struct *pvma)
-+int anon_vma_fork(struct vm_area_struct *vma, struct vm_area_struct *pvma,
-+		  struct vm_area_struct *prev)
- {
- 	struct anon_vma_chain *avc;
- 	struct anon_vma *anon_vma;
-@@ -342,6 +330,13 @@ int anon_vma_fork(struct vm_area_struct
- 	if (!pvma->anon_vma)
- 		return 0;
+ 	if (likely(!current_is_workqueue_rescuer() ||
+--- a/include/linux/backing-dev.h~memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears
++++ a/include/linux/backing-dev.h
+@@ -13,6 +13,7 @@
+ #include <linux/fs.h>
+ #include <linux/sched.h>
+ #include <linux/blkdev.h>
++#include <linux/device.h>
+ #include <linux/writeback.h>
+ #include <linux/blk-cgroup.h>
+ #include <linux/backing-dev-defs.h>
+@@ -504,4 +505,13 @@ static inline int bdi_rw_congested(struc
+ 				  (1 << WB_async_congested));
+ }
  
-+	/* Share anon_vma with previous VMA if it has the same parent. */
-+	if (prev && prev->anon_vma &&
-+	    prev->anon_vma->parent == pvma->anon_vma) {
-+		vma->anon_vma = prev->anon_vma;
-+		return anon_vma_clone(vma, prev);
-+	}
++extern const char *bdi_unknown_name;
 +
- 	/* Drop inherited anon_vma, we'll reuse existing or allocate new. */
- 	vma->anon_vma = NULL;
++static inline const char *bdi_dev_name(struct backing_dev_info *bdi)
++{
++	if (!bdi || !bdi->dev)
++		return bdi_unknown_name;
++	return dev_name(bdi->dev);
++}
++
+ #endif	/* _LINUX_BACKING_DEV_H */
+--- a/include/trace/events/writeback.h~memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears
++++ a/include/trace/events/writeback.h
+@@ -67,8 +67,8 @@ DECLARE_EVENT_CLASS(writeback_page_templ
  
+ 	TP_fast_assign(
+ 		strscpy_pad(__entry->name,
+-			    mapping ? dev_name(inode_to_bdi(mapping->host)->dev) : "(unknown)",
+-			    32);
++			    bdi_dev_name(mapping ? inode_to_bdi(mapping->host) :
++					 NULL), 32);
+ 		__entry->ino = mapping ? mapping->host->i_ino : 0;
+ 		__entry->index = page->index;
+ 	),
+@@ -111,8 +111,7 @@ DECLARE_EVENT_CLASS(writeback_dirty_inod
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+ 
+ 		/* may be called for files on pseudo FSes w/ unregistered bdi */
+-		strscpy_pad(__entry->name,
+-			    bdi->dev ? dev_name(bdi->dev) : "(unknown)", 32);
++		strscpy_pad(__entry->name, bdi_dev_name(bdi), 32);
+ 		__entry->ino		= inode->i_ino;
+ 		__entry->state		= inode->i_state;
+ 		__entry->flags		= flags;
+@@ -193,7 +192,7 @@ TRACE_EVENT(inode_foreign_history,
+ 	),
+ 
+ 	TP_fast_assign(
+-		strncpy(__entry->name, dev_name(inode_to_bdi(inode)->dev), 32);
++		strncpy(__entry->name, bdi_dev_name(inode_to_bdi(inode)), 32);
+ 		__entry->ino		= inode->i_ino;
+ 		__entry->cgroup_ino	= __trace_wbc_assign_cgroup(wbc);
+ 		__entry->history	= history;
+@@ -222,7 +221,7 @@ TRACE_EVENT(inode_switch_wbs,
+ 	),
+ 
+ 	TP_fast_assign(
+-		strncpy(__entry->name,	dev_name(old_wb->bdi->dev), 32);
++		strncpy(__entry->name,	bdi_dev_name(old_wb->bdi), 32);
+ 		__entry->ino		= inode->i_ino;
+ 		__entry->old_cgroup_ino	= __trace_wb_assign_cgroup(old_wb);
+ 		__entry->new_cgroup_ino	= __trace_wb_assign_cgroup(new_wb);
+@@ -255,7 +254,7 @@ TRACE_EVENT(track_foreign_dirty,
+ 		struct address_space *mapping = page_mapping(page);
+ 		struct inode *inode = mapping ? mapping->host : NULL;
+ 
+-		strncpy(__entry->name,	dev_name(wb->bdi->dev), 32);
++		strncpy(__entry->name,	bdi_dev_name(wb->bdi), 32);
+ 		__entry->bdi_id		= wb->bdi->id;
+ 		__entry->ino		= inode ? inode->i_ino : 0;
+ 		__entry->memcg_id	= wb->memcg_css->id;
+@@ -288,7 +287,7 @@ TRACE_EVENT(flush_foreign,
+ 	),
+ 
+ 	TP_fast_assign(
+-		strncpy(__entry->name,	dev_name(wb->bdi->dev), 32);
++		strncpy(__entry->name,	bdi_dev_name(wb->bdi), 32);
+ 		__entry->cgroup_ino	= __trace_wb_assign_cgroup(wb);
+ 		__entry->frn_bdi_id	= frn_bdi_id;
+ 		__entry->frn_memcg_id	= frn_memcg_id;
+@@ -318,7 +317,7 @@ DECLARE_EVENT_CLASS(writeback_write_inod
+ 
+ 	TP_fast_assign(
+ 		strscpy_pad(__entry->name,
+-			    dev_name(inode_to_bdi(inode)->dev), 32);
++			    bdi_dev_name(inode_to_bdi(inode)), 32);
+ 		__entry->ino		= inode->i_ino;
+ 		__entry->sync_mode	= wbc->sync_mode;
+ 		__entry->cgroup_ino	= __trace_wbc_assign_cgroup(wbc);
+@@ -361,9 +360,7 @@ DECLARE_EVENT_CLASS(writeback_work_class
+ 		__field(ino_t, cgroup_ino)
+ 	),
+ 	TP_fast_assign(
+-		strscpy_pad(__entry->name,
+-			    wb->bdi->dev ? dev_name(wb->bdi->dev) :
+-			    "(unknown)", 32);
++		strscpy_pad(__entry->name, bdi_dev_name(wb->bdi), 32);
+ 		__entry->nr_pages = work->nr_pages;
+ 		__entry->sb_dev = work->sb ? work->sb->s_dev : 0;
+ 		__entry->sync_mode = work->sync_mode;
+@@ -416,7 +413,7 @@ DECLARE_EVENT_CLASS(writeback_class,
+ 		__field(ino_t, cgroup_ino)
+ 	),
+ 	TP_fast_assign(
+-		strscpy_pad(__entry->name, dev_name(wb->bdi->dev), 32);
++		strscpy_pad(__entry->name, bdi_dev_name(wb->bdi), 32);
+ 		__entry->cgroup_ino = __trace_wb_assign_cgroup(wb);
+ 	),
+ 	TP_printk("bdi %s: cgroup_ino=%lu",
+@@ -438,7 +435,7 @@ TRACE_EVENT(writeback_bdi_register,
+ 		__array(char, name, 32)
+ 	),
+ 	TP_fast_assign(
+-		strscpy_pad(__entry->name, dev_name(bdi->dev), 32);
++		strscpy_pad(__entry->name, bdi_dev_name(bdi), 32);
+ 	),
+ 	TP_printk("bdi %s",
+ 		__entry->name
+@@ -463,7 +460,7 @@ DECLARE_EVENT_CLASS(wbc_class,
+ 	),
+ 
+ 	TP_fast_assign(
+-		strscpy_pad(__entry->name, dev_name(bdi->dev), 32);
++		strscpy_pad(__entry->name, bdi_dev_name(bdi), 32);
+ 		__entry->nr_to_write	= wbc->nr_to_write;
+ 		__entry->pages_skipped	= wbc->pages_skipped;
+ 		__entry->sync_mode	= wbc->sync_mode;
+@@ -514,7 +511,7 @@ TRACE_EVENT(writeback_queue_io,
+ 	),
+ 	TP_fast_assign(
+ 		unsigned long *older_than_this = work->older_than_this;
+-		strscpy_pad(__entry->name, dev_name(wb->bdi->dev), 32);
++		strscpy_pad(__entry->name, bdi_dev_name(wb->bdi), 32);
+ 		__entry->older	= older_than_this ?  *older_than_this : 0;
+ 		__entry->age	= older_than_this ?
+ 				  (jiffies - *older_than_this) * 1000 / HZ : -1;
+@@ -600,7 +597,7 @@ TRACE_EVENT(bdi_dirty_ratelimit,
+ 	),
+ 
+ 	TP_fast_assign(
+-		strscpy_pad(__entry->bdi, dev_name(wb->bdi->dev), 32);
++		strscpy_pad(__entry->bdi, bdi_dev_name(wb->bdi), 32);
+ 		__entry->write_bw	= KBps(wb->write_bandwidth);
+ 		__entry->avg_write_bw	= KBps(wb->avg_write_bandwidth);
+ 		__entry->dirty_rate	= KBps(dirty_rate);
+@@ -665,7 +662,7 @@ TRACE_EVENT(balance_dirty_pages,
+ 
+ 	TP_fast_assign(
+ 		unsigned long freerun = (thresh + bg_thresh) / 2;
+-		strscpy_pad(__entry->bdi, dev_name(wb->bdi->dev), 32);
++		strscpy_pad(__entry->bdi, bdi_dev_name(wb->bdi), 32);
+ 
+ 		__entry->limit		= global_wb_domain.dirty_limit;
+ 		__entry->setpoint	= (global_wb_domain.dirty_limit +
+@@ -726,7 +723,7 @@ TRACE_EVENT(writeback_sb_inodes_requeue,
+ 
+ 	TP_fast_assign(
+ 		strscpy_pad(__entry->name,
+-			    dev_name(inode_to_bdi(inode)->dev), 32);
++			    bdi_dev_name(inode_to_bdi(inode)), 32);
+ 		__entry->ino		= inode->i_ino;
+ 		__entry->state		= inode->i_state;
+ 		__entry->dirtied_when	= inode->dirtied_when;
+@@ -800,7 +797,7 @@ DECLARE_EVENT_CLASS(writeback_single_ino
+ 
+ 	TP_fast_assign(
+ 		strscpy_pad(__entry->name,
+-			    dev_name(inode_to_bdi(inode)->dev), 32);
++			    bdi_dev_name(inode_to_bdi(inode)), 32);
+ 		__entry->ino		= inode->i_ino;
+ 		__entry->state		= inode->i_state;
+ 		__entry->dirtied_when	= inode->dirtied_when;
+--- a/mm/backing-dev.c~memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears
++++ a/mm/backing-dev.c
+@@ -21,6 +21,7 @@ struct backing_dev_info noop_backing_dev
+ EXPORT_SYMBOL_GPL(noop_backing_dev_info);
+ 
+ static struct class *bdi_class;
++const char *bdi_unknown_name = "(unknown)";
+ 
+ /*
+  * bdi_lock protects bdi_tree and updates to bdi_list. bdi_list has RCU
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from tytso@mit.edu are
 
-kernel-fork-set-vmas-mm-prev-next-right-after-vm_area_dup-in-dup_mmap.patch
+memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears.patch
