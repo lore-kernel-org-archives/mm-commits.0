@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use.patch added to -mm
- tree
-Date: Thu, 09 Jan 2020 13:10:33 -0800
-Message-ID: <20200109211033.h8twv24RM%akpm@linux-foundation.org>
+Subject: + mm-pagewalk-add-p4d_entry-and-pgd_entry-fix.patch added
+ to -mm tree
+Date: Thu, 09 Jan 2020 13:20:10 -0800
+Message-ID: <20200109212010.iHTCg72Wq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56824 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725775AbgAIVKf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 16:10:35 -0500
+        id S1725763AbgAIVUL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 16:20:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, skalluru@marvell.com
+To: arnd@arndb.de, jhubbard@nvidia.com, mm-commits@vger.kernel.org, steven.price@arm.com
 
 
 The patch titled
-     Subject: ocfs2/dlm: move BITS_TO_BYTES() to bitops.h for wider use
+     Subject: mm: pagewalk: fix unused variable warning
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use.patch
+     mm-pagewalk-add-p4d_entry-and-pgd_entry-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagewalk-add-p4d_entry-and-pgd_entry-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagewalk-add-p4d_entry-and-pgd_entry-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,62 +36,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: ocfs2/dlm: move BITS_TO_BYTES() to bitops.h for wider use
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: pagewalk: fix unused variable warning
 
-There are users already and will be more of BITS_TO_BYTES() macro.  Move
-it to bitops.h for wider use.
+One of the pagewalk patches introduced a harmless warning:
 
-In the case of ocfs2 the replacement is identical.
+mm/hmm.c: In function 'hmm_vma_walk_pud':
+mm/hmm.c:478:9: error: unused variable 'pmdp' [-Werror=3Dunused-variable]
+  pmd_t *pmdp;
+         ^~~~
+mm/hmm.c:477:30: error: unused variable 'next' [-Werror=3Dunused-variable=
+]
+  unsigned long addr =3D start, next;
+                              ^~~~
 
-As for bnx2x, there are two places where floor version is used.  In the
-first case to calculate the amount of structures that can fit one memory
-page.  In this case obviously the ceiling variant is correct and original
-code might have a potential bug, if amount of bits % 8 is not 0.  In the
-second case the macro is used to calculate bytes transmitted in one
-microsecond.  This will work for all speeds which is multiply of 1Gbps
-without any change, for the rest new code will give ceiling value, for
-instance 100Mbps will give 13 bytes, while old code gives 12 bytes and the
-arithmetically correct one is 12.5 bytes.  Further the value is used to
-setup timer threshold which in any case has its own margins due to certain
-resolution.  I don't see here an issue with slightly shifting thresholds
-for low speed connections, the card is supposed to utilize highest
-available rate, which is usually 10Gbps.
+Remove both of the now-unused variables.
 
-Link: http://lkml.kernel.org/r/20200108121316.22411-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Acked-by: Sudarsana Reddy Kalluru <skalluru@marvell.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: http://lkml.kernel.org/r/20200107204607.1533842-1-arnd@arndb.de
+Fixes: cb4d03d5fb4c ("mm: pagewalk: add p4d_entry() and pgd_entry()")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Steven Price <steven.price@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h |    1 -
- fs/ocfs2/dlm/dlmcommon.h                         |    4 ----
- include/linux/bitops.h                           |    1 +
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ mm/hmm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h~ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use
-+++ a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h
-@@ -296,7 +296,6 @@ static inline void bnx2x_dcb_config_qm(s
-  *    possible, the driver should only write the valid vnics into the internal
-  *    ram according to the appropriate port mode.
-  */
--#define BITS_TO_BYTES(x) ((x)/8)
- 
- /* CMNG constants, as derived from system spec calculations */
- 
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -688,10 +688,6 @@ struct dlm_begin_reco
- 	__be32 pad2;
- };
- 
--
--#define BITS_PER_BYTE 8
--#define BITS_TO_BYTES(bits) (((bits)+BITS_PER_BYTE-1)/BITS_PER_BYTE)
+--- a/mm/hmm.c~mm-pagewalk-add-p4d_entry-and-pgd_entry-fix
++++ a/mm/hmm.c
+@@ -474,8 +474,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ {
+ 	struct hmm_vma_walk *hmm_vma_walk = walk->private;
+ 	struct hmm_range *range = hmm_vma_walk->range;
+-	unsigned long addr = start, next;
+-	pmd_t *pmdp;
++	unsigned long addr = start;
+ 	pud_t pud;
+ 	int ret = 0;
+ 	spinlock_t *ptl = pud_trans_huge_lock(pudp, walk->vma);
+_
+
+Patches currently in -mm which might be from arnd@arndb.de are
+
+mm-pagewalk-add-p4d_entry-and-pgd_entry-fix.patch
