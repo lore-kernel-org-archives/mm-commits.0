@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- bitops-more-bits_to_-macros-fix.patch removed from -mm tree
-Date: Thu, 09 Jan 2020 13:50:25 -0800
-Message-ID: <20200109215025.nOIfdAJ1w%akpm@linux-foundation.org>
+ bitops-more-bits_to_-macros-fix-fix.patch removed from -mm tree
+Date: Thu, 09 Jan 2020 13:50:43 -0800
+Message-ID: <20200109215043.pVPFwbwBv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40878 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41540 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725775AbgAIVu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 16:50:27 -0500
+        id S1725775AbgAIVuo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 16:50:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: acme@redhat.com, akpm@linux-foundation.org, amritha.nambiar@intel.com, andriy.shevchenko@linux.intel.com, chris@chris-wilson.co.uk, keescook@chromium.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, mszeredi@redhat.com, steffen.klassert@secunet.com, tobin@kernel.org, vineet.gupta1@synopsys.com, will.deacon@arm.com, willemb@google.com, willy@infradead.org, yury.norov@gmail.com
 
 
 The patch titled
-     Subject: bitops-more-bits_to_-macros-fix
+     Subject: bitops-more-bits_to_-macros-fix-fix
 has been removed from the -mm tree.  Its filename was
-     bitops-more-bits_to_-macros-fix.patch
+     bitops-more-bits_to_-macros-fix-fix.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bitops-more-bits_to_-macros-fix
+Subject: bitops-more-bits_to_-macros-fix-fix
 
-remove ocfs2's private BITS_PER_BYTE()
+convert	drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h
 
 Cc: Amritha Nambiar <amritha.nambiar@intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -44,22 +44,37 @@ Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/dlm/dlmcommon.h~bitops-more-bits_to_-macros-fix
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -11,6 +11,7 @@
- #define DLMCOMMON_H
+--- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h~bitops-more-bits_to_-macros-fix-fix
++++ a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h
+@@ -17,6 +17,8 @@
+ #ifndef BNX2X_INIT_H
+ #define BNX2X_INIT_H
  
- #include <linux/kref.h>
 +#include <linux/bitops.h>
++
+ /* Init operation types and structures */
+ enum {
+ 	OP_RD = 0x1,	/* read a single register */
+@@ -296,7 +298,6 @@ static inline void bnx2x_dcb_config_qm(s
+  *    possible, the driver should only write the valid vnics into the internal
+  *    ram according to the appropriate port mode.
+  */
+-#define BITS_TO_BYTES(x) ((x)/8)
  
- #define DLM_HB_NODE_DOWN_PRI     (0xf000000)
- #define DLM_HB_NODE_UP_PRI       (0x8000000)
-@@ -689,9 +690,6 @@ struct dlm_begin_reco
- };
+ /* CMNG constants, as derived from system spec calculations */
  
- 
--#define BITS_PER_BYTE 8
--#define BITS_TO_BYTES(bits) (((bits)+BITS_PER_BYTE-1)/BITS_PER_BYTE)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-oom-avoid-printk-iteration-under-rcu-fix.patch
+linux-next-fix.patch
+drivers-block-null_blk_mainc-fix-layout.patch
+drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
+proc-convert-everything-to-struct-proc_ops-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
