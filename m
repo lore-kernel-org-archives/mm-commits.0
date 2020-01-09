@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch added to -mm
- tree
-Date: Thu, 09 Jan 2020 12:42:15 -0800
-Message-ID: <20200109204215.vrQrXsqeE%akpm@linux-foundation.org>
+ watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code.patch
+ added to -mm tree
+Date: Thu, 09 Jan 2020 13:09:19 -0800
+Message-ID: <20200109210919.e5hvTp0kO%akpm__34295.0966137991$1578604240$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43014 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727876AbgAIUmS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 15:42:18 -0500
+        id S1725775AbgAIVJV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 16:09:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, sfr@canb.auug.org.au, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
+To: andrew.smirnov@gmail.com, andy.shevchenko@gmail.com, cphealy@gmail.com, linux@roeck-us.net, mm-commits@vger.kernel.org, stable@vger.kernel.org, vdronov@redhat.com, wim@linux-watchdog.org
 
 
 The patch titled
-     Subject: x86: mm: avoid allocating struct mm_struct on the stack
+     Subject: drivers/watchdog/: fix oops in reboot notifier handling in watchdog core code
 has been added to the -mm tree.  Its filename is
-     x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
+     watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,262 +37,198 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Price <steven.price@arm.com>
-Subject: x86: mm: avoid allocating struct mm_struct on the stack
+From: Vladis Dronov <vdronov@redhat.com>
+Subject: drivers/watchdog/: fix oops in reboot notifier handling in watchdog core code
 
-struct mm_struct is quite large (~1664 bytes) and so allocating on the
-stack may cause problems as the kernel stack size is small.
+After commit 44ea39420fc9 ("drivers/watchdog: make use of
+devm_register_reboot_notifier()") the struct notifier_block reboot_nb in
+the struct watchdog_device is removed from the reboot notifiers chain at
+the time watchdog's chardev is closed.  But at least in i6300esb.c case
+reboot_nb is embedded in the struct esb_dev which can be freed on its
+device removal and before the chardev is closed, thus an oops at reboot:
 
-Since ptdump_walk_pgd_level_core() was only allocating the structure so
-that it could modify the pgd argument we can instead introduce a pgd
-override in struct mm_walk and pass this down the call stack to where it
-is needed.
+[    7.728581] esb_probe: esb_dev.watchdog_device ffff91316f91ab28
+ts# uname -r                            note the address ^^^
+5.5.0-rc5-ae6088-wdog
+ts# ./openwdog0 &
+[1] 696
+ts# opened /dev/watchdog0, sleeping 10s...
+ts# echo 1 > /sys/devices/pci0000\:00/0000\:00\:09.0/remove
+[  178.086079] devres:rel_nodes: dev ffff91317668a0b0 data ffff91316f91ab=
+28
+           esb_dev.watchdog_device.reboot_nb memory is freed here ^^^
+ts# ...woken up
+[  181.459010] devres:rel_nodes: dev ffff913171781000 data ffff913174a1da=
+e8
+[  181.460195] devm_unreg_reboot_notifier: res ffff913174a1dae8 nb ffff91=
+316f91ab78
+                                     attempt to use memory already freed =
+^^^
+[  181.461063] devm_unreg_reboot_notifier: nb->call 6b6b6b6b6b6b6b6b
+[  181.461243] devm_unreg_reboot_notifier: nb->next 6b6b6b6b6b6b6b6b
+                freed memory is filled with a slub poison ^^^
+[1]+  Done                    ./openwdog0
+ts# reboot
+[  229.921862] systemd-shutdown[1]: Rebooting.
+[  229.939265] notifier_call_chain: nb ffffffff9c6c2f20 nb->next ffffffff=
+9c6d50c0
+[  229.943080] notifier_call_chain: nb ffffffff9c6d50c0 nb->next 6b6b6b6b=
+6b6b6b6b
+[  229.946054] notifier_call_chain: nb 6b6b6b6b6b6b6b6b INVAL
+[  229.957584] general protection fault: 0000 [#1] SMP
+[  229.958770] CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 5.5.0-rc5-=
+ae6088-wdog
+[  229.960224] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), ...
+[  229.963288] RIP: 0010:notifier_call_chain+0x66/0xd0
+[  229.969082] RSP: 0018:ffffb20dc0013d88 EFLAGS: 00010246
+[  229.970812] RAX: 000000000000002e RBX: 6b6b6b6b6b6b6b6b RCX: 000000000=
+00008b3
+[  229.972929] RDX: 0000000000000000 RSI: 0000000000000096 RDI: ffffffff9=
+ccc46ac
+[  229.975028] RBP: 0000000000000001 R08: 0000000000000000 R09: 000000000=
+00008b3
+[  229.977039] R10: 0000000000000001 R11: ffffffff9c26c740 R12: 000000000=
+0000000
+[  229.979155] R13: 6b6b6b6b6b6b6b6b R14: 0000000000000000 R15: 00000000f=
+ffffffa
+...   slub_debug=3DFZP poison ^^^
+[  229.989089] Call Trace:
+[  229.990157]  blocking_notifier_call_chain+0x43/0x59
+[  229.991401]  kernel_restart_prepare+0x14/0x30
+[  229.992607]  kernel_restart+0x9/0x30
+[  229.993800]  __do_sys_reboot+0x1d2/0x210
+[  230.000149]  do_syscall_64+0x3d/0x130
+[  230.001277]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  230.002639] RIP: 0033:0x7f5461bdd177
+[  230.016402] Modules linked in: i6300esb
+[  230.050261] Kernel panic - not syncing: Attempted to kill init! exitco=
+de=3D0x0000000b
 
-Since the correct mm_struct is now being passed down, it is now also
-unnecessary to take the mmap_sem semaphore because ptdump_walk_pgd() will
-now take the semaphore on the real mm.
+Fix the crash by reverting 44ea39420fc9 so unregister_reboot_notifier() is
+called when watchdog device is removed.  This also makes handling of the
+reboot notifier unified with the handling of the restart handler, which is
+freed with unregister_restart_handler() in the same place.
 
-Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
-Signed-off-by: Steven Price <steven.price@arm.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: "Liang, Kan" <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zong Li <zong.li@sifive.com>
+Link: http://lkml.kernel.org/r/20200108125347.6067-1-vdronov@redhat.com
+Fixes: 44ea39420fc9 ("drivers/watchdog: make use of devm_register_reboot_=
+notifier()")
+Signed-off-by: Vladis Dronov <vdronov@redhat.com>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Wim Van Sebroeck <wim@linux-watchdog.org>
+Cc: Chris Healy <cphealy@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/debug_pagetables.c |   10 ++--------
- arch/x86/mm/dump_pagetables.c  |   18 +++++++-----------
- include/linux/pagewalk.h       |    3 +++
- include/linux/ptdump.h         |    2 +-
- mm/pagewalk.c                  |    7 ++++++-
- mm/ptdump.c                    |    4 ++--
- 6 files changed, 21 insertions(+), 23 deletions(-)
+ drivers/watchdog/watchdog_core.c |   35 ++++++++++++++++++++++++++++
+ drivers/watchdog/watchdog_dev.c  |   36 -----------------------------
+ 2 files changed, 36 insertions(+), 35 deletions(-)
 
---- a/arch/x86/mm/debug_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/arch/x86/mm/debug_pagetables.c
-@@ -15,11 +15,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump);
- 
- static int ptdump_curknl_show(struct seq_file *m, void *v)
- {
--	if (current->mm->pgd) {
--		down_read(&current->mm->mmap_sem);
-+	if (current->mm->pgd)
- 		ptdump_walk_pgd_level_debugfs(m, current->mm, false);
--		up_read(&current->mm->mmap_sem);
--	}
- 	return 0;
+--- a/drivers/watchdog/watchdog_core.c~watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code
++++ a/drivers/watchdog/watchdog_core.c
+@@ -147,6 +147,25 @@ int watchdog_init_timeout(struct watchdo
  }
+ EXPORT_SYMBOL_GPL(watchdog_init_timeout);
  
-@@ -28,11 +25,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump_curknl);
- #ifdef CONFIG_PAGE_TABLE_ISOLATION
- static int ptdump_curusr_show(struct seq_file *m, void *v)
++static int watchdog_reboot_notifier(struct notifier_block *nb,
++				    unsigned long code, void *data)
++{
++	struct watchdog_device *wdd;
++
++	wdd = container_of(nb, struct watchdog_device, reboot_nb);
++	if (code == SYS_DOWN || code == SYS_HALT) {
++		if (watchdog_active(wdd)) {
++			int ret;
++
++			ret = wdd->ops->stop(wdd);
++			if (ret)
++				return NOTIFY_BAD;
++		}
++	}
++
++	return NOTIFY_DONE;
++}
++
+ static int watchdog_restart_notifier(struct notifier_block *nb,
+ 				     unsigned long action, void *data)
  {
--	if (current->mm->pgd) {
--		down_read(&current->mm->mmap_sem);
-+	if (current->mm->pgd)
- 		ptdump_walk_pgd_level_debugfs(m, current->mm, true);
--		up_read(&current->mm->mmap_sem);
--	}
- 	return 0;
- }
- 
---- a/arch/x86/mm/dump_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/arch/x86/mm/dump_pagetables.c
-@@ -357,7 +357,8 @@ static void note_page(struct ptdump_stat
+@@ -235,6 +254,19 @@ static int __watchdog_register_device(st
+ 		}
  	}
+ 
++	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
++		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
++
++		ret = register_reboot_notifier(&wdd->reboot_nb);
++		if (ret) {
++			pr_err("watchdog%d: Cannot register reboot notifier (%d)\n",
++			       wdd->id, ret);
++			watchdog_dev_unregister(wdd);
++			ida_simple_remove(&watchdog_ida, id);
++			return ret;
++		}
++	}
++
+ 	if (wdd->ops->restart) {
+ 		wdd->restart_nb.notifier_call = watchdog_restart_notifier;
+ 
+@@ -289,6 +321,9 @@ static void __watchdog_unregister_device
+ 	if (wdd->ops->restart)
+ 		unregister_restart_handler(&wdd->restart_nb);
+ 
++	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status))
++		unregister_reboot_notifier(&wdd->reboot_nb);
++
+ 	watchdog_dev_unregister(wdd);
+ 	ida_simple_remove(&watchdog_ida, wdd->id);
+ }
+--- a/drivers/watchdog/watchdog_dev.c~watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code
++++ a/drivers/watchdog/watchdog_dev.c
+@@ -38,7 +38,6 @@
+ #include <linux/miscdevice.h>	/* For handling misc devices */
+ #include <linux/module.h>	/* For module stuff/... */
+ #include <linux/mutex.h>	/* For mutexes */
+-#include <linux/reboot.h>	/* For reboot notifier */
+ #include <linux/slab.h>		/* For memory functions */
+ #include <linux/types.h>	/* For standard types (like size_t) */
+ #include <linux/watchdog.h>	/* For watchdog specific items */
+@@ -1097,25 +1096,6 @@ static void watchdog_cdev_unregister(str
+ 	put_device(&wd_data->dev);
  }
  
--static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
-+static void ptdump_walk_pgd_level_core(struct seq_file *m,
-+				       struct mm_struct *mm, pgd_t *pgd,
- 				       bool checkwx, bool dmesg)
- {
- 	const struct ptdump_range ptdump_ranges[] = {
-@@ -386,12 +387,7 @@ static void ptdump_walk_pgd_level_core(s
- 		.seq		= m
- 	};
- 
--	struct mm_struct fake_mm = {
--		.pgd = pgd
--	};
--	init_rwsem(&fake_mm.mmap_sem);
+-static int watchdog_reboot_notifier(struct notifier_block *nb,
+-				    unsigned long code, void *data)
+-{
+-	struct watchdog_device *wdd;
 -
--	ptdump_walk_pgd(&st.ptdump, &fake_mm);
-+	ptdump_walk_pgd(&st.ptdump, mm, pgd);
+-	wdd = container_of(nb, struct watchdog_device, reboot_nb);
+-	if (code == SYS_DOWN || code == SYS_HALT) {
+-		if (watchdog_active(wdd)) {
+-			int ret;
+-
+-			ret = wdd->ops->stop(wdd);
+-			if (ret)
+-				return NOTIFY_BAD;
+-		}
+-	}
+-
+-	return NOTIFY_DONE;
+-}
+-
+ /*
+  *	watchdog_dev_register: register a watchdog device
+  *	@wdd: watchdog device
+@@ -1134,22 +1114,8 @@ int watchdog_dev_register(struct watchdo
+ 		return ret;
  
- 	if (!checkwx)
- 		return;
-@@ -404,7 +400,7 @@ static void ptdump_walk_pgd_level_core(s
- 
- void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm)
- {
--	ptdump_walk_pgd_level_core(m, mm->pgd, false, true);
-+	ptdump_walk_pgd_level_core(m, mm, mm->pgd, false, true);
- }
- 
- void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
-@@ -415,7 +411,7 @@ void ptdump_walk_pgd_level_debugfs(struc
- 	if (user && boot_cpu_has(X86_FEATURE_PTI))
- 		pgd = kernel_to_user_pgdp(pgd);
- #endif
--	ptdump_walk_pgd_level_core(m, pgd, false, false);
-+	ptdump_walk_pgd_level_core(m, mm, pgd, false, false);
- }
- EXPORT_SYMBOL_GPL(ptdump_walk_pgd_level_debugfs);
- 
-@@ -430,13 +426,13 @@ void ptdump_walk_user_pgd_level_checkwx(
- 
- 	pr_info("x86/mm: Checking user space page tables\n");
- 	pgd = kernel_to_user_pgdp(pgd);
--	ptdump_walk_pgd_level_core(NULL, pgd, true, false);
-+	ptdump_walk_pgd_level_core(NULL, &init_mm, pgd, true, false);
- #endif
- }
- 
- void ptdump_walk_pgd_level_checkwx(void)
- {
--	ptdump_walk_pgd_level_core(NULL, INIT_PGD, true, false);
-+	ptdump_walk_pgd_level_core(NULL, &init_mm, INIT_PGD, true, false);
- }
- 
- static int __init pt_dump_init(void)
---- a/include/linux/pagewalk.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/include/linux/pagewalk.h
-@@ -74,6 +74,7 @@ enum page_walk_action {
-  * mm_walk - walk_page_range data
-  * @ops:	operation to call during the walk
-  * @mm:		mm_struct representing the target process of page table walk
-+ * @pgd:	pointer to PGD; only valid with no_vma (otherwise set to NULL)
-  * @vma:	vma currently walked (NULL if walking outside vmas)
-  * @action:	next action to perform (see enum page_walk_action)
-  * @no_vma:	walk ignoring vmas (vma will always be NULL)
-@@ -84,6 +85,7 @@ enum page_walk_action {
- struct mm_walk {
- 	const struct mm_walk_ops *ops;
- 	struct mm_struct *mm;
-+	pgd_t *pgd;
- 	struct vm_area_struct *vma;
- 	enum page_walk_action action;
- 	bool no_vma;
-@@ -95,6 +97,7 @@ int walk_page_range(struct mm_struct *mm
- 		void *private);
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
-+			  pgd_t *pgd,
- 			  void *private);
- int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
- 		void *private);
---- a/include/linux/ptdump.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/include/linux/ptdump.h
-@@ -17,6 +17,6 @@ struct ptdump_state {
- 	const struct ptdump_range *range;
- };
- 
--void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm);
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
- 
- #endif /* _LINUX_PTDUMP_H */
---- a/mm/pagewalk.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/mm/pagewalk.c
-@@ -206,7 +206,10 @@ static int walk_pgd_range(unsigned long
- 	const struct mm_walk_ops *ops = walk->ops;
- 	int err = 0;
- 
--	pgd = pgd_offset(walk->mm, addr);
-+	if (walk->pgd)
-+		pgd = walk->pgd + pgd_index(addr);
-+	else
-+		pgd = pgd_offset(walk->mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd)) {
-@@ -436,11 +439,13 @@ int walk_page_range(struct mm_struct *mm
-  */
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
-+			  pgd_t *pgd,
- 			  void *private)
- {
- 	struct mm_walk walk = {
- 		.ops		= ops,
- 		.mm		= mm,
-+		.pgd		= pgd,
- 		.private	= private,
- 		.no_vma		= true
- 	};
---- a/mm/ptdump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/mm/ptdump.c
-@@ -122,14 +122,14 @@ static const struct mm_walk_ops ptdump_o
- 	.pte_hole	= ptdump_hole,
- };
- 
--void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd)
- {
- 	const struct ptdump_range *range = st->range;
- 
- 	down_read(&mm->mmap_sem);
- 	while (range->start != range->end) {
- 		walk_page_range_novma(mm, range->start, range->end,
--				      &ptdump_ops, st);
-+				      &ptdump_ops, pgd, st);
- 		range++;
- 	}
- 	up_read(&mm->mmap_sem);
-_
-
-Patches currently in -mm which might be from steven.price@arm.com are
-
-mm-add-generic-pd_leaf-macros.patch
-arc-mm-add-pd_leaf-definitions.patch
-arm-mm-add-pd_leaf-definitions.patch
-arm64-mm-add-pd_leaf-definitions.patch
-mips-mm-add-pd_leaf-definitions.patch
-powerpc-mm-add-pd_leaf-definitions.patch
-riscv-mm-add-pd_leaf-definitions.patch
-s390-mm-add-pd_leaf-definitions.patch
-sparc-mm-add-pd_leaf-definitions.patch
-x86-mm-add-pd_leaf-definitions.patch
-mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
-mm-pagewalk-allow-walking-without-vma.patch
-mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch
-mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch
-mm-pagewalk-add-depth-parameter-to-pte_hole.patch
-x86-mm-point-to-struct-seq_file-from-struct-pg_state.patch
-x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch
-x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
-mm-add-generic-ptdump.patch
-x86-mm-convert-dump_pagetables-to-use-walk_page_range.patch
-arm64-mm-convert-mm-dumpc-to-use-walk_page_range.patch
-arm64-mm-display-non-present-entries-in-ptdump.patch
-mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch
-x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
+ 	ret = watchdog_register_pretimeout(wdd);
+-	if (ret) {
++	if (ret)
+ 		watchdog_cdev_unregister(wdd);
+-		return ret;
+-	}
+-
+-	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
+-		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
