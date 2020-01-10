@@ -1,103 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch added to
- -mm tree
-Date: Fri, 10 Jan 2020 13:05:49 -0800
-Message-ID: <20200110210549.32SMSqvbP%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ =?US-ASCII?Q?drivers-base-memoryc-cache-blocks-in-radix-tree-to-acceler?=
+ =?US-ASCII?Q?ate-lookup-fix.patch?= removed from -mm tree
+Date: Fri, 10 Jan 2020 13:10:10 -0800
+Message-ID: <20200110211010.TcE7yckXn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33140 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726842AbgAJVFv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jan 2020 16:05:51 -0500
+        id S1726836AbgAJVKM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jan 2020 16:10:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anders.roxell@linaro.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, steven.price@arm.com
+To: akpm@linux-foundation.org, cheloha@linux.ibm.com, david@redhat.com, gregkh@linuxfoundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, nathanl@linux.ibm.com, rafael@kernel.org, ricklind@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix
-has been added to the -mm tree.  Its filename is
-     x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch
+     Subject: drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix
+has been removed from the -mm tree.  Its filename was
+     drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Steven Price <steven.price@arm.com>
-Subject: x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix
 
-restore missed arm64 changes
+document the radix tree locking
 
-Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
-Signed-off-by: Steven Price <steven.price@arm.com>
-Cc: Anders Roxell <anders.roxell@linaro.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rick Lindsley <ricklind@linux.vnet.ibm.com>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dump.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/memory.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/arm64/mm/dump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix
-+++ a/arch/arm64/mm/dump.c
-@@ -323,7 +323,7 @@ void ptdump_walk(struct seq_file *s, str
- 		}
- 	};
+--- a/drivers/base/memory.c~drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix
++++ a/drivers/base/memory.c
+@@ -61,6 +61,9 @@ static struct bus_type memory_subsys = {
+  * Memory blocks are cached in a local radix tree to avoid
+  * a costly linear search for the corresponding device on
+  * the subsystem bus.
++ *
++ * Protected by mem_hotplug_lock in mem_hotplug_begin(), and by the guaranteed
++ * single-threadness at boot time.
+  */
+ static RADIX_TREE(memory_blocks, GFP_KERNEL);
  
--	ptdump_walk_pgd(&st.ptdump, info->mm);
-+	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
- }
- 
- static void ptdump_initialize(void)
-@@ -361,7 +361,7 @@ void ptdump_check_wx(void)
- 		}
- 	};
- 
--	ptdump_walk_pgd(&st.ptdump, &init_mm);
-+	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 
- 	if (st.wx_pages || st.uxn_pages)
- 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
 _
 
-Patches currently in -mm which might be from steven.price@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-generic-pd_leaf-macros.patch
-arc-mm-add-pd_leaf-definitions.patch
-arm-mm-add-pd_leaf-definitions.patch
-arm64-mm-add-pd_leaf-definitions.patch
-mips-mm-add-pd_leaf-definitions.patch
-powerpc-mm-add-pd_leaf-definitions.patch
-riscv-mm-add-pd_leaf-definitions.patch
-s390-mm-add-pd_leaf-definitions.patch
-sparc-mm-add-pd_leaf-definitions.patch
-x86-mm-add-pd_leaf-definitions.patch
-mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
-mm-pagewalk-allow-walking-without-vma.patch
-mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch
-mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch
-mm-pagewalk-add-depth-parameter-to-pte_hole.patch
-x86-mm-point-to-struct-seq_file-from-struct-pg_state.patch
-x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch
-x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
-mm-add-generic-ptdump.patch
-x86-mm-convert-dump_pagetables-to-use-walk_page_range.patch
-arm64-mm-convert-mm-dumpc-to-use-walk_page_range.patch
-arm64-mm-display-non-present-entries-in-ptdump.patch
-mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch
-x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
-x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch
+mm.patch
+mm-oom-avoid-printk-iteration-under-rcu-fix.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+drivers-block-null_blk_mainc-fix-layout.patch
+drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
+proc-convert-everything-to-struct-proc_ops-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
