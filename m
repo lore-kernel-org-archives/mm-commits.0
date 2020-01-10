@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch added to
- -mm tree
-Date: Fri, 10 Jan 2020 13:20:58 -0800
-Message-ID: <20200110212058.hss8jAE54%akpm@linux-foundation.org>
+ mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
+ added to -mm tree
+Date: Fri, 10 Jan 2020 13:36:20 -0800
+Message-ID: <20200110213620.e-pNwZxyT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35980 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726762AbgAJVU7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jan 2020 16:20:59 -0500
+        id S1726891AbgAJVgV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jan 2020 16:36:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com
 
 
 The patch titled
-     Subject: mm/huge_memory.c: use head to emphasize the purpose of page
+     Subject: mm/huge_memory.c: reduce critical section protected by split_queue_lock
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
+     mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,75 +38,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/huge_memory.c: use head to emphasize the purpose of page
+Subject: mm/huge_memory.c: reduce critical section protected by split_queue_lock
 
-During split huge page, it checks the property of the page.  Currently we
-do the check on page and head without emphasizing the check is on the
-compound page.  In case the page passed to split_huge_page_to_list is a
-tail page, audience would take some time to think about whether the check
-is on compound page or tail page itself.
+split_queue_lock protects data in struct deferred_split.  We can release
+the lock after delete the page from deferred_split_queue.
 
-To make it explicit, use head instead of page for those checks.  After
-this, audience would be more clear about the checks are on compound page
-and the page is used to do the split and dump error message if failed.
+This patch moves the THP accounting out of the lock protection, which is
+introduced in commit 65c453778aea ("mm, rmap: account shmem thp pages").
 
-Link: http://lkml.kernel.org/r/20200110032610.26499-2-richardw.yang@linux.intel.com
+Link: http://lkml.kernel.org/r/20200110025516.23996-1-richardw.yang@linux.intel.com
 Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page
+--- a/mm/huge_memory.c~mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock
 +++ a/mm/huge_memory.c
-@@ -2704,7 +2704,7 @@ int split_huge_page_to_list(struct page
- {
- 	struct page *head = compound_head(page);
- 	struct pglist_data *pgdata = NODE_DATA(page_to_nid(head));
--	struct deferred_split *ds_queue = get_deferred_split_queue(page);
-+	struct deferred_split *ds_queue = get_deferred_split_queue(head);
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 	int count, mapcount, extra_pins, ret;
-@@ -2713,10 +2713,10 @@ int split_huge_page_to_list(struct page
- 	pgoff_t end;
- 
- 	VM_BUG_ON_PAGE(is_huge_zero_page(head), head);
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	VM_BUG_ON_PAGE(!PageCompound(page), page);
-+	VM_BUG_ON_PAGE(!PageLocked(head), head);
-+	VM_BUG_ON_PAGE(!PageCompound(head), head);
- 
--	if (PageWriteback(page))
-+	if (PageWriteback(head))
- 		return -EBUSY;
- 
- 	if (PageAnon(head)) {
-@@ -2767,7 +2767,7 @@ int split_huge_page_to_list(struct page
- 		goto out_unlock;
- 	}
- 
--	mlocked = PageMlocked(page);
-+	mlocked = PageMlocked(head);
- 	unmap_page(head);
- 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
-@@ -2800,10 +2800,10 @@ int split_huge_page_to_list(struct page
+@@ -2799,6 +2799,7 @@ int split_huge_page_to_list(struct page
+ 			ds_queue->split_queue_len--;
  			list_del(page_deferred_list(head));
  		}
++		spin_unlock(&ds_queue->split_queue_lock);
  		if (mapping) {
--			if (PageSwapBacked(page))
--				__dec_node_page_state(page, NR_SHMEM_THPS);
-+			if (PageSwapBacked(head))
-+				__dec_node_page_state(head, NR_SHMEM_THPS);
- 			else
--				__dec_node_page_state(page, NR_FILE_THPS);
-+				__dec_node_page_state(head, NR_FILE_THPS);
+ 			if (PageSwapBacked(head))
+ 				__dec_node_page_state(head, NR_SHMEM_THPS);
+@@ -2806,7 +2807,6 @@ int split_huge_page_to_list(struct page
+ 				__dec_node_page_state(head, NR_FILE_THPS);
  		}
  
- 		spin_unlock(&ds_queue->split_queue_lock);
+-		spin_unlock(&ds_queue->split_queue_lock);
+ 		__split_huge_page(page, list, end, flags);
+ 		if (PageSwapCache(head)) {
+ 			swp_entry_t entry = { .val = page_private(head) };
 _
 
 Patches currently in -mm which might be from richardw.yang@linux.intel.com are
@@ -114,4 +81,5 @@ Patches currently in -mm which might be from richardw.yang@linux.intel.com are
 mm-thp-grab-the-lock-before-manipulation-defer-list.patch
 mm-huge_memoryc-use-head-to-check-huge-zero-page.patch
 mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
+mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
 mm-remove-dead-code-totalram_pages_set.patch
