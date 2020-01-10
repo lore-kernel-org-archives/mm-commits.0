@@ -1,238 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2020-01-09-17-33 uploaded
-Date: Thu, 09 Jan 2020 17:34:13 -0800
-Message-ID: <20200110013413.NNeLcxiMi%akpm__42306.0155984544$1578620146$gmane$org@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 10 Jan 2020 12:34:53 -0800
+Message-ID: <20200110203453.LTPyHPHVU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39224 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57030 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730579AbgAJBeS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 20:34:18 -0500
+        id S1726613AbgAJUez (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jan 2020 15:34:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-
-The mm-of-the-moment snapshot 2020-01-09-17-33 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-	https://github.com/hnaz/linux-mm
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-A git copy of this tree is also available at
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-	https://github.com/hnaz/linux-mm
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-This mmotm tree contains the following patches against 5.5-rc5:
-(patches marked "*" will be included in linux-next)
+ drivers/gpu/drm/i915/display/intel_display.c    |   17 ----------
+ drivers/gpu/drm/i915/gt/intel_ring_submission.c |   22 --------------
+ sound/soc/soc-topology.c                        |    4 --
+ sound/usb/quirks.c                              |    6 ---
+ 4 files changed, 49 deletions(-)
 
-  origin.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations.patch
-* x86-mm-split-vmalloc_sync_all.patch
-* revert-ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
-* mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section.patch
-* fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection.patch
-* mm-initialize-memmap-of-unavailable-memory-directly.patch
-* mm-memory_hotplug-dont-free-usage-map-when-removing-a-re-added-early-section.patch
-* thp-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment.patch
-* thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment.patch
-* thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment-fix.patch
-* mm-memcg-slab-fix-percpu-slab-vmstats-flushing.patch
-* mm-debug_pagealloc-dont-rely-on-static-keys-too-early.patch
-* mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix.patch
-* mm-page-writebackc-avoid-potential-division-by-zero-in-wb_min_max_ratio.patch
-* mm-page-writebackc-use-div64_ul-for-u64-by-unsigned-long-divide.patch
-* mm-page-writebackc-improve-arithmetic-divisions.patch
-* mm-memcg-slab-call-flush_memcg_workqueue-only-if-memcg-workqueue-is-valid.patch
-* mm-khugepaged-add-trace-status-description-for-scan_page_has_private.patch
-* mm-thp-grab-the-lock-before-manipulation-defer-list.patch
-* lib-test_bitmap-correct-test-data-offsets-for-32-bit.patch
-* watchdog-fix-uaf-in-reboot-notifier-handling-in-watchdog-core-code.patch
-* memcg-fix-a-crash-in-wb_workfn-when-a-device-disappears.patch
-* scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
-* scripts-spellingtxt-add-issus-typo.patch
-* fs-ocfs-remove-unnecessary-assertion-in-dlm_migrate_lockres.patch
-* ocfs2-remove-unneeded-semicolon.patch
-* ocfs2-make-local-header-paths-relative-to-c-files.patch
-* ocfs2-dlm-remove-redundant-assignment-to-ret.patch
-* ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use.patch
-* ramfs-support-o_tmpfile.patch
-* watchdog-fix-possible-soft-lockup-warning-at-bootup.patch
-* watchdog-fix-possible-soft-lockup-warning-at-bootup-v2.patch
-  mm.patch
-* mm-avoid-slub-allocation-while-holding-list_lock.patch
-* kmemleak-turn-kmemleak_lock-and-object-lock-to-raw_spinlock_t.patch
-* mm-clean-up-filemap_write_and_wait.patch
-* mm-fix-gup_pud_range.patch
-* mm-cleanup-some-useless-code.patch
-* mm-vmscan-expose-cgroup_ino-for-memcg-reclaim-tracepoints.patch
-* mm-pgmap-use-correct-alignment-when-looking-at-first-pfn-from-a-region.patch
-* mm-mmap-fix-the-adjusted-length-error.patch
-* drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup.patch
-* drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix.patch
-* mm-memmap_init-update-variable-name-in-memmap_init_zone.patch
-* mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone.patch
-* mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn.patch
-* mm-memory_hotplug-dont-check-for-all-holes-in-shrink_zone_span.patch
-* mm-memory_hotplug-drop-local-variables-in-shrink_zone_span.patch
-* mm-memory_hotplug-cleanup-__remove_pages.patch
-* mm-tracing-print-symbol-name-for-kmem_alloc_node-call_site-events.patch
-* mm-early_remap-use-%pa-to-print-resource_size_t-variables.patch
-* mm-page_alloc-skip-non-present-sections-on-zone-initialization.patch
-* mm-vmscanc-remove-unused-return-value-of-shrink_node.patch
-* mm-memblock-define-memblock_physmem_add.patch
-* memblock-use-__func__-in-remaining-memblock_dbg-call-sites.patch
-* mm-oom-avoid-printk-iteration-under-rcu.patch
-* mm-oom-avoid-printk-iteration-under-rcu-fix.patch
-* mm-hugetlb-controller-for-cgroups-v2.patch
-* mm-migrate-remove-useless-mask-of-start-address.patch
-* mm-migrate-clean-up-some-minor-coding-style.patch
-* mm-migrate-add-stable-check-in-migrate_vma_insert_page.patch
-* mm-get-rid-of-odd-jump-labels-in-find_mergeable_anon_vma.patch
-* zswap-add-allocation-hysteresis-if-pool-limit-is-hit.patch
-* mm-clean-up-obsolete-check-on-space-in-page-flags.patch
-* mm-remove-dead-code-totalram_pages_set.patch
-* mm-drop-elements-hw-and-phys_callback-from-struct-memory_block.patch
-* mm-fix-comments-related-to-node-reclaim.patch
-* zram-try-to-avoid-worst-case-scenario-on-same-element-pages.patch
-* zram-fix-error-return-codes-not-being-returned-in-writeback_store.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* add-helpers-for-kelvin-to-from-celsius-conversion.patch
-* acpi-thermal-switch-to-use-linux-unitsh-helpers.patch
-* platform-x86-asus-wmi-switch-to-use-linux-unitsh-helpers.patch
-* platform-x86-intel_menlow-switch-to-use-linux-unitsh-helpers.patch
-* thermal-int340x-switch-to-use-linux-unitsh-helpers.patch
-* thermal-intel_pch-switch-to-use-linux-unitsh-helpers.patch
-* nvme-hwmon-switch-to-use-linux-unitsh-helpers.patch
-* thermal-remove-kelvin-to-from-celsius-conversion-helpers-from-linux-thermalh.patch
-* iwlegacy-use-linux-unitsh-helpers.patch
-* iwlwifi-use-linux-unitsh-helpers.patch
-* thermal-armada-remove-unused-to_mcelsius-macro.patch
-* iio-adc-qcom-vadc-common-use-linux-unitsh-helpers.patch
-* lib-zlib-add-s390-hardware-support-for-kernel-zlib_deflate.patch
-* s390-boot-rename-heap_size-due-to-name-collision.patch
-* lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate.patch
-* s390-boot-add-dfltcc=-kernel-command-line-parameter.patch
-* lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
-* btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
-* lib-scatterlist-adjust-indentation-in-__sg_alloc_table.patch
-* uapi-rename-ext2_swab-to-swab-and-share-globally-in-swabh.patch
-* lib-find_bitc-join-_find_next_bit_le.patch
-* lib-find_bitc-uninline-helper-_find_next_bit.patch
-* string-add-stracpy-and-stracpy_pad-mechanisms.patch
-* documentation-checkpatch-prefer-stracpy-strscpy-over-strcpy-strlcpy-strncpy.patch
-* elf-smaller-code-generation-around-auxv-vector-fill.patch
-* elf-fix-start_code-calculation.patch
-* elf-dont-copy-elf-header-around.patch
-* elf-better-codegen-around-current-mm.patch
-* elf-make-bad_addr-unlikely.patch
-* elf-coredump-allocate-core-elf-header-on-stack.patch
-* elf-coredump-delete-duplicated-overflow-check.patch
-* elf-coredump-allow-process-with-empty-address-space-to-coredump.patch
-* init-mainc-log-arguments-and-environment-passed-to-init.patch
-* init-mainc-remove-unnecessary-repair_env_string-in-do_initcall_level.patch
-* init-mainc-fix-quoted-value-handling-in-unknown_bootoption.patch
-* init-fix-misleading-this-architecture-does-not-have-kernel-memory-protection-message.patch
-* reiserfs-prevent-null-pointer-dereference-in-reiserfs_insert_item.patch
-* execve-warn-if-process-starts-with-executable-stack.patch
-* io-mapping-use-phys_pfn-macro-in-io_mapping_map_atomic_wc.patch
-* aio-simplify-read_events.patch
-* smp_mb__beforeafter_atomic-update-documentation.patch
-* ipc-mqueuec-remove-duplicated-code.patch
-* ipc-mqueuec-update-document-memory-barriers.patch
-* ipc-msgc-update-and-document-memory-barriers.patch
-* ipc-semc-document-and-update-memory-barriers.patch
-* ipc-consolidate-all-xxxctl_down-functions.patch
-* ipc-consolidate-all-xxxctl_down-functions-fix.patch
-  linux-next.patch
-  linux-next-rejects.patch
-  linux-next-fix.patch
-  linux-next-fix-2.patch
-* drivers-block-null_blk_mainc-fix-layout.patch
-* drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
-* pinctrl-fix-pxa2xxc-build-warnings.patch
-* mm-remove-__krealloc.patch
-* mm-add-generic-pd_leaf-macros.patch
-* arc-mm-add-pd_leaf-definitions.patch
-* arm-mm-add-pd_leaf-definitions.patch
-* arm64-mm-add-pd_leaf-definitions.patch
-* mips-mm-add-pd_leaf-definitions.patch
-* powerpc-mm-add-pd_leaf-definitions.patch
-* riscv-mm-add-pd_leaf-definitions.patch
-* s390-mm-add-pd_leaf-definitions.patch
-* sparc-mm-add-pd_leaf-definitions.patch
-* x86-mm-add-pd_leaf-definitions.patch
-* mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
-* mm-pagewalk-add-p4d_entry-and-pgd_entry-fix.patch
-* mm-pagewalk-allow-walking-without-vma.patch
-* mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch
-* mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch
-* mm-pagewalk-add-depth-parameter-to-pte_hole.patch
-* x86-mm-point-to-struct-seq_file-from-struct-pg_state.patch
-* x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch
-* x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
-* mm-add-generic-ptdump.patch
-* x86-mm-convert-dump_pagetables-to-use-walk_page_range.patch
-* arm64-mm-convert-mm-dumpc-to-use-walk_page_range.patch
-* arm64-mm-display-non-present-entries-in-ptdump.patch
-* mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch
-* x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
-* proc-decouple-proc-from-vfs-with-struct-proc_ops.patch
-* proc-convert-everything-to-struct-proc_ops.patch
-* proc-convert-everything-to-struct-proc_ops-fix.patch
-* lib-string-add-strnchrnul.patch
-* bitops-more-bits_to_-macros.patch
-* lib-add-test-for-bitmap_parse.patch
-* lib-add-test-for-bitmap_parse-fix.patch
-* lib-add-test-for-bitmap_parse-fix-2.patch
-* lib-make-bitmap_parse_user-a-wrapper-on-bitmap_parse.patch
-* lib-rework-bitmap_parse.patch
-* lib-new-testcases-for-bitmap_parse_user.patch
-* cpumask-dont-calculate-length-of-the-input-string.patch
-* treewide-remove-redundent-is_err-before-error-code-check.patch
-* arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
-* drivers-tty-serial-sh-scic-suppress-warning.patch
-* fix-read-buffer-overflow-in-delta-ipc.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
+--- a/drivers/gpu/drm/i915/display/intel_display.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_display.c
+@@ -4963,23 +4963,6 @@ static void icl_enable_trans_port_sync(c
+ 		   trans_ddi_func_ctl2_val);
+ }
+ 
+-<<<<<<< HEAD
+-static void icl_disable_transcoder_port_sync(const struct intel_crtc_state *old_crtc_state)
+-{
+-	struct intel_crtc *crtc = to_intel_crtc(old_crtc_state->base.crtc);
+-	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
+-
+-	if (old_crtc_state->master_transcoder == INVALID_TRANSCODER)
+-		return;
+-
+-	DRM_DEBUG_KMS("Disabling Transcoder Port Sync on Slave Transcoder %s\n",
+-		      transcoder_name(old_crtc_state->cpu_transcoder));
+-
+-	I915_WRITE(TRANS_DDI_FUNC_CTL2(old_crtc_state->cpu_transcoder), 0);
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ static void intel_fdi_normal_train(struct intel_crtc *crtc)
+ {
+ 	struct drm_device *dev = crtc->base.dev;
+--- a/drivers/gpu/drm/i915/gt/intel_ring_submission.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/gt/intel_ring_submission.c
+@@ -1559,10 +1559,6 @@ static int switch_mm(struct i915_request
+ 	if (ret)
+ 		return ret;
+ 
+-<<<<<<< HEAD
+-	if (ce->state) {
+-		u32 flags;
+-=======
+ 	/*
+ 	 * Not only do we need a full barrier (post-sync write) after
+ 	 * invalidating the TLBs, but we need to wait a little bit
+@@ -1574,34 +1570,16 @@ static int switch_mm(struct i915_request
+ 	ret = load_pd_dir(rq, i915_vm_to_ppgtt(vm), PP_DIR_DCLV_2G);
+ 	if (ret)
+ 		return ret;
+->>>>>>> linux-next/akpm-base
+ 
+ 	return rq->engine->emit_flush(rq, EMIT_INVALIDATE);
+ }
+ 
+-<<<<<<< HEAD
+-		/* For resource streamer on HSW+ and power context elsewhere */
+-		BUILD_BUG_ON(HSW_MI_RS_SAVE_STATE_EN != MI_SAVE_EXT_STATE_EN);
+-		BUILD_BUG_ON(HSW_MI_RS_RESTORE_STATE_EN != MI_RESTORE_EXT_STATE_EN);
+-
+-		flags = MI_SAVE_EXT_STATE_EN | MI_MM_SPACE_GTT;
+-		if (!i915_gem_context_is_kernel(rq->gem_context))
+-			flags |= MI_RESTORE_EXT_STATE_EN;
+-		else
+-			flags |= MI_RESTORE_INHIBIT;
+-
+-		ret = mi_set_context(rq, flags);
+-		if (ret)
+-			return ret;
+-	}
+-=======
+ static int switch_context(struct i915_request *rq)
+ {
+ 	struct intel_context *ce = rq->context;
+ 	int ret;
+ 
+ 	GEM_BUG_ON(HAS_EXECLISTS(rq->i915));
+->>>>>>> linux-next/akpm-base
+ 
+ 	ret = switch_mm(rq, vm_alias(ce));
+ 	if (ret)
+--- a/sound/soc/soc-topology.c~linux-next-git-rejects
++++ a/sound/soc/soc-topology.c
+@@ -549,12 +549,8 @@ static void remove_link(struct snd_soc_c
+ 		dobj->ops->link_unload(comp, dobj);
+ 
+ 	list_del(&dobj->list);
+-<<<<<<< HEAD
+-	snd_soc_remove_dai_link(comp->card, link);
+-=======
+ 	snd_soc_remove_pcm_runtime(comp->card,
+ 			snd_soc_get_pcm_runtime(comp->card, link));
+->>>>>>> linux-next/akpm-base
+ 
+ 	kfree(link->name);
+ 	kfree(link->stream_name);
+--- a/sound/usb/quirks.c~linux-next-git-rejects
++++ a/sound/usb/quirks.c
+@@ -1396,15 +1396,9 @@ bool snd_usb_get_sample_rate_quirk(struc
+ 	case USB_ID(0x041e, 0x4080): /* Creative Live Cam VF0610 */
+ 	case USB_ID(0x04d8, 0xfeea): /* Benchmark DAC1 Pre */
+ 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
+-<<<<<<< HEAD
+-	case USB_ID(0x05A3, 0x9420): /* ELP HD USB Camera */
+-	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
+-	case USB_ID(0x074D, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+-=======
+ 	case USB_ID(0x05a3, 0x9420): /* ELP HD USB Camera */
+ 	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
+ 	case USB_ID(0x074d, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+->>>>>>> linux-next/akpm-base
+ 	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
+ 	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
+ 	case USB_ID(0x21b4, 0x0081): /* AudioQuest DragonFly */
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix.patch
+mm-oom-avoid-printk-iteration-under-rcu-fix.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+linux-next-fix-2.patch
+drivers-block-null_blk_mainc-fix-layout.patch
+drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
+proc-convert-everything-to-struct-proc_ops-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
