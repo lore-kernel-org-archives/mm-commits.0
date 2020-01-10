@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Thu, 09 Jan 2020 14:46:54 -0800
-Message-ID: <20200109224654.veSj13m4U%akpm@linux-foundation.org>
+Subject: + linux-next-fix-2.patch added to -mm tree
+Date: Thu, 09 Jan 2020 16:36:40 -0800
+Message-ID: <20200110003640.OkYDJZ--Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37344 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729389AbgAIWqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 17:46:55 -0500
+        id S1730334AbgAJAgl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 19:36:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: a
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     linux-next-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,25 +36,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: a
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/net/ethernet/mellanox/mlxsw/spectrum_qdisc.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/include/linux/backing-dev.h~linux-next-rejects
-+++ a/include/linux/backing-dev.h
-@@ -514,13 +514,4 @@ static inline const char *bdi_dev_name(s
- 	return dev_name(bdi->dev);
- }
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_qdisc.c~linux-next-fix-2
++++ a/drivers/net/ethernet/mellanox/mlxsw/spectrum_qdisc.c
+@@ -767,13 +767,6 @@ __mlxsw_sp_qdisc_ets_graft(struct mlxsw_
+ 	    mlxsw_sp_port->tclass_qdiscs[tclass_num].handle == child_handle)
+ 		return 0;
  
--extern const char *bdi_unknown_name;
--
--static inline const char *bdi_dev_name(struct backing_dev_info *bdi)
--{
--	if (!bdi || !bdi->dev)
--		return bdi_unknown_name;
--	return dev_name(bdi->dev);
--}
+-	if (!p->child_handle) {
+-		/* This is an invisible FIFO replacing the original Qdisc.
+-		 * Ignore it--the original Qdisc's destroy will follow.
+-		 */
+-		return 0;
+-	}
