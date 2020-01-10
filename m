@@ -1,58 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fix-2.patch added to -mm tree
-Date: Thu, 09 Jan 2020 16:36:40 -0800
-Message-ID: <20200110003640.OkYDJZ--Q%akpm@linux-foundation.org>
+Subject: [failures]
+ ocfs2-remove-unneeded-header-include-path-in-fs-ocfs2-makefile.patch
+ removed from -mm tree
+Date: Thu, 09 Jan 2020 16:37:38 -0800
+Message-ID: <20200110003738.-ihTwzxaZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57812 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59546 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730334AbgAJAgl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jan 2020 19:36:41 -0500
+        id S1730339AbgAJAhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jan 2020 19:37:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, masahiroy@kernel.org, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: a
-has been added to the -mm tree.  Its filename is
-     linux-next-fix-2.patch
+     Subject: ocfs2: remove unneeded header include path in fs/ocfs2/Makefile
+has been removed from the -mm tree.  Its filename was
+     ocfs2-remove-unneeded-header-include-path-in-fs-ocfs2-makefile.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-fix-2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: ocfs2: remove unneeded header include path in fs/ocfs2/Makefile
 
+You can build fs/ocfs2 without this.
+
+Link: http://lkml.kernel.org/r/20200105070023.27806-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlxsw/spectrum_qdisc.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/ocfs2/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_qdisc.c~linux-next-fix-2
-+++ a/drivers/net/ethernet/mellanox/mlxsw/spectrum_qdisc.c
-@@ -767,13 +767,6 @@ __mlxsw_sp_qdisc_ets_graft(struct mlxsw_
- 	    mlxsw_sp_port->tclass_qdiscs[tclass_num].handle == child_handle)
- 		return 0;
+--- a/fs/ocfs2/Makefile~ocfs2-remove-unneeded-header-include-path-in-fs-ocfs2-makefile
++++ a/fs/ocfs2/Makefile
+@@ -1,5 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0
+-ccflags-y := -I$(src)
  
--	if (!p->child_handle) {
--		/* This is an invisible FIFO replacing the original Qdisc.
--		 * Ignore it--the original Qdisc's destroy will follow.
--		 */
--		return 0;
--	}
+ obj-$(CONFIG_OCFS2_FS) += 	\
+ 	ocfs2.o			\
+_
+
+Patches currently in -mm which might be from masahiroy@kernel.org are
+
+ocfs2-make-local-header-paths-relative-to-c-files.patch
+treewide-remove-redundent-is_err-before-error-code-check.patch
