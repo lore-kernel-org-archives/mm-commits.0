@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-pass-in-nid-to-online_pages.patch added
- to -mm tree
-Date: Mon, 13 Jan 2020 14:28:35 -0800
-Message-ID: <20200113222835.fauUU%akpm@linux-foundation.org>
+Subject: + drivers-base-memoryc-get-rid-of-find_memory_block.patch
+ added to -mm tree
+Date: Mon, 13 Jan 2020 14:28:38 -0800
+Message-ID: <20200113222838.-KFqd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41480 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41620 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726530AbgAMW2i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 17:28:38 -0500
+        id S1726530AbgAMW2k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:28:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rafael@kernel.org, pasha.tatashin@soleen.com, osalvador@suse.de, mhocko@suse.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, anshuman.khandual@arm.com, david@redhat.com
 
 
 The patch titled
-     Subject: mm/memory_hotplug: pass in nid to online_pages()
+     Subject: drivers/base/memory.c: get rid of find_memory_block()
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-pass-in-nid-to-online_pages.patch
+     drivers-base-memoryc-get-rid-of-find_memory_block.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-pass-in-nid-to-online_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memoryc-get-rid-of-find_memory_block.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-pass-in-nid-to-online_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memoryc-get-rid-of-find_memory_block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,102 +37,82 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: pass in nid to online_pages()
+Subject: drivers/base/memory.c: get rid of find_memory_block()
 
-Patch series "mm/memory_hotplug: pass in nid to online_pages()".
+No longer needed, remove it.
 
-Simplify onlining code and get rid of find_memory_block(). Pass in the
-nid from the memory block we are trying to online directly, instead of
-manually looking it up.
-
-
-This patch (of 2):
-
-No need to lookup the memory block, we can directly pass in the nid.
-
-Link: http://lkml.kernel.org/r/20200113113354.6341-2-david@redhat.com
+Link: http://lkml.kernel.org/r/20200113113354.6341-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |    6 +++---
- include/linux/memory_hotplug.h |    3 ++-
- mm/memory_hotplug.c            |   13 ++-----------
- 3 files changed, 7 insertions(+), 15 deletions(-)
+ drivers/base/memory.c  |   12 +-----------
+ include/linux/memory.h |    1 -
+ 2 files changed, 1 insertion(+), 12 deletions(-)
 
---- a/drivers/base/memory.c~mm-memory_hotplug-pass-in-nid-to-online_pages
+--- a/drivers/base/memory.c~drivers-base-memoryc-get-rid-of-find_memory_block
 +++ a/drivers/base/memory.c
-@@ -233,7 +233,7 @@ static bool pages_correctly_probed(unsig
-  */
- static int
- memory_block_action(unsigned long start_section_nr, unsigned long action,
--		    int online_type)
-+		    int online_type, int nid)
- {
- 	unsigned long start_pfn;
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
-@@ -246,7 +246,7 @@ memory_block_action(unsigned long start_
- 		if (!pages_correctly_probed(start_pfn))
- 			return -EBUSY;
- 
--		ret = online_pages(start_pfn, nr_pages, online_type);
-+		ret = online_pages(start_pfn, nr_pages, online_type, nid);
- 		break;
- 	case MEM_OFFLINE:
- 		ret = offline_pages(start_pfn, nr_pages);
-@@ -272,7 +272,7 @@ static int memory_block_change_state(str
- 		mem->state = MEM_GOING_OFFLINE;
- 
- 	ret = memory_block_action(mem->start_section_nr, to_state,
--				mem->online_type);
-+				  mem->online_type, mem->nid);
- 
- 	mem->state = ret ? from_state_req : to_state;
- 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-pass-in-nid-to-online_pages
-+++ a/include/linux/memory_hotplug.h
-@@ -94,7 +94,8 @@ extern int zone_grow_free_lists(struct z
- extern int zone_grow_waitqueues(struct zone *zone, unsigned long nr_pages);
- extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
- /* VM interface that may be used by firmware interface */
--extern int online_pages(unsigned long, unsigned long, int);
-+extern int online_pages(unsigned long pfn, unsigned long nr_pages,
-+			int online_type, int nid);
- extern struct zone *test_pages_in_a_zone(unsigned long start_pfn,
- 					 unsigned long end_pfn);
- extern unsigned long __offline_isolated_pages(unsigned long start_pfn,
---- a/mm/memory_hotplug.c~mm-memory_hotplug-pass-in-nid-to-online_pages
-+++ a/mm/memory_hotplug.c
-@@ -758,27 +758,18 @@ struct zone * zone_for_pfn_range(int onl
- 	return default_zone_for_pfn(nid, start_pfn, nr_pages);
+@@ -591,16 +591,6 @@ static struct memory_block *find_memory_
+ 	return mem;
  }
  
--int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
-+int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
-+		       int online_type, int nid)
- {
- 	unsigned long flags;
- 	unsigned long onlined_pages = 0;
- 	struct zone *zone;
- 	int need_zonelists_rebuild = 0;
--	int nid;
- 	int ret;
- 	struct memory_notify arg;
--	struct memory_block *mem;
+-/*
+- * Called under device_hotplug_lock.
+- */
+-struct memory_block *find_memory_block(struct mem_section *section)
+-{
+-	unsigned long block_id = base_memory_block_id(__section_nr(section));
+-
+-	return find_memory_block_by_id(block_id);
+-}
+-
+ static struct attribute *memory_memblk_attrs[] = {
+ 	&dev_attr_phys_index.attr,
+ 	&dev_attr_state.attr,
+@@ -704,7 +694,7 @@ static void unregister_memory(struct mem
  
- 	mem_hotplug_begin();
+ 	WARN_ON(radix_tree_delete(&memory_blocks, memory->dev.id) == NULL);
  
--	/*
--	 * We can't use pfn_to_nid() because nid might be stored in struct page
--	 * which is not yet initialized. Instead, we find nid from memory block.
--	 */
--	mem = find_memory_block(__pfn_to_section(pfn));
--	nid = mem->nid;
--	put_device(&mem->dev);
+-	/* drop the ref. we got via find_memory_block() */
++	/* drop the ref. we got via find_memory_block_by_id() */
+ 	put_device(&memory->dev);
+ 	device_unregister(&memory->dev);
+ }
+--- a/include/linux/memory.h~drivers-base-memoryc-get-rid-of-find_memory_block
++++ a/include/linux/memory.h
+@@ -115,7 +115,6 @@ void remove_memory_block_devices(unsigne
+ extern void memory_dev_init(void);
+ extern int memory_notify(unsigned long val, void *v);
+ extern int memory_isolate_notify(unsigned long val, void *v);
+-extern struct memory_block *find_memory_block(struct mem_section *);
+ typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
+ extern int walk_memory_blocks(unsigned long start, unsigned long size,
+ 			      void *arg, walk_memory_blocks_func_t func);
+_
+
+Patches currently in -mm which might be from david@redhat.com are
+
+mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section.patch
+fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection.patch
+mm-initialize-memmap-of-unavailable-memory-directly.patch
+mm-memory_hotplug-dont-free-usage-map-when-removing-a-re-added-early-section.patch
+drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix-2.patch
+mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone.patch
+mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn.patch
+mm-memory_hotplug-dont-check-for-all-holes-in-shrink_zone_span.patch
+mm-memory_hotplug-drop-local-variables-in-shrink_zone_span.patch
+mm-memory_hotplug-cleanup-__remove_pages.patch
+mm-memory_hotplug-drop-valid_start-valid_end-from-test_pages_in_a_zone.patch
+mm-memory_hotplug-pass-in-nid-to-online_pages.patch
+drivers-base-memoryc-get-rid-of-find_memory_block.patch
+mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
+mm-factor-out-next_present_section_nr.patch
+mm-remove-the-memory-isolate-notifier.patch
+mm-remove-count-parameter-from-has_unmovable_pages.patch
