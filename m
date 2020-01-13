@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-factor-out-next_present_section_nr.patch added to -mm
- tree
-Date: Mon, 13 Jan 2020 14:01:14 -0800
-Message-ID: <20200113220114.nRY29%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch added to
+ -mm tree
+Date: Mon, 13 Jan 2020 14:01:12 -0800
+Message-ID: <20200113220112.sLDen%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33012 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728918AbgAMWBQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 17:01:16 -0500
+        id S1728733AbgAMWBN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:01:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhi.jin@intel.com, vbabka@suse.cz, pasha.tatashin@oracle.com, osalvador@suse.de, mhocko@suse.com, mhocko@kernel.org, mgorman@suse.de, kirill@shutemov.name, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, bhe@redhat.com, david@redhat.com
 
 
 The patch titled
-     Subject: mm: factor out next_present_section_nr()
+     Subject: mm/page_alloc: fix and rework pfn handling in memmap_init_zone()
 has been added to the -mm tree.  Its filename is
-     mm-factor-out-next_present_section_nr.patch
+     mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-out-next_present_section_nr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-out-next_present_section_nr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,90 +38,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: factor out next_present_section_nr()
+Subject: mm/page_alloc: fix and rework pfn handling in memmap_init_zone()
 
-Let's move it to the header and use the shorter variant from
-mm/page_alloc.c (the original one will also check
-"__highest_present_section_nr + 1", which is not necessary).  While at it,
-make the section_nr in next_pfn() const.
+Let's update the pfn manually whenever we continue the loop.  This makes
+the code easier to read but also less error prone (and we can directly fix
+one issue).
 
-In next_pfn(), we now return section_nr_to_pfn(-1) instead of -1 once we
-exceed __highest_present_section_nr, which doesn't make a difference i= n
-the caller as it is big enough (>=3D all sane end_pfn).
+When overlap_memmap_init() returns true, pfn is updated to
+"memblock_region_memory_end_pfn(r)".  So it already points at the *next*
+pfn to process.  Incrementing the pfn another time is wrong, we might
+leave one uninitialized.  I spotted this by inspecting the code, so I have
+no idea if this is relevant in practise (with kernelcore=3Dmirror).
 
-Link: http://lkml.kernel.org/r/20200113144035.10848-3-david@redhat.com
+Link: http://lkml.kernel.org/r/20200113144035.10848-2-david@redhat.com
+Fixes: a9a9e77fbf27 ("mm: move mirrored memory specific code outside of m=
+emmap_init_zone")
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: "Jin, Zhi" <zhi.jin@intel.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   10 ++++++++++
- mm/page_alloc.c        |   11 ++---------
- mm/sparse.c            |   10 ----------
- 3 files changed, 12 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-factor-out-next_present_section_nr
-+++ a/include/linux/mmzone.h
-@@ -1379,6 +1379,16 @@ static inline int pfn_present(unsigned l
- 	return present_section(__nr_to_section(pfn_to_section_nr(pfn)));
- }
- 
-+static inline unsigned long next_present_section_nr(unsigned long section_nr)
-+{
-+	while (++section_nr <= __highest_present_section_nr) {
-+		if (present_section_nr(section_nr))
-+			return section_nr;
-+	}
-+
-+	return -1;
-+}
-+
- /*
-  * These are _only_ used during initialisation, therefore they
-  * can use __initdata ...  They could have names to indicate
---- a/mm/page_alloc.c~mm-factor-out-next_present_section_nr
+--- a/mm/page_alloc.c~mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone
 +++ a/mm/page_alloc.c
-@@ -5852,18 +5852,11 @@ overlap_memmap_init(unsigned long zone,
- /* Skip PFNs that belong to non-present sections */
- static inline __meminit unsigned long next_pfn(unsigned long pfn)
- {
--	unsigned long section_nr;
-+	const unsigned long section_nr = pfn_to_section_nr(++pfn);
+@@ -5905,18 +5905,20 @@ void __meminit memmap_init_zone(unsigned
+ 	}
+ #endif
  
--	section_nr = pfn_to_section_nr(++pfn);
- 	if (present_section_nr(section_nr))
- 		return pfn;
--
--	while (++section_nr <= __highest_present_section_nr) {
--		if (present_section_nr(section_nr))
--			return section_nr_to_pfn(section_nr);
--	}
--
--	return -1;
-+	return section_nr_to_pfn(next_present_section_nr(section_nr));
- }
- #else
- static inline __meminit unsigned long next_pfn(unsigned long pfn)
---- a/mm/sparse.c~mm-factor-out-next_present_section_nr
-+++ a/mm/sparse.c
-@@ -198,16 +198,6 @@ static void section_mark_present(struct
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++	for (pfn = start_pfn; pfn < end_pfn; ) {
+ 		/*
+ 		 * There can be holes in boot-time mem_map[]s handed to this
+ 		 * function.  They do not exist on hotplugged memory.
+ 		 */
+ 		if (context == MEMMAP_EARLY) {
+ 			if (!early_pfn_valid(pfn)) {
+-				pfn = next_pfn(pfn) - 1;
++				pfn = next_pfn(pfn);
+ 				continue;
+ 			}
+-			if (!early_pfn_in_nid(pfn, nid))
++			if (!early_pfn_in_nid(pfn, nid)) {
++				pfn++;
+ 				continue;
++			}
+ 			if (overlap_memmap_init(zone, &pfn))
+ 				continue;
+ 			if (defer_init(nid, pfn, end_pfn))
+@@ -5944,6 +5946,7 @@ void __meminit memmap_init_zone(unsigned
+ 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 			cond_resched();
+ 		}
++		pfn++;
+ 	}
  }
  
--static inline unsigned long next_present_section_nr(unsigned long section_nr)
--{
--	do {
--		section_nr++;
--		if (present_section_nr(section_nr))
--			return section_nr;
--	} while ((section_nr <= __highest_present_section_nr));
+_
+
+Patches currently in -mm which might be from david@redhat.com are
+
+mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section.patch
+fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection.patch
+mm-initialize-memmap-of-unavailable-memory-directly.patch
+mm-memory_hotplug-dont-free-usage-map-when-removing-a-re-added-early-section.patch
+drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix-2.patch
+mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone.patch
+mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn.patch
+mm-memory_hotplug-dont-check-for-all-holes-in-shrink_zone_span.patch
+mm-memory_hotplug-drop-local-variables-in-shrink_zone_span.patch
+mm-memory_hotplug-cleanup-__remove_pages.patch
+mm-memory_hotplug-drop-valid_start-valid_end-from-test_pages_in_a_zone.patch
+mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
+mm-factor-out-next_present_section_nr.patch
