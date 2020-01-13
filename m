@@ -1,85 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
- added to -mm tree
-Date: Fri, 10 Jan 2020 13:36:20 -0800
-Message-ID: <20200110213620.e-pNwZxyT%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Mon, 13 Jan 2020 13:44:46 -0800
+Message-ID: <20200113214446.TQndjN2Va%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49076 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726891AbgAJVgV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jan 2020 16:36:21 -0500
+        id S1726488AbgAMVor (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 16:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: reduce critical section protected by split_queue_lock
-has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/huge_memory.c: reduce critical section protected by split_queue_lock
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-split_queue_lock protects data in struct deferred_split.  We can release
-the lock after delete the page from deferred_split_queue.
-
-This patch moves the THP accounting out of the lock protection, which is
-introduced in commit 65c453778aea ("mm, rmap: account shmem thp pages").
-
-Link: http://lkml.kernel.org/r/20200110025516.23996-1-richardw.yang@linux.intel.com
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/display/intel_display.c    |   17 ----------
+ drivers/gpu/drm/i915/gt/intel_ring_submission.c |   22 --------------
+ sound/soc/soc-topology.c                        |    4 --
+ sound/usb/quirks.c                              |    6 ---
+ 4 files changed, 49 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock
-+++ a/mm/huge_memory.c
-@@ -2799,6 +2799,7 @@ int split_huge_page_to_list(struct page
- 			ds_queue->split_queue_len--;
- 			list_del(page_deferred_list(head));
- 		}
-+		spin_unlock(&ds_queue->split_queue_lock);
- 		if (mapping) {
- 			if (PageSwapBacked(head))
- 				__dec_node_page_state(head, NR_SHMEM_THPS);
-@@ -2806,7 +2807,6 @@ int split_huge_page_to_list(struct page
- 				__dec_node_page_state(head, NR_FILE_THPS);
- 		}
+--- a/drivers/gpu/drm/i915/display/intel_display.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_display.c
+@@ -4963,23 +4963,6 @@ static void icl_enable_trans_port_sync(c
+ 		   trans_ddi_func_ctl2_val);
+ }
  
--		spin_unlock(&ds_queue->split_queue_lock);
- 		__split_huge_page(page, list, end, flags);
- 		if (PageSwapCache(head)) {
- 			swp_entry_t entry = { .val = page_private(head) };
+-<<<<<<< HEAD
+-static void icl_disable_transcoder_port_sync(const struct intel_crtc_state *old_crtc_state)
+-{
+-	struct intel_crtc *crtc = to_intel_crtc(old_crtc_state->base.crtc);
+-	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
+-
+-	if (old_crtc_state->master_transcoder == INVALID_TRANSCODER)
+-		return;
+-
+-	DRM_DEBUG_KMS("Disabling Transcoder Port Sync on Slave Transcoder %s\n",
+-		      transcoder_name(old_crtc_state->cpu_transcoder));
+-
+-	I915_WRITE(TRANS_DDI_FUNC_CTL2(old_crtc_state->cpu_transcoder), 0);
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ static void intel_fdi_normal_train(struct intel_crtc *crtc)
+ {
+ 	struct drm_device *dev = crtc->base.dev;
+--- a/drivers/gpu/drm/i915/gt/intel_ring_submission.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/gt/intel_ring_submission.c
+@@ -1559,10 +1559,6 @@ static int switch_mm(struct i915_request
+ 	if (ret)
+ 		return ret;
+ 
+-<<<<<<< HEAD
+-	if (ce->state) {
+-		u32 flags;
+-=======
+ 	/*
+ 	 * Not only do we need a full barrier (post-sync write) after
+ 	 * invalidating the TLBs, but we need to wait a little bit
+@@ -1574,34 +1570,16 @@ static int switch_mm(struct i915_request
+ 	ret = load_pd_dir(rq, i915_vm_to_ppgtt(vm), PP_DIR_DCLV_2G);
+ 	if (ret)
+ 		return ret;
+->>>>>>> linux-next/akpm-base
+ 
+ 	return rq->engine->emit_flush(rq, EMIT_INVALIDATE);
+ }
+ 
+-<<<<<<< HEAD
+-		/* For resource streamer on HSW+ and power context elsewhere */
+-		BUILD_BUG_ON(HSW_MI_RS_SAVE_STATE_EN != MI_SAVE_EXT_STATE_EN);
+-		BUILD_BUG_ON(HSW_MI_RS_RESTORE_STATE_EN != MI_RESTORE_EXT_STATE_EN);
+-
+-		flags = MI_SAVE_EXT_STATE_EN | MI_MM_SPACE_GTT;
+-		if (!i915_gem_context_is_kernel(rq->gem_context))
+-			flags |= MI_RESTORE_EXT_STATE_EN;
+-		else
+-			flags |= MI_RESTORE_INHIBIT;
+-
+-		ret = mi_set_context(rq, flags);
+-		if (ret)
+-			return ret;
+-	}
+-=======
+ static int switch_context(struct i915_request *rq)
+ {
+ 	struct intel_context *ce = rq->context;
+ 	int ret;
+ 
+ 	GEM_BUG_ON(HAS_EXECLISTS(rq->i915));
+->>>>>>> linux-next/akpm-base
+ 
+ 	ret = switch_mm(rq, vm_alias(ce));
+ 	if (ret)
+--- a/sound/soc/soc-topology.c~linux-next-git-rejects
++++ a/sound/soc/soc-topology.c
+@@ -549,12 +549,8 @@ static void remove_link(struct snd_soc_c
+ 		dobj->ops->link_unload(comp, dobj);
+ 
+ 	list_del(&dobj->list);
+-<<<<<<< HEAD
+-	snd_soc_remove_dai_link(comp->card, link);
+-=======
+ 	snd_soc_remove_pcm_runtime(comp->card,
+ 			snd_soc_get_pcm_runtime(comp->card, link));
+->>>>>>> linux-next/akpm-base
+ 
+ 	kfree(link->name);
+ 	kfree(link->stream_name);
+--- a/sound/usb/quirks.c~linux-next-git-rejects
++++ a/sound/usb/quirks.c
+@@ -1396,15 +1396,9 @@ bool snd_usb_get_sample_rate_quirk(struc
+ 	case USB_ID(0x041e, 0x4080): /* Creative Live Cam VF0610 */
+ 	case USB_ID(0x04d8, 0xfeea): /* Benchmark DAC1 Pre */
+ 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
+-<<<<<<< HEAD
+-	case USB_ID(0x05A3, 0x9420): /* ELP HD USB Camera */
+-	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
+-	case USB_ID(0x074D, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+-=======
+ 	case USB_ID(0x05a3, 0x9420): /* ELP HD USB Camera */
+ 	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
+ 	case USB_ID(0x074d, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+->>>>>>> linux-next/akpm-base
+ 	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
+ 	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
+ 	case USB_ID(0x21b4, 0x0081): /* AudioQuest DragonFly */
 _
 
-Patches currently in -mm which might be from richardw.yang@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-thp-grab-the-lock-before-manipulation-defer-list.patch
-mm-huge_memoryc-use-head-to-check-huge-zero-page.patch
-mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
-mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
-mm-remove-dead-code-totalram_pages_set.patch
+mm.patch
+mm-oom-avoid-printk-iteration-under-rcu-fix.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+drivers-block-null_blk_mainc-fix-layout.patch
+drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
+proc-convert-everything-to-struct-proc_ops-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
