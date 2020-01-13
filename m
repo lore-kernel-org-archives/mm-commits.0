@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch added to
- -mm tree
-Date: Mon, 13 Jan 2020 14:35:06 -0800
-Message-ID: <20200113223506.ickqg%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-page=5Fvma=5Fmappedc-explicitly-compare-pfn-for-normal-?=
+ =?us-ascii?Q?hugetlbfs-and-thp-page.patch?= added to -mm tree
+Date: Mon, 13 Jan 2020 14:39:27 -0800
+Message-ID: <20200113223927.wNL5Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52922 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59116 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726530AbgAMWfH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 17:35:07 -0500
+        id S1726530AbgAMWj2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:39:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com, richardw.yang@linux.intel.com
+To: mm-commits@vger.kernel.org, mike.kravetz@oracle.com, mhocko@kernel.org, kirill.shutemov@linux.intel.com, lixinhai.lxh@gmail.com
 
 
 The patch titled
-     Subject: mm/gup.c: use is_vm_hugetlb_page() to check whether to follow huge
+     Subject: mm/page_vma_mapped.c: explicitly compare pfn for normal, hugetlbfs and THP page
 has been added to the -mm tree.  Its filename is
-     mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
+     mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,49 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/gup.c: use is_vm_hugetlb_page() to check whether to follow huge
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/page_vma_mapped.c: explicitly compare pfn for normal, hugetlbfs and THP page
 
-No functional change, just leverage the helper function to improve
-readability as others.
+When check_pte, pfn of normal, hugetlbfs and THP page need be compared. 
+The current implementation apply comparison as
 
-Link: http://lkml.kernel.org/r/20200113070322.26627-1-richardw.yang@linux.intel.com
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+- normal 4K page: page_pfn <= pfn < page_pfn + 1
+- hugetlbfs page:  page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
+- THP page: page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
+
+in pfn_in_hpage.  For hugetlbfs page, it should be page_pfn == pfn
+
+Now, change pfn_in_hpage to pfn_is_match to highlight that comparison is
+not only for THP and explicitly compare for these cases.
+
+Link: http://lkml.kernel.org/r/1578737885-8890-1-git-send-email-lixinhai.lxh@gmail.com
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_vma_mapped.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge
-+++ a/mm/gup.c
-@@ -323,7 +323,7 @@ static struct page *follow_pmd_mask(stru
- 	pmdval = READ_ONCE(*pmd);
- 	if (pmd_none(pmdval))
- 		return no_page_table(vma, flags);
--	if (pmd_huge(pmdval) && vma->vm_flags & VM_HUGETLB) {
-+	if (pmd_huge(pmdval) && is_vm_hugetlb_page(vma)) {
- 		page = follow_huge_pmd(mm, address, pmd, flags);
- 		if (page)
- 			return page;
-@@ -433,7 +433,7 @@ static struct page *follow_pud_mask(stru
- 	pud = pud_offset(p4dp, address);
- 	if (pud_none(*pud))
- 		return no_page_table(vma, flags);
--	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
-+	if (pud_huge(*pud) && is_vm_hugetlb_page(vma)) {
- 		page = follow_huge_pud(mm, address, pud, flags);
- 		if (page)
- 			return page;
+--- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page
++++ a/mm/page_vma_mapped.c
+@@ -52,12 +52,16 @@ static bool map_pte(struct page_vma_mapp
+ 	return true;
+ }
+ 
+-static inline bool pfn_in_hpage(struct page *hpage, unsigned long pfn)
++static inline bool pfn_is_match(struct page *page, unsigned long pfn)
+ {
+-	unsigned long hpage_pfn = page_to_pfn(hpage);
++	unsigned long page_pfn = page_to_pfn(page);
++
++	/* normal page and hugetlbfs page */
++	if (!PageTransCompound(page) || PageHuge(page))
++		return page_pfn == pfn;
+ 
+ 	/* THP can be referenced by any subpage */
+-	return pfn >= hpage_pfn && pfn - hpage_pfn < hpage_nr_pages(hpage);
++	return pfn >= page_pfn && pfn - page_pfn < hpage_nr_pages(page);
+ }
+ 
+ /**
+@@ -108,7 +112,7 @@ static bool check_pte(struct page_vma_ma
+ 		pfn = pte_pfn(*pvmw->pte);
+ 	}
+ 
+-	return pfn_in_hpage(pvmw->page, pfn);
++	return pfn_is_match(pvmw->page, pfn);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from richardw.yang@linux.intel.com are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
-mm-thp-grab-the-lock-before-manipulation-defer-list.patch
-mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
-mm-huge_memoryc-use-head-to-check-huge-zero-page.patch
-mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
-mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
-mm-remove-dead-code-totalram_pages_set.patch
+mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
