@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-memoryc-get-rid-of-find_memory_block.patch
- added to -mm tree
-Date: Mon, 13 Jan 2020 14:28:38 -0800
-Message-ID: <20200113222838.-KFqd%akpm@linux-foundation.org>
+Subject: +
+ mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch added to
+ -mm tree
+Date: Mon, 13 Jan 2020 14:35:06 -0800
+Message-ID: <20200113223506.ickqg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41620 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726530AbgAMW2k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 17:28:40 -0500
+        id S1726530AbgAMWfH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:35:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rafael@kernel.org, pasha.tatashin@soleen.com, osalvador@suse.de, mhocko@suse.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, anshuman.khandual@arm.com, david@redhat.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com, richardw.yang@linux.intel.com
 
 
 The patch titled
-     Subject: drivers/base/memory.c: get rid of find_memory_block()
+     Subject: mm/gup.c: use is_vm_hugetlb_page() to check whether to follow huge
 has been added to the -mm tree.  Its filename is
-     drivers-base-memoryc-get-rid-of-find_memory_block.patch
+     mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memoryc-get-rid-of-find_memory_block.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memoryc-get-rid-of-find_memory_block.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,83 +37,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: drivers/base/memory.c: get rid of find_memory_block()
+From: Wei Yang <richardw.yang@linux.intel.com>
+Subject: mm/gup.c: use is_vm_hugetlb_page() to check whether to follow huge
 
-No longer needed, remove it.
+No functional change, just leverage the helper function to improve
+readability as others.
 
-Link: http://lkml.kernel.org/r/20200113113354.6341-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Link: http://lkml.kernel.org/r/20200113070322.26627-1-richardw.yang@linux.intel.com
+Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   12 +-----------
- include/linux/memory.h |    1 -
- 2 files changed, 1 insertion(+), 12 deletions(-)
+ mm/gup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/base/memory.c~drivers-base-memoryc-get-rid-of-find_memory_block
-+++ a/drivers/base/memory.c
-@@ -591,16 +591,6 @@ static struct memory_block *find_memory_
- 	return mem;
- }
- 
--/*
-- * Called under device_hotplug_lock.
-- */
--struct memory_block *find_memory_block(struct mem_section *section)
--{
--	unsigned long block_id = base_memory_block_id(__section_nr(section));
--
--	return find_memory_block_by_id(block_id);
--}
--
- static struct attribute *memory_memblk_attrs[] = {
- 	&dev_attr_phys_index.attr,
- 	&dev_attr_state.attr,
-@@ -704,7 +694,7 @@ static void unregister_memory(struct mem
- 
- 	WARN_ON(radix_tree_delete(&memory_blocks, memory->dev.id) == NULL);
- 
--	/* drop the ref. we got via find_memory_block() */
-+	/* drop the ref. we got via find_memory_block_by_id() */
- 	put_device(&memory->dev);
- 	device_unregister(&memory->dev);
- }
---- a/include/linux/memory.h~drivers-base-memoryc-get-rid-of-find_memory_block
-+++ a/include/linux/memory.h
-@@ -115,7 +115,6 @@ void remove_memory_block_devices(unsigne
- extern void memory_dev_init(void);
- extern int memory_notify(unsigned long val, void *v);
- extern int memory_isolate_notify(unsigned long val, void *v);
--extern struct memory_block *find_memory_block(struct mem_section *);
- typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
- extern int walk_memory_blocks(unsigned long start, unsigned long size,
- 			      void *arg, walk_memory_blocks_func_t func);
+--- a/mm/gup.c~mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge
++++ a/mm/gup.c
+@@ -323,7 +323,7 @@ static struct page *follow_pmd_mask(stru
+ 	pmdval = READ_ONCE(*pmd);
+ 	if (pmd_none(pmdval))
+ 		return no_page_table(vma, flags);
+-	if (pmd_huge(pmdval) && vma->vm_flags & VM_HUGETLB) {
++	if (pmd_huge(pmdval) && is_vm_hugetlb_page(vma)) {
+ 		page = follow_huge_pmd(mm, address, pmd, flags);
+ 		if (page)
+ 			return page;
+@@ -433,7 +433,7 @@ static struct page *follow_pud_mask(stru
+ 	pud = pud_offset(p4dp, address);
+ 	if (pud_none(*pud))
+ 		return no_page_table(vma, flags);
+-	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
++	if (pud_huge(*pud) && is_vm_hugetlb_page(vma)) {
+ 		page = follow_huge_pud(mm, address, pud, flags);
+ 		if (page)
+ 			return page;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from richardw.yang@linux.intel.com are
 
-mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section.patch
-fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection.patch
-mm-initialize-memmap-of-unavailable-memory-directly.patch
-mm-memory_hotplug-dont-free-usage-map-when-removing-a-re-added-early-section.patch
-drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix-2.patch
-mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone.patch
-mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn.patch
-mm-memory_hotplug-dont-check-for-all-holes-in-shrink_zone_span.patch
-mm-memory_hotplug-drop-local-variables-in-shrink_zone_span.patch
-mm-memory_hotplug-cleanup-__remove_pages.patch
-mm-memory_hotplug-drop-valid_start-valid_end-from-test_pages_in_a_zone.patch
-mm-memory_hotplug-pass-in-nid-to-online_pages.patch
-drivers-base-memoryc-get-rid-of-find_memory_block.patch
-mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
-mm-factor-out-next_present_section_nr.patch
-mm-remove-the-memory-isolate-notifier.patch
-mm-remove-count-parameter-from-has_unmovable_pages.patch
+mm-thp-grab-the-lock-before-manipulation-defer-list.patch
+mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
+mm-huge_memoryc-use-head-to-check-huge-zero-page.patch
+mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
+mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
+mm-remove-dead-code-totalram_pages_set.patch
