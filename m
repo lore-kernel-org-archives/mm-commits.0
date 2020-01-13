@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-the-memory-isolate-notifier.patch added to -mm
- tree
-Date: Mon, 13 Jan 2020 14:05:22 -0800
-Message-ID: <20200113220522.uUmmS%akpm@linux-foundation.org>
+Subject: + mm-remove-count-parameter-from-has_unmovable_pages.patch
+ added to -mm tree
+Date: Mon, 13 Jan 2020 14:05:25 -0800
+Message-ID: <20200113220525.YyM0E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41234 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728746AbgAMWFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 17:05:24 -0500
+        id S1728982AbgAMWF2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:05:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rafael@kernel.org, pasha.tatashin@soleen.com, osalvador@suse.de, mpe@ellerman.id.au, mhocko@suse.com, kernelfans@gmail.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, cai@lca.pw, anshuman.khandual@arm.com, david@redhat.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com, richardw.yang@linux.intel.com, pasha.tatashin@soleen.com, osalvador@suse.de, mpe@ellerman.id.au, mhocko@suse.com, mgorman@techsingularity.net, kernelfans@gmail.com, glider@google.com, dan.j.williams@intel.com, cai@lca.pw, arunks@codeaurora.org, anshuman.khandual@arm.com, alexander.h.duyck@linux.intel.com, david@redhat.com
 
 
 The patch titled
-     Subject: mm: remove the memory isolate notifier
+     Subject: mm: remove "count" parameter from has_unmovable_pages()
 has been added to the -mm tree.  Its filename is
-     mm-remove-the-memory-isolate-notifier.patch
+     mm-remove-count-parameter-from-has_unmovable_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-the-memory-isolate-notifier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-count-parameter-from-has_unmovable_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-the-memory-isolate-notifier.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-count-parameter-from-has_unmovable_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,183 +37,135 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove the memory isolate notifier
+Subject: mm: remove "count" parameter from has_unmovable_pages()
 
-Luckily, we have no users left, so we can get rid of it.  Cleanup
-set_migratetype_isolate() a little bit.
+Now that the memory isolate notifier is gone, the parameter is always 0. 
+Drop it and cleanup has_unmovable_pages().
 
-Link: http://lkml.kernel.org/r/20191114131911.11783-2-david@redhat.com
+Link: http://lkml.kernel.org/r/20191114131911.11783-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qian Cai <cai@lca.pw>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Qian Cai <cai@lca.pw>
 Cc: Pingfan Liu <kernelfans@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Arun KS <arunks@codeaurora.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   19 -------------------
- include/linux/memory.h |   27 ---------------------------
- mm/page_isolation.c    |   38 ++++----------------------------------
- 3 files changed, 4 insertions(+), 80 deletions(-)
+ include/linux/page-isolation.h |    4 ++--
+ mm/memory_hotplug.c            |    2 +-
+ mm/page_alloc.c                |   21 +++++++--------------
+ mm/page_isolation.c            |    2 +-
+ 4 files changed, 11 insertions(+), 18 deletions(-)
 
---- a/drivers/base/memory.c~mm-remove-the-memory-isolate-notifier
-+++ a/drivers/base/memory.c
-@@ -78,20 +78,6 @@ void unregister_memory_notifier(struct n
- }
- EXPORT_SYMBOL(unregister_memory_notifier);
+--- a/include/linux/page-isolation.h~mm-remove-count-parameter-from-has_unmovable_pages
++++ a/include/linux/page-isolation.h
+@@ -33,8 +33,8 @@ static inline bool is_migrate_isolate(in
+ #define MEMORY_OFFLINE	0x1
+ #define REPORT_FAILURE	0x2
  
--static ATOMIC_NOTIFIER_HEAD(memory_isolate_chain);
--
--int register_memory_isolate_notifier(struct notifier_block *nb)
--{
--	return atomic_notifier_chain_register(&memory_isolate_chain, nb);
--}
--EXPORT_SYMBOL(register_memory_isolate_notifier);
--
--void unregister_memory_isolate_notifier(struct notifier_block *nb)
--{
--	atomic_notifier_chain_unregister(&memory_isolate_chain, nb);
--}
--EXPORT_SYMBOL(unregister_memory_isolate_notifier);
--
- static void memory_block_release(struct device *dev)
- {
- 	struct memory_block *mem = to_memory_block(dev);
-@@ -183,11 +169,6 @@ int memory_notify(unsigned long val, voi
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
+-bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
+-			 int migratetype, int flags);
++bool has_unmovable_pages(struct zone *zone, struct page *page, int migratetype,
++			 int flags);
+ void set_pageblock_migratetype(struct page *page, int migratetype);
+ int move_freepages_block(struct zone *zone, struct page *page,
+ 				int migratetype, int *num_movable);
+--- a/mm/memory_hotplug.c~mm-remove-count-parameter-from-has_unmovable_pages
++++ a/mm/memory_hotplug.c
+@@ -1157,7 +1157,7 @@ static bool is_pageblock_removable_noloc
+ 	if (!zone_spans_pfn(zone, pfn))
+ 		return false;
+ 
+-	return !has_unmovable_pages(zone, page, 0, MIGRATE_MOVABLE,
++	return !has_unmovable_pages(zone, page, MIGRATE_MOVABLE,
+ 				    MEMORY_OFFLINE);
  }
  
--int memory_isolate_notify(unsigned long val, void *v)
--{
--	return atomic_notifier_call_chain(&memory_isolate_chain, val, v);
--}
--
+--- a/mm/page_alloc.c~mm-remove-count-parameter-from-has_unmovable_pages
++++ a/mm/page_alloc.c
+@@ -8197,17 +8197,15 @@ void *__init alloc_large_system_hash(con
+ 
  /*
-  * The probe routines leave the pages uninitialized, just as the bootmem code
-  * does. Make sure we do not access them, but instead use only information from
---- a/include/linux/memory.h~mm-remove-the-memory-isolate-notifier
-+++ a/include/linux/memory.h
-@@ -55,19 +55,6 @@ struct memory_notify {
- 	int status_change_nid;
- };
- 
--/*
-- * During pageblock isolation, count the number of pages within the
-- * range [start_pfn, start_pfn + nr_pages) which are owned by code
-- * in the notifier chain.
-- */
--#define MEM_ISOLATE_COUNT	(1<<0)
--
--struct memory_isolate_notify {
--	unsigned long start_pfn;	/* Start of range to check */
--	unsigned int nr_pages;		/* # pages in range to check */
--	unsigned int pages_found;	/* # pages owned found by callbacks */
--};
--
- struct notifier_block;
- struct mem_section;
- 
-@@ -94,27 +81,13 @@ static inline int memory_notify(unsigned
+  * This function checks whether pageblock includes unmovable pages or not.
+- * If @count is not zero, it is okay to include less @count unmovable pages
+  *
+  * PageLRU check without isolation or lru_lock could race so that
+  * MIGRATE_MOVABLE block might include unmovable pages. And __PageMovable
+  * check without lock_page also may miss some movable non-lru pages at
+  * race condition. So you can't expect this function should be exact.
+  */
+-bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
+-			 int migratetype, int flags)
++bool has_unmovable_pages(struct zone *zone, struct page *page, int migratetype,
++			 int flags)
  {
- 	return 0;
- }
--static inline int register_memory_isolate_notifier(struct notifier_block *nb)
--{
--	return 0;
--}
--static inline void unregister_memory_isolate_notifier(struct notifier_block *nb)
--{
--}
--static inline int memory_isolate_notify(unsigned long val, void *v)
--{
--	return 0;
--}
- #else
- extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
--extern int register_memory_isolate_notifier(struct notifier_block *nb);
--extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
- int create_memory_block_devices(unsigned long start, unsigned long size);
- void remove_memory_block_devices(unsigned long start, unsigned long size);
- extern void memory_dev_init(void);
- extern int memory_notify(unsigned long val, void *v);
--extern int memory_isolate_notify(unsigned long val, void *v);
- extern struct memory_block *find_memory_block(struct mem_section *);
- typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
- extern int walk_memory_blocks(unsigned long start, unsigned long size,
---- a/mm/page_isolation.c~mm-remove-the-memory-isolate-notifier
+-	unsigned long found;
+ 	unsigned long iter = 0;
+ 	unsigned long pfn = page_to_pfn(page);
+ 	const char *reason = "unmovable page";
+@@ -8233,13 +8231,11 @@ bool has_unmovable_pages(struct zone *zo
+ 		goto unmovable;
+ 	}
+ 
+-	for (found = 0; iter < pageblock_nr_pages; iter++) {
+-		unsigned long check = pfn + iter;
+-
+-		if (!pfn_valid_within(check))
++	for (; iter < pageblock_nr_pages; iter++) {
++		if (!pfn_valid_within(pfn + iter))
+ 			continue;
+ 
+-		page = pfn_to_page(check);
++		page = pfn_to_page(pfn + iter);
+ 
+ 		if (PageReserved(page))
+ 			goto unmovable;
+@@ -8288,11 +8284,9 @@ bool has_unmovable_pages(struct zone *zo
+ 		if ((flags & MEMORY_OFFLINE) && PageHWPoison(page))
+ 			continue;
+ 
+-		if (__PageMovable(page))
++		if (__PageMovable(page) || PageLRU(page))
+ 			continue;
+ 
+-		if (!PageLRU(page))
+-			found++;
+ 		/*
+ 		 * If there are RECLAIMABLE pages, we need to check
+ 		 * it.  But now, memory offline itself doesn't call
+@@ -8306,8 +8300,7 @@ bool has_unmovable_pages(struct zone *zo
+ 		 * is set to both of a memory hole page and a _used_ kernel
+ 		 * page at boot.
+ 		 */
+-		if (found > count)
+-			goto unmovable;
++		goto unmovable;
+ 	}
+ 	return false;
+ unmovable:
+--- a/mm/page_isolation.c~mm-remove-count-parameter-from-has_unmovable_pages
 +++ a/mm/page_isolation.c
-@@ -18,9 +18,7 @@
- static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags)
- {
- 	struct zone *zone;
--	unsigned long flags, pfn;
--	struct memory_isolate_notify arg;
--	int notifier_ret;
-+	unsigned long flags;
- 	int ret = -EBUSY;
- 
- 	zone = page_zone(page);
-@@ -35,41 +33,11 @@ static int set_migratetype_isolate(struc
- 	if (is_migrate_isolate_page(page))
- 		goto out;
- 
--	pfn = page_to_pfn(page);
--	arg.start_pfn = pfn;
--	arg.nr_pages = pageblock_nr_pages;
--	arg.pages_found = 0;
--
--	/*
--	 * It may be possible to isolate a pageblock even if the
--	 * migratetype is not MIGRATE_MOVABLE. The memory isolation
--	 * notifier chain is used by balloon drivers to return the
--	 * number of pages in a range that are held by the balloon
--	 * driver to shrink memory. If all the pages are accounted for
--	 * by balloons, are free, or on the LRU, isolation can continue.
--	 * Later, for example, when memory hotplug notifier runs, these
--	 * pages reported as "can be isolated" should be isolated(freed)
--	 * by the balloon driver through the memory notifier chain.
--	 */
--	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
--	notifier_ret = notifier_to_errno(notifier_ret);
--	if (notifier_ret)
--		goto out;
- 	/*
+@@ -37,7 +37,7 @@ static int set_migratetype_isolate(struc
  	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
  	 * We just check MOVABLE pages.
  	 */
--	if (!has_unmovable_pages(zone, page, arg.pages_found, migratetype,
--				 isol_flags))
--		ret = 0;
--
--	/*
--	 * immobile means "not-on-lru" pages. If immobile is larger than
--	 * removable-by-driver pages reported by notifier, we'll fail.
--	 */
--
--out:
--	if (!ret) {
-+	if (!has_unmovable_pages(zone, page, 0, migratetype, isol_flags)) {
+-	if (!has_unmovable_pages(zone, page, 0, migratetype, isol_flags)) {
++	if (!has_unmovable_pages(zone, page, migratetype, isol_flags)) {
  		unsigned long nr_pages;
  		int mt = get_pageblock_migratetype(page);
  
-@@ -79,8 +47,10 @@ out:
- 									NULL);
- 
- 		__mod_zone_freepage_state(zone, -nr_pages, mt);
-+		ret = 0;
- 	}
- 
-+out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	if (!ret)
- 		drain_all_pages(zone);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
