@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- =?us-ascii?Q?mm-page=5Fvma=5Fmappedc-explicitly-compare-pfn-for-normal-?=
- =?us-ascii?Q?hugetlbfs-and-thp-page.patch?= added to -mm tree
-Date: Mon, 13 Jan 2020 14:39:27 -0800
-Message-ID: <20200113223927.wNL5Z%akpm@linux-foundation.org>
+ =?us-ascii?Q?ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2=5Fup?=
+ =?us-ascii?Q?date=5Finode=5Ffsync=5Ftrans.patch?= added to -mm tree
+Date: Mon, 13 Jan 2020 14:44:31 -0800
+Message-ID: <20200113224431.ILLTS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59116 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726530AbgAMWj2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 17:39:28 -0500
+        id S1726530AbgAMWoe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:44:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mike.kravetz@oracle.com, mhocko@kernel.org, kirill.shutemov@linux.intel.com, lixinhai.lxh@gmail.com
+To: mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com, junxiao.bi@oracle.com, jlbec@evilplan.org, jiangqi903@gmail.com, ghe@suse.com, gechangwei@live.cn, wangyan122@huawei.com
 
 
 The patch titled
-     Subject: mm/page_vma_mapped.c: explicitly compare pfn for normal, hugetlbfs and THP page
+     Subject: ocfs2: fix a NULL pointer dereference when call ocfs2_update_inode_fsync_trans()
 has been added to the -mm tree.  Its filename is
-     mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
+     ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +39,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/page_vma_mapped.c: explicitly compare pfn for normal, hugetlbfs and THP page
+From: wangyan <wangyan122@huawei.com>
+Subject: ocfs2: fix a NULL pointer dereference when call ocfs2_update_inode_fsync_trans()
 
-When check_pte, pfn of normal, hugetlbfs and THP page need be compared. 
-The current implementation apply comparison as
+I found a NULL pointer dereference in ocfs2_update_inode_fsync_trans(),
+handle->h_transaction may be NULL in this situation:
 
-- normal 4K page: page_pfn <= pfn < page_pfn + 1
-- hugetlbfs page:  page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
-- THP page: page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
+ocfs2_file_write_iter
+  ->__generic_file_write_iter
+      ->generic_perform_write
+        ->ocfs2_write_begin
+          ->ocfs2_write_begin_nolock
+            ->ocfs2_write_cluster_by_desc
+              ->ocfs2_write_cluster
+                ->ocfs2_mark_extent_written
+                  ->ocfs2_change_extent_flag
+                    ->ocfs2_split_extent
+                      ->ocfs2_try_to_merge_extent
+                        ->ocfs2_extend_rotate_transaction
+                          ->ocfs2_extend_trans
+                            ->jbd2_journal_restart
+                              ->jbd2__journal_restart
+                                // handle->h_transaction is NULL here
+                                ->handle->h_transaction = NULL;
+                                ->start_this_handle
+                                  /* journal aborted due to storage
+                                     network disconnection, return error */
+                                  ->return -EROFS;
+                         /* line 3806 in ocfs2_try_to_merge_extent (),
+                            it will ignore ret error. */
+                        ->ret = 0;
+        ->...
+        ->ocfs2_write_end
+          ->ocfs2_write_end_nolock
+            ->ocfs2_update_inode_fsync_trans
+              // NULL pointer dereference
+              ->oi->i_sync_tid = handle->h_transaction->t_tid;
 
-in pfn_in_hpage.  For hugetlbfs page, it should be page_pfn == pfn
+The information of NULL pointer dereference as follows:
+    JBD2: Detected IO errors while flushing file data on dm-11-45
+    Aborting journal on device dm-11-45.
+    JBD2: Error -5 detected when updating journal superblock for dm-11-45.
+    (dd,22081,3):ocfs2_extend_trans:474 ERROR: status = -30
+    (dd,22081,3):ocfs2_try_to_merge_extent:3877 ERROR: status = -30
+    Unable to handle kernel NULL pointer dereference at
+    virtual address 0000000000000008
+    Mem abort info:
+      ESR = 0x96000004
+      Exception class = DABT (current EL), IL = 32 bits
+      SET = 0, FnV = 0
+      EA = 0, S1PTW = 0
+    Data abort info:
+      ISV = 0, ISS = 0x00000004
+      CM = 0, WnR = 0
+    user pgtable: 4k pages, 48-bit VAs, pgdp = 00000000e74e1338
+    [0000000000000008] pgd=0000000000000000
+    Internal error: Oops: 96000004 [#1] SMP
+    Process dd (pid: 22081, stack limit = 0x00000000584f35a9)
+    CPU: 3 PID: 22081 Comm: dd Kdump: loaded
+    Hardware name: Huawei TaiShan 2280 V2/BC82AMDD, BIOS 0.98 08/25/2019
+    pstate: 60400009 (nZCv daif +PAN -UAO)
+    pc : ocfs2_write_end_nolock+0x2b8/0x550 [ocfs2]
+    lr : ocfs2_write_end_nolock+0x2a0/0x550 [ocfs2]
+    sp : ffff0000459fba70
+    x29: ffff0000459fba70 x28: 0000000000000000
+    x27: ffff807ccf7f1000 x26: 0000000000000001
+    x25: ffff807bdff57970 x24: ffff807caf1d4000
+    x23: ffff807cc79e9000 x22: 0000000000001000
+    x21: 000000006c6cd000 x20: ffff0000091d9000
+    x19: ffff807ccb239db0 x18: ffffffffffffffff
+    x17: 000000000000000e x16: 0000000000000007
+    x15: ffff807c5e15bd78 x14: 0000000000000000
+    x13: 0000000000000000 x12: 0000000000000000
+    x11: 0000000000000000 x10: 0000000000000001
+    x9 : 0000000000000228 x8 : 000000000000000c
+    x7 : 0000000000000fff x6 : ffff807a308ed6b0
+    x5 : ffff7e01f10967c0 x4 : 0000000000000018
+    x3 : d0bc661572445600 x2 : 0000000000000000
+    x1 : 000000001b2e0200 x0 : 0000000000000000
+    Call trace:
+     ocfs2_write_end_nolock+0x2b8/0x550 [ocfs2]
+     ocfs2_write_end+0x4c/0x80 [ocfs2]
+     generic_perform_write+0x108/0x1a8
+     __generic_file_write_iter+0x158/0x1c8
+     ocfs2_file_write_iter+0x668/0x950 [ocfs2]
+     __vfs_write+0x11c/0x190
+     vfs_write+0xac/0x1c0
+     ksys_write+0x6c/0xd8
+     __arm64_sys_write+0x24/0x30
+     el0_svc_common+0x78/0x130
+     el0_svc_handler+0x38/0x78
+     el0_svc+0x8/0xc
 
-Now, change pfn_in_hpage to pfn_is_match to highlight that comparison is
-not only for THP and explicitly compare for these cases.
+To prevent NULL pointer dereference in this situation, we use
+is_handle_aborted() before using handle->h_transaction->t_tid.
 
-Link: http://lkml.kernel.org/r/1578737885-8890-1-git-send-email-lixinhai.lxh@gmail.com
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/03e750ab-9ade-83aa-b000-b9e81e34e539@huawei.com
+Signed-off-by: Yan Wang <wangyan122@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/ocfs2/journal.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page
-+++ a/mm/page_vma_mapped.c
-@@ -52,12 +52,16 @@ static bool map_pte(struct page_vma_mapp
- 	return true;
- }
- 
--static inline bool pfn_in_hpage(struct page *hpage, unsigned long pfn)
-+static inline bool pfn_is_match(struct page *page, unsigned long pfn)
+--- a/fs/ocfs2/journal.h~ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans
++++ a/fs/ocfs2/journal.h
+@@ -597,9 +597,11 @@ static inline void ocfs2_update_inode_fs
  {
--	unsigned long hpage_pfn = page_to_pfn(hpage);
-+	unsigned long page_pfn = page_to_pfn(page);
-+
-+	/* normal page and hugetlbfs page */
-+	if (!PageTransCompound(page) || PageHuge(page))
-+		return page_pfn == pfn;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
  
- 	/* THP can be referenced by any subpage */
--	return pfn >= hpage_pfn && pfn - hpage_pfn < hpage_nr_pages(hpage);
-+	return pfn >= page_pfn && pfn - page_pfn < hpage_nr_pages(page);
+-	oi->i_sync_tid = handle->h_transaction->t_tid;
+-	if (datasync)
+-		oi->i_datasync_tid = handle->h_transaction->t_tid;
++	if (!is_handle_aborted(handle)) {
++		oi->i_sync_tid = handle->h_transaction->t_tid;
++		if (datasync)
++			oi->i_datasync_tid = handle->h_transaction->t_tid;
++	}
  }
  
- /**
-@@ -108,7 +112,7 @@ static bool check_pte(struct page_vma_ma
- 		pfn = pte_pfn(*pvmw->pte);
- 	}
- 
--	return pfn_in_hpage(pvmw->page, pfn);
-+	return pfn_is_match(pvmw->page, pfn);
- }
- 
- /**
+ #endif /* OCFS2_JOURNAL_H */
 _
 
-Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+Patches currently in -mm which might be from wangyan122@huawei.com are
 
-mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
+ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans.patch
+ocfs2-use-ocfs2_update_inode_fsync_trans-to-access-t_tid-in-handle-h_transaction.patch
