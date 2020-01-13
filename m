@@ -1,156 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+Subject: + mm-factor-out-next_present_section_nr.patch added to -mm
  tree
-Date: Mon, 13 Jan 2020 13:44:46 -0800
-Message-ID: <20200113214446.TQndjN2Va%akpm@linux-foundation.org>
+Date: Mon, 13 Jan 2020 14:01:14 -0800
+Message-ID: <20200113220114.nRY29%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34984 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33012 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726488AbgAMVor (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 16:44:47 -0500
+        id S1728918AbgAMWBQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 17:01:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, zhi.jin@intel.com, vbabka@suse.cz, pasha.tatashin@oracle.com, osalvador@suse.de, mhocko@suse.com, mhocko@kernel.org, mgorman@suse.de, kirill@shutemov.name, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, bhe@redhat.com, david@redhat.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm: factor out next_present_section_nr()
+has been added to the -mm tree.  Its filename is
+     mm-factor-out-next_present_section_nr.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-out-next_present_section_nr.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-out-next_present_section_nr.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: factor out next_present_section_nr()
 
+Let's move it to the header and use the shorter variant from
+mm/page_alloc.c (the original one will also check
+"__highest_present_section_nr + 1", which is not necessary).  While at it,
+make the section_nr in next_pfn() const.
+
+In next_pfn(), we now return section_nr_to_pfn(-1) instead of -1 once we
+exceed __highest_present_section_nr, which doesn't make a difference i= n
+the caller as it is big enough (>=3D all sane end_pfn).
+
+Link: http://lkml.kernel.org/r/20200113144035.10848-3-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: "Jin, Zhi" <zhi.jin@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/display/intel_display.c    |   17 ----------
- drivers/gpu/drm/i915/gt/intel_ring_submission.c |   22 --------------
- sound/soc/soc-topology.c                        |    4 --
- sound/usb/quirks.c                              |    6 ---
- 4 files changed, 49 deletions(-)
+ include/linux/mmzone.h |   10 ++++++++++
+ mm/page_alloc.c        |   11 ++---------
+ mm/sparse.c            |   10 ----------
+ 3 files changed, 12 insertions(+), 19 deletions(-)
 
---- a/drivers/gpu/drm/i915/display/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/display/intel_display.c
-@@ -4963,23 +4963,6 @@ static void icl_enable_trans_port_sync(c
- 		   trans_ddi_func_ctl2_val);
+--- a/include/linux/mmzone.h~mm-factor-out-next_present_section_nr
++++ a/include/linux/mmzone.h
+@@ -1379,6 +1379,16 @@ static inline int pfn_present(unsigned l
+ 	return present_section(__nr_to_section(pfn_to_section_nr(pfn)));
  }
  
--<<<<<<< HEAD
--static void icl_disable_transcoder_port_sync(const struct intel_crtc_state *old_crtc_state)
--{
--	struct intel_crtc *crtc = to_intel_crtc(old_crtc_state->base.crtc);
--	struct drm_i915_private *dev_priv = to_i915(crtc->base.dev);
--
--	if (old_crtc_state->master_transcoder == INVALID_TRANSCODER)
--		return;
--
--	DRM_DEBUG_KMS("Disabling Transcoder Port Sync on Slave Transcoder %s\n",
--		      transcoder_name(old_crtc_state->cpu_transcoder));
--
--	I915_WRITE(TRANS_DDI_FUNC_CTL2(old_crtc_state->cpu_transcoder), 0);
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- static void intel_fdi_normal_train(struct intel_crtc *crtc)
++static inline unsigned long next_present_section_nr(unsigned long section_nr)
++{
++	while (++section_nr <= __highest_present_section_nr) {
++		if (present_section_nr(section_nr))
++			return section_nr;
++	}
++
++	return -1;
++}
++
+ /*
+  * These are _only_ used during initialisation, therefore they
+  * can use __initdata ...  They could have names to indicate
+--- a/mm/page_alloc.c~mm-factor-out-next_present_section_nr
++++ a/mm/page_alloc.c
+@@ -5852,18 +5852,11 @@ overlap_memmap_init(unsigned long zone,
+ /* Skip PFNs that belong to non-present sections */
+ static inline __meminit unsigned long next_pfn(unsigned long pfn)
  {
- 	struct drm_device *dev = crtc->base.dev;
---- a/drivers/gpu/drm/i915/gt/intel_ring_submission.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/gt/intel_ring_submission.c
-@@ -1559,10 +1559,6 @@ static int switch_mm(struct i915_request
- 	if (ret)
- 		return ret;
+-	unsigned long section_nr;
++	const unsigned long section_nr = pfn_to_section_nr(++pfn);
  
--<<<<<<< HEAD
--	if (ce->state) {
--		u32 flags;
--=======
- 	/*
- 	 * Not only do we need a full barrier (post-sync write) after
- 	 * invalidating the TLBs, but we need to wait a little bit
-@@ -1574,34 +1570,16 @@ static int switch_mm(struct i915_request
- 	ret = load_pd_dir(rq, i915_vm_to_ppgtt(vm), PP_DIR_DCLV_2G);
- 	if (ret)
- 		return ret;
-->>>>>>> linux-next/akpm-base
- 
- 	return rq->engine->emit_flush(rq, EMIT_INVALIDATE);
- }
- 
--<<<<<<< HEAD
--		/* For resource streamer on HSW+ and power context elsewhere */
--		BUILD_BUG_ON(HSW_MI_RS_SAVE_STATE_EN != MI_SAVE_EXT_STATE_EN);
--		BUILD_BUG_ON(HSW_MI_RS_RESTORE_STATE_EN != MI_RESTORE_EXT_STATE_EN);
+-	section_nr = pfn_to_section_nr(++pfn);
+ 	if (present_section_nr(section_nr))
+ 		return pfn;
 -
--		flags = MI_SAVE_EXT_STATE_EN | MI_MM_SPACE_GTT;
--		if (!i915_gem_context_is_kernel(rq->gem_context))
--			flags |= MI_RESTORE_EXT_STATE_EN;
--		else
--			flags |= MI_RESTORE_INHIBIT;
--
--		ret = mi_set_context(rq, flags);
--		if (ret)
--			return ret;
+-	while (++section_nr <= __highest_present_section_nr) {
+-		if (present_section_nr(section_nr))
+-			return section_nr_to_pfn(section_nr);
 -	}
--=======
- static int switch_context(struct i915_request *rq)
- {
- 	struct intel_context *ce = rq->context;
- 	int ret;
+-
+-	return -1;
++	return section_nr_to_pfn(next_present_section_nr(section_nr));
+ }
+ #else
+ static inline __meminit unsigned long next_pfn(unsigned long pfn)
+--- a/mm/sparse.c~mm-factor-out-next_present_section_nr
++++ a/mm/sparse.c
+@@ -198,16 +198,6 @@ static void section_mark_present(struct
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ }
  
- 	GEM_BUG_ON(HAS_EXECLISTS(rq->i915));
-->>>>>>> linux-next/akpm-base
- 
- 	ret = switch_mm(rq, vm_alias(ce));
- 	if (ret)
---- a/sound/soc/soc-topology.c~linux-next-git-rejects
-+++ a/sound/soc/soc-topology.c
-@@ -549,12 +549,8 @@ static void remove_link(struct snd_soc_c
- 		dobj->ops->link_unload(comp, dobj);
- 
- 	list_del(&dobj->list);
--<<<<<<< HEAD
--	snd_soc_remove_dai_link(comp->card, link);
--=======
- 	snd_soc_remove_pcm_runtime(comp->card,
- 			snd_soc_get_pcm_runtime(comp->card, link));
-->>>>>>> linux-next/akpm-base
- 
- 	kfree(link->name);
- 	kfree(link->stream_name);
---- a/sound/usb/quirks.c~linux-next-git-rejects
-+++ a/sound/usb/quirks.c
-@@ -1396,15 +1396,9 @@ bool snd_usb_get_sample_rate_quirk(struc
- 	case USB_ID(0x041e, 0x4080): /* Creative Live Cam VF0610 */
- 	case USB_ID(0x04d8, 0xfeea): /* Benchmark DAC1 Pre */
- 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
--<<<<<<< HEAD
--	case USB_ID(0x05A3, 0x9420): /* ELP HD USB Camera */
--	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
--	case USB_ID(0x074D, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
--=======
- 	case USB_ID(0x05a3, 0x9420): /* ELP HD USB Camera */
- 	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
- 	case USB_ID(0x074d, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
-->>>>>>> linux-next/akpm-base
- 	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
- 	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
- 	case USB_ID(0x21b4, 0x0081): /* AudioQuest DragonFly */
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm.patch
-mm-oom-avoid-printk-iteration-under-rcu-fix.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-drivers-block-null_blk_mainc-fix-layout.patch
-drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
-proc-convert-everything-to-struct-proc_ops-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+-static inline unsigned long next_present_section_nr(unsigned long section_nr)
+-{
+-	do {
+-		section_nr++;
+-		if (present_section_nr(section_nr))
+-			return section_nr;
+-	} while ((section_nr <= __highest_present_section_nr));
