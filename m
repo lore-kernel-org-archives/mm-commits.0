@@ -1,60 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment-fix.patch
- removed from -mm tree
-Date: Mon, 13 Jan 2020 16:21:43 -0800
-Message-ID: <20200114002143.cz9Wj%akpm@linux-foundation.org>
+ mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix.patch removed from
+ -mm tree
+Date: Mon, 13 Jan 2020 16:22:23 -0800
+Message-ID: <20200114002223.YqeTZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36648 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727282AbgANAVp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 19:21:45 -0500
+        id S1726536AbgANAWY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 19:22:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, thomas.willhalm@intel.com, otto.g.bruggeman@intel.com, dan.j.williams@intel.com, aneesh.kumar@linux.vnet.ibm.com, kirill@shutemov.name
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment-fix
+     Subject: mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix
 has been removed from the -mm tree.  Its filename was
-     thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment-fix.patch
+     mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix.patch
 
-This patch was dropped because it was folded into thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment.patch
+This patch was dropped because it was folded into mm-debug_pagealloc-dont-rely-on-static-keys-too-early.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix
 
-Ouch, I forgot to fold in a fixup:
+need to export _debug_pagealloc_enabled_early
 
-Link: http://lkml.kernel.org/r/20191223231309.t6bh5hkbmokihpfu@box
-Cc: "Willhalm, Thomas" <thomas.willhalm@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Bruggeman, Otto G" <otto.g.bruggeman@intel.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov" <kirill@shutemov.name>
+Link: http://lkml.kernel.org/r/20200106164944.063ac07b@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/shmem.c~thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment-fix
-+++ a/mm/shmem.c
-@@ -2144,7 +2144,7 @@ unsigned long shmem_get_unmapped_area(st
- 	if (inflated_len < len)
- 		return addr;
+--- a/mm/page_alloc.c~mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix
++++ a/mm/page_alloc.c
+@@ -696,6 +696,7 @@ unsigned int _debug_guardpage_minorder;
  
--	inflated_addr = get_area(uaddr, 0, inflated_len, 0, flags);
-+	inflated_addr = get_area(NULL, uaddr, inflated_len, 0, flags);
- 	if (IS_ERR_VALUE(inflated_addr))
- 		return addr;
- 	if (inflated_addr & ~PAGE_MASK)
+ bool _debug_pagealloc_enabled_early __read_mostly
+ 			= IS_ENABLED(CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT);
++EXPORT_SYMBOL(_debug_pagealloc_enabled_early);
+ DEFINE_STATIC_KEY_FALSE(_debug_pagealloc_enabled);
+ EXPORT_SYMBOL(_debug_pagealloc_enabled);
+ 
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-thp-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment.patch
-thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment.patch
-mm-page_alloc-skip-non-present-sections-on-zone-initialization.patch
+mm-debug_pagealloc-dont-rely-on-static-keys-too-early.patch
