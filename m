@@ -1,33 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + net-xdp-set-foll_pin-via-pin_user_pages.patch added to
- -mm tree
-Date: Tue, 14 Jan 2020 15:30:29 -0800
-Message-ID: <20200114233029.b_vAwc_AI%akpm@linux-foundation.org>
+Subject: +
+ media-v4l2-core-pin_user_pages-foll_pin-and-put_user_page-conversion.patch
+ added to -mm tree
+Date: Tue, 14 Jan 2020 15:30:32 -0800
+Message-ID: <20200114233032.elFEprHUN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36230 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728827AbgANXac (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Jan 2020 18:30:32 -0500
+        id S1728827AbgANXaf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Jan 2020 18:30:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex.williamson@redhat.com, aneesh.kumar@linux.ibm.com, axboe@kernel.dk, bjorn.topel@intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, hch@lst.de, hverkuil-cisco@xs4all.nl, ira.weiny@intel.com, jack@suse.cz, jgg@mellanox.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill@shutemov.name, leonro@mellanox.com, mchehab@kernel.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: net/xdp: set FOLL_PIN via pin_user_pages()
+     Subject: media/v4l2-core: pin_user_pages (FOLL_PIN) and put_user_page(=
+) conversion
 has been added to the -mm tree.  Its filename is
-     net-xdp-set-foll_pin-via-pin_user_pages.patch
+     media-v4l2-core-pin_user_pages-foll_pin-and-put_user_page-conversion.p=
+atch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-xdp-set-foll_pin-via-pin_u=
-ser_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/media-v4l2-core-pin_user_pages=
+-foll_pin-and-put_user_page-conversion.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-xdp-set-foll_pin-via-pin_u=
-ser_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/media-v4l2-core-pin_user_pages=
+-foll_pin-and-put_user_page-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,28 +46,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: net/xdp: set FOLL_PIN via pin_user_pages()
+Subject: media/v4l2-core: pin_user_pages (FOLL_PIN) and put_user_page() con=
+version
 
-Convert net/xdp to use the new pin_longterm_pages() call, which sets
-FOLL_PIN.  Setting FOLL_PIN is now required for code that requires
-tracking of pinned pages.
+1. Change v4l2 from get_user_pages() to pin_user_pages().
 
-In partial anticipation of this work, the net/xdp code was already calling
-put_user_page() instead of put_page().  Therefore, in order to convert
-from the get_user_pages()/put_page() model, to the
-pin_user_pages()/put_user_page() model, the only change required here is
-to change get_user_pages() to pin_user_pages().
+2. Because all FOLL_PIN-acquired pages must be released via
+put_user_page(), also convert the put_page() call over to
+put_user_pages_dirty_lock().
 
-Link: http://lkml.kernel.org/r/20200107224558.2362728-18-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200107224558.2362728-19-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
+Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -78,20 +78,41 @@ Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/xdp/xdp_umem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/net/xdp/xdp_umem.c~net-xdp-set-foll_pin-via-pin_user_pages
-+++ a/net/xdp/xdp_umem.c
-@@ -291,7 +291,7 @@ static int xdp_umem_pin_pages(struct xdp
- 		return -ENOMEM;
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c~media-v4l2-core-pin_user_pa=
+ges-foll_pin-and-put_user_page-conversion
++++ a/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -183,12 +183,12 @@ static int videobuf_dma_init_user_locked
+ 	dprintk(1, "init user [0x%lx+0x%lx =3D> %d pages]\n",
+ 		data, size, dma->nr_pages);
 =20
- 	down_read(&current->mm->mmap_sem);
--	npgs =3D get_user_pages(umem->address, umem->npgs,
-+	npgs =3D pin_user_pages(umem->address, umem->npgs,
- 			      gup_flags | FOLL_LONGTERM, &umem->pgs[0], NULL);
- 	up_read(&current->mm->mmap_sem);
+-	err =3D get_user_pages(data & PAGE_MASK, dma->nr_pages,
++	err =3D pin_user_pages(data & PAGE_MASK, dma->nr_pages,
+ 			     flags | FOLL_LONGTERM, dma->pages, NULL);
 =20
+ 	if (err !=3D dma->nr_pages) {
+ 		dma->nr_pages =3D (err >=3D 0) ? err : 0;
+-		dprintk(1, "get_user_pages: err=3D%d [%d]\n", err,
++		dprintk(1, "pin_user_pages: err=3D%d [%d]\n", err,
+ 			dma->nr_pages);
+ 		return err < 0 ? err : -EINVAL;
+ 	}
+@@ -349,11 +349,8 @@ int videobuf_dma_free(struct videobuf_dm
+ 	BUG_ON(dma->sglen);
+=20
+ 	if (dma->pages) {
+-		for (i =3D 0; i < dma->nr_pages; i++) {
+-			if (dma->direction =3D=3D DMA_FROM_DEVICE)
+-				set_page_dirty_lock(dma->pages[i]);
+-			put_page(dma->pages[i]);
+-		}
++		put_user_pages_dirty_lock(dma->pages, dma->nr_pages,
++					  dma->direction =3D=3D DMA_FROM_DEVICE);
+ 		kfree(dma->pages);
+ 		dma->pages =3D NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
