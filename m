@@ -1,67 +1,84 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Mon, 13 Jan 2020 16:28:31 -0800
-Message-ID: <20200113162831.f7d69e11e9e673c40005c9b0@linux-foundation.org>
+Subject: [patch 04/11] mm/shmem.c: thp, shmem: fix conflict of
+ above-47bit hint address and PMD alignment
+Date: Mon, 13 Jan 2020 16:29:13 -0800
+Message-ID: <20200114002913.UR5H3%akpm@linux-foundation.org>
+References: <20200113162831.f7d69e11e9e673c40005c9b0@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44272 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727382AbgANA2c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 19:28:32 -0500
+        id S1728890AbgANA3P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 19:29:15 -0500
+In-Reply-To: <20200113162831.f7d69e11e9e673c40005c9b0@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org
+To: thomas.willhalm@intel.com, stable@vger.kernel.org, otto.g.bruggeman@intel.com, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, aneesh.kumar@linux.vnet.ibm.com, kirill@shutemov.name, akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm/shmem.c: thp, shmem: fix conflict of above-47bit hint address and PMD alignment
 
-11 MM fixes, based on b3a987b0264d3ddbb24293ebff10eddfc472f653:
+Shmem/tmpfs tries to provide THP-friendly mappings if huge pages are
+enabled.  But it doesn't work well with above-47bit hint address.
 
+Normally, the kernel doesn't create userspace mappings above 47-bit, even
+if the machine allows this (such as with 5-level paging on x86-64).  Not
+all user space is ready to handle wide addresses.  It's known that at
+least some JIT compilers use higher bits in pointers to encode their
+information.
 
-    Vlastimil Babka <vbabka@suse.cz>:
-      mm, thp: tweak reclaim/compaction effort of local-only and all-node allocations
+Userspace can ask for allocation from full address space by specifying
+hint address (with or without MAP_FIXED) above 47-bits.  If the
+application doesn't need a particular address, but wants to allocate from
+whole address space it can specify -1 as a hint address.
 
-    David Hildenbrand <david@redhat.com>:
-      mm/memory_hotplug: don't free usage map when removing a re-added early section
+Unfortunately, this trick breaks THP alignment in shmem/tmp:
+shmem_get_unmapped_area() would not try to allocate PMD-aligned area if
+*any* hint address specified.
 
-    "Kirill A. Shutemov" <kirill@shutemov.name>:
-    Patch series "Fix two above-47bit hint address vs. THP bugs":
-      mm/huge_memory.c: thp: fix conflict of above-47bit hint address and PMD alignment
-      mm/shmem.c: thp, shmem: fix conflict of above-47bit hint address and PMD alignment
+This can be fixed by requesting the aligned area if the we failed to
+allocated at user-specified hint address.  The request with inflated
+length will also take the user-specified hint address.  This way we will
+not lose an allocation request from the full address space.
 
-    Roman Gushchin <guro@fb.com>:
-      mm: memcg/slab: fix percpu slab vmstats flushing
+[kirill@shutemov.name: fold in a fixup]
+  Link: http://lkml.kernel.org/r/20191223231309.t6bh5hkbmokihpfu@box
+Link: http://lkml.kernel.org/r/20191220142548.7118-3-kirill.shutemov@linux.intel.com
+Fixes: b569bab78d8d ("x86/mm: Prepare to expose larger address space to userspace")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Willhalm, Thomas" <thomas.willhalm@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: "Bruggeman, Otto G" <otto.g.bruggeman@intel.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Vlastimil Babka <vbabka@suse.cz>:
-      mm, debug_pagealloc: don't rely on static keys too early
+ mm/shmem.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-    Wen Yang <wenyang@linux.alibaba.com>:
-    Patch series "use div64_ul() instead of div_u64() if the divisor is:
-      mm/page-writeback.c: avoid potential division by zero in wb_min_max_ratio()
-      mm/page-writeback.c: use div64_ul() for u64-by-unsigned-long divide
-      mm/page-writeback.c: improve arithmetic divisions
-
-    Adrian Huang <ahuang12@lenovo.com>:
-      mm: memcg/slab: call flush_memcg_workqueue() only if memcg workqueue is valid
-
-    Yang Shi <yang.shi@linux.alibaba.com>:
-      mm: khugepaged: add trace status description for SCAN_PAGE_HAS_PRIVATE
-
- include/linux/mm.h                 |   18 +++++++++-
- include/linux/mmzone.h             |    5 +--
- include/trace/events/huge_memory.h |    3 +
- init/main.c                        |    1 
- mm/huge_memory.c                   |   38 ++++++++++++++---------
- mm/memcontrol.c                    |   37 +++++-----------------
- mm/mempolicy.c                     |   10 ++++--
- mm/page-writeback.c                |   10 +++---
- mm/page_alloc.c                    |   61 ++++++++++---------------------------
- mm/shmem.c                         |    7 ++--
- mm/slab.c                          |    4 +-
- mm/slab_common.c                   |    3 +
- mm/slub.c                          |    2 -
- mm/sparse.c                        |    9 ++++-
- mm/vmalloc.c                       |    4 +-
- 15 files changed, 102 insertions(+), 110 deletions(-)
+--- a/mm/shmem.c~thp-shmem-fix-conflict-of-above-47bit-hint-address-and-pmd-alignment
++++ a/mm/shmem.c
+@@ -2107,9 +2107,10 @@ unsigned long shmem_get_unmapped_area(st
+ 	/*
+ 	 * Our priority is to support MAP_SHARED mapped hugely;
+ 	 * and support MAP_PRIVATE mapped hugely too, until it is COWed.
+-	 * But if caller specified an address hint, respect that as before.
++	 * But if caller specified an address hint and we allocated area there
++	 * successfully, respect that as before.
+ 	 */
+-	if (uaddr)
++	if (uaddr == addr)
+ 		return addr;
+ 
+ 	if (shmem_huge != SHMEM_HUGE_FORCE) {
+@@ -2143,7 +2144,7 @@ unsigned long shmem_get_unmapped_area(st
+ 	if (inflated_len < len)
+ 		return addr;
+ 
+-	inflated_addr = get_area(NULL, 0, inflated_len, 0, flags);
++	inflated_addr = get_area(NULL, uaddr, inflated_len, 0, flags);
+ 	if (IS_ERR_VALUE(inflated_addr))
+ 		return addr;
+ 	if (inflated_addr & ~PAGE_MASK)
+_
