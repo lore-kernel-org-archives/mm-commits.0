@@ -1,102 +1,187 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 10/11] mm: memcg/slab: call flush_memcg_workqueue()
- only if memcg workqueue is valid
-Date: Mon, 13 Jan 2020 16:29:32 -0800
-Message-ID: <20200114002932.ZMvXk%akpm__1378.2669369661$1578961892$gmane$org@linux-foundation.org>
+Subject: [patch 05/11] mm: memcg/slab: fix percpu slab vmstats
+ flushing
+Date: Mon, 13 Jan 2020 16:29:16 -0800
+Message-ID: <20200114002916.-zlNE%akpm__14784.9311980949$1578961896$gmane$org@linux-foundation.org>
 References: <20200113162831.f7d69e11e9e673c40005c9b0@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45786 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728890AbgANA3e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 19:29:34 -0500
+        id S1728890AbgANA3S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 19:29:18 -0500
 In-Reply-To: <20200113162831.f7d69e11e9e673c40005c9b0@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stable@vger.kernel.org, shakeelb@google.com, rientjes@google.com, penberg@kernel.org, mhocko@kernel.org, lixc17@lenovo.com, jroedel@suse.de, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, cl@linux.com, ahuang12@lenovo.com, akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: stable@vger.kernel.org, mhocko@suse.com, hannes@cmpxchg.org, guro@fb.com, akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Adrian Huang <ahuang12@lenovo.com>
-Subject: mm: memcg/slab: call flush_memcg_workqueue() only if memcg workqueue is valid
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: memcg/slab: fix percpu slab vmstats flushing
 
-When booting with amd_iommu=off, the following WARNING message
-appears:
-  AMD-Vi: AMD IOMMU disabled on kernel command-line
-  ------------[ cut here ]------------
-  WARNING: CPU: 0 PID: 0 at kernel/workqueue.c:2772 flush_workqueue+0x42e/0x450
-  Modules linked in:
-  CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.5.0-rc3-amd-iommu #6
-  Hardware name: Lenovo ThinkSystem SR655-2S/7D2WRCZ000, BIOS D8E101L-1.00 12/05/2019
-  RIP: 0010:flush_workqueue+0x42e/0x450
-  Code: ff 0f 0b e9 7a fd ff ff 4d 89 ef e9 33 fe ff ff 0f 0b e9 7f fd ff ff 0f 0b e9 bc fd ff ff 0f 0b e9 a8 fd ff ff e8 52 2c fe ff <0f> 0b 31 d2 48 c7 c6 e0 88 c5 95 48 c7 c7 d8 ad f0 95 e8 19 f5 04
-  RSP: 0000:ffffffff96203d80 EFLAGS: 00010246
-  RAX: ffffffff96203dc8 RBX: 0000000000000000 RCX: 0000000000000000
-  RDX: ffffffff96a63120 RSI: ffffffff95efcba2 RDI: ffffffff96203dc0
-  RBP: ffffffff96203e08 R08: 0000000000000000 R09: ffffffff962a1828
-  R10: 00000000f0000080 R11: dead000000000100 R12: ffff8d8a87c0a770
-  R13: dead000000000100 R14: 0000000000000456 R15: ffffffff96203da0
-  FS:  0000000000000000(0000) GS:ffff8d8dbd000000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: ffff8d91cfbff000 CR3: 000000078920a000 CR4: 00000000000406b0
-  Call Trace:
-   ? wait_for_completion+0x51/0x180
-   kmem_cache_destroy+0x69/0x260
-   iommu_go_to_state+0x40c/0x5ab
-   amd_iommu_prepare+0x16/0x2a
-   irq_remapping_prepare+0x36/0x5f
-   enable_IR_x2apic+0x21/0x172
-   default_setup_apic_routing+0x12/0x6f
-   apic_intr_mode_init+0x1a1/0x1f1
-   x86_late_time_init+0x17/0x1c
-   start_kernel+0x480/0x53f
-   secondary_startup_64+0xb6/0xc0
-  ---[ end trace 30894107c3749449 ]---
-  x2apic: IRQ remapping doesn't support X2APIC mode
-  x2apic disabled
+Currently slab percpu vmstats are flushed twice: during the memcg
+offlining and just before freeing the memcg structure.  Each time percpu
+counters are summed, added to the atomic counterparts and propagated up by
+the cgroup tree.
 
-The warning is caused by the calling of 'kmem_cache_destroy()'
-in free_iommu_resources(). Here is the call path:
-  free_iommu_resources
-    kmem_cache_destroy
-      flush_memcg_workqueue
-        flush_workqueue
+The second flushing is required due to how recursive vmstats are
+implemented: counters are batched in percpu variables on a local level,
+and once a percpu value is crossing some predefined threshold, it spills
+over to atomic values on the local and each ascendant levels.  It means
+that without flushing some numbers cached in percpu variables will be
+dropped on floor each time a cgroup is destroyed.  And with uptime the
+error on upper levels might become noticeable.
 
-The root cause is that the IOMMU subsystem runs before the workqueue
-subsystem, which the variable 'wq_online' is still 'false'.  This leads to
-the statement 'if (WARN_ON(!wq_online))' in flush_workqueue() is 'true'.
+The first flushing aims to make counters on ancestor levels more precise. 
+Dying cgroups may resume in the dying state for a long time.  After
+kmem_cache reparenting which is performed during the offlining slab
+counters of the dying cgroup don't have any chances to be updated, because
+any slab operations will be performed on the parent level.  It means that
+the inaccuracy caused by percpu batching will not decrease up to the final
+destruction of the cgroup.  By the original idea flushing slab counters
+during the offlining should minimize the visible inaccuracy of slab
+counters on the parent level.
 
-Since the variable 'memcg_kmem_cache_wq' is not allocated during the time,
-it is unnecessary to call flush_memcg_workqueue().  This prevents the
-WARNING message triggered by flush_workqueue().
+The problem is that percpu counters are not zeroed after the first
+flushing.  So every cached percpu value is summed twice.  It creates a
+small error (up to 32 pages per cpu, but usually less) which accumulates
+on parent cgroup level.  After creating and destroying of thousands of
+child cgroups, slab counter on parent level can be way off the real value.
 
-Link: http://lkml.kernel.org/r/20200103085503.1665-1-ahuang12@lenovo.com
-Fixes: 92ee383f6daab ("mm: fix race between kmem_cache destroy, create and deactivate")
-Signed-off-by: Adrian Huang <ahuang12@lenovo.com>
-Reported-by: Xiaochun Lee <lixc17@lenovo.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Joerg Roedel <jroedel@suse.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+For now, let's just stop flushing slab counters on memcg offlining.  It
+can't be done correctly without scheduling a work on each cpu: reading and
+zeroing it during css offlining can race with an asynchronous update,
+which doesn't expect values to be changed underneath.
+
+With this change, slab counters on parent level will become eventually
+consistent.  Once all dying children are gone, values are correct.  And if
+not, the error is capped by 32 * NR_CPUS pages per dying cgroup.
+
+It's not perfect, as slab are reparented, so any updates after the
+reparenting will happen on the parent level.  It means that if a slab page
+was allocated, a counter on child level was bumped, then the page was
+reparented and freed, the annihilation of positive and negative counter
+values will not happen until the child cgroup is released.  It makes slab
+counters different from others, and it might want us to implement flushing
+in a correct form again.  But it's also a question of performance:
+scheduling a work on each cpu isn't free, and it's an open question if the
+benefit of having more accurate counters is worth it.
+
+We might also consider flushing all counters on offlining, not only slab
+counters.
+
+So let's fix the main problem now: make the slab counters eventually
+consistent, so at least the error won't grow with uptime (or more
+precisely the number of created and destroyed cgroups).  And think about
+the accuracy of counters separately.
+
+Link: http://lkml.kernel.org/r/20191220042728.1045881-1-guro@fb.com
+Fixes: bee07b33db78 ("mm: memcontrol: flush percpu slab vmstats on kmem offlining")
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    5 ++---
+ mm/memcontrol.c        |   37 +++++++++----------------------------
+ 2 files changed, 11 insertions(+), 31 deletions(-)
 
---- a/mm/slab_common.c~mm-memcg-slab-call-flush_memcg_workqueue-only-if-memcg-workqueue-is-valid
-+++ a/mm/slab_common.c
-@@ -903,7 +903,8 @@ static void flush_memcg_workqueue(struct
- 	 * deactivates the memcg kmem_caches through workqueue. Make sure all
- 	 * previous workitems on workqueue are processed.
- 	 */
--	flush_workqueue(memcg_kmem_cache_wq);
-+	if (likely(memcg_kmem_cache_wq))
-+		flush_workqueue(memcg_kmem_cache_wq);
+--- a/include/linux/mmzone.h~mm-memcg-slab-fix-percpu-slab-vmstats-flushing
++++ a/include/linux/mmzone.h
+@@ -215,9 +215,8 @@ enum node_stat_item {
+ 	NR_INACTIVE_FILE,	/*  "     "     "   "       "         */
+ 	NR_ACTIVE_FILE,		/*  "     "     "   "       "         */
+ 	NR_UNEVICTABLE,		/*  "     "     "   "       "         */
+-	NR_SLAB_RECLAIMABLE,	/* Please do not reorder this item */
+-	NR_SLAB_UNRECLAIMABLE,	/* and this one without looking at
+-				 * memcg_flush_percpu_vmstats() first. */
++	NR_SLAB_RECLAIMABLE,
++	NR_SLAB_UNRECLAIMABLE,
+ 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
+ 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+ 	WORKINGSET_NODES,
+--- a/mm/memcontrol.c~mm-memcg-slab-fix-percpu-slab-vmstats-flushing
++++ a/mm/memcontrol.c
+@@ -3287,49 +3287,34 @@ static u64 mem_cgroup_read_u64(struct cg
+ 	}
+ }
+ 
+-static void memcg_flush_percpu_vmstats(struct mem_cgroup *memcg, bool slab_only)
++static void memcg_flush_percpu_vmstats(struct mem_cgroup *memcg)
+ {
+-	unsigned long stat[MEMCG_NR_STAT];
++	unsigned long stat[MEMCG_NR_STAT] = {0};
+ 	struct mem_cgroup *mi;
+ 	int node, cpu, i;
+-	int min_idx, max_idx;
+-
+-	if (slab_only) {
+-		min_idx = NR_SLAB_RECLAIMABLE;
+-		max_idx = NR_SLAB_UNRECLAIMABLE;
+-	} else {
+-		min_idx = 0;
+-		max_idx = MEMCG_NR_STAT;
+-	}
+-
+-	for (i = min_idx; i < max_idx; i++)
+-		stat[i] = 0;
+ 
+ 	for_each_online_cpu(cpu)
+-		for (i = min_idx; i < max_idx; i++)
++		for (i = 0; i < MEMCG_NR_STAT; i++)
+ 			stat[i] += per_cpu(memcg->vmstats_percpu->stat[i], cpu);
+ 
+ 	for (mi = memcg; mi; mi = parent_mem_cgroup(mi))
+-		for (i = min_idx; i < max_idx; i++)
++		for (i = 0; i < MEMCG_NR_STAT; i++)
+ 			atomic_long_add(stat[i], &mi->vmstats[i]);
+ 
+-	if (!slab_only)
+-		max_idx = NR_VM_NODE_STAT_ITEMS;
+-
+ 	for_each_node(node) {
+ 		struct mem_cgroup_per_node *pn = memcg->nodeinfo[node];
+ 		struct mem_cgroup_per_node *pi;
+ 
+-		for (i = min_idx; i < max_idx; i++)
++		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 			stat[i] = 0;
+ 
+ 		for_each_online_cpu(cpu)
+-			for (i = min_idx; i < max_idx; i++)
++			for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 				stat[i] += per_cpu(
+ 					pn->lruvec_stat_cpu->count[i], cpu);
+ 
+ 		for (pi = pn; pi; pi = parent_nodeinfo(pi, node))
+-			for (i = min_idx; i < max_idx; i++)
++			for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 				atomic_long_add(stat[i], &pi->lruvec_stat[i]);
+ 	}
+ }
+@@ -3403,13 +3388,9 @@ static void memcg_offline_kmem(struct me
+ 		parent = root_mem_cgroup;
  
  	/*
- 	 * If we're racing with children kmem_cache deactivation, it might
+-	 * Deactivate and reparent kmem_caches. Then flush percpu
+-	 * slab statistics to have precise values at the parent and
+-	 * all ancestor levels. It's required to keep slab stats
+-	 * accurate after the reparenting of kmem_caches.
++	 * Deactivate and reparent kmem_caches.
+ 	 */
+ 	memcg_deactivate_kmem_caches(memcg, parent);
+-	memcg_flush_percpu_vmstats(memcg, true);
+ 
+ 	kmemcg_id = memcg->kmemcg_id;
+ 	BUG_ON(kmemcg_id < 0);
+@@ -4913,7 +4894,7 @@ static void mem_cgroup_free(struct mem_c
+ 	 * Flush percpu vmstats and vmevents to guarantee the value correctness
+ 	 * on parent's and all ancestor levels.
+ 	 */
+-	memcg_flush_percpu_vmstats(memcg, false);
++	memcg_flush_percpu_vmstats(memcg);
+ 	memcg_flush_percpu_vmevents(memcg);
+ 	__mem_cgroup_free(memcg);
+ }
 _
