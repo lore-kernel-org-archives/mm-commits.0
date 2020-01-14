@@ -1,54 +1,67 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix.patch removed from
- -mm tree
-Date: Mon, 13 Jan 2020 16:22:23 -0800
-Message-ID: <20200114002223.YqeTZ%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Mon, 13 Jan 2020 16:28:31 -0800
+Message-ID: <20200113162831.f7d69e11e9e673c40005c9b0@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37334 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44272 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726536AbgANAWY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jan 2020 19:22:24 -0500
+        id S1727382AbgANA2c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jan 2020 19:28:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, sfr@canb.auug.org.au
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix
-has been removed from the -mm tree.  Its filename was
-     mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix.patch
+11 MM fixes, based on b3a987b0264d3ddbb24293ebff10eddfc472f653:
 
-This patch was dropped because it was folded into mm-debug_pagealloc-dont-rely-on-static-keys-too-early.patch
 
-------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix
+    Vlastimil Babka <vbabka@suse.cz>:
+      mm, thp: tweak reclaim/compaction effort of local-only and all-node allocations
 
-need to export _debug_pagealloc_enabled_early
+    David Hildenbrand <david@redhat.com>:
+      mm/memory_hotplug: don't free usage map when removing a re-added early section
 
-Link: http://lkml.kernel.org/r/20200106164944.063ac07b@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    "Kirill A. Shutemov" <kirill@shutemov.name>:
+    Patch series "Fix two above-47bit hint address vs. THP bugs":
+      mm/huge_memory.c: thp: fix conflict of above-47bit hint address and PMD alignment
+      mm/shmem.c: thp, shmem: fix conflict of above-47bit hint address and PMD alignment
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+    Roman Gushchin <guro@fb.com>:
+      mm: memcg/slab: fix percpu slab vmstats flushing
 
---- a/mm/page_alloc.c~mm-debug_pagealloc-dont-rely-on-static-keys-too-early-fix
-+++ a/mm/page_alloc.c
-@@ -696,6 +696,7 @@ unsigned int _debug_guardpage_minorder;
- 
- bool _debug_pagealloc_enabled_early __read_mostly
- 			= IS_ENABLED(CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT);
-+EXPORT_SYMBOL(_debug_pagealloc_enabled_early);
- DEFINE_STATIC_KEY_FALSE(_debug_pagealloc_enabled);
- EXPORT_SYMBOL(_debug_pagealloc_enabled);
- 
-_
+    Vlastimil Babka <vbabka@suse.cz>:
+      mm, debug_pagealloc: don't rely on static keys too early
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+    Wen Yang <wenyang@linux.alibaba.com>:
+    Patch series "use div64_ul() instead of div_u64() if the divisor is:
+      mm/page-writeback.c: avoid potential division by zero in wb_min_max_ratio()
+      mm/page-writeback.c: use div64_ul() for u64-by-unsigned-long divide
+      mm/page-writeback.c: improve arithmetic divisions
 
-mm-debug_pagealloc-dont-rely-on-static-keys-too-early.patch
+    Adrian Huang <ahuang12@lenovo.com>:
+      mm: memcg/slab: call flush_memcg_workqueue() only if memcg workqueue is valid
+
+    Yang Shi <yang.shi@linux.alibaba.com>:
+      mm: khugepaged: add trace status description for SCAN_PAGE_HAS_PRIVATE
+
+ include/linux/mm.h                 |   18 +++++++++-
+ include/linux/mmzone.h             |    5 +--
+ include/trace/events/huge_memory.h |    3 +
+ init/main.c                        |    1 
+ mm/huge_memory.c                   |   38 ++++++++++++++---------
+ mm/memcontrol.c                    |   37 +++++-----------------
+ mm/mempolicy.c                     |   10 ++++--
+ mm/page-writeback.c                |   10 +++---
+ mm/page_alloc.c                    |   61 ++++++++++---------------------------
+ mm/shmem.c                         |    7 ++--
+ mm/slab.c                          |    4 +-
+ mm/slab_common.c                   |    3 +
+ mm/slub.c                          |    2 -
+ mm/sparse.c                        |    9 ++++-
+ mm/vmalloc.c                       |    4 +-
+ 15 files changed, 102 insertions(+), 110 deletions(-)
