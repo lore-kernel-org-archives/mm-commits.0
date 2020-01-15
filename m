@@ -1,75 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: +
- zswap-potential-null-dereference-on-error-in-init_zswap.patch added to -mm
- tree
-Date: Tue, 14 Jan 2020 16:41:43 -0800
-Message-ID: <20200115004143.DSNgT8ozK%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-al?=
+ =?US-ASCII?Q?l-node-allocations.patch?= removed from -mm tree
+Date: Tue, 14 Jan 2020 16:45:34 -0800
+Message-ID: <20200115004534.bW-Nt0fUm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45630 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726495AbgAOAlo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Jan 2020 19:41:44 -0500
+        id S1728795AbgAOApg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Jan 2020 19:45:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org, vitaly.wool@konsulko.com
+To: aarcange@redhat.com, kirill@shutemov.name, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: zswap: potential NULL dereference on error in init_zswap()
-has been added to the -mm tree.  Its filename is
-     zswap-potential-null-dereference-on-error-in-init_zswap.patch
+     Subject: mm, thp: tweak reclaim/compaction effort of local-only and all-node allocations
+has been removed from the -mm tree.  Its filename was
+     mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-potential-null-dereference-on-error-in-init_zswap.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-potential-null-dereference-on-error-in-init_zswap.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: zswap: potential NULL dereference on error in init_zswap()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, thp: tweak reclaim/compaction effort of local-only and all-node allocations
 
-The "pool" pointer can be NULL at the end of the init_zswap().  (We would
-allocate a new pool later in that situation.) So in the error handling
-then we need to make sure pool is a valid pointer before calling
-"zswap_pool_destroy(pool);" because that function dereferences the
-argument.
+THP page faults now attempt a __GFP_THISNODE allocation first, which
+should only compact existing free memory, followed by another attempt that
+can allocate from any node using reclaim/compaction effort specified by
+global defrag setting and madvise.
 
-Link: http://lkml.kernel.org/r/20200114050902.og32fkllkod5ycf5@kili.mountain
-Fixes: 93d4dfa9fbd0 ("mm/zswap.c: add allocation hysteresis if pool limit is hit")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+This patch makes the following changes to the scheme:
+
+- before the patch, the first allocation relies on a check for pageblock
+  order and __GFP_IO to prevent excessive reclaim.  This however affects
+  also the second attempt, which is not limited to single node.  Instead
+  of that, reuse the existing check for costly order __GFP_NORETRY
+  allocations, and make sure the first THP attempt uses __GFP_NORETRY.  As
+  a side-effect, all costly order __GFP_NORETRY allocations will bail out
+  if compaction needs reclaim, while previously they only bailed out when
+  compaction was deferred due to previous failures.  This should be still
+  acceptable within the __GFP_NORETRY semantics.
+
+- before the patch, the second allocation attempt (on all nodes) was
+  passing __GFP_NORETRY.  This is redundant as the check for pageblock
+  order (discussed above) was stronger.  It's also contrary to
+  madvise(MADV_HUGEPAGE) which means some effort to allocate THP is
+  requested.  After this patch, the second attempt doesn't pass
+  __GFP_THISNODE nor __GFP_NORETRY.
+
+To sum up, THP page faults now try the following attempts:
+
+1. local node only THP allocation with no reclaim, just compaction.
+2. for madvised VMA's or when synchronous compaction is enabled always - THP
+   allocation from any node with effort determined by global defrag setting
+   and VMA madvise
+3. fallback to base pages on any node
+
+Link: http://lkml.kernel.org/r/08a3f4dd-c3ce-0009-86c5-9ee51aba8557@suse.cz
+Fixes: b39d0ee2632d ("mm, page_alloc: avoid expensive reclaim when compaction may not succeed")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/mempolicy.c  |   10 +++++++---
+ mm/page_alloc.c |   24 +++++-------------------
+ 2 files changed, 12 insertions(+), 22 deletions(-)
 
---- a/mm/zswap.c~zswap-potential-null-dereference-on-error-in-init_zswap
-+++ a/mm/zswap.c
-@@ -1359,7 +1359,8 @@ static int __init init_zswap(void)
- 	return 0;
+--- a/mm/mempolicy.c~mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations
++++ a/mm/mempolicy.c
+@@ -2148,18 +2148,22 @@ alloc_pages_vma(gfp_t gfp, int order, st
+ 		nmask = policy_nodemask(gfp, pol);
+ 		if (!nmask || node_isset(hpage_node, *nmask)) {
+ 			mpol_cond_put(pol);
++			/*
++			 * First, try to allocate THP only on local node, but
++			 * don't reclaim unnecessarily, just compact.
++			 */
+ 			page = __alloc_pages_node(hpage_node,
+-						gfp | __GFP_THISNODE, order);
++				gfp | __GFP_THISNODE | __GFP_NORETRY, order);
  
- fallback_fail:
--	zswap_pool_destroy(pool);
-+	if (pool)
-+		zswap_pool_destroy(pool);
- hp_fail:
- 	cpuhp_remove_state(CPUHP_MM_ZSWP_MEM_PREPARE);
- dstmem_fail:
-_
-
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
-
-zswap-potential-null-dereference-on-error-in-init_zswap.patch
+ 			/*
+ 			 * If hugepage allocations are configured to always
+ 			 * synchronous compact or the vma has been madvised
+ 			 * to prefer hugepage backing, retry allowing remote
+-			 * memory as well.
++			 * memory with both reclaim and compact as well.
+ 			 */
+ 			if (!page && (gfp & __GFP_DIRECT_RECLAIM))
+ 				page = __alloc_pages_node(hpage_node,
+-						gfp | __GFP_NORETRY, order);
++								gfp, order);
+ 
+ 			goto out;
+ 		}
+--- a/mm/page_alloc.c~mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations
++++ a/mm/page_alloc.c
+@@ -4476,8 +4476,11 @@ retry_cpuset:
+ 		if (page)
+ 			goto got_pg;
+ 
+-		 if (order >= pageblock_order && (gfp_mask & __GFP_IO) &&
+-		     !(gfp_mask & __GFP_RETRY_MAYFAIL)) {
++		/*
++		 * Checks for costly allocations with __GFP_NORETRY, which
++		 * includes some THP page fault allocations
++		 */
++		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
+ 			/*
+ 			 * If allocating entire pageblock(s) and compaction
+ 			 * failed because all zones are below low watermarks
+@@ -4498,23 +4501,6 @@ retry_cpuset:
+ 			if (compact_result == COMPACT_SKIPPED ||
+ 			    compact_result == COMPACT_DEFERRED)
+ 				goto nopage;
+-		}
