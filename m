@@ -1,127 +1,177 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-al?=
- =?US-ASCII?Q?l-node-allocations.patch?= removed from -mm tree
-Date: Tue, 14 Jan 2020 16:45:34 -0800
-Message-ID: <20200115004534.bW-Nt0fUm%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memory=5Fhotplug-dont-free-usage-map-when-removing-a-re-a?=
+ =?US-ASCII?Q?dded-early-section.patch?= removed from -mm tree
+Date: Tue, 14 Jan 2020 16:45:37 -0800
+Message-ID: <20200115004537.cpMi3D1uH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48322 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728795AbgAOApg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Jan 2020 19:45:36 -0500
+        id S1728795AbgAOApj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Jan 2020 19:45:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, kirill@shutemov.name, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: dan.j.williams@intel.com, david@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de, piliu@redhat.com
 
 
 The patch titled
-     Subject: mm, thp: tweak reclaim/compaction effort of local-only and all-node allocations
+     Subject: mm/memory_hotplug: don't free usage map when removing a re-added early section
 has been removed from the -mm tree.  Its filename was
-     mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations.patch
+     mm-memory_hotplug-dont-free-usage-map-when-removing-a-re-added-early-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, thp: tweak reclaim/compaction effort of local-only and all-node allocations
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: don't free usage map when removing a re-added early section
 
-THP page faults now attempt a __GFP_THISNODE allocation first, which
-should only compact existing free memory, followed by another attempt that
-can allocate from any node using reclaim/compaction effort specified by
-global defrag setting and madvise.
+When we remove an early section, we don't free the usage map, as the usage
+maps of other sections are placed into the same page.  Once the section is
+removed, it is no longer an early section (especially, the memmap is
+freed).  When we re-add that section, the usage map is reused, however, it
+is no longer an early section.  When removing that section again, we try
+to kfree() a usage map that was allocated during early boot - bad.
 
-This patch makes the following changes to the scheme:
+Let's check against PageReserved() to see if we are dealing with an usage
+map that was allocated during boot.  We could also check against
+!(PageSlab(usage_page) || PageCompound(usage_page)), but PageReserved() is
+cleaner.
 
-- before the patch, the first allocation relies on a check for pageblock
-  order and __GFP_IO to prevent excessive reclaim.  This however affects
-  also the second attempt, which is not limited to single node.  Instead
-  of that, reuse the existing check for costly order __GFP_NORETRY
-  allocations, and make sure the first THP attempt uses __GFP_NORETRY.  As
-  a side-effect, all costly order __GFP_NORETRY allocations will bail out
-  if compaction needs reclaim, while previously they only bailed out when
-  compaction was deferred due to previous failures.  This should be still
-  acceptable within the __GFP_NORETRY semantics.
+Can be triggered using memtrace under ppc64/powernv:
 
-- before the patch, the second allocation attempt (on all nodes) was
-  passing __GFP_NORETRY.  This is redundant as the check for pageblock
-  order (discussed above) was stronger.  It's also contrary to
-  madvise(MADV_HUGEPAGE) which means some effort to allocate THP is
-  requested.  After this patch, the second attempt doesn't pass
-  __GFP_THISNODE nor __GFP_NORETRY.
+$ mount -t debugfs none /sys/kernel/debug/
+$ echo 0x20000000 > /sys/kernel/debug/powerpc/memtrace/enable
+$ echo 0x20000000 > /sys/kernel/debug/powerpc/memtrace/enable
+[   12.093442] ------------[ cut here ]------------
+[   12.093469] kernel BUG at mm/slub.c:3969!
+[   12.093656] Oops: Exception in kernel mode, sig: 5 [#1]
+[   12.093961] LE PAGE_SIZE=3D64K MMU=3DHash SMP NR_CPUS=3D2048 NUMA Powe=
+rNV
+[   12.094320] Modules linked in:
+[   12.094615] CPU: 0 PID: 154 Comm: sh Not tainted 5.5.0-rc2-next-201912=
+16-00005-g0be1dba7b7c0 #61
+[   12.095066] NIP:  c000000000396b38 LR: c000000000385848 CTR: c00000000=
+0143d30
+[   12.095427] REGS: c000000073077680 TRAP: 0700   Not tainted  (5.5.0-rc=
+2-next-20191216-00005-g0be1dba7b7c0)
+[   12.095886] MSR:  900000000282b033 <SF,HV,VEC,VSX,EE,FP,ME,IR,DR,RI,LE=
+>  CR: 28004828  XER: 20000000
+[   12.096395] CFAR: c000000000396b9c IRQMASK: 0
+[   12.096395] GPR00: c000000000385848 c000000073077910 c00000000110f300 =
+c00000007ffffc00
+[   12.096395] GPR04: 0000000000000000 ffffffffffffffff 0000000000000000 =
+0000000000000000
+[   12.096395] GPR08: 0000000000000000 0000000000000001 0000000000000000 =
+ffffffffffffffc8
+[   12.096395] GPR12: 0000000000004000 c0000000012d0000 0000000000001000 =
+c000000000d33c78
+[   12.096395] GPR16: 0000000000000000 c0000000011bfeb0 ffffffffffffe000 =
+c0000000000b6370
+[   12.096395] GPR20: ffffffffe0000000 c0000000011411c0 0000000000006000 =
+c0000000000b6390
+[   12.096395] GPR24: 0000000010000000 0000000000000040 0000000000000000 =
+0000000000000000
+[   12.096395] GPR28: c000000000385848 c00c0000001fffc0 0000000000004000 =
+0000000000000000
+[   12.099882] NIP [c000000000396b38] kfree+0x338/0x3b0
+[   12.100135] LR [c000000000385848] section_deactivate+0x138/0x200
+[   12.100508] Call Trace:
+[   12.100927] [c000000073077910] [c0000000010599a8] 0xc0000000010599a8 (=
+unreliable)
+[   12.101338] [c000000073077960] [c000000000385848] section_deactivate+0=
+x138/0x200
+[   12.101696] [c000000073077a10] [c00000000039b9f4] __remove_pages+0x114=
+/0x150
+[   12.102025] [c000000073077a60] [c00000000006793c] arch_remove_memory+0=
+x3c/0x160
+[   12.102381] [c000000073077ae0] [c00000000039c154] try_remove_memory+0x=
+114/0x1a0
+[   12.102715] [c000000073077b90] [c00000000039c020] __remove_memory+0x20=
+/0x40
+[   12.103041] [c000000073077bb0] [c0000000000b6714] memtrace_enable_set+=
+0x254/0x850
+[   12.103402] [c000000073077cb0] [c0000000004197e8] simple_attr_write+0x=
+138/0x160
+[   12.103751] [c000000073077d10] [c000000000558c9c] full_proxy_write+0x8=
+c/0x110
+[   12.104100] [c000000073077d60] [c0000000003d02a8] __vfs_write+0x38/0x7=
+0
+[   12.104409] [c000000073077d80] [c0000000003d3c5c] vfs_write+0x11c/0x2a=
+0
+[   12.104711] [c000000073077dd0] [c0000000003d4054] ksys_write+0x84/0x14=
+0
+[   12.105011] [c000000073077e20] [c00000000000b594] system_call+0x5c/0x6=
+8
+[   12.105357] Instruction dump:
+[   12.105606] e93d0000 75290001 41820090 8bfd0051 38a0ffff 7ca5f830 7bff=
+0020 7ca507b4
+[   12.105993] e95d0000 39200000 754a0001 4182005c <0b090000> 893d0007 3d=
+42000b 38800006
+[   12.106583] ---[ end trace 4b053cbd84e0db62 ]---
 
-To sum up, THP page faults now try the following attempts:
+The first invocation will offline+remove memory blocks. The second
+invocation will first add+online them again, in order to offline+remove
+them again (usually we are lucky and the exact same memory blocks will
+get "reallocated").
 
-1. local node only THP allocation with no reclaim, just compaction.
-2. for madvised VMA's or when synchronous compaction is enabled always - THP
-   allocation from any node with effort determined by global defrag setting
-   and VMA madvise
-3. fallback to base pages on any node
+Tested on powernv with boot memory: The usage map will not get freed.
+Tested on x86-64 with DIMMs: The usage map will get freed.
 
-Link: http://lkml.kernel.org/r/08a3f4dd-c3ce-0009-86c5-9ee51aba8557@suse.cz
-Fixes: b39d0ee2632d ("mm, page_alloc: avoid expensive reclaim when compaction may not succeed")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: David Rientjes <rientjes@google.com>
+Using Dynamic Memory under a Power DLAPR can trigger it easily. 
+Triggering removal (I assume after previously removed+re-added) of
+memory from the HMC GUI can crash the kernel with the same call trace
+and is fixed by this patch.
+
+Link: http://lkml.kernel.org/r/20191217104637.5509-1-david@redhat.com
+Fixes: 326e1b8f83a4 ("mm/sparsemem: introduce a SECTION_IS_EARLY flag")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Tested-by: Pingfan Liu <piliu@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c  |   10 +++++++---
- mm/page_alloc.c |   24 +++++-------------------
- 2 files changed, 12 insertions(+), 22 deletions(-)
+ mm/sparse.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations
-+++ a/mm/mempolicy.c
-@@ -2148,18 +2148,22 @@ alloc_pages_vma(gfp_t gfp, int order, st
- 		nmask = policy_nodemask(gfp, pol);
- 		if (!nmask || node_isset(hpage_node, *nmask)) {
- 			mpol_cond_put(pol);
-+			/*
-+			 * First, try to allocate THP only on local node, but
-+			 * don't reclaim unnecessarily, just compact.
-+			 */
- 			page = __alloc_pages_node(hpage_node,
--						gfp | __GFP_THISNODE, order);
-+				gfp | __GFP_THISNODE | __GFP_NORETRY, order);
+--- a/mm/sparse.c~mm-memory_hotplug-dont-free-usage-map-when-removing-a-re-added-early-section
++++ a/mm/sparse.c
+@@ -777,7 +777,14 @@ static void section_deactivate(unsigned
+ 	if (bitmap_empty(subsection_map, SUBSECTIONS_PER_SECTION)) {
+ 		unsigned long section_nr = pfn_to_section_nr(pfn);
  
- 			/*
- 			 * If hugepage allocations are configured to always
- 			 * synchronous compact or the vma has been madvised
- 			 * to prefer hugepage backing, retry allowing remote
--			 * memory as well.
-+			 * memory with both reclaim and compact as well.
- 			 */
- 			if (!page && (gfp & __GFP_DIRECT_RECLAIM))
- 				page = __alloc_pages_node(hpage_node,
--						gfp | __GFP_NORETRY, order);
-+								gfp, order);
- 
- 			goto out;
- 		}
---- a/mm/page_alloc.c~mm-thp-tweak-reclaim-compaction-effort-of-local-only-and-all-node-allocations
-+++ a/mm/page_alloc.c
-@@ -4476,8 +4476,11 @@ retry_cpuset:
- 		if (page)
- 			goto got_pg;
- 
--		 if (order >= pageblock_order && (gfp_mask & __GFP_IO) &&
--		     !(gfp_mask & __GFP_RETRY_MAYFAIL)) {
+-		if (!section_is_early) {
 +		/*
-+		 * Checks for costly allocations with __GFP_NORETRY, which
-+		 * includes some THP page fault allocations
++		 * When removing an early section, the usage map is kept (as the
++		 * usage maps of other sections fall into the same page). It
++		 * will be re-used when re-adding the section - which is then no
++		 * longer an early section. If the usage map is PageReserved, it
++		 * was allocated during boot.
 +		 */
-+		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
- 			/*
- 			 * If allocating entire pageblock(s) and compaction
- 			 * failed because all zones are below low watermarks
-@@ -4498,23 +4501,6 @@ retry_cpuset:
- 			if (compact_result == COMPACT_SKIPPED ||
- 			    compact_result == COMPACT_DEFERRED)
- 				goto nopage;
--		}
++		if (!PageReserved(virt_to_page(ms->usage))) {
+ 			kfree(ms->usage);
+ 			ms->usage = NULL;
+ 		}
+_
+
+Patches currently in -mm which might be from david@redhat.com are
+
+mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section.patch
+fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection.patch
+mm-initialize-memmap-of-unavailable-memory-directly.patch
+drivers-base-memoryc-cache-blocks-in-radix-tree-to-accelerate-lookup-fix-2.patch
+mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone.patch
+mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn.patch
+mm-memory_hotplug-dont-check-for-all-holes-in-shrink_zone_span.patch
+mm-memory_hotplug-drop-local-variables-in-shrink_zone_span.patch
+mm-memory_hotplug-cleanup-__remove_pages.patch
+mm-memory_hotplug-drop-valid_start-valid_end-from-test_pages_in_a_zone.patch
+mm-memory_hotplug-pass-in-nid-to-online_pages.patch
+mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
+mm-factor-out-next_present_section_nr.patch
+mm-remove-the-memory-isolate-notifier.patch
+mm-remove-count-parameter-from-has_unmovable_pages.patch
