@@ -1,59 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-khugepaged-add-trace-status-description-for-scan_page_has_private.patch
+Subject: [failures]
+ mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
  removed from -mm tree
-Date: Tue, 14 Jan 2020 16:46:02 -0800
-Message-ID: <20200115004602.sG3P8yeSQ%akpm@linux-foundation.org>
+Date: Tue, 14 Jan 2020 17:25:18 -0800
+Message-ID: <20200115012518.S1nCMd-Gu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48980 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728795AbgAOAqD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Jan 2020 19:46:03 -0500
+        id S1728834AbgAOBZU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Jan 2020 20:25:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, songliubraving@fb.com, yang.shi@linux.alibaba.com
+To: lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm: khugepaged: add trace status description for SCAN_PAGE_HAS_PRIVATE
+     Subject: mm/mempolicy: check hstate for hugetlbfs page in vma_migratable()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-add-trace-status-description-for-scan_page_has_private.patch
+     mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: khugepaged: add trace status description for SCAN_PAGE_HAS_PRIVATE
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/mempolicy: check hstate for hugetlbfs page in vma_migratable()
 
-Commit 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem)
-FS") introduced a new khugepaged scan result: SCAN_PAGE_HAS_PRIVATE, but
-the corresponding description for trace events were not added.
+Check hstate at early phase when isolating page, instead of during unmap
+and move phase, to avoid useless isolation.
 
-Link: http://lkml.kernel.org/r/1574793844-2914-1-git-send-email-yang.shi@linux.alibaba.com
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: http://lkml.kernel.org/r/1578993378-10860-1-git-send-email-lixinhai.lxh@gmail.com
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mempolicy.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-add-trace-status-description-for-scan_page_has_private
-+++ a/include/trace/events/huge_memory.h
-@@ -31,7 +31,8 @@
- 	EM( SCAN_ALLOC_HUGE_PAGE_FAIL,	"alloc_huge_page_failed")	\
- 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
- 	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
--	EMe(SCAN_TRUNCATED,		"truncated")			\
-+	EM( SCAN_TRUNCATED,		"truncated")			\
-+	EMe(SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
+--- a/include/linux/mempolicy.h~mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable
++++ a/include/linux/mempolicy.h
+@@ -185,10 +185,9 @@ static inline bool vma_migratable(struct
+ 	if (vma_is_dax(vma))
+ 		return false;
  
- #undef EM
- #undef EMe
+-#ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+-	if (vma->vm_flags & VM_HUGETLB)
++	if (is_vm_hugetlb_page(vma) &&
++		!hugepage_migration_supported(hstate_vma(vma)))
+ 		return false;
+-#endif
+ 
+ 	/*
+ 	 * Migration allocates pages in the highest zone. If we cannot
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+
+mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
+mm-mempolicy-skip-walking-hugetlb-vma-if-mpol_mf_strict-is-specified-alone.patch
