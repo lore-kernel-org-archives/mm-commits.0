@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+Subject: +
+ mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
  added to -mm tree
-Date: Tue, 14 Jan 2020 16:22:23 -0800
-Message-ID: <20200115002223.cexEp7J5F%akpm@linux-foundation.org>
+Date: Tue, 14 Jan 2020 16:32:46 -0800
+Message-ID: <20200115003246.ED7WmneNR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57350 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728774AbgAOAWZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Jan 2020 19:22:25 -0500
+        id S1726495AbgAOAcs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Jan 2020 19:32:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, mm-commits@vger.kernel.org
+To: lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE
+     Subject: mm/mempolicy: check hstate for hugetlbfs page in vma_migratable()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+     mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,36 +37,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/mempolicy: check hstate for hugetlbfs page in vma_migratable()
 
-commit 1b2ffb7896ad ("[PATCH] Zone reclaim: Allow modification of zone
-reclaim behavior")' defined RECLAIM_OFF/RECLAIM_ZONE, but never use them,
-so better to remove them.
+Check hstate at early phase when isolating page, instead of during unmap
+and move phase, to avoid useless isolation.
 
-Link: http://lkml.kernel.org/r/1579005573-58923-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/1578993378-10860-1-git-send-email-lixinhai.lxh@gmail.com
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/mempolicy.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-unused-reclaim_off-reclaim_zone
-+++ a/mm/vmscan.c
-@@ -4118,8 +4118,6 @@ module_init(kswapd_init)
-  */
- int node_reclaim_mode __read_mostly;
+--- a/include/linux/mempolicy.h~mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable
++++ a/include/linux/mempolicy.h
+@@ -185,10 +185,9 @@ static inline bool vma_migratable(struct
+ 	if (vma_is_dax(vma))
+ 		return false;
  
--#define RECLAIM_OFF 0
--#define RECLAIM_ZONE (1<<0)	/* Run shrink_inactive_list on the zone */
- #define RECLAIM_WRITE (1<<1)	/* Writeout pages during reclaim */
- #define RECLAIM_UNMAP (1<<2)	/* Unmap pages during reclaim */
+-#ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+-	if (vma->vm_flags & VM_HUGETLB)
++	if (is_vm_hugetlb_page(vma) &&
++		!hugepage_migration_supported(hstate_vma(vma)))
+ 		return false;
+-#endif
  
+ 	/*
+ 	 * Migration allocates pages in the highest zone. If we cannot
 _
 
-Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
-mm-vmscan-remove-prefetch_prev_lru_page.patch
-mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page.patch
+mm-mempolicy-checking-hstate-for-hugetlbfs-page-in-vma_migratable.patch
+mm-mempolicy-skip-walking-hugetlb-vma-if-mpol_mf_strict-is-specified-alone.patch
