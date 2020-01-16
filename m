@@ -1,81 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-slabinfo-fix-sanity-checks-enabling.patch added
- to -mm tree
-Date: Thu, 16 Jan 2020 15:45:18 -0800
-Message-ID: <20200116234518.PlpAk%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ watchdog-fix-possible-soft-lockup-warning-at-bootup-v2.patch removed from -mm
+ tree
+Date: Thu, 16 Jan 2020 15:46:22 -0800
+Message-ID: <20200116234622.9V-fA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60696 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391950AbgAPXpY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jan 2020 18:45:24 -0500
+        id S1730698AbgAPXqX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jan 2020 18:46:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tobin@kernel.org, cl@linux.com, akpm@linux-foundation.org, dwagner@suse.de
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rppt@linux.ibm.com, mingo@kernel.org, keescook@chromium.org, longman@redhat.com
 
 
 The patch titled
-     Subject: tools/vm/slabinfo: fix sanity checks enabling
-has been added to the -mm tree.  Its filename is
-     tools-vm-slabinfo-fix-sanity-checks-enabling.patch
+     Subject: watchdog: Fix possible soft lockup warning at bootup
+has been removed from the -mm tree.  Its filename was
+     watchdog-fix-possible-soft-lockup-warning-at-bootup-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-slabinfo-fix-sanity-checks-enabling.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-slabinfo-fix-sanity-checks-enabling.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into watchdog-fix-possible-soft-lockup-warning-at-bootup.patch
 
 ------------------------------------------------------
-From: Daniel Wagner <dwagner@suse.de>
-Subject: tools/vm/slabinfo: fix sanity checks enabling
+From: Waiman Long <longman@redhat.com>
+Subject: watchdog: Fix possible soft lockup warning at bootup
 
-The sysfs file name for enabling sanity checking is called 'sanity_checks'
-and not 'sanity'.
-
-The name of the file has never changed since the introduction of the slub
-allocator.  Obviously, most people turn the checks on via the command line
-option and not during runtime using slabinfo.
-
-Link: http://lkml.kernel.org/r/20200116131642.642-1-dwagner@suse.de
-Signed-off-by: Daniel Wagner <dwagner@suse.de>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Tobin C. Harding" <tobin@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/20200103151032.19590-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/slabinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/watchdog.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/tools/vm/slabinfo.c~tools-vm-slabinfo-fix-sanity-checks-enabling
-+++ a/tools/vm/slabinfo.c
-@@ -720,11 +720,11 @@ static void slab_debug(struct slabinfo *
- 		return;
+--- a/kernel/watchdog.c~watchdog-fix-possible-soft-lockup-warning-at-bootup-v2
++++ a/kernel/watchdog.c
+@@ -496,9 +496,7 @@ static void watchdog_enable(unsigned int
+ 		      HRTIMER_MODE_REL_PINNED_HARD);
  
- 	if (sanity && !s->sanity_checks) {
--		set_obj(s, "sanity", 1);
-+		set_obj(s, "sanity_checks", 1);
- 	}
- 	if (!sanity && s->sanity_checks) {
- 		if (slab_empty(s))
--			set_obj(s, "sanity", 0);
-+			set_obj(s, "sanity_checks", 0);
- 		else
- 			fprintf(stderr, "%s not empty cannot disable sanity checks\n", s->name);
- 	}
-_
-
-Patches currently in -mm which might be from dwagner@suse.de are
-
-mm-vmscan-remove-unused-reclaim_off-reclaim_zone-fix.patch
-tools-vm-slabinfo-fix-sanity-checks-enabling.patch
+ 	/* Initialize timestamp */
+-	if (system_state != SYSTEM_BOOTING)
+-		__touch_watchdog();
