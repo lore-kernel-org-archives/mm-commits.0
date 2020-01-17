@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + kcov-ignore-fault-inject-and-stacktrace.patch added to
- -mm tree
-Date: Thu, 16 Jan 2020 17:32:57 -0800
-Message-ID: <20200117013257.ieFHj%akpm@linux-foundation.org>
+Subject: +
+ powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case.patch added to -mm
+ tree
+Date: Thu, 16 Jan 2020 17:53:45 -0800
+Message-ID: <20200117015345.urT5k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48454 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47504 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388116AbgAQBdA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jan 2020 20:33:00 -0500
+        id S1726741AbgAQBxr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jan 2020 20:53:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, andreyknvl@google.com, dvyukov@google.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, peterz@infradead.org, mpe@ellerman.id.au, aneesh.kumar@linux.ibm.com
 
 
 The patch titled
-     Subject: kcov: ignore fault-inject and stacktrace
+     Subject: powerpc/mmu_gather: enable RCU_TABLE_FREE even for !SMP case
 has been added to the -mm tree.  Its filename is
-     kcov-ignore-fault-inject-and-stacktrace.patch
+     powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcov-ignore-fault-inject-and-stacktrace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-ignore-fault-inject-and-stacktrace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,79 +37,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kcov: ignore fault-inject and stacktrace
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: powerpc/mmu_gather: enable RCU_TABLE_FREE even for !SMP case
 
-Don't instrument 3 more files that contain debugging facilities and
-produce large amounts of uninteresting coverage for every syscall.  The
-following snippets are sprinkled all over the place in kcov traces in a
-debugging kernel.  We already try to disable instrumentation of stack
-unwinding code and of most debug facilities.  I guess we did not use
-fault-inject.c at the time, and stacktrace.c was somehow missed (or
-something has changed in kernel/configs).  This change both speeds up kcov
-(kernel doesn't need to store these PCs, user-space doesn't need to
-process them) and frees trace buffer capacity for more useful coverage.
+Patch series "Fixup page directory freeing", v4.
 
-should_fail
-lib/fault-inject.c:149
-fail_dump
-lib/fault-inject.c:45
+This is a repost of patch series from Peter with the arch specific changes
+except ppc64 dropped.  ppc64 changes are added here because we are redoing
+the patch series on top of ppc64 changes.  This makes it easy to backport
+these changes.  Only the first 2 patches need to be backported to stable. 
 
-stack_trace_save
-kernel/stacktrace.c:124
-stack_trace_consume_entry
-kernel/stacktrace.c:86
-stack_trace_consume_entry
-kernel/stacktrace.c:89
-... a hundred frames skipped ...
-stack_trace_consume_entry
-kernel/stacktrace.c:93
-stack_trace_consume_entry
-kernel/stacktrace.c:86
 
-Link: http://lkml.kernel.org/r/20200116111449.217744-1-dvyukov@gmail.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+The thing is, on anything SMP, freeing page directories should observe the
+exact same order as normal page freeing:
+
+ 1) unhook page/directory
+ 2) TLB invalidate
+ 3) free page/directory
+
+Without this, any concurrent page-table walk could end up with a
+Use-after-Free.  This is esp.  trivial for anything that has software
+page-table walkers (HAVE_FAST_GUP / software TLB fill) or the hardware
+caches partial page-walks (ie.  caches page directories).
+
+Even on UP this might give issues since mmu_gather is preemptible these
+days.  An interrupt or preempted task accessing user pages might stumble
+into the free page if the hardware caches page directories.
+
+This patch series fixes ppc64 and add generic MMU_GATHER changes to
+support the conversion of other architectures.  I haven't added patches
+w.r.t other architecture because they are yet to be acked.
+
+
+This patch (of 9):
+
+A followup patch is going to make sure we correctly invalidate page walk
+cache before we free page table pages.  In order to keep things simple
+enable RCU_TABLE_FREE even for !SMP so that we don't have to fixup the
+!SMP case differently in the followup patch
+
+!SMP case is right now broken for radix translation w.r.t page walk cache
+flush.  We can get interrupted in between page table free and that would
+imply we have page walk cache entries pointing to tables which got freed
+already.
+
+Link: http://lkml.kernel.org/r/20200116064531.483522-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: <stable@vger.kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    1 +
- lib/Makefile    |    1 +
- mm/Makefile     |    1 +
- 3 files changed, 3 insertions(+)
+ arch/powerpc/Kconfig                         |    2 +-
+ arch/powerpc/include/asm/book3s/32/pgalloc.h |    8 --------
+ arch/powerpc/include/asm/book3s/64/pgalloc.h |    2 --
+ arch/powerpc/include/asm/nohash/pgalloc.h    |    8 --------
+ arch/powerpc/mm/book3s64/pgtable.c           |    7 -------
+ 5 files changed, 1 insertion(+), 26 deletions(-)
 
---- a/kernel/Makefile~kcov-ignore-fault-inject-and-stacktrace
-+++ a/kernel/Makefile
-@@ -27,6 +27,7 @@ KCOV_INSTRUMENT_softirq.o := n
- # and produce insane amounts of uninteresting coverage.
- KCOV_INSTRUMENT_module.o := n
- KCOV_INSTRUMENT_extable.o := n
-+KCOV_INSTRUMENT_stacktrace.o := n
- # Don't self-instrument.
- KCOV_INSTRUMENT_kcov.o := n
- KASAN_SANITIZE_kcov.o := n
---- a/lib/Makefile~kcov-ignore-fault-inject-and-stacktrace
-+++ a/lib/Makefile
-@@ -16,6 +16,7 @@ KCOV_INSTRUMENT_rbtree.o := n
- KCOV_INSTRUMENT_list_debug.o := n
- KCOV_INSTRUMENT_debugobjects.o := n
- KCOV_INSTRUMENT_dynamic_debug.o := n
-+KCOV_INSTRUMENT_fault-inject.o := n
+--- a/arch/powerpc/include/asm/book3s/32/pgalloc.h~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
++++ a/arch/powerpc/include/asm/book3s/32/pgalloc.h
+@@ -49,7 +49,6 @@ static inline void pgtable_free(void *ta
  
- # Early boot use of cmdline, don't instrument it
- ifdef CONFIG_AMD_MEM_ENCRYPT
---- a/mm/Makefile~kcov-ignore-fault-inject-and-stacktrace
-+++ a/mm/Makefile
-@@ -20,6 +20,7 @@ KCOV_INSTRUMENT_kmemleak.o := n
- KCOV_INSTRUMENT_memcontrol.o := n
- KCOV_INSTRUMENT_mmzone.o := n
- KCOV_INSTRUMENT_vmstat.o := n
-+KCOV_INSTRUMENT_failslab.o := n
+ #define get_hugepd_cache_index(x)  (x)
  
- CFLAGS_init-mm.o += $(call cc-disable-warning, override-init)
- CFLAGS_init-mm.o += $(call cc-disable-warning, initializer-overrides)
+-#ifdef CONFIG_SMP
+ static inline void pgtable_free_tlb(struct mmu_gather *tlb,
+ 				    void *table, int shift)
+ {
+@@ -66,13 +65,6 @@ static inline void __tlb_remove_table(vo
+ 
+ 	pgtable_free(table, shift);
+ }
+-#else
+-static inline void pgtable_free_tlb(struct mmu_gather *tlb,
+-				    void *table, int shift)
+-{
+-	pgtable_free(table, shift);
+-}
+-#endif
+ 
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t table,
+ 				  unsigned long address)
+--- a/arch/powerpc/include/asm/book3s/64/pgalloc.h~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
++++ a/arch/powerpc/include/asm/book3s/64/pgalloc.h
+@@ -19,9 +19,7 @@ extern struct vmemmap_backing *vmemmap_l
+ extern pmd_t *pmd_fragment_alloc(struct mm_struct *, unsigned long);
+ extern void pmd_fragment_free(unsigned long *);
+ extern void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift);
+-#ifdef CONFIG_SMP
+ extern void __tlb_remove_table(void *_table);
+-#endif
+ void pte_frag_destroy(void *pte_frag);
+ 
+ static inline pgd_t *radix__pgd_alloc(struct mm_struct *mm)
+--- a/arch/powerpc/include/asm/nohash/pgalloc.h~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
++++ a/arch/powerpc/include/asm/nohash/pgalloc.h
+@@ -46,7 +46,6 @@ static inline void pgtable_free(void *ta
+ 
+ #define get_hugepd_cache_index(x)	(x)
+ 
+-#ifdef CONFIG_SMP
+ static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
+ {
+ 	unsigned long pgf = (unsigned long)table;
+@@ -64,13 +63,6 @@ static inline void __tlb_remove_table(vo
+ 	pgtable_free(table, shift);
+ }
+ 
+-#else
+-static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
+-{
+-	pgtable_free(table, shift);
+-}
+-#endif
+-
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t table,
+ 				  unsigned long address)
+ {
+--- a/arch/powerpc/Kconfig~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
++++ a/arch/powerpc/Kconfig
+@@ -222,7 +222,7 @@ config PPC
+ 	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !HAVE_HARDLOCKUP_DETECTOR_ARCH
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+-	select HAVE_RCU_TABLE_FREE		if SMP
++	select HAVE_RCU_TABLE_FREE
+ 	select HAVE_RCU_TABLE_NO_INVALIDATE	if HAVE_RCU_TABLE_FREE
+ 	select HAVE_MMU_GATHER_PAGE_SIZE
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+--- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -378,7 +378,6 @@ static inline void pgtable_free(void *ta
+ 	}
+ }
+ 
+-#ifdef CONFIG_SMP
+ void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int index)
+ {
+ 	unsigned long pgf = (unsigned long)table;
+@@ -395,12 +394,6 @@ void __tlb_remove_table(void *_table)
+ 
+ 	return pgtable_free(table, index);
+ }
+-#else
+-void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int index)
+-{
+-	return pgtable_free(table, index);
+-}
+-#endif
+ 
+ #ifdef CONFIG_PROC_FS
+ atomic_long_t direct_pages_count[MMU_PAGE_COUNT];
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-kcov-ignore-fault-inject-and-stacktrace.patch
+mm-pgmap-use-correct-alignment-when-looking-at-first-pfn-from-a-region.patch
+mm-memmap_init-update-variable-name-in-memmap_init_zone.patch
+powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case.patch
