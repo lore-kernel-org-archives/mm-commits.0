@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
- added to -mm tree
-Date: Thu, 16 Jan 2020 18:55:11 -0800
-Message-ID: <20200117025511._pznf%akpm@linux-foundation.org>
+Subject: +
+ mm-mempolicyc-fix-out-of-bounds-write-in-mpol_parse_str.patch added to -mm
+ tree
+Date: Thu, 16 Jan 2020 19:05:44 -0800
+Message-ID: <20200117030544.atCbT%akpm__6202.18803394295$1579258504$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37944 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42808 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387441AbgAQCzN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jan 2020 21:55:13 -0500
+        id S2388298AbgAQDFp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jan 2020 22:05:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, josef@toxicpanda.com, iii@linux.ibm.com, heiko.carstens@de.ibm.com, gor@linux.ibm.com, edward6@linux.ibm.com, dsterba@suse.com, clm@fb.com, borntraeger@de.ibm.com, zaslonko@linux.ibm.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org, mhocko@kernel.org, lee.schermerhorn@hp.com, hughd@google.com, aarcange@redhat.com, dan.carpenter@oracle.com
 
 
 The patch titled
-     Subject: lib/zlib: add zlib_deflate_dfltcc_enabled() function
+     Subject: mm/mempolicy.c: fix out of bounds write in mpol_parse_str()
 has been added to the -mm tree.  Its filename is
-     lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
+     mm-mempolicyc-fix-out-of-bounds-write-in-mpol_parse_str.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicyc-fix-out-of-bounds-write-in-mpol_parse_str.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicyc-fix-out-of-bounds-write-in-mpol_parse_str.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,143 +37,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Subject: lib/zlib: add zlib_deflate_dfltcc_enabled() function
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mm/mempolicy.c: fix out of bounds write in mpol_parse_str()
 
-Add a new function to zlib.h checking if s390 Deflate-Conversion facility
-is installed and enabled.
+What we are trying to do is change the '=' character to a NUL terminator
+and then at the end of the function we restore it back to an '='.  The
+problem is there are two error paths where we jump to the end of the
+function before we have replaced the '=' with NUL.  We end up putting the
+'=' in the wrong place (possibly one element before the start of the
+buffer).
 
-Link: http://lkml.kernel.org/r/20200103223334.20669-6-zaslonko@linux.ibm.com
-Signed-off-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Eduard Shishkin <edward6@linux.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: http://lkml.kernel.org/r/20200115055426.vdjwvry44nfug7yy@kili.mountain
+Reported-by: syzbot+e64a13c5369a194d67df@syzkaller.appspotmail.com
+Fixes: 095f1fc4ebf3 ("mempolicy: rework shmem mpol parsing and display")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Dmitry Vyukov <dvyukov@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zlib.h            |    6 ++++++
- lib/zlib_deflate/deflate.c      |    6 ++++++
- lib/zlib_deflate/deflate_syms.c |    1 +
- lib/zlib_dfltcc/dfltcc.h        |   11 +++++++++++
- lib/zlib_dfltcc/dfltcc_util.h   |    9 ---------
- 5 files changed, 24 insertions(+), 9 deletions(-)
+ mm/mempolicy.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/zlib.h~lib-zlib-add-zlib_deflate_dfltcc_enabled-function
-+++ a/include/linux/zlib.h
-@@ -191,6 +191,12 @@ extern int zlib_deflate_workspacesize (i
-    exceed those passed here.
- */
+--- a/mm/mempolicy.c~mm-mempolicyc-fix-out-of-bounds-write-in-mpol_parse_str
++++ a/mm/mempolicy.c
+@@ -2821,6 +2821,9 @@ int mpol_parse_str(char *str, struct mem
+ 	char *flags = strchr(str, '=');
+ 	int err = 1, mode;
  
-+extern int zlib_deflate_dfltcc_enabled (void);
-+/*
-+   Returns 1 if Deflate-Conversion facility is installed and enabled,
-+   otherwise 0.
-+*/
++	if (flags)
++		*flags++ = '\0';	/* terminate mode string */
 +
- /* 
- extern int deflateInit (z_streamp strm, int level);
+ 	if (nodelist) {
+ 		/* NUL-terminate mode or flags string */
+ 		*nodelist++ = '\0';
+@@ -2831,9 +2834,6 @@ int mpol_parse_str(char *str, struct mem
+ 	} else
+ 		nodes_clear(nodes);
  
---- a/lib/zlib_deflate/deflate.c~lib-zlib-add-zlib_deflate_dfltcc_enabled-function
-+++ a/lib/zlib_deflate/deflate.c
-@@ -59,6 +59,7 @@
- #define DEFLATE_RESET_HOOK(strm) do {} while (0)
- #define DEFLATE_HOOK(strm, flush, bstate) 0
- #define DEFLATE_NEED_CHECKSUM(strm) 1
-+#define DEFLATE_DFLTCC_ENABLED() 0
- #endif
- 
- /* ===========================================================================
-@@ -1138,3 +1139,8 @@ int zlib_deflate_workspacesize(int windo
-         + zlib_deflate_head_memsize(memLevel)
-         + zlib_deflate_overlay_memsize(memLevel);
- }
-+
-+int zlib_deflate_dfltcc_enabled(void)
-+{
-+	return DEFLATE_DFLTCC_ENABLED();
-+}
---- a/lib/zlib_deflate/deflate_syms.c~lib-zlib-add-zlib_deflate_dfltcc_enabled-function
-+++ a/lib/zlib_deflate/deflate_syms.c
-@@ -12,6 +12,7 @@
- #include <linux/zlib.h>
- 
- EXPORT_SYMBOL(zlib_deflate_workspacesize);
-+EXPORT_SYMBOL(zlib_deflate_dfltcc_enabled);
- EXPORT_SYMBOL(zlib_deflate);
- EXPORT_SYMBOL(zlib_deflateInit2);
- EXPORT_SYMBOL(zlib_deflateEnd);
---- a/lib/zlib_dfltcc/dfltcc.h~lib-zlib-add-zlib_deflate_dfltcc_enabled-function
-+++ a/lib/zlib_dfltcc/dfltcc.h
-@@ -3,6 +3,8 @@
- #define DFLTCC_H
- 
- #include "../zlib_deflate/defutil.h"
-+#include <asm/facility.h>
-+#include <asm/setup.h>
- 
- /*
-  * Tuning parameters.
-@@ -14,6 +16,8 @@
- #define DFLTCC_DHT_MIN_SAMPLE_SIZE 4096
- #define DFLTCC_RIBM 0
- 
-+#define DFLTCC_FACILITY 151
-+
- /*
-  * Parameter Block for Query Available Functions.
-  */
-@@ -113,6 +117,11 @@ typedef enum {
- } dfltcc_inflate_action;
- dfltcc_inflate_action dfltcc_inflate(z_streamp strm,
-                                      int flush, int *ret);
-+static inline int is_dfltcc_enabled(void)
-+{
-+return (zlib_dfltcc_support != ZLIB_DFLTCC_DISABLED &&
-+        test_facility(DFLTCC_FACILITY));
-+}
- 
- #define DEFLATE_RESET_HOOK(strm) \
-     dfltcc_reset((strm), sizeof(deflate_state))
-@@ -121,6 +130,8 @@ dfltcc_inflate_action dfltcc_inflate(z_s
- 
- #define DEFLATE_NEED_CHECKSUM(strm) (!dfltcc_can_deflate((strm)))
- 
-+#define DEFLATE_DFLTCC_ENABLED() is_dfltcc_enabled()
-+
- #define INFLATE_RESET_HOOK(strm) \
-     dfltcc_reset((strm), sizeof(struct inflate_state))
- 
---- a/lib/zlib_dfltcc/dfltcc_util.h~lib-zlib-add-zlib_deflate_dfltcc_enabled-function
-+++ a/lib/zlib_dfltcc/dfltcc_util.h
-@@ -3,8 +3,6 @@
- #define DFLTCC_UTIL_H
- 
- #include <linux/zutil.h>
--#include <asm/facility.h>
--#include <asm/setup.h>
- 
- /*
-  * C wrapper for the DEFLATE CONVERSION CALL instruction.
-@@ -24,7 +22,6 @@ typedef enum {
- #define HBT_CIRCULAR (1 << 7)
- #define HB_BITS 15
- #define HB_SIZE (1 << HB_BITS)
--#define DFLTCC_FACILITY 151
- 
- static inline dfltcc_cc dfltcc(
-     int fn,
-@@ -101,12 +98,6 @@ static inline int dfltcc_are_params_ok(
-         (strategy == Z_DEFAULT_STRATEGY);
- }
- 
--static inline int is_dfltcc_enabled(void)
--{
--    return (zlib_dfltcc_support != ZLIB_DFLTCC_DISABLED &&
--            test_facility(DFLTCC_FACILITY));
--}
+-	if (flags)
+-		*flags++ = '\0';	/* terminate mode string */
