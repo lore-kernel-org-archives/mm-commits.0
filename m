@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch removed from
- -mm tree
-Date: Thu, 16 Jan 2020 18:45:17 -0800
-Message-ID: <20200117024517.3OO7f%akpm@linux-foundation.org>
+Subject: +
+ btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch added to -mm
+ tree
+Date: Thu, 16 Jan 2020 18:47:00 -0800
+Message-ID: <20200117024700.E-OB1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36530 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729067AbgAQCpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jan 2020 21:45:21 -0500
+        id S2388056AbgAQCrD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jan 2020 21:47:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, josef@toxicpanda.com, iii@linux.ibm.com, heiko.carstens@de.ibm.com, gor@linux.ibm.com, edward6@linux.ibm.com, dsterba@suse.com, clm@fb.com, borntraeger@de.ibm.com, zaslonko@linux.ibm.com
@@ -17,39 +17,58 @@ To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, josef@toxicpanda.com, iii@lin
 
 The patch titled
      Subject: btrfs: use larger zlib buffer for s390 hardware compression
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mikhail Zaslonko <zaslonko@linux.ibm.com>
 Subject: btrfs: use larger zlib buffer for s390 hardware compression
 
-Due to the small size of zlib buffer (1 page) set in btrfs code, s390
-hardware compression is rather limited in terms of performance. 
-Increasing the buffer size to 4 pages when s390 zlib hardware support is
-enabled would bring significant benefit to btrfs zlib (up to 60% better
-performance compared to the PAGE_SIZE buffer).  In case of memory pressure
-we fall back to a single page buffer during workspace allocation.
+In order to benefit from s390 zlib hardware compression support, increase
+the btrfs zlib workspace buffer size from 1 to 4 pages (if s390 zlib
+hardware support is enabled on the machine).  This brings up to 60% better
+performance in hardware on s390 compared to the PAGE_SIZE buffer and much
+more compared to the software zlib processing in btrfs.  In case of memory
+pressure, fall back to a single page buffer during workspace allocation.
 
-Link: http://lkml.kernel.org/r/20191209152948.37080-7-zaslonko@linux.ibm.com
+The data compressed with larger input buffers will still conform to zlib
+standard and thus can be decompressed also on a systems that uses only
+PAGE_SIZE buffer for btrfs zlib.
+
+Link: http://lkml.kernel.org/r/20200108105103.29028-1-zaslonko@linux.ibm.com
 Signed-off-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Reviewed-by: David Sterba <dsterba@suse.com>
 Cc: Chris Mason <clm@fb.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Eduard Shishkin <edward6@linux.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: David Sterba <dsterba@suse.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Eduard Shishkin <edward6@linux.ibm.com>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/btrfs/compression.c |    2 
- fs/btrfs/zlib.c        |  118 ++++++++++++++++++++++++++-------------
- 2 files changed, 80 insertions(+), 40 deletions(-)
+ fs/btrfs/zlib.c        |  135 ++++++++++++++++++++++++++++-----------
+ 2 files changed, 101 insertions(+), 36 deletions(-)
 
 --- a/fs/btrfs/compression.c~btrfs-use-larger-zlib-buffer-for-s390-hardware-compression
 +++ a/fs/btrfs/compression.c
@@ -64,25 +83,30 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		kaddr = kmap_atomic(bvec.bv_page);
 --- a/fs/btrfs/zlib.c~btrfs-use-larger-zlib-buffer-for-s390-hardware-compression
 +++ a/fs/btrfs/zlib.c
-@@ -20,9 +20,12 @@
+@@ -20,9 +20,13 @@
  #include <linux/refcount.h>
  #include "compression.h"
  
++/* workspace buffer size for s390 zlib hardware support */
 +#define ZLIB_DFLTCC_BUF_SIZE    (4 * PAGE_SIZE)
 +
  struct workspace {
  	z_stream strm;
  	char *buf;
-+	unsigned long buf_size;
++	unsigned int buf_size;
  	struct list_head list;
  	int level;
  };
-@@ -61,7 +64,17 @@ struct list_head *zlib_alloc_workspace(u
+@@ -61,7 +65,21 @@ struct list_head *zlib_alloc_workspace(u
  			zlib_inflate_workspacesize());
  	workspace->strm.workspace = kvmalloc(workspacesize, GFP_KERNEL);
  	workspace->level = level;
 -	workspace->buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
 +	workspace->buf = NULL;
++	/*
++	 * In case of s390 zlib hardware support, allocate lager workspace
++	 * buffer. If allocator fails, fall back to a single page buffer.
++	 */
 +	if (zlib_deflate_dfltcc_enabled()) {
 +		workspace->buf = kmalloc(ZLIB_DFLTCC_BUF_SIZE,
 +					 __GFP_NOMEMALLOC | __GFP_NORETRY |
@@ -96,23 +120,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	if (!workspace->strm.workspace || !workspace->buf)
  		goto fail;
  
-@@ -78,6 +91,7 @@ int zlib_compress_pages(struct list_head
- 		unsigned long *total_in, unsigned long *total_out)
- {
- 	struct workspace *workspace = list_entry(ws, struct workspace, list);
-+	int i;
- 	int ret;
- 	char *data_in;
- 	char *cpage_out;
-@@ -85,6 +99,7 @@ int zlib_compress_pages(struct list_head
+@@ -85,6 +103,7 @@ int zlib_compress_pages(struct list_head
  	struct page *in_page = NULL;
  	struct page *out_page = NULL;
  	unsigned long bytes_left;
-+	unsigned long in_buf_pages;
++	unsigned int in_buf_pages;
  	unsigned long len = *total_out;
  	unsigned long nr_dest_pages = *out_pages;
  	const unsigned long max_out = nr_dest_pages * PAGE_SIZE;
-@@ -102,9 +117,6 @@ int zlib_compress_pages(struct list_head
+@@ -102,9 +121,6 @@ int zlib_compress_pages(struct list_head
  	workspace->strm.total_in = 0;
  	workspace->strm.total_out = 0;
  
@@ -122,7 +138,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	out_page = alloc_page(GFP_NOFS | __GFP_HIGHMEM);
  	if (out_page == NULL) {
  		ret = -ENOMEM;
-@@ -114,12 +126,34 @@ int zlib_compress_pages(struct list_head
+@@ -114,12 +130,51 @@ int zlib_compress_pages(struct list_head
  	pages[0] = out_page;
  	nr_pages = 1;
  
@@ -134,40 +150,49 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	workspace->strm.avail_in = min(len, PAGE_SIZE);
  
  	while (workspace->strm.total_in < len) {
-+		/* get next set of pages and copy their contents to
-+		 * the input buffer for the following deflate call
++		/*
++		 * Get next input pages and copy the contents to
++		 * the workspace buffer if required.
 +		 */
 +		if (workspace->strm.avail_in == 0) {
 +			bytes_left = len - workspace->strm.total_in;
 +			in_buf_pages = min(DIV_ROUND_UP(bytes_left, PAGE_SIZE),
 +					   workspace->buf_size / PAGE_SIZE);
-+			for (i = 0; i < in_buf_pages; i++) {
++			if (in_buf_pages > 1) {
++				int i;
++
++				for (i = 0; i < in_buf_pages; i++) {
++					if (in_page) {
++						kunmap(in_page);
++						put_page(in_page);
++					}
++					in_page = find_get_page(mapping,
++								start >> PAGE_SHIFT);
++					data_in = kmap(in_page);
++					memcpy(workspace->buf + i * PAGE_SIZE,
++					       data_in, PAGE_SIZE);
++					start += PAGE_SIZE;
++				}
++				workspace->strm.next_in = workspace->buf;
++			} else {
++				if (in_page) {
++					kunmap(in_page);
++					put_page(in_page);
++				}
 +				in_page = find_get_page(mapping,
 +							start >> PAGE_SHIFT);
 +				data_in = kmap(in_page);
-+				memcpy(workspace->buf + i*PAGE_SIZE, data_in,
-+				       PAGE_SIZE);
-+				kunmap(in_page);
-+				put_page(in_page);
 +				start += PAGE_SIZE;
++				workspace->strm.next_in = data_in;
 +			}
 +			workspace->strm.avail_in = min(bytes_left,
-+						       workspace->buf_size);
-+			workspace->strm.next_in = workspace->buf;
++						       (unsigned long) workspace->buf_size);
 +		}
 +
  		ret = zlib_deflate(&workspace->strm, Z_SYNC_FLUSH);
  		if (ret != Z_OK) {
  			pr_debug("BTRFS: deflate in loop returned %d\n",
-@@ -136,6 +170,7 @@ int zlib_compress_pages(struct list_head
- 			ret = -E2BIG;
- 			goto out;
- 		}
-+
- 		/* we need another page for writing out.  Test this
- 		 * before the total_in so we will pull in a new page for
- 		 * the stream end if required
-@@ -161,33 +196,42 @@ int zlib_compress_pages(struct list_head
+@@ -161,33 +216,43 @@ int zlib_compress_pages(struct list_head
  		/* we're all done */
  		if (workspace->strm.total_in >= len)
  			break;
@@ -199,8 +224,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	if (ret != Z_STREAM_END) {
 -		ret = -EIO;
 -		goto out;
-+	/* call deflate with Z_FINISH flush parameter providing more output
-+	 * space but no more input data, until it returns with Z_STREAM_END
++	/*
++	 * Call deflate with Z_FINISH flush parameter providing more output
++	 * space but no more input data, until it returns with Z_STREAM_END.
 +	 */
 +	while (ret != Z_STREAM_END) {
 +		ret = zlib_deflate(&workspace->strm, Z_FINISH);
@@ -234,18 +260,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	if (workspace->strm.total_out >= workspace->strm.total_in) {
  		ret = -E2BIG;
-@@ -202,10 +246,6 @@ out:
- 	if (out_page)
- 		kunmap(out_page);
- 
--	if (in_page) {
--		kunmap(in_page);
--		put_page(in_page);
--	}
- 	return ret;
- }
- 
-@@ -231,7 +271,7 @@ int zlib_decompress_bio(struct list_head
+@@ -231,7 +296,7 @@ int zlib_decompress_bio(struct list_head
  
  	workspace->strm.total_out = 0;
  	workspace->strm.next_out = workspace->buf;
@@ -254,7 +269,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	/* If it's deflate, and it's got no preset dictionary, then
  	   we can tell zlib to skip the adler32 check. */
-@@ -270,7 +310,7 @@ int zlib_decompress_bio(struct list_head
+@@ -270,7 +335,7 @@ int zlib_decompress_bio(struct list_head
  		}
  
  		workspace->strm.next_out = workspace->buf;
@@ -263,7 +278,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  		if (workspace->strm.avail_in == 0) {
  			unsigned long tmp;
-@@ -320,7 +360,7 @@ int zlib_decompress(struct list_head *ws
+@@ -320,7 +385,7 @@ int zlib_decompress(struct list_head *ws
  	workspace->strm.total_in = 0;
  
  	workspace->strm.next_out = workspace->buf;
@@ -272,7 +287,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	workspace->strm.total_out = 0;
  	/* If it's deflate, and it's got no preset dictionary, then
  	   we can tell zlib to skip the adler32 check. */
-@@ -364,7 +404,7 @@ int zlib_decompress(struct list_head *ws
+@@ -364,7 +429,7 @@ int zlib_decompress(struct list_head *ws
  			buf_offset = 0;
  
  		bytes = min(PAGE_SIZE - pg_offset,
@@ -281,7 +296,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		bytes = min(bytes, bytes_left);
  
  		kaddr = kmap_atomic(dest_page);
-@@ -375,7 +415,7 @@ int zlib_decompress(struct list_head *ws
+@@ -375,7 +440,7 @@ int zlib_decompress(struct list_head *ws
  		bytes_left -= bytes;
  next:
  		workspace->strm.next_out = workspace->buf;
@@ -299,3 +314,4 @@ s390-boot-rename-heap_size-due-to-name-collision.patch
 lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate.patch
 s390-boot-add-dfltcc=-kernel-command-line-parameter.patch
 lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
+btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
