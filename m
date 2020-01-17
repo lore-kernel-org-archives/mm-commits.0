@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + asm-gemeric-tlb-remove-stray-function-declarations.patch
- added to -mm tree
-Date: Thu, 16 Jan 2020 17:53:53 -0800
-Message-ID: <20200117015353.vx9hV%akpm@linux-foundation.org>
+Subject: + asm-generic-tlb-add-missing-config-symbol.patch added to
+ -mm tree
+Date: Thu, 16 Jan 2020 17:53:55 -0800
+Message-ID: <20200117015355.spzJ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47728 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47774 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726741AbgAQBxy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jan 2020 20:53:54 -0500
+        id S1726741AbgAQBx4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jan 2020 20:53:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mpe@ellerman.id.au, aneesh.kumar@linux.ibm.com, peterz@infradead.org
 
 
 The patch titled
-     Subject: asm-gemeric/tlb: remove stray function declarations
+     Subject: asm-generic/tlb: add missing CONFIG symbol
 has been added to the -mm tree.  Its filename is
-     asm-gemeric-tlb-remove-stray-function-declarations.patch
+     asm-generic-tlb-add-missing-config-symbol.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-gemeric-tlb-remove-stray-function-declarations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-tlb-add-missing-config-symbol.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-gemeric-tlb-remove-stray-function-declarations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-tlb-add-missing-config-symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,35 +37,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: asm-gemeric/tlb: remove stray function declarations
+Subject: asm-generic/tlb: add missing CONFIG symbol
 
-We removed the actual functions a while ago.
+Without this the symbol will not actually end up in .config files.
 
-Link: http://lkml.kernel.org/r/20200116064531.483522-5-aneesh.kumar@linux.ibm.com
-Fixes: 1808d65b55e4 ("asm-generic/tlb: Remove arch_tlb*_mmu()")
+Link: http://lkml.kernel.org/r/20200116064531.483522-6-aneesh.kumar@linux.ibm.com
+Fixes: a30e32bd79e9 ("asm-generic/tlb: Provide generic tlb_flush() based on flush_tlb_mm()")
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/asm-generic/tlb.h~asm-gemeric-tlb-remove-stray-function-declarations
-+++ a/include/asm-generic/tlb.h
-@@ -285,11 +285,7 @@ struct mmu_gather {
- #endif
- };
+--- a/arch/Kconfig~asm-generic-tlb-add-missing-config-symbol
++++ a/arch/Kconfig
+@@ -399,6 +399,9 @@ config HAVE_RCU_TABLE_FREE
+ config HAVE_MMU_GATHER_PAGE_SIZE
+ 	bool
  
--void arch_tlb_gather_mmu(struct mmu_gather *tlb,
--	struct mm_struct *mm, unsigned long start, unsigned long end);
- void tlb_flush_mmu(struct mmu_gather *tlb);
--void arch_tlb_finish_mmu(struct mmu_gather *tlb,
--			 unsigned long start, unsigned long end, bool force);
++config MMU_GATHER_NO_RANGE
++	bool
++
+ config HAVE_MMU_GATHER_NO_GATHER
+ 	bool
  
- static inline void __tlb_adjust_range(struct mmu_gather *tlb,
- 				      unsigned long address,
 _
 
 Patches currently in -mm which might be from peterz@infradead.org are
