@@ -1,465 +1,239 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate.patch removed from
- -mm tree
-Date: Thu, 16 Jan 2020 18:49:45 -0800
-Message-ID: <20200117024945.V6RGR%akpm@linux-foundation.org>
+ s390-boot-add-dfltcc=-kernel-command-line-parameter.patch removed from -mm
+ tree
+Date: Thu, 16 Jan 2020 18:49:48 -0800
+Message-ID: <20200117024948.5_4tZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37224 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388282AbgAQCtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jan 2020 21:49:47 -0500
+        id S2388282AbgAQCtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jan 2020 21:49:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, josef@toxicpanda.com, iii@linux.ibm.com, heiko.carstens@de.ibm.com, gor@linux.ibm.com, edward6@linux.ibm.com, dsterba@suse.com, clm@fb.com, borntraeger@de.ibm.com, zaslonko@linux.ibm.com
 
 
 The patch titled
-     Subject: lib/zlib: add s390 hardware support for kernel zlib_inflate
+     Subject: s390/boot: add dfltcc= kernel command line parameter
 has been removed from the -mm tree.  Its filename was
-     lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate.patch
+     s390-boot-add-dfltcc=-kernel-command-line-parameter.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Subject: lib/zlib: add s390 hardware support for kernel zlib_inflate
+Subject: s390/boot: add dfltcc= kernel command line parameter
 
-Add decompression functions to zlib_dfltcc library.  Update zlib_inflate
-functions with the hooks for s390 hardware support and adjust workspace
-structures with extra parameter lists required for hardware inflate
-decompression.
+Add the new kernel command line parameter 'dfltcc=' to configure s390 zlib
+hardware support.
 
-Link: http://lkml.kernel.org/r/20191209152948.37080-4-zaslonko@linux.ibm.com
-Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Format: { on | off | def_only | inf_only | always }
+ on:       s390 zlib hardware support for compression on
+           level 1 and decompression (default)
+ off:      No s390 zlib hardware support
+ def_only: s390 zlib hardware support for deflate
+           only (compression on level 1)
+ inf_only: s390 zlib hardware support for inflate
+           only (decompression)
+ always:   Same as 'on' but ignores the selected compression
+           level always using hardware support (used for debugging)
+
+Link: http://lkml.kernel.org/r/20191209152948.37080-5-zaslonko@linux.ibm.com
 Signed-off-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Co-developed-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Eduard Shishkin <edward6@linux.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig                      |    8 +
- lib/decompress_inflate.c         |   13 ++
- lib/zlib_dfltcc/Makefile         |    2 
- lib/zlib_dfltcc/dfltcc.h         |   28 +++++
- lib/zlib_dfltcc/dfltcc_inflate.c |  143 +++++++++++++++++++++++++++++
- lib/zlib_inflate/inflate.c       |   32 ++++--
- lib/zlib_inflate/inflate.h       |    8 +
- lib/zlib_inflate/infutil.h       |   18 +++
- 8 files changed, 241 insertions(+), 11 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   12 ++++++++++++
+ arch/s390/boot/ipl_parm.c                       |   14 ++++++++++++++
+ arch/s390/include/asm/setup.h                   |    7 +++++++
+ arch/s390/kernel/setup.c                        |    1 +
+ lib/zlib_dfltcc/dfltcc.c                        |    5 ++++-
+ lib/zlib_dfltcc/dfltcc.h                        |    1 +
+ lib/zlib_dfltcc/dfltcc_deflate.c                |    6 ++++++
+ lib/zlib_dfltcc/dfltcc_inflate.c                |    6 ++++++
+ lib/zlib_dfltcc/dfltcc_util.h                   |    5 +++++
+ 9 files changed, 56 insertions(+), 1 deletion(-)
 
---- a/lib/decompress_inflate.c~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/decompress_inflate.c
-@@ -10,6 +10,10 @@
- #include "zlib_inflate/inftrees.c"
- #include "zlib_inflate/inffast.c"
- #include "zlib_inflate/inflate.c"
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+#include "zlib_dfltcc/dfltcc.c"
-+#include "zlib_dfltcc/dfltcc_inflate.c"
-+#endif
+--- a/arch/s390/boot/ipl_parm.c~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/arch/s390/boot/ipl_parm.c
+@@ -14,6 +14,7 @@
+ char __bootdata(early_command_line)[COMMAND_LINE_SIZE];
+ struct ipl_parameter_block __bootdata_preserved(ipl_block);
+ int __bootdata_preserved(ipl_block_valid);
++unsigned int __bootdata_preserved(zlib_dfltcc_support) = ZLIB_DFLTCC_FULL;
  
- #else /* STATIC */
- /* initramfs et al: linked */
-@@ -76,7 +80,12 @@ STATIC int INIT __gunzip(unsigned char *
- 	}
+ unsigned long __bootdata(vmalloc_size) = VMALLOC_DEFAULT_SIZE;
+ unsigned long __bootdata(memory_end);
+@@ -229,6 +230,19 @@ void parse_boot_command_line(void)
+ 		if (!strcmp(param, "vmalloc") && val)
+ 			vmalloc_size = round_up(memparse(val, NULL), PAGE_SIZE);
  
- 	strm->workspace = malloc(flush ? zlib_inflate_workspacesize() :
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+	/* Always allocate the full workspace for DFLTCC */
-+				 zlib_inflate_workspacesize());
-+#else
- 				 sizeof(struct inflate_state));
-+#endif
- 	if (strm->workspace == NULL) {
- 		error("Out of memory while allocating workspace");
- 		goto gunzip_nomem4;
-@@ -123,10 +132,14 @@ STATIC int INIT __gunzip(unsigned char *
++		if (!strcmp(param, "dfltcc")) {
++			if (!strcmp(val, "off"))
++				zlib_dfltcc_support = ZLIB_DFLTCC_DISABLED;
++			else if (!strcmp(val, "on"))
++				zlib_dfltcc_support = ZLIB_DFLTCC_FULL;
++			else if (!strcmp(val, "def_only"))
++				zlib_dfltcc_support = ZLIB_DFLTCC_DEFLATE_ONLY;
++			else if (!strcmp(val, "inf_only"))
++				zlib_dfltcc_support = ZLIB_DFLTCC_INFLATE_ONLY;
++			else if (!strcmp(val, "always"))
++				zlib_dfltcc_support = ZLIB_DFLTCC_FULL_DEBUG;
++		}
++
+ 		if (!strcmp(param, "noexec")) {
+ 			rc = kstrtobool(val, &enabled);
+ 			if (!rc && !enabled)
+--- a/arch/s390/include/asm/setup.h~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/arch/s390/include/asm/setup.h
+@@ -79,6 +79,13 @@ struct parmarea {
+ 	char command_line[ARCH_COMMAND_LINE_SIZE];	/* 0x10480 */
+ };
  
- 	rc = zlib_inflateInit2(strm, -MAX_WBITS);
++extern unsigned int zlib_dfltcc_support;
++#define ZLIB_DFLTCC_DISABLED		0
++#define ZLIB_DFLTCC_FULL		1
++#define ZLIB_DFLTCC_DEFLATE_ONLY	2
++#define ZLIB_DFLTCC_INFLATE_ONLY	3
++#define ZLIB_DFLTCC_FULL_DEBUG		4
++
+ extern int noexec_disabled;
+ extern int memory_end_set;
+ extern unsigned long memory_end;
+--- a/arch/s390/kernel/setup.c~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/arch/s390/kernel/setup.c
+@@ -111,6 +111,7 @@ unsigned long __bootdata_preserved(__ete
+ unsigned long __bootdata_preserved(__sdma);
+ unsigned long __bootdata_preserved(__edma);
+ unsigned long __bootdata_preserved(__kaslr_offset);
++unsigned int __bootdata_preserved(zlib_dfltcc_support);
  
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+	/* Always keep the window for DFLTCC */
-+#else
- 	if (!flush) {
- 		WS(strm)->inflate_state.wsize = 0;
- 		WS(strm)->inflate_state.window = NULL;
- 	}
-+#endif
+ unsigned long VMALLOC_START;
+ EXPORT_SYMBOL(VMALLOC_START);
+--- a/Documentation/admin-guide/kernel-parameters.txt~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -834,6 +834,18 @@
+ 			dump out devices still on the deferred probe list after
+ 			retrying.
  
- 	while (rc == Z_OK) {
- 		if (strm->avail_in == 0) {
---- a/lib/Kconfig~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/Kconfig
-@@ -292,6 +292,14 @@ config ZLIB_DFLTCC_DEFLATE
- 	help
- 	 Enable s390x hardware support for zlib deflate in the kernel.
++	dfltcc=		[HW,S390]
++			Format: { on | off | def_only | inf_only | always }
++			on:       s390 zlib hardware support for compression on
++			          level 1 and decompression (default)
++			off:      No s390 zlib hardware support
++			def_only: s390 zlib hardware support for deflate
++			          only (compression on level 1)
++			inf_only: s390 zlib hardware support for inflate
++			          only (decompression)
++			always:   Same as 'on' but ignores the selected compression
++			          level always using hardware support (used for debugging)
++
+ 	dhash_entries=	[KNL]
+ 			Set number of hash buckets for dentry cache.
  
-+config ZLIB_DFLTCC_INFLATE
-+	def_bool y
-+	depends on ZLIB_DFLTCC && ZLIB_INFLATE
-+	prompt "Enable s390x hardware support for zlib inflate functions"
-+	help
-+	 Enable s390x hardware support for zlib inflate in the kernel.
-+
-+
- config LZO_COMPRESS
- 	tristate
+--- a/lib/zlib_dfltcc/dfltcc.c~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/lib/zlib_dfltcc/dfltcc.c
+@@ -44,7 +44,10 @@ void dfltcc_reset(
+     dfltcc_state->param.nt = 1;
  
---- a/lib/zlib_dfltcc/dfltcc.h~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/zlib_dfltcc/dfltcc.h
-@@ -104,6 +104,14 @@ int dfltcc_deflate(z_streamp strm,
-                    int flush,
-                    block_state *result);
- void dfltcc_reset(z_streamp strm, uInt size);
-+int dfltcc_can_inflate(z_streamp strm);
-+typedef enum {
-+    DFLTCC_INFLATE_CONTINUE,
-+    DFLTCC_INFLATE_BREAK,
-+    DFLTCC_INFLATE_SOFTWARE,
-+} dfltcc_inflate_action;
-+dfltcc_inflate_action dfltcc_inflate(z_streamp strm,
-+                                     int flush, int *ret);
+     /* Initialize tuning parameters */
+-    dfltcc_state->level_mask = DFLTCC_LEVEL_MASK;
++    if (zlib_dfltcc_support == ZLIB_DFLTCC_FULL_DEBUG)
++        dfltcc_state->level_mask = DFLTCC_LEVEL_MASK_DEBUG;
++    else
++        dfltcc_state->level_mask = DFLTCC_LEVEL_MASK;
+     dfltcc_state->block_size = DFLTCC_BLOCK_SIZE;
+     dfltcc_state->block_threshold = DFLTCC_FIRST_FHT_BLOCK_SIZE;
+     dfltcc_state->dht_threshold = DFLTCC_DHT_MIN_SAMPLE_SIZE;
+--- a/lib/zlib_dfltcc/dfltcc_deflate.c~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/lib/zlib_dfltcc/dfltcc_deflate.c
+@@ -3,6 +3,7 @@
+ #include "../zlib_deflate/defutil.h"
+ #include "dfltcc_util.h"
+ #include "dfltcc.h"
++#include <asm/setup.h>
+ #include <linux/zutil.h>
  
- #define DEFLATE_RESET_HOOK(strm) \
-     dfltcc_reset((strm), sizeof(deflate_state))
-@@ -112,4 +120,24 @@ void dfltcc_reset(z_streamp strm, uInt s
- 
- #define DEFLATE_NEED_CHECKSUM(strm) (!dfltcc_can_deflate((strm)))
- 
-+#define INFLATE_RESET_HOOK(strm) \
-+    dfltcc_reset((strm), sizeof(struct inflate_state))
-+
-+#define INFLATE_TYPEDO_HOOK(strm, flush) \
-+    if (dfltcc_can_inflate((strm))) { \
-+        dfltcc_inflate_action action; \
-+\
-+        RESTORE(); \
-+        action = dfltcc_inflate((strm), (flush), &ret); \
-+        LOAD(); \
-+        if (action == DFLTCC_INFLATE_CONTINUE) \
-+            break; \
-+        else if (action == DFLTCC_INFLATE_BREAK) \
-+            goto inf_leave; \
-+    }
-+
-+#define INFLATE_NEED_CHECKSUM(strm) (!dfltcc_can_inflate((strm)))
-+
-+#define INFLATE_NEED_UPDATEWINDOW(strm) (!dfltcc_can_inflate((strm)))
-+
- #endif /* DFLTCC_H */
---- /dev/null
-+++ a/lib/zlib_dfltcc/dfltcc_inflate.c
-@@ -0,0 +1,143 @@
-+// SPDX-License-Identifier: Zlib
-+
-+#include "../zlib_inflate/inflate.h"
-+#include "dfltcc_util.h"
-+#include "dfltcc.h"
-+#include <linux/zutil.h>
-+
-+/*
-+ * Expand.
-+ */
-+int dfltcc_can_inflate(
-+    z_streamp strm
-+)
-+{
-+    struct inflate_state *state = (struct inflate_state *)strm->state;
-+    struct dfltcc_state *dfltcc_state = GET_DFLTCC_STATE(state);
-+
-+    /* Unsupported compression settings */
-+    if (state->wbits != HB_BITS)
-+        return 0;
-+
-+    /* Unsupported hardware */
-+    return is_bit_set(dfltcc_state->af.fns, DFLTCC_XPND) &&
-+               is_bit_set(dfltcc_state->af.fmts, DFLTCC_FMT0);
-+}
-+
-+static int dfltcc_was_inflate_used(
-+    z_streamp strm
-+)
-+{
-+    struct inflate_state *state = (struct inflate_state *)strm->state;
-+    struct dfltcc_param_v0 *param = &GET_DFLTCC_STATE(state)->param;
-+
-+    return !param->nt;
-+}
-+
-+static int dfltcc_inflate_disable(
-+    z_streamp strm
-+)
-+{
-+    struct inflate_state *state = (struct inflate_state *)strm->state;
-+    struct dfltcc_state *dfltcc_state = GET_DFLTCC_STATE(state);
-+
-+    if (!dfltcc_can_inflate(strm))
-+        return 0;
-+    if (dfltcc_was_inflate_used(strm))
-+        /* DFLTCC has already decompressed some data. Since there is not
-+         * enough information to resume decompression in software, the call
-+         * must fail.
-+         */
-+        return 1;
-+    /* DFLTCC was not used yet - decompress in software */
-+    memset(&dfltcc_state->af, 0, sizeof(dfltcc_state->af));
-+    return 0;
-+}
-+
-+static dfltcc_cc dfltcc_xpnd(
-+    z_streamp strm
-+)
-+{
-+    struct inflate_state *state = (struct inflate_state *)strm->state;
-+    struct dfltcc_param_v0 *param = &GET_DFLTCC_STATE(state)->param;
-+    size_t avail_in = strm->avail_in;
-+    size_t avail_out = strm->avail_out;
-+    dfltcc_cc cc;
-+
-+    cc = dfltcc(DFLTCC_XPND | HBT_CIRCULAR,
-+                param, &strm->next_out, &avail_out,
-+                &strm->next_in, &avail_in, state->window);
-+    strm->avail_in = avail_in;
-+    strm->avail_out = avail_out;
-+    return cc;
-+}
-+
-+dfltcc_inflate_action dfltcc_inflate(
-+    z_streamp strm,
-+    int flush,
-+    int *ret
-+)
-+{
-+    struct inflate_state *state = (struct inflate_state *)strm->state;
-+    struct dfltcc_state *dfltcc_state = GET_DFLTCC_STATE(state);
-+    struct dfltcc_param_v0 *param = &dfltcc_state->param;
-+    dfltcc_cc cc;
-+
-+    if (flush == Z_BLOCK) {
-+        /* DFLTCC does not support stopping on block boundaries */
-+        if (dfltcc_inflate_disable(strm)) {
-+            *ret = Z_STREAM_ERROR;
-+            return DFLTCC_INFLATE_BREAK;
-+        } else
-+            return DFLTCC_INFLATE_SOFTWARE;
-+    }
-+
-+    if (state->last) {
-+        if (state->bits != 0) {
-+            strm->next_in++;
-+            strm->avail_in--;
-+            state->bits = 0;
-+        }
-+        state->mode = CHECK;
-+        return DFLTCC_INFLATE_CONTINUE;
-+    }
-+
-+    if (strm->avail_in == 0 && !param->cf)
-+        return DFLTCC_INFLATE_BREAK;
-+
-+    if (!state->window || state->wsize == 0) {
-+        state->mode = MEM;
-+        return DFLTCC_INFLATE_CONTINUE;
-+    }
-+
-+    /* Translate stream to parameter block */
-+    param->cvt = CVT_ADLER32;
-+    param->sbb = state->bits;
-+    param->hl = state->whave; /* Software and hardware history formats match */
-+    param->ho = (state->write - state->whave) & ((1 << HB_BITS) - 1);
-+    if (param->hl)
-+        param->nt = 0; /* Honor history for the first block */
-+    param->cv = state->flags ? REVERSE(state->check) : state->check;
-+
-+    /* Inflate */
-+    do {
-+        cc = dfltcc_xpnd(strm);
-+    } while (cc == DFLTCC_CC_AGAIN);
-+
-+    /* Translate parameter block to stream */
-+    strm->msg = oesc_msg(dfltcc_state->msg, param->oesc);
-+    state->last = cc == DFLTCC_CC_OK;
-+    state->bits = param->sbb;
-+    state->whave = param->hl;
-+    state->write = (param->ho + param->hl) & ((1 << HB_BITS) - 1);
-+    state->check = state->flags ? REVERSE(param->cv) : param->cv;
-+    if (cc == DFLTCC_CC_OP2_CORRUPT && param->oesc != 0) {
-+        /* Report an error if stream is corrupted */
-+        state->mode = BAD;
-+        return DFLTCC_INFLATE_CONTINUE;
-+    }
-+    state->mode = TYPEDO;
-+    /* Break if operands are exhausted, otherwise continue looping */
-+    return (cc == DFLTCC_CC_OP1_TOO_SHORT || cc == DFLTCC_CC_OP2_TOO_SHORT) ?
-+        DFLTCC_INFLATE_BREAK : DFLTCC_INFLATE_CONTINUE;
-+}
---- a/lib/zlib_dfltcc/Makefile~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/zlib_dfltcc/Makefile
-@@ -8,4 +8,4 @@
- 
- obj-$(CONFIG_ZLIB_DFLTCC) += zlib_dfltcc.o
- 
--zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_syms.o
-+zlib_dfltcc-objs := dfltcc.o dfltcc_deflate.o dfltcc_inflate.o dfltcc_syms.o
---- a/lib/zlib_inflate/inflate.c~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/zlib_inflate/inflate.c
-@@ -15,6 +15,16 @@
- #include "inffast.h"
- #include "infutil.h"
- 
-+/* architecture-specific bits */
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+#  include "../zlib_dfltcc/dfltcc.h"
-+#else
-+#define INFLATE_RESET_HOOK(strm) do {} while (0)
-+#define INFLATE_TYPEDO_HOOK(strm, flush) do {} while (0)
-+#define INFLATE_NEED_UPDATEWINDOW(strm) 1
-+#define INFLATE_NEED_CHECKSUM(strm) 1
-+#endif
-+
- int zlib_inflate_workspacesize(void)
- {
-     return sizeof(struct inflate_workspace);
-@@ -42,6 +52,7 @@ int zlib_inflateReset(z_streamp strm)
-     state->write = 0;
-     state->whave = 0;
- 
-+    INFLATE_RESET_HOOK(strm);
-     return Z_OK;
- }
- 
-@@ -66,7 +77,15 @@ int zlib_inflateInit2(z_streamp strm, in
-         return Z_STREAM_ERROR;
-     }
-     state->wbits = (unsigned)windowBits;
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+    /*
-+     * DFLTCC requires the window to be page aligned.
-+     * Thus, we overallocate and take the aligned portion of the buffer.
-+     */
-+    state->window = PTR_ALIGN(&WS(strm)->working_window[0], PAGE_SIZE);
-+#else
-     state->window = &WS(strm)->working_window[0];
-+#endif
- 
-     return zlib_inflateReset(strm);
- }
-@@ -227,11 +246,6 @@ static int zlib_inflateSyncPacket(z_stre
-         bits -= bits & 7; \
-     } while (0)
- 
--/* Reverse the bytes in a 32-bit value */
--#define REVERSE(q) \
--    ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
--     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
--
  /*
-    inflate() uses a state machine to process as much input data and generate as
-    much output data as possible before returning.  The state machine is
-@@ -395,6 +409,7 @@ int zlib_inflate(z_streamp strm, int flu
-             if (flush == Z_BLOCK) goto inf_leave;
- 	    /* fall through */
-         case TYPEDO:
-+            INFLATE_TYPEDO_HOOK(strm, flush);
-             if (state->last) {
-                 BYTEBITS();
-                 state->mode = CHECK;
-@@ -692,7 +707,7 @@ int zlib_inflate(z_streamp strm, int flu
-                 out -= left;
-                 strm->total_out += out;
-                 state->total += out;
--                if (out)
-+                if (INFLATE_NEED_CHECKSUM(strm) && out)
-                     strm->adler = state->check =
-                         UPDATE(state->check, put - out, out);
-                 out = left;
-@@ -726,7 +741,8 @@ int zlib_inflate(z_streamp strm, int flu
-      */
-   inf_leave:
-     RESTORE();
--    if (state->wsize || (state->mode < CHECK && out != strm->avail_out))
-+    if (INFLATE_NEED_UPDATEWINDOW(strm) &&
-+            (state->wsize || (state->mode < CHECK && out != strm->avail_out)))
-         zlib_updatewindow(strm, out);
+@@ -15,6 +16,11 @@ int dfltcc_can_deflate(
+     deflate_state *state = (deflate_state *)strm->state;
+     struct dfltcc_state *dfltcc_state = GET_DFLTCC_STATE(state);
  
-     in -= strm->avail_in;
-@@ -734,7 +750,7 @@ int zlib_inflate(z_streamp strm, int flu
-     strm->total_in += in;
-     strm->total_out += out;
-     state->total += out;
--    if (state->wrap && out)
-+    if (INFLATE_NEED_CHECKSUM(strm) && state->wrap && out)
-         strm->adler = state->check =
-             UPDATE(state->check, strm->next_out - out, out);
- 
---- a/lib/zlib_inflate/inflate.h~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/zlib_inflate/inflate.h
-@@ -11,6 +11,8 @@
-    subject to change. Applications should only use zlib.h.
++    /* Check for kernel dfltcc command line parameter */
++    if (zlib_dfltcc_support == ZLIB_DFLTCC_DISABLED ||
++            zlib_dfltcc_support == ZLIB_DFLTCC_INFLATE_ONLY)
++        return 0;
++
+     /* Unsupported compression settings */
+     if (!dfltcc_are_params_ok(state->level, state->w_bits, state->strategy,
+                               dfltcc_state->level_mask))
+--- a/lib/zlib_dfltcc/dfltcc.h~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/lib/zlib_dfltcc/dfltcc.h
+@@ -8,6 +8,7 @@
+  * Tuning parameters.
   */
+ #define DFLTCC_LEVEL_MASK 0x2 /* DFLTCC compression for level 1 only */
++#define DFLTCC_LEVEL_MASK_DEBUG 0x3fe /* DFLTCC compression for all levels */
+ #define DFLTCC_BLOCK_SIZE 1048576
+ #define DFLTCC_FIRST_FHT_BLOCK_SIZE 4096
+ #define DFLTCC_DHT_MIN_SAMPLE_SIZE 4096
+--- a/lib/zlib_dfltcc/dfltcc_inflate.c~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/lib/zlib_dfltcc/dfltcc_inflate.c
+@@ -3,6 +3,7 @@
+ #include "../zlib_inflate/inflate.h"
+ #include "dfltcc_util.h"
+ #include "dfltcc.h"
++#include <asm/setup.h>
+ #include <linux/zutil.h>
  
-+#include "inftrees.h"
+ /*
+@@ -15,6 +16,11 @@ int dfltcc_can_inflate(
+     struct inflate_state *state = (struct inflate_state *)strm->state;
+     struct dfltcc_state *dfltcc_state = GET_DFLTCC_STATE(state);
+ 
++    /* Check for kernel dfltcc command line parameter */
++    if (zlib_dfltcc_support == ZLIB_DFLTCC_DISABLED ||
++            zlib_dfltcc_support == ZLIB_DFLTCC_DEFLATE_ONLY)
++        return 0;
 +
- /* Possible inflate modes between inflate() calls */
- typedef enum {
-     HEAD,       /* i: waiting for magic header */
-@@ -108,4 +110,10 @@ struct inflate_state {
-     unsigned short work[288];   /* work area for code table building */
-     code codes[ENOUGH];         /* space for code tables */
- };
+     /* Unsupported compression settings */
+     if (state->wbits != HB_BITS)
+         return 0;
+--- a/lib/zlib_dfltcc/dfltcc_util.h~s390-boot-add-dfltcc=-kernel-command-line-parameter
++++ a/lib/zlib_dfltcc/dfltcc_util.h
+@@ -3,6 +3,7 @@
+ #define DFLTCC_UTIL_H
+ 
+ #include <linux/zutil.h>
++#include <asm/setup.h>
+ 
+ /*
+  * C wrapper for the DEFLATE CONVERSION CALL instruction.
+@@ -104,6 +105,10 @@ static inline int is_dfltcc_enabled(void
+     uint64_t facilities[(DFLTCC_FACILITY / 64) + 1];
+     register char r0 __asm__("r0");
+ 
++    /* Check for kernel dfltcc command line parameter */
++    if (zlib_dfltcc_support == ZLIB_DFLTCC_DISABLED)
++        return 0;
 +
-+/* Reverse the bytes in a 32-bit value */
-+#define REVERSE(q) \
-+    ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
-+     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
-+
- #endif
---- a/lib/zlib_inflate/infutil.h~lib-zlib-add-s390-hardware-support-for-kernel-zlib_inflate
-+++ a/lib/zlib_inflate/infutil.h
-@@ -12,14 +12,28 @@
- #define _INFUTIL_H
- 
- #include <linux/zlib.h>
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+#include "../zlib_dfltcc/dfltcc.h"
-+#include <asm/page.h>
-+#endif
- 
- /* memory allocation for inflation */
- 
- struct inflate_workspace {
- 	struct inflate_state inflate_state;
--	unsigned char working_window[1 << MAX_WBITS];
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+	struct dfltcc_state dfltcc_state;
-+	unsigned char working_window[(1 << MAX_WBITS) + PAGE_SIZE];
-+#else
-+	unsigned char working_window[(1 << MAX_WBITS)];
-+#endif
- };
- 
--#define WS(z) ((struct inflate_workspace *)(z->workspace))
-+#ifdef CONFIG_ZLIB_DFLTCC_INFLATE
-+/* dfltcc_state must be doubleword aligned for DFLTCC call */
-+static_assert(offsetof(struct inflate_workspace, dfltcc_state) % 8 == 0);
-+#endif
-+
-+#define WS(strm) ((struct inflate_workspace *)(strm->workspace))
- 
- #endif
+     memset(facilities, 0, sizeof(facilities));
+     r0 = sizeof(facilities) / sizeof(facilities[0]) - 1;
+     __asm__ volatile("stfle %[facilities]\n"
 _
 
 Patches currently in -mm which might be from zaslonko@linux.ibm.com are
 
-s390-boot-add-dfltcc=-kernel-command-line-parameter.patch
 lib-zlib-add-zlib_deflate_dfltcc_enabled-function.patch
 btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
