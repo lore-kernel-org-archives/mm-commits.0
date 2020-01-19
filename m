@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables.patch added
- to -mm tree
-Date: Sat, 18 Jan 2020 16:07:11 -0800
-Message-ID: <20200119000711.s7xI2%akpm@linux-foundation.org>
+Subject: + mm-mremap-start-addresses-are-properly-aligned.patch
+ added to -mm tree
+Date: Sat, 18 Jan 2020 16:07:15 -0800
+Message-ID: <20200119000715.hz90h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54900 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727012AbgASAHM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 18 Jan 2020 19:07:12 -0500
+        id S1727012AbgASAHQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 18 Jan 2020 19:07:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com, thellstrom@vmware.com, kirill@shutemov.name, dan.j.williams@intel.com, aneesh.kumar@linux.ibm.com, richardw.yang@linux.intel.com
 
 
 The patch titled
-     Subject: mm/mremap: use pmd_addr_end to calculate next in move_page_tables()
+     Subject: mm/mremap: start addresses are properly aligned
 has been added to the -mm tree.  Its filename is
-     mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables.patch
+     mm-mremap-start-addresses-are-properly-aligned.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-start-addresses-are-properly-aligned.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-start-addresses-are-properly-aligned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,11 +37,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/mremap: use pmd_addr_end to calculate next in move_page_tables()
+Subject: mm/mremap: start addresses are properly aligned
 
-Use the general helper instead of doing it by hand.
+After previous cleanup, extent is the minimal step for both source and
+destination.  This means when extent is HPAGE_PMD_SIZE or PMD_SIZE,
+old_addr and new_addr are properly aligned too.
 
-Link: http://lkml.kernel.org/r/20200117232254.2792-4-richardw.yang@linux.intel.com
+Since these two functions are only invoked in move_page_tables, it is safe
+to remove the check now.
+
+Link: http://lkml.kernel.org/r/20200117232254.2792-6-richardw.yang@linux.intel.com
 Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -52,45 +56,27 @@ Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |    3 ---
+ mm/mremap.c      |    3 ---
+ 2 files changed, 6 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables
+--- a/mm/huge_memory.c~mm-mremap-start-addresses-are-properly-aligned
++++ a/mm/huge_memory.c
+@@ -1878,9 +1878,6 @@ bool move_huge_pmd(struct vm_area_struct
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	bool force_flush = false;
+ 
+-	if ((old_addr & ~HPAGE_PMD_MASK) || (new_addr & ~HPAGE_PMD_MASK))
+-		return false;
+-
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have release it.
+--- a/mm/mremap.c~mm-mremap-start-addresses-are-properly-aligned
 +++ a/mm/mremap.c
-@@ -253,11 +253,8 @@ unsigned long move_page_tables(struct vm
+@@ -199,9 +199,6 @@ static bool move_normal_pmd(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
  
- 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
- 		cond_resched();
--		next = (old_addr + PMD_SIZE) & PMD_MASK;
--		/* even if next overflowed, extent below will be ok */
-+		next = pmd_addr_end(old_addr, old_end);
- 		extent = next - old_addr;
--		if (extent > old_end - old_addr)
--			extent = old_end - old_addr;
- 		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
- 		if (!old_pmd)
- 			continue;
-@@ -301,7 +298,7 @@ unsigned long move_page_tables(struct vm
- 
- 		if (pte_alloc(new_vma->vm_mm, new_pmd))
- 			break;
--		next = (new_addr + PMD_SIZE) & PMD_MASK;
-+		next = pmd_addr_end(new_addr, new_addr + len);
- 		if (extent > next - new_addr)
- 			extent = next - new_addr;
- 		move_ptes(vma, old_pmd, old_addr, old_addr + extent, new_vma,
-_
-
-Patches currently in -mm which might be from richardw.yang@linux.intel.com are
-
-mm-thp-remove-the-defer-list-related-code-since-this-will-not-happen.patch
-mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
-mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
-mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
-mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables.patch
-mm-mremap-calculate-extent-in-one-place.patch
-mm-mremap-start-addresses-are-properly-aligned.patch
-mm-huge_memoryc-use-head-to-check-huge-zero-page.patch
-mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
-mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
-mm-remove-dead-code-totalram_pages_set.patch
+-	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK))
+-		return false;
