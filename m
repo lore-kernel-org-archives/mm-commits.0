@@ -1,107 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- watchdog-softlockup-enforce-that-timestamp-is-valid-on-boot.patch removed
- from -mm tree
-Date: Tue, 21 Jan 2020 12:32:31 -0800
-Message-ID: <20200121203231.DBU7xMkDb%akpm@linux-foundation.org>
+Subject: [nacked]
+ mm-move_pages-fix-the-return-value-if-there-are-not-migrated-pages.patch
+ removed from -mm tree
+Date: Tue, 21 Jan 2020 13:27:26 -0800
+Message-ID: <20200121212726.WdBeK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43918 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727383AbgAUUce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 21 Jan 2020 15:32:34 -0500
+        id S1728776AbgAUV11 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 21 Jan 2020 16:27:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, keescook@chromium.org, longman@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com, rppt@linux.ibm.com, rrichter@marvell.com, tglx@linutronix.de, will@kernel.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, richardw.yang@linux.intel.com, mhocko@suse.com, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: watchdog/softlockup: enforce that timestamp is valid on boot
+     Subject: mm/migrate.c: move_pages: fix the return value if there are not-migrated pages
 has been removed from the -mm tree.  Its filename was
-     watchdog-softlockup-enforce-that-timestamp-is-valid-on-boot.patch
+     mm-move_pages-fix-the-return-value-if-there-are-not-migrated-pages.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: watchdog/softlockup: enforce that timestamp is valid on boot
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm/migrate.c: move_pages: fix the return value if there are not-migrated pages
 
-Robert reported that during boot the watchdog timestamp is set to 0 for
-one second which is the indicator for a watchdog reset.
+do_move_pages_to_node() might return > 0 value, the number of pages that
+are not migrated, then the value will be returned to userspace directly. 
+But, move_pages() syscall would just return 0 or errno.  So, we need reset
+the return value to 0 for such case as pre-v4.17 did.
 
-The reason for this is that the timestamp is in seconds and the time is
-taken from sched clock and divided by ~1e9.  sched clock starts at 0 which
-means that for the first second during boot the watchdog timestamp is 0,
-i.e.  reset.
-
-Use ULONG_MAX as the reset indicator value so the watchdog works correctly
-right from the start.  ULONG_MAX would only conflict with a real timestamp
-if the system reaches an uptime of 136 years on 32bit and almost eternity
-on 64bit.
-
-Link: http://lkml.kernel.org/r/87o8v3uuzl.fsf@nanos.tec.linutronix.de
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reported-by: Robert Richter <rrichter@marvell.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
+Link: http://lkml.kernel.org/r/1579325203-16405-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: a49bd4d71637 ("mm, numa: rework do_pages_move")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: <stable@vger.kernel.org>    [4.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/migrate.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-softlockup-enforce-that-timestamp-is-valid-on-boot
-+++ a/kernel/watchdog.c
-@@ -161,6 +161,8 @@ static void lockup_detector_update_enabl
+--- a/mm/migrate.c~mm-move_pages-fix-the-return-value-if-there-are-not-migrated-pages
++++ a/mm/migrate.c
+@@ -1659,8 +1659,11 @@ static int do_pages_move(struct mm_struc
+ 			goto out_flush;
  
- #ifdef CONFIG_SOFTLOCKUP_DETECTOR
- 
-+#define SOFTLOCKUP_RESET	ULONG_MAX
-+
- /* Global variables, exported for sysctl */
- unsigned int __read_mostly softlockup_panic =
- 			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
-@@ -274,7 +276,7 @@ notrace void touch_softlockup_watchdog_s
- 	 * Preemption can be enabled.  It doesn't matter which CPU's timestamp
- 	 * gets zeroed here, so use the raw_ operation.
- 	 */
--	raw_cpu_write(watchdog_touch_ts, 0);
-+	raw_cpu_write(watchdog_touch_ts, SOFTLOCKUP_RESET);
- }
- 
- notrace void touch_softlockup_watchdog(void)
-@@ -298,14 +300,14 @@ void touch_all_softlockup_watchdogs(void
- 	 * the softlockup check.
- 	 */
- 	for_each_cpu(cpu, &watchdog_allowed_mask)
--		per_cpu(watchdog_touch_ts, cpu) = 0;
-+		per_cpu(watchdog_touch_ts, cpu) = SOFTLOCKUP_RESET;
- 	wq_watchdog_touch(-1);
- }
- 
- void touch_softlockup_watchdog_sync(void)
- {
- 	__this_cpu_write(softlockup_touch_sync, true);
--	__this_cpu_write(watchdog_touch_ts, 0);
-+	__this_cpu_write(watchdog_touch_ts, SOFTLOCKUP_RESET);
- }
- 
- static int is_softlockup(unsigned long touch_ts)
-@@ -383,7 +385,7 @@ static enum hrtimer_restart watchdog_tim
- 	/* .. and repeat */
- 	hrtimer_forward_now(hrtimer, ns_to_ktime(sample_period));
- 
--	if (touch_ts == 0) {
-+	if (touch_ts == SOFTLOCKUP_RESET) {
- 		if (unlikely(__this_cpu_read(softlockup_touch_sync))) {
- 			/*
- 			 * If the time stamp was touched atomically
+ 		err = do_move_pages_to_node(mm, &pagelist, current_node);
+-		if (err)
++		if (err) {
++			if (err > 0)
++				err = 0;
+ 			goto out;
++		}
+ 		if (i > start) {
+ 			err = store_status(status, start, current_node, i - start);
+ 			if (err)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
