@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_isolation-fix-potential-warning-from-user.patch
- added to -mm tree
-Date: Thu, 23 Jan 2020 17:56:40 -0800
-Message-ID: <20200124015640.XeSZrsiqb%akpm@linux-foundation.org>
+Subject: +
+ mm-sparse-reset-sections-mem_map-when-fully-deactivated.patch added to -mm
+ tree
+Date: Thu, 23 Jan 2020 19:11:56 -0800
+Message-ID: <20200124031156.JnlWjp46K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49538 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45184 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728665AbgAXB4l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jan 2020 20:56:41 -0500
+        id S1730664AbgAXDL6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jan 2020 22:11:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, david@redhat.com, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, cai@lca.pw, dan.j.williams@intel.com, david@redhat.com, k-hagio@ab.jp.nec.com, kernelfans@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de
 
 
 The patch titled
-     Subject: mm/page_isolation: fix potential warning from user
+     Subject: mm/sparse.c: reset section's mem_map when fully deactivated
 has been added to the -mm tree.  Its filename is
-     mm-page_isolation-fix-potential-warning-from-user.patch
+     mm-sparse-reset-sections-mem_map-when-fully-deactivated.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-fix-potential-warning-from-user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-reset-sections-mem_map-when-fully-deactivated.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-fix-potential-warning-from-user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-reset-sections-mem_map-when-fully-deactivated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,103 +37,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/page_isolation: fix potential warning from user
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: mm/sparse.c: reset section's mem_map when fully deactivated
 
-It makes sense to call the WARN_ON_ONCE(zone_idx(zone) == ZONE_MOVABLE)
-from start_isolate_page_range(), but should avoid triggering it from
-userspace, i.e, from is_mem_section_removable() because it could crash the
-system by a non-root user if warn_on_panic is set.
+After commit ba72b4c8cf60 ("mm/sparsemem: support sub-section hotplug"),
+when a mem section is fully deactivated, section_mem_map still records the
+section's start pfn, which is not used any more and will be reassigned
+during re-addition.
 
-While at it, simplify the code a bit by removing an unnecessary jump
-label.
+In analogy with alloc/free pattern, it is better to clear all fields of
+section_mem_map.
 
-Link: http://lkml.kernel.org/r/20200120163915.1469-1-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
+Beside this, it breaks the user space tool "makedumpfile" [1], which makes
+assumption that a hot-removed section has mem_map as NULL, instead of
+checking directly against SECTION_MARKED_PRESENT bit.  (makedumpfile will
+be better to change the assumption, and need a patch)
+
+The bug can be reproduced on IBM POWERVM by "drmgr -c mem -r -q 5" ,
+trigger a crash, and save vmcore by makedumpfile
+
+[1]: makedumpfile, commit e73016540293 ("[v1.6.7] Update version")
+
+Link: http://lkml.kernel.org/r/1579487594-28889-1-git-send-email-kernelfans@gmail.com
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Kazuhito Hagio <k-hagio@ab.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |   11 ++++-------
- mm/page_isolation.c |   18 +++++++++++-------
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_isolation-fix-potential-warning-from-user
-+++ a/mm/page_alloc.c
-@@ -8231,7 +8231,7 @@ struct page *has_unmovable_pages(struct
- 		if (is_migrate_cma(migratetype))
- 			return NULL;
- 
--		goto unmovable;
-+		return page;
+--- a/mm/sparse.c~mm-sparse-reset-sections-mem_map-when-fully-deactivated
++++ a/mm/sparse.c
+@@ -789,7 +789,7 @@ static void section_deactivate(unsigned
+ 			ms->usage = NULL;
+ 		}
+ 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
+-		ms->section_mem_map = sparse_encode_mem_map(NULL, section_nr);
++		ms->section_mem_map = (unsigned long)NULL;
  	}
  
- 	for (; iter < pageblock_nr_pages; iter++) {
-@@ -8241,7 +8241,7 @@ struct page *has_unmovable_pages(struct
- 		page = pfn_to_page(pfn + iter);
- 
- 		if (PageReserved(page))
--			goto unmovable;
-+			return page;
- 
- 		/*
- 		 * If the zone is movable and we have ruled out all reserved
-@@ -8261,7 +8261,7 @@ struct page *has_unmovable_pages(struct
- 			unsigned int skip_pages;
- 
- 			if (!hugepage_migration_supported(page_hstate(head)))
--				goto unmovable;
-+				return page;
- 
- 			skip_pages = compound_nr(head) - (page - head);
- 			iter += skip_pages - 1;
-@@ -8303,12 +8303,9 @@ struct page *has_unmovable_pages(struct
- 		 * is set to both of a memory hole page and a _used_ kernel
- 		 * page at boot.
- 		 */
--		goto unmovable;
-+		return page;
- 	}
- 	return NULL;
--unmovable:
--	WARN_ON_ONCE(zone_idx(zone) == ZONE_MOVABLE);
--	return pfn_to_page(pfn + iter);
- }
- 
- #ifdef CONFIG_CONTIG_ALLOC
---- a/mm/page_isolation.c~mm-page_isolation-fix-potential-warning-from-user
-+++ a/mm/page_isolation.c
-@@ -54,14 +54,18 @@ static int set_migratetype_isolate(struc
- 
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
--	if (!ret)
-+	if (!ret) {
- 		drain_all_pages(zone);
--	else if ((isol_flags & REPORT_FAILURE) && unmovable)
--		/*
--		 * printk() with zone->lock held will guarantee to trigger a
--		 * lockdep splat, so defer it here.
--		 */
--		dump_page(unmovable, "unmovable page");
-+	} else {
-+		WARN_ON_ONCE(zone_idx(zone) == ZONE_MOVABLE);
-+
-+		if ((isol_flags & REPORT_FAILURE) && unmovable)
-+			/*
-+			 * printk() with zone->lock held will likely trigger a
-+			 * lockdep splat, so defer it here.
-+			 */
-+			dump_page(unmovable, "unmovable page");
-+	}
- 
- 	return ret;
- }
+ 	if (section_is_early && memmap)
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from kernelfans@gmail.com are
 
-mm-hotplug-silence-a-lockdep-splat-with-printk.patch
-mm-page_isolation-fix-potential-warning-from-user.patch
+mm-sparse-reset-sections-mem_map-when-fully-deactivated.patch
