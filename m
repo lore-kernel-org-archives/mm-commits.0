@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-relayc-fix-read_pos-error-when-multiple-readers.patch added to -mm
- tree
-Date: Thu, 23 Jan 2020 20:19:04 -0800
-Message-ID: <20200124041904.eZUmbICzg%akpm@linux-foundation.org>
+ =?US-ASCII?Q?drivers-base-memoryc-cache-memory-blocks-in-xarray-to-acc?=
+ =?US-ASCII?Q?elerate-lookup.patch?= added to -mm tree
+Date: Thu, 23 Jan 2020 20:20:48 -0800
+Message-ID: <20200124042048._BvtLCk4c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49342 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729797AbgAXETG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jan 2020 23:19:06 -0500
+        id S1729797AbgAXEUu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jan 2020 23:20:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregkh@linuxfoundation.org, jannh@google.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, yangpc@wangsu.com
+To: cheloha@linux.ibm.com, cheloha@linux.vnet.ibm.com, david@redhat.com, gregkh@linuxfoundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, nathanl@linux.ibm.com, rafael@kernel.org, ricklind@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: kernel/relay.c: fix read_pos error when multiple readers
+     Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
 has been added to the -mm tree.  Its filename is
-     kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
+     drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,87 +39,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pengcheng Yang <yangpc@wangsu.com>
-Subject: kernel/relay.c: fix read_pos error when multiple readers
+From: Scott Cheloha <cheloha@linux.vnet.ibm.com>
+Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
 
-When reading, read_pos should start with bytes_consumed,
-not file->f_pos. Because when there is more than one reader,
-the read_pos corresponding to file->f_pos may have been consumed,
-which will cause the data that has been consumed to be read
-and the bytes_consumed update error.
+Searching for a particular memory block by id is an O(n) operation because
+each memory block's underlying device is kept in an unsorted linked list
+on the subsystem bus.
 
-Link: http://lkml.kernel.org/r/1579691175-28949-1-git-send-email-yangpc@wangsu.com
-Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
+We can cut the lookup cost to O(log n) if we cache each memory block
+in an xarray.  This time complexity improvement is significant on
+systems with many memory blocks.  For example:
+
+1. A 128GB POWER9 VM with 256MB memblocks has 512 blocks.  With this
+   change  memory_dev_init() completes ~12ms faster and walk_memory_blocks()
+   completes ~12ms faster.
+
+Before:
+[    0.005042] memory_dev_init: adding memory blocks
+[    0.021591] memory_dev_init: added memory blocks
+[    0.022699] walk_memory_blocks: walking memory blocks
+[    0.038730] walk_memory_blocks: walked memory blocks 0-511
+
+After:
+[    0.005057] memory_dev_init: adding memory blocks
+[    0.009415] memory_dev_init: added memory blocks
+[    0.010519] walk_memory_blocks: walking memory blocks
+[    0.014135] walk_memory_blocks: walked memory blocks 0-511
+
+2. A 256GB POWER9 LPAR with 256MB memblocks has 1024 blocks.  With
+   this change memory_dev_init() completes ~88ms faster and
+   walk_memory_blocks() completes ~87ms faster.
+
+Before:
+[    0.252246] memory_dev_init: adding memory blocks
+[    0.395469] memory_dev_init: added memory blocks
+[    0.409413] walk_memory_blocks: walking memory blocks
+[    0.433028] walk_memory_blocks: walked memory blocks 0-511
+[    0.433094] walk_memory_blocks: walking memory blocks
+[    0.500244] walk_memory_blocks: walked memory blocks 131072-131583
+
+After:
+[    0.245063] memory_dev_init: adding memory blocks
+[    0.299539] memory_dev_init: added memory blocks
+[    0.313609] walk_memory_blocks: walking memory blocks
+[    0.315287] walk_memory_blocks: walked memory blocks 0-511
+[    0.315349] walk_memory_blocks: walking memory blocks
+[    0.316988] walk_memory_blocks: walked memory blocks 131072-131583
+
+3. A 32TB POWER9 LPAR with 256MB memblocks has 131072 blocks.  With
+   this change we complete memory_dev_init() ~37 minutes faster and
+   walk_memory_blocks() at least ~30 minutes faster.  The exact timing
+   for walk_memory_blocks() is  missing, though I observed that the
+   soft lockups in walk_memory_blocks() disappeared with the change,
+   suggesting that lower bound.
+
+Before:
+[   13.703907] memory_dev_init: adding blocks
+[ 2287.406099] memory_dev_init: added all blocks
+[ 2347.494986] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 2527.625378] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 2707.761977] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 2887.899975] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3068.028318] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3248.158764] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3428.287296] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3608.425357] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3788.554572] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3968.695071] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 4148.823970] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+
+After:
+[   13.696898] memory_dev_init: adding blocks
+[   15.660035] memory_dev_init: added all blocks
+(the walk_memory_blocks traces disappear)
+
+There should be no significant negative impact for machines with few
+memory blocks.  A sparse xarray has a small footprint and an O(log n)
+lookup is negligibly slower than an O(n) lookup for only the smallest
+number of memory blocks.
+
+1. A 16GB x86 machine with 128MB memblocks has 132 blocks.  With this
+   change memory_dev_init() completes ~300us faster and walk_memory_blocks()
+   completes no faster or slower.  The improvement is pretty close to noise.
+
+Before:
+[    0.224752] memory_dev_init: adding memory blocks
+[    0.227116] memory_dev_init: added memory blocks
+[    0.227183] walk_memory_blocks: walking memory blocks
+[    0.227183] walk_memory_blocks: walked memory blocks 0-131
+
+After:
+[    0.224911] memory_dev_init: adding memory blocks
+[    0.226935] memory_dev_init: added memory blocks
+[    0.227089] walk_memory_blocks: walking memory blocks
+[    0.227089] walk_memory_blocks: walked memory blocks 0-131
+
+Link: http://lkml.kernel.org/r/20200121231028.13699-1-cheloha@linux.ibm.com
+Signed-off-by: Scott Cheloha <cheloha@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Nathan Lynch <nathanl@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Rick Lindsley <ricklind@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ drivers/base/memory.c |   37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
---- a/kernel/relay.c~kernel-relayc-fix-read_pos-error-when-multiple-readers
-+++ a/kernel/relay.c
-@@ -991,14 +991,14 @@ static void relay_file_read_consume(stru
- /*
-  *	relay_file_read_avail - boolean, are there unconsumed bytes available?
-  */
--static int relay_file_read_avail(struct rchan_buf *buf, size_t read_pos)
-+static int relay_file_read_avail(struct rchan_buf *buf)
+--- a/drivers/base/memory.c~drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup
++++ a/drivers/base/memory.c
+@@ -21,6 +21,7 @@
+ #include <linux/mm.h>
+ #include <linux/stat.h>
+ #include <linux/slab.h>
++#include <linux/xarray.h>
+ 
+ #include <linux/atomic.h>
+ #include <linux/uaccess.h>
+@@ -56,6 +57,13 @@ static struct bus_type memory_subsys = {
+ 	.offline = memory_subsys_offline,
+ };
+ 
++/*
++ * Memory blocks are cached in a local radix tree to avoid
++ * a costly linear search for the corresponding device on
++ * the subsystem bus.
++ */
++static DEFINE_XARRAY(memory_blocks);
++
+ static BLOCKING_NOTIFIER_HEAD(memory_chain);
+ 
+ int register_memory_notifier(struct notifier_block *nb)
+@@ -553,20 +561,14 @@ int __weak arch_get_memory_phys_device(u
+ /* A reference for the returned memory block device is acquired. */
+ static struct memory_block *find_memory_block_by_id(unsigned long block_id)
  {
- 	size_t subbuf_size = buf->chan->subbuf_size;
- 	size_t n_subbufs = buf->chan->n_subbufs;
- 	size_t produced = buf->subbufs_produced;
- 	size_t consumed = buf->subbufs_consumed;
+-	struct device *dev;
++	struct memory_block *mem;
  
--	relay_file_read_consume(buf, read_pos, 0);
-+	relay_file_read_consume(buf, 0, 0);
+-	dev = subsys_find_device_by_id(&memory_subsys, block_id, NULL);
+-	return dev ? to_memory_block(dev) : NULL;
++	mem = xa_load(&memory_blocks, block_id);
++	if (mem)
++		get_device(&mem->dev);
++	return mem;
+ }
  
- 	consumed = buf->subbufs_consumed;
- 
-@@ -1059,23 +1059,20 @@ static size_t relay_file_read_subbuf_ava
- 
- /**
-  *	relay_file_read_start_pos - find the first available byte to read
-- *	@read_pos: file read position
-  *	@buf: relay channel buffer
-  *
-- *	If the @read_pos is in the middle of padding, return the
-+ *	If the read_pos is in the middle of padding, return the
-  *	position of the first actually available byte, otherwise
-  *	return the original value.
-  */
--static size_t relay_file_read_start_pos(size_t read_pos,
--					struct rchan_buf *buf)
-+static size_t relay_file_read_start_pos(struct rchan_buf *buf)
+-/*
+- * For now, we have a linear search to go find the appropriate
+- * memory_block corresponding to a particular phys_index. If
+- * this gets to be a real problem, we can always use a radix
+- * tree or something here.
+- *
+- * This could be made generic for all device subsystems.
+- */
+ struct memory_block *find_memory_block(struct mem_section *section)
  {
- 	size_t read_subbuf, padding, padding_start, padding_end;
- 	size_t subbuf_size = buf->chan->subbuf_size;
- 	size_t n_subbufs = buf->chan->n_subbufs;
- 	size_t consumed = buf->subbufs_consumed % n_subbufs;
-+	size_t read_pos = consumed * subbuf_size + buf->bytes_consumed;
+ 	unsigned long block_id = base_memory_block_id(__section_nr(section));
+@@ -609,9 +611,16 @@ int register_memory(struct memory_block
+ 	memory->dev.offline = memory->state == MEM_OFFLINE;
  
--	if (!read_pos)
--		read_pos = consumed * subbuf_size + buf->bytes_consumed;
- 	read_subbuf = read_pos / subbuf_size;
- 	padding = buf->padding[read_subbuf];
- 	padding_start = (read_subbuf + 1) * subbuf_size - padding;
-@@ -1131,10 +1128,10 @@ static ssize_t relay_file_read(struct fi
- 	do {
- 		void *from;
- 
--		if (!relay_file_read_avail(buf, *ppos))
-+		if (!relay_file_read_avail(buf))
- 			break;
- 
--		read_start = relay_file_read_start_pos(*ppos, buf);
-+		read_start = relay_file_read_start_pos(buf);
- 		avail = relay_file_read_subbuf_avail(read_start, buf);
- 		if (!avail)
- 			break;
-_
-
-Patches currently in -mm which might be from yangpc@wangsu.com are
-
-kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
+ 	ret = device_register(&memory->dev);
+-	if (ret)
++	if (ret) {
+ 		put_device(&memory->dev);
