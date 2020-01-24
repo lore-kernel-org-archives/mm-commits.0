@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-migratec-also-overwrite-error-when-it-is-bigger-than-zero.patch added to
- -mm tree
-Date: Thu, 23 Jan 2020 19:26:27 -0800
-Message-ID: <20200124032627.yb5bqC434%akpm@linux-foundation.org>
+ kernel-relayc-fix-read_pos-error-when-multiple-readers.patch added to -mm
+ tree
+Date: Thu, 23 Jan 2020 20:19:04 -0800
+Message-ID: <20200124041904.eZUmbICzg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50592 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729017AbgAXD03 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jan 2020 22:26:29 -0500
+        id S1729797AbgAXETG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jan 2020 23:19:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, jhubbard@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, vbabka@suse.cz, yang.shi@linux.alibaba.com
+To: gregkh@linuxfoundation.org, jannh@google.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, yangpc@wangsu.com
 
 
 The patch titled
-     Subject: mm/migrate.c: also overwrite error when it is bigger than zero
+     Subject: kernel/relay.c: fix read_pos error when multiple readers
 has been added to the -mm tree.  Its filename is
-     mm-migratec-also-overwrite-error-when-it-is-bigger-than-zero.patch
+     kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migratec-also-overwrite-error-when-it-is-bigger-than-zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migratec-also-overwrite-error-when-it-is-bigger-than-zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,59 +37,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/migrate.c: also overwrite error when it is bigger than zero
+From: Pengcheng Yang <yangpc@wangsu.com>
+Subject: kernel/relay.c: fix read_pos error when multiple readers
 
-If we get here after successfully adding page to list, err would be 1 to
-indicate the page is queued in the list.
+When reading, read_pos should start with bytes_consumed,
+not file->f_pos. Because when there is more than one reader,
+the read_pos corresponding to file->f_pos may have been consumed,
+which will cause the data that has been consumed to be read
+and the bytes_consumed update error.
 
-Current code has two problems:
-
-  * on success, 0 is not returned
-  * on error, if add_page_for_migratioin() return 1, and the following err1
-    from do_move_pages_to_node() is set, the err1 is not returned since err
-    is 1
-
-And these behaviors break the user interface.
-
-Link: http://lkml.kernel.org/r/20200119065753.21694-1-richardw.yang@linux.intel.com
-Fixes: e0153fc2c760 ("mm: move_pages: return valid node id in status if the page is already on the target node").
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1579691175-28949-1-git-send-email-yangpc@wangsu.com
+Signed-off-by: Pengcheng Yang <yangpc@wangsu.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/relay.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/migrate.c~mm-migratec-also-overwrite-error-when-it-is-bigger-than-zero
-+++ a/mm/migrate.c
-@@ -1676,7 +1676,7 @@ out_flush:
- 	err1 = do_move_pages_to_node(mm, &pagelist, current_node);
- 	if (!err1)
- 		err1 = store_status(status, start, current_node, i - start);
--	if (!err)
-+	if (err >= 0)
- 		err = err1;
- out:
- 	return err;
+--- a/kernel/relay.c~kernel-relayc-fix-read_pos-error-when-multiple-readers
++++ a/kernel/relay.c
+@@ -991,14 +991,14 @@ static void relay_file_read_consume(stru
+ /*
+  *	relay_file_read_avail - boolean, are there unconsumed bytes available?
+  */
+-static int relay_file_read_avail(struct rchan_buf *buf, size_t read_pos)
++static int relay_file_read_avail(struct rchan_buf *buf)
+ {
+ 	size_t subbuf_size = buf->chan->subbuf_size;
+ 	size_t n_subbufs = buf->chan->n_subbufs;
+ 	size_t produced = buf->subbufs_produced;
+ 	size_t consumed = buf->subbufs_consumed;
+ 
+-	relay_file_read_consume(buf, read_pos, 0);
++	relay_file_read_consume(buf, 0, 0);
+ 
+ 	consumed = buf->subbufs_consumed;
+ 
+@@ -1059,23 +1059,20 @@ static size_t relay_file_read_subbuf_ava
+ 
+ /**
+  *	relay_file_read_start_pos - find the first available byte to read
+- *	@read_pos: file read position
+  *	@buf: relay channel buffer
+  *
+- *	If the @read_pos is in the middle of padding, return the
++ *	If the read_pos is in the middle of padding, return the
+  *	position of the first actually available byte, otherwise
+  *	return the original value.
+  */
+-static size_t relay_file_read_start_pos(size_t read_pos,
+-					struct rchan_buf *buf)
++static size_t relay_file_read_start_pos(struct rchan_buf *buf)
+ {
+ 	size_t read_subbuf, padding, padding_start, padding_end;
+ 	size_t subbuf_size = buf->chan->subbuf_size;
+ 	size_t n_subbufs = buf->chan->n_subbufs;
+ 	size_t consumed = buf->subbufs_consumed % n_subbufs;
++	size_t read_pos = consumed * subbuf_size + buf->bytes_consumed;
+ 
+-	if (!read_pos)
+-		read_pos = consumed * subbuf_size + buf->bytes_consumed;
+ 	read_subbuf = read_pos / subbuf_size;
+ 	padding = buf->padding[read_subbuf];
+ 	padding_start = (read_subbuf + 1) * subbuf_size - padding;
+@@ -1131,10 +1128,10 @@ static ssize_t relay_file_read(struct fi
+ 	do {
+ 		void *from;
+ 
+-		if (!relay_file_read_avail(buf, *ppos))
++		if (!relay_file_read_avail(buf))
+ 			break;
+ 
+-		read_start = relay_file_read_start_pos(*ppos, buf);
++		read_start = relay_file_read_start_pos(buf);
+ 		avail = relay_file_read_subbuf_avail(read_start, buf);
+ 		if (!avail)
+ 			break;
 _
 
-Patches currently in -mm which might be from richardw.yang@linux.intel.com are
+Patches currently in -mm which might be from yangpc@wangsu.com are
 
-mm-thp-remove-the-defer-list-related-code-since-this-will-not-happen.patch
-mm-migratec-also-overwrite-error-when-it-is-bigger-than-zero.patch
-mm-gupc-use-is_vm_hugetlb_page-to-check-whether-to-follow-huge.patch
-mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
-mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
-mm-mremap-use-pmd_addr_end-to-calculate-next-in-move_page_tables.patch
-mm-mremap-calculate-extent-in-one-place.patch
-mm-mremap-start-addresses-are-properly-aligned.patch
-mm-huge_memoryc-use-head-to-check-huge-zero-page.patch
-mm-huge_memoryc-use-head-to-emphasize-the-purpose-of-page.patch
-mm-huge_memoryc-reduce-critical-section-protected-by-split_queue_lock.patch
-mm-remove-dead-code-totalram_pages_set.patch
+kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
