@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + swap_next-should-increase-position-index.patch added to
- -mm tree
-Date: Sun, 26 Jan 2020 19:10:47 -0800
-Message-ID: <20200127031047.MX4gRK_vi%akpm@linux-foundation.org>
+Subject: +
+ mm-move_pages-report-the-number-of-non-attempted-pages.patch added to -mm
+ tree
+Date: Mon, 27 Jan 2020 13:33:50 -0800
+Message-ID: <20200127213350.vCt6QvmJu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53782 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726545AbgA0DKs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 26 Jan 2020 22:10:48 -0500
+        id S1725946AbgA0Vdw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Jan 2020 16:33:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, jannh@google.com, keescook@chromium.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, vvs@virtuozzo.com
+To: mhocko@suse.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, stable@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: swap_next should increase position index
+     Subject: mm: move_pages: report the number of non-attempted pages
 has been added to the -mm tree.  Its filename is
-     swap_next-should-increase-position-index.patch
+     mm-move_pages-report-the-number-of-non-attempted-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap_next-should-increase-position-index.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move_pages-report-the-number-of-non-attempted-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap_next-should-increase-position-index.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move_pages-report-the-number-of-non-attempted-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,71 +37,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: mm/swapfile.c: swap_next should increase position index
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: move_pages: report the number of non-attempted pages
 
-If seq_file .next fuction does not change position index, read after some
-lseek can generate unexpected output.
+Since commit a49bd4d71637 ("mm, numa: rework do_pages_move"), the semantic
+of move_pages() has changed to return the number of non-migrated pages if
+they were result of a non-fatal reasons (usually a busy page).  This was
+an unintentional change that hasn't been noticed except for LTP tests
+which checked for the documented behavior.
 
-In Aug 2018 NeilBrown noticed commit 1f4aace60b0e ("fs/seq_file.c:
-simplify seq_file iteration code and interface") "Some ->next functions do
-not increment *pos when they return NULL...  Note that such ->next
-functions are buggy and should be fixed.  A simple demonstration is
+There are two ways to go around this change.  We can even get back to the
+original behavior and return -EAGAIN whenever migrate_pages is not able to
+migrate pages due to non-fatal reasons.  Another option would be to simply
+continue with the changed semantic and extend move_pages documentation to
+clarify that -errno is returned on an invalid input or when migration
+simply cannot succeed (e.g.  -ENOMEM, -EBUSY) or the number of pages that
+couldn't have been migrated due to ephemeral reasons (e.g.  page is pinned
+or locked for other reasons).
 
-dd if=/proc/swaps bs=1000 skip=1
+This patch implements the second option because this behavior is in place
+for some time without anybody complaining and possibly new users depending
+on it.  Also it allows to have a slightly easier error handling as the
+caller knows that it is worth to retry when err > 0.
 
-Choose any block size larger than the size of /proc/swaps.  This will
-always show the whole last line of /proc/swaps"
+But since the new semantic would be aborted immediately if migration is
+failed due to ephemeral reasons, need include the number of non-attempted
+pages in the return value too.
 
-Described problem is still actual.  If you make lseek into middle of last
-output line following read will output end of last line and whole last
-line once again.
-
-$ dd if=/proc/swaps bs=1  # usual output
-Filename				Type		Size	Used	Priority
-/dev/dm-0                               partition	4194812	97536	-2
-104+0 records in
-104+0 records out
-104 bytes copied
-
-$ dd if=/proc/swaps bs=40 skip=1    # last line was generated twice
-dd: /proc/swaps: cannot skip to specified offset
-v/dm-0                               partition	4194812	97536	-2
-/dev/dm-0                               partition	4194812	97536	-2
-3+1 records in
-3+1 records out
-131 bytes copied
-
-https://bugzilla.kernel.org/show_bug.cgi?id=206283
-
-Link: http://lkml.kernel.org/r/bd8cfd7b-ac95-9b91-f9e7-e8438bd5047d@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/1580160527-109104-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: a49bd4d71637 ("mm, numa: rework do_pages_move")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: <stable@vger.kernel.org>    [4.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~swap_next-should-increase-position-index
-+++ a/mm/swapfile.c
-@@ -2737,10 +2737,10 @@ static void *swap_next(struct seq_file *
- 	else
- 		type = si->type + 1;
+--- a/mm/migrate.c~mm-move_pages-report-the-number-of-non-attempted-pages
++++ a/mm/migrate.c
+@@ -1627,8 +1627,19 @@ static int do_pages_move(struct mm_struc
+ 			start = i;
+ 		} else if (node != current_node) {
+ 			err = do_move_pages_to_node(mm, &pagelist, current_node);
+-			if (err)
++			if (err) {
++				/*
++				 * Positive err means the number of failed
++				 * pages to migrate.  Since we are going to
++				 * abort and return the number of non-migrated
++				 * pages, so need to incude the rest of the
++				 * nr_pages that have not been attempted as
++				 * well.
++				 */
++				if (err > 0)
++					err += nr_pages - i - 1;
+ 				goto out;
++			}
+ 			err = store_status(status, start, current_node, i - start);
+ 			if (err)
+ 				goto out;
+@@ -1659,8 +1670,11 @@ static int do_pages_move(struct mm_struc
+ 			goto out_flush;
  
-+	++(*pos);
- 	for (; (si = swap_type_to_swap_info(type)); type++) {
- 		if (!(si->flags & SWP_USED) || !si->swap_map)
- 			continue;
--		++*pos;
- 		return si;
- 	}
+ 		err = do_move_pages_to_node(mm, &pagelist, current_node);
+-		if (err)
++		if (err) {
++			if (err > 0)
++				err += nr_pages - i - 1;
+ 			goto out;
++		}
+ 		if (i > start) {
+ 			err = store_status(status, start, current_node, i - start);
+ 			if (err)
+@@ -1674,6 +1688,13 @@ out_flush:
  
+ 	/* Make sure we do not overwrite the existing error */
+ 	err1 = do_move_pages_to_node(mm, &pagelist, current_node);
++	/*
++	 * Don't have to report non-attempted pages here since:
++	 *     - If the above loop is done gracefully all pages have been
++	 *       attempted.
++	 *     - If the above loop is aborted it means a fatal error
++	 *       happened, should return ret.
++	 */
+ 	if (!err1)
+ 		err1 = store_status(status, start, current_node, i - start);
+ 	if (err >= 0)
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
-swap_next-should-increase-position-index.patch
+mm-move_pages-report-the-number-of-non-attempted-pages.patch
