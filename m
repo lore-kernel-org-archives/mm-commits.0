@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-an-entry-for-kfifo.patch added to -mm
- tree
-Date: Sun, 26 Jan 2020 19:05:12 -0800
-Message-ID: <20200127030512.G_Lad5SKd%akpm@linux-foundation.org>
+Subject: + swap_next-should-increase-position-index.patch added to
+ -mm tree
+Date: Sun, 26 Jan 2020 19:10:47 -0800
+Message-ID: <20200127031047.MX4gRK_vi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52828 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726545AbgA0DFN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 26 Jan 2020 22:05:13 -0500
+        id S1726545AbgA0DKs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 26 Jan 2020 22:10:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com, gregkh@linuxfoundation.org, linus.walleij@linaro.org, mm-commits@vger.kernel.org, stefani@seibold.net
+To: hughd@google.com, jannh@google.com, keescook@chromium.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, vvs@virtuozzo.com
 
 
 The patch titled
-     Subject: MAINTAINERS: add an entry for kfifo
+     Subject: mm/swapfile.c: swap_next should increase position index
 has been added to the -mm tree.  Its filename is
-     maintainers-add-an-entry-for-kfifo.patch
+     swap_next-should-increase-position-index.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-an-entry-for-kfifo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap_next-should-increase-position-index.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-an-entry-for-kfifo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap_next-should-increase-position-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,44 +36,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: MAINTAINERS: add an entry for kfifo
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: mm/swapfile.c: swap_next should increase position index
 
-Kfifo has been written by Stefani Seibold and she's implicitly expected to
-Ack any changes to it.  She's not however officially listed as kfifo
-maintainer which leads to delays in patch review.  This patch proposes to
-add an explitic entry for kfifo to MAINTAINERS file.
+If seq_file .next fuction does not change position index, read after some
+lseek can generate unexpected output.
 
-Link: http://lkml.kernel.org/r/20200124174533.21815-1-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Stefani Seibold <stefani@seibold.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+In Aug 2018 NeilBrown noticed commit 1f4aace60b0e ("fs/seq_file.c:
+simplify seq_file iteration code and interface") "Some ->next functions do
+not increment *pos when they return NULL...  Note that such ->next
+functions are buggy and should be fixed.  A simple demonstration is
+
+dd if=/proc/swaps bs=1000 skip=1
+
+Choose any block size larger than the size of /proc/swaps.  This will
+always show the whole last line of /proc/swaps"
+
+Described problem is still actual.  If you make lseek into middle of last
+output line following read will output end of last line and whole last
+line once again.
+
+$ dd if=/proc/swaps bs=1  # usual output
+Filename				Type		Size	Used	Priority
+/dev/dm-0                               partition	4194812	97536	-2
+104+0 records in
+104+0 records out
+104 bytes copied
+
+$ dd if=/proc/swaps bs=40 skip=1    # last line was generated twice
+dd: /proc/swaps: cannot skip to specified offset
+v/dm-0                               partition	4194812	97536	-2
+/dev/dm-0                               partition	4194812	97536	-2
+3+1 records in
+3+1 records out
+131 bytes copied
+
+https://bugzilla.kernel.org/show_bug.cgi?id=206283
+
+Link: http://lkml.kernel.org/r/bd8cfd7b-ac95-9b91-f9e7-e8438bd5047d@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-an-entry-for-kfifo
-+++ a/MAINTAINERS
-@@ -9188,6 +9188,13 @@ F:	include/uapi/linux/keyctl.h
- F:	include/keys/
- F:	security/keys/
+--- a/mm/swapfile.c~swap_next-should-increase-position-index
++++ a/mm/swapfile.c
+@@ -2737,10 +2737,10 @@ static void *swap_next(struct seq_file *
+ 	else
+ 		type = si->type + 1;
  
-+KFIFO:
-+M:	Stefani Seibold <stefani@seibold.net>
-+S:	Maintained
-+F:	lib/kfifo.c
-+F:	include/linux/kfifo.h
-+F:	samples/kfifo/
-+
- KGDB / KDB /debug_core
- M:	Jason Wessel <jason.wessel@windriver.com>
- M:	Daniel Thompson <daniel.thompson@linaro.org>
++	++(*pos);
+ 	for (; (si = swap_type_to_swap_info(type)); type++) {
+ 		if (!(si->flags & SWP_USED) || !si->swap_map)
+ 			continue;
+-		++*pos;
+ 		return si;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from bgolaszewski@baylibre.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-maintainers-add-an-entry-for-kfifo.patch
+swap_next-should-increase-position-index.patch
