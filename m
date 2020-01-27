@@ -1,68 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- mm-mremap-start-addresses-are-properly-aligned.patch removed from -mm tree
-Date: Sun, 26 Jan 2020 18:59:34 -0800
-Message-ID: <20200127025934.j30eI0ga-%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+ added to -mm tree
+Date: Sun, 26 Jan 2020 19:03:56 -0800
+Message-ID: <20200127030356.s7TScSQIx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51732 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52524 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726545AbgA0C7f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 26 Jan 2020 21:59:35 -0500
+        id S1726545AbgA0DD6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 26 Jan 2020 22:03:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, kirill@shutemov.name, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, thellstrom@vmware.com, yang.shi@linux.alibaba.com
+To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, vishal.l.verma@intel.com
 
 
 The patch titled
-     Subject: mm/mremap: start addresses are properly aligned
-has been removed from the -mm tree.  Its filename was
-     mm-mremap-start-addresses-are-properly-aligned.patch
+     Subject: mm/memory_hotplug: fix remove_memory() lockdep splat
+has been added to the -mm tree.  Its filename is
+     mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/mremap: start addresses are properly aligned
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm/memory_hotplug: fix remove_memory() lockdep splat
 
-After previous cleanup, extent is the minimal step for both source and
-destination.  This means when extent is HPAGE_PMD_SIZE or PMD_SIZE,
-old_addr and new_addr are properly aligned too.
+The daxctl unit test for the dax_kmem driver currently triggers the (false
+positive) lockdep splat below.  It results from the fact that
+remove_memory_block_devices() is invoked under the mem_hotplug_lock()
+causing lockdep entanglements with cpu_hotplug_lock() and sysfs (kernfs
+active state tracking).  It is a false positive because the sysfs
+attribute path triggering the memory remove is not the same attribute path
+associated with memory-block device.
 
-Since these two functions are only invoked in move_page_tables, it is safe
-to remove the check now.
+sysfs_break_active_protection() is not applicable since there is no real
+deadlock conflict, instead move memory-block device removal outside the
+lock.  The mem_hotplug_lock() is not needed to synchronize the
+memory-block device removal vs the page online state, that is already
+handled by lock_device_hotplug().  Specifically, lock_device_hotplug() is
+sufficient to allow try_remove_memory() to check the offline state of the
+memblocks and be assured that any in progress online attempts are flushed
+/ blocked by kernfs_drain() / attribute removal.
 
-Link: http://lkml.kernel.org/r/20200117232254.2792-6-richardw.yang@linux.intel.com
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+The add_memory() path safely creates memblock devices under the
+mem_hotplug_lock().  There is no kernfs active state synchronization in
+the memblock device_register() path, so nothing to fix there.
+
+This change is only possible thanks to the recent change that refactored
+memory block device removal out of arch_remove_memory() (commit
+4c4b7f9ba948 mm/memory_hotplug: remove memory block devices before
+arch_remove_memory()), and David's due diligence tracking down the
+guarantees afforded by kernfs_drain().  Not flagged for -stable since this
+only impacts ongoing development and lockdep validation, not a runtime
+issue.
+
+    ======================================================
+    WARNING: possible circular locking dependency detected
+    5.5.0-rc3+ #230 Tainted: G           OE
+    ------------------------------------------------------
+    lt-daxctl/6459 is trying to acquire lock:
+    ffff99c7f0003510 (kn->count#241){++++}, at: kernfs_remove_by_name_ns+0x41/0x80
+
+    but task is already holding lock:
+    ffffffffa76a5450 (mem_hotplug_lock.rw_sem){++++}, at: percpu_down_write+0x20/0xe0
+
+    which lock already depends on the new lock.
+
+    the existing dependency chain (in reverse order) is:
+
+    -> #2 (mem_hotplug_lock.rw_sem){++++}:
+           __lock_acquire+0x39c/0x790
+           lock_acquire+0xa2/0x1b0
+           get_online_mems+0x3e/0xb0
+           kmem_cache_create_usercopy+0x2e/0x260
+           kmem_cache_create+0x12/0x20
+           ptlock_cache_init+0x20/0x28
+           start_kernel+0x243/0x547
+           secondary_startup_64+0xb6/0xc0
+
+    -> #1 (cpu_hotplug_lock.rw_sem){++++}:
+           __lock_acquire+0x39c/0x790
+           lock_acquire+0xa2/0x1b0
+           cpus_read_lock+0x3e/0xb0
+           online_pages+0x37/0x300
+           memory_subsys_online+0x17d/0x1c0
+           device_online+0x60/0x80
+           state_store+0x65/0xd0
+           kernfs_fop_write+0xcf/0x1c0
+           vfs_write+0xdb/0x1d0
+           ksys_write+0x65/0xe0
+           do_syscall_64+0x5c/0xa0
+           entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+    -> #0 (kn->count#241){++++}:
+           check_prev_add+0x98/0xa40
+           validate_chain+0x576/0x860
+           __lock_acquire+0x39c/0x790
+           lock_acquire+0xa2/0x1b0
+           __kernfs_remove+0x25f/0x2e0
+           kernfs_remove_by_name_ns+0x41/0x80
+           remove_files.isra.0+0x30/0x70
+           sysfs_remove_group+0x3d/0x80
+           sysfs_remove_groups+0x29/0x40
+           device_remove_attrs+0x39/0x70
+           device_del+0x16a/0x3f0
+           device_unregister+0x16/0x60
+           remove_memory_block_devices+0x82/0xb0
+           try_remove_memory+0xb5/0x130
+           remove_memory+0x26/0x40
+           dev_dax_kmem_remove+0x44/0x6a [kmem]
+           device_release_driver_internal+0xe4/0x1c0
+           unbind_store+0xef/0x120
+           kernfs_fop_write+0xcf/0x1c0
+           vfs_write+0xdb/0x1d0
+           ksys_write+0x65/0xe0
+           do_syscall_64+0x5c/0xa0
+           entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+    other info that might help us debug this:
+
+    Chain exists of:
+      kn->count#241 --> cpu_hotplug_lock.rw_sem --> mem_hotplug_lock.rw_sem
+
+     Possible unsafe locking scenario:
+
+           CPU0                    CPU1
+           ----                    ----
+      lock(mem_hotplug_lock.rw_sem);
+                                   lock(cpu_hotplug_lock.rw_sem);
+                                   lock(mem_hotplug_lock.rw_sem);
+      lock(kn->count#241);
+
+     *** DEADLOCK ***
+
+No fixes tag as this has been a long standing issue that predated the
+addition of kernfs lockdep annotations.
+
+Link: http://lkml.kernel.org/r/157991441887.2763922.4770790047389427325.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ---
- mm/mremap.c      |    3 ---
- 2 files changed, 6 deletions(-)
+ mm/memory_hotplug.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-mremap-start-addresses-are-properly-aligned
-+++ a/mm/huge_memory.c
-@@ -1878,9 +1878,6 @@ bool move_huge_pmd(struct vm_area_struct
- 	struct mm_struct *mm = vma->vm_mm;
- 	bool force_flush = false;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-remove_memory-lockdep-splat
++++ a/mm/memory_hotplug.c
+@@ -1764,8 +1764,6 @@ static int __ref try_remove_memory(int n
  
--	if ((old_addr & ~HPAGE_PMD_MASK) || (new_addr & ~HPAGE_PMD_MASK))
--		return false;
--
- 	/*
- 	 * The destination pmd shouldn't be established, free_pgtables()
- 	 * should have release it.
---- a/mm/mremap.c~mm-mremap-start-addresses-are-properly-aligned
-+++ a/mm/mremap.c
-@@ -199,9 +199,6 @@ static bool move_normal_pmd(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t pmd;
+ 	BUG_ON(check_hotplug_memory_range(start, size));
  
--	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK))
--		return false;
+-	mem_hotplug_begin();
