@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
- added to -mm tree
-Date: Sun, 26 Jan 2020 19:03:56 -0800
-Message-ID: <20200127030356.s7TScSQIx%akpm@linux-foundation.org>
+Subject: + maintainers-add-an-entry-for-kfifo.patch added to -mm
+ tree
+Date: Sun, 26 Jan 2020 19:05:12 -0800
+Message-ID: <20200127030512.G_Lad5SKd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52524 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726545AbgA0DD6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 26 Jan 2020 22:03:58 -0500
+        id S1726545AbgA0DFN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 26 Jan 2020 22:05:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, vishal.l.verma@intel.com
+To: andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com, gregkh@linuxfoundation.org, linus.walleij@linaro.org, mm-commits@vger.kernel.org, stefani@seibold.net
 
 
 The patch titled
-     Subject: mm/memory_hotplug: fix remove_memory() lockdep splat
+     Subject: MAINTAINERS: add an entry for kfifo
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+     maintainers-add-an-entry-for-kfifo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-an-entry-for-kfifo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-an-entry-for-kfifo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,137 +36,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memory_hotplug: fix remove_memory() lockdep splat
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: MAINTAINERS: add an entry for kfifo
 
-The daxctl unit test for the dax_kmem driver currently triggers the (false
-positive) lockdep splat below.  It results from the fact that
-remove_memory_block_devices() is invoked under the mem_hotplug_lock()
-causing lockdep entanglements with cpu_hotplug_lock() and sysfs (kernfs
-active state tracking).  It is a false positive because the sysfs
-attribute path triggering the memory remove is not the same attribute path
-associated with memory-block device.
+Kfifo has been written by Stefani Seibold and she's implicitly expected to
+Ack any changes to it.  She's not however officially listed as kfifo
+maintainer which leads to delays in patch review.  This patch proposes to
+add an explitic entry for kfifo to MAINTAINERS file.
 
-sysfs_break_active_protection() is not applicable since there is no real
-deadlock conflict, instead move memory-block device removal outside the
-lock.  The mem_hotplug_lock() is not needed to synchronize the
-memory-block device removal vs the page online state, that is already
-handled by lock_device_hotplug().  Specifically, lock_device_hotplug() is
-sufficient to allow try_remove_memory() to check the offline state of the
-memblocks and be assured that any in progress online attempts are flushed
-/ blocked by kernfs_drain() / attribute removal.
-
-The add_memory() path safely creates memblock devices under the
-mem_hotplug_lock().  There is no kernfs active state synchronization in
-the memblock device_register() path, so nothing to fix there.
-
-This change is only possible thanks to the recent change that refactored
-memory block device removal out of arch_remove_memory() (commit
-4c4b7f9ba948 mm/memory_hotplug: remove memory block devices before
-arch_remove_memory()), and David's due diligence tracking down the
-guarantees afforded by kernfs_drain().  Not flagged for -stable since this
-only impacts ongoing development and lockdep validation, not a runtime
-issue.
-
-    ======================================================
-    WARNING: possible circular locking dependency detected
-    5.5.0-rc3+ #230 Tainted: G           OE
-    ------------------------------------------------------
-    lt-daxctl/6459 is trying to acquire lock:
-    ffff99c7f0003510 (kn->count#241){++++}, at: kernfs_remove_by_name_ns+0x41/0x80
-
-    but task is already holding lock:
-    ffffffffa76a5450 (mem_hotplug_lock.rw_sem){++++}, at: percpu_down_write+0x20/0xe0
-
-    which lock already depends on the new lock.
-
-    the existing dependency chain (in reverse order) is:
-
-    -> #2 (mem_hotplug_lock.rw_sem){++++}:
-           __lock_acquire+0x39c/0x790
-           lock_acquire+0xa2/0x1b0
-           get_online_mems+0x3e/0xb0
-           kmem_cache_create_usercopy+0x2e/0x260
-           kmem_cache_create+0x12/0x20
-           ptlock_cache_init+0x20/0x28
-           start_kernel+0x243/0x547
-           secondary_startup_64+0xb6/0xc0
-
-    -> #1 (cpu_hotplug_lock.rw_sem){++++}:
-           __lock_acquire+0x39c/0x790
-           lock_acquire+0xa2/0x1b0
-           cpus_read_lock+0x3e/0xb0
-           online_pages+0x37/0x300
-           memory_subsys_online+0x17d/0x1c0
-           device_online+0x60/0x80
-           state_store+0x65/0xd0
-           kernfs_fop_write+0xcf/0x1c0
-           vfs_write+0xdb/0x1d0
-           ksys_write+0x65/0xe0
-           do_syscall_64+0x5c/0xa0
-           entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-    -> #0 (kn->count#241){++++}:
-           check_prev_add+0x98/0xa40
-           validate_chain+0x576/0x860
-           __lock_acquire+0x39c/0x790
-           lock_acquire+0xa2/0x1b0
-           __kernfs_remove+0x25f/0x2e0
-           kernfs_remove_by_name_ns+0x41/0x80
-           remove_files.isra.0+0x30/0x70
-           sysfs_remove_group+0x3d/0x80
-           sysfs_remove_groups+0x29/0x40
-           device_remove_attrs+0x39/0x70
-           device_del+0x16a/0x3f0
-           device_unregister+0x16/0x60
-           remove_memory_block_devices+0x82/0xb0
-           try_remove_memory+0xb5/0x130
-           remove_memory+0x26/0x40
-           dev_dax_kmem_remove+0x44/0x6a [kmem]
-           device_release_driver_internal+0xe4/0x1c0
-           unbind_store+0xef/0x120
-           kernfs_fop_write+0xcf/0x1c0
-           vfs_write+0xdb/0x1d0
-           ksys_write+0x65/0xe0
-           do_syscall_64+0x5c/0xa0
-           entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-    other info that might help us debug this:
-
-    Chain exists of:
-      kn->count#241 --> cpu_hotplug_lock.rw_sem --> mem_hotplug_lock.rw_sem
-
-     Possible unsafe locking scenario:
-
-           CPU0                    CPU1
-           ----                    ----
-      lock(mem_hotplug_lock.rw_sem);
-                                   lock(cpu_hotplug_lock.rw_sem);
-                                   lock(mem_hotplug_lock.rw_sem);
-      lock(kn->count#241);
-
-     *** DEADLOCK ***
-
-No fixes tag as this has been a long standing issue that predated the
-addition of kernfs lockdep annotations.
-
-Link: http://lkml.kernel.org/r/157991441887.2763922.4770790047389427325.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Link: http://lkml.kernel.org/r/20200124174533.21815-1-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Stefani Seibold <stefani@seibold.net>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-remove_memory-lockdep-splat
-+++ a/mm/memory_hotplug.c
-@@ -1764,8 +1764,6 @@ static int __ref try_remove_memory(int n
+--- a/MAINTAINERS~maintainers-add-an-entry-for-kfifo
++++ a/MAINTAINERS
+@@ -9188,6 +9188,13 @@ F:	include/uapi/linux/keyctl.h
+ F:	include/keys/
+ F:	security/keys/
  
- 	BUG_ON(check_hotplug_memory_range(start, size));
- 
--	mem_hotplug_begin();
++KFIFO:
++M:	Stefani Seibold <stefani@seibold.net>
++S:	Maintained
++F:	lib/kfifo.c
++F:	include/linux/kfifo.h
++F:	samples/kfifo/
++
+ KGDB / KDB /debug_core
+ M:	Jason Wessel <jason.wessel@windriver.com>
+ M:	Daniel Thompson <daniel.thompson@linaro.org>
+_
+
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
+
+maintainers-add-an-entry-for-kfifo.patch
