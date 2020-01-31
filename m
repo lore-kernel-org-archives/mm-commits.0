@@ -1,225 +1,208 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 105/118] fs/binfmt_elf.c: don't copy ELF header
- around
-Date: Thu, 30 Jan 2020 22:16:55 -0800
-Message-ID: <20200131061655.5PTo3WfTa%akpm@linux-foundation.org>
+Subject: [patch 106/118] fs/binfmt_elf.c: better codegen around
+ current->mm
+Date: Thu, 30 Jan 2020 22:16:58 -0800
+Message-ID: <20200131061658.DSGltEEl1%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37926 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37992 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726023AbgAaGQ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:16:57 -0500
+        id S1726023AbgAaGRA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:17:00 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/binfmt_elf.c: don't copy ELF header around
+Subject: fs/binfmt_elf.c: better codegen around current->mm
 
-ELF header is read into bprm->buf[] by generic execve code.
+"current->mm" pointer is stable in general except few cases one of which
+execve(2).  Compiler can't treat is as stable but it _is_ stable most of
+the time.  During ELF loading process ->mm becomes stable right after
+flush_old_exec().
 
-Save a memcpy and allocate just one header for the interpreter instead of
-two headers (64 bytes instead of 128 on 64-bit).
+Help compiler by caching current->mm, otherwise it continues to refetch it.
 
-Link: http://lkml.kernel.org/r/20191208171242.GA19716@avx2
+	add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-141 (-141)
+	Function                                     old     new   delta
+	elf_core_dump                               5062    5039     -23
+	load_elf_binary                             5426    5308    -118
+
+Note: other cases are left as is because it is either pessimisation or no
+change in binary size.
+
+Link: http://lkml.kernel.org/r/20191215124755.GB21124@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   55 ++++++++++++++++++++++------------------------
- 1 file changed, 27 insertions(+), 28 deletions(-)
+ fs/binfmt_elf.c |   52 ++++++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
 
---- a/fs/binfmt_elf.c~elf-dont-copy-elf-header-around
+--- a/fs/binfmt_elf.c~elf-better-codegen-around-current-mm
 +++ a/fs/binfmt_elf.c
-@@ -161,8 +161,9 @@ static int padzero(unsigned long elf_bss
- #endif
- 
- static int
--create_elf_tables(struct linux_binprm *bprm, struct elfhdr *exec,
--		unsigned long load_addr, unsigned long interp_load_addr)
-+create_elf_tables(struct linux_binprm *bprm, const struct elfhdr *exec,
-+		unsigned long load_addr, unsigned long interp_load_addr,
-+		unsigned long e_entry)
+@@ -165,6 +165,7 @@ create_elf_tables(struct linux_binprm *b
+ 		unsigned long load_addr, unsigned long interp_load_addr,
+ 		unsigned long e_entry)
  {
++	struct mm_struct *mm = current->mm;
  	unsigned long p = bprm->p;
  	int argc = bprm->argc;
-@@ -251,7 +252,7 @@ create_elf_tables(struct linux_binprm *b
- 	NEW_AUX_ENT(AT_PHNUM, exec->e_phnum);
- 	NEW_AUX_ENT(AT_BASE, interp_load_addr);
- 	NEW_AUX_ENT(AT_FLAGS, 0);
--	NEW_AUX_ENT(AT_ENTRY, exec->e_entry);
-+	NEW_AUX_ENT(AT_ENTRY, e_entry);
- 	NEW_AUX_ENT(AT_UID, from_kuid_munged(cred->user_ns, cred->uid));
- 	NEW_AUX_ENT(AT_EUID, from_kuid_munged(cred->user_ns, cred->euid));
- 	NEW_AUX_ENT(AT_GID, from_kgid_munged(cred->user_ns, cred->gid));
-@@ -690,12 +691,13 @@ static int load_elf_binary(struct linux_
- 	int bss_prot = 0;
- 	int retval, i;
- 	unsigned long elf_entry;
-+	unsigned long e_entry;
- 	unsigned long interp_load_addr = 0;
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long reloc_func_desc __maybe_unused = 0;
- 	int executable_stack = EXSTACK_DEFAULT;
-+	struct elfhdr *elf_ex = (struct elfhdr *)bprm->buf;
- 	struct {
--		struct elfhdr elf_ex;
+ 	int envc = bprm->envc;
+@@ -227,7 +228,7 @@ create_elf_tables(struct linux_binprm *b
+ 		return -EFAULT;
+ 
+ 	/* Create the ELF interpreter info */
+-	elf_info = (elf_addr_t *)current->mm->saved_auxv;
++	elf_info = (elf_addr_t *)mm->saved_auxv;
+ 	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
+ #define NEW_AUX_ENT(id, val) \
+ 	do { \
+@@ -276,13 +277,13 @@ create_elf_tables(struct linux_binprm *b
+ 	}
+ #undef NEW_AUX_ENT
+ 	/* AT_NULL is zero; clear the rest too */
+-	memset(elf_info, 0, (char *)current->mm->saved_auxv +
+-			sizeof(current->mm->saved_auxv) - (char *)elf_info);
++	memset(elf_info, 0, (char *)mm->saved_auxv +
++			sizeof(mm->saved_auxv) - (char *)elf_info);
+ 
+ 	/* And advance past the AT_NULL entry.  */
+ 	elf_info += 2;
+ 
+-	ei_index = elf_info - (elf_addr_t *)current->mm->saved_auxv;
++	ei_index = elf_info - (elf_addr_t *)mm->saved_auxv;
+ 	sp = STACK_ADD(p, ei_index);
+ 
+ 	items = (argc + 1) + (envc + 1) + 1;
+@@ -301,7 +302,7 @@ create_elf_tables(struct linux_binprm *b
+ 	 * Grow the stack manually; some architectures have a limit on how
+ 	 * far ahead a user-space access may be in order to grow the stack.
+ 	 */
+-	vma = find_extend_vma(current->mm, bprm->p);
++	vma = find_extend_vma(mm, bprm->p);
+ 	if (!vma)
+ 		return -EFAULT;
+ 
+@@ -310,7 +311,7 @@ create_elf_tables(struct linux_binprm *b
+ 		return -EFAULT;
+ 
+ 	/* Populate list of argv pointers back to argv strings. */
+-	p = current->mm->arg_end = current->mm->arg_start;
++	p = mm->arg_end = mm->arg_start;
+ 	while (argc-- > 0) {
+ 		size_t len;
+ 		if (__put_user((elf_addr_t)p, sp++))
+@@ -322,10 +323,10 @@ create_elf_tables(struct linux_binprm *b
+ 	}
+ 	if (__put_user(0, sp++))
+ 		return -EFAULT;
+-	current->mm->arg_end = p;
++	mm->arg_end = p;
+ 
+ 	/* Populate list of envp pointers back to envp strings. */
+-	current->mm->env_end = current->mm->env_start = p;
++	mm->env_end = mm->env_start = p;
+ 	while (envc-- > 0) {
+ 		size_t len;
+ 		if (__put_user((elf_addr_t)p, sp++))
+@@ -337,10 +338,10 @@ create_elf_tables(struct linux_binprm *b
+ 	}
+ 	if (__put_user(0, sp++))
+ 		return -EFAULT;
+-	current->mm->env_end = p;
++	mm->env_end = p;
+ 
+ 	/* Put the elf_info on the stack in the right place.  */
+-	if (copy_to_user(sp, current->mm->saved_auxv, ei_index * sizeof(elf_addr_t)))
++	if (copy_to_user(sp, mm->saved_auxv, ei_index * sizeof(elf_addr_t)))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -701,6 +702,7 @@ static int load_elf_binary(struct linux_
  		struct elfhdr interp_elf_ex;
  	} *loc;
  	struct arch_elf_state arch_state = INIT_ARCH_ELF_STATE;
-@@ -706,30 +708,27 @@ static int load_elf_binary(struct linux_
- 		retval = -ENOMEM;
- 		goto out_ret;
- 	}
--	
--	/* Get the exec-header */
--	loc->elf_ex = *((struct elfhdr *)bprm->buf);
++	struct mm_struct *mm;
+ 	struct pt_regs *regs;
  
- 	retval = -ENOEXEC;
- 	/* First of all, some simple consistency checks */
--	if (memcmp(loc->elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
-+	if (memcmp(elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
- 		goto out;
- 
--	if (loc->elf_ex.e_type != ET_EXEC && loc->elf_ex.e_type != ET_DYN)
-+	if (elf_ex->e_type != ET_EXEC && elf_ex->e_type != ET_DYN)
- 		goto out;
--	if (!elf_check_arch(&loc->elf_ex))
-+	if (!elf_check_arch(elf_ex))
- 		goto out;
--	if (elf_check_fdpic(&loc->elf_ex))
-+	if (elf_check_fdpic(elf_ex))
- 		goto out;
- 	if (!bprm->file->f_op->mmap)
- 		goto out;
- 
--	elf_phdata = load_elf_phdrs(&loc->elf_ex, bprm->file);
-+	elf_phdata = load_elf_phdrs(elf_ex, bprm->file);
- 	if (!elf_phdata)
- 		goto out;
- 
- 	elf_ppnt = elf_phdata;
--	for (i = 0; i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
-+	for (i = 0; i < elf_ex->e_phnum; i++, elf_ppnt++) {
- 		char *elf_interpreter;
- 
- 		if (elf_ppnt->p_type != PT_INTERP)
-@@ -783,7 +782,7 @@ out_free_interp:
- 	}
- 
- 	elf_ppnt = elf_phdata;
--	for (i = 0; i < loc->elf_ex.e_phnum; i++, elf_ppnt++)
-+	for (i = 0; i < elf_ex->e_phnum; i++, elf_ppnt++)
- 		switch (elf_ppnt->p_type) {
- 		case PT_GNU_STACK:
- 			if (elf_ppnt->p_flags & PF_X)
-@@ -793,7 +792,7 @@ out_free_interp:
- 			break;
- 
- 		case PT_LOPROC ... PT_HIPROC:
--			retval = arch_elf_pt_proc(&loc->elf_ex, elf_ppnt,
-+			retval = arch_elf_pt_proc(elf_ex, elf_ppnt,
- 						  bprm->file, false,
- 						  &arch_state);
- 			if (retval)
-@@ -837,7 +836,7 @@ out_free_interp:
- 	 * still possible to return an error to the code that invoked
- 	 * the exec syscall.
- 	 */
--	retval = arch_check_elf(&loc->elf_ex,
-+	retval = arch_check_elf(elf_ex,
- 				!!interpreter, &loc->interp_elf_ex,
- 				&arch_state);
- 	if (retval)
-@@ -850,8 +849,8 @@ out_free_interp:
- 
- 	/* Do this immediately, since STACK_TOP as used in setup_arg_pages
- 	   may depend on the personality.  */
--	SET_PERSONALITY2(loc->elf_ex, &arch_state);
--	if (elf_read_implies_exec(loc->elf_ex, executable_stack))
-+	SET_PERSONALITY2(*elf_ex, &arch_state);
-+	if (elf_read_implies_exec(*elf_ex, executable_stack))
- 		current->personality |= READ_IMPLIES_EXEC;
- 
- 	if (!(current->personality & ADDR_NO_RANDOMIZE) && randomize_va_space)
-@@ -878,7 +877,7 @@ out_free_interp:
- 	/* Now we do a little grungy work by mmapping the ELF image into
- 	   the correct location in memory. */
- 	for(i = 0, elf_ppnt = elf_phdata;
--	    i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
-+	    i < elf_ex->e_phnum; i++, elf_ppnt++) {
- 		int elf_prot, elf_flags;
- 		unsigned long k, vaddr;
- 		unsigned long total_size = 0;
-@@ -922,9 +921,9 @@ out_free_interp:
- 		 * If we are loading ET_EXEC or we have already performed
- 		 * the ET_DYN load_addr calculations, proceed normally.
- 		 */
--		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
-+		if (elf_ex->e_type == ET_EXEC || load_addr_set) {
- 			elf_flags |= MAP_FIXED;
--		} else if (loc->elf_ex.e_type == ET_DYN) {
-+		} else if (elf_ex->e_type == ET_DYN) {
- 			/*
- 			 * This logic is run once for the first LOAD Program
- 			 * Header for ET_DYN binaries to calculate the
-@@ -973,7 +972,7 @@ out_free_interp:
- 			load_bias = ELF_PAGESTART(load_bias - vaddr);
- 
- 			total_size = total_mapping_size(elf_phdata,
--							loc->elf_ex.e_phnum);
-+							elf_ex->e_phnum);
- 			if (!total_size) {
- 				retval = -EINVAL;
- 				goto out_free_dentry;
-@@ -991,7 +990,7 @@ out_free_interp:
- 		if (!load_addr_set) {
- 			load_addr_set = 1;
- 			load_addr = (elf_ppnt->p_vaddr - elf_ppnt->p_offset);
--			if (loc->elf_ex.e_type == ET_DYN) {
-+			if (elf_ex->e_type == ET_DYN) {
- 				load_bias += error -
- 				             ELF_PAGESTART(load_bias + vaddr);
- 				load_addr += load_bias;
-@@ -1032,7 +1031,7 @@ out_free_interp:
- 		}
- 	}
- 
--	loc->elf_ex.e_entry += load_bias;
-+	e_entry = elf_ex->e_entry + load_bias;
- 	elf_bss += load_bias;
- 	elf_brk += load_bias;
- 	start_code += load_bias;
-@@ -1075,7 +1074,7 @@ out_free_interp:
- 		allow_write_access(interpreter);
- 		fput(interpreter);
- 	} else {
--		elf_entry = loc->elf_ex.e_entry;
-+		elf_entry = e_entry;
- 		if (BAD_ADDR(elf_entry)) {
- 			retval = -EINVAL;
- 			goto out_free_dentry;
-@@ -1093,8 +1092,8 @@ out_free_interp:
- 		goto out;
- #endif /* ARCH_HAS_SETUP_ADDITIONAL_PAGES */
- 
--	retval = create_elf_tables(bprm, &loc->elf_ex,
--			  load_addr, interp_load_addr);
-+	retval = create_elf_tables(bprm, elf_ex,
-+			  load_addr, interp_load_addr, e_entry);
+ 	loc = kmalloc(sizeof(*loc), GFP_KERNEL);
+@@ -1096,11 +1098,13 @@ out_free_interp:
+ 			  load_addr, interp_load_addr, e_entry);
  	if (retval < 0)
  		goto out;
- 	current->mm->end_code = end_code;
-@@ -1112,7 +1111,7 @@ out_free_interp:
+-	current->mm->end_code = end_code;
+-	current->mm->start_code = start_code;
+-	current->mm->start_data = start_data;
+-	current->mm->end_data = end_data;
+-	current->mm->start_stack = bprm->p;
++
++	mm = current->mm;
++	mm->end_code = end_code;
++	mm->start_code = start_code;
++	mm->start_data = start_data;
++	mm->end_data = end_data;
++	mm->start_stack = bprm->p;
+ 
+ 	if ((current->flags & PF_RANDOMIZE) && (randomize_va_space > 1)) {
+ 		/*
+@@ -1111,12 +1115,11 @@ out_free_interp:
  		 * growing down), and into the unused ELF_ET_DYN_BASE region.
  		 */
  		if (IS_ENABLED(CONFIG_ARCH_HAS_ELF_RANDOMIZE) &&
--		    loc->elf_ex.e_type == ET_DYN && !interpreter)
-+		    elf_ex->e_type == ET_DYN && !interpreter)
- 			current->mm->brk = current->mm->start_brk =
- 				ELF_ET_DYN_BASE;
+-		    elf_ex->e_type == ET_DYN && !interpreter)
+-			current->mm->brk = current->mm->start_brk =
+-				ELF_ET_DYN_BASE;
++		    elf_ex->e_type == ET_DYN && !interpreter) {
++			mm->brk = mm->start_brk = ELF_ET_DYN_BASE;
++		}
  
+-		current->mm->brk = current->mm->start_brk =
+-			arch_randomize_brk(current->mm);
++		mm->brk = mm->start_brk = arch_randomize_brk(mm);
+ #ifdef compat_brk_randomized
+ 		current->brk_randomized = 1;
+ #endif
+@@ -1574,6 +1577,7 @@ static void fill_siginfo_note(struct mem
+  */
+ static int fill_files_note(struct memelfnote *note)
+ {
++	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	unsigned count, size, names_ofs, remaining, n;
+ 	user_long_t *data;
+@@ -1581,7 +1585,7 @@ static int fill_files_note(struct memelf
+ 	char *name_base, *name_curpos;
+ 
+ 	/* *Estimated* file count and total data size needed */
+-	count = current->mm->map_count;
++	count = mm->map_count;
+ 	if (count > UINT_MAX / 64)
+ 		return -EINVAL;
+ 	size = count * 64;
+@@ -1599,7 +1603,7 @@ static int fill_files_note(struct memelf
+ 	name_base = name_curpos = ((char *)data) + names_ofs;
+ 	remaining = size - names_ofs;
+ 	count = 0;
+-	for (vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
++	for (vma = mm->mmap; vma != NULL; vma = vma->vm_next) {
+ 		struct file *file;
+ 		const char *filename;
+ 
+@@ -1633,10 +1637,10 @@ static int fill_files_note(struct memelf
+ 	data[0] = count;
+ 	data[1] = PAGE_SIZE;
+ 	/*
+-	 * Count usually is less than current->mm->map_count,
++	 * Count usually is less than mm->map_count,
+ 	 * we need to move filenames down.
+ 	 */
+-	n = current->mm->map_count - count;
++	n = mm->map_count - count;
+ 	if (n != 0) {
+ 		unsigned shift_bytes = n * 3 * sizeof(data[0]);
+ 		memmove(name_base - shift_bytes, name_base,
 _
