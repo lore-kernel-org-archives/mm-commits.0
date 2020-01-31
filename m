@@ -1,80 +1,50 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 048/118] mm/page_vma_mapped.c: explicitly compare
- pfn for normal, hugetlbfs and THP page
-Date: Thu, 30 Jan 2020 22:13:45 -0800
-Message-ID: <20200131061345.rmnyvhy32%akpm@linux-foundation.org>
+Subject: [patch 049/118] mm, tracing: print symbol name for
+ kmem_alloc_node call_site events
+Date: Thu, 30 Jan 2020 22:13:48 -0800
+Message-ID: <20200131061348.5qy8B5wov%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33358 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGNq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:13:46 -0500
+        id S1725907AbgAaGNt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:13:49 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, changbin.du@intel.com, joel@joelfernandes.org, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, rostedt@goodmis.org, sunjunyong@xiaomi.com, sunjy516@gmail.com, timmurray@google.com, torvalds@linux-foundation.org
 
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/page_vma_mapped.c: explicitly compare pfn for normal, hugetlbfs and THP page
+From: Junyong Sun <sunjy516@gmail.com>
+Subject: mm, tracing: print symbol name for kmem_alloc_node call_site events
 
-When check_pte, pfn of normal, hugetlbfs and THP page need be compared. 
-The current implementation apply comparison as
+Print the call_site ip of kmem_alloc_node using '%pS' to improve the
+readability of raw slab trace points.
 
-- normal 4K page: page_pfn <= pfn < page_pfn + 1
-- hugetlbfs page:  page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
-- THP page: page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
-
-in pfn_in_hpage.  For hugetlbfs page, it should be page_pfn == pfn
-
-Now, change pfn_in_hpage to pfn_is_match to highlight that comparison is
-not only for THP and explicitly compare for these cases.
-
-No impact upon current behavior, just make the code clear.  I think it
-is important to make the code clear - comparing hugetlbfs page in range
-page_pfn <= pfn < page_pfn + HPAGE_PMD_NR is confusing.
-
-Link: http://lkml.kernel.org/r/1578737885-8890-1-git-send-email-lixinhai.lxh@gmail.com
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1577949568-4518-1-git-send-email-sunjunyong@xiaomi.com
+Signed-off-by: Junyong Sun <sunjunyong@xiaomi.com>
+Acked-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Changbin Du <changbin.du@intel.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ include/trace/events/kmem.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page
-+++ a/mm/page_vma_mapped.c
-@@ -52,12 +52,16 @@ static bool map_pte(struct page_vma_mapp
- 	return true;
- }
+--- a/include/trace/events/kmem.h~mm-tracing-print-symbol-name-for-kmem_alloc_node-call_site-events
++++ a/include/trace/events/kmem.h
+@@ -88,8 +88,8 @@ DECLARE_EVENT_CLASS(kmem_alloc_node,
+ 		__entry->node		= node;
+ 	),
  
--static inline bool pfn_in_hpage(struct page *hpage, unsigned long pfn)
-+static inline bool pfn_is_match(struct page *page, unsigned long pfn)
- {
--	unsigned long hpage_pfn = page_to_pfn(hpage);
-+	unsigned long page_pfn = page_to_pfn(page);
-+
-+	/* normal page and hugetlbfs page */
-+	if (!PageTransCompound(page) || PageHuge(page))
-+		return page_pfn == pfn;
- 
- 	/* THP can be referenced by any subpage */
--	return pfn >= hpage_pfn && pfn - hpage_pfn < hpage_nr_pages(hpage);
-+	return pfn >= page_pfn && pfn - page_pfn < hpage_nr_pages(page);
- }
- 
- /**
-@@ -108,7 +112,7 @@ static bool check_pte(struct page_vma_ma
- 		pfn = pte_pfn(*pvmw->pte);
- 	}
- 
--	return pfn_in_hpage(pvmw->page, pfn);
-+	return pfn_is_match(pvmw->page, pfn);
- }
- 
- /**
+-	TP_printk("call_site=%lx ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s node=%d",
+-		__entry->call_site,
++	TP_printk("call_site=%pS ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s node=%d",
++		(void *)__entry->call_site,
+ 		__entry->ptr,
+ 		__entry->bytes_req,
+ 		__entry->bytes_alloc,
 _
