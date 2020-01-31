@@ -1,40 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- thermal-intel_pch-switch-to-use-linux-unitsh-helpers.patch removed from -mm
- tree
-Date: Fri, 31 Jan 2020 15:19:58 -0800
-Message-ID: <20200131231958.cTuoLPUJW%akpm@linux-foundation.org>
+ nvme-hwmon-switch-to-use-linux-unitsh-helpers.patch removed from -mm tree
+Date: Fri, 31 Jan 2020 15:20:01 -0800
+Message-ID: <20200131232001.Z7Sqeum-n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51674 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbgAaXUB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:20:01 -0500
+        id S1726319AbgAaXUD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:20:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, amit.kucheria@verdurent.com, andy.shevchenko@gmail.com, andy@infradead.org, axboe@fb.com, daniel.lezcano@linaro.org, dvhart@infradead.org, emmanuel.grumbach@intel.com, hch@lst.de, jdelvare@suse.com, jic23@kernel.org, johannes.berg@intel.com, Jonathan.Cameron@huawei.com, kbusch@kernel.org, knaack.h@gmx.de, kvalo@codeaurora.org, lars@metafoo.de, linux@roeck-us.net, luciano.coelho@intel.com, mm-commits@vger.kernel.org, pmeerw@pmeerw.net, rui.zhang@intel.com, sagi@grimberg.me, sgruszka@redhat.com, sujith.thomas@intel.com
 
 
 The patch titled
-     Subject: thermal: intel_pch: switch to use <linux/units.h> helpers
+     Subject: nvme: hwmon: switch to use <linux/units.h> helpers
 has been removed from the -mm tree.  Its filename was
-     thermal-intel_pch-switch-to-use-linux-unitsh-helpers.patch
+     nvme-hwmon-switch-to-use-linux-unitsh-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: thermal: intel_pch: switch to use <linux/units.h> helpers
+Subject: nvme: hwmon: switch to use <linux/units.h> helpers
 
-This switches the intel pch thermal driver to use
-deci_kelvin_to_millicelsius() in <linux/units.h> instead of helpers in
-<linux/thermal.h>.
+This switches the nvme driver to use kelvin_to_millicelsius() and
+millicelsius_to_kelvin() in <linux/units.h>.
 
-This is preparation for centralizing the kelvin to/from Celsius conversion
-helpers in <linux/units.h>.
-
-Link: http://lkml.kernel.org/r/1576386975-7941-7-git-send-email-akinobu.mita@gmail.com
+Link: http://lkml.kernel.org/r/1576386975-7941-8-git-send-email-akinobu.mita@gmail.com
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Reviewed-by: Keith Busch <kbusch@kernel.org>
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Sujith Thomas <sujith.thomas@intel.com>
 Cc: Darren Hart <dvhart@infradead.org>
@@ -61,28 +59,63 @@ Cc: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/intel/intel_pch_thermal.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/nvme/host/hwmon.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/drivers/thermal/intel/intel_pch_thermal.c~thermal-intel_pch-switch-to-use-linux-unitsh-helpers
-+++ a/drivers/thermal/intel/intel_pch_thermal.c
-@@ -13,6 +13,7 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/thermal.h>
+--- a/drivers/nvme/host/hwmon.c~nvme-hwmon-switch-to-use-linux-unitsh-helpers
++++ a/drivers/nvme/host/hwmon.c
+@@ -5,14 +5,11 @@
+  */
+ 
+ #include <linux/hwmon.h>
 +#include <linux/units.h>
- #include <linux/pm.h>
+ #include <asm/unaligned.h>
  
- /* Intel PCH thermal Device IDs */
-@@ -93,7 +94,7 @@ static void pch_wpt_add_acpi_psv_trip(st
- 		if (ACPI_SUCCESS(status)) {
- 			unsigned long trip_temp;
+ #include "nvme.h"
  
--			trip_temp = DECI_KELVIN_TO_MILLICELSIUS(r);
-+			trip_temp = deci_kelvin_to_millicelsius(r);
- 			if (trip_temp) {
- 				ptd->psv_temp = trip_temp;
- 				ptd->psv_trip_id = *nr_trips;
+-/* These macros should be moved to linux/temperature.h */
+-#define MILLICELSIUS_TO_KELVIN(t) DIV_ROUND_CLOSEST((t) + 273150, 1000)
+-#define KELVIN_TO_MILLICELSIUS(t) ((t) * 1000L - 273150)
+-
+ struct nvme_hwmon_data {
+ 	struct nvme_ctrl *ctrl;
+ 	struct nvme_smart_log log;
+@@ -35,7 +32,7 @@ static int nvme_get_temp_thresh(struct n
+ 		return -EIO;
+ 	if (ret < 0)
+ 		return ret;
+-	*temp = KELVIN_TO_MILLICELSIUS(status & NVME_TEMP_THRESH_MASK);
++	*temp = kelvin_to_millicelsius(status & NVME_TEMP_THRESH_MASK);
+ 
+ 	return 0;
+ }
+@@ -46,7 +43,7 @@ static int nvme_set_temp_thresh(struct n
+ 	unsigned int threshold = sensor << NVME_TEMP_THRESH_SELECT_SHIFT;
+ 	int ret;
+ 
+-	temp = MILLICELSIUS_TO_KELVIN(temp);
++	temp = millicelsius_to_kelvin(temp);
+ 	threshold |= clamp_val(temp, 0, NVME_TEMP_THRESH_MASK);
+ 
+ 	if (under)
+@@ -88,7 +85,7 @@ static int nvme_hwmon_read(struct device
+ 	case hwmon_temp_min:
+ 		return nvme_get_temp_thresh(data->ctrl, channel, true, val);
+ 	case hwmon_temp_crit:
+-		*val = KELVIN_TO_MILLICELSIUS(data->ctrl->cctemp);
++		*val = kelvin_to_millicelsius(data->ctrl->cctemp);
+ 		return 0;
+ 	default:
+ 		break;
+@@ -105,7 +102,7 @@ static int nvme_hwmon_read(struct device
+ 			temp = get_unaligned_le16(log->temperature);
+ 		else
+ 			temp = le16_to_cpu(log->temp_sensor[channel - 1]);
+-		*val = KELVIN_TO_MILLICELSIUS(temp);
++		*val = kelvin_to_millicelsius(temp);
+ 		break;
+ 	case hwmon_temp_alarm:
+ 		*val = !!(log->critical_warning & NVME_SMART_CRIT_TEMPERATURE);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
