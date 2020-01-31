@@ -1,76 +1,145 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 015/118] ocfs2/dlm: move BITS_TO_BYTES() to
- bitops.h for wider use
-Date: Thu, 30 Jan 2020 22:11:47 -0800
-Message-ID: <20200131061147.3fItv2dbJ%akpm@linux-foundation.org>
+Subject: [patch 016/118] ocfs2: fix a NULL pointer dereference
+ when call ocfs2_update_inode_fsync_trans()
+Date: Thu, 30 Jan 2020 22:11:50 -0800
+Message-ID: <20200131061150.sr3i-hwSd%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58734 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGLt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:11:49 -0500
+        id S1725907AbgAaGLx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:11:53 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, skalluru@marvell.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org, wangyan122@huawei.com
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: ocfs2/dlm: move BITS_TO_BYTES() to bitops.h for wider use
+From: wangyan <wangyan122@huawei.com>
+Subject: ocfs2: fix a NULL pointer dereference when call ocfs2_update_inode_fsync_trans()
 
-There are users already and will be more of BITS_TO_BYTES() macro.  Move
-it to bitops.h for wider use.
+I found a NULL pointer dereference in ocfs2_update_inode_fsync_trans(),
+handle->h_transaction may be NULL in this situation:
 
-In the case of ocfs2 the replacement is identical.
+ocfs2_file_write_iter
+  ->__generic_file_write_iter
+      ->generic_perform_write
+        ->ocfs2_write_begin
+          ->ocfs2_write_begin_nolock
+            ->ocfs2_write_cluster_by_desc
+              ->ocfs2_write_cluster
+                ->ocfs2_mark_extent_written
+                  ->ocfs2_change_extent_flag
+                    ->ocfs2_split_extent
+                      ->ocfs2_try_to_merge_extent
+                        ->ocfs2_extend_rotate_transaction
+                          ->ocfs2_extend_trans
+                            ->jbd2_journal_restart
+                              ->jbd2__journal_restart
+                                // handle->h_transaction is NULL here
+                                ->handle->h_transaction = NULL;
+                                ->start_this_handle
+                                  /* journal aborted due to storage
+                                     network disconnection, return error */
+                                  ->return -EROFS;
+                         /* line 3806 in ocfs2_try_to_merge_extent (),
+                            it will ignore ret error. */
+                        ->ret = 0;
+        ->...
+        ->ocfs2_write_end
+          ->ocfs2_write_end_nolock
+            ->ocfs2_update_inode_fsync_trans
+              // NULL pointer dereference
+              ->oi->i_sync_tid = handle->h_transaction->t_tid;
 
-As for bnx2x, there are two places where floor version is used.  In the
-first case to calculate the amount of structures that can fit one memory
-page.  In this case obviously the ceiling variant is correct and original
-code might have a potential bug, if amount of bits % 8 is not 0.  In the
-second case the macro is used to calculate bytes transmitted in one
-microsecond.  This will work for all speeds which is multiply of 1Gbps
-without any change, for the rest new code will give ceiling value, for
-instance 100Mbps will give 13 bytes, while old code gives 12 bytes and the
-arithmetically correct one is 12.5 bytes.  Further the value is used to
-setup timer threshold which in any case has its own margins due to certain
-resolution.  I don't see here an issue with slightly shifting thresholds
-for low speed connections, the card is supposed to utilize highest
-available rate, which is usually 10Gbps.
+The information of NULL pointer dereference as follows:
+    JBD2: Detected IO errors while flushing file data on dm-11-45
+    Aborting journal on device dm-11-45.
+    JBD2: Error -5 detected when updating journal superblock for dm-11-45.
+    (dd,22081,3):ocfs2_extend_trans:474 ERROR: status = -30
+    (dd,22081,3):ocfs2_try_to_merge_extent:3877 ERROR: status = -30
+    Unable to handle kernel NULL pointer dereference at
+    virtual address 0000000000000008
+    Mem abort info:
+      ESR = 0x96000004
+      Exception class = DABT (current EL), IL = 32 bits
+      SET = 0, FnV = 0
+      EA = 0, S1PTW = 0
+    Data abort info:
+      ISV = 0, ISS = 0x00000004
+      CM = 0, WnR = 0
+    user pgtable: 4k pages, 48-bit VAs, pgdp = 00000000e74e1338
+    [0000000000000008] pgd=0000000000000000
+    Internal error: Oops: 96000004 [#1] SMP
+    Process dd (pid: 22081, stack limit = 0x00000000584f35a9)
+    CPU: 3 PID: 22081 Comm: dd Kdump: loaded
+    Hardware name: Huawei TaiShan 2280 V2/BC82AMDD, BIOS 0.98 08/25/2019
+    pstate: 60400009 (nZCv daif +PAN -UAO)
+    pc : ocfs2_write_end_nolock+0x2b8/0x550 [ocfs2]
+    lr : ocfs2_write_end_nolock+0x2a0/0x550 [ocfs2]
+    sp : ffff0000459fba70
+    x29: ffff0000459fba70 x28: 0000000000000000
+    x27: ffff807ccf7f1000 x26: 0000000000000001
+    x25: ffff807bdff57970 x24: ffff807caf1d4000
+    x23: ffff807cc79e9000 x22: 0000000000001000
+    x21: 000000006c6cd000 x20: ffff0000091d9000
+    x19: ffff807ccb239db0 x18: ffffffffffffffff
+    x17: 000000000000000e x16: 0000000000000007
+    x15: ffff807c5e15bd78 x14: 0000000000000000
+    x13: 0000000000000000 x12: 0000000000000000
+    x11: 0000000000000000 x10: 0000000000000001
+    x9 : 0000000000000228 x8 : 000000000000000c
+    x7 : 0000000000000fff x6 : ffff807a308ed6b0
+    x5 : ffff7e01f10967c0 x4 : 0000000000000018
+    x3 : d0bc661572445600 x2 : 0000000000000000
+    x1 : 000000001b2e0200 x0 : 0000000000000000
+    Call trace:
+     ocfs2_write_end_nolock+0x2b8/0x550 [ocfs2]
+     ocfs2_write_end+0x4c/0x80 [ocfs2]
+     generic_perform_write+0x108/0x1a8
+     __generic_file_write_iter+0x158/0x1c8
+     ocfs2_file_write_iter+0x668/0x950 [ocfs2]
+     __vfs_write+0x11c/0x190
+     vfs_write+0xac/0x1c0
+     ksys_write+0x6c/0xd8
+     __arm64_sys_write+0x24/0x30
+     el0_svc_common+0x78/0x130
+     el0_svc_handler+0x38/0x78
+     el0_svc+0x8/0xc
 
-Link: http://lkml.kernel.org/r/20200108121316.22411-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Acked-by: Sudarsana Reddy Kalluru <skalluru@marvell.com>
+To prevent NULL pointer dereference in this situation, we use
+is_handle_aborted() before using handle->h_transaction->t_tid.
+
+Link: http://lkml.kernel.org/r/03e750ab-9ade-83aa-b000-b9e81e34e539@huawei.com
+Signed-off-by: Yan Wang <wangyan122@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h |    1 -
- fs/ocfs2/dlm/dlmcommon.h                         |    4 ----
- include/linux/bitops.h                           |    1 +
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ fs/ocfs2/journal.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h~ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use
-+++ a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h
-@@ -296,7 +296,6 @@ static inline void bnx2x_dcb_config_qm(s
-  *    possible, the driver should only write the valid vnics into the internal
-  *    ram according to the appropriate port mode.
-  */
--#define BITS_TO_BYTES(x) ((x)/8)
+--- a/fs/ocfs2/journal.h~ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans
++++ a/fs/ocfs2/journal.h
+@@ -597,9 +597,11 @@ static inline void ocfs2_update_inode_fs
+ {
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
  
- /* CMNG constants, as derived from system spec calculations */
+-	oi->i_sync_tid = handle->h_transaction->t_tid;
+-	if (datasync)
+-		oi->i_datasync_tid = handle->h_transaction->t_tid;
++	if (!is_handle_aborted(handle)) {
++		oi->i_sync_tid = handle->h_transaction->t_tid;
++		if (datasync)
++			oi->i_datasync_tid = handle->h_transaction->t_tid;
++	}
+ }
  
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-move-bits_to_bytes-to-bitopsh-for-wider-use
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -688,10 +688,6 @@ struct dlm_begin_reco
- 	__be32 pad2;
- };
- 
--
--#define BITS_PER_BYTE 8
--#define BITS_TO_BYTES(bits) (((bits)+BITS_PER_BYTE-1)/BITS_PER_BYTE)
+ #endif /* OCFS2_JOURNAL_H */
+_
