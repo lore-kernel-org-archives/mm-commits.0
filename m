@@ -1,176 +1,47 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 053/118] mm: remove the memory isolate notifier
-Date: Thu, 30 Jan 2020 22:14:01 -0800
-Message-ID: <20200131061401.ycakxmN7T%akpm@linux-foundation.org>
+Subject: [patch 055/118] mm/vmscan.c: remove unused return value
+ of shrink_node
+Date: Thu, 30 Jan 2020 22:14:08 -0800
+Message-ID: <20200131061408.EKjcvXSEW%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33690 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGOD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:14:03 -0500
+        id S1725907AbgAaGOJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:14:09 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, cai@lca.pw, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, kernelfans@gmail.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pasha.tatashin@soleen.com, rafael@kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org, liu.song11@zte.com.cn, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove the memory isolate notifier
+From: Liu Song <liu.song11@zte.com.cn>
+Subject: mm/vmscan.c: remove unused return value of shrink_node
 
-Luckily, we have no users left, so we can get rid of it.  Cleanup
-set_migratetype_isolate() a little bit.
+The return value of shrink_node is not used, so remove
+unnecessary operations.
 
-Link: http://lkml.kernel.org/r/20191114131911.11783-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/20191128143524.3223-1-fishland@aliyun.com
+Signed-off-by: Liu Song <liu.song11@zte.com.cn>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   19 -------------------
- include/linux/memory.h |   27 ---------------------------
- mm/page_isolation.c    |   38 ++++----------------------------------
- 3 files changed, 4 insertions(+), 80 deletions(-)
+ mm/vmscan.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/drivers/base/memory.c~mm-remove-the-memory-isolate-notifier
-+++ a/drivers/base/memory.c
-@@ -70,20 +70,6 @@ void unregister_memory_notifier(struct n
- }
- EXPORT_SYMBOL(unregister_memory_notifier);
- 
--static ATOMIC_NOTIFIER_HEAD(memory_isolate_chain);
--
--int register_memory_isolate_notifier(struct notifier_block *nb)
--{
--	return atomic_notifier_chain_register(&memory_isolate_chain, nb);
--}
--EXPORT_SYMBOL(register_memory_isolate_notifier);
--
--void unregister_memory_isolate_notifier(struct notifier_block *nb)
--{
--	atomic_notifier_chain_unregister(&memory_isolate_chain, nb);
--}
--EXPORT_SYMBOL(unregister_memory_isolate_notifier);
--
- static void memory_block_release(struct device *dev)
- {
- 	struct memory_block *mem = to_memory_block(dev);
-@@ -175,11 +161,6 @@ int memory_notify(unsigned long val, voi
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
+--- a/mm/vmscan.c~mm-vmscanc-remove-unused-return-value-of-shrink_node
++++ a/mm/vmscan.c
+@@ -2695,7 +2695,7 @@ static void shrink_node_memcgs(pg_data_t
+ 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
  }
  
--int memory_isolate_notify(unsigned long val, void *v)
--{
--	return atomic_notifier_call_chain(&memory_isolate_chain, val, v);
--}
--
- /*
-  * The probe routines leave the pages uninitialized, just as the bootmem code
-  * does. Make sure we do not access them, but instead use only information from
---- a/include/linux/memory.h~mm-remove-the-memory-isolate-notifier
-+++ a/include/linux/memory.h
-@@ -55,19 +55,6 @@ struct memory_notify {
- 	int status_change_nid;
- };
- 
--/*
-- * During pageblock isolation, count the number of pages within the
-- * range [start_pfn, start_pfn + nr_pages) which are owned by code
-- * in the notifier chain.
-- */
--#define MEM_ISOLATE_COUNT	(1<<0)
--
--struct memory_isolate_notify {
--	unsigned long start_pfn;	/* Start of range to check */
--	unsigned int nr_pages;		/* # pages in range to check */
--	unsigned int pages_found;	/* # pages owned found by callbacks */
--};
--
- struct notifier_block;
- struct mem_section;
- 
-@@ -94,27 +81,13 @@ static inline int memory_notify(unsigned
+-static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
++static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
  {
- 	return 0;
- }
--static inline int register_memory_isolate_notifier(struct notifier_block *nb)
--{
--	return 0;
--}
--static inline void unregister_memory_isolate_notifier(struct notifier_block *nb)
--{
--}
--static inline int memory_isolate_notify(unsigned long val, void *v)
--{
--	return 0;
--}
- #else
- extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
--extern int register_memory_isolate_notifier(struct notifier_block *nb);
--extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
- int create_memory_block_devices(unsigned long start, unsigned long size);
- void remove_memory_block_devices(unsigned long start, unsigned long size);
- extern void memory_dev_init(void);
- extern int memory_notify(unsigned long val, void *v);
--extern int memory_isolate_notify(unsigned long val, void *v);
- extern struct memory_block *find_memory_block(struct mem_section *);
- typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
- extern int walk_memory_blocks(unsigned long start, unsigned long size,
---- a/mm/page_isolation.c~mm-remove-the-memory-isolate-notifier
-+++ a/mm/page_isolation.c
-@@ -18,9 +18,7 @@
- static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags)
- {
- 	struct zone *zone;
--	unsigned long flags, pfn;
--	struct memory_isolate_notify arg;
--	int notifier_ret;
-+	unsigned long flags;
- 	int ret = -EBUSY;
- 
- 	zone = page_zone(page);
-@@ -35,41 +33,11 @@ static int set_migratetype_isolate(struc
- 	if (is_migrate_isolate_page(page))
- 		goto out;
- 
--	pfn = page_to_pfn(page);
--	arg.start_pfn = pfn;
--	arg.nr_pages = pageblock_nr_pages;
--	arg.pages_found = 0;
--
--	/*
--	 * It may be possible to isolate a pageblock even if the
--	 * migratetype is not MIGRATE_MOVABLE. The memory isolation
--	 * notifier chain is used by balloon drivers to return the
--	 * number of pages in a range that are held by the balloon
--	 * driver to shrink memory. If all the pages are accounted for
--	 * by balloons, are free, or on the LRU, isolation can continue.
--	 * Later, for example, when memory hotplug notifier runs, these
--	 * pages reported as "can be isolated" should be isolated(freed)
--	 * by the balloon driver through the memory notifier chain.
--	 */
--	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
--	notifier_ret = notifier_to_errno(notifier_ret);
--	if (notifier_ret)
--		goto out;
- 	/*
- 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
- 	 * We just check MOVABLE pages.
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long nr_reclaimed, nr_scanned;
+@@ -2874,8 +2874,6 @@ again:
  	 */
--	if (!has_unmovable_pages(zone, page, arg.pages_found, migratetype,
--				 isol_flags))
--		ret = 0;
--
--	/*
--	 * immobile means "not-on-lru" pages. If immobile is larger than
--	 * removable-by-driver pages reported by notifier, we'll fail.
--	 */
+ 	if (reclaimable)
+ 		pgdat->kswapd_failures = 0;
