@@ -1,124 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-gup_benchmark-use-proper-foll_write-flags-instead-of-hard-coding-1.patch
+Subject: [merged] swap_next-should-increase-position-index.patch
  removed from -mm tree
-Date: Fri, 31 Jan 2020 15:18:09 -0800
-Message-ID: <20200131231809.-VgaRietk%akpm@linux-foundation.org>
+Date: Fri, 31 Jan 2020 15:18:13 -0800
+Message-ID: <20200131231813.fgPfTs2n6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50278 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726469AbgAaXSK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:18:10 -0500
+        id S1727156AbgAaXSO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:18:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.williamson@redhat.com, aneesh.kumar@linux.ibm.com, axboe@kernel.dk, bjorn.topel@intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, hch@lst.de, hverkuil-cisco@xs4all.nl, ira.weiny@intel.com, jack@suse.cz, jgg@mellanox.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill@shutemov.name, leonro@mellanox.com, mchehab@kernel.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: akpm@linux-foundation.org, hughd@google.com, jannh@google.com, keescook@chromium.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, vvs@virtuozzo.com
 
 
 The patch titled
-     Subject: mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard=
--coding "1"
+     Subject: mm/swapfile.c: swap_next should increase position index
 has been removed from the -mm tree.  Its filename was
-     mm-gup_benchmark-use-proper-foll_write-flags-instead-of-hard-coding-1.=
-patch
+     swap_next-should-increase-position-index.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard-codi=
-ng "1"
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: mm/swapfile.c: swap_next should increase position index
 
-Fix the gup benchmark flags to use the symbolic FOLL_WRITE, instead of a
-hard-coded "1" value.
+If seq_file .next fuction does not change position index, read after some
+lseek can generate unexpected output.
 
-Also, clean up the filtering of gup flags a little, by just doing it once
-before issuing any of the get_user_pages*() calls.  This makes it harder
-to overlook, instead of having little "gup_flags & 1" phrases in the
-function calls.
+In Aug 2018 NeilBrown noticed commit 1f4aace60b0e ("fs/seq_file.c:
+simplify seq_file iteration code and interface") "Some ->next functions do
+not increment *pos when they return NULL...  Note that such ->next
+functions are buggy and should be fixed.  A simple demonstration is
 
-Link: http://lkml.kernel.org/r/20200107224558.2362728-22-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Leon Romanovsky <leonro@mellanox.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+dd if=/proc/swaps bs=1000 skip=1
+
+Choose any block size larger than the size of /proc/swaps.  This will
+always show the whole last line of /proc/swaps"
+
+Described problem is still actual.  If you make lseek into middle of last
+output line following read will output end of last line and whole last
+line once again.
+
+$ dd if=/proc/swaps bs=1  # usual output
+Filename				Type		Size	Used	Priority
+/dev/dm-0                               partition	4194812	97536	-2
+104+0 records in
+104+0 records out
+104 bytes copied
+
+$ dd if=/proc/swaps bs=40 skip=1    # last line was generated twice
+dd: /proc/swaps: cannot skip to specified offset
+v/dm-0                               partition	4194812	97536	-2
+/dev/dm-0                               partition	4194812	97536	-2
+3+1 records in
+3+1 records out
+131 bytes copied
+
+https://bugzilla.kernel.org/show_bug.cgi?id=206283
+
+Link: http://lkml.kernel.org/r/bd8cfd7b-ac95-9b91-f9e7-e8438bd5047d@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_benchmark.c                         |    9 ++++++---
- tools/testing/selftests/vm/gup_benchmark.c |    6 +++++-
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup_benchmark.c~mm-gup_benchmark-use-proper-foll_write-flags-inste=
-ad-of-hard-coding-1
-+++ a/mm/gup_benchmark.c
-@@ -49,18 +49,21 @@ static int __gup_benchmark_ioctl(unsigne
- 			nr =3D (next - addr) / PAGE_SIZE;
- 		}
-=20
-+		/* Filter out most gup flags: only allow a tiny subset here: */
-+		gup->flags &=3D FOLL_WRITE;
-+
- 		switch (cmd) {
- 		case GUP_FAST_BENCHMARK:
--			nr =3D get_user_pages_fast(addr, nr, gup->flags & 1,
-+			nr =3D get_user_pages_fast(addr, nr, gup->flags,
- 						 pages + i);
- 			break;
- 		case GUP_LONGTERM_BENCHMARK:
- 			nr =3D get_user_pages(addr, nr,
--					    (gup->flags & 1) | FOLL_LONGTERM,
-+					    gup->flags | FOLL_LONGTERM,
- 					    pages + i, NULL);
- 			break;
- 		case GUP_BENCHMARK:
--			nr =3D get_user_pages(addr, nr, gup->flags & 1, pages + i,
-+			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
- 					    NULL);
- 			break;
- 		default:
---- a/tools/testing/selftests/vm/gup_benchmark.c~mm-gup_benchmark-use-prope=
-r-foll_write-flags-instead-of-hard-coding-1
-+++ a/tools/testing/selftests/vm/gup_benchmark.c
-@@ -18,6 +18,9 @@
- #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
- #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
-=20
-+/* Just the flags we need, copied from mm.h: */
-+#define FOLL_WRITE	0x01	/* check pte is writable */
-+
- struct gup_benchmark {
- 	__u64 get_delta_usec;
- 	__u64 put_delta_usec;
-@@ -85,7 +88,8 @@ int main(int argc, char **argv)
+--- a/mm/swapfile.c~swap_next-should-increase-position-index
++++ a/mm/swapfile.c
+@@ -2737,10 +2737,10 @@ static void *swap_next(struct seq_file *
+ 	else
+ 		type = si->type + 1;
+ 
++	++(*pos);
+ 	for (; (si = swap_type_to_swap_info(type)); type++) {
+ 		if (!(si->flags & SWP_USED) || !si->swap_map)
+ 			continue;
+-		++*pos;
+ 		return si;
  	}
-=20
- 	gup.nr_pages_per_call =3D nr_pages;
--	gup.flags =3D write;
-+	if (write)
-+		gup.flags |=3D FOLL_WRITE;
-=20
- 	fd =3D open("/sys/kernel/debug/gup_benchmark", O_RDWR);
- 	if (fd =3D=3D -1)
+ 
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
