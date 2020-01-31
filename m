@@ -1,160 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch removed from -mm
- tree
-Date: Fri, 31 Jan 2020 15:16:42 -0800
-Message-ID: <20200131231642.l78ZAyzTm%akpm@linux-foundation.org>
+ mm-thp-remove-the-defer-list-related-code-since-this-will-not-happen.patch
+ removed from -mm tree
+Date: Fri, 31 Jan 2020 15:16:45 -0800
+Message-ID: <20200131231645.15-xzFrn2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48754 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48798 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbgAaXQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:16:44 -0500
+        id S1726319AbgAaXQr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:16:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, stable@vger.kernel.org, vishal.l.verma@intel.com
+To: hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, rientjes@google.com, stable@vger.kernel.org, vdavydov.dev@gmail.com, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/memory_hotplug: fix remove_memory() lockdep splat
+     Subject: mm: thp: don't need care deferred split queue in memcg charge move path
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-fix-remove_memory-lockdep-splat.patch
+     mm-thp-remove-the-defer-list-related-code-since-this-will-not-happen.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memory_hotplug: fix remove_memory() lockdep splat
+From: Wei Yang <richardw.yang@linux.intel.com>
+Subject: mm: thp: don't need care deferred split queue in memcg charge move path
 
-The daxctl unit test for the dax_kmem driver currently triggers the (false
-positive) lockdep splat below.  It results from the fact that
-remove_memory_block_devices() is invoked under the mem_hotplug_lock()
-causing lockdep entanglements with cpu_hotplug_lock() and sysfs (kernfs
-active state tracking).  It is a false positive because the sysfs
-attribute path triggering the memory remove is not the same attribute path
-associated with memory-block device.
+If compound is true, this means it is a PMD mapped THP. Which implies
+the page is not linked to any defer list. So the first code chunk will
+not be executed.
 
-sysfs_break_active_protection() is not applicable since there is no real
-deadlock conflict, instead move memory-block device removal outside the
-lock.  The mem_hotplug_lock() is not needed to synchronize the
-memory-block device removal vs the page online state, that is already
-handled by lock_device_hotplug().  Specifically, lock_device_hotplug() is
-sufficient to allow try_remove_memory() to check the offline state of the
-memblocks and be assured that any in progress online attempts are flushed
-/ blocked by kernfs_drain() / attribute removal.
+Also with this reason, it would not be proper to add this page to a
+defer list. So the second code chunk is not correct.
 
-The add_memory() path safely creates memblock devices under the
-mem_hotplug_lock().  There is no kernfs active state synchronization in
-the memblock device_register() path, so nothing to fix there.
+Based on this, we should remove the defer list related code.
 
-This change is only possible thanks to the recent change that refactored
-memory block device removal out of arch_remove_memory() (commit
-4c4b7f9ba948 mm/memory_hotplug: remove memory block devices before
-arch_remove_memory()), and David's due diligence tracking down the
-guarantees afforded by kernfs_drain().  Not flagged for -stable since this
-only impacts ongoing development and lockdep validation, not a runtime
-issue.
-
-    ======================================================
-    WARNING: possible circular locking dependency detected
-    5.5.0-rc3+ #230 Tainted: G           OE
-    ------------------------------------------------------
-    lt-daxctl/6459 is trying to acquire lock:
-    ffff99c7f0003510 (kn->count#241){++++}, at: kernfs_remove_by_name_ns+0x41/0x80
-
-    but task is already holding lock:
-    ffffffffa76a5450 (mem_hotplug_lock.rw_sem){++++}, at: percpu_down_write+0x20/0xe0
-
-    which lock already depends on the new lock.
-
-    the existing dependency chain (in reverse order) is:
-
-    -> #2 (mem_hotplug_lock.rw_sem){++++}:
-           __lock_acquire+0x39c/0x790
-           lock_acquire+0xa2/0x1b0
-           get_online_mems+0x3e/0xb0
-           kmem_cache_create_usercopy+0x2e/0x260
-           kmem_cache_create+0x12/0x20
-           ptlock_cache_init+0x20/0x28
-           start_kernel+0x243/0x547
-           secondary_startup_64+0xb6/0xc0
-
-    -> #1 (cpu_hotplug_lock.rw_sem){++++}:
-           __lock_acquire+0x39c/0x790
-           lock_acquire+0xa2/0x1b0
-           cpus_read_lock+0x3e/0xb0
-           online_pages+0x37/0x300
-           memory_subsys_online+0x17d/0x1c0
-           device_online+0x60/0x80
-           state_store+0x65/0xd0
-           kernfs_fop_write+0xcf/0x1c0
-           vfs_write+0xdb/0x1d0
-           ksys_write+0x65/0xe0
-           do_syscall_64+0x5c/0xa0
-           entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-    -> #0 (kn->count#241){++++}:
-           check_prev_add+0x98/0xa40
-           validate_chain+0x576/0x860
-           __lock_acquire+0x39c/0x790
-           lock_acquire+0xa2/0x1b0
-           __kernfs_remove+0x25f/0x2e0
-           kernfs_remove_by_name_ns+0x41/0x80
-           remove_files.isra.0+0x30/0x70
-           sysfs_remove_group+0x3d/0x80
-           sysfs_remove_groups+0x29/0x40
-           device_remove_attrs+0x39/0x70
-           device_del+0x16a/0x3f0
-           device_unregister+0x16/0x60
-           remove_memory_block_devices+0x82/0xb0
-           try_remove_memory+0xb5/0x130
-           remove_memory+0x26/0x40
-           dev_dax_kmem_remove+0x44/0x6a [kmem]
-           device_release_driver_internal+0xe4/0x1c0
-           unbind_store+0xef/0x120
-           kernfs_fop_write+0xcf/0x1c0
-           vfs_write+0xdb/0x1d0
-           ksys_write+0x65/0xe0
-           do_syscall_64+0x5c/0xa0
-           entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-    other info that might help us debug this:
-
-    Chain exists of:
-      kn->count#241 --> cpu_hotplug_lock.rw_sem --> mem_hotplug_lock.rw_sem
-
-     Possible unsafe locking scenario:
-
-           CPU0                    CPU1
-           ----                    ----
-      lock(mem_hotplug_lock.rw_sem);
-                                   lock(cpu_hotplug_lock.rw_sem);
-                                   lock(mem_hotplug_lock.rw_sem);
-      lock(kn->count#241);
-
-     *** DEADLOCK ***
-
-No fixes tag as this has been a long standing issue that predated the
-addition of kernfs lockdep annotations.
-
-Link: http://lkml.kernel.org/r/157991441887.2763922.4770790047389427325.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+[yang.shi@linux.alibaba.com: better patch title]
+Link: http://lkml.kernel.org/r/20200117233836.3434-1-richardw.yang@linux.intel.com
+Fixes: 87eaceb3faa5 ("mm: thp: make deferred split shrinker memcg aware")
+Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <stable@vger.kernel.org>    [5.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-remove_memory-lockdep-splat
-+++ a/mm/memory_hotplug.c
-@@ -1764,8 +1764,6 @@ static int __ref try_remove_memory(int n
+--- a/mm/memcontrol.c~mm-thp-remove-the-defer-list-related-code-since-this-will-not-happen
++++ a/mm/memcontrol.c
+@@ -5340,14 +5340,6 @@ static int mem_cgroup_move_account(struc
+ 		__mod_lruvec_state(to_vec, NR_WRITEBACK, nr_pages);
+ 	}
  
- 	BUG_ON(check_hotplug_memory_range(start, size));
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (compound && !list_empty(page_deferred_list(page))) {
+-		spin_lock(&from->deferred_split_queue.split_queue_lock);
+-		list_del_init(page_deferred_list(page));
+-		from->deferred_split_queue.split_queue_len--;
+-		spin_unlock(&from->deferred_split_queue.split_queue_lock);
+-	}
+-#endif
+ 	/*
+ 	 * It is safe to change page->mem_cgroup here because the page
+ 	 * is referenced, charged, and isolated - we can't race with
+@@ -5357,16 +5349,6 @@ static int mem_cgroup_move_account(struc
+ 	/* caller should have done css_get */
+ 	page->mem_cgroup = to;
  
--	mem_hotplug_begin();
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (compound && list_empty(page_deferred_list(page))) {
+-		spin_lock(&to->deferred_split_queue.split_queue_lock);
+-		list_add_tail(page_deferred_list(page),
+-			      &to->deferred_split_queue.split_queue);
+-		to->deferred_split_queue.split_queue_len++;
+-		spin_unlock(&to->deferred_split_queue.split_queue_lock);
+-	}
+-#endif
