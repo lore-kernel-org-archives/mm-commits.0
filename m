@@ -1,174 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-unnecessary-characters.patch added
- to -mm tree
-Date: Thu, 30 Jan 2020 17:40:11 -0800
-Message-ID: <20200131014011.ahIPQ49B6%akpm@linux-foundation.org>
+Subject: [-]
+ mm-vmscan-expose-cgroup_ino-for-memcg-reclaim-tracepoints.patch removed
+ from -mm tree
+Date: Thu, 30 Jan 2020 20:24:27 -0800
+Message-ID: <20200131042427.gXjcyEh1p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34144 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727656AbgAaBkO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Jan 2020 20:40:14 -0500
+        id S1727933AbgAaEYa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Jan 2020 23:24:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bgolaszewski@baylibre.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, shaoyafang@didiglobal.com
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unnecessary ':' characters
-has been added to the -mm tree.  Its filename is
-     maintainers-remove-unnecessary-characters.patch
+     Subject: mm/vmscan: expose cgroup_ino for memcg reclaim tracepoints
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-expose-cgroup_ino-for-memcg-reclaim-tracepoints.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unnecessary-characters.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unnecessary-characters.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because lack of interest
 
 ------------------------------------------------------
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: MAINTAINERS: remove unnecessary ':' characters
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm/vmscan: expose cgroup_ino for memcg reclaim tracepoints
 
-Commit e567cb3fef30 ("MAINTAINERS: add an entry for kfifo") added a new
-entry to MAINTAINERS. Following the example of the previous entry on the
-list I added a trailing ':' character at the end of the title line.
+We can use the exposed cgroup_ino to trace specified cgroup.
 
-This however results in rather strange looking output from
-scripts/get_maintainer.pl:
+For example,
+step 1, get the inode of the specified cgroup
+	$ ls -di /tmp/cgroupv2/foo
+step 2, set this inode into tracepoint filter to trace this cgroup only
+	(assume the inode is 11)
+	$ cd /sys/kernel/debug/tracing/events/vmscan/
+	$ echo 'cgroup_ino == 11' > mm_vmscan_memcg_reclaim_begin/filter
+	$ echo 'cgroup_ino == 11' > mm_vmscan_memcg_reclaim_end/filter
 
-$ ./scripts/get_maintainer.pl ./0001-kfifo.patch
-Stefani Seibold <stefani@seibold.net> (maintainer:KFIFO:)
-linux-kernel@vger.kernel.org (open list)
+The reason I made this change is to trace a specific container.
 
-It turns out there are more entries like this. Fix the entire file by
-removing all trailing colons.
+Sometimes there're lots of containers on one host.  Some of them are
+not important at all, so we don't care whether them are under memory
+pressure.  While some of them are important, so we want't to know if
+these containers are doing memcg reclaim and how long this relaim
+takes.
 
-Link: http://lkml.kernel.org/r/20200130135515.30359-1-brgl@bgdev.pl
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Without this change, we don't know the memcg reclaim happend in which
+container.
+
+Link: http://lkml.kernel.org/r/1557649528-11676-1-git-send-email-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <shaoyafang@didiglobal.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ include/trace/events/vmscan.h |   71 ++++++++++++++++++++++++++------
+ mm/vmscan.c                   |   18 +++++---
+ 2 files changed, 72 insertions(+), 17 deletions(-)
 
---- a/MAINTAINERS~maintainers-remove-unnecessary-characters
-+++ a/MAINTAINERS
-@@ -3912,7 +3912,7 @@ S:	Supported
- F:	Documentation/filesystems/ceph.txt
- F:	fs/ceph/
+--- a/include/trace/events/vmscan.h~mm-vmscan-expose-cgroup_ino-for-memcg-reclaim-tracepoints
++++ a/include/trace/events/vmscan.h
+@@ -127,18 +127,43 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_be
+ );
  
--CERTIFICATE HANDLING:
-+CERTIFICATE HANDLING
- M:	David Howells <dhowells@redhat.com>
- M:	David Woodhouse <dwmw2@infradead.org>
- L:	keyrings@vger.kernel.org
-@@ -3922,7 +3922,7 @@ F:	certs/
- F:	scripts/sign-file.c
- F:	scripts/extract-cert.c
+ #ifdef CONFIG_MEMCG
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
++DECLARE_EVENT_CLASS(mm_vmscan_memcg_reclaim_begin_template,
  
--CERTIFIED WIRELESS USB (WUSB) SUBSYSTEM:
-+CERTIFIED WIRELESS USB (WUSB) SUBSYSTEM
- L:	devel@driverdev.osuosl.org
- S:	Obsolete
- F:	drivers/staging/wusbcore/
-@@ -7050,7 +7050,7 @@ L:	kvm@vger.kernel.org
- S:	Supported
- F:	drivers/uio/uio_pci_generic.c
+-	TP_PROTO(int order, gfp_t gfp_flags),
++	TP_PROTO(unsigned int cgroup_ino, int order, gfp_t gfp_flags),
  
--GENERIC VDSO LIBRARY:
-+GENERIC VDSO LIBRARY
- M:	Andy Lutomirski <luto@kernel.org>
- M:	Thomas Gleixner <tglx@linutronix.de>
- M:	Vincenzo Frascino <vincenzo.frascino@arm.com>
-@@ -9291,7 +9291,7 @@ F:	include/keys/trusted-type.h
- F:	security/keys/trusted.c
- F:	include/keys/trusted.h
+-	TP_ARGS(order, gfp_flags)
++	TP_ARGS(cgroup_ino, order, gfp_flags),
++
++	TP_STRUCT__entry(
++		__field(unsigned int, cgroup_ino)
++		__field(int, order)
++		__field(gfp_t, gfp_flags)
++	),
++
++	TP_fast_assign(
++		__entry->cgroup_ino	= cgroup_ino;
++		__entry->order		= order;
++		__entry->gfp_flags	= gfp_flags;
++	),
++
++	TP_printk("cgroup_ino=%u order=%d gfp_flags=%s",
++		__entry->cgroup_ino, __entry->order,
++		show_gfp_flags(__entry->gfp_flags))
+ );
  
--KEYS/KEYRINGS:
-+KEYS/KEYRINGS
- M:	David Howells <dhowells@redhat.com>
- M:	Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
- L:	keyrings@vger.kernel.org
-@@ -9304,7 +9304,7 @@ F:	include/uapi/linux/keyctl.h
- F:	include/keys/
- F:	security/keys/
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template,
++	     mm_vmscan_memcg_reclaim_begin,
  
--KFIFO:
-+KFIFO
- M:	Stefani Seibold <stefani@seibold.net>
- S:	Maintained
- F:	lib/kfifo.c
-@@ -11504,7 +11504,7 @@ F:	drivers/scsi/mac_scsi.*
- F:	drivers/scsi/sun3_scsi.*
- F:	drivers/scsi/sun3_scsi_vme.c
+-	TP_PROTO(int order, gfp_t gfp_flags),
++	TP_PROTO(unsigned int cgroup_ino, int order, gfp_t gfp_flags),
  
--NCSI LIBRARY:
-+NCSI LIBRARY
- M:	Samuel Mendoza-Jonas <sam@mendozajonas.com>
- S:	Maintained
- F:	net/ncsi/
-@@ -13532,7 +13532,7 @@ L:	linuxppc-dev@lists.ozlabs.org
- S:	Maintained
- F:	drivers/block/ps3vram.c
+-	TP_ARGS(order, gfp_flags)
++	TP_ARGS(cgroup_ino, order, gfp_flags)
++);
++
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template,
++	     mm_vmscan_memcg_softlimit_reclaim_begin,
++
++	TP_PROTO(unsigned int cgroup_ino, int order, gfp_t gfp_flags),
++
++	TP_ARGS(cgroup_ino, order, gfp_flags)
+ );
+ #endif /* CONFIG_MEMCG */
  
--PSAMPLE PACKET SAMPLING SUPPORT:
-+PSAMPLE PACKET SAMPLING SUPPORT
- M:	Yotam Gigi <yotam.gi@gmail.com>
- S:	Maintained
- F:	net/psample
-@@ -17101,7 +17101,7 @@ S:	Maintained
- F:	Documentation/admin-guide/ufs.rst
- F:	fs/ufs/
+@@ -167,18 +192,40 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
+ );
  
--UHID USERSPACE HID IO DRIVER:
-+UHID USERSPACE HID IO DRIVER
- M:	David Herrmann <dh.herrmann@googlemail.com>
- L:	linux-input@vger.kernel.org
- S:	Maintained
-@@ -17115,18 +17115,18 @@ S:	Maintained
- F:	drivers/usb/common/ulpi.c
- F:	include/linux/ulpi/
+ #ifdef CONFIG_MEMCG
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
++DECLARE_EVENT_CLASS(mm_vmscan_memcg_reclaim_end_template,
  
--ULTRA-WIDEBAND (UWB) SUBSYSTEM:
-+ULTRA-WIDEBAND (UWB) SUBSYSTEM
- L:	devel@driverdev.osuosl.org
- S:	Obsolete
- F:	drivers/staging/uwb/
+-	TP_PROTO(unsigned long nr_reclaimed),
++	TP_PROTO(unsigned int cgroup_ino, unsigned long nr_reclaimed),
  
--UNICODE SUBSYSTEM:
-+UNICODE SUBSYSTEM
- M:	Gabriel Krisman Bertazi <krisman@collabora.com>
- L:	linux-fsdevel@vger.kernel.org
- S:	Supported
- F:	fs/unicode/
+-	TP_ARGS(nr_reclaimed)
++	TP_ARGS(cgroup_ino, nr_reclaimed),
++
++	TP_STRUCT__entry(
++		__field(unsigned int, cgroup_ino)
++		__field(unsigned long, nr_reclaimed)
++	),
++
++	TP_fast_assign(
++		__entry->cgroup_ino	= cgroup_ino;
++		__entry->nr_reclaimed	= nr_reclaimed;
++	),
++
++	TP_printk("cgroup_ino=%u nr_reclaimed=%lu",
++		__entry->cgroup_ino, __entry->nr_reclaimed)
+ );
  
--UNICORE32 ARCHITECTURE:
-+UNICORE32 ARCHITECTURE
- M:	Guan Xuetao <gxt@pku.edu.cn>
- W:	http://mprc.pku.edu.cn/~guanxuetao/linux
- S:	Maintained
-@@ -17812,7 +17812,7 @@ F:	include/linux/vbox_utils.h
- F:	include/uapi/linux/vbox*.h
- F:	drivers/virt/vboxguest/
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template,
++	     mm_vmscan_memcg_reclaim_end,
  
--VIRTUAL BOX SHARED FOLDER VFS DRIVER:
-+VIRTUAL BOX SHARED FOLDER VFS DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
- L:	linux-fsdevel@vger.kernel.org
- S:	Maintained
+-	TP_PROTO(unsigned long nr_reclaimed),
++	TP_PROTO(unsigned int cgroup_ino, unsigned long nr_reclaimed),
+ 
+-	TP_ARGS(nr_reclaimed)
++	TP_ARGS(cgroup_ino, nr_reclaimed)
++);
++
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template,
++	     mm_vmscan_memcg_softlimit_reclaim_end,
++
++	TP_PROTO(unsigned int cgroup_ino, unsigned long nr_reclaimed),
++
++	TP_ARGS(cgroup_ino, nr_reclaimed)
+ );
+ #endif /* CONFIG_MEMCG */
+ 
+--- a/mm/vmscan.c~mm-vmscan-expose-cgroup_ino-for-memcg-reclaim-tracepoints
++++ a/mm/vmscan.c
+@@ -3316,8 +3316,10 @@ unsigned long mem_cgroup_shrink_node(str
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+ 
+-	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.order,
+-						      sc.gfp_mask);
++	trace_mm_vmscan_memcg_softlimit_reclaim_begin(
++					cgroup_ino(memcg->css.cgroup),
++					sc.order,
++					sc.gfp_mask);
+ 
+ 	/*
+ 	 * NOTE: Although we can get the priority field, using it
+@@ -3328,7 +3330,9 @@ unsigned long mem_cgroup_shrink_node(str
+ 	 */
+ 	shrink_lruvec(lruvec, &sc);
+ 
+-	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
++	trace_mm_vmscan_memcg_softlimit_reclaim_end(
++					cgroup_ino(memcg->css.cgroup),
++					sc.nr_reclaimed);
+ 
+ 	*nr_scanned = sc.nr_scanned;
+ 
+@@ -3363,7 +3367,9 @@ unsigned long try_to_free_mem_cgroup_pag
+ 
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+ 
+-	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
++	trace_mm_vmscan_memcg_reclaim_begin(
++				cgroup_ino(memcg->css.cgroup),
++				0, sc.gfp_mask);
+ 
+ 	psi_memstall_enter(&pflags);
+ 	noreclaim_flag = memalloc_noreclaim_save();
+@@ -3373,7 +3379,9 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	psi_memstall_leave(&pflags);
+ 
+-	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
++	trace_mm_vmscan_memcg_reclaim_end(
++				cgroup_ino(memcg->css.cgroup),
++				nr_reclaimed);
+ 	set_task_reclaim_state(current, NULL);
+ 
+ 	return nr_reclaimed;
 _
 
-Patches currently in -mm which might be from bgolaszewski@baylibre.com are
-
-maintainers-add-an-entry-for-kfifo.patch
-maintainers-remove-unnecessary-characters.patch
+Patches currently in -mm which might be from laoar.shao@gmail.com are
