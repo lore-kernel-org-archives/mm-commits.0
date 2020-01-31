@@ -1,86 +1,118 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 069/118] mm/mmap.c: get rid of odd jump labels in
- find_mergeable_anon_vma()
-Date: Thu, 30 Jan 2020 22:14:51 -0800
-Message-ID: <20200131061451.xSfMSpwca%akpm@linux-foundation.org>
+Subject: [patch 070/118] mm/memory_hotplug: pass in nid to
+ online_pages()
+Date: Thu, 30 Jan 2020 22:14:54 -0800
+Message-ID: <20200131061454.91vqHrIi6%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34718 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGOw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:14:52 -0500
+        id S1725907AbgAaGO5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:14:57 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, jhubbard@nvidia.com, linmiaohe@huawei.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, anshuman.khandual@arm.com, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pasha.tatashin@soleen.com, rafael@kernel.org, torvalds@linux-foundation.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mmap.c: get rid of odd jump labels in find_mergeable_anon_vma()
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: pass in nid to online_pages()
 
-The jump labels try_prev and none are not really needed in
-find_mergeable_anon_vma(), eliminate them to improve readability.
+Patch series "mm/memory_hotplug: pass in nid to online_pages()".
 
-Link: http://lkml.kernel.org/r/1574079844-17493-1-git-send-email-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Wei Yang <richardw.yang@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Simplify onlining code and get rid of find_memory_block(). Pass in the
+nid from the memory block we are trying to online directly, instead of
+manually looking it up.
+
+
+This patch (of 2):
+
+No need to lookup the memory block, we can directly pass in the nid.
+
+Link: http://lkml.kernel.org/r/20200113113354.6341-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+ drivers/base/memory.c          |    6 +++---
+ include/linux/memory_hotplug.h |    3 ++-
+ mm/memory_hotplug.c            |   13 ++-----------
+ 3 files changed, 7 insertions(+), 15 deletions(-)
 
---- a/mm/mmap.c~mm-get-rid-of-odd-jump-labels-in-find_mergeable_anon_vma
-+++ a/mm/mmap.c
-@@ -1270,26 +1270,22 @@ static struct anon_vma *reusable_anon_vm
+--- a/drivers/base/memory.c~mm-memory_hotplug-pass-in-nid-to-online_pages
++++ a/drivers/base/memory.c
+@@ -206,7 +206,7 @@ static bool pages_correctly_probed(unsig
   */
- struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *vma)
+ static int
+ memory_block_action(unsigned long start_section_nr, unsigned long action,
+-		    int online_type)
++		    int online_type, int nid)
  {
--	struct anon_vma *anon_vma;
--	struct vm_area_struct *near;
-+	struct anon_vma *anon_vma = NULL;
+ 	unsigned long start_pfn;
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+@@ -219,7 +219,7 @@ memory_block_action(unsigned long start_
+ 		if (!pages_correctly_probed(start_pfn))
+ 			return -EBUSY;
  
--	near = vma->vm_next;
--	if (!near)
--		goto try_prev;
-+	/* Try next first. */
-+	if (vma->vm_next) {
-+		anon_vma = reusable_anon_vma(vma->vm_next, vma, vma->vm_next);
-+		if (anon_vma)
-+			return anon_vma;
-+	}
+-		ret = online_pages(start_pfn, nr_pages, online_type);
++		ret = online_pages(start_pfn, nr_pages, online_type, nid);
+ 		break;
+ 	case MEM_OFFLINE:
+ 		ret = offline_pages(start_pfn, nr_pages);
+@@ -245,7 +245,7 @@ static int memory_block_change_state(str
+ 		mem->state = MEM_GOING_OFFLINE;
  
--	anon_vma = reusable_anon_vma(near, vma, near);
--	if (anon_vma)
--		return anon_vma;
--try_prev:
--	near = vma->vm_prev;
--	if (!near)
--		goto none;
-+	/* Try prev next. */
-+	if (vma->vm_prev)
-+		anon_vma = reusable_anon_vma(vma->vm_prev, vma->vm_prev, vma);
+ 	ret = memory_block_action(mem->start_section_nr, to_state,
+-				mem->online_type);
++				  mem->online_type, mem->nid);
  
--	anon_vma = reusable_anon_vma(near, near, vma);
--	if (anon_vma)
--		return anon_vma;
--none:
- 	/*
-+	 * We might reach here with anon_vma == NULL if we can't find
-+	 * any reusable anon_vma.
- 	 * There's no absolute need to look only at touching neighbours:
- 	 * we could search further afield for "compatible" anon_vmas.
- 	 * But it would probably just be a waste of time searching,
-@@ -1297,7 +1293,7 @@ none:
- 	 * We're trying to allow mprotect remerging later on,
- 	 * not trying to minimize memory used for anon_vmas.
- 	 */
--	return NULL;
-+	return anon_vma;
+ 	mem->state = ret ? from_state_req : to_state;
+ 
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-pass-in-nid-to-online_pages
++++ a/include/linux/memory_hotplug.h
+@@ -94,7 +94,8 @@ extern int zone_grow_free_lists(struct z
+ extern int zone_grow_waitqueues(struct zone *zone, unsigned long nr_pages);
+ extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
+ /* VM interface that may be used by firmware interface */
+-extern int online_pages(unsigned long, unsigned long, int);
++extern int online_pages(unsigned long pfn, unsigned long nr_pages,
++			int online_type, int nid);
+ extern int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn,
+ 	unsigned long *valid_start, unsigned long *valid_end);
+ extern unsigned long __offline_isolated_pages(unsigned long start_pfn,
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-pass-in-nid-to-online_pages
++++ a/mm/memory_hotplug.c
+@@ -783,27 +783,18 @@ struct zone * zone_for_pfn_range(int onl
+ 	return default_zone_for_pfn(nid, start_pfn, nr_pages);
  }
  
- /*
-_
+-int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
++int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
++		       int online_type, int nid)
+ {
+ 	unsigned long flags;
+ 	unsigned long onlined_pages = 0;
+ 	struct zone *zone;
+ 	int need_zonelists_rebuild = 0;
+-	int nid;
+ 	int ret;
+ 	struct memory_notify arg;
+-	struct memory_block *mem;
+ 
+ 	mem_hotplug_begin();
+ 
+-	/*
+-	 * We can't use pfn_to_nid() because nid might be stored in struct page
+-	 * which is not yet initialized. Instead, we find nid from memory block.
+-	 */
+-	mem = find_memory_block(__pfn_to_section(pfn));
+-	nid = mem->nid;
+-	put_device(&mem->dev);
