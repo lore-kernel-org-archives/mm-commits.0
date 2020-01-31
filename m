@@ -1,85 +1,93 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 020/118] mm/debug.c: always print flags in
- dump_page()
-Date: Thu, 30 Jan 2020 22:12:03 -0800
-Message-ID: <20200131061203.ykqerIIrw%akpm@linux-foundation.org>
+Subject: [patch 021/118] mm/filemap.c: clean up
+ filemap_write_and_wait()
+Date: Thu, 30 Jan 2020 22:12:07 -0800
+Message-ID: <20200131061207.E7adnxJhj%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59026 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGMF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:12:05 -0500
+        id S1725907AbgAaGMJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:12:09 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, cai@lca.pw, dan.j.williams@intel.com, david@redhat.com, linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pavel.tatashin@microsoft.com, rcampbell@nvidia.com, rppt@linux.ibm.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, ira.weiny@intel.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, nborisov@suse.com, torvalds@linux-foundation.org, willy@infradead.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/debug.c: always print flags in dump_page()
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/filemap.c: clean up filemap_write_and_wait()
 
-Commit 76a1850e4572 ("mm/debug.c: __dump_page() prints an extra line")
-inadvertently removed printing of page flags for pages that are neither
-anon nor ksm nor have a mapping.  Fix that.
+At some point filemap_write_and_wait() and filemap_write_and_wait_range()
+got the exact same implementation with the exception of the range being
+specified in *_range()
 
-Using pr_cont() again would be a solution, but the commit explicitly
-removed its use.  Avoiding the danger of mixing up split lines from
-multiple CPUs might be beneficial for near-panic dumps like this, so fix
-this without reintroducing pr_cont().
+Similar to other functions in fs.h which call *_range(..., 0, LLONG_MAX),
+change filemap_write_and_wait() to be a static inline which calls
+filemap_write_and_wait_range()
 
-Link: http://lkml.kernel.org/r/9f884d5c-ca60-dc7b-219c-c081c755fab6@suse.cz
-Fixes: 76a1850e4572 ("mm/debug.c: __dump_page() prints an extra line")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reported-by: Michal Hocko <mhocko@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Link: http://lkml.kernel.org/r/20191129160713.30892-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Nikolay Borisov <nborisov@suse.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/fs.h |    6 +++++-
+ mm/filemap.c       |   34 ++++++----------------------------
+ 2 files changed, 11 insertions(+), 29 deletions(-)
 
---- a/mm/debug.c~mm-debug-always-print-flags-in-dump_page
-+++ a/mm/debug.c
-@@ -47,6 +47,7 @@ void __dump_page(struct page *page, cons
- 	struct address_space *mapping;
- 	bool page_poisoned = PagePoisoned(page);
- 	int mapcount;
-+	char *type = "";
+--- a/include/linux/fs.h~mm-clean-up-filemap_write_and_wait
++++ a/include/linux/fs.h
+@@ -2737,7 +2737,6 @@ static inline int filemap_fdatawait(stru
  
- 	/*
- 	 * If struct page is poisoned don't access Page*() functions as that
-@@ -78,9 +79,9 @@ void __dump_page(struct page *page, cons
- 			page, page_ref_count(page), mapcount,
- 			page->mapping, page_to_pgoff(page));
- 	if (PageKsm(page))
--		pr_warn("ksm flags: %#lx(%pGp)\n", page->flags, &page->flags);
-+		type = "ksm ";
- 	else if (PageAnon(page))
--		pr_warn("anon flags: %#lx(%pGp)\n", page->flags, &page->flags);
-+		type = "anon ";
- 	else if (mapping) {
- 		if (mapping->host && mapping->host->i_dentry.first) {
- 			struct dentry *dentry;
-@@ -88,10 +89,11 @@ void __dump_page(struct page *page, cons
- 			pr_warn("%ps name:\"%pd\"\n", mapping->a_ops, dentry);
- 		} else
- 			pr_warn("%ps\n", mapping->a_ops);
--		pr_warn("flags: %#lx(%pGp)\n", page->flags, &page->flags);
- 	}
- 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
+ extern bool filemap_range_has_page(struct address_space *, loff_t lstart,
+ 				  loff_t lend);
+-extern int filemap_write_and_wait(struct address_space *mapping);
+ extern int filemap_write_and_wait_range(struct address_space *mapping,
+ 				        loff_t lstart, loff_t lend);
+ extern int __filemap_fdatawrite_range(struct address_space *mapping,
+@@ -2747,6 +2746,11 @@ extern int filemap_fdatawrite_range(stru
+ extern int filemap_check_errors(struct address_space *mapping);
+ extern void __filemap_set_wb_err(struct address_space *mapping, int err);
  
-+	pr_warn("%sflags: %#lx(%pGp)\n", type, page->flags, &page->flags);
++static inline int filemap_write_and_wait(struct address_space *mapping)
++{
++	return filemap_write_and_wait_range(mapping, 0, LLONG_MAX);
++}
 +
- hex_only:
- 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
- 			sizeof(unsigned long), page,
-_
+ extern int __must_check file_fdatawait_range(struct file *file, loff_t lstart,
+ 						loff_t lend);
+ extern int __must_check file_check_and_advance_wb_err(struct file *file);
+--- a/mm/filemap.c~mm-clean-up-filemap_write_and_wait
++++ a/mm/filemap.c
+@@ -632,33 +632,6 @@ static bool mapping_needs_writeback(stru
+ 	return mapping->nrpages;
+ }
+ 
+-int filemap_write_and_wait(struct address_space *mapping)
+-{
+-	int err = 0;
+-
+-	if (mapping_needs_writeback(mapping)) {
+-		err = filemap_fdatawrite(mapping);
+-		/*
+-		 * Even if the above returned error, the pages may be
+-		 * written partially (e.g. -ENOSPC), so we wait for it.
+-		 * But the -EIO is special case, it may indicate the worst
+-		 * thing (e.g. bug) happened, so we avoid waiting for it.
+-		 */
+-		if (err != -EIO) {
+-			int err2 = filemap_fdatawait(mapping);
+-			if (!err)
+-				err = err2;
+-		} else {
+-			/* Clear any previously stored errors */
+-			filemap_check_errors(mapping);
+-		}
+-	} else {
+-		err = filemap_check_errors(mapping);
+-	}
+-	return err;
+-}
+-EXPORT_SYMBOL(filemap_write_and_wait);
