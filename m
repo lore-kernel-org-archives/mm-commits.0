@@ -1,107 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- execve-warn-if-process-starts-with-executable-stack.patch removed from -mm
- tree
-Date: Fri, 31 Jan 2020 15:21:08 -0800
-Message-ID: <20200131232108.iSReJX3LI%akpm@linux-foundation.org>
+ io-mapping-use-phys_pfn-macro-in-io_mapping_map_atomic_wc.patch removed
+ from -mm tree
+Date: Fri, 31 Jan 2020 15:21:11 -0800
+Message-ID: <20200131232111.GK5ZN2CiY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52726 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbgAaXVK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:21:10 -0500
+        id S1726319AbgAaXVM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:21:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dan.carpenter@oracle.com, ebiederm@xmission.com, mm-commits@vger.kernel.org, will@kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: execve: warn if process starts with executable stack
+     Subject: include/linux/io-mapping.h-mapping: use PHYS_PFN() macro in io_mapping_map_atomic_wc()
 has been removed from the -mm tree.  Its filename was
-     execve-warn-if-process-starts-with-executable-stack.patch
+     io-mapping-use-phys_pfn-macro-in-io_mapping_map_atomic_wc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: execve: warn if process starts with executable stack
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: include/linux/io-mapping.h-mapping: use PHYS_PFN() macro in io_mapping_map_atomic_wc()
 
-There were few episodes of silent downgrade to an executable stack over
-years:
+Use PHYS_PFN() macro in io_mapping_map_atomic_wc() instead of open coded
+variant.
 
-1) linking innocent looking assembly file will silently add executable
-   stack if proper linker options is not given as well:
-
-	$ cat f.S
-	.intel_syntax noprefix
-	.text
-	.globl f
-	f:
-	        ret
-
-	$ cat main.c
-	void f(void);
-	int main(void)
-	{
-	        f();
-	        return 0;
-	}
-
-	$ gcc main.c f.S
-	$ readelf -l ./a.out
-	  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
-                         0x0000000000000000 0x0000000000000000  RWE    0x10
-			 					 ^^^
-
-2) converting C99 nested function into a closure
-https://nullprogram.com/blog/2019/11/15/
-
-	void intsort2(int *base, size_t nmemb, _Bool invert)
-	{
-	    int cmp(const void *a, const void *b)
-	    {
-	        int r = *(int *)a - *(int *)b;
-	        return invert ? -r : r;
-	    }
-	    qsort(base, nmemb, sizeof(*base), cmp);
-	}
-
-will silently require stack trampolines while non-closure version will not.
-
-Without doubt this behaviour is documented somewhere, add a warning so
-that developers and users can at least notice.  After so many years of
-x86_64 having proper executable stack support it should not cause too many
-problems.
-
-Link: http://lkml.kernel.org/r/20191208171918.GC19716@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: http://lkml.kernel.org/r/20191209165624.56351-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/io-mapping.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/exec.c~execve-warn-if-process-starts-with-executable-stack
-+++ a/fs/exec.c
-@@ -761,6 +761,11 @@ int setup_arg_pages(struct linux_binprm
- 		goto out_unlock;
- 	BUG_ON(prev != vma);
+--- a/include/linux/io-mapping.h~io-mapping-use-phys_pfn-macro-in-io_mapping_map_atomic_wc
++++ a/include/linux/io-mapping.h
+@@ -28,6 +28,7 @@ struct io_mapping {
  
-+	if (unlikely(vm_flags & VM_EXEC)) {
-+		pr_warn_once("process '%pD4' started with executable stack\n",
-+			     bprm->file);
-+	}
-+
- 	/* Move stack pages down in memory. */
- 	if (stack_shift) {
- 		ret = shift_arg_pages(vma, stack_shift);
+ #ifdef CONFIG_HAVE_ATOMIC_IOMAP
+ 
++#include <linux/pfn.h>
+ #include <asm/iomap.h>
+ /*
+  * For small address space machines, mapping large objects
+@@ -64,12 +65,10 @@ io_mapping_map_atomic_wc(struct io_mappi
+ 			 unsigned long offset)
+ {
+ 	resource_size_t phys_addr;
+-	unsigned long pfn;
+ 
+ 	BUG_ON(offset >= mapping->size);
+ 	phys_addr = mapping->base + offset;
+-	pfn = (unsigned long) (phys_addr >> PAGE_SHIFT);
+-	return iomap_atomic_prot_pfn(pfn, mapping->prot);
++	return iomap_atomic_prot_pfn(PHYS_PFN(phys_addr), mapping->prot);
+ }
+ 
+ static inline void
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-ramfs-support-o_tmpfile.patch
-proc-decouple-proc-from-vfs-with-struct-proc_ops.patch
-proc-convert-everything-to-struct-proc_ops.patch
+lib-add-test-for-bitmap_parse-fix-2.patch
