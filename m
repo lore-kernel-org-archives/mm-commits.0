@@ -1,86 +1,61 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 079/118] zram: try to avoid worst-case scenario on
- same element pages
-Date: Thu, 30 Jan 2020 22:15:22 -0800
-Message-ID: <20200131061522.LPWx062nX%akpm@linux-foundation.org>
+Subject: [patch 080/118] drivers/block/zram/zram_drv.c: fix error
+ return codes not being returned in writeback_store
+Date: Thu, 30 Jan 2020 22:15:25 -0800
+Message-ID: <20200131061525.XGegLk6eX%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35512 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:15:23 -0500
+        id S1725907AbgAaGP1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:15:27 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, taejoon.song@lge.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, colin.king@canonical.com, linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
-From: Taejoon Song <taejoon.song@lge.com>
-Subject: zram: try to avoid worst-case scenario on same element pages
+From: Colin Ian King <colin.king@canonical.com>
+Subject: drivers/block/zram/zram_drv.c: fix error return codes not being returned in writeback_store
 
-The worst-case scenario on finding same element pages is that almost all
-elements are same at the first glance but only last few elements are
-different.
+Currently when an error code -EIO or -ENOSPC in the for-loop of
+writeback_store the error code is being overwritten by a ret = len
+assignment at the end of the function and the error codes are being lost. 
+Fix this by assigning ret = len at the start of the function and remove
+the assignment from the end, hence allowing ret to be preserved when error
+codes are assigned to it.
 
-Since the same element tends to be grouped from the beginning of the
-pages, if we check the first element with the last element before looping
-through all elements, we might have some chances to quickly detect
-non-same element pages.
+Addresses Coverity ("Unused value")
 
-1. Test is done under LG webOS TV (64-bit arch)
-2. Dump the swap-out pages (~819200 pages)
-3. Analyze the pages with simple test script which counts the iteration
-   number and measures the speed at off-line
-
-Under 64-bit arch, the worst iteration count is PAGE_SIZE / 8 bytes = 512.
-The speed is based on the time to consume page_same_filled() function
-only.  The result, on average, is listed as below:
-
-                                   Num of Iter    Speed(MB/s)
-Looping-Forward (Orig)                 38            99265
-Looping-Backward                       36           102725
-Last-element-check (This Patch)        33           125072
-
-The result shows that the average iteration count decreases by 13% and the
-speed increases by 25% with this patch.  This patch does not increase the
-overall time complexity, though.
-
-I also ran simpler version which uses backward loop.  Just looping
-backward also makes some improvement, but less than this patch.
-
-[taejoon.song@lge.com: fix off-by-one]
-  Link: http://lkml.kernel.org/r/1578642001-11765-1-git-send-email-taejoon.song@lge.com
-Link: http://lkml.kernel.org/r/1575424418-16119-1-git-send-email-taejoon.song@lge.com
-Signed-off-by: Taejoon Song <taejoon.song@lge.com>
+Link: http://lkml.kernel.org/r/20191128122958.178290-1-colin.king@canonical.com
+Fixes: a939888ec38b ("zram: support idle/huge page writeback")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-try-to-avoid-worst-case-scenario-on-same-element-pages
+--- a/drivers/block/zram/zram_drv.c~zram-fix-error-return-codes-not-being-returned-in-writeback_store
 +++ a/drivers/block/zram/zram_drv.c
-@@ -207,14 +207,17 @@ static inline void zram_fill_page(void *
+@@ -629,7 +629,7 @@ static ssize_t writeback_store(struct de
+ 	struct bio bio;
+ 	struct bio_vec bio_vec;
+ 	struct page *page;
+-	ssize_t ret;
++	ssize_t ret = len;
+ 	int mode;
+ 	unsigned long blk_idx = 0;
  
- static bool page_same_filled(void *ptr, unsigned long *element)
- {
--	unsigned int pos;
- 	unsigned long *page;
- 	unsigned long val;
-+	unsigned int pos, last_pos = PAGE_SIZE / sizeof(*page) - 1;
+@@ -765,7 +765,6 @@ next:
  
- 	page = (unsigned long *)ptr;
- 	val = page[0];
- 
--	for (pos = 1; pos < PAGE_SIZE / sizeof(*page); pos++) {
-+	if (val != page[last_pos])
-+		return false;
-+
-+	for (pos = 1; pos < last_pos; pos++) {
- 		if (val != page[pos])
- 			return false;
- 	}
+ 	if (blk_idx)
+ 		free_block_bdev(zram, blk_idx);
+-	ret = len;
+ 	__free_page(page);
+ release_init_lock:
+ 	up_read(&zram->init_lock);
 _
