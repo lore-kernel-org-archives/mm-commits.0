@@ -1,296 +1,138 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch removed
+ uapi-rename-ext2_swab-to-swab-and-share-globally-in-swabh.patch removed
  from -mm tree
-Date: Fri, 31 Jan 2020 15:20:28 -0800
-Message-ID: <20200131232028.UGpo1NWA-%akpm@linux-foundation.org>
+Date: Fri, 31 Jan 2020 15:20:33 -0800
+Message-ID: <20200131232033.k--YSbS8Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52304 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbgAaXUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:20:30 -0500
+        id S1726319AbgAaXUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:20:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, clm@fb.com, dsterba@suse.com, edward6@linux.ibm.com, gor@linux.ibm.com, heiko.carstens@de.ibm.com, iii@linux.ibm.com, josef@toxicpanda.com, mm-commits@vger.kernel.org, rpurdie@rpsys.net, zaslonko@linux.ibm.com
+To: allison@lohutok.net, joe@perches.com, mm-commits@vger.kernel.org, tglx@linutronix.de, vilhelm.gray@gmail.com, yury.norov@gmail.com
 
 
 The patch titled
-     Subject: btrfs: use larger zlib buffer for s390 hardware compression
+     Subject: uapi: rename ext2_swab() to swab() and share globally in swab.h
 has been removed from the -mm tree.  Its filename was
-     btrfs-use-larger-zlib-buffer-for-s390-hardware-compression.patch
+     uapi-rename-ext2_swab-to-swab-and-share-globally-in-swabh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Subject: btrfs: use larger zlib buffer for s390 hardware compression
+From: Yury Norov <yury.norov@gmail.com>
+Subject: uapi: rename ext2_swab() to swab() and share globally in swab.h
 
-In order to benefit from s390 zlib hardware compression support, increase
-the btrfs zlib workspace buffer size from 1 to 4 pages (if s390 zlib
-hardware support is enabled on the machine).  This brings up to 60% better
-performance in hardware on s390 compared to the PAGE_SIZE buffer and much
-more compared to the software zlib processing in btrfs.  In case of memory
-pressure, fall back to a single page buffer during workspace allocation.
+ext2_swab() is defined locally in lib/find_bit.c However it is not specific
+to ext2, neither to bitmaps.
 
-The data compressed with larger input buffers will still conform to zlib
-standard and thus can be decompressed also on a systems that uses only
-PAGE_SIZE buffer for btrfs zlib.
+There are many potential users of it, so rename it to just swab() and move
+to include/uapi/linux/swab.h
 
-Link: http://lkml.kernel.org/r/20200108105103.29028-1-zaslonko@linux.ibm.com
-Signed-off-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Reviewed-by: David Sterba <dsterba@suse.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Eduard Shishkin <edward6@linux.ibm.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+ABI guarantees that size of unsigned long corresponds to BITS_PER_LONG,
+therefore drop unneeded cast.
+
+Link: http://lkml.kernel.org/r/20200103202846.21616-1-yury.norov@gmail.com
+Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Cc: Allison Randal <allison@lohutok.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: William Breathitt Gray <vilhelm.gray@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/compression.c |    2 
- fs/btrfs/zlib.c        |  135 ++++++++++++++++++++++++++++-----------
- 2 files changed, 101 insertions(+), 36 deletions(-)
+ include/linux/swab.h      |    1 +
+ include/uapi/linux/swab.h |   10 ++++++++++
+ lib/find_bit.c            |   16 ++--------------
+ 3 files changed, 13 insertions(+), 14 deletions(-)
 
---- a/fs/btrfs/compression.c~btrfs-use-larger-zlib-buffer-for-s390-hardware-compression
-+++ a/fs/btrfs/compression.c
-@@ -1290,7 +1290,7 @@ int btrfs_decompress_buf2page(const char
- 	/* copy bytes from the working buffer into the pages */
- 	while (working_bytes > 0) {
- 		bytes = min_t(unsigned long, bvec.bv_len,
--				PAGE_SIZE - buf_offset);
-+				PAGE_SIZE - (buf_offset % PAGE_SIZE));
- 		bytes = min(bytes, working_bytes);
+--- a/include/linux/swab.h~uapi-rename-ext2_swab-to-swab-and-share-globally-in-swabh
++++ a/include/linux/swab.h
+@@ -7,6 +7,7 @@
+ # define swab16 __swab16
+ # define swab32 __swab32
+ # define swab64 __swab64
++# define swab __swab
+ # define swahw32 __swahw32
+ # define swahb32 __swahb32
+ # define swab16p __swab16p
+--- a/include/uapi/linux/swab.h~uapi-rename-ext2_swab-to-swab-and-share-globally-in-swabh
++++ a/include/uapi/linux/swab.h
+@@ -4,6 +4,7 @@
  
- 		kaddr = kmap_atomic(bvec.bv_page);
---- a/fs/btrfs/zlib.c~btrfs-use-larger-zlib-buffer-for-s390-hardware-compression
-+++ a/fs/btrfs/zlib.c
-@@ -20,9 +20,13 @@
- #include <linux/refcount.h>
- #include "compression.h"
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <asm/bitsperlong.h>
+ #include <asm/swab.h>
  
-+/* workspace buffer size for s390 zlib hardware support */
-+#define ZLIB_DFLTCC_BUF_SIZE    (4 * PAGE_SIZE)
+ /*
+@@ -132,6 +133,15 @@ static inline __attribute_const__ __u32
+ 	__fswab64(x))
+ #endif
+ 
++static __always_inline unsigned long __swab(const unsigned long y)
++{
++#if BITS_PER_LONG == 64
++	return __swab64(y);
++#else /* BITS_PER_LONG == 32 */
++	return __swab32(y);
++#endif
++}
 +
- struct workspace {
- 	z_stream strm;
- 	char *buf;
-+	unsigned int buf_size;
- 	struct list_head list;
- 	int level;
- };
-@@ -61,7 +65,21 @@ struct list_head *zlib_alloc_workspace(u
- 			zlib_inflate_workspacesize());
- 	workspace->strm.workspace = kvmalloc(workspacesize, GFP_KERNEL);
- 	workspace->level = level;
--	workspace->buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	workspace->buf = NULL;
-+	/*
-+	 * In case of s390 zlib hardware support, allocate lager workspace
-+	 * buffer. If allocator fails, fall back to a single page buffer.
-+	 */
-+	if (zlib_deflate_dfltcc_enabled()) {
-+		workspace->buf = kmalloc(ZLIB_DFLTCC_BUF_SIZE,
-+					 __GFP_NOMEMALLOC | __GFP_NORETRY |
-+					 __GFP_NOWARN | GFP_NOIO);
-+		workspace->buf_size = ZLIB_DFLTCC_BUF_SIZE;
-+	}
-+	if (!workspace->buf) {
-+		workspace->buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+		workspace->buf_size = PAGE_SIZE;
-+	}
- 	if (!workspace->strm.workspace || !workspace->buf)
- 		goto fail;
+ /**
+  * __swahw32 - return a word-swapped 32-bit value
+  * @x: value to wordswap
+--- a/lib/find_bit.c~uapi-rename-ext2_swab-to-swab-and-share-globally-in-swabh
++++ a/lib/find_bit.c
+@@ -149,18 +149,6 @@ EXPORT_SYMBOL(find_last_bit);
  
-@@ -85,6 +103,7 @@ int zlib_compress_pages(struct list_head
- 	struct page *in_page = NULL;
- 	struct page *out_page = NULL;
- 	unsigned long bytes_left;
-+	unsigned int in_buf_pages;
- 	unsigned long len = *total_out;
- 	unsigned long nr_dest_pages = *out_pages;
- 	const unsigned long max_out = nr_dest_pages * PAGE_SIZE;
-@@ -102,9 +121,6 @@ int zlib_compress_pages(struct list_head
- 	workspace->strm.total_in = 0;
- 	workspace->strm.total_out = 0;
+ #ifdef __BIG_ENDIAN
  
--	in_page = find_get_page(mapping, start >> PAGE_SHIFT);
--	data_in = kmap(in_page);
+-/* include/linux/byteorder does not support "unsigned long" type */
+-static inline unsigned long ext2_swab(const unsigned long y)
+-{
+-#if BITS_PER_LONG == 64
+-	return (unsigned long) __swab64((u64) y);
+-#elif BITS_PER_LONG == 32
+-	return (unsigned long) __swab32((u32) y);
+-#else
+-#error BITS_PER_LONG not defined
+-#endif
+-}
 -
- 	out_page = alloc_page(GFP_NOFS | __GFP_HIGHMEM);
- 	if (out_page == NULL) {
- 		ret = -ENOMEM;
-@@ -114,12 +130,51 @@ int zlib_compress_pages(struct list_head
- 	pages[0] = out_page;
- 	nr_pages = 1;
+ #if !defined(find_next_bit_le) || !defined(find_next_zero_bit_le)
+ static inline unsigned long _find_next_bit_le(const unsigned long *addr1,
+ 		const unsigned long *addr2, unsigned long nbits,
+@@ -177,7 +165,7 @@ static inline unsigned long _find_next_b
+ 	tmp ^= invert;
  
--	workspace->strm.next_in = data_in;
-+	workspace->strm.next_in = workspace->buf;
-+	workspace->strm.avail_in = 0;
- 	workspace->strm.next_out = cpage_out;
- 	workspace->strm.avail_out = PAGE_SIZE;
--	workspace->strm.avail_in = min(len, PAGE_SIZE);
+ 	/* Handle 1st word. */
+-	tmp &= ext2_swab(BITMAP_FIRST_WORD_MASK(start));
++	tmp &= swab(BITMAP_FIRST_WORD_MASK(start));
+ 	start = round_down(start, BITS_PER_LONG);
  
- 	while (workspace->strm.total_in < len) {
-+		/*
-+		 * Get next input pages and copy the contents to
-+		 * the workspace buffer if required.
-+		 */
-+		if (workspace->strm.avail_in == 0) {
-+			bytes_left = len - workspace->strm.total_in;
-+			in_buf_pages = min(DIV_ROUND_UP(bytes_left, PAGE_SIZE),
-+					   workspace->buf_size / PAGE_SIZE);
-+			if (in_buf_pages > 1) {
-+				int i;
-+
-+				for (i = 0; i < in_buf_pages; i++) {
-+					if (in_page) {
-+						kunmap(in_page);
-+						put_page(in_page);
-+					}
-+					in_page = find_get_page(mapping,
-+								start >> PAGE_SHIFT);
-+					data_in = kmap(in_page);
-+					memcpy(workspace->buf + i * PAGE_SIZE,
-+					       data_in, PAGE_SIZE);
-+					start += PAGE_SIZE;
-+				}
-+				workspace->strm.next_in = workspace->buf;
-+			} else {
-+				if (in_page) {
-+					kunmap(in_page);
-+					put_page(in_page);
-+				}
-+				in_page = find_get_page(mapping,
-+							start >> PAGE_SHIFT);
-+				data_in = kmap(in_page);
-+				start += PAGE_SIZE;
-+				workspace->strm.next_in = data_in;
-+			}
-+			workspace->strm.avail_in = min(bytes_left,
-+						       (unsigned long) workspace->buf_size);
-+		}
-+
- 		ret = zlib_deflate(&workspace->strm, Z_SYNC_FLUSH);
- 		if (ret != Z_OK) {
- 			pr_debug("BTRFS: deflate in loop returned %d\n",
-@@ -161,33 +216,43 @@ int zlib_compress_pages(struct list_head
- 		/* we're all done */
- 		if (workspace->strm.total_in >= len)
- 			break;
--
--		/* we've read in a full page, get a new one */
--		if (workspace->strm.avail_in == 0) {
--			if (workspace->strm.total_out > max_out)
--				break;
--
--			bytes_left = len - workspace->strm.total_in;
--			kunmap(in_page);
--			put_page(in_page);
--
--			start += PAGE_SIZE;
--			in_page = find_get_page(mapping,
--						start >> PAGE_SHIFT);
--			data_in = kmap(in_page);
--			workspace->strm.avail_in = min(bytes_left,
--							   PAGE_SIZE);
--			workspace->strm.next_in = data_in;
--		}
-+		if (workspace->strm.total_out > max_out)
-+			break;
- 	}
- 	workspace->strm.avail_in = 0;
--	ret = zlib_deflate(&workspace->strm, Z_FINISH);
--	zlib_deflateEnd(&workspace->strm);
--
--	if (ret != Z_STREAM_END) {
--		ret = -EIO;
--		goto out;
-+	/*
-+	 * Call deflate with Z_FINISH flush parameter providing more output
-+	 * space but no more input data, until it returns with Z_STREAM_END.
-+	 */
-+	while (ret != Z_STREAM_END) {
-+		ret = zlib_deflate(&workspace->strm, Z_FINISH);
-+		if (ret == Z_STREAM_END)
-+			break;
-+		if (ret != Z_OK && ret != Z_BUF_ERROR) {
-+			zlib_deflateEnd(&workspace->strm);
-+			ret = -EIO;
-+			goto out;
-+		} else if (workspace->strm.avail_out == 0) {
-+			/* get another page for the stream end */
-+			kunmap(out_page);
-+			if (nr_pages == nr_dest_pages) {
-+				out_page = NULL;
-+				ret = -E2BIG;
-+				goto out;
-+			}
-+			out_page = alloc_page(GFP_NOFS | __GFP_HIGHMEM);
-+			if (out_page == NULL) {
-+				ret = -ENOMEM;
-+				goto out;
-+			}
-+			cpage_out = kmap(out_page);
-+			pages[nr_pages] = out_page;
-+			nr_pages++;
-+			workspace->strm.avail_out = PAGE_SIZE;
-+			workspace->strm.next_out = cpage_out;
-+		}
- 	}
-+	zlib_deflateEnd(&workspace->strm);
- 
- 	if (workspace->strm.total_out >= workspace->strm.total_in) {
- 		ret = -E2BIG;
-@@ -231,7 +296,7 @@ int zlib_decompress_bio(struct list_head
- 
- 	workspace->strm.total_out = 0;
- 	workspace->strm.next_out = workspace->buf;
--	workspace->strm.avail_out = PAGE_SIZE;
-+	workspace->strm.avail_out = workspace->buf_size;
- 
- 	/* If it's deflate, and it's got no preset dictionary, then
- 	   we can tell zlib to skip the adler32 check. */
-@@ -270,7 +335,7 @@ int zlib_decompress_bio(struct list_head
- 		}
- 
- 		workspace->strm.next_out = workspace->buf;
--		workspace->strm.avail_out = PAGE_SIZE;
-+		workspace->strm.avail_out = workspace->buf_size;
- 
- 		if (workspace->strm.avail_in == 0) {
- 			unsigned long tmp;
-@@ -320,7 +385,7 @@ int zlib_decompress(struct list_head *ws
- 	workspace->strm.total_in = 0;
- 
- 	workspace->strm.next_out = workspace->buf;
--	workspace->strm.avail_out = PAGE_SIZE;
-+	workspace->strm.avail_out = workspace->buf_size;
- 	workspace->strm.total_out = 0;
- 	/* If it's deflate, and it's got no preset dictionary, then
- 	   we can tell zlib to skip the adler32 check. */
-@@ -364,7 +429,7 @@ int zlib_decompress(struct list_head *ws
- 			buf_offset = 0;
- 
- 		bytes = min(PAGE_SIZE - pg_offset,
--			    PAGE_SIZE - buf_offset);
-+			    PAGE_SIZE - (buf_offset % PAGE_SIZE));
- 		bytes = min(bytes, bytes_left);
- 
- 		kaddr = kmap_atomic(dest_page);
-@@ -375,7 +440,7 @@ int zlib_decompress(struct list_head *ws
- 		bytes_left -= bytes;
- next:
- 		workspace->strm.next_out = workspace->buf;
--		workspace->strm.avail_out = PAGE_SIZE;
-+		workspace->strm.avail_out = workspace->buf_size;
+ 	while (!tmp) {
+@@ -191,7 +179,7 @@ static inline unsigned long _find_next_b
+ 		tmp ^= invert;
  	}
  
- 	if (ret != Z_STREAM_END && bytes_left != 0)
+-	return min(start + __ffs(ext2_swab(tmp)), nbits);
++	return min(start + __ffs(swab(tmp)), nbits);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from zaslonko@linux.ibm.com are
+Patches currently in -mm which might be from yury.norov@gmail.com are
+
+lib-string-add-strnchrnul.patch
+bitops-more-bits_to_-macros.patch
+lib-add-test-for-bitmap_parse.patch
+lib-add-test-for-bitmap_parse-fix.patch
+lib-make-bitmap_parse_user-a-wrapper-on-bitmap_parse.patch
+lib-rework-bitmap_parse.patch
+lib-new-testcases-for-bitmap_parse_user.patch
+cpumask-dont-calculate-length-of-the-input-string.patch
