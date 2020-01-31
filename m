@@ -1,43 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- platform-x86-asus-wmi-switch-to-use-linux-unitsh-helpers.patch removed from
- -mm tree
-Date: Fri, 31 Jan 2020 15:19:49 -0800
-Message-ID: <20200131231949.8QUVIPmHb%akpm@linux-foundation.org>
+ platform-x86-intel_menlow-switch-to-use-linux-unitsh-helpers.patch removed
+ from -mm tree
+Date: Fri, 31 Jan 2020 15:19:52 -0800
+Message-ID: <20200131231952.tpc2DNsww%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51502 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbgAaXTw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:19:52 -0500
+        id S1726319AbgAaXTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:19:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, amit.kucheria@verdurent.com, andy.shevchenko@gmail.com, andy@infradead.org, axboe@fb.com, daniel.lezcano@linaro.org, dvhart@infradead.org, emmanuel.grumbach@intel.com, hch@lst.de, jdelvare@suse.com, jic23@kernel.org, johannes.berg@intel.com, Jonathan.Cameron@huawei.com, kbusch@kernel.org, knaack.h@gmx.de, kvalo@codeaurora.org, lars@metafoo.de, linux@roeck-us.net, luciano.coelho@intel.com, mm-commits@vger.kernel.org, pmeerw@pmeerw.net, rui.zhang@intel.com, sagi@grimberg.me, sgruszka@redhat.com, sujith.thomas@intel.com
 
 
 The patch titled
-     Subject: platform/x86: asus-wmi: switch to use <linux/units.h> helpers
+     Subject: platform/x86: intel_menlow: switch to use <linux/units.h> helpers
 has been removed from the -mm tree.  Its filename was
-     platform-x86-asus-wmi-switch-to-use-linux-unitsh-helpers.patch
+     platform-x86-intel_menlow-switch-to-use-linux-unitsh-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: platform/x86: asus-wmi: switch to use <linux/units.h> helpers
+Subject: platform/x86: intel_menlow: switch to use <linux/units.h> helpers
 
-The asus-wmi driver doesn't implement the thermal device functionality
-directly, so including <linux/thermal.h> just for DECI_KELVIN_TO_CELSIUS()
-is a bit odd.
+This switches the intel_menlow driver to use deci_kelvin_to_celsius() and
+celsius_to_deci_kelvin() in <linux/units.h> instead of helpers in
+<linux/thermal.h>.
 
-This switches the asus-wmi driver to use deci_kelvin_to_millicelsius() in
-<linux/units.h>.
+This is preparation for centralizing the kelvin to/from Celsius conversion
+helpers in <linux/units.h>.
 
-The format string is changed from %d to %ld due to function returned type.
+This also removes a trailing space, while we're at it.
 
-Link: http://lkml.kernel.org/r/1576386975-7941-4-git-send-email-akinobu.mita@gmail.com
+Link: http://lkml.kernel.org/r/1576386975-7941-5-git-send-email-akinobu.mita@gmail.com
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Sujith Thomas <sujith.thomas@intel.com>
 Cc: Darren Hart <dvhart@infradead.org>
 Cc: Andy Shevchenko <andy@infradead.org>
@@ -63,24 +63,42 @@ Cc: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/asus-wmi.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/platform/x86/intel_menlow.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/drivers/platform/x86/asus-wmi.c~platform-x86-asus-wmi-switch-to-use-linux-unitsh-helpers
-+++ a/drivers/platform/x86/asus-wmi.c
-@@ -33,9 +33,9 @@
- #include <linux/seq_file.h>
- #include <linux/platform_data/x86/asus-wmi.h>
- #include <linux/platform_device.h>
--#include <linux/thermal.h>
- #include <linux/acpi.h>
- #include <linux/dmi.h>
+--- a/drivers/platform/x86/intel_menlow.c~platform-x86-intel_menlow-switch-to-use-linux-unitsh-helpers
++++ a/drivers/platform/x86/intel_menlow.c
+@@ -22,6 +22,7 @@
+ #include <linux/slab.h>
+ #include <linux/thermal.h>
+ #include <linux/types.h>
 +#include <linux/units.h>
  
- #include <acpi/battery.h>
- #include <acpi/video.h>
-@@ -1514,9 +1514,8 @@ static ssize_t asus_hwmon_temp1(struct d
- 	if (err < 0)
- 		return err;
+ MODULE_AUTHOR("Thomas Sujith");
+ MODULE_AUTHOR("Zhang Rui");
+@@ -302,8 +303,10 @@ static ssize_t aux_show(struct device *d
+ 	int result;
  
--	value = DECI_KELVIN_TO_CELSIUS((value & 0xFFFF)) * 1000;
+ 	result = sensor_get_auxtrip(attr->handle, idx, &value);
++	if (result)
++		return result;
+ 
+-	return result ? result : sprintf(buf, "%lu", DECI_KELVIN_TO_CELSIUS(value));
++	return sprintf(buf, "%lu", deci_kelvin_to_celsius(value));
+ }
+ 
+ static ssize_t aux0_show(struct device *dev,
+@@ -332,8 +335,8 @@ static ssize_t aux_store(struct device *
+ 	if (value < 0)
+ 		return -EINVAL;
+ 
+-	result = sensor_set_auxtrip(attr->handle, idx, 
+-				    CELSIUS_TO_DECI_KELVIN(value));
++	result = sensor_set_auxtrip(attr->handle, idx,
++				    celsius_to_deci_kelvin(value));
+ 	return result ? result : count;
+ }
+ 
+_
+
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
