@@ -1,32 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 057/118] mm/vmscan: remove unused
- RECLAIM_OFF/RECLAIM_ZONE
-Date: Thu, 30 Jan 2020 22:14:14 -0800
-Message-ID: <20200131061414.EuUjkznlO%akpm@linux-foundation.org>
+Subject: [patch 058/118] tools/vm/slabinfo: fix sanity checks
+ enabling
+Date: Thu, 30 Jan 2020 22:14:17 -0800
+Message-ID: <20200131061417.tqdPF1W2m%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33942 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:14:16 -0500
+        id S1725907AbgAaGOS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:14:18 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, cl@linux.com, dwagner@suse.de, linux-mm@kvack.org, mm-commits@vger.kernel.org, tobin@kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cl@linux.com, dwagner@suse.de, linux-mm@kvack.org, mm-commits@vger.kernel.org, tobin@kernel.org, torvalds@linux-foundation.org
 
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE
+From: Daniel Wagner <dwagner@suse.de>
+Subject: tools/vm/slabinfo: fix sanity checks enabling
 
-commit 1b2ffb7896ad ("[PATCH] Zone reclaim: Allow modification of zone
-reclaim behavior")' defined RECLAIM_OFF/RECLAIM_ZONE, but never use them,
-so better to remove them.
+The sysfs file name for enabling sanity checking is called 'sanity_checks'
+and not 'sanity'.
 
-[dwagner@suse.de: fix sanity checks enabling]
-  Link: http://lkml.kernel.org/r/20200116131642.642-1-dwagner@suse.de
-[akpm@linux-foundation.org: renumber the bits for neatness]
-Link: http://lkml.kernel.org/r/1579005573-58923-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+The name of the file has never changed since the introduction of the slub
+allocator.  Obviously, most people turn the checks on via the command line
+option and not during runtime using slabinfo.
+
+Link: http://lkml.kernel.org/r/20200116131642.642-1-dwagner@suse.de
 Signed-off-by: Daniel Wagner <dwagner@suse.de>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: "Tobin C. Harding" <tobin@kernel.org>
@@ -34,22 +33,23 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ tools/vm/slabinfo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-unused-reclaim_off-reclaim_zone
-+++ a/mm/vmscan.c
-@@ -4110,10 +4110,8 @@ module_init(kswapd_init)
-  */
- int node_reclaim_mode __read_mostly;
+--- a/tools/vm/slabinfo.c~tools-vm-slabinfo-fix-sanity-checks-enabling
++++ a/tools/vm/slabinfo.c
+@@ -720,11 +720,11 @@ static void slab_debug(struct slabinfo *
+ 		return;
  
--#define RECLAIM_OFF 0
--#define RECLAIM_ZONE (1<<0)	/* Run shrink_inactive_list on the zone */
--#define RECLAIM_WRITE (1<<1)	/* Writeout pages during reclaim */
--#define RECLAIM_UNMAP (1<<2)	/* Unmap pages during reclaim */
-+#define RECLAIM_WRITE (1<<0)	/* Writeout pages during reclaim */
-+#define RECLAIM_UNMAP (1<<1)	/* Unmap pages during reclaim */
- 
- /*
-  * Priority for NODE_RECLAIM. This determines the fraction of pages
+ 	if (sanity && !s->sanity_checks) {
+-		set_obj(s, "sanity", 1);
++		set_obj(s, "sanity_checks", 1);
+ 	}
+ 	if (!sanity && s->sanity_checks) {
+ 		if (slab_empty(s))
+-			set_obj(s, "sanity", 0);
++			set_obj(s, "sanity_checks", 0);
+ 		else
+ 			fprintf(stderr, "%s not empty cannot disable sanity checks\n", s->name);
+ 	}
 _
