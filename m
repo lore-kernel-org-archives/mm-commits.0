@@ -1,70 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-remove-unused-reclaim_off-reclaim_zone-fix.patch removed from -mm
- tree
-Date: Thu, 30 Jan 2020 21:49:07 -0800
-Message-ID: <20200131054907.uTrISO6bB%akpm@linux-foundation.org>
+ zram-try-to-avoid-worst-case-scenario-on-same-element-pages-update.patch
+ removed from -mm tree
+Date: Thu, 30 Jan 2020 21:50:34 -0800
+Message-ID: <20200131055034.kF7x16YCk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51420 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51624 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726086AbgAaFtI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 00:49:08 -0500
+        id S1726086AbgAaFuf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 00:50:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, cl@linux.com, dwagner@suse.de, mm-commits@vger.kernel.org, tobin@kernel.org
+To: axboe@kernel.dk, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, taejoon.song@lge.com
 
 
 The patch titled
-     Subject: mm-vmscan-remove-unused-reclaim_off-reclaim_zone-fix
+     Subject: zram: try to avoid worst-case scenario on same element pages
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-unused-reclaim_off-reclaim_zone-fix.patch
+     zram-try-to-avoid-worst-case-scenario-on-same-element-pages-update.patch
 
-This patch was dropped because it was folded into mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+This patch was dropped because it was folded into zram-try-to-avoid-worst-case-scenario-on-same-element-pages.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-remove-unused-reclaim_off-reclaim_zone-fix
+From: Taejoon Song <taejoon.song@lge.com>
+Subject: zram: try to avoid worst-case scenario on same element pages
 
-renumber the bits for neatness
+fix off-by-one
 
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-From: Daniel Wagner <dwagner@suse.de>
-Subject: tools/vm/slabinfo: fix sanity checks enabling
-
-The sysfs file name for enabling sanity checking is called 'sanity_checks'
-and not 'sanity'.
-
-The name of the file has never changed since the introduction of the slub
-allocator.  Obviously, most people turn the checks on via the command line
-option and not during runtime using slabinfo.
-
-Link: http://lkml.kernel.org/r/20200116131642.642-1-dwagner@suse.de
-Signed-off-by: Daniel Wagner <dwagner@suse.de>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Tobin C. Harding" <tobin@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/1578642001-11765-1-git-send-email-taejoon.song@lge.com
+Signed-off-by: Taejoon Song <taejoon.song@lge.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-unused-reclaim_off-reclaim_zone-fix
-+++ a/mm/vmscan.c
-@@ -4118,8 +4118,8 @@ module_init(kswapd_init)
-  */
- int node_reclaim_mode __read_mostly;
+--- a/drivers/block/zram/zram_drv.c~zram-try-to-avoid-worst-case-scenario-on-same-element-pages-update
++++ a/drivers/block/zram/zram_drv.c
+@@ -217,7 +217,7 @@ static bool page_same_filled(void *ptr,
+ 	if (val != page[last_pos])
+ 		return false;
  
--#define RECLAIM_WRITE (1<<1)	/* Writeout pages during reclaim */
--#define RECLAIM_UNMAP (1<<2)	/* Unmap pages during reclaim */
-+#define RECLAIM_WRITE (1<<0)	/* Writeout pages during reclaim */
-+#define RECLAIM_UNMAP (1<<1)	/* Unmap pages during reclaim */
- 
- /*
-  * Priority for NODE_RECLAIM. This determines the fraction of pages
+-	for (pos = 1; pos < last_pos - 1; pos++) {
++	for (pos = 1; pos < last_pos; pos++) {
+ 		if (val != page[pos])
+ 			return false;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from taejoon.song@lge.com are
 
-mm-vmscan-remove-unused-reclaim_off-reclaim_zone.patch
+zram-try-to-avoid-worst-case-scenario-on-same-element-pages.patch
