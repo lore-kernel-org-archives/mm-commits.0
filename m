@@ -1,91 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap_next-should-increase-position-index.patch
- removed from -mm tree
-Date: Fri, 31 Jan 2020 15:18:13 -0800
-Message-ID: <20200131231813.fgPfTs2n6%akpm@linux-foundation.org>
+Subject: [merged] mm-cleanup-some-useless-code.patch removed from
+ -mm tree
+Date: Fri, 31 Jan 2020 15:18:15 -0800
+Message-ID: <20200131231815.Ztk7-Rl7m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50372 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50420 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727156AbgAaXSO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:18:14 -0500
+        id S1727156AbgAaXSQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:18:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, jannh@google.com, keescook@chromium.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, vvs@virtuozzo.com
+To: hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, pilgrimtao@gmail.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: swap_next should increase position index
+     Subject: mm/memcontrol.c: cleanup some useless code
 has been removed from the -mm tree.  Its filename was
-     swap_next-should-increase-position-index.patch
+     mm-cleanup-some-useless-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: mm/swapfile.c: swap_next should increase position index
+From: Kaitao Cheng <pilgrimtao@gmail.com>
+Subject: mm/memcontrol.c: cleanup some useless code
 
-If seq_file .next fuction does not change position index, read after some
-lseek can generate unexpected output.
+Compound pages handling in mem_cgroup_migrate is more convoluted than
+necessary.  The state is duplicated in compound variable and the same
+could be achieved by PageTransHuge check which is trivial and
+hpage_nr_pages is already PageTransHuge aware.
 
-In Aug 2018 NeilBrown noticed commit 1f4aace60b0e ("fs/seq_file.c:
-simplify seq_file iteration code and interface") "Some ->next functions do
-not increment *pos when they return NULL...  Note that such ->next
-functions are buggy and should be fixed.  A simple demonstration is
+It is much simpler to just use hpage_nr_pages for nr_pages and replace the
+local variable by PageTransHuge check directly
 
-dd if=/proc/swaps bs=1000 skip=1
-
-Choose any block size larger than the size of /proc/swaps.  This will
-always show the whole last line of /proc/swaps"
-
-Described problem is still actual.  If you make lseek into middle of last
-output line following read will output end of last line and whole last
-line once again.
-
-$ dd if=/proc/swaps bs=1  # usual output
-Filename				Type		Size	Used	Priority
-/dev/dm-0                               partition	4194812	97536	-2
-104+0 records in
-104+0 records out
-104 bytes copied
-
-$ dd if=/proc/swaps bs=40 skip=1    # last line was generated twice
-dd: /proc/swaps: cannot skip to specified offset
-v/dm-0                               partition	4194812	97536	-2
-/dev/dm-0                               partition	4194812	97536	-2
-3+1 records in
-3+1 records out
-131 bytes copied
-
-https://bugzilla.kernel.org/show_bug.cgi?id=206283
-
-Link: http://lkml.kernel.org/r/bd8cfd7b-ac95-9b91-f9e7-e8438bd5047d@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20191210160450.3395-1-pilgrimtao@gmail.com
+Signed-off-by: Kaitao Cheng <pilgrimtao@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~swap_next-should-increase-position-index
-+++ a/mm/swapfile.c
-@@ -2737,10 +2737,10 @@ static void *swap_next(struct seq_file *
- 	else
- 		type = si->type + 1;
+--- a/mm/memcontrol.c~mm-cleanup-some-useless-code
++++ a/mm/memcontrol.c
+@@ -6633,7 +6633,6 @@ void mem_cgroup_migrate(struct page *old
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned int nr_pages;
+-	bool compound;
+ 	unsigned long flags;
  
-+	++(*pos);
- 	for (; (si = swap_type_to_swap_info(type)); type++) {
- 		if (!(si->flags & SWP_USED) || !si->swap_map)
- 			continue;
--		++*pos;
- 		return si;
- 	}
+ 	VM_BUG_ON_PAGE(!PageLocked(oldpage), oldpage);
+@@ -6655,8 +6654,7 @@ void mem_cgroup_migrate(struct page *old
+ 		return;
  
+ 	/* Force-charge the new page. The old one will be freed soon */
+-	compound = PageTransHuge(newpage);
+-	nr_pages = compound ? hpage_nr_pages(newpage) : 1;
++	nr_pages = hpage_nr_pages(newpage);
+ 
+ 	page_counter_charge(&memcg->memory, nr_pages);
+ 	if (do_memsw_account())
+@@ -6666,7 +6664,8 @@ void mem_cgroup_migrate(struct page *old
+ 	commit_charge(newpage, memcg, false);
+ 
+ 	local_irq_save(flags);
+-	mem_cgroup_charge_statistics(memcg, newpage, compound, nr_pages);
++	mem_cgroup_charge_statistics(memcg, newpage, PageTransHuge(newpage),
++			nr_pages);
+ 	memcg_check_events(memcg, newpage);
+ 	local_irq_restore(flags);
+ }
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from pilgrimtao@gmail.com are
