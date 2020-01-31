@@ -1,116 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 016/118] ocfs2: fix a NULL pointer dereference
- when call ocfs2_update_inode_fsync_trans()
-Date: Thu, 30 Jan 2020 22:11:50 -0800
-Message-ID: <20200131061150.sr3i-hwSd%akpm@linux-foundation.org>
+Subject: [patch 017/118] ocfs2: use
+ ocfs2_update_inode_fsync_trans() to access t_tid in handle->h_transaction
+Date: Thu, 30 Jan 2020 22:11:53 -0800
+Message-ID: <20200131061153.rHsEYQ0oL%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58794 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGLx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:11:53 -0500
+        id S1726637AbgAaGLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:11:55 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org, wangyan122@huawei.com
 
 From: wangyan <wangyan122@huawei.com>
-Subject: ocfs2: fix a NULL pointer dereference when call ocfs2_update_inode_fsync_trans()
+Subject: ocfs2: use ocfs2_update_inode_fsync_trans() to access t_tid in handle->h_transaction
 
-I found a NULL pointer dereference in ocfs2_update_inode_fsync_trans(),
-handle->h_transaction may be NULL in this situation:
+For the uniform format, we use ocfs2_update_inode_fsync_trans() to access
+t_tid in handle->h_transaction
 
-ocfs2_file_write_iter
-  ->__generic_file_write_iter
-      ->generic_perform_write
-        ->ocfs2_write_begin
-          ->ocfs2_write_begin_nolock
-            ->ocfs2_write_cluster_by_desc
-              ->ocfs2_write_cluster
-                ->ocfs2_mark_extent_written
-                  ->ocfs2_change_extent_flag
-                    ->ocfs2_split_extent
-                      ->ocfs2_try_to_merge_extent
-                        ->ocfs2_extend_rotate_transaction
-                          ->ocfs2_extend_trans
-                            ->jbd2_journal_restart
-                              ->jbd2__journal_restart
-                                // handle->h_transaction is NULL here
-                                ->handle->h_transaction = NULL;
-                                ->start_this_handle
-                                  /* journal aborted due to storage
-                                     network disconnection, return error */
-                                  ->return -EROFS;
-                         /* line 3806 in ocfs2_try_to_merge_extent (),
-                            it will ignore ret error. */
-                        ->ret = 0;
-        ->...
-        ->ocfs2_write_end
-          ->ocfs2_write_end_nolock
-            ->ocfs2_update_inode_fsync_trans
-              // NULL pointer dereference
-              ->oi->i_sync_tid = handle->h_transaction->t_tid;
-
-The information of NULL pointer dereference as follows:
-    JBD2: Detected IO errors while flushing file data on dm-11-45
-    Aborting journal on device dm-11-45.
-    JBD2: Error -5 detected when updating journal superblock for dm-11-45.
-    (dd,22081,3):ocfs2_extend_trans:474 ERROR: status = -30
-    (dd,22081,3):ocfs2_try_to_merge_extent:3877 ERROR: status = -30
-    Unable to handle kernel NULL pointer dereference at
-    virtual address 0000000000000008
-    Mem abort info:
-      ESR = 0x96000004
-      Exception class = DABT (current EL), IL = 32 bits
-      SET = 0, FnV = 0
-      EA = 0, S1PTW = 0
-    Data abort info:
-      ISV = 0, ISS = 0x00000004
-      CM = 0, WnR = 0
-    user pgtable: 4k pages, 48-bit VAs, pgdp = 00000000e74e1338
-    [0000000000000008] pgd=0000000000000000
-    Internal error: Oops: 96000004 [#1] SMP
-    Process dd (pid: 22081, stack limit = 0x00000000584f35a9)
-    CPU: 3 PID: 22081 Comm: dd Kdump: loaded
-    Hardware name: Huawei TaiShan 2280 V2/BC82AMDD, BIOS 0.98 08/25/2019
-    pstate: 60400009 (nZCv daif +PAN -UAO)
-    pc : ocfs2_write_end_nolock+0x2b8/0x550 [ocfs2]
-    lr : ocfs2_write_end_nolock+0x2a0/0x550 [ocfs2]
-    sp : ffff0000459fba70
-    x29: ffff0000459fba70 x28: 0000000000000000
-    x27: ffff807ccf7f1000 x26: 0000000000000001
-    x25: ffff807bdff57970 x24: ffff807caf1d4000
-    x23: ffff807cc79e9000 x22: 0000000000001000
-    x21: 000000006c6cd000 x20: ffff0000091d9000
-    x19: ffff807ccb239db0 x18: ffffffffffffffff
-    x17: 000000000000000e x16: 0000000000000007
-    x15: ffff807c5e15bd78 x14: 0000000000000000
-    x13: 0000000000000000 x12: 0000000000000000
-    x11: 0000000000000000 x10: 0000000000000001
-    x9 : 0000000000000228 x8 : 000000000000000c
-    x7 : 0000000000000fff x6 : ffff807a308ed6b0
-    x5 : ffff7e01f10967c0 x4 : 0000000000000018
-    x3 : d0bc661572445600 x2 : 0000000000000000
-    x1 : 000000001b2e0200 x0 : 0000000000000000
-    Call trace:
-     ocfs2_write_end_nolock+0x2b8/0x550 [ocfs2]
-     ocfs2_write_end+0x4c/0x80 [ocfs2]
-     generic_perform_write+0x108/0x1a8
-     __generic_file_write_iter+0x158/0x1c8
-     ocfs2_file_write_iter+0x668/0x950 [ocfs2]
-     __vfs_write+0x11c/0x190
-     vfs_write+0xac/0x1c0
-     ksys_write+0x6c/0xd8
-     __arm64_sys_write+0x24/0x30
-     el0_svc_common+0x78/0x130
-     el0_svc_handler+0x38/0x78
-     el0_svc+0x8/0xc
-
-To prevent NULL pointer dereference in this situation, we use
-is_handle_aborted() before using handle->h_transaction->t_tid.
-
-Link: http://lkml.kernel.org/r/03e750ab-9ade-83aa-b000-b9e81e34e539@huawei.com
+Link: http://lkml.kernel.org/r/6ff9a312-5f7d-0e27-fb51-bc4e062fcd97@huawei.com
 Signed-off-by: Yan Wang <wangyan122@huawei.com>
 Reviewed-by: Jun Piao <piaojun@huawei.com>
 Cc: Mark Fasheh <mark@fasheh.com>
@@ -122,24 +33,19 @@ Cc: Gang He <ghe@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/ocfs2/namei.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/ocfs2/journal.h~ocfs2-fix-a-null-pointer-dereference-when-call-ocfs2_update_inode_fsync_trans
-+++ a/fs/ocfs2/journal.h
-@@ -597,9 +597,11 @@ static inline void ocfs2_update_inode_fs
- {
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+--- a/fs/ocfs2/namei.c~ocfs2-use-ocfs2_update_inode_fsync_trans-to-access-t_tid-in-handle-h_transaction
++++ a/fs/ocfs2/namei.c
+@@ -586,8 +586,7 @@ static int __ocfs2_mknod_locked(struct i
+ 			mlog_errno(status);
+ 	}
  
 -	oi->i_sync_tid = handle->h_transaction->t_tid;
--	if (datasync)
--		oi->i_datasync_tid = handle->h_transaction->t_tid;
-+	if (!is_handle_aborted(handle)) {
-+		oi->i_sync_tid = handle->h_transaction->t_tid;
-+		if (datasync)
-+			oi->i_datasync_tid = handle->h_transaction->t_tid;
-+	}
- }
+-	oi->i_datasync_tid = handle->h_transaction->t_tid;
++	ocfs2_update_inode_fsync_trans(handle, inode, 1);
  
- #endif /* OCFS2_JOURNAL_H */
+ leave:
+ 	if (status < 0) {
 _
