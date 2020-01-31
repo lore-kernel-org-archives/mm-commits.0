@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-io_uring-set-foll_pin-via-pin_user_pages.patch removed from -mm tree
-Date: Fri, 31 Jan 2020 15:17:59 -0800
-Message-ID: <20200131231759.DYg2w_a6W%akpm@linux-foundation.org>
+ mm-gup_benchmark-use-proper-foll_write-flags-instead-of-hard-coding-1.patch
+ removed from -mm tree
+Date: Fri, 31 Jan 2020 15:18:09 -0800
+Message-ID: <20200131231809.-VgaRietk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50044 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726469AbgAaXSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:18:00 -0500
+        id S1726469AbgAaXSK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:18:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex.williamson@redhat.com, aneesh.kumar@linux.ibm.com, axboe@kernel.dk, bjorn.topel@intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, hch@lst.de, hverkuil-cisco@xs4all.nl, ira.weiny@intel.com, jack@suse.cz, jgg@mellanox.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill@shutemov.name, leonro@mellanox.com, mchehab@kernel.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: fs/io_uring: set FOLL_PIN via pin_user_pages()
+     Subject: mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard=
+-coding "1"
 has been removed from the -mm tree.  Its filename was
-     fs-io_uring-set-foll_pin-via-pin_user_pages.patch
+     mm-gup_benchmark-use-proper-foll_write-flags-instead-of-hard-coding-1.=
+patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: fs/io_uring: set FOLL_PIN via pin_user_pages()
+Subject: mm/gup_benchmark: use proper FOLL_WRITE flags instead of hard-codi=
+ng "1"
 
-Convert fs/io_uring to use the new pin_user_pages() call, which sets
-FOLL_PIN.  Setting FOLL_PIN is now required for code that requires
-tracking of pinned pages, and therefore for any code that calls
-put_user_page().
+Fix the gup benchmark flags to use the symbolic FOLL_WRITE, instead of a
+hard-coded "1" value.
 
-In partial anticipation of this work, the io_uring code was already
-calling put_user_page() instead of put_page().  Therefore, in order to
-convert from the get_user_pages()/put_page() model, to the
-pin_user_pages()/put_user_page() model, the only change required here is
-to change get_user_pages() to pin_user_pages().
+Also, clean up the filtering of gup flags a little, by just doing it once
+before issuing any of the get_user_pages*() calls.  This makes it harder
+to overlook, instead of having little "gup_flags & 1" phrases in the
+function calls.
 
-Link: http://lkml.kernel.org/r/20200107224558.2362728-17-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200107224558.2362728-22-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
@@ -51,9 +51,10 @@ Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
@@ -63,20 +64,61 @@ Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/io_uring.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup_benchmark.c                         |    9 ++++++---
+ tools/testing/selftests/vm/gup_benchmark.c |    6 +++++-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
---- a/fs/io_uring.c~fs-io_uring-set-foll_pin-via-pin_user_pages
-+++ a/fs/io_uring.c
-@@ -6126,7 +6126,7 @@ static int io_sqe_buffer_register(struct
+--- a/mm/gup_benchmark.c~mm-gup_benchmark-use-proper-foll_write-flags-inste=
+ad-of-hard-coding-1
++++ a/mm/gup_benchmark.c
+@@ -49,18 +49,21 @@ static int __gup_benchmark_ioctl(unsigne
+ 			nr =3D (next - addr) / PAGE_SIZE;
+ 		}
 =20
- 		ret =3D 0;
- 		down_read(&current->mm->mmap_sem);
--		pret =3D get_user_pages(ubuf, nr_pages,
-+		pret =3D pin_user_pages(ubuf, nr_pages,
- 				      FOLL_WRITE | FOLL_LONGTERM,
- 				      pages, vmas);
- 		if (pret =3D=3D nr_pages) {
++		/* Filter out most gup flags: only allow a tiny subset here: */
++		gup->flags &=3D FOLL_WRITE;
++
+ 		switch (cmd) {
+ 		case GUP_FAST_BENCHMARK:
+-			nr =3D get_user_pages_fast(addr, nr, gup->flags & 1,
++			nr =3D get_user_pages_fast(addr, nr, gup->flags,
+ 						 pages + i);
+ 			break;
+ 		case GUP_LONGTERM_BENCHMARK:
+ 			nr =3D get_user_pages(addr, nr,
+-					    (gup->flags & 1) | FOLL_LONGTERM,
++					    gup->flags | FOLL_LONGTERM,
+ 					    pages + i, NULL);
+ 			break;
+ 		case GUP_BENCHMARK:
+-			nr =3D get_user_pages(addr, nr, gup->flags & 1, pages + i,
++			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
+ 					    NULL);
+ 			break;
+ 		default:
+--- a/tools/testing/selftests/vm/gup_benchmark.c~mm-gup_benchmark-use-prope=
+r-foll_write-flags-instead-of-hard-coding-1
++++ a/tools/testing/selftests/vm/gup_benchmark.c
+@@ -18,6 +18,9 @@
+ #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
+ #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
+=20
++/* Just the flags we need, copied from mm.h: */
++#define FOLL_WRITE	0x01	/* check pte is writable */
++
+ struct gup_benchmark {
+ 	__u64 get_delta_usec;
+ 	__u64 put_delta_usec;
+@@ -85,7 +88,8 @@ int main(int argc, char **argv)
+ 	}
+=20
+ 	gup.nr_pages_per_call =3D nr_pages;
+-	gup.flags =3D write;
++	if (write)
++		gup.flags |=3D FOLL_WRITE;
+=20
+ 	fd =3D open("/sys/kernel/debug/gup_benchmark", O_RDWR);
+ 	if (fd =3D=3D -1)
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
