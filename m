@@ -1,107 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-skip-non-present-sections-on-zone-initialization.patch
+Subject: [merged] mm-remove-the-memory-isolate-notifier.patch
  removed from -mm tree
-Date: Fri, 31 Jan 2020 15:18:27 -0800
-Message-ID: <20200131231827.BiP6OE8Ch%akpm@linux-foundation.org>
+Date: Fri, 31 Jan 2020 15:18:30 -0800
+Message-ID: <20200131231830.uh6VxiJ88%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50560 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50596 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726347AbgAaXS2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:18:28 -0500
+        id S1726347AbgAaXSd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:18:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pasha.tatashin@oracle.com, vbabka@suse.cz, zhi.jin@intel.com
+To: anshuman.khandual@arm.com, cai@lca.pw, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, kernelfans@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pasha.tatashin@soleen.com, rafael@kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: skip non present sections on zone initialization
+     Subject: mm: remove the memory isolate notifier
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-skip-non-present-sections-on-zone-initialization.patch
+     mm-remove-the-memory-isolate-notifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: mm/page_alloc: skip non present sections on zone initialization
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: remove the memory isolate notifier
 
-memmap_init_zone() can be called on the ranges with holes during the boot.
-It will skip any non-valid PFNs one-by-one.  It works fine as long as
-holes are not too big.
+Luckily, we have no users left, so we can get rid of it.  Cleanup
+set_migratetype_isolate() a little bit.
 
-But huge holes in the memory map causes a problem.  It takes over 20
-seconds to walk 32TiB hole.  x86-64 with 5-level paging allows for much
-larger holes in the memory map which would practically hang the system.
-
-Deferred struct page init doesn't help here.  It only works on the present
-ranges.
-
-Skipping non-present sections would fix the issue.
-
-Link: http://lkml.kernel.org/r/20191230093828.24613-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
+Link: http://lkml.kernel.org/r/20191114131911.11783-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: "Jin, Zhi" <zhi.jin@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Pingfan Liu <kernelfans@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ drivers/base/memory.c  |   19 -------------------
+ include/linux/memory.h |   27 ---------------------------
+ mm/page_isolation.c    |   38 ++++----------------------------------
+ 3 files changed, 4 insertions(+), 80 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-non-present-sections-on-zone-initialization
-+++ a/mm/page_alloc.c
-@@ -5848,6 +5848,30 @@ overlap_memmap_init(unsigned long zone,
- 	return false;
+--- a/drivers/base/memory.c~mm-remove-the-memory-isolate-notifier
++++ a/drivers/base/memory.c
+@@ -70,20 +70,6 @@ void unregister_memory_notifier(struct n
+ }
+ EXPORT_SYMBOL(unregister_memory_notifier);
+ 
+-static ATOMIC_NOTIFIER_HEAD(memory_isolate_chain);
+-
+-int register_memory_isolate_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&memory_isolate_chain, nb);
+-}
+-EXPORT_SYMBOL(register_memory_isolate_notifier);
+-
+-void unregister_memory_isolate_notifier(struct notifier_block *nb)
+-{
+-	atomic_notifier_chain_unregister(&memory_isolate_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+-
+ static void memory_block_release(struct device *dev)
+ {
+ 	struct memory_block *mem = to_memory_block(dev);
+@@ -175,11 +161,6 @@ int memory_notify(unsigned long val, voi
+ 	return blocking_notifier_call_chain(&memory_chain, val, v);
  }
  
-+#ifdef CONFIG_SPARSEMEM
-+/* Skip PFNs that belong to non-present sections */
-+static inline __meminit unsigned long next_pfn(unsigned long pfn)
-+{
-+	unsigned long section_nr;
-+
-+	section_nr = pfn_to_section_nr(++pfn);
-+	if (present_section_nr(section_nr))
-+		return pfn;
-+
-+	while (++section_nr <= __highest_present_section_nr) {
-+		if (present_section_nr(section_nr))
-+			return section_nr_to_pfn(section_nr);
-+	}
-+
-+	return -1;
-+}
-+#else
-+static inline __meminit unsigned long next_pfn(unsigned long pfn)
-+{
-+	return pfn++;
-+}
-+#endif
-+
+-int memory_isolate_notify(unsigned long val, void *v)
+-{
+-	return atomic_notifier_call_chain(&memory_isolate_chain, val, v);
+-}
+-
  /*
-  * Initially all pages are reserved - free ones are freed
-  * up by memblock_free_all() once the early boot process is
-@@ -5887,8 +5911,10 @@ void __meminit memmap_init_zone(unsigned
- 		 * function.  They do not exist on hotplugged memory.
- 		 */
- 		if (context == MEMMAP_EARLY) {
--			if (!early_pfn_valid(pfn))
-+			if (!early_pfn_valid(pfn)) {
-+				pfn = next_pfn(pfn) - 1;
- 				continue;
-+			}
- 			if (!early_pfn_in_nid(pfn, nid))
- 				continue;
- 			if (overlap_memmap_init(zone, &pfn))
+  * The probe routines leave the pages uninitialized, just as the bootmem code
+  * does. Make sure we do not access them, but instead use only information from
+--- a/include/linux/memory.h~mm-remove-the-memory-isolate-notifier
++++ a/include/linux/memory.h
+@@ -55,19 +55,6 @@ struct memory_notify {
+ 	int status_change_nid;
+ };
+ 
+-/*
+- * During pageblock isolation, count the number of pages within the
+- * range [start_pfn, start_pfn + nr_pages) which are owned by code
+- * in the notifier chain.
+- */
+-#define MEM_ISOLATE_COUNT	(1<<0)
+-
+-struct memory_isolate_notify {
+-	unsigned long start_pfn;	/* Start of range to check */
+-	unsigned int nr_pages;		/* # pages in range to check */
+-	unsigned int pages_found;	/* # pages owned found by callbacks */
+-};
+-
+ struct notifier_block;
+ struct mem_section;
+ 
+@@ -94,27 +81,13 @@ static inline int memory_notify(unsigned
+ {
+ 	return 0;
+ }
+-static inline int register_memory_isolate_notifier(struct notifier_block *nb)
+-{
+-	return 0;
+-}
+-static inline void unregister_memory_isolate_notifier(struct notifier_block *nb)
+-{
+-}
+-static inline int memory_isolate_notify(unsigned long val, void *v)
+-{
+-	return 0;
+-}
+ #else
+ extern int register_memory_notifier(struct notifier_block *nb);
+ extern void unregister_memory_notifier(struct notifier_block *nb);
+-extern int register_memory_isolate_notifier(struct notifier_block *nb);
+-extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
+ int create_memory_block_devices(unsigned long start, unsigned long size);
+ void remove_memory_block_devices(unsigned long start, unsigned long size);
+ extern void memory_dev_init(void);
+ extern int memory_notify(unsigned long val, void *v);
+-extern int memory_isolate_notify(unsigned long val, void *v);
+ extern struct memory_block *find_memory_block(struct mem_section *);
+ typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
+ extern int walk_memory_blocks(unsigned long start, unsigned long size,
+--- a/mm/page_isolation.c~mm-remove-the-memory-isolate-notifier
++++ a/mm/page_isolation.c
+@@ -18,9 +18,7 @@
+ static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags)
+ {
+ 	struct zone *zone;
+-	unsigned long flags, pfn;
+-	struct memory_isolate_notify arg;
+-	int notifier_ret;
++	unsigned long flags;
+ 	int ret = -EBUSY;
+ 
+ 	zone = page_zone(page);
+@@ -35,41 +33,11 @@ static int set_migratetype_isolate(struc
+ 	if (is_migrate_isolate_page(page))
+ 		goto out;
+ 
+-	pfn = page_to_pfn(page);
+-	arg.start_pfn = pfn;
+-	arg.nr_pages = pageblock_nr_pages;
+-	arg.pages_found = 0;
+-
+-	/*
+-	 * It may be possible to isolate a pageblock even if the
+-	 * migratetype is not MIGRATE_MOVABLE. The memory isolation
+-	 * notifier chain is used by balloon drivers to return the
+-	 * number of pages in a range that are held by the balloon
+-	 * driver to shrink memory. If all the pages are accounted for
+-	 * by balloons, are free, or on the LRU, isolation can continue.
+-	 * Later, for example, when memory hotplug notifier runs, these
+-	 * pages reported as "can be isolated" should be isolated(freed)
+-	 * by the balloon driver through the memory notifier chain.
+-	 */
+-	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
+-	notifier_ret = notifier_to_errno(notifier_ret);
+-	if (notifier_ret)
+-		goto out;
+ 	/*
+ 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
+ 	 * We just check MOVABLE pages.
+ 	 */
+-	if (!has_unmovable_pages(zone, page, arg.pages_found, migratetype,
+-				 isol_flags))
+-		ret = 0;
+-
+-	/*
+-	 * immobile means "not-on-lru" pages. If immobile is larger than
+-	 * removable-by-driver pages reported by notifier, we'll fail.
+-	 */
+-
+-out:
+-	if (!ret) {
++	if (!has_unmovable_pages(zone, page, 0, migratetype, isol_flags)) {
+ 		unsigned long nr_pages;
+ 		int mt = get_pageblock_migratetype(page);
+ 
+@@ -79,8 +47,10 @@ out:
+ 									NULL);
+ 
+ 		__mod_zone_freepage_state(zone, -nr_pages, mt);
++		ret = 0;
+ 	}
+ 
++out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	if (!ret)
+ 		drain_all_pages(zone);
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from david@redhat.com are
+
+mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section.patch
+fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection.patch
+mm-initialize-memmap-of-unavailable-memory-directly.patch
+mm-page_alloc-fix-and-rework-pfn-handling-in-memmap_init_zone.patch
+mm-factor-out-next_present_section_nr.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone.patch
+mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn.patch
+mm-memory_hotplug-dont-check-for-all-holes-in-shrink_zone_span.patch
+mm-memory_hotplug-drop-local-variables-in-shrink_zone_span.patch
+mm-memory_hotplug-cleanup-__remove_pages.patch
+mm-memory_hotplug-drop-valid_start-valid_end-from-test_pages_in_a_zone.patch
