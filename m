@@ -1,70 +1,80 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 047/118] mm/memcontrol.c: cleanup some useless
- code
-Date: Thu, 30 Jan 2020 22:13:42 -0800
-Message-ID: <20200131061342.PDzXlfRhI%akpm@linux-foundation.org>
+Subject: [patch 048/118] mm/page_vma_mapped.c: explicitly compare
+ pfn for normal, hugetlbfs and THP page
+Date: Thu, 30 Jan 2020 22:13:45 -0800
+Message-ID: <20200131061345.rmnyvhy32%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33298 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:13:43 -0500
+        id S1725907AbgAaGNq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:13:46 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, pilgrimtao@gmail.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Kaitao Cheng <pilgrimtao@gmail.com>
-Subject: mm/memcontrol.c: cleanup some useless code
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/page_vma_mapped.c: explicitly compare pfn for normal, hugetlbfs and THP page
 
-Compound pages handling in mem_cgroup_migrate is more convoluted than
-necessary.  The state is duplicated in compound variable and the same
-could be achieved by PageTransHuge check which is trivial and
-hpage_nr_pages is already PageTransHuge aware.
+When check_pte, pfn of normal, hugetlbfs and THP page need be compared. 
+The current implementation apply comparison as
 
-It is much simpler to just use hpage_nr_pages for nr_pages and replace the
-local variable by PageTransHuge check directly
+- normal 4K page: page_pfn <= pfn < page_pfn + 1
+- hugetlbfs page:  page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
+- THP page: page_pfn <= pfn < page_pfn + HPAGE_PMD_NR
 
-Link: http://lkml.kernel.org/r/20191210160450.3395-1-pilgrimtao@gmail.com
-Signed-off-by: Kaitao Cheng <pilgrimtao@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+in pfn_in_hpage.  For hugetlbfs page, it should be page_pfn == pfn
+
+Now, change pfn_in_hpage to pfn_is_match to highlight that comparison is
+not only for THP and explicitly compare for these cases.
+
+No impact upon current behavior, just make the code clear.  I think it
+is important to make the code clear - comparing hugetlbfs page in range
+page_pfn <= pfn < page_pfn + HPAGE_PMD_NR is confusing.
+
+Link: http://lkml.kernel.org/r/1578737885-8890-1-git-send-email-lixinhai.lxh@gmail.com
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/page_vma_mapped.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/memcontrol.c~mm-cleanup-some-useless-code
-+++ a/mm/memcontrol.c
-@@ -6633,7 +6633,6 @@ void mem_cgroup_migrate(struct page *old
- {
- 	struct mem_cgroup *memcg;
- 	unsigned int nr_pages;
--	bool compound;
- 	unsigned long flags;
- 
- 	VM_BUG_ON_PAGE(!PageLocked(oldpage), oldpage);
-@@ -6655,8 +6654,7 @@ void mem_cgroup_migrate(struct page *old
- 		return;
- 
- 	/* Force-charge the new page. The old one will be freed soon */
--	compound = PageTransHuge(newpage);
--	nr_pages = compound ? hpage_nr_pages(newpage) : 1;
-+	nr_pages = hpage_nr_pages(newpage);
- 
- 	page_counter_charge(&memcg->memory, nr_pages);
- 	if (do_memsw_account())
-@@ -6666,7 +6664,8 @@ void mem_cgroup_migrate(struct page *old
- 	commit_charge(newpage, memcg, false);
- 
- 	local_irq_save(flags);
--	mem_cgroup_charge_statistics(memcg, newpage, compound, nr_pages);
-+	mem_cgroup_charge_statistics(memcg, newpage, PageTransHuge(newpage),
-+			nr_pages);
- 	memcg_check_events(memcg, newpage);
- 	local_irq_restore(flags);
+--- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-explicitly-compare-pfn-for-normal-hugetlbfs-and-thp-page
++++ a/mm/page_vma_mapped.c
+@@ -52,12 +52,16 @@ static bool map_pte(struct page_vma_mapp
+ 	return true;
  }
+ 
+-static inline bool pfn_in_hpage(struct page *hpage, unsigned long pfn)
++static inline bool pfn_is_match(struct page *page, unsigned long pfn)
+ {
+-	unsigned long hpage_pfn = page_to_pfn(hpage);
++	unsigned long page_pfn = page_to_pfn(page);
++
++	/* normal page and hugetlbfs page */
++	if (!PageTransCompound(page) || PageHuge(page))
++		return page_pfn == pfn;
+ 
+ 	/* THP can be referenced by any subpage */
+-	return pfn >= hpage_pfn && pfn - hpage_pfn < hpage_nr_pages(hpage);
++	return pfn >= page_pfn && pfn - page_pfn < hpage_nr_pages(page);
+ }
+ 
+ /**
+@@ -108,7 +112,7 @@ static bool check_pte(struct page_vma_ma
+ 		pfn = pte_pfn(*pvmw->pte);
+ 	}
+ 
+-	return pfn_in_hpage(pvmw->page, pfn);
++	return pfn_is_match(pvmw->page, pfn);
+ }
+ 
+ /**
 _
