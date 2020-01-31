@@ -1,80 +1,118 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 067/118] mm/migrate: add stable check in
- migrate_vma_insert_page()
-Date: Thu, 30 Jan 2020 22:14:44 -0800
-Message-ID: <20200131061444.j7ctq9JFZ%akpm@linux-foundation.org>
+Subject: [patch 068/118] mm, thp: fix defrag setting if newline is
+ not used
+Date: Thu, 30 Jan 2020 22:14:48 -0800
+Message-ID: <20200131061448.X-yKx71ZM%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34578 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:14:46 -0500
+        id S1725907AbgAaGOu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:14:50 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bharata@linux.ibm.com, chris@chrisdown.name, hch@lst.de, jgg@mellanox.com, jglisse@redhat.com, jhubbard@nvidia.com, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, rcampbell@nvidia.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: add stable check in migrate_vma_insert_page()
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: fix defrag setting if newline is not used
 
-migrate_vma_insert_page() closely follows the code in:
-  __handle_mm_fault()
-    handle_pte_fault()
-      do_anonymous_page()
+If thp defrag setting "defer" is used and a newline is *not* used when
+writing to the sysfs file, this is interpreted as the "defer+madvise"
+option.
 
-Add a call to check_stable_address_space() after locking the page table
-entry before inserting a ZONE_DEVICE private zero page mapping similar to
-page faulting a new anonymous page.
+This is because we do prefix matching and if five characters are written
+without a newline, the current code ends up comparing to the first five
+bytes of the "defer+madvise" option and using that instead.
 
-Link: http://lkml.kernel.org/r/20200107211208.24595-4-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Chris Down <chris@chrisdown.name>
+Use the more appropriate sysfs_streq() that handles the trailing newline
+for us.  Since this doubles as a nice cleanup, do it in enabled_store() as
+well.
+
+
+The current implementation relies on prefix matching: the number of
+bytes compared is either the number of bytes written or the length of
+the option being compared.  With a newline, "defer\n" does not match
+"defer+"madvise"; without a newline, however, "defer" is considered to
+match "defer+madvise" (prefix matching is only comparing the first five
+bytes).  End result is that writing "defer" is broken unless it has an
+additional trailing character.
+
+This means that writing "madv" in the past would match and set
+"madvise".  With strict checking, that no longer is the case but it is
+unlikely anybody is currently doing this.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.21.2001171411020.56385@chino.kir.corp.google.com
+Fixes: 21440d7eb904 ("mm, thp: add new defer+madvise defrag option")
+Signed-off-by: David Rientjes <rientjes@google.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/huge_memory.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-add-stable-check-in-migrate_vma_insert_page
-+++ a/mm/migrate.c
-@@ -48,6 +48,7 @@
- #include <linux/page_owner.h>
- #include <linux/sched/mm.h>
- #include <linux/ptrace.h>
-+#include <linux/oom.h>
+--- a/mm/huge_memory.c~mm-thp-fix-defrag-setting-if-newline-is-not-used
++++ a/mm/huge_memory.c
+@@ -177,16 +177,13 @@ static ssize_t enabled_store(struct kobj
+ {
+ 	ssize_t ret = count;
  
- #include <asm/tlbflush.h>
- 
-@@ -2695,6 +2696,14 @@ int migrate_vma_setup(struct migrate_vma
- }
- EXPORT_SYMBOL(migrate_vma_setup);
- 
-+/*
-+ * This code closely matches the code in:
-+ *   __handle_mm_fault()
-+ *     handle_pte_fault()
-+ *       do_anonymous_page()
-+ * to map in an anonymous zero page but the struct page will be a ZONE_DEVICE
-+ * private page.
-+ */
- static void migrate_vma_insert_page(struct migrate_vma *migrate,
- 				    unsigned long addr,
- 				    struct page *page,
-@@ -2775,6 +2784,9 @@ static void migrate_vma_insert_page(stru
- 
- 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
- 
-+	if (check_stable_address_space(mm))
-+		goto unlock_abort;
-+
- 	if (pte_present(*ptep)) {
- 		unsigned long pfn = pte_pfn(*ptep);
- 
+-	if (!memcmp("always", buf,
+-		    min(sizeof("always")-1, count))) {
++	if (sysfs_streq(buf, "always")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("madvise", buf,
+-			   min(sizeof("madvise")-1, count))) {
++	} else if (sysfs_streq(buf, "madvise")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("never", buf,
+-			   min(sizeof("never")-1, count))) {
++	} else if (sysfs_streq(buf, "never")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 	} else
+@@ -250,32 +247,27 @@ static ssize_t defrag_store(struct kobje
+ 			    struct kobj_attribute *attr,
+ 			    const char *buf, size_t count)
+ {
+-	if (!memcmp("always", buf,
+-		    min(sizeof("always")-1, count))) {
++	if (sysfs_streq(buf, "always")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("defer+madvise", buf,
+-		    min(sizeof("defer+madvise")-1, count))) {
++	} else if (sysfs_streq(buf, "defer+madvise")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("defer", buf,
+-		    min(sizeof("defer")-1, count))) {
++	} else if (sysfs_streq(buf, "defer")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("madvise", buf,
+-			   min(sizeof("madvise")-1, count))) {
++	} else if (sysfs_streq(buf, "madvise")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("never", buf,
+-			   min(sizeof("never")-1, count))) {
++	} else if (sysfs_streq(buf, "never")) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
 _
