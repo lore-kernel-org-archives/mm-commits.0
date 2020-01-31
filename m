@@ -1,56 +1,90 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 102/118] lib/find_bit.c: uninline helper
- _find_next_bit()
-Date: Thu, 30 Jan 2020 22:16:47 -0800
-Message-ID: <20200131061647.eUs4jHkcZ%akpm@linux-foundation.org>
+Subject: [patch 103/118] fs/binfmt_elf.c: smaller code generation
+ around auxv vector fill
+Date: Thu, 30 Jan 2020 22:16:50 -0800
+Message-ID: <20200131061650.eU7j4dHkx%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37744 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37802 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726023AbgAaGQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:16:49 -0500
+        id S1726023AbgAaGQv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:16:51 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, allison@lohutok.net, joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org, vilhelm.gray@gmail.com, yury.norov@gmail.com
+To: adobriyan@gmail.com, akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Yury Norov <yury.norov@gmail.com>
-Subject: lib/find_bit.c: uninline helper _find_next_bit()
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs/binfmt_elf.c: smaller code generation around auxv vector fill
 
-It saves 25% of .text for arm64, and more for BE architectures.
+Filling auxv vector as array with index (auxv[i++] = ...) generates
+terrible code.  "saved_auxv" should be reworked because it is the worst
+member of mm_struct by size/usefullness ratio but do it later.
 
-Before:
-$ size lib/find_bit.o
-   text    data     bss     dec     hex filename
-   1012      56       0    1068     42c lib/find_bit.o
+Meanwhile help gcc a little with *auxv++ idiom.
 
-After:
-$ size lib/find_bit.o
-   text    data     bss     dec     hex filename
-    776      56       0     832     340 lib/find_bit.o
+Space savings on x86_64:
 
-Link: http://lkml.kernel.org/r/20200103202846.21616-3-yury.norov@gmail.com
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Allison Randal <allison@lohutok.net>
-Cc: William Breathitt Gray <vilhelm.gray@gmail.com>
-Cc: Joe Perches <joe@perches.com>
+	add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-127 (-127)
+	Function                                     old     new   delta
+	load_elf_binary                             5470    5343    -127
+
+Link: http://lkml.kernel.org/r/20191208172301.GD19716@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/find_bit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/lib/find_bit.c~lib-find_bitc-uninline-helper-_find_next_bit
-+++ a/lib/find_bit.c
-@@ -27,7 +27,7 @@
-  *    searching it for one bits.
-  *  - The optional "addr2", which is anded with "addr1" if present.
-  */
--static inline unsigned long _find_next_bit(const unsigned long *addr1,
-+static unsigned long _find_next_bit(const unsigned long *addr1,
- 		const unsigned long *addr2, unsigned long nbits,
- 		unsigned long start, unsigned long invert, unsigned long le)
- {
+--- a/fs/binfmt_elf.c~elf-smaller-code-generation-around-auxv-vector-fill
++++ a/fs/binfmt_elf.c
+@@ -176,7 +176,7 @@ create_elf_tables(struct linux_binprm *b
+ 	unsigned char k_rand_bytes[16];
+ 	int items;
+ 	elf_addr_t *elf_info;
+-	int ei_index = 0;
++	int ei_index;
+ 	const struct cred *cred = current_cred();
+ 	struct vm_area_struct *vma;
+ 
+@@ -230,8 +230,8 @@ create_elf_tables(struct linux_binprm *b
+ 	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
+ #define NEW_AUX_ENT(id, val) \
+ 	do { \
+-		elf_info[ei_index++] = id; \
+-		elf_info[ei_index++] = val; \
++		*elf_info++ = id; \
++		*elf_info++ = val; \
+ 	} while (0)
+ 
+ #ifdef ARCH_DLINFO
+@@ -275,12 +275,13 @@ create_elf_tables(struct linux_binprm *b
+ 	}
+ #undef NEW_AUX_ENT
+ 	/* AT_NULL is zero; clear the rest too */
+-	memset(&elf_info[ei_index], 0,
+-	       sizeof current->mm->saved_auxv - ei_index * sizeof elf_info[0]);
++	memset(elf_info, 0, (char *)current->mm->saved_auxv +
++			sizeof(current->mm->saved_auxv) - (char *)elf_info);
+ 
+ 	/* And advance past the AT_NULL entry.  */
+-	ei_index += 2;
++	elf_info += 2;
+ 
++	ei_index = elf_info - (elf_addr_t *)current->mm->saved_auxv;
+ 	sp = STACK_ADD(p, ei_index);
+ 
+ 	items = (argc + 1) + (envc + 1) + 1;
+@@ -338,7 +339,7 @@ create_elf_tables(struct linux_binprm *b
+ 	current->mm->env_end = p;
+ 
+ 	/* Put the elf_info on the stack in the right place.  */
+-	if (copy_to_user(sp, elf_info, ei_index * sizeof(elf_addr_t)))
++	if (copy_to_user(sp, current->mm->saved_auxv, ei_index * sizeof(elf_addr_t)))
+ 		return -EFAULT;
+ 	return 0;
+ }
 _
